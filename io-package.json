@@ -1,0 +1,66 @@
+{
+  "common": {
+    "name": "vis-2-widgets-collection",
+    "version": "0.0.0",
+    "news": {},
+    "title": "vis-2-widgets-collection.org",
+    "titleLang": {
+      "en": "Vis-Widget collection",
+      "de": "Vis-Widget collection",
+      "ru": "Vis-Widget collection",
+      "pt": "Vis-Widget collection",
+      "nl": "Vis-Widget collection",
+      "fr": "Vis-Widget collection",
+      "it": "Vis-Widget collection",
+      "es": "Vis-Widget collection",
+      "pl": "Vis-Widget collection",
+      "zh-cn": "Vis-Widget collection"
+    },
+    "desc": {
+      "en": "Vis-Widget collection",
+      "de": "Vis-Widget collection",
+      "ru": "Vis-Widget collection",
+      "pt": "Vis-Widget collection",
+      "nl": "Vis-Widget collection",
+      "fr": "Vis-Widget collection",
+      "it": "Vis-Widget collection",
+      "es": "Vis-Widget collection",
+      "pl": "Vis-Widget collection",
+      "zh-cn": "Vis-Widget collection"
+    },
+    "authors": ["Steiger04 <steiger04@posteo.de>"],
+    "keywords": ["vis-2-widgets-collection"],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "icon": "vis-2-widgets-collection.png",
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
+    "enabled": true,
+    "readme": "https://github.com/ioBroker/ioBroker.vis-2-widgets-collection/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "once",
+    "adminUI": {
+      "config": "none"
+    },
+    "onlyWWW": true,
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "tier": 3,
+    "type": "visualization-widgets",
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "visWidgets": {
+      "vis2CollectionWidget": {
+        "i18n": "component",
+        "name": "vis2CollectionWidget",
+        "url": "vis-2-widgets-collection/customWidgets.js",
+        "components": ["CollectionDemoWidget"]
+      }
+    },
+    "restartAdapters": ["vis-2"]
+  },
+  "native": {},
+  "objects": [],
+  "instanceObjects": []
+}
