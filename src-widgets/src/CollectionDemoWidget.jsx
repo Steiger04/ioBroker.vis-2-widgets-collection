@@ -6,11 +6,11 @@ import { VisRxWidget } from '@iobroker/vis-2-widgets-react-dev';
 class CollectionDemoWidget extends (window.visRxWidget || VisRxWidget) {
     static getWidgetInfo() {
         return {
-            id: 'tplDemoWidget',
-            visSet: 'demo',
+            id: 'tplCollectionDemoWidget',
+            visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
             visSetLabel: 'vis_2_widgets_template', // Widget set translated label (should be defined only in one widget of a set)
             visSetColor: '#cf00ff', // Color of a widget set. it is enough to set color only in one widget of a set
-            visName: 'DemoWidget', // Name of widget
+            visName: 'CollectionDemoWidget', // Name of widget
             visAttrs: [
                 {
                     name: 'common', // group name
@@ -37,7 +37,7 @@ class CollectionDemoWidget extends (window.visRxWidget || VisRxWidget) {
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
-            visPrev: 'widgets/vis-2-widgets-react-template/img/vis-widget-demo.png',
+            visPrev: 'widgets/vis-2-widgets-collection/img/vis-widget-demo.png',
         };
     }
 
