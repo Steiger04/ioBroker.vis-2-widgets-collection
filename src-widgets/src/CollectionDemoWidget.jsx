@@ -37,7 +37,7 @@ class CollectionDemoWidget extends (window.visRxWidget || VisRxWidget) {
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
-            visPrev: 'widgets/vis-2-widgets-collection/img/vis-widget-demo.png',
+            visPrev: 'widgets/vis-2-widgets-collection/img/prev-collection-demo.png',
         };
     }
 
