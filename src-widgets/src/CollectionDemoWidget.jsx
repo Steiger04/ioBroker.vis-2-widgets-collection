@@ -43,13 +43,13 @@ class CollectionDemoWidget extends (window.visRxWidget || VisRxWidget) {
 
     // eslint-disable-next-line class-methods-use-this
     propertiesUpdate() {
-    // The widget has 3 important states
-    // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
-    //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
-    // 2. this.state.rxData - contains all widget data with replaced bindings. E.g. if this.state.data.type is `{system.adapter.admin.0.alive}`,
-    //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
-    // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
-    //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
+        // The widget has 3 important states
+        // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
+        //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
+        // 2. this.state.rxData - contains all widget data with replaced bindings. E.g. if this.state.data.type is `{system.adapter.admin.0.alive}`,
+        //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
+        // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
+        //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
     }
 
     componentDidMount() {
@@ -85,15 +85,12 @@ class CollectionDemoWidget extends (window.visRxWidget || VisRxWidget) {
 
     renderWidgetBody(props) {
         super.renderWidgetBody(props);
-
         const text = CollectionDemoWidget.t('My Demo widget:');
 
         return (
             <Card style={{ width: '100%', height: '100%' }}>
                 <CardContent>
-                    {text}
-                    {' '}
-                    {this.state.values[`${this.state.rxData.oid}.val`]}
+                    {text} {this.state.values[`${this.state.rxData.oid}.val`]}
                 </CardContent>
             </Card>
         );

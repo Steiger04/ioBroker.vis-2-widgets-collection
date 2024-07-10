@@ -17,12 +17,10 @@ module.exports = {
         ecmaVersion: 'latest',
         sourceType: 'module',
     },
-    plugins: [
-        'only-warn',
-        'react',
-    ],
+    plugins: ['only-warn', 'react'],
     rules: {
         'arrow-parens': [1, 'as-needed'],
+        'react/jsx-one-expression-per-line': 'off',
         'react/jsx-indent': 'off',
         'react/jsx-indent-props': 'off',
         'react/no-access-state-in-setstate': 'off',
