@@ -2,7 +2,7 @@ module.exports = {
     printWidth: 120, // max 120 chars in line, code is easy to read
     useTabs: false, // use spaces instead of tabs
     tabWidth: 4, // "visual width" of of the "tab"
-    trailingComma: 'es5', // add trailing commas in objects, arrays, etc.
+    trailingComma: 'all', // add trailing commas in objects, arrays, etc.
     semi: true, // add ; when needed
     singleQuote: true, // '' for stings instead of ""
     bracketSpacing: true, // import { some } ... instead of import {some} ...
@@ -14,8 +14,8 @@ module.exports = {
         {
             files: 'src-widgets/src/i18n/*.json',
             options: {
-                useTabs: false,
-            },
-        },
-    ],
+                useTabs: false
+            }
+        }
+    ]
 };

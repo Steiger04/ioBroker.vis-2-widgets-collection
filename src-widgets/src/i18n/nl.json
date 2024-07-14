@@ -1,7 +1,6 @@
 {
-    "My Demo widget:": "Mijn demo-widget:",
-    "vis_2_widgets_template": "Widgetsjabloon",
-    "oid": "Object-ID",
-    "private": "Privaat",
-    "type": "Type"
+    "my empty widget": "Mijn lege widget",
+    "widgets_collection": "Widgets-collectie",
+    "empty_collection_widget": "Leeg",
+    "without_card": "Zonder grens"
 }

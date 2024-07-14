@@ -2,13 +2,16 @@
     "name": "iobroker.vis-widgets-react-collection",
     "private": true,
     "version": "0.0.0",
+    "devDependencies": {
+        "@iobroker/adapter-dev": "^1.3.0"
+    },
     "dependencies": {
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@craco/craco": "^7.1.0",
         "@iobroker/adapter-react-v5": "^6.0.14",
         "@iobroker/vis-2-widgets-react-dev": "^2.0.2",
-        "@mui/icons-material": "^5.16.0",
-        "@mui/material": "^5.16.0",
+        "@mui/icons-material": "^5.16.1",
+        "@mui/material": "^5.16.1",
         "craco-esbuild": "^0.6.1",
         "craco-module-federation": "^1.1.0",
         "eslint": "^8.57.0",
@@ -25,14 +28,15 @@
         "react-dom": "^18.3.1",
         "react-icons": "^5.2.1",
         "react-scripts": "^5.0.1",
-        "sass": "^1.77.7"
+        "sass": "^1.77.8"
     },
     "scripts": {
         "start": "set PORT=4173 && craco start",
         "lint": "eslint --fix --ext .js,.jsx src",
         "build": "craco build",
         "i18n": "node node_modules/@iobroker/vis-2-widgets-react-dev/searchI18n vis-2-widgets-collection",
-        "update-browsers": "npx browserslist@latest --update-db"
+        "update-browsers": "npx browserslist@latest --update-db",
+        "translate": "translate-adapter -a ../src-widgets -p ../io-package.json"
     },
     "eslintConfig": {
         "extends": "react-app"

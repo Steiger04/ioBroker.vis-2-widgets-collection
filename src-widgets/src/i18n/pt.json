@@ -1,7 +1,6 @@
 {
-    "My Demo widget:": "Meu widget de demonstração:",
-    "vis_2_widgets_template": "Modelo de widgets",
-    "oid": "ID do objeto",
-    "private": "Privado",
-    "type": "Modelo"
+    "my empty widget": "Meu widget vazio",
+    "widgets_collection": "Coleção de widgets",
+    "empty_collection_widget": "Vazio",
+    "without_card": "Sem fronteira"
 }

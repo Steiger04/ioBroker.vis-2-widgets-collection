@@ -1,7 +1,6 @@
 {
-    "My Demo widget:": "Widżet Moje demo:",
-    "vis_2_widgets_template": "Szablon widżetów",
-    "oid": "Identyfikator obiektu",
-    "private": "Prywatny",
-    "type": "Rodzaj"
+    "my empty widget": "Mój pusty widget",
+    "widgets_collection": "Kolekcja widżetów",
+    "empty_collection_widget": "Pusty",
+    "without_card": "Bez granicy"
 }
