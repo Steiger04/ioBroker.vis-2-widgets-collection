@@ -27,7 +27,7 @@ gulp.task('widget-3-copy', () => Promise.all([
     gulp.src([`${SRC}build/*.map`]).pipe(gulp.dest(`widgets/${adapterName}`)),
     gulp.src([
         `${SRC}build/static/**/*`,
-        ...gulpHelper.ignoreFiles(SRC),
+        // ...gulpHelper.ignoreFiles(SRC),
     ]).pipe(gulp.dest(`widgets/${adapterName}/static`)),
     gulp.src([
         ...gulpHelper.copyFiles(SRC),
