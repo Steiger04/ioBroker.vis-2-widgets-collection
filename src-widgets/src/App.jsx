@@ -3,7 +3,7 @@ import React from "react";
 import { i18n as I18n } from "@iobroker/adapter-react-v5";
 import WidgetDemoApp from "@iobroker/vis-2-widgets-react-dev/widgetDemoApp";
 
-import EmptyCollectionWidget from "./EmptyCollectionWidget";
+import StateCollectionWidget from "./StateCollectionWidget/StateCollectionWidget";
 import translations from "./translations";
 
 import { getProps } from "@iobroker/vis-2-widgets-react-dev/visDevUtils";
@@ -42,7 +42,7 @@ class App extends WidgetDemoApp {
 					height: 200,
 				}}
 			>
-				<EmptyCollectionWidget {...this.widgetProps} />
+				<StateCollectionWidget {...this.widgetProps} />
 			</div>
 		);
 	}
