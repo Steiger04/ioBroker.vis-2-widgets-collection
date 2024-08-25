@@ -5,27 +5,45 @@ import { CollectionContext } from "../components/CollectionProvider";
 function StateRound() {
 	const { t, widget, oidObject, refService } = useContext(CollectionContext);
 
-	const _refHeight = refService?.current?.clientHeight;
-	const _refWidth = refService?.current?.clientWidth;
-	const _noCard = widget.data.noCard;
-
-	const withAndHeight = useMemo(() => {
-		let refHeight;
-		let refWidth;
-
-		if (_noCard) {
-			refHeight = _refHeight;
-			refWidth = _refWidth;
-		} else {
-			refHeight = _refHeight - 40;
-			refWidth = _refWidth - 40;
+	const paperWidth = useMemo(() => {
+		if (refService?.current?.clientWidth && refService?.current?.clientHeight) {
+			if (refService.current.clientWidth < refService.current.clientHeight) {
+				if (widget.data.noCard) {
+					return refService.current.clientWidth;
+				}
+				return refService.current.clientWidth - 40;
+			}
+			if (widget.data.noCard) {
+				return refService.current.clientHeight;
+			}
+			return refService.current.clientHeight - 40;
 		}
+		return "100%";
+	}, [
+		widget.data.noCard,
+		refService?.current?.clientHeight,
+		refService?.current?.clientWidth,
+	]);
 
-		if (refHeight > refWidth) {
-			return refWidth;
+	const paperHeight = useMemo(() => {
+		if (refService?.current?.clientHeight && refService?.current?.clientWidth) {
+			if (refService.current.clientHeight < refService.current.clientWidth) {
+				if (widget.data.noCard) {
+					return refService.current.clientHeight;
+				}
+				return refService.current.clientHeight - 40;
+			}
+			if (widget.data.noCard) {
+				return refService.current.clientWidth;
+			}
+			return refService.current.clientWidth - 40;
 		}
-		return refHeight;
-	}, [_refHeight, _refWidth, _noCard]);
+		return "100%";
+	}, [
+		widget.data.noCard,
+		refService?.current?.clientHeight,
+		refService?.current?.clientWidth,
+	]);
 
 	return widget.data.circle ? (
 		<Paper
@@ -39,8 +57,8 @@ function StateRound() {
 				/* "&.MuiPaper-elevation1": {
 					boxShadow: "none",
 				}, */
-				width: withAndHeight,
-				height: withAndHeight,
+				width: paperWidth,
+				height: paperHeight,
 				display: "flex",
 				flexDirection: "column",
 				overflowY: "auto",

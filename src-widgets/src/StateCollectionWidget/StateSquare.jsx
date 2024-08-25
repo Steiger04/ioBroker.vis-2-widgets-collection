@@ -10,7 +10,6 @@ function StateRound() {
 			elevation="6"
 			sx={{
 				bgcolor: widget.style["background-color"],
-				// bgcolor: "red",
 				/* "&.MuiPaper-rounded": {
 					borderRadius: "0",
 				}, */

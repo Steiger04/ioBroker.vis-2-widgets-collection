@@ -19,24 +19,20 @@ function CollectionProvider({ mode, children, ...props }) {
 			mode === "dark"
 				? {
 						palette: {
-							mode,
+							type: "dark",
 							primary: {
-								main: "#90caf9",
+								main: "#bd0707",
 							},
 							secondary: {
-								main: "#ce93d8",
+								main: "#ffc510",
 							},
 							background: {
-								default: "#252525",
-								paper: "rgba(57,57,57,1)",
-							},
-							text: {
-								primary: "#4dc3ff",
-								secondary: "#c0d2ff",
+								default: "#4c69f6",
+								paper: "#4c94f6",
 							},
 						},
 						typography: {
-							fontFamily: "Oswald",
+							fontFamily: "Bangers",
 						},
 					}
 				: {};

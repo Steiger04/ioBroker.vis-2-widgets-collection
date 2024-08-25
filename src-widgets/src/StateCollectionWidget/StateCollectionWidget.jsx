@@ -138,8 +138,8 @@ class StateCollectionWidget extends Generic {
 	renderWidgetBody(props) {
 		super.renderWidgetBody(props);
 
-		console.log("inside renderWidgetBody --> props", props);
-		console.log("inside renderWidgetBody --> this", this);
+		// console.log("inside renderWidgetBody --> props", props);
+		// console.log("inside renderWidgetBody --> this", this);
 		// console.log("inside renderWidgetBody --> theme", this.props.context.theme);
 
 		if (!props.style.height) {
