@@ -1,3 +1,4 @@
+import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
@@ -153,6 +154,7 @@ class StateCollectionWidget extends Generic {
 		const collectionContext = {
 			...props,
 			t: (text) => StateCollectionWidget.t(text),
+			getPropertyValue: this.getPropertyValue,
 			mode: this.props.context.themeType,
 			rxData: this.state.rxData,
 			rxStyle: this.state.rxStyle,
@@ -166,12 +168,8 @@ class StateCollectionWidget extends Generic {
 			return withCollectionProvider(<StateCollection />, collectionContext);
 		}
 
-		return withCollectionProvider(
-			this.wrapContent(<StateCollection />, null, {
-				justifyContent: "center",
-				alignItems: "center",
-			}),
-			collectionContext,
+		return this.wrapContent(
+			withCollectionProvider(<StateCollection />, collectionContext),
 		);
 	}
 }

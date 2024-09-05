@@ -5,8 +5,11 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 		return "vis_2_widgets_collection_";
 	}
 
-	getPropertyValue = (stateName) =>
-		this.state.values[`${this.state.rxData[stateName]}.val`];
+	getPropertyValue = (stateName) => {
+		console.log("GET PROPERTY VALUE", stateName);
+		console.log("this", this);
+		return this.state.values[`${this.state.rxData[stateName]}.val`];
+	};
 
 	async getParentObject(id) {
 		const parts = id.split(".");
