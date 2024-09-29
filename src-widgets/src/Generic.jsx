@@ -1,13 +1,28 @@
 import { VisRxWidget } from "@iobroker/vis-2-widgets-react-dev";
+import { Box, Paper } from "@mui/material";
 
 class Generic extends (window.visRxWidget || VisRxWidget) {
+	constructor(props) {
+		super({
+			...props,
+			customSettings: {
+				viewStyle: {
+					visCard: {
+						margin: 8,
+					},
+				},
+			},
+		});
+
+		console.log("Generic inside constructor -> props", props);
+	}
 	static getI18nPrefix() {
 		return "vis_2_widgets_collection_";
 	}
 
 	getPropertyValue = (stateName) => {
-		console.log("GET PROPERTY VALUE", stateName);
-		console.log("this", this);
+		// console.log("GET PROPERTY VALUE", stateName);
+		// console.log("this", this);
 		return this.state.values[`${this.state.rxData[stateName]}.val`];
 	};
 
@@ -66,6 +81,17 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 			this.state.rxData[stateName] === "nothing_selected"
 		) {
 			this.setState({ [`${stateName}Object`]: { common: {} } });
+
+			if (this.state.rxData.icon) {
+				this.setState({
+					[`${stateName}Object`]: {
+						common: {
+							icon: this.state.rxData.icon,
+						},
+					},
+				});
+			}
+
 			return;
 		}
 		// read object itself
@@ -96,7 +122,10 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 			object.common.states = states;
 		}
 
-		if (
+		console.log("ICON", this.state.rxData.icon);
+		if (this.state.rxData.icon) {
+			object.common.icon = this.state.rxData.icon;
+		} else if (
 			!object.common.icon &&
 			(object.type === "state" || object.type === "channel")
 		) {
@@ -146,6 +175,24 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 		) {
 			this.setState({ [`${stateName}Object`]: object });
 		}
+	}
+
+	wrapContent2(content) {
+		return (
+			<Paper
+				sx={{
+					height: "calc(100% - 8px)",
+					width: "calc(100% - 8px)",
+					m: "4px",
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+					boxSizing: "border-box",
+				}}
+			>
+				{content}
+			</Paper>
+		);
 	}
 }
 

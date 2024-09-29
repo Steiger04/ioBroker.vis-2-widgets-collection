@@ -10,52 +10,29 @@ import {
 } from "@mui/material";
 import React, { useContext, useCallback, useRef } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
+import usePaperHeight from "./usePaperHeight";
+import usePaperWidth from "./usePaperWidth";
 
 function StateCollection() {
-	const refService = useRef(null);
 	const { getPropertyValue, widget, oidObject } = useContext(CollectionContext);
 
-	console.log("OID OBJECT", oidObject);
+	console.log("inside StateCollection -> widget", widget);
 
-	const paperWidth = useCallback(() => {
-		if (refService?.current?.clientWidth && refService?.current?.clientHeight) {
-			if (refService.current.clientWidth < refService.current.clientHeight) {
-				if (widget.data.noCard) {
-					return refService.current.clientWidth;
-				}
-				return refService.current.clientWidth;
-			}
-			if (widget.data.noCard) {
-				return refService.current.clientHeight;
-			}
-			return refService.current.clientHeight;
-		}
-		return "100%";
-	}, [widget.data.noCard]);
-
-	const paperHeight = useCallback(() => {
-		if (refService?.current?.clientHeight && refService?.current?.clientWidth) {
-			if (refService.current.clientHeight < refService.current.clientWidth) {
-				if (widget.data.noCard) {
-					return refService.current.clientHeight;
-				}
-				return refService.current.clientHeight;
-			}
-			if (widget.data.noCard) {
-				return refService.current.clientWidth;
-			}
-			return refService.current.clientWidth;
-		}
-		return "100%";
-	}, [widget.data.noCard]);
+	const refService = useRef(null);
+	const paperWidth = usePaperWidth(refService);
+	const paperHeight = usePaperHeight(refService);
 
 	const theme = useTheme();
 
+	console.log("inside StateCollection -> refService", refService);
+
 	return (
 		<Stack
-			component={widget.data.noCard ? Card : Box}
 			spacing={1}
+			// component={widget.data.noCard ? Card : Box}
+			component={Paper}
 			sx={{
+				padding: 4,
 				height: "100%",
 				width: "100%",
 				"&.MuiCard-root": () =>
@@ -64,6 +41,10 @@ function StateCollection() {
 						boxShadow: "none",
 						backgroundColor: "transparent",
 					},
+				display: "flex",
+				flexDirection: "column",
+				// justifyContent: "space-between",
+				alignItems: "center",
 			}}
 		>
 			<Box>
@@ -75,7 +56,7 @@ function StateCollection() {
 				sx={{
 					height: "100%",
 					width: "100%",
-					display: "flex",
+					display: "inline-flex",
 					justifyContent: "center",
 					alignItems: "center",
 				}}
@@ -83,40 +64,41 @@ function StateCollection() {
 				<Button
 					// disabled
 					sx={{
-						p: 0,
-						borderRadius: widget.data.circle ? "50%" : "0%",
 						width: paperWidth,
 						height: paperHeight,
-						display: "flex",
-						flexDirection: "column",
-						justifyContent: "center",
-						alignItems: "center",
+						p: 0,
+						borderRadius: widget.data.circle ? "50%" : "0%",
 					}}
 				>
 					<Avatar
 						component={Paper}
 						variant={widget.data.circle ? "round" : "rounded"}
 						sx={{
+							zIndex: 10000,
+							width: paperWidth,
+							height: paperHeight,
+							// width: "auto",
+							// height: "auto",
 							opacity: 1,
 							transition: "opacity 0s ease 0s",
 							"&:hover": {
 								opacity: 0.4,
 								filter: "brightness(2)",
 							},
-							width: "100%",
-							height: "100%",
 							bgcolor: widget.style["background-color"]
 								? widget.style["background-color"]
 								: "inherit",
 							"&.MuiPaper-elevation1": {
 								boxShadow: "none",
 							},
+							filter: `drop-shadow(0px 1000px 0 ${widget.data.iconColor})`,
+							transform: "translateY(-1000px)",
 						}}
 						src={oidObject?.common?.icon}
 					>
-						<Typography variant="subtitle2">
+						{/* <Typography variant="subtitle2">
 							{String(getPropertyValue("oid"))}
-						</Typography>
+						</Typography> */}
 					</Avatar>
 				</Button>
 			</Box>

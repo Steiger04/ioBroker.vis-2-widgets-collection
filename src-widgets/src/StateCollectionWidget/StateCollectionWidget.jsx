@@ -2,15 +2,9 @@ import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
+import StateCollection2 from "./StateCollection2";
 
 class StateCollectionWidget extends Generic {
-	// biome-ignore lint/complexity/noUselessConstructor: <explanation>
-	constructor(props) {
-		super(props);
-
-		// console.log("inside constructor", props);
-	}
-
 	static getWidgetInfo() {
 		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
 			if (data.oid) {
@@ -58,6 +52,18 @@ class StateCollectionWidget extends Generic {
 							type: "checkbox",
 						},
 						{
+							name: "outlined",
+							label: "outlined",
+							type: "checkbox",
+							// hidden: "!!data.noCard",
+						},
+						{
+							name: "square",
+							label: "square",
+							type: "checkbox",
+							// hidden: "!!data.noCard",
+						},
+						{
 							name: "circle",
 							label: "circle",
 							type: "checkbox",
@@ -67,6 +73,19 @@ class StateCollectionWidget extends Generic {
 							type: "id",
 							label: "oid",
 							onChange: oidChangeHandlerAsync,
+						},
+						{
+							name: "icon",
+							// type: "icon64",
+							type: "image",
+							// hidden: '!!data.noIcon || !!data.iconSmall',
+							label: "icon",
+						},
+						{
+							name: "iconColor",
+							label: "icon_color",
+							type: "color",
+							default: "rgba(100,100,100,0.8)",
 						},
 					],
 				},
@@ -128,15 +147,15 @@ class StateCollectionWidget extends Generic {
 	}
 
 	async componentDidMount() {
-		super.componentDidMount();
-
 		console.log("inside componentDidMount");
+		super.componentDidMount();
 
 		// Update data
 		await this.propertiesUpdate();
 	}
 
 	renderWidgetBody(props) {
+		console.log("inside renderWidgetBody", props);
 		super.renderWidgetBody(props);
 
 		// console.log("inside renderWidgetBody --> props", props);
@@ -164,12 +183,16 @@ class StateCollectionWidget extends Generic {
 			theme: this.props.context.theme,
 		};
 
+		this.wrappedContent = true;
+
 		if (props.widget.data.noCard || props.widget.usedInWidget) {
-			return withCollectionProvider(<StateCollection />, collectionContext);
+			// return withCollectionProvider(<StateCollection />, collectionContext);
+			return withCollectionProvider(<StateCollection2 />, collectionContext);
 		}
 
-		return this.wrapContent(
-			withCollectionProvider(<StateCollection />, collectionContext),
+		return withCollectionProvider(
+			this.wrapContent2(<StateCollection2 />),
+			collectionContext,
 		);
 	}
 }
