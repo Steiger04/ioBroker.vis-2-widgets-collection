@@ -83,11 +83,11 @@ function CollectionProvider({ mode, theme, children, ...props }) {
 								fontWeight,
 								letterSpacing,
 							},
-							styleOverrides: {
+							/* styleOverrides: {
 								root: {
 									wordBreak: "break-word",
 								},
-							},
+							}, */
 						},
 					},
 				}),

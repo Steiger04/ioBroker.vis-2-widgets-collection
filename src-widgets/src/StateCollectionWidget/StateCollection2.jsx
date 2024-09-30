@@ -1,74 +1,78 @@
-import { Box, Paper, Typography } from "@mui/material";
-import React, { useContext, useEffect, useState } from "react";
+import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import React, { useContext, useRef } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
-
-const POSSIBLE_MUI_STYLES = [
-	"background",
-	"background-color",
-	"background-image",
-	"background-position",
-	"background-repeat",
-	"background-size",
-	"background-clip",
-	"background-origin",
-	"box-sizing",
-	"border",
-	"border-width",
-	"border-style",
-	"border-color",
-	"border-radius",
-	"box-shadow",
-	// "color",
-	// "text-align",
-	"text-shadow",
-	// "font-family",
-	// "font-size",
-	// "font-weight",
-	// "font-style",
-	"font-variant",
-	// "line-height",
-	// "letter-spacing",
-	"word-spacing",
-];
+import useSize from "../hooks/useSize";
+import useStyles from "../hooks/useStyles";
 
 function StateCollection2() {
-	const [styles, setStyles] = useState({});
 	const { widget } = useContext(CollectionContext);
+	const styles = useStyles(widget.style);
+
+	const refService = useRef(null);
+	const size = useSize(refService);
 
 	console.log("inside StateCollection2 -> widget", widget.style);
 
-	useEffect(() => {
-		const newStyles = {};
-
-		POSSIBLE_MUI_STYLES.forEach((style) => {
-			if (widget.style[style]) {
-				newStyles[style.replace(/(-\w)/g, (text) => text[1].toUpperCase())] =
-					widget.style[style];
-			}
-		});
-
-		setStyles(newStyles);
-
-		console.log("inside StateCollection2 -> newStyles", newStyles);
-	}, [widget.style]);
-
 	return (
 		<Paper
-			elevation={0}
+			ref={refService}
 			square={widget.data.square}
 			variant={widget.data.outlined ? "outlined" : "elevation"}
 			sx={{
 				height: "100%",
 				width: "100%",
+				boxSizing: "border-box",
+				overflow: "hidden",
+
 				display: "flex",
 				justifyContent: "center",
 				alignItems: "center",
-				overflow: "hidden",
-				boxSizing: "border-box",
+
 				...styles,
 			}}
 		>
-			<Typography>State Collection2</Typography>
+			<Stack
+				sx={{
+					height: "100%",
+					width: "100%",
+					alignItems: "center",
+				}}
+			>
+				<Box>{<Typography>Licht</Typography>}</Box>
+				<Box
+					sx={{
+						height: "100%",
+						width: "100%",
+						overflow: "hidden",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<Button
+						component={Paper}
+						elevation={2}
+						sx={{
+							p: 0,
+							borderRadius: widget.data.circle ? "50%" : "0%",
+							bgcolor: widget.style["background-color"]
+								? widget.style["background-color"]
+								: "background.default",
+						}}
+					>
+						<Avatar
+							sx={{
+								width: size,
+								height: size,
+								bgcolor: "transparent",
+								filter: `drop-shadow(0px 1000px 0 ${widget.data.iconColor})`,
+								transform: "translateY(-1000px)",
+							}}
+						/>
+					</Button>
+				</Box>
+				<Box>{<Typography>Schlafzimmer</Typography>}</Box>
+			</Stack>
 		</Paper>
 	);
 }

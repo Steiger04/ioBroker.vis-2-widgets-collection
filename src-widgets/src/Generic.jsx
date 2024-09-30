@@ -180,6 +180,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 	wrapContent2(content) {
 		return (
 			<Paper
+				elevation={0}
 				sx={{
 					height: "calc(100% - 8px)",
 					width: "calc(100% - 8px)",
