@@ -69,6 +69,15 @@ class StateCollectionWidget extends Generic {
 							type: "checkbox",
 						},
 						{
+							name: "buttonPadding",
+							label: "button_padding",
+							type: "slider",
+							min: 0,
+							max: 10,
+							step: 0.1,
+							default: 1,
+						},
+						{
 							name: "oid",
 							type: "id",
 							label: "oid",
@@ -80,6 +89,15 @@ class StateCollectionWidget extends Generic {
 							type: "image",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
 							label: "icon",
+						},
+						{
+							name: "iconSize",
+							label: "icon_size",
+							type: "slider",
+							min: 1,
+							max: 200,
+							default: 100,
+							step: 1,
 						},
 						{
 							name: "iconColor",

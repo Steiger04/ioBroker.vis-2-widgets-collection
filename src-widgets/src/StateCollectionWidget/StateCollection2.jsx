@@ -14,66 +14,91 @@ function StateCollection2() {
 	console.log("inside StateCollection2 -> widget", widget.style);
 
 	return (
-		<Paper
-			ref={refService}
-			square={widget.data.square}
-			variant={widget.data.outlined ? "outlined" : "elevation"}
+		<Box
 			sx={{
-				height: "100%",
 				width: "100%",
-				boxSizing: "border-box",
+				height: "100%",
 				overflow: "hidden",
-
-				display: "flex",
-				justifyContent: "center",
-				alignItems: "center",
-
-				...styles,
 			}}
 		>
-			<Stack
+			<Paper
+				square={widget.data.square}
+				variant={widget.data.outlined ? "outlined" : "elevation"}
 				sx={{
+					/* bgcolor: widget.style["background-color"]
+						? widget.style["background-color"]
+						: "background.paper", */
+					boxShadow: widget.data.outlined ? 0 : 4,
+					p: widget.data.buttonPadding,
 					height: "100%",
 					width: "100%",
+					boxSizing: "border-box",
+					overflow: "hidden",
+
+					display: "flex",
+					justifyContent: "center",
 					alignItems: "center",
+					...styles,
 				}}
 			>
-				<Box>{<Typography>Licht</Typography>}</Box>
-				<Box
+				<Stack
+					spacing={1}
 					sx={{
 						height: "100%",
 						width: "100%",
-						overflow: "hidden",
-						display: "flex",
-						justifyContent: "center",
 						alignItems: "center",
 					}}
 				>
-					<Button
-						component={Paper}
-						elevation={2}
+					<Box>{<Typography>Küchenfenster</Typography>}</Box>
+					<Paper
+						ref={refService}
+						elevation={4}
+						square={widget.data.square}
 						sx={{
-							p: 0,
-							borderRadius: widget.data.circle ? "50%" : "0%",
+							height: "100%",
+							width: "100%",
+							overflow: "hidden",
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+
 							bgcolor: widget.style["background-color"]
 								? widget.style["background-color"]
-								: "background.default",
+								: "background.paper",
+
+							borderRadius: widget.data.circle ? "50%" : null,
 						}}
 					>
-						<Avatar
+						<Button
 							sx={{
-								width: size,
-								height: size,
-								bgcolor: "transparent",
-								filter: `drop-shadow(0px 1000px 0 ${widget.data.iconColor})`,
-								transform: "translateY(-1000px)",
+								width: "100%",
+								height: "100%",
+								color: widget.style["background-color"]
+									? widget.style["background-color"]
+									: "background.paper",
 							}}
-						/>
-					</Button>
-				</Box>
-				<Box>{<Typography>Schlafzimmer</Typography>}</Box>
-			</Stack>
-		</Paper>
+						>
+							<Avatar
+								variant="square"
+								src={widget.data.icon}
+								sx={{
+									color: widget.data.iconColor
+										? widget.data.iconColor
+										: "background.paper",
+									objectFit: "contain",
+									width: `calc(${size}px * ${widget.data.iconSize} / 100)`,
+									height: `calc(${size}px * ${widget.data.iconSize} / 100)`,
+									bgcolor: "transparent",
+									filter: "drop-shadow(0px 10000px 0)",
+									transform: "translateY(-10000px)",
+								}}
+							/>
+						</Button>
+					</Paper>
+					<Box>{<Typography>auf</Typography>}</Box>
+				</Stack>
+			</Paper>
+		</Box>
 	);
 }
 

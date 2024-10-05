@@ -4,7 +4,7 @@ import { createContext, useMemo } from "react";
 
 const CollectionContext = createContext({});
 
-function CollectionProvider({ mode, theme, children, ...props }) {
+function CollectionProvider({ theme, children, ...props }) {
 	const color = props.widget.style.color;
 	const textAlign = props.widget.style["text-align"];
 	const fontFamily = props.widget.style["font-family"];
@@ -13,6 +13,7 @@ function CollectionProvider({ mode, theme, children, ...props }) {
 	const lineHeight = props.widget.style["line-height"];
 	const fontWeight = props.widget.style["font-weight"];
 	const letterSpacing = props.widget.style["letter-spacing"];
+	const mode = props.mode;
 
 	// console.log("PROPS", props);
 
@@ -83,11 +84,11 @@ function CollectionProvider({ mode, theme, children, ...props }) {
 								fontWeight,
 								letterSpacing,
 							},
-							/* styleOverrides: {
+							styleOverrides: {
 								root: {
 									wordBreak: "break-word",
 								},
-							}, */
+							},
 						},
 					},
 				}),
