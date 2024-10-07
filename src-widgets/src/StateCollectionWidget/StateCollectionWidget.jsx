@@ -2,11 +2,27 @@ import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
-import StateCollection2 from "./StateCollection2";
 
 class StateCollectionWidget extends Generic {
+	constructor(props) {
+		super(props);
+
+		console.log("StateCollectionWidget inside constructor -> props", props);
+	}
+
 	static getWidgetInfo() {
 		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
+			/* console.log(
+				"inside oidChangeHandlerAsync -> field",
+				field,
+				"data",
+				data,
+				"changeData",
+				changeData,
+				"socket",
+				socket,
+			); */
+
 			if (data.oid) {
 				const object = await socket.getObject(data.oid);
 
@@ -84,6 +100,30 @@ class StateCollectionWidget extends Generic {
 							onChange: oidChangeHandlerAsync,
 						},
 						{
+							name: "header",
+							label: "header",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "headerSize",
+							label: "header_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "footerSize",
+							label: "footer_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
 							name: "icon",
 							// type: "icon64",
 							type: "image",
@@ -111,6 +151,7 @@ class StateCollectionWidget extends Generic {
 			],
 			visDefaultStyle: {
 				width: "100%",
+				height: "100px",
 				position: "relative",
 			},
 			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-demo.png",
@@ -180,13 +221,13 @@ class StateCollectionWidget extends Generic {
 		// console.log("inside renderWidgetBody --> this", this);
 		// console.log("inside renderWidgetBody --> theme", this.props.context.theme);
 
-		if (!props.style.height) {
+		/* if (!props.style.height) {
 			props.style.height = "auto";
 		}
 
 		if (!props.style.width) {
 			props.style.width = "auto";
-		}
+		} */
 
 		const collectionContext = {
 			...props,
@@ -205,11 +246,11 @@ class StateCollectionWidget extends Generic {
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {
 			// return withCollectionProvider(<StateCollection />, collectionContext);
-			return withCollectionProvider(<StateCollection2 />, collectionContext);
+			return withCollectionProvider(<StateCollection />, collectionContext);
 		}
 
 		return withCollectionProvider(
-			this.wrapContent2(<StateCollection2 />),
+			this.wrapContent(<StateCollection />),
 			collectionContext,
 		);
 	}

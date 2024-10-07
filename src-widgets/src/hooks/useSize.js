@@ -9,9 +9,9 @@ const useSize = (refService) => {
 	useEffect(() => {
 		if (clientWidth && clientHeight) {
 			if (clientWidth < clientHeight) {
-				setSize(clientWidth - 16);
+				setSize(clientWidth);
 			} else {
-				setSize(clientHeight - 16);
+				setSize(clientHeight);
 			}
 		}
 	}, [clientHeight, clientWidth]);

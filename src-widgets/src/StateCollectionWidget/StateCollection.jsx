@@ -1,115 +1,133 @@
-import {
-	Avatar,
-	Box,
-	Button,
-	Card,
-	Paper,
-	Stack,
-	Typography,
-	useTheme,
-} from "@mui/material";
-import React, { useContext, useCallback, useRef } from "react";
+import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import React, { useContext, useRef } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
-import usePaperHeight from "./usePaperHeight";
-import usePaperWidth from "./usePaperWidth";
+import useSize from "../hooks/useSize";
+import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
-	const { getPropertyValue, widget, oidObject } = useContext(CollectionContext);
-
-	console.log("inside StateCollection -> widget", widget);
+	const { widget, oidObject, getPropertyValue } = useContext(CollectionContext);
+	const styles = useStyles(widget.style);
 
 	const refService = useRef(null);
-	const paperWidth = usePaperWidth(refService);
-	const paperHeight = usePaperHeight(refService);
-
-	const theme = useTheme();
-
-	console.log("inside StateCollection -> refService", refService);
+	const size = useSize(refService);
 
 	return (
-		<Stack
-			spacing={1}
-			// component={widget.data.noCard ? Card : Box}
-			component={Paper}
+		<Box
 			sx={{
-				padding: 4,
-				height: "100%",
 				width: "100%",
-				"&.MuiCard-root": () =>
-					widget.style["background-color"] && {
-						borderRadius: 0,
-						boxShadow: "none",
-						backgroundColor: "transparent",
-					},
-				display: "flex",
-				flexDirection: "column",
-				// justifyContent: "space-between",
-				alignItems: "center",
+				height: "100%",
+				overflow: "hidden",
 			}}
 		>
-			<Box>
-				<Typography>{oidObject?.common?.name}</Typography>
-			</Box>
-
-			<Box
-				ref={refService}
+			<Paper
+				square={widget.data.square}
+				variant={widget.data.outlined ? "outlined" : "elevation"}
 				sx={{
+					boxShadow: widget.data.outlined ? 0 : 4,
 					height: "100%",
 					width: "100%",
-					display: "inline-flex",
+					boxSizing: "border-box",
+					overflow: "hidden",
+
+					display: "flex",
 					justifyContent: "center",
 					alignItems: "center",
+					...styles,
 				}}
 			>
-				<Button
-					// disabled
+				<Stack
+					spacing={0}
 					sx={{
-						width: paperWidth,
-						height: paperHeight,
-						p: 0,
-						borderRadius: widget.data.circle ? "50%" : "0%",
+						height: "100%",
+						width: "100%",
+						alignItems: "center",
 					}}
 				>
-					<Avatar
-						component={Paper}
-						variant={widget.data.circle ? "round" : "rounded"}
+					<Box>
+						<Typography
+							sx={{
+								fontSize: `${widget.data.headerSize}%`,
+							}}
+						>
+							{widget.data.header || oidObject?.common?.name}
+						</Typography>
+					</Box>
+					<Box
 						sx={{
-							zIndex: 10000,
-							width: paperWidth,
-							height: paperHeight,
-							// width: "auto",
-							// height: "auto",
-							opacity: 1,
-							transition: "opacity 0s ease 0s",
-							"&:hover": {
-								opacity: 0.4,
-								filter: "brightness(2)",
-							},
-							bgcolor: widget.style["background-color"]
-								? widget.style["background-color"]
-								: "inherit",
-							"&.MuiPaper-elevation1": {
-								boxShadow: "none",
-							},
-							filter: `drop-shadow(0px 1000px 0 ${widget.data.iconColor})`,
-							transform: "translateY(-1000px)",
+							p: widget.data.buttonPadding,
+							boxSizing: "border-box",
+							overflow: "hidden",
+							width: "100%",
+							height: "100%",
 						}}
-						src={oidObject?.common?.icon}
 					>
-						{/* <Typography variant="subtitle2">
-							{String(getPropertyValue("oid"))}
-						</Typography> */}
-					</Avatar>
-				</Button>
-			</Box>
+						<Paper
+							elevation={4}
+							square={widget.data.square}
+							sx={{
+								height: "100%",
+								width: "100%",
+								overflow: "hidden",
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
 
-			<Box>
-				<Typography variant="subtitle2">
-					{String(getPropertyValue("oid"))}
-				</Typography>
-			</Box>
-		</Stack>
+								bgcolor: widget.style["background-color"]
+									? widget.style["background-color"]
+									: "background.paper",
+
+								borderRadius: widget.data.circle ? "50%" : null,
+							}}
+						>
+							<Button
+								ref={refService}
+								sx={{
+									boxSizing: "border-box",
+									overflow: "hidden",
+									width: "100%",
+									height: "100%",
+									color: widget.data.iconColor
+										? widget.data.iconColor
+										: "background.paper",
+									"&:hover": {
+										bgcolor: "transparent",
+										filter: "brightness(200%)",
+										transition: "filter 0.8s",
+									},
+								}}
+							>
+								<Avatar
+									variant="square"
+									src={widget.data.icon}
+									sx={{
+										color: widget.data.iconColor
+											? widget.data.iconColor
+											: "background.paper",
+										objectFit: "contain",
+										width: `calc(${size}px * ${widget.data.iconSize} / 100)`,
+										height: `calc(${size}px * ${widget.data.iconSize} / 100)`,
+										bgcolor: "transparent",
+										filter: "drop-shadow(0px 10000px 0)",
+										transform: "translateY(-10000px)",
+									}}
+								/>
+							</Button>
+						</Paper>
+					</Box>
+
+					<Box>
+						<Typography
+							sx={{
+								fontSize: `${widget.data.footerSize}%`,
+							}}
+						>
+							{getPropertyValue("oid")}
+						</Typography>
+					</Box>
+				</Stack>
+			</Paper>
+		</Box>
 	);
 }
 
-export default React.memo(StateCollection);
+export default StateCollection;

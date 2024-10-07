@@ -3,7 +3,8 @@ import { Box, Paper } from "@mui/material";
 
 class Generic extends (window.visRxWidget || VisRxWidget) {
 	constructor(props) {
-		super({
+		super(props);
+		/* super({
 			...props,
 			customSettings: {
 				viewStyle: {
@@ -12,7 +13,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 					},
 				},
 			},
-		});
+		}); */
 
 		console.log("Generic inside constructor -> props", props);
 	}
@@ -122,7 +123,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 			object.common.states = states;
 		}
 
-		console.log("ICON", this.state.rxData.icon);
+		// console.log("ICON", this.state.rxData.icon);
 		if (this.state.rxData.icon) {
 			object.common.icon = this.state.rxData.icon;
 		} else if (
@@ -177,7 +178,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 		}
 	}
 
-	wrapContent2(content) {
+	wrapContent(content) {
 		return (
 			<Box
 				sx={{
