@@ -68,6 +68,11 @@ class StateCollectionWidget extends Generic {
 							type: "checkbox",
 						},
 						{
+							name: "noIcon",
+							type: "checkbox",
+							label: "no_icon",
+						},
+						{
 							name: "outlined",
 							label: "outlined",
 							type: "checkbox",
@@ -99,15 +104,25 @@ class StateCollectionWidget extends Generic {
 							label: "oid",
 							onChange: oidChangeHandlerAsync,
 						},
+					],
+				},
+				{
+					name: "commonOff",
+					fields: [
 						{
-							name: "header",
-							label: "header",
+							name: "textColorOff",
+							label: "text_color_off",
+							type: "color",
+						},
+						{
+							name: "headerOff",
+							label: "header_off",
 							type: "text",
 							default: "",
 						},
 						{
-							name: "headerSize",
-							label: "header_size",
+							name: "headerSizeOff",
+							label: "header_size_off",
 							type: "slider",
 							min: 0,
 							max: 500,
@@ -115,8 +130,14 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
-							name: "footerSize",
-							label: "footer_size",
+							name: "valueOff",
+							label: "value_off",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "valueSizeOff",
+							label: "value_size_off",
 							type: "slider",
 							min: 0,
 							max: 500,
@@ -124,15 +145,15 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
-							name: "icon",
+							name: "iconOff",
+							label: "icon_off",
 							// type: "icon64",
 							type: "image",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
-							label: "icon",
 						},
 						{
-							name: "iconSize",
-							label: "icon_size",
+							name: "iconSizeOff",
+							label: "icon_size_off",
 							type: "slider",
 							min: 1,
 							max: 200,
@@ -140,10 +161,98 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
-							name: "iconColor",
-							label: "icon_color",
+							name: "iconColorOff",
+							label: "icon_color_off",
 							type: "color",
-							default: "rgba(100,100,100,0.8)",
+						},
+						{
+							name: "iconHoverOff",
+							label: "icon_hover_off",
+							type: "slider",
+							min: 0,
+							max: 300,
+							default: 200,
+							step: 1,
+						},
+						{
+							name: "backgroundColorOff",
+							label: "background_color_off",
+							type: "color",
+						},
+					],
+				},
+				{
+					name: "commonOn",
+					fields: [
+						{
+							name: "textColorOn",
+							label: "text_color_on",
+							type: "color",
+						},
+						{
+							name: "headerOn",
+							label: "header_on",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "headerSizeOn",
+							label: "header_size_on",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "valueOn",
+							label: "value_on",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "valueSizeOn",
+							label: "value_size_on",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "iconOn",
+							label: "icon_on",
+							// type: "icon64",
+							type: "image",
+							// hidden: '!!data.noIcon || !!data.iconSmall',
+						},
+						{
+							name: "iconSizeOn",
+							label: "icon_size_on",
+							type: "slider",
+							min: 1,
+							max: 200,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "iconColorOn",
+							label: "icon_color_on",
+							type: "color",
+						},
+						{
+							name: "iconHoverOn",
+							label: "icon_hover_on",
+							type: "slider",
+							min: 0,
+							max: 300,
+							default: 200,
+							step: 1,
+						},
+						{
+							name: "backgroundColorOn",
+							label: "background_color_on",
+							type: "color",
 						},
 					],
 				},
@@ -176,7 +285,7 @@ class StateCollectionWidget extends Generic {
 		// 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
 		//                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
 
-		console.log("inside propertiesUpdate");
+		console.log("inside propertiesUpdate", this.state.values);
 
 		const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData === actualRxData) {
@@ -203,6 +312,8 @@ class StateCollectionWidget extends Generic {
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	onStateUpdated(id, state) {
 		console.log("inside onStateUpdated");
+		console.log("id", id);
+		console.log("this.state.oidObject", this.state.oidObject);
 	}
 
 	async componentDidMount() {
@@ -216,6 +327,16 @@ class StateCollectionWidget extends Generic {
 	renderWidgetBody(props) {
 		console.log("inside renderWidgetBody", props);
 		super.renderWidgetBody(props);
+
+		/* const actualRxData = JSON.stringify(this.state.rxData);
+		if (this.lastRxData !== actualRxData) {
+			this.updateTimeout =
+				this.updateTimeout ||
+				setTimeout(async () => {
+					this.updateTimeout = null;
+					await this.propertiesUpdate();
+				}, 50);
+		} */
 
 		// console.log("inside renderWidgetBody --> props", props);
 		// console.log("inside renderWidgetBody --> this", this);
@@ -233,6 +354,7 @@ class StateCollectionWidget extends Generic {
 			...props,
 			t: (text) => StateCollectionWidget.t(text),
 			getPropertyValue: this.getPropertyValue,
+			setValue: this.setValue,
 			mode: this.props.context.themeType,
 			rxData: this.state.rxData,
 			rxStyle: this.state.rxStyle,
@@ -245,7 +367,6 @@ class StateCollectionWidget extends Generic {
 		this.wrappedContent = true;
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {
-			// return withCollectionProvider(<StateCollection />, collectionContext);
 			return withCollectionProvider(<StateCollection />, collectionContext);
 		}
 

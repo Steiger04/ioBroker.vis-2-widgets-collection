@@ -22,9 +22,14 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 	}
 
 	getPropertyValue = (stateName) => {
-		// console.log("GET PROPERTY VALUE", stateName);
-		// console.log("this", this);
 		return this.state.values[`${this.state.rxData[stateName]}.val`];
+	};
+
+	setValue = (id, value, ack = false) => {
+		console.log("KUCK KUCK");
+		this.props.context.socket
+			.setState(id, value, ack)
+			.catch((e) => console.error(`Cannot set state ${id}: ${e}`));
 	};
 
 	async getParentObject(id) {
