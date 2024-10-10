@@ -46,6 +46,7 @@ class StateCollectionWidget extends Generic {
 					data.withNumber = object.common.type === "number";
 					data.withStates = false;
 					data.values_count = 0;
+					data.type = object.common.type;
 					changeData(data);
 				}
 			}
@@ -77,6 +78,13 @@ class StateCollectionWidget extends Generic {
 							label: "outlined",
 							type: "checkbox",
 							// hidden: "!!data.noCard",
+						},
+						{
+							name: "values_count",
+							type: "number",
+							// hidden: "!data.withStates",
+							default: 0,
+							label: "values_count",
 						},
 						{
 							name: "square",
@@ -145,10 +153,16 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							name: "backgroundColorOff",
+							label: "background_color_off",
+							type: "color",
+						},
+						{
 							name: "iconOff",
 							label: "icon_off",
 							// type: "icon64",
 							type: "image",
+							hidden: "!!data.noIcon",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
 						},
 						{
@@ -159,11 +173,13 @@ class StateCollectionWidget extends Generic {
 							max: 200,
 							default: 100,
 							step: 1,
+							hidden: "!data.iconOff",
 						},
 						{
 							name: "iconColorOff",
 							label: "icon_color_off",
 							type: "color",
+							hidden: "!data.iconOff",
 						},
 						{
 							name: "iconHoverOff",
@@ -173,11 +189,7 @@ class StateCollectionWidget extends Generic {
 							max: 300,
 							default: 200,
 							step: 1,
-						},
-						{
-							name: "backgroundColorOff",
-							label: "background_color_off",
-							type: "color",
+							hidden: "!data.iconOff",
 						},
 					],
 				},
@@ -220,11 +232,17 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							name: "backgroundColorOn",
+							label: "background_color_on",
+							type: "color",
+						},
+						{
 							name: "iconOn",
 							label: "icon_on",
 							// type: "icon64",
 							type: "image",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
+							hidden: "!!data.noIcon",
 						},
 						{
 							name: "iconSizeOn",
@@ -234,11 +252,13 @@ class StateCollectionWidget extends Generic {
 							max: 200,
 							default: 100,
 							step: 1,
+							hidden: "!data.iconOn",
 						},
 						{
 							name: "iconColorOn",
 							label: "icon_color_on",
 							type: "color",
+							hidden: "!data.iconOn",
 						},
 						{
 							name: "iconHoverOn",
@@ -248,11 +268,89 @@ class StateCollectionWidget extends Generic {
 							max: 300,
 							default: 200,
 							step: 1,
+							hidden: "!data.iconOn",
+						},
+					],
+				},
+				{
+					name: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					label: "values",
+					fields: [
+						{
+							name: "textColor",
+							label: "text_color",
+							type: "color",
 						},
 						{
-							name: "backgroundColorOn",
-							label: "background_color_on",
+							name: "header",
+							label: "header",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "headerSize",
+							label: "header_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "value",
+							label: "value",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "valueSize",
+							label: "value_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "backgroundColor",
+							label: "background_color",
 							type: "color",
+						},
+						{
+							name: "icon",
+							label: "icon",
+							// type: "icon64",
+							type: "image",
+							// hidden: '!!data.noIcon || !!data.iconSmall',
+							hidden: "!!data.noIcon",
+						},
+						{
+							name: "iconSize",
+							label: "icon_size",
+							type: "slider",
+							min: 1,
+							max: 200,
+							default: 100,
+							step: 1,
+							hidden: (data, i) => !data[`icon${i}`],
+						},
+						{
+							name: "iconColor",
+							label: "icon_color",
+							type: "color",
+							hidden: (data, i) => !data[`icon${i}`],
+						},
+						{
+							name: "iconHover",
+							label: "icon_hover",
+							type: "slider",
+							min: 0,
+							max: 300,
+							default: 200,
+							step: 1,
+							hidden: (data, i) => !data[`icon${i}`],
 						},
 					],
 				},

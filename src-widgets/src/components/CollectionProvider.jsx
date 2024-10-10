@@ -5,6 +5,8 @@ import { createContext, useMemo } from "react";
 const CollectionContext = createContext({});
 
 function CollectionProvider({ theme, children, ...props }) {
+	console.log("CollectionProvider -> theme", theme);
+
 	const color = props.widget.style.color;
 	const textAlign = props.widget.style["text-align"];
 	const fontFamily = props.widget.style["font-family"];

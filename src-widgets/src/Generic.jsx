@@ -26,7 +26,6 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
 	};
 
 	setValue = (id, value, ack = false) => {
-		console.log("KUCK KUCK");
 		this.props.context.socket
 			.setState(id, value, ack)
 			.catch((e) => console.error(`Cannot set state ${id}: ${e}`));

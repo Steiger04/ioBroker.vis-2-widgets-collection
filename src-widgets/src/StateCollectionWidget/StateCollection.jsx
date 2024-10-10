@@ -16,7 +16,7 @@ function StateCollection() {
 	const refService = useRef(null);
 	const size = useSize(refService);
 
-	const clickHandler = () => {
+	const clickHandler = (event) => {
 		setState((prev) => {
 			if (oidObject._id) {
 				setValue(oidObject._id, !prev, true);
@@ -114,7 +114,10 @@ function StateCollection() {
 						<Box>
 							<Typography
 								sx={{
-									color: widget.style.color || data.textColor,
+									color:
+										widget.style.color ||
+										data.textColor ||
+										"background.default",
 									fontSize: `${data.headerSize}%`,
 								}}
 							>
@@ -132,7 +135,7 @@ function StateCollection() {
 						>
 							<Paper
 								elevation={4}
-								square={widget.data.square}
+								square={!widget.data.buttonPadding || widget.data.square}
 								sx={{
 									height: "100%",
 									width: "100%",
@@ -140,16 +143,10 @@ function StateCollection() {
 									display: "flex",
 									justifyContent: "center",
 									alignItems: "center",
-
-									/* bgcolor: widget.style["background-color"]
-										? widget.style["background-color"]
-										: "background.paper", */
-
 									bgcolor:
 										widget.style["background-color"] ||
 										data.backgroundColor ||
 										"background.paper",
-
 									borderRadius: widget.data.circle ? "50%" : null,
 								}}
 							>
@@ -157,11 +154,12 @@ function StateCollection() {
 									onClick={clickHandler}
 									ref={refService}
 									sx={{
+										borderRadius: 0,
 										boxSizing: "border-box",
 										overflow: "hidden",
 										width: "100%",
 										height: "100%",
-										color: data.iconColor ? data.iconColor : "background.paper",
+										color: data.iconColor || "background.paper",
 										"&:hover": {
 											bgcolor: "transparent",
 											filter: `brightness(${data.iconHover}%)`,
@@ -174,9 +172,7 @@ function StateCollection() {
 										variant="square"
 										src={data.icon}
 										sx={{
-											color: data.iconColor
-												? data.iconColor
-												: "background.paper",
+											color: data.iconColor || "background.paper",
 											objectFit: "contain",
 											width: `calc(${size}px * ${data.iconSize} / 100)`,
 											height: `calc(${size}px * ${data.iconSize} / 100)`,
@@ -187,7 +183,6 @@ function StateCollection() {
 									>
 										<Typography
 											sx={{
-												color: data.textColor,
 												fontSize: `${data.valueSize}%`,
 											}}
 										>
@@ -202,7 +197,10 @@ function StateCollection() {
 						<Box>
 							<Typography
 								sx={{
-									color: widget.style.color || data.textColor,
+									color:
+										widget.style.color ||
+										data.textColor ||
+										"background.default",
 									fontSize: `${data.valueSize}%`,
 								}}
 							>
