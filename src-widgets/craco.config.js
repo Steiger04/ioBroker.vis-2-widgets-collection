@@ -3,9 +3,9 @@ const craco = require("@iobroker/vis-2-widgets-react-dev/craco.config.js");
 module.exports = {
 	...craco,
 	eslint: {
-		enable: false,
+		enable: true,
 	},
-	webpack: {
+	/* webpack: {
 		mode: "extends",
 		configure: (webpackConfig) => {
 			webpackConfig.ignoreWarnings = [/Failed to parse source map/];
@@ -31,5 +31,5 @@ module.exports = {
 		devServerConfig.onBeforeSetupMiddleware = undefined;
 		devServerConfig.onAfterSetupMiddleware = undefined;
 		return devServerConfig;
-	},
+	}, */
 };

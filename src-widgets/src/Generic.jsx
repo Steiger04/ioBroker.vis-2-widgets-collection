@@ -1,7 +1,9 @@
+import React from "react";
 import { VisRxWidget } from "@iobroker/vis-2-widgets-react-dev";
-import { Box, Paper } from "@mui/material";
+import { Box } from "@mui/material";
 
-class Generic extends (window.visRxWidget || VisRxWidget) {
+// class Generic extends (window.visRxWidget || VisRxWidget) {
+class Generic extends window.visRxWidget {
 	constructor(props) {
 		super(props);
 		/* super({

@@ -7,19 +7,19 @@
 const gulp = require('gulp');
 const fs = require('fs');
 const adapterName = require('./package.json').name.replace('iobroker.', '');
-const buildHelper = require('@iobroker/vis-2-widgets-react-dev/buildHelper');
+const gulpHelper = require('@iobroker/vis-2-widgets-react-dev/gulpHelper');
 
 const SRC = 'src-widgets/';
 const src = `${__dirname}/${SRC}`;
 
 gulp.task('widget-0-clean', done => {
-    buildHelper.deleteFoldersRecursive(`${src}build`);
-    buildHelper.deleteFoldersRecursive(`${__dirname}/widgets`);
+    gulpHelper.deleteFoldersRecursive(`${src}build`);
+    gulpHelper.deleteFoldersRecursive(`${__dirname}/widgets`);
     done();
 });
-gulp.task('widget-1-npm', async () => buildHelper.npmInstall(src));
+gulp.task('widget-1-npm', async () => gulpHelper.npmInstall(src));
 
-gulp.task('widget-2-compile', async () => buildHelper.buildWidgets(__dirname, src));
+gulp.task('widget-2-compile', async () => gulpHelper.buildWidgets(__dirname, src));
 
 gulp.task('widget-3-copy', () => Promise.all([
     gulp.src([`${SRC}build/*.js`]).pipe(gulp.dest(`widgets/${adapterName}`)),
@@ -27,10 +27,11 @@ gulp.task('widget-3-copy', () => Promise.all([
     gulp.src([`${SRC}build/*.map`]).pipe(gulp.dest(`widgets/${adapterName}`)),
     gulp.src([
         `${SRC}build/static/**/*`,
-        // ...buildHelper.ignoreFiles(SRC),
+        // ...gulpHelper.ignoreFiles(SRC),
     ]).pipe(gulp.dest(`widgets/${adapterName}/static`)),
     gulp.src([
-        ...buildHelper.copyFiles(SRC),
+      ...gulpHelper.copyFiles(SRC),
+			...[`${__dirname}/src-widgets/build/static/js/*.*`]
     ]).pipe(gulp.dest(`widgets/${adapterName}/static/js`)),
     gulp.src([`${SRC}src/i18n/*.json`]).pipe(gulp.dest(`widgets/${adapterName}/i18n`)),
     new Promise(resolve =>

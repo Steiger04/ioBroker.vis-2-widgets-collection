@@ -1,6 +1,6 @@
+import React, { createContext, useMemo } from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { deepmerge } from "@mui/utils";
-import { createContext, useMemo } from "react";
 
 const CollectionContext = createContext({});
 
@@ -86,11 +86,11 @@ function CollectionProvider({ theme, children, ...props }) {
 								fontWeight,
 								letterSpacing,
 							},
-							styleOverrides: {
+							/* styleOverrides: {
 								root: {
 									wordBreak: "break-word",
 								},
-							},
+							}, */
 						},
 					},
 				}),

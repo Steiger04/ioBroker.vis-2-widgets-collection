@@ -1,4 +1,5 @@
-import { Paper } from "@mui/material";
+import React from "react";
+// import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
@@ -8,11 +9,12 @@ class StateCollectionWidget extends Generic {
 		super(props);
 
 		console.log("StateCollectionWidget inside constructor -> props", props);
+		console.log("THIS", this);
 	}
 
 	static getWidgetInfo() {
 		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
-			/* console.log(
+			console.log(
 				"inside oidChangeHandlerAsync -> field",
 				field,
 				"data",
@@ -21,7 +23,7 @@ class StateCollectionWidget extends Generic {
 				changeData,
 				"socket",
 				socket,
-			); */
+			);
 
 			if (data.oid) {
 				const object = await socket.getObject(data.oid);
@@ -35,12 +37,14 @@ class StateCollectionWidget extends Generic {
 						});
 						object.common.states = states;
 					}
+					console.log("object.common.states", object.common.states);
 					data.values_count = Object.keys(object.common.states).length;
 					data.withStates = true;
 					data.withNumber = false;
 					Object.keys(object.common.states).forEach((state, index) => {
 						data[`value${index + 1}`] = object.common.states[state];
 					});
+					data.type = object.common.type;
 					changeData(data);
 				} else if (object?.common) {
 					data.withNumber = object.common.type === "number";
@@ -64,6 +68,32 @@ class StateCollectionWidget extends Generic {
 					name: "common", // group name
 					fields: [
 						{
+							name: "noButton",
+							type: "checkbox",
+							label: "no_button",
+						},
+						{
+							name: "noIcon",
+							type: "checkbox",
+							label: "no_icon",
+							hidden: "!!data.onlyIcon",
+						},
+						{
+							name: "onlyIcon",
+							type: "checkbox",
+							label: "only_icon",
+							hidden: "!!data.noIcon",
+						},
+						{
+							name: "values_count",
+							type: "number",
+							hidden:
+								"!data.withStates || data.type !== 'number' && data.type !== 'string'",
+							// hidden: "!data.withStates",
+							default: 0,
+							label: "values_count",
+						},
+						{
 							name: "noCard",
 							label: "without_card",
 							type: "checkbox",
@@ -78,13 +108,6 @@ class StateCollectionWidget extends Generic {
 							label: "outlined",
 							type: "checkbox",
 							// hidden: "!!data.noCard",
-						},
-						{
-							name: "values_count",
-							type: "number",
-							// hidden: "!data.withStates",
-							default: 0,
-							label: "values_count",
 						},
 						{
 							name: "square",
@@ -451,8 +474,8 @@ class StateCollectionWidget extends Generic {
 		const collectionContext = {
 			...props,
 			t: (text) => StateCollectionWidget.t(text),
-			getPropertyValue: this.getPropertyValue,
-			setValue: this.setValue,
+			getPropertyValue: this.getPropertyValue.bind(this),
+			setValue: this.setValue.bind(this),
 			mode: this.props.context.themeType,
 			rxData: this.state.rxData,
 			rxStyle: this.state.rxStyle,
