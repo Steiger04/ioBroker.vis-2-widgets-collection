@@ -1,6 +1,6 @@
-import React from "react";
-import { VisRxWidget } from "@iobroker/vis-2-widgets-react-dev";
+// import { VisRxWidget } from "@iobroker/vis-2-widgets-react-dev";
 import { Box } from "@mui/material";
+import React from "react";
 
 // class Generic extends (window.visRxWidget || VisRxWidget) {
 class Generic extends window.visRxWidget {
@@ -17,7 +17,7 @@ class Generic extends window.visRxWidget {
 			},
 		}); */
 
-		console.log("Generic inside constructor -> props", props);
+		// console.log("Generic inside constructor -> props", props);
 	}
 	static getI18nPrefix() {
 		return "vis_2_widgets_collection_";

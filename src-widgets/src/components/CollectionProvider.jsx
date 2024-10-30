@@ -1,25 +1,25 @@
-import React, { createContext, useMemo } from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { deepmerge } from "@mui/utils";
+import React, { createContext, useMemo } from "react";
 
 const CollectionContext = createContext({});
 
-function CollectionProvider({ theme, children, ...props }) {
-	console.log("CollectionProvider -> theme", theme);
+function CollectionProvider({ children, ...context }) {
+	/* const color = context.widget.style.color;
+	const textAlign = context.widget.style["text-align"];
+	const fontFamily = context.widget.style["font-family"];
+	const fontStyle = context.widget.style["font-style"];
+	const fontSize = context.widget.style["font-size"];
+	const lineHeight = context.widget.style["line-height"];
+	const fontWeight = context.widget.style["font-weight"];
+	const letterSpacing = context.widget.style["letter-spacing"]; */
+	const mode = context.mode;
+	const theme = context.theme;
 
-	const color = props.widget.style.color;
-	const textAlign = props.widget.style["text-align"];
-	const fontFamily = props.widget.style["font-family"];
-	const fontStyle = props.widget.style["font-style"];
-	const fontSize = props.widget.style["font-size"];
-	const lineHeight = props.widget.style["line-height"];
-	const fontWeight = props.widget.style["font-weight"];
-	const letterSpacing = props.widget.style["letter-spacing"];
-	const mode = props.mode;
-
-	// console.log("PROPS", props);
+	// console.log("CONTEXT", context);
 
 	const _theme = useMemo(() => {
+		// console.log("inside useMemo");
 		const mergeOptions =
 			mode === "dark"
 				? {
@@ -76,7 +76,7 @@ function CollectionProvider({ theme, children, ...props }) {
 				deepmerge(mergeOptions, {
 					components: {
 						MuiTypography: {
-							defaultProps: {
+							/* defaultProps: {
 								color,
 								textAlign,
 								fontFamily,
@@ -85,7 +85,7 @@ function CollectionProvider({ theme, children, ...props }) {
 								lineHeight,
 								fontWeight,
 								letterSpacing,
-							},
+							}, */
 							/* styleOverrides: {
 								root: {
 									wordBreak: "break-word",
@@ -99,19 +99,19 @@ function CollectionProvider({ theme, children, ...props }) {
 	}, [
 		mode,
 		theme,
-		color,
+		/* color,
 		textAlign,
 		fontFamily,
 		fontStyle,
 		fontSize,
 		lineHeight,
 		fontWeight,
-		letterSpacing,
+		letterSpacing, */
 	]);
 
 	return (
 		<ThemeProvider theme={_theme}>
-			<CollectionContext.Provider value={props}>
+			<CollectionContext.Provider value={context}>
 				{children}
 			</CollectionContext.Provider>
 		</ThemeProvider>

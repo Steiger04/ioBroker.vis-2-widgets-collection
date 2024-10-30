@@ -5,16 +5,15 @@ import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
 
 class StateCollectionWidget extends Generic {
-	constructor(props) {
+	/* constructor(props) {
 		super(props);
-
-		console.log("StateCollectionWidget inside constructor -> props", props);
-		console.log("THIS", this);
-	}
+		// console.log("StateCollectionWidget inside constructor -> props", props);
+		// console.log("THIS", this);
+	} */
 
 	static getWidgetInfo() {
 		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
-			console.log(
+			/* console.log(
 				"inside oidChangeHandlerAsync -> field",
 				field,
 				"data",
@@ -23,7 +22,7 @@ class StateCollectionWidget extends Generic {
 				changeData,
 				"socket",
 				socket,
-			);
+			); */
 
 			if (data.oid) {
 				const object = await socket.getObject(data.oid);
@@ -37,7 +36,7 @@ class StateCollectionWidget extends Generic {
 						});
 						object.common.states = states;
 					}
-					console.log("object.common.states", object.common.states);
+					// console.log("object.common.states", object.common.states);
 					data.values_count = Object.keys(object.common.states).length;
 					data.withStates = true;
 					data.withNumber = false;
@@ -60,9 +59,9 @@ class StateCollectionWidget extends Generic {
 			id: "tplStateCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visSetColor: "#cf00ff", // Color of a widget set. it is enough to set color only in one widget of a set
+			visSetColor: "#462E75", // Color of a widget set. it is enough to set color only in one widget of a set
 			visName: "StateCollectionWidget", // Name of widget
-			visWidgetLabel: "empty_collection_widget", // Label for widget
+			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -71,6 +70,44 @@ class StateCollectionWidget extends Generic {
 							name: "noButton",
 							type: "checkbox",
 							label: "no_button",
+						},
+						{
+							name: "oid",
+							type: "id",
+							label: "oid",
+							onChange: oidChangeHandlerAsync,
+						},
+						{
+							name: "values_count",
+							type: "number",
+							/* hidden:
+								"!data.withStates || data.type !== 'number' && data.type !== 'string'", */
+							default: 0,
+							label: "values_count",
+						},
+						{
+							name: "noCard",
+							label: "without_card",
+							type: "checkbox",
+						},
+						{
+							name: "buttonElevation",
+							label: "button_elevation",
+							type: "slider",
+							min: 0,
+							max: 24,
+							step: 1,
+							default: 4,
+						},
+						{
+							name: "outlined",
+							label: "outlined",
+							type: "checkbox",
+						},
+						{
+							name: "squaredCorner",
+							label: "squared_corner",
+							type: "checkbox",
 						},
 						{
 							name: "noIcon",
@@ -85,40 +122,22 @@ class StateCollectionWidget extends Generic {
 							hidden: "!!data.noIcon",
 						},
 						{
-							name: "values_count",
-							type: "number",
-							hidden:
-								"!data.withStates || data.type !== 'number' && data.type !== 'string'",
-							// hidden: "!data.withStates",
-							default: 0,
-							label: "values_count",
-						},
-						{
-							name: "noCard",
-							label: "without_card",
-							type: "checkbox",
-						},
-						{
-							name: "noIcon",
-							type: "checkbox",
-							label: "no_icon",
-						},
-						{
-							name: "outlined",
-							label: "outlined",
-							type: "checkbox",
-							// hidden: "!!data.noCard",
-						},
-						{
 							name: "square",
 							label: "square",
 							type: "checkbox",
-							// hidden: "!!data.noCard",
+							hidden: "data.circle || data.ellipse",
+						},
+						{
+							name: "ellipse",
+							label: "ellipse",
+							type: "checkbox",
+							hidden: "data.circle || data.square",
 						},
 						{
 							name: "circle",
 							label: "circle",
 							type: "checkbox",
+							hidden: "data.ellipse || data.square",
 						},
 						{
 							name: "buttonPadding",
@@ -129,110 +148,59 @@ class StateCollectionWidget extends Generic {
 							step: 0.1,
 							default: 1,
 						},
-						{
-							name: "oid",
-							type: "id",
-							label: "oid",
-							onChange: oidChangeHandlerAsync,
-						},
 					],
 				},
 				{
-					name: "commonOff",
+					name: "on",
 					fields: [
 						{
-							name: "textColorOff",
-							label: "text_color_off",
-							type: "color",
-						},
-						{
-							name: "headerOff",
-							label: "header_off",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "headerSizeOff",
-							label: "header_size_off",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							name: "valueOff",
-							label: "value_off",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "valueSizeOff",
-							label: "value_size_off",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							name: "backgroundColorOff",
-							label: "background_color_off",
-							type: "color",
-						},
-						{
-							name: "iconOff",
-							label: "icon_off",
+							name: "iconOn",
+							label: "icon",
 							// type: "icon64",
 							type: "image",
-							hidden: "!!data.noIcon",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
+							hidden: "data.noIcon",
 						},
 						{
-							name: "iconSizeOff",
-							label: "icon_size_off",
+							name: "iconSizeOn",
+							label: "icon_size",
 							type: "slider",
 							min: 1,
 							max: 200,
 							default: 100,
 							step: 1,
-							hidden: "!data.iconOff",
+							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
-							name: "iconColorOff",
-							label: "icon_color_off",
+							name: "iconColorOn",
+							label: "icon_color",
 							type: "color",
-							hidden: "!data.iconOff",
+							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
-							name: "iconHoverOff",
-							label: "icon_hover_off",
+							name: "iconHoverOn",
+							label: "icon_hover",
 							type: "slider",
 							min: 0,
 							max: 300,
 							default: 200,
 							step: 1,
-							hidden: "!data.iconOff",
+							hidden: "!data.iconOn || data.noIcon",
 						},
-					],
-				},
-				{
-					name: "commonOn",
-					fields: [
 						{
 							name: "textColorOn",
-							label: "text_color_on",
+							label: "text_color",
 							type: "color",
 						},
 						{
 							name: "headerOn",
-							label: "header_on",
+							label: "header",
 							type: "text",
 							default: "",
 						},
 						{
 							name: "headerSizeOn",
-							label: "header_size_on",
+							label: "header_size",
 							type: "slider",
 							min: 0,
 							max: 500,
@@ -241,13 +209,13 @@ class StateCollectionWidget extends Generic {
 						},
 						{
 							name: "valueOn",
-							label: "value_on",
+							label: "value",
 							type: "text",
 							default: "",
 						},
 						{
 							name: "valueSizeOn",
-							label: "value_size_on",
+							label: "value_size",
 							type: "slider",
 							min: 0,
 							max: 500,
@@ -256,42 +224,99 @@ class StateCollectionWidget extends Generic {
 						},
 						{
 							name: "backgroundColorOn",
-							label: "background_color_on",
+							label: "background_color",
 							type: "color",
 						},
 						{
-							name: "iconOn",
-							label: "icon_on",
+							name: "backgroundOn",
+							label: "background",
+							type: "text",
+							default: "",
+						},
+					],
+				},
+				{
+					name: "off",
+					fields: [
+						{
+							name: "iconOff",
+							label: "icon",
 							// type: "icon64",
 							type: "image",
+							hidden: "data.noIcon",
 							// hidden: '!!data.noIcon || !!data.iconSmall',
-							hidden: "!!data.noIcon",
 						},
 						{
-							name: "iconSizeOn",
-							label: "icon_size_on",
+							name: "iconSizeOff",
+							label: "icon_size",
 							type: "slider",
 							min: 1,
 							max: 200,
 							default: 100,
 							step: 1,
-							hidden: "!data.iconOn",
+							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
-							name: "iconColorOn",
-							label: "icon_color_on",
+							name: "iconColorOff",
+							label: "icon_color",
 							type: "color",
-							hidden: "!data.iconOn",
+							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
-							name: "iconHoverOn",
-							label: "icon_hover_on",
+							name: "iconHoverOff",
+							label: "icon_hover",
 							type: "slider",
 							min: 0,
 							max: 300,
 							default: 200,
 							step: 1,
-							hidden: "!data.iconOn",
+							hidden: "!data.iconOff || data.noIcon",
+						},
+						{
+							name: "textColorOff",
+							label: "text_color",
+							type: "color",
+						},
+						{
+							name: "headerOff",
+							label: "header",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "headerSizeOff",
+							label: "header_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "valueOff",
+							label: "value",
+							type: "text",
+							default: "",
+						},
+						{
+							name: "valueSizeOff",
+							label: "value_size",
+							type: "slider",
+							min: 0,
+							max: 500,
+							default: 100,
+							step: 1,
+						},
+						{
+							name: "backgroundColorOff",
+							label: "background_color",
+							type: "color",
+						},
+						{
+							name: "backgroundOff",
+							label: "background",
+							type: "text",
+							default: "",
 						},
 					],
 				},
@@ -301,6 +326,40 @@ class StateCollectionWidget extends Generic {
 					indexTo: "values_count",
 					label: "values",
 					fields: [
+						{
+							name: "icon",
+							label: "icon",
+							// type: "icon64",
+							type: "image",
+							// hidden: '!!data.noIcon || !!data.iconSmall',
+							hidden: "data.noIcon",
+						},
+						{
+							name: "iconSize",
+							label: "icon_size",
+							type: "slider",
+							min: 1,
+							max: 200,
+							default: 100,
+							step: 1,
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+						},
+						{
+							name: "iconColor",
+							label: "icon_color",
+							type: "color",
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+						},
+						{
+							name: "iconHover",
+							label: "icon_hover",
+							type: "slider",
+							min: 0,
+							max: 300,
+							default: 200,
+							step: 1,
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+						},
 						{
 							name: "textColor",
 							label: "text_color",
@@ -342,38 +401,10 @@ class StateCollectionWidget extends Generic {
 							type: "color",
 						},
 						{
-							name: "icon",
-							label: "icon",
-							// type: "icon64",
-							type: "image",
-							// hidden: '!!data.noIcon || !!data.iconSmall',
-							hidden: "!!data.noIcon",
-						},
-						{
-							name: "iconSize",
-							label: "icon_size",
-							type: "slider",
-							min: 1,
-							max: 200,
-							default: 100,
-							step: 1,
-							hidden: (data, i) => !data[`icon${i}`],
-						},
-						{
-							name: "iconColor",
-							label: "icon_color",
-							type: "color",
-							hidden: (data, i) => !data[`icon${i}`],
-						},
-						{
-							name: "iconHover",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: (data, i) => !data[`icon${i}`],
+							name: "background",
+							label: "background",
+							type: "text",
+							default: "",
 						},
 					],
 				},
@@ -384,14 +415,14 @@ class StateCollectionWidget extends Generic {
 				height: "100px",
 				position: "relative",
 			},
-			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-demo.png",
+			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-state.png",
 		};
 	}
 
 	// Do not delete this method. It is used by vis to read the widget configuration.
 	// eslint-disable-next-line class-methods-use-this
 	getWidgetInfo() {
-		console.log("inside getWidgetInfo");
+		// console.log("inside getWidgetInfo");
 
 		return StateCollectionWidget.getWidgetInfo();
 	}
@@ -406,7 +437,7 @@ class StateCollectionWidget extends Generic {
 		// 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
 		//                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
 
-		console.log("inside propertiesUpdate", this.state.values);
+		// console.log("inside propertiesUpdate", this.state.values);
 
 		const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData === actualRxData) {
@@ -419,26 +450,26 @@ class StateCollectionWidget extends Generic {
 
 	// This function is called every time when rxData is changed
 	async onRxDataChanged(payload) {
-		console.log("inside onRxDataChanged", payload);
+		// console.log("inside onRxDataChanged", payload);
 		await this.propertiesUpdate();
 	}
 
 	// This function is called every time when rxStyle is changed
 	// eslint-disable-next-line class-methods-use-this
 	onRxStyleChanged() {
-		console.log("inside onRxStyleChanged");
+		// console.log("inside onRxStyleChanged");
 	}
 
 	// This function is called every time when some Object State updated, but all changes lands into this.state.values too
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	onStateUpdated(id, state) {
-		console.log("inside onStateUpdated");
-		console.log("id", id);
-		console.log("this.state.oidObject", this.state.oidObject);
+		// console.log("inside onStateUpdated");
+		// console.log("id", id);
+		// console.log("this.state.oidObject", this.state.oidObject);
 	}
 
 	async componentDidMount() {
-		console.log("inside componentDidMount");
+		// console.log("inside componentDidMount");
 		super.componentDidMount();
 
 		// Update data
@@ -446,8 +477,9 @@ class StateCollectionWidget extends Generic {
 	}
 
 	renderWidgetBody(props) {
-		console.log("inside renderWidgetBody", props);
+		// console.log("inside renderWidgetBody", props);
 		super.renderWidgetBody(props);
+		// console.log("props", props);
 
 		/* const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData !== actualRxData) {
@@ -474,8 +506,10 @@ class StateCollectionWidget extends Generic {
 		const collectionContext = {
 			...props,
 			t: (text) => StateCollectionWidget.t(text),
+			// state: this.state,
+			// setState: this.setState.bind(this),
 			getPropertyValue: this.getPropertyValue.bind(this),
-			setValue: this.setValue.bind(this),
+			setValue: this.setValue,
 			mode: this.props.context.themeType,
 			rxData: this.state.rxData,
 			rxStyle: this.state.rxStyle,

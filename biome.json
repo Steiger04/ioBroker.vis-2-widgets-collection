@@ -1,22 +1,32 @@
 {
 	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
 	"organizeImports": {
-		"enabled": false
+		"enabled": true
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true,
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "off",
+				"useNumberNamespace": "off",
+				"useNodejsImportProtocol": "off"
 			},
 			"complexity": {
-				"noForEach": "off"
+				"noForEach": "off",
+				"useOptionalChain": "off",
+				"noUselessConstructor": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off",
+				"noArrayIndexKey": "off",
+				"noRedundantUseStrict": "off"
 			}
 		}
 	},
 	"files": {
-		"include": ["src-widgets/**/*"],
+		"include": ["gulpfile.js", "src-widgets/**/*"],
 		"ignore": ["src-widgets/node_modules/**/*", "src-widgets/build/**/*"]
 	}
 }

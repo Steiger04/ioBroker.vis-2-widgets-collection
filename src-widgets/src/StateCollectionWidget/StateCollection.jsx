@@ -1,28 +1,41 @@
-import React, { useMemo, useContext, useRef, useEffect } from "react";
 import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import React, {
+	useCallback,
+	useMemo,
+	useState,
+	useContext,
+	useRef,
+	useEffect,
+} from "react";
 import CollectionChangeDialog from "../components/CollectionChangeDialog";
 import { CollectionContext } from "../components/CollectionProvider";
 import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
-	const { mode, values, setValue, widget, oidObject, getPropertyValue } =
+	const { refService, mode, setValue, widget, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
-	const [open, setOpen] = React.useState(false);
-
-	console.log("StateCollection -> widget", widget);
-	console.log("StateCollection -> mode", mode);
+	const [open, setOpen] = useState(false);
 
 	const styles = useStyles(widget.style);
-	const refService = useRef(null);
-	const size = useSize(refService);
 
-	const clickHandler = () => {
-		switch (oidObject?.common?.type) {
+	const ref = useRef(null);
+
+	const isEllipse = !widget.data.square && !widget.data.circle;
+	const { size, width, height } = useSize(ref, isEllipse);
+
+	const oid = oidObject?._id;
+	const oidType = oidObject?.common?.type;
+	const oidValue = getPropertyValue("oid");
+	const oidStates = oidObject?.common?.states;
+	const oidIcon = oidObject?.common?.icon;
+	const noIcon = widget.data.noIcon;
+
+	const clickHandler = useCallback(() => {
+		switch (oidType) {
 			case "boolean": {
-				const value = getPropertyValue("oid");
-				setValue(oidObject._id, !value, true);
+				setValue(oid, !oidValue);
 				break;
 			}
 
@@ -34,7 +47,7 @@ function StateCollection() {
 			default:
 				break;
 		}
-	};
+	}, [oidType, oid, oidValue, setValue]);
 
 	const data = useMemo(() => {
 		function _data(ext) {
@@ -44,20 +57,18 @@ function StateCollection() {
 				headerSize: widget.data[`headerSize${ext}`],
 				value: widget.data[`value${ext}`],
 				valueSize: widget.data[`valueSize${ext}`],
-				icon:
-					!widget.data.noIcon &&
-					(widget.data[`icon${ext}`] || oidObject?.common?.icon),
+				icon: !widget.data.noIcon && (widget.data[`icon${ext}`] || oidIcon),
 				iconSize: widget.data[`iconSize${ext}`],
 				iconColor: widget.data[`iconColor${ext}`],
 				iconHover: widget.data[`iconHover${ext}`],
 				backgroundColor: widget.data[`backgroundColor${ext}`],
+				background: widget.data[`background${ext}`],
 			};
 		}
 
-		const idValue = getPropertyValue("oid");
-		switch (oidObject?.common?.type) {
+		switch (oidType) {
 			case "boolean":
-				if (idValue) {
+				if (oidValue) {
 					return _data("On");
 				}
 				return _data("Off");
@@ -65,17 +76,19 @@ function StateCollection() {
 			case "number":
 			case "string":
 				if (widget.data.withStates) {
-					const states = oidObject.common.states;
-					const value = states[String(idValue)];
+					const value = oidStates[String(oidValue)];
 
 					for (let i = 1; i <= widget.data.values_count; i++) {
-						if (widget.data[`value${i}`] === value) {
+						if (
+							widget.data[`value${i}`] === value ||
+							widget.data[`value${i}`] === String(oidValue)
+						) {
 							return _data(i);
 						}
 					}
 				}
 
-				if (idValue) {
+				if (oidValue) {
 					return _data("On");
 				}
 				return _data("Off");
@@ -83,61 +96,75 @@ function StateCollection() {
 			default:
 				return {};
 		}
-	}, [widget.data, oidObject, getPropertyValue]);
+	}, [oidType, oidValue, oidStates, oidIcon, widget.data]);
 
 	const avatarColor = useMemo(() => {
-		console.log("StateCollection -> avatarColor -> data", data);
+		// console.log("StateCollection -> avatarColor -> data", data);
 
-		if (widget.data.noIcon) {
-			return data.textColor;
+		if (noIcon || !data.icon) {
+			return data.textColor || styles.color || "background.default";
 		}
 		if (mode === "dark") {
 			return data.iconColor || "background.default";
 		}
 		return data.iconColor || "text.primary";
-	}, [mode, data, widget.data.noIcon]);
+	}, [mode, data, styles, noIcon]);
+
+	// console.log("refService", refService);
+	const current = refService.current
+		? { ...refService.current?.children }
+		: null;
 
 	useEffect(() => {
-		console.log("StateCollection -> values", values);
-	}, [values]);
+		if (!current) return;
 
-	useEffect(() => {
-		console.log("StateCollection -> data", data);
-	}, [data]);
+		Object.values(current).forEach((child, idx) => {
+			if (child.children[0]?.localName === "img") {
+				child.children[0].style.color = widget.data[`signals-color-${idx}`];
+				child.children[0].style.filter = "drop-shadow(0px 10000px 0)";
+				child.children[0].style.transform = "translateY(-10000px)";
+			}
+		});
+	}, [current, widget]);
 
 	return (
 		oidObject && (
 			<>
-				<CollectionChangeDialog
-					data={data}
-					open={open}
-					closeHandler={() => setOpen(false)}
-				/>
+				{open && (
+					<CollectionChangeDialog
+						data={data}
+						open={open}
+						closeHandler={() => setOpen(false)}
+					/>
+				)}
+
 				<Box
 					sx={{
 						width: "100%",
 						height: "100%",
 						overflow: "hidden",
+						boxSizing: "border-box",
 					}}
 				>
 					<Paper
 						elevation={widget.data.onlyIcon ? 0 : 1}
-						square={widget.data.square}
+						square={widget.data.squaredCorner}
 						variant={widget.data.outlined ? "outlined" : "elevation"}
 						sx={{
 							boxShadow: widget.data.outlined ? 0 : 4,
 							height: "100%",
 							width: "100%",
 							boxSizing: "border-box",
-							overflow: "hidden",
+							// overflow: "hidden",
 
 							display: "flex",
 							justifyContent: "center",
 							alignItems: "center",
+							...styles,
 							backgroundColor: widget.data.onlyIcon
 								? "transparent"
-								: data.backgroundColor,
-							...styles,
+								: data.backgroundColor || styles.backgroundColor,
+							background: data.background || styles.background,
 						}}
 					>
 						<Stack
@@ -145,111 +172,136 @@ function StateCollection() {
 							sx={{
 								height: "100%",
 								width: "100%",
-								alignItems: "center",
 							}}
 						>
-							<Box>
+							<Box
+								sx={{
+									px: widget.data.buttonPadding,
+									pt: widget.data.buttonPadding / 2,
+									mb: -widget.data.buttonPadding / 2,
+								}}
+							>
 								<Typography
 									sx={{
 										color:
-											widget.style.color ||
-											data.textColor ||
-											"background.default",
+											data.textColor || styles.color || "background.default",
 										fontSize: `${data.headerSize}%`,
 									}}
 								>
-									{data.header || oidObject.common?.name}
+									{data.header || oidObject?.common?.name}
 								</Typography>
 							</Box>
 							<Box
 								sx={{
 									p: widget.data.buttonPadding,
-									boxSizing: "border-box",
-									overflow: "hidden",
 									width: "100%",
 									height: "100%",
+									boxSizing: "border-box",
+									overflow: "hidden",
 								}}
 							>
-								<Paper
-									elevation={widget.data.onlyIcon ? 0 : 4}
-									square={!widget.data.buttonPadding || widget.data.square}
+								<Box
+									ref={ref}
 									sx={{
-										height: "100%",
-										width: "100%",
-										overflow: "hidden",
 										display: "flex",
 										justifyContent: "center",
 										alignItems: "center",
-										bgcolor: widget.data.onlyIcon
-											? "transparent"
-											: widget.style["background-color"] ||
-												data.backgroundColor ||
-												"background.default",
-										borderRadius: widget.data.circle ? "50%" : null,
+										boxSizing: "border-box",
+										// overflow: "visible",
+										width: "100%",
+										height: "100%",
 									}}
 								>
-									<Button
-										disabled={widget.data.noButton}
-										onClick={clickHandler}
-										ref={refService}
+									<Paper
+										elevation={
+											widget.data.onlyIcon
+												? 0
+												: Number(widget.data.buttonElevation)
+										}
+										square={
+											!widget.data.buttonPadding || widget.data.squaredCorner
+										}
 										sx={{
-											borderRadius: 0,
-											boxSizing: "border-box",
+											height: height || "100%",
+											width: width || "100%",
 											overflow: "hidden",
-											width: "100%",
-											height: "100%",
-											color: data.iconColor || "background.default",
-											"&:hover": {
-												bgcolor: "transparent",
-												filter: `brightness(${data.iconHover}%)`,
-												// filter: "brightness(200%)",
-												// transition: "filter 0.8s",
-											},
+											display: "flex",
+											justifyContent: "center",
+											alignItems: "center",
+											bgcolor: widget.data.onlyIcon
+												? "transparent"
+												: data.backgroundColor || styles.backgroundColor,
+											borderRadius:
+												widget.data.circle || widget.data.ellipse
+													? "50%"
+													: null,
 										}}
 									>
-										<Avatar
-											variant="square"
-											src={data.icon}
+										<Button
+											disabled={widget.data.noButton}
+											onClick={clickHandler}
 											sx={{
-												color: avatarColor,
-												objectFit: "contain",
-												width: `calc(${size}px * ${data.iconSize} / 100)`,
-												height: `calc(${size}px * ${data.iconSize} / 100)`,
-												bgcolor: "transparent",
-												filter: "drop-shadow(0px 10000px 0)",
-												transform: "translateY(-10000px)",
+												borderRadius: 0,
+												boxSizing: "border-box",
+												// overflow: "hidden",
+												width: "100%",
+												height: "100%",
+												color: data.iconColor || "background.default",
+												"&:hover": {
+													bgcolor: "transparent",
+													filter: `brightness(${data.iconHover}%)`,
+													// filter: "brightness(200%)",
+													// transition: "filter 0.8s",
+												},
 											}}
 										>
-											<Typography
+											<Avatar
+												variant="square"
+												src={data.icon}
 												sx={{
-													color:
-														widget.style.color ||
-														data.textColor ||
-														"background.default",
-													fontSize: `${data.valueSize}%`,
+													overflow: "visible",
+													color: avatarColor,
+													objectFit: "contain",
+													width: `calc(${size}px * ${data.iconSize} / 100)`,
+													height: `calc(${size}px * ${data.iconSize} / 100)`,
+													bgcolor: "transparent",
+													filter: "drop-shadow(0px 10000px 0)",
+													transform: "translateY(-10000px)",
+													display: data.icon ? null : "flex",
+													flexGrow: data.icon ? null : 1,
 												}}
 											>
-												{(widget.data.noIcon || !oidObject.common?.icon) &&
-													(data.value || getPropertyValue("oid"))}
-											</Typography>
-										</Avatar>
-									</Button>
-								</Paper>
+												<Typography
+													sx={{
+														fontSize: `${data.valueSize}%`,
+													}}
+												>
+													{(widget.data.noIcon || !oidObject?.common?.icon) &&
+														(data.value || String(oidValue))}
+												</Typography>
+											</Avatar>
+										</Button>
+									</Paper>
+								</Box>
 							</Box>
 
-							<Box>
+							<Box
+								sx={{
+									px: widget.data.buttonPadding,
+									pb: widget.data.buttonPadding / 2,
+									mt: -widget.data.buttonPadding / 2,
+								}}
+							>
 								<Typography
 									sx={{
 										color:
-											widget.style.color ||
-											data.textColor ||
-											"background.default",
+											data.textColor || styles.color || "background.default",
 										fontSize: `${data.valueSize}%`,
 									}}
 								>
 									{!widget.data.noIcon &&
-										(data.icon || oidObject.common?.icon) &&
-										(data.value || getPropertyValue("oid"))}
+										(data.icon || oidObject?.common?.icon) &&
+										(data.value || String(oidValue))}
 								</Typography>
 							</Box>
 						</Stack>
