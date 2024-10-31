@@ -13,8 +13,15 @@ import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
-	const { refService, mode, setValue, widget, oidObject, getPropertyValue } =
-		useContext(CollectionContext);
+	const {
+		isSignalVisible,
+		refService,
+		mode,
+		setValue,
+		widget,
+		oidObject,
+		getPropertyValue,
+	} = useContext(CollectionContext);
 
 	const [open, setOpen] = useState(false);
 
@@ -110,7 +117,6 @@ function StateCollection() {
 		return data.iconColor || "text.primary";
 	}, [mode, data, styles, noIcon]);
 
-	// console.log("refService", refService);
 	const current = refService.current
 		? { ...refService.current?.children }
 		: null;
@@ -118,14 +124,26 @@ function StateCollection() {
 	useEffect(() => {
 		if (!current) return;
 
-		Object.values(current).forEach((child, idx) => {
-			if (child.children[0]?.localName === "img") {
-				child.children[0].style.color = widget.data[`signals-color-${idx}`];
-				child.children[0].style.filter = "drop-shadow(0px 10000px 0)";
-				child.children[0].style.transform = "translateY(-10000px)";
-			}
+		const _current = refService.current?.children;
+
+		const visible = [];
+		for (let i = 0; i < widget.data["signals-count"]; i++) {
+			if (isSignalVisible(i)) visible.push(i);
+		}
+
+		const children = [];
+		Object.values(_current).forEach((child) => {
+			if (child.children[0]?.className === "vis-signal-icon iconOwn")
+				children.push(child);
 		});
-	}, [current, widget]);
+
+		children.forEach((child, idx) => {
+			child.children[0].style.color =
+				widget.data[`signals-color-${visible[idx]}`];
+			child.children[0].style.filter = "drop-shadow(0px 10000px 0)";
+			child.children[0].style.transform = "translateY(-10000px)";
+		});
+	}, [current, widget, refService, isSignalVisible]);
 
 	return (
 		oidObject && (

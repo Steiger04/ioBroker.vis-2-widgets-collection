@@ -24,6 +24,7 @@ function CollectionChangeDialog(props) {
 	const oid = oidObject?._id;
 	const oidValue = getPropertyValue("oid");
 	const oidStates = oidObject?.common?.states;
+	const oidType = oidObject?.common?.type;
 
 	const [sliderValue, setSliderValue] = useState(oidValue);
 
@@ -47,7 +48,9 @@ function CollectionChangeDialog(props) {
 	}, [oid, oidValue, sliderValue, debouncedSliderValue, setValue]);
 
 	const ChangeSlider =
-		oidObject?.common?.min === 0 && oidObject?.common?.max ? (
+		oidType === "number" &&
+		oidObject?.common?.min === 0 &&
+		oidObject?.common?.max ? (
 			<Slider
 				sx={{ pb: oidStates ? 4 : 3 }}
 				size="small"
@@ -76,7 +79,9 @@ function CollectionChangeDialog(props) {
 				<ListItem disablePadding key={key}>
 					<ListItemButton
 						disableGutters
-						onClick={() => setSliderValue(Number(key))}
+						onClick={() =>
+							setSliderValue(oidType === "number" ? Number(key) : String(key))
+						}
 					>
 						<ListItemText
 							sx={{ px: 2 }}

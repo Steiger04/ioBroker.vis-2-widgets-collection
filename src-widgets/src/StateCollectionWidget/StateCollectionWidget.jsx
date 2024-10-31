@@ -152,6 +152,7 @@ class StateCollectionWidget extends Generic {
 				},
 				{
 					name: "on",
+					label: "group_on",
 					fields: [
 						{
 							name: "iconOn",
@@ -237,6 +238,7 @@ class StateCollectionWidget extends Generic {
 				},
 				{
 					name: "off",
+					label: "group_off",
 					fields: [
 						{
 							name: "iconOff",
@@ -322,9 +324,9 @@ class StateCollectionWidget extends Generic {
 				},
 				{
 					name: "values",
+					label: "values",
 					indexFrom: 1,
 					indexTo: "values_count",
-					label: "values",
 					fields: [
 						{
 							name: "icon",
@@ -471,7 +473,6 @@ class StateCollectionWidget extends Generic {
 	async componentDidMount() {
 		// console.log("inside componentDidMount");
 		super.componentDidMount();
-
 		// Update data
 		await this.propertiesUpdate();
 	}
@@ -508,6 +509,7 @@ class StateCollectionWidget extends Generic {
 			t: (text) => StateCollectionWidget.t(text),
 			// state: this.state,
 			// setState: this.setState.bind(this),
+			isSignalVisible: this.isSignalVisible.bind(this),
 			getPropertyValue: this.getPropertyValue.bind(this),
 			setValue: this.setValue,
 			mode: this.props.context.themeType,
