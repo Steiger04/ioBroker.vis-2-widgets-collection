@@ -288,8 +288,12 @@ function StateCollection() {
 												width: `calc(${size}px * ${data.iconSize} / 100)`,
 												height: `calc(${size}px * ${data.iconSize} / 100)`,
 												bgcolor: "transparent",
-												filter: "drop-shadow(0px 10000px 0)",
-												transform: "translateY(-10000px)",
+												filter: data.iconColor
+													? "drop-shadow(0px 10000px 0)"
+													: null,
+												transform: data.iconColor
+													? "translateY(-10000px)"
+													: null,
 												display: data.icon ? null : "flex",
 												flexGrow: data.icon ? null : 1,
 											}}
