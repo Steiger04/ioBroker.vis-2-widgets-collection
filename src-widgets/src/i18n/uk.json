@@ -27,5 +27,6 @@
     "value": "Значення",
     "value_size": "Розмір значення",
     "background_color": "Колір фону",
-    "background": "Фон"
+    "background": "Фон",
+    "unit": "одиниця"
 }

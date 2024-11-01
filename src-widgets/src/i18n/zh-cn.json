@@ -27,5 +27,6 @@
     "value": "价值",
     "value_size": "价值大小",
     "background_color": "背景颜色",
-    "background": "背景"
+    "background": "背景",
+    "unit": "单元"
 }

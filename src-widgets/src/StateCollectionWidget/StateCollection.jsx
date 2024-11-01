@@ -33,11 +33,20 @@ function StateCollection() {
 	const { size, width, height } = useSize(ref, isEllipse);
 
 	const oid = oidObject?._id;
-	const oidType = oidObject?.common?.type;
 	const oidValue = getPropertyValue("oid");
+	const oidType = oidObject?.common?.type;
 	const oidStates = oidObject?.common?.states;
 	const oidIcon = oidObject?.common?.icon;
+	const oidUnit = oidObject?.common?.unit;
+	const oidName = oidObject?.common?.name;
+
 	const noIcon = widget.data.noIcon;
+
+	const unit = widget.data.unit || oidUnit || "";
+	const oidUnitValue =
+		oidValue === 0
+			? String(oidValue) && `${oidValue} ${unit}`
+			: oidValue && `${oidValue} ${unit}`;
 
 	const clickHandler = useCallback(() => {
 		switch (oidType) {
@@ -64,7 +73,7 @@ function StateCollection() {
 				headerSize: widget.data[`headerSize${ext}`],
 				value: widget.data[`value${ext}`],
 				valueSize: widget.data[`valueSize${ext}`],
-				icon: !widget.data.noIcon && (widget.data[`icon${ext}`] || oidIcon),
+				icon: !noIcon && (widget.data[`icon${ext}`] || oidIcon),
 				iconSize: widget.data[`iconSize${ext}`],
 				iconColor: widget.data[`iconColor${ext}`],
 				iconHover: widget.data[`iconHover${ext}`],
@@ -103,7 +112,7 @@ function StateCollection() {
 			default:
 				return {};
 		}
-	}, [oidType, oidValue, oidStates, oidIcon, widget.data]);
+	}, [widget, oidType, oidValue, oidStates, oidIcon, noIcon]);
 
 	const avatarColor = useMemo(() => {
 		// console.log("StateCollection -> avatarColor -> data", data);
@@ -146,187 +155,180 @@ function StateCollection() {
 	}, [current, widget, refService, isSignalVisible]);
 
 	return (
-		oidObject && (
-			<>
-				{open && (
-					<CollectionChangeDialog
-						data={data}
-						open={open}
-						closeHandler={() => setOpen(false)}
-					/>
-				)}
+		<>
+			{open && (
+				<CollectionChangeDialog
+					data={data}
+					open={open}
+					closeHandler={() => setOpen(false)}
+				/>
+			)}
 
-				<Box
+			<Box
+				sx={{
+					width: "100%",
+					height: "100%",
+					overflow: "hidden",
+					boxSizing: "border-box",
+				}}
+			>
+				<Paper
+					elevation={widget.data.onlyIcon ? 0 : 1}
+					square={widget.data.squaredCorner}
+					variant={widget.data.outlined ? "outlined" : "elevation"}
 					sx={{
-						width: "100%",
+						boxShadow: widget.data.outlined ? 0 : 4,
 						height: "100%",
-						overflow: "hidden",
+						width: "100%",
 						boxSizing: "border-box",
+						// overflow: "hidden",
+
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+						...styles,
+						backgroundColor: widget.data.onlyIcon
+							? "transparent"
+							: data.backgroundColor || styles.backgroundColor,
+						background: data.background || styles.background,
 					}}
 				>
-					<Paper
-						elevation={widget.data.onlyIcon ? 0 : 1}
-						square={widget.data.squaredCorner}
-						variant={widget.data.outlined ? "outlined" : "elevation"}
+					<Stack
+						spacing={0}
 						sx={{
-							boxShadow: widget.data.outlined ? 0 : 4,
 							height: "100%",
 							width: "100%",
-							boxSizing: "border-box",
-							// overflow: "hidden",
-
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							...styles,
-							backgroundColor: widget.data.onlyIcon
-								? "transparent"
-								: data.backgroundColor || styles.backgroundColor,
-							background: data.background || styles.background,
 						}}
 					>
-						<Stack
-							spacing={0}
+						<Box
 							sx={{
-								height: "100%",
+								px: widget.data.buttonPadding,
+								pt: widget.data.buttonPadding / 2,
+								mb: -widget.data.buttonPadding / 2,
+							}}
+						>
+							<Typography
+								sx={{
+									color: data.textColor || styles.color || "background.default",
+									fontSize: `${data.headerSize}%`,
+								}}
+							>
+								{data.header || oidName}
+							</Typography>
+						</Box>
+						<Box
+							sx={{
+								p: widget.data.buttonPadding,
 								width: "100%",
+								height: "100%",
+								boxSizing: "border-box",
+								overflow: "hidden",
 							}}
 						>
 							<Box
+								ref={ref}
 								sx={{
-									px: widget.data.buttonPadding,
-									pt: widget.data.buttonPadding / 2,
-									mb: -widget.data.buttonPadding / 2,
-								}}
-							>
-								<Typography
-									sx={{
-										color:
-											data.textColor || styles.color || "background.default",
-										fontSize: `${data.headerSize}%`,
-									}}
-								>
-									{data.header || oidObject?.common?.name}
-								</Typography>
-							</Box>
-							<Box
-								sx={{
-									p: widget.data.buttonPadding,
+									display: "flex",
+									justifyContent: "center",
+									alignItems: "center",
+									boxSizing: "border-box",
+									// overflow: "visible",
 									width: "100%",
 									height: "100%",
-									boxSizing: "border-box",
-									overflow: "hidden",
 								}}
 							>
-								<Box
-									ref={ref}
+								<Paper
+									elevation={
+										widget.data.onlyIcon
+											? 0
+											: Number(widget.data.buttonElevation)
+									}
+									square={
+										!widget.data.buttonPadding || widget.data.squaredCorner
+									}
 									sx={{
+										height: height || "100%",
+										width: width || "100%",
+										overflow: "hidden",
 										display: "flex",
 										justifyContent: "center",
 										alignItems: "center",
-										boxSizing: "border-box",
-										// overflow: "visible",
-										width: "100%",
-										height: "100%",
+										bgcolor: widget.data.onlyIcon
+											? "transparent"
+											: data.backgroundColor || styles.backgroundColor,
+										borderRadius:
+											widget.data.circle || widget.data.ellipse ? "50%" : null,
 									}}
 								>
-									<Paper
-										elevation={
-											widget.data.onlyIcon
-												? 0
-												: Number(widget.data.buttonElevation)
-										}
-										square={
-											!widget.data.buttonPadding || widget.data.squaredCorner
-										}
+									<Button
+										disabled={widget.data.noButton}
+										onClick={clickHandler}
 										sx={{
-											height: height || "100%",
-											width: width || "100%",
-											overflow: "hidden",
-											display: "flex",
-											justifyContent: "center",
-											alignItems: "center",
-											bgcolor: widget.data.onlyIcon
-												? "transparent"
-												: data.backgroundColor || styles.backgroundColor,
-											borderRadius:
-												widget.data.circle || widget.data.ellipse
-													? "50%"
-													: null,
+											borderRadius: 0,
+											boxSizing: "border-box",
+											// overflow: "hidden",
+											width: "100%",
+											height: "100%",
+											color: data.iconColor || "background.default",
+											"&:hover": {
+												bgcolor: "transparent",
+												filter: `brightness(${data.iconHover}%)`,
+												// filter: "brightness(200%)",
+												// transition: "filter 0.8s",
+											},
 										}}
 									>
-										<Button
-											disabled={widget.data.noButton}
-											onClick={clickHandler}
+										<Avatar
+											variant="square"
+											src={data.icon}
 											sx={{
-												borderRadius: 0,
-												boxSizing: "border-box",
-												// overflow: "hidden",
-												width: "100%",
-												height: "100%",
-												color: data.iconColor || "background.default",
-												"&:hover": {
-													bgcolor: "transparent",
-													filter: `brightness(${data.iconHover}%)`,
-													// filter: "brightness(200%)",
-													// transition: "filter 0.8s",
-												},
+												overflow: "visible",
+												color: avatarColor,
+												objectFit: "contain",
+												width: `calc(${size}px * ${data.iconSize} / 100)`,
+												height: `calc(${size}px * ${data.iconSize} / 100)`,
+												bgcolor: "transparent",
+												filter: "drop-shadow(0px 10000px 0)",
+												transform: "translateY(-10000px)",
+												display: data.icon ? null : "flex",
+												flexGrow: data.icon ? null : 1,
 											}}
 										>
-											<Avatar
-												variant="square"
-												src={data.icon}
+											<Typography
 												sx={{
-													overflow: "visible",
-													color: avatarColor,
-													objectFit: "contain",
-													width: `calc(${size}px * ${data.iconSize} / 100)`,
-													height: `calc(${size}px * ${data.iconSize} / 100)`,
-													bgcolor: "transparent",
-													filter: "drop-shadow(0px 10000px 0)",
-													transform: "translateY(-10000px)",
-													display: data.icon ? null : "flex",
-													flexGrow: data.icon ? null : 1,
+													fontSize: `${data.valueSize}%`,
 												}}
 											>
-												<Typography
-													sx={{
-														fontSize: `${data.valueSize}%`,
-													}}
-												>
-													{(widget.data.noIcon || !oidObject?.common?.icon) &&
-														(data.value || String(oidValue))}
-												</Typography>
-											</Avatar>
-										</Button>
-									</Paper>
-								</Box>
+												{(noIcon || !oidIcon) && (data.value || oidUnitValue)}
+											</Typography>
+										</Avatar>
+									</Button>
+								</Paper>
 							</Box>
+						</Box>
 
-							<Box
+						<Box
+							sx={{
+								px: widget.data.buttonPadding,
+								pb: widget.data.buttonPadding / 2,
+								mt: -widget.data.buttonPadding / 2,
+							}}
+						>
+							<Typography
 								sx={{
-									px: widget.data.buttonPadding,
-									pb: widget.data.buttonPadding / 2,
-									mt: -widget.data.buttonPadding / 2,
+									color: data.textColor || styles.color || "background.default",
+									fontSize: `${data.valueSize}%`,
 								}}
 							>
-								<Typography
-									sx={{
-										color:
-											data.textColor || styles.color || "background.default",
-										fontSize: `${data.valueSize}%`,
-									}}
-								>
-									{!widget.data.noIcon &&
-										(data.icon || oidObject?.common?.icon) &&
-										(data.value || String(oidValue))}
-								</Typography>
-							</Box>
-						</Stack>
-					</Paper>
-				</Box>
-			</>
-		)
+								{!noIcon &&
+									(data.icon || oidIcon) &&
+									(data.value || oidUnitValue)}
+							</Typography>
+						</Box>
+					</Stack>
+				</Paper>
+			</Box>
+		</>
 	);
 }
 

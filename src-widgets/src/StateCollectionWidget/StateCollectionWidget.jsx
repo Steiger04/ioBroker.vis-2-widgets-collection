@@ -78,6 +78,12 @@ class StateCollectionWidget extends Generic {
 							onChange: oidChangeHandlerAsync,
 						},
 						{
+							name: "unit",
+							label: "unit",
+							type: "text",
+							default: "",
+						},
+						{
 							name: "values_count",
 							type: "number",
 							/* hidden:

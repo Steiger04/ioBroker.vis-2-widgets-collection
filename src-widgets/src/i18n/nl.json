@@ -27,5 +27,6 @@
     "value": "Waarde",
     "value_size": "Waarde grootte",
     "background_color": "Achtergrondkleur",
-    "background": "Achtergrond"
+    "background": "Achtergrond",
+    "unit": "Eenheid"
 }

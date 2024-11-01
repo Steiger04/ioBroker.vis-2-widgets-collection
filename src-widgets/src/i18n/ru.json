@@ -27,5 +27,6 @@
     "value": "Ценить",
     "value_size": "Размер значения",
     "background_color": "Цвет фона",
-    "background": "Фон"
+    "background": "Фон",
+    "unit": "Единица"
 }

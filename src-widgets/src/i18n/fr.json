@@ -27,5 +27,6 @@
     "value": "Valeur",
     "value_size": "Taille de la valeur",
     "background_color": "Couleur de fond",
-    "background": "Arrière-plan"
+    "background": "Arrière-plan",
+    "unit": "Unité"
 }
