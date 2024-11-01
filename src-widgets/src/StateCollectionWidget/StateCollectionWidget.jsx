@@ -27,6 +27,10 @@ class StateCollectionWidget extends Generic {
 			if (data.oid) {
 				const object = await socket.getObject(data.oid);
 
+				data.write = object?.common?.write;
+				data.noButton = !object?.common?.write;
+				data.unit = object?.common?.unit || "";
+
 				if (object?.common?.states) {
 					if (Array.isArray(object.common.states)) {
 						// convert to {'state1': 'state1', 'state2': 'state2', ...}
@@ -43,15 +47,23 @@ class StateCollectionWidget extends Generic {
 					Object.keys(object.common.states).forEach((state, index) => {
 						data[`value${index + 1}`] = object.common.states[state];
 					});
-					data.type = object.common.type;
+					// data.type = object.common.type;
+					// data.write = object.common.write;
+					// data.noButton = !object.common.write;
 					changeData(data);
 				} else if (object?.common) {
 					data.withNumber = object.common.type === "number";
 					data.withStates = false;
 					data.values_count = 0;
-					data.type = object.common.type;
+					// data.type = object.common.type;
+					// data.write = object.common.write;
+					// data.noButton = !object.common.write;
 					changeData(data);
 				}
+			} else {
+				data.write = false;
+				data.noButton = true;
+				changeData(data);
 			}
 		};
 
@@ -70,6 +82,8 @@ class StateCollectionWidget extends Generic {
 							name: "noButton",
 							type: "checkbox",
 							label: "no_button",
+							disabled: "!data.write",
+							default: "!data.write",
 						},
 						{
 							name: "oid",

@@ -37,12 +37,13 @@ function StateCollection() {
 	const oidType = oidObject?.common?.type;
 	const oidStates = oidObject?.common?.states;
 	const oidIcon = oidObject?.common?.icon;
-	const oidUnit = oidObject?.common?.unit;
+	// const oidUnit = oidObject?.common?.unit;
 	const oidName = oidObject?.common?.name;
 
 	const noIcon = widget.data.noIcon;
 
-	const unit = widget.data.unit || oidUnit || "";
+	// const unit = widget.data.unit || oidUnit || "";
+	const unit = widget.data.unit;
 	const oidUnitValue =
 		oidValue === 0
 			? String(oidValue) && `${oidValue} ${unit}`
@@ -66,12 +67,14 @@ function StateCollection() {
 	}, [oidType, oid, oidValue, setValue]);
 
 	const data = useMemo(() => {
-		function _data(ext) {
+		function _data(ext, withUnit) {
 			return {
 				textColor: widget.data[`textColor${ext}`],
 				header: widget.data[`header${ext}`],
 				headerSize: widget.data[`headerSize${ext}`],
-				value: widget.data[`value${ext}`],
+				value: withUnit
+					? `${widget.data[`value${ext}`]} ${widget.data.unit}`
+					: widget.data[`value${ext}`],
 				valueSize: widget.data[`valueSize${ext}`],
 				icon: !noIcon && (widget.data[`icon${ext}`] || oidIcon),
 				iconSize: widget.data[`iconSize${ext}`],
@@ -90,17 +93,14 @@ function StateCollection() {
 				return _data("Off");
 
 			case "number":
-			case "string":
-				if (widget.data.withStates) {
-					const value = oidStates[String(oidValue)];
-
-					for (let i = 1; i <= widget.data.values_count; i++) {
-						if (
-							widget.data[`value${i}`] === value ||
-							widget.data[`value${i}`] === String(oidValue)
-						) {
-							return _data(i);
-						}
+			case "string": {
+				const value = oidStates && oidStates[String(oidValue)];
+				for (let i = 1; i <= widget.data.values_count; i++) {
+					if (
+						widget.data[`value${i}`] === value ||
+						widget.data[`value${i}`] === String(oidValue)
+					) {
+						return _data(i, !value);
 					}
 				}
 
@@ -108,9 +108,11 @@ function StateCollection() {
 					return _data("On");
 				}
 				return _data("Off");
+			}
 
 			default:
-				return {};
+				// return {};
+				return _data("Off");
 		}
 	}, [widget, oidType, oidValue, oidStates, oidIcon, noIcon]);
 
@@ -273,8 +275,6 @@ function StateCollection() {
 											"&:hover": {
 												bgcolor: "transparent",
 												filter: `brightness(${data.iconHover}%)`,
-												// filter: "brightness(200%)",
-												// transition: "filter 0.8s",
 											},
 										}}
 									>
