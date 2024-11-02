@@ -25,7 +25,9 @@ function StateCollection() {
 
 	const [open, setOpen] = useState(false);
 
-	const styles = useStyles(widget.style);
+	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
+		widget.style,
+	);
 
 	const ref = useRef(null);
 
@@ -120,13 +122,13 @@ function StateCollection() {
 		// console.log("StateCollection -> avatarColor -> data", data);
 
 		if (noIcon || !data.icon) {
-			return data.textColor || styles.color || "background.default";
+			return data.textColor || textStyles.color || "background.default";
 		}
 		if (mode === "dark") {
 			return data.iconColor || "background.default";
 		}
 		return data.iconColor || "text.primary";
-	}, [mode, data, styles, noIcon]);
+	}, [mode, data, textStyles, noIcon]);
 
 	const current = refService.current
 		? { ...refService.current?.children }
@@ -179,6 +181,8 @@ function StateCollection() {
 					square={widget.data.squaredCorner}
 					variant={widget.data.outlined ? "outlined" : "elevation"}
 					sx={{
+						...backgroundStyles,
+						...borderStyles,
 						boxShadow: widget.data.outlined ? 0 : 4,
 						height: "100%",
 						width: "100%",
@@ -188,11 +192,10 @@ function StateCollection() {
 						display: "flex",
 						justifyContent: "center",
 						alignItems: "center",
-						...styles,
 						backgroundColor: widget.data.onlyIcon
 							? "transparent"
-							: data.backgroundColor || styles.backgroundColor,
-						background: data.background || styles.background,
+							: data.backgroundColor || backgroundStyles.backgroundColor,
+						background: data.background || backgroundStyles.background,
 					}}
 				>
 					<Stack
@@ -211,8 +214,11 @@ function StateCollection() {
 						>
 							<Typography
 								sx={{
-									color: data.textColor || styles.color || "background.default",
 									fontSize: `${data.headerSize}%`,
+									...fontStyles,
+									...textStyles,
+									color:
+										data.textColor || textStyles.color || "background.default",
 								}}
 							>
 								{data.header || oidName}
@@ -257,7 +263,8 @@ function StateCollection() {
 										alignItems: "center",
 										bgcolor: widget.data.onlyIcon
 											? "transparent"
-											: data.backgroundColor || styles.backgroundColor,
+											: data.backgroundColor ||
+												backgroundStyles.backgroundColor,
 										borderRadius:
 											widget.data.circle || widget.data.ellipse ? "50%" : null,
 									}}
@@ -301,6 +308,8 @@ function StateCollection() {
 											<Typography
 												sx={{
 													fontSize: `${data.valueSize}%`,
+													...fontStyles,
+													...textStyles,
 												}}
 											>
 												{(noIcon || !oidIcon) && (data.value || oidUnitValue)}
@@ -320,8 +329,11 @@ function StateCollection() {
 						>
 							<Typography
 								sx={{
-									color: data.textColor || styles.color || "background.default",
 									fontSize: `${data.valueSize}%`,
+									...fontStyles,
+									...textStyles,
+									color:
+										data.textColor || textStyles.color || "background.default",
 								}}
 							>
 								{!noIcon &&

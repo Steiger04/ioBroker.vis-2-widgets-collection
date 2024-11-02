@@ -9,13 +9,11 @@ const POSSIBLE_MUI_STYLES = [
 	"background-size",
 	"background-clip",
 	"background-origin",
-	"box-sizing",
 	"border",
 	"border-width",
 	"border-style",
 	"border-color",
 	"border-radius",
-	"box-shadow",
 	"color",
 	"text-align",
 	"text-shadow",
@@ -27,25 +25,57 @@ const POSSIBLE_MUI_STYLES = [
 	"line-height",
 	"letter-spacing",
 	"word-spacing",
+	"box-sizing",
+	"box-shadow",
 ];
 
 const useStyles = (_styles) => {
-	const [styles, setStyles] = useState({});
+	const [backgroundStyles, setBackgroundStyles] = useState({});
+	const [borderStyles, setBorderStyles] = useState({});
+	const [textStyles, setTextStyles] = useState({});
+	const [fontStyles, setFontStyles] = useState({});
+	const [boxStyles, setBoxStyles] = useState({});
 
 	useEffect(() => {
-		const newStyles = {};
+		const backgroundStyles = {};
+		const borderStyles = {};
+		const textStyles = {};
+		const fontStyles = {};
+		const boxStyles = {};
 
 		POSSIBLE_MUI_STYLES.forEach((style) => {
 			if (_styles[style]) {
-				newStyles[style.replace(/(-\w)/g, (text) => text[1].toUpperCase())] =
-					_styles[style];
+				const camelCaseStyle = style.replace(/(-\w)/g, (text) =>
+					text[1].toUpperCase(),
+				);
+
+				if (style.includes("background")) {
+					backgroundStyles[camelCaseStyle] = _styles[style];
+				} else if (style.includes("border")) {
+					borderStyles[camelCaseStyle] = _styles[style];
+				} else if (
+					style.includes("font") ||
+					style.includes("line-height") ||
+					style.includes("letter-spacing") ||
+					style.includes("word-spacing")
+				) {
+					fontStyles[camelCaseStyle] = _styles[style];
+				} else if (style.includes("text") || style.includes("color")) {
+					textStyles[camelCaseStyle] = _styles[style];
+				} else {
+					boxStyles[camelCaseStyle] = _styles[style];
+				}
 			}
 		});
 
-		setStyles(newStyles);
+		setBackgroundStyles(backgroundStyles);
+		setBorderStyles(borderStyles);
+		setTextStyles(textStyles);
+		setFontStyles(fontStyles);
+		setBoxStyles(boxStyles);
 	}, [_styles]);
 
-	return styles;
+	return { boxStyles, backgroundStyles, borderStyles, textStyles, fontStyles };
 };
 
 export default useStyles;
