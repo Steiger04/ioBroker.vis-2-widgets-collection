@@ -18,7 +18,9 @@ gulpHelper.gulpTasks(
 	[
 		`${__dirname}/src-widgets/build/static/js/*mui_material_node*.*`,
 		`${__dirname}/src-widgets/build/static/js/*mui_material_utils*.*`,
+		`${__dirname}/src-widgets/build/static/js/*mui_material_styles*.*`,
 		`${__dirname}/src-widgets/build/static/js/*react-dev_index*.*`,
+		`${__dirname}/src-widgets/build/static/js/*rxjs_dist_esm5*.*`,
 	],
 );
 
