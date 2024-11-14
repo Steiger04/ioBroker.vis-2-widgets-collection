@@ -11,41 +11,27 @@ import {
 	ListItemButton,
 	ListItemText,
 } from "@mui/material";
-import React, { useContext, useLayoutEffect, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import useDebounce from "../hooks/useDebounce";
 import { CollectionContext } from "./CollectionProvider";
 
 function CollectionChangeDialog(props) {
 	const { data, open, closeHandler } = props;
 
-	const { getPropertyValue, setValue, oidObject } =
+	const { values, setState, setValue, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
 	const oid = oidObject?._id;
-	const oidValue = getPropertyValue("oid");
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;
 
-	const [sliderValue, setSliderValue] = useState(oidValue);
-
-	const debouncedSliderValue = useDebounce(sliderValue);
+	const debouncedSliderValue = useDebounce(getPropertyValue("oid"));
 
 	useEffect(() => {
-		setSliderValue(oidValue);
-	}, [oidValue]);
-
-	useLayoutEffect(() => {
-		if (
-			oid !== undefined &&
-			debouncedSliderValue !== undefined &&
-			sliderValue !== undefined &&
-			debouncedSliderValue === sliderValue &&
-			debouncedSliderValue !== oidValue
-		) {
+		if (debouncedSliderValue !== undefined) {
 			setValue(oid, debouncedSliderValue);
-			console.log("setValue:::", oid, debouncedSliderValue);
 		}
-	}, [oid, oidValue, sliderValue, debouncedSliderValue, setValue]);
+	}, [debouncedSliderValue, oid, setValue]);
 
 	const ChangeSlider =
 		oidType === "number" &&
@@ -67,9 +53,10 @@ function CollectionChangeDialog(props) {
 					},
 				]}
 				valueLabelDisplay="auto"
-				defaultValue={oidValue}
-				onChange={(_, value) => setSliderValue(value)}
-				value={sliderValue}
+				value={getPropertyValue("oid") || 0}
+				onChange={(_, value) =>
+					setState({ values: { ...values, [`${oid}.val`]: value } })
+				}
 			/>
 		) : null;
 
@@ -80,7 +67,13 @@ function CollectionChangeDialog(props) {
 					<ListItemButton
 						disableGutters
 						onClick={() =>
-							setSliderValue(oidType === "number" ? Number(key) : String(key))
+							setState({
+								values: {
+									...values,
+									[`${oid}.val`]:
+										oidType === "number" ? Number(key) : String(key),
+								},
+							})
 						}
 					>
 						<ListItemText
@@ -131,7 +124,6 @@ function CollectionChangeDialog(props) {
 					divider={<Divider flexItem />}
 					sx={{
 						px: 2,
-						// pb: !oidStates && 3,
 					}}
 					spacing={0}
 					component={Paper}

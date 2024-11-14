@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 const useSize = (refService, ellipse) => {
 	const clientWidth = refService?.current?.clientWidth;
 	const clientHeight = refService?.current?.clientHeight;
-
 	const [size, setSize] = useState(0);
 
 	const [height, setHeight] = useState(0);

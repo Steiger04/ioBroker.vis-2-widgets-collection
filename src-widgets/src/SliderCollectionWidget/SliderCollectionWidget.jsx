@@ -1,10 +1,9 @@
 import React from "react";
-// import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
-import StateCollection from "./StateCollection";
+import SliderCollection from "./SliderCollection";
 
-class StateCollectionWidget extends Generic {
+class SliderCollectionWidget extends Generic {
 	/* constructor(props) {
 		super(props);
 		// console.log("StateCollectionWidget inside constructor -> props", props);
@@ -64,12 +63,12 @@ class StateCollectionWidget extends Generic {
 		};
 
 		return {
-			id: "tplStateCollectionWidget",
+			id: "tplSliderCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visSetColor: "#462E75", // Color of a widget set. it is enough to set color only in one widget of a set
-			visName: "StateCollectionWidget", // Name of widget
-			visWidgetLabel: "state_collection_widget", // Label for widget
+			// visSetColor: "#462E75", // Color of a widget set. it is enough to set color only in one widget of a set
+			visName: "SliderCollectionWidget", // Name of widget
+			visWidgetLabel: "slider_collection_widget", // Label for widget
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -154,27 +153,68 @@ class StateCollectionWidget extends Generic {
 					],
 				},
 				{
-					name: "button", // group name
-					label: "group_button",
+					name: "slider",
+					label: "group_slider",
 					fields: [
 						{
-							name: "noButton",
-							type: "checkbox",
-							label: "no_button",
-							disabled: "!data.write",
-							default: "!data.write",
-							hidden: "!data.write",
-						},
-						{
-							name: "noIcon",
-							type: "checkbox",
-							label: "no_icon",
-							// hidden: "!!data.onlyTransparent",
+							name: "sliderSize",
+							label: "slider_size",
+							type: "select",
+							options: [
+								{ value: "small", label: "slider_small" },
+								{ value: "medium", label: "slider_medium" },
+							],
+							default: "small",
 						},
 						{
 							name: "noFooter",
 							type: "checkbox",
 							label: "no_footer",
+						},
+						{
+							name: "iconMin",
+							label: "icon_min",
+							// type: "icon64",
+							type: "image",
+						},
+						{
+							name: "iconSizeStart",
+							label: "icon_size",
+							type: "text",
+							default: "24px",
+						},
+						{
+							name: "startIconColor",
+							label: "icon_color",
+							type: "color",
+							hidden: "!data.iconMin",
+						},
+						{
+							name: "iconMax",
+							label: "icon_max",
+							// type: "icon64",
+							type: "image",
+						},
+						{
+							name: "iconSizeEnd",
+							label: "icon_size",
+							type: "text",
+							default: "24px",
+						},
+						{
+							name: "endIconColor",
+							label: "icon_color",
+							type: "color",
+							hidden: "!data.iconMax",
+						},
+						{
+							name: "markerTextSize",
+							label: "marker_text_size",
+							type: "slider",
+							min: 0,
+							max: 100,
+							default: 80,
+							step: 1,
 						},
 					],
 				},
@@ -445,7 +485,8 @@ class StateCollectionWidget extends Generic {
 				height: "100px",
 				position: "relative",
 			},
-			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-state.png",
+			visPrev:
+				"widgets/vis-2-widgets-collection/img/prev-collection-slider.png",
 		};
 	}
 
@@ -454,7 +495,7 @@ class StateCollectionWidget extends Generic {
 	getWidgetInfo() {
 		// console.log("inside getWidgetInfo");
 
-		return StateCollectionWidget.getWidgetInfo();
+		return SliderCollectionWidget.getWidgetInfo();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -534,7 +575,7 @@ class StateCollectionWidget extends Generic {
 
 		const collectionContext = {
 			...props,
-			t: (text) => StateCollectionWidget.t(text),
+			t: (text) => SliderCollectionWidget.t(text),
 			// state: this.state,
 			setState: this.setState.bind(this),
 			isSignalVisible: this.isSignalVisible.bind(this),
@@ -552,14 +593,14 @@ class StateCollectionWidget extends Generic {
 		this.wrappedContent = true;
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {
-			return withCollectionProvider(<StateCollection />, collectionContext);
+			return withCollectionProvider(<SliderCollection />, collectionContext);
 		}
 
 		return withCollectionProvider(
-			this.wrapContent(<StateCollection />),
+			this.wrapContent(<SliderCollection />),
 			collectionContext,
 		);
 	}
 }
 
-export default StateCollectionWidget;
+export default SliderCollectionWidget;

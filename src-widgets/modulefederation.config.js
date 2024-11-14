@@ -5,6 +5,8 @@ module.exports = makeFederation(
 	{
 		"./StateCollectionWidget":
 			"./src/StateCollectionWidget/StateCollectionWidget", // List of all widgets in this package
+		"./SliderCollectionWidget":
+			"./src/SliderCollectionWidget/SliderCollectionWidget", // List of all widgets in this package
 		"./translations": "./src/translations",
 	},
 );
