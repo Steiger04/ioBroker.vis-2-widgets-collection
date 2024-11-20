@@ -11,47 +11,131 @@ import useStyles from "../hooks/useStyles";
 function SliderCollection() {
 	const { values, setState, setValue, oidObject, widget, getPropertyValue } =
 		useContext(CollectionContext);
-	const data = useData();
+	const { data, states, minValue, maxValue } = useData("oid");
 	const theme = useTheme();
-	const { backgroundStyles } = useStyles(widget.style);
+	const { backgroundStyles, textStyles } = useStyles(widget.style);
 	const ref = useRef(null);
 	const isEllipse = !widget.data.square && !widget.data.circle;
 	const { size } = useSize(ref, isEllipse);
 
 	const oidType = oidObject?.common?.type;
-	const oidStates = oidObject?.common?.states;
 	const oid = oidObject?._id;
-	const debouncedSliderValue = useDebounce(getPropertyValue("oid"));
 
-	const startIconColor =
-		widget.data.startIconColor ||
-		data.textColor ||
-		data.backgroundColor ||
-		backgroundStyles.backgroundColor ||
-		theme.palette.background.default;
+	const delay = widget.data.sampleInterval
+		? widget.data.sampleIntervalValue
+		: widget.data.delay;
 
-	const endIconColor =
-		widget.data.endIconColor ||
-		data.textColor ||
-		data.backgroundColor ||
-		backgroundStyles.backgroundColor ||
-		theme.palette.background.default;
+	const {
+		debouncedValue: debouncedSliderValue,
+		sampledValue: sampledSliderValue,
+	} = useDebounce(getPropertyValue("oid"), delay);
+
+	const sliderColor = useMemo(
+		() =>
+			widget.data.sliderColor ||
+			data.textColor ||
+			data.backgroundColor ||
+			textStyles.color ||
+			backgroundStyles.backgroundColor ||
+			theme.palette.background.default,
+		[
+			widget.data.sliderColor,
+			data.textColor,
+			data.backgroundColor,
+			backgroundStyles.backgroundColor,
+			theme.palette.background.default,
+			textStyles.color,
+		],
+	);
+	const startIconColor = widget.data.startIconColor || sliderColor;
+	const endIconColor = widget.data.endIconColor || sliderColor;
 
 	useEffect(() => {
-		if (debouncedSliderValue !== undefined) {
+		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
 			setValue(oid, debouncedSliderValue);
 		}
-	}, [debouncedSliderValue, oid, setValue]);
+	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
 
-	const sliderMarks = useMemo(
+	useEffect(() => {
+		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
+			setValue(oid, sampledSliderValue);
+		}
+	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
+
+	const sliderMinValue = useMemo(
 		() =>
-			oidStates &&
-			Object.keys(oidStates).map((key) => ({
-				value: Number(key),
-				label: oidStates[key],
-			})),
-		[oidStates],
+			!widget.data.onlyStates && widget.data.minValue !== undefined
+				? Number(widget.data.minValue)
+				: minValue,
+		[widget.data.onlyStates, widget.data.minValue, minValue],
 	);
+
+	const sliderMaxValue = useMemo(
+		() =>
+			!widget.data.onlyStates && widget.data.maxValue !== undefined
+				? Number(widget.data.maxValue)
+				: maxValue,
+		[widget.data.onlyStates, widget.data.maxValue, maxValue],
+	);
+
+	const sliderMarks = useMemo(() => {
+		const _sliderMarks =
+			states &&
+			states.map(({ value, label }) => ({
+				value,
+				label,
+			}));
+
+		if (widget.data.onlyStates) {
+			return _sliderMarks;
+		}
+		// Ensure minimum and maximum values are included
+		const minValue = sliderMinValue;
+		const maxValue = sliderMaxValue;
+
+		if (
+			_sliderMarks &&
+			!_sliderMarks.some((state) => state.value === minValue)
+		) {
+			_sliderMarks.push({
+				value: minValue,
+				label: `${minValue}${widget.data.unit}`,
+			});
+		}
+
+		if (
+			_sliderMarks &&
+			!_sliderMarks.some((state) => state.value === maxValue)
+		) {
+			_sliderMarks.push({
+				value: maxValue,
+				label: `${maxValue}${widget.data.unit}`,
+			});
+		}
+
+		// Add step divisions
+		const step = Number(widget.data.markStep) || 1;
+		for (let i = minValue + step; i < maxValue; i += step) {
+			if (!_sliderMarks.some((state) => state.value === i)) {
+				_sliderMarks.push({
+					value: i,
+					label: `${i}${widget.data.unit}`,
+				});
+			}
+		}
+
+		// Sort the states by value
+		_sliderMarks.sort((a, b) => a.value - b.value);
+
+		return _sliderMarks;
+	}, [
+		states,
+		sliderMinValue,
+		sliderMaxValue,
+		widget.data.markStep,
+		widget.data.unit,
+		widget.data.onlyStates,
+	]);
 
 	return (
 		<CollectionBase ref={ref}>
@@ -62,11 +146,11 @@ function SliderCollection() {
 					style={{
 						position: "absolute",
 						top: widget.data.noCard
-							? `calc(${theme.spacing(widget.data.basePadding)} / 2 + 4px)`
-							: `calc(${theme.spacing(widget.data.basePadding)} / 2 + 8px)`,
+							? `calc(${theme.spacing(widget.data.basePadding)} / 2 + 4px + ${data.iconYOffset})`
+							: `calc(${theme.spacing(widget.data.basePadding)} / 2 + 8px + ${data.iconYOffset})`,
 						right: widget.data.noCard
-							? `calc(${theme.spacing(widget.data.basePadding)} + 4px)`
-							: `calc(${theme.spacing(widget.data.basePadding)} + 8px)`,
+							? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${data.iconXOffset})`
+							: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${data.iconXOffset})`,
 						width: `calc(24px * ${data.iconSize} / 100)` || "24px",
 						height: `calc(24px * ${data.iconSize} / 100)` || "24px",
 						color: data.iconColor,
@@ -114,31 +198,48 @@ function SliderCollection() {
 						/>
 					)}
 					<Slider
+						disabled={oidType !== "number"}
 						sx={{
-							color:
-								data.textColor ||
-								data.backgroundColor ||
-								backgroundStyles.backgroundColor ||
-								"background.default",
+							"& .MuiSlider-thumb": {
+								color: sliderColor,
+							},
+							"& .MuiSlider-rail": {
+								color: sliderColor,
+							},
+							"& .MuiSlider-track": {
+								color: sliderColor,
+							},
+							"& .MuiSlider-mark": {
+								color: sliderColor,
+							},
+							"& .MuiSlider-markActive": {
+								color: sliderColor,
+							},
 							"& .MuiSlider-markLabel": {
-								color:
-									data.textColor ||
-									data.backgroundColor ||
-									backgroundStyles.backgroundColor ||
-									"background.default",
+								color: widget.data.markerTextColor || sliderColor,
 								fontSize: `${widget.data.markerTextSize}%` || "1em",
 							},
 							"& .MuiSlider-markLabelActive": {
-								color:
-									data.textColor ||
-									data.backgroundColor ||
-									backgroundStyles.backgroundColor ||
-									"background.default",
+								color: widget.data.markerTextColor || sliderColor,
 							},
 						}}
-						marks={sliderMarks}
-						step={sliderMarks ? null : 1}
-						disabled={oidType !== "number"}
+						min={sliderMinValue}
+						max={sliderMaxValue}
+						marks={
+							widget.data.onlyStates ||
+							(widget.data.marks && sliderMarks && sliderMarks.length)
+								? sliderMarks
+								: widget.data.marks
+						}
+						step={
+							!widget.data.onlyStates && widget.data.step
+								? Number(widget.data.step)
+								: widget.data.onlyStates && sliderMarks && sliderMarks.length
+									? null
+									: widget.data.step
+										? Number(widget.data.step)
+										: 1
+						}
 						size={widget.data.sliderSize}
 						value={getPropertyValue("oid") || 0}
 						onChange={(_, value) =>

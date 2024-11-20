@@ -11,7 +11,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
 		widget.style,
 	);
-	const data = useData();
+	const { data } = useData("oid");
 
 	const isEllipse = !widget.data.square && !widget.data.circle;
 
@@ -20,13 +20,14 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 	const oidValue = getPropertyValue("oid");
 	const oidName = oidObject?.common?.name;
 
+	const noHeader = widget.data.noHeader;
 	const noFooter = widget.data.noFooter;
 
 	const unit = widget.data.unit;
 	const oidUnitValue =
 		oidValue === 0
-			? String(oidValue) && `${oidValue} ${unit}`
-			: oidValue && `${oidValue} ${unit}`;
+			? String(oidValue) && `${oidValue}${unit}`
+			: oidValue && `${oidValue}${unit}`;
 
 	const current = refService.current
 		? { ...refService.current?.children }
@@ -110,7 +111,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 									data.textColor || textStyles.color || "background.default",
 							}}
 						>
-							{data.header || oidName}
+							{!noHeader && (data.header || oidName)}
 						</Typography>
 					</Box>
 					<Box

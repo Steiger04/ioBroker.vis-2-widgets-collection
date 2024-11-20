@@ -1,6 +1,7 @@
 import React from "react";
 // import { Paper } from "@mui/material";
 import Generic from "../Generic";
+import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
 
@@ -12,57 +13,6 @@ class StateCollectionWidget extends Generic {
 	} */
 
 	static getWidgetInfo() {
-		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
-			/* console.log(
-				"inside oidChangeHandlerAsync -> field",
-				field,
-				"data",
-				data,
-				"changeData",
-				changeData,
-				"socket",
-				socket,
-			); */
-
-			if (data.oid) {
-				const object = await socket.getObject(data.oid);
-
-				data.write = object?.common?.write;
-				data.noButton = !object?.common?.write;
-				data.unit = object?.common?.unit || "";
-
-				if (object?.common?.states) {
-					if (Array.isArray(object.common.states)) {
-						// convert to {'state1': 'state1', 'state2': 'state2', ...}
-						const states = {};
-						object.common.states.forEach((state) => {
-							states[state] = state;
-						});
-						object.common.states = states;
-					}
-					// console.log("object.common.states", object.common.states);
-					data.values_count = Object.keys(object.common.states).length;
-					data.withStates = true;
-					data.withNumber = false;
-					Object.keys(object.common.states).forEach((state, index) => {
-						data[`value${index + 1}`] = object.common.states[state];
-					});
-
-					changeData(data);
-				} else if (object?.common) {
-					data.withNumber = object.common.type === "number";
-					data.withStates = false;
-					data.values_count = 0;
-
-					changeData(data);
-				}
-			} else {
-				data.write = false;
-				data.noButton = true;
-				changeData(data);
-			}
-		};
-
 		return {
 			id: "tplStateCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
@@ -71,88 +21,7 @@ class StateCollectionWidget extends Generic {
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
-				{
-					name: "common", // group name
-					fields: [
-						{
-							name: "oid",
-							type: "id",
-							label: "oid",
-							onChange: oidChangeHandlerAsync,
-						},
-						{
-							name: "unit",
-							label: "unit",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "values_count",
-							type: "number",
-							/* hidden:
-								"!data.withStates || data.type !== 'number' && data.type !== 'string'", */
-							default: 0,
-							label: "values_count",
-						},
-						{
-							name: "noCard",
-							label: "without_card",
-							type: "checkbox",
-						},
-						{
-							name: "squaredCorner",
-							label: "squared_corner",
-							type: "checkbox",
-						},
-						{
-							name: "outlined",
-							label: "outlined",
-							type: "checkbox",
-						},
-						{
-							name: "basePadding",
-							label: "base_padding",
-							type: "slider",
-							min: 0,
-							max: 10,
-							step: 0.1,
-							default: 1,
-						},
-						{
-							name: "baseElevation",
-							label: "base_elevation",
-							type: "slider",
-							min: 0,
-							max: 24,
-							step: 1,
-							default: 4,
-						},
-						{
-							name: "square",
-							label: "square",
-							type: "checkbox",
-							hidden: "data.circle || data.ellipse",
-						},
-						{
-							name: "ellipse",
-							label: "ellipse",
-							type: "checkbox",
-							hidden: "data.circle || data.square",
-						},
-						{
-							name: "circle",
-							label: "circle",
-							type: "checkbox",
-							hidden: "data.ellipse || data.square",
-						},
-						{
-							name: "onlyTransparent",
-							type: "checkbox",
-							label: "only_transparent",
-							// hidden: "!!data.noIcon",
-						},
-					],
-				},
+				CollectionCommonAttributes(),
 				{
 					name: "button", // group name
 					label: "group_button",
@@ -170,11 +39,6 @@ class StateCollectionWidget extends Generic {
 							type: "checkbox",
 							label: "no_icon",
 							// hidden: "!!data.onlyTransparent",
-						},
-						{
-							name: "noFooter",
-							type: "checkbox",
-							label: "no_footer",
 						},
 					],
 				},

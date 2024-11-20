@@ -1,27 +1,43 @@
 import { useEffect, useRef, useState } from "react";
-import { Subject, debounceTime, sampleTime } from "rxjs";
+import { Subject, debounceTime, throttleTime } from "rxjs";
 
 function useDebounce(value, delay = 300) {
 	const [debouncedValue, setDebouncedValue] = useState(value);
-	const subject = useRef(null);
+	const debounce = useRef(null);
+
+	const [sampledValue, setSampledValue] = useState(value);
+	const sample = useRef(null);
 
 	useEffect(() => {
-		subject.current = new Subject();
+		debounce.current = new Subject();
+		sample.current = new Subject();
 
-		const subscription = subject.current
+		const debouncedSubscription = debounce.current
 			.pipe(debounceTime(delay))
 			.subscribe(setDebouncedValue);
 
-		return () => subscription.unsubscribe();
+		const sampledSubscription = sample.current
+			.pipe(throttleTime(delay))
+			.subscribe(setSampledValue);
+
+		return () => {
+			console.log("unsubscribed");
+			debouncedSubscription.unsubscribe();
+			sampledSubscription.unsubscribe();
+		};
 	}, [delay]);
 
 	useEffect(() => {
-		if (subject.current) {
-			subject.current.next(value);
+		if (debounce.current) {
+			debounce.current.next(value);
+		}
+
+		if (sample.current) {
+			sample.current.next(value);
 		}
 	}, [value]);
 
-	return debouncedValue;
+	return { debouncedValue, sampledValue };
 }
 
 export default useDebounce;

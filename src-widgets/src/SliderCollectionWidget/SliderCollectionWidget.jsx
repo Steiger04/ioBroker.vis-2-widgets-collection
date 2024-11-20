@@ -1,5 +1,7 @@
 import React from "react";
 import Generic from "../Generic";
+import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
+import CollectionDivider from "../components/CollectionDivider";
 import withCollectionProvider from "../components/withCollectionProvider";
 import SliderCollection from "./SliderCollection";
 
@@ -11,57 +13,6 @@ class SliderCollectionWidget extends Generic {
 	} */
 
 	static getWidgetInfo() {
-		const oidChangeHandlerAsync = async (field, data, changeData, socket) => {
-			/* console.log(
-				"inside oidChangeHandlerAsync -> field",
-				field,
-				"data",
-				data,
-				"changeData",
-				changeData,
-				"socket",
-				socket,
-			); */
-
-			if (data.oid) {
-				const object = await socket.getObject(data.oid);
-
-				data.write = object?.common?.write;
-				data.noButton = !object?.common?.write;
-				data.unit = object?.common?.unit || "";
-
-				if (object?.common?.states) {
-					if (Array.isArray(object.common.states)) {
-						// convert to {'state1': 'state1', 'state2': 'state2', ...}
-						const states = {};
-						object.common.states.forEach((state) => {
-							states[state] = state;
-						});
-						object.common.states = states;
-					}
-					// console.log("object.common.states", object.common.states);
-					data.values_count = Object.keys(object.common.states).length;
-					data.withStates = true;
-					data.withNumber = false;
-					Object.keys(object.common.states).forEach((state, index) => {
-						data[`value${index + 1}`] = object.common.states[state];
-					});
-
-					changeData(data);
-				} else if (object?.common) {
-					data.withNumber = object.common.type === "number";
-					data.withStates = false;
-					data.values_count = 0;
-
-					changeData(data);
-				}
-			} else {
-				data.write = false;
-				data.noButton = true;
-				changeData(data);
-			}
-		};
-
 		return {
 			id: "tplSliderCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
@@ -70,88 +21,7 @@ class SliderCollectionWidget extends Generic {
 			visName: "SliderCollectionWidget", // Name of widget
 			visWidgetLabel: "slider_collection_widget", // Label for widget
 			visAttrs: [
-				{
-					name: "common", // group name
-					fields: [
-						{
-							name: "oid",
-							type: "id",
-							label: "oid",
-							onChange: oidChangeHandlerAsync,
-						},
-						{
-							name: "unit",
-							label: "unit",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "values_count",
-							type: "number",
-							/* hidden:
-								"!data.withStates || data.type !== 'number' && data.type !== 'string'", */
-							default: 0,
-							label: "values_count",
-						},
-						{
-							name: "noCard",
-							label: "without_card",
-							type: "checkbox",
-						},
-						{
-							name: "squaredCorner",
-							label: "squared_corner",
-							type: "checkbox",
-						},
-						{
-							name: "outlined",
-							label: "outlined",
-							type: "checkbox",
-						},
-						{
-							name: "basePadding",
-							label: "base_padding",
-							type: "slider",
-							min: 0,
-							max: 10,
-							step: 0.1,
-							default: 1,
-						},
-						{
-							name: "baseElevation",
-							label: "base_elevation",
-							type: "slider",
-							min: 0,
-							max: 24,
-							step: 1,
-							default: 4,
-						},
-						{
-							name: "square",
-							label: "square",
-							type: "checkbox",
-							hidden: "data.circle || data.ellipse",
-						},
-						{
-							name: "ellipse",
-							label: "ellipse",
-							type: "checkbox",
-							hidden: "data.circle || data.square",
-						},
-						{
-							name: "circle",
-							label: "circle",
-							type: "checkbox",
-							hidden: "data.ellipse || data.square",
-						},
-						{
-							name: "onlyTransparent",
-							type: "checkbox",
-							label: "only_transparent",
-							// hidden: "!!data.noIcon",
-						},
-					],
-				},
+				CollectionCommonAttributes(),
 				{
 					name: "slider",
 					label: "group_slider",
@@ -167,9 +37,112 @@ class SliderCollectionWidget extends Generic {
 							default: "small",
 						},
 						{
-							name: "noFooter",
+							name: "sliderColor",
+							label: "slider_color",
+							type: "color",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="values" />,
+						},
+						{
+							name: "minValue",
+							type: "number",
+							label: "min_value",
+							default: 0,
+						},
+						{
+							name: "maxValue",
+							type: "number",
+							label: "max_value",
+							default: 100,
+						},
+						{
+							name: "step",
+							type: "number",
+							label: "step",
+							default: 10,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
+							name: "onlyStates",
 							type: "checkbox",
-							label: "no_footer",
+							label: "only_states",
+							default: false,
+							hidden: "!data.values_count",
+						},
+						{
+							name: "marks",
+							type: "checkbox",
+							label: "marks",
+							default: false,
+							hidden: "data.onlyStates",
+						},
+						{
+							name: "markStep",
+							type: "number",
+							label: "mark_step",
+							default: 10,
+							hidden: "data.onlyStates || !data.marks",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
+							name: "delay",
+							type: "number",
+							label: "delay",
+							default: 300,
+							min: 0,
+							max: 1000,
+							step: 1,
+							hidden: "data.sampleInterval",
+						},
+						{
+							name: "sampleInterval",
+							type: "checkbox",
+							label: "sample_interval",
+							default: false,
+						},
+						{
+							name: "sampleIntervalValue",
+							type: "number",
+							label: "sample_interval_value",
+							default: 50,
+							min: 0,
+							max: 1000,
+							step: 1,
+							hidden: "!data.sampleInterval",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="marks" />,
+						},
+						{
+							name: "markerTextColor",
+							label: "text_color",
+							type: "color",
+						},
+						{
+							name: "markerTextSize",
+							label: "marker_text_size",
+							type: "slider",
+							min: 0,
+							max: 100,
+							default: 80,
+							step: 1,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="icon" />,
 						},
 						{
 							name: "iconMin",
@@ -190,6 +163,10 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.iconMin",
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="icon" />,
+						},
+						{
 							name: "iconMax",
 							label: "icon_max",
 							// type: "icon64",
@@ -206,15 +183,6 @@ class SliderCollectionWidget extends Generic {
 							label: "icon_color",
 							type: "color",
 							hidden: "!data.iconMax",
-						},
-						{
-							name: "markerTextSize",
-							label: "marker_text_size",
-							type: "slider",
-							min: 0,
-							max: 100,
-							default: 80,
-							step: 1,
 						},
 					],
 				},
@@ -247,19 +215,29 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
-							name: "iconHoverOn",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: "!data.iconOn || data.noIcon",
+							name: "iconXOffsetOn",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							name: "iconYOffsetOn",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "textColorOn",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "headerOn",
@@ -277,6 +255,10 @@ class SliderCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "valueOn",
 							label: "value",
 							type: "text",
@@ -290,6 +272,10 @@ class SliderCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColorOn",
@@ -333,19 +319,29 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
-							name: "iconHoverOff",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: "!data.iconOff || data.noIcon",
+							name: "iconXOffsetOff",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							name: "iconYOffsetOff",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "textColorOff",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "headerOff",
@@ -363,6 +359,10 @@ class SliderCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "valueOff",
 							label: "value",
 							type: "text",
@@ -376,6 +376,10 @@ class SliderCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColorOff",
@@ -421,19 +425,31 @@ class SliderCollectionWidget extends Generic {
 							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
 						},
 						{
-							name: "iconHover",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+							name: "iconXOffset",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							name: "iconYOffset",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+						},
+						{
+							type: "custom",
+							label: "",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "textColor",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							type: "custom",
+							label: "",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "header",
@@ -451,6 +467,11 @@ class SliderCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							type: "custom",
+							label: "",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "value",
 							label: "value",
 							type: "text",
@@ -464,6 +485,11 @@ class SliderCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							type: "custom",
+							label: "",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColor",
@@ -547,9 +573,8 @@ class SliderCollectionWidget extends Generic {
 	}
 
 	renderWidgetBody(props) {
-		// console.log("inside renderWidgetBody", props);
 		super.renderWidgetBody(props);
-		// console.log("props", props);
+		// console.log("inside renderWidgetBody", props);
 
 		/* const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData !== actualRxData) {
@@ -575,7 +600,6 @@ class SliderCollectionWidget extends Generic {
 
 		const collectionContext = {
 			...props,
-			t: (text) => SliderCollectionWidget.t(text),
 			// state: this.state,
 			setState: this.setState.bind(this),
 			isSignalVisible: this.isSignalVisible.bind(this),

@@ -25,7 +25,9 @@ function CollectionChangeDialog(props) {
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;
 
-	const debouncedSliderValue = useDebounce(getPropertyValue("oid"));
+	const { debouncedValue: debouncedSliderValue } = useDebounce(
+		getPropertyValue("oid"),
+	);
 
 	useEffect(() => {
 		if (debouncedSliderValue !== undefined) {

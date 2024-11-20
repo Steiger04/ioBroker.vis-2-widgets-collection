@@ -16,7 +16,7 @@ import useStyles from "../hooks/useStyles";
 function StateCollection() {
 	const { mode, setValue, widget, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
-	const data = useData();
+	const { data } = useData("oid");
 	const [open, setOpen] = useState(false);
 
 	const { textStyles, fontStyles } = useStyles(widget.style);

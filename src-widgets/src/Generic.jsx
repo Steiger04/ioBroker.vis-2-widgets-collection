@@ -4,9 +4,9 @@ import React from "react";
 
 // class Generic extends (window.visRxWidget || VisRxWidget) {
 class Generic extends window.visRxWidget {
-	constructor(props) {
-		super(props);
-		/* super({
+	// constructor(props) {
+	// super(props);
+	/* super({
 			...props,
 			customSettings: {
 				viewStyle: {
@@ -17,8 +17,8 @@ class Generic extends window.visRxWidget {
 			},
 		}); */
 
-		// console.log("Generic inside constructor -> props", props);
-	}
+	// console.log("Generic inside constructor -> props", props);
+	// }
 	static getI18nPrefix() {
 		return "vis_2_widgets_collection_";
 	}
@@ -28,6 +28,8 @@ class Generic extends window.visRxWidget {
 	};
 
 	setValue = (id, value, ack = false) => {
+		if (!id) return;
+
 		this.props.context.socket
 			.setState(id, value, ack)
 			.catch((e) => console.error(`Cannot set state ${id}: ${e}`));
@@ -111,6 +113,7 @@ class Generic extends window.visRxWidget {
 		} else {
 			object = { common: object.common, _id: object._id, type: object.type };
 		}
+
 		object.common = object.common || {};
 		if (object.common.type === "number") {
 			if (object.common.max === undefined) {
@@ -120,6 +123,7 @@ class Generic extends window.visRxWidget {
 				object.common.min = 0;
 			}
 		}
+
 		if (object.common.states && Array.isArray(object.common.states)) {
 			// convert to {'state1': 'state1', 'state2': 'state2', ...}
 			const states = {};
