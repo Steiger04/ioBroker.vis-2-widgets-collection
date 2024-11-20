@@ -104,9 +104,9 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					>
 						<Typography
 							sx={{
+								fontSize: `${data.headerSize}%`,
 								...fontStyles,
 								...textStyles,
-								fontSize: `${data.headerSize}%`,
 								color:
 									data.textColor || textStyles.color || "background.default",
 							}}
@@ -170,9 +170,9 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					>
 						<Typography
 							sx={{
+								fontSize: `${data.valueSize}%`,
 								...fontStyles,
 								...textStyles,
-								fontSize: `${data.valueSize}%`,
 								color:
 									data.textColor || textStyles.color || "background.default",
 							}}
