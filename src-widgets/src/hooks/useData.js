@@ -41,7 +41,7 @@ function useData(oid) {
 			case "number":
 			case "string": {
 				const value = oidStates && oidStates[String(oidValue)];
-				for (let i = 1; i <= widget.data.values_count; i++) {
+				for (let i = 1; i <= Number(widget.data.values_count); i++) {
 					if (
 						widget.data[`value${i}`] !== undefined &&
 						(widget.data[`value${i}`] === value ||
@@ -62,6 +62,18 @@ function useData(oid) {
 				return _data("Off");
 		}
 	}, [widget, oidType, oidValue, oidStates, oidIcon, noIcon]);
+
+	const widgetStates = useMemo(() => {
+		const widgetStates = {};
+
+		for (let i = 1; i <= Number(widget.data.values_count); i++) {
+			widgetStates[widget.data[`value${i}`]] =
+				widget.data[`header${i}`] ||
+				`${widget.data[`value${i}`]}${widget.data.unit}`;
+		}
+
+		return widgetStates;
+	}, [widget]);
 
 	const { states, minValue, maxValue } = useMemo(() => {
 		let states = [];
@@ -89,21 +101,16 @@ function useData(oid) {
 				}
 			}
 
-			// console.log("states", states);
-
 			if (states.length) {
 				minValue = Math.min(...states.map((state) => state.value));
 				maxValue = Math.max(...states.map((state) => state.value));
 			}
-
-			// console.log("useData -> minValue", minValue);
-			// console.log("useData -> maxValue", maxValue);
 		}
 
 		return { states, minValue, maxValue };
 	}, [oidType, oidStates, widget]);
 
-	return { states, minValue, maxValue, data };
+	return { states, widgetStates, minValue, maxValue, data };
 }
 
 export default useData;

@@ -16,9 +16,9 @@ import useDebounce from "../hooks/useDebounce";
 import { CollectionContext } from "./CollectionProvider";
 
 function CollectionChangeDialog(props) {
-	const { data, open, closeHandler } = props;
+	const { widgetStates, data, open, closeHandler } = props;
 
-	const { values, setState, setValue, oidObject, getPropertyValue } =
+	const { widget, values, setState, setValue, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
 	const oid = oidObject?._id;
@@ -37,8 +37,9 @@ function CollectionChangeDialog(props) {
 
 	const ChangeSlider =
 		oidType === "number" &&
-		oidObject?.common?.min === 0 &&
-		oidObject?.common?.max ? (
+		!widget.data.onlyStates &&
+		oidObject?.common?.min !== undefined &&
+		oidObject?.common?.max !== undefined ? (
 			<Slider
 				sx={{ pb: oidStates ? 4 : 3 }}
 				size="small"
@@ -62,9 +63,9 @@ function CollectionChangeDialog(props) {
 			/>
 		) : null;
 
-	const ChangeList = oidObject?.common?.states ? (
+	const ChangeList = widgetStates ? (
 		<List>
-			{Object.entries(oidObject.common.states).map(([key, value]) => (
+			{Object.entries(widgetStates).map(([key, value]) => (
 				<ListItem disablePadding key={key}>
 					<ListItemButton
 						disableGutters

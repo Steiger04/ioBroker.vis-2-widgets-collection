@@ -21,7 +21,6 @@ function useDebounce(value, delay = 300) {
 			.subscribe(setSampledValue);
 
 		return () => {
-			console.log("unsubscribed");
 			debouncedSubscription.unsubscribe();
 			sampledSubscription.unsubscribe();
 		};

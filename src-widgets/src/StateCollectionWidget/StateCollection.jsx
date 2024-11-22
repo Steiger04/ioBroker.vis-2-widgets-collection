@@ -16,7 +16,7 @@ import useStyles from "../hooks/useStyles";
 function StateCollection() {
 	const { mode, setValue, widget, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
-	const { data } = useData("oid");
+	const { data, widgetStates } = useData("oid");
 	const [open, setOpen] = useState(false);
 
 	const { textStyles, fontStyles } = useStyles(widget.style);
@@ -35,7 +35,7 @@ function StateCollection() {
 	// const unit = widget.data.unit || oidUnit || "";
 	const unit = widget.data.unit;
 	const oidUnitValue =
-		oidValue === 0
+		oidValue === 0 || oidValue === false
 			? String(oidValue) && `${oidValue} ${unit}`
 			: oidValue && `${oidValue} ${unit}`;
 
@@ -117,6 +117,7 @@ function StateCollection() {
 			{open && (
 				<CollectionChangeDialog
 					data={data}
+					widgetStates={widgetStates}
 					open={open}
 					closeHandler={() => setOpen(false)}
 				/>

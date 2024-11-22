@@ -40,6 +40,13 @@ class StateCollectionWidget extends Generic {
 							label: "no_icon",
 							// hidden: "!!data.onlyTransparent",
 						},
+						{
+							name: "onlyStates",
+							type: "checkbox",
+							label: "only_states",
+							default: false,
+							hidden: "!data.values_count",
+						},
 					],
 				},
 				{
