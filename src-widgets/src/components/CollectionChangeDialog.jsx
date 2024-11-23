@@ -11,7 +11,7 @@ import {
 	ListItemButton,
 	ListItemText,
 } from "@mui/material";
-import React, { useContext, useEffect } from "react";
+import React, { useCallback, useContext, useEffect } from "react";
 import useDebounce from "../hooks/useDebounce";
 import { CollectionContext } from "./CollectionProvider";
 
@@ -35,6 +35,44 @@ function CollectionChangeDialog(props) {
 		}
 	}, [debouncedSliderValue, oid, setValue]);
 
+	const changeHandler = useCallback(
+		(value, key = null) => {
+			switch (oidType) {
+				case "number":
+					if (key === null) {
+						// Slider
+						setState({ values: { ...values, [`${oid}.val`]: value } });
+					} else {
+						// List
+						setState({ values: { ...values, [`${oid}.val`]: Number(key) } });
+					}
+					break;
+
+				case "string":
+					// only List
+					setState({ values: { ...values, [`${oid}.val`]: String(key) } });
+					break;
+
+				case "boolean": {
+					// only List
+					console.log("key", key);
+
+					setState({
+						values: {
+							...values,
+							[`${oid}.val`]: /^true$/i.test(key),
+						},
+					});
+					break;
+				}
+
+				default:
+					break;
+			}
+		},
+		[oid, oidType, setState, values],
+	);
+
 	const ChangeSlider =
 		oidType === "number" &&
 		!widget.data.onlyStates &&
@@ -57,36 +95,32 @@ function CollectionChangeDialog(props) {
 				]}
 				valueLabelDisplay="auto"
 				value={getPropertyValue("oid") || 0}
-				onChange={(_, value) =>
-					setState({ values: { ...values, [`${oid}.val`]: value } })
-				}
+				onChange={(_, value) => changeHandler(value)}
 			/>
 		) : null;
 
 	const ChangeList = widgetStates ? (
 		<List>
-			{Object.entries(widgetStates).map(([key, value]) => (
-				<ListItem disablePadding key={key}>
-					<ListItemButton
-						disableGutters
-						onClick={() =>
-							setState({
-								values: {
-									...values,
-									[`${oid}.val`]:
-										oidType === "number" ? Number(key) : String(key),
-								},
-							})
-						}
-					>
-						<ListItemText
-							sx={{ px: 2 }}
-							primaryTypographyProps={{ variant: "body2" }}
-							primary={value}
-						/>
-					</ListItemButton>
-				</ListItem>
-			))}
+			{Object.entries(widgetStates).map(([key, value]) => {
+				if (value !== "undefined" && value !== "null") {
+					return (
+						<ListItem disablePadding key={key}>
+							<ListItemButton
+								disableGutters
+								onClick={() => changeHandler(value, key)}
+							>
+								<ListItemText
+									sx={{ px: 2 }}
+									primaryTypographyProps={{ variant: "body2" }}
+									primary={value}
+								/>
+							</ListItemButton>
+						</ListItem>
+					);
+				}
+
+				return null;
+			})}
 		</List>
 	) : null;
 

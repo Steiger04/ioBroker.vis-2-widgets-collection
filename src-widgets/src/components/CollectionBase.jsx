@@ -24,16 +24,14 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 	const noFooter = widget.data.noFooter;
 
 	const unit = widget.data.unit;
+
 	const oidUnitValue =
-		oidValue === 0
+		oidValue === 0 || oidValue === false
 			? String(oidValue) && `${oidValue}${unit}`
 			: oidValue && `${oidValue}${unit}`;
 
-	const current = refService.current
-		? { ...refService.current?.children }
-		: null;
 	useEffect(() => {
-		if (!current) return;
+		if (!refService?.current) return;
 
 		const _current = refService.current?.children;
 
@@ -55,7 +53,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 			child.style.filter = signalColor ? "drop-shadow(0px 10000px 0)" : null;
 			child.style.transform = signalColor ? "translateY(-10000px)" : null;
 		});
-	}, [current, widget, refService, isSignalVisible]);
+	}, [widget, refService, isSignalVisible]);
 
 	return (
 		<Box
@@ -177,8 +175,9 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 									data.textColor || textStyles.color || "background.default",
 							}}
 						>
-							{(data.icon && !noFooter && (data.value || oidUnitValue)) ||
-								(!noFooter && (data.value || oidUnitValue))}
+							{/* {(data.icon && !noFooter && (data.value || oidUnitValue)) ||
+								(!noFooter && (data.value || oidUnitValue))} */}
+							{!noFooter && (data.value || oidUnitValue)}
 						</Typography>
 					</Box>
 				</Stack>

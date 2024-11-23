@@ -16,7 +16,9 @@ import useStyles from "../hooks/useStyles";
 function StateCollection() {
 	const { mode, setValue, widget, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
+
 	const { data, widgetStates } = useData("oid");
+
 	const [open, setOpen] = useState(false);
 
 	const { textStyles, fontStyles } = useStyles(widget.style);
@@ -31,6 +33,7 @@ function StateCollection() {
 	const oidType = oidObject?.common?.type;
 	const oidIcon = oidObject?.common?.icon;
 	const noIcon = widget.data.noIcon;
+	const onlyStates = widget.data.onlyStates;
 
 	// const unit = widget.data.unit || oidUnit || "";
 	const unit = widget.data.unit;
@@ -42,7 +45,11 @@ function StateCollection() {
 	const clickHandler = useCallback(() => {
 		switch (oidType) {
 			case "boolean": {
-				setValue(oid, !oidValue);
+				if (onlyStates) {
+					setOpen(true);
+				} else {
+					setValue(oid, !oidValue);
+				}
 				break;
 			}
 
@@ -54,7 +61,7 @@ function StateCollection() {
 			default:
 				break;
 		}
-	}, [oidType, oid, oidValue, setValue]);
+	}, [oidType, oid, oidValue, setValue, onlyStates]);
 
 	const avatarColor = useMemo(() => {
 		if (noIcon || !data.icon) {

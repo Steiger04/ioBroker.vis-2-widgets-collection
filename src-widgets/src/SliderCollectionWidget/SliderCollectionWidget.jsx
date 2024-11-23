@@ -612,6 +612,7 @@ class SliderCollectionWidget extends Generic {
 			socket: this.props.context.socket,
 			oidObject: this.state.oidObject,
 			theme: this.props.context.theme,
+			refService: this.refService,
 		};
 
 		this.wrappedContent = true;

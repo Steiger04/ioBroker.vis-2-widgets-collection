@@ -405,7 +405,6 @@ class StateCollectionWidget extends Generic {
 
 		const collectionContext = {
 			...props,
-			t: (text) => StateCollectionWidget.t(text),
 			// state: this.state,
 			setState: this.setState.bind(this),
 			isSignalVisible: this.isSignalVisible.bind(this),
@@ -418,6 +417,7 @@ class StateCollectionWidget extends Generic {
 			socket: this.props.context.socket,
 			oidObject: this.state.oidObject,
 			theme: this.props.context.theme,
+			refService: this.refService,
 		};
 
 		this.wrappedContent = true;
