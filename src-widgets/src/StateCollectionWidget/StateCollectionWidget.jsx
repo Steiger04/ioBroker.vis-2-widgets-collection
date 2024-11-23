@@ -2,6 +2,7 @@ import React from "react";
 // import { Paper } from "@mui/material";
 import Generic from "../Generic";
 import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
+import CollectionDivider from "../components/CollectionDivider";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
 
@@ -88,9 +89,31 @@ class StateCollectionWidget extends Generic {
 							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
+							name: "iconXOffsetOn",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+							hidden: "!data.iconOn || data.noIcon",
+						},
+						{
+							name: "iconYOffsetOn",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+							hidden: "!data.iconOn || data.noIcon",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "textColorOn",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "headerOn",
@@ -108,6 +131,10 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "valueOn",
 							label: "value",
 							type: "text",
@@ -121,6 +148,10 @@ class StateCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColorOn",
@@ -174,9 +205,31 @@ class StateCollectionWidget extends Generic {
 							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
+							name: "iconXOffsetOff",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+							hidden: "!data.iconOff || data.noIcon",
+						},
+						{
+							name: "iconYOffsetOff",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+							hidden: "!data.iconOff || data.noIcon",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "textColorOff",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "headerOff",
@@ -194,6 +247,10 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "valueOff",
 							label: "value",
 							type: "text",
@@ -207,6 +264,10 @@ class StateCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColorOff",
@@ -262,9 +323,33 @@ class StateCollectionWidget extends Generic {
 							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
 						},
 						{
+							name: "iconXOffset",
+							label: "icon_x_offset",
+							type: "text",
+							default: "0px",
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+						},
+						{
+							name: "iconYOffset",
+							label: "icon_y_offset",
+							type: "text",
+							default: "0px",
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
+						},
+						{
+							label: "",
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "textColor",
 							label: "text_color",
 							type: "color",
+						},
+						{
+							label: "",
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "header",
@@ -282,6 +367,11 @@ class StateCollectionWidget extends Generic {
 							step: 1,
 						},
 						{
+							label: "",
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "value",
 							label: "value",
 							type: "text",
@@ -295,6 +385,11 @@ class StateCollectionWidget extends Generic {
 							max: 500,
 							default: 100,
 							step: 1,
+						},
+						{
+							label: "",
+							type: "custom",
+							component: () => <CollectionDivider />,
 						},
 						{
 							name: "backgroundColor",

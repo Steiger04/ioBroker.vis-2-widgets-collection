@@ -219,12 +219,14 @@ class SliderCollectionWidget extends Generic {
 							label: "icon_x_offset",
 							type: "text",
 							default: "0px",
+							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
 							name: "iconYOffsetOn",
 							label: "icon_y_offset",
 							type: "text",
 							default: "0px",
+							hidden: "!data.iconOn || data.noIcon",
 						},
 						{
 							type: "custom",
@@ -323,12 +325,14 @@ class SliderCollectionWidget extends Generic {
 							label: "icon_x_offset",
 							type: "text",
 							default: "0px",
+							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
 							name: "iconYOffsetOff",
 							label: "icon_y_offset",
 							type: "text",
 							default: "0px",
+							hidden: "!data.iconOff || data.noIcon",
 						},
 						{
 							type: "custom",
@@ -429,12 +433,14 @@ class SliderCollectionWidget extends Generic {
 							label: "icon_x_offset",
 							type: "text",
 							default: "0px",
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
 						},
 						{
 							name: "iconYOffset",
 							label: "icon_y_offset",
 							type: "text",
 							default: "0px",
+							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
 						},
 						{
 							type: "custom",

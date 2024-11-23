@@ -94,6 +94,8 @@ function StateCollection() {
 				variant="square"
 				src={data.icon}
 				sx={{
+					bottom: data.iconYOffset,
+					left: data.iconXOffset,
 					overflow: "visible",
 					color: avatarColor,
 					objectFit: "contain",
