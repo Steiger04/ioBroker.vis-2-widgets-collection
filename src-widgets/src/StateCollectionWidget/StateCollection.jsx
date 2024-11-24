@@ -78,7 +78,7 @@ function StateCollection() {
 			disabled={widget.data.noButton}
 			onClick={clickHandler}
 			sx={{
-				borderRadius: 0,
+				borderRadius: widget.data.circle || widget.data.ellipse ? "50%" : 0,
 				boxSizing: "border-box",
 				// overflow: "hidden",
 				width: "100%",

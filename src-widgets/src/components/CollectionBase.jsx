@@ -80,7 +80,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					display: "flex",
 					justifyContent: "center",
 					alignItems: "center",
-					backgroundColor: widget.data.onlyTransparent
+					bgcolor: widget.data.onlyTransparent
 						? "transparent"
 						: data.backgroundColor || backgroundStyles.backgroundColor,
 					background: data.background || backgroundStyles.background,
@@ -134,6 +134,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 							}}
 						>
 							<Paper
+								style={{ backgroundColor: "transparent" }}
 								elevation={
 									widget.data.onlyTransparent
 										? 0
