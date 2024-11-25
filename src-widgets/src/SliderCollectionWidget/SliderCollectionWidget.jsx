@@ -58,6 +58,13 @@ class SliderCollectionWidget extends Generic {
 							default: "off",
 						},
 						{
+							name: "labelPosition",
+							label: "label_position",
+							type: "text",
+							default: "-5px",
+							hidden: "data.valueLabelDisplay === 'off'",
+						},
+						{
 							name: "sliderColor",
 							label: "slider_color",
 							type: "color",
@@ -101,6 +108,12 @@ class SliderCollectionWidget extends Generic {
 							label: "marks",
 							default: false,
 							hidden: "data.onlyStates",
+						},
+						{
+							name: "markPosition",
+							label: "mark_position",
+							type: "text",
+							default: "30px",
 						},
 						{
 							name: "markStep",

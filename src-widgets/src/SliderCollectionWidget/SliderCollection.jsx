@@ -201,8 +201,14 @@ function SliderCollection() {
 									: widget.data.iconMax
 							}
 							style={{
-								width: widget.data.iconSizeStart || "24px",
-								height: widget.data.iconSizeStart || "24px",
+								width:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.iconSizeStart || "24px"
+										: widget.data.iconSizeEnd || "24px",
+								height:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.iconSizeStart || "24px"
+										: widget.data.iconSizeEnd || "24px",
 								color: startIconColor,
 								filter: startIconColor ? "drop-shadow(0px 10000px 0)" : null,
 								transform: startIconColor ? "translateY(-10000px)" : null,
@@ -217,6 +223,14 @@ function SliderCollection() {
 							"& .MuiSlider-valueLabel": {
 								color: widget.data.markerTextColor || sliderColor,
 								bgcolor: "transparent",
+								top:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.labelPosition
+										: null,
+								right:
+									widget.data.sliderOrientation === "vertical"
+										? widget.data.labelPosition
+										: null,
 							},
 							"& .MuiSlider-thumb": {
 								color: sliderColor,
@@ -236,6 +250,14 @@ function SliderCollection() {
 							"& .MuiSlider-markLabel": {
 								color: widget.data.markerTextColor || sliderColor,
 								fontSize: `${widget.data.markerTextSize}%` || "1em",
+								top:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.markPosition
+										: null,
+								left:
+									widget.data.sliderOrientation === "vertical"
+										? widget.data.markPosition
+										: null,
 							},
 							"& .MuiSlider-markLabelActive": {
 								color: widget.data.markerTextColor || sliderColor,
@@ -277,8 +299,14 @@ function SliderCollection() {
 									: widget.data.iconMin
 							}
 							style={{
-								width: widget.data.iconSizeEnd || "24px",
-								height: widget.data.iconSizeEnd || "24px",
+								width:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.iconSizeEnd || "24px"
+										: widget.data.iconSizeStart || "24px",
+								height:
+									widget.data.sliderOrientation === "horizontal"
+										? widget.data.iconSizeEnd || "24px"
+										: widget.data.iconSizeStart || "24px",
 								color: endIconColor,
 								filter: endIconColor ? "drop-shadow(0px 10000px 0)" : null,
 								transform: endIconColor ? "translateY(-10000px)" : null,

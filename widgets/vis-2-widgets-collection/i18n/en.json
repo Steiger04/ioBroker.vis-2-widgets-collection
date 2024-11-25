@@ -60,5 +60,7 @@
 	"label_auto": "Auto",
 	"slider_orientation": "Orientation",
 	"horizontal": "Horizontal",
-	"vertical": "Vertical"
+	"vertical": "Vertical",
+	"mark_position": "Mark position",
+	"label_position": "Label position"
 }
