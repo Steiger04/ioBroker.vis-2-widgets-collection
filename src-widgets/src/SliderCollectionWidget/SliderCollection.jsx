@@ -5,7 +5,7 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-import useSize from "../hooks/useSize";
+// import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 function SliderCollection() {
@@ -15,8 +15,8 @@ function SliderCollection() {
 	const theme = useTheme();
 	const { backgroundStyles, textStyles } = useStyles(widget.style);
 	const ref = useRef(null);
-	const isEllipse = !widget.data.square && !widget.data.circle;
-	const { size } = useSize(ref, isEllipse);
+	// const isEllipse = !widget.data.square && !widget.data.circle;
+	// const { size, clientWidth, clientHeight } = useSize(ref, isEllipse);
 
 	const oidType = oidObject?.common?.type;
 	const oid = oidObject?._id;
@@ -164,10 +164,13 @@ function SliderCollection() {
 				sx={{
 					// color: data.iconColor || "background.default",
 					bgcolor: "transparent",
-					width: `calc(${size}px)`,
-					height: `calc(${size}px)`,
+					boxSizing: "border-box",
+					/* width: `calc(${size}px)`,
+					height: `calc(${size}px)`, */
+					width: "100%",
+					height: "100%",
 					overflow: "visible",
-					px: 3,
+					p: 3,
 					justifyContent: "center",
 					alignItems: "center",
 					display: "flex",
@@ -176,7 +179,9 @@ function SliderCollection() {
 			>
 				<Stack
 					spacing={2}
-					direction="row"
+					direction={
+						widget.data.sliderOrientation === "horizontal" ? "row" : "column"
+					}
 					sx={{
 						width: "100%",
 						height: "100%",
@@ -184,10 +189,17 @@ function SliderCollection() {
 						alignItems: "center",
 					}}
 				>
-					{widget.data.iconMin && (
+					{((widget.data.sliderOrientation === "horizontal" &&
+						widget.data.iconMin) ||
+						(widget.data.sliderOrientation === "vertical" &&
+							widget.data.iconMax)) && (
 						<img
 							alt=""
-							src={widget.data.iconMin}
+							src={
+								widget.data.sliderOrientation === "horizontal"
+									? widget.data.iconMin
+									: widget.data.iconMax
+							}
 							style={{
 								width: widget.data.iconSizeStart || "24px",
 								height: widget.data.iconSizeStart || "24px",
@@ -199,7 +211,13 @@ function SliderCollection() {
 					)}
 					<Slider
 						disabled={oidType !== "number"}
+						valueLabelDisplay={widget.data.valueLabelDisplay}
+						orientation={widget.data.sliderOrientation}
 						sx={{
+							"& .MuiSlider-valueLabel": {
+								color: widget.data.markerTextColor || sliderColor,
+								bgcolor: "transparent",
+							},
 							"& .MuiSlider-thumb": {
 								color: sliderColor,
 							},
@@ -247,10 +265,17 @@ function SliderCollection() {
 						}
 					/>
 
-					{widget.data.iconMax && (
+					{((widget.data.sliderOrientation === "horizontal" &&
+						widget.data.iconMin) ||
+						(widget.data.sliderOrientation === "vertical" &&
+							widget.data.iconMax)) && (
 						<img
 							alt=""
-							src={widget.data.iconMax}
+							src={
+								widget.data.sliderOrientation === "horizontal"
+									? widget.data.iconMax
+									: widget.data.iconMin
+							}
 							style={{
 								width: widget.data.iconSizeEnd || "24px",
 								height: widget.data.iconSizeEnd || "24px",

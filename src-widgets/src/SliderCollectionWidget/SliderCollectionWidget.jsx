@@ -34,7 +34,28 @@ class SliderCollectionWidget extends Generic {
 								{ value: "small", label: "slider_small" },
 								{ value: "medium", label: "slider_medium" },
 							],
-							default: "small",
+							default: "off",
+						},
+						{
+							name: "sliderOrientation",
+							label: "slider_orientation",
+							type: "select",
+							options: [
+								{ value: "horizontal", label: "horizontal" },
+								{ value: "vertical", label: "vertical" },
+							],
+							default: "horizontal",
+						},
+						{
+							name: "valueLabelDisplay",
+							label: "value_label_display",
+							type: "select",
+							options: [
+								{ value: "on", label: "label_on" },
+								{ value: "off", label: "label_off" },
+								{ value: "auto", label: "label_auto" },
+							],
+							default: "off",
 						},
 						{
 							name: "sliderColor",

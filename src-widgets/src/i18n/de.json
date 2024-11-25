@@ -53,5 +53,12 @@
 	"characteristic": "Ausprägung",
 	"geometry": "Geometrie",
 	"mark_step": "Markierungsschrittweite",
-	"slider_color": "Farbe"
+	"slider_color": "Farbe",
+	"value_label_display": "Label",
+	"label_off": "aus",
+	"label_on": "an",
+	"label_auto": "auto",
+	"slider_orientation": "Orientierung",
+	"horizontal": "Horizontal",
+	"vertical": "Vertikal"
 }

@@ -53,5 +53,12 @@
 	"Characteristic": "Characteristic",
 	"geometry": "Geometry",
 	"mark_step": "Mark step",
-	"slider_color": "Slider color"
+	"slider_color": "Slider color",
+	"value_label_display": "Label",
+	"label_off": "Off",
+	"label_on": "On",
+	"label_auto": "Auto",
+	"slider_orientation": "Orientation",
+	"horizontal": "Horizontal",
+	"vertical": "Vertical"
 }
