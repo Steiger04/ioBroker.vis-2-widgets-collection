@@ -266,9 +266,9 @@ function SliderCollection() {
 					/>
 
 					{((widget.data.sliderOrientation === "horizontal" &&
-						widget.data.iconMin) ||
+						widget.data.iconMax) ||
 						(widget.data.sliderOrientation === "vertical" &&
-							widget.data.iconMax)) && (
+							widget.data.iconMin)) && (
 						<img
 							alt=""
 							src={
