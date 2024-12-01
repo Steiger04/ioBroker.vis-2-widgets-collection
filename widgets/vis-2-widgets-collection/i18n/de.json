@@ -48,8 +48,8 @@
 	"icon_x_offset": "Icon X Offset",
 	"icon_y_offset": "Icon Y Offset",
 	"delay": "Verzögerung",
-	"sample_interval": "Abtastintervall",
-	"sample_interval_value": "Abtastintervallwert",
+	"sample_interval": "Intervall",
+	"sample_interval_value": "Intervallwert",
 	"characteristic": "Ausprägung",
 	"geometry": "Geometrie",
 	"mark_step": "Markierungsschrittweite",
@@ -62,5 +62,6 @@
 	"horizontal": "Horizontal",
 	"vertical": "Vertikal",
 	"mark_position": "Markierungsposition",
-	"label_position": "Labelposition"
+	"label_position": "Labelposition",
+	"write_value": "Wert schreiben"
 }
