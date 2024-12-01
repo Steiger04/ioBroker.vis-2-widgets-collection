@@ -5,6 +5,13 @@ module.exports = {
 	eslint: {
 		enable: true,
 	},
+	webpack: {
+		mode: "extends",
+		configure: (webpackConfig) => {
+			webpackConfig.ignoreWarnings = [/Failed to parse source map/];
+			return webpackConfig;
+		},
+	},
 	/* webpack: {
 		mode: "extends",
 		configure: (webpackConfig) => {

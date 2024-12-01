@@ -1,3 +1,4 @@
+// import ChannelDetector from "@iobroker/type-detector";
 import React from "react";
 import Generic from "../Generic";
 import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
@@ -34,7 +35,7 @@ class SliderCollectionWidget extends Generic {
 								{ value: "small", label: "slider_small" },
 								{ value: "medium", label: "slider_medium" },
 							],
-							default: "off",
+							default: "medium",
 						},
 						{
 							name: "sliderOrientation",
@@ -107,20 +108,21 @@ class SliderCollectionWidget extends Generic {
 							type: "checkbox",
 							label: "marks",
 							default: false,
-							hidden: "data.onlyStates",
+							// hidden: "data.onlyStates",
 						},
 						{
 							name: "markPosition",
 							label: "mark_position",
 							type: "text",
 							default: "30px",
+							hidden: "!data.marks",
 						},
 						{
 							name: "markStep",
 							type: "number",
 							label: "mark_step",
 							default: 10,
-							hidden: "data.onlyStates || !data.marks",
+							hidden: "!data.marks",
 						},
 						{
 							type: "custom",
@@ -610,6 +612,27 @@ class SliderCollectionWidget extends Generic {
 		super.componentDidMount();
 		// Update data
 		await this.propertiesUpdate();
+
+		/* console.log("globalThis", window.vis.objects);
+		const detector = new ChannelDetector();
+
+		const keys = Object.keys(window.vis.objects); // For optimization
+		const usedIds = []; // To not allow using of same ID in more than one device
+		const ignoreIndicators = ["UNREACH_STICKY"]; // Ignore indicators by name
+		// const allowedTypes = ["rgb"]; // Supported types. Leave it null if you want to get ALL devices.
+
+		const options = {
+			objects: window.vis.objects, // All objects
+			id: "milight-smart-light.0.Test_Lichter_Gr_2", // Channel, device or state, that must be detected
+			_keysOptional: keys,
+			_usedIdsOptional: usedIds,
+			ignoreIndicators,
+			//    allowedTypes,
+		};
+
+		const controls = detector.detect(options);
+
+		console.log("controls", controls); */
 	}
 
 	renderWidgetBody(props) {

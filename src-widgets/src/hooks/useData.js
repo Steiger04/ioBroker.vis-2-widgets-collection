@@ -14,7 +14,7 @@ function useData(oid) {
 		function _data(ext, withUnit) {
 			return {
 				textColor: widget.data[`textColor${ext}`],
-				header: widget.data[`header${ext}`],
+				header: widget.data[`header${ext}`] || widget.data.header,
 				headerSize: widget.data[`headerSize${ext}`],
 				value: withUnit
 					? `${widget.data[`value${ext}`]} ${widget.data.unit}`

@@ -170,7 +170,7 @@ function SliderCollection() {
 					width: "100%",
 					height: "100%",
 					overflow: "visible",
-					p: 3,
+					p: 1,
 					justifyContent: "center",
 					alignItems: "center",
 					display: "flex",
@@ -209,7 +209,10 @@ function SliderCollection() {
 									widget.data.sliderOrientation === "horizontal"
 										? widget.data.iconSizeStart || "24px"
 										: widget.data.iconSizeEnd || "24px",
-								color: startIconColor,
+								color:
+									widget.data.sliderOrientation === "horizontal"
+										? startIconColor
+										: endIconColor,
 								filter: startIconColor ? "drop-shadow(0px 10000px 0)" : null,
 								transform: startIconColor ? "translateY(-10000px)" : null,
 							}}
@@ -245,10 +248,13 @@ function SliderCollection() {
 								color: sliderColor,
 							},
 							"& .MuiSlider-markActive": {
-								color: sliderColor,
+								bgcolor: sliderColor,
+								filter: "brightness(2.5)",
 							},
 							"& .MuiSlider-markLabel": {
-								color: widget.data.markerTextColor || sliderColor,
+								color: widget.data.marks
+									? widget.data.markerTextColor || sliderColor
+									: "transparent",
 								fontSize: `${widget.data.markerTextSize}%` || "1em",
 								top:
 									widget.data.sliderOrientation === "horizontal"
@@ -260,7 +266,9 @@ function SliderCollection() {
 										: null,
 							},
 							"& .MuiSlider-markLabelActive": {
-								color: widget.data.markerTextColor || sliderColor,
+								color: widget.data.marks
+									? widget.data.markerTextColor || sliderColor
+									: "transparent",
 							},
 						}}
 						min={sliderMinValue}
@@ -307,7 +315,10 @@ function SliderCollection() {
 									widget.data.sliderOrientation === "horizontal"
 										? widget.data.iconSizeEnd || "24px"
 										: widget.data.iconSizeStart || "24px",
-								color: endIconColor,
+								color:
+									widget.data.sliderOrientation === "horizontal"
+										? endIconColor
+										: startIconColor,
 								filter: endIconColor ? "drop-shadow(0px 10000px 0)" : null,
 								transform: endIconColor ? "translateY(-10000px)" : null,
 							}}

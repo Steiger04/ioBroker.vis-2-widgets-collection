@@ -11,6 +11,7 @@
         "@emotion/react": "^11.13.3",
         "@emotion/styled": "^11.13.0",
         "@iobroker/adapter-react-v5": "^7.2.6",
+        "@iobroker/type-detector": "^4.0.1",
         "@iobroker/vis-2-widgets-react-dev": "^4.0.3",
         "@mui/icons-material": "^5.16.7",
         "@mui/material": "^5.16.7",

@@ -74,6 +74,13 @@ function CollectionCommonAttributes() {
 				label: "no_header",
 			},
 			{
+				name: "header",
+				label: "header",
+				type: "text",
+				default: "",
+				hidden: "data.noHeader",
+			},
+			{
 				name: "noFooter",
 				type: "checkbox",
 				label: "no_footer",
