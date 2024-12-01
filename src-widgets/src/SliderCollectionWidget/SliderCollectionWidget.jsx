@@ -1,4 +1,4 @@
-// import ChannelDetector from "@iobroker/type-detector";
+import ChannelDetector from "@iobroker/type-detector";
 import React from "react";
 import Generic from "../Generic";
 import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
@@ -104,6 +104,10 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.values_count",
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="marks" />,
+						},
+						{
 							name: "marks",
 							type: "checkbox",
 							label: "marks",
@@ -125,18 +129,24 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.marks",
 						},
 						{
-							type: "custom",
-							component: () => <CollectionDivider />,
+							name: "markerTextColor",
+							label: "text_color",
+							type: "color",
+							hidden: "!data.marks",
 						},
 						{
-							name: "delay",
-							type: "number",
-							label: "delay",
-							default: 300,
+							name: "markerTextSize",
+							label: "marker_text_size",
+							type: "slider",
 							min: 0,
-							max: 1000,
+							max: 100,
+							default: 80,
 							step: 1,
-							hidden: "data.sampleInterval",
+							hidden: "!data.marks",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider dividerText="write_value" />,
 						},
 						{
 							name: "sampleInterval",
@@ -155,26 +165,14 @@ class SliderCollectionWidget extends Generic {
 							hidden: "!data.sampleInterval",
 						},
 						{
-							type: "custom",
-							component: () => <CollectionDivider dividerText="marks" />,
-						},
-						{
-							name: "markerTextColor",
-							label: "text_color",
-							type: "color",
-						},
-						{
-							name: "markerTextSize",
-							label: "marker_text_size",
-							type: "slider",
+							name: "delay",
+							type: "number",
+							label: "delay",
+							default: 300,
 							min: 0,
-							max: 100,
-							default: 80,
+							max: 1000,
 							step: 1,
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
+							hidden: "data.sampleInterval",
 						},
 						{
 							type: "custom",
@@ -613,7 +611,7 @@ class SliderCollectionWidget extends Generic {
 		// Update data
 		await this.propertiesUpdate();
 
-		/* console.log("globalThis", window.vis.objects);
+		console.log("globalThis", window.vis.objects);
 		const detector = new ChannelDetector();
 
 		const keys = Object.keys(window.vis.objects); // For optimization
@@ -632,7 +630,7 @@ class SliderCollectionWidget extends Generic {
 
 		const controls = detector.detect(options);
 
-		console.log("controls", controls); */
+		console.log("controls", controls);
 	}
 
 	renderWidgetBody(props) {

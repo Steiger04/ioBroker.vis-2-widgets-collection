@@ -48,8 +48,8 @@
 	"icon_x_offset": "Icon X offset",
 	"icon_y_offset": "Icon Y offset",
 	"delay": "Delay",
-	"sample_interval": "Sample interval",
-	"sample_interval_value": "Sample interval value",
+	"sample_interval": "Interval",
+	"sample_interval_value": "Interval value",
 	"Characteristic": "Characteristic",
 	"geometry": "Geometry",
 	"mark_step": "Mark step",
@@ -62,5 +62,6 @@
 	"horizontal": "Horizontal",
 	"vertical": "Vertical",
 	"mark_position": "Mark position",
-	"label_position": "Label position"
+	"label_position": "Label position",
+	"write_value": "Write value"
 }
