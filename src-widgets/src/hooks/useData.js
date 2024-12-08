@@ -24,8 +24,8 @@ function useData(oid) {
 					(widget.data[`icon${ext}`] && widget.data[`iconSize${ext}`]) ||
 					widget.data.iconSize,
 				iconColor:
-					(widget.data.icon && widget.data.iconColor) ||
-					widget.data[`iconColor${ext}`],
+					(widget.data[`icon${ext}`] && widget.data[`iconColor${ext}`]) ||
+					widget.data.iconColor,
 				iconHover:
 					(widget.data[`icon${ext}`] && widget.data[`iconHover${ext}`]) ||
 					widget.data.iconHover,
