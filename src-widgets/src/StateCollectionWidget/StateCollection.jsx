@@ -31,11 +31,9 @@ function StateCollection() {
 	const oid = oidObject?._id;
 	const oidValue = getPropertyValue("oid");
 	const oidType = oidObject?.common?.type;
-	const oidIcon = oidObject?.common?.icon;
 	const noIcon = widget.data.noIcon;
 	const onlyStates = widget.data.onlyStates;
 
-	// const unit = widget.data.unit || oidUnit || "";
 	const unit = widget.data.unit;
 	const oidUnitValue =
 		oidValue === 0 || oidValue === false
@@ -80,7 +78,7 @@ function StateCollection() {
 			sx={{
 				borderRadius: widget.data.circle || widget.data.ellipse ? "50%" : 0,
 				boxSizing: "border-box",
-				// overflow: "hidden",
+				overflow: "hidden",
 				width: "100%",
 				height: "100%",
 				color: data.iconColor || "background.default",
@@ -91,16 +89,18 @@ function StateCollection() {
 			}}
 		>
 			<Avatar
-				variant="square"
 				src={data.icon}
+				slotProps={{
+					img: { style: { objectFit: "contain" } },
+				}}
 				sx={{
+					width: `calc(${size}px * ${data.iconSize} / 100)`,
+					height: `calc(${size}px * ${data.iconSize} / 100)`,
+					variant: "square",
 					bottom: data.iconYOffset,
 					left: data.iconXOffset,
 					overflow: "visible",
 					color: avatarColor,
-					objectFit: "contain",
-					width: `calc(${size}px * ${data.iconSize} / 100)`,
-					height: `calc(${size}px * ${data.iconSize} / 100)`,
 					bgcolor: "transparent",
 					filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
 					transform: data.iconColor ? "translateY(-10000px)" : null,
@@ -113,9 +113,10 @@ function StateCollection() {
 						fontSize: `${data.valueSize}%`,
 						...fontStyles,
 						...textStyles,
+						color: data.textColor,
 					}}
 				>
-					{(noIcon || !oidIcon) && (data.value || oidUnitValue)}
+					{(noIcon || !data.icon) && (data.value || oidUnitValue)}
 				</Typography>
 			</Avatar>
 		</Button>

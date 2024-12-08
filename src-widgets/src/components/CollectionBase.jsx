@@ -53,6 +53,8 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 			child.style.filter = signalColor ? "drop-shadow(0px 10000px 0)" : null;
 			child.style.transform = signalColor ? "translateY(-10000px)" : null;
 		});
+
+		// console.log("widget.data", widget.data);
 	}, [widget, refService, isSignalVisible]);
 
 	return (

@@ -1,8 +1,6 @@
-// import { VisRxWidget } from "@iobroker/vis-2-widgets-react-dev";
 import { Box } from "@mui/material";
 import React from "react";
 
-// class Generic extends (window.visRxWidget || VisRxWidget) {
 class Generic extends window.visRxWidget {
 	// constructor(props) {
 	// super(props);
@@ -43,9 +41,9 @@ class Generic extends window.visRxWidget {
 	}
 
 	static getObjectIcon(obj, id, imagePrefix) {
-		const prefix = imagePrefix || "../.."; // http://localhost:8081';
+		imagePrefix = imagePrefix || "../.."; // http://localhost:8081';
 		let src = "";
-		const common = obj?.common;
+		const common = obj && obj.common;
 
 		if (common) {
 			const cIcon = common.icon;
@@ -54,15 +52,15 @@ class Generic extends window.visRxWidget {
 					if (cIcon.includes(".")) {
 						let instance;
 						if (obj.type === "instance" || obj.type === "adapter") {
-							src = `${prefix}/adapter/${common.name}/${cIcon}`;
-						} else if (id?.startsWith("system.adapter.")) {
+							src = `${imagePrefix}/adapter/${common.name}/${cIcon}`;
+						} else if (id && id.startsWith("system.adapter.")) {
 							instance = id.split(".", 3);
 							if (cIcon[0] === "/") {
 								instance[2] += cIcon;
 							} else {
 								instance[2] += `/${cIcon}`;
 							}
-							src = `${prefix}/adapter/${instance[2]}`;
+							src = `${imagePrefix}/adapter/${instance[2]}`;
 						} else {
 							instance = id.split(".", 2);
 							if (cIcon[0] === "/") {
@@ -70,7 +68,7 @@ class Generic extends window.visRxWidget {
 							} else {
 								instance[0] += `/${cIcon}`;
 							}
-							src = `${prefix}/adapter/${instance[0]}`;
+							src = `${imagePrefix}/adapter/${instance[0]}`;
 						}
 					} else {
 						return null;
@@ -91,6 +89,7 @@ class Generic extends window.visRxWidget {
 		) {
 			this.setState({ [`${stateName}Object`]: { common: {} } });
 
+			// console.log("rxData.icon", this.state.rxData.icon);
 			if (this.state.rxData.icon) {
 				this.setState({
 					[`${stateName}Object`]: {
@@ -131,48 +130,6 @@ class Generic extends window.visRxWidget {
 				states[state] = state;
 			});
 			object.common.states = states;
-		}
-
-		// console.log("ICON", this.state.rxData.icon);
-		if (this.state.rxData.icon) {
-			object.common.icon = this.state.rxData.icon;
-		} else if (
-			!object.common.icon &&
-			(object.type === "state" || object.type === "channel")
-		) {
-			const idArray = this.state.rxData.oid.split(".");
-
-			// read channel
-			const parentObject = await this.props.context.socket.getObject(
-				idArray.slice(0, -1).join("."),
-			);
-
-			if (
-				!parentObject?.common?.icon &&
-				(object.type === "state" || object.type === "channel")
-			) {
-				const grandParentObject = await this.props.context.socket.getObject(
-					idArray.slice(0, -2).join("."),
-				);
-
-				if (grandParentObject?.common?.icon) {
-					object.common.icon = grandParentObject.common.icon;
-					if (
-						grandParentObject.type === "instance" ||
-						grandParentObject.type === "adapter"
-					) {
-						object.common.icon = `../${grandParentObject.common.name}.admin/${object.common.icon}`;
-					}
-				}
-			} else {
-				object.common.icon = parentObject.common.icon;
-				if (
-					parentObject.type === "instance" ||
-					parentObject.type === "adapter"
-				) {
-					object.common.icon = `../${parentObject.common.name}.admin/${object.common.icon}`;
-				}
-			}
 		}
 
 		if (object.common.name && typeof object.common.name === "object") {

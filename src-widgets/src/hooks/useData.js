@@ -7,27 +7,38 @@ function useData(oid) {
 	const oidValue = getPropertyValue(oid);
 	const oidType = oidObject?.common?.type;
 	const oidStates = oidObject?.common?.states;
-	const oidIcon = oidObject?.common?.icon;
 	const noIcon = widget.data.noIcon;
 
 	const data = useMemo(() => {
 		function _data(ext, withUnit) {
 			return {
-				textColor: widget.data[`textColor${ext}`],
+				textColor: widget.data[`textColor${ext}`] || widget.data.textColor,
 				header: widget.data[`header${ext}`] || widget.data.header,
-				headerSize: widget.data[`headerSize${ext}`],
+				headerSize: widget.data[`headerSize${ext}`] || widget.data.headerSize,
 				value: withUnit
 					? `${widget.data[`value${ext}`]} ${widget.data.unit}`
 					: widget.data[`value${ext}`],
 				valueSize: widget.data[`valueSize${ext}`],
-				icon: !noIcon && (widget.data[`icon${ext}`] || oidIcon),
-				iconSize: widget.data[`iconSize${ext}`],
-				iconXOffset: widget.data[`iconXOffset${ext}`],
-				iconYOffset: widget.data[`iconYOffset${ext}`],
-				iconColor: widget.data[`iconColor${ext}`],
-				iconHover: widget.data[`iconHover${ext}`],
-				backgroundColor: widget.data[`backgroundColor${ext}`],
-				background: widget.data[`background${ext}`],
+				icon: !noIcon && (widget.data[`icon${ext}`] || widget.data.icon),
+				iconSize:
+					(widget.data[`icon${ext}`] && widget.data[`iconSize${ext}`]) ||
+					widget.data.iconSize,
+				iconColor:
+					(widget.data.icon && widget.data.iconColor) ||
+					widget.data[`iconColor${ext}`],
+				iconHover:
+					(widget.data[`icon${ext}`] && widget.data[`iconHover${ext}`]) ||
+					widget.data.iconHover,
+				iconXOffset:
+					(widget.data[`icon${ext}`] && widget.data[`iconXOffset${ext}`]) ||
+					widget.data.iconXOffset,
+				iconYOffset:
+					(widget.data[`icon${ext}`] && widget.data[`iconYOffset${ext}`]) ||
+					widget.data.iconYOffset,
+
+				backgroundColor:
+					widget.data[`backgroundColor${ext}`] || widget.data.backgroundColor,
+				background: widget.data[`background${ext}`] || widget.data.background,
 			};
 		}
 
@@ -59,20 +70,22 @@ function useData(oid) {
 
 			default:
 				// return {};
-				return _data("Off");
+				return _data("");
 		}
-	}, [widget, oidType, oidValue, oidStates, oidIcon, noIcon]);
+	}, [widget, oidType, oidValue, oidStates, noIcon]);
 
 	const widgetStates = useMemo(() => {
-		const widgetStates = {};
+		const _widgetStates = {};
 
 		for (let i = 1; i <= Number(widget.data.values_count); i++) {
-			widgetStates[widget.data[`value${i}`]] =
-				widget.data[`header${i}`] ||
-				`${widget.data[`value${i}`]}${widget.data.unit}`;
+			if (!!widget.data[`value${i}`] || widget.data[`value${i}`] === "0") {
+				_widgetStates[widget.data[`value${i}`]] =
+					widget.data[`header${i}`] ||
+					`${widget.data[`value${i}`]}${widget.data.unit}`;
+			}
 		}
 
-		return widgetStates;
+		return _widgetStates;
 	}, [widget]);
 
 	const { states, minValue, maxValue } = useMemo(() => {

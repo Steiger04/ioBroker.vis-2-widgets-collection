@@ -25,15 +25,32 @@ function CollectionChangeDialog(props) {
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;
 
-	const { debouncedValue: debouncedSliderValue } = useDebounce(
-		getPropertyValue("oid"),
-	);
+	const delay = widget.data.sampleInterval
+		? widget.data.sampleIntervalValue
+		: widget.data.delay;
+
+	const {
+		debouncedValue: debouncedSliderValue,
+		sampledValue: sampledSliderValue,
+	} = useDebounce(getPropertyValue("oid"), delay);
 
 	useEffect(() => {
+		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
+			setValue(oid, debouncedSliderValue);
+		}
+	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
+
+	useEffect(() => {
+		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
+			setValue(oid, sampledSliderValue);
+		}
+	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
+
+	/* useEffect(() => {
 		if (debouncedSliderValue !== undefined) {
 			setValue(oid, debouncedSliderValue);
 		}
-	}, [debouncedSliderValue, oid, setValue]);
+	}, [debouncedSliderValue, oid, setValue]); */
 
 	const changeHandler = useCallback(
 		(value, key = null) => {
@@ -102,24 +119,20 @@ function CollectionChangeDialog(props) {
 	const ChangeList = widgetStates ? (
 		<List>
 			{Object.entries(widgetStates).map(([key, value]) => {
-				if (value !== "undefined" && value !== "null") {
-					return (
-						<ListItem disablePadding key={key}>
-							<ListItemButton
-								disableGutters
-								onClick={() => changeHandler(value, key)}
-							>
-								<ListItemText
-									sx={{ px: 2 }}
-									primaryTypographyProps={{ variant: "body2" }}
-									primary={value}
-								/>
-							</ListItemButton>
-						</ListItem>
-					);
-				}
-
-				return null;
+				return (
+					<ListItem disablePadding key={key}>
+						<ListItemButton
+							disableGutters
+							onClick={() => changeHandler(value, key)}
+						>
+							<ListItemText
+								sx={{ px: 2 }}
+								primaryTypographyProps={{ variant: "body2" }}
+								primary={value}
+							/>
+						</ListItemButton>
+					</ListItem>
+				);
 			})}
 		</List>
 	) : null;
@@ -158,7 +171,7 @@ function CollectionChangeDialog(props) {
 				}}
 			>
 				<Stack
-					divider={<Divider flexItem />}
+					divider={Object.keys(widgetStates).length && <Divider flexItem />}
 					sx={{
 						px: 2,
 					}}

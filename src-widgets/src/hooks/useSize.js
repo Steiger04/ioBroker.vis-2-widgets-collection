@@ -9,7 +9,7 @@ const useSize = (refService, ellipse) => {
 	const [width, setWidth] = useState(0);
 
 	useEffect(() => {
-		if (clientWidth && clientHeight) {
+		if (clientWidth > 0 && clientHeight > 0) {
 			if (clientWidth < clientHeight) {
 				setSize(clientWidth);
 			} else {

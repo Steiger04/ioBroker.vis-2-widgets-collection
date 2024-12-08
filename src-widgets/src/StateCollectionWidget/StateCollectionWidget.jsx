@@ -1,8 +1,8 @@
 import React from "react";
 // import { Paper } from "@mui/material";
 import Generic from "../Generic";
-import CollectionCommonAttributes from "../components/CollectionCommonAttributes";
-import CollectionDivider from "../components/CollectionDivider";
+import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
+import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
 import StateCollection from "./StateCollection";
 
@@ -22,11 +22,18 @@ class StateCollectionWidget extends Generic {
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionCommonAttributes(),
+				CollectionGroupCommonAttributes(),
 				{
 					name: "button", // group name
 					label: "group_button",
 					fields: [
+						{
+							name: "onlyStates",
+							type: "checkbox",
+							label: "only_states",
+							default: false,
+							hidden: "!data.values_count",
+						},
 						{
 							name: "noButton",
 							type: "checkbox",
@@ -41,369 +48,11 @@ class StateCollectionWidget extends Generic {
 							label: "no_icon",
 							// hidden: "!!data.onlyTransparent",
 						},
-						{
-							name: "onlyStates",
-							type: "checkbox",
-							label: "only_states",
-							default: false,
-							hidden: "!data.values_count",
-						},
 					],
 				},
-				{
-					name: "on",
-					label: "group_on",
-					fields: [
-						{
-							name: "iconOn",
-							label: "icon",
-							// type: "icon64",
-							type: "image",
-							// hidden: '!!data.noIcon || !!data.iconSmall',
-							hidden: "data.noIcon",
-						},
-						{
-							name: "iconSizeOn",
-							label: "icon_size",
-							type: "slider",
-							min: 1,
-							max: 200,
-							default: 100,
-							step: 1,
-							hidden: "!data.iconOn || data.noIcon",
-						},
-						{
-							name: "iconColorOn",
-							label: "icon_color",
-							type: "color",
-							hidden: "!data.iconOn || data.noIcon",
-						},
-						{
-							name: "iconHoverOn",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: "!data.iconOn || data.noIcon",
-						},
-						{
-							name: "iconXOffsetOn",
-							label: "icon_x_offset",
-							type: "text",
-							default: "0px",
-							hidden: "!data.iconOn || data.noIcon",
-						},
-						{
-							name: "iconYOffsetOn",
-							label: "icon_y_offset",
-							type: "text",
-							default: "0px",
-							hidden: "!data.iconOn || data.noIcon",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "textColorOn",
-							label: "text_color",
-							type: "color",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "headerOn",
-							label: "header",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "headerSizeOn",
-							label: "header_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "valueOn",
-							label: "value",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "valueSizeOn",
-							label: "value_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "backgroundColorOn",
-							label: "background_color",
-							type: "color",
-						},
-						{
-							name: "backgroundOn",
-							label: "background",
-							type: "text",
-							default: "",
-						},
-					],
-				},
-				{
-					name: "off",
-					label: "group_off",
-					fields: [
-						{
-							name: "iconOff",
-							label: "icon",
-							// type: "icon64",
-							type: "image",
-							hidden: "data.noIcon",
-							// hidden: '!!data.noIcon || !!data.iconSmall',
-						},
-						{
-							name: "iconSizeOff",
-							label: "icon_size",
-							type: "slider",
-							min: 1,
-							max: 200,
-							default: 100,
-							step: 1,
-							hidden: "!data.iconOff || data.noIcon",
-						},
-						{
-							name: "iconColorOff",
-							label: "icon_color",
-							type: "color",
-							hidden: "!data.iconOff || data.noIcon",
-						},
-						{
-							name: "iconHoverOff",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: "!data.iconOff || data.noIcon",
-						},
-						{
-							name: "iconXOffsetOff",
-							label: "icon_x_offset",
-							type: "text",
-							default: "0px",
-							hidden: "!data.iconOff || data.noIcon",
-						},
-						{
-							name: "iconYOffsetOff",
-							label: "icon_y_offset",
-							type: "text",
-							default: "0px",
-							hidden: "!data.iconOff || data.noIcon",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "textColorOff",
-							label: "text_color",
-							type: "color",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "headerOff",
-							label: "header",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "headerSizeOff",
-							label: "header_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "valueOff",
-							label: "value",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "valueSizeOff",
-							label: "value_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "backgroundColorOff",
-							label: "background_color",
-							type: "color",
-						},
-						{
-							name: "backgroundOff",
-							label: "background",
-							type: "text",
-							default: "",
-						},
-					],
-				},
-				{
-					name: "values",
-					label: "values",
-					indexFrom: 1,
-					indexTo: "values_count",
-					fields: [
-						{
-							name: "icon",
-							label: "icon",
-							// type: "icon64",
-							type: "image",
-							// hidden: '!!data.noIcon || !!data.iconSmall',
-							hidden: "data.noIcon",
-						},
-						{
-							name: "iconSize",
-							label: "icon_size",
-							type: "slider",
-							min: 1,
-							max: 200,
-							default: 100,
-							step: 1,
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
-						},
-						{
-							name: "iconColor",
-							label: "icon_color",
-							type: "color",
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
-						},
-						{
-							name: "iconHover",
-							label: "icon_hover",
-							type: "slider",
-							min: 0,
-							max: 300,
-							default: 200,
-							step: 1,
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
-						},
-						{
-							name: "iconXOffset",
-							label: "icon_x_offset",
-							type: "text",
-							default: "0px",
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
-						},
-						{
-							name: "iconYOffset",
-							label: "icon_y_offset",
-							type: "text",
-							default: "0px",
-							hidden: (data, i) => !data[`icon${i}`] || data.noIcon,
-						},
-						{
-							label: "",
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "textColor",
-							label: "text_color",
-							type: "color",
-						},
-						{
-							label: "",
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "header",
-							label: "header",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "headerSize",
-							label: "header_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							label: "",
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "value",
-							label: "value",
-							type: "text",
-							default: "",
-						},
-						{
-							name: "valueSize",
-							label: "value_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 100,
-							step: 1,
-						},
-						{
-							label: "",
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "backgroundColor",
-							label: "background_color",
-							type: "color",
-						},
-						{
-							name: "background",
-							label: "background",
-							type: "text",
-							default: "",
-						},
-					],
-				},
+				CollectionGroupAttributes("on"),
+				CollectionGroupAttributes("off"),
+				CollectionGroupAttributes("values"),
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
 			visDefaultStyle: {
@@ -474,7 +123,6 @@ class StateCollectionWidget extends Generic {
 	renderWidgetBody(props) {
 		// console.log("inside renderWidgetBody", props);
 		super.renderWidgetBody(props);
-		// console.log("props", props);
 
 		/* const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData !== actualRxData) {

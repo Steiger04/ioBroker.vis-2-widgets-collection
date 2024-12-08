@@ -13,12 +13,18 @@ function CollectionDivider({ dividerText = "" }) {
 		<Box
 			sx={{
 				display: "block",
-				py: dividerText ? 2 : 1,
+				pt: 1.5,
+				pb: dividerText ? 2 : 1.5,
 			}}
 		>
 			{dividerText ? (
 				<Divider sx={style}>
-					<Typography color="rgba(255, 255, 255, 0.3)" variant="caption">
+					<Typography
+						sx={{
+							opacity: 0.5,
+						}}
+						variant="caption"
+					>
 						{SliderCollectionWidget.t(dividerText)}
 					</Typography>
 				</Divider>

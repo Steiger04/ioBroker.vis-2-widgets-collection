@@ -170,7 +170,7 @@ function SliderCollection() {
 					width: "100%",
 					height: "100%",
 					overflow: "visible",
-					p: 1,
+					p: widget.data.sliderSize === "small" ? 1.5 : 2,
 					justifyContent: "center",
 					alignItems: "center",
 					display: "flex",
