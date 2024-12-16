@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const POSSIBLE_MUI_STYLES = [
 	"background",
@@ -36,44 +36,57 @@ const useStyles = (_styles) => {
 	const [fontStyles, setFontStyles] = useState({});
 	const [boxStyles, setBoxStyles] = useState({});
 
-	useEffect(() => {
-		const backgroundStyles = {};
-		const borderStyles = {};
-		const textStyles = {};
-		const fontStyles = {};
-		const boxStyles = {};
+	const possibleMuiStyles = useMemo(() => {
+		// console.log("possibleMuiStyles");
+		const _backgroundStyles = {};
+		const _borderStyles = {};
+		const _textStyles = {};
+		const _fontStyles = {};
+		const _boxStyles = {};
 
 		POSSIBLE_MUI_STYLES.forEach((style) => {
 			if (_styles[style]) {
-				const camelCaseStyle = style.replace(/(-\w)/g, (text) =>
+				const _camelCaseStyle = style.replace(/(-\w)/g, (text) =>
 					text[1].toUpperCase(),
 				);
 
+				console.log("_camelCaseStyle", _camelCaseStyle);
+
 				if (style.includes("background")) {
-					backgroundStyles[camelCaseStyle] = _styles[style];
+					_backgroundStyles[_camelCaseStyle] = _styles[style];
 				} else if (style.includes("border")) {
-					borderStyles[camelCaseStyle] = _styles[style];
+					_borderStyles[_camelCaseStyle] = _styles[style];
 				} else if (
 					style.includes("font") ||
 					style.includes("line-height") ||
 					style.includes("letter-spacing") ||
 					style.includes("word-spacing")
 				) {
-					fontStyles[camelCaseStyle] = _styles[style];
+					_fontStyles[_camelCaseStyle] = _styles[style];
 				} else if (style.includes("text") || style.includes("color")) {
-					textStyles[camelCaseStyle] = _styles[style];
+					_textStyles[_camelCaseStyle] = _styles[style];
 				} else {
-					boxStyles[camelCaseStyle] = _styles[style];
+					_boxStyles[_camelCaseStyle] = _styles[style];
 				}
 			}
 		});
 
-		setBackgroundStyles(backgroundStyles);
-		setBorderStyles(borderStyles);
-		setTextStyles(textStyles);
-		setFontStyles(fontStyles);
-		setBoxStyles(boxStyles);
+		return {
+			_backgroundStyles,
+			_borderStyles,
+			_textStyles,
+			_fontStyles,
+			_boxStyles,
+		};
 	}, [_styles]);
+
+	useEffect(() => {
+		setBackgroundStyles(possibleMuiStyles._backgroundStyles);
+		setBorderStyles(possibleMuiStyles._borderStyles);
+		setTextStyles(possibleMuiStyles._textStyles);
+		setFontStyles(possibleMuiStyles._fontStyles);
+		setBoxStyles(possibleMuiStyles._boxStyles);
+	}, [possibleMuiStyles]);
 
 	return { boxStyles, backgroundStyles, borderStyles, textStyles, fontStyles };
 };

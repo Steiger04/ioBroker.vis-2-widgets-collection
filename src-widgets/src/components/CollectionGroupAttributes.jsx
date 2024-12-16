@@ -35,10 +35,18 @@ export default function CollectionGroupAttributes(groupName) {
 		groupName === "values"
 			? "headerSize"
 			: camelCase(`header size ${groupName}`);
+	const nameAlias =
+		groupName === "values" ? "alias" : camelCase(`alias ${groupName}`);
 	const nameValue =
 		groupName === "values" ? "value" : camelCase(`value ${groupName}`);
 	const nameValueSize =
 		groupName === "values" ? "valueSize" : camelCase(`value size ${groupName}`);
+	const nameFooter =
+		groupName === "values" ? "footer" : camelCase(`footer ${groupName}`);
+	const nameFooterSize =
+		groupName === "values"
+			? "footerSize"
+			: camelCase(`footer size ${groupName}`);
 	const nameBackgroundColor =
 		groupName === "values"
 			? "backgroundColor"
@@ -63,6 +71,9 @@ export default function CollectionGroupAttributes(groupName) {
 		group = {
 			name: nameGroup,
 			label: nameGroupLabel,
+			/* hidden: (data) =>
+				data.oidType !== "boolean" &&
+				(nameGroup === "on" || nameGroup === "off"), */
 		};
 	}
 
@@ -84,17 +95,19 @@ export default function CollectionGroupAttributes(groupName) {
 				max: 200,
 				default: 100,
 				step: 1,
-				hidden: (data, i) =>
+				hidden: "data.noIcon",
+				/* hidden: (data, i) =>
 					(i === undefined ? !data[`${nameIcon}`] : !data[`${nameIcon}${i}`]) ||
-					!!data.noIcon,
+					!!data.noIcon, */
 			},
 			{
 				name: nameIconColor,
 				label: "icon_color",
 				type: "color",
-				hidden: (data, i) =>
+				hidden: "data.noIcon",
+				/* hidden: (data, i) =>
 					(i === undefined ? !data[`${nameIcon}`] : !data[`${nameIcon}${i}`]) ||
-					!!data.noIcon,
+					!!data.noIcon, */
 			},
 			{
 				name: nameIconHover,
@@ -104,27 +117,30 @@ export default function CollectionGroupAttributes(groupName) {
 				max: 300,
 				default: 200,
 				step: 1,
-				hidden: (data, i) =>
+				hidden: "data.noIcon",
+				/* hidden: (data, i) =>
 					(i === undefined ? !data[`${nameIcon}`] : !data[`${nameIcon}${i}`]) ||
-					!!data.noIcon,
+					!!data.noIcon, */
 			},
 			{
 				name: nameIconXOffset,
 				label: "icon_x_offset",
 				type: "text",
 				default: "0px",
-				hidden: (data, i) =>
+				hidden: "data.noIcon",
+				/* hidden: (data, i) =>
 					(i === undefined ? !data[`${nameIcon}`] : !data[`${nameIcon}${i}`]) ||
-					!!data.noIcon,
+					!!data.noIcon, */
 			},
 			{
 				name: nameIconYOffset,
 				label: "icon_y_offset",
 				type: "text",
 				default: "0px",
-				hidden: (data, i) =>
+				hidden: "data.noIcon",
+				/* hidden: (data, i) =>
 					(i === undefined ? !data[`${nameIcon}`] : !data[`${nameIcon}${i}`]) ||
-					!!data.noIcon,
+					!!data.noIcon, */
 			},
 			{
 				label: "",
@@ -162,6 +178,12 @@ export default function CollectionGroupAttributes(groupName) {
 				component: () => <CollectionDivider />,
 			},
 			{
+				name: nameAlias,
+				label: "alias",
+				type: "text",
+				default: "",
+			},
+			{
 				name: nameValue,
 				label: "value",
 				type: "text",
@@ -170,6 +192,26 @@ export default function CollectionGroupAttributes(groupName) {
 			{
 				name: nameValueSize,
 				label: "value_size",
+				type: "slider",
+				min: 0,
+				max: 500,
+				// default: 100,
+				step: 1,
+			},
+			{
+				label: "",
+				type: "custom",
+				component: () => <CollectionDivider />,
+			},
+			{
+				name: nameFooter,
+				label: "footer",
+				type: "text",
+				default: "",
+			},
+			{
+				name: nameFooterSize,
+				label: "footer_size",
 				type: "slider",
 				min: 0,
 				max: 500,

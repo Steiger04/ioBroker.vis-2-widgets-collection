@@ -18,8 +18,8 @@ function SliderCollection() {
 	// const isEllipse = !widget.data.square && !widget.data.circle;
 	// const { size, clientWidth, clientHeight } = useSize(ref, isEllipse);
 
-	const oidType = oidObject?.common?.type;
 	const oid = oidObject?._id;
+	const oidType = oidObject?.common?.type;
 
 	const delay = widget.data.sampleInterval
 		? widget.data.sampleIntervalValue
@@ -79,12 +79,14 @@ function SliderCollection() {
 	);
 
 	const sliderMarks = useMemo(() => {
-		const _sliderMarks =
+		/* const _sliderMarks =
 			states &&
 			states.map(({ value, label }) => ({
 				value,
 				label,
-			}));
+			})); */
+
+		const _sliderMarks = JSON.parse(JSON.stringify(states));
 
 		if (widget.data.onlyStates) {
 			return _sliderMarks;

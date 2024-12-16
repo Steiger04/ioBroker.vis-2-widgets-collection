@@ -6,7 +6,7 @@ import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
-	const { isSignalVisible, refService, widget, oidObject, getPropertyValue } =
+	const { isSignalVisible, refService, widget, getPropertyValue } =
 		useContext(CollectionContext);
 	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
 		widget.style,
@@ -18,7 +18,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 	const { width, height } = useSize(ref, isEllipse);
 
 	const oidValue = getPropertyValue("oid");
-	const oidName = oidObject?.common?.name;
+	// const oidName = oidObject?.common?.name;
 
 	const noHeader = widget.data.noHeader;
 	const noFooter = widget.data.noFooter;
@@ -89,7 +89,6 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 				}}
 			>
 				<Stack
-					spacing={0}
 					sx={{
 						height: "100%",
 						width: "100%",
@@ -98,20 +97,20 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					<Box
 						sx={{
 							px: widget.data.basePadding,
-							pt: widget.data.basePadding / 2,
-							mb: -widget.data.basePadding / 2,
+							pt: !widget.data.basePadding ? 0.5 : widget.data.basePadding / 2,
+							pb: !widget.data.basePadding ? 0.5 : -widget.data.basePadding / 2,
 						}}
 					>
 						<Typography
 							sx={{
-								fontSize: `${data.headerSize}%`,
 								...fontStyles,
 								...textStyles,
+								fontSize: `${data.headerSize}%` || fontStyles.fontSize,
 								color:
 									data.textColor || textStyles.color || "background.default",
 							}}
 						>
-							{!noHeader && (data.header || oidName)}
+							{!noHeader && data.header}
 						</Typography>
 					</Box>
 					<Box
@@ -146,7 +145,8 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 								sx={{
 									height: height || "100%",
 									width: width || "100%",
-									overflow: "visible",
+									// overflow: "visible",
+									overflow: "hidden",
 									display: "flex",
 									justifyContent: "center",
 									alignItems: "center",
@@ -165,22 +165,23 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					<Box
 						sx={{
 							px: widget.data.basePadding,
-							pb: widget.data.basePadding / 2,
-							mt: -widget.data.basePadding / 2,
+							pt: !widget.data.basePadding ? 0.5 : widget.data.basePadding / 2,
+							pb: !widget.data.basePadding ? 0.5 : widget.data.basePadding / 2,
 						}}
 					>
 						<Typography
 							sx={{
-								fontSize: `${data.valueSize}%`,
 								...fontStyles,
 								...textStyles,
+								fontSize: `${data.footerSize}%` || fontStyles.fontSize,
 								color:
 									data.textColor || textStyles.color || "background.default",
 							}}
 						>
 							{/* {(data.icon && !noFooter && (data.value || oidUnitValue)) ||
 								(!noFooter && (data.value || oidUnitValue))} */}
-							{!noFooter && (data.value || oidUnitValue)}
+							{!noFooter &&
+								(data.footer || data.alias || data.value || oidUnitValue)}
 						</Typography>
 					</Box>
 				</Stack>

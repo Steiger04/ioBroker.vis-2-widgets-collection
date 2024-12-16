@@ -63,7 +63,8 @@
                 "url": "vis-2-widgets-collection/customWidgets.js",
                 "components": [
                     "StateCollectionWidget",
-										"SliderCollectionWidget"
+										"SliderCollectionWidget",
+										"ButtonGroupCollectionWidget"
                 ]
             }
         },

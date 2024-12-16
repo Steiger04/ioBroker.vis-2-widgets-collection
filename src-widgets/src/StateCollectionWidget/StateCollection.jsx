@@ -116,7 +116,7 @@ function StateCollection() {
 						color: data.textColor,
 					}}
 				>
-					{(noIcon || !data.icon) && (data.value || oidUnitValue)}
+					{(noIcon || !data.icon) && (data.alias || data.value || oidUnitValue)}
 				</Typography>
 			</Avatar>
 		</Button>

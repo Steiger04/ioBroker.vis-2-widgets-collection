@@ -4,9 +4,11 @@ module.exports = makeFederation(
 	"vis2CollectionWidget", // internal name of package - must be unique and identical with io-package.json=>common.visWidgets.vis2demoWidget
 	{
 		"./StateCollectionWidget":
-			"./src/StateCollectionWidget/StateCollectionWidget", // List of all widgets in this package
+			"./src/StateCollectionWidget/StateCollectionWidget",
 		"./SliderCollectionWidget":
-			"./src/SliderCollectionWidget/SliderCollectionWidget", // List of all widgets in this package
+			"./src/SliderCollectionWidget/SliderCollectionWidget",
+		"./ButtonGroupCollectionWidget":
+			"./src/ButtonGroupCollectionWidget/ButtonGroupCollectionWidget",
 		"./translations": "./src/translations",
 	},
 );

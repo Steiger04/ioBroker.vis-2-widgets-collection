@@ -59,8 +59,13 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 			data.values_count = Object.keys(object.common.states).length;
 			data.withStates = true;
 			data.withNumber = false;
-			Object.keys(object.common.states).forEach((state, index) => {
+			/* Object.keys(object.common.states).forEach((state, index) => {
 				data[`value${index + 1}`] = object.common.states[state];
+			}); */
+
+			Object.entries(object.common.states).forEach(([value, alias], index) => {
+				data[`value${index + 1}`] = value;
+				data[`alias${index + 1}`] = alias;
 			});
 
 			changeData(data);
@@ -198,6 +203,15 @@ function CollectionGroupCommonAttributes() {
 				component: () => <CollectionDivider dividerText="characteristic" />,
 			},
 			{
+				name: "textColor",
+				label: "text_color",
+				type: "color",
+			},
+			{
+				type: "custom",
+				component: () => <CollectionDivider />,
+			},
+			{
 				name: "noHeader",
 				type: "checkbox",
 				label: "no_header",
@@ -220,14 +234,43 @@ function CollectionGroupCommonAttributes() {
 				hidden: "data.noHeader",
 			},
 			{
-				name: "textColor",
-				label: "text_color",
-				type: "color",
+				type: "custom",
+				component: () => <CollectionDivider />,
+			},
+			{
+				name: "valueSize",
+				label: "value_size",
+				type: "slider",
+				min: 0,
+				max: 500,
+				// default: 100,
+				step: 1,
+			},
+			{
+				type: "custom",
+				component: () => <CollectionDivider />,
 			},
 			{
 				name: "noFooter",
-				type: "checkbox",
 				label: "no_footer",
+				type: "checkbox",
+			},
+			{
+				name: "footer",
+				label: "footer",
+				type: "text",
+				default: "",
+				hidden: "data.noFooter",
+			},
+			{
+				name: "footerSize",
+				label: "footer_size",
+				type: "slider",
+				min: 0,
+				max: 500,
+				default: 100,
+				step: 1,
+				hidden: "data.noFooter",
 			},
 			{
 				type: "custom",
