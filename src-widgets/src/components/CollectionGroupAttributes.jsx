@@ -71,9 +71,15 @@ export default function CollectionGroupAttributes(groupName) {
 		group = {
 			name: nameGroup,
 			label: nameGroupLabel,
-			/* hidden: (data) =>
-				data.oidType !== "boolean" &&
-				(nameGroup === "on" || nameGroup === "off"), */
+			/* hidden: (data) => {
+				console.log("static data", data);
+				return (
+					data.oidType === undefined ||
+					(data.oidType !== "boolean" &&
+						(nameGroup === "on" || nameGroup === "off")) ||
+					(data.oidType === "boolean" && nameGroup === "active")
+				);
+			}, */
 		};
 	}
 
@@ -93,7 +99,7 @@ export default function CollectionGroupAttributes(groupName) {
 				type: "slider",
 				min: 1,
 				max: 200,
-				default: 100,
+				default: 0,
 				step: 1,
 				hidden: "data.noIcon",
 				/* hidden: (data, i) =>
@@ -169,7 +175,7 @@ export default function CollectionGroupAttributes(groupName) {
 				type: "slider",
 				min: 0,
 				max: 500,
-				default: 100,
+				default: 0,
 				step: 1,
 			},
 			{
@@ -188,6 +194,7 @@ export default function CollectionGroupAttributes(groupName) {
 				label: "value",
 				type: "text",
 				default: "",
+				hidden: (data) => data.oidType === "boolean",
 			},
 			{
 				name: nameValueSize,
@@ -195,7 +202,7 @@ export default function CollectionGroupAttributes(groupName) {
 				type: "slider",
 				min: 0,
 				max: 500,
-				// default: 100,
+				default: 0,
 				step: 1,
 			},
 			{
@@ -215,7 +222,7 @@ export default function CollectionGroupAttributes(groupName) {
 				type: "slider",
 				min: 0,
 				max: 500,
-				default: 100,
+				default: 0,
 				step: 1,
 			},
 			{

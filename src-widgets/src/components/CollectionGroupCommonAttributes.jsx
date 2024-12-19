@@ -34,6 +34,8 @@ export async function getObjectIconAsync(socket, object) {
 }
 
 async function oidChangeHandlerAsync(field, data, changeData, socket) {
+	console.log("field", field);
+	console.log("data", data);
 	if (data.oid) {
 		const object = await socket.getObject(data.oid);
 		const _icon = await getObjectIconAsync(socket, object);
@@ -57,8 +59,8 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 			}
 
 			data.values_count = Object.keys(object.common.states).length;
-			data.withStates = true;
-			data.withNumber = false;
+			// data.withStates = true;
+			// data.withNumber = false;
 			/* Object.keys(object.common.states).forEach((state, index) => {
 				data[`value${index + 1}`] = object.common.states[state];
 			}); */
@@ -69,15 +71,26 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 			});
 
 			changeData(data);
+		} else if (object?.common?.type === "boolean") {
+			// data.withNumber = false;
+			// data.withStates = true;
+			data.values_count = 2;
+			data.value1 = true;
+			data.alias1 = "TRUE";
+			data.value2 = false;
+			data.alias2 = "FALSE";
+
+			changeData(data);
 		} else if (object?.common) {
-			data.withNumber = object.common.type === "number";
-			data.withStates = false;
+			// data.withNumber = object.common.type === "number";
+			// data.withStates = false;
 			data.values_count = 0;
 
 			changeData(data);
 		}
 	} else {
 		data.icon = null;
+		data.onlyStates = null;
 		data.write = false;
 		data.noButton = true;
 		changeData(data);
@@ -164,15 +177,17 @@ function CollectionGroupCommonAttributes() {
 				type: "slider",
 				min: 1,
 				max: 200,
-				default: 100,
+				default: 0,
 				step: 1,
-				hidden: "data.noIcon || !data.icon",
+				hidden: "data.noIcon",
+				// hidden: "data.noIcon || !data.icon",
 			},
 			{
 				name: "iconColor",
 				label: "icon_color",
 				type: "color",
-				hidden: "data.noIcon || !data.icon",
+				hidden: "data.noIcon",
+				// hidden: "data.noIcon || !data.icon",
 			},
 			{
 				name: "iconHover",
@@ -182,21 +197,24 @@ function CollectionGroupCommonAttributes() {
 				max: 300,
 				default: 200,
 				step: 1,
-				hidden: "data.noIcon || !data.icon",
+				hidden: "data.noIcon",
+				// hidden: "data.noIcon || !data.icon",
 			},
 			{
 				name: "iconXOffset",
 				label: "icon_x_offset",
 				type: "text",
 				default: "0px",
-				hidden: "data.noIcon || !data.icon",
+				hidden: "data.noIcon",
+				// hidden: "data.noIcon || !data.icon",
 			},
 			{
 				name: "iconYOffset",
 				label: "icon_y_offset",
 				type: "text",
 				default: "0px",
-				hidden: "data.noIcon || !data.icon",
+				hidden: "data.noIcon",
+				// hidden: "data.noIcon || !data.icon",
 			},
 			{
 				type: "custom",
@@ -229,7 +247,7 @@ function CollectionGroupCommonAttributes() {
 				type: "slider",
 				min: 0,
 				max: 500,
-				default: 100,
+				default: 0,
 				step: 1,
 				hidden: "data.noHeader",
 			},
@@ -243,7 +261,7 @@ function CollectionGroupCommonAttributes() {
 				type: "slider",
 				min: 0,
 				max: 500,
-				// default: 100,
+				default: 0,
 				step: 1,
 			},
 			{
@@ -268,7 +286,7 @@ function CollectionGroupCommonAttributes() {
 				type: "slider",
 				min: 0,
 				max: 500,
-				default: 100,
+				default: 0,
 				step: 1,
 				hidden: "data.noFooter",
 			},

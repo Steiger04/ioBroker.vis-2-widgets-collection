@@ -54,7 +54,8 @@ class ButtonGroupCollectionWidget extends Generic {
 						},
 					],
 				},
-				CollectionGroupAttributes("on"),
+				CollectionGroupAttributes("active"),
+				// CollectionGroupAttributes("on"),
 				// CollectionGroupAttributes("off"),
 				CollectionGroupAttributes("values"),
 

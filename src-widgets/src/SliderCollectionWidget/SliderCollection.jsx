@@ -5,18 +5,13 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-// import useSize from "../hooks/useSize";
-import useStyles from "../hooks/useStyles";
 
 function SliderCollection() {
 	const { values, setState, setValue, oidObject, widget, getPropertyValue } =
 		useContext(CollectionContext);
-	const { data, states, minValue, maxValue } = useData("oid");
+	const { data, states, minValue, maxValue, activeIndex } = useData("oid");
 	const theme = useTheme();
-	const { backgroundStyles, textStyles } = useStyles(widget.style);
 	const ref = useRef(null);
-	// const isEllipse = !widget.data.square && !widget.data.circle;
-	// const { size, clientWidth, clientHeight } = useSize(ref, isEllipse);
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
@@ -30,25 +25,13 @@ function SliderCollection() {
 		sampledValue: sampledSliderValue,
 	} = useDebounce(getPropertyValue("oid"), delay);
 
-	const sliderColor = useMemo(
-		() =>
-			widget.data.sliderColor ||
-			data.textColor ||
-			data.backgroundColor ||
-			textStyles.color ||
-			backgroundStyles.backgroundColor ||
-			theme.palette.background.default,
-		[
-			widget.data.sliderColor,
-			data.textColor,
-			data.backgroundColor,
-			backgroundStyles.backgroundColor,
-			theme.palette.background.default,
-			textStyles.color,
-		],
-	);
-	const startIconColor = widget.data.startIconColor || sliderColor;
-	const endIconColor = widget.data.endIconColor || sliderColor;
+	// console.log("widget.data", widget.data);
+	// console.log("data", data);
+
+	const startIconColor =
+		widget.data.startIconColor || widget.data.sliderColor || data.iconColor;
+	const endIconColor =
+		widget.data.endIconColor || widget.data.sliderColor || data.iconColor;
 
 	useEffect(() => {
 		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
@@ -79,13 +62,6 @@ function SliderCollection() {
 	);
 
 	const sliderMarks = useMemo(() => {
-		/* const _sliderMarks =
-			states &&
-			states.map(({ value, label }) => ({
-				value,
-				label,
-			})); */
-
 		const _sliderMarks = JSON.parse(JSON.stringify(states));
 
 		if (widget.data.onlyStates) {
@@ -139,12 +115,16 @@ function SliderCollection() {
 		widget.data.onlyStates,
 	]);
 
+	// console.log("widget.data", widget.data);
+
+	// console.log(`"&[data-index='${0}']"`);
+
 	return (
 		<CollectionBase ref={ref}>
-			{data.icon && (
+			{(data.iconActive || data.icon) && (
 				<img
 					alt=""
-					src={data.icon}
+					src={data.iconActive || data.icon}
 					style={{
 						position: "absolute",
 						top: widget.data.noCard
@@ -153,9 +133,9 @@ function SliderCollection() {
 						right: widget.data.noCard
 							? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${data.iconXOffset})`
 							: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${data.iconXOffset})`,
-						width: `calc(24px * ${data.iconSize} / 100)` || "24px",
-						height: `calc(24px * ${data.iconSize} / 100)` || "24px",
-						color: data.iconColor,
+						width: data.iconSizeActive || data.iconSize,
+						height: data.iconSizeActive || data.iconSize,
+						color: data.iconColorActive || data.iconColor,
 						filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
 						transform: data.iconColor ? "translateY(-10000px)" : null,
 					}}
@@ -164,11 +144,8 @@ function SliderCollection() {
 
 			<Box
 				sx={{
-					// color: data.iconColor || "background.default",
 					bgcolor: "transparent",
 					boxSizing: "border-box",
-					/* width: `calc(${size}px)`,
-					height: `calc(${size}px)`, */
 					width: "100%",
 					height: "100%",
 					overflow: "visible",
@@ -215,8 +192,8 @@ function SliderCollection() {
 									widget.data.sliderOrientation === "horizontal"
 										? startIconColor
 										: endIconColor,
-								filter: startIconColor ? "drop-shadow(0px 10000px 0)" : null,
-								transform: startIconColor ? "translateY(-10000px)" : null,
+								filter: "drop-shadow(0px 10000px 0)",
+								transform: "translateY(-10000px)",
 							}}
 						/>
 					)}
@@ -225,8 +202,39 @@ function SliderCollection() {
 						valueLabelDisplay={widget.data.valueLabelDisplay}
 						orientation={widget.data.sliderOrientation}
 						sx={{
+							/* "&.MuiSlider-root": {
+								color: data.textColor,
+							}, */
+							"& .MuiSlider-thumb": {
+								color:
+									data.textColorActive ||
+									widget.data.markerTextColor ||
+									data.textColor,
+							},
+							"& .MuiSlider-rail": {
+								color: widget.data.sliderColor || "primary.main",
+							},
+							"& .MuiSlider-track": {
+								color: widget.data.sliderColor || "primary.main",
+							},
+							"& .MuiSlider-mark": {
+								color: widget.data.sliderColor || "primary.main",
+							},
+							"& .MuiSlider-markActive": {
+								bgcolor: widget.data.sliderColor || "primary.main",
+								filter: "brightness(2.5)",
+							},
 							"& .MuiSlider-valueLabel": {
-								color: widget.data.markerTextColor || sliderColor,
+								fontSize:
+									data.valueSizeActive ||
+									(widget.data.markerTextSize &&
+										`${widget.data.markerTextSize}%`) ||
+									data.valueSize ||
+									"1em",
+								color:
+									data.textColorActive ||
+									widget.data.markerTextColor ||
+									data.textColor,
 								bgcolor: "transparent",
 								top:
 									widget.data.sliderOrientation === "horizontal"
@@ -237,27 +245,13 @@ function SliderCollection() {
 										? widget.data.labelPosition
 										: null,
 							},
-							"& .MuiSlider-thumb": {
-								color: sliderColor,
-							},
-							"& .MuiSlider-rail": {
-								color: sliderColor,
-							},
-							"& .MuiSlider-track": {
-								color: sliderColor,
-							},
-							"& .MuiSlider-mark": {
-								color: sliderColor,
-							},
-							"& .MuiSlider-markActive": {
-								bgcolor: sliderColor,
-								filter: "brightness(2.5)",
-							},
 							"& .MuiSlider-markLabel": {
-								color: widget.data.marks
-									? widget.data.markerTextColor || sliderColor
-									: "transparent",
-								fontSize: `${widget.data.markerTextSize}%` || "1em",
+								fontSize:
+									(widget.data.markerTextSize &&
+										`${widget.data.markerTextSize}%`) ||
+									data.valueSize ||
+									"1em",
+								color: widget.data.markerTextColor || data.textColor,
 								top:
 									widget.data.sliderOrientation === "horizontal"
 										? widget.data.markPosition
@@ -268,9 +262,13 @@ function SliderCollection() {
 										: null,
 							},
 							"& .MuiSlider-markLabelActive": {
-								color: widget.data.marks
-									? widget.data.markerTextColor || sliderColor
-									: "transparent",
+								[`&[data-index='${activeIndex - 1}']`]: {
+									fontSize: data.valueSizeActive,
+									color:
+										data.textColorActive ||
+										widget.data.markerTextColor ||
+										data.textColor,
+								},
 							},
 						}}
 						min={sliderMinValue}
@@ -321,8 +319,8 @@ function SliderCollection() {
 									widget.data.sliderOrientation === "horizontal"
 										? endIconColor
 										: startIconColor,
-								filter: endIconColor ? "drop-shadow(0px 10000px 0)" : null,
-								transform: endIconColor ? "translateY(-10000px)" : null,
+								filter: "drop-shadow(0px 10000px 0)",
+								transform: "translateY(-10000px)",
 							}}
 						/>
 					)}

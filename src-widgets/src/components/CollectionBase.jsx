@@ -1,5 +1,5 @@
 import { Box, Paper, Stack, Typography } from "@mui/material";
-import React, { forwardRef, useContext, useEffect } from "react";
+import React, { useState, forwardRef, useContext, useEffect } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useSize from "../hooks/useSize";
@@ -17,18 +17,19 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 
 	const { width, height } = useSize(ref, isEllipse);
 
-	const oidValue = getPropertyValue("oid");
-	// const oidName = oidObject?.common?.name;
+	const _oidValue = getPropertyValue("oid");
+	const [oidValue, setOidValue] = useState(() => _oidValue);
+
+	const oidValueUnit =
+		(oidValue || oidValue === 0 || oidValue === false) &&
+		`${oidValue}${widget.data.unit}`;
 
 	const noHeader = widget.data.noHeader;
 	const noFooter = widget.data.noFooter;
 
-	const unit = widget.data.unit;
-
-	const oidUnitValue =
-		oidValue === 0 || oidValue === false
-			? String(oidValue) && `${oidValue}${unit}`
-			: oidValue && `${oidValue}${unit}`;
+	useEffect(() => {
+		setOidValue(_oidValue);
+	}, [_oidValue]);
 
 	useEffect(() => {
 		if (!refService?.current) return;
@@ -84,8 +85,10 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 					alignItems: "center",
 					bgcolor: widget.data.onlyTransparent
 						? "transparent"
-						: data.backgroundColor || backgroundStyles.backgroundColor,
-					background: data.background || backgroundStyles.background,
+						: data.backgroundColorActive || data.backgroundColor,
+					background: widget.data.onlyTransparent
+						? "transparent"
+						: data.backgroundActive || data.background,
 				}}
 			>
 				<Stack
@@ -102,12 +105,12 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 						}}
 					>
 						<Typography
+							variant="body2"
 							sx={{
 								...fontStyles,
 								...textStyles,
-								fontSize: `${data.headerSize}%` || fontStyles.fontSize,
-								color:
-									data.textColor || textStyles.color || "background.default",
+								fontSize: data.headerSize,
+								color: widget.data.textColor || data.textColor,
 							}}
 						>
 							{!noHeader && data.header}
@@ -152,7 +155,7 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 									alignItems: "center",
 									bgcolor: widget.data.onlyTransparent
 										? "transparent"
-										: data.backgroundColor || backgroundStyles.backgroundColor,
+										: data.backgroundColor,
 									borderRadius:
 										widget.data.circle || widget.data.ellipse ? "50%" : null,
 								}}
@@ -170,18 +173,18 @@ const CollectionBase = forwardRef(function CollectionBase({ children }, ref) {
 						}}
 					>
 						<Typography
+							variant="body2"
 							sx={{
 								...fontStyles,
 								...textStyles,
-								fontSize: `${data.footerSize}%` || fontStyles.fontSize,
-								color:
-									data.textColor || textStyles.color || "background.default",
+								fontSize: data.footerSize,
+								color: widget.data.textColor || data.textColor,
 							}}
 						>
 							{/* {(data.icon && !noFooter && (data.value || oidUnitValue)) ||
 								(!noFooter && (data.value || oidUnitValue))} */}
 							{!noFooter &&
-								(data.footer || data.alias || data.value || oidUnitValue)}
+								(data.footer || data.alias || data.value || oidValueUnit)}
 						</Typography>
 					</Box>
 				</Stack>

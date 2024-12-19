@@ -14,8 +14,15 @@ import useDebounce from "../hooks/useDebounce";
 import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
-	const { values, setState, setValue, oidObject, widget, getPropertyValue } =
-		useContext(CollectionContext);
+	const {
+		theme,
+		values,
+		setState,
+		setValue,
+		oidObject,
+		widget,
+		getPropertyValue,
+	} = useContext(CollectionContext);
 
 	const { data, states, activeIndex } = useData("oid");
 
@@ -84,33 +91,34 @@ function ButtonGroupCollection() {
 	); */
 
 	console.log("data", data);
-	console.log("widget.data", widget.data);
-	console.log("widget.style", widget.style);
+	// console.log("widget.data", widget.data);
+	// console.log("widget.style", widget.style);
 	// console.log("oidStates", oidStates);
 	// console.log("states", states);
 	// console.log("widgetStates", widgetStates);
+
 	return (
 		<CollectionBase ref={ref}>
-			{/* {data.icon && (
+			{(data.iconActive || data.icon) && (
 				<img
 					alt=""
-					src={data.icon}
+					src={data.iconActive || data.icon}
 					style={{
 						position: "absolute",
 						top: widget.data.noCard
-							? `calc(${theme.spacing(widget.data.basePadding)} / 2 + 4px + ${data.iconYOffset})`
-							: `calc(${theme.spacing(widget.data.basePadding)} / 2 + 8px + ${data.iconYOffset})`,
+							? `calc(${theme.spacing(widget.data.basePadding)} / 2 + 4px + ${widget.data.iconYOffset})`
+							: `calc(${theme.spacing(widget.data.basePadding)} / 2 + 8px + ${widget.data.iconYOffset})`,
 						right: widget.data.noCard
-							? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${data.iconXOffset})`
-							: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${data.iconXOffset})`,
-						width: `calc(24px * ${data.iconSize} / 100)` || "24px",
-						height: `calc(24px * ${data.iconSize} / 100)` || "24px",
-						color: data.iconColor,
+							? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${widget.data.iconXOffset})`
+							: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${widget.data.iconXOffset})`,
+						width: data.iconSizeActive || data.iconSize,
+						height: data.iconSizeActive || data.iconSize,
+						color: data.iconColorActive || data.iconColor,
 						filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
 						transform: data.iconColor ? "translateY(-10000px)" : null,
 					}}
 				/>
-			)} */}
+			)}
 
 			<Box
 				sx={{
@@ -210,11 +218,9 @@ function ButtonGroupCollection() {
 						},
 					}}
 				>
-					{/* {Object.entries(widgetStates).map(([value, alias], index) => { */}
 					{states.map(({ value, label: alias }, index) => {
-						const icon = widget.data[`icon${index + 1}`] || widget.data.icon;
-						const iconSize =
-							widget.data[`iconSize${index + 1}`] || widget.data.iconSize;
+						/* const iconSize =
+							widget.data[`iconSize${index + 1}`] || widget.data.iconSize; */
 
 						return (
 							<ToggleButton
@@ -222,10 +228,21 @@ function ButtonGroupCollection() {
 								value={value}
 								key={index}
 								sx={{
-									/* "&.Mui-selected": {
-										bgcolor: "yellow",
-									}, */
 									flexGrow: 1,
+									bgcolor: widget.data[`backgroundColor${index + 1}`],
+
+									"&.MuiToggleButton-root.Mui-selected": {
+										bgcolor:
+											widget.data.backgroundColorActive ||
+											widget.data[`backgroundColor${index + 1}`],
+										opacity: 0.6,
+									},
+									"&:hover": {
+										bgcolor:
+											widget.data.backgroundColorActive ||
+											widget.data[`backgroundColor${index + 1}`],
+										opacity: 0.6,
+									},
 								}}
 								onClick={() => {
 									setState({ values: { ...values, [`${oid}.val`]: value } });
@@ -238,71 +255,76 @@ function ButtonGroupCollection() {
 										alignItems: "center",
 									}}
 								>
-									{icon && (
+									{((activeIndex === index + 1 && widget.data.iconActive) ||
+										widget.data[`icon${index + 1}`] ||
+										data.icon) && (
 										<img
+											src={
+												(activeIndex === index + 1 && widget.data.iconActive) ||
+												widget.data[`icon${index + 1}`] ||
+												data.icon
+											}
 											alt=""
 											style={{
-												/* position: "absolute",
-												top: widget.data.noCard
-													? `calc(${theme.spacing(widget.data.basePadding)} / 2 + 4px + ${data.iconYOffset})`
-													: `calc(${theme.spacing(widget.data.basePadding)} / 2 + 8px + ${data.iconYOffset})`,
-												right: widget.data.noCard
-													? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${data.iconXOffset})`
-													: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${data.iconXOffset})`, */
 												position: "relative",
-												top: widget.data[`iconYOffset${index + 1}`],
+												bottom: widget.data[`iconYOffset${index + 1}`],
 												left: widget.data[`iconXOffset${index + 1}`],
 												width:
-													(activeIndex === index &&
-														widget.data.iconSizeOn &&
-														`calc(24px * ${widget.data.iconSizeOn} / 100)`) ||
-													`calc(24px * ${iconSize} / 100)` ||
-													"24px",
+													(activeIndex === index + 1 &&
+														widget.data.iconSizeActive &&
+														`calc(24px * ${widget.data.iconSizeActive} / 100)`) ||
+													(widget.data[`iconSize${index + 1}`] &&
+														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+													data.iconSize,
 												height:
-													(activeIndex === index &&
-														widget.data.iconSizeOn &&
-														`calc(24px * ${widget.data.iconSizeOn} / 100)`) ||
-													`calc(24px * ${iconSize} / 100)` ||
-													"24px",
+													(activeIndex === index + 1 &&
+														widget.data.iconSizeActive &&
+														`calc(24px * ${widget.data.iconSizeActive} / 100)`) ||
+													(widget.data[`iconSize${index + 1}`] &&
+														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+													data.iconSize,
 												color:
-													(activeIndex === index && widget.data.iconColorOn) ||
+													(activeIndex === index + 1 &&
+														widget.data.iconColorActive) ||
 													widget.data[`iconColor${index + 1}`] ||
-													(!widget.data[`icon${index + 1}`] &&
-														widget.data.iconColor),
+													widget.data.buttonGroupColor ||
+													data.iconColor,
 												filter:
-													(activeIndex === index && widget.data.iconColorOn) ||
+													(activeIndex === index + 1 &&
+														widget.data.iconColorActive) ||
 													widget.data[`iconColor${index + 1}`] ||
-													(!widget.data[`icon${index + 1}`] &&
-														widget.data.iconColor)
+													widget.data.buttonGroupColor ||
+													data.iconColor
 														? "drop-shadow(0px 10000px 0)"
 														: null,
 												transform:
-													(activeIndex === index && widget.data.iconColorOn) ||
+													(activeIndex === index + 1 &&
+														widget.data.iconColorActive) ||
 													widget.data[`iconColor${index + 1}`] ||
-													(!widget.data[`icon${index + 1}`] &&
-														widget.data.iconColor)
+													widget.data.buttonGroupColor ||
+													data.iconColor
 														? "translateY(-10000px)"
 														: null,
 											}}
-											src={
-												(activeIndex === index && widget.data.iconOn) || icon
-											}
 										/>
 									)}
 									{!widget.data.onlyIcon && (
 										<Typography
+											variant="body2"
 											sx={{
 												...fontStyles,
 												...textStyles,
+												textTransform: "none",
 												fontSize:
-													(activeIndex === index &&
-														widget.data.valueSizeOn &&
-														`${widget.data.valueSizeOn}%`) ||
+													(activeIndex === index + 1 &&
+														widget.data.valueSizeActive &&
+														`${widget.data.valueSizeActive}%`) ||
 													(widget.data[`valueSize${index + 1}`] &&
 														`${widget.data[`valueSize${index + 1}`]}%`) ||
-													data.textSize,
+													data.valueSize,
 												color:
-													(activeIndex === index && widget.data.textColorOn) ||
+													(activeIndex === index + 1 &&
+														widget.data.textColorActive) ||
 													widget.data[`textColor${index + 1}`] ||
 													widget.data.buttonGroupColor ||
 													data.textColor,

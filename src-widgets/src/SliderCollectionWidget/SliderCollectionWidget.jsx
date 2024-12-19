@@ -19,7 +19,6 @@ class SliderCollectionWidget extends Generic {
 			id: "tplSliderCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			// visSetColor: "#462E75", // Color of a widget set. it is enough to set color only in one widget of a set
 			visName: "SliderCollectionWidget", // Name of widget
 			visWidgetLabel: "slider_collection_widget", // Label for widget
 			visAttrs: [
@@ -151,7 +150,7 @@ class SliderCollectionWidget extends Generic {
 							label: "marker_text_size",
 							type: "slider",
 							min: 0,
-							max: 100,
+							max: 500,
 							default: 80,
 							step: 1,
 							hidden: "!data.marks",
@@ -202,8 +201,8 @@ class SliderCollectionWidget extends Generic {
 						},
 					],
 				},
-				CollectionGroupAttributes("on"),
-				CollectionGroupAttributes("off"),
+				// CollectionGroupAttributes("on"),
+				// CollectionGroupAttributes("off"),
 				CollectionGroupAttributes("values"),
 
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md

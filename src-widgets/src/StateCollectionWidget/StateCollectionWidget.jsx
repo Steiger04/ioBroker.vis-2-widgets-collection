@@ -18,7 +18,7 @@ class StateCollectionWidget extends Generic {
 			id: "tplStateCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visSetColor: "#462E75", // Color of a widget set. it is enough to set color only in one widget of a set
+			visSetColor: "#0C0A43", // Color of a widget set. it is enough to set color only in one widget of a set
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
@@ -50,8 +50,8 @@ class StateCollectionWidget extends Generic {
 						},
 					],
 				},
-				CollectionGroupAttributes("on"),
-				CollectionGroupAttributes("off"),
+				// CollectionGroupAttributes("on"),
+				// CollectionGroupAttributes("off"),
 				CollectionGroupAttributes("values"),
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],

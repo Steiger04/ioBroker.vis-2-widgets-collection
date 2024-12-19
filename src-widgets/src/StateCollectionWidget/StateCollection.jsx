@@ -1,7 +1,7 @@
 import { Avatar, Button, Typography } from "@mui/material";
 import React, {
+	useEffect,
 	useCallback,
-	useMemo,
 	useState,
 	useContext,
 	useRef,
@@ -14,10 +14,17 @@ import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
-	const { mode, setValue, widget, oidObject, getPropertyValue } =
+	const { setValue, widget, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
 	const { data, widgetStates } = useData("oid");
+
+	const _oidValue = getPropertyValue("oid");
+	const [oidValue, setOidValue] = useState(() => _oidValue);
+
+	const oidValueUnit =
+		(oidValue || oidValue === 0 || oidValue === false) &&
+		`${oidValue}${widget.data.unit}`;
 
 	const [open, setOpen] = useState(false);
 
@@ -29,16 +36,8 @@ function StateCollection() {
 	const { size } = useSize(ref, isEllipse);
 
 	const oid = oidObject?._id;
-	const oidValue = getPropertyValue("oid");
 	const oidType = oidObject?.common?.type;
-	const noIcon = widget.data.noIcon;
 	const onlyStates = widget.data.onlyStates;
-
-	const unit = widget.data.unit;
-	const oidUnitValue =
-		oidValue === 0 || oidValue === false
-			? String(oidValue) && `${oidValue} ${unit}`
-			: oidValue && `${oidValue} ${unit}`;
 
 	const clickHandler = useCallback(() => {
 		switch (oidType) {
@@ -61,15 +60,9 @@ function StateCollection() {
 		}
 	}, [oidType, oid, oidValue, setValue, onlyStates]);
 
-	const avatarColor = useMemo(() => {
-		if (noIcon || !data.icon) {
-			return data.textColor || textStyles.color || "background.default";
-		}
-		if (mode === "dark") {
-			return data.iconColor || "background.default";
-		}
-		return data.iconColor || "text.primary";
-	}, [mode, data, textStyles, noIcon]);
+	useEffect(() => {
+		setOidValue(_oidValue);
+	}, [_oidValue]);
 
 	const StateButton = (
 		<Button
@@ -81,7 +74,11 @@ function StateCollection() {
 				overflow: "hidden",
 				width: "100%",
 				height: "100%",
-				color: data.iconColor || "background.default",
+				color:
+					data.iconColorActive ||
+					data.iconColor ||
+					data.textColorActive ||
+					data.textColor,
 				"&:hover": {
 					bgcolor: "transparent",
 					filter: `brightness(${data.iconHover}%)`,
@@ -89,34 +86,38 @@ function StateCollection() {
 			}}
 		>
 			<Avatar
-				src={data.icon}
+				src={data.iconActive || data.icon}
 				slotProps={{
 					img: { style: { objectFit: "contain" } },
 				}}
 				sx={{
-					width: `calc(${size}px * ${data.iconSize} / 100)`,
-					height: `calc(${size}px * ${data.iconSize} / 100)`,
+					width: `calc(${size}px * ${data.iconSizeOnly || 100} / 100)`,
+					height: `calc(${size}px * ${data.iconSizeOnly || 100} / 100)`,
 					variant: "square",
 					bottom: data.iconYOffset,
 					left: data.iconXOffset,
 					overflow: "visible",
-					color: avatarColor,
 					bgcolor: "transparent",
-					filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
-					transform: data.iconColor ? "translateY(-10000px)" : null,
+					color: data.iconColorActive || data.iconColor,
+					filter:
+						(data.iconActive || data.icon) && "drop-shadow(0px 10000px 0)",
+					transform: (data.iconActive || data.icon) && "translateY(-10000px)",
 					display: data.icon ? null : "flex",
 					flexGrow: data.icon ? null : 1,
 				}}
 			>
 				<Typography
+					variant="body2"
 					sx={{
-						fontSize: `${data.valueSize}%`,
 						...fontStyles,
 						...textStyles,
-						color: data.textColor,
+						fontSize: data.valueSizeActive || data.valueSize,
+						color: data.textColorActive || data.textColor,
+						textTransform: "none",
 					}}
 				>
-					{(noIcon || !data.icon) && (data.alias || data.value || oidUnitValue)}
+					{(!data.iconActive || !data.icon) &&
+						(data.alias || data.value || oidValueUnit)}
 				</Typography>
 			</Avatar>
 		</Button>

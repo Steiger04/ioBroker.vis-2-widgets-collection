@@ -3,9 +3,11 @@ import { CollectionContext } from "../components/CollectionProvider";
 import useStyles from "./useStyles";
 
 function useData(oid) {
-	const { widget, oidObject, getPropertyValue } = useContext(CollectionContext);
+	const { theme, widget, oidObject, getPropertyValue } =
+		useContext(CollectionContext);
+	// console.log("theme", theme);
 
-	const { fontStyles, textStyles } = useStyles(widget.style);
+	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 
 	const [activeIndex, setActiveIndex] = useState();
 
@@ -13,105 +15,98 @@ function useData(oid) {
 
 	const oidValue = _getPropertyValue.current(oid);
 
-	/* const oidValue = getPropertyValue(oid);
-	const oidType = oidObject?.common?.type;
-	const oidStates = oidObject?.common?.states;
-	const oidName = oidObject?.common?.name;
-	const noIcon = widget.data.noIcon; */
-
 	const data = useMemo(() => {
 		// console.log("data");
 
-		function _data(ext, withUnit) {
-			console.log("textStyles", textStyles);
-			console.log("fontStyles", fontStyles);
+		function _data(ext) {
 			return {
 				textColor:
-					widget.data[`textColor${ext}`] ||
 					widget.data.textColor ||
 					textStyles.color ||
-					"background.default",
+					theme.palette.primary.main,
 
-				textSize:
-					(widget.data[`valueSize${ext}`] &&
-						`${widget.data[`valueSize${ext}`]}%`) ||
-					(widget.data.valueSize && `${widget.data.valueSize}%`) ||
-					fontStyles.fontSize,
+				textColorActive: widget.data[`textColor${ext}`],
 
 				header: widget.data[`header${ext}`] || widget.data.header || oidName,
 
 				headerSize:
-					widget.data[`headerSize${ext}`] ||
-					((widget.data.header || oidName) && widget.data.headerSize),
+					(widget.data.headerSize && `${widget.data.headerSize}%`) ||
+					(widget.data[`headerSize${ext}`] &&
+						`${widget.data[`headerSize${ext}`]}%`) ||
+					fontStyles.fontSize,
 
 				footer: widget.data[`footer${ext}`] || widget.data.footer,
 
 				footerSize:
-					(widget.data.footer && widget.data.footerSize) ||
-					widget.data[`footerSize${ext}`],
+					(widget.data.footerSize && `${widget.data.footerSize}%`) ||
+					(widget.data[`footerSize${ext}`] &&
+						`${widget.data[`footerSize${ext}`]}%`) ||
+					fontStyles.fontSize,
 
 				alias: widget.data[`alias${ext}`],
 
-				value: withUnit
-					? `${widget.data[`value${ext}`]} ${widget.data.unit}`
-					: widget.data[`value${ext}`],
+				value:
+					widget.data[`value${ext}`] &&
+					`${widget.data[`value${ext}`]}${widget.data.unit}`,
 
-				valueSize: `${widget.data[`valueSize${ext}`]}%`,
+				valueSize:
+					(widget.data.valueSize && `${widget.data.valueSize}%`) ||
+					fontStyles.fontSize,
 
-				icon: !noIcon && (widget.data[`icon${ext}`] || widget.data.icon),
+				valueSizeActive:
+					widget.data[`valueSize${ext}`] &&
+					`${widget.data[`valueSize${ext}`]}%`,
+
+				icon: !widget.data.noIcon && widget.data.icon,
+
+				iconActive: !widget.data.noIcon && widget.data[`icon${ext}`],
 
 				iconSize:
-					(widget.data[`icon${ext}`] && widget.data[`iconSize${ext}`]) ||
-					widget.data.iconSize,
+					(widget.data.iconSize &&
+						`calc(24px * ${widget.data.iconSize} / 100)`) ||
+					"24px",
 
-				iconColor:
-					(widget.data[`icon${ext}`] && widget.data[`iconColor${ext}`]) ||
-					widget.data.iconColor,
+				iconSizeActive:
+					widget.data[`iconSize${ext}`] &&
+					`calc(24px * ${widget.data[`iconSize${ext}`]} / 100)`,
 
-				iconHover:
-					(widget.data[`icon${ext}`] && widget.data[`iconHover${ext}`]) ||
-					widget.data.iconHover,
+				iconSizeOnly: widget.data[`iconSize${ext}`] || widget.data.iconSize,
+
+				iconColor: widget.data.iconColor || theme.palette.primary.main,
+				iconColorActive: widget.data[`iconColor${ext}`],
+
+				iconHover: widget.data[`iconHover${ext}`] || widget.data.iconHover,
 
 				iconXOffset:
-					(widget.data[`icon${ext}`] && widget.data[`iconXOffset${ext}`]) ||
+					(widget.data[`iconXOffset${ext}`] !== "0px" &&
+						widget.data[`iconXOffset${ext}`]) ||
 					widget.data.iconXOffset,
 
 				iconYOffset:
-					(widget.data[`icon${ext}`] && widget.data[`iconYOffset${ext}`]) ||
+					(widget.data[`iconYOffset${ext}`] !== "0px" &&
+						widget.data[`iconYOffset${ext}`]) ||
 					widget.data.iconYOffset,
 
 				backgroundColor:
-					widget.data[`backgroundColor${ext}`] || widget.data.backgroundColor,
+					widget.data.backgroundColor ||
+					backgroundStyles.backgroundColor ||
+					theme.palette.background.default,
 
-				background: widget.data[`background${ext}`] || widget.data.background,
+				backgroundColorActive: widget.data[`backgroundColor${ext}`],
+
+				background: widget.data.background || backgroundStyles.background,
+
+				backgroundActive: widget.data[`background${ext}`],
 			};
 		}
 
-		// const oidValue = _getPropertyValue.current(oid);
 		const oidType = oidObject?.common?.type;
 		const oidName = oidObject?.common?.name;
-		const noIcon = widget.data.noIcon;
 
 		switch (oidType) {
 			case "boolean":
-				if (oidValue) {
-					return _data("On");
-				}
-				return _data("Off");
-
 			case "number":
 			case "string": {
-				/* const value = oidStates && oidStates[String(oidValue)];
-				for (let i = 1; i <= Number(widget.data.values_count); i++) {
-					if (
-						widget.data[`value${i}`] !== undefined &&
-						(widget.data[`value${i}`] === value ||
-							widget.data[`value${i}`] === String(oidValue))
-					) {
-						return _data(i, !value);
-					}
-				} */
-
 				for (let i = 1; i <= Number(widget.data.values_count); i++) {
 					// console.log("oidValue", oidValue);
 					if (
@@ -119,27 +114,30 @@ function useData(oid) {
 						(widget.data[`value${i}`] === oidValue ||
 							widget.data[`value${i}`] === String(oidValue))
 					) {
-						// return _data(i, !value);
-						setActiveIndex(i - 1);
-						return _data(i, true);
+						setActiveIndex(i);
+						return _data(i);
 					}
 				}
 
-				if (oidValue) {
-					return _data("On");
-				}
-				return _data("Off");
+				return _data("");
 			}
 
 			default:
-				// return {};
 				return _data("");
 		}
-	}, [widget, fontStyles, textStyles, oidObject, oidValue]);
+	}, [
+		widget,
+		fontStyles,
+		textStyles,
+		backgroundStyles,
+		oidObject,
+		oidValue,
+		theme,
+	]);
 
 	const { states, widgetStates, minValue, maxValue } = useMemo(() => {
 		const oidType = oidObject?.common?.type;
-		const oidStates = oidObject?.common?.states;
+		const oidStates = oidObject?.common?.states || {};
 
 		const widgetStates = {};
 		const states = [];
@@ -147,19 +145,12 @@ function useData(oid) {
 		let minValue = 0;
 		let maxValue = 100;
 
-		// const oidKeys = oidStates ? Object.keys(oidStates) : [];
-		// const oidValues = oidStates ? Object.values(oidStates) : [];
-
 		if (oidType === "number" || oidType === "string") {
-			/* states = oidKeys.map((key) => ({
-				value: oidType === "number" ? Number(key) : key,
-				label: oidStates[key],
-			})); */
-
 			const oidEntries = Object.entries(oidStates);
+
 			// console.log("oidEntries", oidEntries);
+
 			for (let i = 1; i <= Number(widget.data.values_count); i++) {
-				// const oidValuesInclude = oidKeys.includes(widget.data[`value${i}`]);
 				// console.log("oidValuesInclude", oidValuesInclude);
 
 				if (
@@ -202,6 +193,18 @@ function useData(oid) {
 			if (states.length) {
 				minValue = Math.min(...states.map((state) => state.value));
 				maxValue = Math.max(...states.map((state) => state.value));
+			}
+		}
+
+		if (oidType === "boolean") {
+			for (let i = 1; i <= Number(widget.data.values_count); i++) {
+				states.push({
+					value: widget.data[`value${i}`],
+					label: widget.data[`alias${i}`],
+				});
+
+				widgetStates[String(widget.data[`value${i}`])] =
+					widget.data[`value${i}`];
 			}
 		}
 

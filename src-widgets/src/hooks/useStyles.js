@@ -50,7 +50,7 @@ const useStyles = (_styles) => {
 					text[1].toUpperCase(),
 				);
 
-				console.log("_camelCaseStyle", _camelCaseStyle);
+				// console.log("_camelCaseStyle", _camelCaseStyle);
 
 				if (style.includes("background")) {
 					_backgroundStyles[_camelCaseStyle] = _styles[style];

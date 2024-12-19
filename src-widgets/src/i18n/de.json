@@ -21,6 +21,7 @@
 	"base_padding": "Padding",
 	"group_on": "Aktiv",
 	"group_off": "Inaktiv",
+	"group_active": "Aktiv",
 	"values": "Wert",
 	"icon": "Icon",
 	"icon_size": "Icongröße",
