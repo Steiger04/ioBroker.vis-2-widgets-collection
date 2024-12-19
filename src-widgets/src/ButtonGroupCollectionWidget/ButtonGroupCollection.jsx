@@ -90,7 +90,7 @@ function ButtonGroupCollection() {
 		[widget.data.onlyStates, widget.data.maxValue, maxValue],
 	); */
 
-	console.log("data", data);
+	// console.log("widget.data", widget.data);
 	// console.log("widget.data", widget.data);
 	// console.log("widget.style", widget.style);
 	// console.log("oidStates", oidStates);
@@ -111,8 +111,8 @@ function ButtonGroupCollection() {
 						right: widget.data.noCard
 							? `calc(${theme.spacing(widget.data.basePadding)} + 4px + ${widget.data.iconXOffset})`
 							: `calc(${theme.spacing(widget.data.basePadding)} + 8px + ${widget.data.iconXOffset})`,
-						width: data.iconSizeActive || data.iconSize,
-						height: data.iconSizeActive || data.iconSize,
+						width: widget.data.iconSize,
+						height: widget.data.iconSize,
 						color: data.iconColorActive || data.iconColor,
 						filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
 						transform: data.iconColor ? "translateY(-10000px)" : null,
@@ -232,16 +232,24 @@ function ButtonGroupCollection() {
 									bgcolor: widget.data[`backgroundColor${index + 1}`],
 
 									"&.MuiToggleButton-root.Mui-selected": {
-										bgcolor:
-											widget.data.backgroundColorActive ||
-											widget.data[`backgroundColor${index + 1}`],
-										opacity: 0.6,
+										bgcolor: widget.data.onlyTransparent
+											? "transparent"
+											: widget.data.backgroundColorActive ||
+												widget.data[`backgroundColor${index + 1}`],
+										opacity: widget.data.onlyTransparent ? 1 : 0.6,
+										filter: widget.data.onlyTransparent
+											? "brightness(1.3)"
+											: "none",
 									},
 									"&:hover": {
-										bgcolor:
-											widget.data.backgroundColorActive ||
-											widget.data[`backgroundColor${index + 1}`],
-										opacity: 0.6,
+										bgcolor: widget.data.onlyTransparent
+											? "transparent"
+											: widget.data.backgroundColorActive ||
+												widget.data[`backgroundColor${index + 1}`],
+										opacity: widget.data.onlyTransparent ? 1 : 0.6,
+										filter: widget.data.onlyTransparent
+											? "brightness(1.3)"
+											: "none",
 									},
 								}}
 								onClick={() => {
@@ -274,15 +282,13 @@ function ButtonGroupCollection() {
 														widget.data.iconSizeActive &&
 														`calc(24px * ${widget.data.iconSizeActive} / 100)`) ||
 													(widget.data[`iconSize${index + 1}`] &&
-														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
-													data.iconSize,
+														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`),
 												height:
 													(activeIndex === index + 1 &&
 														widget.data.iconSizeActive &&
 														`calc(24px * ${widget.data.iconSizeActive} / 100)`) ||
 													(widget.data[`iconSize${index + 1}`] &&
-														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
-													data.iconSize,
+														`calc(24px * ${widget.data[`iconSize${index + 1}`]} / 100)`),
 												color:
 													(activeIndex === index + 1 &&
 														widget.data.iconColorActive) ||
