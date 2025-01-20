@@ -1,0 +1,38 @@
+{
+  "files": {
+    "main.js": "./static/js/main.22d92b48.js",
+    "vis2CollectionWidget.js": "./customWidgets.js",
+    "static/js/node_modules_prop-types_index_js.7f922324.chunk.js": "./static/js/node_modules_prop-types_index_js.7f922324.chunk.js",
+    "static/js/node_modules_react_index_js.a5285de4.chunk.js": "./static/js/node_modules_react_index_js.a5285de4.chunk.js",
+    "static/js/src_StateCollectionWidget_StateCollectionWidget_jsx.8f08cf70.chunk.js": "./static/js/src_StateCollectionWidget_StateCollectionWidget_jsx.8f08cf70.chunk.js",
+    "static/js/src_components_CollectionDivider_jsx.2b8c42c1.chunk.js": "./static/js/src_components_CollectionDivider_jsx.2b8c42c1.chunk.js",
+    "static/js/src_ButtonGroupCollectionWidget_ButtonGroupCollectionWidget_jsx.4be37331.chunk.js": "./static/js/src_ButtonGroupCollectionWidget_ButtonGroupCollectionWidget_jsx.4be37331.chunk.js",
+    "static/js/src_translations_js.796fffeb.chunk.js": "./static/js/src_translations_js.796fffeb.chunk.js",
+    "static/js/vendors-node_modules_mui_system_esm_index_js.b8618c63.chunk.js": "./static/js/vendors-node_modules_mui_system_esm_index_js.b8618c63.chunk.js",
+    "static/js/vendors-node_modules_react-dom_index_js.190f0c6e.chunk.js": "./static/js/vendors-node_modules_react-dom_index_js.190f0c6e.chunk.js",
+    "static/js/vendors-node_modules_mui_material_index_js.829fdc49.chunk.js": "./static/js/vendors-node_modules_mui_material_index_js.829fdc49.chunk.js",
+    "static/js/vendors-node_modules_mui_styled-engine_index_js-node_modules_mui_system_esm_DefaultPropsProvi-fe7987.d3b1496e.chunk.js": "./static/js/vendors-node_modules_mui_styled-engine_index_js-node_modules_mui_system_esm_DefaultPropsProvi-fe7987.d3b1496e.chunk.js",
+    "static/js/vendors-node_modules_mui_material_styles_useTheme_js-node_modules_mui_material_utils_index_js.4b9b1db2.chunk.js": "./static/js/vendors-node_modules_mui_material_styles_useTheme_js-node_modules_mui_material_utils_index_js.4b9b1db2.chunk.js",
+    "static/js/vendors-node_modules_mui_system_esm_RtlProvider_index_js-node_modules_mui_system_esm_Unstable-9da0e4.116e9fa1.chunk.js": "./static/js/vendors-node_modules_mui_system_esm_RtlProvider_index_js-node_modules_mui_system_esm_Unstable-9da0e4.116e9fa1.chunk.js",
+    "static/js/vendors-node_modules_mui_icons-material_Delete_js-node_modules_rxjs_dist_esm5_internal_Subjec-5c98e6.b06a9988.chunk.js": "./static/js/vendors-node_modules_mui_icons-material_Delete_js-node_modules_rxjs_dist_esm5_internal_Subjec-5c98e6.b06a9988.chunk.js",
+    "index.html": "./index.html",
+    "main.22d92b48.js.map": "./static/js/main.22d92b48.js.map",
+    "customWidgets.js.map": "./customWidgets.js.map",
+    "node_modules_prop-types_index_js.7f922324.chunk.js.map": "./static/js/node_modules_prop-types_index_js.7f922324.chunk.js.map",
+    "node_modules_react_index_js.a5285de4.chunk.js.map": "./static/js/node_modules_react_index_js.a5285de4.chunk.js.map",
+    "src_StateCollectionWidget_StateCollectionWidget_jsx.8f08cf70.chunk.js.map": "./static/js/src_StateCollectionWidget_StateCollectionWidget_jsx.8f08cf70.chunk.js.map",
+    "src_components_CollectionDivider_jsx.2b8c42c1.chunk.js.map": "./static/js/src_components_CollectionDivider_jsx.2b8c42c1.chunk.js.map",
+    "src_ButtonGroupCollectionWidget_ButtonGroupCollectionWidget_jsx.4be37331.chunk.js.map": "./static/js/src_ButtonGroupCollectionWidget_ButtonGroupCollectionWidget_jsx.4be37331.chunk.js.map",
+    "src_translations_js.796fffeb.chunk.js.map": "./static/js/src_translations_js.796fffeb.chunk.js.map",
+    "vendors-node_modules_mui_system_esm_index_js.b8618c63.chunk.js.map": "./static/js/vendors-node_modules_mui_system_esm_index_js.b8618c63.chunk.js.map",
+    "vendors-node_modules_react-dom_index_js.190f0c6e.chunk.js.map": "./static/js/vendors-node_modules_react-dom_index_js.190f0c6e.chunk.js.map",
+    "vendors-node_modules_mui_material_index_js.829fdc49.chunk.js.map": "./static/js/vendors-node_modules_mui_material_index_js.829fdc49.chunk.js.map",
+    "vendors-node_modules_mui_styled-engine_index_js-node_modules_mui_system_esm_DefaultPropsProvi-fe7987.d3b1496e.chunk.js.map": "./static/js/vendors-node_modules_mui_styled-engine_index_js-node_modules_mui_system_esm_DefaultPropsProvi-fe7987.d3b1496e.chunk.js.map",
+    "vendors-node_modules_mui_material_styles_useTheme_js-node_modules_mui_material_utils_index_js.4b9b1db2.chunk.js.map": "./static/js/vendors-node_modules_mui_material_styles_useTheme_js-node_modules_mui_material_utils_index_js.4b9b1db2.chunk.js.map",
+    "vendors-node_modules_mui_system_esm_RtlProvider_index_js-node_modules_mui_system_esm_Unstable-9da0e4.116e9fa1.chunk.js.map": "./static/js/vendors-node_modules_mui_system_esm_RtlProvider_index_js-node_modules_mui_system_esm_Unstable-9da0e4.116e9fa1.chunk.js.map",
+    "vendors-node_modules_mui_icons-material_Delete_js-node_modules_rxjs_dist_esm5_internal_Subjec-5c98e6.b06a9988.chunk.js.map": "./static/js/vendors-node_modules_mui_icons-material_Delete_js-node_modules_rxjs_dist_esm5_internal_Subjec-5c98e6.b06a9988.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.22d92b48.js"
+  ]
+}
