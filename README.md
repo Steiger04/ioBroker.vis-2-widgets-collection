@@ -29,7 +29,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.0.1 (2025-01-20)
 
 - (steiger04) initial commit
 
