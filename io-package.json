@@ -1,0 +1,78 @@
+{
+  "common": {
+    "name": "vis-2-widgets-collection",
+    "version": "0.0.0",
+    "news": {},
+    "titleLang": {
+      "en": "Vis 2 Widget collection",
+      "de": "Vis 2 Widgetsammlung",
+      "ru": "Коллекция Vis-Widget",
+      "pt": "Coleção Vis-Widget",
+      "nl": "Vis-Widget-collectie",
+      "fr": "Collection Vis-Widget",
+      "it": "Raccolta Vis-Widget",
+      "es": "Colección Vis-Widget",
+      "pl": "Kolekcja Vis-Widget",
+      "uk": "Колекція Vis-Widget",
+      "zh-cn": "Vis-Widget集合"
+    },
+    "desc": {
+      "en": "Vis 2 Widget collection for ioBroker",
+      "de": "Vis 2 Widgetsammlung für ioBroker",
+      "ru": "Коллекция Vis-Widget",
+      "pt": "Coleção Vis-Widget",
+      "nl": "Vis-Widget-collectie",
+      "fr": "Collection Vis-Widget",
+      "it": "Raccolta Vis-Widget",
+      "es": "Colección Vis-Widget",
+      "pl": "Kolekcja Vis-Widget",
+      "uk": "Колекція Vis-Widget",
+      "zh-cn": "Vis-Widget集合"
+    },
+    "authors": [
+      "Steiger04 <steiger04@posteo.de>"
+    ],
+    "keywords": [
+      "vis-2-widgets-collection"
+    ],
+    "platform": "Javascript/Node.js",
+    "icon": "vis-2-widgets-collection.png",
+    "extIcon": "https://raw.githubusercontent.com/Steiger04/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
+    "enabled": true,
+    "readme": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "none",
+    "singleton": true,
+    "adminUI": {
+      "config": "none"
+    },
+    "nogit": true,
+    "onlyWWW": true,
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "tier": 3,
+    "type": "visualization-widgets",
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "visWidgets": {
+      "vis2CollectionWidget": {
+        "i18n": "component",
+        "name": "vis2CollectionWidget",
+        "url": "vis-2-widgets-collection/customWidgets.js",
+        "components": [
+          "StateCollectionWidget",
+          "SliderCollectionWidget",
+          "ButtonGroupCollectionWidget"
+        ]
+      }
+    },
+    "restartAdapters": [
+      "vis-2"
+    ]
+  },
+  "native": {},
+  "objects": [],
+  "instanceObjects": []
+}
