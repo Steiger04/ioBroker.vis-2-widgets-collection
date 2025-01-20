@@ -93,7 +93,7 @@ jobs:
       #        run: npm run build
       - name: Publish package to npm
         run: |
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN2 }}
           npm whoami
           npm publish
 
