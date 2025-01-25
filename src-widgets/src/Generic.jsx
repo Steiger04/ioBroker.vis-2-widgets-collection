@@ -152,11 +152,6 @@ class Generic extends window.visRxWidget {
 						sx={{
 							width: this.wrappedContent ? "calc(100% - 8px)" : "100%",
 							height: this.wrappedContent ? "calc(100% - 8px)" : "100%",
-
-							/* borderStyle: this.state.rxStyle["border-style"],
-							borderWidth: this.state.rxStyle["border-width"],
-							borderRadius: this.state.rxStyle["border-radius"],
-							borderColor: this.state.rxStyle["border-color"], */
 						}}
 					>
 						{content}

@@ -78,7 +78,8 @@
         "components": [
           "StateCollectionWidget",
           "SliderCollectionWidget",
-          "ButtonGroupCollectionWidget"
+          "ButtonGroupCollectionWidget",
+					"SwitchCollectionWidget"
         ]
       }
     },

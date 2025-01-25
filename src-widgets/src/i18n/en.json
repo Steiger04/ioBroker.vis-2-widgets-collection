@@ -3,8 +3,10 @@
 	"state_collection_widget": "State (boolean, number, string)",
 	"slider_collection_widget": "Slider (number)",
 	"button_group_collection_widget": "Button group (boolean, number, string)",
+	"switch_collection_widget": "Switch (boolean)",
 	"group_button": "Button",
 	"group_slider": "Slider",
+	"group_switch": "Switch",
 	"no_button": "No button",
 	"oid": "Object ID",
 	"values_count": "Values count",
@@ -84,5 +86,10 @@
 	"button_group_outlined": "Outlined",
 	"button_group_text": "Text",
 	"button_group_orientation": "Orientation",
-	"button_group_color": "Color"
+	"button_group_color": "Color",
+	"thumb_size": "Thumb size",
+	"thumb_color_true": "Thumb color (true)",
+	"thumb_color_false": "Thumb color (false)",
+	"track_size": "Track size",
+	"track_color": "Track color"
 }

@@ -71,8 +71,6 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 
 			changeData(data);
 		} else if (object?.common?.type === "boolean") {
-			// data.withNumber = false;
-			// data.withStates = true;
 			data.values_count = 2;
 			data.value1 = true;
 			data.alias1 = "TRUE";
@@ -81,8 +79,6 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 
 			changeData(data);
 		} else if (object?.common) {
-			// data.withNumber = object.common.type === "number";
-			// data.withStates = false;
 			data.values_count = 0;
 
 			changeData(data);
@@ -92,6 +88,7 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 		data.onlyStates = null;
 		data.write = false;
 		data.noButton = true;
+		data.g_switch = false;
 		changeData(data);
 	}
 }
