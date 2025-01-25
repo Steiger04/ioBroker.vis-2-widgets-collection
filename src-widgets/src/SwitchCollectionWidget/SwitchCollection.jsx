@@ -41,6 +41,28 @@ function SwitchCollection() {
 
 	return (
 		<CollectionBase data={data} oidValue={oidValue} bgActive={false}>
+			{(data.icon || data.iconActive) && (
+				<img
+					alt=""
+					src={data.icon || data.iconActive}
+					style={{
+						position: "absolute",
+						top: `calc(0px + ${widget.data.iconYOffset})`,
+						right: `calc(0px + ${widget.data.iconXOffset})`,
+						width: data.iconSize || data.iconSizeActive,
+						height: data.iconSize || data.iconSizeActive,
+						color: data.iconColor || data.iconColorActive,
+						filter:
+							data.iconColor || data.iconColorActive
+								? "drop-shadow(0px 10000px 0)"
+								: null,
+						transform:
+							data.iconColor || data.iconColorActive
+								? "translateY(-10000px)"
+								: null,
+					}}
+				/>
+			)}
 			<Box
 				sx={{
 					position: "relative",
@@ -56,7 +78,7 @@ function SwitchCollection() {
 						width: "100%",
 						height: "100%",
 
-						px: "4px",
+						px: "8px",
 
 						display: "flex",
 						justifyContent: "center",
