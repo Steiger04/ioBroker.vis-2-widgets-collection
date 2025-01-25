@@ -10,9 +10,7 @@ import MaterialUISwitch from "./MaterialUISwitch";
 function SwitchCollection() {
 	const ref = useRef(null);
 	const { setValue, oidObject, widget } = useContext(CollectionContext);
-	console.log("widget", widget);
 	const { data } = useData("oid");
-	console.log("data", data);
 	const oidValue = useOidValue("oid");
 
 	const oid = oidObject?._id;
