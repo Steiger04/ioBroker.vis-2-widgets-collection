@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "news": {
+      "1.1.0": {
+        "en": "Switch widget added",
+        "de": "Schalter Widget hinzugefügt",
+        "ru": "Добавить виджет",
+        "pt": "Interruptor widget adicionado",
+        "nl": "Schakel widget toegevoegd",
+        "fr": "Changer de widget ajouté",
+        "it": "Pulsante aggiunto",
+        "es": "Interruptor widget añadido",
+        "pl": "Switch widget added",
+        "uk": "Вимикач віджету додано",
+        "zh-cn": "切换部件已添加"
+      },
       "1.0.3": {
         "en": "initial commit",
         "de": "erstbestellung",
