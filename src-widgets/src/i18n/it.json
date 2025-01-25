@@ -85,5 +85,12 @@
     "button_group_outlined": "Delineato",
     "button_group_text": "Testo",
     "button_group_orientation": "Orientamento",
-    "button_group_color": "Colore"
+    "button_group_color": "Colore",
+    "switch_collection_widget": "Cambia (booleano)",
+    "group_switch": "Interruttore",
+    "thumb_size": "Dimensione del pollice",
+    "thumb_color_true": "Colore del pollice (vero)",
+    "thumb_color_false": "Colore del pollice (falso)",
+    "track_size": "Dimensione della traccia",
+    "track_color": "Tracciare il colore"
 }

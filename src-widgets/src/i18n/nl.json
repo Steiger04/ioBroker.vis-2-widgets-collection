@@ -85,5 +85,12 @@
     "button_group_outlined": "Geschetst",
     "button_group_text": "Tekst",
     "button_group_orientation": "Oriëntatie",
-    "button_group_color": "Kleur"
+    "button_group_color": "Kleur",
+    "switch_collection_widget": "Schakelaar (Boolean)",
+    "group_switch": "Schakelaar",
+    "thumb_size": "Duimmaat",
+    "thumb_color_true": "Duimkleur (waar)",
+    "thumb_color_false": "Duimkleur (onwaar)",
+    "track_size": "Trackgrootte",
+    "track_color": "Kleur bijhouden"
 }

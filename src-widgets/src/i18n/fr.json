@@ -85,5 +85,12 @@
     "button_group_outlined": "Décrit",
     "button_group_text": "Texte",
     "button_group_orientation": "Orientation",
-    "button_group_color": "Couleur"
+    "button_group_color": "Couleur",
+    "switch_collection_widget": "Commutateur (booléen)",
+    "group_switch": "Changer",
+    "thumb_size": "Taille du pouce",
+    "thumb_color_true": "Couleur du pouce (vrai)",
+    "thumb_color_false": "Couleur du pouce (faux)",
+    "track_size": "Taille de la piste",
+    "track_color": "Couleurs de piste"
 }

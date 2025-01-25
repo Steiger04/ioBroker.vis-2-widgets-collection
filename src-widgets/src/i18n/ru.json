@@ -85,5 +85,12 @@
     "button_group_outlined": "Изложил",
     "button_group_text": "Текст",
     "button_group_orientation": "Ориентация",
-    "button_group_color": "Цвет"
+    "button_group_color": "Цвет",
+    "switch_collection_widget": "Переключатель (логическое значение)",
+    "group_switch": "Выключатель",
+    "thumb_size": "Размер большого пальца",
+    "thumb_color_true": "Цвет большого пальца (правда)",
+    "thumb_color_false": "Цвет большого пальца (ложь)",
+    "track_size": "Размер трека",
+    "track_color": "Трек цвет"
 }

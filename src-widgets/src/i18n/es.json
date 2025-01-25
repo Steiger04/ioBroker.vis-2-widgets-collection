@@ -85,5 +85,12 @@
     "button_group_outlined": "delineado",
     "button_group_text": "Texto",
     "button_group_orientation": "Orientación",
-    "button_group_color": "Color"
+    "button_group_color": "Color",
+    "switch_collection_widget": "Switch (booleano)",
+    "group_switch": "Cambiar",
+    "thumb_size": "Tamaño del pulgar",
+    "thumb_color_true": "Color del pulgar (verdadero)",
+    "thumb_color_false": "Color del pulgar (falso)",
+    "track_size": "Tamaño de la pista",
+    "track_color": "Color de la pista"
 }

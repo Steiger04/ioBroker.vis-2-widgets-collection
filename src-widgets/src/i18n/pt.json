@@ -85,5 +85,12 @@
     "button_group_outlined": "Delineado",
     "button_group_text": "Texto",
     "button_group_orientation": "Orientação",
-    "button_group_color": "Cor"
+    "button_group_color": "Cor",
+    "switch_collection_widget": "Alternar (booleano)",
+    "group_switch": "Trocar",
+    "thumb_size": "Tamanho do polegar",
+    "thumb_color_true": "Cor do polegar (verdadeiro)",
+    "thumb_color_false": "Cor do polegar (falso)",
+    "track_size": "Tamanho da trilha",
+    "track_color": "Cor da trilha"
 }

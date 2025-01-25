@@ -85,5 +85,12 @@
     "button_group_outlined": "Окреслено",
     "button_group_text": "текст",
     "button_group_orientation": "Орієнтація",
-    "button_group_color": "Колір"
+    "button_group_color": "Колір",
+    "switch_collection_widget": "Перемикач (логічний)",
+    "group_switch": "Перемикач",
+    "thumb_size": "Розмір великого пальця",
+    "thumb_color_true": "Колір великого пальця (правда)",
+    "thumb_color_false": "Колір великого пальця (помилковий)",
+    "track_size": "Розмір треку",
+    "track_color": "Колір доріжки"
 }

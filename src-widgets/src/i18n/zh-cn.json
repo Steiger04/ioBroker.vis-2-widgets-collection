@@ -85,5 +85,12 @@
     "button_group_outlined": "概述",
     "button_group_text": "文本",
     "button_group_orientation": "方向",
-    "button_group_color": "颜色"
+    "button_group_color": "颜色",
+    "switch_collection_widget": "开关（布尔值）",
+    "group_switch": "转变",
+    "thumb_size": "拇指尺寸",
+    "thumb_color_true": "拇指颜色（真）",
+    "thumb_color_false": "拇指颜色（假）",
+    "track_size": "轨道大小",
+    "track_color": "轨道颜色"
 }

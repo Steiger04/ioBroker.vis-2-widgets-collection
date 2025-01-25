@@ -85,5 +85,12 @@
     "button_group_outlined": "Przedstawione",
     "button_group_text": "Tekst",
     "button_group_orientation": "Orientacja",
-    "button_group_color": "Kolor"
+    "button_group_color": "Kolor",
+    "switch_collection_widget": "Przełącznik (wartość logiczna)",
+    "group_switch": "Przełącznik",
+    "thumb_size": "Rozmiar kciuka",
+    "thumb_color_true": "Kolor kciuka (prawda)",
+    "thumb_color_false": "Kolor kciuka (fałszywy)",
+    "track_size": "Rozmiar ścieżki",
+    "track_color": "Kolor ścieżki"
 }

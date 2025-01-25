@@ -79,7 +79,7 @@
           "StateCollectionWidget",
           "SliderCollectionWidget",
           "ButtonGroupCollectionWidget",
-					"SwitchCollectionWidget"
+          "SwitchCollectionWidget"
         ]
       }
     },
