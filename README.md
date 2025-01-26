@@ -29,6 +29,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing
+
 ### 1.1.0 (2025-01-25)
 
 - (steiger04) Switch widget added
