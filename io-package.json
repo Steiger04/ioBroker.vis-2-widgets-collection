@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "news": {
+      "1.1.1": {
+        "en": "bugfixing",
+        "de": "fehlerbehebung",
+        "ru": "исправления",
+        "pt": "correção de bugs",
+        "nl": "bugfixing",
+        "fr": "correction des bugs",
+        "it": "bugfixing",
+        "es": "bugfixing",
+        "pl": "ustalanie błędów",
+        "uk": "зловживання",
+        "zh-cn": "修正错误"
+      },
       "1.1.0": {
         "en": "Switch widget added",
         "de": "Schalter Widget hinzugefügt",
