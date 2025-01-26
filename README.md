@@ -23,12 +23,20 @@
 
 <img src="/img/collection-slider.png" height="150">
 
+### Switch
+
+<img src="/img/collection-switch.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing
+
 ### 1.1.3 (2025-01-26)
 
 - (steiger04) bugfixing
