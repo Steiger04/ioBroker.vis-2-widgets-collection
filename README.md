@@ -29,6 +29,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing
+
 ### 1.1.1 (2025-01-26)
 
 - (steiger04) bugfixing

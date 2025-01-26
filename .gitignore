@@ -1,9 +1,9 @@
 /.idea
 /node_modules
-# /package-lock.json
+/package-lock.json
 /src-widgets/build
 /src-widgets/node_modules
-# /src-widgets/package-lock.json
+/src-widgets/package-lock.json
 
 /widgets
 /tmp
