@@ -37,26 +37,6 @@
 
 - (steiger04) bugfixing
 
-### 1.1.5 (2025-01-26)
-
-- (steiger04) bugfixing
-
-### 1.1.4 (2025-01-26)
-
-- (steiger04) bugfixing
-
-### 1.1.3 (2025-01-26)
-
-- (steiger04) bugfixing
-
-### 1.1.2 (2025-01-26)
-
-- (steiger04) bugfixing
-
-### 1.1.1 (2025-01-26)
-
-- (steiger04) bugfixing
-
 ### 1.1.0 (2025-01-25)
 
 - (steiger04) Switch widget added
