@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.6 (2025-01-26)
 
 - (steiger04) bugfixing
 
