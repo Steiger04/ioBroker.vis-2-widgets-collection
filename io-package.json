@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.3",
+    "version": "1.1.4",
     "news": {
+      "1.1.4": {
+        "en": "bugfixing",
+        "de": "fehlerbehebung",
+        "ru": "исправления",
+        "pt": "correção de bugs",
+        "nl": "bugfixing",
+        "fr": "correction des bugs",
+        "it": "bugfixing",
+        "es": "bugfixing",
+        "pl": "ustalanie błędów",
+        "uk": "зловживання",
+        "zh-cn": "修正错误"
+      },
       "1.1.3": {
         "en": "bugfixing",
         "de": "fehlerbehebung",
