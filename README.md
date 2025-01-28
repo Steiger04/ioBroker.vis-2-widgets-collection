@@ -33,6 +33,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing bindings
+
 ### 1.1.7 (2025-01-28)
 
 - (steiger04) Switch optimized

@@ -277,7 +277,7 @@ class SliderCollectionWidget extends Generic {
 			id: props.id,
 			refService: props.refService,
 			style: props.style,
-			widget: props.widget,
+			widget: { ...props.widget, data: this.state.rxData },
 			setValue: this.setValue,
 			setState: this.setState.bind(this),
 			oidObject: this.state.oidObject,
