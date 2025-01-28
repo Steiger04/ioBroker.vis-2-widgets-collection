@@ -33,7 +33,7 @@
 
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.9 (2025-01-28)
 
 - (steiger04) bugfixing style bindings
 

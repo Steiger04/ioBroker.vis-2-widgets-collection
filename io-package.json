@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.8",
+    "version": "1.1.9",
     "news": {
+      "1.1.9": {
+        "en": "bugfixing style bindings",
+        "de": "bugfixing style bindungen",
+        "ru": "bugfixing style bindings",
+        "pt": "ligações de estilo de correção de bugs",
+        "nl": "bugfixing stijl bindingen",
+        "fr": "fixation du style de fixation des bugs",
+        "it": "bugfixing stile bindings",
+        "es": "accesorios de estilo de bugfixing",
+        "pl": "segregatory stylowe",
+        "uk": "виправлення стилів",
+        "zh-cn": "错误修正样式绑定"
+      },
       "1.1.8": {
         "en": "bugfixing bindings",
         "de": "bugfixing bindungen",
