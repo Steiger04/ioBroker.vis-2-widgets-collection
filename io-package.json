@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "news": {
+      "1.1.7": {
+        "en": "Switch optimized",
+        "de": "Schalter optimiert",
+        "ru": "Оптимизированный коммутатор",
+        "pt": "Interruptor otimizado",
+        "nl": "Geoptimaliseerd schakelen",
+        "fr": "Commutateur optimisé",
+        "it": "Interruttore ottimizzato",
+        "es": "Interruptor optimizado",
+        "pl": "Zoptymalizowany przełącznik",
+        "uk": "Оптимізований вимикач",
+        "zh-cn": "切换优化"
+      },
       "1.1.6": {
         "en": "bugfixing",
         "de": "fehlerbehebung",
