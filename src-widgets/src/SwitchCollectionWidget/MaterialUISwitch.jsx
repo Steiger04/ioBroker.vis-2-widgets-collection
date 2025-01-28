@@ -58,7 +58,7 @@ const MaterialUISwitch = styled(Switch)(
 					top: `calc(${data.iconYOffset} * -1)`,
 					left: data.iconXOffset,
 
-					backgroundSize: `${data.iconSizeActive || "100%"} ${data.iconSizeActive || "100%"}`,
+					backgroundSize: `${data.iconSizeOnly || "100"}% ${data.iconSizeOnly || "100"}%`,
 					backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 				},
 
@@ -92,7 +92,7 @@ const MaterialUISwitch = styled(Switch)(
 
 				backgroundRepeat: "no-repeat",
 				backgroundPosition: "center",
-				backgroundSize: `${data.iconSizeActive || "100%"} ${data.iconSizeActive || "100%"}`,
+				backgroundSize: `${data.iconSizeOnly || "100"}% ${data.iconSizeOnly || "100"}%`,
 				backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 
 				color: data.iconColorActive || data.iconColor,

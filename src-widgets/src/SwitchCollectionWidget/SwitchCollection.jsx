@@ -38,7 +38,7 @@ function SwitchCollection() {
 	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
 
 	return (
-		<CollectionBase data={data} oidValue={oidValue} bgActive={false}>
+		<CollectionBase data={data} oidValue={oidValue}>
 			{(data.icon || data.iconActive) && (
 				<img
 					alt=""

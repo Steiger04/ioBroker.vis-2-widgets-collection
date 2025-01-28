@@ -7,122 +7,93 @@ function useData(oid) {
 	const { theme, widget, oidObject } = useContext(CollectionContext);
 	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 	const [activeIndex, setActiveIndex] = useState();
-
 	const oidValue = useOidValue(oid);
+	const oidName = oidObject?.common?.name;
 
+	// Styling-Daten
 	const data = useMemo(() => {
-		function _data(ext) {
-			return {
-				textColor:
-					widget.data.textColor ||
-					textStyles.color ||
-					theme.palette.primary.main,
+		// Hilfsfunktionen
+		const formatSize = (size) => (size ? `${size}%` : null);
+		const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`];
 
-				textColorActive: widget.data[`textColor${ext}`],
+		const getStyleData = (ext = "") => ({
+			textColor:
+				widget.data.textColor || textStyles.color || theme.palette.primary.main,
+			textColorActive: getDataValue("textColor", ext),
 
-				header:
-					widget.data.headerActive ||
-					widget.data[`header${ext}`] ||
-					widget.data.header ||
-					oidName,
+			header:
+				widget.data.headerActive ||
+				getDataValue("header", ext) ||
+				widget.data.header ||
+				oidName,
+			headerSize:
+				formatSize(widget.data.headerSize) ||
+				formatSize(widget.data.headerSizeActive) ||
+				formatSize(getDataValue("headerSize", ext)) ||
+				fontStyles.fontSize,
 
-				headerSize:
-					(widget.data.headerSize && `${widget.data.headerSize}%`) ||
-					(widget.data.headerSizeActive &&
-						`${widget.data.headerSizeActive}%`) ||
-					(widget.data[`headerSize${ext}`] &&
-						`${widget.data[`headerSize${ext}`]}%`) ||
-					fontStyles.fontSize,
+			footer:
+				widget.data.footerActive ||
+				getDataValue("footer", ext) ||
+				widget.data.footer,
+			footerSize:
+				formatSize(widget.data.footerSize) ||
+				formatSize(widget.data.footerSizeActive) ||
+				formatSize(getDataValue("footerSize", ext)) ||
+				fontStyles.fontSize,
 
-				footer:
-					widget.data.footerActive ||
-					widget.data[`footer${ext}`] ||
-					widget.data.footer,
+			alias: getDataValue("alias", ext),
 
-				footerSize:
-					(widget.data.footerSize && `${widget.data.footerSize}%`) ||
-					(widget.data.footerSizeActive &&
-						`${widget.data.footerSizeActive}%`) ||
-					(widget.data[`footerSize${ext}`] &&
-						`${widget.data[`footerSize${ext}`]}%`) ||
-					fontStyles.fontSize,
+			value:
+				getDataValue("value", ext) &&
+				`${getDataValue("value", ext)}${widget.data.unit}`,
+			valueSize: formatSize(widget.data.valueSize) || fontStyles.fontSize,
+			valueSizeActive:
+				getDataValue("valueSize", ext) &&
+				formatSize(getDataValue("valueSize", ext)),
 
-				alias: widget.data[`alias${ext}`],
+			icon: !widget.data.noIcon && (widget.data.icon || widget.data.iconSmall),
+			iconActive:
+				!widget.data.noIcon &&
+				(getDataValue("icon", ext) || getDataValue("iconSmall", ext)),
+			iconSize:
+				((widget.data.iconSize || widget.data.iconSize === 0) &&
+					`calc(24px * ${widget.data.iconSize} / 100)`) ||
+				"24px",
+			iconSizeActive:
+				getDataValue("iconSize", ext) &&
+				`calc(24px * ${getDataValue("iconSize", ext)} / 100)`,
+			iconSizeOnly: getDataValue("iconSize", ext) || widget.data.iconSize,
 
-				value:
-					widget.data[`value${ext}`] &&
-					`${widget.data[`value${ext}`]}${widget.data.unit}`,
+			iconColor: widget.data.iconColor,
+			iconColorActive: getDataValue("iconColor", ext),
 
-				valueSize:
-					(widget.data.valueSize && `${widget.data.valueSize}%`) ||
-					fontStyles.fontSize,
+			iconHover: widget.data.iconHover && `${widget.data.iconHover}%`,
+			iconHoverActive:
+				getDataValue("iconHover", ext) && `${getDataValue("iconHover", ext)}%`,
 
-				valueSizeActive:
-					widget.data[`valueSize${ext}`] &&
-					`${widget.data[`valueSize${ext}`]}%`,
+			iconXOffset:
+				getDataValue("iconXOffset", ext) || widget.data.iconXOffset || "0px",
+			iconYOffset:
+				getDataValue("iconYOffset", ext) || widget.data.iconYOffset || "0px",
 
-				icon:
-					!widget.data.noIcon && (widget.data.icon || widget.data.iconSmall),
+			backgroundColor:
+				widget.data.backgroundColor || backgroundStyles.backgroundColor,
+			backgroundColorActive: getDataValue("backgroundColor", ext),
 
-				iconActive:
-					!widget.data.noIcon &&
-					(widget.data[`icon${ext}`] || widget.data[`iconSmall${ext}`]),
+			background: widget.data.background || backgroundStyles.background,
+			backgroundActive: getDataValue("background", ext),
 
-				iconSize:
-					((widget.data.iconSize || widget.data.iconSize === 0) &&
-						`calc(24px * ${widget.data.iconSize} / 100)`) ||
-					"24px",
+			frameBackgroundColor:
+				widget.data.frameBackgroundColor || backgroundStyles.backgroundColor,
+			frameBackgroundColorActive: getDataValue("frameBackgroundColor", ext),
 
-				iconSizeActive:
-					widget.data[`iconSize${ext}`] &&
-					`calc(24px * ${widget.data[`iconSize${ext}`]} / 100)`,
-
-				iconSizeOnly: widget.data[`iconSize${ext}`] || widget.data.iconSize,
-
-				// iconColor: widget.data.iconColor || theme.palette.primary.main,
-				iconColor: widget.data.iconColor,
-				iconColorActive: widget.data[`iconColor${ext}`],
-
-				iconHover: widget.data.iconHover && `${widget.data.iconHover}%`,
-				iconHoverActive:
-					widget.data[`iconHover${ext}`] &&
-					`${widget.data[`iconHover${ext}`]}%`,
-
-				iconXOffset:
-					(!!widget.data[`iconXOffset${ext}`] &&
-						widget.data[`iconXOffset${ext}`]) ||
-					(!!widget.data.iconXOffset && widget.data.iconXOffset) ||
-					"0px",
-
-				iconYOffset:
-					(!!widget.data[`iconYOffset${ext}`] &&
-						widget.data[`iconYOffset${ext}`]) ||
-					(!!widget.data.iconYOffset && widget.data.iconYOffset) ||
-					"0px",
-
-				backgroundColor:
-					widget.data.backgroundColor || backgroundStyles.backgroundColor,
-
-				backgroundColorActive: widget.data[`backgroundColor${ext}`],
-
-				background: widget.data.background || backgroundStyles.background,
-
-				backgroundActive: widget.data[`background${ext}`],
-
-				frameBackgroundColor:
-					widget.data.frameBackgroundColor || backgroundStyles.backgroundColor,
-
-				frameBackgroundColorActive: widget.data[`frameBackgroundColor${ext}`],
-
-				frameBackground:
-					widget.data.frameBackground || backgroundStyles.background,
-
-				frameBackgroundActive: widget.data[`frameBackground${ext}`],
-			};
-		}
+			frameBackground:
+				widget.data.frameBackground || backgroundStyles.background,
+			frameBackgroundActive: getDataValue("frameBackground", ext),
+		});
 
 		const oidType = oidObject?.common?.type;
-		const oidName = oidObject?.common?.name;
 
 		switch (oidType) {
 			case "boolean":
@@ -135,15 +106,13 @@ function useData(oid) {
 							widget.data[`value${i}`] === String(oidValue))
 					) {
 						setActiveIndex(i);
-						return _data(i);
+						return getStyleData(i);
 					}
 				}
-
-				return _data("");
+				return getStyleData("");
 			}
-
 			default:
-				return _data("");
+				return getStyleData("");
 		}
 	}, [
 		widget,
@@ -153,80 +122,88 @@ function useData(oid) {
 		oidObject,
 		oidValue,
 		theme,
+		oidName,
 	]);
 
+	// States-Berechnung
 	const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-		const oidType = oidObject?.common?.type;
-		const oidStates = oidObject?.common?.states || {};
+		const processStates = () => {
+			const states = [];
+			const widgetStates = {};
+			let minValue = 0;
+			let maxValue = 100;
 
-		const widgetStates = {};
-		const states = [];
-
-		let minValue = 0;
-		let maxValue = 100;
-
-		if (oidType === "number" || oidType === "string") {
+			const oidType = oidObject?.common?.type;
+			const oidStates = oidObject?.common?.states || {};
 			const oidEntries = Object.entries(oidStates);
 
-			for (let i = 1; i <= Number(widget.data.values_count); i++) {
-				if (
-					widget.data[`value${i}`] !== undefined &&
-					widget.data[`value${i}`] !== null &&
-					/\S/.test(widget.data[`value${i}`])
-				) {
-					const oidEntry = oidEntries.find(
-						([value]) => value === widget.data[`value${i}`],
-					);
-
-					if (oidEntry && oidType === "number") {
-						oidEntry[0] = Number(oidEntry[0]);
-					}
-
-					states.push({
-						value: oidEntry
-							? oidEntry[0]
-							: oidType === "number"
-								? Number(widget.data[`value${i}`])
-								: widget.data[`value${i}`],
-						label:
+			if (oidType === "number" || oidType === "string") {
+				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+					if (
+						widget.data[`value${i}`] !== undefined &&
+						widget.data[`value${i}`] !== null &&
+						/\S/.test(widget.data[`value${i}`])
+					) {
+						const oidEntry = oidEntries.find(
+							([value]) => value === widget.data[`value${i}`],
+						);
+						if (oidEntry && oidType === "number") {
+							oidEntry[0] = Number(oidEntry[0]);
+						}
+						states.push({
+							value: oidEntry
+								? oidEntry[0]
+								: oidType === "number"
+									? Number(widget.data[`value${i}`])
+									: widget.data[`value${i}`],
+							label:
+								widget.data[`alias${i}`] ||
+								(oidEntry
+									? oidEntry[1]
+									: `${widget.data[`value${i}`]}${widget.data.unit}`),
+						});
+						widgetStates[
+							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
+						] =
 							widget.data[`alias${i}`] ||
 							(oidEntry
 								? oidEntry[1]
-								: `${widget.data[`value${i}`]}${widget.data.unit}`),
-					});
-
-					widgetStates[
-						oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
-					] =
-						widget.data[`alias${i}`] ||
-						(oidEntry
-							? oidEntry[1]
-							: `${widget.data[`value${i}`]}${widget.data.unit}`);
+								: `${widget.data[`value${i}`]}${widget.data.unit}`);
+					}
+				}
+				if (states.length) {
+					minValue = Math.min(...states.map((state) => state.value));
+					maxValue = Math.max(...states.map((state) => state.value));
 				}
 			}
 
-			if (states.length) {
-				minValue = Math.min(...states.map((state) => state.value));
-				maxValue = Math.max(...states.map((state) => state.value));
+			if (oidType === "boolean") {
+				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+					states.push({
+						value: widget.data[`value${i}`],
+						label: widget.data[`alias${i}`],
+					});
+					widgetStates[String(widget.data[`value${i}`])] =
+						widget.data[`value${i}`];
+				}
 			}
-		}
 
-		if (oidType === "boolean") {
-			for (let i = 1; i <= Number(widget.data.values_count); i++) {
-				states.push({
-					value: widget.data[`value${i}`],
-					label: widget.data[`alias${i}`],
-				});
+			return { states, widgetStates, minValue, maxValue };
+		};
 
-				widgetStates[String(widget.data[`value${i}`])] =
-					widget.data[`value${i}`];
-			}
-		}
-
-		return { states, widgetStates, minValue, maxValue };
+		return processStates();
 	}, [oidObject, widget]);
 
-	return { states, widgetStates, minValue, maxValue, data, activeIndex };
+	return {
+		states,
+		widgetStates,
+		minValue,
+		maxValue,
+		data,
+		activeIndex,
+		setActiveIndex,
+		oidValue,
+	};
 }
 
 export default useData;
