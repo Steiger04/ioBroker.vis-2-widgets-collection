@@ -30,12 +30,16 @@
 ---
 <!--
 	Placeholder for next versions:
-	### __WORK IN PROGRESS__
+
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing style bindings
+
 ### 1.1.8 (2025-01-28)
 
-- (steiger04) bugfixing bindings
+- (steiger04) bugfixing data bindings
 
 ### 1.1.7 (2025-01-28)
 
