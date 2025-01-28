@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "news": {
+      "1.1.8": {
+        "en": "bugfixing bindings",
+        "de": "bugfixing bindungen",
+        "ru": "привязки к ошибкам",
+        "pt": "vinculações de correção de bugs",
+        "nl": "bugfixing bindingen",
+        "fr": "fixation de bogues",
+        "it": "bugfixing bindings",
+        "es": "fijaciones de bugfixing",
+        "pl": "segregatory",
+        "uk": "виправлення помилок",
+        "zh-cn": "装订错误"
+      },
       "1.1.7": {
         "en": "Switch optimized",
         "de": "Schalter optimiert",
