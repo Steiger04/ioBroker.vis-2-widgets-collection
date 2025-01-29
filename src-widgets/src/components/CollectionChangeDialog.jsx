@@ -128,7 +128,7 @@ function CollectionChangeDialog(props) {
 							<ListItemText
 								sx={{ px: 2 }}
 								primaryTypographyProps={{ variant: "body2" }}
-								primary={value}
+								primary={String(value)}
 							/>
 						</ListItemButton>
 					</ListItem>
