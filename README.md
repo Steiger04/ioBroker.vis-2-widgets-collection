@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.10 (2025-01-30)
 
 - (steiger04) HTML-Text for header, value and footer
 

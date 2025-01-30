@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.9",
+    "version": "1.1.10",
     "news": {
+      "1.1.10": {
+        "en": "HTML-Text for header, value and footer",
+        "de": "HTML-Text für Header, Wert und Footer",
+        "ru": "HTML-Текст для заголовка, значения и футера",
+        "pt": "HTML-Texto para cabeçalho, valor e rodapé",
+        "nl": "HTML-tekst voor header, waarde en voettekst",
+        "fr": "HTML-Text pour l'en-tête, la valeur et le pied de page",
+        "it": "HTML-Text per intestazione, valore e piè di pagina",
+        "es": "HTML-Texto para cabecera, valor y pie",
+        "pl": "HTML- Tekst nagłówka, wartości i stopki",
+        "uk": "HTML-Text для заголовка, значення та нижній колонтитул",
+        "zh-cn": "页眉、值和页脚的 HTML- Text"
+      },
       "1.1.9": {
         "en": "bugfixing style bindings",
         "de": "bugfixing style bindungen",
