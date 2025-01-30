@@ -92,5 +92,6 @@
     "thumb_color_true": "Color del pulgar (verdadero)",
     "thumb_color_false": "Color del pulgar (falso)",
     "track_size": "Tamaño de la pista",
-    "track_color": "Color de la pista"
+    "track_color": "Color de la pista",
+    "no_value": "Sin valor"
 }

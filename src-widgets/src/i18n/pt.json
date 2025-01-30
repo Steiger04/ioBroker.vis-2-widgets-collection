@@ -92,5 +92,6 @@
     "thumb_color_true": "Cor do polegar (verdadeiro)",
     "thumb_color_false": "Cor do polegar (falso)",
     "track_size": "Tamanho da trilha",
-    "track_color": "Cor da trilha"
+    "track_color": "Cor da trilha",
+    "no_value": "Sem valor"
 }

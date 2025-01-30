@@ -92,5 +92,6 @@
     "thumb_color_true": "拇指颜色（真）",
     "thumb_color_false": "拇指颜色（假）",
     "track_size": "轨道大小",
-    "track_color": "轨道颜色"
+    "track_color": "轨道颜色",
+    "no_value": "没有价值"
 }

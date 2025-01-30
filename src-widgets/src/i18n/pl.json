@@ -92,5 +92,6 @@
     "thumb_color_true": "Kolor kciuka (prawda)",
     "thumb_color_false": "Kolor kciuka (fałszywy)",
     "track_size": "Rozmiar ścieżki",
-    "track_color": "Kolor ścieżki"
+    "track_color": "Kolor ścieżki",
+    "no_value": "Brak wartości"
 }

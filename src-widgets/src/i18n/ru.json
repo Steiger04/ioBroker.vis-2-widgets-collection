@@ -92,5 +92,6 @@
     "thumb_color_true": "Цвет большого пальца (правда)",
     "thumb_color_false": "Цвет большого пальца (ложь)",
     "track_size": "Размер трека",
-    "track_color": "Трек цвет"
+    "track_color": "Трек цвет",
+    "no_value": "Нет значения"
 }

@@ -92,5 +92,6 @@
     "thumb_color_true": "Couleur du pouce (vrai)",
     "thumb_color_false": "Couleur du pouce (faux)",
     "track_size": "Taille de la piste",
-    "track_color": "Couleurs de piste"
+    "track_color": "Couleurs de piste",
+    "no_value": "Aucune valeur"
 }

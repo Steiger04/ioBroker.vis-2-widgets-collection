@@ -92,5 +92,6 @@
     "thumb_color_true": "Duimkleur (waar)",
     "thumb_color_false": "Duimkleur (onwaar)",
     "track_size": "Trackgrootte",
-    "track_color": "Kleur bijhouden"
+    "track_color": "Kleur bijhouden",
+    "no_value": "Geen waarde"
 }
