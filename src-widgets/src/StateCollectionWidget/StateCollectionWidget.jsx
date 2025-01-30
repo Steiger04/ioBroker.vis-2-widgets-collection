@@ -1,5 +1,6 @@
 import React from "react";
 import Generic from "../Generic";
+import CollectionDivider from "../components/CollectionDivider";
 import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
 import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
@@ -21,13 +22,6 @@ class StateCollectionWidget extends Generic {
 					label: "group_button",
 					fields: [
 						{
-							name: "onlyStates",
-							type: "checkbox",
-							label: "only_states",
-							default: false,
-							hidden: "!data.values_count",
-						},
-						{
 							name: "noButton",
 							type: "checkbox",
 							label: "no_button",
@@ -36,9 +30,29 @@ class StateCollectionWidget extends Generic {
 							hidden: "!data.write",
 						},
 						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
+							name: "onlyStates",
+							type: "checkbox",
+							label: "only_states",
+							default: false,
+							hidden: "!data.values_count",
+						},
+						{
+							type: "custom",
+							component: () => <CollectionDivider />,
+						},
+						{
 							name: "noIcon",
 							type: "checkbox",
 							label: "no_icon",
+						},
+						{
+							name: "noValue",
+							type: "checkbox",
+							label: "no_value",
 						},
 					],
 				},

@@ -181,7 +181,7 @@ export default function CollectionGroupAttributes(groupName) {
 			{
 				name: nameHeader,
 				label: "header_text",
-				type: "text",
+				type: "html",
 				default: "",
 			},
 			{
@@ -201,7 +201,7 @@ export default function CollectionGroupAttributes(groupName) {
 			{
 				name: nameAlias,
 				label: "alias",
-				type: "text",
+				type: "html",
 				default: "",
 			},
 			{
@@ -229,7 +229,7 @@ export default function CollectionGroupAttributes(groupName) {
 			{
 				name: nameFooter,
 				label: "footer_text",
-				type: "text",
+				type: "html",
 				default: "",
 			},
 			{

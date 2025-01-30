@@ -87,7 +87,6 @@ function SwitchCollection() {
 						<MaterialUISwitch
 							disabled={oidType !== "boolean"}
 							width={ref.current?.clientWidth}
-							height={ref.current?.clientHeight}
 							maxHeight={
 								ref.current?.parentElement?.parentElement?.clientHeight
 							}

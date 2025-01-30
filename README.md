@@ -30,9 +30,13 @@
 ---
 <!--
 	Placeholder for next versions:
-
+	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) HTML-Text for header, value and footer
+
 ### 1.1.9 (2025-01-28)
 
 - (steiger04) bugfixing style bindings

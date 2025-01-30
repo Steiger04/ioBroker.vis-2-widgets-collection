@@ -114,9 +114,6 @@ class SwitchCollectionWidget extends Generic {
 	renderWidgetBody(props) {
 		super.renderWidgetBody(props);
 
-		console.log("this", this);
-		console.log("props", props);
-
 		const collectionContext = {
 			id: props.id,
 			refService: props.refService,

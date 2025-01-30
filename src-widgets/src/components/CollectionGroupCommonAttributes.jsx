@@ -234,7 +234,7 @@ function CollectionGroupCommonAttributes() {
 			{
 				name: "header",
 				label: "header_text",
-				type: "text",
+				type: "html",
 				default: "",
 				hidden: "data.noHeader",
 			},
@@ -273,7 +273,7 @@ function CollectionGroupCommonAttributes() {
 			{
 				name: "footer",
 				label: "footer_text",
-				type: "text",
+				type: "html",
 				default: "",
 				hidden: "data.noFooter",
 			},

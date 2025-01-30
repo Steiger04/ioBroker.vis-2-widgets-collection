@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import { alpha } from "@mui/material/styles";
 
 const MaterialUISwitch = styled(Switch)(
-	({ width, height, maxHeight, data, widget, theme }) => ({
+	({ width, maxHeight, data, widget, theme }) => ({
 		width: "100%",
 		height: "100%",
 

@@ -335,6 +335,15 @@ function ButtonGroupCollection() {
 											}}
 										>
 											<Typography
+												ref={(ref) => {
+													if (ref) {
+														ref.innerHTML =
+															(activeIndex === index + 1 &&
+																widget.data.aliasActive) ||
+															alias ||
+															value;
+													}
+												}}
 												noWrap
 												variant="body2"
 												sx={{
@@ -355,12 +364,7 @@ function ButtonGroupCollection() {
 														widget.data.buttonGroupColor ||
 														data.textColor,
 												}}
-											>
-												{(activeIndex === index + 1 &&
-													widget.data.aliasActive) ||
-													alias ||
-													value}
-											</Typography>
+											/>
 										</Box>
 									)}
 								</Box>

@@ -1,12 +1,14 @@
 import { Box, Paper, Typography } from "@mui/material";
-import React, { useContext, useRef } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
 import useSignals from "../hooks/useSignals";
 import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
 const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
-	const ref = useRef(null);
+	const [ref, setRef] = useState(null);
+	const headerRef = useRef(null);
+	const footerRef = useRef(null);
 	const { wrappedContent, widget } = useContext(CollectionContext);
 	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
 		widget.style,
@@ -20,6 +22,16 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 	useSignals();
 
 	const footerValue = data.footer || data.alias || data.value || oidValueUnit;
+
+	useEffect(() => {
+		if (widget.data.noFooter || !footerValue) return;
+		footerRef.current.innerHTML = footerValue;
+	}, [footerValue, widget.data.noFooter]);
+
+	useEffect(() => {
+		if (widget.data.noHeader || !data.header) return;
+		headerRef.current.innerHTML = data.header;
+	}, [data.header, widget.data.noHeader]);
 
 	return (
 		<Paper
@@ -65,6 +77,7 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 					}}
 				>
 					<Typography
+						ref={headerRef}
 						noWrap
 						variant="body2"
 						sx={{
@@ -74,15 +87,13 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 							color:
 								widget.data.textColor || data.textColorActive || data.textColor,
 						}}
-					>
-						{data.header}
-					</Typography>
+					/>
 				</Box>
 			)}
 
 			<Box
 				className="BASE-BOX-1"
-				ref={ref}
+				ref={setRef}
 				sx={{
 					overflow: "hidden",
 
@@ -106,6 +117,8 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 
 						width: width,
 						height: height,
+						// width: "100%",
+						// height: "100%",
 
 						display: "flex",
 						justifyContent: "center",
@@ -139,6 +152,7 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 					}}
 				>
 					<Typography
+						ref={footerRef}
 						noWrap
 						variant="body2"
 						sx={{
@@ -148,9 +162,7 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 							color:
 								widget.data.textColor || data.textColorActive || data.textColor,
 						}}
-					>
-						{footerValue}
-					</Typography>
+					/>
 				</Box>
 			)}
 		</Paper>

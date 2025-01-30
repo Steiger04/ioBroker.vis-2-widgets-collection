@@ -5,7 +5,7 @@
 /src-widgets/node_modules
 /src-widgets/package-lock.json
 
-# /widgets
+/widgets
 /tmp
 *.tgz
 
