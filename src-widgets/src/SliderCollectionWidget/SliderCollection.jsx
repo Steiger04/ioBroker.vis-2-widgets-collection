@@ -1,16 +1,18 @@
 import { Box, Slider } from "@mui/material";
-import React, { useMemo, useContext, useEffect } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
 import useOidValue from "../hooks/useOidValue";
+import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
 	const { values, setState, setValue, oidObject, widget } =
 		useContext(CollectionContext);
-	const { data, states, minValue, maxValue, activeIndex } = useData("oid");
+	const { data, states, minValue, maxValue } = useData("oid");
 	const oidValue = useOidValue("oid");
+	const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
@@ -61,7 +63,7 @@ function SliderCollection() {
 		const _sliderMarks = JSON.parse(JSON.stringify(states));
 
 		if (widget.data.onlyStates) {
-			return _sliderMarks;
+			return _sliderMarks.sort((a, b) => a.value - b.value);
 		}
 		// Ensure minimum and maximum values are included
 		const minValue = sliderMinValue;
@@ -111,6 +113,18 @@ function SliderCollection() {
 		widget.data.onlyStates,
 	]);
 
+	useEffect(() => {
+		if (data.value === undefined) return;
+
+		const index = sliderMarks.findIndex(
+			(mark) => String(mark.value) === data.value,
+		);
+
+		if (index !== -1) {
+			setSliderMarksIndex(index);
+		}
+	}, [data.value, sliderMarks]);
+
 	return (
 		<CollectionBase data={data} oidValue={oidValue}>
 			<Box
@@ -136,8 +150,11 @@ function SliderCollection() {
 							top: `calc(0px + ${data.iconYOffset})`,
 							right: `calc(0px + ${data.iconXOffset})`,
 
-							width: data.iconSizeActive || data.iconSize,
-							height: data.iconSizeActive || data.iconSize,
+							// width: data.iconSizeActive || data.iconSize,
+							// height: data.iconSizeActive || data.iconSize,
+							width: data.iconSize,
+							height: data.iconSize,
+
 							color: data.iconColorActive || data.iconColor,
 							filter:
 								data.iconColorActive || data.iconColor
@@ -213,103 +230,109 @@ function SliderCollection() {
 						alignItems: "center",
 					}}
 				>
-					<Slider
-						disabled={oidType !== "number"}
-						valueLabelDisplay={widget.data.valueLabelDisplay}
-						orientation={widget.data.sliderOrientation}
-						sx={{
-							/* "&.MuiSlider-root": {
+					{typeof oidValue === "number" && (
+						<Slider
+							slots={{
+								markLabel: CollectionMark,
+							}}
+							disabled={oidType !== "number"}
+							valueLabelDisplay={widget.data.valueLabelDisplay}
+							orientation={widget.data.sliderOrientation}
+							sx={{
+								/* "&.MuiSlider-root": {
 								color: data.textColor,
 							}, */
-							"& .MuiSlider-thumb": {
-								color:
-									/* data.textColorActive ||
+								"& .MuiSlider-thumb": {
+									color:
+										/* data.textColorActive ||
 									widget.data.markerTextColor || */
-									widget.data.sliderColor,
-							},
-							"& .MuiSlider-rail": {
-								color: widget.data.sliderColor || "primary.main",
-							},
-							"& .MuiSlider-track": {
-								color: widget.data.sliderColor || "primary.main",
-							},
-							"& .MuiSlider-mark": {
-								color: widget.data.sliderColor || "primary.main",
-							},
-							"& .MuiSlider-markActive": {
-								bgcolor: widget.data.sliderColor || "primary.main",
-								filter: "brightness(2.5)",
-							},
-							"& .MuiSlider-valueLabel": {
-								fontSize:
-									data.valueSizeActive ||
-									(widget.data.markerTextSize &&
-										`${widget.data.markerTextSize}%`) ||
-									data.valueSize ||
-									"1em",
-								color:
-									data.textColorActive ||
-									widget.data.markerTextColor ||
-									data.textColor,
-								bgcolor: "transparent",
-								top:
-									widget.data.sliderOrientation === "horizontal"
-										? widget.data.labelPosition
-										: null,
-								right:
-									widget.data.sliderOrientation === "vertical"
-										? widget.data.labelPosition
-										: null,
-							},
-							"& .MuiSlider-markLabel": {
-								fontSize:
-									(widget.data.markerTextSize &&
-										`${widget.data.markerTextSize}%`) ||
-									data.valueSize ||
-									"1em",
-								color: widget.data.markerTextColor || data.textColor,
-								top:
-									widget.data.sliderOrientation === "horizontal"
-										? widget.data.markPosition
-										: null,
-								left:
-									widget.data.sliderOrientation === "vertical"
-										? widget.data.markPosition
-										: null,
-							},
-							"& .MuiSlider-markLabelActive": {
-								[`&[data-index='${activeIndex - 1}']`]: {
-									fontSize: data.valueSizeActive,
+										widget.data.sliderColor,
+								},
+								"& .MuiSlider-rail": {
+									color: widget.data.sliderColor || "primary.main",
+								},
+								"& .MuiSlider-track": {
+									color: widget.data.sliderColor || "primary.main",
+								},
+								"& .MuiSlider-mark": {
+									color: widget.data.sliderColor || "primary.main",
+								},
+								"& .MuiSlider-markActive": {
+									bgcolor: widget.data.sliderColor || "primary.main",
+									filter: "brightness(2.5)",
+								},
+								"& .MuiSlider-valueLabel": {
+									fontSize:
+										data.valueSizeActive ||
+										(widget.data.markerTextSize &&
+											`${widget.data.markerTextSize}%`) ||
+										data.valueSize ||
+										"1em",
 									color:
 										data.textColorActive ||
 										widget.data.markerTextColor ||
 										data.textColor,
+									bgcolor: "transparent",
+									top:
+										widget.data.sliderOrientation === "horizontal"
+											? widget.data.labelPosition
+											: null,
+									right:
+										widget.data.sliderOrientation === "vertical"
+											? widget.data.labelPosition
+											: null,
 								},
-							},
-						}}
-						min={sliderMinValue}
-						max={sliderMaxValue}
-						marks={
-							widget.data.onlyStates ||
-							(widget.data.marks && sliderMarks && sliderMarks.length)
-								? sliderMarks
-								: widget.data.marks
-						}
-						step={
-							!widget.data.onlyStates && widget.data.step
-								? Number(widget.data.step)
-								: widget.data.onlyStates && sliderMarks && sliderMarks.length
-									? null
-									: widget.data.step
-										? Number(widget.data.step)
-										: 1
-						}
-						size={widget.data.sliderSize}
-						value={oidValue || 0}
-						onChange={(_, value) =>
-							setState({ values: { ...values, [`${oid}.val`]: value } })
-						}
-					/>
+								"& .MuiSlider-markLabel": {
+									fontSize:
+										((widget.data.markerTextSize ||
+											widget.data.markerTextSize === 0) &&
+											`${widget.data.markerTextSize}%`) ||
+										data.valueSize ||
+										"1em",
+									color: widget.data.markerTextColor || data.textColor,
+									top:
+										widget.data.sliderOrientation === "horizontal"
+											? widget.data.markPosition
+											: null,
+									left:
+										widget.data.sliderOrientation === "vertical"
+											? widget.data.markPosition
+											: null,
+								},
+								"& .MuiSlider-markLabelActive": {
+									[`&[data-index='${sliderMarksIndex}']`]: {
+										fontSize: data.valueSizeActive,
+										color:
+											data.textColorActive ||
+											widget.data.markerTextColor ||
+											data.textColor,
+									},
+								},
+							}}
+							min={sliderMinValue}
+							max={sliderMaxValue}
+							marks={
+								widget.data.onlyStates ||
+								(widget.data.marks && sliderMarks && sliderMarks.length)
+									? sliderMarks
+									: widget.data.marks
+							}
+							step={
+								!widget.data.onlyStates && widget.data.step
+									? Number(widget.data.step)
+									: widget.data.onlyStates && sliderMarks && sliderMarks.length
+										? null
+										: widget.data.step
+											? Number(widget.data.step)
+											: 1
+							}
+							size={widget.data.sliderSize}
+							value={oidValue}
+							onChange={(_, value) =>
+								setState({ values: { ...values, [`${oid}.val`]: value } })
+							}
+						/>
+					)}
 				</Box>
 				<Box
 					sx={{

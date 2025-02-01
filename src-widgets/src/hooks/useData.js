@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
 import useOidValue from "./useOidValue";
 import useStyles from "./useStyles";
@@ -10,11 +10,20 @@ function useData(oid) {
 	const oidValue = useOidValue(oid);
 	const oidName = oidObject?.common?.name;
 
+	const formatSize = useCallback(
+		(size) => (size || size === 0 ? `${size}%` : null),
+		[],
+	);
+	const getDataValue = useCallback(
+		(key, ext = "") => widget.data[`${key}${ext}`],
+		[widget.data],
+	);
+
 	// Styling-Daten
 	const data = useMemo(() => {
 		// Hilfsfunktionen
-		const formatSize = (size) => (size ? `${size}%` : null);
-		const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`];
+		// const formatSize = (size) => (size || size === 0 ? `${size}%` : null);
+		// const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`];
 
 		const getStyleData = (ext = "") => ({
 			textColor:
@@ -49,7 +58,8 @@ function useData(oid) {
 				`${getDataValue("value", ext)}${widget.data.unit}`,
 			valueSize: formatSize(widget.data.valueSize) || fontStyles.fontSize,
 			valueSizeActive:
-				getDataValue("valueSize", ext) &&
+				(getDataValue("valueSize", ext) ||
+					getDataValue("valueSize", ext) === 0) &&
 				formatSize(getDataValue("valueSize", ext)),
 
 			icon: !widget.data.noIcon && (widget.data.icon || widget.data.iconSmall),
@@ -73,9 +83,21 @@ function useData(oid) {
 				getDataValue("iconHover", ext) && `${getDataValue("iconHover", ext)}%`,
 
 			iconXOffset:
-				getDataValue("iconXOffset", ext) || widget.data.iconXOffset || "0px",
+				(!!getDataValue("iconXOffset", ext) &&
+					getDataValue("iconXOffset", ext) !== "0px" &&
+					getDataValue("iconXOffset", ext)) ||
+				(!!widget.data.iconXOffset &&
+					widget.data.iconXOffset !== "0px" &&
+					widget.data.iconXOffset) ||
+				"0px",
 			iconYOffset:
-				getDataValue("iconYOffset", ext) || widget.data.iconYOffset || "0px",
+				(!!getDataValue("iconYOffset", ext) &&
+					getDataValue("iconYOffset", ext) !== "0px" &&
+					getDataValue("iconYOffset", ext)) ||
+				(!!widget.data.iconYOffset &&
+					widget.data.iconYOffset !== "0px" &&
+					widget.data.iconYOffset) ||
+				"0px",
 
 			backgroundColor:
 				widget.data.backgroundColor || backgroundStyles.backgroundColor,
@@ -123,6 +145,8 @@ function useData(oid) {
 		oidValue,
 		theme,
 		oidName,
+		formatSize,
+		getDataValue,
 	]);
 
 	// States-Berechnung
@@ -161,6 +185,15 @@ function useData(oid) {
 								(oidEntry
 									? oidEntry[1]
 									: `${widget.data[`value${i}`]}${widget.data.unit}`),
+							icon:
+								widget.data[`icon${i}`] ||
+								widget.data[`iconSmall${i}`] ||
+								widget.data.icon ||
+								null,
+							iconWidth: widget.data[`iconSize${i}`] || 100,
+							iconHeight: widget.data[`iconSize${i}`] || 100,
+							iconColor:
+								widget.data[`iconColor${i}`] || widget.data.iconColor || null,
 						});
 						widgetStates[
 							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]

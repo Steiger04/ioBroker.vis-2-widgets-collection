@@ -352,9 +352,11 @@ function ButtonGroupCollection() {
 													textTransform: "none",
 													fontSize:
 														(activeIndex === index + 1 &&
-															widget.data.valueSizeActive &&
+															(widget.data.valueSizeActive ||
+																widget.data.valueSizeActive === 0) &&
 															`${widget.data.valueSizeActive}%`) ||
-														(widget.data[`valueSize${index + 1}`] &&
+														((widget.data[`valueSize${index + 1}`] ||
+															widget.data[`valueSize${index + 1}`] === 0) &&
 															`${widget.data[`valueSize${index + 1}`]}%`) ||
 														data.valueSize,
 													color:
