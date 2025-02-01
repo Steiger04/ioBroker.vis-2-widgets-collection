@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.10",
+    "version": "1.1.11",
     "news": {
+      "1.1.11": {
+        "en": "HTML-Text optimizations",
+        "de": "HTML-Text-Optimierungen",
+        "ru": "HTML-Text оптимизация",
+        "pt": "Otimizações HTML-Texto",
+        "nl": "HTML-Text optimalisaties",
+        "fr": "Optimisations HTML-Text",
+        "it": "Ottimizzazione HTML-Text",
+        "es": "Optimizaciones HTML-Text",
+        "pl": "Optymalizacja HTML- Text",
+        "uk": "Оптимізація HTML-Text",
+        "zh-cn": "HTML 文本优化"
+      },
       "1.1.10": {
         "en": "HTML-Text for header, value and footer",
         "de": "HTML-Text für Header, Wert und Footer",
@@ -80,19 +93,6 @@
         "pl": "Switch widget added",
         "uk": "Вимикач віджету додано",
         "zh-cn": "切换部件已添加"
-      },
-      "1.0.3": {
-        "en": "initial commit",
-        "de": "erstbestellung",
-        "ru": "первоначальный",
-        "pt": "commit inicial",
-        "nl": "initiële commit",
-        "fr": "commit initial",
-        "it": "commit iniziale",
-        "es": "inicial",
-        "pl": "initial commit",
-        "uk": "початкова комісія",
-        "zh-cn": "初步承诺"
       }
     },
     "titleLang": {
