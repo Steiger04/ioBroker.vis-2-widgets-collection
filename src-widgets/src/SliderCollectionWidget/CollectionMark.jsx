@@ -10,7 +10,8 @@ const CollectionMark = (props) => {
 
 	useEffect(() => {
 		if (ref.current) {
-			ref.current.insertAdjacentHTML("afterbegin", mark.label);
+			// ref.current.insertAdjacentHTML("afterbegin", mark.label);
+			ref.current.innerHTML = mark.label;
 		}
 	}, [mark.label]);
 
@@ -25,10 +26,19 @@ const CollectionMark = (props) => {
 			}}
 		>
 			<Box
+				data-font="active"
 				ref={ref}
 				sx={{
 					flexGrow: 1,
 					pb: 1,
+
+					/* fontSize:
+						(mark.fontSize !== undefined || mark.fontSize === 0) &&
+						`${mark.fontSize}%`, */
+
+					fontSize: typeof mark.fontSize === "number" && `${mark.fontSize}%`,
+
+					color: mark.textColor,
 				}}
 			/>
 			<Box
@@ -38,6 +48,7 @@ const CollectionMark = (props) => {
 			>
 				{mark.icon && (
 					<img
+						data-img="active"
 						src={mark.icon}
 						alt=""
 						style={{

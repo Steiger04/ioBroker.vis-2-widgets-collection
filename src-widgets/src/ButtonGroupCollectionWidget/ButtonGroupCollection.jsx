@@ -351,12 +351,19 @@ function ButtonGroupCollection() {
 													...textStyles,
 													textTransform: "none",
 													fontSize:
-														(activeIndex === index + 1 &&
+														/* (activeIndex === index + 1 &&
 															(widget.data.valueSizeActive ||
 																widget.data.valueSizeActive === 0) &&
 															`${widget.data.valueSizeActive}%`) ||
 														((widget.data[`valueSize${index + 1}`] ||
 															widget.data[`valueSize${index + 1}`] === 0) &&
+															`${widget.data[`valueSize${index + 1}`]}%`) ||
+														data.valueSize, */
+														(activeIndex === index + 1 &&
+															typeof widget.data.valueSizeActive === "number" &&
+															`${widget.data.valueSizeActive}%`) ||
+														(typeof widget.data[`valueSize${index + 1}`] ===
+															"number" &&
 															`${widget.data[`valueSize${index + 1}`]}%`) ||
 														data.valueSize,
 													color:

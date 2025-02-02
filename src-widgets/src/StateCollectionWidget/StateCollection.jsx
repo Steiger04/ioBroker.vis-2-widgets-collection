@@ -19,8 +19,14 @@ function StateCollection() {
 	const { data, widgetStates } = useData("oid");
 	const oidValue = useOidValue("oid");
 
-	const oidValueUnit =
+	/* const oidValueUnit =
 		(oidValue || oidValue === 0 || oidValue === false) &&
+		`${oidValue}${widget.data.unit}`; */
+
+	const oidValueUnit =
+		(typeof oidValue === "string" ||
+			typeof oidValue === "number" ||
+			typeof oidValue === "boolean") &&
 		`${oidValue}${widget.data.unit}`;
 
 	const [open, setOpen] = useState(false);

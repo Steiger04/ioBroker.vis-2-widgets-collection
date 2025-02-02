@@ -33,6 +33,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) Active group for slider added
+
 ### 1.1.11 (2025-02-01)
 
 - (steiger04) HTML-Text optimizations
