@@ -5,7 +5,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
@@ -14,8 +14,7 @@ import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
-	const { values, setState, setValue, oidObject, widget } =
-		useContext(CollectionContext);
+	const { values, setState, oidObject, widget } = useContext(CollectionContext);
 	const { data, states, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
 	const oidValue = useOidValue("oid");
@@ -26,26 +25,11 @@ function ButtonGroupCollection() {
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
-	const delay = widget.data.sampleInterval
-		? widget.data.sampleIntervalValue
-		: widget.data.delay;
-
-	const {
-		debouncedValue: debouncedSliderValue,
-		sampledValue: sampledSliderValue,
-	} = useDebounce(oidValue, delay);
-
-	useEffect(() => {
-		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
-			setValue(oid, debouncedSliderValue);
-		}
-	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
-
-	useEffect(() => {
-		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
-			setValue(oid, sampledSliderValue);
-		}
-	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
+	useDebounce({
+		value: oidValue,
+		sampleInterval: widget.data.sampleInterval,
+		data: widget.data,
+	});
 
 	return (
 		<CollectionBase data={data} oidValue={oidValue} bgActive={false}>

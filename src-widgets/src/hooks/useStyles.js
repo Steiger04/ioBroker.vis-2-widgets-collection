@@ -36,21 +36,22 @@ const useStyles = (_styles) => {
 	const [fontStyles, setFontStyles] = useState({});
 	const [boxStyles, setBoxStyles] = useState({});
 
+	const _stylesJSON = JSON.stringify(_styles);
+
 	const possibleMuiStyles = useMemo(() => {
-		// console.log("possibleMuiStyles");
 		const _backgroundStyles = {};
 		const _borderStyles = {};
 		const _textStyles = {};
 		const _fontStyles = {};
 		const _boxStyles = {};
 
+		const _styles = JSON.parse(_stylesJSON);
+
 		POSSIBLE_MUI_STYLES.forEach((style) => {
 			if (_styles[style]) {
 				const _camelCaseStyle = style.replace(/(-\w)/g, (text) =>
 					text[1].toUpperCase(),
 				);
-
-				// console.log("_camelCaseStyle", _camelCaseStyle);
 
 				if (style.includes("background")) {
 					_backgroundStyles[_camelCaseStyle] = _styles[style];
@@ -78,7 +79,7 @@ const useStyles = (_styles) => {
 			_fontStyles,
 			_boxStyles,
 		};
-	}, [_styles]);
+	}, [_stylesJSON]);
 
 	useEffect(() => {
 		setBackgroundStyles(possibleMuiStyles._backgroundStyles);

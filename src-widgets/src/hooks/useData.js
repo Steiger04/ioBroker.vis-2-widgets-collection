@@ -8,7 +8,109 @@ function useData(oid) {
 	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 	const [activeIndex, setActiveIndex] = useState();
 	const oidValue = useOidValue(oid);
+
 	const oidName = oidObject?.common?.name;
+
+	// States-Berechnung
+	const { states, widgetStates, minValue, maxValue } = useMemo(() => {
+		const processStates = () => {
+			const states = [];
+			const widgetStates = {};
+			let minValue = 0;
+			let maxValue = 100;
+
+			const oidType = oidObject?.common?.type;
+			const oidStates = oidObject?.common?.states || {};
+			const oidEntries = Object.entries(oidStates);
+
+			if (oidType === "number" || oidType === "string") {
+				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+					if (
+						widget.data[`value${i}`] !== undefined &&
+						widget.data[`value${i}`] !== null &&
+						/\S/.test(widget.data[`value${i}`])
+					) {
+						const oidEntry = oidEntries.find(
+							([value]) => value === widget.data[`value${i}`],
+						);
+						if (oidEntry && oidType === "number") {
+							oidEntry[0] = Number(oidEntry[0]);
+						}
+						states.push({
+							value: oidEntry
+								? oidEntry[0]
+								: oidType === "number"
+									? Number(widget.data[`value${i}`])
+									: widget.data[`value${i}`],
+							label:
+								widget.data[`alias${i}`] ||
+								(oidEntry
+									? oidEntry[1]
+									: `${widget.data[`value${i}`]}${widget.data.unit}`),
+
+							fontSize: widget.data[`valueSize${i}`],
+
+							textColor: widget.data[`textColor${i}`],
+
+							icon:
+								widget.data[`icon${i}`] ||
+								widget.data[`iconSmall${i}`] ||
+								widget.data.icon ||
+								null,
+							/* iconWidth:
+								typeof widget.data[`iconSize${i}`] === "number"
+									? widget.data[`iconSize${i}`]
+									: 100,
+							iconHeight:
+								typeof widget.data[`iconSize${i}`] === "number"
+									? widget.data[`iconSize${i}`]
+									: 100, */
+							iconWidth:
+								typeof widget.data[`iconSize${i}`] === "number"
+									? widget.data[`iconSize${i}`]
+									: typeof widget.data.sliderIconSize === "number"
+										? widget.data.sliderIconSize
+										: 100,
+							iconHeight:
+								typeof widget.data[`iconSize${i}`] === "number"
+									? widget.data[`iconSize${i}`]
+									: typeof widget.data.sliderIconSize === "number"
+										? widget.data.sliderIconSize
+										: 100,
+							iconColor:
+								widget.data[`iconColor${i}`] || widget.data.iconColor || null,
+						});
+						widgetStates[
+							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
+						] =
+							widget.data[`alias${i}`] ||
+							(oidEntry
+								? oidEntry[1]
+								: `${widget.data[`value${i}`]}${widget.data.unit}`);
+					}
+				}
+				if (states.length) {
+					minValue = Math.min(...states.map((state) => state.value));
+					maxValue = Math.max(...states.map((state) => state.value));
+				}
+			}
+
+			if (oidType === "boolean") {
+				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+					states.push({
+						value: widget.data[`value${i}`],
+						label: widget.data[`alias${i}`],
+					});
+					widgetStates[String(widget.data[`value${i}`])] =
+						widget.data[`value${i}`];
+				}
+			}
+
+			return { states, widgetStates, minValue, maxValue };
+		};
+
+		return processStates();
+	}, [oidObject, widget.data]);
 
 	// Styling-Daten
 	const data = useMemo(() => {
@@ -120,7 +222,7 @@ function useData(oid) {
 			case "boolean":
 			case "number":
 			case "string": {
-				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+				/* for (let i = 1; i <= Number(widget.data.values_count); i++) {
 					if (
 						widget.data[`value${i}`] !== undefined &&
 						(widget.data[`value${i}`] === oidValue ||
@@ -129,123 +231,33 @@ function useData(oid) {
 						setActiveIndex(i);
 						return getStyleData(i);
 					}
+				} */
+
+				const _activeIndex = states.findIndex(
+					(state) => state.value === oidValue,
+				);
+
+				if (_activeIndex !== -1) {
+					setActiveIndex(_activeIndex + 1);
+					return getStyleData(_activeIndex + 1);
 				}
+
 				return getStyleData("");
 			}
 			default:
 				return getStyleData("");
 		}
 	}, [
-		widget,
+		oidObject,
+		oidValue,
+		oidName,
+		widget.data,
+		states,
+		theme,
 		fontStyles,
 		textStyles,
 		backgroundStyles,
-		oidObject,
-		oidValue,
-		theme,
-		oidName,
 	]);
-
-	// States-Berechnung
-	const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-		const processStates = () => {
-			const states = [];
-			const widgetStates = {};
-			let minValue = 0;
-			let maxValue = 100;
-
-			const oidType = oidObject?.common?.type;
-			const oidStates = oidObject?.common?.states || {};
-			const oidEntries = Object.entries(oidStates);
-
-			if (oidType === "number" || oidType === "string") {
-				for (let i = 1; i <= Number(widget.data.values_count); i++) {
-					if (
-						widget.data[`value${i}`] !== undefined &&
-						widget.data[`value${i}`] !== null &&
-						/\S/.test(widget.data[`value${i}`])
-					) {
-						const oidEntry = oidEntries.find(
-							([value]) => value === widget.data[`value${i}`],
-						);
-						if (oidEntry && oidType === "number") {
-							oidEntry[0] = Number(oidEntry[0]);
-						}
-						states.push({
-							value: oidEntry
-								? oidEntry[0]
-								: oidType === "number"
-									? Number(widget.data[`value${i}`])
-									: widget.data[`value${i}`],
-							label:
-								widget.data[`alias${i}`] ||
-								(oidEntry
-									? oidEntry[1]
-									: `${widget.data[`value${i}`]}${widget.data.unit}`),
-
-							fontSize: widget.data[`valueSize${i}`],
-
-							textColor: widget.data[`textColor${i}`],
-
-							icon:
-								widget.data[`icon${i}`] ||
-								widget.data[`iconSmall${i}`] ||
-								widget.data.icon ||
-								null,
-							/* iconWidth:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: 100,
-							iconHeight:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: 100, */
-							iconWidth:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: typeof widget.data.sliderIconSize === "number"
-										? widget.data.sliderIconSize
-										: 100,
-							iconHeight:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: typeof widget.data.sliderIconSize === "number"
-										? widget.data.sliderIconSize
-										: 100,
-							iconColor:
-								widget.data[`iconColor${i}`] || widget.data.iconColor || null,
-						});
-						widgetStates[
-							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
-						] =
-							widget.data[`alias${i}`] ||
-							(oidEntry
-								? oidEntry[1]
-								: `${widget.data[`value${i}`]}${widget.data.unit}`);
-					}
-				}
-				if (states.length) {
-					minValue = Math.min(...states.map((state) => state.value));
-					maxValue = Math.max(...states.map((state) => state.value));
-				}
-			}
-
-			if (oidType === "boolean") {
-				for (let i = 1; i <= Number(widget.data.values_count); i++) {
-					states.push({
-						value: widget.data[`value${i}`],
-						label: widget.data[`alias${i}`],
-					});
-					widgetStates[String(widget.data[`value${i}`])] =
-						widget.data[`value${i}`];
-				}
-			}
-
-			return { states, widgetStates, minValue, maxValue };
-		};
-
-		return processStates();
-	}, [oidObject, widget]);
 
 	return {
 		states,

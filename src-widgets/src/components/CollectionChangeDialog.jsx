@@ -11,46 +11,27 @@ import {
 	ListItemButton,
 	ListItemText,
 } from "@mui/material";
-import React, { useCallback, useContext, useEffect } from "react";
+import React, { useCallback, useContext } from "react";
 import useDebounce from "../hooks/useDebounce";
+import useOidValue from "../hooks/useOidValue";
 import { CollectionContext } from "./CollectionProvider";
 
 function CollectionChangeDialog(props) {
 	const { widgetStates, data, open, closeHandler } = props;
 
-	const { widget, values, setState, setValue, oidObject, getPropertyValue } =
+	const { widget, values, setState, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
+	const oidValue = useOidValue("oid");
 	const oid = oidObject?._id;
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;
 
-	const delay = widget.data.sampleInterval
-		? widget.data.sampleIntervalValue
-		: widget.data.delay;
-
-	const {
-		debouncedValue: debouncedSliderValue,
-		sampledValue: sampledSliderValue,
-	} = useDebounce(getPropertyValue("oid"), delay);
-
-	useEffect(() => {
-		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
-			setValue(oid, debouncedSliderValue);
-		}
-	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
-
-	useEffect(() => {
-		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
-			setValue(oid, sampledSliderValue);
-		}
-	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
-
-	/* useEffect(() => {
-		if (debouncedSliderValue !== undefined) {
-			setValue(oid, debouncedSliderValue);
-		}
-	}, [debouncedSliderValue, oid, setValue]); */
+	useDebounce({
+		value: oidValue,
+		sampleInterval: widget.data.sampleInterval,
+		data: widget.data,
+	});
 
 	const changeHandler = useCallback(
 		(value, key = null) => {

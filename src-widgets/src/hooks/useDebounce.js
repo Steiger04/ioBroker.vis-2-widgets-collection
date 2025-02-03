@@ -1,42 +1,33 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Subject, debounceTime, throttleTime } from "rxjs";
+import { CollectionContext } from "../components/CollectionProvider";
 
-function useDebounce(value, delay = 300) {
-	const [debouncedValue, setDebouncedValue] = useState(value);
-	const debounce = useRef(null);
+function useDebounce({ value, sampleInterval, data }) {
+	const { setValue, oidObject } = useContext(CollectionContext);
 
-	const [sampledValue, setSampledValue] = useState(value);
-	const sample = useRef(null);
+	const delay = data.sampleInterval ? data.sampleIntervalValue : data.delay;
+
+	const oid = oidObject?._id;
+
+	const delayDuration = useRef(null);
 
 	useEffect(() => {
-		debounce.current = new Subject();
-		sample.current = new Subject();
+		delayDuration.current = new Subject();
 
-		const debouncedSubscription = debounce.current
-			.pipe(debounceTime(delay))
-			.subscribe(setDebouncedValue);
-
-		const sampledSubscription = sample.current
-			.pipe(throttleTime(delay))
-			.subscribe(setSampledValue);
+		const delayDurationSubscription = delayDuration.current
+			.pipe(sampleInterval ? throttleTime(delay) : debounceTime(delay))
+			.subscribe((value) => setValue(oid, value));
 
 		return () => {
-			debouncedSubscription.unsubscribe();
-			sampledSubscription.unsubscribe();
+			delayDurationSubscription.unsubscribe();
 		};
-	}, [delay]);
+	}, [sampleInterval, delay, oid, setValue]);
 
 	useEffect(() => {
-		if (debounce.current) {
-			debounce.current.next(value);
-		}
-
-		if (sample.current) {
-			sample.current.next(value);
+		if (delayDuration.current) {
+			delayDuration.current.next(value);
 		}
 	}, [value]);
-
-	return { debouncedValue, sampledValue };
 }
 
 export default useDebounce;

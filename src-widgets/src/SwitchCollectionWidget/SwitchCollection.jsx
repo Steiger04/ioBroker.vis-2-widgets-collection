@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import React, { useRef, useContext, useEffect } from "react";
+import React, { useRef, useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
@@ -16,26 +16,11 @@ function SwitchCollection() {
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
-	const delay = widget.data.sampleInterval
-		? widget.data.sampleIntervalValue
-		: widget.data.delay;
-
-	const {
-		debouncedValue: debouncedSliderValue,
-		sampledValue: sampledSliderValue,
-	} = useDebounce(oidValue, delay);
-
-	useEffect(() => {
-		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
-			setValue(oid, debouncedSliderValue);
-		}
-	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
-
-	useEffect(() => {
-		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
-			setValue(oid, sampledSliderValue);
-		}
-	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
+	useDebounce({
+		value: oidValue,
+		sampleInterval: widget.data.sampleInterval,
+		data: widget.data,
+	});
 
 	return (
 		<CollectionBase data={data} oidValue={oidValue}>

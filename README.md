@@ -33,6 +33,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) delay via throttle and debounce optimized
+
 ### 1.1.12 (2025-02-02)
 
 - (steiger04) Active group for slider added

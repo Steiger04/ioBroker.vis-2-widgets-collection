@@ -8,8 +8,7 @@ import useOidValue from "../hooks/useOidValue";
 import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
-	const { values, setState, setValue, oidObject, widget } =
-		useContext(CollectionContext);
+	const { values, setState, oidObject, widget } = useContext(CollectionContext);
 
 	const { data, states, minValue, maxValue } = useData("oid");
 	const oidValue = useOidValue("oid");
@@ -24,26 +23,11 @@ function SliderCollection() {
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
-	const delay = widget.data.sampleInterval
-		? widget.data.sampleIntervalValue
-		: widget.data.delay;
-
-	const {
-		debouncedValue: debouncedSliderValue,
-		sampledValue: sampledSliderValue,
-	} = useDebounce(oidValue, delay);
-
-	useEffect(() => {
-		if (!widget.data.sampleInterval && debouncedSliderValue !== undefined) {
-			setValue(oid, debouncedSliderValue);
-		}
-	}, [debouncedSliderValue, oid, setValue, widget.data.sampleInterval]);
-
-	useEffect(() => {
-		if (widget.data.sampleInterval && sampledSliderValue !== undefined) {
-			setValue(oid, sampledSliderValue);
-		}
-	}, [sampledSliderValue, oid, setValue, widget.data.sampleInterval]);
+	useDebounce({
+		value: oidValue,
+		sampleInterval: widget.data.sampleInterval,
+		data: widget.data,
+	});
 
 	const sliderMinValue = useMemo(
 		() =>
