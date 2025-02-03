@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.13 (2025-02-03)
 
 - (steiger04) delay via throttle and debounce optimized
 

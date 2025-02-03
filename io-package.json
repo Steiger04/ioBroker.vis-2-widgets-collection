@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.12",
+    "version": "1.1.13",
     "news": {
+      "1.1.13": {
+        "en": "delay via throttle and debounce optimized",
+        "de": "verzögerung über drosselung und entzündung optimiert",
+        "ru": "задержка через дроссель и отскок оптимизированы",
+        "pt": "delay via acelerador e debutimento otimizado",
+        "nl": "vertraging via gas en debounce geoptimaliseerd",
+        "fr": "retard via l'accélérateur et le débonflage optimisé",
+        "it": "ritardo attraverso l'acceleratore e debounce ottimizzati",
+        "es": "retraso mediante el acelerador y el debounce optimizado",
+        "pl": "opóźnienie za pomocą przepustnicy i debuuncji zoptymalizowane",
+        "uk": "затримка через дросель і відмову оптимізовано",
+        "zh-cn": "通过节流阀和减速优化延迟"
+      },
       "1.1.12": {
         "en": "Active group for slider added",
         "de": "Aktive Gruppe für Slider hinzugefügt",
@@ -80,19 +93,6 @@
         "pl": "Zoptymalizowany przełącznik",
         "uk": "Оптимізований вимикач",
         "zh-cn": "切换优化"
-      },
-      "1.1.6": {
-        "en": "bugfixing",
-        "de": "fehlerbehebung",
-        "ru": "исправления",
-        "pt": "correção de bugs",
-        "nl": "bugfixing",
-        "fr": "correction des bugs",
-        "it": "bugfixing",
-        "es": "bugfixing",
-        "pl": "ustalanie błędów",
-        "uk": "зловживання",
-        "zh-cn": "修正错误"
       }
     },
     "titleLang": {
