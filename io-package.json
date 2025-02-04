@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.13",
+    "version": "1.1.14",
     "news": {
+      "1.1.14": {
+        "en": "Slider optimized",
+        "de": "Slider optimiert",
+        "ru": "Слайдер оптимизирован",
+        "pt": "Slider otimizado",
+        "nl": "Slider geoptimaliseerd",
+        "fr": "Slider optimisé",
+        "it": "Slider ottimizzato",
+        "es": "Slider optimizado",
+        "pl": "Suwak zoptymalizowany",
+        "uk": "Оптимізований слайдер",
+        "zh-cn": "滑动器优化"
+      },
       "1.1.13": {
         "en": "delay via throttle and debounce optimized",
         "de": "verzögerung über drosselung und entzündung optimiert",
@@ -80,19 +93,6 @@
         "pl": "segregatory",
         "uk": "виправлення помилок",
         "zh-cn": "装订错误"
-      },
-      "1.1.7": {
-        "en": "Switch optimized",
-        "de": "Schalter optimiert",
-        "ru": "Оптимизированный коммутатор",
-        "pt": "Interruptor otimizado",
-        "nl": "Geoptimaliseerd schakelen",
-        "fr": "Commutateur optimisé",
-        "it": "Interruttore ottimizzato",
-        "es": "Interruptor optimizado",
-        "pl": "Zoptymalizowany przełącznik",
-        "uk": "Оптимізований вимикач",
-        "zh-cn": "切换优化"
       }
     },
     "titleLang": {
