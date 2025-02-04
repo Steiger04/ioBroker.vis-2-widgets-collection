@@ -1,69 +1,77 @@
 import { SliderMarkLabel } from "@mui/material";
 import { Box } from "@mui/material";
-import React, { useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
-const CollectionMark = (props) => {
-	const ref = useRef(null);
+const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
+	const [ref, setRef] = useState(null);
 
 	const index = props["data-index"];
 	const mark = props.ownerState.marks[index];
 
 	useEffect(() => {
-		if (ref.current) {
-			// ref.current.insertAdjacentHTML("afterbegin", mark.label);
-			ref.current.innerHTML = mark.label;
+		if (ref) {
+			ref.innerHTML = mark.label;
 		}
-	}, [mark.label]);
+	}, [mark.label, ref]);
 
-	return (
+	return marks ? (
 		<SliderMarkLabel
-			{...props}
-			sx={{
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
+			style={{
+				color: "red",
 			}}
+			{...props}
 		>
 			<Box
-				data-font="active"
-				ref={ref}
 				sx={{
-					flexGrow: 1,
-					pb: 1,
-
-					/* fontSize:
-						(mark.fontSize !== undefined || mark.fontSize === 0) &&
-						`${mark.fontSize}%`, */
-
-					fontSize: typeof mark.fontSize === "number" && `${mark.fontSize}%`,
-
-					color: mark.textColor,
-				}}
-			/>
-			<Box
-				sx={{
-					flexGrow: 1,
+					display: "flex",
+					flexDirection: sliderOrientation === "vertical" ? "row" : "column",
+					alignItems: "center",
+					justifyContent: "center",
 				}}
 			>
-				{mark.icon && (
-					<img
-						data-img="active"
-						src={mark.icon}
-						alt=""
-						style={{
-							width: `${(24 * mark.iconWidth) / 100}px`,
-							height: `${(24 * mark.iconHeight) / 100}px`,
+				<Box
+					data-font="active"
+					ref={setRef}
+					sx={{
+						flexGrow: 1,
+						pr: sliderOrientation === "vertical" ? 1 : 0,
+						pb: sliderOrientation === "vertical" ? 0 : 1,
 
-							color: mark.iconColor,
-							filter: mark.iconColor ? "drop-shadow(0px 10000px 0)" : null,
-							transform: mark.iconColor ? "translateY(-10000px)" : null,
-						}}
-					/>
-				)}
+						fontSize: typeof mark.fontSize === "number" && `${mark.fontSize}%`,
+
+						color: mark.textColor,
+					}}
+				/>
+				<Box
+					data-position="active"
+					sx={{
+						position: "relative",
+						bottom: mark.iconYOffset,
+						left: mark.iconXOffset,
+
+						flexGrow: 1,
+					}}
+				>
+					{mark.icon && (
+						<img
+							data-img="active"
+							src={mark.icon}
+							alt=""
+							style={{
+								position: "relative",
+								width: `${(24 * mark.iconWidth) / 100}px`,
+								height: `${(24 * mark.iconHeight) / 100}px`,
+
+								color: mark.iconColor || "initial",
+								filter: mark.iconColor ? "drop-shadow(0px 10000px 0)" : null,
+								transform: mark.iconColor ? "translateY(-10000px)" : null,
+							}}
+						/>
+					)}
+				</Box>
 			</Box>
 		</SliderMarkLabel>
-	);
+	) : null;
 };
 
 export default CollectionMark;

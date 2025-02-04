@@ -2,10 +2,13 @@ import { useContext, useEffect, useRef } from "react";
 import { Subject, debounceTime, throttleTime } from "rxjs";
 import { CollectionContext } from "../components/CollectionProvider";
 
-function useDebounce({ value, sampleInterval, data }) {
+function useDebounce({
+	value,
+	data: { sampleInterval, sampleIntervalValue, delay },
+}) {
 	const { setValue, oidObject } = useContext(CollectionContext);
 
-	const delay = data.sampleInterval ? data.sampleIntervalValue : data.delay;
+	const _delay = sampleInterval ? sampleIntervalValue : delay;
 
 	const oid = oidObject?._id;
 
@@ -15,13 +18,13 @@ function useDebounce({ value, sampleInterval, data }) {
 		delayDuration.current = new Subject();
 
 		const delayDurationSubscription = delayDuration.current
-			.pipe(sampleInterval ? throttleTime(delay) : debounceTime(delay))
+			.pipe(sampleInterval ? throttleTime(_delay) : debounceTime(_delay))
 			.subscribe((value) => setValue(oid, value));
 
 		return () => {
 			delayDurationSubscription.unsubscribe();
 		};
-	}, [sampleInterval, delay, oid, setValue]);
+	}, [sampleInterval, _delay, oid, setValue]);
 
 	useEffect(() => {
 		if (delayDuration.current) {

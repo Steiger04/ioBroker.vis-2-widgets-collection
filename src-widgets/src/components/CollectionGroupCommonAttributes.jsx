@@ -58,11 +58,6 @@ async function oidChangeHandlerAsync(field, data, changeData, socket) {
 			}
 
 			data.values_count = Object.keys(object.common.states).length;
-			// data.withStates = true;
-			// data.withNumber = false;
-			/* Object.keys(object.common.states).forEach((state, index) => {
-				data[`value${index + 1}`] = object.common.states[state];
-			}); */
 
 			Object.entries(object.common.states).forEach(([value, alias], index) => {
 				data[`value${index + 1}`] = value;

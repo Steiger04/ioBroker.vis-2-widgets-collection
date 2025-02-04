@@ -1,23 +1,35 @@
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
-import useOidValue from "./useOidValue";
+// import useOidValue from "./useOidValue";
 import useStyles from "./useStyles";
 
 function useData(oid) {
-	const { theme, widget, oidObject } = useContext(CollectionContext);
+	const { theme, widget, oidObject, getPropertyValue } =
+		useContext(CollectionContext);
 	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 	const [activeIndex, setActiveIndex] = useState();
-	const oidValue = useOidValue(oid);
+	// const oidValue = useOidValue(oid);
+	const oidValue = getPropertyValue("oid");
 
 	const oidName = oidObject?.common?.name;
+
+	// Hilfsfunktionen
+	const formatSize = useCallback(
+		(size) => (typeof size === "number" ? `${size}%` : null),
+		[],
+	);
+	const getDataValue = useCallback(
+		(key, ext = "") => widget.data[`${key}${ext}`],
+		[widget.data],
+	);
 
 	// States-Berechnung
 	const { states, widgetStates, minValue, maxValue } = useMemo(() => {
 		const processStates = () => {
 			const states = [];
 			const widgetStates = {};
-			let minValue = 0;
-			let maxValue = 100;
+			let minValue = null;
+			let maxValue = null;
 
 			const oidType = oidObject?.common?.type;
 			const oidStates = oidObject?.common?.states || {};
@@ -57,14 +69,6 @@ function useData(oid) {
 								widget.data[`iconSmall${i}`] ||
 								widget.data.icon ||
 								null,
-							/* iconWidth:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: 100,
-							iconHeight:
-								typeof widget.data[`iconSize${i}`] === "number"
-									? widget.data[`iconSize${i}`]
-									: 100, */
 							iconWidth:
 								typeof widget.data[`iconSize${i}`] === "number"
 									? widget.data[`iconSize${i}`]
@@ -77,8 +81,17 @@ function useData(oid) {
 									: typeof widget.data.sliderIconSize === "number"
 										? widget.data.sliderIconSize
 										: 100,
-							iconColor:
-								widget.data[`iconColor${i}`] || widget.data.iconColor || null,
+							iconXOffset:
+								(!!getDataValue("iconXOffset", i) &&
+									getDataValue("iconXOffset", i) !== "0px" &&
+									getDataValue("iconXOffset", i)) ||
+								"0px",
+							iconYOffset:
+								(!!getDataValue("iconYOffset", i) &&
+									getDataValue("iconYOffset", i) !== "0px" &&
+									getDataValue("iconYOffset", i)) ||
+								"0px",
+							iconColor: widget.data[`iconColor${i}`] || widget.data.iconColor,
 						});
 						widgetStates[
 							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
@@ -89,7 +102,7 @@ function useData(oid) {
 								: `${widget.data[`value${i}`]}${widget.data.unit}`);
 					}
 				}
-				if (states.length) {
+				if (oidType === "number" && states.length) {
 					minValue = Math.min(...states.map((state) => state.value));
 					maxValue = Math.max(...states.map((state) => state.value));
 				}
@@ -110,14 +123,13 @@ function useData(oid) {
 		};
 
 		return processStates();
-	}, [oidObject, widget.data]);
+	}, [oidObject, widget.data, getDataValue]);
 
 	// Styling-Daten
 	const data = useMemo(() => {
-		// Hilfsfunktionen
-		// const formatSize = (size) => (size || size === 0 ? `${size}%` : null);
+		/* // Hilfsfunktionen
 		const formatSize = (size) => (typeof size === "number" ? `${size}%` : null);
-		const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`];
+		const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`]; */
 
 		const getStyleData = (ext = "") => ({
 			textColor:
@@ -151,11 +163,6 @@ function useData(oid) {
 				getDataValue("value", ext) &&
 				`${getDataValue("value", ext)}${widget.data.unit}`,
 			valueSize: formatSize(widget.data.valueSize) || fontStyles.fontSize,
-			/* valueSizeActive:
-				(getDataValue("valueSize", ext) ||
-					getDataValue("valueSize", ext) === 0) &&
-				formatSize(getDataValue("valueSize", ext)), */
-
 			valueSizeActive:
 				typeof getDataValue("valueSize", ext) === "number" &&
 				formatSize(getDataValue("valueSize", ext)),
@@ -165,9 +172,6 @@ function useData(oid) {
 				!widget.data.noIcon &&
 				(getDataValue("icon", ext) || getDataValue("iconSmall", ext)),
 			iconSize:
-				/* ((widget.data.iconSize || widget.data.iconSize === 0) &&
-					`calc(24px * ${widget.data.iconSize} / 100)`) ||
-				"24px", */
 				(typeof widget.data.iconSize === "number" &&
 					`calc(24px * ${widget.data.iconSize} / 100)`) ||
 				"24px",
@@ -222,17 +226,6 @@ function useData(oid) {
 			case "boolean":
 			case "number":
 			case "string": {
-				/* for (let i = 1; i <= Number(widget.data.values_count); i++) {
-					if (
-						widget.data[`value${i}`] !== undefined &&
-						(widget.data[`value${i}`] === oidValue ||
-							widget.data[`value${i}`] === String(oidValue))
-					) {
-						setActiveIndex(i);
-						return getStyleData(i);
-					}
-				} */
-
 				const _activeIndex = states.findIndex(
 					(state) => state.value === oidValue,
 				);
@@ -257,6 +250,8 @@ function useData(oid) {
 		fontStyles,
 		textStyles,
 		backgroundStyles,
+		formatSize,
+		getDataValue,
 	]);
 
 	return {

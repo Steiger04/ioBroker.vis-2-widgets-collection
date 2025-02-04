@@ -10,14 +10,16 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-import useOidValue from "../hooks/useOidValue";
+// import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
-	const { values, setState, oidObject, widget } = useContext(CollectionContext);
+	const { values, setState, oidObject, widget, getPropertyValue } =
+		useContext(CollectionContext);
 	const { data, states, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
-	const oidValue = useOidValue("oid");
+	// const oidValue = useOidValue("oid");
+	const oidValue = getPropertyValue("oid");
 
 	const buttonGroupVariant = widget.data.buttonGroupVariant;
 	const buttonGroupOrientation = widget.data.buttonGroupOrientation;
@@ -27,7 +29,6 @@ function ButtonGroupCollection() {
 
 	useDebounce({
 		value: oidValue,
-		sampleInterval: widget.data.sampleInterval,
 		data: widget.data,
 	});
 
@@ -278,8 +279,7 @@ function ButtonGroupCollection() {
 																widget.data.iconSizeActive &&
 																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
 															(widget.data[`iconSize${index + 1}`] &&
-																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`) ||
-															"100%",
+																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`),
 														color:
 															(activeIndex === index + 1 &&
 																widget.data.iconColorActive) ||
@@ -335,14 +335,6 @@ function ButtonGroupCollection() {
 													...textStyles,
 													textTransform: "none",
 													fontSize:
-														/* (activeIndex === index + 1 &&
-															(widget.data.valueSizeActive ||
-																widget.data.valueSizeActive === 0) &&
-															`${widget.data.valueSizeActive}%`) ||
-														((widget.data[`valueSize${index + 1}`] ||
-															widget.data[`valueSize${index + 1}`] === 0) &&
-															`${widget.data[`valueSize${index + 1}`]}%`) ||
-														data.valueSize, */
 														(activeIndex === index + 1 &&
 															typeof widget.data.valueSizeActive === "number" &&
 															`${widget.data.valueSizeActive}%`) ||

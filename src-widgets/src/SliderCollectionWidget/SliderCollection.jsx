@@ -4,28 +4,35 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-import useOidValue from "../hooks/useOidValue";
+// import useOidValue from "../hooks/useOidValue";
 import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
-	const { values, setState, oidObject, widget } = useContext(CollectionContext);
+	const { values, setState, oidObject, widget, getPropertyValue } =
+		useContext(CollectionContext);
 
 	const { data, states, minValue, maxValue } = useData("oid");
-	const oidValue = useOidValue("oid");
+	// const oidValue = useOidValue("oid");
+	const oidValue = getPropertyValue("oid");
 
 	const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
 
 	const startIconColor =
-		widget.data.startIconColor || widget.data.sliderColor || data.iconColor;
+		widget.data.startIconColor ||
+		widget.data.sliderColor ||
+		data.iconColor ||
+		data.textColor;
 	const endIconColor =
-		widget.data.endIconColor || widget.data.sliderColor || data.iconColor;
+		widget.data.endIconColor ||
+		widget.data.sliderColor ||
+		data.iconColor ||
+		data.textColor;
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	useDebounce({
 		value: oidValue,
-		sampleInterval: widget.data.sampleInterval,
 		data: widget.data,
 	});
 
@@ -228,26 +235,19 @@ function SliderCollection() {
 							slots={{
 								markLabel: CollectionMark,
 							}}
+							slotProps={{
+								markLabel: {
+									marks: widget.data.marks,
+									sliderOrientation: widget.data.sliderOrientation,
+								},
+							}}
 							disabled={oidType !== "number"}
 							valueLabelDisplay={widget.data.valueLabelDisplay}
 							orientation={widget.data.sliderOrientation}
 							min={sliderMinValue}
 							max={sliderMaxValue}
-							marks={
-								widget.data.onlyStates ||
-								(widget.data.marks && sliderMarks && sliderMarks.length)
-									? sliderMarks
-									: widget.data.marks
-							}
-							step={
-								!widget.data.onlyStates && widget.data.step
-									? Number(widget.data.step)
-									: widget.data.onlyStates && sliderMarks && sliderMarks.length
-										? null
-										: widget.data.step
-											? Number(widget.data.step)
-											: 1
-							}
+							marks={sliderMarks}
+							step={!widget.data.onlyStates ? widget.data.step : null}
 							size={widget.data.sliderSize}
 							value={oidValue}
 							onChange={(_, value) =>
@@ -298,12 +298,6 @@ function SliderCollection() {
 											: null,
 								},
 								"& .MuiSlider-markLabel": {
-									/* fontSize:
-										((widget.data.markerTextSize ||
-											widget.data.markerTextSize === 0) &&
-											`${widget.data.markerTextSize}%`) ||
-										data.valueSize ||
-										"1em", */
 									fontSize:
 										(typeof widget.data.markerTextSize === "number" &&
 											`${widget.data.markerTextSize}%`) ||
@@ -326,14 +320,22 @@ function SliderCollection() {
 										"& div[data-font='active']": {
 											color: `${widget.data.textColorActive} !important`,
 
-											/* fontSize:
-												(widget.data.valueSizeActive !== undefined ||
-													widget.data.valueSizeActive === 0) &&
-												`${widget.data.valueSizeActive}% !important`, */
-
 											fontSize:
 												typeof widget.data.valueSizeActive === "number" &&
 												`${widget.data.valueSizeActive}% !important`,
+										},
+										"& div[data-position='active']": {
+											left:
+												(!!widget.data.iconXOffsetActive &&
+													widget.data.iconXOffsetActive !== "0px" &&
+													`${widget.data.iconXOffsetActive} !important`) ||
+												"0px",
+
+											bottom:
+												(!!widget.data.iconYOffsetActive &&
+													widget.data.iconYOffsetActive !== "0px" &&
+													`${widget.data.iconYOffsetActive} !important`) ||
+												"0px !important",
 										},
 
 										"& img[data-img='active']": {
@@ -349,6 +351,8 @@ function SliderCollection() {
 											}`,
 
 											color: `${widget.data.iconColorActive} !important`,
+											filter: "drop-shadow(0px 10000px 0)",
+											transform: "translateY(-10000px)",
 
 											// -----------------------------
 											pl:
