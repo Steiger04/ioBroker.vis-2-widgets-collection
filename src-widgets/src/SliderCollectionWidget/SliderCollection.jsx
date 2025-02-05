@@ -254,6 +254,17 @@ function SliderCollection() {
 								setState({ values: { ...values, [`${oid}.val`]: value } })
 							}
 							sx={{
+								mb:
+									widget.data.marks &&
+									widget.data.sliderOrientation === "horizontal"
+										? "20px"
+										: "0px",
+
+								mr:
+									widget.data.marks &&
+									widget.data.sliderOrientation === "vertical"
+										? "44px"
+										: "0px",
 								/* "&.MuiSlider-root": {
 								color: data.textColor,
 							}, */
