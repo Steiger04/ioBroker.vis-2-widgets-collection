@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
 import useSignals from "../hooks/useSignals";
 import useSize from "../hooks/useSize";
@@ -13,8 +13,8 @@ const CollectionBase = ({
 	bgActive = true,
 }) => {
 	const [ref, setRef] = useState(null);
-	const headerRef = useRef(null);
-	const footerRef = useRef(null);
+	const [headerRef, setHeaderRef] = useState(null);
+	const [footerRef, setFooterRef] = useState(null);
 	const { wrappedContent, widget, oidObject } = useContext(CollectionContext);
 	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
 		widget.style,
@@ -33,15 +33,13 @@ const CollectionBase = ({
 
 	useEffect(() => {
 		if (widget.data.noFooter || !footerValue) return;
-		if (footerRef && footerRef.current)
-			footerRef.current.innerHTML = footerValue;
-	}, [footerValue, widget.data.noFooter]);
+		if (footerRef) footerRef.innerHTML = footerValue;
+	}, [footerValue, widget.data.noFooter, footerRef]);
 
 	useEffect(() => {
 		if (widget.data.noHeader || !data.header) return;
-		if (headerRef && headerRef.current)
-			headerRef.current.innerHTML = data.header;
-	}, [data.header, widget.data.noHeader]);
+		if (headerRef) headerRef.innerHTML = data.header;
+	}, [data.header, widget.data.noHeader, headerRef]);
 
 	return (
 		<Paper
@@ -89,7 +87,7 @@ const CollectionBase = ({
 							}}
 						>
 							<Typography
-								ref={headerRef}
+								ref={setHeaderRef}
 								noWrap
 								variant="body2"
 								sx={{
@@ -164,7 +162,7 @@ const CollectionBase = ({
 							}}
 						>
 							<Typography
-								ref={footerRef}
+								ref={setFooterRef}
 								noWrap
 								variant="body2"
 								sx={{

@@ -33,6 +33,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) bugfixing header / footer
+
 ### 1.1.16 (2025-02-05)
 
 - (steiger04) only valid oid's allowed
