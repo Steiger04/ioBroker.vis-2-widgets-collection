@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.14",
+    "version": "1.1.15",
     "news": {
+      "1.1.15": {
+        "en": "bugfixing Slider",
+        "de": "bugfixing Slider",
+        "ru": "слайдер",
+        "pt": "corrediça de correção de bugs",
+        "nl": "bugfixing Slider",
+        "fr": "bugfixing Slider",
+        "it": "bugfixing Slider",
+        "es": "bugfixing Slider",
+        "pl": "suwak do mocowania błędów",
+        "uk": "виправлення помилок Slider",
+        "zh-cn": "修正滑动器"
+      },
       "1.1.14": {
         "en": "Slider optimized",
         "de": "Slider optimiert",
@@ -80,19 +93,6 @@
         "pl": "segregatory stylowe",
         "uk": "виправлення стилів",
         "zh-cn": "错误修正样式绑定"
-      },
-      "1.1.8": {
-        "en": "bugfixing bindings",
-        "de": "bugfixing bindungen",
-        "ru": "привязки к ошибкам",
-        "pt": "vinculações de correção de bugs",
-        "nl": "bugfixing bindingen",
-        "fr": "fixation de bogues",
-        "it": "bugfixing bindings",
-        "es": "fijaciones de bugfixing",
-        "pl": "segregatory",
-        "uk": "виправлення помилок",
-        "zh-cn": "装订错误"
       }
     },
     "titleLang": {
