@@ -27,13 +27,21 @@ function ButtonGroupCollection() {
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
+	const isValidType =
+		oidType === "boolean" || oidType === "number" || oidType === "string";
+
 	useDebounce({
 		value: oidValue,
 		data: widget.data,
 	});
 
 	return (
-		<CollectionBase data={data} oidValue={oidValue} bgActive={false}>
+		<CollectionBase
+			isValidType={isValidType}
+			data={data}
+			oidValue={oidValue}
+			bgActive={false}
+		>
 			{(data.iconActive || data.icon) && (
 				<img
 					alt=""

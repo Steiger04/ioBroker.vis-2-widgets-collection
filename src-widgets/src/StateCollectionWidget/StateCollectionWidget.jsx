@@ -16,7 +16,7 @@ class StateCollectionWidget extends Generic {
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(),
+				CollectionGroupCommonAttributes(["string", "number", "boolean"]),
 				{
 					name: "button", // group name
 					label: "group_button",

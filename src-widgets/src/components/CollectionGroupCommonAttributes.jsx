@@ -34,61 +34,75 @@ export async function getObjectIconAsync(socket, object) {
 	return icon;
 }
 
-async function oidChangeHandlerAsync(field, data, changeData, socket) {
-	if (data.oid) {
-		const object = await socket.getObject(data.oid);
-		const _icon = await getObjectIconAsync(socket, object);
+const oidChangeHandlerAsync =
+	(allowedTypes) => async (field, data, changeData, socket) => {
+		if (data.oid) {
+			const object = await socket.getObject(data.oid);
+			if (!object) return;
 
-		data.icon = _icon;
-		data.oidType = object?.common?.type;
-		data.write = object?.common?.write;
-		data.noButton = !object?.common?.write;
-		data.unit = object?.common?.unit || "";
-		data.minValue = object?.common?.min || 0;
-		data.maxValue = object?.common?.max || 100;
+			const oidType = object.common?.type;
+			if (!allowedTypes.includes(oidType)) return;
 
-		if (object?.common?.states) {
-			if (Array.isArray(object.common.states)) {
-				// convert to {'state1': 'state1', 'state2': 'state2', ...}
-				const states = {};
-				object.common.states.forEach((state) => {
-					states[state] = state;
-				});
-				object.common.states = states;
+			const _icon = await getObjectIconAsync(socket, object);
+
+			data.oidType = oidType;
+			data.write = object?.common?.write;
+			data.noButton = !object?.common?.write;
+			data.unit = object?.common?.unit || "";
+			data.minValue = object?.common?.min || 0;
+			data.maxValue = object?.common?.max || 100;
+
+			data.icon = _icon;
+
+			if (object?.common?.states) {
+				if (Array.isArray(object.common.states)) {
+					// convert to {'state1': 'state1', 'state2': 'state2', ...}
+					const states = {};
+					object.common.states.forEach((state) => {
+						states[state] = state;
+					});
+					object.common.states = states;
+				}
+
+				data.values_count = Object.keys(object.common.states).length;
+
+				Object.entries(object.common.states).forEach(
+					([value, alias], index) => {
+						data[`value${index + 1}`] = value;
+						data[`alias${index + 1}`] = alias;
+					},
+				);
+
+				changeData(data);
+			} else if (object?.common?.type === "boolean") {
+				data.values_count = 2;
+				data.value1 = true;
+				data.alias1 = "TRUE";
+				data.value2 = false;
+				data.alias2 = "FALSE";
+
+				changeData(data);
+			} else if (object?.common) {
+				data.values_count = 0;
+
+				changeData(data);
 			}
-
-			data.values_count = Object.keys(object.common.states).length;
-
-			Object.entries(object.common.states).forEach(([value, alias], index) => {
-				data[`value${index + 1}`] = value;
-				data[`alias${index + 1}`] = alias;
-			});
-
-			changeData(data);
-		} else if (object?.common?.type === "boolean") {
-			data.values_count = 2;
-			data.value1 = true;
-			data.alias1 = "TRUE";
-			data.value2 = false;
-			data.alias2 = "FALSE";
-
-			changeData(data);
-		} else if (object?.common) {
+		} else {
+			data.icon = null;
+			data.onlyStates = null;
+			data.write = false;
+			data.noButton = true;
+			for (let i = 1; i <= data.values_count; i++) {
+				delete data[`value${i}`];
+				delete data[`alias${i}`];
+			}
 			data.values_count = 0;
 
 			changeData(data);
 		}
-	} else {
-		data.icon = null;
-		data.onlyStates = null;
-		data.write = false;
-		data.noButton = true;
-		data.g_switch = false;
-		changeData(data);
-	}
-}
+	};
 
-function CollectionGroupCommonAttributes() {
+function CollectionGroupCommonAttributes(allowedTypes = []) {
 	return {
 		name: "common", // group name
 		fields: [
@@ -96,7 +110,7 @@ function CollectionGroupCommonAttributes() {
 				name: "oid",
 				type: "id",
 				label: "oid",
-				onChange: oidChangeHandlerAsync,
+				onChange: oidChangeHandlerAsync(allowedTypes),
 			},
 			{
 				name: "unit",

@@ -14,7 +14,7 @@ class ButtonGroupCollectionWidget extends Generic {
 			visName: "ButtonGroupCollectionWidget", // Name of widget
 			visWidgetLabel: "button_group_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(),
+				CollectionGroupCommonAttributes(["string", "number", "boolean"]),
 				{
 					name: "buttonGroup",
 					label: "button_group",

@@ -5,11 +5,17 @@ import useSignals from "../hooks/useSignals";
 import useSize from "../hooks/useSize";
 import useStyles from "../hooks/useStyles";
 
-const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
+const CollectionBase = ({
+	children,
+	data,
+	oidValue,
+	isValidType = true,
+	bgActive = true,
+}) => {
 	const [ref, setRef] = useState(null);
 	const headerRef = useRef(null);
 	const footerRef = useRef(null);
-	const { wrappedContent, widget } = useContext(CollectionContext);
+	const { wrappedContent, widget, oidObject } = useContext(CollectionContext);
 	const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(
 		widget.style,
 	);
@@ -21,16 +27,20 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 
 	useSignals();
 
+	const oid = oidObject?._id;
+
 	const footerValue = data.footer || data.alias || data.value || oidValueUnit;
 
 	useEffect(() => {
 		if (widget.data.noFooter || !footerValue) return;
-		footerRef.current.innerHTML = footerValue;
+		if (footerRef && footerRef.current)
+			footerRef.current.innerHTML = footerValue;
 	}, [footerValue, widget.data.noFooter]);
 
 	useEffect(() => {
 		if (widget.data.noHeader || !data.header) return;
-		headerRef.current.innerHTML = data.header;
+		if (headerRef && headerRef.current)
+			headerRef.current.innerHTML = data.header;
 	}, [data.header, widget.data.noHeader]);
 
 	return (
@@ -68,99 +78,138 @@ const CollectionBase = ({ children, data, oidValue, bgActive = true }) => {
 					: "transparent",
 			}}
 		>
-			{!widget.data.noHeader && (
+			{isValidType ? (
+				<>
+					{!widget.data.noHeader && (
+						<Box
+							sx={{
+								width: "100%",
+								mt: widget.data.basePadding / 2,
+								mb: -widget.data.basePadding / 2,
+							}}
+						>
+							<Typography
+								ref={headerRef}
+								noWrap
+								variant="body2"
+								sx={{
+									...fontStyles,
+									...textStyles,
+									fontSize: data.headerSize,
+									color:
+										widget.data.textColor ||
+										data.textColorActive ||
+										data.textColor,
+								}}
+							/>
+						</Box>
+					)}
+
+					<Box
+						className="BASE-BOX-1"
+						ref={setRef}
+						sx={{
+							overflow: "hidden",
+
+							p: widget.data.basePadding,
+
+							width: "100%",
+							height: "100%",
+
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+						}}
+					>
+						<Paper
+							className="BASE-PAPER-1"
+							elevation={widget.data.baseElevation}
+							square={!widget.data.basePadding || widget.data.squaredCorner}
+							variant={widget.data.outlined ? "outlined" : "elevation"}
+							sx={{
+								overflow: "hidden",
+
+								width: width,
+								height: height,
+
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+
+								borderColor: !wrappedContent
+									? data.backgroundColorActive || data.backgroundColor
+									: null,
+								background: wrappedContent
+									? widget.data.backgroundColorActive ||
+										(bgActive && data.backgroundColorActive) ||
+										data.backgroundColor ||
+										widget.data.backgroundActive ||
+										(bgActive && data.backgroundActive) ||
+										data.background
+									: "transparent",
+								borderRadius:
+									widget.data.circle || widget.data.ellipse ? "50%" : null,
+							}}
+						>
+							{children}
+						</Paper>
+					</Box>
+
+					{!widget.data.noFooter && (
+						<Box
+							sx={{
+								width: "100%",
+								mt: -widget.data.basePadding / 2,
+								mb: widget.data.basePadding / 2,
+							}}
+						>
+							<Typography
+								ref={footerRef}
+								noWrap
+								variant="body2"
+								sx={{
+									...fontStyles,
+									...textStyles,
+									fontSize: data.footerSize,
+									color:
+										widget.data.textColor ||
+										data.textColorActive ||
+										data.textColor,
+								}}
+							/>
+						</Box>
+					)}
+				</>
+			) : (
 				<Box
 					sx={{
 						width: "100%",
-						mt: widget.data.basePadding / 2,
-						mb: -widget.data.basePadding / 2,
-					}}
-				>
-					<Typography
-						ref={headerRef}
-						noWrap
-						variant="body2"
-						sx={{
-							...fontStyles,
-							...textStyles,
-							fontSize: data.headerSize,
-							color:
-								widget.data.textColor || data.textColorActive || data.textColor,
-						}}
-					/>
-				</Box>
-			)}
-
-			<Box
-				className="BASE-BOX-1"
-				ref={setRef}
-				sx={{
-					overflow: "hidden",
-
-					p: widget.data.basePadding,
-
-					width: "100%",
-					height: "100%",
-
-					display: "flex",
-					justifyContent: "center",
-					alignItems: "center",
-				}}
-			>
-				<Paper
-					className="BASE-PAPER-1"
-					elevation={widget.data.baseElevation}
-					square={!widget.data.basePadding || widget.data.squaredCorner}
-					variant={widget.data.outlined ? "outlined" : "elevation"}
-					sx={{
-						overflow: "hidden",
-
-						width: width,
-						height: height,
+						height: "100%",
 
 						display: "flex",
 						justifyContent: "center",
 						alignItems: "center",
-
-						borderColor: !wrappedContent
-							? data.backgroundColorActive || data.backgroundColor
-							: null,
-						background: wrappedContent
-							? widget.data.backgroundColorActive ||
-								(bgActive && data.backgroundColorActive) ||
-								data.backgroundColor ||
-								widget.data.backgroundActive ||
-								(bgActive && data.backgroundActive) ||
-								data.background
-							: "transparent",
-						borderRadius:
-							widget.data.circle || widget.data.ellipse ? "50%" : null,
 					}}
 				>
-					{children}
-				</Paper>
-			</Box>
-
-			{!widget.data.noFooter && (
-				<Box
-					sx={{
-						width: "100%",
-						mt: -widget.data.basePadding / 2,
-						mb: widget.data.basePadding / 2,
-					}}
-				>
-					<Typography
-						ref={footerRef}
-						noWrap
-						variant="body2"
-						sx={{
-							...fontStyles,
-							...textStyles,
-							fontSize: data.footerSize,
-							color:
-								widget.data.textColor || data.textColorActive || data.textColor,
-						}}
-					/>
+					<Typography color="primary.main" variant="body2">
+						{oid ? (
+							<>
+								<b>{oid}</b>
+								<br />
+								<div
+									style={{
+										paddingTop: "0.5em",
+										width: "100%",
+										textAlign: "center",
+									}}
+								>
+									has an invalid type!
+								</div>
+							</>
+						) : (
+							"Please select an object ID"
+						)}
+					</Typography>
 				</Box>
 			)}
 		</Paper>

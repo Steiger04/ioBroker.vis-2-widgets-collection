@@ -14,7 +14,7 @@ class SwitchCollectionWidget extends Generic {
 			visName: "SwitchCollectionWidget", // Name of widget
 			visWidgetLabel: "switch_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(),
+				CollectionGroupCommonAttributes(["boolean"]),
 				{
 					name: "switch",
 					label: "group_switch",

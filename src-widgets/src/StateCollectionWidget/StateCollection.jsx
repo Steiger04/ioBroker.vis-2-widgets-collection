@@ -37,6 +37,10 @@ function StateCollection() {
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
+
+	const isValidType =
+		oidType === "boolean" || oidType === "number" || oidType === "string";
+
 	const onlyStates = widget.data.onlyStates;
 
 	const contentValue = data.alias || data.value || oidValueUnit;
@@ -184,7 +188,7 @@ function StateCollection() {
 					closeHandler={() => setOpen(false)}
 				/>
 			)}
-			<CollectionBase data={data} oidValue={oidValue}>
+			<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
 				<Box
 					sx={{
 						width: "100%",

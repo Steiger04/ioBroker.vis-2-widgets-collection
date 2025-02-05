@@ -15,7 +15,7 @@ class SliderCollectionWidget extends Generic {
 			visName: "SliderCollectionWidget", // Name of widget
 			visWidgetLabel: "slider_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(),
+				CollectionGroupCommonAttributes(["number"]),
 				{
 					name: "slider",
 					label: "group_slider",

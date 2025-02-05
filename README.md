@@ -33,6 +33,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) only valid oid's allowed
+
 ### 1.1.15 (2025-02-05)
 
 - (steiger04) bugfixing Slider

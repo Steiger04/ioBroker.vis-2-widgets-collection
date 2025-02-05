@@ -31,6 +31,8 @@ function SliderCollection() {
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
+	const isValidType = oidType === "number";
+
 	useDebounce({
 		value: oidValue,
 		data: widget.data,
@@ -119,7 +121,7 @@ function SliderCollection() {
 	}, [data.value, sliderMarks]);
 
 	return (
-		<CollectionBase data={data} oidValue={oidValue}>
+		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
 			<Box
 				sx={{
 					width: "100%",
