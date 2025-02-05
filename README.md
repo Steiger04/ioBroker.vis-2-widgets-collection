@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.16 (2025-02-05)
 
 - (steiger04) only valid oid's allowed
 

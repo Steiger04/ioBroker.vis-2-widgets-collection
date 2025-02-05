@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.15",
+    "version": "1.1.16",
     "news": {
+      "1.1.16": {
+        "en": "only valid oid's allowed",
+        "de": "nur gültig oid's erlaubt",
+        "ru": "разрешен только действительный oid",
+        "pt": "apenas um oid válido é permitido",
+        "nl": "alleen geldige oid's toegestaan",
+        "fr": "seul l'aide valide est autorisée",
+        "it": "consentito solo oid valido",
+        "es": "sólo válida oid permitida",
+        "pl": "tylko ważny oid jest dozwolony",
+        "uk": "тільки допустимо допустиме oid",
+        "zh-cn": "只允许有效的 oid "
+      },
       "1.1.15": {
         "en": "bugfixing Slider",
         "de": "bugfixing Slider",
@@ -80,19 +93,6 @@
         "pl": "HTML- Tekst nagłówka, wartości i stopki",
         "uk": "HTML-Text для заголовка, значення та нижній колонтитул",
         "zh-cn": "页眉、值和页脚的 HTML- Text"
-      },
-      "1.1.9": {
-        "en": "bugfixing style bindings",
-        "de": "bugfixing style bindungen",
-        "ru": "bugfixing style bindings",
-        "pt": "ligações de estilo de correção de bugs",
-        "nl": "bugfixing stijl bindingen",
-        "fr": "fixation du style de fixation des bugs",
-        "it": "bugfixing stile bindings",
-        "es": "accesorios de estilo de bugfixing",
-        "pl": "segregatory stylowe",
-        "uk": "виправлення стилів",
-        "zh-cn": "错误修正样式绑定"
       }
     },
     "titleLang": {
