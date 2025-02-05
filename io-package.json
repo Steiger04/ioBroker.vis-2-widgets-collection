@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.16",
+    "version": "1.1.17",
     "news": {
+      "1.1.17": {
+        "en": "bugfixing header / footer",
+        "de": "bugfixing header / fußzeile",
+        "ru": "bugfixing заголовок",
+        "pt": "cabeçalho / rodapé",
+        "nl": "bugfixing header / footer",
+        "fr": "bugfixing en-tête / pied de page",
+        "it": "bugfixing header / footer",
+        "es": "cabecera de bugfixing / pie",
+        "pl": "nagłówek / stopka do ustawiania błędów",
+        "uk": "виправлення головки / нижній колонтитул",
+        "zh-cn": "错误修正页眉/页脚"
+      },
       "1.1.16": {
         "en": "only valid oid's allowed",
         "de": "nur gültig oid's erlaubt",
@@ -80,19 +93,6 @@
         "pl": "Optymalizacja HTML- Text",
         "uk": "Оптимізація HTML-Text",
         "zh-cn": "HTML 文本优化"
-      },
-      "1.1.10": {
-        "en": "HTML-Text for header, value and footer",
-        "de": "HTML-Text für Header, Wert und Footer",
-        "ru": "HTML-Текст для заголовка, значения и футера",
-        "pt": "HTML-Texto para cabeçalho, valor e rodapé",
-        "nl": "HTML-tekst voor header, waarde en voettekst",
-        "fr": "HTML-Text pour l'en-tête, la valeur et le pied de page",
-        "it": "HTML-Text per intestazione, valore e piè di pagina",
-        "es": "HTML-Texto para cabecera, valor y pie",
-        "pl": "HTML- Tekst nagłówka, wartości i stopki",
-        "uk": "HTML-Text для заголовка, значення та нижній колонтитул",
-        "zh-cn": "页眉、值和页脚的 HTML- Text"
       }
     },
     "titleLang": {

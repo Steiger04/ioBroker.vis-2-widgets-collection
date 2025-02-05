@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.17 (2025-02-05)
 
 - (steiger04) bugfixing header / footer
 
