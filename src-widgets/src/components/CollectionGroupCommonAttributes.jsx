@@ -68,8 +68,24 @@ const oidChangeHandlerAsync =
 
 				Object.entries(object.common.states).forEach(
 					([value, alias], index) => {
-						data[`value${index + 1}`] = value;
-						data[`alias${index + 1}`] = alias;
+						switch (oidType) {
+							case "boolean":
+								data[`value${index + 1}`] = value === "true";
+								data[`alias${index + 1}`] = alias;
+								break;
+
+							case "number":
+								data[`value${index + 1}`] = Number(value);
+								data[`alias${index + 1}`] = alias;
+								break;
+							case "string":
+								data[`value${index + 1}`] = value;
+								data[`alias${index + 1}`] = alias;
+								break;
+
+							default:
+								break;
+						}
 					},
 				);
 

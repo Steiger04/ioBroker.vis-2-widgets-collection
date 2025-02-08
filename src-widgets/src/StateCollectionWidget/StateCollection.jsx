@@ -10,16 +10,15 @@ import CollectionBase from "../components/CollectionBase";
 import CollectionChangeDialog from "../components/CollectionChangeDialog";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-// import useOidValue from "../hooks/useOidValue";
+import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
 	const contentRef = useRef(null);
-	const { setValue, widget, oidObject, getPropertyValue } =
-		useContext(CollectionContext);
+	const { setValue, widget, oidObject } = useContext(CollectionContext);
 	const { data, widgetStates } = useData("oid");
-	// const oidValue = useOidValue("oid");
-	const oidValue = getPropertyValue("oid");
+	const oidValue = useOidValue("oid");
+	// const oidValue = getPropertyValue("oid");
 
 	/* const oidValueUnit =
 		(oidValue || oidValue === 0 || oidValue === false) &&
@@ -120,8 +119,10 @@ function StateCollection() {
 						<Avatar
 							variant="square"
 							src={data.iconActive || data.icon}
-							slotProps={{
-								img: { style: { objectFit: "contain" } },
+							imgProps={{
+								style: {
+									objectFit: "contain",
+								},
 							}}
 							sx={{
 								overflow: "hidden",

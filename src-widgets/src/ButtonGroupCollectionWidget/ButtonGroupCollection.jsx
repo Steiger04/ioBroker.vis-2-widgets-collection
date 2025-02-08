@@ -10,16 +10,15 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-// import useOidValue from "../hooks/useOidValue";
+import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
-	const { values, setState, oidObject, widget, getPropertyValue } =
-		useContext(CollectionContext);
-	const { data, states, activeIndex } = useData("oid");
+	const { values, setState, oidObject, widget } = useContext(CollectionContext);
+	const { data, states, widgetStates, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
-	// const oidValue = useOidValue("oid");
-	const oidValue = getPropertyValue("oid");
+	const oidValue = useOidValue("oid");
+	// const oidValue = getPropertyValue("oid");
 
 	const buttonGroupVariant = widget.data.buttonGroupVariant;
 	const buttonGroupOrientation = widget.data.buttonGroupOrientation;
@@ -274,6 +273,8 @@ function ButtonGroupCollection() {
 														position: "relative",
 														bottom: widget.data[`iconYOffset${index + 1}`],
 														left: widget.data[`iconXOffset${index + 1}`],
+
+														objectFit: "contain",
 
 														width:
 															(activeIndex === index + 1 &&

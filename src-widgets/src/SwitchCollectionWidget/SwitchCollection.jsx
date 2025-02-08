@@ -4,16 +4,15 @@ import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useDebounce from "../hooks/useDebounce";
-// import useOidValue from "../hooks/useOidValue";
+import useOidValue from "../hooks/useOidValue";
 import MaterialUISwitch from "./MaterialUISwitch";
 
 function SwitchCollection() {
 	const ref = useRef(null);
-	const { setValue, oidObject, widget, getPropertyValue } =
-		useContext(CollectionContext);
+	const { setValue, oidObject, widget } = useContext(CollectionContext);
 	const { data } = useData("oid");
-	// const oidValue = useOidValue("oid");
-	const oidValue = getPropertyValue("oid");
+	const oidValue = useOidValue("oid");
+	// const oidValue = getPropertyValue("oid");
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
