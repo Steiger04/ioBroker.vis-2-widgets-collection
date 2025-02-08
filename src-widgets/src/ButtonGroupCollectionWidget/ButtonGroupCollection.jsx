@@ -15,7 +15,7 @@ import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
 	const { values, setState, oidObject, widget } = useContext(CollectionContext);
-	const { data, states, widgetStates, activeIndex } = useData("oid");
+	const { data, states, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
 	const oidValue = useOidValue("oid");
 	// const oidValue = getPropertyValue("oid");
@@ -288,7 +288,8 @@ function ButtonGroupCollection() {
 																widget.data.iconSizeActive &&
 																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
 															(widget.data[`iconSize${index + 1}`] &&
-																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`),
+																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`) ||
+															"100%",
 														color:
 															(activeIndex === index + 1 &&
 																widget.data.iconColorActive) ||
