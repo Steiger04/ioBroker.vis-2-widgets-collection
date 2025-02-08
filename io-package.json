@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.17",
+    "version": "1.1.18",
     "news": {
+      "1.1.18": {
+        "en": "State optimized",
+        "de": "Zustand optimiert",
+        "ru": "Оптимизация государства",
+        "pt": "Estado otimizado",
+        "nl": "Staat geoptimaliseerd",
+        "fr": "État optimisé",
+        "it": "Stato ottimizzato",
+        "es": "Estado optimizado",
+        "pl": "Stan zoptymalizowany",
+        "uk": "Державний оптимізований",
+        "zh-cn": "状态优化"
+      },
       "1.1.17": {
         "en": "bugfixing header / footer",
         "de": "bugfixing header / fußzeile",
@@ -80,19 +93,6 @@
         "pl": "Aktywna grupa dla dodanego slidera",
         "uk": "Додана активна група для слайдера",
         "zh-cn": "已添加幻灯片活动组"
-      },
-      "1.1.11": {
-        "en": "HTML-Text optimizations",
-        "de": "HTML-Text-Optimierungen",
-        "ru": "HTML-Text оптимизация",
-        "pt": "Otimizações HTML-Texto",
-        "nl": "HTML-Text optimalisaties",
-        "fr": "Optimisations HTML-Text",
-        "it": "Ottimizzazione HTML-Text",
-        "es": "Optimizaciones HTML-Text",
-        "pl": "Optymalizacja HTML- Text",
-        "uk": "Оптимізація HTML-Text",
-        "zh-cn": "HTML 文本优化"
       }
     },
     "titleLang": {

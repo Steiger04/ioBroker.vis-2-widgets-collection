@@ -33,7 +33,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.18 (2025-02-08)
 
 - (steiger04) State optimized
 
