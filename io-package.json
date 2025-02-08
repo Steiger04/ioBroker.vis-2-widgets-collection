@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.1.18",
+    "version": "1.1.19",
     "news": {
+      "1.1.19": {
+        "en": "Button group optimized",
+        "de": "Tastengruppe optimiert",
+        "ru": "Группа «Кнотон» оптимизирована",
+        "pt": "Grupo de botões otimizado",
+        "nl": "Knopgroep geoptimaliseerd",
+        "fr": "Groupe de boutons optimisé",
+        "it": "Gruppo pulsante ottimizzato",
+        "es": "Grupo Button optimizado",
+        "pl": "Grupa przycisku zoptymalizowana",
+        "uk": "Оптимізована кнопка",
+        "zh-cn": "按钮组优化"
+      },
       "1.1.18": {
         "en": "State optimized",
         "de": "Zustand optimiert",
@@ -80,19 +93,6 @@
         "pl": "opóźnienie za pomocą przepustnicy i debuuncji zoptymalizowane",
         "uk": "затримка через дросель і відмову оптимізовано",
         "zh-cn": "通过节流阀和减速优化延迟"
-      },
-      "1.1.12": {
-        "en": "Active group for slider added",
-        "de": "Aktive Gruppe für Slider hinzugefügt",
-        "ru": "Активная группа для добавления слайдера",
-        "pt": "Grupo ativo para controle deslizante adicionado",
-        "nl": "Actieve groep voor slider toegevoegd",
-        "fr": "Groupe actif pour slider ajouté",
-        "it": "Gruppo attivo per cursore aggiunto",
-        "es": "Grupo activo para slider añadido",
-        "pl": "Aktywna grupa dla dodanego slidera",
-        "uk": "Додана активна група для слайдера",
-        "zh-cn": "已添加幻灯片活动组"
       }
     },
     "titleLang": {
