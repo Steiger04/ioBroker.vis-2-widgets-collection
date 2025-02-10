@@ -12,5 +12,6 @@ module.exports = makeFederation(
 		"./translations": "./src/translations",
 		"./SwitchCollectionWidget":
 			"./src/SwitchCollectionWidget/SwitchCollectionWidget",
+		"./ListCollectionWidget": "./src/ListCollectionWidget/ListCollectionWidget",
 	},
 );
