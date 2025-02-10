@@ -4,6 +4,7 @@
 	"slider_collection_widget": "Slider (number)",
 	"button_group_collection_widget": "Button group (boolean, number, string)",
 	"switch_collection_widget": "Switch (boolean)",
+	"list_collection_widget": "List (state, switch, button group, slider)",
 	"group_button": "State",
 	"group_slider": "Slider",
 	"group_switch": "Switch",
