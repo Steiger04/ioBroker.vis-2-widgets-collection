@@ -37,7 +37,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.2.0 (2025-02-16)
 
 - (steiger04) Checkbox added and widget optimizations
 
