@@ -93,5 +93,16 @@
     "thumb_color_false": "Cor do polegar (falso)",
     "track_size": "Tamanho da trilha",
     "track_color": "Cor da trilha",
-    "no_value": "Sem valor"
+    "no_value": "Sem valor",
+    "checkbox_collection_widget": "Caixa de seleção (booleano)",
+    "checkbox_label_placement": "Posicionamento da etiqueta",
+    "checkbox_top": "Principal",
+    "checkbox_bottom": "Fundo",
+    "checkbox_start": "Começar",
+    "checkbox_end": "Fim",
+    "without_label": "Sem rótulo",
+    "group_checkbox": "Caixa de seleção",
+    "checkbox": "Caixa de seleção",
+    "label": "Rótulo",
+    "only_display": "Exibir apenas"
 }

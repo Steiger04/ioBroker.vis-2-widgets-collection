@@ -93,5 +93,16 @@
     "thumb_color_false": "Колір великого пальця (помилковий)",
     "track_size": "Розмір треку",
     "track_color": "Колір доріжки",
-    "no_value": "Немає значення"
+    "no_value": "Немає значення",
+    "checkbox_collection_widget": "Прапорець (булевий)",
+    "checkbox_label_placement": "Розміщення мітки",
+    "checkbox_top": "Топ",
+    "checkbox_bottom": "Дно",
+    "checkbox_start": "Почати",
+    "checkbox_end": "Кінець",
+    "without_label": "Без етикетки",
+    "group_checkbox": "Прапорець",
+    "checkbox": "Прапорець",
+    "label": "Мітка",
+    "only_display": "Тільки дисплей"
 }

@@ -93,5 +93,16 @@
     "thumb_color_false": "Color del pulgar (falso)",
     "track_size": "Tamaño de la pista",
     "track_color": "Color de la pista",
-    "no_value": "Sin valor"
+    "no_value": "Sin valor",
+    "checkbox_collection_widget": "Casilla de verificación (booleano)",
+    "checkbox_label_placement": "Colocación de etiquetas",
+    "checkbox_top": "Arriba",
+    "checkbox_bottom": "Abajo",
+    "checkbox_start": "Comenzar",
+    "checkbox_end": "Fin",
+    "without_label": "Sin etiqueta",
+    "group_checkbox": "Caja",
+    "checkbox": "Caja",
+    "label": "Etiqueta",
+    "only_display": "Solo visualización"
 }

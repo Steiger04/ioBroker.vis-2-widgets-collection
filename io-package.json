@@ -16,19 +16,6 @@
         "uk": "Оптимізована кнопка",
         "zh-cn": "按钮组优化"
       },
-      "1.1.18": {
-        "en": "State optimized",
-        "de": "Zustand optimiert",
-        "ru": "Оптимизация государства",
-        "pt": "Estado otimizado",
-        "nl": "Staat geoptimaliseerd",
-        "fr": "État optimisé",
-        "it": "Stato ottimizzato",
-        "es": "Estado optimizado",
-        "pl": "Stan zoptymalizowany",
-        "uk": "Державний оптимізований",
-        "zh-cn": "状态优化"
-      },
       "1.1.17": {
         "en": "bugfixing header / footer",
         "de": "bugfixing header / fußzeile",
@@ -158,7 +145,7 @@
           "SliderCollectionWidget",
           "ButtonGroupCollectionWidget",
           "SwitchCollectionWidget",
-					"ListCollectionWidget"
+          "CheckboxCollectionWidget"
         ]
       }
     },

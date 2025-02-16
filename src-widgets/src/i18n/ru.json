@@ -93,5 +93,16 @@
     "thumb_color_false": "Цвет большого пальца (ложь)",
     "track_size": "Размер трека",
     "track_color": "Трек цвет",
-    "no_value": "Нет значения"
+    "no_value": "Нет значения",
+    "checkbox_collection_widget": "Флакторы (логический)",
+    "checkbox_label_placement": "Расположение ярлыков",
+    "checkbox_top": "Вершина",
+    "checkbox_bottom": "Нижний",
+    "checkbox_start": "Начинать",
+    "checkbox_end": "Конец",
+    "without_label": "Без ярлыка",
+    "group_checkbox": "Флажок",
+    "checkbox": "Флажок",
+    "label": "Этикетка",
+    "only_display": "Только дисплей"
 }

@@ -4,7 +4,7 @@
 	"slider_collection_widget": "Slider (number)",
 	"button_group_collection_widget": "Button group (boolean, number, string)",
 	"switch_collection_widget": "Switch (boolean)",
-	"list_collection_widget": "List (state, switch, button group, slider)",
+	"checkbox_collection_widget": "Checkbox (boolean)",
 	"group_button": "State",
 	"group_slider": "Slider",
 	"group_switch": "Switch",
@@ -93,5 +93,15 @@
 	"thumb_color_true": "Thumb color (true)",
 	"thumb_color_false": "Thumb color (false)",
 	"track_size": "Track size",
-	"track_color": "Track color"
+	"track_color": "Track color",
+	"checkbox_label_placement": "Label placement",
+	"checkbox_top": "Top",
+	"checkbox_bottom": "Bottom",
+	"checkbox_start": "Start",
+	"checkbox_end": "End",
+	"without_label": "Without label",
+	"group_checkbox": "Checkbox",
+	"checkbox": "Checkbox",
+	"label": "Label",
+	"only_display": "Only display"
 }

@@ -1,8 +1,9 @@
 import React from "react";
 import Generic from "../Generic";
-import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
-import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
+import buttonGroupFields from "../lib/buttonGroupFields";
+import commonFields from "../lib/commonFields";
+import commonObjectFields from "../lib/commonObjectFields";
 import ButtonGroupCollection from "./ButtonGroupCollection";
 
 class ButtonGroupCollectionWidget extends Generic {
@@ -14,55 +15,30 @@ class ButtonGroupCollectionWidget extends Generic {
 			visName: "ButtonGroupCollectionWidget", // Name of widget
 			visWidgetLabel: "button_group_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(["string", "number", "boolean"]),
+				{
+					name: "common", // group name
+					fields: [...commonFields()],
+				},
 				{
 					name: "buttonGroup",
 					label: "button_group",
 					fields: [
-						{
-							name: "onlyIcon",
-							type: "checkbox",
-							label: "only_icon",
-							hidden: "data.onlyText",
-						},
-						{
-							name: "onlyText",
-							type: "checkbox",
-							label: "only_text",
-							hidden: "data.onlyIcon",
-						},
-						{
-							name: "buttonGroupVariant",
-							label: "button_group_variant",
-							type: "select",
-							options: [
-								{ value: "text", label: "button_group_text" },
-								{ value: "outlined", label: "button_group_outlined" },
-							],
-							default: "text",
-						},
-						{
-							name: "buttonGroupOrientation",
-							label: "button_group_orientation",
-							type: "select",
-							options: [
-								{ value: "horizontal", label: "horizontal" },
-								{ value: "vertical", label: "vertical" },
-							],
-							default: "horizontal",
-						},
-						{
-							name: "buttonGroupColor",
-							label: "button_group_color",
-							type: "color",
-						},
+						...commonObjectFields(["string", "number", "boolean"]),
+						...buttonGroupFields(),
 					],
 				},
-				CollectionGroupAttributes("active"),
-				// CollectionGroupAttributes("on"),
-				// CollectionGroupAttributes("off"),
-				CollectionGroupAttributes("values"),
-
+				{
+					name: "active",
+					label: "group_active",
+					fields: [...commonFields({ groupName: "Active", allFields: false })],
+				},
+				{
+					name: "values",
+					label: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					fields: [...commonFields({ groupName: "", allFields: false })],
+				},
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
 			visDefaultStyle: {

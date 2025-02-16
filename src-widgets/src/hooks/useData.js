@@ -127,10 +127,6 @@ function useData(oid) {
 
 	// Styling-Daten
 	const data = useMemo(() => {
-		/* // Hilfsfunktionen
-		const formatSize = (size) => (typeof size === "number" ? `${size}%` : null);
-		const getDataValue = (key, ext = "") => widget.data[`${key}${ext}`]; */
-
 		const getStyleData = (ext = "") => ({
 			textColor:
 				widget.data.textColor || textStyles.color || theme.palette.primary.main,

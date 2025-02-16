@@ -27,12 +27,20 @@
 
 <img src="/img/collection-switch.png" height="150">
 
+### Checkbox
+
+<img src="/img/collection-checkbox.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) Checkbox added and widget optimizations
+
 ### 1.1.19 (2025-02-08)
 
 - (steiger04) Button group optimized

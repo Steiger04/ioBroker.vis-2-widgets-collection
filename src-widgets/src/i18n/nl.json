@@ -93,5 +93,16 @@
     "thumb_color_false": "Duimkleur (onwaar)",
     "track_size": "Trackgrootte",
     "track_color": "Kleur bijhouden",
-    "no_value": "Geen waarde"
+    "no_value": "Geen waarde",
+    "checkbox_collection_widget": "Selectievakje (Boolean)",
+    "checkbox_label_placement": "Etiketing",
+    "checkbox_top": "Bovenkant",
+    "checkbox_bottom": "Onderkant",
+    "checkbox_start": "Begin",
+    "checkbox_end": "Einde",
+    "without_label": "Zonder label",
+    "group_checkbox": "Selectievakje",
+    "checkbox": "Selectievakje",
+    "label": "Label",
+    "only_display": "Alleen weergave"
 }

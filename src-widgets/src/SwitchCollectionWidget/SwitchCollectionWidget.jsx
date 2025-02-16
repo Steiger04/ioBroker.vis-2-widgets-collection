@@ -1,8 +1,9 @@
 import React from "react";
 import Generic from "../Generic";
-import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
-import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
+import commonFields from "../lib/commonFields";
+import commonObjectFields from "../lib/commonObjectFields";
+import switchFields from "../lib/switchFields";
 import SwitchCollection from "./SwitchCollection";
 
 class SwitchCollectionWidget extends Generic {
@@ -14,47 +15,23 @@ class SwitchCollectionWidget extends Generic {
 			visName: "SwitchCollectionWidget", // Name of widget
 			visWidgetLabel: "switch_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(["boolean"]),
+				// CollectionGroupCommonAttributes(["boolean"]),
+				{
+					name: "common", // group name
+					fields: [...commonFields()],
+				},
 				{
 					name: "switch",
 					label: "group_switch",
-					fields: [
-						{
-							name: "thumbSize",
-							label: "thumb_size",
-							type: "slider",
-							min: 0,
-							max: 500,
-							default: 62,
-							step: 1,
-						},
-						{
-							name: "thumbColorTrue",
-							label: "thumb_color_true",
-							type: "color",
-						},
-						{
-							name: "thumbColorFalse",
-							label: "thumb_color_false",
-							type: "color",
-						},
-						{
-							name: "trackSize",
-							label: "track_size",
-							type: "slider",
-							min: 0,
-							max: 100,
-							default: 10,
-							step: 1,
-						},
-						{
-							name: "trackColor",
-							label: "track_color",
-							type: "color",
-						},
-					],
+					fields: [...commonObjectFields(["boolean"]), ...switchFields()],
 				},
-				CollectionGroupAttributes("values"),
+				{
+					name: "values",
+					label: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					fields: [...commonFields({ groupName: "", allFields: false })],
+				},
 
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],

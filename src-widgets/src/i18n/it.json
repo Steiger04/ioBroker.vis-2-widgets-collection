@@ -93,5 +93,16 @@
     "thumb_color_false": "Colore del pollice (falso)",
     "track_size": "Dimensione della traccia",
     "track_color": "Tracciare il colore",
-    "no_value": "Nessun valore"
+    "no_value": "Nessun valore",
+    "checkbox_collection_widget": "Casella di controllo (booleano)",
+    "checkbox_label_placement": "Posizionamento dell'etichetta",
+    "checkbox_top": "Superiore",
+    "checkbox_bottom": "Metter il fondo a",
+    "checkbox_start": "Inizio",
+    "checkbox_end": "FINE",
+    "without_label": "Senza etichetta",
+    "group_checkbox": "Casella di controllo",
+    "checkbox": "Casella di controllo",
+    "label": "Etichetta",
+    "only_display": "Solo visualizzazione"
 }

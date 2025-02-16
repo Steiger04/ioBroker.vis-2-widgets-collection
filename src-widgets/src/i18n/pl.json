@@ -93,5 +93,16 @@
     "thumb_color_false": "Kolor kciuka (fałszywy)",
     "track_size": "Rozmiar ścieżki",
     "track_color": "Kolor ścieżki",
-    "no_value": "Brak wartości"
+    "no_value": "Brak wartości",
+    "checkbox_collection_widget": "Pole wyboru (boolean)",
+    "checkbox_label_placement": "Umieszczenie etykiety",
+    "checkbox_top": "Szczyt",
+    "checkbox_bottom": "Spód",
+    "checkbox_start": "Start",
+    "checkbox_end": "Koniec",
+    "without_label": "Bez etykiety",
+    "group_checkbox": "Pole wyboru",
+    "checkbox": "Pole wyboru",
+    "label": "Etykieta",
+    "only_display": "Tylko wyświetlacz"
 }

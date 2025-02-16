@@ -1,63 +1,37 @@
 import React from "react";
 import Generic from "../Generic";
-import CollectionDivider from "../components/CollectionDivider";
-import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
-import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
-import ListCollection from "./ListCollection";
+import checkboxFields from "../lib/checkboxFields";
+import commonFields from "../lib/commonFields";
+import commonObjectFields from "../lib/commonObjectFields";
+import CheckboxCollection from "./CheckboxCollection";
 
-class ListCollectionWidget extends Generic {
+class CheckboxCollectionWidget extends Generic {
 	static getWidgetInfo() {
 		return {
-			id: "tplListCollectionWidget",
+			id: "tplCheckboxCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visName: "ListCollectionWidget", // Name of widget
-			visWidgetLabel: "list_collection_widget", // Label for widget
+			visName: "CheckboxCollectionWidget", // Name of widget
+			visWidgetLabel: "checkbox_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(["string", "number", "boolean"]),
 				{
-					name: "button", // group name
-					label: "group_button",
-					fields: [
-						{
-							name: "noButton",
-							type: "checkbox",
-							label: "no_button",
-							disabled: "!data.write",
-							default: "!data.write",
-							hidden: "!data.write",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "onlyStates",
-							type: "checkbox",
-							label: "only_states",
-							default: false,
-							hidden: "!data.values_count",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "noIcon",
-							type: "checkbox",
-							label: "no_icon",
-						},
-						{
-							name: "noValue",
-							type: "checkbox",
-							label: "no_value",
-						},
-					],
+					name: "common", // group name
+					fields: [...commonFields({ groupName: "", allFields: true })],
 				},
-				// CollectionGroupAttributes("on"),
-				// CollectionGroupAttributes("off"),
-				CollectionGroupAttributes("values"),
+				{
+					name: "checkbox", // group name
+					label: "group_checkbox",
+					fields: [...commonObjectFields(["boolean"]), ...checkboxFields()],
+				},
+
+				{
+					name: "values",
+					label: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					fields: [...commonFields({ groupName: "", allFields: false })],
+				},
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
 			visDefaultStyle: {
@@ -65,14 +39,15 @@ class ListCollectionWidget extends Generic {
 				height: "100px",
 				position: "relative",
 			},
-			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-list.png",
+			visPrev:
+				"widgets/vis-2-widgets-collection/img/prev-collection-checkbox.png",
 		};
 	}
 
 	// Do not delete this method. It is used by vis to read the widget configuration.
 	// eslint-disable-next-line class-methods-use-this
 	getWidgetInfo() {
-		return ListCollectionWidget.getWidgetInfo();
+		return CheckboxCollectionWidget.getWidgetInfo();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -147,10 +122,10 @@ class ListCollectionWidget extends Generic {
 		}
 
 		return withCollectionProvider(
-			this.wrapContent(<ListCollection />),
+			this.wrapContent(<CheckboxCollection />),
 			collectionContext,
 		);
 	}
 }
 
-export default ListCollectionWidget;
+export default CheckboxCollectionWidget;

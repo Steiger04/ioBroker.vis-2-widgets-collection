@@ -1,55 +1,25 @@
 import { Avatar, Box, Button, Typography } from "@mui/material";
-import React, {
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-	useContext,
-} from "react";
+import React, { useCallback, useState, useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
 import CollectionChangeDialog from "../components/CollectionChangeDialog";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
+import useHtmlValue from "../hooks/useHtmlValue";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function StateCollection() {
-	const contentRef = useRef(null);
+	const [contentRef, setContentRef] = useState(null);
 	const { setValue, widget, oidObject } = useContext(CollectionContext);
+	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data, widgetStates } = useData("oid");
 	const oidValue = useOidValue("oid");
-	// const oidValue = getPropertyValue("oid");
-
-	/* const oidValueUnit =
-		(oidValue || oidValue === 0 || oidValue === false) &&
-		`${oidValue}${widget.data.unit}`; */
-
-	const oidValueUnit =
-		(typeof oidValue === "string" ||
-			typeof oidValue === "number" ||
-			typeof oidValue === "boolean") &&
-		`${oidValue}${widget.data.unit}`;
-
 	const [open, setOpen] = useState(false);
-
-	const { textStyles, fontStyles } = useStyles(widget.style);
 
 	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
-	const isValidType =
-		oidType === "boolean" || oidType === "number" || oidType === "string";
-
 	const onlyStates = widget.data.onlyStates;
-
-	const contentValue = data.alias || data.value || oidValueUnit;
-	const current = contentRef.current;
-
-	useEffect(() => {
-		if (!contentValue || !current) return;
-		current.innerHTML = contentValue;
-	}, [contentValue, current]);
-
 	const clickHandler = useCallback(() => {
 		switch (oidType) {
 			case "boolean": {
@@ -73,7 +43,7 @@ function StateCollection() {
 
 	const StateButton = (
 		<Button
-			disabled={widget.data.noButton}
+			disabled={widget.data.onlyDisplay}
 			onClick={clickHandler}
 			sx={{
 				width: "100%",
@@ -162,7 +132,7 @@ function StateCollection() {
 						}}
 					>
 						<Typography
-							ref={contentRef}
+							ref={setContentRef}
 							variant="body2"
 							sx={{
 								...fontStyles,
@@ -178,6 +148,11 @@ function StateCollection() {
 			</Box>
 		</Button>
 	);
+
+	useHtmlValue(contentRef, oidValue, widget, data);
+
+	const isValidType =
+		oidType === "boolean" || oidType === "number" || oidType === "string";
 
 	return (
 		<>

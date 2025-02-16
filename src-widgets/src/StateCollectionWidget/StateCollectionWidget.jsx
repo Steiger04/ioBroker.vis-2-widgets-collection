@@ -1,9 +1,9 @@
 import React from "react";
 import Generic from "../Generic";
-import CollectionDivider from "../components/CollectionDivider";
-import CollectionGroupAttributes from "../components/CollectionGroupAttributes";
-import CollectionGroupCommonAttributes from "../components/CollectionGroupCommonAttributes";
 import withCollectionProvider from "../components/withCollectionProvider";
+import commonFields from "../lib/commonFields";
+import commonObjectFields from "../lib/commonObjectFields";
+import stateFields from "../lib/stateFields";
 import StateCollection from "./StateCollection";
 
 class StateCollectionWidget extends Generic {
@@ -16,49 +16,25 @@ class StateCollectionWidget extends Generic {
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
 			visAttrs: [
-				CollectionGroupCommonAttributes(["string", "number", "boolean"]),
+				{
+					name: "common", // group name
+					fields: [...commonFields()],
+				},
 				{
 					name: "button", // group name
 					label: "group_button",
 					fields: [
-						{
-							name: "noButton",
-							type: "checkbox",
-							label: "no_button",
-							disabled: "!data.write",
-							default: "!data.write",
-							hidden: "!data.write",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "onlyStates",
-							type: "checkbox",
-							label: "only_states",
-							default: false,
-							hidden: "!data.values_count",
-						},
-						{
-							type: "custom",
-							component: () => <CollectionDivider />,
-						},
-						{
-							name: "noIcon",
-							type: "checkbox",
-							label: "no_icon",
-						},
-						{
-							name: "noValue",
-							type: "checkbox",
-							label: "no_value",
-						},
+						...commonObjectFields(["string", "number", "boolean"]),
+						...stateFields(),
 					],
 				},
-				// CollectionGroupAttributes("on"),
-				// CollectionGroupAttributes("off"),
-				CollectionGroupAttributes("values"),
+				{
+					name: "values",
+					label: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					fields: [...commonFields({ groupName: "", allFields: false })],
+				},
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
 			visDefaultStyle: {

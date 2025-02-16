@@ -93,5 +93,16 @@
     "thumb_color_false": "拇指颜色（假）",
     "track_size": "轨道大小",
     "track_color": "轨道颜色",
-    "no_value": "没有价值"
+    "no_value": "没有价值",
+    "checkbox_collection_widget": "复选框（布尔值）",
+    "checkbox_label_placement": "标签位置",
+    "checkbox_top": "顶部",
+    "checkbox_bottom": "底部",
+    "checkbox_start": "开始",
+    "checkbox_end": "结尾",
+    "without_label": "没有标签",
+    "group_checkbox": "复选框",
+    "checkbox": "复选框",
+    "label": "标签",
+    "only_display": "只显示"
 }

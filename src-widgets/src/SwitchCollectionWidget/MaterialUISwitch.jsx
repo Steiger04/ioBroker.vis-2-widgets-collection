@@ -34,8 +34,6 @@ const MaterialUISwitch = styled(Switch)(
 			},
 
 			"&.Mui-checked": {
-				// overflow: "hidden",
-
 				top: "50%",
 				left: "100%",
 				transform: `translate(-50%, -50%) translateX(${
@@ -92,6 +90,7 @@ const MaterialUISwitch = styled(Switch)(
 
 				backgroundRepeat: "no-repeat",
 				backgroundPosition: "center",
+
 				backgroundSize: `${data.iconSizeOnly || "100"}% ${data.iconSizeOnly || "100"}%`,
 				backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 
