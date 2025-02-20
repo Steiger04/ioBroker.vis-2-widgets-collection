@@ -37,7 +37,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.3.0 (2025-02-20)
 
 - (steiger04) Button functionality for State and Button group
 

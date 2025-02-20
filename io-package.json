@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "news": {
+      "1.3.0": {
+        "en": "Button functionality for State and Button group",
+        "de": "Knopffunktionalität für State und Button Gruppe",
+        "ru": "Функциональность кнопки для группы State и Button",
+        "pt": "Funcionalidade de botões para o grupo Estado e Botão",
+        "nl": "Knopfunctionaliteit voor State en Knopgroep",
+        "fr": "Fonctionnalité du bouton pour le groupe State et Button",
+        "it": "Funzionalità del pulsante per il gruppo Stato e pulsante",
+        "es": "Función de botón para el grupo Estado y Button",
+        "pl": "Funkcjonalność przycisku dla grupy państwa i przycisku",
+        "uk": "Функціональність кнопки для державної та кнопки",
+        "zh-cn": "状态和按钮组的按钮功能"
+      },
       "1.2.0": {
         "en": "Checkbox added and widget optimizations",
         "de": "Checkbox hinzugefügt und Widget-Optimierungen",
@@ -80,19 +93,6 @@
         "pl": "Suwak zoptymalizowany",
         "uk": "Оптимізований слайдер",
         "zh-cn": "滑动器优化"
-      },
-      "1.1.13": {
-        "en": "delay via throttle and debounce optimized",
-        "de": "verzögerung über drosselung und entzündung optimiert",
-        "ru": "задержка через дроссель и отскок оптимизированы",
-        "pt": "delay via acelerador e debutimento otimizado",
-        "nl": "vertraging via gas en debounce geoptimaliseerd",
-        "fr": "retard via l'accélérateur et le débonflage optimisé",
-        "it": "ritardo attraverso l'acceleratore e debounce ottimizzati",
-        "es": "retraso mediante el acelerador y el debounce optimizado",
-        "pl": "opóźnienie za pomocą przepustnicy i debuuncji zoptymalizowane",
-        "uk": "затримка через дросель і відмову оптимізовано",
-        "zh-cn": "通过节流阀和减速优化延迟"
       }
     },
     "titleLang": {
