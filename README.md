@@ -37,6 +37,10 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) Button functionality for State and Button group
+
 ### 1.2.0 (2025-02-16)
 
 - (steiger04) Checkbox added and widget optimizations

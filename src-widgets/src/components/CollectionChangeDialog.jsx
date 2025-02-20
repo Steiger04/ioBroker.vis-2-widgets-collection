@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import React, { useCallback, useContext } from "react";
 import useDebounce from "../hooks/useDebounce";
-// import useOidValue from "../hooks/useOidValue";
+import useOidValue from "../hooks/useOidValue";
 import { CollectionContext } from "./CollectionProvider";
 
 function CollectionChangeDialog(props) {
@@ -22,8 +22,8 @@ function CollectionChangeDialog(props) {
 	const { widget, values, setState, oidObject, getPropertyValue } =
 		useContext(CollectionContext);
 
-	// const oidValue = useOidValue("oid");
-	const oidValue = getPropertyValue("oid");
+	const oidValue = useOidValue("oid");
+	// const oidValue = getPropertyValue("oid");
 	const oid = oidObject?._id;
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;

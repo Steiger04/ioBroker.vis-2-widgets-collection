@@ -9,12 +9,12 @@ import React, { useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useDebounce from "../hooks/useDebounce";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 
 function ButtonGroupCollection() {
-	const { values, setState, oidObject, widget } = useContext(CollectionContext);
+	const { values, setState, setValue, oidObject, widget } =
+		useContext(CollectionContext);
 	const { data, states, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
 	const oidValue = useOidValue("oid");
@@ -28,11 +28,6 @@ function ButtonGroupCollection() {
 
 	const isValidType =
 		oidType === "boolean" || oidType === "number" || oidType === "string";
-
-	useDebounce({
-		value: oidValue,
-		data: widget.data,
-	});
 
 	return (
 		<CollectionBase
@@ -225,6 +220,7 @@ function ButtonGroupCollection() {
 								}}
 								onClick={() => {
 									setState({ values: { ...values, [`${oid}.val`]: value } });
+									setValue(oid, value);
 								}}
 							>
 								<Box

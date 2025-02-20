@@ -3,6 +3,7 @@ import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import sliderFields from "../lib/sliderFields";
 import SliderCollection from "./SliderCollection";
 
@@ -22,7 +23,11 @@ class SliderCollectionWidget extends Generic {
 				{
 					name: "slider",
 					label: "group_slider",
-					fields: [...commonObjectFields(["number"]), ...sliderFields()],
+					fields: [
+						...commonObjectFields(["number"]),
+						...delayFields(),
+						...sliderFields(),
+					],
 				},
 				{
 					name: "active",

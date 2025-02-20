@@ -3,7 +3,6 @@ import React, { useRef, useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useDebounce from "../hooks/useDebounce";
 import useOidValue from "../hooks/useOidValue";
 import MaterialUISwitch from "./MaterialUISwitch";
 
@@ -18,11 +17,6 @@ function SwitchCollection() {
 	const oidType = oidObject?.common?.type;
 
 	const isValidType = oidType === "boolean";
-
-	useDebounce({
-		value: oidValue,
-		data: widget.data,
-	});
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>

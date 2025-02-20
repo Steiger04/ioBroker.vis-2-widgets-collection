@@ -26,7 +26,11 @@ function StateCollection() {
 				if (onlyStates) {
 					setOpen(true);
 				} else {
-					setValue(oid, !oidValue);
+					if (widget.data.values_count === 1) {
+						setValue(oid, oidValue);
+					} else {
+						setValue(oid, !oidValue);
+					}
 				}
 				break;
 			}
@@ -39,7 +43,7 @@ function StateCollection() {
 			default:
 				break;
 		}
-	}, [oidType, oid, oidValue, setValue, onlyStates]);
+	}, [oidType, oid, oidValue, setValue, onlyStates, widget.data.values_count]);
 
 	const StateButton = (
 		<Button
@@ -158,7 +162,7 @@ function StateCollection() {
 		<>
 			{open && (
 				<CollectionChangeDialog
-					data={data}
+					data={{ sampleInterval: null, sampleIntervalValue: null, delay: 100 }}
 					widgetStates={widgetStates}
 					open={open}
 					closeHandler={() => setOpen(false)}

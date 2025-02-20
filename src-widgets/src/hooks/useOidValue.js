@@ -10,7 +10,7 @@ const useOidValue = (oid) => {
 	const [value, setValue] = useState(oidValue);
 
 	useEffect(() => {
-		setValue(oidValue);
+		if (oidValue !== undefined) setValue(oidValue);
 	}, [oidValue]);
 
 	return value;

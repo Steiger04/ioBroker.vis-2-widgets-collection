@@ -4,7 +4,6 @@ import React, { useContext, useState } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useDebounce from "../hooks/useDebounce";
 import useHtmlValue from "../hooks/useHtmlValue";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
@@ -25,11 +24,6 @@ function CheckboxCollection() {
 	const oidType = oidObject?.common?.type;
 
 	const isValidType = oidType === "boolean";
-
-	useDebounce({
-		value: oidValue,
-		data: widget.data,
-	});
 
 	useHtmlValue(contentRef, oidValue, widget, data);
 
