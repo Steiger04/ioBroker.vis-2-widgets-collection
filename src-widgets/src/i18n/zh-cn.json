@@ -104,5 +104,14 @@
     "group_checkbox": "复选框",
     "checkbox": "复选框",
     "label": "标签",
-    "only_display": "只显示"
+    "only_display": "只显示",
+    "dialog_collection_widget": "对话框（查看）",
+    "group_dialog": "对话",
+    "dialog_Width": "宽度",
+    "dialog_height": "高度",
+    "dialog_close_button": "关闭按钮",
+    "view": "看法",
+    "dialog_auto_close": "自动关闭[MS]",
+    "dialog_button": "按钮",
+    "dialog_set_oid_tooltip": "在打开对话框的情况下，设置了状态。"
 }

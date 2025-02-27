@@ -31,12 +31,20 @@
 
 <img src="/img/collection-checkbox.png" height="150">
 
+### Dialog
+
+<img src="/img/collection-dialog.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) Dialog added
+
 ### 1.3.0 (2025-02-20)
 
 - (steiger04) Button functionality for State and Button group

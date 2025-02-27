@@ -104,5 +104,14 @@
     "group_checkbox": "Caja",
     "checkbox": "Caja",
     "label": "Etiqueta",
-    "only_display": "Solo visualización"
+    "only_display": "Solo visualización",
+    "dialog_collection_widget": "Diálogo (vista)",
+    "group_dialog": "Diálogo",
+    "dialog_Width": "Ancho",
+    "dialog_height": "Altura",
+    "dialog_close_button": "Botón de cierre",
+    "view": "Vista",
+    "dialog_auto_close": "Auto Cerrar [MS]",
+    "dialog_button": "Botón",
+    "dialog_set_oid_tooltip": "Al abrir el diálogo, el estado está configurado."
 }

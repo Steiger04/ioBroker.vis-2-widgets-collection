@@ -104,5 +104,14 @@
     "group_checkbox": "Pole wyboru",
     "checkbox": "Pole wyboru",
     "label": "Etykieta",
-    "only_display": "Tylko wyświetlacz"
+    "only_display": "Tylko wyświetlacz",
+    "dialog_collection_widget": "Okno dialogowe (widok)",
+    "group_dialog": "Dialog",
+    "dialog_Width": "Szerokość",
+    "dialog_height": "Wysokość",
+    "dialog_close_button": "Przycisk Zamknij",
+    "view": "Pogląd",
+    "dialog_auto_close": "Auto Close [MS]",
+    "dialog_button": "Przycisk",
+    "dialog_set_oid_tooltip": "Po otwarciu okna dialogowego stan jest ustawiony."
 }

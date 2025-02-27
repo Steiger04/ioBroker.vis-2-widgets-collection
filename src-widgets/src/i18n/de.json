@@ -5,6 +5,7 @@
     "button_group_collection_widget": "Button-Gruppe (boolescher Wert, Zahl, Zeichenfolge)",
     "switch_collection_widget": "Schalter (boolescher Wert)",
     "checkbox_collection_widget": "Checkbox (boolean)",
+    "dialog_collection_widget": "Dialog (Ansicht)",
     "group_button": "Zustand",
     "group_slider": "Schieberegler",
     "group_switch": "Schalter",
@@ -104,5 +105,14 @@
     "group_checkbox": "Checkbox",
     "checkbox": "Checkbox",
     "label": "Label",
-    "only_display": "Nur Anzeige"
+    "only_display": "Nur Anzeige",
+    "group_dialog": "Dialog",
+    "dialog_width": "Breite",
+    "dialog_height": "Höhe",
+    "dialog_close_button": "Schließen Button",
+    "view": "Ansicht",
+    "dialog_auto_close": "Automatisch schließen [ms]",
+    "dialog_button": "Button",
+    "dialog_set_oid_tooltip": "Mit Öffnung des Dialogs wird der Zustand gesetzt.",
+    "dialog_Width": "Breite"
 }

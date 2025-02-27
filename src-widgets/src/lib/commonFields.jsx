@@ -17,7 +17,7 @@ const commonFields = (settings) => {
 			type: "icon64",
 			hidden: (data, i) =>
 				data.noIcon ||
-				data[`icon${i}`] ||
+				data[`icon${i === undefined ? "" : i}`] ||
 				(`icon${groupName}` === "iconActive" && data[`icon${groupName}`]),
 		},
 		{
@@ -26,7 +26,7 @@ const commonFields = (settings) => {
 			type: "image",
 			hidden: (data, i) =>
 				data.noIcon ||
-				data[`iconSmall${i}`] ||
+				data[`iconSmall${i === undefined ? "" : i}`] ||
 				(`iconSmall${groupName}` === "iconSmallActive" &&
 					data[`iconSmall${groupName}`]),
 		},

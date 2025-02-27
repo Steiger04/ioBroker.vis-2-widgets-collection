@@ -104,5 +104,14 @@
     "group_checkbox": "Selectievakje",
     "checkbox": "Selectievakje",
     "label": "Label",
-    "only_display": "Alleen weergave"
+    "only_display": "Alleen weergave",
+    "dialog_collection_widget": "Dialoogvenster (weergave)",
+    "group_dialog": "Dialoog",
+    "dialog_Width": "Breedte",
+    "dialog_height": "Hoogte",
+    "dialog_close_button": "Sluit de knop",
+    "view": "Weergave",
+    "dialog_auto_close": "Auto Close [MS]",
+    "dialog_button": "Knop",
+    "dialog_set_oid_tooltip": "Met het openen van het dialoogvenster is de status ingesteld."
 }

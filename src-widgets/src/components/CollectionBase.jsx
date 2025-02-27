@@ -8,9 +8,10 @@ import useStyles from "../hooks/useStyles";
 const CollectionBase = ({
 	children,
 	data,
-	oidValue,
+	oidValue = null,
 	isValidType = true,
 	bgActive = true,
+	sx = {},
 }) => {
 	const [ref, setRef] = useState(null);
 	const [headerRef, setHeaderRef] = useState(null);
@@ -29,15 +30,16 @@ const CollectionBase = ({
 
 	const oid = oidObject?._id;
 
-	const footerValue = data.footer || data.alias || data.value || oidValueUnit;
+	const footerValue =
+		data.footer || data.alias || data.value || oidValueUnit || "";
 
 	useEffect(() => {
-		if (widget.data.noFooter || !footerValue) return;
+		if (widget.data.noFooter) return;
 		if (footerRef) footerRef.innerHTML = footerValue;
 	}, [footerValue, widget.data.noFooter, footerRef]);
 
 	useEffect(() => {
-		if (widget.data.noHeader || !data.header) return;
+		if (widget.data.noHeader) return;
 		if (headerRef) headerRef.innerHTML = data.header;
 	}, [data.header, widget.data.noHeader, headerRef]);
 
@@ -147,6 +149,7 @@ const CollectionBase = ({
 									: "transparent",
 								borderRadius:
 									widget.data.circle || widget.data.ellipse ? "50%" : null,
+								...sx,
 							}}
 						>
 							{children}

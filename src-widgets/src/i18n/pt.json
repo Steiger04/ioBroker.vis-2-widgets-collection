@@ -104,5 +104,14 @@
     "group_checkbox": "Caixa de seleção",
     "checkbox": "Caixa de seleção",
     "label": "Rótulo",
-    "only_display": "Exibir apenas"
+    "only_display": "Exibir apenas",
+    "dialog_collection_widget": "Diálogo (visualização)",
+    "group_dialog": "Diálogo",
+    "dialog_Width": "Largura",
+    "dialog_height": "Altura",
+    "dialog_close_button": "Botão Fechar",
+    "view": "Visualizar",
+    "dialog_auto_close": "Auto Fechar [MS]",
+    "dialog_button": "Botão",
+    "dialog_set_oid_tooltip": "Com a abertura da caixa de diálogo, o estado está definido."
 }

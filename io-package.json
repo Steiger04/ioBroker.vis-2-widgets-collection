@@ -158,7 +158,8 @@
           "SliderCollectionWidget",
           "ButtonGroupCollectionWidget",
           "SwitchCollectionWidget",
-          "CheckboxCollectionWidget"
+          "CheckboxCollectionWidget",
+          "DialogCollectionWidget"
         ]
       }
     },

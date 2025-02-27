@@ -47,7 +47,6 @@ function CheckboxCollection() {
 			)}
 
 			<Box
-				BOX="ERKANNT"
 				sx={{
 					width: "100%",
 					height: "100%",
@@ -58,7 +57,6 @@ function CheckboxCollection() {
 			>
 				{oidValue !== undefined && (
 					<FormControlLabel
-						FORM_CONTROL_LABEL="ERKANNT"
 						labelPlacement={widget.data.checkboxLabelPlacement}
 						sx={{
 							width: "100%",
@@ -82,7 +80,6 @@ function CheckboxCollection() {
 						control={
 							<Checkbox
 								disabled={widget.data.onlyDisplay}
-								CHECKBOX="ERKANNT"
 								disableRipple
 								checked={oidValue}
 								onChange={() => setValue(oid, !oidValue)}

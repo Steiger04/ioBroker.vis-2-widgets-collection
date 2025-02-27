@@ -104,5 +104,14 @@
     "group_checkbox": "Флажок",
     "checkbox": "Флажок",
     "label": "Этикетка",
-    "only_display": "Только дисплей"
+    "only_display": "Только дисплей",
+    "dialog_collection_widget": "Диалог (представление)",
+    "group_dialog": "Диалог",
+    "dialog_Width": "Ширина",
+    "dialog_height": "Высота",
+    "dialog_close_button": "Кнопка закрытия",
+    "view": "Вид",
+    "dialog_auto_close": "Auto Close [MS]",
+    "dialog_button": "Кнопка",
+    "dialog_set_oid_tooltip": "С открытием диалога, состояние установлено."
 }

@@ -5,12 +5,12 @@ const useHtmlValue = (contentRef, oidValue, widget, data) => {
 		(typeof oidValue === "string" ||
 			typeof oidValue === "number" ||
 			typeof oidValue === "boolean") &&
-		`${oidValue}${widget.data.unit}`;
+		`${oidValue}${widget.data.unit !== undefined ? widget.data.unit : ""}`;
 
 	const contentValue = data.alias || data.value || oidValueUnit;
 
 	useEffect(() => {
-		if (!contentValue || !contentRef) return;
+		if (contentValue === undefined || !contentRef) return;
 		contentRef.innerHTML = contentValue;
 	}, [contentValue, contentRef]);
 };

@@ -136,7 +136,8 @@ function useData(oid) {
 				widget.data.headerActive ||
 				getDataValue("header", ext) ||
 				widget.data.header ||
-				oidName,
+				oidName ||
+				"",
 			headerSize:
 				formatSize(widget.data.headerSize) ||
 				formatSize(widget.data.headerSizeActive) ||
@@ -146,7 +147,8 @@ function useData(oid) {
 			footer:
 				widget.data.footerActive ||
 				getDataValue("footer", ext) ||
-				widget.data.footer,
+				widget.data.footer ||
+				"",
 			footerSize:
 				formatSize(widget.data.footerSize) ||
 				formatSize(widget.data.footerSizeActive) ||
@@ -157,7 +159,7 @@ function useData(oid) {
 
 			value:
 				getDataValue("value", ext) &&
-				`${getDataValue("value", ext)}${widget.data.unit}`,
+				`${getDataValue("value", ext)}${widget.data.unit !== undefined ? widget.data.unit : ""}`,
 			valueSize: formatSize(widget.data.valueSize) || fontStyles.fontSize,
 			valueSizeActive:
 				typeof getDataValue("valueSize", ext) === "number" &&

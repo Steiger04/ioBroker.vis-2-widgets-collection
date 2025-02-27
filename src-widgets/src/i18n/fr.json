@@ -104,5 +104,14 @@
     "group_checkbox": "Cocher",
     "checkbox": "Cocher",
     "label": "Étiquette",
-    "only_display": "Affichage uniquement"
+    "only_display": "Affichage uniquement",
+    "dialog_collection_widget": "Dialogue (vue)",
+    "group_dialog": "Dialogue",
+    "dialog_Width": "Largeur",
+    "dialog_height": "Hauteur",
+    "dialog_close_button": "Bouton fermer",
+    "view": "Voir",
+    "dialog_auto_close": "Ferme automatique [MS]",
+    "dialog_button": "Bouton",
+    "dialog_set_oid_tooltip": "En ouvrant la boîte de dialogue, l'état est défini."
 }

@@ -104,5 +104,14 @@
     "group_checkbox": "Casella di controllo",
     "checkbox": "Casella di controllo",
     "label": "Etichetta",
-    "only_display": "Solo visualizzazione"
+    "only_display": "Solo visualizzazione",
+    "dialog_collection_widget": "Dialog (Visualizza)",
+    "group_dialog": "Dialogo",
+    "dialog_Width": "Larghezza",
+    "dialog_height": "Altezza",
+    "dialog_close_button": "Pulsante Chiudi",
+    "view": "Visualizzazione",
+    "dialog_auto_close": "Auto Close [MS]",
+    "dialog_button": "Pulsante",
+    "dialog_set_oid_tooltip": "Con l'apertura della finestra di dialogo, lo stato è impostato."
 }

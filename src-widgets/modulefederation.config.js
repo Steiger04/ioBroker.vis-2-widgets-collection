@@ -14,5 +14,7 @@ module.exports = makeFederation(
 			"./src/SwitchCollectionWidget/SwitchCollectionWidget",
 		"./CheckboxCollectionWidget":
 			"./src/CheckboxCollectionWidget/CheckboxCollectionWidget",
+		"./DialogCollectionWidget":
+			"./src/DialogCollectionWidget/DialogCollectionWidget",
 	},
 );

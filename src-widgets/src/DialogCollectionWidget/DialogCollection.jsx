@@ -1,0 +1,178 @@
+import { Box, ButtonBase, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import React, { useRef, useContext, useState } from "react";
+import CollectionBase from "../components/CollectionBase";
+import { CollectionContext } from "../components/CollectionProvider";
+import useData from "../hooks/useData";
+import useHtmlValue from "../hooks/useHtmlValue";
+import useStyles from "../hooks/useStyles";
+import ViewDialog from "./ViewDialog";
+
+const ImageHtmlButton = styled(ButtonBase)({
+	width: "100% !important", // Overrides inline-style
+	height: "100% !important",
+
+	display: "flex",
+	justifyContent: "center",
+	alignItems: "center",
+});
+
+function DialogCollection() {
+	const [open, setOpen] = useState(false);
+	const hideTimeout = useRef(null);
+	const [contentRef, setContentRef] = useState(null);
+	const { oidObject, widget, getWidgetView, setValue } =
+		useContext(CollectionContext);
+	const { textStyles, fontStyles } = useStyles(widget.style);
+	const { data } = useData("oid");
+
+	const handleClickOpen = () => {
+		let timeout = widget.data.dialogAutoClose;
+
+		if (timeout === null || timeout === undefined || timeout === "") {
+			setOpen(true);
+			return;
+		}
+
+		if (timeout === true || timeout === "true") {
+			timeout = 10000;
+		}
+
+		timeout = parseInt(timeout, 10);
+		if (timeout < 60) {
+			// maybe this is seconds
+			timeout *= 1000;
+		}
+		timeout = timeout || 1000;
+
+		hideTimeout.current = setTimeout(() => {
+			hideTimeout.current = null;
+			setOpen(false);
+		}, timeout);
+
+		setOpen(true);
+	};
+	const handleClose = () => {
+		if (hideTimeout.current) {
+			clearTimeout(hideTimeout.current);
+			hideTimeout.current = null;
+		}
+		setOpen(false);
+	};
+
+	useHtmlValue(contentRef, "", widget, data);
+
+	const oid = oidObject?._id;
+	const oidType = oidObject?.common?.type;
+
+	const isValidType =
+		oidType === "boolean" ||
+		!widget.data.oid ||
+		widget.data.oid === "nothing_selected";
+
+	return (
+		<>
+			<ViewDialog
+				{...{
+					open,
+					handleClose,
+					widget,
+					data,
+					getWidgetView,
+				}}
+			/>
+			<CollectionBase isValidType={isValidType} data={data}>
+				<Box
+					sx={{
+						width: "100%",
+						height: "100%",
+						display: "flex",
+					}}
+				>
+					<ImageHtmlButton
+						onClick={() => {
+							setValue(oid, true);
+							handleClickOpen();
+						}}
+						sx={{
+							"& .MuiTouchRipple-root span": {
+								color: data.iconColor,
+							},
+						}}
+					>
+						{widget.data.onlyIcon ||
+						(!widget.data.onlyText && !widget.data.onlyIcon) ? (
+							<Box
+								sx={{
+									overflow: "hidden",
+
+									p: 0.5,
+
+									width: "100%",
+									height: "100%",
+
+									display: "flex",
+									justifyContent: "center",
+									alignItems: "center",
+								}}
+							>
+								<img
+									alt=""
+									src={
+										data.icon ||
+										"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+									}
+									style={{
+										position: "relative",
+
+										objectFit: "contain",
+										top: `calc(0px - ${widget.data.iconYOffset})`,
+										right: `calc(0px - ${widget.data.iconXOffset})`,
+										width: `${data.iconSizeOnly || "100"}%`,
+										height: `${data.iconSizeOnly || "100"}%`,
+										color: data.iconColor,
+										filter: data.iconColor
+											? "drop-shadow(0px 10000px 0)"
+											: null,
+										transform: data.iconColor ? "translateY(-10000px)" : null,
+									}}
+								/>
+							</Box>
+						) : null}
+						{widget.data.onlyText ||
+						(!widget.data.onlyText && !widget.data.onlyIcon) ? (
+							<Typography
+								ref={setContentRef}
+								variant="body2"
+								sx={{
+									overflow: "hidden",
+
+									width: "100%",
+									height: "100%",
+
+									p: 0.5,
+
+									display: "flex",
+									flexDirection: "column",
+									/* justifyContent: widget.data.onlyText
+										? "center"
+										: "flex-start", */
+									justifyContent: "center",
+									alignItems: "center",
+
+									...fontStyles,
+									...textStyles,
+									fontSize: data.valueSize,
+									color: data.textColor,
+									textTransform: "none",
+								}}
+							/>
+						) : null}
+					</ImageHtmlButton>
+				</Box>
+			</CollectionBase>
+		</>
+	);
+}
+
+export default DialogCollection;

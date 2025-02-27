@@ -104,5 +104,14 @@
     "group_checkbox": "Прапорець",
     "checkbox": "Прапорець",
     "label": "Мітка",
-    "only_display": "Тільки дисплей"
+    "only_display": "Тільки дисплей",
+    "dialog_collection_widget": "Діалог (перегляд)",
+    "group_dialog": "Діалог",
+    "dialog_Width": "Ширина",
+    "dialog_height": "Висота",
+    "dialog_close_button": "Закрити кнопку",
+    "view": "Переглянути",
+    "dialog_auto_close": "Автоматичне закриття [MS]",
+    "dialog_button": "Кнопка",
+    "dialog_set_oid_tooltip": "З відкриттям діалогового вікна встановлено стан."
 }

@@ -5,9 +5,9 @@ import React, { createContext, useMemo } from "react";
 const CollectionContext = createContext({});
 
 function CollectionProvider({ children, context }) {
-	const _context = useMemo(() => {
+	/* const _context = useMemo(() => {
 		return context;
-	}, [context]);
+	}, [context]); */
 	/* const color = context.widget.style.color;
 	const textAlign = context.widget.style["text-align"];
 	const fontFamily = context.widget.style["font-family"];
@@ -30,8 +30,8 @@ function CollectionProvider({ children, context }) {
 							mode: "dark",
 							/* primary: {
 								main: "#0f0",
-							},
-							background: {
+							}, */
+							/* background: {
 								default: "#111111",
 								paper: "#212121",
 							}, */
@@ -114,7 +114,7 @@ function CollectionProvider({ children, context }) {
 
 	return (
 		<ThemeProvider theme={_theme}>
-			<CollectionContext.Provider value={_context}>
+			<CollectionContext.Provider value={context}>
 				{children}
 			</CollectionContext.Provider>
 		</ThemeProvider>

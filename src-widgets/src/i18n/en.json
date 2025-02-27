@@ -5,6 +5,7 @@
 	"button_group_collection_widget": "Button group (boolean, number, string)",
 	"switch_collection_widget": "Switch (boolean)",
 	"checkbox_collection_widget": "Checkbox (boolean)",
+	"dialog_collection_widget": "Dialog (view)",
 	"group_button": "State",
 	"group_slider": "Slider",
 	"group_switch": "Switch",
@@ -103,5 +104,13 @@
 	"group_checkbox": "Checkbox",
 	"checkbox": "Checkbox",
 	"label": "Label",
-	"only_display": "Only display"
+	"only_display": "Only display",
+	"group_dialog": "Dialog",
+	"dialog_Width": "Width",
+	"dialog_height": "Height",
+	"dialog_close_button": "Close button",
+	"view": "View",
+	"dialog_auto_close": "Auto close [ms]",
+	"dialog_button": "Button",
+	"dialog_set_oid_tooltip": "With opening the dialog, the state is set."
 }
