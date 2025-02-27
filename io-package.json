@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "news": {
+      "1.4.0": {
+        "en": "Dialog added",
+        "de": "Dialog hinzugefügt",
+        "ru": "Диалог добавлен",
+        "pt": "Diálogo adicionado",
+        "nl": "Dialoog toegevoegd",
+        "fr": "Boîte de dialogue ajoutée",
+        "it": "Dialog aggiunto",
+        "es": "Diálogo añadido",
+        "pl": "Okno dodane",
+        "uk": "Діалог додано",
+        "zh-cn": "已添加对话框"
+      },
       "1.3.0": {
         "en": "Button functionality for State and Button group",
         "de": "Knopffunktionalität für State und Button Gruppe",
@@ -80,19 +93,6 @@
         "pl": "suwak do mocowania błędów",
         "uk": "виправлення помилок Slider",
         "zh-cn": "修正滑动器"
-      },
-      "1.1.14": {
-        "en": "Slider optimized",
-        "de": "Slider optimiert",
-        "ru": "Слайдер оптимизирован",
-        "pt": "Slider otimizado",
-        "nl": "Slider geoptimaliseerd",
-        "fr": "Slider optimisé",
-        "it": "Slider ottimizzato",
-        "es": "Slider optimizado",
-        "pl": "Suwak zoptymalizowany",
-        "uk": "Оптимізований слайдер",
-        "zh-cn": "滑动器优化"
       }
     },
     "titleLang": {

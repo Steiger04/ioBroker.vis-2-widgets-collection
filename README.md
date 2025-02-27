@@ -41,7 +41,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.4.0 (2025-02-27)
 
 - (steiger04) Dialog added
 
