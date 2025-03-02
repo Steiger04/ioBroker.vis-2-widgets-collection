@@ -87,6 +87,7 @@ const oidChangeHandlerAsync =
 				changeData(data);
 			}
 		} else {
+			// no oid
 			data.icon = null;
 			data.onlyStates = null;
 			data.write = false;

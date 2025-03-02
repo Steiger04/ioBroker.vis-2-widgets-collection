@@ -2,27 +2,38 @@ import React from "react";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import commonFields from "../lib/commonFields";
-import dialogFields from "../lib/dialogFields";
-import DialogCollection from "./DialogCollection";
+import commonObjectFields from "../lib/commonObjectFields";
+import selectFields from "../lib/selectFields";
+import SelectCollection from "./SelectCollection";
 
-class DialogCollectionWidget extends Generic {
+class SelectCollectionWidget extends Generic {
 	static getWidgetInfo() {
 		return {
-			id: "tplDialogCollectionWidget",
+			id: "tplSelectCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visName: "DialogCollectionWidget", // Name of widget
-			visWidgetLabel: "dialog_collection_widget", // Label for widget
-			visOrder: 2,
+			visName: "SelectCollectionWidget", // Name of widget
+			visWidgetLabel: "select_collection_widget", // Label for widget
+			visOrder: 1,
 			visAttrs: [
 				{
 					name: "common", // group name
 					fields: [...commonFields({ groupName: "", allFields: true })],
 				},
 				{
-					name: "dialog", // group name
-					label: "group_dialog",
-					fields: [...dialogFields()],
+					name: "select_collection", // group name
+					label: "group_select_collection",
+					fields: [
+						...commonObjectFields(["boolean", "number", "string", "mixed"]),
+						...selectFields(),
+					],
+				},
+				{
+					name: "values",
+					label: "values",
+					indexFrom: 1,
+					indexTo: "values_count",
+					fields: [...commonFields({ groupName: "", allFields: false })],
 				},
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
@@ -32,14 +43,14 @@ class DialogCollectionWidget extends Generic {
 				position: "relative",
 			},
 			visPrev:
-				"widgets/vis-2-widgets-collection/img/prev-collection-dialog.png",
+				"widgets/vis-2-widgets-collection/img/prev-collection-select.png",
 		};
 	}
 
 	// Do not delete this method. It is used by vis to read the widget configuration.
 	// eslint-disable-next-line class-methods-use-this
 	getWidgetInfo() {
-		return DialogCollectionWidget.getWidgetInfo();
+		return SelectCollectionWidget.getWidgetInfo();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -103,7 +114,6 @@ class DialogCollectionWidget extends Generic {
 			mode: this.props.context.themeType,
 			socket: this.props.context.socket,
 			theme: this.props.context.theme,
-			getWidgetView: this.getWidgetView.bind(this),
 
 			wrappedContent: this.wrappedContent,
 		};
@@ -115,10 +125,10 @@ class DialogCollectionWidget extends Generic {
 		}
 
 		return withCollectionProvider(
-			this.wrapContent(<DialogCollection />),
+			this.wrapContent(<SelectCollection />),
 			collectionContext,
 		);
 	}
 }
 
-export default DialogCollectionWidget;
+export default SelectCollectionWidget;

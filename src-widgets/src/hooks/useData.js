@@ -35,7 +35,7 @@ function useData(oid) {
 			const oidStates = oidObject?.common?.states || {};
 			const oidEntries = Object.entries(oidStates);
 
-			if (oidType === "number" || oidType === "string") {
+			if (oidType === "number" || oidType === "string" || oidType === "mixed") {
 				for (let i = 1; i <= Number(widget.data.values_count); i++) {
 					if (
 						widget.data[`value${i}`] !== undefined &&
@@ -221,6 +221,7 @@ function useData(oid) {
 		const oidType = oidObject?.common?.type;
 
 		switch (oidType) {
+			case "mixed":
 			case "boolean":
 			case "number":
 			case "string": {

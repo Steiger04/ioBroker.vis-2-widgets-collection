@@ -35,11 +35,19 @@
 
 <img src="/img/collection-dialog.png" height="150">
 
+### Select
+
+<img src="/img/collection-select.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
+## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Select added
+
 ## Changelog
 ### 1.4.0 (2025-02-27)
 

@@ -23,6 +23,9 @@
 				"noArrayIndexKey": "off",
 				"noRedundantUseStrict": "off",
 				"noDebugger": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "off"
 			}
 		}
 	},
