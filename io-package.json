@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "news": {
+      "1.5.0": {
+        "en": "Select added",
+        "de": "Wählen Sie aus",
+        "ru": "Добавлен выбор",
+        "pt": "Selecione adicionado",
+        "nl": "Toegevoegd selecteren",
+        "fr": "Sélectionner ajouté",
+        "it": "Seleziona aggiunto",
+        "es": "Seleccionar añadido",
+        "pl": "Wybierz dodany",
+        "uk": "Виберіть додано",
+        "zh-cn": "选择添加"
+      },
       "1.4.0": {
         "en": "Dialog added",
         "de": "Dialog hinzugefügt",
@@ -80,19 +93,6 @@
         "pl": "tylko ważny oid jest dozwolony",
         "uk": "тільки допустимо допустиме oid",
         "zh-cn": "只允许有效的 oid "
-      },
-      "1.1.15": {
-        "en": "bugfixing Slider",
-        "de": "bugfixing Slider",
-        "ru": "слайдер",
-        "pt": "corrediça de correção de bugs",
-        "nl": "bugfixing Slider",
-        "fr": "bugfixing Slider",
-        "it": "bugfixing Slider",
-        "es": "bugfixing Slider",
-        "pl": "suwak do mocowania błędów",
-        "uk": "виправлення помилок Slider",
-        "zh-cn": "修正滑动器"
       }
     },
     "titleLang": {
@@ -160,7 +160,7 @@
           "SwitchCollectionWidget",
           "CheckboxCollectionWidget",
           "DialogCollectionWidget",
-					"SelectCollectionWidget"
+          "SelectCollectionWidget"
         ]
       }
     },
