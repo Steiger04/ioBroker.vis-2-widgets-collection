@@ -45,7 +45,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.5.1 (2025-03-03)
 - (steiger04) Select bug fixed
 
 ### 1.5.0 (2025-03-02)

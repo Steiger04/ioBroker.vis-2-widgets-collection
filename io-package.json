@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "news": {
+      "1.5.1": {
+        "en": "Select bug fixed",
+        "de": "Wählen Sie Fehler behoben",
+        "ru": "Выберите ошибку",
+        "pt": "Selecione o erro corrigido",
+        "nl": "Selecteer bug vast",
+        "fr": "Sélectionner le bug corrigé",
+        "it": "Selezionare bug fisso",
+        "es": "Seleccionar error fijo",
+        "pl": "Wybierz błąd ustawiony",
+        "uk": "Виберіть виправлення помилок",
+        "zh-cn": "选择已修正的错误"
+      },
       "1.5.0": {
         "en": "Select added",
         "de": "Wählen Sie aus",
@@ -80,19 +93,6 @@
         "pl": "nagłówek / stopka do ustawiania błędów",
         "uk": "виправлення головки / нижній колонтитул",
         "zh-cn": "错误修正页眉/页脚"
-      },
-      "1.1.16": {
-        "en": "only valid oid's allowed",
-        "de": "nur gültig oid's erlaubt",
-        "ru": "разрешен только действительный oid",
-        "pt": "apenas um oid válido é permitido",
-        "nl": "alleen geldige oid's toegestaan",
-        "fr": "seul l'aide valide est autorisée",
-        "it": "consentito solo oid valido",
-        "es": "sólo válida oid permitida",
-        "pl": "tylko ważny oid jest dozwolony",
-        "uk": "тільки допустимо допустиме oid",
-        "zh-cn": "只允许有效的 oid "
       }
     },
     "titleLang": {
