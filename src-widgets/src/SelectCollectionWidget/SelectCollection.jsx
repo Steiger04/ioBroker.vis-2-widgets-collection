@@ -198,11 +198,14 @@ function SelectCollection() {
 										contentEditable="false"
 										dangerouslySetInnerHTML={{
 											__html:
-												widget.data[`alias${idx + 1}`].replace(
-													/(\r\n|\n|\r)/gm,
-													"",
-												) ||
-												`${widget.data[`value${idx + 1}`]}${widget.data.unit}`,
+												(widget.data[`alias${idx + 1}`] &&
+													widget.data[`alias${idx + 1}`].replace(
+														/(\r\n|\n|\r)/gm,
+														"",
+													)) ||
+												(widget.data[`value${idx + 1}`] &&
+													`${widget.data[`value${idx + 1}`]}${widget.data.unit}`) ||
+												"",
 										}}
 									/>
 								</Stack>
