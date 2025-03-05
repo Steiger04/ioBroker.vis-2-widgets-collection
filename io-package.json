@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "news": {
+      "1.5.2": {
+        "en": "Widget optimizations",
+        "de": "Widget Optimierungen",
+        "ru": "Оптимизация виджетов",
+        "pt": "Otimizações Widget",
+        "nl": "Widget optimalisaties",
+        "fr": "Optimisations Widget",
+        "it": "Ottimizzazione Widget",
+        "es": "Optimizaciones Widget",
+        "pl": "Optymalizacja widżetu",
+        "uk": "Оптимізація віджету",
+        "zh-cn": "部件优化"
+      },
       "1.5.1": {
         "en": "Select bug fixed",
         "de": "Wählen Sie Fehler behoben",
@@ -80,19 +93,6 @@
         "pl": "Grupa przycisku zoptymalizowana",
         "uk": "Оптимізована кнопка",
         "zh-cn": "按钮组优化"
-      },
-      "1.1.17": {
-        "en": "bugfixing header / footer",
-        "de": "bugfixing header / fußzeile",
-        "ru": "bugfixing заголовок",
-        "pt": "cabeçalho / rodapé",
-        "nl": "bugfixing header / footer",
-        "fr": "bugfixing en-tête / pied de page",
-        "it": "bugfixing header / footer",
-        "es": "cabecera de bugfixing / pie",
-        "pl": "nagłówek / stopka do ustawiania błędów",
-        "uk": "виправлення головки / нижній колонтитул",
-        "zh-cn": "错误修正页眉/页脚"
       }
     },
     "titleLang": {
