@@ -100,7 +100,12 @@ function SelectCollection() {
 						height: "100%",
 						maxWidth: `calc(${contentRef.current?.offsetWidth}px - 10%)`,
 
+						"& .MuiSelect-icon": {
+							color: widget.data.arrowColor,
+						},
+
 						"&.Mui-focused": {
+							ariaHidden: "false",
 							background:
 								data.backgroundColorActive ||
 								data.backgroundColor ||

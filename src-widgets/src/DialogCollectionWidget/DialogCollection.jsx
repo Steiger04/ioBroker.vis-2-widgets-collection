@@ -47,6 +47,7 @@ function DialogCollection() {
 
 		hideTimeout.current = setTimeout(() => {
 			hideTimeout.current = null;
+			setValue(oid, false);
 			setOpen(false);
 		}, timeout);
 
@@ -57,6 +58,8 @@ function DialogCollection() {
 			clearTimeout(hideTimeout.current);
 			hideTimeout.current = null;
 		}
+
+		setValue(oid, false);
 		setOpen(false);
 	};
 

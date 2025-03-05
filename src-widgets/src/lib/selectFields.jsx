@@ -10,6 +10,15 @@ const selectFields = () => [
 		type: "id",
 		label: "cid",
 	},
+	{
+		type: "custom",
+		component: () => <CollectionDivider />,
+	},
+	{
+		name: "arrowColor",
+		label: "arrow_color",
+		type: "color",
+	},
 ];
 
 export default selectFields;

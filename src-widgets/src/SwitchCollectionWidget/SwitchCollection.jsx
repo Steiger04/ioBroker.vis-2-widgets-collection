@@ -26,8 +26,8 @@ function SwitchCollection() {
 					src={data.icon || data.iconActive}
 					style={{
 						position: "absolute",
-						top: `calc(0px + ${widget.data.iconYOffset})`,
-						right: `calc(0px + ${widget.data.iconXOffset})`,
+						top: `calc(0px - ${widget.data.iconYOffset})`,
+						right: `calc(0px - ${widget.data.iconXOffset})`,
 						width: data.iconSize || data.iconSizeActive,
 						height: data.iconSize || data.iconSizeActive,
 						color: data.iconColor || data.iconColorActive,

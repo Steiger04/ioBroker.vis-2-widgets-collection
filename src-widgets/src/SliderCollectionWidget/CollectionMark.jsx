@@ -52,22 +52,23 @@ const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
 						flexGrow: 1,
 					}}
 				>
-					{mark.icon && (
-						<img
-							data-img="active"
-							src={mark.icon}
-							alt=""
-							style={{
-								position: "relative",
-								width: `${(24 * mark.iconWidth) / 100}px`,
-								height: `${(24 * mark.iconHeight) / 100}px`,
+					<img
+						data-img="active"
+						src={
+							mark.icon ||
+							"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+						}
+						alt=""
+						style={{
+							position: "relative",
+							width: `${(24 * mark.iconWidth) / 100}px`,
+							height: `${(24 * mark.iconHeight) / 100}px`,
 
-								color: mark.iconColor || "initial",
-								filter: mark.iconColor ? "drop-shadow(0px 10000px 0)" : null,
-								transform: mark.iconColor ? "translateY(-10000px)" : null,
-							}}
-						/>
-					)}
+							color: mark.iconColor || null,
+							filter: mark.iconColor ? "drop-shadow(0px 10000px 0)" : null,
+							transform: mark.iconColor ? "translateY(-10000px)" : null,
+						}}
+					/>
 				</Box>
 			</Box>
 		</SliderMarkLabel>

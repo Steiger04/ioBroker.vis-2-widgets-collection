@@ -108,16 +108,16 @@ function SliderCollection() {
 	]);
 
 	useEffect(() => {
-		if (data.value === undefined) return;
+		if (oidValue === undefined) return;
 
 		const index = sliderMarks.findIndex(
-			(mark) => String(mark.value) === data.value,
+			(mark) => String(mark.value) === String(oidValue),
 		);
 
 		if (index !== -1) {
 			setSliderMarksIndex(index);
 		}
-	}, [data.value, sliderMarks]);
+	}, [oidValue, sliderMarks]);
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
@@ -141,8 +141,8 @@ function SliderCollection() {
 						src={data.iconActive || data.icon}
 						style={{
 							position: "absolute",
-							top: `calc(0px + ${data.iconYOffset})`,
-							right: `calc(0px + ${data.iconXOffset})`,
+							top: `calc(0px - ${data.iconYOffset})`,
+							right: `calc(0px - ${data.iconXOffset})`,
 
 							// width: data.iconSizeActive || data.iconSize,
 							// height: data.iconSizeActive || data.iconSize,
@@ -362,9 +362,14 @@ function SliderCollection() {
 													: "24px !important"
 											}`,
 
-											color: `${widget.data.iconColorActive} !important`,
-											filter: "drop-shadow(0px 10000px 0)",
-											transform: "translateY(-10000px)",
+											color:
+												widget.data.iconColorActive &&
+												`${widget.data.iconColorActive}!important`,
+											filter:
+												widget.data.iconColorActive &&
+												"drop-shadow(0px 10000px 0)",
+											transform:
+												widget.data.iconColorActive && "translateY(-10000px)",
 
 											// -----------------------------
 											pl:

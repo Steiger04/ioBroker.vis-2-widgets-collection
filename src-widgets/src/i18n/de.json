@@ -117,5 +117,8 @@
 	"dialog_set_oid_tooltip": "Mit Öffnung des Dialogs wird der Zustand gesetzt.",
 	"dialog_Width": "Breite",
 	"cid": "Steuer ID",
-	"group_select_collection": "Auswahl"
+	"group_select_collection": "Auswahl",
+	"dialog_close_button_top": "Schließen Button oben",
+	"dialog_close_button_bottom": "Schließen Button unten",
+	"arrow_color": "Pfeilfarbe"
 }

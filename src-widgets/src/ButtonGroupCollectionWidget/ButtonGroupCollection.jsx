@@ -42,8 +42,8 @@ function ButtonGroupCollection() {
 					src={data.iconActive || data.icon}
 					style={{
 						position: "absolute",
-						top: `calc(0px + ${widget.data.iconYOffset})`,
-						right: `calc(0px + ${widget.data.iconXOffset})`,
+						top: `calc(0px - ${widget.data.iconYOffset})`,
+						right: `calc(0px - ${widget.data.iconXOffset})`,
 						width: data.iconSize,
 						height: data.iconSize,
 						color: data.iconColorActive || data.iconColor,
@@ -159,10 +159,10 @@ function ButtonGroupCollection() {
 						},
 					}}
 				>
-					{states.map(({ value, label: alias }, index) => {
+					{states.map(({ value }, index) => {
 						return (
 							<ToggleButton
-								disableRipple
+								// disableRipple
 								value={value}
 								key={index}
 								sx={{
@@ -177,10 +177,14 @@ function ButtonGroupCollection() {
 
 									background:
 										(activeIndex === index + 1 &&
+											String(oidValue) ===
+												String(widget.data[`value${index + 1}`]) &&
 											widget.data.backgroundColorActive) ||
 										widget.data[`backgroundColor${index + 1}`] ||
 										data.backgroundColor ||
 										(activeIndex === index + 1 &&
+											String(oidValue) ===
+												String(widget.data[`value${index + 1}`]) &&
 											widget.data.backgroundActive) ||
 										widget.data[`background${index + 1}`] ||
 										data.background,
@@ -188,10 +192,14 @@ function ButtonGroupCollection() {
 									"&.MuiToggleButton-root.Mui-selected": {
 										background:
 											(activeIndex === index + 1 &&
+												String(oidValue) ===
+													String(widget.data[`value${index + 1}`]) &&
 												widget.data.backgroundColorActive) ||
 											widget.data[`backgroundColor${index + 1}`] ||
 											data.backgroundColor ||
 											(activeIndex === index + 1 &&
+												String(oidValue) ===
+													String(widget.data[`value${index + 1}`]) &&
 												widget.data.backgroundActive) ||
 											widget.data[`background${index + 1}`] ||
 											data.background,
@@ -200,6 +208,8 @@ function ButtonGroupCollection() {
 									"&:hover": {
 										filter:
 											(activeIndex === index + 1 &&
+												String(oidValue) ===
+													String(widget.data[`value${index + 1}`]) &&
 												widget.data.iconHoverActive &&
 												`brightness(${widget.data.iconHoverActive}%)`) ||
 											(widget.data[`iconHover${index + 1}`] &&
@@ -209,10 +219,14 @@ function ButtonGroupCollection() {
 
 										background:
 											(activeIndex === index + 1 &&
+												String(oidValue) ===
+													String(widget.data[`value${index + 1}`]) &&
 												widget.data.backgroundColorActive) ||
 											widget.data[`backgroundColor${index + 1}`] ||
 											data.backgroundColor ||
 											(activeIndex === index + 1 &&
+												String(oidValue) ===
+													String(widget.data[`value${index + 1}`]) &&
 												widget.data.backgroundActive) ||
 											widget.data[`background${index + 1}`] ||
 											data.background,
@@ -238,6 +252,8 @@ function ButtonGroupCollection() {
 								>
 									{!widget.data.onlyText &&
 										((activeIndex === index + 1 &&
+											String(oidValue) ===
+												String(widget.data[`value${index + 1}`]) &&
 											(widget.data.iconActive ||
 												widget.data.iconSmallActive)) ||
 											widget.data[`icon${index + 1}`] ||
@@ -258,6 +274,8 @@ function ButtonGroupCollection() {
 												<img
 													src={
 														(activeIndex === index + 1 &&
+															String(oidValue) ===
+																String(widget.data[`value${index + 1}`]) &&
 															(widget.data.iconActive ||
 																widget.data.iconSmallActive)) ||
 														widget.data[`icon${index + 1}`] ||
@@ -274,6 +292,8 @@ function ButtonGroupCollection() {
 
 														width:
 															(activeIndex === index + 1 &&
+																String(oidValue) ===
+																	String(widget.data[`value${index + 1}`]) &&
 																widget.data.iconSizeActive &&
 																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
 															(widget.data[`iconSize${index + 1}`] &&
@@ -281,6 +301,8 @@ function ButtonGroupCollection() {
 															"100%",
 														height:
 															(activeIndex === index + 1 &&
+																String(oidValue) ===
+																	String(widget.data[`value${index + 1}`]) &&
 																widget.data.iconSizeActive &&
 																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
 															(widget.data[`iconSize${index + 1}`] &&
@@ -288,12 +310,16 @@ function ButtonGroupCollection() {
 															"100%",
 														color:
 															(activeIndex === index + 1 &&
+																String(oidValue) ===
+																	String(widget.data[`value${index + 1}`]) &&
 																widget.data.iconColorActive) ||
 															widget.data[`iconColor${index + 1}`] ||
 															widget.data.buttonGroupColor ||
 															data.iconColor,
 														filter:
 															(activeIndex === index + 1 &&
+																String(oidValue) ===
+																	String(widget.data[`value${index + 1}`]) &&
 																widget.data.iconColorActive) ||
 															widget.data[`iconColor${index + 1}`] ||
 															widget.data.buttonGroupColor ||
@@ -302,6 +328,8 @@ function ButtonGroupCollection() {
 																: null,
 														transform:
 															(activeIndex === index + 1 &&
+																String(oidValue) ===
+																	String(widget.data[`value${index + 1}`]) &&
 																widget.data.iconColorActive) ||
 															widget.data[`iconColor${index + 1}`] ||
 															widget.data.buttonGroupColor ||
@@ -325,14 +353,31 @@ function ButtonGroupCollection() {
 											}}
 										>
 											<Typography
-												ref={(ref) => {
+												/* ref={(ref) => {
 													if (ref) {
 														ref.innerHTML =
 															(activeIndex === index + 1 &&
 																widget.data.aliasActive) ||
 															alias ||
-															value;
+															// value;
+															`${value}${widget.data.unit}`;
 													}
+												}} */
+												contentEditable="false"
+												dangerouslySetInnerHTML={{
+													__html:
+														(activeIndex === index + 1 &&
+															String(oidValue) ===
+																String(widget.data[`value${index + 1}`]) &&
+															widget.data.aliasActive) ||
+														(widget.data[`alias${index + 1}`] &&
+															widget.data[`alias${index + 1}`].replace(
+																/(\r\n|\n|\r)/gm,
+																"",
+															)) ||
+														(widget.data[`value${index + 1}`] &&
+															`${widget.data[`value${index + 1}`]}${widget.data.unit}`) ||
+														"",
 												}}
 												noWrap
 												variant="body2"
@@ -342,6 +387,8 @@ function ButtonGroupCollection() {
 													textTransform: "none",
 													fontSize:
 														(activeIndex === index + 1 &&
+															String(oidValue) ===
+																String(widget.data[`value${index + 1}`]) &&
 															typeof widget.data.valueSizeActive === "number" &&
 															`${widget.data.valueSizeActive}%`) ||
 														(typeof widget.data[`valueSize${index + 1}`] ===
@@ -350,6 +397,8 @@ function ButtonGroupCollection() {
 														data.valueSize,
 													color:
 														(activeIndex === index + 1 &&
+															String(oidValue) ===
+																String(widget.data[`value${index + 1}`]) &&
 															widget.data.textColorActive) ||
 														widget.data[`textColor${index + 1}`] ||
 														widget.data.buttonGroupColor ||

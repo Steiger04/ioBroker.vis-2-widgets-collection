@@ -115,5 +115,8 @@
 	"dialog_button": "Button",
 	"dialog_set_oid_tooltip": "With opening the dialog, the state is set.",
 	"cid": "Control ID",
-	"group_select_collection": "Select"
+	"group_select_collection": "Select",
+	"dialog_close_button_top": "Close button top",
+	"dialog_close_button_bottom": "Close button bottom",
+	"arrow_color": "Arrow color"
 }

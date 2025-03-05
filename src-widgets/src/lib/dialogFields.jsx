@@ -82,8 +82,14 @@ const dialogFields = () => [
 		component: () => <CollectionDivider />,
 	},
 	{
-		name: "dialogCloseButton",
-		label: "dialog_close_button",
+		name: "dialogCloseButtonTop",
+		label: "dialog_close_button_top",
+		type: "checkbox",
+		default: false,
+	},
+	{
+		name: "dialogCloseButtonBottom",
+		label: "dialog_close_button_bottom",
 		type: "checkbox",
 		default: false,
 	},
