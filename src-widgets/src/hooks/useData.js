@@ -35,30 +35,31 @@ function useData(oid) {
 			const oidStates = oidObject?.common?.states || {};
 			const oidEntries = Object.entries(oidStates);
 
-			if (oidType === "number" || oidType === "string" || oidType === "mixed") {
+			if (
+				oidType === "number" ||
+				oidType === "string" ||
+				oidType === "boolean" ||
+				oidType === "mixed"
+			) {
 				for (let i = 1; i <= Number(widget.data.values_count); i++) {
-					if (
-						widget.data[`value${i}`] !== undefined &&
-						widget.data[`value${i}`] !== null &&
-						/\S/.test(widget.data[`value${i}`])
-					) {
-						const oidEntry = oidEntries.find(
-							([value]) => value === widget.data[`value${i}`],
-						);
+					const _value = widget.data[`value${i}`];
+					const _alias = widget.data[`alias${i}`];
+					const _unit = widget.data.unit;
+
+					if (_value !== undefined && _value !== null && /\S/.test(_value)) {
+						const oidEntry = oidEntries.find(([value]) => value === _value);
+
 						if (oidEntry && oidType === "number") {
 							oidEntry[0] = Number(oidEntry[0]);
 						}
+
 						states.push({
 							value: oidEntry
 								? oidEntry[0]
 								: oidType === "number"
-									? Number(widget.data[`value${i}`])
-									: widget.data[`value${i}`],
-							label:
-								widget.data[`alias${i}`] ||
-								(oidEntry
-									? oidEntry[1]
-									: `${widget.data[`value${i}`]}${widget.data.unit}`),
+									? Number(_value)
+									: _value,
+							label: _alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`),
 
 							fontSize: widget.data[`valueSize${i}`],
 
@@ -69,6 +70,9 @@ function useData(oid) {
 								widget.data[`iconSmall${i}`] ||
 								widget.data.icon ||
 								null,
+							iconSize:
+								typeof widget.data[`iconSize${i}`] === "number" &&
+								widget.data[`iconSize${i}`],
 							iconWidth:
 								typeof widget.data[`iconSize${i}`] === "number"
 									? widget.data[`iconSize${i}`]
@@ -93,13 +97,8 @@ function useData(oid) {
 								"0px",
 							iconColor: widget.data[`iconColor${i}`] || widget.data.iconColor,
 						});
-						widgetStates[
-							oidEntry ? String(oidEntry[0]) : widget.data[`value${i}`]
-						] =
-							widget.data[`alias${i}`] ||
-							(oidEntry
-								? oidEntry[1]
-								: `${widget.data[`value${i}`]}${widget.data.unit}`);
+						widgetStates[oidEntry ? String(oidEntry[0]) : _value] =
+							_alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`);
 					}
 				}
 				if (oidType === "number" && states.length) {
@@ -108,16 +107,18 @@ function useData(oid) {
 				}
 			}
 
-			if (oidType === "boolean") {
+			/* if (oidType === "boolean") {
 				for (let i = 1; i <= Number(widget.data.values_count); i++) {
+					const _value = widget.data[`value${i}`];
+					const _alias = widget.data[`alias${i}`];
+
 					states.push({
-						value: widget.data[`value${i}`],
-						label: widget.data[`alias${i}`],
+						value: _value,
+						label: _alias,
 					});
-					widgetStates[String(widget.data[`value${i}`])] =
-						widget.data[`value${i}`];
+					widgetStates[String(_value)] = _value;
 				}
-			}
+			} */
 
 			return { states, widgetStates, minValue, maxValue };
 		};

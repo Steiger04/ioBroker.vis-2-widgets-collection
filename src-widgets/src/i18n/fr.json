@@ -113,5 +113,14 @@
     "view": "Voir",
     "dialog_auto_close": "Ferme automatique [MS]",
     "dialog_button": "Bouton",
-    "dialog_set_oid_tooltip": "En ouvrant la boîte de dialogue, l'état est défini."
+    "dialog_set_oid_tooltip": "En ouvrant la boîte de dialogue, l'état est défini.",
+    "select_collection_widget": "SELECT (booléen, numéro, chaîne)",
+    "cid": "ID de contrôle",
+    "group_select_collection": "Sélectionner",
+    "dialog_close_button_top": "Fermez en haut",
+    "dialog_close_button_bottom": "Fermer le bas du bouton",
+    "arrow_color": "Couleur flèche",
+    "radio_orientation": "Orientation",
+    "radio_group": "Groupe de radio",
+    "radio_group_unchecked_icon_color": "Couleur icône non contrôlée"
 }

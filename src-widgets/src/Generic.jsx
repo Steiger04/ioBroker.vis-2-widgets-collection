@@ -11,7 +11,7 @@ class Generic extends window.visRxWidget {
 	};
 
 	setValue = (id, value, ack = false) => {
-		if (!id) return;
+		if (!id || id === "nothing_selected") return;
 
 		this.props.context.socket
 			.setState(id, value, ack)

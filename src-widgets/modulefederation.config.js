@@ -18,5 +18,7 @@ module.exports = makeFederation(
 			"./src/DialogCollectionWidget/DialogCollectionWidget",
 		"./SelectCollectionWidget":
 			"./src/SelectCollectionWidget/SelectCollectionWidget",
+		"./RadioGroupCollectionWidget":
+			"./src/RadioGroupCollectionWidget/RadioGroupCollectionWidget",
 	},
 );

@@ -113,5 +113,14 @@
     "view": "Переглянути",
     "dialog_auto_close": "Автоматичне закриття [MS]",
     "dialog_button": "Кнопка",
-    "dialog_set_oid_tooltip": "З відкриттям діалогового вікна встановлено стан."
+    "dialog_set_oid_tooltip": "З відкриттям діалогового вікна встановлено стан.",
+    "select_collection_widget": "Виберіть (булевий, число, рядок)",
+    "cid": "Ідентифікатор управління",
+    "group_select_collection": "Обраний",
+    "dialog_close_button_top": "Закрийте верхню частину кнопки",
+    "dialog_close_button_bottom": "Закрити дно кнопки",
+    "arrow_color": "Колір стрілки",
+    "radio_orientation": "Орієнтація",
+    "radio_group": "Радіогрупа",
+    "radio_group_unchecked_icon_color": "Неперевірений колір значка"
 }

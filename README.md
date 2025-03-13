@@ -39,12 +39,19 @@
 
 <img src="/img/collection-select.png" height="150">
 
+### RadioGroup
+
+<img src="/img/collection-radio-group.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Radio group added
+
 ### 1.5.2 (2025-03-05)
 - (steiger04) Widget optimizations
 

@@ -113,5 +113,14 @@
     "view": "Visualizzazione",
     "dialog_auto_close": "Auto Close [MS]",
     "dialog_button": "Pulsante",
-    "dialog_set_oid_tooltip": "Con l'apertura della finestra di dialogo, lo stato è impostato."
+    "dialog_set_oid_tooltip": "Con l'apertura della finestra di dialogo, lo stato è impostato.",
+    "select_collection_widget": "Seleziona (booleano, numero, stringa)",
+    "cid": "ID di controllo",
+    "group_select_collection": "Selezionare",
+    "dialog_close_button_top": "Pulsante Chiudi Top",
+    "dialog_close_button_bottom": "Chiudi il pulsante in fondo",
+    "arrow_color": "Colore freccia",
+    "radio_orientation": "Orientamento",
+    "radio_group": "Gruppo radio",
+    "radio_group_unchecked_icon_color": "Colore icona incontrollato"
 }

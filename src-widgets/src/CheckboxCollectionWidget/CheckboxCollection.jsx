@@ -18,6 +18,7 @@ function CheckboxCollection() {
 	const { oidObject, setValue, widget } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data } = useData("oid");
+
 	const oidValue = useOidValue("oid");
 
 	const oid = oidObject?._id;

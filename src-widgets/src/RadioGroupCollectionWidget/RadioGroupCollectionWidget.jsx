@@ -1,36 +1,31 @@
 import React from "react";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
-import buttonGroupFields from "../lib/buttonGroupFields";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
-import ButtonGroupCollection from "./ButtonGroupCollection";
+import radioGroupFields from "../lib/radioGroupFields";
+import RadioGroupCollection from "./RadioGroupCollection";
 
-class ButtonGroupCollectionWidget extends Generic {
+class RadioGroupCollectionWidget extends Generic {
 	static getWidgetInfo() {
 		return {
-			id: "tplButtonGroupCollectionWidget",
+			id: "tplRadioGroupCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visName: "ButtonGroupCollectionWidget", // Name of widget
-			visWidgetLabel: "button_group_collection_widget", // Label for widget
+			visName: "RadioGroupCollectionWidget", // Name of widget
+			visWidgetLabel: "radio_group_collection_widget", // Label for widget
 			visAttrs: [
 				{
 					name: "common", // group name
-					fields: [...commonFields()],
+					fields: [...commonFields({ groupName: "", allFields: true })],
 				},
 				{
-					name: "buttonGroup",
-					label: "button_group",
+					name: "radioGroup", // group name
+					label: "radio_group",
 					fields: [
 						...commonObjectFields(["string", "number", "boolean", "mixed"]),
-						...buttonGroupFields(),
+						...radioGroupFields(),
 					],
-				},
-				{
-					name: "active",
-					label: "group_active",
-					fields: [...commonFields({ groupName: "Active", allFields: false })],
 				},
 				{
 					name: "values",
@@ -47,14 +42,14 @@ class ButtonGroupCollectionWidget extends Generic {
 				position: "relative",
 			},
 			visPrev:
-				"widgets/vis-2-widgets-collection/img/prev-collection-button-group.png",
+				"widgets/vis-2-widgets-collection/img/prev-collection-radio-group.png",
 		};
 	}
 
 	// Do not delete this method. It is used by vis to read the widget configuration.
 	// eslint-disable-next-line class-methods-use-this
 	getWidgetInfo() {
-		return ButtonGroupCollectionWidget.getWidgetInfo();
+		return RadioGroupCollectionWidget.getWidgetInfo();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -66,6 +61,9 @@ class ButtonGroupCollectionWidget extends Generic {
 		//                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
 		// 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
 		//                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
+
+		// console.log("inside propertiesUpdate", this.state.values);
+
 		const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData === actualRxData) {
 			return;
@@ -126,10 +124,10 @@ class ButtonGroupCollectionWidget extends Generic {
 		}
 
 		return withCollectionProvider(
-			this.wrapContent(<ButtonGroupCollection />),
+			this.wrapContent(<RadioGroupCollection />),
 			collectionContext,
 		);
 	}
 }
 
-export default ButtonGroupCollectionWidget;
+export default RadioGroupCollectionWidget;

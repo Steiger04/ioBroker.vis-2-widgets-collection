@@ -27,7 +27,10 @@ function ButtonGroupCollection() {
 	const oidType = oidObject?.common?.type;
 
 	const isValidType =
-		oidType === "boolean" || oidType === "number" || oidType === "string";
+		oidType === "boolean" ||
+		oidType === "number" ||
+		oidType === "string" ||
+		oidType === "mixed";
 
 	return (
 		<CollectionBase
@@ -73,7 +76,8 @@ function ButtonGroupCollection() {
 					disabled={
 						oidType !== "number" &&
 						oidType !== "string" &&
-						oidType !== "boolean"
+						oidType !== "boolean" &&
+						oidType !== "mixed"
 					}
 					fullWidth
 					variant={buttonGroupVariant}

@@ -118,5 +118,8 @@
 	"group_select_collection": "Select",
 	"dialog_close_button_top": "Close button top",
 	"dialog_close_button_bottom": "Close button bottom",
-	"arrow_color": "Arrow color"
+	"arrow_color": "Arrow color",
+	"radio_orientation": "Orientation",
+	"radio_group": "Radio group",
+	"radio_group_unchecked_icon_color": "Unchecked icon color"
 }

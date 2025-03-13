@@ -113,5 +113,14 @@
     "view": "Weergave",
     "dialog_auto_close": "Auto Close [MS]",
     "dialog_button": "Knop",
-    "dialog_set_oid_tooltip": "Met het openen van het dialoogvenster is de status ingesteld."
+    "dialog_set_oid_tooltip": "Met het openen van het dialoogvenster is de status ingesteld.",
+    "select_collection_widget": "Selecteer (Boolean, Number, String)",
+    "cid": "Control -ID",
+    "group_select_collection": "Uitkiezen",
+    "dialog_close_button_top": "Sluit de knop Top",
+    "dialog_close_button_bottom": "Sluit de knopbodem",
+    "arrow_color": "Pijlkleur",
+    "radio_orientation": "Oriëntatie",
+    "radio_group": "Radiogroep",
+    "radio_group_unchecked_icon_color": "Ongecontroleerde pictogramkleur"
 }

@@ -113,5 +113,14 @@
     "view": "Вид",
     "dialog_auto_close": "Auto Close [MS]",
     "dialog_button": "Кнопка",
-    "dialog_set_oid_tooltip": "С открытием диалога, состояние установлено."
+    "dialog_set_oid_tooltip": "С открытием диалога, состояние установлено.",
+    "select_collection_widget": "Выберите (логическое, число, строка)",
+    "cid": "Идентификатор управления",
+    "group_select_collection": "Выбирать",
+    "dialog_close_button_top": "Кнопка закрытия",
+    "dialog_close_button_bottom": "Кнопка закрытия внизу",
+    "arrow_color": "Цвет стрелы",
+    "radio_orientation": "Ориентация",
+    "radio_group": "Радио Группа",
+    "radio_group_unchecked_icon_color": "Неконтролируемый цвет значков"
 }

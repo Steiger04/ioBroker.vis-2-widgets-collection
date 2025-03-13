@@ -113,5 +113,14 @@
     "view": "Pogląd",
     "dialog_auto_close": "Auto Close [MS]",
     "dialog_button": "Przycisk",
-    "dialog_set_oid_tooltip": "Po otwarciu okna dialogowego stan jest ustawiony."
+    "dialog_set_oid_tooltip": "Po otwarciu okna dialogowego stan jest ustawiony.",
+    "select_collection_widget": "Wybierz (boolean, liczba, ciąg)",
+    "cid": "Identyfikator kontroli",
+    "group_select_collection": "Wybierać",
+    "dialog_close_button_top": "Zamknij górę przycisku",
+    "dialog_close_button_bottom": "Zamknij dno przycisku",
+    "arrow_color": "Kolor strzałki",
+    "radio_orientation": "Orientacja",
+    "radio_group": "Grupa radiowa",
+    "radio_group_unchecked_icon_color": "Niezazorowany kolor ikony"
 }

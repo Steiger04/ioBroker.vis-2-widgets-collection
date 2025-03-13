@@ -113,5 +113,14 @@
     "view": "Vista",
     "dialog_auto_close": "Auto Cerrar [MS]",
     "dialog_button": "Botón",
-    "dialog_set_oid_tooltip": "Al abrir el diálogo, el estado está configurado."
+    "dialog_set_oid_tooltip": "Al abrir el diálogo, el estado está configurado.",
+    "select_collection_widget": "Seleccionar (boolean, número, cadena)",
+    "cid": "ID de control",
+    "group_select_collection": "Seleccionar",
+    "dialog_close_button_top": "Top del botón de cierre",
+    "dialog_close_button_bottom": "Botón de cierre inferior",
+    "arrow_color": "Color de flecha",
+    "radio_orientation": "Orientación",
+    "radio_group": "Grupo de radio",
+    "radio_group_unchecked_icon_color": "Color de icono sin control"
 }

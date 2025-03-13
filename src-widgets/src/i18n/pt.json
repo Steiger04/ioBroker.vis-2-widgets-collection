@@ -113,5 +113,14 @@
     "view": "Visualizar",
     "dialog_auto_close": "Auto Fechar [MS]",
     "dialog_button": "Botão",
-    "dialog_set_oid_tooltip": "Com a abertura da caixa de diálogo, o estado está definido."
+    "dialog_set_oid_tooltip": "Com a abertura da caixa de diálogo, o estado está definido.",
+    "select_collection_widget": "Selecione (booleano, número, string)",
+    "cid": "Id de controle",
+    "group_select_collection": "Selecione",
+    "dialog_close_button_top": "Feche o botão superior",
+    "dialog_close_button_bottom": "Feche o botão inferior",
+    "arrow_color": "Cor da seta",
+    "radio_orientation": "Orientação",
+    "radio_group": "Grupo de rádio",
+    "radio_group_unchecked_icon_color": "Cor do ícone sem verificação"
 }
