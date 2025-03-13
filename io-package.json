@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.5.2",
+    "version": "1.6.0",
     "news": {
+      "1.6.0": {
+        "en": "Radio group added",
+        "de": "Radiogruppe hinzugefügt",
+        "ru": "Радиогруппа добавлена",
+        "pt": "Grupo de rádio adicionado",
+        "nl": "Radiogroep toegevoegd",
+        "fr": "Groupe radio ajouté",
+        "it": "Gruppo radio aggiunto",
+        "es": "Grupo de radio añadido",
+        "pl": "Grupa radiowa",
+        "uk": "Додана радіогрупа",
+        "zh-cn": "增加了无线电组"
+      },
       "1.5.2": {
         "en": "Widget optimizations",
         "de": "Widget Optimierungen",
@@ -80,19 +93,6 @@
         "pl": "Dodana opcja i optymalizacja widżetu",
         "uk": "Оптимізація чекбоксів та віджетів",
         "zh-cn": "添加复选框和部件优化"
-      },
-      "1.1.19": {
-        "en": "Button group optimized",
-        "de": "Tastengruppe optimiert",
-        "ru": "Группа «Кнотон» оптимизирована",
-        "pt": "Grupo de botões otimizado",
-        "nl": "Knopgroep geoptimaliseerd",
-        "fr": "Groupe de boutons optimisé",
-        "it": "Gruppo pulsante ottimizzato",
-        "es": "Grupo Button optimizado",
-        "pl": "Grupa przycisku zoptymalizowana",
-        "uk": "Оптимізована кнопка",
-        "zh-cn": "按钮组优化"
       }
     },
     "titleLang": {
