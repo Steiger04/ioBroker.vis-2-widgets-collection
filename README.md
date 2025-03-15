@@ -49,6 +49,9 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Radio group optimizations
+
 ### 1.6.0 (2025-03-13)
 - (steiger04) Radio group added
 

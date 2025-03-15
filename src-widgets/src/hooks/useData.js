@@ -61,7 +61,7 @@ function useData(oid) {
 									: _value,
 							label: _alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`),
 
-							fontSize: widget.data[`valueSize${i}`],
+							fontSize: formatSize(widget.data[`valueSize${i}`]),
 
 							textColor: widget.data[`textColor${i}`],
 
@@ -124,7 +124,7 @@ function useData(oid) {
 		};
 
 		return processStates();
-	}, [oidObject, widget.data, getDataValue]);
+	}, [oidObject, widget.data, getDataValue, formatSize]);
 
 	// Styling-Daten
 	const data = useMemo(() => {

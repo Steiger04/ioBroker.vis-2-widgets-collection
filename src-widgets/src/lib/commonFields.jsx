@@ -74,7 +74,7 @@ const commonFields = (settings) => {
 			label: "",
 			type: "custom",
 			component: () => <CollectionDivider dividerText="header" />,
-			hidden: "data.noHeader" && !allFields,
+			hidden: (data) => data.noHeader && !allFields,
 		},
 		{
 			name: `noHeader${groupName}`,
@@ -130,7 +130,7 @@ const commonFields = (settings) => {
 			label: "",
 			type: "custom",
 			component: () => <CollectionDivider dividerText="footer" />,
-			hidden: "data.noFooter" && !allFields,
+			hidden: (data) => data.noFooter && !allFields,
 		},
 		{
 			name: `noFooter${groupName}`,
