@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "news": {
+      "1.6.1": {
+        "en": "Radio group optimizations",
+        "de": "Funkgruppenoptimierungen",
+        "ru": "Оптимизация радиогрупп",
+        "pt": "Otimizações de grupos de rádio",
+        "nl": "Optimalisaties van radiogroepen",
+        "fr": "Optimisations des groupes radio",
+        "it": "Ottimizzazione del gruppo radio",
+        "es": "Optimizaciones de grupos de radio",
+        "pl": "Optymalizacja grup radiowych",
+        "uk": "Оптимізація радіо груп",
+        "zh-cn": "无线电组优化"
+      },
       "1.6.0": {
         "en": "Radio group added",
         "de": "Radiogruppe hinzugefügt",
@@ -80,19 +93,6 @@
         "pl": "Funkcjonalność przycisku dla grupy państwa i przycisku",
         "uk": "Функціональність кнопки для державної та кнопки",
         "zh-cn": "状态和按钮组的按钮功能"
-      },
-      "1.2.0": {
-        "en": "Checkbox added and widget optimizations",
-        "de": "Checkbox hinzugefügt und Widget-Optimierungen",
-        "ru": "Добавленные и виджетные оптимизации",
-        "pt": "Caixa de seleção adicionada e otimização de widgets",
-        "nl": "Checkbox toegevoegd en widget optimalisaties",
-        "fr": "Boîte à cocher ajoutée et optimisations de widget",
-        "it": "Checkbox aggiunto e ottimizzazioni widget",
-        "es": "Checkbox añadido y optimizaciones widget",
-        "pl": "Dodana opcja i optymalizacja widżetu",
-        "uk": "Оптимізація чекбоксів та віджетів",
-        "zh-cn": "添加复选框和部件优化"
       }
     },
     "titleLang": {

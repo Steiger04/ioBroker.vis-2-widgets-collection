@@ -49,7 +49,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.6.1 (2025-03-15)
 - (steiger04) Radio group optimizations
 
 ### 1.6.0 (2025-03-13)
