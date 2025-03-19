@@ -53,7 +53,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.7.0 (2025-03-19)
 - (steiger04) Gauge added
 
 ### 1.6.1 (2025-03-15)
