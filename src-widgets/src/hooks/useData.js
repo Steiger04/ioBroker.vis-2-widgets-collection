@@ -177,6 +177,8 @@ function useData(oid) {
 			iconSizeActive:
 				getDataValue("iconSize", ext) &&
 				`calc(24px * ${getDataValue("iconSize", ext)} / 100)`,
+
+			iconSizeActiveOnly: getDataValue("iconSize", ext),
 			iconSizeOnly: getDataValue("iconSize", ext) || widget.data.iconSize,
 
 			iconColor: widget.data.iconColor,

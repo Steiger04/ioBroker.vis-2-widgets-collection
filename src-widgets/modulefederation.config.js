@@ -20,5 +20,7 @@ module.exports = makeFederation(
 			"./src/SelectCollectionWidget/SelectCollectionWidget",
 		"./RadioGroupCollectionWidget":
 			"./src/RadioGroupCollectionWidget/RadioGroupCollectionWidget",
+		"./GaugeCollectionWidget":
+			"./src/GaugeCollectionWidget/GaugeCollectionWidget",
 	},
 );

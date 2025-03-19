@@ -161,7 +161,8 @@
           "CheckboxCollectionWidget",
           "DialogCollectionWidget",
           "SelectCollectionWidget",
-          "RadioGroupCollectionWidget"
+          "RadioGroupCollectionWidget",
+					"GaugeCollectionWidget"
         ]
       }
     },

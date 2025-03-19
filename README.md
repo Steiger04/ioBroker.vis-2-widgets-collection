@@ -43,12 +43,19 @@
 
 <img src="/img/collection-radio-group.png" height="150">
 
+### Gauge
+
+<img src="/img/collection-gauge.png" height="150">
+
 ---
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Gauge added
+
 ### 1.6.1 (2025-03-15)
 - (steiger04) Radio group optimizations
 
