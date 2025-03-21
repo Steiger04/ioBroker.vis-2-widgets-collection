@@ -514,7 +514,7 @@ const dialogFields = () => [
 		default: "#888",
 	},
 	{
-		nmae: "gaugeColorUnits",
+		name: "gaugeColorUnits",
 		type: "color",
 		label: "gauge_color_units",
 		default: "#888",
