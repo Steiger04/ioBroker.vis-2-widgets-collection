@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.2",
+    "version": "1.7.3",
     "news": {
+      "1.7.3": {
+        "en": "Gauge bug fixed",
+        "de": "Fehler behoben",
+        "ru": "Огонь исправлен",
+        "pt": "Bug de calibre corrigido",
+        "nl": "Bugfixed",
+        "fr": "Correction du bogue de jauge",
+        "it": "Bug di Gauge fisso",
+        "es": "Error de Gauge fijo",
+        "pl": "Błąd parametru",
+        "uk": "Виправлено помилку",
+        "zh-cn": "Gauge 错误已修复"
+      },
       "1.7.2": {
         "en": "Gauge optimized",
         "de": "Maßgeschneidert",
@@ -80,19 +93,6 @@
         "pl": "Optymalizacja widżetu",
         "uk": "Оптимізація віджету",
         "zh-cn": "部件优化"
-      },
-      "1.5.1": {
-        "en": "Select bug fixed",
-        "de": "Wählen Sie Fehler behoben",
-        "ru": "Выберите ошибку",
-        "pt": "Selecione o erro corrigido",
-        "nl": "Selecteer bug vast",
-        "fr": "Sélectionner le bug corrigé",
-        "it": "Selezionare bug fisso",
-        "es": "Seleccionar error fijo",
-        "pl": "Wybierz błąd ustawiony",
-        "uk": "Виберіть виправлення помилок",
-        "zh-cn": "选择已修正的错误"
       }
     },
     "titleLang": {
