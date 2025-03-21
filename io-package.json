@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "news": {
+      "1.7.1": {
+        "en": "Gauge bug fixed",
+        "de": "Fehler behoben",
+        "ru": "Огонь исправлен",
+        "pt": "Bug de calibre corrigido",
+        "nl": "Bugfixed",
+        "fr": "Correction du bogue de jauge",
+        "it": "Bug di Gauge fisso",
+        "es": "Error de Gauge fijo",
+        "pl": "Błąd parametru",
+        "uk": "Виправлено помилку",
+        "zh-cn": "Gauge 错误已修复"
+      },
       "1.7.0": {
         "en": "Gauge added",
         "de": "Erweiterung",
@@ -80,19 +93,6 @@
         "pl": "Wybierz dodany",
         "uk": "Виберіть додано",
         "zh-cn": "选择添加"
-      },
-      "1.4.0": {
-        "en": "Dialog added",
-        "de": "Dialog hinzugefügt",
-        "ru": "Диалог добавлен",
-        "pt": "Diálogo adicionado",
-        "nl": "Dialoog toegevoegd",
-        "fr": "Boîte de dialogue ajoutée",
-        "it": "Dialog aggiunto",
-        "es": "Diálogo añadido",
-        "pl": "Okno dodane",
-        "uk": "Діалог додано",
-        "zh-cn": "已添加对话框"
       }
     },
     "titleLang": {
