@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "news": {
+      "1.7.2": {
+        "en": "Gauge optimized",
+        "de": "Maßgeschneidert",
+        "ru": "Gauge оптимизирован",
+        "pt": "Medidor otimizado",
+        "nl": "Metaal geoptimaliseerd",
+        "fr": "Mesure optimisée",
+        "it": "Gauge ottimizzato",
+        "es": "Gauge optimizado",
+        "pl": "Zoptymalizowany parametr",
+        "uk": "Оптимізований Gauge",
+        "zh-cn": "高盖优化"
+      },
       "1.7.1": {
         "en": "Gauge bug fixed",
         "de": "Fehler behoben",
@@ -80,19 +93,6 @@
         "pl": "Wybierz błąd ustawiony",
         "uk": "Виберіть виправлення помилок",
         "zh-cn": "选择已修正的错误"
-      },
-      "1.5.0": {
-        "en": "Select added",
-        "de": "Wählen Sie aus",
-        "ru": "Добавлен выбор",
-        "pt": "Selecione adicionado",
-        "nl": "Toegevoegd selecteren",
-        "fr": "Sélectionner ajouté",
-        "it": "Seleziona aggiunto",
-        "es": "Seleccionar añadido",
-        "pl": "Wybierz dodany",
-        "uk": "Виберіть додано",
-        "zh-cn": "选择添加"
       }
     },
     "titleLang": {
