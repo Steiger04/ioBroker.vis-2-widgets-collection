@@ -107,7 +107,8 @@ function GaugeCollection() {
 					? segment?.state.frameBackgroundColorActive ||
 						segment?.state.frameBackgroundColor ||
 						segment?.state.frameBackgroundActive ||
-						segment?.state.frameBackground
+						segment?.state.frameBackground ||
+						null
 					: "transparent";
 				// ----------------------------------------------------------
 				paper1.style.borderColor =
@@ -120,7 +121,8 @@ function GaugeCollection() {
 					? segment?.state.backgroundColorActive ||
 						segment?.state.backgroundColor ||
 						segment?.state.backgroundActive ||
-						segment?.state.background
+						segment?.state.background ||
+						null
 					: "transparent";
 			} else {
 				paper0.style.borderColor =
@@ -131,7 +133,9 @@ function GaugeCollection() {
 
 				paper0.style.background =
 					wrappedContent &&
-					(widget.data.frameBackgroundColor || widget.data.frameBackground);
+					(widget.data.frameBackgroundColor ||
+						widget.data.frameBackground ||
+						null);
 				// ----------------------------------------------------------
 				paper1.style.borderColor =
 					!wrappedContent &&
@@ -141,7 +145,7 @@ function GaugeCollection() {
 
 				paper1.style.background =
 					wrappedContent &&
-					(widget.data.backgroundColor || widget.data.background);
+					(widget.data.backgroundColor || widget.data.background || null);
 			}
 		}
 	}, [paper0, paper1, wrappedContent, segment, widget.data]);

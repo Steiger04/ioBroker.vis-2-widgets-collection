@@ -46,6 +46,7 @@ const dialogFields = () => [
 		options: [
 			{ value: "contain", label: "contain" },
 			{ value: "cover", label: "cover" },
+			{ value: "fill", label: "fill" },
 		],
 		default: "contain",
 		noTranslation: true,

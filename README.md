@@ -53,6 +53,9 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Gauge optimized
+
 ### 1.7.1 (2025-03-21)
 - (steiger04) Gauge bug fixed
 
