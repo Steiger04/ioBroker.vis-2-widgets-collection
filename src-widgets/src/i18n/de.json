@@ -203,6 +203,8 @@
 	"gauge_value_text": "Value text",
 	"gauge_value_text_shadow": "Value text shadow",
 	"gauge_value_box_border_radius": "Value box border radius",
+	"gauge_value_int": "Value integer",
+	"gauge_value_dec": "Value decimal",
 	"gauge_fonts_customization_options": "Fonts customization options",
 	"gauge_font_numbers": "Font numbers",
 	"gauge_font_title": "Font title",

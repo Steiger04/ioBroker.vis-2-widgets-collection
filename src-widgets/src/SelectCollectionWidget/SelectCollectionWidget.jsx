@@ -14,7 +14,7 @@ class SelectCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "SelectCollectionWidget", // Name of widget
 			visWidgetLabel: "select_collection_widget", // Label for widget
-			visOrder: 1,
+			visOrder: 3,
 			visAttrs: [
 				{
 					name: "common", // group name

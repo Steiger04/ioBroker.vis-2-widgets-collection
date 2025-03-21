@@ -6,21 +6,6 @@ import { LinearGauge, RadialGauge } from "canvas-gauges";
 const TransparentImg =
 	"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-const findSegment = (highlights, value, maxValue) => {
-	const segment = highlights.find((highlight) => {
-		if (highlight.from === undefined || highlight.to === undefined) {
-			return false;
-		}
-		return (
-			value >= highlight.from &&
-			(value < highlight.to ||
-				(value === highlight.to && value === maxValue)) &&
-			highlight.icon
-		);
-	});
-	return segment || null;
-};
-
 const Gauge = (props) => {
 	const gaugeRef = useRef(null);
 	const canvasRef = useRef(null);
@@ -66,12 +51,7 @@ const Gauge = (props) => {
 			? `${props.gaugeWidgetData.iconSize}%`
 			: null;
 
-	const segment = findSegment(
-		props.highlights,
-		props.value,
-		Number(props.gaugeWidgetData.gaugeMaxValue) || 100,
-	);
-
+	const segment = props.gaugeSegment;
 	return (
 		<Box
 			sx={{
@@ -85,36 +65,36 @@ const Gauge = (props) => {
 		>
 			<img
 				alt=""
-				src={segment?.icon || props.gaugeData.icon || TransparentImg}
+				src={segment?.state.icon || props.gaugeData.icon || TransparentImg}
 				style={{
 					position: "relative",
 
-					width:
-						props.highlights[props.gaugeActiveIndex - 1]?.iconSize ??
-						(iconSize || "50%"),
-					height:
-						props.highlights[props.gaugeActiveIndex - 1]?.iconSize ??
-						(iconSize || "50%"),
+					width: Number(segment?.state.iconSize)
+						? `${segment.state.iconSize}%`
+						: iconSize || "50%",
+					height: Number(segment?.state.iconSize)
+						? `${segment.state.iconSize}%`
+						: iconSize || "50%",
 
 					boxSizing: "border-box",
 					objectFit: props.gaugeWidgetData.gaugeIconFit,
 					top:
-						(segment?.iconYOffset !== "0px" &&
-							`calc(0px - ${segment?.iconYOffset})`) ||
+						(!!segment && `calc(0px - ${segment.state.iconYOffset})`) ||
 						(props.gaugeWidgetData.iconYOffset !== "0px" &&
-							`calc(0px - ${props.gaugeWidgetData.iconYOffset})`),
+							`calc(0px - ${props.gaugeWidgetData.iconYOffset})`) ||
+						"0px",
 					left:
-						(segment?.iconXOffset !== "0px" &&
-							`calc(0px + ${segment?.iconXOffset})`) ||
+						(!!segment && `calc(0px + ${segment.state.iconXOffset})`) ||
 						(props.gaugeWidgetData.iconXOffset !== "0px" &&
-							`calc(0px + ${props.gaugeWidgetData.iconXOffset})`),
+							`calc(0px + ${props.gaugeWidgetData.iconXOffset})`) ||
+						"0px",
 
-					color: props.gaugeData.iconColorActive || props.gaugeData.iconColor,
+					color: segment?.state.iconColor || props.gaugeData.iconColor,
 					filter:
-						(props.gaugeData.iconColorActive || props.gaugeData.iconColor) &&
+						(segment?.state.iconColor || props.gaugeData.iconColor) &&
 						"drop-shadow(0px 10000px 0)",
 					transform:
-						(props.gaugeData.iconColorActive || props.gaugeData.iconColor) &&
+						(segment?.state.iconColor || props.gaugeData.iconColor) &&
 						"translateY(-10000px)",
 				}}
 			/>

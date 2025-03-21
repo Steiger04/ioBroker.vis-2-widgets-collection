@@ -15,6 +15,7 @@ class StateCollectionWidget extends Generic {
 			visSetColor: "#0C0A43", // Color of a widget set. it is enough to set color only in one widget of a set
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
+			visOrder: 1,
 			visAttrs: [
 				{
 					name: "common", // group name

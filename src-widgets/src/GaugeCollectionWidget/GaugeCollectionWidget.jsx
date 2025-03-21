@@ -65,7 +65,6 @@ class GaugeCollectionWidget extends Generic {
 			return;
 		}
 		this.lastRxData = actualRxData;
-
 		await this.createStateObjectAsync("oid");
 	}
 

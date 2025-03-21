@@ -805,6 +805,22 @@ const dialogFields = () => [
 		min: 0,
 	},
 	{
+		name: "gaugeValueInt",
+		type: "number",
+		label: "gauge_value_int",
+		default: 3,
+		step: 1,
+		min: 0,
+	},
+	{
+		name: "gaugeValueDec",
+		type: "number",
+		label: "gauge_value_dec",
+		default: 2,
+		step: 1,
+		min: 0,
+	},
+	{
 		label: "",
 		type: "custom",
 		component: () => (

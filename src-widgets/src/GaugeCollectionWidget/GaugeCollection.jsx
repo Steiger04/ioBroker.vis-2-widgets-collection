@@ -1,14 +1,32 @@
 import { Box } from "@mui/material";
-import React, { useContext, useMemo, useRef } from "react";
+import React, { useContext, useMemo, useRef, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useOidValue from "../hooks/useOidValue";
 import Gauge from "./Gauge";
 
+const findSegment = (highlights, value, maxValue) => {
+	const segment = highlights.find((highlight) => {
+		if (highlight.from === undefined || highlight.to === undefined) {
+			return null;
+		}
+		return (
+			/* value >= highlight.from &&
+			(value < highlight.to ||
+				(value === highlight.to && value === maxValue)) &&
+			highlight.icon */
+			value >= highlight.from &&
+			(value < highlight.to || (value === highlight.to && value === maxValue))
+		);
+	});
+	return segment || null;
+};
+
 function GaugeCollection() {
+	const baseRef = useRef(null);
 	const gaugeRef = useRef(null);
-	const { oidObject, widget } = useContext(CollectionContext);
+	const { wrappedContent, oidObject, widget } = useContext(CollectionContext);
 
 	const { data, states } = useData("oid");
 	const oidValue = useOidValue("oid");
@@ -23,11 +41,15 @@ function GaugeCollection() {
 
 		const _majorTicks = [];
 
-		if (widget.data.gaugeMajorTicks && widget.data.gaugeMajorTicks > 0) {
-			for (let i = 0; i <= widget.data.gaugeMajorTicks; i++) {
+		if (
+			widget.data.gaugeMajorTicks &&
+			Number(widget.data.gaugeMajorTicks > 0)
+		) {
+			for (let i = 0; i <= Number(widget.data.gaugeMajorTicks); i++) {
 				const value =
 					minValue +
-					((maxValue - minValue) / widget.data.gaugeMajorTicks || 1) * i;
+					((maxValue - minValue) / Number(widget.data.gaugeMajorTicks) || 1) *
+						i;
 				// zwei Nachkommastellen
 				_majorTicks.push(Math.round(value * 100) / 100);
 			}
@@ -44,21 +66,14 @@ function GaugeCollection() {
 		const _highlights = [];
 		const maxValue = Number(widget.data.gaugeMaxValue) || 100;
 
-		states.forEach(({ value, textColor }, index) => {
+		states.forEach((state, index) => {
 			const nextValue = states[index + 1]?.value || maxValue;
-			const nextIcon = states[index]?.icon || null;
-			const nextIconSize = states[index]?.iconSize || null;
-			const nextIconXOffset = states[index]?.iconXOffset || null;
-			const nextIconYOffset = states[index]?.iconYOffset || null;
 
 			_highlights.push({
-				from: value,
+				from: state.value,
 				to: nextValue,
-				color: textColor || "transparent",
-				icon: nextIcon,
-				iconSize: nextIconSize,
-				iconXOffset: nextIconXOffset,
-				iconYOffset: nextIconYOffset,
+				color: state.textColor || "transparent",
+				state,
 			});
 		});
 
@@ -70,8 +85,74 @@ function GaugeCollection() {
 		return _highlights;
 	}, [states, widget.data.gaugeMaxValue]);
 
+	const segment = findSegment(
+		highlights,
+		oidValue,
+		Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100,
+	);
+
+	const paper0 = baseRef.current?.paper0;
+	const paper1 = baseRef.current?.paper1;
+
+	useEffect(() => {
+		if (paper0 && paper1) {
+			if (segment) {
+				paper0.style.borderColor =
+					!wrappedContent &&
+					(segment?.state.frameBackgroundColorActive ||
+						segment?.state.frameBackgroundColor ||
+						null);
+
+				paper0.style.background = wrappedContent
+					? segment?.state.frameBackgroundColorActive ||
+						segment?.state.frameBackgroundColor ||
+						segment?.state.frameBackgroundActive ||
+						segment?.state.frameBackground
+					: "transparent";
+				// ----------------------------------------------------------
+				paper1.style.borderColor =
+					!wrappedContent &&
+					(segment?.state.backgroundColorActive ||
+						segment?.state.backgroundColor ||
+						null);
+
+				paper1.style.background = wrappedContent
+					? segment?.state.backgroundColorActive ||
+						segment?.state.backgroundColor ||
+						segment?.state.backgroundActive ||
+						segment?.state.background
+					: "transparent";
+			} else {
+				paper0.style.borderColor =
+					!wrappedContent &&
+					((segment?.state.frameBackgroundColor &&
+						`${segment?.state.frameBackgroundColor}!important`) ||
+						null);
+
+				paper0.style.background =
+					wrappedContent &&
+					(widget.data.frameBackgroundColor || widget.data.frameBackground);
+				// ----------------------------------------------------------
+				paper1.style.borderColor =
+					!wrappedContent &&
+					((segment?.state.backgroundColor &&
+						`${segment?.state.backgroundColor}!important`) ||
+						null);
+
+				paper1.style.background =
+					wrappedContent &&
+					(widget.data.backgroundColor || widget.data.background);
+			}
+		}
+	}, [paper0, paper1, wrappedContent, segment, widget.data]);
+
 	return (
-		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
+		<CollectionBase
+			ref={baseRef}
+			isValidType={isValidType}
+			data={data}
+			oidValue={oidValue}
+		>
 			{/* {data.icon && (
 				<img
 					alt=""
@@ -103,17 +184,14 @@ function GaugeCollection() {
 				<Gauge
 					gaugeData={data}
 					gaugeWidgetData={widget.data}
+					gaugeSegment={segment}
 					gaugeType={widget.data.gaugeType}
 					// Basic Options
 					width={
-						gaugeRef.current?.clientWidth - widget.data.gaugePadding > 0
-							? gaugeRef.current?.clientWidth - widget.data.gaugePadding
-							: gaugeRef.current?.clientWidth
+						gaugeRef.current?.clientWidth - Number(widget.data.gaugePadding)
 					}
 					height={
-						gaugeRef.current?.clientHeight - widget.data.gaugePadding > 0
-							? gaugeRef.current?.clientHeight - widget.data.gaugePadding
-							: gaugeRef.current?.clientHeight
+						gaugeRef.current?.clientHeight - Number(widget.data.gaugePadding)
 					}
 					minValue={
 						Number(widget.data.gaugeMinValue)
@@ -129,30 +207,72 @@ function GaugeCollection() {
 					units={widget.data.unit}
 					title={data.header}
 					// Ticks Bar Options
-					exactTicks={widget.data.gaugeExactTicks}
+					exactTicks={widget.data.gaugeExactTicks} // boolean
 					majorTicks={majorTicks}
-					minorTicks={widget.data.gaugeMinorTicks || 0}
-					strokeTicks={widget.data.gaugeStrokeTicks}
-					majorTicksInt={widget.data.gaugeMajorTicksInt || 1}
-					majorTicksDec={widget.data.gaugeMajorTicksDec || 0}
+					minorTicks={
+						typeof widget.data.gaugeMinorTicks === "number"
+							? widget.data.gaugeMinorTicks
+							: Number(widget.data.gaugeMinorTicks)
+					}
+					strokeTicks={widget.data.gaugeStrokeTicks} // boolean
+					// majorTicksInt={widget.data.gaugeMajorTicksInt || 1}
+					majorTicksInt={
+						typeof widget.data.gaugeMajorTicksInt === "number"
+							? widget.data.gaugeMajorTicksInt
+							: Number(widget.data.gaugeMajorTicksInt)
+					}
+					// majorTicksDec={widget.data.gaugeMajorTicksDec || 0}
+					majorTicksDec={
+						typeof widget.data.gaugeMajorTicksDec === "number"
+							? widget.data.gaugeMajorTicksDec
+							: Number(widget.data.gaugeMajorTicksDec)
+					}
 					highlights={highlights}
-					highlightsWidth={widget.data.gaugeHighlightsWidth || 15}
-					numbersMargin={widget.data.gaugeNumbersMargin || 1}
+					// highlightsWidth={widget.data.gaugeHighlightsWidth || 15}
+					highlightsWidth={
+						typeof widget.data.gaugeHighlightsWidth === "number"
+							? widget.data.gaugeHighlightsWidth
+							: Number(widget.data.gaugeHighlightsWidth)
+					}
+					// numbersMargin={widget.data.gaugeNumbersMargin || 1}
+					numbersMargin={
+						typeof widget.data.gaugeNumbersMargin === "number"
+							? widget.data.gaugeNumbersMargin
+							: Number(widget.data.gaugeNumbersMargin)
+					}
 					// Progress Bar Options
 					barWidth={
-						widget.data.gaugeBarWidth && widget.data.gaugeBarWidth <= 50
+						typeof widget.data.gaugeBarWidth === "number" &&
+						widget.data.gaugeBarWidth <= 50
 							? widget.data.gaugeBarWidth
-							: 20
+							: Number(widget.data.gaugeBarWidth) <= 50
+								? Number(widget.data.gaugeBarWidth)
+								: 50
 					}
-					barStrokeWidth={widget.data.gaugeBarStrokeWidth || 0}
-					barProgress={widget.data.gaugeBarProgress}
-					barShadow={widget.data.gaugeBarShadow || 0}
+					// barStrokeWidth={widget.data.gaugeBarStrokeWidth || 0}
+					barStrokeWidth={
+						typeof widget.data.gaugeBarStrokeWidth === "number"
+							? widget.data.gaugeBarStrokeWidth
+							: Number(widget.data.gaugeBarStrokeWidth)
+					}
+					barProgress={widget.data.gaugeBarProgress} // boolean
+					// barShadow={widget.data.gaugeBarShadow || 0}
+					barShadow={
+						typeof widget.data.gaugeBarShadow === "number"
+							? widget.data.gaugeBarShadow
+							: Number(widget.data.gaugeBarShadow)
+					}
 					// Animation Options
-					animation={widget.data.gaugeAnimation}
-					animationDuration={widget.data.gaugeAnimationDuration || 500}
+					animation={widget.data.gaugeAnimation} // boolean
+					// animationDuration={widget.data.gaugeAnimationDuration || 500}
+					animationDuration={
+						typeof widget.data.gaugeAnimationDuration === "number"
+							? widget.data.gaugeAnimationDuration
+							: Number(widget.data.gaugeAnimationDuration)
+					}
 					animationRule={widget.data.gaugeAnimationRule || "cycle"}
-					animatedValue={widget.data.gaugeAnimatedValue}
-					animateOnInit={widget.data.gaugeAnimateOnInit}
+					animatedValue={widget.data.gaugeAnimatedValue} // boolean
+					animateOnInit={widget.data.gaugeAnimateOnInit} // boolean
 					// Color Options
 					colorPlate={widget.data.gaugeColorPlate || "rgba(0,0,0,0)"}
 					colorPlateEnd={widget.data.gaugeColorPlateEnd || "rgba(0,0,0,0)"}
@@ -200,34 +320,114 @@ function GaugeCollection() {
 					colorBarShadow={widget.data.gaugeColorBarShadow || "#000"}
 					highlightsLineCap={widget.data.gaugeHighlightsLineCap || "butt"}
 					// Needle Configuration Options
-					needle={widget.data.gaugeNeedle === true}
-					needleShadow={widget.data.gaugeNeedleShadow === true}
+					needle={widget.data.gaugeNeedle} // boolean
+					needleShadow={widget.data.gaugeNeedleShadow} // boolean
 					needleType={widget.data.gaugeNeedleType || "arrow"}
-					needleStart={widget.data.gaugeNeedleStart || 5}
-					needleEnd={widget.data.gaugeNeedleEnd || 85}
-					needleWidth={widget.data.gaugeNeedleWidth || 4}
+					// needleStart={widget.data.gaugeNeedleStart || 5}
+					needleStart={
+						typeof widget.data.gaugeNeedleStart === "number"
+							? widget.data.gaugeNeedleStart
+							: Number(widget.data.gaugeNeedleStart)
+					}
+					// needleEnd={widget.data.gaugeNeedleEnd || 85}
+					needleEnd={
+						typeof widget.data.gaugeNeedleEnd === "number"
+							? widget.data.gaugeNeedleEnd
+							: Number(widget.data.gaugeNeedleEnd)
+					}
+					// needleWidth={widget.data.gaugeNeedleWidth || 4}
+					needleWidth={
+						typeof widget.data.gaugeNeedleWidth === "number"
+							? widget.data.gaugeNeedleWidth
+							: Number(widget.data.gaugeNeedleWidth)
+					}
 					// Borders Options
-					borders={widget.data.gaugeBorders}
-					borderOuterWidth={widget.data.gaugeBorderOuterWidth || 3}
-					borderMiddleWidth={widget.data.gaugeBorderMiddleWidth || 3}
-					borderInnerWidth={widget.data.gaugeBorderInnerWidth || 3}
-					borderShadowWidth={widget.data.gaugeBorderShadowWidth || 3}
+					borders={widget.data.gaugeBorders} // boolean
+					// borderOuterWidth={widget.data.gaugeBorderOuterWidth || 3}
+					borderOuterWidth={
+						typeof widget.data.gaugeBorderOuterWidth === "number"
+							? widget.data.gaugeBorderOuterWidth
+							: Number(widget.data.gaugeBorderOuterWidth)
+					}
+					// borderMiddleWidth={widget.data.gaugeBorderMiddleWidth || 3}
+					borderMiddleWidth={
+						typeof widget.data.gaugeBorderMiddleWidth === "number"
+							? widget.data.gaugeBorderMiddleWidth
+							: Number(widget.data.gaugeBorderMiddleWidth)
+					}
+					// borderInnerWidth={widget.data.gaugeBorderInnerWidth || 3}
+					borderInnerWidth={
+						typeof widget.data.gaugeBorderInnerWidth === "number"
+							? widget.data.gaugeBorderInnerWidth
+							: Number(widget.data.gaugeBorderInnerWidth)
+					}
+					// borderShadowWidth={widget.data.gaugeBorderShadowWidth || 3}
+					borderShadowWidth={
+						typeof widget.data.gaugeBorderShadowWidth === "number"
+							? widget.data.gaugeBorderShadowWidth
+							: Number(widget.data.gaugeBorderShadowWidth)
+					}
 					// Value Box Options
-					valueBox={widget.data.gaugeValueBox}
-					valueBoxStroke={widget.data.gaugeValueBoxStroke || 5}
-					valueBoxWidth={widget.data.gaugeValueBoxWidth || 0}
+					valueBox={widget.data.gaugeValueBox} // boolean
+					// valueBoxStroke={widget.data.gaugeValueBoxStroke || 5}
+					valueBoxStroke={
+						typeof widget.data.gaugeValueBoxStroke === "number"
+							? widget.data.gaugeValueBoxStroke
+							: Number(widget.data.gaugeValueBoxStroke)
+					}
+					// valueBoxWidth={widget.data.gaugeValueBoxWidth || 0}
+					valueBoxWidth={
+						typeof widget.data.gaugeValueBoxWidth === "number"
+							? widget.data.gaugeValueBoxWidth
+							: Number(widget.data.gaugeValueBoxWidth)
+					}
 					valueText={widget.data.gaugeValueText || ""}
-					valueTextShadow={widget.data.gaugeValueTextShadow}
-					valueBoxBorderRadius={widget.data.gaugeValueBoxBorderRadius || 2.5}
+					valueTextShadow={widget.data.gaugeValueTextShadow} // boolean
+					// valueBoxBorderRadius={widget.data.gaugeValueBoxBorderRadius || 2.5}
+					valueBoxBorderRadius={
+						typeof widget.data.gaugeValueBoxBorderRadius === "number"
+							? widget.data.gaugeValueBoxBorderRadius
+							: Number(widget.data.gaugeValueBoxBorderRadius)
+					}
+					valueInt={
+						typeof widget.data.gaugeValueInt === "number"
+							? widget.data.gaugeValueInt
+							: Number(widget.data.gaugeValueInt)
+					}
+					valueDec={
+						typeof widget.data.gaugeValueDec === "number"
+							? widget.data.gaugeValueDec
+							: Number(widget.data.gaugeValueDec)
+					}
 					// Fonts Customization Options
 					fontNumbers={widget.data.gaugeFontNumbers || "Arial"}
 					fontTitle={widget.data.gaugeFontTitle || "Arial"}
 					fontUnits={widget.data.gaugeFontUnits || "Arial"}
 					fontValue={widget.data.gaugeFontValue || "Arial"}
-					fontNumbersSize={widget.data.gaugeFontNumbersSize || 20}
-					fontTitleSize={widget.data.gaugeFontTitleSize || 24}
-					fontUnitsSize={widget.data.gaugeFontUnitsSize || 22}
-					fontValueSize={widget.data.gaugeFontValueSize || 26}
+					// fontNumbersSize={widget.data.gaugeFontNumbersSize || 20}
+					fontNumbersSize={
+						typeof widget.data.gaugeFontNumbersSize === "number"
+							? widget.data.gaugeFontNumbersSize
+							: Number(widget.data.gaugeFontNumbersSize)
+					}
+					// fontTitleSize={widget.data.gaugeFontTitleSize || 24}
+					fontTitleSize={
+						typeof widget.data.gaugeFontTitleSize === "number"
+							? widget.data.gaugeFontTitleSize
+							: Number(widget.data.gaugeFontTitleSize)
+					}
+					// fontUnitsSize={widget.data.gaugeFontUnitsSize || 22}
+					fontUnitsSize={
+						typeof widget.data.gaugeFontUnitsSize === "number"
+							? widget.data.gaugeFontUnitsSize
+							: Number(widget.data.gaugeFontUnitsSize)
+					}
+					// fontValueSize={widget.data.gaugeFontValueSize || 26}
+					fontValueSize={
+						typeof widget.data.gaugeFontValueSize === "number"
+							? widget.data.gaugeFontValueSize
+							: Number(widget.data.gaugeFontValueSize)
+					}
 					fontNumbersStyle={widget.data.gaugeFontNumbersStyle || "normal"}
 					fontTitleStyle={widget.data.gaugeFontTitleStyle || "normal"}
 					fontUnitsStyle={widget.data.gaugeFontUnitsStyle || "normal"}
@@ -237,14 +437,25 @@ function GaugeCollection() {
 					fontUnitsWeight={widget.data.gaugeFontUnitsWeight || "normal"}
 					fontValueWeight={widget.data.gaugeFontValueWeight || "normal"}
 					// Linear Borders Options
-					borderRadius={widget.data.gaugeBorderRadius || 0}
+					// borderRadius={widget.data.gaugeBorderRadius || 0}
+					borderRadius={
+						typeof widget.data.gaugeBorderRadius === "number"
+							? widget.data.gaugeBorderRadius
+							: Number(widget.data.gaugeBorderRadius)
+					}
 					// Linear Progress Bar Options
 					barBeginCircle={
+						typeof widget.data.gaugeBarBeginCircle === "number" &&
 						widget.data.gaugeBarBeginCircle < 12
 							? 30
-							: widget.data.gaugeBarBeginCircle
+							: Number(widget.data.gaugeBarBeginCircle)
 					}
-					barLength={widget.data.gaugeBarLength || 85}
+					// barLength={widget.data.gaugeBarLength || 85}
+					barLength={
+						typeof widget.data.gaugeBarLength === "number"
+							? widget.data.gaugeBarLength
+							: Number(widget.data.gaugeBarLength)
+					}
 					// Linear Coloring Options
 					colorBarEnd={widget.data.gaugeColorBarEnd || ""}
 					colorBarProgressEnd={widget.data.gaugeColorBarProgressEnd || ""}
@@ -253,12 +464,37 @@ function GaugeCollection() {
 					needleSide={widget.data.gaugeNeedleSide || "both"}
 					numberSide={widget.data.gaugeNumberSide || "both"}
 					// Linear Ticks Bar Options
-					ticksWidth={widget.data.gaugeTicksWidth || 10}
-					ticksWidthMinor={widget.data.gaugeTicksWidthMinor || 5}
-					ticksPadding={widget.data.gaugeTicksPadding || 5}
+					// ticksWidth={widget.data.gaugeTicksWidth || 10}
+					ticksWidth={
+						typeof widget.data.gaugeTicksWidth === "number"
+							? widget.data.gaugeTicksWidth
+							: Number(widget.data.gaugeTicksWidth)
+					}
+					// ticksWidthMinor={widget.data.gaugeTicksWidthMinor || 5}
+					ticksWidthMinor={
+						typeof widget.data.gaugeTicksWidthMinor === "number"
+							? widget.data.gaugeTicksWidthMinor
+							: Number(widget.data.gaugeTicksWidthMinor)
+					}
+					// ticksPadding={widget.data.gaugeTicksPadding || 5}
+					ticksPadding={
+						typeof widget.data.gaugeTicksPadding === "number"
+							? widget.data.gaugeTicksPadding
+							: Number(widget.data.gaugeTicksPadding)
+					}
 					// Radial Ticks Bar Options
-					ticksAngle={widget.data.gaugeTicksAngle || 270}
-					startAngle={widget.data.gaugeStartAngle || 45}
+					// ticksAngle={widget.data.gaugeTicksAngle || 270}
+					ticksAngle={
+						typeof widget.data.gaugeTicksAngle === "number"
+							? widget.data.gaugeTicksAngle
+							: Number(widget.data.gaugeTicksAngle)
+					}
+					// startAngle={widget.data.gaugeStartAngle || 45}
+					startAngle={
+						typeof widget.data.gaugeStartAngle === "number"
+							? widget.data.gaugeStartAngle
+							: Number(widget.data.gaugeStartAngle)
+					}
 					// Radial Coloring Options
 					colorNeedleCircleOuter={
 						widget.data.gaugeColorNeedleCircleOuter || "#f0f0f0"
@@ -276,12 +512,17 @@ function GaugeCollection() {
 						widget.data.gaugeColorNeedleCircleShadowUp || "rgba(2,255,255,0.2)"
 					}
 					// Radial Needle Options
-					needleCircleSize={widget.data.gaugeNeedleCircleSize || 10}
-					needleCircleInner={widget.data.gaugeNeedleCircleInner}
-					needleCircleOuter={widget.data.gaugeNeedleCircleOuter}
+					// needleCircleSize={widget.data.gaugeNeedleCircleSize || 10}
+					needleCircleSize={
+						typeof widget.data.gaugeNeedleCircleSize === "number"
+							? widget.data.gaugeNeedleCircleSize
+							: Number(widget.data.gaugeNeedleCircleSize)
+					}
+					needleCircleInner={widget.data.gaugeNeedleCircleInner} // boolean
+					needleCircleOuter={widget.data.gaugeNeedleCircleOuter} // boolean
 					// Radial Animation Options
 					animationTarget={widget.data.gaugeAnimationTarget || "needle"}
-					useMinPath={widget.data.gaugeUseMinPath}
+					useMinPath={widget.data.gaugeUseMinPath} // boolean
 				/>
 			</Box>
 		</CollectionBase>

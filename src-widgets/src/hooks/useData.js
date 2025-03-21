@@ -71,8 +71,9 @@ function useData(oid) {
 								widget.data.icon ||
 								null,
 							iconSize:
-								typeof widget.data[`iconSize${i}`] === "number" &&
-								widget.data[`iconSize${i}`],
+								typeof widget.data[`iconSize${i}`] === "number"
+									? widget.data[`iconSize${i}`]
+									: null,
 							iconWidth:
 								typeof widget.data[`iconSize${i}`] === "number"
 									? widget.data[`iconSize${i}`]
@@ -95,7 +96,27 @@ function useData(oid) {
 									getDataValue("iconYOffset", i) !== "0px" &&
 									getDataValue("iconYOffset", i)) ||
 								"0px",
-							iconColor: widget.data[`iconColor${i}`] || widget.data.iconColor,
+							iconColor:
+								widget.data[`iconColor${i}`] || widget.data.iconColor || null,
+
+							backgroundColor:
+								widget.data.backgroundColor || backgroundStyles.backgroundColor,
+							backgroundColorActive: getDataValue("backgroundColor", i),
+
+							background: widget.data.background || backgroundStyles.background,
+							backgroundActive: getDataValue("background", i),
+
+							frameBackgroundColor:
+								widget.data.frameBackgroundColor ||
+								backgroundStyles.backgroundColor,
+							frameBackgroundColorActive: getDataValue(
+								"frameBackgroundColor",
+								i,
+							),
+
+							frameBackground:
+								widget.data.frameBackground || backgroundStyles.background,
+							frameBackgroundActive: getDataValue("frameBackground", i),
 						});
 						widgetStates[oidEntry ? String(oidEntry[0]) : _value] =
 							_alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`);
@@ -124,7 +145,7 @@ function useData(oid) {
 		};
 
 		return processStates();
-	}, [oidObject, widget.data, getDataValue, formatSize]);
+	}, [oidObject, widget.data, getDataValue, formatSize, backgroundStyles]);
 
 	// Styling-Daten
 	const data = useMemo(() => {

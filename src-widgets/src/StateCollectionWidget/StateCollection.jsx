@@ -101,11 +101,17 @@ function StateCollection() {
 							sx={{
 								overflow: "hidden",
 
-								width: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
-								height: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
+								width:
+									(typeof data.iconSizeOnly === "number" &&
+										`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+									"100%",
+								height:
+									(typeof data.iconSizeOnly === "number" &&
+										`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+									"100%",
 
-								bottom: data.iconYOffset,
-								left: data.iconXOffset,
+								left: `calc(0px + ${data.iconXOffset})`,
+								top: `calc(0px - ${data.iconYOffset})`,
 
 								bgcolor: "transparent",
 								color: data.iconColorActive || data.iconColor,
@@ -117,7 +123,7 @@ function StateCollection() {
 									(data.iconActive || data.icon) &&
 									(data.iconColorActive || data.iconColor) &&
 									"translateY(-10000px)",
-								display: data.icon ? null : "flex",
+								// display: data.icon ? null : "flex",
 							}}
 						/>
 					</Box>
