@@ -53,7 +53,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.7.4 (2025-03-22)
 - (steiger04) Header as title for Dialog
 - (steiger04) Gauge bug fixed
 
