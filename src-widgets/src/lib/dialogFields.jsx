@@ -37,6 +37,17 @@ const dialogFields = () => [
 		component: () => <CollectionDivider />,
 	},
 	{
+		name: "dialogHeaderAsTitle",
+		label: "dialog_header_as_title",
+		type: "checkbox",
+		default: false,
+	},
+	{
+		label: "",
+		type: "custom",
+		component: () => <CollectionDivider />,
+	},
+	{
 		name: "dialogWidth",
 		label: "dialog_width",
 		type: "slider",
@@ -72,7 +83,7 @@ const dialogFields = () => [
 	},
 	{
 		name: "value",
-		label: "value",
+		label: "dialog_text",
 		type: "html",
 		default: "",
 	},
@@ -92,6 +103,11 @@ const dialogFields = () => [
 		label: "dialog_close_button_bottom",
 		type: "checkbox",
 		default: false,
+	},
+	{
+		name: "dialogCloseButtonColor",
+		label: "dialog_close_button_color",
+		type: "color",
 	},
 	{
 		label: "",

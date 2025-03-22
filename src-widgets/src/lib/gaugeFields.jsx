@@ -634,22 +634,16 @@ const dialogFields = () => [
 		default: "#222",
 	},
 	{
-		name: "gaugeColorBarProgress",
+		name: "gaugeColorBar",
 		type: "color",
-		label: "gauge_color_bar_progress",
+		label: "gauge_color_bar",
 		default: "#ccc",
 	},
 	{
-		name: "gaugeColorBarShadow",
+		name: "gaugeColorBarProgress",
 		type: "color",
-		label: "gauge_color_bar_shadow",
-		default: "#000",
-	},
-	{
-		name: "gaugeColorBarShadow",
-		type: "color",
-		label: "gauge_color_bar_shadow",
-		default: "#000",
+		label: "gauge_color_bar_progress",
+		default: "#888",
 	},
 	{
 		name: "gaugeHighlightsLineCap",

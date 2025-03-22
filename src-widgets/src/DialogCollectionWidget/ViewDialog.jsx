@@ -1,8 +1,23 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, Divider, IconButton, Modal } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
+
+const getCssText = (node) => {
+	const styles = window.getComputedStyle(node);
+
+	if (styles.cssText !== "") {
+		return styles.cssText;
+	}
+
+	const cssText = Object.values(styles).reduce(
+		(css, propertyName) =>
+			`${css}${propertyName}:${styles.getPropertyValue(propertyName)};`,
+	);
+
+	return cssText;
+};
 
 export default function ViewDialog({
 	open,
@@ -11,19 +26,69 @@ export default function ViewDialog({
 	data,
 	getWidgetView,
 }) {
+	const baseRef = useRef(null);
+	const headerRef = useRef(null);
+
+	const header = baseRef.current?.header;
+
+	useEffect(() => {
+		if (!widget.data.dialogHeaderAsTitle) return;
+
+		if (header) {
+			const cssText = getCssText(header);
+
+			headerRef.current.style.cssText = cssText;
+			headerRef.current.style.height = "auto";
+			headerRef.current.style.width = "auto";
+
+			header.style.width = "0px";
+			header.style.height = "0px";
+
+			headerRef.current.innerHTML = widget.data.header;
+		}
+	}, [header, widget.data.header, widget.data.dialogHeaderAsTitle]);
+
 	const closeButton = (
-		<IconButton
+		<Box
 			sx={{
-				filter: "brightness(1.5)",
-				color: (theme) =>
-					data.frameBackgroundColor || theme.palette.background.primary,
-				alignSelf: "flex-end",
+				position: "relative",
+				width: "100%",
+
+				display: "flex",
+				flexDirection: "row",
+				alignItems: "center",
 			}}
-			aria-label="delete"
-			onClick={handleClose}
 		>
-			<CloseIcon />
-		</IconButton>
+			<Box
+				sx={{
+					flexGrow: 1,
+					px: 4,
+				}}
+			>
+				<Box ref={headerRef} />
+			</Box>
+
+			<Box
+				sx={{
+					position: widget.data.dialogHeaderAsTitle ? "absolute" : "initial",
+					right: 0,
+				}}
+			>
+				<IconButton
+					sx={{
+						filter: "brightness(1.5)",
+						color: (theme) =>
+							widget.data.dialogCloseButtonColor ||
+							data.frameBackgroundColor ||
+							theme.palette.background.primary,
+					}}
+					aria-label="delete"
+					onClick={handleClose}
+				>
+					<CloseIcon />
+				</IconButton>
+			</Box>
+		</Box>
 	);
 
 	return (
@@ -45,6 +110,7 @@ export default function ViewDialog({
 				}}
 			>
 				<CollectionBase
+					ref={baseRef}
 					data={data}
 					sx={{
 						flexDirection: "column",

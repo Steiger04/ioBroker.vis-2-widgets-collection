@@ -28,6 +28,7 @@ const CollectionBase = forwardRef(
 		const paper1Ref = useRef(null);
 		const [ref, setRef] = useState(null);
 		const [headerRef, setHeaderRef] = useState(null);
+		const headerRef1 = useRef(null);
 		const [footerRef, setFooterRef] = useState(null);
 		const { wrappedContent, widget, oidObject } = useContext(CollectionContext);
 		const { backgroundStyles, borderStyles, textStyles, fontStyles } =
@@ -61,6 +62,14 @@ const CollectionBase = forwardRef(
 			},
 			get paper1() {
 				return paper1Ref?.current;
+			},
+
+			/* get header() {
+				return headerRef;
+			}, */
+
+			get header() {
+				return headerRef1?.current;
 			},
 		}));
 
@@ -104,30 +113,33 @@ const CollectionBase = forwardRef(
 			>
 				{isValidType ? (
 					<>
-						{!widget.data.noHeader && (
-							<Box
-								sx={{
-									width: "100%",
-									mt: widget.data.basePadding / 2,
-									mb: -widget.data.basePadding / 2,
+						<Box
+							sx={{
+								width: !widget.data.noHeader ? "100%" : "0%",
+								height: widget.data.noHeader ? "0%" : "auto",
+								mt: widget.data.basePadding / 2,
+								mb: -widget.data.basePadding / 2,
+							}}
+						>
+							<Typography
+								// ref={setHeaderRef}
+								ref={(ref) => {
+									setHeaderRef(ref);
+									headerRef1.current = ref;
 								}}
-							>
-								<Typography
-									ref={setHeaderRef}
-									noWrap
-									variant="body2"
-									sx={{
-										...fontStyles,
-										...textStyles,
-										fontSize: data.headerSize,
-										color:
-											widget.data.textColor ||
-											data.textColorActive ||
-											data.textColor,
-									}}
-								/>
-							</Box>
-						)}
+								noWrap
+								variant="body2"
+								sx={{
+									...fontStyles,
+									...textStyles,
+									fontSize: data.headerSize,
+									color:
+										widget.data.textColor ||
+										data.textColorActive ||
+										data.textColor,
+								}}
+							/>
+						</Box>
 
 						<Box
 							className="BASE-BOX-1"
@@ -183,30 +195,29 @@ const CollectionBase = forwardRef(
 							</Paper>
 						</Box>
 
-						{!widget.data.noFooter && (
-							<Box
+						<Box
+							sx={{
+								width: !widget.data.noFooter ? "100%" : "0%",
+								height: widget.data.noFooter ? "0%" : "auto",
+								mt: -widget.data.basePadding / 2,
+								mb: widget.data.basePadding / 2,
+							}}
+						>
+							<Typography
+								ref={setFooterRef}
+								noWrap
+								variant="body2"
 								sx={{
-									width: "100%",
-									mt: -widget.data.basePadding / 2,
-									mb: widget.data.basePadding / 2,
+									...fontStyles,
+									...textStyles,
+									fontSize: data.footerSize,
+									color:
+										widget.data.textColor ||
+										data.textColorActive ||
+										data.textColor,
 								}}
-							>
-								<Typography
-									ref={setFooterRef}
-									noWrap
-									variant="body2"
-									sx={{
-										...fontStyles,
-										...textStyles,
-										fontSize: data.footerSize,
-										color:
-											widget.data.textColor ||
-											data.textColorActive ||
-											data.textColor,
-									}}
-								/>
-							</Box>
-						)}
+							/>
+						</Box>
 					</>
 				) : (
 					<Box

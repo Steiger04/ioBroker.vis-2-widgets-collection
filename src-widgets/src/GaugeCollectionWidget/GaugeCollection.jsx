@@ -320,8 +320,8 @@ function GaugeCollection() {
 						widget.data.gaugeColorNeedleShadowDown || "rgba(188,143,143,0.45)"
 					}
 					colorBarStroke={widget.data.gaugeColorBarStroke || "#222"}
-					colorBarProgress={widget.data.gaugeColorBarProgress || "#ccc"}
-					colorBarShadow={widget.data.gaugeColorBarShadow || "#000"}
+					colorBar={widget.data.gaugeColorBar || "#ccc"}
+					colorBarProgress={widget.data.gaugeColorBarProgress || "#888"}
 					highlightsLineCap={widget.data.gaugeHighlightsLineCap || "butt"}
 					// Needle Configuration Options
 					needle={widget.data.gaugeNeedle} // boolean

@@ -178,7 +178,7 @@
 	"gauge_color_needle_shadow_down": "Color needle shadow down",
 	"gauge_color_bar_stroke": "Color bar stroke",
 	"gauge_color_bar_progress": "Color bar progress",
-	"gauge_color_bar_shadow": "Color bar shadow",
+	"gauge_color_bar": "Color bar",
 	"gauge_highlights_line_cap": "Highlights line cap",
 	"gauge_needle_configuration_options": "Needle configuration options",
 	"gauge_needle": "Needle",
@@ -249,5 +249,8 @@
 	"gauge_needle_circle_outer": "Needle circle outer",
 	"gauge_radial_animation_options": "Radial animation options",
 	"gauge_animation_target": "Animation target",
-	"gauge_use_min_path": "Use min path"
+	"gauge_use_min_path": "Use min path",
+	"dialog_text": "Text",
+	"dialog_header_as_title": "Header as title",
+	"dialog_close_button_color": "Close button color"
 }
