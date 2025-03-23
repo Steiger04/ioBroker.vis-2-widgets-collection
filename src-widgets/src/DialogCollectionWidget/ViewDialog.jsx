@@ -33,58 +33,6 @@ export default function ViewDialog({
 		}
 	}, [header, titleRef, widget.data.header, widget.data.dialogHeaderAsTitle]);
 
-	/* const closeButton = (
-		<Box
-			sx={{
-				position: "relative",
-				width: "100%",
-
-				display: "flex",
-				flexDirection: "row",
-				alignItems: "center",
-			}}
-		>
-			<Box
-				sx={{
-					flexGrow: 1,
-					px: 4,
-					py: 1,
-				}}
-			>
-				<Typography
-					ref={setTitleRef}
-					sx={{
-						...fontStyles,
-						...textStyles,
-						fontSize: data.headerSize,
-						color: data.textColor,
-					}}
-				/>
-			</Box>
-
-			<Box
-				sx={{
-					position: widget.data.dialogHeaderAsTitle ? "absolute" : "initial",
-					right: 0,
-				}}
-			>
-				<IconButton
-					sx={{
-						filter: "brightness(1.5)",
-						color: (theme) =>
-							widget.data.dialogCloseButtonColor ||
-							data.frameBackgroundColor ||
-							theme.palette.background.primary,
-					}}
-					aria-label="delete"
-					onClick={handleClose}
-				>
-					<CloseIcon />
-				</IconButton>
-			</Box>
-		</Box>
-	); */
-
 	const iconButton = (
 		<IconButton
 			sx={{
@@ -215,7 +163,6 @@ export default function ViewDialog({
 						/>
 					)}
 
-					{/* {widget.data.dialogCloseButtonBottom && closeButton} */}
 					{widget.data.dialogCloseButtonBottom && iconButton}
 				</CollectionBase>
 			</Box>
