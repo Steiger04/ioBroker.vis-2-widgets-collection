@@ -1,23 +1,8 @@
 import CloseIcon from "@mui/icons-material/Close";
-import { Box, Divider, IconButton, Modal } from "@mui/material";
+import { Box, Divider, IconButton, Modal, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
-
-const getCssText = (node) => {
-	const styles = window.getComputedStyle(node);
-
-	if (styles.cssText !== "") {
-		return styles.cssText;
-	}
-
-	const cssText = Object.values(styles).reduce(
-		(css, propertyName) =>
-			`${css}${propertyName}:${styles.getPropertyValue(propertyName)};`,
-	);
-
-	return cssText;
-};
 
 export default function ViewDialog({
 	open,
@@ -25,30 +10,30 @@ export default function ViewDialog({
 	widget,
 	data,
 	getWidgetView,
+	fontStyles,
+	textStyles,
 }) {
 	const baseRef = useRef(null);
-	const headerRef = useRef(null);
+	const [titleRef, setTitleRef] = useState(null);
 
 	const header = baseRef.current?.header;
 
 	useEffect(() => {
 		if (!widget.data.dialogHeaderAsTitle) return;
 
-		if (header) {
-			const cssText = getCssText(header);
+		if (header && titleRef) {
+			if (widget.data.dialogHeaderAsTitle) {
+				header.style.width = "0px";
+				header.style.height = "0px";
+			}
 
-			headerRef.current.style.cssText = cssText;
-			headerRef.current.style.height = "auto";
-			headerRef.current.style.width = "auto";
-
-			header.style.width = "0px";
-			header.style.height = "0px";
-
-			headerRef.current.innerHTML = widget.data.header;
+			titleRef.innerHTML = widget.data.header;
+			titleRef.style.height = "auto";
+			titleRef.style.width = "auto";
 		}
-	}, [header, widget.data.header, widget.data.dialogHeaderAsTitle]);
+	}, [header, titleRef, widget.data.header, widget.data.dialogHeaderAsTitle]);
 
-	const closeButton = (
+	/* const closeButton = (
 		<Box
 			sx={{
 				position: "relative",
@@ -63,9 +48,18 @@ export default function ViewDialog({
 				sx={{
 					flexGrow: 1,
 					px: 4,
+					py: 1,
 				}}
 			>
-				<Box ref={headerRef} />
+				<Typography
+					ref={setTitleRef}
+					sx={{
+						...fontStyles,
+						...textStyles,
+						fontSize: data.headerSize,
+						color: data.textColor,
+					}}
+				/>
 			</Box>
 
 			<Box
@@ -89,6 +83,24 @@ export default function ViewDialog({
 				</IconButton>
 			</Box>
 		</Box>
+	); */
+
+	const iconButton = (
+		<IconButton
+			sx={{
+				alignSelf: "flex-end",
+
+				filter: "brightness(1.5)",
+				color: (theme) =>
+					widget.data.dialogCloseButtonColor ||
+					data.frameBackgroundColor ||
+					theme.palette.background.primary,
+			}}
+			aria-label="delete"
+			onClick={handleClose}
+		>
+			<CloseIcon />
+		</IconButton>
 	);
 
 	return (
@@ -117,7 +129,44 @@ export default function ViewDialog({
 						background: data.backgroundColor || data.background,
 					}}
 				>
-					{widget.data.dialogCloseButtonTop && closeButton}
+					<Box
+						sx={{
+							position: "relative",
+							width: "100%",
+							height: "auto",
+							display: "flex",
+							justifyContent: "flex-end",
+							alignItems: "center",
+							p:
+								widget.data.dialogCloseButtonTop ||
+								!widget.data.dialogHeaderAsTitle
+									? 0
+									: 2,
+						}}
+					>
+						<Box
+							sx={{
+								position: "absolute",
+								left: 0,
+								width: "100%",
+							}}
+						>
+							<Typography
+								id="fuck"
+								ref={setTitleRef}
+								sx={{
+									...fontStyles,
+									...textStyles,
+									fontSize: data.headerSize,
+									color: data.textColor,
+									px: widget.data.dialogCloseButtonTop ? 4 : 0,
+								}}
+							/>
+						</Box>
+
+						{widget.data.dialogCloseButtonTop && iconButton}
+					</Box>
+
 					{widget.data.dialogCloseButtonTop && (
 						<Divider
 							sx={{
@@ -166,7 +215,8 @@ export default function ViewDialog({
 						/>
 					)}
 
-					{widget.data.dialogCloseButtonBottom && closeButton}
+					{/* {widget.data.dialogCloseButtonBottom && closeButton} */}
+					{widget.data.dialogCloseButtonBottom && iconButton}
 				</CollectionBase>
 			</Box>
 		</Modal>

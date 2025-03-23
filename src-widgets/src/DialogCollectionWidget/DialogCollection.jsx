@@ -82,6 +82,8 @@ function DialogCollection() {
 					widget,
 					data,
 					getWidgetView,
+					fontStyles,
+					textStyles,
 				}}
 			/>
 			<CollectionBase isValidType={isValidType} data={data}>

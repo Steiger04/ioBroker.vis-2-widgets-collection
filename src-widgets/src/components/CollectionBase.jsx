@@ -64,10 +64,6 @@ const CollectionBase = forwardRef(
 				return paper1Ref?.current;
 			},
 
-			/* get header() {
-				return headerRef;
-			}, */
-
 			get header() {
 				return headerRef1?.current;
 			},
