@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.4",
+    "version": "1.7.5",
     "news": {
+      "1.7.5": {
+        "en": "Dialog bug fixed",
+        "de": "Dialog Fehler behoben",
+        "ru": "Диалоговая ошибка исправлена",
+        "pt": "Bug de diálogo corrigido",
+        "nl": "Dialoogfout hersteld",
+        "fr": "Correction du bug de la boîte de dialogue",
+        "it": "Errore di dialogo fisso",
+        "es": "Error de diálogo fijo",
+        "pl": "Błąd dialogowy naprawiony",
+        "uk": "Діалог помилки виправлено",
+        "zh-cn": "对话框错误已修正"
+      },
       "1.7.4": {
         "en": "Header as title for Dialog\nGauge bug fixed",
         "de": "Header als Titel für Dialog\nFehler behoben",
@@ -80,19 +93,6 @@
         "pl": "Optymalizacja grup radiowych",
         "uk": "Оптимізація радіо груп",
         "zh-cn": "无线电组优化"
-      },
-      "1.6.0": {
-        "en": "Radio group added",
-        "de": "Radiogruppe hinzugefügt",
-        "ru": "Радиогруппа добавлена",
-        "pt": "Grupo de rádio adicionado",
-        "nl": "Radiogroep toegevoegd",
-        "fr": "Groupe radio ajouté",
-        "it": "Gruppo radio aggiunto",
-        "es": "Grupo de radio añadido",
-        "pl": "Grupa radiowa",
-        "uk": "Додана радіогрупа",
-        "zh-cn": "增加了无线电组"
       }
     },
     "titleLang": {

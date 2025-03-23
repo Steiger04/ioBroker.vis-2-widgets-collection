@@ -53,7 +53,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.7.5 (2025-03-23)
 - (steiger04) Dialog bug fixed
 
 ### 1.7.4 (2025-03-22)
