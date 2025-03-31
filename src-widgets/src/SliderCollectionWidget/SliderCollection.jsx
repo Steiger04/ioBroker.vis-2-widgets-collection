@@ -9,10 +9,9 @@ import useValueState from "../hooks/useValueState";
 import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
-	const { oidObject, widget, getPropertyValue } = useContext(CollectionContext);
+	const { oidObject, widget } = useContext(CollectionContext);
 	const { data, states, minValue, maxValue } = useData("oid");
 	const oidValue = useOidValue("oid");
-	const [sliderValue, setSliderValue] = useState(getPropertyValue("oid"));
 
 	const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
 
@@ -213,11 +212,8 @@ function SliderCollection() {
 							marks={sliderMarks}
 							step={!widget.data.onlyStates ? widget.data.step : null}
 							size={widget.data.sliderSize}
-							value={sliderValue}
-							onChange={(_, value) => {
-								setSliderValue(value);
-								setOidValueState(value);
-							}}
+							value={oidValue}
+							onChange={(_, value) => setOidValueState(value)}
 							sx={{
 								mb:
 									widget.data.marks &&
