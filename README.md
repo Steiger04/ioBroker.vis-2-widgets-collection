@@ -53,7 +53,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.7.7 (2025-03-31)
 - (steiger04) Slider optimized
 
 ### 1.7.6 (2025-03-31)

@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.6",
+    "version": "1.7.7",
     "news": {
+      "1.7.7": {
+        "en": "Slider optimized",
+        "de": "Slider optimiert",
+        "ru": "Оптимизированный слайдер",
+        "pt": "Slider otimizado",
+        "nl": "Slider geoptimaliseerd",
+        "fr": "Slider optimisé",
+        "it": "Slider ottimizzato",
+        "es": "Slider optimizado",
+        "pl": "Suwak zoptymalizowany",
+        "uk": "Оптимізований слайдер",
+        "zh-cn": "滑动器优化"
+      },
       "1.7.6": {
         "en": "Dialog with width and height in pixel\nWidget optimizations",
         "de": "Dialog mit Breite und Höhe in Pixel\nWidget Optimierungen",
@@ -80,19 +93,6 @@
         "pl": "Błąd parametru",
         "uk": "Виправлено помилку",
         "zh-cn": "Gauge 错误已修复"
-      },
-      "1.7.0": {
-        "en": "Gauge added",
-        "de": "Erweiterung",
-        "ru": "Гауги добавил",
-        "pt": "Indicador adicionado",
-        "nl": "Gauge toegevoegd",
-        "fr": "Gauge ajoutée",
-        "it": "Gauge aggiunto",
-        "es": "Gauge añadido",
-        "pl": "Dodano parametr",
-        "uk": "Додано Gauge",
-        "zh-cn": "高盖加盟"
       }
     },
     "titleLang": {
