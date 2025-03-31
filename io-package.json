@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.5",
+    "version": "1.7.6",
     "news": {
+      "1.7.6": {
+        "en": "Dialog with width and height in pixel\nWidget optimizations",
+        "de": "Dialog mit Breite und Höhe in Pixel\nWidget Optimierungen",
+        "ru": "Диалог с шириной и высотой в пикселе\nОптимизация виджетов",
+        "pt": "Diálogo com largura e altura em pixel\nOtimizações Widget",
+        "nl": "Dialoog met breedte en hoogte in pixel\nWidget optimalisaties",
+        "fr": "Boîte de dialogue avec largeur et hauteur en pixel\nOptimisations Widget",
+        "it": "Dialogo con larghezza e altezza in pixel\nOttimizzazione Widget",
+        "es": "Dialog con ancho y altura en pixel\nOptimizaciones Widget",
+        "pl": "Okno o szerokości i wysokości w pikselu\nOptymalizacja widżetu",
+        "uk": "Діалог з шириною і висотою в пікселях\nОптимізація віджету",
+        "zh-cn": "宽度和高度为像素的对话框\n部件优化"
+      },
       "1.7.5": {
         "en": "Dialog bug fixed",
         "de": "Dialog Fehler behoben",
@@ -80,19 +93,6 @@
         "pl": "Dodano parametr",
         "uk": "Додано Gauge",
         "zh-cn": "高盖加盟"
-      },
-      "1.6.1": {
-        "en": "Radio group optimizations",
-        "de": "Funkgruppenoptimierungen",
-        "ru": "Оптимизация радиогрупп",
-        "pt": "Otimizações de grupos de rádio",
-        "nl": "Optimalisaties van radiogroepen",
-        "fr": "Optimisations des groupes radio",
-        "it": "Ottimizzazione del gruppo radio",
-        "es": "Optimizaciones de grupos de radio",
-        "pl": "Optymalizacja grup radiowych",
-        "uk": "Оптимізація радіо груп",
-        "zh-cn": "无线电组优化"
       }
     },
     "titleLang": {
