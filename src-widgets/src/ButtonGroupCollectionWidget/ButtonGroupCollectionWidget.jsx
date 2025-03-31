@@ -4,6 +4,7 @@ import withCollectionProvider from "../components/withCollectionProvider";
 import buttonGroupFields from "../lib/buttonGroupFields";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import ButtonGroupCollection from "./ButtonGroupCollection";
 
 class ButtonGroupCollectionWidget extends Generic {
@@ -14,6 +15,7 @@ class ButtonGroupCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "ButtonGroupCollectionWidget", // Name of widget
 			visWidgetLabel: "button_group_collection_widget", // Label for widget
+			visOrder: 6,
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -24,6 +26,7 @@ class ButtonGroupCollectionWidget extends Generic {
 					label: "button_group",
 					fields: [
 						...commonObjectFields(["string", "number", "boolean", "mixed"]),
+						...delayFields(),
 						...buttonGroupFields(),
 					],
 				},

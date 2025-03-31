@@ -1,13 +1,14 @@
 {
 	"widgets_collection": "Widget collection",
-	"state_collection_widget": "State (boolean, number, string)",
+	"state_collection_widget": "State (boolean, number, string, mixed)",
 	"slider_collection_widget": "Slider (number)",
-	"button_group_collection_widget": "Button group (boolean, number, string)",
+	"button_group_collection_widget": "Button group (boolean, number, string, mixed)",
 	"switch_collection_widget": "Switch (boolean)",
 	"checkbox_collection_widget": "Checkbox (boolean)",
 	"dialog_collection_widget": "Dialog (view)",
-	"select_collection_widget": "Select (boolean, number, string)",
+	"select_collection_widget": "Select (boolean, number, string, mixed)",
 	"gauge_collection_widget": "Gauge (number)",
+	"radio_group_collection_widget": "Radio group (boolean, number, string, mixed)",
 	"group_button": "State",
 	"group_slider": "Slider",
 	"group_switch": "Switch",
@@ -252,5 +253,6 @@
 	"gauge_use_min_path": "Use min path",
 	"dialog_text": "Text",
 	"dialog_header_as_title": "Header as title",
-	"dialog_close_button_color": "Close button color"
+	"dialog_close_button_color": "Close button color",
+	"dialog_in_pixel": "Width / height in pixel"
 }

@@ -1,13 +1,13 @@
 {
 	"widgets_collection": "Widget-Sammlung",
-	"state_collection_widget": "Zustand (boolescher Wert, Zahl, Zeichenfolge)",
+	"state_collection_widget": "Zustand (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
 	"slider_collection_widget": "Schieberegler (Zahl)",
-	"button_group_collection_widget": "Button-Gruppe (boolescher Wert, Zahl, Zeichenfolge)",
+	"button_group_collection_widget": "Button-Gruppe (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
 	"switch_collection_widget": "Schalter (boolescher Wert)",
 	"checkbox_collection_widget": "Checkbox (boolescher Wert)",
 	"dialog_collection_widget": "Dialog (Ansicht)",
-	"select_collection_widget": "Auswahl (boolescher Wert, Zahl, Zeichenfolge)",
-	"radio_group_collection_widget": "Radio-Gruppe (boolescher Wert, Zahl, Zeichenfolge)",
+	"select_collection_widget": "Auswahl (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
+	"radio_group_collection_widget": "Radio-Gruppe (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
 	"gauge_collection_widget": "Gauge (Zahl)",
 	"group_button": "Zustand",
 	"group_slider": "Schieberegler",
@@ -255,5 +255,6 @@
 	"gauge_use_min_path": "Use min path",
 	"dialog_text": "Text",
 	"dialog_header_as_title": "Header als Titel",
-	"dialog_close_button_color": "Schließen Button Farbe"
+	"dialog_close_button_color": "Schließen Button Farbe",
+	"dialog_in_pixel": "Breite / Höhe in Pixel"
 }

@@ -14,6 +14,7 @@ class GaugeCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "GaugeCollectionWidget", // Name of widget
 			visWidgetLabel: "gauge_collection_widget", // Label for widget
+			visOrder: 9,
 			visAttrs: [
 				{
 					name: "common", // group name

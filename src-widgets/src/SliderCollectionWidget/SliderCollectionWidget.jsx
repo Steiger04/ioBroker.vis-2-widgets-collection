@@ -15,6 +15,7 @@ class SliderCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "SliderCollectionWidget", // Name of widget
 			visWidgetLabel: "slider_collection_widget", // Label for widget
+			visOrder: 4,
 			visAttrs: [
 				{
 					name: "common", // group name

@@ -3,22 +3,22 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { Box, FormControlLabel, Radio, Stack, Typography } from "@mui/material";
 import React, { useState, useContext, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
+import useValueState from "../hooks/useValueState";
 
 function RadioGroupCollection() {
 	const [stackRef, setStackRef] = useState(null);
 	const [clientHeight, setClientHeight] = useState(null);
-	const { values, setState, setValue, oidObject, widget } =
-		useContext(CollectionContext);
+	const { oidObject, widget } = useContext(CollectionContext);
 	const { data, states } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
-
 	const oidValue = useOidValue("oid");
+	const setOidValueState = useValueState("oid");
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const isValidType =
@@ -27,18 +27,7 @@ function RadioGroupCollection() {
 		oidType === "string" ||
 		oidType === "mixed";
 
-	const handleChange = (event) => {
-		let value = event.target.value;
-
-		if (oidType === "number") {
-			value = Number(value);
-		}
-		if (value === "true") value = true;
-		if (value === "false") value = false;
-
-		setState({ values: { ...values, [`${oid}.val`]: value } });
-		setValue(oid, value);
-	};
+	const handleChange = (event) => setOidValueState(event.target.value);
 
 	useEffect(() => {
 		if (stackRef?.clientHeight) {
@@ -48,31 +37,9 @@ function RadioGroupCollection() {
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
-			{(data.iconActive || data.icon) && (
-				<img
-					alt=""
-					src={data.iconActive || data.icon}
-					style={{
-						position: "absolute",
-						top: `calc(0px - ${widget.data.iconYOffset})`,
-						right: `calc(0px - ${widget.data.iconXOffset})`,
-						width: data.iconSize,
-						height: data.iconSize,
-						color: data.iconColorActive || data.iconColor,
-						filter:
-							data.iconColorActive || data.iconColor
-								? "drop-shadow(0px 10000px 0)"
-								: null,
-						transform:
-							data.iconColorActive || data.iconColor
-								? "translateY(-10000px)"
-								: null,
-					}}
-				/>
-			)}
+			<CollectionBaseImage data={data} widget={widget} />
 
 			<Stack
-				// ref={(ref) => setTimeout(() => setStackRef(ref), 100)}
 				ref={setStackRef}
 				direction={
 					widget.data.radioOrientation === "vertical" ? "column" : "row"
@@ -149,11 +116,16 @@ function RadioGroupCollection() {
 													src={state.icon}
 													style={{
 														position: "relative",
-														top: `calc(0px - ${state.iconYOffset})`,
-														left: `calc(0px + ${state.iconXOffset})`,
+														left: `calc(0px + ${data.iconXOffset})`,
+														top: `calc(0px - ${data.iconYOffset})`,
+
+														/* width:
+															(state.iconSize && `${state.iconSize}%`) || "50%", */
 
 														width:
-															(state.iconSize && `${state.iconSize}%`) || "50%",
+															(typeof data.iconSizeOnly === "number" &&
+																`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+															"50%",
 
 														color: state.iconColor,
 														filter: state.iconColor
@@ -183,6 +155,14 @@ function RadioGroupCollection() {
 										widget.data.radioOrientation === "horizontal"
 											? clientHeight
 											: clientHeight / states.length,
+
+									"& .MuiTouchRipple-root": {
+										color:
+											widget.data[`iconColor${index + 1}`] ||
+											widget.data.iconColor ||
+											data.textColor,
+									},
+
 									"& .MuiSvgIcon-root": {
 										width: "100%",
 										height: "100%",
@@ -192,7 +172,7 @@ function RadioGroupCollection() {
 												: clientHeight / states.length,
 									},
 								}}
-								checked={value === oidValue}
+								checked={String(value) === String(oidValue)}
 								onChange={handleChange}
 								value={value}
 							/>

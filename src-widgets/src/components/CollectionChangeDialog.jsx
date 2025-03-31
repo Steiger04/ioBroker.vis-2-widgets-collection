@@ -11,64 +11,25 @@ import {
 	ListItemButton,
 	ListItemText,
 } from "@mui/material";
-import React, { useCallback, useContext } from "react";
-import useDebounce from "../hooks/useDebounce";
-import useOidValue from "../hooks/useOidValue";
+import React, { useCallback, useContext, useState } from "react";
+import useValueState from "../hooks/useValueState";
+// import isNumber from "../lib/helper/isNumber";
 import { CollectionContext } from "./CollectionProvider";
 
 function CollectionChangeDialog(props) {
 	const { widgetStates, data, open, closeHandler } = props;
+	const { widget, oidObject, getPropertyValue } = useContext(CollectionContext);
 
-	const { widget, values, setState, oidObject, getPropertyValue } =
-		useContext(CollectionContext);
+	const [sliderValue, setSliderValue] = useState(getPropertyValue("oid"));
 
-	const oidValue = useOidValue("oid");
-	// const oidValue = getPropertyValue("oid");
-	const oid = oidObject?._id;
+	const setOidValueState = useValueState("oid");
+
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;
 
-	useDebounce({
-		value: oidValue,
-		data: widget.data,
-	});
-
 	const changeHandler = useCallback(
-		(value, key = null) => {
-			switch (oidType) {
-				case "number":
-					if (key === null) {
-						// Slider
-						setState({ values: { ...values, [`${oid}.val`]: value } });
-					} else {
-						// List
-						setState({ values: { ...values, [`${oid}.val`]: Number(key) } });
-					}
-					break;
-
-				case "string":
-					// only List
-					setState({ values: { ...values, [`${oid}.val`]: String(key) } });
-					break;
-
-				case "boolean": {
-					// only List
-					// console.log("key", key);
-
-					setState({
-						values: {
-							...values,
-							[`${oid}.val`]: /^true$/i.test(key),
-						},
-					});
-					break;
-				}
-
-				default:
-					break;
-			}
-		},
-		[oid, oidType, setState, values],
+		(value) => setOidValueState(value),
+		[setOidValueState],
 	);
 
 	const ChangeSlider =
@@ -92,8 +53,12 @@ function CollectionChangeDialog(props) {
 					},
 				]}
 				valueLabelDisplay="auto"
-				value={getPropertyValue("oid") || 0}
-				onChange={(_, value) => changeHandler(value)}
+				// value={getPropertyValue("oid") || 0}
+				value={sliderValue}
+				onChange={(_, value) => {
+					setSliderValue(value);
+					changeHandler(value);
+				}}
 			/>
 		) : null;
 
@@ -102,10 +67,7 @@ function CollectionChangeDialog(props) {
 			{Object.entries(widgetStates).map(([key, value]) => {
 				return (
 					<ListItem disablePadding key={key}>
-						<ListItemButton
-							disableGutters
-							onClick={() => changeHandler(value, key)}
-						>
+						<ListItemButton disableGutters onClick={() => changeHandler(key)}>
 							<ListItemText
 								sx={{ px: 2 }}
 								primaryTypographyProps={{ variant: "body2" }}

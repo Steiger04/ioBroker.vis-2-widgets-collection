@@ -1,20 +1,22 @@
 import { Box, Slider } from "@mui/material";
 import React, { useState, useMemo, useContext, useEffect } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useDebounce from "../hooks/useDebounce";
 import useOidValue from "../hooks/useOidValue";
+import useValueState from "../hooks/useValueState";
 import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
-	const { values, setState, oidObject, widget } = useContext(CollectionContext);
-
+	const { oidObject, widget, getPropertyValue } = useContext(CollectionContext);
 	const { data, states, minValue, maxValue } = useData("oid");
 	const oidValue = useOidValue("oid");
-	// const oidValue = getPropertyValue("oid");
+	const [sliderValue, setSliderValue] = useState(getPropertyValue("oid"));
 
 	const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
+
+	const setOidValueState = useValueState("oid");
 
 	const startIconColor =
 		widget.data.startIconColor ||
@@ -27,15 +29,9 @@ function SliderCollection() {
 		data.iconColor ||
 		data.textColor;
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const isValidType = oidType === "number";
-
-	useDebounce({
-		value: oidValue,
-		data: widget.data,
-	});
 
 	const sliderMinValue = useMemo(
 		() =>
@@ -121,6 +117,7 @@ function SliderCollection() {
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
+			<CollectionBaseImage data={data} widget={widget} />
 			<Box
 				sx={{
 					width: "100%",
@@ -135,40 +132,6 @@ function SliderCollection() {
 					alignItems: "center",
 				}}
 			>
-				{(data.iconActive || data.icon) && (
-					<img
-						alt=""
-						src={data.iconActive || data.icon}
-						style={{
-							position: "absolute",
-							top: `calc(0px - ${data.iconYOffset})`,
-							right: `calc(0px - ${data.iconXOffset})`,
-
-							// width: data.iconSizeActive || data.iconSize,
-							// height: data.iconSizeActive || data.iconSize,
-							width: data.iconSize,
-							height: data.iconSize,
-
-							color:
-								widget.data.iconColorActive ||
-								data.iconColorActive ||
-								data.iconColor,
-							filter:
-								widget.data.iconColorActive ||
-								data.iconColorActive ||
-								data.iconColor
-									? "drop-shadow(0px 10000px 0)"
-									: null,
-							transform:
-								widget.data.iconColorActive ||
-								data.iconColorActive ||
-								data.iconColor
-									? "translateY(-10000px)"
-									: null,
-						}}
-					/>
-				)}
-
 				<Box
 					sx={{
 						position: "relative",
@@ -250,10 +213,11 @@ function SliderCollection() {
 							marks={sliderMarks}
 							step={!widget.data.onlyStates ? widget.data.step : null}
 							size={widget.data.sliderSize}
-							value={oidValue}
-							onChange={(_, value) =>
-								setState({ values: { ...values, [`${oid}.val`]: value } })
-							}
+							value={sliderValue}
+							onChange={(_, value) => {
+								setSliderValue(value);
+								setOidValueState(value);
+							}}
 							sx={{
 								mb:
 									widget.data.marks &&

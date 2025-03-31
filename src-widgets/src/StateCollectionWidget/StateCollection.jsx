@@ -1,49 +1,55 @@
 import { Avatar, Box, Button, Typography } from "@mui/material";
 import React, { useCallback, useState, useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import CollectionChangeDialog from "../components/CollectionChangeDialog";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useHtmlValue from "../hooks/useHtmlValue";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
+import useValueState from "../hooks/useValueState";
 
 function StateCollection() {
 	const [contentRef, setContentRef] = useState(null);
-	const { setValue, widget, oidObject } = useContext(CollectionContext);
+	const { widget, oidObject } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data, widgetStates } = useData("oid");
 	const oidValue = useOidValue("oid");
+	const setOidValueState = useValueState("oid");
 	const [open, setOpen] = useState(false);
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const onlyStates = widget.data.onlyStates;
-	const clickHandler = useCallback(() => {
-		switch (oidType) {
-			case "boolean": {
-				if (onlyStates) {
-					setOpen(true);
-				} else {
-					if (widget.data.values_count === 1) {
-						setValue(oid, oidValue);
-					} else {
-						setValue(oid, !oidValue);
-					}
-				}
-				break;
-			}
 
-			case "number":
-			case "string":
+	const clickHandler = useCallback(() => {
+		if (!onlyStates) {
+			setOpen(true);
+			return;
+		}
+
+		switch (Number(widget.data.values_count)) {
+			case 1:
+				setOidValueState(widget.data.value1);
+				break;
+			case 2:
+				JSON.stringify(oidValue) === JSON.stringify(widget.data.value1)
+					? setOidValueState(widget.data.value2)
+					: setOidValueState(widget.data.value1);
+				break;
+			default:
 				setOpen(true);
 				break;
-
-			default:
-				break;
 		}
-	}, [oidType, oid, oidValue, setValue, onlyStates, widget.data.values_count]);
+	}, [
+		oidValue,
+		onlyStates,
+		widget.data.values_count,
+		widget.data.value1,
+		widget.data.value2,
+		setOidValueState,
+	]);
 
 	const StateButton = (
 		<Button
@@ -123,7 +129,6 @@ function StateCollection() {
 									(data.iconActive || data.icon) &&
 									(data.iconColorActive || data.iconColor) &&
 									"translateY(-10000px)",
-								// display: data.icon ? null : "flex",
 							}}
 						/>
 					</Box>
@@ -162,7 +167,10 @@ function StateCollection() {
 	useHtmlValue(contentRef, oidValue, widget, data);
 
 	const isValidType =
-		oidType === "boolean" || oidType === "number" || oidType === "string";
+		oidType === "boolean" ||
+		oidType === "number" ||
+		oidType === "string" ||
+		oidType === "mixed";
 
 	return (
 		<>
@@ -175,6 +183,7 @@ function StateCollection() {
 				/>
 			)}
 			<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
+				<CollectionBaseImage data={data} widget={widget} />
 				<Box
 					sx={{
 						width: "100%",

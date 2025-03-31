@@ -2,11 +2,13 @@ import { Box, Typography } from "@mui/material";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import React, { useContext, useState } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useHtmlValue from "../hooks/useHtmlValue";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
+import useValueState from "../hooks/useValueState";
 
 const defaultIconTrue =
 	"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==";
@@ -15,13 +17,12 @@ const defaultIconFalse =
 
 function CheckboxCollection() {
 	const [contentRef, setContentRef] = useState(null);
-	const { oidObject, setValue, widget } = useContext(CollectionContext);
+	const { oidObject, widget } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data } = useData("oid");
-
 	const oidValue = useOidValue("oid");
+	const setOidValueState = useValueState("oid");
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const isValidType = oidType === "boolean";
@@ -30,22 +31,7 @@ function CheckboxCollection() {
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
-			{data.icon && (
-				<img
-					alt=""
-					src={data.icon}
-					style={{
-						position: "absolute",
-						top: `calc(0px - ${widget.data.iconYOffset})`,
-						right: `calc(0px - ${widget.data.iconXOffset})`,
-						width: data.iconSize,
-						height: data.iconSize,
-						color: data.iconColor,
-						filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
-						transform: data.iconColor ? "translateY(-10000px)" : null,
-					}}
-				/>
-			)}
+			<CollectionBaseImage data={data} widget={widget} />
 
 			<Box
 				sx={{
@@ -83,24 +69,32 @@ function CheckboxCollection() {
 								disabled={widget.data.onlyDisplay}
 								disableRipple
 								checked={oidValue}
-								onChange={() => setValue(oid, !oidValue)}
+								onChange={() => setOidValueState(!oidValue)}
 								checkedIcon={
 									<img
 										alt=""
 										src={data.iconActive || defaultIconTrue}
 										style={{
-											width: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
-											height: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
+											width:
+												(typeof data.iconSizeOnly === "number" &&
+													`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+												"100%",
+											height:
+												(typeof data.iconSizeOnly === "number" &&
+													`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+												"100%",
 
 											objectFit: "contain",
 
-											color: data.iconColorActive,
-											filter: data.iconColorActive
-												? "drop-shadow(0px 10000px 0)"
-												: null,
-											transform: data.iconColorActive
-												? "translateY(-10000px)"
-												: null,
+											color: data.iconColorActive || data.iconColor,
+											filter:
+												data.iconColorActive || data.iconColor
+													? "drop-shadow(0px 10000px 0)"
+													: null,
+											transform:
+												data.iconColorActive || data.iconColor
+													? "translateY(-10000px)"
+													: null,
 										}}
 									/>
 								}
@@ -109,18 +103,26 @@ function CheckboxCollection() {
 										alt=""
 										src={data.iconActive || defaultIconFalse}
 										style={{
-											width: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
-											height: `calc(100% * ${data.iconSizeOnly || 100} / 100)`,
+											width:
+												(typeof data.iconSizeOnly === "number" &&
+													`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+												"100%",
+											height:
+												(typeof data.iconSizeOnly === "number" &&
+													`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+												"100%",
 
 											objectFit: "contain",
 
-											color: data.iconColorActive,
-											filter: data.iconColorActive
-												? "drop-shadow(0px 10000px 0)"
-												: null,
-											transform: data.iconColorActive
-												? "translateY(-10000px)"
-												: null,
+											color: data.iconColorActive || data.iconColor,
+											filter:
+												data.iconColorActive || data.iconColor
+													? "drop-shadow(0px 10000px 0)"
+													: null,
+											transform:
+												data.iconColorActive || data.iconColor
+													? "translateY(-10000px)"
+													: null,
 										}}
 									/>
 								}

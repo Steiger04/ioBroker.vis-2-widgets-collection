@@ -133,8 +133,14 @@ function DialogCollection() {
 										objectFit: "contain",
 										top: `calc(0px - ${widget.data.iconYOffset})`,
 										right: `calc(0px - ${widget.data.iconXOffset})`,
-										width: `${data.iconSizeOnly || "100"}%`,
-										height: `${data.iconSizeOnly || "100"}%`,
+										width:
+											(typeof data.iconSizeOnly === "number" &&
+												`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+											"100%",
+										height:
+											(typeof data.iconSizeOnly === "number" &&
+												`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+											"100%",
 										color: data.iconColor,
 										filter: data.iconColor
 											? "drop-shadow(0px 10000px 0)"

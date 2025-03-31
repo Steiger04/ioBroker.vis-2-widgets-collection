@@ -8,6 +8,8 @@ const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
 	const index = props["data-index"];
 	const mark = props.ownerState.marks[index];
 
+	// console.log("props.ownerState.marks", props.ownerState.marks);
+
 	useEffect(() => {
 		if (ref) {
 			ref.innerHTML = mark.label;
@@ -37,7 +39,8 @@ const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
 						pr: sliderOrientation === "vertical" ? 1 : 0,
 						pb: sliderOrientation === "vertical" ? 0 : 1,
 
-						fontSize: typeof mark.fontSize === "number" && `${mark.fontSize}%`,
+						// fontSize: typeof mark.fontSize === "number" && mark.fontSize}%`,
+						fontSize: mark.fontSize,
 
 						color: mark.textColor,
 					}}

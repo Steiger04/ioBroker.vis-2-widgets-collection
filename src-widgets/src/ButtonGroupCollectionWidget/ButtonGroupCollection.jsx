@@ -7,23 +7,23 @@ import {
 import { alpha } from "@mui/material/styles";
 import React, { useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
+import useValueState from "../hooks/useValueState";
 
 function ButtonGroupCollection() {
-	const { values, setState, setValue, oidObject, widget } =
-		useContext(CollectionContext);
+	const { oidObject, widget } = useContext(CollectionContext);
 	const { data, states, activeIndex } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
 	const oidValue = useOidValue("oid");
-	// const oidValue = getPropertyValue("oid");
+	const setOidValueState = useValueState("oid");
 
 	const buttonGroupVariant = widget.data.buttonGroupVariant;
 	const buttonGroupOrientation = widget.data.buttonGroupOrientation;
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const isValidType =
@@ -39,28 +39,7 @@ function ButtonGroupCollection() {
 			oidValue={oidValue}
 			bgActive={false}
 		>
-			{(data.iconActive || data.icon) && (
-				<img
-					alt=""
-					src={data.iconActive || data.icon}
-					style={{
-						position: "absolute",
-						top: `calc(0px - ${widget.data.iconYOffset})`,
-						right: `calc(0px - ${widget.data.iconXOffset})`,
-						width: data.iconSize,
-						height: data.iconSize,
-						color: data.iconColorActive || data.iconColor,
-						filter:
-							data.iconColorActive || data.iconColor
-								? "drop-shadow(0px 10000px 0)"
-								: null,
-						transform:
-							data.iconColorActive || data.iconColor
-								? "translateY(-10000px)"
-								: null,
-					}}
-				/>
-			)}
+			<CollectionBaseImage data={data} widget={widget} />
 
 			<Box
 				sx={{
@@ -179,6 +158,12 @@ function ButtonGroupCollection() {
 									justifyContent: "center",
 									alignItems: "center",
 
+									color:
+										widget.data.iconColorActive ||
+										widget.data[`iconColor${index + 1}`] ||
+										widget.data.textColorActive ||
+										data.textColor,
+
 									background:
 										(activeIndex === index + 1 &&
 											String(oidValue) ===
@@ -236,10 +221,7 @@ function ButtonGroupCollection() {
 											data.background,
 									},
 								}}
-								onClick={() => {
-									setState({ values: { ...values, [`${oid}.val`]: value } });
-									setValue(oid, value);
-								}}
+								onClick={() => setOidValueState(value)}
 							>
 								<Box
 									sx={{
@@ -289,8 +271,16 @@ function ButtonGroupCollection() {
 													alt=""
 													style={{
 														position: "relative",
-														bottom: widget.data[`iconYOffset${index + 1}`],
-														left: widget.data[`iconXOffset${index + 1}`],
+														/* bottom: widget.data[`iconYOffset${index + 1}`],
+														left: widget.data[`iconXOffset${index + 1}`], */
+														bottom:
+															(activeIndex === index + 1 &&
+																widget.data.iconYOffsetActive) ||
+															widget.data[`iconYOffset${index + 1}`],
+														left:
+															(activeIndex === index + 1 &&
+																widget.data.iconXOffsetActive) ||
+															widget.data[`iconXOffset${index + 1}`],
 
 														objectFit: "contain",
 
@@ -298,19 +288,25 @@ function ButtonGroupCollection() {
 															(activeIndex === index + 1 &&
 																String(oidValue) ===
 																	String(widget.data[`value${index + 1}`]) &&
-																widget.data.iconSizeActive &&
-																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
-															(widget.data[`iconSize${index + 1}`] &&
-																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`) ||
+																typeof widget.data.iconSizeActive ===
+																	"number" &&
+																`calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
+															"100%" ||
+															(typeof widget.data[`iconSize${index + 1}`] ===
+																"number" &&
+																`calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
 															"100%",
 														height:
 															(activeIndex === index + 1 &&
 																String(oidValue) ===
 																	String(widget.data[`value${index + 1}`]) &&
-																widget.data.iconSizeActive &&
-																`calc(100% * ${widget.data.iconSizeActive || 100} / 100)`) ||
-															(widget.data[`iconSize${index + 1}`] &&
-																`calc(100% * ${widget.data[`iconSize${index + 1}`] || 100} / 100)`) ||
+																typeof widget.data.iconSizeActive ===
+																	"number" &&
+																`calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
+															"100%" ||
+															(typeof widget.data[`iconSize${index + 1}`] ===
+																"number" &&
+																`calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
 															"100%",
 														color:
 															(activeIndex === index + 1 &&

@@ -65,6 +65,10 @@ const oidChangeHandlerAsync =
 								data[`value${index + 1}`] = value;
 								data[`alias${index + 1}`] = alias;
 								break;
+							case "mixed":
+								data[`value${index + 1}`] = value;
+								data[`alias${index + 1}`] = alias;
+								break;
 
 							default:
 								break;
@@ -92,9 +96,37 @@ const oidChangeHandlerAsync =
 			data.onlyStates = null;
 			data.write = false;
 			data.onlyDisplay = true;
-			for (let i = 1; i <= data.values_count; i++) {
-				delete data[`value${i}`];
+			for (let i = 1; i <= Number(data.values_count); i++) {
+				delete data[`iconSmall${i}`];
+				delete data[`icon${i}`];
+				delete data[`iconSize${i}`];
+				delete data[`iconColor${i}`];
+				delete data[`iconHover${i}`];
+				delete data[`iconXOffset${i}`];
+				delete data[`iconYOffset${i}`];
+				delete data[`noHeader${i}`];
+				delete data[`header${i}`];
+				delete data[`headerSize${i}`];
 				delete data[`alias${i}`];
+				delete data[`value${i}`];
+				delete data[`valueSize${i}`];
+				delete data[`noFooter${i}`];
+				delete data[`footer${i}`];
+				delete data[`footerSize${i}`];
+				delete data[`noCard${i}`];
+				delete data[`squaredCorner${i}`];
+				delete data[`textColor${i}`];
+				delete data[`outlined${i}`];
+				delete data[`outlinedFrame${i}`];
+				delete data[`basePadding${i}`];
+				delete data[`baseElevation${i}`];
+				delete data[`square${i}`];
+				delete data[`ellipse${i}`];
+				delete data[`circle${i}`];
+				delete data[`background${i}`];
+				delete data[`backgroundColor${i}`];
+				delete data[`frameBackground${i}`];
+				delete data[`frameBackgroundColor${i}`];
 			}
 			data.values_count = 0;
 

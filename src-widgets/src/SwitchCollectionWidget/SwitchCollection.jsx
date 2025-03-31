@@ -1,47 +1,27 @@
 import { Box } from "@mui/material";
 import React, { useRef, useContext } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useOidValue from "../hooks/useOidValue";
+import useValueState from "../hooks/useValueState";
 import MaterialUISwitch from "./MaterialUISwitch";
 
 function SwitchCollection() {
 	const ref = useRef(null);
-	const { setValue, oidObject, widget } = useContext(CollectionContext);
+	const { oidObject, widget } = useContext(CollectionContext);
 	const { data } = useData("oid");
 	const oidValue = useOidValue("oid");
-	// const oidValue = getPropertyValue("oid");
+	const setOidValueState = useValueState("oid");
 
-	const oid = oidObject?._id;
 	const oidType = oidObject?.common?.type;
 
 	const isValidType = oidType === "boolean";
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
-			{(data.icon || data.iconActive) && (
-				<img
-					alt=""
-					src={data.icon || data.iconActive}
-					style={{
-						position: "absolute",
-						top: `calc(0px - ${widget.data.iconYOffset})`,
-						right: `calc(0px - ${widget.data.iconXOffset})`,
-						width: data.iconSize || data.iconSizeActive,
-						height: data.iconSize || data.iconSizeActive,
-						color: data.iconColor || data.iconColorActive,
-						filter:
-							data.iconColor || data.iconColorActive
-								? "drop-shadow(0px 10000px 0)"
-								: null,
-						transform:
-							data.iconColor || data.iconColorActive
-								? "translateY(-10000px)"
-								: null,
-					}}
-				/>
-			)}
+			<CollectionBaseImage data={data} widget={widget} />
 			<Box
 				sx={{
 					position: "relative",
@@ -74,7 +54,16 @@ function SwitchCollection() {
 							data={data}
 							widget={widget}
 							checked={oidValue}
-							onChange={() => setValue(oid, !oidValue)}
+							onChange={() => setOidValueState(!oidValue)}
+							sx={{
+								"& .MuiTouchRipple-root": {
+									color:
+										data.iconColorActive ||
+										data.iconColor ||
+										data.textColorActive ||
+										data.textColor,
+								},
+							}}
 						/>
 					)}
 				</Box>

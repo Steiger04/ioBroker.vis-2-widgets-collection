@@ -2,24 +2,26 @@ import { Box, MenuItem, Select, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import React, { useContext, useRef } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
+import useValueState from "../hooks/useValueState";
 
 const emptyIcon =
 	"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 function SelectCollection() {
 	const contentRef = useRef(null);
-	const { setState, values, oidObject, widget, setValue } =
-		useContext(CollectionContext);
+	const { cidObject, oidObject, widget } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data, states } = useData("oid");
-
 	const oidValue = useOidValue("oid");
 
-	const oid = oidObject?._id;
+	const setOidValueState = useValueState("oid");
+	const setCidValueState = useValueState("cid");
+
 	const oidType = oidObject?.common?.type;
 
 	const isValidType =
@@ -28,44 +30,23 @@ function SelectCollection() {
 		oidType === "string" ||
 		oidType === "mixed";
 
-	const valueIndex = states.findIndex((state) => state.value === oidValue);
+	const valueIndex = states.findIndex(
+		(state) => String(state.value) === String(oidValue),
+	);
 
 	const changeHandler = (event) => {
-		const value =
-			typeof event.target.value.value !== "number"
-				? event.target.value.value
-				: Number(event.target.value.value);
+		const value = event.target.value.value;
 
-		setState({ values: { ...values, [`${oid}.val`]: value } });
+		if (!cidObject.noObject) {
+			setCidValueState(value);
+		}
 
-		if (
-			widget.data.cid !== undefined &&
-			widget.data.cid !== null &&
-			widget.data.cid !== "" &&
-			widget.data.cid !== "nothing_selected"
-		)
-			setValue(widget.data.cid, value);
-		else setValue(oid, value);
+		setOidValueState(value);
 	};
 
 	return (
 		<CollectionBase isValidType={isValidType} data={data} oidValue={oidValue}>
-			{/* {data.icon && (
-				<img
-					alt=""
-					src={data.icon}
-					style={{
-						position: "absolute",
-						top: `calc(0px + ${widget.data.iconYOffset})`,
-						right: `calc(0px + ${widget.data.iconXOffset})`,
-						width: data.iconSize,
-						height: data.iconSize,
-						color: data.iconColor,
-						filter: data.iconColor ? "drop-shadow(0px 10000px 0)" : null,
-						transform: data.iconColor ? "translateY(-10000px)" : null,
-					}}
-				/>
-			)} */}
+			<CollectionBaseImage data={data} widget={widget} />
 
 			<Box
 				ref={contentRef}
@@ -126,6 +107,40 @@ function SelectCollection() {
 								key={state.value}
 								value={state}
 								sx={{
+									"& .MuiTouchRipple-root": {
+										color:
+											widget.data[`iconColor${idx + 1}`] ||
+											widget.data.iconColor ||
+											widget.data.textColorActive ||
+											data.textColor,
+									},
+
+									"&.Mui-selected": {
+										backgroundColor:
+											(widget.data[`iconColor${idx + 1}`] &&
+												alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+											(widget.data.iconColor &&
+												alpha(widget.data.iconColor, 0.16)) ||
+											(data.textColor && alpha(data.textColor, 0.16)),
+									},
+
+									"&.Mui-selected:hover": {
+										backgroundColor:
+											(widget.data[`iconColor${idx + 1}`] &&
+												alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+											(widget.data.iconColor &&
+												alpha(widget.data.iconColor, 0.16)) ||
+											(data.textColor && alpha(data.textColor, 0.16)),
+									},
+									"&:hover": {
+										backgroundColor:
+											(widget.data[`iconColor${idx + 1}`] &&
+												alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+											(widget.data.iconColor &&
+												alpha(widget.data.iconColor, 0.16)) ||
+											(data.textColor && alpha(data.textColor, 0.16)),
+									},
+
 									background:
 										(widget.data[`backgroundColor${idx + 1}`] &&
 											`${widget.data[`backgroundColor${idx + 1}`]}!important`) ||
@@ -144,35 +159,43 @@ function SelectCollection() {
 										src={imgSrc || emptyIcon}
 										style={{
 											position: "relative",
-											top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`] || widget.data.iconYOffset})`,
-											right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`] || widget.data.iconXOffset})`,
+
+											top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`]})`,
+											right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`]})`,
 
 											width:
 												(!imgSrc && "0px") ||
-												(widget.data[`iconSize${idx + 1}`] &&
-													`calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`) ||
-												(widget.data.iconSize &&
-													`calc(24px * ${widget.data.iconSize || 0} / 100)`) ||
-												"24px",
+												(typeof widget.data[`iconSize${idx + 1}`] === "number"
+													? `calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`
+													: "24px"),
 											height:
 												(!imgSrc && "0px") ||
-												(widget.data[`iconSize${idx + 1}`] &&
-													`calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`) ||
-												(widget.data.iconSize &&
-													`calc(24px * ${widget.data.iconSize || 0} / 100)`) ||
-												"24px",
-
+												(typeof widget.data[`iconSize${idx + 1}`] === "number"
+													? `calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`
+													: "24px"),
 											color:
+												(String(oidValue) ===
+													String(widget.data[`value${idx + 1}`]) &&
+													widget.data.iconColorActive) ||
 												widget.data[`iconColor${idx + 1}`] ||
-												widget.data.iconColor,
+												widget.data.buttonGroupColor ||
+												data.iconColor,
 											filter:
+												(String(oidValue) ===
+													String(widget.data[`value${idx + 1}`]) &&
+													widget.data.iconColorActive) ||
 												widget.data[`iconColor${idx + 1}`] ||
-												widget.data.iconColor
+												widget.data.buttonGroupColor ||
+												data.iconColor
 													? "drop-shadow(0px 10000px 0)"
 													: null,
 											transform:
+												(String(oidValue) ===
+													String(widget.data[`value${idx + 1}`]) &&
+													widget.data.iconColorActive) ||
 												widget.data[`iconColor${idx + 1}`] ||
-												widget.data.iconColor
+												widget.data.buttonGroupColor ||
+												data.iconColor
 													? "translateY(-10000px)"
 													: null,
 										}}

@@ -59,7 +59,9 @@ function useData(oid) {
 								: oidType === "number"
 									? Number(_value)
 									: _value,
-							label: _alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`),
+							label: (
+								_alias || (oidEntry ? oidEntry[1] : `${_value}${_unit}`)
+							).replace(/(\r\n|\n|\r)/gm, ""),
 
 							fontSize: formatSize(widget.data[`valueSize${i}`]),
 
@@ -154,30 +156,32 @@ function useData(oid) {
 				widget.data.textColor || textStyles.color || theme.palette.primary.main,
 			textColorActive: getDataValue("textColor", ext),
 
-			header:
+			header: (
 				widget.data.headerActive ||
 				getDataValue("header", ext) ||
 				widget.data.header ||
 				oidName ||
-				"",
+				""
+			).replace(/(\r\n|\n|\r)/gm, ""),
 			headerSize:
 				formatSize(widget.data.headerSize) ||
 				formatSize(widget.data.headerSizeActive) ||
 				formatSize(getDataValue("headerSize", ext)) ||
 				fontStyles.fontSize,
 
-			footer:
+			footer: (
 				widget.data.footerActive ||
 				getDataValue("footer", ext) ||
 				widget.data.footer ||
-				"",
+				""
+			).replace(/(\r\n|\n|\r)/gm, ""),
 			footerSize:
 				formatSize(widget.data.footerSize) ||
 				formatSize(widget.data.footerSizeActive) ||
 				formatSize(getDataValue("footerSize", ext)) ||
 				fontStyles.fontSize,
 
-			alias: getDataValue("alias", ext),
+			alias: (getDataValue("alias", ext) || "").replace(/(\r\n|\n|\r)/gm, ""),
 
 			value:
 				getDataValue("value", ext) &&
@@ -200,7 +204,10 @@ function useData(oid) {
 				`calc(24px * ${getDataValue("iconSize", ext)} / 100)`,
 
 			iconSizeActiveOnly: getDataValue("iconSize", ext),
-			iconSizeOnly: getDataValue("iconSize", ext) || widget.data.iconSize,
+			iconSizeOnly:
+				getDataValue("iconSize", ext) || getDataValue("iconSize", ext) === 0
+					? getDataValue("iconSize", ext)
+					: widget.data.iconSize,
 
 			iconColor: widget.data.iconColor,
 			iconColorActive: getDataValue("iconColor", ext),
@@ -213,17 +220,17 @@ function useData(oid) {
 				(!!getDataValue("iconXOffset", ext) &&
 					getDataValue("iconXOffset", ext) !== "0px" &&
 					getDataValue("iconXOffset", ext)) ||
-				(!!widget.data.iconXOffset &&
+				/* (!!widget.data.iconXOffset &&
 					widget.data.iconXOffset !== "0px" &&
-					widget.data.iconXOffset) ||
+					widget.data.iconXOffset) || */
 				"0px",
 			iconYOffset:
 				(!!getDataValue("iconYOffset", ext) &&
 					getDataValue("iconYOffset", ext) !== "0px" &&
 					getDataValue("iconYOffset", ext)) ||
-				(!!widget.data.iconYOffset &&
+				/* (!!widget.data.iconYOffset &&
 					widget.data.iconYOffset !== "0px" &&
-					widget.data.iconYOffset) ||
+					widget.data.iconYOffset) || */
 				"0px",
 
 			backgroundColor:
@@ -250,7 +257,7 @@ function useData(oid) {
 			case "number":
 			case "string": {
 				const _activeIndex = states.findIndex(
-					(state) => state.value === oidValue,
+					(state) => String(state.value) === String(oidValue),
 				);
 
 				if (_activeIndex !== -1) {

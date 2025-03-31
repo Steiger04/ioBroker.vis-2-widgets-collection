@@ -65,8 +65,12 @@ export default function ViewDialog({
 		>
 			<Box
 				sx={{
-					width: `${widget.data.dialogWidth}%`,
-					height: `${widget.data.dialogHeight}%`,
+					width: widget.data.dialogInPixel
+						? `${widget.data.dialogWidth}px`
+						: `${widget.data.dialogWidth}%`,
+					height: widget.data.dialogInPixel
+						? `${widget.data.dialogHeight}px`
+						: `${widget.data.dialogHeight}%`,
 				}}
 			>
 				<CollectionBase
@@ -100,8 +104,9 @@ export default function ViewDialog({
 							}}
 						>
 							<Typography
-								id="fuck"
 								ref={setTitleRef}
+								noWrap
+								variant="body2"
 								sx={{
 									...fontStyles,
 									...textStyles,

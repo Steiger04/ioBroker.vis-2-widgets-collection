@@ -4,6 +4,7 @@ import withCollectionProvider from "../components/withCollectionProvider";
 import checkboxFields from "../lib/checkboxFields";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import CheckboxCollection from "./CheckboxCollection";
 
 class CheckboxCollectionWidget extends Generic {
@@ -14,6 +15,7 @@ class CheckboxCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "CheckboxCollectionWidget", // Name of widget
 			visWidgetLabel: "checkbox_collection_widget", // Label for widget
+			visOrder: 1,
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -22,7 +24,11 @@ class CheckboxCollectionWidget extends Generic {
 				{
 					name: "checkbox", // group name
 					label: "group_checkbox",
-					fields: [...commonObjectFields(["boolean"]), ...checkboxFields()],
+					fields: [
+						...commonObjectFields(["boolean"]),
+						...delayFields(),
+						...checkboxFields(),
+					],
 				},
 
 				{

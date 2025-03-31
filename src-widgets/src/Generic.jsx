@@ -72,7 +72,7 @@ class Generic extends window.visRxWidget {
 			!this.state.rxData[stateName] ||
 			this.state.rxData[stateName] === "nothing_selected"
 		) {
-			this.setState({ [`${stateName}Object`]: { common: {} } });
+			this.setState({ [`${stateName}Object`]: { common: {}, noObject: true } });
 
 			if (this.state.rxData.icon) {
 				this.setState({
@@ -88,13 +88,18 @@ class Generic extends window.visRxWidget {
 		}
 		// read object itself
 		let object = await this.props.context.socket.getObject(
-			this.state.rxData.oid,
+			this.state.rxData[stateName],
 		);
 
 		if (!object) {
-			object = { common: {} };
+			object = { common: {}, noObject: true };
 		} else {
-			object = { common: object.common, _id: object._id, type: object.type };
+			object = {
+				common: object.common,
+				_id: object._id,
+				type: object.type,
+				noObject: false,
+			};
 		}
 
 		object.common = object.common || {};

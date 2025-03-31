@@ -3,6 +3,7 @@ import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import selectFields from "../lib/selectFields";
 import SelectCollection from "./SelectCollection";
 
@@ -14,7 +15,7 @@ class SelectCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "SelectCollectionWidget", // Name of widget
 			visWidgetLabel: "select_collection_widget", // Label for widget
-			visOrder: 3,
+			visOrder: 7,
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -25,6 +26,7 @@ class SelectCollectionWidget extends Generic {
 					label: "group_select_collection",
 					fields: [
 						...commonObjectFields(["boolean", "number", "string", "mixed"]),
+						...delayFields(),
 						...selectFields(),
 					],
 				},
@@ -72,10 +74,11 @@ class SelectCollectionWidget extends Generic {
 		this.lastRxData = actualRxData;
 
 		await this.createStateObjectAsync("oid");
+		await this.createStateObjectAsync("cid");
 	}
 
 	// This function is called every time when rxData is changed
-	async onRxDataChanged(payload) {
+	async onRxDataChanged(lastRxData) {
 		await this.propertiesUpdate();
 	}
 
@@ -114,8 +117,9 @@ class SelectCollectionWidget extends Generic {
 			mode: this.props.context.themeType,
 			socket: this.props.context.socket,
 			theme: this.props.context.theme,
-
 			wrappedContent: this.wrappedContent,
+
+			cidObject: this.state.cidObject,
 		};
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {

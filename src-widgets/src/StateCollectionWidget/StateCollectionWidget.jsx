@@ -3,6 +3,7 @@ import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import stateFields from "../lib/stateFields";
 import StateCollection from "./StateCollection";
 
@@ -15,7 +16,7 @@ class StateCollectionWidget extends Generic {
 			visSetColor: "#0C0A43", // Color of a widget set. it is enough to set color only in one widget of a set
 			visName: "StateCollectionWidget", // Name of widget
 			visWidgetLabel: "state_collection_widget", // Label for widget
-			visOrder: 1,
+			visOrder: 3,
 			visAttrs: [
 				{
 					name: "common", // group name
@@ -25,7 +26,8 @@ class StateCollectionWidget extends Generic {
 					name: "button", // group name
 					label: "group_button",
 					fields: [
-						...commonObjectFields(["string", "number", "boolean"]),
+						...commonObjectFields(["string", "number", "boolean", "mixed"]),
+						...delayFields(),
 						...stateFields(),
 					],
 				},
@@ -62,8 +64,6 @@ class StateCollectionWidget extends Generic {
 		//                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
 		// 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
 		//                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-
-		// console.log("inside propertiesUpdate", this.state.values);
 
 		const actualRxData = JSON.stringify(this.state.rxData);
 		if (this.lastRxData === actualRxData) {

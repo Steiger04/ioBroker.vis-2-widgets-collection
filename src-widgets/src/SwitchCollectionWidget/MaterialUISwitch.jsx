@@ -56,7 +56,7 @@ const MaterialUISwitch = styled(Switch)(
 					top: `calc(${data.iconYOffset} * -1)`,
 					left: data.iconXOffset,
 
-					backgroundSize: `${data.iconSizeOnly || "100"}% ${data.iconSizeOnly || "100"}%`,
+					backgroundSize: `${data.iconSizeOnly === 0 ? "0" : data.iconSizeOnly || "100"}% ${data.iconSizeOnly === 0 ? "0" : data.iconSizeOnly || "100"}%`,
 					backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 				},
 
@@ -85,13 +85,16 @@ const MaterialUISwitch = styled(Switch)(
 				width: "100%",
 				height: "100%",
 
-				top: `calc(${data.iconYOffset} * -1)`,
-				left: data.iconXOffset,
+				// top: `calc(${data.iconYOffset} * -1)`,
+				// left: data.iconXOffset,
+
+				left: `calc(0px + ${data.iconXOffset})`,
+				top: `calc(0px - ${data.iconYOffset})`,
 
 				backgroundRepeat: "no-repeat",
 				backgroundPosition: "center",
 
-				backgroundSize: `${data.iconSizeOnly || "100"}% ${data.iconSizeOnly || "100"}%`,
+				backgroundSize: `${data.iconSizeOnly === 0 ? "0" : data.iconSizeOnly || "100"}% ${data.iconSizeOnly === 0 ? "0" : data.iconSizeOnly || "100"}%`,
 				backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 
 				color: data.iconColorActive || data.iconColor,

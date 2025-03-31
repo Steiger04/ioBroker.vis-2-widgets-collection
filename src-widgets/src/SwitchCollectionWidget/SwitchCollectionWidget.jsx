@@ -3,6 +3,7 @@ import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
 import commonFields from "../lib/commonFields";
 import commonObjectFields from "../lib/commonObjectFields";
+import delayFields from "../lib/delayFields";
 import switchFields from "../lib/switchFields";
 import SwitchCollection from "./SwitchCollection";
 
@@ -14,6 +15,7 @@ class SwitchCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "SwitchCollectionWidget", // Name of widget
 			visWidgetLabel: "switch_collection_widget", // Label for widget
+			visOrder: 2,
 			visAttrs: [
 				// CollectionGroupCommonAttributes(["boolean"]),
 				{
@@ -23,7 +25,11 @@ class SwitchCollectionWidget extends Generic {
 				{
 					name: "switch",
 					label: "group_switch",
-					fields: [...commonObjectFields(["boolean"]), ...switchFields()],
+					fields: [
+						...commonObjectFields(["boolean"]),
+						...delayFields(),
+						...switchFields(),
+					],
 				},
 				{
 					name: "values",

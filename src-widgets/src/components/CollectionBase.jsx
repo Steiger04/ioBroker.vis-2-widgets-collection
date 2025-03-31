@@ -107,7 +107,7 @@ const CollectionBase = forwardRef(
 						: "transparent",
 				}}
 			>
-				{isValidType ? (
+				{!!isValidType && (
 					<>
 						<Box
 							sx={{
@@ -215,7 +215,8 @@ const CollectionBase = forwardRef(
 							/>
 						</Box>
 					</>
-				) : (
+				)}
+				{!isValidType && (
 					<Box
 						sx={{
 							width: "100%",
@@ -226,24 +227,18 @@ const CollectionBase = forwardRef(
 							alignItems: "center",
 						}}
 					>
-						<Typography color="primary.main" variant="body2">
-							{oid ? (
-								<>
-									<b>{oid}</b>
-									<br />
-									<div
-										style={{
-											paddingTop: "0.5em",
-											width: "100%",
-											textAlign: "center",
-										}}
-									>
-										has an invalid type!
-									</div>
-								</>
-							) : (
-								"Please select an object ID"
-							)}
+						<Typography
+							color="primary.main"
+							variant="body2"
+							sx={{
+								p: 1,
+								width: "100%",
+								textAlign: "center",
+							}}
+						>
+							{oid
+								? `${oid} has an invalid type!`
+								: "Please select an object ID"}
 						</Typography>
 					</Box>
 				)}

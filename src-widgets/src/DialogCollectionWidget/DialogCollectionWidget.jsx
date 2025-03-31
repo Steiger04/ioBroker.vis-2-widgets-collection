@@ -13,7 +13,7 @@ class DialogCollectionWidget extends Generic {
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
 			visName: "DialogCollectionWidget", // Name of widget
 			visWidgetLabel: "dialog_collection_widget", // Label for widget
-			visOrder: 2,
+			visOrder: 8,
 			visAttrs: [
 				{
 					name: "common", // group name

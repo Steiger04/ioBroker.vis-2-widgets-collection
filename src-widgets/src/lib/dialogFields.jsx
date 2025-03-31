@@ -66,6 +66,12 @@ const dialogFields = () => [
 		step: 1,
 	},
 	{
+		name: "dialogInPixel",
+		label: "dialog_in_pixel",
+		type: "checkbox",
+		default: false,
+	},
+	{
 		label: "",
 		type: "custom",
 		component: () => <CollectionDivider />,
