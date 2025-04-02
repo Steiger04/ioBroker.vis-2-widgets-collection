@@ -271,8 +271,6 @@ function ButtonGroupCollection() {
 													alt=""
 													style={{
 														position: "relative",
-														/* bottom: widget.data[`iconYOffset${index + 1}`],
-														left: widget.data[`iconXOffset${index + 1}`], */
 														bottom:
 															(activeIndex === index + 1 &&
 																widget.data.iconYOffsetActive) ||
@@ -353,16 +351,6 @@ function ButtonGroupCollection() {
 											}}
 										>
 											<Typography
-												/* ref={(ref) => {
-													if (ref) {
-														ref.innerHTML =
-															(activeIndex === index + 1 &&
-																widget.data.aliasActive) ||
-															alias ||
-															// value;
-															`${value}${widget.data.unit}`;
-													}
-												}} */
 												contentEditable="false"
 												dangerouslySetInnerHTML={{
 													__html:

@@ -27,11 +27,11 @@ export default function ViewDialog({
 				header.style.height = "0px";
 			}
 
-			titleRef.innerHTML = widget.data.header;
+			titleRef.innerHTML = data.header;
 			titleRef.style.height = "auto";
 			titleRef.style.width = "auto";
 		}
-	}, [header, titleRef, widget.data.header, widget.data.dialogHeaderAsTitle]);
+	}, [header, titleRef, data.header, widget.data.dialogHeaderAsTitle]);
 
 	const iconButton = (
 		<IconButton
