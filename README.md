@@ -53,7 +53,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.7.9 (2025-04-04)
 - (steiger04) Widget optimizations
 
 ### 1.7.8 (2025-04-04)
