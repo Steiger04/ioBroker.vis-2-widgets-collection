@@ -55,7 +55,7 @@ function StateCollection() {
 				break;
 			case 2:
 				!widget.data.statePushButton &&
-				JSON.stringify(oidValue) === JSON.stringify(widget.data.value1)
+				String(oidValue) === String(widget.data.value1)
 					? setOidValueState(widget.data.value2)
 					: setOidValueState(widget.data.value1);
 				break;
