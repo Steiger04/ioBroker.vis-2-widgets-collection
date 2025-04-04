@@ -256,5 +256,6 @@
 	"dialog_close_button_color": "Close button color",
 	"dialog_in_pixel": "Width / height in pixel",
 	"state_push_button": "Push button",
-	"state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2]."
+	"state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2].",
+	"no_header_icon": "No header icon"
 }

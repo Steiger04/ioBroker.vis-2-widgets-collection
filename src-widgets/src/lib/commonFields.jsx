@@ -82,6 +82,13 @@ const commonFields = (settings) => {
 			label: "no_header",
 		},
 		{
+			name: `noHeaderIcon${groupName}`,
+			type: "checkbox",
+			label: "no_header_icon",
+			default: false,
+			hidden: "data.noHeader",
+		},
+		{
 			name: `header${groupName}`,
 			label: "header_text",
 			type: "html",
@@ -312,6 +319,7 @@ const commonFields = (settings) => {
 	const valuesToDelete = [
 		"allFieldsDivider",
 		`noHeader${groupName}`,
+		`noHeaderIcon${groupName}`,
 		groupName === "Active" ? `value${groupName}` : "",
 		`noFooter${groupName}`,
 		`noCard${groupName}`,

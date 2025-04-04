@@ -271,14 +271,34 @@ function ButtonGroupCollection() {
 													alt=""
 													style={{
 														position: "relative",
-														bottom:
-															(activeIndex === index + 1 &&
-																widget.data.iconYOffsetActive) ||
-															widget.data[`iconYOffset${index + 1}`],
+
 														left:
 															(activeIndex === index + 1 &&
-																widget.data.iconXOffsetActive) ||
-															widget.data[`iconXOffset${index + 1}`],
+																!!widget.data.iconXOffsetActive &&
+																widget.data.iconXOffsetActive !== "0px" &&
+																`${widget.data.iconXOffsetActive}`) ||
+															(!!widget.data[`iconXOffset${index + 1}`] &&
+																widget.data[`iconXOffset${index + 1}`] !==
+																	"0px" &&
+																`${widget.data[`iconXOffset${index + 1}`]}`) ||
+															(!!widget.data.iconXOffset &&
+																widget.data.iconXOffset !== "0px" &&
+																`${widget.data.iconXOffset}`) ||
+															"0px",
+
+														bottom:
+															(activeIndex === index + 1 &&
+																!!widget.data.iconYOffsetActive &&
+																widget.data.iconYOffsetActive !== "0px" &&
+																`${widget.data.iconYOffsetActive}`) ||
+															(!!widget.data[`iconYOffset${index + 1}`] &&
+																widget.data[`iconYOffset${index + 1}`] !==
+																	"0px" &&
+																`${widget.data[`iconYOffset${index + 1}`]}`) ||
+															(!!widget.data.iconYOffset &&
+																widget.data.iconYOffset !== "0px" &&
+																`${widget.data.iconYOffset}`) ||
+															"0px",
 
 														objectFit: "contain",
 
@@ -289,10 +309,11 @@ function ButtonGroupCollection() {
 																typeof widget.data.iconSizeActive ===
 																	"number" &&
 																`calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
-															"100%" ||
 															(typeof widget.data[`iconSize${index + 1}`] ===
 																"number" &&
 																`calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+															(typeof widget.data.iconSize === "number" &&
+																`calc(100% * ${widget.data.iconSize} / 100)`) ||
 															"100%",
 														height:
 															(activeIndex === index + 1 &&
@@ -301,10 +322,11 @@ function ButtonGroupCollection() {
 																typeof widget.data.iconSizeActive ===
 																	"number" &&
 																`calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
-															"100%" ||
 															(typeof widget.data[`iconSize${index + 1}`] ===
 																"number" &&
 																`calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+															(typeof widget.data.iconSize === "number" &&
+																`calc(100% * ${widget.data.iconSize} / 100)`) ||
 															"100%",
 														color:
 															(activeIndex === index + 1 &&

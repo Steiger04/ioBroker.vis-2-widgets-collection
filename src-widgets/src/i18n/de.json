@@ -258,5 +258,6 @@
 	"dialog_close_button_color": "Schließen Button Farbe",
 	"dialog_in_pixel": "Breite / Höhe in Pixel",
 	"state_push_button": "Taster",
-	"state_push_button_tooltip": "Mit Drücken des Tasters wird Wert[1] und nach dem Loslassen Wert[2] gesetzt."
+	"state_push_button_tooltip": "Mit Drücken des Tasters wird Wert[1] und nach dem Loslassen Wert[2] gesetzt.",
+	"no_header_icon": "Kein Headericon"
 }

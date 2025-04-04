@@ -1,7 +1,7 @@
 import React from "react";
 
 const CollectionBaseImage = ({ data, widget }) => {
-	return data.icon || data.iconActive ? (
+	return !widget.data.noHeaderIcon && (data.icon || data.iconActive) ? (
 		<img
 			alt=""
 			src={data.icon || data.iconActive}
