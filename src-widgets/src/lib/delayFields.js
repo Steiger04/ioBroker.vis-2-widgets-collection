@@ -26,7 +26,7 @@ const delayFields = () => [
 		name: "delay",
 		type: "number",
 		label: "delay",
-		default: 300,
+		default: 0,
 		min: 0,
 		max: 10000,
 		step: 1,
