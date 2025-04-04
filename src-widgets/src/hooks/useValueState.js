@@ -23,7 +23,7 @@ const useValueState = (idName) => {
 					value = String(value);
 					break;
 				case "number":
-					value = Number(value);
+					value = isNumber(value) ? Number(value) : "NaN";
 					break;
 				case "mixed":
 					value = /^true$/i.test(value)
@@ -38,6 +38,8 @@ const useValueState = (idName) => {
 				default:
 					break;
 			}
+
+			if (value === undefined || value === null || value === "NaN") return;
 
 			if (onlyValues) {
 				setState({ values: { ...values, [`${_oid}.val`]: value } });
