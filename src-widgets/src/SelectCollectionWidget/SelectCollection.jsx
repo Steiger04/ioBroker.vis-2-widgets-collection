@@ -166,13 +166,17 @@ function SelectCollection() {
 											width:
 												(!imgSrc && "0px") ||
 												(typeof widget.data[`iconSize${idx + 1}`] === "number"
-													? `calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`
-													: "24px"),
+													? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
+													: typeof widget.data.iconSize === "number"
+														? `calc(24px * ${widget.data.iconSize} / 100)`
+														: "24px"),
 											height:
 												(!imgSrc && "0px") ||
 												(typeof widget.data[`iconSize${idx + 1}`] === "number"
-													? `calc(24px * ${widget.data[`iconSize${idx + 1}`] || 0} / 100)`
-													: "24px"),
+													? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
+													: typeof widget.data.iconSize === "number"
+														? `calc(24px * ${widget.data.iconSize} / 100)`
+														: "24px"),
 											color:
 												(String(oidValue) ===
 													String(widget.data[`value${idx + 1}`]) &&
