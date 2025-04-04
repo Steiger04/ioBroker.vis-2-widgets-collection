@@ -13,6 +13,14 @@ const stateFields = () => [
 		hidden: "!data.values_count",
 	},
 	{
+		name: "statePushButton",
+		type: "checkbox",
+		label: "state_push_button",
+		default: false,
+		hidden: (data) => !data.onlyStates || Number(data.values_count) !== 2,
+		tooltip: "state_push_button_tooltip",
+	},
+	{
 		type: "custom",
 		component: () => <CollectionDivider />,
 		hidden: "!data.values_count",

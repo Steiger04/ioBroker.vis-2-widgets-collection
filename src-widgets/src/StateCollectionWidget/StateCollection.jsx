@@ -23,6 +23,26 @@ function StateCollection() {
 
 	const onlyStates = widget.data.onlyStates;
 
+	const downHandler = () => {
+		if (
+			onlyStates &&
+			Number(widget.data.values_count) === 2 &&
+			widget.data.statePushButton
+		) {
+			setTimeout(() => setOidValueState(widget.data.value1), 0);
+		}
+	};
+
+	const upHandler = () => {
+		if (
+			onlyStates &&
+			Number(widget.data.values_count) === 2 &&
+			widget.data.statePushButton
+		) {
+			setTimeout(() => setOidValueState(widget.data.value2), 0);
+		}
+	};
+
 	const clickHandler = useCallback(() => {
 		if (!onlyStates) {
 			setOpen(true);
@@ -34,6 +54,7 @@ function StateCollection() {
 				setOidValueState(widget.data.value1);
 				break;
 			case 2:
+				!widget.data.statePushButton &&
 				JSON.stringify(oidValue) === JSON.stringify(widget.data.value1)
 					? setOidValueState(widget.data.value2)
 					: setOidValueState(widget.data.value1);
@@ -46,6 +67,7 @@ function StateCollection() {
 		oidValue,
 		onlyStates,
 		widget.data.values_count,
+		widget.data.statePushButton,
 		widget.data.value1,
 		widget.data.value2,
 		setOidValueState,
@@ -55,6 +77,12 @@ function StateCollection() {
 		<Button
 			disabled={widget.data.onlyDisplay}
 			onClick={clickHandler}
+			onMouseDown={downHandler}
+			onMouseUp={upHandler}
+			// onMouseOut={upHandler}
+			onTouchStart={downHandler}
+			onTouchEnd={upHandler}
+			onT
 			sx={{
 				width: "100%",
 				height: "100%",
