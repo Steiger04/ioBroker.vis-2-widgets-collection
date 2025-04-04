@@ -79,14 +79,14 @@ function useData(oid) {
 							iconWidth:
 								typeof widget.data[`iconSize${i}`] === "number"
 									? widget.data[`iconSize${i}`]
-									: typeof widget.data.sliderIconSize === "number"
-										? widget.data.sliderIconSize
+									: typeof widget.data.iconSize === "number"
+										? widget.data.iconSize
 										: 100,
 							iconHeight:
 								typeof widget.data[`iconSize${i}`] === "number"
 									? widget.data[`iconSize${i}`]
-									: typeof widget.data.sliderIconSize === "number"
-										? widget.data.sliderIconSize
+									: typeof widget.data.iconSize === "number"
+										? widget.data.iconSize
 										: 100,
 							iconXOffset:
 								(!!getDataValue("iconXOffset", i) &&

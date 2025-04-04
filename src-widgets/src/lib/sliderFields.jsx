@@ -49,14 +49,6 @@ const sliderFields = () => [
 		type: "color",
 	},
 	{
-		name: "sliderIconSize",
-		label: "icon_size",
-		type: "slider",
-		min: 1,
-		max: 500,
-		step: 1,
-	},
-	{
 		type: "custom",
 		component: () => <CollectionDivider dividerText="values" />,
 	},
