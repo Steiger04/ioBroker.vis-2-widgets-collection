@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.7",
+    "version": "1.7.8",
     "news": {
+      "1.7.8": {
+        "en": "Push button functionality for State widget added",
+        "de": "Push-Taste Funktionalität für State Widget hinzugefügt",
+        "ru": "Функциональность кнопки Push для добавленного виджета State",
+        "pt": "Funcionalidade do botão Push para widget de estado adicionado",
+        "nl": "Drukknopfunctionaliteit voor status widget toegevoegd",
+        "fr": "Fonction de bouton-poussoir pour le widget State ajouté",
+        "it": "Pulsante funzionalità per widget Stato aggiunto",
+        "es": "Función del botón pulsar para el widget del Estado añadido",
+        "pl": "Funkcja przycisku wciskającego dla dodanego widżetu stanu",
+        "uk": "Функціональність кнопки Push для державного віджету",
+        "zh-cn": "添加了状态部件的按键功能"
+      },
       "1.7.7": {
         "en": "Slider optimized",
         "de": "Slider optimiert",
@@ -80,19 +93,6 @@
         "pl": "Zoptymalizowany parametr",
         "uk": "Оптимізований Gauge",
         "zh-cn": "高盖优化"
-      },
-      "1.7.1": {
-        "en": "Gauge bug fixed",
-        "de": "Fehler behoben",
-        "ru": "Огонь исправлен",
-        "pt": "Bug de calibre corrigido",
-        "nl": "Bugfixed",
-        "fr": "Correction du bogue de jauge",
-        "it": "Bug di Gauge fisso",
-        "es": "Error de Gauge fijo",
-        "pl": "Błąd parametru",
-        "uk": "Виправлено помилку",
-        "zh-cn": "Gauge 错误已修复"
       }
     },
     "titleLang": {
