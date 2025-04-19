@@ -11,6 +11,7 @@
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
         "@iobroker/vis-2-widgets-react-dev": "^4.0.4",
+        "@jaames/iro": "^5.5.2",
         "@mui/icons-material": "^5.16.7",
         "@mui/material": "^5.16.7",
         "canvas-gauges": "^2.1.7",

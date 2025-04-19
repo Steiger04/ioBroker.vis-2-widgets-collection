@@ -1,28 +1,32 @@
 import React from "react";
 import Generic from "../Generic";
 import withCollectionProvider from "../components/withCollectionProvider";
-import dialogFields from "../lib/checkboxFields";
 import commonFields from "../lib/commonFields";
-import commonObjectFields from "../lib/commonObjectFields";
-import DialogCollection from "./DialogCollection";
+import delayFields from "../lib/delayFields";
+import lightFields from "../lib/lightFields";
+import LightCollection from "./LightCollection";
 
-class DialogCollectionWidget extends Generic {
+class LightCollectionWidget extends Generic {
 	static getWidgetInfo() {
 		return {
-			id: "tplDialogCollectionWidget",
+			id: "tplLightCollectionWidget",
 			visSet: "vis-2-widgets-collection", // Widget set name in which this widget is located
 			visSetLabel: "widgets_collection", // Widget set translated label (should be defined only in one widget of a set)
-			visName: "DialogCollectionWidget", // Name of widget
-			visWidgetLabel: "dialog_collection_widget", // Label for widget
+			visName: "LightCollectionWidget", // Name of widget
+			visWidgetLabel: "light_collection_widget", // Label for widget
 			visAttrs: [
 				{
 					name: "common", // group name
 					fields: [...commonFields({ groupName: "", allFields: true })],
 				},
 				{
-					name: "dialog", // group name
-					label: "group_dialog",
-					fields: [...commonObjectFields(["boolean"]), ...dialogFields()],
+					name: "light", // group name
+					label: "group_light",
+					fields: [
+						// ...commonObjectFields(["boolean"]),
+						...delayFields(),
+						...lightFields(),
+					],
 				},
 				{
 					name: "values",
@@ -38,15 +42,14 @@ class DialogCollectionWidget extends Generic {
 				height: "100px",
 				position: "relative",
 			},
-			visPrev:
-				"widgets/vis-2-widgets-collection/img/prev-collection-dialog.png",
+			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-light.png",
 		};
 	}
 
 	// Do not delete this method. It is used by vis to read the widget configuration.
 	// eslint-disable-next-line class-methods-use-this
 	getWidgetInfo() {
-		return DialogCollectionWidget.getWidgetInfo();
+		return LightCollectionWidget.getWidgetInfo();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -68,6 +71,9 @@ class DialogCollectionWidget extends Generic {
 		this.lastRxData = actualRxData;
 
 		await this.createStateObjectAsync("oid");
+		await this.createStateObjectAsync("colorLightRgbHexOid");
+
+		// console.log("this", this);
 	}
 
 	// This function is called every time when rxData is changed
@@ -112,6 +118,8 @@ class DialogCollectionWidget extends Generic {
 			theme: this.props.context.theme,
 
 			wrappedContent: this.wrappedContent,
+
+			colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
 		};
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {
@@ -121,10 +129,10 @@ class DialogCollectionWidget extends Generic {
 		}
 
 		return withCollectionProvider(
-			this.wrapContent(<DialogCollection />),
+			this.wrapContent(<LightCollection />),
 			collectionContext,
 		);
 	}
 }
 
-export default DialogCollectionWidget;
+export default LightCollectionWidget;

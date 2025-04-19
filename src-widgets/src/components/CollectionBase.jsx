@@ -37,7 +37,7 @@ const CollectionBase = forwardRef(
 
 		const oidValueUnit =
 			(oidValue || oidValue === 0 || oidValue === false) &&
-			`${oidValue}${widget.data.unit}`;
+			`${oidValue}${widget.data.unit === undefined ? "" : widget.data.unit}`;
 
 		useSignals();
 

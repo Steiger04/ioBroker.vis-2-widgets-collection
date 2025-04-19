@@ -21,8 +21,7 @@ function CollectionChangeDialog(props) {
 	const { widget, oidObject, getPropertyValue } = useContext(CollectionContext);
 
 	const [sliderValue, setSliderValue] = useState(getPropertyValue("oid"));
-
-	const setOidValueState = useValueState("oid");
+	const { setValueState: setOidValueState } = useValueState("oid");
 
 	const oidStates = oidObject?.common?.states;
 	const oidType = oidObject?.common?.type;

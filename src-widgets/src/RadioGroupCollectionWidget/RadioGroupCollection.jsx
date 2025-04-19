@@ -6,7 +6,6 @@ import CollectionBase from "../components/CollectionBase";
 import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 import useValueState from "../hooks/useValueState";
 
@@ -16,8 +15,8 @@ function RadioGroupCollection() {
 	const { oidObject, widget } = useContext(CollectionContext);
 	const { data, states } = useData("oid");
 	const { fontStyles, textStyles } = useStyles(widget.style);
-	const oidValue = useOidValue("oid");
-	const setOidValueState = useValueState("oid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
 
 	const oidType = oidObject?.common?.type;
 

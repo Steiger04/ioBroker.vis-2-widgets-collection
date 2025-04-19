@@ -2,10 +2,13 @@ import { useCallback, useContext } from "react";
 import { CollectionContext } from "../components/CollectionProvider";
 import isNumber from "../lib/helper/isNumber";
 import useDebounce from "./useDebounce";
+import useOidValue from "./useOidValue";
 
 const useValueState = (idName) => {
 	const context = useContext(CollectionContext);
 	const { [`${idName}Object`]: oidObject, values, setState, widget } = context;
+
+	const value = useOidValue(idName);
 
 	const debounce = useDebounce({
 		oidObject,
@@ -15,6 +18,7 @@ const useValueState = (idName) => {
 	const setValueState = useCallback(
 		(value, onlyValues = false) => {
 			const _oid = oidObject?._id;
+
 			if (!_oid) return;
 
 			const oidType = oidObject?.common?.type;
@@ -44,14 +48,14 @@ const useValueState = (idName) => {
 			if (onlyValues) {
 				setState({ values: { ...values, [`${_oid}.val`]: value } });
 			} else {
-				setState({ values: { ...values, [`${_oid}.val`]: value } });
+				// setState({ values: { ...values, [`${_oid}.val`]: value } });
 				if (debounce) debounce.next(value);
 			}
 		},
 		[oidObject, values, setState, debounce],
 	);
 
-	return setValueState;
+	return { value, setValueState };
 };
 
 export default useValueState;

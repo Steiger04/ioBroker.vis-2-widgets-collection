@@ -4,18 +4,15 @@ import CollectionBase from "../components/CollectionBase";
 import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useOidValue from "../hooks/useOidValue";
 import useValueState from "../hooks/useValueState";
 import CollectionMark from "./CollectionMark";
 
 function SliderCollection() {
 	const { oidObject, widget } = useContext(CollectionContext);
 	const { data, states, minValue, maxValue } = useData("oid");
-	const oidValue = useOidValue("oid");
-
 	const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
-
-	const setOidValueState = useValueState("oid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
 
 	const startIconColor =
 		widget.data.startIconColor ||

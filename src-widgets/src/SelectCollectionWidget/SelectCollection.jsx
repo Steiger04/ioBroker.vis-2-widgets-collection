@@ -5,7 +5,7 @@ import CollectionBase from "../components/CollectionBase";
 import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useOidValue from "../hooks/useOidValue";
+import useElementDimensions from "../hooks/useElementDimensions";
 import useStyles from "../hooks/useStyles";
 import useValueState from "../hooks/useValueState";
 
@@ -14,13 +14,13 @@ const emptyIcon =
 
 function SelectCollection() {
 	const contentRef = useRef(null);
+	const { width } = useElementDimensions(contentRef?.current);
 	const { cidObject, oidObject, widget } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data, states } = useData("oid");
-	const oidValue = useOidValue("oid");
-
-	const setOidValueState = useValueState("oid");
-	const setCidValueState = useValueState("cid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
+	const { setValueState: setCidValueState } = useValueState("cid");
 
 	const oidType = oidObject?.common?.type;
 
@@ -66,7 +66,7 @@ function SelectCollection() {
 					onChange={changeHandler}
 					MenuProps={{
 						sx: {
-							maxWidth: contentRef.current?.offsetWidth,
+							maxWidth: width,
 						},
 						MenuListProps: {
 							sx: {
@@ -79,7 +79,7 @@ function SelectCollection() {
 					sx={{
 						width: "100%",
 						height: "100%",
-						maxWidth: `calc(${contentRef.current?.offsetWidth}px - 10%)`,
+						maxWidth: `calc(${width}px - 10%)`,
 
 						"& .MuiSelect-icon": {
 							color: widget.data.arrowColor,

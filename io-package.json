@@ -162,7 +162,8 @@
           "DialogCollectionWidget",
           "SelectCollectionWidget",
           "RadioGroupCollectionWidget",
-          "GaugeCollectionWidget"
+          "GaugeCollectionWidget",
+					"LightCollectionWidget"
         ]
       }
     },

@@ -6,7 +6,6 @@ import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useHtmlValue from "../hooks/useHtmlValue";
-import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 import useValueState from "../hooks/useValueState";
 
@@ -20,8 +19,8 @@ function CheckboxCollection() {
 	const { oidObject, widget } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data } = useData("oid");
-	const oidValue = useOidValue("oid");
-	const setOidValueState = useValueState("oid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
 
 	const oidType = oidObject?.common?.type;
 

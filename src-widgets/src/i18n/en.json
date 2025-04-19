@@ -7,8 +7,9 @@
 	"checkbox_collection_widget": "Checkbox (boolean)",
 	"dialog_collection_widget": "Dialog (view)",
 	"select_collection_widget": "Select (boolean, number, string, mixed)",
-	"gauge_collection_widget": "Gauge (number)",
 	"radio_group_collection_widget": "Radio group (boolean, number, string, mixed)",
+	"gauge_collection_widget": "Gauge (number)",
+	"light_collection_widget": "Light",
 	"group_button": "State",
 	"group_slider": "Slider",
 	"group_switch": "Switch",
@@ -257,5 +258,8 @@
 	"dialog_in_pixel": "Width / height in pixel",
 	"state_push_button": "Push button",
 	"state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2].",
-	"no_header_icon": "No header icon"
+	"no_header_icon": "No header icon",
+	"group_light": "Light",
+	"color_light_padding": "Padding",
+	"color_light_rgb_hex_oid": "RGB-ID (hex)"
 }

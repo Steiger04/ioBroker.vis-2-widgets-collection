@@ -80,6 +80,7 @@ class Generic extends window.visRxWidget {
 						common: {
 							icon: this.state.rxData.icon,
 						},
+						noObject: true,
 					},
 				});
 			}

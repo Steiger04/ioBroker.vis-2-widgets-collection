@@ -6,7 +6,6 @@ import CollectionChangeDialog from "../components/CollectionChangeDialog";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useHtmlValue from "../hooks/useHtmlValue";
-import useOidValue from "../hooks/useOidValue";
 import useStyles from "../hooks/useStyles";
 import useValueState from "../hooks/useValueState";
 
@@ -15,8 +14,8 @@ function StateCollection() {
 	const { widget, oidObject } = useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
 	const { data, widgetStates } = useData("oid");
-	const oidValue = useOidValue("oid");
-	const setOidValueState = useValueState("oid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
 	const [open, setOpen] = useState(false);
 
 	const oidType = oidObject?.common?.type;

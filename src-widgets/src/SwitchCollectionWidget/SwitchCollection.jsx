@@ -4,7 +4,6 @@ import CollectionBase from "../components/CollectionBase";
 import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useOidValue from "../hooks/useOidValue";
 import useValueState from "../hooks/useValueState";
 import MaterialUISwitch from "./MaterialUISwitch";
 
@@ -12,8 +11,8 @@ function SwitchCollection() {
 	const ref = useRef(null);
 	const { oidObject, widget } = useContext(CollectionContext);
 	const { data } = useData("oid");
-	const oidValue = useOidValue("oid");
-	const setOidValueState = useValueState("oid");
+	const { value: oidValue, setValueState: setOidValueState } =
+		useValueState("oid");
 
 	const oidType = oidObject?.common?.type;
 

@@ -22,6 +22,7 @@ function CollectionDivider({ dividerText = "" }) {
 					<Typography
 						sx={{
 							opacity: 0.5,
+							color: "primary.main",
 						}}
 						variant="caption"
 					>
