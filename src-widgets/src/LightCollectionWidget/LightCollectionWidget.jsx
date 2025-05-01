@@ -70,10 +70,24 @@ class LightCollectionWidget extends Generic {
 		}
 		this.lastRxData = actualRxData;
 
-		await this.createStateObjectAsync("oid");
-		await this.createStateObjectAsync("colorLightRgbHexOid");
-
-		// console.log("this", this);
+		console.time("LightCollectionWidget propertiesUpdate");
+		await Promise.all([
+			// ON/OFF
+			this.createStateObjectAsync("colorLightSwitchOid"),
+			// RGB
+			this.createStateObjectAsync("colorLightRgbHexOid"),
+			// R/G/B
+			this.createStateObjectAsync("colorLightRedOid"),
+			this.createStateObjectAsync("colorLightGreenOid"),
+			this.createStateObjectAsync("colorLightBlueOid"),
+			// HSV
+			this.createStateObjectAsync("colorLightHsvOid"),
+			// H/S/V
+			this.createStateObjectAsync("colorLightHueOid"),
+			this.createStateObjectAsync("colorLightSaturationOid"),
+			this.createStateObjectAsync("colorLightBrightnessOid"),
+		]);
+		console.timeEnd("LightCollectionWidget propertiesUpdate");
 	}
 
 	// This function is called every time when rxData is changed
@@ -119,7 +133,20 @@ class LightCollectionWidget extends Generic {
 
 			wrappedContent: this.wrappedContent,
 
+			// ON/OFF
+			colorLightSwitchOidObject: this.state.colorLightSwitchOidObject,
+			// RGB
 			colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
+			// R/G/B
+			colorLightRedOidObject: this.state.colorLightRedOidObject,
+			colorLightGreenOidObject: this.state.colorLightGreenOidObject,
+			colorLightBlueOidObject: this.state.colorLightBlueOidObject,
+			// HSV
+			colorLightHsvOidObject: this.state.colorLightHsvOidObject,
+			// H/S/V
+			colorLightHueOidObject: this.state.colorLightHueOidObject,
+			colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,
+			colorLightBrightnessOidObject: this.state.colorLightBrightnessOidObject,
 		};
 
 		if (props.widget.data.noCard || props.widget.usedInWidget) {

@@ -263,5 +263,18 @@
 	"no_header_icon": "Kein Headericon",
 	"group_light": "Licht",
 	"color_light_padding": "Padding",
-	"color_light_rgb_hex_oid": "RGB-ID (hex)"
+	"color_light_rgb_hex_oid": "RGB (hex)",
+	"color_light_brightness_oid": "Helligkeit",
+	"color_light_hue_oid": "Farbe (HUE)",
+	"color_light_saturation_oid": "Sättigung",
+	"color_light_type": "Lichttyp",
+	"color_light_hsv_oid": "HSV",
+	"color_light_border_color": "Rahmenfarbe",
+	"color_light_border_width": "Rahmenbreite",
+	"color_light_red_oid": "Rot",
+	"color_light_green_oid": "Grün",
+	"color_light_blue_oid": "Blau",
+	"color_light_only_slider": "Nur Schieberegler",
+	"color_light_slider_width": "Schiebereglerbreite",
+	"color_light_switch_oid": "Schalter (ON/OFF)"
 }

@@ -13,6 +13,8 @@ function useDebounce({
 	const oid = oidObject?._id;
 
 	useEffect(() => {
+		// console.log("useDebounce -> useEffect");
+
 		const delayDurationSubscription = delayDuration
 			.pipe(
 				sampleInterval
@@ -21,7 +23,10 @@ function useDebounce({
 			)
 			.subscribe((value) => setValue(oid, value));
 
-		return () => delayDurationSubscription.unsubscribe();
+		return () => {
+			// console.log("useDebounce -> useEffect -> return");
+			return delayDurationSubscription.unsubscribe();
+		};
 	}, [sampleInterval, _delay, oid, setValue, delayDuration]);
 
 	return delayDuration;

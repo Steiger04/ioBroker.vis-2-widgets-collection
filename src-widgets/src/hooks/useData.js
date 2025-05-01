@@ -9,7 +9,7 @@ function useData(oid) {
 	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 	const [activeIndex, setActiveIndex] = useState();
 	// const oidValue = useOidValue(oid);
-	const oidValue = getPropertyValue("oid");
+	const oidValue = getPropertyValue(oid);
 
 	const oidName = oidObject?.common?.name;
 

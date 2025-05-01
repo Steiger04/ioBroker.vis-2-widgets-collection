@@ -261,5 +261,18 @@
 	"no_header_icon": "No header icon",
 	"group_light": "Light",
 	"color_light_padding": "Padding",
-	"color_light_rgb_hex_oid": "RGB-ID (hex)"
+	"color_light_rgb_hex_oid": "RGB (hex)",
+	"color_light_brightness_oid": "Brightness",
+	"color_light_hue_oid": "Color (HUE)",
+	"color_light_saturation_oid": "Saturation",
+	"color_light_type": "Light type",
+	"color_light_hsv_oid": "HSV",
+	"color_light_border_color": "Border color",
+	"color_light_border_width": "Border width",
+	"color_light_red_oid": "Red",
+	"color_light_green_oid": "Green",
+	"color_light_blue_oid": "Blue",
+	"color_light_only_slider": "Only slider",
+	"color_light_slider_width": "Slider width",
+	"color_light_switch_oid": "Switch (ON/OFF)"
 }

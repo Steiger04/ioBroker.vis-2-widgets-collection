@@ -11,8 +11,8 @@ const useRefDimensions = (element) => {
 			const clientHeight = entries[0].contentRect.height;
 
 			setDimensions({
-				width: clientWidth,
-				height: clientHeight,
+				width: Math.round(clientWidth),
+				height: Math.round(clientHeight),
 			});
 		});
 

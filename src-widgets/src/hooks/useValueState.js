@@ -5,8 +5,12 @@ import useDebounce from "./useDebounce";
 import useOidValue from "./useOidValue";
 
 const useValueState = (idName) => {
-	const context = useContext(CollectionContext);
-	const { [`${idName}Object`]: oidObject, values, setState, widget } = context;
+	const {
+		[`${idName}Object`]: oidObject,
+		values,
+		setState,
+		widget,
+	} = useContext(CollectionContext);
 
 	const value = useOidValue(idName);
 
