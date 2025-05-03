@@ -16,6 +16,11 @@ const LightPicker = ({ widget, onChange, wheelSize, payload }) => {
 			},
 		};
 
+		const box = {
+			component: iro.ui.Box,
+			options: {},
+		};
+
 		const hueSlider = {
 			component: iro.ui.Slider,
 			options: {
@@ -68,25 +73,43 @@ const LightPicker = ({ widget, onChange, wheelSize, payload }) => {
 		switch (widget.data.colorLightType) {
 			case "rgb":
 			case "r/g/b":
-				if (widget.data.colorLightOnlySlider) {
-					layout.push(redSlider);
-					layout.push(greenSlider);
-					layout.push(blueSlider);
-				} else {
-					layout.push(wheel);
-					layout.push(valueSlider);
+				switch (widget.data.colorLightUIComponent) {
+					case "wheel":
+						layout.push(wheel);
+						layout.push(valueSlider);
+						break;
+
+					case "box":
+						layout.push(box);
+						layout.push(hueSlider);
+						break;
+
+					case "slider":
+						layout.push(redSlider);
+						layout.push(greenSlider);
+						layout.push(blueSlider);
+						break;
 				}
 				break;
 
 			case "hsv":
 			case "h/s/v":
-				if (widget.data.colorLightOnlySlider) {
-					layout.push(hueSlider);
-					layout.push(saturationSlider);
-					layout.push(valueSlider);
-				} else {
-					layout.push(wheel);
-					layout.push(valueSlider);
+				switch (widget.data.colorLightUIComponent) {
+					case "wheel":
+						layout.push(wheel);
+						layout.push(valueSlider);
+						break;
+
+					case "box":
+						layout.push(box);
+						layout.push(hueSlider);
+						break;
+
+					case "slider":
+						layout.push(hueSlider);
+						layout.push(saturationSlider);
+						layout.push(valueSlider);
+						break;
 				}
 				break;
 
@@ -100,7 +123,7 @@ const LightPicker = ({ widget, onChange, wheelSize, payload }) => {
 		}
 
 		return layout;
-	}, [widget.data.colorLightType, widget.data.colorLightOnlySlider]);
+	}, [widget.data.colorLightType, widget.data.colorLightUIComponent]);
 
 	useEffect(() => {
 		if (lightPicker.current) return;
@@ -201,12 +224,21 @@ const LightPicker = ({ widget, onChange, wheelSize, payload }) => {
 					borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
 				},
 				"& .IroSliderGradient": {
+					borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
+
 					borderColor: (theme) =>
 						(widget.data.colorLightBorderColor &&
 							`${widget.data.colorLightBorderColor}!important`) ||
 						`${theme.palette.primary.main}!important`,
+				},
 
+				"& .IroBox": {
 					borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
+
+					borderColor: (theme) =>
+						(widget.data.colorLightBorderColor &&
+							`${widget.data.colorLightBorderColor}!important`) ||
+						`${theme.palette.primary.main}!important`,
 				},
 			}}
 		/>

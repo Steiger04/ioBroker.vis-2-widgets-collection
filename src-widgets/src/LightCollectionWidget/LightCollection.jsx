@@ -2,6 +2,7 @@ import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { Box, Divider, IconButton, Switch } from "@mui/material";
 import React, { useContext, useRef } from "react";
 import CollectionBase from "../components/CollectionBase";
+import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
 import useRefDimensions from "../hooks/useElementDimensions";
@@ -160,6 +161,7 @@ function LightCollection() {
 					: payloadValue
 			}
 		>
+			<CollectionBaseImage data={data} widget={widget} />
 			<Box
 				sx={{
 					pt: 0.5,

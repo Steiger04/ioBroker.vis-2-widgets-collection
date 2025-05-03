@@ -272,7 +272,7 @@
 	"color_light_red_oid": "Red",
 	"color_light_green_oid": "Green",
 	"color_light_blue_oid": "Blue",
-	"color_light_only_slider": "Only slider",
 	"color_light_slider_width": "Slider width",
-	"color_light_switch_oid": "Switch (ON/OFF)"
+	"color_light_switch_oid": "Switch (ON/OFF)",
+	"color_light_ui_component": "UI component"
 }
