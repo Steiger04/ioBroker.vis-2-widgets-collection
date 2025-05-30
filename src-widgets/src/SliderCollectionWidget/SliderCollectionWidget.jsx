@@ -89,11 +89,11 @@ class SliderCollectionWidget extends Generic {
 
 	// This function is called every time when rxStyle is changed
 	// eslint-disable-next-line class-methods-use-this
-	onRxStyleChanged() {}
+	onRxStyleChanged() { }
 
 	// This function is called every time when some Object State updated, but all changes lands into this.state.values too
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
-	onStateUpdated(id, state) {}
+	onStateUpdated(id, state) { }
 
 	async componentDidMount() {
 		super.componentDidMount();
@@ -119,6 +119,7 @@ class SliderCollectionWidget extends Generic {
 			values: this.state.values,
 			isSignalVisible: this.isSignalVisible.bind(this),
 			getPropertyValue: this.getPropertyValue.bind(this),
+			hasPropertyValueChanged: this.hasPropertyValueChanged.bind(this),
 			mode: this.props.context.themeType,
 			socket: this.props.context.socket,
 			theme: this.props.context.theme,

@@ -237,7 +237,7 @@ const dialogFields = () => [
 			!["cct", "rgbcct", "r/g/b/cct", "h/s/v/cct"].includes(
 				data.colorLightType,
 			),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightCtMin",
@@ -277,42 +277,42 @@ const dialogFields = () => [
 		type: "id",
 		label: "color_light_rgb_hex_oid",
 		hidden: (data) => !["rgb", "rgbcct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightRedOid",
 		type: "id",
 		label: "color_light_red_oid",
 		hidden: (data) => !["r/g/b", "r/g/b/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightGreenOid",
 		type: "id",
 		label: "color_light_green_oid",
 		hidden: (data) => !["r/g/b", "r/g/b/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightBlueOid",
 		type: "id",
 		label: "color_light_blue_oid",
 		hidden: (data) => !["r/g/b", "r/g/b/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightHueOid",
 		type: "id",
 		label: "color_light_hue_oid",
 		hidden: (data) => !["h/s/v", "h/s/v/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightSaturationOid",
 		type: "id",
 		label: "color_light_saturation_oid",
 		hidden: (data) => !["h/s/v", "h/s/v/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 	{
 		name: "colorLightBrightnessOid",
@@ -320,7 +320,7 @@ const dialogFields = () => [
 		label: "color_light_brightness_oid",
 		hidden: (data) =>
 			!["cct", "h/s/v", "h/s/v/cct"].includes(data.colorLightType),
-		onChange: loadStatesAsync,
+		// onChange: loadStatesAsync,
 	},
 ];
 

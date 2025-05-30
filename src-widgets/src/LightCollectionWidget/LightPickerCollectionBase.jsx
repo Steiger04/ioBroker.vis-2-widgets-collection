@@ -155,7 +155,7 @@ function LightPickerCollectionBase() {
 			: Math.min(wheelWidth, wheelHeight);
 
 	const mountHandler = (picker) => {
-		console.log("LightPicker mounted", picker);
+		// console.log("LightPicker mounted", picker);
 
 		const color = {};
 
@@ -172,9 +172,11 @@ function LightPickerCollectionBase() {
 		else sat = Math.round(sat);
 		color.saturation = sat;
 
-		color.value = getPropertyValue("colorLightBrightnessOid") ?? 0;
-
-		console.log("mountHandler color: ", color);
+		const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+		let val = getPropertyValue("colorLightBrightnessOid") ?? 0;
+		if (isHueVal) val = Math.round((val / 254) * 100);
+		else val = Math.round(val);
+		color.value = val;
 
 		setInitColor(color);
 	};
@@ -182,8 +184,16 @@ function LightPickerCollectionBase() {
 	const changeHandler = (color, change) => {
 		if (!change || !color) return;
 
-		console.log("change: ", change);
-		const type = widget.data.colorLightType;
+		let type;
+		if (cctLight) {
+			type = "cct";
+		} else {
+			type = widget.data.colorLightType;
+		}
+
+		const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+		let val = Math.round(color.value);
+		if (isHueVal) val = Math.round((color.value / 100) * 254);
 
 		switch (type) {
 			case "cct":
@@ -194,7 +204,7 @@ function LightPickerCollectionBase() {
 					colorLightBrightnessOidObject &&
 					!colorLightBrightnessOidObject.noObject
 				)
-					setBrightnessValueState(Math.round(color.value) || 0);
+					setBrightnessValueState(val || 0);
 				else if (
 					colorLightTemperatureOidObject &&
 					!colorLightTemperatureOidObject.noObject
@@ -228,7 +238,6 @@ function LightPickerCollectionBase() {
 					colorLightHueOidObject &&
 					!colorLightHueOidObject.noObject
 				) {
-					console.log("color.hue: ", Math.round(color.hue));
 					setHueValueState(Math.round(color.hue) || 0);
 				}
 
@@ -238,13 +247,13 @@ function LightPickerCollectionBase() {
 					!colorLightSaturationOidObject.noObject
 				) {
 					const isHueSat = colorLightSaturationOidObject.common?.max === 254;
-					console.log("isHueSat: ", isHueSat);
+					// console.log("isHueSat: ", isHueSat);
 
 					let sat = Math.round(color.saturation);
 
 					if (isHueSat) sat = Math.round((color.saturation / 100) * 254);
 
-					console.log("color.saturation: ", sat);
+					// console.log("color.saturation: ", sat);
 					setSaturationValueState(sat || 0);
 				}
 
@@ -253,8 +262,14 @@ function LightPickerCollectionBase() {
 					colorLightBrightnessOidObject &&
 					!colorLightBrightnessOidObject.noObject
 				) {
-					console.log("color.value: ", Math.round(color.value));
-					setBrightnessValueState(Math.round(color.value) || 0);
+					const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+					// console.log("isHueVal: ", isHueVal);
+
+					let val = Math.round(color.value);
+
+					if (isHueVal) val = Math.round((color.value / 100) * 254);
+					// console.log("color.value: ", Math.round(color.value));
+					setBrightnessValueState(val || 0);
 				}
 
 				break;
@@ -271,8 +286,8 @@ function LightPickerCollectionBase() {
 		const color = iroRef.current.color;
 		const cctBriColor = iroCctBriRef.current.color;
 
-		console.log("temperatureValue: ", temperatureValue);
-		console.log("temperatureChanged: ", temperatureChanged);
+		// console.log("temperatureValue: ", temperatureValue);
+		// console.log("temperatureChanged: ", temperatureChanged);
 
 		if (temperatureChanged) {
 			color.kelvin = temperatureValue;
@@ -289,10 +304,10 @@ function LightPickerCollectionBase() {
 
 		const color = iroRef.current.color;
 
-		console.log("redChanged: ", redChanged);
-		console.log("greenChanged: ", greenChanged);
-		console.log("blueChanged: ", blueChanged);
-		console.log("rgbHexChanged: ", rgbHexChanged);
+		// console.log("redChanged: ", redChanged);
+		// console.log("greenChanged: ", greenChanged);
+		// console.log("blueChanged: ", blueChanged);
+		// console.log("rgbHexChanged: ", rgbHexChanged);
 
 		if (redChanged) color.red = redValue;
 
@@ -320,14 +335,18 @@ function LightPickerCollectionBase() {
 		const uiComponent = widget.data.colorLightUIComponent;
 
 		const roundedHue = Math.round(hueValue);
-		// const roundedSaturation = Math.round((saturationValue / 254) * 100);
 
 		const roundedSaturation =
 			colorLightSaturationOidObject.common?.max === 254
 				? Math.round((saturationValue / 254) * 100)
 				: Math.round(saturationValue);
 
-		const roundedBrightness = Math.round(brightnessValue);
+		const roundedBrightness =
+			colorLightBrightnessOidObject.common?.max === 254
+				? Math.round((brightnessValue / 254) * 100)
+				: Math.round(brightnessValue);
+
+		// const roundedBrightness = Math.round(brightnessValue);
 
 		const setHue = () => hueChanged && (color.hue = roundedHue);
 
@@ -337,9 +356,9 @@ function LightPickerCollectionBase() {
 		const setBrightness = () =>
 			brightnessChanged && (color.value = roundedBrightness);
 
-		console.log("hueChanged: ", hueChanged);
+		/* console.log("hueChanged: ", hueChanged);
 		console.log("saturationChanged: ", saturationChanged);
-		console.log("brightnessChanged: ", brightnessChanged);
+		console.log("brightnessChanged: ", brightnessChanged); */
 
 		if (
 			uiComponent === "wheel" ||
@@ -359,6 +378,7 @@ function LightPickerCollectionBase() {
 		brightnessValue,
 		widget.data.colorLightUIComponent,
 		colorLightSaturationOidObject,
+		colorLightBrightnessOidObject,
 	]);
 
 	return (

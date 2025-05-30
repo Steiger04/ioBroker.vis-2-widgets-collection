@@ -28,10 +28,6 @@ function LightCollection() {
 		ms: widget.data.colorLightDelayLongPress || 500,
 	});
 
-	/* useEffect(() => {
-		console.log("LightCollection -> useEffect -> values:", values);
-	}, [values]); */
-
 	return widget.data.colorLightButton ? (
 		<>
 			<CollectionBase

@@ -1,6 +1,6 @@
 import iro from "@jaames/iro";
 import { Box } from "@mui/material";
-import React, { useRef, useEffect, useMemo, forwardRef, use } from "react";
+import React, { useRef, useEffect, useMemo, forwardRef } from "react";
 
 const LightPicker = forwardRef(
 	(
@@ -11,60 +11,14 @@ const LightPicker = forwardRef(
 		const lightPicker = useRef(null);
 
 		const layout = useMemo(() => {
-			const layout = [];
-
-			const wheel = {
-				component: iro.ui.Wheel,
-				options: {},
-			};
-
-			const box = {
-				component: iro.ui.Box,
-				options: {},
-			};
-
-			const hueSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "hue",
-				},
-			};
-
-			const saturationSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "saturation",
-				},
-			};
-
-			const valueSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "value",
-				},
-			};
-
-			const redSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "red",
-				},
-			};
-
-			const greenSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "green",
-				},
-			};
-
-			const blueSlider = {
-				component: iro.ui.Slider,
-				options: {
-					sliderType: "blue",
-				},
-			};
-
+			const wheel = { component: iro.ui.Wheel, options: {} };
+			const box = { component: iro.ui.Box, options: {} };
+			const hueSlider = { component: iro.ui.Slider, options: { sliderType: "hue" } };
+			const saturationSlider = { component: iro.ui.Slider, options: { sliderType: "saturation" } };
+			const valueSlider = { component: iro.ui.Slider, options: { sliderType: "value" } };
+			const redSlider = { component: iro.ui.Slider, options: { sliderType: "red" } };
+			const greenSlider = { component: iro.ui.Slider, options: { sliderType: "green" } };
+			const blueSlider = { component: iro.ui.Slider, options: { sliderType: "blue" } };
 			const kelvinSlider = {
 				component: iro.ui.Slider,
 				options: {
@@ -75,70 +29,31 @@ const LightPicker = forwardRef(
 				},
 			};
 
-			let type;
-			if (cctLight) {
-				type = "cct";
-			} else {
-				type = widget.data.colorLightType;
-			}
-
-			console.log("LightPicker: type", type);
-
+			const type = cctLight ? "cct" : widget.data.colorLightType;
 			switch (type) {
 				case "rgb":
 				case "rgbcct":
 				case "r/g/b":
 				case "r/g/b/cct":
 					switch (widget.data.colorLightUIComponent) {
-						case "wheel":
-							layout.push(wheel);
-							layout.push(valueSlider);
-							break;
-
-						case "box":
-							layout.push(box);
-							layout.push(hueSlider);
-							break;
-
-						case "slider":
-							layout.push(redSlider);
-							layout.push(greenSlider);
-							layout.push(blueSlider);
-							break;
+						case "wheel": return [wheel, valueSlider];
+						case "box": return [box, hueSlider];
+						case "slider": return [redSlider, greenSlider, blueSlider];
+						default: return [];
 					}
-					break;
-
 				case "h/s/v":
 				case "h/s/v/cct":
 					switch (widget.data.colorLightUIComponent) {
-						case "wheel":
-							layout.push(wheel);
-							layout.push(valueSlider);
-							break;
-
-						case "box":
-							layout.push(box);
-							layout.push(hueSlider);
-							break;
-
-						case "slider":
-							layout.push(hueSlider);
-							layout.push(saturationSlider);
-							layout.push(valueSlider);
-							break;
+						case "wheel": return [wheel, valueSlider];
+						case "box": return [box, hueSlider];
+						case "slider": return [hueSlider, saturationSlider, valueSlider];
+						default: return [];
 					}
-					break;
-
 				case "cct":
-					if (!cctBri) layout.push(kelvinSlider);
-					else layout.push(valueSlider);
-					break;
-
+					return !cctBri ? [kelvinSlider] : [valueSlider];
 				default:
-					break;
+					return [];
 			}
-
-			return layout;
 		}, [
 			widget.data.colorLightType,
 			widget.data.colorLightUIComponent,
@@ -150,15 +65,13 @@ const LightPicker = forwardRef(
 
 		// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 		useEffect(() => {
-			console.log("LightPicker: M O U N T");
-
 			ref.current = lightPicker.current = new iro.ColorPicker(
 				elementRef.current,
 				{
 					display: "flex",
 					layoutDirection: "horizontal",
 					wheelLightness: widget.data.colorWheelLightness,
-					layout: layout,
+					layout,
 				},
 			);
 
@@ -171,41 +84,39 @@ const LightPicker = forwardRef(
 			lightPicker.current.on("input:change", onChange);
 
 			return () => {
-				console.log("LightPicker: C L E A N U P");
 				lightPicker.current.off("mount", onMount);
 				lightPicker.current.off("input:change", onChange);
 				lightPicker.current.base.remove();
 				lightPicker.current = null;
 			};
+			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [layout]);
 
+		// onChange-Handler immer aktuell halten
+		useEffect(() => {
+			if (!lightPicker.current) return;
+			lightPicker.current.off("input:change", onChange);
+			lightPicker.current.on("input:change", onChange);
+		}, [onChange]);
+
+		// initColor bei Änderung setzen
 		useEffect(() => {
 			if (!initColor || !lightPicker.current) return;
 
-			console.log("LightPicker: Update color", initColor);
-
-			// const colorType = widget.data.colorLightType;
-
-			let type;
-			if (cctLight) {
-				type = "cct";
-			} else {
-				type = widget.data.colorLightType;
-			}
-
+			const type = cctLight ? "cct" : widget.data.colorLightType;
 			switch (type) {
 				case "cct":
 					if (cctBri) {
 						lightPicker.current.color.kelvin = initColor.kelvin;
 						lightPicker.current.color.value = initColor.value;
-					} else lightPicker.current.color.kelvin = initColor.kelvin;
+					} else {
+						lightPicker.current.color.kelvin = initColor.kelvin;
+					}
 					break;
-
 				case "rgb":
 				case "rgbcct":
 					lightPicker.current.color.hexString = initColor.hexString;
 					break;
-
 				case "r/g/b":
 				case "r/g/b/cct":
 					lightPicker.current.color.rgb = {
@@ -214,34 +125,32 @@ const LightPicker = forwardRef(
 						b: initColor.blue,
 					};
 					break;
-
 				case "h/s/v":
 				case "h/s/v/cct":
 					lightPicker.current.color.hue = initColor.hue;
 					lightPicker.current.color.saturation = initColor.saturation;
 					lightPicker.current.color.value = initColor.value;
 					break;
-
 				default:
 					break;
 			}
 		}, [cctBri, initColor, cctLight, widget.data.colorLightType]);
 
+		// Wheel-Größe und Slider-Breite anpassen
 		useEffect(() => {
-			// if (!wheelSize) return;
 			setTimeout(() => {
+				if (!lightPicker.current) return;
 				lightPicker.current.state.sliderSize =
 					wheelSize * widget.data.colorLightSliderWidth;
 				lightPicker.current.resize(wheelSize);
 			}, 0);
 		}, [wheelSize, widget.data.colorLightSliderWidth]);
 
+		// WheelLightness-Änderung übernehmen
 		useEffect(() => {
 			if (!lightPicker.current) return;
-
 			lightPicker.current.state.wheelLightness =
 				widget.data.colorWheelLightness;
-
 			lightPicker.current.forceUpdate();
 		}, [widget.data.colorWheelLightness]);
 
@@ -256,49 +165,25 @@ const LightPicker = forwardRef(
 					display: "flex",
 					justifyContent: "center",
 					alignItems: "center",
-
 					"& .IroColorPicker": {
 						width: "100%",
 						height: "100%",
 						justifyContent: "space-between",
 						alignItems: "center",
 					},
-
-					"& .IroWheelHue": {
-						width: `${wheelSize}px!important`,
-						height: `${wheelSize}px!important`,
-					},
-					"& .IroWheelSaturation": {
-						width: `${wheelSize}px!important`,
-						height: `${wheelSize}px!important`,
-					},
-					"& .IroWheelLightness": {
+					"& .IroWheelHue, & .IroWheelSaturation, & .IroWheelLightness, & .IroWheelBorder": {
 						width: `${wheelSize}px!important`,
 						height: `${wheelSize}px!important`,
 					},
 					"& .IroWheelBorder": {
-						width: `${wheelSize}px!important`,
-						height: `${wheelSize}px!important`,
-
 						borderColor: (theme) =>
 							(widget.data.colorLightBorderColor &&
 								`${widget.data.colorLightBorderColor}!important`) ||
 							`${theme.palette.primary.main}!important`,
-
 						borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
 					},
-					"& .IroSliderGradient": {
+					"& .IroSliderGradient, & .IroBox": {
 						borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
-
-						borderColor: (theme) =>
-							(widget.data.colorLightBorderColor &&
-								`${widget.data.colorLightBorderColor}!important`) ||
-							`${theme.palette.primary.main}!important`,
-					},
-
-					"& .IroBox": {
-						borderWidth: `${widget.data.colorLightBorderWidth}px!important`,
-
 						borderColor: (theme) =>
 							(widget.data.colorLightBorderColor &&
 								`${widget.data.colorLightBorderColor}!important`) ||

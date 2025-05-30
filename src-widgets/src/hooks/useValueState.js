@@ -63,9 +63,9 @@ const useValueState = (idName) => {
 					},
 				}));
 			} else {
-				console.log(
+				/* console.log(
 					`useValueState -> setState -> oid: ${_oid}, value: ${value}`,
-				);
+				); */
 				setState((prevState) => ({
 					values: {
 						...prevState.values,
