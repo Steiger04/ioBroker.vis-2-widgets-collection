@@ -1,217 +1,107 @@
-import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
-import { Box, Divider, IconButton, Switch } from "@mui/material";
-import React, { useContext, useRef } from "react";
+import { Box, Button, Modal } from "@mui/material";
+import React, { useEffect, useContext, useState } from "react";
 import CollectionBase from "../components/CollectionBase";
 import CollectionBaseImage from "../components/CollectionBaseImage";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
-import useRefDimensions from "../hooks/useElementDimensions";
+import { useLongPress } from "../hooks/useLongPress";
 import useValueState from "../hooks/useValueState";
-import LightPicker from "./LightPicker";
+import LightPickerCollectionBase from "./LightPickerCollectionBase";
 
 function LightCollection() {
-	const {
-		widget,
-		colorLightRgbHexOidObject,
-		colorLightRedOidObject,
-		colorLightGreenOidObject,
-		colorLightBlueOidObject,
-		colorLightHsvOidObject,
-		colorLightHueOidObject,
-		colorLightSaturationOidObject,
-		colorLightBrightnessOidObject,
-	} = useContext(CollectionContext);
-
-	const { data } = useData("");
-
+	const { widget } = useContext(CollectionContext);
+	const [open, setOpen] = useState(false);
+	const { colorLightSwitchOidObject, values } = useContext(CollectionContext);
 	// ON/OFF
 	const { value: onOffValue, setValueState: setOnOffValueState } =
 		useValueState("colorLightSwitchOid");
 
-	// RGB
-	const { value: rgbHexValue, setValueState: setRgbHexValueState } =
-		useValueState("colorLightRgbHexOid");
+	const { data } = useData("colorLightSwitchOid");
 
-	// R/G/B
-	const { value: redValue, setValueState: setRedValueState } =
-		useValueState("colorLightRedOid");
-	const { value: greenValue, setValueState: setGreenValueState } =
-		useValueState("colorLightGreenOid");
-	const { value: blueValue, setValueState: setBlueValueState } =
-		useValueState("colorLightBlueOid");
+	const oidType = colorLightSwitchOidObject?.common?.type;
 
-	// HSV
-	const { value: hsvValue, setValueState: setHsvValueState } =
-		useValueState("colorLightHsvOid");
+	const isValidType = oidType === "boolean";
 
-	// H/S/V
-	const { value: hueValue, setValueState: setHueValueState } =
-		useValueState("colorLightHueOid");
-	const { value: saturationValue, setValueState: setSaturationValueState } =
-		useValueState("colorLightSaturationOid");
-	const { value: brightnessValue, setValueState: setBrightnessValueState } =
-		useValueState("colorLightBrightnessOid");
+	const longPressProps = useLongPress({
+		onClick: () => setOnOffValueState(!onOffValue),
+		onLongPress: () => setOpen(true),
+		ms: widget.data.colorLightDelayLongPress || 500,
+	});
 
-	const wheelRef = useRef(null);
-	const { width: wheelWidth, height: wheelHeight } = useRefDimensions(
-		wheelRef?.current,
-	);
-	const wheelSize =
-		wheelWidth <= wheelHeight
-			? Math.max(wheelWidth, wheelHeight)
-			: Math.min(wheelWidth, wheelHeight);
+	/* useEffect(() => {
+		console.log("LightCollection -> useEffect -> values:", values);
+	}, [values]); */
 
-	const changeHandler = (color, change) => {
-		const type = widget.data.colorLightType;
-
-		switch (type) {
-			case "rgb":
-				if (colorLightRgbHexOidObject && !colorLightRgbHexOidObject.noObject)
-					setRgbHexValueState(color.hexString || "#000000");
-				break;
-
-			case "r/g/b":
-				if (colorLightRedOidObject && !colorLightRedOidObject.noObject)
-					setRedValueState(color.red || 0);
-				if (colorLightGreenOidObject && !colorLightGreenOidObject.noObject)
-					setGreenValueState(color.green || 0);
-				if (colorLightBlueOidObject && !colorLightBlueOidObject.noObject)
-					setBlueValueState(color.blue || 0);
-				break;
-
-			case "hsv":
-				if (colorLightHsvOidObject && !colorLightHsvOidObject.noObject)
-					setHsvValueState(
-						JSON.stringify(color.hsv) || JSON.stringify({ h: 0, s: 0, v: 0 }),
-					);
-				break;
-
-			case "h/s/v":
-				if (
-					change.h &&
-					colorLightHueOidObject &&
-					!colorLightHueOidObject.noObject
-				)
-					setHueValueState(color.hsv.h || 0);
-				if (
-					change.s &&
-					colorLightSaturationOidObject &&
-					!colorLightSaturationOidObject.noObject
-				)
-					setSaturationValueState(color.hsv.s || 0);
-				if (
-					change.v &&
-					colorLightBrightnessOidObject &&
-					!colorLightBrightnessOidObject.noObject
-				)
-					setBrightnessValueState(color.hsv.v || 0);
-				break;
-
-			default:
-				break;
-		}
-	};
-
-	const payload = (type) => {
-		switch (type) {
-			case "rgb":
-				return { value: rgbHexValue || "#000000", type: "rgb" };
-
-			case "r/g/b":
-				return {
-					value: {
-						r: redValue || 0,
-						g: greenValue || 0,
-						b: blueValue || 0,
-					},
-					type: "r/g/b",
-				};
-
-			case "hsv":
-				return {
-					value: hsvValue || JSON.stringify({ h: 0, s: 0, v: 0 }),
-					type: "hsv",
-				};
-
-			case "h/s/v":
-				return {
-					value: {
-						h: hueValue || 0,
-						s: saturationValue || 0,
-						v: brightnessValue || 0,
-					},
-					type: "h/s/v",
-				};
-
-			default:
-				return { value: "#000000", type: "rgb" };
-		}
-	};
-
-	const payloadValue = payload(widget.data.colorLightType).value;
-	return (
-		<CollectionBase
-			sx={{
-				alignItems: "flex-start",
-			}}
-			data={data}
-			oidValue={
-				typeof payloadValue === "object"
-					? JSON.stringify(payloadValue)
-					: payloadValue
-			}
-		>
-			<CollectionBaseImage data={data} widget={widget} />
-			<Box
-				sx={{
-					pt: 0.5,
-				}}
+	return widget.data.colorLightButton ? (
+		<>
+			<CollectionBase
+				isValidType={isValidType}
+				data={data}
+				oidValue={onOffValue}
 			>
-				<IconButton
-					onClick={() => {
-						if (onOffValue) {
-							setOnOffValueState(false);
-						} else {
-							setOnOffValueState(true);
-						}
-					}}
-				>
-					<PowerSettingsNewIcon
-						sx={{
-							color: onOffValue ? "red" : "green",
-							width: "1.3em",
-							height: "1.3em",
-						}}
-					/>
-				</IconButton>
-			</Box>
-			<Divider orientation="vertical" flexItem variant="middle" />
-			<Box
-				id="PADDING"
-				sx={{
-					width: "100%",
-					height: "100%",
-
-					p: Number(widget.data.colorLightPadding),
-				}}
-			>
-				<Box
-					id="REF"
-					ref={wheelRef}
+				<CollectionBaseImage data={data} widget={widget} />
+				<Button
+					variant="text"
+					{...longPressProps}
 					sx={{
+						color: data.iconColorActive || "inherit",
+
 						width: "100%",
 						height: "100%",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
 					}}
 				>
-					<LightPicker
-						widget={widget}
-						onChange={changeHandler}
-						payload={payload(widget.data.colorLightType)}
-						wheelSize={wheelSize}
+					<img
+						alt=""
+						src={
+							data.iconActive ||
+							"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+						}
+						style={{
+							width:
+								(typeof data.iconSizeOnly === "number" &&
+									`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+								"100%",
+							height:
+								(typeof data.iconSizeOnly === "number" &&
+									`calc(100% * ${data.iconSizeOnly} / 100)`) ||
+								"100%",
+
+							objectFit: "contain",
+
+							color: data.iconColorActive || data.iconColor,
+							filter:
+								data.iconColorActive || data.iconColor
+									? "drop-shadow(0px 10000px 0)"
+									: null,
+							transform:
+								data.iconColorActive || data.iconColor
+									? "translateY(-10000px)"
+									: null,
+						}}
 					/>
+				</Button>
+			</CollectionBase>
+
+			<Modal open={open} onClose={() => setOpen(false)}>
+				<Box
+					sx={{
+						position: "absolute",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						width: widget.data.colorLightModalWidth || "auto",
+						height: widget.data.colorLightModalHeight || 300,
+					}}
+				>
+					<LightPickerCollectionBase />
 				</Box>
-			</Box>
-		</CollectionBase>
+			</Modal>
+		</>
+	) : (
+		<LightPickerCollectionBase />
 	);
 }
 

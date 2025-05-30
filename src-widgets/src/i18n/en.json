@@ -274,5 +274,14 @@
 	"color_light_blue_oid": "Blue",
 	"color_light_slider_width": "Slider width",
 	"color_light_switch_oid": "Switch (ON/OFF)",
-	"color_light_ui_component": "UI component"
+	"color_light_ui_component": "UI component",
+	"color_light_button": "Button (UI)",
+	"color_light_delay_long_press": "Long press delay",
+	"color_light_modal_width": "Modal width",
+	"color_light_modal_height": "Modal height",
+	"color_light_modal_width_tooltip": "Without modal width, the optimum width is used for the UI component, depending on the specified height.",
+	"color_light_temperature_oid": "Color temperature",
+	"color_light_ct_min": "Color temperature (min)",
+	"color_light_ct_max": "Color temperature (max)",
+	"color_wheel_lightness": "Wheel darken"
 }

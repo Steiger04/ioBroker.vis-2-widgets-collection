@@ -81,7 +81,6 @@ function StateCollection() {
 			// onMouseOut={upHandler}
 			onTouchStart={downHandler}
 			onTouchEnd={upHandler}
-			onT
 			sx={{
 				width: "100%",
 				height: "100%",

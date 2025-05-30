@@ -1,13 +1,30 @@
 import { Box, CssBaseline } from "@mui/material";
-import React from "react";
+
+const VALUE_NOT_CHANGED_TIMESTAMP = 1111111111111;
 
 class Generic extends window.visRxWidget {
 	static getI18nPrefix() {
 		return "vis_2_widgets_collection_";
 	}
 
-	getPropertyValue = (stateName) => {
-		return this.state.values[`${this.state.rxData[stateName]}.val`];
+	getPropertyValue = (stateName) =>
+		this.state.values[`${this.state.rxData[stateName]}.val`];
+
+	hasPropertyValueChanged = (stateName) => {
+		const lastChange = this.state.values[`${this.state.rxData[stateName]}.lc`];
+		const timestamp = this.state.values[`${this.state.rxData[stateName]}.ts`];
+		const ack = this.state.values[`${this.state.rxData[stateName]}.ack`];
+
+		//console.log("stateName", stateName);
+		//console.log("lastChange", lastChange);
+		//console.log("timestamp", timestamp);
+		//console.log("ack", ack);
+
+		if (lastChange === VALUE_NOT_CHANGED_TIMESTAMP) {
+			return false;
+		}
+
+		return timestamp === lastChange && ack === false;
 	};
 
 	setValue = (id, value, ack = false) => {

@@ -276,5 +276,14 @@
 	"color_light_blue_oid": "Blau",
 	"color_light_slider_width": "Schiebereglerbreite",
 	"color_light_switch_oid": "Schalter (ON/OFF)",
-	"color_light_ui_component": "UI-Komponente"
+	"color_light_ui_component": "UI-Komponente",
+	"color_light_button": "Schalter (UI)",
+	"color_light_delay_long_press": "Verzögerung (langer Druck)",
+	"color_light_modal_width": "Modalbreite",
+	"color_light_modal_height": "Modalhöhe",
+	"color_light_modal_width_tooltip": "Ohne Modalbreite wird die optimale Breite, in Abhängigkeit von der angegebenen Höhe, für die UI-Komponente verwendet.",
+	"color_light_temperature_oid": "Farbtemperatur",
+	"color_light_ct_min": "Farbtemperatur (min)",
+	"color_light_ct_max": "Farbtemperatur (max)",
+	"color_wheel_lightness": "Wheel abdunkeln"
 }

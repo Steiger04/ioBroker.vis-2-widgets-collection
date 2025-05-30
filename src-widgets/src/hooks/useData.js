@@ -4,8 +4,13 @@ import { CollectionContext } from "../components/CollectionProvider";
 import useStyles from "./useStyles";
 
 function useData(oid) {
-	const { theme, widget, oidObject, getPropertyValue } =
-		useContext(CollectionContext);
+	const {
+		theme,
+		widget,
+		[`${oid}Object`]: oidObject,
+		getPropertyValue,
+	} = useContext(CollectionContext);
+
 	const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 	const [activeIndex, setActiveIndex] = useState();
 	// const oidValue = useOidValue(oid);

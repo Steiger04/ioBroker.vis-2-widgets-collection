@@ -34,12 +34,13 @@ class LightCollectionWidget extends Generic {
 					indexFrom: 1,
 					indexTo: "values_count",
 					fields: [...commonFields({ groupName: "", allFields: false })],
+					hidden: (data) => !data.colorLightButton,
 				},
 				// check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
 			],
 			visDefaultStyle: {
 				width: "100%",
-				height: "100px",
+				height: "250px",
 				position: "relative",
 			},
 			visPrev: "widgets/vis-2-widgets-collection/img/prev-collection-light.png",
@@ -74,6 +75,8 @@ class LightCollectionWidget extends Generic {
 		await Promise.all([
 			// ON/OFF
 			this.createStateObjectAsync("colorLightSwitchOid"),
+			// Temperature
+			this.createStateObjectAsync("colorLightTemperatureOid"),
 			// RGB
 			this.createStateObjectAsync("colorLightRgbHexOid"),
 			// R/G/B
@@ -127,6 +130,7 @@ class LightCollectionWidget extends Generic {
 			values: this.state.values,
 			isSignalVisible: this.isSignalVisible.bind(this),
 			getPropertyValue: this.getPropertyValue.bind(this),
+			hasPropertyValueChanged: this.hasPropertyValueChanged.bind(this),
 			mode: this.props.context.themeType,
 			socket: this.props.context.socket,
 			theme: this.props.context.theme,
@@ -135,14 +139,14 @@ class LightCollectionWidget extends Generic {
 
 			// ON/OFF
 			colorLightSwitchOidObject: this.state.colorLightSwitchOidObject,
+			// Temperature
+			colorLightTemperatureOidObject: this.state.colorLightTemperatureOidObject,
 			// RGB
 			colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
 			// R/G/B
 			colorLightRedOidObject: this.state.colorLightRedOidObject,
 			colorLightGreenOidObject: this.state.colorLightGreenOidObject,
 			colorLightBlueOidObject: this.state.colorLightBlueOidObject,
-			// HSV
-			colorLightHsvOidObject: this.state.colorLightHsvOidObject,
 			// H/S/V
 			colorLightHueOidObject: this.state.colorLightHueOidObject,
 			colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,

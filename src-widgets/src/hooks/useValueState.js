@@ -7,12 +7,15 @@ import useOidValue from "./useOidValue";
 const useValueState = (idName) => {
 	const {
 		[`${idName}Object`]: oidObject,
-		values,
 		setState,
 		widget,
+		getPropertyValue,
+		hasPropertyValueChanged,
 	} = useContext(CollectionContext);
 
-	const value = useOidValue(idName);
+	// const value = useOidValue(idName);
+	const value = getPropertyValue(idName);
+	const hasValueChanged = hasPropertyValueChanged(idName);
 
 	const debounce = useDebounce({
 		oidObject,
@@ -31,6 +34,8 @@ const useValueState = (idName) => {
 					value = String(value);
 					break;
 				case "number":
+					// console.log("Number(value): ", Number(value));
+					// console.log("isNumber(value): ", isNumber(value));
 					value = isNumber(value) ? Number(value) : "NaN";
 					break;
 				case "mixed":
@@ -50,16 +55,31 @@ const useValueState = (idName) => {
 			if (value === undefined || value === null || value === "NaN") return;
 
 			if (onlyValues) {
-				setState({ values: { ...values, [`${_oid}.val`]: value } });
+				setState((prevState) => ({
+					values: {
+						...prevState.values,
+						[`${_oid}.val`]: value,
+						[`${_oid}.lc`]: 1111111111111,
+					},
+				}));
 			} else {
-				// setState({ values: { ...values, [`${_oid}.val`]: value } });
+				console.log(
+					`useValueState -> setState -> oid: ${_oid}, value: ${value}`,
+				);
+				setState((prevState) => ({
+					values: {
+						...prevState.values,
+						[`${_oid}.val`]: value,
+						[`${_oid}.lc`]: 1111111111111,
+					},
+				}));
 				if (debounce) debounce.next(value);
 			}
 		},
-		[oidObject, values, setState, debounce],
+		[oidObject, setState, debounce],
 	);
 
-	return { value, setValueState };
+	return { value, hasValueChanged, setValueState };
 };
 
 export default useValueState;

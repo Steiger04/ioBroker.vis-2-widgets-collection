@@ -17,10 +17,11 @@ async function getObjectIconAsync(socket, object) {
 	return icon;
 }
 
-const oidChangeHandlerAsync =
-	(allowedTypes) => async (field, data, changeData, socket) => {
-		if (data.oid) {
-			const object = await socket.getObject(data.oid);
+export const oidChangeHandlerAsync =
+	(allowedTypes, oid = "oid") =>
+	async (field, data, changeData, socket) => {
+		if (data[oid]) {
+			const object = await socket.getObject(data[oid]);
 			if (!object) return;
 
 			const oidType = object.common?.type;
