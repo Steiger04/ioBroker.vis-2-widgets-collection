@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "1.7.9",
+    "version": "1.8.0",
     "news": {
+      "1.8.0": {
+        "en": "Light added",
+        "de": "Licht hinzugefügt",
+        "ru": "Свет добавлен",
+        "pt": "Luz adicionada",
+        "nl": "Licht toegevoegd",
+        "fr": "Lumière ajoutée",
+        "it": "Luce aggiunto",
+        "es": "Luz agregada",
+        "pl": "Światło dodane",
+        "uk": "Світло додано",
+        "zh-cn": "添加光线"
+      },
       "1.7.9": {
         "en": "Widget optimizations",
         "de": "Widget Optimierungen",
@@ -80,19 +93,6 @@
         "pl": "Nagłówek jako tytuł dla okna dialogowego\nBłąd parametru",
         "uk": "Заголовок для Діалога\nВиправлено помилку",
         "zh-cn": "标题为对话框的标题\nGauge 错误已修复"
-      },
-      "1.7.3": {
-        "en": "Gauge bug fixed",
-        "de": "Fehler behoben",
-        "ru": "Огонь исправлен",
-        "pt": "Bug de calibre corrigido",
-        "nl": "Bugfixed",
-        "fr": "Correction du bogue de jauge",
-        "it": "Bug di Gauge fisso",
-        "es": "Error de Gauge fijo",
-        "pl": "Błąd parametru",
-        "uk": "Виправлено помилку",
-        "zh-cn": "Gauge 错误已修复"
       }
     },
     "titleLang": {
@@ -163,7 +163,7 @@
           "SelectCollectionWidget",
           "RadioGroupCollectionWidget",
           "GaugeCollectionWidget",
-					"LightCollectionWidget"
+          "LightCollectionWidget"
         ]
       }
     },

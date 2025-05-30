@@ -57,7 +57,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.8.0 (2025-05-30)
 - (steiger04) Light added
 
 ### 1.7.9 (2025-04-04)
