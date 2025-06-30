@@ -57,7 +57,7 @@
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.8.1 (2025-06-30)
 - (steiger04) Dialog feature (automate open and close via state) added
 - (steiger04) Up handler for mouse up in State added
 
