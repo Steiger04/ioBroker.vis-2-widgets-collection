@@ -2,6 +2,20 @@ import Switch from "@mui/material/Switch";
 import { styled } from "@mui/material/styles";
 import { alpha } from "@mui/material/styles";
 
+function isValidColorFormat(str) {
+	const patterns = [
+		/^#([0-9a-fA-F]{3})$/,                // #nnn
+		/^#([0-9a-fA-F]{6})$/,                // #nnnnnn
+		/^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/, // rgb(r, g, b)
+		/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0|1|0?\.\d+)\s*\)$/, // rgba(r, g, b, a)
+		/^hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)$/, // hsl(h, s%, l%)
+		/^hsla\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*,\s*(0|1|0?\.\d+)\s*\)$/, // hsla(h, s%, l%, a)
+		/^color\(\s*[\w-]+\s+(?:\d+(\.\d+)?%?\s*)+\)$/ // basic CSS4 color() check
+	];
+
+	return patterns.some((pattern) => pattern.test(str));
+}
+
 const MaterialUISwitch = styled(Switch)(
 	({ width, maxHeight, data, widget, theme }) => ({
 		width: "100%",
@@ -22,11 +36,10 @@ const MaterialUISwitch = styled(Switch)(
 
 			top: "50%",
 			left: "0%",
-			transform: `translate(-50%, -50%) translateX(${
-				maxHeight >= (widget.data.thumbSize || 62)
-					? (widget.data.thumbSize / 2 - 4) || 31 - 4
-					: maxHeight / 2 - 4
-			}px)`,
+			transform: `translate(-50%, -50%) translateX(${maxHeight >= (widget.data.thumbSize || 62)
+				? (widget.data.thumbSize / 2 - 4) || 31 - 4
+				: maxHeight / 2 - 4
+				}px)`,
 
 			"& .MuiSwitch-input": {
 				left: 0,
@@ -36,11 +49,10 @@ const MaterialUISwitch = styled(Switch)(
 			"&.Mui-checked": {
 				top: "50%",
 				left: "100%",
-				transform: `translate(-50%, -50%) translateX(${
-					maxHeight >= (widget.data.thumbSize || 62)
-						? -(widget.data.thumbSize / 2 - 4) || -31 - 4
-						: -(maxHeight / 2 - 4)
-				}px)`,
+				transform: `translate(-50%, -50%) translateX(${maxHeight >= (widget.data.thumbSize || 62)
+					? -(widget.data.thumbSize / 2 - 4) || -31 - 4
+					: -(maxHeight / 2 - 4)
+					}px)`,
 
 				"& .MuiSwitch-input": {
 					left: -width + (widget.data.thumbSize || 62),
@@ -62,7 +74,7 @@ const MaterialUISwitch = styled(Switch)(
 
 				"& + .MuiSwitch-track": {
 					backgroundColor:
-						widget.data.trackColor ||
+						(isValidColorFormat(widget.data.trackColor) && widget.data.trackColor) ||
 						(theme.palette.mode === "dark"
 							? alpha("rgb(144, 202, 249)", 0.5)
 							: alpha("#1976d2", 0.5)),
@@ -111,7 +123,7 @@ const MaterialUISwitch = styled(Switch)(
 
 		"& .MuiSwitch-track": {
 			backgroundColor:
-				(widget.data.trackColor && alpha(widget.data.trackColor, 0.5)) ||
+				(isValidColorFormat(widget.data.trackColor) && alpha(widget.data.trackColor, 0.5)) ||
 				(theme.palette.mode === "dark"
 					? alpha("#ffffff", 0.3)
 					: alpha("#000000", 0.38)),

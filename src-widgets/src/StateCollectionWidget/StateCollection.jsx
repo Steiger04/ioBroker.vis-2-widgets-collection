@@ -54,7 +54,7 @@ function StateCollection() {
 				break;
 			case 2:
 				!widget.data.statePushButton &&
-				String(oidValue) === String(widget.data.value1)
+					String(oidValue) === String(widget.data.value1)
 					? setOidValueState(widget.data.value2)
 					: setOidValueState(widget.data.value1);
 				break;
@@ -78,7 +78,7 @@ function StateCollection() {
 			onClick={clickHandler}
 			onMouseDown={downHandler}
 			onMouseUp={upHandler}
-			// onMouseOut={upHandler}
+			onMouseOut={upHandler}
 			onTouchStart={downHandler}
 			onTouchEnd={upHandler}
 			sx={{

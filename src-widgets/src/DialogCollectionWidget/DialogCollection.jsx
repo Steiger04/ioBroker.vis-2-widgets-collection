@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import React, { useRef, useContext, useState } from "react";
+import React, { useRef, useContext, useState, useEffect, useCallback } from "react";
 import CollectionBase from "../components/CollectionBase";
 import { CollectionContext } from "../components/CollectionProvider";
 import useData from "../hooks/useData";
@@ -24,9 +24,20 @@ function DialogCollection() {
 	const { oidObject, widget, getWidgetView, setValue } =
 		useContext(CollectionContext);
 	const { textStyles, fontStyles } = useStyles(widget.style);
-	const { data } = useData("oid");
+	const { data, oidValue } = useData("oid");
 
-	const handleClickOpen = () => {
+	const oid = oidObject?._id;
+	const oidType = oidObject?.common?.type;
+
+	const isValidType =
+		oidType === "boolean" ||
+		!widget.data.oid ||
+		widget.data.oid === "nothing_selected";
+
+
+	const handleClickOpen = useCallback(() => {
+		if (hideTimeout.current) return;
+
 		let timeout = widget.data.dialogAutoClose;
 
 		if (timeout === null || timeout === undefined || timeout === "") {
@@ -52,8 +63,9 @@ function DialogCollection() {
 		}, timeout);
 
 		setOpen(true);
-	};
-	const handleClose = () => {
+	}, [oid, setValue, widget.data.dialogAutoClose]);
+
+	const handleClose = useCallback(() => {
 		if (hideTimeout.current) {
 			clearTimeout(hideTimeout.current);
 			hideTimeout.current = null;
@@ -61,17 +73,20 @@ function DialogCollection() {
 
 		setValue(oid, false);
 		setOpen(false);
-	};
+	}, [oid, setValue]);
 
 	useHtmlValue(contentRef, "", widget, data);
 
-	const oid = oidObject?._id;
-	const oidType = oidObject?.common?.type;
+	useEffect(() => {
+		if (oidValue === undefined || oidValue === null) {
+			return;
+		}
 
-	const isValidType =
-		oidType === "boolean" ||
-		!widget.data.oid ||
-		widget.data.oid === "nothing_selected";
+		if (oidValue) handleClickOpen();
+		else
+			handleClose();
+
+	}, [oidValue, handleClickOpen, handleClose]);
 
 	return (
 		<>
@@ -106,7 +121,7 @@ function DialogCollection() {
 						}}
 					>
 						{widget.data.onlyIcon ||
-						(!widget.data.onlyText && !widget.data.onlyIcon) ? (
+							(!widget.data.onlyText && !widget.data.onlyIcon) ? (
 							<Box
 								sx={{
 									overflow: "hidden",
@@ -151,7 +166,7 @@ function DialogCollection() {
 							</Box>
 						) : null}
 						{widget.data.onlyText ||
-						(!widget.data.onlyText && !widget.data.onlyIcon) ? (
+							(!widget.data.onlyText && !widget.data.onlyIcon) ? (
 							<Typography
 								ref={setContentRef}
 								variant="body2"
