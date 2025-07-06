@@ -52,63 +52,83 @@
 <img src="/img/collection-light.png" height="150">
 
 ---
+
 <!--
 	Placeholder for next versions:
 	### __WORK IN PROGRESS__
 -->
+
 ## Changelog
+
 ### 1.8.1 (2025-06-30)
+
 - (steiger04) Dialog feature (automate open and close via state) added
 - (steiger04) Up handler for mouse up in State added
 
 ### 1.8.0 (2025-05-30)
+
 - (steiger04) Light added
 
 ### 1.7.9 (2025-04-04)
+
 - (steiger04) Widget optimizations
 
 ### 1.7.8 (2025-04-04)
+
 - (steiger04) Push button functionality for State widget added
 
 ### 1.7.7 (2025-03-31)
+
 - (steiger04) Slider optimized
 
 ### 1.7.6 (2025-03-31)
+
 - (steiger04) Dialog with width and height in pixel
 - (steiger04) Widget optimizations
 
 ### 1.7.5 (2025-03-23)
+
 - (steiger04) Dialog bug fixed
 
 ### 1.7.4 (2025-03-22)
+
 - (steiger04) Header as title for Dialog
 - (steiger04) Gauge bug fixed
 
 ### 1.7.3 (2025-03-21)
+
 - (steiger04) Gauge bug fixed
 
 ### 1.7.2 (2025-03-21)
+
 - (steiger04) Gauge optimized
 
 ### 1.7.1 (2025-03-21)
+
 - (steiger04) Gauge bug fixed
 
 ### 1.7.0 (2025-03-19)
+
 - (steiger04) Gauge added
 
 ### 1.6.1 (2025-03-15)
+
 - (steiger04) Radio group optimizations
 
 ### 1.6.0 (2025-03-13)
+
 - (steiger04) Radio group added
 
 ### 1.5.2 (2025-03-05)
+
 - (steiger04) Widget optimizations
 
 ### 1.5.1 (2025-03-03)
+
 - (steiger04) Select bug fixed
 
 ### 1.5.0 (2025-03-02)
+
 - (steiger04) Select added
 
 ### 1.4.0 (2025-02-27)

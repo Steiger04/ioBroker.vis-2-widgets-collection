@@ -2,11 +2,11 @@ const helper = require('@iobroker/vis-2-widgets-testing');
 const adapterName = require('../package.json').name.split('.').pop();
 
 describe('vis-2-widgets-collection', () => {
-    before(async function (){
+    before(async function () {
         this.timeout(180000);
         // install js-controller, web and vis-2-beta
         // await helper.startIoBroker({additionalAdapters: ['vis-2', 'web' , 'radar-trap']});
-				await helper.startIoBroker();
+        await helper.startIoBroker();
         await helper.startBrowser(process.env.CI === 'true' ? 'new' : false);
         await helper.createProject();
 
@@ -15,7 +15,7 @@ describe('vis-2-widgets-collection', () => {
         await helper.screenshot(null, '02_widgets_opened');
     });
 
-    it('Check all widgets', async function (){
+    it('Check all widgets', async function () {
         this.timeout(60000);
         const widgets = await helper.palette.getListOfWidgets(null, adapterName);
         for (let w = 0; w < widgets.length; w++) {

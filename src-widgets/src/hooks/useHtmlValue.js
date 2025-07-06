@@ -1,18 +1,16 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 const useHtmlValue = (contentRef, oidValue, widget, data) => {
-	const oidValueUnit =
-		(typeof oidValue === "string" ||
-			typeof oidValue === "number" ||
-			typeof oidValue === "boolean") &&
-		`${oidValue}${widget.data.unit !== undefined ? widget.data.unit : ""}`;
+    const oidValueUnit =
+        (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean') &&
+        `${oidValue}${widget.data.unit !== undefined ? widget.data.unit : ''}`;
 
-	const contentValue = data.alias || data.value || oidValueUnit;
+    const contentValue = data.alias || data.value || oidValueUnit;
 
-	useEffect(() => {
-		if (contentValue === undefined || !contentRef) return;
-		contentRef.innerHTML = contentValue;
-	}, [contentValue, contentRef]);
+    useEffect(() => {
+        if (contentValue === undefined || !contentRef) return;
+        contentRef.innerHTML = contentValue;
+    }, [contentValue, contentRef]);
 };
 
 export default useHtmlValue;

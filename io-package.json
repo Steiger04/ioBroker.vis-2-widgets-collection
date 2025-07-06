@@ -1,177 +1,171 @@
 {
-  "common": {
-    "name": "vis-2-widgets-collection",
-    "version": "1.8.1",
-    "news": {
-      "1.8.1": {
-        "en": "Dialog feature (automate open and close via state) added\nUp handler for mouse up in State added",
-        "de": "Dialog-Feature (automatisieren Sie geöffnet und schließen über Zustand) hinzugefügt\nNach oben Griff für Maus nach oben in Staat hinzugefügt",
-        "ru": "Диалоговая функция (автомат открыт и закрыт через состояние)\nUp handler для мыши up in State",
-        "pt": "Recurso de diálogo (automatizar abrir e fechar via estado) adicionado\nManipulador para cima do mouse no estado adicionado",
-        "nl": "Dialoogfunctie (automaat openen en sluiten via status) toegevoegd\nUp handler voor muis in staat toegevoegd",
-        "fr": "Fonction de dialogue (automatiser ouvert et fermer via l'état) ajouté\nHaut du gestionnaire pour souris haut dans l'état ajouté",
-        "it": "Funzione di dialogo (automate open and close via state) aggiunto\nCaricatore per mouse in su in Stato aggiunto",
-        "es": "Función de diálogo (automate abierto y cercano a través del estado) añadido\nEmpuñador para ratón en estado añadido",
-        "pl": "Funkcja dialogowa (automatyzacja otwierania i zamykania przez stan)\nPodajnik do myszki w stanie dodano",
-        "uk": "Додано функцію Діалогу (відкрито та закрито через стан)\nДодана ручка для миші в штаті",
-        "zh-cn": "添加对话框功能( 通过状态自动打开和关闭)\n在状态中添加鼠标上调处理器"
-      },
-      "1.8.0": {
-        "en": "Light added",
-        "de": "Licht hinzugefügt",
-        "ru": "Свет добавлен",
-        "pt": "Luz adicionada",
-        "nl": "Licht toegevoegd",
-        "fr": "Lumière ajoutée",
-        "it": "Luce aggiunto",
-        "es": "Luz agregada",
-        "pl": "Światło dodane",
-        "uk": "Світло додано",
-        "zh-cn": "添加光线"
-      },
-      "1.7.9": {
-        "en": "Widget optimizations",
-        "de": "Widget Optimierungen",
-        "ru": "Оптимизация виджетов",
-        "pt": "Otimizações Widget",
-        "nl": "Widget optimalisaties",
-        "fr": "Optimisations Widget",
-        "it": "Ottimizzazione Widget",
-        "es": "Optimizaciones Widget",
-        "pl": "Optymalizacja widżetu",
-        "uk": "Оптимізація віджету",
-        "zh-cn": "部件优化"
-      },
-      "1.7.8": {
-        "en": "Push button functionality for State widget added",
-        "de": "Push-Taste Funktionalität für State Widget hinzugefügt",
-        "ru": "Функциональность кнопки Push для добавленного виджета State",
-        "pt": "Funcionalidade do botão Push para widget de estado adicionado",
-        "nl": "Drukknopfunctionaliteit voor status widget toegevoegd",
-        "fr": "Fonction de bouton-poussoir pour le widget State ajouté",
-        "it": "Pulsante funzionalità per widget Stato aggiunto",
-        "es": "Función del botón pulsar para el widget del Estado añadido",
-        "pl": "Funkcja przycisku wciskającego dla dodanego widżetu stanu",
-        "uk": "Функціональність кнопки Push для державного віджету",
-        "zh-cn": "添加了状态部件的按键功能"
-      },
-      "1.7.7": {
-        "en": "Slider optimized",
-        "de": "Slider optimiert",
-        "ru": "Оптимизированный слайдер",
-        "pt": "Slider otimizado",
-        "nl": "Slider geoptimaliseerd",
-        "fr": "Slider optimisé",
-        "it": "Slider ottimizzato",
-        "es": "Slider optimizado",
-        "pl": "Suwak zoptymalizowany",
-        "uk": "Оптимізований слайдер",
-        "zh-cn": "滑动器优化"
-      },
-      "1.7.6": {
-        "en": "Dialog with width and height in pixel\nWidget optimizations",
-        "de": "Dialog mit Breite und Höhe in Pixel\nWidget Optimierungen",
-        "ru": "Диалог с шириной и высотой в пикселе\nОптимизация виджетов",
-        "pt": "Diálogo com largura e altura em pixel\nOtimizações Widget",
-        "nl": "Dialoog met breedte en hoogte in pixel\nWidget optimalisaties",
-        "fr": "Boîte de dialogue avec largeur et hauteur en pixel\nOptimisations Widget",
-        "it": "Dialogo con larghezza e altezza in pixel\nOttimizzazione Widget",
-        "es": "Dialog con ancho y altura en pixel\nOptimizaciones Widget",
-        "pl": "Okno o szerokości i wysokości w pikselu\nOptymalizacja widżetu",
-        "uk": "Діалог з шириною і висотою в пікселях\nОптимізація віджету",
-        "zh-cn": "宽度和高度为像素的对话框\n部件优化"
-      },
-      "1.7.5": {
-        "en": "Dialog bug fixed",
-        "de": "Dialog Fehler behoben",
-        "ru": "Диалоговая ошибка исправлена",
-        "pt": "Bug de diálogo corrigido",
-        "nl": "Dialoogfout hersteld",
-        "fr": "Correction du bug de la boîte de dialogue",
-        "it": "Errore di dialogo fisso",
-        "es": "Error de diálogo fijo",
-        "pl": "Błąd dialogowy naprawiony",
-        "uk": "Діалог помилки виправлено",
-        "zh-cn": "对话框错误已修正"
-      }
+    "common": {
+        "name": "vis-2-widgets-collection",
+        "version": "1.8.1",
+        "news": {
+            "1.8.1": {
+                "en": "Dialog feature (automate open and close via state) added\nUp handler for mouse up in State added",
+                "de": "Dialog-Feature (automatisieren Sie geöffnet und schließen über Zustand) hinzugefügt\nNach oben Griff für Maus nach oben in Staat hinzugefügt",
+                "ru": "Диалоговая функция (автомат открыт и закрыт через состояние)\nUp handler для мыши up in State",
+                "pt": "Recurso de diálogo (automatizar abrir e fechar via estado) adicionado\nManipulador para cima do mouse no estado adicionado",
+                "nl": "Dialoogfunctie (automaat openen en sluiten via status) toegevoegd\nUp handler voor muis in staat toegevoegd",
+                "fr": "Fonction de dialogue (automatiser ouvert et fermer via l'état) ajouté\nHaut du gestionnaire pour souris haut dans l'état ajouté",
+                "it": "Funzione di dialogo (automate open and close via state) aggiunto\nCaricatore per mouse in su in Stato aggiunto",
+                "es": "Función de diálogo (automate abierto y cercano a través del estado) añadido\nEmpuñador para ratón en estado añadido",
+                "pl": "Funkcja dialogowa (automatyzacja otwierania i zamykania przez stan)\nPodajnik do myszki w stanie dodano",
+                "uk": "Додано функцію Діалогу (відкрито та закрито через стан)\nДодана ручка для миші в штаті",
+                "zh-cn": "添加对话框功能( 通过状态自动打开和关闭)\n在状态中添加鼠标上调处理器"
+            },
+            "1.8.0": {
+                "en": "Light added",
+                "de": "Licht hinzugefügt",
+                "ru": "Свет добавлен",
+                "pt": "Luz adicionada",
+                "nl": "Licht toegevoegd",
+                "fr": "Lumière ajoutée",
+                "it": "Luce aggiunto",
+                "es": "Luz agregada",
+                "pl": "Światło dodane",
+                "uk": "Світло додано",
+                "zh-cn": "添加光线"
+            },
+            "1.7.9": {
+                "en": "Widget optimizations",
+                "de": "Widget Optimierungen",
+                "ru": "Оптимизация виджетов",
+                "pt": "Otimizações Widget",
+                "nl": "Widget optimalisaties",
+                "fr": "Optimisations Widget",
+                "it": "Ottimizzazione Widget",
+                "es": "Optimizaciones Widget",
+                "pl": "Optymalizacja widżetu",
+                "uk": "Оптимізація віджету",
+                "zh-cn": "部件优化"
+            },
+            "1.7.8": {
+                "en": "Push button functionality for State widget added",
+                "de": "Push-Taste Funktionalität für State Widget hinzugefügt",
+                "ru": "Функциональность кнопки Push для добавленного виджета State",
+                "pt": "Funcionalidade do botão Push para widget de estado adicionado",
+                "nl": "Drukknopfunctionaliteit voor status widget toegevoegd",
+                "fr": "Fonction de bouton-poussoir pour le widget State ajouté",
+                "it": "Pulsante funzionalità per widget Stato aggiunto",
+                "es": "Función del botón pulsar para el widget del Estado añadido",
+                "pl": "Funkcja przycisku wciskającego dla dodanego widżetu stanu",
+                "uk": "Функціональність кнопки Push для державного віджету",
+                "zh-cn": "添加了状态部件的按键功能"
+            },
+            "1.7.7": {
+                "en": "Slider optimized",
+                "de": "Slider optimiert",
+                "ru": "Оптимизированный слайдер",
+                "pt": "Slider otimizado",
+                "nl": "Slider geoptimaliseerd",
+                "fr": "Slider optimisé",
+                "it": "Slider ottimizzato",
+                "es": "Slider optimizado",
+                "pl": "Suwak zoptymalizowany",
+                "uk": "Оптимізований слайдер",
+                "zh-cn": "滑动器优化"
+            },
+            "1.7.6": {
+                "en": "Dialog with width and height in pixel\nWidget optimizations",
+                "de": "Dialog mit Breite und Höhe in Pixel\nWidget Optimierungen",
+                "ru": "Диалог с шириной и высотой в пикселе\nОптимизация виджетов",
+                "pt": "Diálogo com largura e altura em pixel\nOtimizações Widget",
+                "nl": "Dialoog met breedte en hoogte in pixel\nWidget optimalisaties",
+                "fr": "Boîte de dialogue avec largeur et hauteur en pixel\nOptimisations Widget",
+                "it": "Dialogo con larghezza e altezza in pixel\nOttimizzazione Widget",
+                "es": "Dialog con ancho y altura en pixel\nOptimizaciones Widget",
+                "pl": "Okno o szerokości i wysokości w pikselu\nOptymalizacja widżetu",
+                "uk": "Діалог з шириною і висотою в пікселях\nОптимізація віджету",
+                "zh-cn": "宽度和高度为像素的对话框\n部件优化"
+            },
+            "1.7.5": {
+                "en": "Dialog bug fixed",
+                "de": "Dialog Fehler behoben",
+                "ru": "Диалоговая ошибка исправлена",
+                "pt": "Bug de diálogo corrigido",
+                "nl": "Dialoogfout hersteld",
+                "fr": "Correction du bug de la boîte de dialogue",
+                "it": "Errore di dialogo fisso",
+                "es": "Error de diálogo fijo",
+                "pl": "Błąd dialogowy naprawiony",
+                "uk": "Діалог помилки виправлено",
+                "zh-cn": "对话框错误已修正"
+            }
+        },
+        "titleLang": {
+            "en": "Vis 2 Widget collection",
+            "de": "Vis 2 Widgetsammlung",
+            "ru": "Коллекция Vis-Widget",
+            "pt": "Coleção Vis-Widget",
+            "nl": "Vis-Widget-collectie",
+            "fr": "Collection Vis-Widget",
+            "it": "Raccolta Vis-Widget",
+            "es": "Colección Vis-Widget",
+            "pl": "Kolekcja Vis-Widget",
+            "uk": "Колекція Vis-Widget",
+            "zh-cn": "Vis-Widget集合"
+        },
+        "desc": {
+            "en": "Vis 2 Widget collection for ioBroker",
+            "de": "Vis 2 Widgetsammlung für ioBroker",
+            "ru": "Коллекция Vis-Widget",
+            "pt": "Coleção Vis-Widget",
+            "nl": "Vis-Widget-collectie",
+            "fr": "Collection Vis-Widget",
+            "it": "Raccolta Vis-Widget",
+            "es": "Colección Vis-Widget",
+            "pl": "Kolekcja Vis-Widget",
+            "uk": "Колекція Vis-Widget",
+            "zh-cn": "Vis-Widget集合"
+        },
+        "authors": ["Steiger04 <steiger04@posteo.de>"],
+        "keywords": ["vis-2-widgets-collection"],
+        "platform": "Javascript/Node.js",
+        "icon": "vis-2-widgets-collection.png",
+        "extIcon": "https://raw.githubusercontent.com/Steiger04/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
+        "enabled": true,
+        "readme": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/blob/main/README.md",
+        "loglevel": "info",
+        "mode": "none",
+        "singleton": true,
+        "adminUI": {
+            "config": "none"
+        },
+        "nogit": true,
+        "onlyWWW": true,
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "tier": 3,
+        "type": "visualization-widgets",
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "visWidgets": {
+            "vis2CollectionWidget": {
+                "i18n": "component",
+                "name": "vis2CollectionWidget",
+                "url": "vis-2-widgets-collection/customWidgets.js",
+                "components": [
+                    "StateCollectionWidget",
+                    "SliderCollectionWidget",
+                    "ButtonGroupCollectionWidget",
+                    "SwitchCollectionWidget",
+                    "CheckboxCollectionWidget",
+                    "DialogCollectionWidget",
+                    "SelectCollectionWidget",
+                    "RadioGroupCollectionWidget",
+                    "GaugeCollectionWidget",
+                    "LightCollectionWidget"
+                ]
+            }
+        },
+        "restartAdapters": ["vis-2"]
     },
-    "titleLang": {
-      "en": "Vis 2 Widget collection",
-      "de": "Vis 2 Widgetsammlung",
-      "ru": "Коллекция Vis-Widget",
-      "pt": "Coleção Vis-Widget",
-      "nl": "Vis-Widget-collectie",
-      "fr": "Collection Vis-Widget",
-      "it": "Raccolta Vis-Widget",
-      "es": "Colección Vis-Widget",
-      "pl": "Kolekcja Vis-Widget",
-      "uk": "Колекція Vis-Widget",
-      "zh-cn": "Vis-Widget集合"
-    },
-    "desc": {
-      "en": "Vis 2 Widget collection for ioBroker",
-      "de": "Vis 2 Widgetsammlung für ioBroker",
-      "ru": "Коллекция Vis-Widget",
-      "pt": "Coleção Vis-Widget",
-      "nl": "Vis-Widget-collectie",
-      "fr": "Collection Vis-Widget",
-      "it": "Raccolta Vis-Widget",
-      "es": "Colección Vis-Widget",
-      "pl": "Kolekcja Vis-Widget",
-      "uk": "Колекція Vis-Widget",
-      "zh-cn": "Vis-Widget集合"
-    },
-    "authors": [
-      "Steiger04 <steiger04@posteo.de>"
-    ],
-    "keywords": [
-      "vis-2-widgets-collection"
-    ],
-    "platform": "Javascript/Node.js",
-    "icon": "vis-2-widgets-collection.png",
-    "extIcon": "https://raw.githubusercontent.com/Steiger04/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
-    "enabled": true,
-    "readme": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/blob/main/README.md",
-    "loglevel": "info",
-    "mode": "none",
-    "singleton": true,
-    "adminUI": {
-      "config": "none"
-    },
-    "nogit": true,
-    "onlyWWW": true,
-    "licenseInformation": {
-      "type": "free",
-      "license": "MIT"
-    },
-    "tier": 3,
-    "type": "visualization-widgets",
-    "connectionType": "cloud",
-    "dataSource": "poll",
-    "visWidgets": {
-      "vis2CollectionWidget": {
-        "i18n": "component",
-        "name": "vis2CollectionWidget",
-        "url": "vis-2-widgets-collection/customWidgets.js",
-        "components": [
-          "StateCollectionWidget",
-          "SliderCollectionWidget",
-          "ButtonGroupCollectionWidget",
-          "SwitchCollectionWidget",
-          "CheckboxCollectionWidget",
-          "DialogCollectionWidget",
-          "SelectCollectionWidget",
-          "RadioGroupCollectionWidget",
-          "GaugeCollectionWidget",
-          "LightCollectionWidget"
-        ]
-      }
-    },
-    "restartAdapters": [
-      "vis-2"
-    ]
-  },
-  "native": {},
-  "objects": [],
-  "instanceObjects": []
+    "native": {},
+    "objects": [],
+    "instanceObjects": []
 }
