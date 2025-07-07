@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 
 const useOidValue = oid => {
@@ -10,7 +9,9 @@ const useOidValue = oid => {
     const [value, setValue] = useState(oidValue);
 
     useEffect(() => {
-        if (oidValue !== undefined) setValue(oidValue);
+        if (oidValue !== undefined) {
+            setValue(oidValue);
+        }
     }, [oidValue]);
 
     return value;

@@ -10,7 +10,9 @@ function useDebounce({ oidObject, data: { sampleInterval, sampleIntervalValue, d
     const oid = oidObject?._id;
 
     useEffect(() => {
-        if (!oid) return;
+        if (!oid) {
+            return;
+        }
 
         const delayDurationSubscription = delayDurationRef.current
             .pipe(

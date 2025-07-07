@@ -8,7 +8,9 @@ const useHtmlValue = (contentRef, oidValue, widget, data) => {
     const contentValue = data.alias || data.value || oidValueUnit;
 
     useEffect(() => {
-        if (contentValue === undefined || !contentRef) return;
+        if (contentValue === undefined || !contentRef) {
+            return;
+        }
         contentRef.innerHTML = contentValue;
     }, [contentValue, contentRef]);
 };

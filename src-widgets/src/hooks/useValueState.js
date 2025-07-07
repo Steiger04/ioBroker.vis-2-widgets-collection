@@ -2,7 +2,6 @@ import { useCallback, useContext } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
 import useDebounce from './useDebounce';
-import useOidValue from './useOidValue';
 
 const useValueState = idName => {
     const {
@@ -26,7 +25,9 @@ const useValueState = idName => {
         (value, onlyValues = false) => {
             const _oid = oidObject?._id;
 
-            if (!_oid) return;
+            if (!_oid) {
+                return;
+            }
 
             const oidType = oidObject?.common?.type;
             switch (oidType) {
@@ -52,7 +53,9 @@ const useValueState = idName => {
                     break;
             }
 
-            if (value === undefined || value === null || value === 'NaN') return;
+            if (value === undefined || value === null || value === 'NaN') {
+                return;
+            }
 
             if (onlyValues) {
                 setState(prevState => ({
@@ -73,7 +76,9 @@ const useValueState = idName => {
                         [`${_oid}.lc`]: 1111111111111,
                     },
                 }));
-                if (debounce) debounce.next(value);
+                if (debounce) {
+                    debounce.next(value);
+                }
             }
         },
         [oidObject, setState, debounce],

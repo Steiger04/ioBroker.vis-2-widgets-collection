@@ -4,7 +4,9 @@
     "version": "1.8.1",
     "devDependencies": {
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-        "@iobroker/adapter-dev": "^1.4.0"
+        "@iobroker/adapter-dev": "^1.4.0",
+        "@iobroker/types": "^7.0.7",
+        "@iobroker/types-vis-2": "^2.12.11"
     },
     "dependencies": {
         "@craco/craco": "^7.1.0",

@@ -1,23 +1,28 @@
-import { useEffect } from 'react';
-import { useContext } from 'react';
+import { useEffect, useContext } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 
 const useSignals = () => {
     const { isSignalVisible, refService, widget } = useContext(CollectionContext);
 
     useEffect(() => {
-        if (!refService?.current) return;
+        if (!refService?.current) {
+            return;
+        }
 
         const _current = refService.current?.children;
 
         const visible = [];
         for (let i = 0; i < widget.data['signals-count']; i++) {
-            if (isSignalVisible(i)) visible.push(i);
+            if (isSignalVisible(i)) {
+                visible.push(i);
+            }
         }
 
         const children = [];
         Object.values(_current).forEach(child => {
-            if (child.children[0]?.className === 'vis-signal-icon iconOwn') children.push(child.children[0]);
+            if (child.children[0]?.className === 'vis-signal-icon iconOwn') {
+                children.push(child.children[0]);
+            }
         });
 
         children.forEach((child, idx) => {

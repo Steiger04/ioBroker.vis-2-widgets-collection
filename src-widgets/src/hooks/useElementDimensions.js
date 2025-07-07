@@ -4,7 +4,9 @@ const useRefDimensions = element => {
     const [dimensions, setDimensions] = useState({ width: null, height: null });
 
     useEffect(() => {
-        if (!element) return;
+        if (!element) {
+            return;
+        }
 
         const observer = new ResizeObserver(entries => {
             const clientWidth = entries[0].contentRect.width;

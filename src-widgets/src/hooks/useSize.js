@@ -11,7 +11,9 @@ const useSize = ref => {
     const { width: clientWidth, height: clientHeight } = useElementDimensions(ref);
 
     useEffect(() => {
-        if (!clientWidth || !clientHeight) return;
+        if (!clientWidth || !clientHeight) {
+            return;
+        }
 
         if (clientWidth >= 0 && clientHeight >= 0) {
             if (widget.data.square || widget.data.circle) {
