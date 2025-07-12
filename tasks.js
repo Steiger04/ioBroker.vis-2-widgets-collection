@@ -1,39 +1,38 @@
-const { deleteFoldersRecursive, buildReact, npmInstall, copyFiles } = require('@iobroker/build-tools');
+/*!
+ * ioBroker tasks
+ * Date: 2025-05-19
+ */
+'use strict';
 
-// http://127.0.0.1:18082/vis-2-beta/widgets/vis-2-widgets-material/static/js/node_modules_iobroker_vis-2-widgets-react-dev_index_jsx-_adb40.af309310.chunk.js
+const adapterName = require('./package.json').name.replace('iobroker.', '');
+const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles } = require('@iobroker/build-tools');
 
-function copyAllFiles() {
-    copyFiles(
-        [
-            'src-widgets/build/**/*',
-            '!src-widgets/build/static/js/*node_modules*.*',
-            '!src-widgets/build/static/js/node_modules_*',
-        ],
-        'widgets/vis-2-widgets-collection/',
-    );
-    /* copyFiles(
-        [
-            `src-widgets/build/static/js/*echarts-for-react_lib_core*.*`,
-            `src-widgets/build/static/js/*spectrum_color_dist_import_mjs*.*`,
-            `src-widgets/build/static/js/*uiw_react-color-shade-slider*.*`,
-            `src-widgets/build/static/js/*lottie-react_build*.*`,
-            `src-widgets/build/static/js/*runtime_js-src_sketch_css*.*`,
-            `src-widgets/build/static/js/*node_modules_babel_runtime_helpers_createForOfItera*.*`,
-        ],
-        'widgets/vis-2-widgets-collection/static/js',
-    ); */
+const SRC = 'src-widgets/';
+const src = `${__dirname}/${SRC}`;
+
+function clean() {
+    deleteFoldersRecursive(`${src}build`);
+    deleteFoldersRecursive(`${__dirname}/widgets`);
 }
 
-if (process.argv.includes('--copy-files')) {
+function copyAllFiles() {
+    copyFiles([`${SRC}build/customWidgets.js`], `widgets/${adapterName}`);
+    copyFiles([`${SRC}build/assets/*.*`], `widgets/${adapterName}/assets`);
+    copyFiles([`${SRC}build/img/*`], `widgets/${adapterName}/img`);
+}
+
+if (process.argv.includes('--0-clean')) {
+    clean();
+} else if (process.argv.includes('--1-npm')) {
+    npmInstall(src).catch(e => console.error(`Cannot install npm modules: ${e}`));
+} else if (process.argv.includes('--2-build')) {
+    buildReact(src, { rootDir: __dirname, vite: true }).catch(e => console.error(`Cannot build: ${e}`));
+} else if (process.argv.includes('--3-copy')) {
     copyAllFiles();
-} else if (process.argv.includes('--build')) {
-    buildReact(`${__dirname}/src-widgets`, { rootDir: __dirname, craco: true }).catch(() =>
-        console.error('Error by build'),
-    );
 } else {
-    deleteFoldersRecursive('src-widgets/build');
-    deleteFoldersRecursive('widgets');
-    npmInstall('src-widgets')
-        .then(() => buildReact(`${__dirname}/src-widgets`, { rootDir: __dirname, craco: true }))
-        .then(() => copyAllFiles());
+    clean();
+    npmInstall(src)
+        .then(() => buildReact(src, { rootDir: __dirname, vite: true }))
+        .then(() => copyAllFiles())
+        .catch(e => console.error(`Cannot build: ${e}`));
 }

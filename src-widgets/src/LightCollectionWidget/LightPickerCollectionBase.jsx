@@ -1,13 +1,13 @@
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { Box, Divider, IconButton, Stack, SvgIcon } from '@mui/material';
-import { red } from '@mui/material/colors';
 import { useContext, useEffect, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useRefDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
-import { ReactComponent as ColorWheelSvg } from '../img/colorWheel.svg';
+// import { ReactComponent as ColorWheelSvg } from '../img/colorWheel.svg';
+import ColorWheelSvg from '../img/colorWheel.svg';
 import LightPicker from './LightPicker';
 
 const ColorWheelIcon = props => (

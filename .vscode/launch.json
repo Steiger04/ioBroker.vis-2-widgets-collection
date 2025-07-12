@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "vis-2 editor",
+            "url": "http://localhost:3000/#default",
+            "webRoot": "${workspaceFolder}/src-widgets"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "vis-2 runtime",
+            "url": "http://localhost:3000/?main&runtime=true#default",
+            "webRoot": "${workspaceFolder}/src-widgets"
+        }
+    ]
+}
