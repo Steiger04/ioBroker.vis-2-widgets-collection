@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-// import svgr from 'vite-plugin-svgr';
+import svgr from 'vite-plugin-svgr';
 import commonjs from 'vite-plugin-commonjs';
 import vitetsConfigPaths from 'vite-tsconfig-paths';
 import { federation } from '@module-federation/vite';
@@ -15,15 +15,26 @@ const config = {
             filename: 'customWidgets.js',
             exposes: {
                 './StateCollectionWidget': './src/StateCollectionWidget/StateCollectionWidget',
+                './SliderCollectionWidget': './src/SliderCollectionWidget/SliderCollectionWidget',
+                './ButtonGroupCollectionWidget': './src/ButtonGroupCollectionWidget/ButtonGroupCollectionWidget',
+                './SwitchCollectionWidget': './src/SwitchCollectionWidget/SwitchCollectionWidget',
+                './CheckboxCollectionWidget': './src/CheckboxCollectionWidget/CheckboxCollectionWidget',
+                './DialogCollectionWidget': './src/DialogCollectionWidget/DialogCollectionWidget',
+                './SelectCollectionWidget': './src/SelectCollectionWidget/SelectCollectionWidget',
+                './RadioGroupCollectionWidget': './src/RadioGroupCollectionWidget/RadioGroupCollectionWidget',
+                './GaugeCollectionWidget': './src/GaugeCollectionWidget/GaugeCollectionWidget',
+                './LightCollectionWidget': './src/LightCollectionWidget/LightCollectionWidget',
                 './translations': './src/translations',
             },
             remotes: {},
             shared: moduleFederationShared(pack),
         }),
         react(),
+        svgr({
+            include: ['**/*.svg?react'], // Include SVG files for SVGR processing
+        }),
         vitetsConfigPaths(),
         commonjs(),
-        // svgr(),
     ],
     server: {
         port: 3000,

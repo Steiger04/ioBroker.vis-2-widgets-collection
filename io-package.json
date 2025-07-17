@@ -150,7 +150,18 @@
                 "name": "vis2CollectionWidget",
                 "url": "vis-2-widgets-collection/customWidgets.js",
                 "bundlerType": "module",
-                "components": ["StateCollectionWidget"]
+                "components": [
+                    "StateCollectionWidget",
+                    "SliderCollectionWidget",
+                    "ButtonGroupCollectionWidget",
+                    "SwitchCollectionWidget",
+                    "CheckboxCollectionWidget",
+                    "DialogCollectionWidget",
+                    "SelectCollectionWidget",
+                    "RadioGroupCollectionWidget",
+                    "GaugeCollectionWidget",
+                    "LightCollectionWidget"
+                ]
             }
         },
         "restartAdapters": ["vis-2"]

@@ -7,7 +7,7 @@ import useData from '../hooks/useData';
 import useRefDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 // import { ReactComponent as ColorWheelSvg } from '../img/colorWheel.svg';
-import ColorWheelSvg from '../img/colorWheel.svg';
+import ColorWheelSvg from '../img/colorWheel.svg?react';
 import LightPicker from './LightPicker';
 
 const ColorWheelIcon = props => (
