@@ -16,7 +16,7 @@ function isValidColorFormat(str) {
     return patterns.some(pattern => pattern.test(str));
 }
 
-const MaterialUISwitch = styled(Switch)(({ width, maxHeight, data, widget, theme }) => ({
+const MaterialUISwitch = styled(Switch)(({ width, maxheight, data, widget, theme }) => ({
     width: '100%',
     height: '100%',
 
@@ -36,7 +36,7 @@ const MaterialUISwitch = styled(Switch)(({ width, maxHeight, data, widget, theme
         top: '50%',
         left: '0%',
         transform: `translate(-50%, -50%) translateX(${
-            maxHeight >= (widget.data.thumbSize || 62) ? widget.data.thumbSize / 2 - 4 || 31 - 4 : maxHeight / 2 - 4
+            maxheight >= (widget.data.thumbSize || 62) ? widget.data.thumbSize / 2 - 4 || 31 - 4 : maxheight / 2 - 4
         }px)`,
 
         '& .MuiSwitch-input': {
@@ -48,9 +48,9 @@ const MaterialUISwitch = styled(Switch)(({ width, maxHeight, data, widget, theme
             top: '50%',
             left: '100%',
             transform: `translate(-50%, -50%) translateX(${
-                maxHeight >= (widget.data.thumbSize || 62)
+                maxheight >= (widget.data.thumbSize || 62)
                     ? -(widget.data.thumbSize / 2 - 4) || -31 - 4
-                    : -(maxHeight / 2 - 4)
+                    : -(maxheight / 2 - 4)
             }px)`,
 
             '& .MuiSwitch-input': {
@@ -82,9 +82,9 @@ const MaterialUISwitch = styled(Switch)(({ width, maxHeight, data, widget, theme
         backgroundColor: widget.data.thumbColorFalse,
 
         width: widget.data.thumbSize || 62,
-        maxWidth: maxHeight,
+        maxWidth: maxheight,
         height: widget.data.thumbSize || 62,
-        maxHeight: maxHeight,
+        maxHeight: maxheight,
 
         '&::before': {
             content: "''",

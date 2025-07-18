@@ -352,10 +352,10 @@ function GaugeCollection() {
                             : Number(widget.data.gaugeValueDec)
                     }
                     // Fonts Customization Options
-                    fontNumbers={widget.data.gaugeFontNumbers || 'Arial'}
-                    fontTitle={widget.data.gaugeFontTitle || 'Arial'}
-                    fontUnits={widget.data.gaugeFontUnits || 'Arial'}
-                    fontValue={widget.data.gaugeFontValue || 'Arial'}
+                    fontNumbers={widget.data.gaugeFontNumbers || 'Arial, Helvetica, sans-serif'}
+                    fontTitle={widget.data.gaugeFontTitle || 'Arial, Helvetica, sans-serif'}
+                    fontUnits={widget.data.gaugeFontUnits || 'Arial, Helvetica, sans-serif'}
+                    fontValue={widget.data.gaugeFontValue || 'Arial, Helvetica, sans-serif'}
                     // fontNumbersSize={widget.data.gaugeFontNumbersSize || 20}
                     fontNumbersSize={
                         typeof widget.data.gaugeFontNumbersSize === 'number'

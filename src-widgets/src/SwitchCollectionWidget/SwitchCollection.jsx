@@ -52,7 +52,7 @@ function SwitchCollection() {
                         <MaterialUISwitch
                             disabled={oidType !== 'boolean'}
                             width={ref.current?.clientWidth}
-                            maxHeight={ref.current?.parentElement?.parentElement?.clientHeight}
+                            maxheight={ref.current?.parentElement?.parentElement?.clientHeight}
                             data={data}
                             widget={widget}
                             checked={oidValue}

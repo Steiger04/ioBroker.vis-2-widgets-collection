@@ -29,9 +29,9 @@ const stateFields = () => [
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: '!data.write',
-        default: '!data.write',
-        hidden: '!data.write',
+        disabled: data => !data.write,
+        default: false,
+        hidden: data => !data.write,
     },
     {
         name: 'noIcon',

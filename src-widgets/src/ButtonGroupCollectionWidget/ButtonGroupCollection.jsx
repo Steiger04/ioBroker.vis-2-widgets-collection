@@ -75,7 +75,7 @@ function ButtonGroupCollection() {
                                       ? 0
                                       : null,
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
-                            borderRadius: !widget.data.basePadding && 0,
+                            borderRadius: !!widget.data.basePadding === false ? 0 : undefined,
                         },
                         '& .MuiToggleButtonGroup-middleButton': {
                             borderTopWidth:
@@ -115,7 +115,7 @@ function ButtonGroupCollection() {
                             borderRightWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
                             borderBottomWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
-                            borderRadius: !widget.data.basePadding && 0,
+                            borderRadius: !!widget.data.basePadding === false ? 0 : undefined,
                         },
                     }}
                 >
