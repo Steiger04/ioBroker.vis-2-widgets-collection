@@ -75,7 +75,7 @@
         ,
           "@mui/material": {
             name: "@mui/material",
-            version: "5.16.14",
+            version: "6.5.0",
             scope: ["default"],
             loaded: false,
             from: "vis2CollectionWidget",
