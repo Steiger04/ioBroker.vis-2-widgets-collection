@@ -6,8 +6,7 @@ import type { VisRxWidgetState } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 type ExtendedObject = ioBroker.Object & {
-    noObject?: boolean;
-    // wrappedContent?: boolean;
+    noObject: boolean;
 };
 
 export interface CollectionGenericState extends VisRxWidgetState {
