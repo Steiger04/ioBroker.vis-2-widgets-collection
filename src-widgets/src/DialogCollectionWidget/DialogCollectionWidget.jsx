@@ -89,7 +89,7 @@ class DialogCollectionWidget extends Generic {
             refService: props.refService,
             style: props.style,
             widget: {
-                ...props.widget,
+                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
@@ -105,13 +105,13 @@ class DialogCollectionWidget extends Generic {
             theme: this.props.context.theme,
             getWidgetView: this.getWidgetView.bind(this),
 
-            wrappedContent: this.wrappedContent,
+            wrappedContent: this.wrappedCollectionContent,
         };
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedContent = false;
+            this.wrappedCollectionContent = false;
         } else {
-            this.wrappedContent = true;
+            this.wrappedCollectionContent = true;
         }
 
         return withCollectionProvider(this.wrapContent(<DialogCollection />), collectionContext);

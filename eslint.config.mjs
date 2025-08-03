@@ -35,6 +35,8 @@ export default [
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/require-param': 'off',
+            // Regel kann ab React 17 deaktiviert werden
+            'react/react-in-jsx-scope': 'off',
         },
     },
 ];

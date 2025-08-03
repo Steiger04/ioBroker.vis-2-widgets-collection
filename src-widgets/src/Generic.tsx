@@ -2,22 +2,35 @@ import { Box, CssBaseline } from '@mui/material';
 
 const VALUE_NOT_CHANGED_TIMESTAMP = 1111111111111;
 
-class Generic extends window.visRxWidget {
-    static getI18nPrefix() {
+import type { VisRxWidgetState } from '@iobroker/types-vis-2';
+import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
+
+type ExtendedObject = ioBroker.Object & {
+    noObject?: boolean;
+    // wrappedContent?: boolean;
+};
+
+export interface CollectionGenericState extends VisRxWidgetState {
+    [key: `${string}Object`]: ExtendedObject | null;
+}
+
+class Generic<
+    RxData extends Record<string, any>,
+    State extends Partial<CollectionGenericState> = CollectionGenericState,
+> extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
+    protected wrappedCollectionContent = true;
+
+    static getI18nPrefix(): string {
         return 'vis_2_widgets_collection_';
     }
 
-    getPropertyValue = stateName => this.state.values[`${this.state.rxData[stateName]}.val`];
+    getPropertyValue = (stateName: string): ioBroker.StateValue =>
+        this.state.values[`${this.state.rxData[stateName]}.val`];
 
-    hasPropertyValueChanged = stateName => {
+    hasPropertyValueChanged = (stateName: string): boolean => {
         const lastChange = this.state.values[`${this.state.rxData[stateName]}.lc`];
         const timestamp = this.state.values[`${this.state.rxData[stateName]}.ts`];
         const ack = this.state.values[`${this.state.rxData[stateName]}.ack`];
-
-        //console.log("stateName", stateName);
-        //console.log("lastChange", lastChange);
-        //console.log("timestamp", timestamp);
-        //console.log("ack", ack);
 
         if (lastChange === VALUE_NOT_CHANGED_TIMESTAMP) {
             return false;
@@ -26,20 +39,22 @@ class Generic extends window.visRxWidget {
         return timestamp === lastChange && ack === false;
     };
 
-    setValue = (id, value, ack = false) => {
-        if (!id || id === 'nothing_selected') return;
+    setValue = (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack = false): void => {
+        if (!id || id === 'nothing_selected') {
+            return;
+        }
 
         this.props.context.socket.setState(id, value, ack).catch(e => console.error(`Cannot set state ${id}: ${e}`));
     };
 
-    async getParentObject(id) {
+    /* async getParentObject(id: string): Promise<ioBroker.Object | null> {
         const parts = id.split('.');
         parts.pop();
         const parentOID = parts.join('.');
         return this.props.context.socket.getObject(parentOID);
-    }
+    } */
 
-    static getObjectIcon(obj, id, imagePrefix) {
+    /* static getObjectIcon(obj, id, imagePrefix) {
         imagePrefix = imagePrefix || '../..'; // http://localhost:8081';
         let src = '';
         const common = obj && obj.common;
@@ -79,35 +94,53 @@ class Generic extends window.visRxWidget {
         }
 
         return src || null;
-    }
+    } */
 
-    async createStateObjectAsync(stateName) {
+    async createStateObjectAsync(stateName: string): Promise<void> {
         if (!this.state.rxData[stateName] || this.state.rxData[stateName] === 'nothing_selected') {
-            this.setState({ [`${stateName}Object`]: { common: {}, noObject: true } });
+            this.setState({
+                [`${stateName}Object`]: {
+                    _id: '',
+                    type: 'state',
+                    common: {} as ioBroker.StateCommon,
+                    native: {},
+                    noObject: true,
+                },
+            } as any);
 
             if (this.state.rxData.icon) {
                 this.setState({
                     [`${stateName}Object`]: {
+                        _id: '',
+                        type: 'state',
                         common: {
                             icon: this.state.rxData.icon,
                         },
+                        native: {},
                         noObject: true,
                     },
-                });
+                } as any);
             }
 
             return;
         }
         // read object itself
-        let object = await this.props.context.socket.getObject(this.state.rxData[stateName]);
+        let object: ExtendedObject = await this.props.context.socket.getObject(this.state.rxData[stateName]);
 
         if (!object) {
-            object = { common: {}, noObject: true };
+            object = {
+                _id: '',
+                type: 'state',
+                common: {} as ioBroker.StateCommon,
+                native: {},
+                noObject: true,
+            };
         } else {
             object = {
-                common: object.common,
                 _id: object._id,
-                type: object.type,
+                type: 'state',
+                common: object.common as ioBroker.StateCommon,
+                native: object.native,
                 noObject: false,
             };
         }
@@ -124,7 +157,7 @@ class Generic extends window.visRxWidget {
 
         if (object.common.states && Array.isArray(object.common.states)) {
             // convert to {'state1': 'state1', 'state2': 'state2', ...}
-            const states = {};
+            const states: Record<string, string> = {};
             object.common.states.forEach(state => {
                 states[state] = state;
             });
@@ -136,11 +169,11 @@ class Generic extends window.visRxWidget {
         }
 
         if (JSON.stringify(this.state[`${stateName}Object`]) !== JSON.stringify(object)) {
-            this.setState({ [`${stateName}Object`]: object });
+            this.setState({ [`${stateName}Object`]: object } as any);
         }
     }
 
-    wrapContent(content) {
+    wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {
         return (
             <>
                 <CssBaseline />
@@ -161,8 +194,8 @@ class Generic extends window.visRxWidget {
                     <Box
                         className="GENERIC-1"
                         sx={{
-                            width: this.wrappedContent ? 'calc(100% - 8px)' : '100%',
-                            height: this.wrappedContent ? 'calc(100% - 8px)' : '100%',
+                            width: this.wrappedCollectionContent ? 'calc(100% - 8px)' : '100%',
+                            height: this.wrappedCollectionContent ? 'calc(100% - 8px)' : '100%',
                         }}
                     >
                         {content}

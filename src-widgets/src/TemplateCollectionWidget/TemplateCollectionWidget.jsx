@@ -96,7 +96,7 @@ class LightCollectionWidget extends Generic {
             refService: props.refService,
             style: props.style,
             widget: {
-                ...props.widget,
+                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
@@ -111,13 +111,13 @@ class LightCollectionWidget extends Generic {
             socket: this.props.context.socket,
             theme: this.props.context.theme,
 
-            wrappedContent: this.wrappedContent,
+            wrappedContent: this.wrappedCollectionContent,
         };
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedContent = false;
+            this.wrappedCollectionContent = false;
         } else {
-            this.wrappedContent = true;
+            this.wrappedCollectionContent = true;
         }
 
         return withCollectionProvider(this.wrapContent(<LightCollection />), collectionContext);
