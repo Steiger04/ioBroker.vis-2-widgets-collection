@@ -9,7 +9,12 @@ import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 
 function ButtonGroupCollection() {
-    const { oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { data, states, activeIndex } = useData('oid');
     const { fontStyles, textStyles } = useStyles(widget.style);
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
@@ -17,7 +22,7 @@ function ButtonGroupCollection() {
     const buttonGroupVariant = widget.data.buttonGroupVariant;
     const buttonGroupOrientation = widget.data.buttonGroupOrientation;
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
 
@@ -346,7 +351,7 @@ function ButtonGroupCollection() {
                                                                 '',
                                                             )) ||
                                                         (widget.data[`value${index + 1}`] &&
-                                                            `${widget.data[`value${index + 1}`]}${widget.data.unit}`) ||
+                                                            `${widget.data[`value${index + 1}`]}${oidObject?.unit}`) ||
                                                         '',
                                                 }}
                                                 noWrap

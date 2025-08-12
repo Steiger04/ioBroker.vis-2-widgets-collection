@@ -18,34 +18,40 @@ import { CollectionContext } from './CollectionProvider';
 
 function CollectionChangeDialog(props) {
     const { widgetStates, data, open, closeHandler } = props;
-    const { widget, oidObject, getPropertyValue } = useContext(CollectionContext);
+    const {
+        widget,
+        widget: {
+            data: { oidObject },
+        },
+        getPropertyValue,
+    } = useContext(CollectionContext);
 
     const [sliderValue, setSliderValue] = useState(getPropertyValue('oid'));
     const { setValueState: setOidValueState } = useValueState('oid');
 
-    const oidStates = oidObject?.common?.states;
-    const oidType = oidObject?.common?.type;
+    const commonStates = oidObject?.commonStates;
+    const oidType = oidObject?.type;
 
     const changeHandler = useCallback(value => setOidValueState(value), [setOidValueState]);
 
     const ChangeSlider =
         oidType === 'number' &&
         !widget.data.onlyStates &&
-        oidObject?.common?.min !== undefined &&
-        oidObject?.common?.max !== undefined ? (
+        oidObject?.min !== undefined &&
+        oidObject?.max !== undefined ? (
             <Slider
-                sx={{ pb: oidStates ? 4 : 3 }}
+                sx={{ pb: commonStates ? 4 : 3 }}
                 size="small"
-                min={oidObject.common.min}
-                max={oidObject.common.max}
+                min={oidObject.min}
+                max={oidObject.max}
                 marks={[
                     {
-                        value: oidObject.common.min,
-                        label: String(oidObject.common.min),
+                        value: oidObject.min,
+                        label: String(oidObject.min),
                     },
                     {
-                        value: oidObject.common.max,
-                        label: String(oidObject.common.max),
+                        value: oidObject.max,
+                        label: String(oidObject.max),
                     },
                 ]}
                 valueLabelDisplay="auto"
@@ -99,7 +105,7 @@ function CollectionChangeDialog(props) {
                 sx={{ m: 0, p: 2 }}
                 id="customized-dialog-title"
             >
-                {data.header || oidObject.common.name}
+                {data.header || oidObject.name}
             </DialogTitle>
             <IconButton
                 aria-label="close"

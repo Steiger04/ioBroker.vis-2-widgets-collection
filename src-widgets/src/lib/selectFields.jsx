@@ -1,4 +1,5 @@
 import CollectionDivider from '../components/CollectionDivider';
+import { oidChangeHandlerAsync } from './commonObjectFields';
 
 const selectFields = () => [
     {
@@ -9,6 +10,7 @@ const selectFields = () => [
         name: 'cid',
         type: 'id',
         label: 'cid',
+        onChange: oidChangeHandlerAsync(['boolean', 'number', 'string', 'mixed'], 'cid'),
     },
     {
         type: 'custom',

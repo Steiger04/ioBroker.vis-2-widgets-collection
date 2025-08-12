@@ -1,14 +1,21 @@
-import React from 'react';
+import { type CollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
-import stateFields from '../lib/stateFields';
+
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import stateFields, { type StateFieldsRxData } from '../lib/stateFields';
 import StateCollection from './StateCollection';
 
-class StateCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+class StateCollectionWidget extends Generic<
+    StateFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
+    // private lastRxData: string | null = null;
+
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplStateCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -29,7 +36,7 @@ class StateCollectionWidget extends Generic {
                         ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
                         ...delayFields(),
                         ...stateFields(),
-                    ],
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
@@ -51,12 +58,15 @@ class StateCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
+        // console.log('StateCollectionWidget.getWidgetInfo() called');
         return StateCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate() {
+    propertiesUpdate(): void {
+        // console.log('StateCollectionWidget.propertiesUpdate() called --> this', this);
+        // console.log('StateCollectionWidget.propertiesUpdate() called');
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -64,36 +74,47 @@ class StateCollectionWidget extends Generic {
         //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
         // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
         //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-
-        const actualRxData = JSON.stringify(this.state.rxData);
+        /* const actualRxData = JSON.stringify(this.state.rxData);
         if (this.lastRxData === actualRxData) {
             return;
         }
         this.lastRxData = actualRxData;
 
         await this.createStateObjectAsync('oid');
+        console.log('StateCollectionWidget.propertiesUpdate() --> this', this); */
     }
 
     // This function is called every time when rxData is changed
-    async onRxDataChanged(payload) {
-        await this.propertiesUpdate();
+    onRxDataChanged(): void {
+        // console.log('StateCollectionWidget.onRxDataChanged() called');
+        this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
-
-    // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(id, state) {}
-
-    async componentDidMount() {
-        super.componentDidMount();
-        // Update data
-        await this.propertiesUpdate();
+    onRxStyleChanged(): void {
+        // console.log('StateCollectionWidget.onRxStyleChanged() called');
+        // You can do something with styles here, but usually you do not need it
     }
 
-    renderWidgetBody(props) {
+    // This function is called every time when some Object State updated, but all changes lands into this.state.values too
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {
+        // console.log('StateCollectionWidget.onStateUpdated() called');
+        // You can do something with state here, but usually you do not need it
+        // For example, you can update some state value in this.state.values
+        // this.setState({ values: { ...this.state.values, [id]: state.val } });
+    }
+
+    componentDidMount(): void {
+        // console.log('StateCollectionWidget.componentDidMount() called');
+        super.componentDidMount();
+        // Update data
+        this.propertiesUpdate();
+    }
+
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
+        // console.log('StateCollectionWidget.renderWidgetBody() called');
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -101,13 +122,12 @@ class StateCollectionWidget extends Generic {
             refService: props.refService,
             style: props.style,
             widget: {
-                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            oidObject: this.state.oidObject,
+            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
@@ -117,7 +137,7 @@ class StateCollectionWidget extends Generic {
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as CollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;

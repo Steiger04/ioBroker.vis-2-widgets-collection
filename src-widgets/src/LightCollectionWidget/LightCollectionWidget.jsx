@@ -62,10 +62,8 @@ class LightCollectionWidget extends Generic {
         //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
         // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
         //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-
         // console.log("inside propertiesUpdate", this.state.values);
-
-        const actualRxData = JSON.stringify(this.state.rxData);
+        /* const actualRxData = JSON.stringify(this.state.rxData);
         if (this.lastRxData === actualRxData) {
             return;
         }
@@ -91,11 +89,13 @@ class LightCollectionWidget extends Generic {
             this.createStateObjectAsync('colorLightBrightnessOid'),
         ]);
         console.timeEnd('LightCollectionWidget propertiesUpdate');
+
+        console.log('LightCollectionWidget propertiesUpdate --> this', this); */
     }
 
     // This function is called every time when rxData is changed
-    async onRxDataChanged(payload) {
-        await this.propertiesUpdate();
+    onRxDataChanged() {
+        this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -104,12 +104,12 @@ class LightCollectionWidget extends Generic {
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(id, state) {}
+    onStateUpdated(_id, _state) {}
 
-    async componentDidMount() {
+    componentDidMount() {
         super.componentDidMount();
         // Update data
-        await this.propertiesUpdate();
+        this.propertiesUpdate();
     }
 
     renderWidgetBody(props) {
@@ -126,7 +126,7 @@ class LightCollectionWidget extends Generic {
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            oidObject: this.state.oidObject,
+            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
@@ -138,19 +138,19 @@ class LightCollectionWidget extends Generic {
             wrappedContent: this.wrappedCollectionContent,
 
             // ON/OFF
-            colorLightSwitchOidObject: this.state.colorLightSwitchOidObject,
+            // colorLightSwitchOidObject: this.state.colorLightSwitchOidObject,
             // Temperature
-            colorLightTemperatureOidObject: this.state.colorLightTemperatureOidObject,
+            // colorLightTemperatureOidObject: this.state.colorLightTemperatureOidObject,
             // RGB
-            colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
+            // colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
             // R/G/B
-            colorLightRedOidObject: this.state.colorLightRedOidObject,
-            colorLightGreenOidObject: this.state.colorLightGreenOidObject,
-            colorLightBlueOidObject: this.state.colorLightBlueOidObject,
+            // colorLightRedOidObject: this.state.colorLightRedOidObject,
+            // colorLightGreenOidObject: this.state.colorLightGreenOidObject,
+            // colorLightBlueOidObject: this.state.colorLightBlueOidObject,
             // H/S/V
-            colorLightHueOidObject: this.state.colorLightHueOidObject,
-            colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,
-            colorLightBrightnessOidObject: this.state.colorLightBrightnessOidObject,
+            // colorLightHueOidObject: this.state.colorLightHueOidObject,
+            // colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,
+            // colorLightBrightnessOidObject: this.state.colorLightBrightnessOidObject,
         };
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {

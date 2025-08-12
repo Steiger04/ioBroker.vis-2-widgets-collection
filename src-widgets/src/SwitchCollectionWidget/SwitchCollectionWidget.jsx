@@ -53,7 +53,7 @@ class SwitchCollectionWidget extends Generic {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate() {
+    propertiesUpdate() {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -61,18 +61,18 @@ class SwitchCollectionWidget extends Generic {
         //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
         // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
         //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-        const actualRxData = JSON.stringify(this.state.rxData);
+        /* const actualRxData = JSON.stringify(this.state.rxData);
         if (this.lastRxData === actualRxData) {
             return;
         }
         this.lastRxData = actualRxData;
 
-        await this.createStateObjectAsync('oid');
+        await this.createStateObjectAsync('oid'); */
     }
 
     // This function is called every time when rxData is changed
-    async onRxDataChanged(payload) {
-        await this.propertiesUpdate();
+    onRxDataChanged() {
+        this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -83,10 +83,10 @@ class SwitchCollectionWidget extends Generic {
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
     onStateUpdated(id, state) {}
 
-    async componentDidMount() {
+    componentDidMount() {
         super.componentDidMount();
         // Update data
-        await this.propertiesUpdate();
+        this.propertiesUpdate();
     }
 
     renderWidgetBody(props) {
@@ -103,7 +103,7 @@ class SwitchCollectionWidget extends Generic {
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            oidObject: this.state.oidObject,
+            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),

@@ -1,3 +1,4 @@
+import { oidChangeHandlerAsync } from './commonObjectFields';
 import CollectionDivider from '../components/CollectionDivider';
 
 const PowerSettingsNewIcon =
@@ -23,6 +24,8 @@ const RGB_ROLES = {
 };
 
 const loadStatesAsync = async (field, data, changeData, socket) => {
+    console.log('loadStatesAsync -> field', field);
+
     if (data[field.name]) {
         const object = await socket.getObject(data[field.name]);
 
@@ -32,8 +35,9 @@ const loadStatesAsync = async (field, data, changeData, socket) => {
             const states = await socket.getObjectView(`${id.join('.')}.`, `${id.join('.')}.\u9999`, 'state');
 
             if (states) {
-                Object.values(states).forEach(state => {
+                Object.values(states).forEach(async state => {
                     const role = state.common.role;
+
                     if (
                         role &&
                         RGB_ROLES[role] &&
@@ -41,6 +45,13 @@ const loadStatesAsync = async (field, data, changeData, socket) => {
                         field !== role
                     ) {
                         data[RGB_ROLES[role]] = state._id;
+                        await oidChangeHandlerAsync(['boolean', 'number', 'string', 'mixed'], RGB_ROLES[role])(
+                            field,
+                            data,
+                            changeData,
+                            socket,
+                        );
+
                         if (RGB_ROLES[role] === 'color_temperature') {
                             if (!data.ct_min && state.common.min) {
                                 data.ct_min = state.common.min;
@@ -51,7 +62,7 @@ const loadStatesAsync = async (field, data, changeData, socket) => {
                         }
 
                         if (RGB_ROLES[role] === 'colorLightSwitchOid') {
-                            data.oidType = 'boolean';
+                            // data.oidType = 'boolean';
 
                             data.values_count = 2;
                             data.value1 = true;

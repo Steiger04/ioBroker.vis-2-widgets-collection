@@ -12,12 +12,17 @@ import useValueState from '../hooks/useValueState';
 function RadioGroupCollection() {
     const [stackRef, setStackRef] = useState(null);
     const [clientHeight, setClientHeight] = useState(null);
-    const { oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { data, states } = useData('oid');
     const { fontStyles, textStyles } = useStyles(widget.style);
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
 
@@ -189,7 +194,7 @@ function RadioGroupCollection() {
                                 dangerouslySetInnerHTML={{
                                     __html:
                                         (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
-                                        (value && `${value}${widget.data.unit}`) ||
+                                        (value && `${value}${oidObject?.unit}`) ||
                                         '',
                                 }}
                             />

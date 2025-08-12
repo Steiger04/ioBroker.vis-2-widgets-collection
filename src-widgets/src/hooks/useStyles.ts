@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 
 const POSSIBLE_MUI_STYLES = [
     'background',
@@ -29,7 +29,15 @@ const POSSIBLE_MUI_STYLES = [
     'box-shadow',
 ];
 
-const useStyles = _styles => {
+const useStyles = (
+    _styles: CSSProperties,
+): {
+    backgroundStyles: CSSProperties;
+    borderStyles: CSSProperties;
+    textStyles: CSSProperties;
+    fontStyles: CSSProperties;
+    boxStyles: CSSProperties;
+} => {
     const [backgroundStyles, setBackgroundStyles] = useState({});
     const [borderStyles, setBorderStyles] = useState({});
     const [textStyles, setTextStyles] = useState({});
@@ -39,11 +47,11 @@ const useStyles = _styles => {
     const _stylesJSON = JSON.stringify(_styles);
 
     const possibleMuiStyles = useMemo(() => {
-        const _backgroundStyles = {};
-        const _borderStyles = {};
-        const _textStyles = {};
-        const _fontStyles = {};
-        const _boxStyles = {};
+        const _backgroundStyles = {} as CSSProperties;
+        const _borderStyles = {} as CSSProperties;
+        const _textStyles = {} as CSSProperties;
+        const _fontStyles = {} as CSSProperties;
+        const _boxStyles = {} as CSSProperties;
 
         const _styles = JSON.parse(_stylesJSON);
 
@@ -52,20 +60,20 @@ const useStyles = _styles => {
                 const _camelCaseStyle = style.replace(/(-\w)/g, text => text[1].toUpperCase());
 
                 if (style.includes('background')) {
-                    _backgroundStyles[_camelCaseStyle] = _styles[style];
+                    _backgroundStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
                 } else if (style.includes('border')) {
-                    _borderStyles[_camelCaseStyle] = _styles[style];
+                    _borderStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
                 } else if (
                     style.includes('font') ||
                     style.includes('line-height') ||
                     style.includes('letter-spacing') ||
                     style.includes('word-spacing')
                 ) {
-                    _fontStyles[_camelCaseStyle] = _styles[style];
+                    _fontStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
                 } else if (style.includes('text') || style.includes('color')) {
-                    _textStyles[_camelCaseStyle] = _styles[style];
+                    _textStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
                 } else {
-                    _boxStyles[_camelCaseStyle] = _styles[style];
+                    _boxStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
                 }
             }
         });

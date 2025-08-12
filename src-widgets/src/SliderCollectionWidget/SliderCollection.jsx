@@ -8,7 +8,12 @@ import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 
 function SliderCollection() {
-    const { oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { data, states, minValue, maxValue } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
@@ -16,7 +21,7 @@ function SliderCollection() {
     const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
     const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
 
@@ -43,14 +48,14 @@ function SliderCollection() {
         if (_sliderMarks && !_sliderMarks.some(state => state.value === minValue)) {
             _sliderMarks.push({
                 value: minValue,
-                label: `${minValue}${widget.data.unit}`,
+                label: `${minValue}${oidObject?.unit}`,
             });
         }
 
         if (_sliderMarks && !_sliderMarks.some(state => state.value === maxValue)) {
             _sliderMarks.push({
                 value: maxValue,
-                label: `${maxValue}${widget.data.unit}`,
+                label: `${maxValue}${oidObject?.unit}`,
             });
         }
 
@@ -60,7 +65,7 @@ function SliderCollection() {
             if (!_sliderMarks.some(state => state.value === i)) {
                 _sliderMarks.push({
                     value: i,
-                    label: `${i}${widget.data.unit}`,
+                    label: `${i}${oidObject?.unit}`,
                 });
             }
         }
@@ -69,7 +74,7 @@ function SliderCollection() {
         _sliderMarks.sort((a, b) => a.value - b.value);
 
         return _sliderMarks;
-    }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, widget.data.unit, widget.data.onlyStates]);
+    }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject.unit, widget.data.onlyStates]);
 
     useEffect(() => {
         if (oidValue === undefined) return;

@@ -1,6 +1,14 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const delayFields = () => [
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+export interface DelayFieldsRxData {
+    sampleInterval: boolean;
+    sampleIntervalValue: number;
+    delay: number;
+}
+
+const delayFields = (): RxWidgetInfoAttributesField[] => [
     {
         label: '',
         type: 'custom',

@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { Checkbox, FormControlLabel } from '@mui/material';
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -16,16 +16,21 @@ const defaultIconFalse =
 
 function CheckboxCollection() {
     const [contentRef, setContentRef] = useState(null);
-    const { oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data } = useData('oid');
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean';
 
-    useHtmlValue(contentRef, oidValue, widget, data);
+    useHtmlValue(contentRef, oidValue, oidObject?.unit, data);
 
     return (
         <CollectionBase

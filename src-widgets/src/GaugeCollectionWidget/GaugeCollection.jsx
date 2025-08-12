@@ -25,12 +25,18 @@ const findSegment = (highlights, value, maxValue) => {
 function GaugeCollection() {
     const baseRef = useRef(null);
     const gaugeRef = useRef(null);
-    const { wrappedContent, oidObject, widget } = useContext(CollectionContext);
+    const {
+        wrappedContent,
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
 
     const { data, states } = useData('oid');
     const oidValue = useOidValue('oid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
 
@@ -173,7 +179,7 @@ function GaugeCollection() {
                     minValue={Number(widget.data.gaugeMinValue) ? Number(widget.data.gaugeMinValue) : 0}
                     maxValue={Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100}
                     value={oidValue}
-                    units={widget.data.unit}
+                    units={oidObject?.unit}
                     title={data.header}
                     // Ticks Bar Options
                     exactTicks={widget.data.gaugeExactTicks} // boolean

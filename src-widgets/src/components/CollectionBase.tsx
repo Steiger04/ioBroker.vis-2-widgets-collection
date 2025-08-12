@@ -1,25 +1,43 @@
 import { Box, Paper, Typography } from '@mui/material';
-import React, { useRef, forwardRef, useImperativeHandle, useState, useContext, useEffect } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useState, useContext, useEffect, type RefObject } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
 
-const CollectionBase = forwardRef(
+interface CollectionBaseProps {
+    children?: JSX.Element | JSX.Element[] | null;
+    data: Record<string, any>;
+    oidValue?: any;
+    isValidType?: boolean;
+    bgActive?: boolean;
+    sx?: Record<string, any>;
+}
+
+const CollectionBase = forwardRef<any, CollectionBaseProps>(
     ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
-        const paper0Ref = useRef(null);
-        const paper1Ref = useRef(null);
-        const [ref, setRef] = useState(null);
-        const [headerRef, setHeaderRef] = useState(null);
-        const headerRef1 = useRef(null);
-        const [footerRef, setFooterRef] = useState(null);
-        const { wrappedContent, widget, oidObject } = useContext(CollectionContext);
+        const paper0Ref = useRef<HTMLDivElement>(null);
+        const paper1Ref = useRef<HTMLDivElement>(null);
+        const [ref, setRef] = useState<RefObject<HTMLDivElement> | null>(null);
+        const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
+        const headerRef1 = useRef<HTMLSpanElement | null>(null);
+        const [footerRef, setFooterRef] = useState<HTMLElement | null>(null);
+        const {
+            wrappedContent,
+            widget,
+            widget: {
+                data: { oidObject },
+            },
+        } = useContext(CollectionContext);
         const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(widget.style);
-        const { width, height } = useSize(ref);
+
+        // Fallback-Ref für useSize falls ref noch null ist
+        const fallbackRef = useRef<HTMLDivElement>(null);
+        const { width, height } = useSize(ref || fallbackRef);
 
         const oidValueUnit =
             (oidValue || oidValue === 0 || oidValue === false) &&
-            `${oidValue}${widget.data.unit === undefined ? '' : widget.data.unit}`;
+            `${oidValue}${oidObject?.unit === undefined ? '' : oidObject?.unit}`;
 
         useSignals();
 
@@ -28,13 +46,21 @@ const CollectionBase = forwardRef(
         const footerValue = data.footer || data.alias || data.value || oidValueUnit || '';
 
         useEffect(() => {
-            if (widget.data.noFooter) return;
-            if (footerRef) footerRef.innerHTML = footerValue;
+            if (widget.data.noFooter) {
+                return;
+            }
+            if (footerRef) {
+                footerRef.innerHTML = footerValue;
+            }
         }, [footerValue, widget.data.noFooter, footerRef]);
 
         useEffect(() => {
-            if (widget.data.noHeader) return;
-            if (headerRef) headerRef.innerHTML = data.header;
+            if (widget.data.noHeader) {
+                return;
+            }
+            if (headerRef) {
+                headerRef.innerHTML = data.header;
+            }
         }, [data.header, widget.data.noHeader, headerRef]);
 
         useImperativeHandle(baseRef, () => ({
@@ -206,7 +232,7 @@ const CollectionBase = forwardRef(
                                 textAlign: 'center',
                             }}
                         >
-                            {oid ? `${oid} has an invalid type!` : 'Please select an object ID'}
+                            {oid ? `${oid} has an invalid type!` : 'Please select a valid object ID'}
                         </Typography>
                     </Box>
                 )}
@@ -215,4 +241,5 @@ const CollectionBase = forwardRef(
     },
 );
 
+CollectionBase.displayName = 'CollectionBase';
 export default CollectionBase;

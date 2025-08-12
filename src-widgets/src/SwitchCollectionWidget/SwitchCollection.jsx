@@ -9,11 +9,16 @@ import MaterialUISwitch from './MaterialUISwitch';
 
 function SwitchCollection() {
     const ref = useRef(null);
-    const { oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { data } = useData('oid');
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean';
 

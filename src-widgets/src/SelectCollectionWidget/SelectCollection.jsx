@@ -14,13 +14,21 @@ const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAA
 function SelectCollection() {
     const contentRef = useRef(null);
     const { width } = useElementDimensions(contentRef?.current);
-    const { cidObject, oidObject, widget } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { cidObject },
+        },
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+    } = useContext(CollectionContext);
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, states } = useData('oid');
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
     const { setValueState: setCidValueState } = useValueState('cid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
 
@@ -29,7 +37,7 @@ function SelectCollection() {
     const changeHandler = event => {
         const value = event.target.value.value;
 
-        if (!cidObject.noObject) {
+        if (cidObject) {
             setCidValueState(value);
         }
 
@@ -224,7 +232,7 @@ function SelectCollection() {
                                                 (widget.data[`alias${idx + 1}`] &&
                                                     widget.data[`alias${idx + 1}`].replace(/(\r\n|\n|\r)/gm, '')) ||
                                                 (widget.data[`value${idx + 1}`] &&
-                                                    `${widget.data[`value${idx + 1}`]}${widget.data.unit}`) ||
+                                                    `${widget.data[`value${idx + 1}`]}${oidObject?.unit}`) ||
                                                 '',
                                         }}
                                     />

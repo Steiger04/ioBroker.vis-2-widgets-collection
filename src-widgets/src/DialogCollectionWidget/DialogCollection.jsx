@@ -21,12 +21,19 @@ function DialogCollection() {
     const [open, setOpen] = useState(false);
     const hideTimeout = useRef(null);
     const [contentRef, setContentRef] = useState(null);
-    const { oidObject, widget, getWidgetView, setValue } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { oidObject },
+        },
+        widget,
+        getWidgetView,
+        setValue,
+    } = useContext(CollectionContext);
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, oidValue } = useData('oid');
 
     const oid = oidObject?._id;
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean' || !widget.data.oid || widget.data.oid === 'nothing_selected';
 
@@ -70,7 +77,7 @@ function DialogCollection() {
         setOpen(false);
     }, [oid, setValue]);
 
-    useHtmlValue(contentRef, '', widget, data);
+    useHtmlValue(contentRef, '', oidObject?.unit, data);
 
     useEffect(() => {
         if (oidValue === undefined || oidValue === null) {

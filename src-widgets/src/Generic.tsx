@@ -5,17 +5,17 @@ const VALUE_NOT_CHANGED_TIMESTAMP = 1111111111111;
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
-type ExtendedObject = ioBroker.Object & {
+/* type ExtendedObject = ioBroker.Object & {
     noObject: boolean;
 };
 
 export interface CollectionGenericState extends VisRxWidgetState {
     [key: `${string}Object`]: ExtendedObject | null;
-}
+} */
 
 class Generic<
     RxData extends Record<string, any>,
-    State extends Partial<CollectionGenericState> = CollectionGenericState,
+    State extends Partial<VisRxWidgetState> = VisRxWidgetState,
 > extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
     protected wrappedCollectionContent = true;
 
@@ -95,7 +95,9 @@ class Generic<
         return src || null;
     } */
 
-    async createStateObjectAsync(stateName: string): Promise<void> {
+    /* async createStateObjectAsync(stateName: string): Promise<void> {
+        console.log(`StateCollectionWidget.createStateObjectAsync() called for ${stateName}`);
+
         if (!this.state.rxData[stateName] || this.state.rxData[stateName] === 'nothing_selected') {
             this.setState({
                 [`${stateName}Object`]: {
@@ -137,9 +139,9 @@ class Generic<
         } else {
             object = {
                 _id: object._id,
-                type: 'state',
+                type: object.common.type,
                 common: object.common as ioBroker.StateCommon,
-                native: object.native,
+                native: object.native || {},
                 noObject: false,
             };
         }
@@ -170,7 +172,7 @@ class Generic<
         if (JSON.stringify(this.state[`${stateName}Object`]) !== JSON.stringify(object)) {
             this.setState({ [`${stateName}Object`]: object } as any);
         }
-    }
+    } */
 
     wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {
         return (

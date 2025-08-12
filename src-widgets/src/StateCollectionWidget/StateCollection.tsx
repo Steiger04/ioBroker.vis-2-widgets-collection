@@ -9,25 +9,35 @@ import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 
-function StateCollection() {
-    const [contentRef, setContentRef] = useState(null);
-    const { widget, oidObject } = useContext(CollectionContext);
+function StateCollection(): React.ReactElement {
+    // const contentRef = useRef<HTMLDivElement>(null);
+    // const [setContentRef] = useState<HTMLSpanElement | null>(null);
+    const {
+        widget,
+        widget: {
+            data: { oidObject },
+        },
+    } = useContext(CollectionContext);
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, widgetStates } = useData('oid');
     const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
+    // const oidType = widget.data.oidType;
 
     const onlyStates = widget.data.onlyStates;
 
-    const downHandler = () => {
+    const htmlValue = useHtmlValue(oidValue, widget, data);
+    const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
+
+    const downHandler = (): void => {
         if (onlyStates && Number(widget.data.values_count) === 2 && widget.data.statePushButton) {
             setTimeout(() => setOidValueState(widget.data.value1), 0);
         }
     };
 
-    const upHandler = () => {
+    const upHandler = (): void => {
         if (onlyStates && Number(widget.data.values_count) === 2 && widget.data.statePushButton) {
             setTimeout(() => setOidValueState(widget.data.value2), 0);
         }
@@ -110,7 +120,7 @@ function StateCollection() {
                     >
                         <Avatar
                             variant="square"
-                            src={data.iconActive || data.icon}
+                            src={data.iconActive || data.icon || undefined}
                             imgProps={{
                                 style: {
                                     objectFit: 'contain',
@@ -134,13 +144,13 @@ function StateCollection() {
                                 bgcolor: 'transparent',
                                 color: data.iconColorActive || data.iconColor,
                                 filter:
-                                    (data.iconActive || data.icon) &&
-                                    (data.iconColorActive || data.iconColor) &&
-                                    'drop-shadow(0px 10000px 0)',
+                                    (data.iconActive || data.icon) && (data.iconColorActive || data.iconColor)
+                                        ? 'drop-shadow(0px 10000px 0)'
+                                        : undefined,
                                 transform:
-                                    (data.iconActive || data.icon) &&
-                                    (data.iconColorActive || data.iconColor) &&
-                                    'translateY(-10000px)',
+                                    (data.iconActive || data.icon) && (data.iconColorActive || data.iconColor)
+                                        ? 'translateY(-10000px)'
+                                        : undefined,
                             }}
                         />
                     </Box>
@@ -159,7 +169,8 @@ function StateCollection() {
                         }}
                     >
                         <Typography
-                            ref={setContentRef}
+                            // ref={contentRef}
+                            // ref={ref => setContentRef(ref)}
                             variant="body2"
                             sx={{
                                 ...fontStyles,
@@ -169,14 +180,15 @@ function StateCollection() {
                                 color: data.textColorActive || data.textColor,
                                 textTransform: 'none',
                             }}
+                            dangerouslySetInnerHTML={{
+                                __html: contentValue,
+                            }}
                         />
                     </Box>
                 )}
             </Box>
         </Button>
     );
-
-    useHtmlValue(contentRef, oidValue, widget, data);
 
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
 

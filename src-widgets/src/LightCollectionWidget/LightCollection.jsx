@@ -11,13 +11,18 @@ import LightPickerCollectionBase from './LightPickerCollectionBase';
 function LightCollection() {
     const { widget } = useContext(CollectionContext);
     const [open, setOpen] = useState(false);
-    const { colorLightSwitchOidObject, values } = useContext(CollectionContext);
+    // const { colorLightSwitchOidObject } = useContext(CollectionContext);
+    const {
+        widget: {
+            data: { colorLightSwitchOidObject },
+        },
+    } = useContext(CollectionContext);
     // ON/OFF
     const { value: onOffValue, setValueState: setOnOffValueState } = useValueState('colorLightSwitchOid');
 
     const { data } = useData('colorLightSwitchOid');
 
-    const oidType = colorLightSwitchOidObject?.common?.type;
+    const oidType = colorLightSwitchOidObject?.type;
 
     const isValidType = oidType === 'boolean';
 

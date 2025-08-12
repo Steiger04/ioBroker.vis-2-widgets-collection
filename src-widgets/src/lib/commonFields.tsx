@@ -1,7 +1,46 @@
 import CollectionDivider from '../components/CollectionDivider';
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
-const commonFields = settings => {
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+type Settings = {
+    groupName?: string;
+    allFields?: boolean;
+};
+
+export interface CommonFieldsRxData {
+    [key: `iconSmall${string}`]: string;
+    [key: `icon${string}?`]: string | number;
+    [key: `iconSize${string}`]: number;
+    [key: `iconColor${string}`]: string;
+    [key: `iconHover${string}`]: number;
+    [key: `iconXOffset${string}`]: string;
+    [key: `iconYOffset${string}`]: string;
+    [key: `noHeader${string}`]: boolean;
+    [key: `noHeaderIcon${string}`]: boolean;
+    [key: `header${string}`]: string | number;
+    [key: `headerSize${string}`]: number;
+    [key: `valueSize${string}`]: number;
+    [key: `noFooter${string}`]: boolean;
+    [key: `footer${string}`]: number | string;
+    [key: `footerSize${string}`]: number;
+    [key: `noCard${string}`]: boolean;
+    [key: `squaredCorner${string}`]: boolean;
+    [key: `textColor${string}`]: string;
+    [key: `outlined${string}`]: boolean;
+    [key: `outlinedFrame${string}`]: boolean;
+    [key: `basePadding${string}`]: number;
+    [key: `baseElevation${string}`]: number;
+    [key: `square${string}`]: boolean;
+    [key: `ellipse${string}`]: boolean;
+    [key: `circle${string}`]: boolean;
+    [key: `background${string}`]: string;
+    [key: `backgroundColor${string}`]: string;
+    [key: `frameBackground${string}`]: string;
+    [key: `frameBackgroundColor${string}`]: string;
+}
+
+const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true } = settings || {};
 
     const fields = [
@@ -73,7 +112,7 @@ const commonFields = settings => {
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="header" />,
-            hidden: data => data.noHeader && !allFields,
+            hidden: (data, _i) => data.noHeader && !allFields,
         },
         {
             name: `noHeader${groupName}`,
@@ -120,7 +159,7 @@ const commonFields = settings => {
             label: 'value',
             type: 'text',
             default: '',
-            hidden: data => data.oidType === 'boolean' || data.name === 'valueActive',
+            hidden: (data, _i) => data.oidObject.type === 'boolean' || data.name === 'valueActive',
         },
         {
             name: `valueSize${groupName}`,
@@ -135,7 +174,7 @@ const commonFields = settings => {
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="footer" />,
-            hidden: data => data.noFooter && !allFields,
+            hidden: (data, _i) => data.noFooter && !allFields,
         },
         {
             name: `noFooter${groupName}`,
@@ -259,7 +298,7 @@ const commonFields = settings => {
                 field, // field properties: {name, label, type, set, singleName, component,...}
                 data, // widget data
                 onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+                _props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
                 // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
                 // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
             ) => (
@@ -290,7 +329,7 @@ const commonFields = settings => {
                 field, // field properties: {name, label, type, set, singleName, component,...}
                 data, // widget data
                 onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+                _props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
                 // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
                 // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
             ) => (
@@ -306,12 +345,12 @@ const commonFields = settings => {
             label: 'frame_background_color',
             type: 'color',
         },
-    ];
+    ] as RxWidgetInfoAttributesField[];
 
     if (allFields) {
         const valuesToDelete = [`alias${groupName}`, `value${groupName}`];
 
-        return fields.filter(obj => !valuesToDelete.includes(obj.name));
+        return fields.filter(obj => !valuesToDelete.includes(obj.name!));
     }
 
     const valuesToDelete = [
@@ -331,7 +370,7 @@ const commonFields = settings => {
         `circle${groupName}`,
     ];
 
-    return fields.filter(obj => !valuesToDelete.includes(obj.name));
+    return fields.filter(obj => !valuesToDelete.includes(obj.name!));
 };
 
 export default commonFields;

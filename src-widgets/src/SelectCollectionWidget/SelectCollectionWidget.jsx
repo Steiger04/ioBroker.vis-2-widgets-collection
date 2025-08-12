@@ -19,7 +19,7 @@ class SelectCollectionWidget extends Generic {
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '', allFields: true })],
+                    fields: [...commonFields({ groupName: '' })],
                 },
                 {
                     name: 'select_collection', // group name
@@ -55,7 +55,7 @@ class SelectCollectionWidget extends Generic {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate() {
+    propertiesUpdate() {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -63,22 +63,20 @@ class SelectCollectionWidget extends Generic {
         //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
         // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
         //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-
         // console.log("inside propertiesUpdate", this.state.values);
-
-        const actualRxData = JSON.stringify(this.state.rxData);
+        /* const actualRxData = JSON.stringify(this.state.rxData);
         if (this.lastRxData === actualRxData) {
             return;
         }
         this.lastRxData = actualRxData;
 
         await this.createStateObjectAsync('oid');
-        await this.createStateObjectAsync('cid');
+        await this.createStateObjectAsync('cid'); */
     }
 
     // This function is called every time when rxData is changed
-    async onRxDataChanged(lastRxData) {
-        await this.propertiesUpdate();
+    onRxDataChanged() {
+        this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -89,10 +87,10 @@ class SelectCollectionWidget extends Generic {
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
     onStateUpdated(id, state) {}
 
-    async componentDidMount() {
+    componentDidMount() {
         super.componentDidMount();
         // Update data
-        await this.propertiesUpdate();
+        this.propertiesUpdate();
     }
 
     renderWidgetBody(props) {
@@ -109,7 +107,7 @@ class SelectCollectionWidget extends Generic {
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            oidObject: this.state.oidObject,
+            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
@@ -119,7 +117,7 @@ class SelectCollectionWidget extends Generic {
             theme: this.props.context.theme,
             wrappedContent: this.wrappedCollectionContent,
 
-            cidObject: this.state.cidObject,
+            // cidObject: this.state.cidObject,
         };
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {

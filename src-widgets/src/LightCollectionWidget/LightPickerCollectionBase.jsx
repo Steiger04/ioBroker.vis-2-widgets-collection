@@ -116,14 +116,18 @@ function LightPickerCollectionBase() {
         values,
         getPropertyValue,
         widget,
-        colorLightTemperatureOidObject,
-        colorLightRgbHexOidObject,
-        colorLightRedOidObject,
-        colorLightGreenOidObject,
-        colorLightBlueOidObject,
-        colorLightHueOidObject,
-        colorLightSaturationOidObject,
-        colorLightBrightnessOidObject,
+        widget: {
+            data: {
+                colorLightTemperatureOidObject,
+                colorLightRgbHexOidObject,
+                colorLightRedOidObject,
+                colorLightGreenOidObject,
+                colorLightBlueOidObject,
+                colorLightHueOidObject,
+                colorLightSaturationOidObject,
+                colorLightBrightnessOidObject,
+            },
+        },
     } = useContext(CollectionContext);
 
     const { data } = useData('');
@@ -207,13 +211,13 @@ function LightPickerCollectionBase() {
         color.blue = getPropertyValue('colorLightBlueOid') ?? 0;
         color.hue = getPropertyValue('colorLightHueOid') ?? 0;
 
-        const isHueSat = colorLightSaturationOidObject.common?.max === 254;
+        const isHueSat = colorLightSaturationOidObject?.max === 254;
         let sat = getPropertyValue('colorLightSaturationOid') ?? 0;
         if (isHueSat) sat = Math.round((sat / 254) * 100);
         else sat = Math.round(sat);
         color.saturation = sat;
 
-        const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+        const isHueVal = colorLightBrightnessOidObject?.max === 254;
         let val = getPropertyValue('colorLightBrightnessOid') ?? 0;
         if (isHueVal) val = Math.round((val / 254) * 100);
         else val = Math.round(val);
@@ -232,7 +236,7 @@ function LightPickerCollectionBase() {
             type = widget.data.colorLightType;
         }
 
-        const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+        const isHueVal = colorLightBrightnessOidObject?.max === 254;
         let val = Math.round(color.value);
         if (isHueVal) val = Math.round((color.value / 100) * 254);
 
@@ -246,35 +250,39 @@ function LightPickerCollectionBase() {
                     !colorLightBrightnessOidObject.noObject
                 )
                     setBrightnessValueState(val || 0);
-                else if (colorLightTemperatureOidObject && !colorLightTemperatureOidObject.noObject)
-                    setTemperatureValueState(Math.round(color.kelvin) || 2000);
+                // else if (colorLightTemperatureOidObject && !colorLightTemperatureOidObject.noObject)
+                else if (colorLightTemperatureOidObject) setTemperatureValueState(Math.round(color.kelvin) || 2000);
                 break;
 
             case 'rgb':
             case 'rgbcct':
-                if (colorLightRgbHexOidObject && !colorLightRgbHexOidObject.noObject)
-                    setRgbHexValueState(color.hexString || '#000000');
+                //if (colorLightRgbHexOidObject && !colorLightRgbHexOidObject.noObject)
+                if (colorLightRgbHexOidObject) setRgbHexValueState(color.hexString || '#000000');
 
                 break;
 
             case 'r/g/b':
             case 'r/g/b/cct':
-                if (colorLightRedOidObject && !colorLightRedOidObject.noObject) setRedValueState(color.red || 0);
+                // if (colorLightRedOidObject && !colorLightRedOidObject.noObject) setRedValueState(color.red || 0);
+                if (colorLightRedOidObject) setRedValueState(color.red || 0);
 
-                if (colorLightGreenOidObject && !colorLightGreenOidObject.noObject)
-                    setGreenValueState(color.green || 0);
+                // if (colorLightGreenOidObject && !colorLightGreenOidObject.noObject)
+                if (colorLightGreenOidObject) setGreenValueState(color.green || 0);
 
-                if (colorLightBlueOidObject && !colorLightBlueOidObject.noObject) setBlueValueState(color.blue || 0);
+                // if (colorLightBlueOidObject && !colorLightBlueOidObject.noObject) setBlueValueState(color.blue || 0);
+                if (colorLightBlueOidObject) setBlueValueState(color.blue || 0);
                 break;
 
             case 'h/s/v':
             case 'h/s/v/cct':
-                if (change.h && colorLightHueOidObject && !colorLightHueOidObject.noObject) {
+                // if (change.h && colorLightHueOidObject && !colorLightHueOidObject.noObject) {
+                if (change.h && colorLightHueOidObject) {
                     setHueValueState(Math.round(color.hue) || 0);
                 }
 
-                if (change.s && colorLightSaturationOidObject && !colorLightSaturationOidObject.noObject) {
-                    const isHueSat = colorLightSaturationOidObject.common?.max === 254;
+                // if (change.s && colorLightSaturationOidObject && !colorLightSaturationOidObject.noObject) {
+                if (change.s && colorLightSaturationOidObject) {
+                    const isHueSat = colorLightSaturationOidObject?.max === 254;
                     // console.log("isHueSat: ", isHueSat);
 
                     let sat = Math.round(color.saturation);
@@ -285,8 +293,9 @@ function LightPickerCollectionBase() {
                     setSaturationValueState(sat || 0);
                 }
 
-                if (change.v && colorLightBrightnessOidObject && !colorLightBrightnessOidObject.noObject) {
-                    const isHueVal = colorLightBrightnessOidObject.common?.max === 254;
+                // if (change.v && colorLightBrightnessOidObject && !colorLightBrightnessOidObject.noObject) {
+                if (change.v && colorLightBrightnessOidObject) {
+                    const isHueVal = colorLightBrightnessOidObject?.max === 254;
                     // console.log("isHueVal: ", isHueVal);
 
                     let val = Math.round(color.value);
@@ -352,12 +361,12 @@ function LightPickerCollectionBase() {
         const roundedHue = Math.round(hueValue);
 
         const roundedSaturation =
-            colorLightSaturationOidObject.common?.max === 254
+            colorLightSaturationOidObject?.max === 254
                 ? Math.round((saturationValue / 254) * 100)
                 : Math.round(saturationValue);
 
         const roundedBrightness =
-            colorLightBrightnessOidObject.common?.max === 254
+            colorLightBrightnessOidObject?.max === 254
                 ? Math.round((brightnessValue / 254) * 100)
                 : Math.round(brightnessValue);
 

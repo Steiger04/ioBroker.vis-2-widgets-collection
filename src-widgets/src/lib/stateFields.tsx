@@ -1,6 +1,16 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const stateFields = () => [
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+export interface StateFieldsRxData {
+    onlyStates: boolean;
+    statePushButton: boolean;
+    onlyDisplay: boolean;
+    noIcon: boolean;
+    noValue: boolean;
+}
+
+const stateFields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -17,7 +27,7 @@ const stateFields = () => [
         type: 'checkbox',
         label: 'state_push_button',
         default: false,
-        hidden: data => !data.onlyStates || Number(data.values_count) !== 2,
+        hidden: (data, _i) => !data.onlyStates || Number(data.values_count) !== 2,
         tooltip: 'state_push_button_tooltip',
     },
     {
@@ -29,9 +39,9 @@ const stateFields = () => [
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: data => !data.write,
+        disabled: (data, _i) => !data.write,
         default: false,
-        hidden: data => !data.write,
+        hidden: (data, _i) => !data.write,
     },
     {
         name: 'noIcon',
