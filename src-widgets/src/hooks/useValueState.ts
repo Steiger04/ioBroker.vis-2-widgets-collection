@@ -8,15 +8,14 @@ import useDebounce from './useDebounce';
  */
 interface UseValueStateReturn {
     value: string | number | boolean | undefined | null;
-    hasValueChanged: boolean;
-    setValueState: (value: string | number | boolean, onlyValues?: boolean) => void;
+    updateValue: (value: string | number | boolean, onlyValues?: boolean) => void;
 }
 
 /**
  * Hook für Wert-State Management mit Typkonvertierung und Debouncing
  *
  * @param idName Der Name der OID-Property
- * @returns Objekt mit value, hasValueChanged und setValueState
+ * @returns Objekt mit value und updateValue
  */
 const useValueState = (idName: string): UseValueStateReturn => {
     const {
@@ -27,19 +26,17 @@ const useValueState = (idName: string): UseValueStateReturn => {
         setState,
         widget,
         getPropertyValue,
-        hasPropertyValueChanged,
     } = useContext(CollectionContext);
 
     // const value = useOidValue(idName);
     const value = getPropertyValue(idName);
-    const hasValueChanged = hasPropertyValueChanged(idName);
 
     const debounce = useDebounce({
         oidObject,
         data: widget.data,
     }) as { next: (value: string | number | boolean) => void } | null;
 
-    const setValueState = useCallback(
+    const updateValue = useCallback(
         (value: string | number | boolean, onlyValues = false): void => {
             const _oid = oidObject?._id;
 
@@ -108,7 +105,10 @@ const useValueState = (idName: string): UseValueStateReturn => {
         [oidObject, setState, debounce],
     );
 
-    return { value, hasValueChanged, setValueState };
+    return {
+        value,
+        updateValue,
+    };
 };
 
 export default useValueState;

@@ -20,7 +20,7 @@ function StateCollection(): React.ReactElement {
     } = useContext(CollectionContext);
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, widgetStates } = useData('oid');
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
     const oidType = oidObject?.type;

@@ -83,7 +83,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         return typeof value === 'number' ? value : 0;
     });
 
-    const { setValueState: setOidValueState } = useValueState('oid');
+    const { updateValue: setOidValueState } = useValueState('oid');
 
     // Memoized OID-Objekt-Eigenschaften
     const oidObjectProps = useMemo(() => {
@@ -102,7 +102,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         };
     }, [oidObject]);
 
-    // Memoized Change Handler
+    // Memoized Change Handler (jetzt ohne eigenes Tracking)
     const changeHandler = useCallback(
         (value: string | number | boolean) => {
             setOidValueState(value);
@@ -120,15 +120,22 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         [changeHandler],
     );
 
-    // Memoized Close Handler
+    // Standard Close Handler (lässt Debounce-Observable weiterlaufen)
     const handleClose = useCallback(
         (event?: object, reason?: 'backdropClick' | 'escapeKeyDown') => {
+            // Kein Flush - Debounce-Observable läuft weiter und schreibt nach Ablauf der Verzögerung
             if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
                 closeHandler();
             }
         },
         [closeHandler],
     );
+
+    // Standard External Close Handler (lässt Debounce-Observable weiterlaufen)
+    const handleExternalClose = useCallback(() => {
+        // Kein Flush - Debounce-Observable läuft weiter und schreibt nach Ablauf der Verzögerung
+        closeHandler();
+    }, [closeHandler]);
 
     // Memoized List Item Click Handler
     const createListItemClickHandler = useCallback(
@@ -233,7 +240,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
             </DialogTitle>
             <IconButton
                 aria-label="close"
-                onClick={closeHandler}
+                onClick={handleExternalClose}
                 sx={theme => ({
                     position: 'absolute',
                     right: 8,
