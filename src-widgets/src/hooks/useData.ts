@@ -64,13 +64,13 @@ interface StyleData {
 
 interface UseDataReturn {
     states: StateItem[];
-    widgetStates: WidgetStates;
-    minValue: number | null;
-    maxValue: number | null;
     data: StyleData;
     activeIndex: number | undefined;
     setActiveIndex: (index: number | undefined) => void;
     oidValue: any;
+    minValue: number | null;
+    maxValue: number | null;
+    widgetStates: WidgetStates;
 }
 
 function useData(oid: string): UseDataReturn {
@@ -83,7 +83,7 @@ function useData(oid: string): UseDataReturn {
         },
         // [`${oid}Object`]: oidObject,
         getPropertyValue,
-    } = useContext(CollectionContext);
+    } = useContext(CollectionContext) as any;
 
     const oidObject = rxData[`${oid}Object`];
 

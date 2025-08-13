@@ -43,7 +43,7 @@ const useHtmlValue = (
             oidValue !== null &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
-            const unit = widget?.data?.unit;
+            const unit = (widget?.data as any)?.unit;
             const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;
@@ -52,7 +52,7 @@ const useHtmlValue = (
         // Fallback: undefined wenn nichts verfügbar
 
         return undefined;
-    }, [oidValue, widget?.data?.unit, data]);
+    }, [oidValue, widget?.data, data]);
 
     return contentValue;
 };

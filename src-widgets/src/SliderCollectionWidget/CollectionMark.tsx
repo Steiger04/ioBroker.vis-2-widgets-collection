@@ -1,9 +1,30 @@
-import { SliderMarkLabel } from '@mui/material';
-import { Box } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import { SliderMarkLabel, Box } from '@mui/material';
+import React, { useState, useEffect, type FC } from 'react';
 
-const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
-    const [ref, setRef] = useState(null);
+interface MarkData {
+    label: string;
+    fontSize: string | null;
+    textColor?: string;
+    icon: string | null;
+    iconWidth: number;
+    iconHeight: number;
+    iconXOffset: string;
+    iconYOffset: string;
+    iconColor: string | null;
+}
+
+interface CollectionMarkProps {
+    marks: boolean;
+    sliderOrientation: 'horizontal' | 'vertical';
+    'data-index': number;
+    ownerState: {
+        marks: MarkData[];
+    };
+    [key: string]: any;
+}
+
+const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...props }) => {
+    const [ref, setRef] = useState<HTMLElement | null>(null);
 
     const index = props['data-index'];
     const mark = props.ownerState.marks[index];
@@ -11,12 +32,12 @@ const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
     // console.log("props.ownerState.marks", props.ownerState.marks);
 
     useEffect(() => {
-        if (ref) {
+        if (ref && mark?.label) {
             ref.innerHTML = mark.label;
         }
-    }, [mark.label, ref]);
+    }, [mark?.label, ref]);
 
-    return marks ? (
+    return marks && mark ? (
         <SliderMarkLabel
             style={{
                 color: 'red',
@@ -67,9 +88,9 @@ const CollectionMark = ({ marks, sliderOrientation, ...props }) => {
                             width: `${(24 * mark.iconWidth) / 100}px`,
                             height: `${(24 * mark.iconHeight) / 100}px`,
 
-                            color: mark.iconColor || null,
-                            filter: mark.iconColor ? 'drop-shadow(0px 10000px 0)' : null,
-                            transform: mark.iconColor ? 'translateY(-10000px)' : null,
+                            color: mark.iconColor || undefined,
+                            filter: mark.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
+                            transform: mark.iconColor ? 'translateY(-10000px)' : undefined,
                         }}
                     />
                 </Box>

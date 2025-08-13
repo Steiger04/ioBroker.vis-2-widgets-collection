@@ -1,22 +1,28 @@
 import { Box, Slider } from '@mui/material';
-import React, { useState, useMemo, useContext, useEffect } from 'react';
+import React, { useState, useMemo, useContext, useEffect, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
-import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 
-function SliderCollection() {
+import type { SliderCollectionContextProps } from 'src';
+
+interface SliderMark {
+    value: number;
+    label: string;
+}
+
+const SliderCollection: FC = () => {
     const {
         widget: {
             data: { oidObject },
         },
         widget,
-    } = useContext(CollectionContext);
+    } = useContext(CollectionContext) as SliderCollectionContextProps;
     const { data, states, minValue, maxValue } = useData('oid');
-    const [sliderMarksIndex, setSliderMarksIndex] = useState(null);
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
     const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
@@ -35,8 +41,8 @@ function SliderCollection() {
         [widget.data.onlyStates, widget.data.maxValue, maxValue],
     );
 
-    const sliderMarks = useMemo(() => {
-        const _sliderMarks = JSON.parse(JSON.stringify(states));
+    const sliderMarks = useMemo((): SliderMark[] => {
+        const _sliderMarks = JSON.parse(JSON.stringify(states)) as SliderMark[];
 
         if (widget.data.onlyStates) {
             return _sliderMarks.sort((a, b) => a.value - b.value);
@@ -45,28 +51,30 @@ function SliderCollection() {
         const minValue = sliderMinValue;
         const maxValue = sliderMaxValue;
 
-        if (_sliderMarks && !_sliderMarks.some(state => state.value === minValue)) {
+        if (_sliderMarks && minValue !== null && !_sliderMarks.some(state => state.value === minValue)) {
             _sliderMarks.push({
                 value: minValue,
-                label: `${minValue}${oidObject?.unit}`,
+                label: `${minValue}${oidObject?.unit || ''}`,
             });
         }
 
-        if (_sliderMarks && !_sliderMarks.some(state => state.value === maxValue)) {
+        if (_sliderMarks && maxValue !== null && !_sliderMarks.some(state => state.value === maxValue)) {
             _sliderMarks.push({
                 value: maxValue,
-                label: `${maxValue}${oidObject?.unit}`,
+                label: `${maxValue}${oidObject?.unit || ''}`,
             });
         }
 
         // Add step divisions
         const step = Number(widget.data.markStep) || 1;
-        for (let i = minValue + step; i < maxValue; i += step) {
-            if (!_sliderMarks.some(state => state.value === i)) {
-                _sliderMarks.push({
-                    value: i,
-                    label: `${i}${oidObject?.unit}`,
-                });
+        if (minValue !== null && maxValue !== null) {
+            for (let i = minValue + step; i < maxValue; i += step) {
+                if (!_sliderMarks.some(state => state.value === i)) {
+                    _sliderMarks.push({
+                        value: i,
+                        label: `${i}${oidObject?.unit || ''}`,
+                    });
+                }
             }
         }
 
@@ -74,10 +82,12 @@ function SliderCollection() {
         _sliderMarks.sort((a, b) => a.value - b.value);
 
         return _sliderMarks;
-    }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject.unit, widget.data.onlyStates]);
+    }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject?.unit, widget.data.onlyStates]);
 
     useEffect(() => {
-        if (oidValue === undefined) return;
+        if (oidValue === undefined) {
+            return;
+        }
 
         const index = sliderMarks.findIndex(mark => String(mark.value) === String(oidValue));
 
@@ -86,49 +96,35 @@ function SliderCollection() {
         }
     }, [oidValue, sliderMarks]);
 
+    if (!isValidType) {
+        return <CollectionBase data={data}>{null}</CollectionBase>;
+    }
+
     return (
-        <CollectionBase
-            isValidType={isValidType}
-            data={data}
-            oidValue={oidValue}
-        >
-            <CollectionBaseImage
-                data={data}
-                widget={widget}
-            />
+        <CollectionBase data={data}>
             <Box
                 sx={{
-                    width: '100%',
-                    height: '100%',
-
-                    p: 1,
-
                     display: 'flex',
                     flexDirection: widget.data.sliderOrientation === 'horizontal' ? 'row' : 'column',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
                     alignItems: 'center',
+                    width: '100%',
+                    height: '100%',
+                    p: 1,
                 }}
             >
                 <Box
                     sx={{
-                        position: 'relative',
-                        bottom:
-                            widget.data.sliderOrientation === 'horizontal' &&
-                            (widget.data.onlyStates || widget.data.marks)
-                                ? '10px'
-                                : '0px',
-
-                        right:
-                            widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.onlyStates || widget.data.marks)
-                                ? '22px'
-                                : '0px',
-
-                        p: 1,
-
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
+                        bottom:
+                            widget.data.sliderOrientation === 'horizontal'
+                                ? widget.data.iconYStartOffset || '0px'
+                                : null,
+                        right:
+                            widget.data.sliderOrientation === 'vertical' ? widget.data.iconXStartOffset || '0px' : null,
+                        p: 1,
                     }}
                 >
                     {((widget.data.sliderOrientation === 'horizontal' &&
@@ -160,12 +156,11 @@ function SliderCollection() {
                 </Box>
                 <Box
                     sx={{
-                        p: 1,
-
                         display: 'flex',
                         flexGrow: 1,
                         justifyContent: 'center',
                         alignItems: 'center',
+                        p: 1,
                     }}
                 >
                     {typeof oidValue === 'number' && (
@@ -177,33 +172,30 @@ function SliderCollection() {
                                 markLabel: {
                                     marks: widget.data.marks,
                                     sliderOrientation: widget.data.sliderOrientation,
-                                },
+                                } as any,
                             }}
                             disabled={oidType !== 'number'}
                             valueLabelDisplay={widget.data.valueLabelDisplay}
                             orientation={widget.data.sliderOrientation}
-                            min={sliderMinValue}
-                            max={sliderMaxValue}
+                            min={sliderMinValue ?? undefined}
+                            max={sliderMaxValue ?? undefined}
                             marks={sliderMarks}
-                            step={!widget.data.onlyStates ? widget.data.step : null}
+                            step={!widget.data.onlyStates ? widget.data.step : undefined}
                             size={widget.data.sliderSize}
                             value={oidValue}
-                            onChange={(_, value) => setOidValueState(value)}
+                            onChange={(_, value) => {
+                                if (typeof value === 'number') {
+                                    setOidValueState(value);
+                                }
+                            }}
                             sx={{
                                 mb:
                                     widget.data.marks && widget.data.sliderOrientation === 'horizontal'
                                         ? '20px'
                                         : '0px',
-
                                 mr: widget.data.marks && widget.data.sliderOrientation === 'vertical' ? '44px' : '0px',
-                                /* "&.MuiSlider-root": {
-								color: data.textColor,
-							}, */
                                 '& .MuiSlider-thumb': {
-                                    color:
-                                        /* data.textColorActive ||
-									widget.data.markerTextColor || */
-                                        widget.data.sliderColor,
+                                    color: widget.data.sliderColor,
                                 },
                                 '& .MuiSlider-rail': {
                                     color: widget.data.sliderColor || 'primary.main',
@@ -229,9 +221,11 @@ function SliderCollection() {
                                     top:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.labelPosition
-                                            : null,
+                                            : undefined,
                                     right:
-                                        widget.data.sliderOrientation === 'vertical' ? widget.data.labelPosition : null,
+                                        widget.data.sliderOrientation === 'vertical'
+                                            ? widget.data.labelPosition
+                                            : undefined,
                                 },
                                 '& .MuiSlider-markLabel': {
                                     fontSize:
@@ -239,85 +233,83 @@ function SliderCollection() {
                                             `${widget.data.markerTextSize}%`) ||
                                         data.valueSize ||
                                         '1em',
-
                                     color: widget.data.markerTextColor || data.textColor,
-
                                     top:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.markPosition
-                                            : null,
+                                            : undefined,
                                     left:
-                                        widget.data.sliderOrientation === 'vertical' ? widget.data.markPosition : null,
+                                        widget.data.sliderOrientation === 'vertical'
+                                            ? widget.data.markPosition
+                                            : undefined,
                                 },
                                 '& .MuiSlider-markLabelActive': {
                                     [`&[data-index='${sliderMarksIndex}']`]: {
                                         "& div[data-font='active']": {
-                                            color: `${widget.data.textColorActive} !important`,
-
+                                            color: widget.data.textColorActive
+                                                ? `${widget.data.textColorActive} !important`
+                                                : undefined,
                                             fontSize:
-                                                typeof widget.data.valueSizeActive === 'number' &&
-                                                `${widget.data.valueSizeActive}% !important`,
+                                                typeof widget.data.valueSizeActive === 'number'
+                                                    ? `${widget.data.valueSizeActive}% !important`
+                                                    : undefined,
                                         },
                                         "& div[data-position='active']": {
                                             left:
-                                                (!!widget.data.iconXOffsetActive &&
-                                                    widget.data.iconXOffsetActive !== '0px' &&
-                                                    `${widget.data.iconXOffsetActive} !important`) ||
-                                                '0px',
-
+                                                widget.data.iconXOffsetActive && widget.data.iconXOffsetActive !== '0px'
+                                                    ? `${widget.data.iconXOffsetActive} !important`
+                                                    : '0px',
                                             bottom:
-                                                (!!widget.data.iconYOffsetActive &&
-                                                    widget.data.iconYOffsetActive !== '0px' &&
-                                                    `${widget.data.iconYOffsetActive} !important`) ||
-                                                '0px !important',
+                                                widget.data.iconYOffsetActive && widget.data.iconYOffsetActive !== '0px'
+                                                    ? `${widget.data.iconYOffsetActive} !important`
+                                                    : '0px !important',
                                         },
-
                                         "& img[data-img='active']": {
-                                            width: `${
+                                            width:
                                                 typeof widget.data.iconSizeActive === 'number'
                                                     ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                    : '24px !important'
-                                            }`,
-                                            height: `${
+                                                    : '24px !important',
+                                            height:
                                                 typeof widget.data.iconSizeActive === 'number'
                                                     ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                    : '24px !important'
-                                            }`,
-
-                                            color:
-                                                widget.data.iconColorActive &&
-                                                `${widget.data.iconColorActive}!important`,
-                                            filter: widget.data.iconColorActive && 'drop-shadow(0px 10000px 0)',
-                                            transform: widget.data.iconColorActive && 'translateY(-10000px)',
-
-                                            // -----------------------------
+                                                    : '24px !important',
+                                            color: widget.data.iconColorActive
+                                                ? `${widget.data.iconColorActive}!important`
+                                                : undefined,
+                                            filter: widget.data.iconColorActive
+                                                ? 'drop-shadow(0px 10000px 0)'
+                                                : undefined,
+                                            transform: widget.data.iconColorActive ? 'translateY(-10000px)' : undefined,
                                             pl:
-                                                (!!widget.data.iconActive || !!widget.data.iconSmallActive) &&
-                                                `${
-                                                    typeof widget.data.iconSizeActive === 'number'
+                                                widget.data.iconActive || widget.data.iconSmallActive
+                                                    ? typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
                                                         : '24px'
-                                                }`,
+                                                    : undefined,
                                             display:
-                                                (!!widget.data.iconActive || !!widget.data.iconSmallActive) && 'block',
+                                                widget.data.iconActive || widget.data.iconSmallActive
+                                                    ? 'block'
+                                                    : undefined,
                                             boxSizing:
-                                                (!!widget.data.iconActive || !!widget.data.iconSmallActive) &&
-                                                'border-box',
+                                                widget.data.iconActive || widget.data.iconSmallActive
+                                                    ? 'border-box'
+                                                    : undefined,
                                             background:
-                                                (!!widget.data.iconActive || !!widget.data.iconSmallActive) &&
-                                                `url('${widget.data.iconSmallActive || widget.data.iconActive}') no-repeat center center`,
+                                                widget.data.iconActive || widget.data.iconSmallActive
+                                                    ? `url('${widget.data.iconSmallActive || widget.data.iconActive}') no-repeat center center`
+                                                    : undefined,
                                             backgroundSize:
-                                                (!!widget.data.iconActive || !!widget.data.iconSmallActive) &&
-                                                `${
-                                                    typeof widget.data.iconSizeActive === 'number'
-                                                        ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                        : '24px'
-                                                } ${
-                                                    typeof widget.data.iconSizeActive === 'number'
-                                                        ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                        : '24px'
-                                                }`,
-                                            // -----------------------------
+                                                widget.data.iconActive || widget.data.iconSmallActive
+                                                    ? `${
+                                                          typeof widget.data.iconSizeActive === 'number'
+                                                              ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                                              : '24px'
+                                                      } ${
+                                                          typeof widget.data.iconSizeActive === 'number'
+                                                              ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                                              : '24px'
+                                                      }`
+                                                    : undefined,
                                         },
                                     },
                                 },
@@ -327,24 +319,18 @@ function SliderCollection() {
                 </Box>
                 <Box
                     sx={{
-                        position: 'relative',
-                        bottom:
-                            widget.data.sliderOrientation === 'horizontal' &&
-                            (widget.data.onlyStates || widget.data.marks)
-                                ? '10px'
-                                : '0px',
-
-                        right:
-                            widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.onlyStates || widget.data.marks)
-                                ? '22px'
-                                : '0px',
-
-                        p: 1,
-
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
+                        bottom:
+                            widget.data.sliderOrientation === 'horizontal'
+                                ? widget.data.iconYEndOffset || '0px'
+                                : undefined,
+                        left:
+                            widget.data.sliderOrientation === 'vertical'
+                                ? widget.data.iconXEndOffset || '0px'
+                                : undefined,
+                        p: 1,
                     }}
                 >
                     {((widget.data.sliderOrientation === 'horizontal' &&
@@ -377,6 +363,6 @@ function SliderCollection() {
             </Box>
         </CollectionBase>
     );
-}
+};
 
 export default SliderCollection;
