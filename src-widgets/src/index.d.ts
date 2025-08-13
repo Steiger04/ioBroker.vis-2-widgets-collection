@@ -11,6 +11,7 @@ import type { CommonObjectFieldsRxData } from './lib/commonObjectFields';
 import type { CommonFieldsRxData } from './lib/commonFields';
 import type { DelayFieldsRxData } from './lib/delayFields';
 import type { CheckboxFieldsRxData } from './lib/checkboxFields';
+import type { SwitchFieldsRxData } from './lib/switchFields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
@@ -39,4 +40,7 @@ export type StateCollectionContextProps = CollectionContextProps<
 >;
 export type CheckboxCollectionContextProps = CollectionContextProps<
     CheckboxFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;
+export type SwitchCollectionContextProps = CollectionContextProps<
+    SwitchFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;
