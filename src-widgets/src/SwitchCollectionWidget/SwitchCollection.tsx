@@ -17,11 +17,16 @@ function SwitchCollection(): React.JSX.Element {
     const oidObject = (widget.data as any).oidObject;
 
     const { data } = useData('oid');
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean';
+
+    // Handler für Switch-Änderungen mit Debouncing
+    const handleSwitchChange = (): void => {
+        updateValue(!oidValue);
+    };
 
     return (
         <CollectionBase
@@ -62,7 +67,7 @@ function SwitchCollection(): React.JSX.Element {
                             data={data}
                             widget={widget}
                             checked={Boolean(oidValue)}
-                            onChange={() => setOidValueState(!oidValue)}
+                            onChange={handleSwitchChange}
                             sx={{
                                 '& .MuiTouchRipple-root': {
                                     color:

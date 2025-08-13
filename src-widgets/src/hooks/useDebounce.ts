@@ -10,6 +10,8 @@ interface ObservableEntry {
     subject: Subject<string | number | boolean>;
     subscription: Subscription | null;
     lastValue: string | number | boolean | null;
+    lastSampleInterval?: boolean;
+    lastDelay?: number;
 }
 
 /**
@@ -28,24 +30,37 @@ class GlobalDebounceStore {
     }
 
     getOrCreateObservable(
-        oid: string,
+        observableKey: string,
         setValue: (id: string, value: string | number | boolean) => void,
         sampleInterval: boolean,
         delay: number,
     ): ObservableEntry {
-        if (!this.observables.has(oid)) {
+        if (!this.observables.has(observableKey)) {
             const subject = new Subject<string | number | boolean>();
-            this.observables.set(oid, {
+            this.observables.set(observableKey, {
                 subject,
                 subscription: null,
                 lastValue: null,
+                lastSampleInterval: undefined,
+                lastDelay: undefined,
             });
         }
 
-        const observable = this.observables.get(oid)!;
+        const observable = this.observables.get(observableKey)!;
 
-        // Erstelle neue Subscription falls noch keine existiert oder Parameter geändert wurden
-        if (!observable.subscription) {
+        // Prüfe ob Parameter geändert wurden und erstelle neue Subscription
+        const needsNewSubscription =
+            !observable.subscription ||
+            observable.lastSampleInterval !== sampleInterval ||
+            observable.lastDelay !== delay;
+
+        if (needsNewSubscription) {
+            // Alte Subscription entfernen falls vorhanden
+            if (observable.subscription) {
+                observable.subscription.unsubscribe();
+            }
+
+            // Neue Subscription erstellen
             observable.subscription = observable.subject
                 .pipe(
                     sampleInterval
@@ -53,17 +68,25 @@ class GlobalDebounceStore {
                         : debounceTime(delay),
                 )
                 .subscribe((value: string | number | boolean) => {
-                    console.log(`GlobalDebounce -> Writing value ${value} to ${oid} after ${delay}ms delay`);
+                    // Extrahiere OID aus dem observableKey (Format: "oid::widgetId")
+                    const oid = observableKey.split('::')[0];
+                    console.log(
+                        `GlobalDebounce -> Writing value ${value} to ${oid} after ${delay}ms delay (widget: ${observableKey.split('::')[1]})`,
+                    );
                     setValue(oid, value);
                     observable.lastValue = null; // Reset nach erfolgreichem Schreibvorgang
                 });
+
+            // Parameter für nächste Vergleiche speichern
+            observable.lastSampleInterval = sampleInterval;
+            observable.lastDelay = delay;
         }
 
         return observable;
     }
 
-    cleanup(oid: string): void {
-        const observable = this.observables.get(oid);
+    cleanup(observableKey: string): void {
+        const observable = this.observables.get(observableKey);
         if (observable?.subscription) {
             observable.subscription.unsubscribe();
             observable.subscription = null;
@@ -71,8 +94,8 @@ class GlobalDebounceStore {
         // Wichtig: Observable nicht löschen, damit Timer weiterlaufen können
     }
 
-    next(oid: string, value: string | number | boolean): void {
-        const observable = this.observables.get(oid);
+    next(observableKey: string, value: string | number | boolean): void {
+        const observable = this.observables.get(observableKey);
         if (observable) {
             observable.lastValue = value;
             observable.subject.next(value);
@@ -112,7 +135,7 @@ function useDebounce({
     oidObject,
     data: { sampleInterval, sampleIntervalValue, delay },
 }: UseDebounceParams): UseDebounceReturn | null {
-    const { setValue } = useContext(CollectionContext);
+    const { setValue, id: widgetId } = useContext(CollectionContext);
     const storeRef = useRef(GlobalDebounceStore.getInstance());
 
     // Memoization der Delay-Berechnung für bessere Performance
@@ -123,34 +146,36 @@ function useDebounce({
     }, [sampleInterval, sampleIntervalValue, delay]);
 
     const oid = oidObject?._id;
+    // Eindeutiger Schlüssel: oid + widgetId für widget-spezifische Debounce-Settings
+    const observableKey = oid ? `${oid}::${widgetId}` : null;
 
     useEffect(() => {
-        if (!oid) {
+        if (!observableKey) {
             return;
         }
 
         // Erstelle oder hole persistentes Observable aus dem globalen Store
-        storeRef.current.getOrCreateObservable(oid, setValue, Boolean(sampleInterval), _delay);
+        storeRef.current.getOrCreateObservable(observableKey, setValue, Boolean(sampleInterval), _delay);
 
         // Cleanup: Observable läuft weiter - kein Cleanup nötig
         return () => {
             // Bewusst leer - Observable soll weiterlaufen für persistente Debounce-Timer
         };
-    }, [oid, setValue, sampleInterval, _delay]);
+    }, [observableKey, setValue, sampleInterval, _delay]);
 
     // Next-Funktion nutzt globalen Store
     const next = useMemo(() => {
         return (value: string | number | boolean) => {
-            if (oid) {
-                storeRef.current.next(oid, value);
+            if (observableKey) {
+                storeRef.current.next(observableKey, value);
             }
         };
-    }, [oid]);
+    }, [observableKey]);
 
     // Memoization des Return-Werts
     return useMemo(() => {
-        return oid ? { next } : null;
-    }, [oid, next]);
+        return observableKey ? { next } : null;
+    }, [observableKey, next]);
 }
 
 export default useDebounce;
