@@ -8,16 +8,15 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { StateCollectionContextProps } from 'src';
 
 function StateCollection(): React.ReactElement {
     // const contentRef = useRef<HTMLDivElement>(null);
     // const [setContentRef] = useState<HTMLSpanElement | null>(null);
-    const {
-        widget,
-        widget: {
-            data: { oidObject },
-        },
-    } = useContext(CollectionContext);
+    // StateCollection wird nur im StateCollectionWidget verwendet, daher ist der Cast sicher
+    const context = useContext(CollectionContext) as StateCollectionContextProps;
+    const { widget } = context;
+    const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, widgetStates } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
@@ -169,19 +168,36 @@ function StateCollection(): React.ReactElement {
                         }}
                     >
                         <Typography
-                            // ref={contentRef}
-                            // ref={ref => setContentRef(ref)}
+                            component={Box}
                             variant="body2"
                             sx={{
                                 ...fontStyles,
                                 ...textStyles,
                                 fontSize: data.valueSizeActive || data.valueSize,
+                                textAlign: 'center', // Für HTML-Inhalt mit Tags
                                 bgcolor: 'transparent',
                                 color: data.textColorActive || data.textColor,
                                 textTransform: 'none',
+                                px: 1,
+                                pl: 0,
+                                pr: 1,
+                                width: '100%',
+                                height: '100%',
+                                flexGrow: 1,
+                                display: 'flex',
+                                alignItems: 'center', // Vertikale Zentrierung
+                                justifyContent: 'center', // Horizontale Zentrierung des Textblocks
+                                overflowWrap: 'break-word', // Moderne CSS-Eigenschaft für Wortumbruch
+                                wordBreak: 'break-word', // Zusätzlicher Schutz für lange Wörter
+                                whiteSpace: 'normal', // Erlaubt Zeilenumbrüche
+                                hyphens: 'auto', // Automatische Silbentrennung wenn unterstützt
+                                '& > div': {
+                                    textAlign: 'left', // Linksbündige Zeilen bei Umbrüchen im HTML
+                                    display: 'inline-block',
+                                },
                             }}
                             dangerouslySetInnerHTML={{
-                                __html: contentValue,
+                                __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
                             }}
                         />
                     </Box>

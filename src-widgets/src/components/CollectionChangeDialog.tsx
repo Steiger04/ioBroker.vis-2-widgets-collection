@@ -69,13 +69,11 @@ interface CollectionChangeDialogProps {
  * @returns React-Komponente für Wert-Änderung
  */
 const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates, data, open, closeHandler }) => {
-    const {
-        widget,
-        widget: {
-            data: { oidObject },
-        },
-        getPropertyValue,
-    } = useContext(CollectionContext);
+    const { widget, getPropertyValue } = useContext(CollectionContext);
+
+    // Sicherer Zugriff auf optionale Properties
+    const oidObject = (widget.data as any).oidObject;
+    const onlyStates = (widget.data as any).onlyStates;
 
     // State für Slider-Wert
     const [sliderValue, setSliderValue] = useState<number>(() => {
@@ -151,7 +149,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         const { oidType, commonStates, minValue, maxValue } = oidObjectProps;
 
         const shouldShowSlider =
-            oidType === 'number' && !widget.data.onlyStates && minValue !== undefined && maxValue !== undefined;
+            oidType === 'number' && !onlyStates && minValue !== undefined && maxValue !== undefined;
 
         if (!shouldShowSlider) {
             return null;
@@ -178,7 +176,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                 onChange={handleSliderChange}
             />
         );
-    }, [oidObjectProps, widget.data.onlyStates, sliderValue, handleSliderChange]);
+    }, [oidObjectProps, onlyStates, sliderValue, handleSliderChange]);
 
     // Memoized List-Komponente
     const ChangeList = useMemo(() => {

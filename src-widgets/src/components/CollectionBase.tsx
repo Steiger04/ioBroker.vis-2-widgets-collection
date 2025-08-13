@@ -22,13 +22,10 @@ const CollectionBase = forwardRef<any, CollectionBaseProps>(
         const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
         const headerRef1 = useRef<HTMLSpanElement | null>(null);
         const [footerRef, setFooterRef] = useState<HTMLElement | null>(null);
-        const {
-            wrappedContent,
-            widget,
-            widget: {
-                data: { oidObject },
-            },
-        } = useContext(CollectionContext);
+        const { wrappedContent, widget } = useContext(CollectionContext);
+
+        // Sicherer Zugriff auf oidObject - könnte nicht existieren bei einigen Widgets
+        const oidObject = (widget.data as any).oidObject;
         const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(widget.style);
 
         // Fallback-Ref für useSize falls ref noch null ist
@@ -158,7 +155,7 @@ const CollectionBase = forwardRef<any, CollectionBaseProps>(
                             <Paper
                                 ref={paper1Ref}
                                 className="BASE-PAPER-1"
-                                elevation={widget.data.baseElevation}
+                                elevation={Number(widget.data.baseElevation) || 0}
                                 square={!widget.data.basePadding || widget.data.squaredCorner}
                                 variant={widget.data.outlined ? 'outlined' : 'elevation'}
                                 sx={{

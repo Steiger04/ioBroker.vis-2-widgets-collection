@@ -1,6 +1,5 @@
-import { Box, Typography } from '@mui/material';
-import { Checkbox, FormControlLabel } from '@mui/material';
-import { useContext, useState } from 'react';
+import { Box, Typography, Checkbox, FormControlLabel } from '@mui/material';
+import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -8,29 +7,29 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { CheckboxCollectionContextProps } from 'src';
 
 const defaultIconTrue =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==';
 const defaultIconFalse =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==';
 
-function CheckboxCollection() {
-    const [contentRef, setContentRef] = useState(null);
-    const {
-        widget: {
-            data: { oidObject },
-        },
-        widget,
-    } = useContext(CollectionContext);
+function CheckboxCollection(): React.JSX.Element {
+    // CheckboxCollection wird nur im CheckboxCollectionWidget verwendet
+    const context = useContext(CollectionContext) as CheckboxCollectionContextProps;
+    const { widget } = context;
+
+    // Sicherer Zugriff auf optionale Properties
+    const oidObject = (widget.data as any).oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data } = useData('oid');
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean';
 
-    useHtmlValue(contentRef, oidValue, oidObject?.unit, data);
+    const contentValue = useHtmlValue(oidValue, widget, data);
 
     return (
         <CollectionBase
@@ -78,7 +77,7 @@ function CheckboxCollection() {
                             <Checkbox
                                 disabled={widget.data.onlyDisplay}
                                 disableRipple
-                                checked={oidValue}
+                                checked={Boolean(oidValue)}
                                 onChange={() => setOidValueState(!oidValue)}
                                 checkedIcon={
                                     <img
@@ -100,9 +99,11 @@ function CheckboxCollection() {
                                             filter:
                                                 data.iconColorActive || data.iconColor
                                                     ? 'drop-shadow(0px 10000px 0)'
-                                                    : null,
+                                                    : undefined,
                                             transform:
-                                                data.iconColorActive || data.iconColor ? 'translateY(-10000px)' : null,
+                                                data.iconColorActive || data.iconColor
+                                                    ? 'translateY(-10000px)'
+                                                    : undefined,
                                         }}
                                     />
                                 }
@@ -126,9 +127,11 @@ function CheckboxCollection() {
                                             filter:
                                                 data.iconColorActive || data.iconColor
                                                     ? 'drop-shadow(0px 10000px 0)'
-                                                    : null,
+                                                    : undefined,
                                             transform:
-                                                data.iconColorActive || data.iconColor ? 'translateY(-10000px)' : null,
+                                                data.iconColorActive || data.iconColor
+                                                    ? 'translateY(-10000px)'
+                                                    : undefined,
                                         }}
                                     />
                                 }
@@ -151,21 +154,35 @@ function CheckboxCollection() {
                             !widget.data.withoutLabel && (
                                 <Typography
                                     component={Box}
-                                    ref={setContentRef}
                                     variant="body2"
                                     sx={{
                                         ...fontStyles,
                                         ...textStyles,
                                         fontSize: data.valueSizeActive || data.valueSize,
-                                        textAlign: 'left',
+                                        textAlign: 'center', // Für HTML-Inhalt mit Tags
                                         bgcolor: 'transparent',
                                         color: data.textColorActive || data.textColor,
                                         textTransform: 'none',
-                                        p: 0.5,
+                                        px: 1,
+                                        pl: 0,
+                                        pr: 2,
                                         width: '100%',
                                         height: '100%',
                                         flexGrow: 1,
-                                        alignContent: 'center',
+                                        display: 'flex',
+                                        alignItems: 'center', // Vertikale Zentrierung
+                                        justifyContent: 'center', // Horizontale Zentrierung des Textblocks
+                                        overflowWrap: 'break-word', // Moderne CSS-Eigenschaft für Wortumbruch
+                                        wordBreak: 'break-word', // Zusätzlicher Schutz für lange Wörter
+                                        whiteSpace: 'normal', // Erlaubt Zeilenumbrüche
+                                        hyphens: 'auto', // Automatische Silbentrennung wenn unterstützt
+                                        '& > div': {
+                                            textAlign: 'left', // Linksbündige Zeilen bei Umbrüchen im HTML
+                                            display: 'inline-block',
+                                        },
+                                    }}
+                                    dangerouslySetInnerHTML={{
+                                        __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
                                     }}
                                 />
                             )

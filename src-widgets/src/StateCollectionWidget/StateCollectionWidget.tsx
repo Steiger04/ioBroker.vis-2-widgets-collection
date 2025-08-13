@@ -1,4 +1,4 @@
-import { type CollectionContextProps } from 'src';
+import { type StateCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
@@ -137,7 +137,7 @@ class StateCollectionWidget extends Generic<
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        } as CollectionContextProps;
+        } as StateCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;

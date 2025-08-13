@@ -10,14 +10,15 @@ import type { StateFieldsRxData } from './lib/stateFields';
 import type { CommonObjectFieldsRxData } from './lib/commonObjectFields';
 import type { CommonFieldsRxData } from './lib/commonFields';
 import type { DelayFieldsRxData } from './lib/delayFields';
+import type { CheckboxFieldsRxData } from './lib/checkboxFields';
 import type { CSSProperties } from 'react';
 
-export interface CollectionContextProps {
+export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
     id: string;
     refService: React.RefObject<HTMLElement>;
     style: React.CSSProperties;
     widget: {
-        data: StateFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData;
+        data: T;
         style: CSSProperties;
     };
     setValue: (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack?: boolean) => void;
@@ -31,3 +32,11 @@ export interface CollectionContextProps {
     theme: Theme;
     wrappedContent: boolean;
 }
+
+// Spezifische Context-Types für einzelne Widgets
+export type StateCollectionContextProps = CollectionContextProps<
+    StateFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;
+export type CheckboxCollectionContextProps = CollectionContextProps<
+    CheckboxFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;

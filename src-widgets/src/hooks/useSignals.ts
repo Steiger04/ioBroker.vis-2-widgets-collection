@@ -18,7 +18,8 @@ const useSignals = (): void => {
     // Memoization der sichtbaren Signal-Indices für bessere Performance
     const visibleSignals = useMemo(() => {
         const visible: number[] = [];
-        const signalCount = Number(widget.data['signals-count']) || 0;
+        // Sicherer Zugriff auf signals-count - könnte nicht in allen Widgets existieren
+        const signalCount = Number((widget.data as any)['signals-count']) || 0;
 
         for (let i = 0; i < signalCount; i++) {
             if (isSignalVisible(i)) {
@@ -34,7 +35,8 @@ const useSignals = (): void => {
         const styles: Record<number, string | undefined> = {};
 
         visibleSignals.forEach(signalIndex => {
-            styles[signalIndex] = widget.data[`signals-color-${signalIndex}`];
+            // Sicherer Zugriff auf signal-color Properties
+            styles[signalIndex] = (widget.data as any)[`signals-color-${signalIndex}`];
         });
 
         return styles;
