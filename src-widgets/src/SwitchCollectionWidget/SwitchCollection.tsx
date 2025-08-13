@@ -6,17 +6,18 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
+import type { SwitchCollectionContextProps } from 'src';
 
-function SwitchCollection() {
-    const ref = useRef(null);
-    const {
-        widget: {
-            data: { oidObject },
-        },
-        widget,
-    } = useContext(CollectionContext);
+function SwitchCollection(): React.JSX.Element {
+    const ref = useRef<HTMLDivElement>(null);
+    const context = useContext(CollectionContext) as SwitchCollectionContextProps;
+    const { widget } = context;
+
+    // Sicherer Zugriff auf oidObject
+    const oidObject = (widget.data as any).oidObject;
+
     const { data } = useData('oid');
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const oidType = oidObject?.type;
 
@@ -60,7 +61,7 @@ function SwitchCollection() {
                             maxheight={ref.current?.parentElement?.parentElement?.clientHeight}
                             data={data}
                             widget={widget}
-                            checked={oidValue}
+                            checked={Boolean(oidValue)}
                             onChange={() => setOidValueState(!oidValue)}
                             sx={{
                                 '& .MuiTouchRipple-root': {

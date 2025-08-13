@@ -1,6 +1,16 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const switchFields = () => [
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+export interface SwitchFieldsRxData {
+    thumbSize: number;
+    thumbColorTrue: string;
+    thumbColorFalse: string;
+    trackSize: number;
+    trackColor: string;
+}
+
+const switchFields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,

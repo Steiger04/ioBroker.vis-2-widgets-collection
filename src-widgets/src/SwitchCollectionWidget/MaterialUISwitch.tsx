@@ -1,8 +1,15 @@
 import Switch from '@mui/material/Switch';
-import { styled } from '@mui/material/styles';
-import { alpha } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
+import type { SwitchCollectionContextProps } from 'src';
 
-function isValidColorFormat(str) {
+interface MaterialUISwitchProps {
+    width?: number;
+    maxheight?: number;
+    data: any;
+    widget: SwitchCollectionContextProps['widget'];
+}
+
+function isValidColorFormat(str: string): boolean {
     const patterns = [
         /^#([0-9a-fA-F]{3})$/, // #nnn
         /^#([0-9a-fA-F]{6})$/, // #nnnnnn
@@ -16,7 +23,7 @@ function isValidColorFormat(str) {
     return patterns.some(pattern => pattern.test(str));
 }
 
-const MaterialUISwitch = styled(Switch)(({ width, maxheight, data, widget, theme }) => ({
+const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheight, data, widget, theme }) => ({
     width: '100%',
     height: '100%',
 
@@ -36,26 +43,28 @@ const MaterialUISwitch = styled(Switch)(({ width, maxheight, data, widget, theme
         top: '50%',
         left: '0%',
         transform: `translate(-50%, -50%) translateX(${
-            maxheight >= (widget.data.thumbSize || 62) ? widget.data.thumbSize / 2 - 4 || 31 - 4 : maxheight / 2 - 4
+            (maxheight || 0) >= (widget.data.thumbSize || 62)
+                ? widget.data.thumbSize / 2 - 4 || 31 - 4
+                : (maxheight || 0) / 2 - 4
         }px)`,
 
         '& .MuiSwitch-input': {
             left: 0,
-            width: width,
+            width: width || 0,
         },
 
         '&.Mui-checked': {
             top: '50%',
             left: '100%',
             transform: `translate(-50%, -50%) translateX(${
-                maxheight >= (widget.data.thumbSize || 62)
+                (maxheight || 0) >= (widget.data.thumbSize || 62)
                     ? -(widget.data.thumbSize / 2 - 4) || -31 - 4
-                    : -(maxheight / 2 - 4)
+                    : -((maxheight || 0) / 2 - 4)
             }px)`,
 
             '& .MuiSwitch-input': {
-                left: -width + (widget.data.thumbSize || 62),
-                width: width,
+                left: -(width || 0) + (widget.data.thumbSize || 62),
+                width: width || 0,
             },
 
             '& .MuiSwitch-thumb': {
