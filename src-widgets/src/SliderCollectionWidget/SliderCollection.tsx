@@ -294,9 +294,11 @@ const SliderCollection: FC = () => {
                             max={sliderMaxValue ?? undefined}
                             marks={sliderMarks}
                             step={
-                                !widget.data.onlyStates && widget.data.step !== undefined
-                                    ? Number(widget.data.step)
-                                    : undefined
+                                widget.data.onlyStates
+                                    ? null // Bei onlyStates: null bedeutet, dass nur die marks-Werte ausgewählt werden können
+                                    : widget.data.step !== undefined
+                                      ? Number(widget.data.step)
+                                      : undefined
                             }
                             size={widget.data.sliderSize}
                             value={oidValue}
