@@ -1,5 +1,5 @@
 import { Box, Slider } from '@mui/material';
-import React, { useState, useMemo, useContext, useEffect, type FC } from 'react';
+import React, { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
@@ -23,6 +23,10 @@ const SliderCollection: FC = () => {
     const { data, states, minValue, maxValue } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+
+    // Refs für die dynamische Track-Positionierung
+    const sliderContainerRef = useRef<HTMLDivElement>(null);
+    const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
     const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
     const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
@@ -84,6 +88,61 @@ const SliderCollection: FC = () => {
         return _sliderMarks;
     }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject?.unit, widget.data.onlyStates]);
 
+    // Funktion zur Berechnung der Track-Position
+    const calculateTrackOffset = (): void => {
+        if (!sliderContainerRef.current) {
+            return;
+        }
+
+        // Suche nach dem Slider-Track innerhalb des Containers
+        const sliderElement = sliderContainerRef.current.querySelector('.MuiSlider-root');
+        const railElement = sliderContainerRef.current.querySelector('.MuiSlider-rail');
+
+        if (sliderElement && railElement) {
+            const containerRect = sliderContainerRef.current.getBoundingClientRect();
+            const railRect = railElement.getBoundingClientRect();
+
+            // Berechne die relative Position der Rail (Slider-Track) zum Container
+            const railCenterX = railRect.left - containerRect.left + railRect.width / 2;
+            const railCenterY = railRect.top - containerRect.top + railRect.height / 2;
+
+            // Berechne die Container-Mitte
+            const containerCenterX = containerRect.width / 2;
+            const containerCenterY = containerRect.height / 2;
+
+            // Offset ist die Differenz zwischen Rail-Mitte und Container-Mitte
+            setTrackOffset({
+                x: railCenterX - containerCenterX,
+                y: railCenterY - containerCenterY,
+            });
+        }
+    };
+
+    // Berechne Track-Position bei Änderungen
+    useEffect(() => {
+        // Kleine Verzögerung, damit MUI den DOM aktualisiert hat
+        const timer = setTimeout(calculateTrackOffset, 100);
+        return () => clearTimeout(timer);
+    }, [
+        widget.data.marks,
+        widget.data.sliderOrientation,
+        widget.data.iconSizeStart,
+        widget.data.iconSizeEnd,
+        oidValue,
+    ]);
+
+    // ResizeObserver für dynamische Anpassung
+    useEffect(() => {
+        if (!sliderContainerRef.current) {
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver(calculateTrackOffset);
+        resizeObserver.observe(sliderContainerRef.current);
+
+        return () => resizeObserver.disconnect();
+    }, []);
+
     useEffect(() => {
         if (oidValue === undefined) {
             return;
@@ -103,6 +162,7 @@ const SliderCollection: FC = () => {
     return (
         <CollectionBase data={data}>
             <Box
+                ref={sliderContainerRef}
                 sx={{
                     display: 'flex',
                     flexDirection: widget.data.sliderOrientation === 'horizontal' ? 'row' : 'column',
@@ -111,26 +171,32 @@ const SliderCollection: FC = () => {
                     width: '100%',
                     height: '100%',
                     p: 1,
+                    gap: 1, // Abstand zwischen Icons und Slider
                 }}
             >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bottom:
-                            widget.data.sliderOrientation === 'horizontal'
-                                ? widget.data.iconYStartOffset || '0px'
-                                : null,
-                        right:
-                            widget.data.sliderOrientation === 'vertical' ? widget.data.iconXStartOffset || '0px' : null,
-                        p: 1,
-                    }}
-                >
-                    {((widget.data.sliderOrientation === 'horizontal' &&
-                        (widget.data.iconMin || widget.data.iconSmallMin)) ||
-                        (widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMax || widget.data.iconSmallMax))) && (
+                {/* Start Icon - im normalen Layout-Fluss */}
+                {((widget.data.sliderOrientation === 'horizontal' &&
+                    (widget.data.iconMin || widget.data.iconSmallMin)) ||
+                    (widget.data.sliderOrientation === 'vertical' &&
+                        (widget.data.iconMax || widget.data.iconSmallMax))) && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexShrink: 0, // Icon soll nicht schrumpfen
+                            // Dynamische Ausrichtung zur Track-Mitte mit Transform
+                            ...(widget.data.sliderOrientation === 'horizontal'
+                                ? {
+                                      // Horizontaler Slider: Icon vertikal zur Track-Mitte ausrichten
+                                      transform: `translateY(${trackOffset.y}px)`,
+                                  }
+                                : {
+                                      // Vertikaler Slider: Icon horizontal zur Track-Mitte ausrichten
+                                      transform: `translateX(${trackOffset.x}px)`,
+                                  }),
+                        }}
+                    >
                         <img
                             alt=""
                             src={
@@ -152,15 +218,18 @@ const SliderCollection: FC = () => {
                                 transform: 'translateY(-10000px)',
                             }}
                         />
-                    )}
-                </Box>
+                    </Box>
+                )}
+
+                {/* Slider Container - nimmt verfügbaren Raum ein */}
                 <Box
                     sx={{
                         display: 'flex',
-                        flexGrow: 1,
+                        flex: 1, // Nimmt den verfügbaren Raum zwischen den Icons
                         justifyContent: 'center',
                         alignItems: 'center',
-                        p: 1,
+                        minWidth: widget.data.sliderOrientation === 'horizontal' ? '200px' : 'auto',
+                        minHeight: widget.data.sliderOrientation === 'vertical' ? '200px' : 'auto',
                     }}
                 >
                     {typeof oidValue === 'number' && (
@@ -180,7 +249,11 @@ const SliderCollection: FC = () => {
                             min={sliderMinValue ?? undefined}
                             max={sliderMaxValue ?? undefined}
                             marks={sliderMarks}
-                            step={!widget.data.onlyStates ? widget.data.step : undefined}
+                            step={
+                                !widget.data.onlyStates && widget.data.step !== undefined
+                                    ? Number(widget.data.step)
+                                    : undefined
+                            }
                             size={widget.data.sliderSize}
                             value={oidValue}
                             onChange={(_, value) => {
@@ -317,26 +390,30 @@ const SliderCollection: FC = () => {
                         />
                     )}
                 </Box>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bottom:
-                            widget.data.sliderOrientation === 'horizontal'
-                                ? widget.data.iconYEndOffset || '0px'
-                                : undefined,
-                        left:
-                            widget.data.sliderOrientation === 'vertical'
-                                ? widget.data.iconXEndOffset || '0px'
-                                : undefined,
-                        p: 1,
-                    }}
-                >
-                    {((widget.data.sliderOrientation === 'horizontal' &&
-                        (widget.data.iconMax || widget.data.iconSmallMax)) ||
-                        (widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMin || widget.data.iconSmallMin))) && (
+
+                {/* End Icon - im normalen Layout-Fluss */}
+                {((widget.data.sliderOrientation === 'horizontal' &&
+                    (widget.data.iconMax || widget.data.iconSmallMax)) ||
+                    (widget.data.sliderOrientation === 'vertical' &&
+                        (widget.data.iconMin || widget.data.iconSmallMin))) && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexShrink: 0, // Icon soll nicht schrumpfen
+                            // Dynamische Ausrichtung zur Track-Mitte mit Transform
+                            ...(widget.data.sliderOrientation === 'horizontal'
+                                ? {
+                                      // Horizontaler Slider: Icon vertikal zur Track-Mitte ausrichten
+                                      transform: `translateY(${trackOffset.y}px)`,
+                                  }
+                                : {
+                                      // Vertikaler Slider: Icon horizontal zur Track-Mitte ausrichten
+                                      transform: `translateX(${trackOffset.x}px)`,
+                                  }),
+                        }}
+                    >
                         <img
                             alt=""
                             src={
@@ -358,8 +435,8 @@ const SliderCollection: FC = () => {
                                 transform: 'translateY(-10000px)',
                             }}
                         />
-                    )}
-                </Box>
+                    </Box>
+                )}
             </Box>
         </CollectionBase>
     );
