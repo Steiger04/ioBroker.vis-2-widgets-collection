@@ -289,6 +289,7 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
+                                        defaultIconColor: widget.data.sliderColor || data.iconColor || data.textColor,
                                     } as any,
                                 }}
                                 disabled={oidType !== 'number'}
@@ -403,13 +404,21 @@ const SliderCollection: FC = () => {
                                                         : '24px !important',
                                                 color: widget.data.iconColorActive
                                                     ? `${widget.data.iconColorActive}!important`
-                                                    : undefined,
-                                                filter: widget.data.iconColorActive
-                                                    ? 'drop-shadow(0px 10000px 0)'
-                                                    : undefined,
-                                                transform: widget.data.iconColorActive
-                                                    ? 'translateY(-10000px)'
-                                                    : undefined,
+                                                    : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
+                                                filter:
+                                                    widget.data.iconColorActive ||
+                                                    widget.data.sliderColor ||
+                                                    data.iconColor ||
+                                                    data.textColor
+                                                        ? 'drop-shadow(0px 10000px 0)'
+                                                        : undefined,
+                                                transform:
+                                                    widget.data.iconColorActive ||
+                                                    widget.data.sliderColor ||
+                                                    data.iconColor ||
+                                                    data.textColor
+                                                        ? 'translateY(-10000px)'
+                                                        : undefined,
                                                 pl:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? typeof widget.data.iconSizeActive === 'number'

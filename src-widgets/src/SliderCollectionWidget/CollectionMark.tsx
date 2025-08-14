@@ -19,6 +19,7 @@ interface CollectionMarkProps {
     sliderOrientation: 'horizontal' | 'vertical';
     aliasActive?: string;
     activeMarkIndex?: number | null;
+    defaultIconColor?: string;
     'data-index': number;
     ownerState: {
         marks?: MarkData[];
@@ -31,6 +32,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     sliderOrientation,
     aliasActive,
     activeMarkIndex,
+    defaultIconColor,
     ...props
 }) => {
     const [ref, setRef] = useState<HTMLElement | null>(null);
@@ -107,9 +109,9 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                             width: `${(24 * mark.iconWidth) / 100}px`,
                             height: `${(24 * mark.iconHeight) / 100}px`,
 
-                            color: mark.iconColor || undefined,
-                            filter: mark.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                            transform: mark.iconColor ? 'translateY(-10000px)' : undefined,
+                            color: mark.iconColor || defaultIconColor || undefined,
+                            filter: mark.iconColor || defaultIconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
+                            transform: mark.iconColor || defaultIconColor ? 'translateY(-10000px)' : undefined,
                         }}
                     />
                 </Box>
