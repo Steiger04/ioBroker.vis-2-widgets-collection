@@ -1,6 +1,14 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const radioGroupFields = () => [
+import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+export interface RadioGroupFieldsRxData {
+    radioOrientation?: 'horizontal' | 'vertical';
+    radioGroupUncheckedIconColor?: string;
+    onlyDisplay?: boolean;
+}
+
+const radioGroupFields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -32,9 +40,9 @@ const radioGroupFields = () => [
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: '!data.write',
-        default: '!data.write',
-        hidden: '!data.write',
+        disabled: (data: WidgetData, _i) => !data.write,
+        default: false,
+        hidden: (data: WidgetData, _i) => !data.write,
     },
 ];
 
