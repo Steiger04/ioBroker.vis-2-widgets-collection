@@ -1,14 +1,19 @@
 import React from 'react';
+import { type RadioGroupCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
-import radioGroupFields from '../lib/radioGroupFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import radioGroupFields, { type RadioGroupFieldsRxData } from '../lib/radioGroupFields';
 import RadioGroupCollection from './RadioGroupCollection';
 
-class RadioGroupCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+class RadioGroupCollectionWidget extends Generic<
+    RadioGroupFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplRadioGroupCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -28,7 +33,7 @@ class RadioGroupCollectionWidget extends Generic {
                         ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
                         ...delayFields(),
                         ...radioGroupFields(),
-                    ],
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
@@ -42,7 +47,7 @@ class RadioGroupCollectionWidget extends Generic {
             visDefaultStyle: {
                 width: '100%',
                 height: '100px',
-                position: 'relative',
+                position: 'relative' as const,
             },
             visPrev: 'widgets/vis-2-widgets-collection/img/prev-collection-radio-group.png',
         };
@@ -50,12 +55,12 @@ class RadioGroupCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
         return RadioGroupCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate() {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -74,25 +79,25 @@ class RadioGroupCollectionWidget extends Generic {
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
+    onRxDataChanged(): void {
         this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(id, state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
         this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -102,7 +107,7 @@ class RadioGroupCollectionWidget extends Generic {
             widget: {
                 // ...props.widget,
                 data: this.state.rxData,
-                style: this.state.rxStyle,
+                style: this.state.rxStyle || {},
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
@@ -116,7 +121,7 @@ class RadioGroupCollectionWidget extends Generic {
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as RadioGroupCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;

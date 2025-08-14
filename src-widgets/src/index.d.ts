@@ -13,6 +13,7 @@ import type { DelayFieldsRxData } from './lib/delayFields';
 import type { CheckboxFieldsRxData } from './lib/checkboxFields';
 import type { SwitchFieldsRxData } from './lib/switchFields';
 import type { SliderFieldsRxData } from './lib/sliderFields';
+import type { RadioGroupFieldsRxData } from './lib/radioGroupFields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
@@ -47,4 +48,7 @@ export type SwitchCollectionContextProps = CollectionContextProps<
 >;
 export type SliderCollectionContextProps = CollectionContextProps<
     SliderFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;
+export type RadioGroupCollectionContextProps = CollectionContextProps<
+    RadioGroupFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;

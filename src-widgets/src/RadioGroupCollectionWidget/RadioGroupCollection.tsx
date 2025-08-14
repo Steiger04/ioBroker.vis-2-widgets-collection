@@ -8,25 +8,30 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { RadioGroupCollectionContextProps } from 'src';
 
-function RadioGroupCollection() {
-    const [stackRef, setStackRef] = useState(null);
-    const [clientHeight, setClientHeight] = useState(null);
+function RadioGroupCollection(): React.ReactElement {
+    const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
+    const [clientHeight, setClientHeight] = useState<number | null>(null);
+    // RadioGroupCollection wird nur im RadioGroupCollectionWidget verwendet, daher ist der Cast sicher
+    const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const {
         widget: {
             data: { oidObject },
         },
         widget,
-    } = useContext(CollectionContext);
+    } = context;
     const { data, states } = useData('oid');
     const { fontStyles, textStyles } = useStyles(widget.style);
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
 
-    const handleChange = event => setOidValueState(event.target.value);
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        updateOidValue(event.target.value);
+    };
 
     useEffect(() => {
         if (stackRef?.clientHeight) {
@@ -130,9 +135,11 @@ function RadioGroupCollection() {
                                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                                             '50%',
 
-                                                        color: state.iconColor,
-                                                        filter: state.iconColor ? 'drop-shadow(0px 10000px 0)' : null,
-                                                        transform: state.iconColor ? 'translateY(-10000px)' : null,
+                                                        color: state.iconColor || undefined,
+                                                        filter: state.iconColor
+                                                            ? 'drop-shadow(0px 10000px 0)'
+                                                            : undefined,
+                                                        transform: state.iconColor ? 'translateY(-10000px)' : undefined,
                                                     }}
                                                 />
                                             </Box>
@@ -152,8 +159,10 @@ function RadioGroupCollection() {
                                     height: '100%',
                                     maxHeight:
                                         widget.data.radioOrientation === 'horizontal'
-                                            ? clientHeight
-                                            : clientHeight / states.length,
+                                            ? clientHeight || undefined
+                                            : clientHeight
+                                              ? clientHeight / states.length
+                                              : undefined,
 
                                     '& .MuiTouchRipple-root': {
                                         color:
@@ -167,8 +176,10 @@ function RadioGroupCollection() {
                                         height: '100%',
                                         maxHeight:
                                             widget.data.radioOrientation === 'horizontal'
-                                                ? clientHeight
-                                                : clientHeight / states.length,
+                                                ? clientHeight || undefined
+                                                : clientHeight
+                                                  ? clientHeight / states.length
+                                                  : undefined,
                                     },
                                 }}
                                 checked={String(value) === String(oidValue)}
