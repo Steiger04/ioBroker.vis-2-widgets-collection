@@ -17,6 +17,8 @@ interface MarkData {
 interface CollectionMarkProps {
     marks: boolean;
     sliderOrientation: 'horizontal' | 'vertical';
+    aliasActive?: string;
+    activeMarkIndex?: number | null;
     'data-index': number;
     ownerState: {
         marks?: MarkData[];
@@ -24,21 +26,32 @@ interface CollectionMarkProps {
     [key: string]: any;
 }
 
-const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...props }) => {
+const CollectionMark: FC<CollectionMarkProps> = ({
+    marks,
+    sliderOrientation,
+    aliasActive,
+    activeMarkIndex,
+    ...props
+}) => {
     const [ref, setRef] = useState<HTMLElement | null>(null);
 
     const index = props['data-index'];
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
     const mark = props.ownerState?.marks?.[index];
 
-    // console.log("props.ownerState.marks", props.ownerState.marks);
-    // console.log("mark at index", index, ":", mark);
+    // Check if this is exactly the current selected mark using our index
+    const isCurrentSelected = activeMarkIndex === index;
 
     useEffect(() => {
         if (ref && mark?.label) {
-            ref.innerHTML = mark.label;
+            // Use aliasActive ONLY for the currently selected mark (not all active marks)
+            if (isCurrentSelected && aliasActive) {
+                ref.innerHTML = aliasActive;
+            } else {
+                ref.innerHTML = mark.label;
+            }
         }
-    }, [mark?.label, ref]);
+    }, [mark?.label, ref, isCurrentSelected, aliasActive, index]);
 
     return marks && mark ? (
         <SliderMarkLabel
@@ -66,7 +79,10 @@ const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...
                         // fontSize: typeof mark.fontSize === "number" && mark.fontSize}%`,
                         fontSize: mark.fontSize,
 
+                        // Use styling based on isCurrentSelected for aliasActive
                         color: mark.textColor,
+                        // For debugging: add a visual indication when aliasActive is applied
+                        fontWeight: isCurrentSelected && aliasActive ? 'bold' : 'normal',
                     }}
                 />
                 <Box

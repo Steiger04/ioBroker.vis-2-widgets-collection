@@ -287,6 +287,8 @@ const SliderCollection: FC = () => {
                                     markLabel: {
                                         marks: widget.data.marks,
                                         sliderOrientation: widget.data.sliderOrientation,
+                                        aliasActive: widget.data.aliasActive,
+                                        activeMarkIndex: sliderMarksIndex,
                                     } as any,
                                 }}
                                 disabled={oidType !== 'number'}

@@ -70,9 +70,7 @@ class GlobalDebounceStore {
                 .subscribe((value: string | number | boolean) => {
                     // Extrahiere OID aus dem observableKey (Format: "oid::widgetId")
                     const oid = observableKey.split('::')[0];
-                    console.log(
-                        `GlobalDebounce -> Writing value ${value} to ${oid} after ${delay}ms delay (widget: ${observableKey.split('::')[1]})`,
-                    );
+
                     setValue(oid, value);
                     observable.lastValue = null; // Reset nach erfolgreichem Schreibvorgang
                 });

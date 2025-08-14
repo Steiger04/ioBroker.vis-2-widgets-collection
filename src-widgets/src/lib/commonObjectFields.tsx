@@ -114,7 +114,7 @@ export const oidChangeHandlerAsync =
     ): Promise<void> => {
         if (!data[oid]) {
             clearValueFields(data, oid);
-            setTimeout(() => changeData(data), 50);
+            setTimeout(() => changeData(data), 100);
             return;
         }
 
@@ -122,7 +122,7 @@ export const oidChangeHandlerAsync =
             const object: ioBroker.StateObject = await socket.getObject(data[oid]);
             if (!object) {
                 clearValueFields(data, oid);
-                setTimeout(() => changeData(data), 50);
+                setTimeout(() => changeData(data), 100);
                 return;
             }
 
@@ -187,11 +187,11 @@ export const oidChangeHandlerAsync =
                 data.values_count = 0;
             }
 
-            setTimeout(() => changeData(data), 50);
+            setTimeout(() => changeData(data), 100);
         } catch (error) {
             console.error(`Error handling OID change for ${data[oid]}:`, error);
             clearValueFields(data, oid);
-            setTimeout(() => changeData(data), 50);
+            setTimeout(() => changeData(data), 100);
         }
     };
 
@@ -252,7 +252,7 @@ const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributes
                 data.oidObject.unit = data.unit || '';
                 // setTimeout ensures the change is applied after the current event loop cycle
                 // This is important for UI consistency and proper state updates
-                setTimeout(() => changeData(data), 50);
+                setTimeout(() => changeData(data), 100);
             }
         },
     },
