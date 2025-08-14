@@ -214,7 +214,7 @@ const SliderCollection: FC = () => {
                     alignItems: 'center',
                     width: '100%',
                     height: '100%',
-                    p: 1, // Padding um den gesamten Slider
+                    p: 2, // Padding um den gesamten Slider (MUI5 konform)
                     gap: 1.5, // Abstand zwischen Icons und Slider
                 }}
             >
