@@ -143,7 +143,12 @@ function useData(oid: string): UseDataReturn {
 
                             textColor: rxData[`textColor${i}`],
 
-                            icon: rxData[`icon${i}`] || rxData[`iconSmall${i}`] || rxData.icon || null,
+                            icon:
+                                rxData[`icon${i}`] ||
+                                rxData[`iconSmall${i}`] ||
+                                rxData.icon ||
+                                rxData.iconSmall ||
+                                null,
                             iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : null,
                             iconWidth:
                                 typeof rxData[`iconSize${i}`] === 'number'
@@ -167,7 +172,13 @@ function useData(oid: string): UseDataReturn {
                                     getDataValue('iconYOffset', String(i)) !== '0px' &&
                                     getDataValue('iconYOffset', String(i))) ||
                                 '0px',
-                            iconColor: rxData[`iconColor${i}`] || rxData.iconColor || null,
+                            iconColor:
+                                rxData[`iconColor${i}`] ||
+                                rxData.sliderColor ||
+                                rxData.iconColor ||
+                                rxData.textColor ||
+                                textStyles.color ||
+                                theme.palette.primary.main,
 
                             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
                             backgroundColorActive: getDataValue('backgroundColor', String(i)),
@@ -209,7 +220,7 @@ function useData(oid: string): UseDataReturn {
         };
 
         return processStates();
-    }, [oidObject, rxData, getDataValue, formatSize, backgroundStyles]);
+    }, [oidObject, rxData, getDataValue, formatSize, backgroundStyles, textStyles.color, theme.palette.primary.main]);
 
     // Styling-Daten
     const data = useMemo(() => {
