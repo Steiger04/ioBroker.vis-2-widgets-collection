@@ -114,7 +114,7 @@ export const oidChangeHandlerAsync =
     ): Promise<void> => {
         if (!data[oid]) {
             clearValueFields(data, oid);
-            changeData(data);
+            setTimeout(() => changeData(data), 50);
             return;
         }
 
@@ -122,7 +122,7 @@ export const oidChangeHandlerAsync =
             const object: ioBroker.StateObject = await socket.getObject(data[oid]);
             if (!object) {
                 clearValueFields(data, oid);
-                changeData(data);
+                setTimeout(() => changeData(data), 50);
                 return;
             }
 
@@ -187,11 +187,11 @@ export const oidChangeHandlerAsync =
                 data.values_count = 0;
             }
 
-            changeData(data);
+            setTimeout(() => changeData(data), 50);
         } catch (error) {
             console.error(`Error handling OID change for ${data[oid]}:`, error);
             clearValueFields(data, oid);
-            changeData(data);
+            setTimeout(() => changeData(data), 50);
         }
     };
 
