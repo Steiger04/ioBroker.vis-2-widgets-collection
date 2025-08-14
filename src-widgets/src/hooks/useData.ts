@@ -136,7 +136,7 @@ function useData(oid: string): UseDataReturn {
                                   ? Number(_value)
                                   : _value,
                             label: String(
-                                _alias || (commonStateEntry ? commonStateEntry[1] : `${_value}${_unit}`),
+                                _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
                             fontSize: formatSize(rxData[`valueSize${i}`]),
@@ -183,7 +183,7 @@ function useData(oid: string): UseDataReturn {
                         });
 
                         const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                        widgetStates[key] = _alias || (commonStateEntry ? commonStateEntry[1] : `${_value}${_unit}`);
+                        widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
                     }
                 }
                 if (oidType === 'number' && states.length) {

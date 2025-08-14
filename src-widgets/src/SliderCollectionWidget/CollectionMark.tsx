@@ -2,6 +2,7 @@ import { SliderMarkLabel, Box } from '@mui/material';
 import React, { useState, useEffect, type FC } from 'react';
 
 interface MarkData {
+    value: number;
     label: string;
     fontSize: string | null;
     textColor?: string;
@@ -18,7 +19,7 @@ interface CollectionMarkProps {
     sliderOrientation: 'horizontal' | 'vertical';
     'data-index': number;
     ownerState: {
-        marks: MarkData[];
+        marks?: MarkData[];
     };
     [key: string]: any;
 }
@@ -27,9 +28,11 @@ const CollectionMark: FC<CollectionMarkProps> = ({ marks, sliderOrientation, ...
     const [ref, setRef] = useState<HTMLElement | null>(null);
 
     const index = props['data-index'];
-    const mark = props.ownerState.marks[index];
+    // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
+    const mark = props.ownerState?.marks?.[index];
 
     // console.log("props.ownerState.marks", props.ownerState.marks);
+    // console.log("mark at index", index, ":", mark);
 
     useEffect(() => {
         if (ref && mark?.label) {
