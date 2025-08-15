@@ -12,7 +12,7 @@ import type { ButtonGroupCollectionContextProps } from 'src';
 function ButtonGroupCollection(): React.JSX.Element {
     // ButtonGroupCollection wird nur im ButtonGroupCollectionWidget verwendet
     const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
 
     // Sicherer Zugriff auf optionale Properties
     const oidObject = widget.data.oidObject;
@@ -144,7 +144,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         widget.data.iconColorActive ||
                                         widget.data[`iconColor${index + 1}`] ||
                                         widget.data.textColorActive ||
-                                        data.textColor,
+                                        data.textColor ||
+                                        theme.palette.primary.main,
 
                                     background:
                                         (activeIndex === index + 1 &&
@@ -300,7 +301,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                                 widget.data.iconColorActive) ||
                                                             widget.data[`iconColor${index + 1}`] ||
                                                             widget.data.buttonGroupColor ||
-                                                            data.iconColor,
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main,
                                                         filter:
                                                             (activeIndex === index + 1 &&
                                                                 String(oidValue) ===
@@ -308,7 +310,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                                 widget.data.iconColorActive) ||
                                                             widget.data[`iconColor${index + 1}`] ||
                                                             widget.data.buttonGroupColor ||
-                                                            data.iconColor
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main
                                                                 ? 'drop-shadow(0px 10000px 0)'
                                                                 : undefined,
                                                         transform:
@@ -318,7 +321,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                                 widget.data.iconColorActive) ||
                                                             widget.data[`iconColor${index + 1}`] ||
                                                             widget.data.buttonGroupColor ||
-                                                            data.iconColor
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main
                                                                 ? 'translateY(-10000px)'
                                                                 : undefined,
                                                     }}
@@ -376,7 +380,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             widget.data.textColorActive) ||
                                                         widget.data[`textColor${index + 1}`] ||
                                                         widget.data.buttonGroupColor ||
-                                                        data.textColor,
+                                                        data.textColor ||
+                                                        theme.palette.primary.main,
                                                 }}
                                             />
                                         </Box>
