@@ -57,7 +57,7 @@ export interface DialogCollectionContextProps {
     socket: LegacyConnection;
     theme: Theme;
     wrappedContent: boolean;
-    getWidgetView: (viewName: string) => void;
+    getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
 }
 
 // Spezifische Context-Types für einzelne Widgets
