@@ -1,4 +1,5 @@
 import React from 'react';
+import { type ButtonGroupCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import buttonGroupFields from '../lib/buttonGroupFields';
@@ -7,8 +8,13 @@ import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
-class ButtonGroupCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+
+// Type für die Widget-Daten wird aus dem Context abgeleitet
+type ButtonGroupWidgetData = ButtonGroupCollectionContextProps['widget']['data'];
+
+class ButtonGroupCollectionWidget extends Generic<ButtonGroupWidgetData> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplButtonGroupCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -55,12 +61,12 @@ class ButtonGroupCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
         return ButtonGroupCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate() {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -78,25 +84,25 @@ class ButtonGroupCollectionWidget extends Generic {
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
+    onRxDataChanged(): void {
         this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(id, state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State | null | undefined): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
         this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -120,7 +126,7 @@ class ButtonGroupCollectionWidget extends Generic {
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as ButtonGroupCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
