@@ -50,7 +50,7 @@ function RadioGroupCollection(): React.ReactElement {
                 ref={stackRef}
                 direction={widget.data.radioOrientation === 'vertical' ? 'column' : 'row'}
                 sx={{
-                    width: '100%',
+                    width: 'auto',
                     height: '100%',
                     justifyContent: 'space-around',
                     alignItems: 'stretch',
