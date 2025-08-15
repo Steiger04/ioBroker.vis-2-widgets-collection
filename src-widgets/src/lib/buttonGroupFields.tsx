@@ -1,6 +1,16 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const buttonGroupFields = () => [
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+export interface ButtonGroupFieldsRxData {
+    onlyIcon: boolean;
+    onlyText: boolean;
+    buttonGroupVariant: 'text' | 'outlined';
+    buttonGroupOrientation: 'horizontal' | 'vertical';
+    buttonGroupColor: string;
+}
+
+const buttonGroupFields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
