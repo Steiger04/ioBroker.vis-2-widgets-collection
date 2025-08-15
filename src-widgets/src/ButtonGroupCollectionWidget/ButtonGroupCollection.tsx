@@ -158,6 +158,37 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         data.textColor ||
                                         theme.palette.primary.main,
 
+                                    // Ripple-Effekt: gleiche Farblogik wie Hover/Selection
+                                    '& .MuiTouchRipple-root': {
+                                        color:
+                                            !widget.data.onlyText && !widget.data.onlyIcon
+                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                  (activeIndex === index + 1 &&
+                                                      String(oidValue) === String(widget.data[`value${index + 1}`]) &&
+                                                      widget.data.iconColorActive) ||
+                                                  widget.data[`iconColor${index + 1}`] ||
+                                                  widget.data.iconColor ||
+                                                  data.iconColor ||
+                                                  theme.palette.primary.main
+                                                : widget.data.onlyIcon
+                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                    (activeIndex === index + 1 &&
+                                                        String(oidValue) === String(widget.data[`value${index + 1}`]) &&
+                                                        widget.data.iconColorActive) ||
+                                                    widget.data[`iconColor${index + 1}`] ||
+                                                    widget.data.iconColor ||
+                                                    data.iconColor ||
+                                                    theme.palette.primary.main
+                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                    (activeIndex === index + 1 &&
+                                                        String(oidValue) === String(widget.data[`value${index + 1}`]) &&
+                                                        widget.data.textColorActive) ||
+                                                    widget.data[`textColor${index + 1}`] ||
+                                                    widget.data.textColor ||
+                                                    data.textColor ||
+                                                    theme.palette.primary.main,
+                                    },
+
                                     background:
                                         // Ausgewählter Button: gleiche Farblogik wie beim Hover
                                         String(oidValue) === String(value)
