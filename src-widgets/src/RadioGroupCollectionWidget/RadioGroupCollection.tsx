@@ -1,18 +1,20 @@
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useContext, useRef } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
+import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import type { RadioGroupCollectionContextProps } from 'src';
 
 function RadioGroupCollection(): React.ReactElement {
-    const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
-    const [clientHeight, setClientHeight] = useState<number | null>(null);
+    const stackRef = useRef<HTMLDivElement>(null);
+    const { height: clientHeight } = useElementDimensions(stackRef?.current);
+
     // RadioGroupCollection wird nur im RadioGroupCollectionWidget verwendet, daher ist der Cast sicher
     const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const {
@@ -33,12 +35,6 @@ function RadioGroupCollection(): React.ReactElement {
         updateOidValue(event.target.value);
     };
 
-    useEffect(() => {
-        if (stackRef?.clientHeight) {
-            setClientHeight(stackRef.clientHeight);
-        }
-    }, [stackRef?.clientHeight]);
-
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -51,7 +47,7 @@ function RadioGroupCollection(): React.ReactElement {
             />
 
             <Stack
-                ref={setStackRef}
+                ref={stackRef}
                 direction={widget.data.radioOrientation === 'vertical' ? 'column' : 'row'}
                 sx={{
                     width: '100%',
@@ -64,7 +60,6 @@ function RadioGroupCollection(): React.ReactElement {
                     <FormControlLabel
                         key={index}
                         // labelPlacement="top"
-
                         sx={{
                             // width: "100%",
                             height: '100%',
