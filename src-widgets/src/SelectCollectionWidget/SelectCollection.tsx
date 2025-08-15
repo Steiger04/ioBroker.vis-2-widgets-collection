@@ -116,30 +116,37 @@ function SelectCollection(): React.ReactElement {
                                             widget.data[`iconColor${idx + 1}`] ||
                                             widget.data.iconColor ||
                                             widget.data.textColorActive ||
-                                            data.textColor,
+                                            data.textColor ||
+                                            theme.palette.primary.main,
                                     },
 
                                     '&.Mui-selected': {
-                                        backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
-                                            (data.textColor && alpha(data.textColor, 0.16)),
+                                        backgroundColor: alpha(
+                                            widget.data[`iconColor${idx + 1}`] ||
+                                                widget.data.iconColor ||
+                                                data.textColor ||
+                                                theme.palette.primary.main,
+                                            0.16,
+                                        ),
                                     },
 
                                     '&.Mui-selected:hover': {
-                                        backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
-                                            (data.textColor && alpha(data.textColor, 0.16)),
+                                        backgroundColor: alpha(
+                                            widget.data[`iconColor${idx + 1}`] ||
+                                                widget.data.iconColor ||
+                                                data.textColor ||
+                                                theme.palette.primary.main,
+                                            0.24,
+                                        ),
                                     },
                                     '&:hover': {
-                                        backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
-                                            (data.textColor && alpha(data.textColor, 0.16)),
+                                        backgroundColor: alpha(
+                                            widget.data[`iconColor${idx + 1}`] ||
+                                                widget.data.iconColor ||
+                                                data.textColor ||
+                                                theme.palette.primary.main,
+                                            0.08,
+                                        ),
                                     },
 
                                     background:
