@@ -159,29 +159,89 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         theme.palette.primary.main,
 
                                     background:
-                                        (activeIndex === index + 1 &&
-                                            String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                            widget.data.backgroundColorActive) ||
-                                        widget.data[`backgroundColor${index + 1}`] ||
-                                        data.backgroundColor ||
-                                        (activeIndex === index + 1 &&
-                                            String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                            widget.data.backgroundActive) ||
-                                        widget.data[`background${index + 1}`] ||
-                                        data.background,
+                                        // Ausgewählter Button: gleiche Farblogik wie beim Hover
+                                        String(oidValue) === String(value)
+                                            ? !widget.data.onlyText && !widget.data.onlyIcon
+                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                  alpha(
+                                                      (activeIndex === index + 1 &&
+                                                          String(oidValue) ===
+                                                              String(widget.data[`value${index + 1}`]) &&
+                                                          widget.data.iconColorActive) ||
+                                                          widget.data[`iconColor${index + 1}`] ||
+                                                          widget.data.iconColor ||
+                                                          data.iconColor ||
+                                                          theme.palette.primary.main,
+                                                      0.1,
+                                                  )
+                                                : widget.data.onlyIcon
+                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.iconColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    )
+                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.textColorActive) ||
+                                                            widget.data[`textColor${index + 1}`] ||
+                                                            widget.data.textColor ||
+                                                            data.textColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    )
+                                            : 'transparent',
 
                                     '&.MuiToggleButton-root.Mui-selected': {
                                         background:
-                                            (activeIndex === index + 1 &&
-                                                String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                                widget.data.backgroundColorActive) ||
-                                            widget.data[`backgroundColor${index + 1}`] ||
-                                            data.backgroundColor ||
-                                            (activeIndex === index + 1 &&
-                                                String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                                widget.data.backgroundActive) ||
-                                            widget.data[`background${index + 1}`] ||
-                                            data.background,
+                                            // Ausgewählter Button: gleiche Farblogik wie beim Hover
+                                            !widget.data.onlyText && !widget.data.onlyIcon
+                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                  alpha(
+                                                      (activeIndex === index + 1 &&
+                                                          String(oidValue) ===
+                                                              String(widget.data[`value${index + 1}`]) &&
+                                                          widget.data.iconColorActive) ||
+                                                          widget.data[`iconColor${index + 1}`] ||
+                                                          widget.data.iconColor ||
+                                                          data.iconColor ||
+                                                          theme.palette.primary.main,
+                                                      0.1,
+                                                  )
+                                                : widget.data.onlyIcon
+                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.iconColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    )
+                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.textColorActive) ||
+                                                            widget.data[`textColor${index + 1}`] ||
+                                                            widget.data.textColor ||
+                                                            data.textColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    ),
                                     },
 
                                     '&:hover': {
@@ -195,16 +255,45 @@ function ButtonGroupCollection(): React.JSX.Element {
                                             (data.iconHover && `brightness(${data.iconHover || '100%'})`),
 
                                         background:
-                                            (activeIndex === index + 1 &&
-                                                String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                                widget.data.backgroundColorActive) ||
-                                            widget.data[`backgroundColor${index + 1}`] ||
-                                            data.backgroundColor ||
-                                            (activeIndex === index + 1 &&
-                                                String(oidValue) === String(widget.data[`value${index + 1}`]) &&
-                                                widget.data.backgroundActive) ||
-                                            widget.data[`background${index + 1}`] ||
-                                            data.background,
+                                            // Hover-Hintergrundfarbe basierend auf sichtbaren Elementen
+                                            !widget.data.onlyText && !widget.data.onlyIcon
+                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                  alpha(
+                                                      (activeIndex === index + 1 &&
+                                                          String(oidValue) ===
+                                                              String(widget.data[`value${index + 1}`]) &&
+                                                          widget.data.iconColorActive) ||
+                                                          widget.data[`iconColor${index + 1}`] ||
+                                                          widget.data.iconColor ||
+                                                          data.iconColor ||
+                                                          theme.palette.primary.main,
+                                                      0.1,
+                                                  )
+                                                : widget.data.onlyIcon
+                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.iconColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    )
+                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                    alpha(
+                                                        (activeIndex === index + 1 &&
+                                                            String(oidValue) ===
+                                                                String(widget.data[`value${index + 1}`]) &&
+                                                            widget.data.textColorActive) ||
+                                                            widget.data[`textColor${index + 1}`] ||
+                                                            widget.data.textColor ||
+                                                            data.textColor ||
+                                                            theme.palette.primary.main,
+                                                        0.1,
+                                                    ),
                                     },
                                 }}
                                 onClick={() => setOidValueState(value)}
