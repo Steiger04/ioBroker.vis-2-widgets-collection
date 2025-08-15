@@ -7,6 +7,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
+import type { DialogCollectionContextProps } from 'src';
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -17,20 +18,18 @@ const ImageHtmlButton = styled(ButtonBase)({
     alignItems: 'center',
 });
 
-function DialogCollection() {
-    const [open, setOpen] = useState(false);
-    const hideTimeout = useRef(null);
-    const [contentRef, setContentRef] = useState(null);
-    const {
-        widget: {
-            data: { oidObject },
-        },
-        widget,
-        getWidgetView,
-        setValue,
-    } = useContext(CollectionContext);
+function DialogCollection(): React.ReactElement {
+    const [open, setOpen] = useState<boolean>(false);
+    const hideTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    // DialogCollection wird nur im DialogCollectionWidget verwendet, daher ist der Cast sicher
+    const context = useContext(CollectionContext) as unknown as DialogCollectionContextProps;
+    const { widget, getWidgetView, setValue } = context;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, oidValue } = useData('oid');
+
+    // Sicherer Zugriff auf oidObject
+    const oidObject = (widget.data as any).oidObject;
 
     const oid = oidObject?._id;
     const oidType = oidObject?.type;
@@ -38,9 +37,11 @@ function DialogCollection() {
     const isValidType = oidType === 'boolean' || !widget.data.oid || widget.data.oid === 'nothing_selected';
 
     const handleClickOpen = useCallback(() => {
-        if (hideTimeout.current) return;
+        if (hideTimeout.current) {
+            return;
+        }
 
-        let timeout = widget.data.dialogAutoClose;
+        let timeout: any = widget.data.dialogAutoClose;
 
         if (timeout === null || timeout === undefined || timeout === '') {
             setOpen(true);
@@ -51,7 +52,7 @@ function DialogCollection() {
             timeout = 10000;
         }
 
-        timeout = parseInt(timeout, 10);
+        timeout = parseInt(String(timeout), 10);
         if (timeout < 60) {
             // maybe this is seconds
             timeout *= 1000;
@@ -77,15 +78,19 @@ function DialogCollection() {
         setOpen(false);
     }, [oid, setValue]);
 
-    useHtmlValue(contentRef, '', oidObject?.unit, data);
+    // HTML value formatting
+    const htmlValue = useHtmlValue(oidValue, widget as any, data);
 
     useEffect(() => {
         if (oidValue === undefined || oidValue === null) {
             return;
         }
 
-        if (oidValue) handleClickOpen();
-        else handleClose();
+        if (oidValue) {
+            handleClickOpen();
+        } else {
+            handleClose();
+        }
     }, [oidValue, handleClickOpen, handleClose]);
 
     return (
@@ -159,15 +164,14 @@ function DialogCollection() {
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                             '100%',
                                         color: data.iconColor,
-                                        filter: data.iconColor ? 'drop-shadow(0px 10000px 0)' : null,
-                                        transform: data.iconColor ? 'translateY(-10000px)' : null,
+                                        filter: data.iconColor ? ('drop-shadow(0px 10000px 0)' as any) : undefined,
+                                        transform: data.iconColor ? ('translateY(-10000px)' as any) : undefined,
                                     }}
                                 />
                             </Box>
                         ) : null}
                         {widget.data.onlyText || (!widget.data.onlyText && !widget.data.onlyIcon) ? (
                             <Typography
-                                ref={setContentRef}
                                 variant="body2"
                                 sx={{
                                     overflow: 'hidden',
@@ -190,6 +194,9 @@ function DialogCollection() {
                                     fontSize: data.valueSize,
                                     color: data.textColor,
                                     textTransform: 'none',
+                                }}
+                                dangerouslySetInnerHTML={{
+                                    __html: htmlValue !== undefined ? String(htmlValue) : '',
                                 }}
                             />
                         ) : null}

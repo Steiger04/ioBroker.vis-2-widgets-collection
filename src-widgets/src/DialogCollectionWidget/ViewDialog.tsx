@@ -3,15 +3,36 @@ import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase from '../components/CollectionBase';
+import type { DialogCollectionContextProps } from 'src';
 
-export default function ViewDialog({ open, handleClose, widget, data, getWidgetView, fontStyles, textStyles }) {
-    const baseRef = useRef(null);
-    const [titleRef, setTitleRef] = useState(null);
+interface ViewDialogProps {
+    open: boolean;
+    handleClose: () => void;
+    widget: DialogCollectionContextProps['widget'];
+    data: any; // StyleData type from useData
+    getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
+    fontStyles: React.CSSProperties;
+    textStyles: React.CSSProperties;
+}
 
-    const header = baseRef.current?.header;
+export default function ViewDialog({
+    open,
+    handleClose,
+    widget,
+    data,
+    getWidgetView,
+    fontStyles,
+    textStyles,
+}: ViewDialogProps): React.ReactElement {
+    const baseRef = useRef<HTMLDivElement>(null);
+    const [titleRef, setTitleRef] = useState<HTMLElement | null>(null);
+
+    const header = (baseRef.current as any)?.header;
 
     useEffect(() => {
-        if (!widget.data.dialogHeaderAsTitle) return;
+        if (!widget.data.dialogHeaderAsTitle) {
+            return;
+        }
 
         if (header && titleRef) {
             if (widget.data.dialogHeaderAsTitle) {
@@ -32,7 +53,7 @@ export default function ViewDialog({ open, handleClose, widget, data, getWidgetV
 
                 filter: 'brightness(1.5)',
                 color: theme =>
-                    widget.data.dialogCloseButtonColor || data.frameBackgroundColor || theme.palette.background.primary,
+                    widget.data.dialogCloseButtonColor || data.frameBackgroundColor || theme.palette.background.default,
             }}
             aria-label="delete"
             onClick={handleClose}
@@ -104,23 +125,27 @@ export default function ViewDialog({ open, handleClose, widget, data, getWidgetV
                         {widget.data.dialogCloseButtonTop && iconButton}
                     </Box>
 
-                    {widget.data.dialogCloseButtonTop && (
-                        <Divider
-                            sx={{
-                                width: '100%',
-                                opacity: '0.5',
-                                background: theme => data.frameBackgroundColor || theme.palette.background.primary,
-                            }}
-                        />
-                    )}
+                    <>
+                        {widget.data.dialogCloseButtonTop && (
+                            <Divider
+                                sx={{
+                                    width: '100%',
+                                    opacity: '0.5',
+                                    background: theme => data.frameBackgroundColor || theme.palette.background.default,
+                                }}
+                            />
+                        )}
+                    </>
                     <Box
                         sx={{
                             '::-webkit-scrollbar-track': {
-                                background: theme => data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.5),
+                                background: (_theme: any) =>
+                                    data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.5),
                             },
                             '::-webkit-scrollbar-thumb': {
                                 opacity: '0.5',
-                                background: theme => data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.7),
+                                background: (_theme: any) =>
+                                    data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.7),
                             },
                             position: 'relative',
                             overflow: 'auto',
@@ -136,17 +161,19 @@ export default function ViewDialog({ open, handleClose, widget, data, getWidgetV
                         })}
                     </Box>
 
-                    {widget.data.dialogCloseButtonBottom && (
-                        <Divider
-                            sx={{
-                                width: '100%',
-                                opacity: '0.5',
-                                background: theme => data.frameBackgroundColor || theme.palette.background.default,
-                            }}
-                        />
-                    )}
+                    <>
+                        {widget.data.dialogCloseButtonBottom && (
+                            <Divider
+                                sx={{
+                                    width: '100%',
+                                    opacity: '0.5',
+                                    background: theme => data.frameBackgroundColor || theme.palette.background.default,
+                                }}
+                            />
+                        )}
 
-                    {widget.data.dialogCloseButtonBottom && iconButton}
+                        {widget.data.dialogCloseButtonBottom && iconButton}
+                    </>
                 </CollectionBase>
             </Box>
         </Modal>
