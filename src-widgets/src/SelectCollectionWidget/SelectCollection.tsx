@@ -17,7 +17,7 @@ function SelectCollection(): React.ReactElement {
     const { width } = useElementDimensions(contentRef?.current);
     // SelectCollection wird nur im SelectCollectionWidget verwendet, daher ist der Cast sicher
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
@@ -86,7 +86,7 @@ function SelectCollection(): React.ReactElement {
                         maxWidth: `calc(${width}px - 10%)`,
 
                         '& .MuiSelect-icon': {
-                            color: (widget.data as any).arrowColor,
+                            color: widget.data.arrowColor || theme.palette.primary.main,
                         },
 
                         '&.Mui-focused': {
@@ -100,12 +100,11 @@ function SelectCollection(): React.ReactElement {
                     }}
                 >
                     {states.map((state, idx) => {
-                        const widgetData = widget.data as any; // Sichere Zugriffe auf dynamische Properties
                         const imgSrc =
-                            widgetData[`iconSmall${idx + 1}`] ||
-                            widgetData[`icon${idx + 1}`] ||
-                            widgetData.iconSmall ||
-                            widgetData.icon;
+                            widget.data[`iconSmall${idx + 1}`] ||
+                            widget.data[`icon${idx + 1}`] ||
+                            widget.data.iconSmall ||
+                            widget.data.icon;
 
                         return (
                             <MenuItem
@@ -114,39 +113,39 @@ function SelectCollection(): React.ReactElement {
                                 sx={{
                                     '& .MuiTouchRipple-root': {
                                         color:
-                                            widgetData[`iconColor${idx + 1}`] ||
-                                            widgetData.iconColor ||
-                                            widgetData.textColorActive ||
+                                            widget.data[`iconColor${idx + 1}`] ||
+                                            widget.data.iconColor ||
+                                            widget.data.textColorActive ||
                                             data.textColor,
                                     },
 
                                     '&.Mui-selected': {
                                         backgroundColor:
-                                            (widgetData[`iconColor${idx + 1}`] &&
-                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
+                                            (widget.data[`iconColor${idx + 1}`] &&
+                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
 
                                     '&.Mui-selected:hover': {
                                         backgroundColor:
-                                            (widgetData[`iconColor${idx + 1}`] &&
-                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
+                                            (widget.data[`iconColor${idx + 1}`] &&
+                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
                                     '&:hover': {
                                         backgroundColor:
-                                            (widgetData[`iconColor${idx + 1}`] &&
-                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
+                                            (widget.data[`iconColor${idx + 1}`] &&
+                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
 
                                     background:
-                                        (widgetData[`backgroundColor${idx + 1}`] &&
-                                            `${widgetData[`backgroundColor${idx + 1}`]}!important`) ||
-                                        `${widgetData[`background${idx + 1}`]}!important`,
+                                        (widget.data[`backgroundColor${idx + 1}`] &&
+                                            `${widget.data[`backgroundColor${idx + 1}`]}!important`) ||
+                                        `${widget.data[`background${idx + 1}`]}!important`,
                                 }}
                             >
                                 <Stack
@@ -162,43 +161,43 @@ function SelectCollection(): React.ReactElement {
                                         style={{
                                             position: 'relative',
 
-                                            top: `calc(0px - ${widgetData[`iconYOffset${idx + 1}`]})`,
-                                            right: `calc(0px - ${widgetData[`iconXOffset${idx + 1}`]})`,
+                                            top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`]})`,
+                                            right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`]})`,
 
                                             width:
                                                 (!imgSrc && '0px') ||
-                                                (typeof widgetData[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widgetData[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widgetData.iconSize === 'number'
-                                                      ? `calc(24px * ${widgetData.iconSize} / 100)`
+                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
+                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
+                                                    : typeof widget.data.iconSize === 'number'
+                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
                                                       : '24px'),
                                             height:
                                                 (!imgSrc && '0px') ||
-                                                (typeof widgetData[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widgetData[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widgetData.iconSize === 'number'
-                                                      ? `calc(24px * ${widgetData.iconSize} / 100)`
+                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
+                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
+                                                    : typeof widget.data.iconSize === 'number'
+                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
                                                       : '24px'),
                                             color:
-                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
-                                                    widgetData.iconColorActive) ||
-                                                widgetData[`iconColor${idx + 1}`] ||
-                                                widgetData.buttonGroupColor ||
-                                                data.iconColor,
+                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
+                                                    widget.data.iconColorActive) ||
+                                                widget.data[`iconColor${idx + 1}`] ||
+                                                data.iconColor ||
+                                                theme.palette.primary.main,
                                             filter:
-                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
-                                                    widgetData.iconColorActive) ||
-                                                widgetData[`iconColor${idx + 1}`] ||
-                                                widgetData.buttonGroupColor ||
-                                                data.iconColor
+                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
+                                                    widget.data.iconColorActive) ||
+                                                widget.data[`iconColor${idx + 1}`] ||
+                                                data.iconColor ||
+                                                theme.palette.primary.main
                                                     ? ('drop-shadow(0px 10000px 0)' as any)
                                                     : undefined,
                                             transform:
-                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
-                                                    widgetData.iconColorActive) ||
-                                                widgetData[`iconColor${idx + 1}`] ||
-                                                widgetData.buttonGroupColor ||
-                                                data.iconColor
+                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
+                                                    widget.data.iconColorActive) ||
+                                                widget.data[`iconColor${idx + 1}`] ||
+                                                data.iconColor ||
+                                                theme.palette.primary.main
                                                     ? ('translateY(-10000px)' as any)
                                                     : undefined,
                                         }}
@@ -210,10 +209,10 @@ function SelectCollection(): React.ReactElement {
                                             whiteSpace: 'pre-wrap',
                                             ...fontStyles,
                                             ...textStyles,
-                                            fontSize: widgetData[`valueSize${idx + 1}`] || data.valueSize,
+                                            fontSize: widget.data[`valueSize${idx + 1}`] || data.valueSize,
                                             textAlign: 'left',
                                             bgcolor: 'transparent',
-                                            color: widgetData[`textColor${idx + 1}`] || data.textColor,
+                                            color: widget.data[`textColor${idx + 1}`] || data.textColor,
                                             textTransform: 'none',
 
                                             width: '100%',
@@ -227,10 +226,10 @@ function SelectCollection(): React.ReactElement {
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
                                             __html:
-                                                (widgetData[`alias${idx + 1}`] &&
-                                                    widgetData[`alias${idx + 1}`].replace(/(\r\n|\n|\r)/gm, '')) ||
-                                                (widgetData[`value${idx + 1}`] &&
-                                                    `${widgetData[`value${idx + 1}`]}${oidObject?.unit}`) ||
+                                                (widget.data[`alias${idx + 1}`] &&
+                                                    widget.data[`alias${idx + 1}`].replace(/(\r\n|\n|\r)/gm, '')) ||
+                                                (widget.data[`value${idx + 1}`] &&
+                                                    `${widget.data[`value${idx + 1}`]}${oidObject?.unit}`) ||
                                                 '',
                                         }}
                                     />

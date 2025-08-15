@@ -26,7 +26,6 @@ const selectFields = (): RxWidgetInfoAttributesField[] => [
         name: 'arrowColor',
         label: 'arrow_color',
         type: 'color',
-        default: '#000000',
     },
 ];
 
