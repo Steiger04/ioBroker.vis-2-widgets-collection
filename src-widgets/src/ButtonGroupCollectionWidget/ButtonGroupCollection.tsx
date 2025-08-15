@@ -7,17 +7,18 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { ButtonGroupCollectionContextProps } from 'src';
 
-function ButtonGroupCollection() {
-    const {
-        widget: {
-            data: { oidObject },
-        },
-        widget,
-    } = useContext(CollectionContext);
+function ButtonGroupCollection(): React.JSX.Element {
+    // ButtonGroupCollection wird nur im ButtonGroupCollectionWidget verwendet
+    const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
+    const { widget } = context;
+
+    // Sicherer Zugriff auf optionale Properties
+    const oidObject = widget.data.oidObject;
     const { data, states, activeIndex } = useData('oid');
     const { fontStyles, textStyles } = useStyles(widget.style);
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
     const buttonGroupOrientation = widget.data.buttonGroupOrientation;
@@ -53,7 +54,6 @@ function ButtonGroupCollection() {
                         oidType !== 'number' && oidType !== 'string' && oidType !== 'boolean' && oidType !== 'mixed'
                     }
                     fullWidth
-                    variant={buttonGroupVariant}
                     orientation={buttonGroupOrientation}
                     sx={{
                         display: 'flex',
@@ -65,16 +65,16 @@ function ButtonGroupCollection() {
                             // color: widget.data.buttonGroupColor || "background.default",
                         },
                         '& .MuiToggleButtonGroup-firstButton': {
-                            borderTopWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
-                            borderLeftWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
+                            borderTopWidth: buttonGroupVariant === 'outlined' ? null : 0,
+                            borderLeftWidth: buttonGroupVariant === 'outlined' ? null : 0,
                             borderRightWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? null
                                       : 0,
                             borderBottomWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? 0
@@ -84,25 +84,25 @@ function ButtonGroupCollection() {
                         },
                         '& .MuiToggleButtonGroup-middleButton': {
                             borderTopWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? 0
                                       : null,
                             borderLeftWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? null
                                       : 0,
                             borderRightWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? null
                                       : 0,
                             borderBottomWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? 0
@@ -111,14 +111,14 @@ function ButtonGroupCollection() {
                         },
                         '& .MuiToggleButtonGroup-lastButton': {
                             borderTopWidth:
-                                widget.data.buttonGroupVariant === 'outlined'
+                                buttonGroupVariant === 'outlined'
                                     ? null
                                     : widget.data.buttonGroupOrientation === 'horizontal'
                                       ? 0
                                       : null,
-                            borderLeftWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
-                            borderRightWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
-                            borderBottomWidth: widget.data.buttonGroupVariant === 'outlined' ? null : 0,
+                            borderLeftWidth: buttonGroupVariant === 'outlined' ? null : 0,
+                            borderRightWidth: buttonGroupVariant === 'outlined' ? null : 0,
+                            borderBottomWidth: buttonGroupVariant === 'outlined' ? null : 0,
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
                             borderRadius: !!widget.data.basePadding === false ? 0 : undefined,
                         },
@@ -310,7 +310,7 @@ function ButtonGroupCollection() {
                                                             widget.data.buttonGroupColor ||
                                                             data.iconColor
                                                                 ? 'drop-shadow(0px 10000px 0)'
-                                                                : null,
+                                                                : undefined,
                                                         transform:
                                                             (activeIndex === index + 1 &&
                                                                 String(oidValue) ===
@@ -320,7 +320,7 @@ function ButtonGroupCollection() {
                                                             widget.data.buttonGroupColor ||
                                                             data.iconColor
                                                                 ? 'translateY(-10000px)'
-                                                                : null,
+                                                                : undefined,
                                                     }}
                                                 />
                                             </Box>
