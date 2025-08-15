@@ -60,10 +60,21 @@ function ButtonGroupCollection(): React.JSX.Element {
                         flexDirection: buttonGroupOrientation === 'vertical' ? 'column' : 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        // Höheneinschränkung nur für vertikale Orientierung
+                        height: buttonGroupOrientation === 'vertical' ? '100%' : 'auto',
+                        maxHeight: buttonGroupOrientation === 'vertical' ? '100%' : 'none',
 
                         '&.MuiToggleButtonGroup-root': {
                             // color: widget.data.buttonGroupColor || "background.default",
                         },
+                        // Bei vertikaler Ausrichtung: alle Buttons gleichmäßig verteilen
+                        ...(buttonGroupOrientation === 'vertical' && {
+                            '& .MuiToggleButton-root': {
+                                flex: '1 1 0',
+                                minHeight: 0,
+                                maxHeight: `calc(100% / ${states.length})`,
+                            },
+                        }),
                         '& .MuiToggleButtonGroup-firstButton': {
                             borderTopWidth: buttonGroupVariant === 'outlined' ? null : 0,
                             borderLeftWidth: buttonGroupVariant === 'outlined' ? null : 0,
@@ -207,9 +218,8 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        justifyContent: 'center',
+                                        justifyContent: 'space-around',
                                         alignItems: 'center',
-                                        gap: 0.5,
                                     }}
                                 >
                                     {!widget.data.onlyText &&
@@ -224,7 +234,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                     overflow: 'hidden',
 
                                                     width: '100%',
-                                                    flex: '0 0 auto',
+                                                    height: '100%',
 
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -334,7 +344,8 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         <Box
                                             sx={{
                                                 width: '100%',
-                                                flex: '0 0 auto',
+
+                                                pt: 0.5,
 
                                                 display: 'flex',
                                                 justifyContent: 'center',

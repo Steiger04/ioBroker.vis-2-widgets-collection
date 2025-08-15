@@ -159,7 +159,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             label: 'value',
             type: 'text',
             default: '',
-            hidden: (data, _i) => data.oidObject.type === 'boolean' || data.name === 'valueActive',
+            hidden: (data, _i) => data.oidObject?.type === 'boolean' || data.name === 'valueActive',
         },
         {
             name: `valueSize${groupName}`,
