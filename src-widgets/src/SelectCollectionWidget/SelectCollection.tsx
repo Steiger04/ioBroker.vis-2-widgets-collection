@@ -8,25 +8,22 @@ import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { SelectCollectionContextProps } from 'src';
 
 const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-function SelectCollection() {
-    const contentRef = useRef(null);
+function SelectCollection(): React.ReactElement {
+    const contentRef = useRef<HTMLDivElement>(null);
     const { width } = useElementDimensions(contentRef?.current);
-    const {
-        widget: {
-            data: { cidObject },
-        },
-        widget: {
-            data: { oidObject },
-        },
-        widget,
-    } = useContext(CollectionContext);
+    // SelectCollection wird nur im SelectCollectionWidget verwendet, daher ist der Cast sicher
+    const context = useContext(CollectionContext) as SelectCollectionContextProps;
+    const { widget } = context;
+    const cidObject = widget.data.cidObject;
+    const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, states } = useData('oid');
-    const { value: oidValue, setValueState: setOidValueState } = useValueState('oid');
-    const { setValueState: setCidValueState } = useValueState('cid');
+    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { updateValue: setCidValueState } = useValueState('cid');
 
     const oidType = oidObject?.type;
 
@@ -34,8 +31,10 @@ function SelectCollection() {
 
     const valueIndex = states.findIndex(state => String(state.value) === String(oidValue));
 
-    const changeHandler = event => {
-        const value = event.target.value.value;
+    const changeHandler = (event: any): void => {
+        const selectedIndex = event.target.value;
+        const selectedState = states[selectedIndex];
+        const value = selectedState.value;
 
         if (cidObject) {
             setCidValueState(value);
@@ -69,7 +68,7 @@ function SelectCollection() {
                 <Select
                     variant="standard"
                     disableUnderline
-                    value={valueIndex !== -1 ? states[valueIndex] : ''}
+                    value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
                     MenuProps={{
                         sx: {
@@ -77,9 +76,7 @@ function SelectCollection() {
                         },
                         MenuListProps: {
                             sx: {
-                                background: data.backgroundColor
-                                    ? alpha(data.backgroundColor, 0.7)
-                                    : null || data.background,
+                                background: data.backgroundColor ? alpha(data.backgroundColor, 0.7) : data.background,
                             },
                         },
                     }}
@@ -89,7 +86,7 @@ function SelectCollection() {
                         maxWidth: `calc(${width}px - 10%)`,
 
                         '& .MuiSelect-icon': {
-                            color: widget.data.arrowColor,
+                            color: (widget.data as any).arrowColor,
                         },
 
                         '&.Mui-focused': {
@@ -103,52 +100,53 @@ function SelectCollection() {
                     }}
                 >
                     {states.map((state, idx) => {
+                        const widgetData = widget.data as any; // Sichere Zugriffe auf dynamische Properties
                         const imgSrc =
-                            widget.data[`iconSmall${idx + 1}`] ||
-                            widget.data[`icon${idx + 1}`] ||
-                            widget.data.iconSmall ||
-                            widget.data.icon;
+                            widgetData[`iconSmall${idx + 1}`] ||
+                            widgetData[`icon${idx + 1}`] ||
+                            widgetData.iconSmall ||
+                            widgetData.icon;
 
                         return (
                             <MenuItem
-                                key={state.value}
-                                value={state}
+                                key={String(state.value)} // Sicherer Key-Cast
+                                value={idx} // Index als value verwenden
                                 sx={{
                                     '& .MuiTouchRipple-root': {
                                         color:
-                                            widget.data[`iconColor${idx + 1}`] ||
-                                            widget.data.iconColor ||
-                                            widget.data.textColorActive ||
+                                            widgetData[`iconColor${idx + 1}`] ||
+                                            widgetData.iconColor ||
+                                            widgetData.textColorActive ||
                                             data.textColor,
                                     },
 
                                     '&.Mui-selected': {
                                         backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
+                                            (widgetData[`iconColor${idx + 1}`] &&
+                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
 
                                     '&.Mui-selected:hover': {
                                         backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
+                                            (widgetData[`iconColor${idx + 1}`] &&
+                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
                                     '&:hover': {
                                         backgroundColor:
-                                            (widget.data[`iconColor${idx + 1}`] &&
-                                                alpha(widget.data[`iconColor${idx + 1}`], 0.16)) ||
-                                            (widget.data.iconColor && alpha(widget.data.iconColor, 0.16)) ||
+                                            (widgetData[`iconColor${idx + 1}`] &&
+                                                alpha(widgetData[`iconColor${idx + 1}`], 0.16)) ||
+                                            (widgetData.iconColor && alpha(widgetData.iconColor, 0.16)) ||
                                             (data.textColor && alpha(data.textColor, 0.16)),
                                     },
 
                                     background:
-                                        (widget.data[`backgroundColor${idx + 1}`] &&
-                                            `${widget.data[`backgroundColor${idx + 1}`]}!important`) ||
-                                        `${widget.data[`background${idx + 1}`]}!important`,
+                                        (widgetData[`backgroundColor${idx + 1}`] &&
+                                            `${widgetData[`backgroundColor${idx + 1}`]}!important`) ||
+                                        `${widgetData[`background${idx + 1}`]}!important`,
                                 }}
                             >
                                 <Stack
@@ -164,45 +162,45 @@ function SelectCollection() {
                                         style={{
                                             position: 'relative',
 
-                                            top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`]})`,
-                                            right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`]})`,
+                                            top: `calc(0px - ${widgetData[`iconYOffset${idx + 1}`]})`,
+                                            right: `calc(0px - ${widgetData[`iconXOffset${idx + 1}`]})`,
 
                                             width:
                                                 (!imgSrc && '0px') ||
-                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widget.data.iconSize === 'number'
-                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
+                                                (typeof widgetData[`iconSize${idx + 1}`] === 'number'
+                                                    ? `calc(24px * ${widgetData[`iconSize${idx + 1}`]} / 100)`
+                                                    : typeof widgetData.iconSize === 'number'
+                                                      ? `calc(24px * ${widgetData.iconSize} / 100)`
                                                       : '24px'),
                                             height:
                                                 (!imgSrc && '0px') ||
-                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widget.data.iconSize === 'number'
-                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
+                                                (typeof widgetData[`iconSize${idx + 1}`] === 'number'
+                                                    ? `calc(24px * ${widgetData[`iconSize${idx + 1}`]} / 100)`
+                                                    : typeof widgetData.iconSize === 'number'
+                                                      ? `calc(24px * ${widgetData.iconSize} / 100)`
                                                       : '24px'),
                                             color:
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.buttonGroupColor ||
+                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
+                                                    widgetData.iconColorActive) ||
+                                                widgetData[`iconColor${idx + 1}`] ||
+                                                widgetData.buttonGroupColor ||
                                                 data.iconColor,
                                             filter:
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.buttonGroupColor ||
+                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
+                                                    widgetData.iconColorActive) ||
+                                                widgetData[`iconColor${idx + 1}`] ||
+                                                widgetData.buttonGroupColor ||
                                                 data.iconColor
-                                                    ? 'drop-shadow(0px 10000px 0)'
-                                                    : null,
+                                                    ? ('drop-shadow(0px 10000px 0)' as any)
+                                                    : undefined,
                                             transform:
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.buttonGroupColor ||
+                                                (String(oidValue) === String(widgetData[`value${idx + 1}`]) &&
+                                                    widgetData.iconColorActive) ||
+                                                widgetData[`iconColor${idx + 1}`] ||
+                                                widgetData.buttonGroupColor ||
                                                 data.iconColor
-                                                    ? 'translateY(-10000px)'
-                                                    : null,
+                                                    ? ('translateY(-10000px)' as any)
+                                                    : undefined,
                                         }}
                                     />
                                     <Typography
@@ -212,10 +210,10 @@ function SelectCollection() {
                                             whiteSpace: 'pre-wrap',
                                             ...fontStyles,
                                             ...textStyles,
-                                            fontSize: widget.data[`valueSize${idx + 1}`] || data.valueSize,
+                                            fontSize: widgetData[`valueSize${idx + 1}`] || data.valueSize,
                                             textAlign: 'left',
                                             bgcolor: 'transparent',
-                                            color: widget.data[`textColor${idx + 1}`] || data.textColor,
+                                            color: widgetData[`textColor${idx + 1}`] || data.textColor,
                                             textTransform: 'none',
 
                                             width: '100%',
@@ -229,10 +227,10 @@ function SelectCollection() {
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
                                             __html:
-                                                (widget.data[`alias${idx + 1}`] &&
-                                                    widget.data[`alias${idx + 1}`].replace(/(\r\n|\n|\r)/gm, '')) ||
-                                                (widget.data[`value${idx + 1}`] &&
-                                                    `${widget.data[`value${idx + 1}`]}${oidObject?.unit}`) ||
+                                                (widgetData[`alias${idx + 1}`] &&
+                                                    widgetData[`alias${idx + 1}`].replace(/(\r\n|\n|\r)/gm, '')) ||
+                                                (widgetData[`value${idx + 1}`] &&
+                                                    `${widgetData[`value${idx + 1}`]}${oidObject?.unit}`) ||
                                                 '',
                                         }}
                                     />

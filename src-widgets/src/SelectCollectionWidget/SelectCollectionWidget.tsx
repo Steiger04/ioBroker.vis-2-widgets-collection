@@ -1,14 +1,19 @@
 import React from 'react';
+import { type SelectCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
-import selectFields from '../lib/selectFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import selectFields, { type SelectFieldsRxData } from '../lib/selectFields';
 import SelectCollection from './SelectCollection';
 
-class SelectCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+class SelectCollectionWidget extends Generic<
+    SelectFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSelectCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -28,7 +33,7 @@ class SelectCollectionWidget extends Generic {
                         ...commonObjectFields(['boolean', 'number', 'string', 'mixed']),
                         ...delayFields(),
                         ...selectFields(),
-                    ],
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
@@ -50,12 +55,12 @@ class SelectCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
         return SelectCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate() {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -75,25 +80,25 @@ class SelectCollectionWidget extends Generic {
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
+    onRxDataChanged(): void {
         this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(id, state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
         this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -118,7 +123,7 @@ class SelectCollectionWidget extends Generic {
             wrappedContent: this.wrappedCollectionContent,
 
             // cidObject: this.state.cidObject,
-        };
+        } as SelectCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
