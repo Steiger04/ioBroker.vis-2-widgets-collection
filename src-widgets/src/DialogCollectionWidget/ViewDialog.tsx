@@ -5,11 +5,45 @@ import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import type { DialogCollectionContextProps } from 'src';
 
+// Import StyleData type from useData
+type StyleData = {
+    textColor: string;
+    textColorActive?: string;
+    header: string;
+    headerSize: string | null;
+    footer: string;
+    footerSize: string | null;
+    alias: string;
+    value?: string;
+    valueSize: string | null;
+    valueSizeActive: string | false | null;
+    icon: string | false;
+    iconActive: string | false;
+    iconSize: string;
+    iconSizeActive: string | false;
+    iconSizeActiveOnly?: number;
+    iconSizeOnly?: number;
+    iconColor?: string;
+    iconColorActive?: string;
+    iconHover?: string;
+    iconHoverActive?: string;
+    iconXOffset: string;
+    iconYOffset: string;
+    backgroundColor: string;
+    backgroundColorActive?: string;
+    background: string;
+    backgroundActive?: string;
+    frameBackgroundColor: string;
+    frameBackgroundColorActive?: string;
+    frameBackground: string;
+    frameBackgroundActive?: string;
+};
+
 interface ViewDialogProps {
     open: boolean;
     handleClose: () => void;
     widget: DialogCollectionContextProps['widget'];
-    data: any; // StyleData type from useData
+    data: StyleData;
     getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
     fontStyles: React.CSSProperties;
     textStyles: React.CSSProperties;
@@ -139,13 +173,11 @@ export default function ViewDialog({
                     <Box
                         sx={{
                             '::-webkit-scrollbar-track': {
-                                background: (_theme: any) =>
-                                    data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.5),
+                                background: data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.5),
                             },
                             '::-webkit-scrollbar-thumb': {
                                 opacity: '0.5',
-                                background: (_theme: any) =>
-                                    data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.7),
+                                background: data.frameBackgroundColor && alpha(data.frameBackgroundColor, 0.7),
                             },
                             position: 'relative',
                             overflow: 'auto',

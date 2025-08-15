@@ -9,6 +9,16 @@ import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
 import type { DialogCollectionContextProps } from 'src';
 
+// OID Object Interface
+interface OidObject {
+    _id?: string;
+    type?: string;
+    unit?: string;
+    name?: string;
+    min?: number;
+    max?: number;
+}
+
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
     height: '100% !important',
@@ -29,7 +39,7 @@ function DialogCollection(): React.ReactElement {
     const { data, oidValue } = useData('oid');
 
     // Sicherer Zugriff auf oidObject
-    const oidObject = (widget.data as any).oidObject;
+    const oidObject = (widget.data as any).oidObject as OidObject | undefined;
 
     const oid = oidObject?._id;
     const oidType = oidObject?.type;
@@ -61,7 +71,9 @@ function DialogCollection(): React.ReactElement {
 
         hideTimeout.current = setTimeout(() => {
             hideTimeout.current = null;
-            setValue(oid, false);
+            if (oid) {
+                setValue(oid, false);
+            }
             setOpen(false);
         }, timeout);
 
@@ -74,7 +86,9 @@ function DialogCollection(): React.ReactElement {
             hideTimeout.current = null;
         }
 
-        setValue(oid, false);
+        if (oid) {
+            setValue(oid, false);
+        }
         setOpen(false);
     }, [oid, setValue]);
 
@@ -119,7 +133,9 @@ function DialogCollection(): React.ReactElement {
                 >
                     <ImageHtmlButton
                         onClick={() => {
-                            setValue(oid, true);
+                            if (oid) {
+                                setValue(oid, true);
+                            }
                             handleClickOpen();
                         }}
                         sx={{
