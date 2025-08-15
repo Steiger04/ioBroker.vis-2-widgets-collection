@@ -1,6 +1,24 @@
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
 
-const dialogFields = () => [
+export interface DialogFieldsRxData {
+    view: string;
+    dialogAutoClose: number;
+    oid: string;
+    dialogHeaderAsTitle: boolean;
+    dialogWidth: number;
+    dialogHeight: number;
+    dialogInPixel: boolean;
+    dialogBackgroundColor: string;
+    value: string;
+    dialogCloseButtonTop: boolean;
+    dialogCloseButtonBottom: boolean;
+    dialogCloseButtonColor: string;
+    onlyIcon: boolean;
+    onlyText: boolean;
+}
+
+const dialogFields = (): RxWidgetInfoAttributesField[] => [
     {
         name: 'view',
         label: 'view',
