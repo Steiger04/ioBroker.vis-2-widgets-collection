@@ -16,6 +16,7 @@ import type { SliderFieldsRxData } from './lib/sliderFields';
 import type { RadioGroupFieldsRxData } from './lib/radioGroupFields';
 import type { ButtonGroupFieldsRxData } from './lib/buttonGroupFields';
 import type { SelectFieldsRxData } from './lib/selectFields';
+import type { DialogFieldsRxData } from './lib/dialogFields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
@@ -36,6 +37,27 @@ export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxDa
     socket: LegacyConnection;
     theme: Theme;
     wrappedContent: boolean;
+}
+
+export interface DialogCollectionContextProps {
+    id: string;
+    refService: React.RefObject<HTMLElement>;
+    style: React.CSSProperties;
+    widget: {
+        data: DialogFieldsRxData & CommonFieldsRxData;
+        style: CSSProperties;
+    };
+    setValue: (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack?: boolean) => void;
+    setState: React.Component['setState'];
+    values: VisRxWidgetStateValues;
+    isSignalVisible: (index: number) => boolean;
+    getPropertyValue: (stateName: string) => ioBroker.StateValue;
+    hasPropertyValueChanged: (stateName: string) => boolean;
+    mode: ThemeType;
+    socket: LegacyConnection;
+    theme: Theme;
+    wrappedContent: boolean;
+    getWidgetView: (viewName: string) => void;
 }
 
 // Spezifische Context-Types für einzelne Widgets
