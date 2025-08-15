@@ -207,8 +207,9 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        justifyContent: 'space-around',
+                                        justifyContent: 'center',
                                         alignItems: 'center',
+                                        gap: 0.5,
                                     }}
                                 >
                                     {!widget.data.onlyText &&
@@ -223,7 +224,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                     overflow: 'hidden',
 
                                                     width: '100%',
-                                                    height: '100%',
+                                                    flex: '0 0 auto',
 
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -333,8 +334,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         <Box
                                             sx={{
                                                 width: '100%',
-
-                                                pt: 0.5,
+                                                flex: '0 0 auto',
 
                                                 display: 'flex',
                                                 justifyContent: 'center',
