@@ -1,10 +1,16 @@
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 
-const selectFields = () => [
+export interface SelectFieldsRxData {
+    arrowColor: string;
+    cid: string;
+}
+
+const selectFields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
-        component: () => <CollectionDivider />,
+        component: () => <CollectionDivider dividerText="selection" />,
     },
     {
         name: 'cid',
@@ -14,12 +20,13 @@ const selectFields = () => [
     },
     {
         type: 'custom',
-        component: () => <CollectionDivider />,
+        component: () => <CollectionDivider dividerText="arrow" />,
     },
     {
         name: 'arrowColor',
         label: 'arrow_color',
         type: 'color',
+        default: '#000000',
     },
 ];
 
