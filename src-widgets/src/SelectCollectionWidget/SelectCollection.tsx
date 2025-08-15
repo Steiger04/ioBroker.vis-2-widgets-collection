@@ -142,7 +142,7 @@ function SelectCollection(): React.ReactElement {
                         },
 
                         '&.Mui-focused': {
-                            ariaHidden: 'false',
+                            ariaHidden: 'true',
                             '& .MuiSelect-select': {
                                 backgroundColor: alpha(
                                     valueIndex !== -1
