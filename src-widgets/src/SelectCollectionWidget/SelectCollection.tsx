@@ -85,17 +85,35 @@ function SelectCollection(): React.ReactElement {
                         height: '100%',
                         maxWidth: `calc(${width}px - 10%)`,
 
+                        '& .MuiSelect-select': {
+                            backgroundColor: alpha(
+                                valueIndex !== -1
+                                    ? widget.data[`iconColor${valueIndex + 1}`] ||
+                                          widget.data.iconColor ||
+                                          data.textColor ||
+                                          theme.palette.primary.main
+                                    : widget.data.iconColor || data.textColor || theme.palette.primary.main,
+                                0.15,
+                            ),
+                        },
+
                         '& .MuiSelect-icon': {
                             color: widget.data.arrowColor || theme.palette.primary.main,
                         },
 
                         '&.Mui-focused': {
                             ariaHidden: 'false',
-                            background:
-                                data.backgroundColorActive ||
-                                data.backgroundColor ||
-                                data.backgroundActive ||
-                                data.background,
+                            '& .MuiSelect-select': {
+                                backgroundColor: alpha(
+                                    valueIndex !== -1
+                                        ? widget.data[`iconColor${valueIndex + 1}`] ||
+                                              widget.data.iconColor ||
+                                              data.textColor ||
+                                              theme.palette.primary.main
+                                        : widget.data.iconColor || data.textColor || theme.palette.primary.main,
+                                    0.2,
+                                ),
+                            },
                         },
                     }}
                 >
