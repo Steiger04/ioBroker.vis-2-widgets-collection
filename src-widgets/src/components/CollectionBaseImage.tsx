@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { CollectionContext } from './CollectionProvider';
 
 // Typen für die Props basierend auf der Verwendung in Collection-Komponenten
 interface CollectionBaseImageProps {
@@ -23,6 +24,9 @@ interface CollectionBaseImageProps {
 }
 
 const CollectionBaseImage: React.FC<CollectionBaseImageProps> = ({ data, widget }) => {
+    const context = useContext(CollectionContext);
+    const theme = context.theme;
+
     // Type Guards für string-Werte (filtere false heraus)
     const iconSrc =
         (typeof data.icon === 'string' ? data.icon : undefined) ||
@@ -32,7 +36,7 @@ const CollectionBaseImage: React.FC<CollectionBaseImageProps> = ({ data, widget 
         (typeof data.iconSize === 'string' ? data.iconSize : undefined) ||
         (typeof data.iconSizeActive === 'string' ? data.iconSizeActive : undefined);
 
-    const iconColor = data.iconColorActive || data.iconColor;
+    const iconColor = data.iconColorActive || data.iconColor || theme.palette.primary.main;
 
     return !widget.data.noHeaderIcon && iconSrc ? (
         <img
