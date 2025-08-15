@@ -88,17 +88,57 @@ function SelectCollection(): React.ReactElement {
                         '& .MuiSelect-select': {
                             backgroundColor: alpha(
                                 valueIndex !== -1
-                                    ? widget.data[`iconColor${valueIndex + 1}`] ||
-                                          widget.data.iconColor ||
-                                          data.textColor ||
-                                          theme.palette.primary.main
+                                    ? (() => {
+                                          // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                          const currentImgSrc =
+                                              widget.data[`iconSmall${valueIndex + 1}`] ||
+                                              widget.data[`icon${valueIndex + 1}`] ||
+                                              widget.data.iconSmall ||
+                                              widget.data.icon;
+
+                                          // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                          return currentImgSrc
+                                              ? widget.data[`iconColor${valueIndex + 1}`] ||
+                                                    widget.data.iconColor ||
+                                                    data.iconColor ||
+                                                    theme.palette.primary.main
+                                              : widget.data[`textColor${valueIndex + 1}`] ||
+                                                    widget.data.textColor ||
+                                                    data.textColor ||
+                                                    theme.palette.primary.main;
+                                      })()
                                     : widget.data.iconColor || data.textColor || theme.palette.primary.main,
                                 0.15,
                             ),
+                            paddingLeft: 1, // MUI5-Abstand von 1 (entspricht 8px)
                         },
 
                         '& .MuiSelect-icon': {
-                            color: widget.data.arrowColor || theme.palette.primary.main,
+                            color:
+                                valueIndex !== -1
+                                    ? (() => {
+                                          // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                          const currentImgSrc =
+                                              widget.data[`iconSmall${valueIndex + 1}`] ||
+                                              widget.data[`icon${valueIndex + 1}`] ||
+                                              widget.data.iconSmall ||
+                                              widget.data.icon;
+
+                                          // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                          return currentImgSrc
+                                              ? widget.data[`iconColor${valueIndex + 1}`] ||
+                                                    widget.data.iconColor ||
+                                                    data.iconColor ||
+                                                    theme.palette.primary.main
+                                              : widget.data[`textColor${valueIndex + 1}`] ||
+                                                    widget.data.textColor ||
+                                                    data.textColor ||
+                                                    theme.palette.primary.main;
+                                      })()
+                                    : widget.data.arrowColor ||
+                                      widget.data.iconColor ||
+                                      data.textColor ||
+                                      theme.palette.primary.main,
                         },
 
                         '&.Mui-focused': {
@@ -106,13 +146,29 @@ function SelectCollection(): React.ReactElement {
                             '& .MuiSelect-select': {
                                 backgroundColor: alpha(
                                     valueIndex !== -1
-                                        ? widget.data[`iconColor${valueIndex + 1}`] ||
-                                              widget.data.iconColor ||
-                                              data.textColor ||
-                                              theme.palette.primary.main
+                                        ? (() => {
+                                              // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                              const currentImgSrc =
+                                                  widget.data[`iconSmall${valueIndex + 1}`] ||
+                                                  widget.data[`icon${valueIndex + 1}`] ||
+                                                  widget.data.iconSmall ||
+                                                  widget.data.icon;
+
+                                              // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                              return currentImgSrc
+                                                  ? widget.data[`iconColor${valueIndex + 1}`] ||
+                                                        widget.data.iconColor ||
+                                                        data.iconColor ||
+                                                        theme.palette.primary.main
+                                                  : widget.data[`textColor${valueIndex + 1}`] ||
+                                                        widget.data.textColor ||
+                                                        data.textColor ||
+                                                        theme.palette.primary.main;
+                                          })()
                                         : widget.data.iconColor || data.textColor || theme.palette.primary.main,
                                     0.2,
                                 ),
+                                paddingLeft: 1, // MUI5-Abstand von 1 auch im Fokus-State
                             },
                         },
                     }}
@@ -124,47 +180,41 @@ function SelectCollection(): React.ReactElement {
                             widget.data.iconSmall ||
                             widget.data.icon;
 
+                        // Bestimme die Farbe basierend auf Icon/Text-Verfügbarkeit
+                        const getColorForItem = (): string => {
+                            return imgSrc
+                                ? // Icon vorhanden: Icon-Farbe verwenden
+                                  widget.data[`iconColor${idx + 1}`] ||
+                                      widget.data.iconColor ||
+                                      data.iconColor ||
+                                      theme.palette.primary.main
+                                : // Kein Icon: Text-Farbe verwenden
+                                  widget.data[`textColor${idx + 1}`] ||
+                                      widget.data.textColor ||
+                                      data.textColor ||
+                                      theme.palette.primary.main;
+                        };
+
+                        const itemColor = getColorForItem();
+
                         return (
                             <MenuItem
                                 key={String(state.value)} // Sicherer Key-Cast
                                 value={idx} // Index als value verwenden
                                 sx={{
                                     '& .MuiTouchRipple-root': {
-                                        color:
-                                            widget.data[`iconColor${idx + 1}`] ||
-                                            widget.data.iconColor ||
-                                            widget.data.textColorActive ||
-                                            data.textColor ||
-                                            theme.palette.primary.main,
+                                        color: itemColor,
                                     },
 
                                     '&.Mui-selected': {
-                                        backgroundColor: alpha(
-                                            widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.iconColor ||
-                                                data.textColor ||
-                                                theme.palette.primary.main,
-                                            0.16,
-                                        ),
+                                        backgroundColor: alpha(itemColor, 0.16),
                                     },
 
                                     '&.Mui-selected:hover': {
-                                        backgroundColor: alpha(
-                                            widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.iconColor ||
-                                                data.textColor ||
-                                                theme.palette.primary.main,
-                                            0.24,
-                                        ),
+                                        backgroundColor: alpha(itemColor, 0.24),
                                     },
                                     '&:hover': {
-                                        backgroundColor: alpha(
-                                            widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.iconColor ||
-                                                data.textColor ||
-                                                theme.palette.primary.main,
-                                            0.08,
-                                        ),
+                                        backgroundColor: alpha(itemColor, 0.08),
                                     },
 
                                     background:
@@ -207,22 +257,19 @@ function SelectCollection(): React.ReactElement {
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
                                                 widget.data[`iconColor${idx + 1}`] ||
+                                                widget.data.iconColor ||
                                                 data.iconColor ||
                                                 theme.palette.primary.main,
                                             filter:
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                data.iconColor ||
-                                                theme.palette.primary.main
+                                                itemColor
                                                     ? ('drop-shadow(0px 10000px 0)' as any)
                                                     : undefined,
                                             transform:
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                data.iconColor ||
-                                                theme.palette.primary.main
+                                                itemColor
                                                     ? ('translateY(-10000px)' as any)
                                                     : undefined,
                                         }}
@@ -237,7 +284,11 @@ function SelectCollection(): React.ReactElement {
                                             fontSize: widget.data[`valueSize${idx + 1}`] || data.valueSize,
                                             textAlign: 'left',
                                             bgcolor: 'transparent',
-                                            color: widget.data[`textColor${idx + 1}`] || data.textColor,
+                                            color:
+                                                widget.data[`textColor${idx + 1}`] ||
+                                                widget.data.textColor ||
+                                                data.textColor ||
+                                                theme.palette.primary.main,
                                             textTransform: 'none',
 
                                             width: '100%',
