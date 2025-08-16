@@ -1,13 +1,17 @@
 import React from 'react';
+import { type LightCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import delayFields from '../lib/delayFields';
-import lightFields from '../lib/lightFields';
+
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import lightFields, { type LightFieldsRxData } from '../lib/lightFields';
 import LightCollection from './LightCollection';
 
-class LightCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxData & DelayFieldsRxData> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplLightCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -26,7 +30,7 @@ class LightCollectionWidget extends Generic {
                         // ...commonObjectFields(["boolean"]),
                         ...delayFields(),
                         ...lightFields(),
-                    ],
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
@@ -34,7 +38,7 @@ class LightCollectionWidget extends Generic {
                     indexFrom: 1,
                     indexTo: 'values_count',
                     fields: [...commonFields({ groupName: '', allFields: false })],
-                    hidden: data => !data.colorLightButton,
+                    hidden: (data: WidgetData) => !data.colorLightButton,
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
@@ -49,12 +53,12 @@ class LightCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
         return LightCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate() {
+    async propertiesUpdate(): Promise<void> {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -94,25 +98,25 @@ class LightCollectionWidget extends Generic {
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
-        this.propertiesUpdate();
+    onRxDataChanged(): void {
+        void this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(_id, _state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        void this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -151,7 +155,7 @@ class LightCollectionWidget extends Generic {
             // colorLightHueOidObject: this.state.colorLightHueOidObject,
             // colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,
             // colorLightBrightnessOidObject: this.state.colorLightBrightnessOidObject,
-        };
+        } as LightCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;

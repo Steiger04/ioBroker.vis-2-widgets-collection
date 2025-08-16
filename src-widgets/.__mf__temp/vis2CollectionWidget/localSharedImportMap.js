@@ -8,13 +8,13 @@
           return pkg
         }
       ,
-        "@mui/material": async () => {
-          let pkg = await import("__mf__virtual/vis2CollectionWidget__prebuild___mf_0_mui_mf_1_material__prebuild__.js")
+        "react-dom": async () => {
+          let pkg = await import("__mf__virtual/vis2CollectionWidget__prebuild__react_mf_2_dom__prebuild__.js")
           return pkg
         }
       ,
-        "react-dom": async () => {
-          let pkg = await import("__mf__virtual/vis2CollectionWidget__prebuild__react_mf_2_dom__prebuild__.js")
+        "@mui/material": async () => {
+          let pkg = await import("__mf__virtual/vis2CollectionWidget__prebuild___mf_0_mui_mf_1_material__prebuild__.js")
           return pkg
         }
       
@@ -47,15 +47,15 @@
             }
           }
         ,
-          "@mui/material": {
-            name: "@mui/material",
-            version: "6.5.0",
+          "react-dom": {
+            name: "react-dom",
+            version: "18.3.1",
             scope: ["default"],
             loaded: false,
             from: "vis2CollectionWidget",
             async get () {
-              usedShared["@mui/material"].loaded = true
-              const {"@mui/material": pkgDynamicImport} = importMap 
+              usedShared["react-dom"].loaded = true
+              const {"react-dom": pkgDynamicImport} = importMap 
               const res = await pkgDynamicImport()
               const exportModule = {...res}
               // All npm packages pre-built by vite will be converted to esm
@@ -73,15 +73,15 @@
             }
           }
         ,
-          "react-dom": {
-            name: "react-dom",
-            version: "18.3.1",
+          "@mui/material": {
+            name: "@mui/material",
+            version: "6.5.0",
             scope: ["default"],
             loaded: false,
             from: "vis2CollectionWidget",
             async get () {
-              usedShared["react-dom"].loaded = true
-              const {"react-dom": pkgDynamicImport} = importMap 
+              usedShared["@mui/material"].loaded = true
+              const {"@mui/material": pkgDynamicImport} = importMap 
               const res = await pkgDynamicImport()
               const exportModule = {...res}
               // All npm packages pre-built by vite will be converted to esm

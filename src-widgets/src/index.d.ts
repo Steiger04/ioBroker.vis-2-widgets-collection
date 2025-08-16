@@ -18,6 +18,7 @@ import type { ButtonGroupFieldsRxData } from './lib/buttonGroupFields';
 import type { SelectFieldsRxData } from './lib/selectFields';
 import type { GaugeFieldsRxData } from './lib/gaugeFields';
 import type { DialogFieldsRxData } from './lib/dialogFields';
+import type { LightFieldsRxData } from './lib/lightFields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
@@ -85,4 +86,7 @@ export type SelectCollectionContextProps = CollectionContextProps<
 >;
 export type GaugeCollectionContextProps = CollectionContextProps<
     GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData
+>;
+export type LightCollectionContextProps = CollectionContextProps<
+    LightFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;
