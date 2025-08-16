@@ -1,13 +1,16 @@
-import React from 'react';
+import { type GaugeCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import gaugeFields from '../lib/gaugeFields';
+
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import gaugeFields, { type GaugeFieldsRxData } from '../lib/gaugeFields';
 import GaugeCollection from './GaugeCollection';
 
-class GaugeCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+
+class GaugeCollectionWidget extends Generic<GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplGaugeCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -23,7 +26,7 @@ class GaugeCollectionWidget extends Generic {
                 {
                     name: 'gauge', // group name
                     label: 'group_gauge',
-                    fields: [...commonObjectFields(['number']), ...gaugeFields()],
+                    fields: [...commonObjectFields(['number']), ...gaugeFields()] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
@@ -45,12 +48,11 @@ class GaugeCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
+    getWidgetInfo(): RxWidgetInfo {
         return GaugeCollectionWidget.getWidgetInfo();
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate() {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -60,35 +62,35 @@ class GaugeCollectionWidget extends Generic {
         //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
         // console.log("inside propertiesUpdate", this.state.values);
         /* const actualRxData = JSON.stringify(this.state.rxData);
-        if (this.lastRxData === actualRxData) {
-            return;
-        }
-        this.lastRxData = actualRxData;
-        await this.createStateObjectAsync('oid'); */
+		if (this.lastRxData === actualRxData) {
+				return;
+		}
+		this.lastRxData = actualRxData;
+		await this.createStateObjectAsync('oid'); */
 
         console.log('GaugeCollectionWidget propertiesUpdate', this.state.rxData);
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
+    onRxDataChanged(): void {
         this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(_id, _state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
         this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -96,7 +98,6 @@ class GaugeCollectionWidget extends Generic {
             refService: props.refService,
             style: props.style,
             widget: {
-                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
@@ -112,7 +113,7 @@ class GaugeCollectionWidget extends Generic {
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as GaugeCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
@@ -120,7 +121,7 @@ class GaugeCollectionWidget extends Generic {
             this.wrappedCollectionContent = true;
         }
 
-        return withCollectionProvider(this.wrapContent(<GaugeCollection />), collectionContext);
+        return withCollectionProvider(this.wrapContent(<GaugeCollection />), collectionContext as any);
     }
 }
 

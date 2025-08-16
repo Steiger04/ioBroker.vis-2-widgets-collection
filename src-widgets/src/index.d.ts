@@ -16,6 +16,7 @@ import type { SliderFieldsRxData } from './lib/sliderFields';
 import type { RadioGroupFieldsRxData } from './lib/radioGroupFields';
 import type { ButtonGroupFieldsRxData } from './lib/buttonGroupFields';
 import type { SelectFieldsRxData } from './lib/selectFields';
+import type { GaugeFieldsRxData } from './lib/gaugeFields';
 import type { DialogFieldsRxData } from './lib/dialogFields';
 import type { CSSProperties } from 'react';
 
@@ -81,4 +82,7 @@ export type ButtonGroupCollectionContextProps = CollectionContextProps<
 >;
 export type SelectCollectionContextProps = CollectionContextProps<
     SelectFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;
+export type GaugeCollectionContextProps = CollectionContextProps<
+    GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData
 >;
