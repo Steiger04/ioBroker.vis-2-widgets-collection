@@ -1,6 +1,182 @@
 import CollectionDivider from '../components/CollectionDivider';
 
-const dialogFields = () => [
+import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+
+export interface GaugeFieldsRxData {
+    gaugeType: 'linear' | 'radial';
+    gaugeMinValue: number;
+    gaugeMaxValue: number;
+    gaugePadding: number;
+    gaugeIconFit: 'contain' | 'cover' | 'fill';
+    gaugeBorderRadius: number;
+    gaugeBarBeginCircle: number;
+    gaugeBarLength: number;
+    gaugeColorBarEnd: string;
+    gaugeColorBarProgressEnd: string;
+    gaugeTickSide: 'both' | 'left' | 'right';
+    gaugeNeedleSide: 'both' | 'left' | 'right';
+    gaugeNumberSide: 'both' | 'left' | 'right';
+    gaugeTicksWidth: number;
+    gaugeTicksWidthMinor: number;
+    gaugeTicksPadding: number;
+    gaugeTicksAngle: number;
+    gaugeStartAngle: number;
+    gaugeColorNeedleCircleOuter: string;
+    gaugeColorNeedleCircleOuterEnd: string;
+    gaugeColorNeedleCircleInner: string;
+    gaugeColorNeedleCircleInnerEnd: string;
+    gaugeNeedleCircleSize: number;
+    gaugeNeedleCircleInner: boolean;
+    gaugeNeedleCircleOuter: boolean;
+    gaugeAnimationTarget: 'needle' | 'plate';
+    gaugeUseMinPath: boolean;
+    gaugeExactTicks: boolean;
+    gaugeMajorTicks: number;
+    gaugeMinorTicks: number;
+    gaugeStrokeTicks: boolean;
+    gaugeMajorTicksInt: number;
+    gaugeMajorTicksDec: number;
+    gaugeHighlightsWidth: number;
+    gaugeNumbersMargin: number;
+    gaugeBarWidth: number;
+    gaugeBarStrokeWidth: number;
+    gaugeBarProgress: boolean;
+    gaugeBarShadow: number;
+    gaugeAnimation: boolean;
+    gaugeAnimationDuration: number;
+    gaugeAnimationRule:
+        | 'linear'
+        | 'quad'
+        | 'quint'
+        | 'cycle'
+        | 'bounce'
+        | 'elastic'
+        | 'dequad'
+        | 'dequint'
+        | 'decycle'
+        | 'debounce'
+        | 'delastic';
+    gaugeAnimatedValue: boolean;
+    gaugeAnimateOnInit: boolean;
+    gaugeColorPlate: string;
+    gaugeColorPlateEnd: string;
+    gaugeColorMajorTicks: string;
+    gaugeColorMinorTicks: string;
+    gaugeColorStrokeTicks: string;
+    gaugeColorTitle: string;
+    gaugeColorUnits: string;
+    gaugeColorNumbers: string;
+    gaugeColorNeedle: string;
+    gaugeColorNeedleEnd: string;
+    gaugeColorValueText: string;
+    gaugeColorValueTextShadow: string;
+    gaugeColorBorderShadow: string;
+    gaugeColorBorderOuter: string;
+    gaugeColorBorderOuterEnd: string;
+    gaugeColorBorderMiddle: string;
+    gaugeColorBorderMiddleEnd: string;
+    gaugeColorBorderInner: string;
+    gaugeColorBorderInnerEnd: string;
+    gaugeColorValueBoxRect: string;
+    gaugeColorValueBoxRectEnd: string;
+    gaugeColorValueBoxBackground: string;
+    gaugeColorValueBoxShadow: string;
+    gaugeColorNeedleShadowUp: string;
+    gaugeColorNeedleShadowDown: string;
+    gaugeColorBarStroke: string;
+    gaugeColorBar: string;
+    gaugeColorBarProgress: string;
+    gaugeHighlightsLineCap: 'butt' | 'round' | 'square';
+    gaugeNeedle: boolean;
+    gaugeNeedleShadow: boolean;
+    gaugeNeedleType: 'arrow' | 'line';
+    gaugeNeedleStart: number;
+    gaugeNeedleEnd: number;
+    gaugeNeedleWidth: number;
+    gaugeBorders: boolean;
+    gaugeBorderOuterWidth: number;
+    gaugeBorderMiddleWidth: number;
+    gaugeBorderInnerWidth: number;
+    gaugeBorderShadowWidth: number;
+    gaugeValueBox: boolean;
+    gaugeValueBoxStroke: number;
+    gaugeValueBoxWidth: number;
+    gaugeValueText: string;
+    gaugeValueTextShadow: boolean;
+    gaugeValueBoxBorderRadius: number;
+    gaugeValueInt: number;
+    gaugeValueDec: number;
+    gaugeFontNumbers: string;
+    gaugeFontTitle: string;
+    gaugeFontUnits: string;
+    gaugeFontValue: string;
+    gaugeFontNumbersSize: number;
+    gaugeFontTitleSize: number;
+    gaugeFontUnitsSize: number;
+    gaugeFontValueSize: number;
+    gaugeFontNumbersStyle: 'normal' | 'italic' | 'oblique';
+    gaugeFontTitleStyle: 'normal' | 'italic' | 'oblique';
+    gaugeFontUnitsStyle: 'normal' | 'italic' | 'oblique';
+    gaugeFontValueStyle: 'normal' | 'italic' | 'oblique';
+    gaugeFontNumbersWeight:
+        | 'normal'
+        | 'bold'
+        | 'bolder'
+        | 'lighter'
+        | '100'
+        | '200'
+        | '300'
+        | '400'
+        | '500'
+        | '600'
+        | '700'
+        | '800'
+        | '900';
+    gaugeFontTitleWeight:
+        | 'normal'
+        | 'bold'
+        | 'bolder'
+        | 'lighter'
+        | '100'
+        | '200'
+        | '300'
+        | '400'
+        | '500'
+        | '600'
+        | '700'
+        | '800'
+        | '900';
+    gaugeFontUnitsWeight:
+        | 'normal'
+        | 'bold'
+        | 'bolder'
+        | 'lighter'
+        | '100'
+        | '200'
+        | '300'
+        | '400'
+        | '500'
+        | '600'
+        | '700'
+        | '800'
+        | '900';
+    gaugeFontValueWeight:
+        | 'normal'
+        | 'bold'
+        | 'bolder'
+        | 'lighter'
+        | '100'
+        | '200'
+        | '300'
+        | '400'
+        | '500'
+        | '600'
+        | '700'
+        | '800'
+        | '900';
+}
+
+const gaugeFields = (): RxWidgetInfoAttributesField[] => [
     {
         label: '',
         type: 'custom',
@@ -55,7 +231,7 @@ const dialogFields = () => [
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_linear_borders_options" />,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeBorderRadius',
@@ -64,13 +240,13 @@ const dialogFields = () => [
         default: 0,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_linear_progress_bar_options" />,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeBarBeginCircle',
@@ -79,7 +255,7 @@ const dialogFields = () => [
         default: 30,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeBarLength',
@@ -88,33 +264,33 @@ const dialogFields = () => [
         default: 85,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_linear_coloring_options" />,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeColorBarEnd',
         type: 'color',
         label: 'gauge_color_bar_end',
         default: '',
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeColorBarProgressEnd',
         type: 'color',
         label: 'gauge_color_bar_progress_end',
         default: '',
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_linear_element_positioning_options" />,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeTickSide',
@@ -127,7 +303,7 @@ const dialogFields = () => [
         ],
         default: 'both',
         noTranslation: true,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeNeedleSide',
@@ -140,7 +316,7 @@ const dialogFields = () => [
         ],
         default: 'both',
         noTranslation: true,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeNumberSide',
@@ -153,13 +329,13 @@ const dialogFields = () => [
         ],
         default: 'both',
         noTranslation: true,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_linear_ticks_bar_options" />,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeTicksWidth',
@@ -168,7 +344,7 @@ const dialogFields = () => [
         default: 10,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeTicksWidthMinor',
@@ -177,7 +353,7 @@ const dialogFields = () => [
         default: 5,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         name: 'gaugeTicksPadding',
@@ -186,13 +362,13 @@ const dialogFields = () => [
         default: 5,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'linear',
+        hidden: (data: WidgetData) => data.gaugeType !== 'linear',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_radial_ticks_bar_options" />,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeTicksAngle',
@@ -202,7 +378,7 @@ const dialogFields = () => [
         step: 1,
         min: 0,
         max: 360,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeStartAngle',
@@ -212,47 +388,47 @@ const dialogFields = () => [
         step: 1,
         min: 0,
         max: 360,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_radial_coloring_options" />,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeColorNeedleCircleOuter',
         type: 'color',
         label: 'gauge_color_needle_circle_outer',
         default: '#f0f0f0',
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeColorNeedleCircleOuterEnd',
         type: 'color',
         label: 'gauge_color_needle_circle_outer_end',
         default: '#ccc',
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeColorNeedleCircleInner',
         type: 'color',
         label: 'gauge_color_needle_circle_inner',
         default: '#e8e8e8',
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeColorNeedleCircleInnerEnd',
         type: 'color',
         label: 'gauge_color_needle_circle_inner_end',
         default: '#f5f5f5',
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_radial_needle_options" />,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeNeedleCircleSize',
@@ -261,27 +437,27 @@ const dialogFields = () => [
         default: 10,
         step: 1,
         min: 0,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeNeedleCircleInner',
         type: 'checkbox',
         label: 'gauge_needle_circle_inner',
         default: true,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeNeedleCircleOuter',
         type: 'checkbox',
         label: 'gauge_needle_circle_outer',
         default: true,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="gauge_radial_animation_options" />,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeAnimationTarget',
@@ -293,14 +469,14 @@ const dialogFields = () => [
         ],
         default: 'needle',
         noTranslation: true,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         name: 'gaugeUseMinPath',
         type: 'checkbox',
         label: 'gauge_use_min_path',
         default: false,
-        hidden: data => data.gaugeType !== 'radial',
+        hidden: (data: WidgetData) => data.gaugeType !== 'radial',
     },
     {
         label: '',
@@ -390,7 +566,7 @@ const dialogFields = () => [
         default: true,
     },
     {
-        name: 'gaugeBarShadow,',
+        name: 'gaugeBarShadow',
         type: 'number',
         label: 'gauge_bar_shadow',
         default: 0,
@@ -1004,4 +1180,4 @@ const dialogFields = () => [
     },
 ];
 
-export default dialogFields;
+export default gaugeFields;
