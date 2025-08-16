@@ -67,8 +67,6 @@ class GaugeCollectionWidget extends Generic<GaugeFieldsRxData & CommonObjectFiel
 		}
 		this.lastRxData = actualRxData;
 		await this.createStateObjectAsync('oid'); */
-
-        console.log('GaugeCollectionWidget propertiesUpdate', this.state.rxData);
     }
 
     // This function is called every time when rxData is changed
