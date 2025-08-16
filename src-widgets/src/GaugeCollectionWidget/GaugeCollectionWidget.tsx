@@ -52,6 +52,7 @@ class GaugeCollectionWidget extends Generic<GaugeFieldsRxData & CommonObjectFiel
         return GaugeCollectionWidget.getWidgetInfo();
     }
 
+    // eslint-disable-next-line class-methods-use-this
     propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
