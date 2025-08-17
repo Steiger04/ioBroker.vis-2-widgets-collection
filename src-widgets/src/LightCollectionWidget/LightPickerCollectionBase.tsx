@@ -403,7 +403,7 @@ function LightPickerCollectionBase(): React.ReactElement {
         }
 
         if (rgbHexChanged) {
-            color.hexString = rgbHexValue;
+            color.hexString = rgbHexValue || '#000000';
         }
     }, [redChanged, greenChanged, blueChanged, redValue, greenValue, blueValue, rgbHexValue, rgbHexChanged]);
 

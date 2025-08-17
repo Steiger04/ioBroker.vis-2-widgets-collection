@@ -83,18 +83,28 @@ const useValueState = (idName: string): UseValueStateReturn => {
             };
 
             if (onlyValues) {
-                setState((prevState: any) => ({
-                    ...prevState,
-                    ...stateUpdate,
-                }));
+                setTimeout(
+                    () =>
+                        setState((prevState: any) => ({
+                            values: {
+                                ...prevState.values,
+                                ...stateUpdate.values,
+                            },
+                        })),
+                    0,
+                );
             } else {
-                /* console.log(
-					`useValueState -> setState -> oid: ${_oid}, value: ${processedValue}`,
-				); */
-                setState((prevState: any) => ({
-                    ...prevState,
-                    ...stateUpdate,
-                }));
+                setTimeout(
+                    () =>
+                        setState((prevState: any) => ({
+                            values: {
+                                ...prevState.values,
+                                ...stateUpdate.values,
+                            },
+                        })),
+                    0,
+                );
+
                 if (debounce) {
                     debounce.next(processedValue);
                 }
