@@ -8,6 +8,7 @@ import useDebounce from './useDebounce';
  */
 interface UseValueStateReturn {
     value: string | number | boolean | undefined | null;
+    hasValueChanged: boolean;
     updateValue: (value: string | number | boolean, onlyValues?: boolean) => void;
 }
 
@@ -18,13 +19,15 @@ interface UseValueStateReturn {
  * @returns Objekt mit value und updateValue
  */
 const useValueState = (idName: string): UseValueStateReturn => {
-    const { setState, widget, getPropertyValue } = useContext(CollectionContext);
+    const { setState, widget, getPropertyValue, hasPropertyValueChanged } = useContext(CollectionContext);
 
     // Sicherer Zugriff auf dynamische Properties
     const oidObject = (widget.data as any)[`${idName}Object`];
 
     // const value = useOidValue(idName);
     const value = getPropertyValue(idName);
+
+    const hasValueChanged = hasPropertyValueChanged(idName);
 
     const debounce = useDebounce({
         oidObject,
@@ -102,6 +105,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
     return {
         value,
+        hasValueChanged,
         updateValue,
     };
 };
