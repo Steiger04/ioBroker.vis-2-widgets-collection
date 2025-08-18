@@ -8,6 +8,14 @@ import CollectionMark from './CollectionMark';
 
 import type { SliderCollectionContextProps } from 'src';
 
+interface SliderMarkLabelProps {
+    marks: boolean;
+    sliderOrientation: 'horizontal' | 'vertical';
+    aliasActive?: string;
+    activeMarkIndex?: number | null;
+    defaultIconColor?: string;
+}
+
 interface SliderMark {
     value: number;
     label: string;
@@ -290,7 +298,7 @@ const SliderCollection: FC = () => {
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
                                         defaultIconColor: widget.data.sliderColor || data.iconColor || data.textColor,
-                                    } as any,
+                                    } as SliderMarkLabelProps,
                                 }}
                                 disabled={oidType !== 'number'}
                                 valueLabelDisplay={widget.data.valueLabelDisplay}

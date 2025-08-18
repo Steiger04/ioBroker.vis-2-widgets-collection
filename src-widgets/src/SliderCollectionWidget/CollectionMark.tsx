@@ -1,5 +1,5 @@
 import { SliderMarkLabel, Box } from '@mui/material';
-import React, { useState, useEffect, type FC } from 'react';
+import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react';
 
 interface MarkData {
     value: number;
@@ -14,7 +14,8 @@ interface MarkData {
     iconColor: string | null;
 }
 
-interface CollectionMarkProps {
+// Erweitere HTMLAttributes für die restlichen Props, die an SliderMarkLabel weitergegeben werden
+interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
     marks: boolean;
     sliderOrientation: 'horizontal' | 'vertical';
     aliasActive?: string;
@@ -24,7 +25,9 @@ interface CollectionMarkProps {
     ownerState: {
         marks?: MarkData[];
     };
-    [key: string]: any;
+    // Zusätzliche MUI-spezifische Props
+    style?: React.CSSProperties;
+    className?: string;
 }
 
 const CollectionMark: FC<CollectionMarkProps> = ({
