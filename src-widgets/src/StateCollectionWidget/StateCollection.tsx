@@ -84,7 +84,8 @@ function StateCollection(): React.ReactElement {
                 width: '100%',
                 height: '100%',
 
-                color: data.iconColorActive || data.iconColor || data.textColorActive || data.textColor,
+                color:
+                    data.iconColorActive || data.iconColor || data.textColorActive || data.textColor || 'primary.main',
                 '&:hover': {
                     bgcolor: 'transparent',
                     filter:
@@ -141,15 +142,9 @@ function StateCollection(): React.ReactElement {
                                 top: `calc(0px - ${data.iconYOffset})`,
 
                                 bgcolor: 'transparent',
-                                color: data.iconColorActive || data.iconColor,
-                                filter:
-                                    (data.iconActive || data.icon) && (data.iconColorActive || data.iconColor)
-                                        ? 'drop-shadow(0px 10000px 0)'
-                                        : undefined,
-                                transform:
-                                    (data.iconActive || data.icon) && (data.iconColorActive || data.iconColor)
-                                        ? 'translateY(-10000px)'
-                                        : undefined,
+                                color: data.iconColorActive || data.iconColor || 'primary.main',
+                                filter: data.iconActive || data.icon ? 'drop-shadow(0px 10000px 0)' : undefined,
+                                transform: data.iconActive || data.icon ? 'translateY(-10000px)' : undefined,
                             }}
                         />
                     </Box>

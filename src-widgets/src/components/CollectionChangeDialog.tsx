@@ -1,5 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close';
 import {
+    Box,
     Dialog,
     DialogContent,
     DialogTitle,
@@ -31,8 +32,8 @@ interface OidObject {
     commonStates?: WidgetStates;
     type?: string;
     name?: string;
-    min?: number;
-    max?: number;
+    minValue?: number;
+    maxValue?: number;
 }
 
 /**
@@ -88,8 +89,8 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         const commonStates = (oidObject as OidObject)?.commonStates;
         const oidType = (oidObject as OidObject)?.type;
         const oidName = (oidObject as OidObject)?.name;
-        const minValue = (oidObject as OidObject)?.min;
-        const maxValue = (oidObject as OidObject)?.max;
+        const minValue = (oidObject as OidObject)?.minValue;
+        const maxValue = (oidObject as OidObject)?.maxValue;
 
         return {
             commonStates,
@@ -139,6 +140,11 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
     const createListItemClickHandler = useCallback(
         (key: string) => (event: MouseEvent<HTMLDivElement>) => {
             event.preventDefault();
+            // Wenn der Wert numerisch ist, auch den Slider-Wert aktualisieren
+            const numericValue = Number(key);
+            if (!isNaN(numericValue)) {
+                setSliderValue(numericValue);
+            }
             changeHandler(key);
         },
         [changeHandler],
@@ -156,25 +162,27 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         }
 
         return (
-            <Slider
-                sx={{ pb: commonStates ? 4 : 3 }}
-                size="small"
-                min={minValue}
-                max={maxValue}
-                marks={[
-                    {
-                        value: minValue,
-                        label: String(minValue),
-                    },
-                    {
-                        value: maxValue,
-                        label: String(maxValue),
-                    },
-                ]}
-                valueLabelDisplay="auto"
-                value={sliderValue}
-                onChange={handleSliderChange}
-            />
+            <Box sx={{ px: 3 }}>
+                <Slider
+                    sx={{ pb: commonStates ? 4 : 3 }}
+                    size="small"
+                    min={minValue}
+                    max={maxValue}
+                    marks={[
+                        {
+                            value: minValue,
+                            label: String(minValue),
+                        },
+                        {
+                            value: maxValue,
+                            label: String(maxValue),
+                        },
+                    ]}
+                    valueLabelDisplay="auto"
+                    value={sliderValue}
+                    onChange={handleSliderChange}
+                />
+            </Box>
         );
     }, [oidObjectProps, onlyStates, sliderValue, handleSliderChange]);
 
@@ -192,11 +200,10 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                         key={key}
                     >
                         <ListItemButton
-                            disableGutters
+                            // disableGutters
                             onClick={createListItemClickHandler(key)}
                         >
                             <ListItemText
-                                sx={{ px: 2 }}
                                 primaryTypographyProps={{ variant: 'body2' }}
                                 primary={String(value)}
                             />
@@ -254,10 +261,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                 }}
             >
                 <Stack
-                    divider={hasWidgetStates && <Divider flexItem />}
-                    sx={{
-                        px: 2,
-                    }}
+                    divider={hasWidgetStates && <Divider />}
                     spacing={0}
                     component={Paper}
                 >
