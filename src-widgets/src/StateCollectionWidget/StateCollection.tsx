@@ -207,7 +207,7 @@ function StateCollection(): React.ReactElement {
         <>
             {open && (
                 <CollectionChangeDialog
-                    data={{ sampleInterval: null, sampleIntervalValue: null, delay: 100 }}
+                    data={{ sampleInterval: false, sampleIntervalValue: 200, delay: 100 }}
                     widgetStates={widgetStates}
                     open={open}
                     closeHandler={() => setOpen(false)}

@@ -17,6 +17,7 @@ import {
 import React, { useCallback, useContext, useState, useMemo, type FC, type MouseEvent } from 'react';
 import useValueState from '../hooks/useValueState';
 import { CollectionContext } from './CollectionProvider';
+import type { StateCollectionContextProps } from '../index';
 
 /**
  * Widget States Map für die Darstellung verfügbarer Werte
@@ -47,10 +48,10 @@ interface CollectionChangeDialogProps {
         header?: string;
         backgroundColor?: string;
         textColor?: string;
-        sampleInterval?: any;
-        sampleIntervalValue?: any;
+        sampleInterval?: boolean;
+        sampleIntervalValue?: number;
         delay?: number;
-        [key: string]: any; // Zusätzliche Eigenschaften erlauben
+        [key: string]: unknown; // Zusätzliche Eigenschaften erlauben
     };
     /** Dialog-Öffnungsstatus */
     open: boolean;
@@ -72,9 +73,9 @@ interface CollectionChangeDialogProps {
 const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates, data, open, closeHandler }) => {
     const { widget, getPropertyValue } = useContext(CollectionContext);
 
-    // Sicherer Zugriff auf optionale Properties
-    const oidObject = (widget.data as any).oidObject;
-    const onlyStates = (widget.data as any).onlyStates;
+    // Sicherer Zugriff auf optionale Properties mit präziserer Typisierung
+    const oidObject = (widget.data as StateCollectionContextProps['widget']['data']).oidObject;
+    const onlyStates = (widget.data as StateCollectionContextProps['widget']['data']).onlyStates;
 
     // State für Slider-Wert
     const [sliderValue, setSliderValue] = useState<number>(() => {
