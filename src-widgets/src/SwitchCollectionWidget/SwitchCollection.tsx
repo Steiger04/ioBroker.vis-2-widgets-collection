@@ -14,7 +14,7 @@ function SwitchCollection(): React.JSX.Element {
     const { widget } = context;
 
     // Sicherer Zugriff auf oidObject
-    const oidObject = (widget.data as any).oidObject;
+    const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
     const { value: oidValue, updateValue } = useValueState('oid');

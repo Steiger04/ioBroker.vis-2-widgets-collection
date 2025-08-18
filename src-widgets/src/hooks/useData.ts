@@ -29,7 +29,7 @@ interface WidgetStates {
     [key: string]: string;
 }
 
-interface StyleData {
+export interface StyleData {
     textColor: string;
     textColorActive?: string;
     header: string;

@@ -1,11 +1,12 @@
 import Switch from '@mui/material/Switch';
 import { styled, alpha } from '@mui/material/styles';
 import type { SwitchCollectionContextProps } from 'src';
+import type { StyleData } from '../hooks/useData';
 
 interface MaterialUISwitchProps {
     width?: number;
     maxheight?: number;
-    data: any;
+    data: StyleData;
     widget: SwitchCollectionContextProps['widget'];
 }
 

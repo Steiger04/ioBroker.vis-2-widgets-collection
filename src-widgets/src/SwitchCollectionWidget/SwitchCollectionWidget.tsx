@@ -2,18 +2,17 @@ import React from 'react';
 import { type SwitchCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
-import switchFields from '../lib/switchFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import switchFields, { type SwitchFieldsRxData } from '../lib/switchFields';
 import SwitchCollection from './SwitchCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-// Type für die Widget-Daten wird aus dem Context abgeleitet
-type SwitchWidgetData = SwitchCollectionContextProps['widget']['data'];
-
-class SwitchCollectionWidget extends Generic<SwitchWidgetData> {
+class SwitchCollectionWidget extends Generic<
+    SwitchFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSwitchCollectionWidget',
@@ -23,7 +22,6 @@ class SwitchCollectionWidget extends Generic<SwitchWidgetData> {
             visWidgetLabel: 'switch_collection_widget', // Label for widget
             visOrder: 2,
             visAttrs: [
-                // CollectionGroupCommonAttributes(["boolean"]),
                 {
                     name: 'common', // group name
                     fields: [...commonFields()],
@@ -31,7 +29,11 @@ class SwitchCollectionWidget extends Generic<SwitchWidgetData> {
                 {
                     name: 'switch',
                     label: 'group_switch',
-                    fields: [...commonObjectFields(['boolean']), ...delayFields(), ...switchFields()],
+                    fields: [
+                        ...commonObjectFields(['boolean']),
+                        ...delayFields(),
+                        ...switchFields(),
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'values',
