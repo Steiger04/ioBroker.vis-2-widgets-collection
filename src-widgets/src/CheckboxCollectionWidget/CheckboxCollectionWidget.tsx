@@ -2,18 +2,17 @@ import React from 'react';
 import { type CheckboxCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import checkboxFields from '../lib/checkboxFields';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
+import checkboxFields, { type CheckboxFieldsRxData } from '../lib/checkboxFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
 import CheckboxCollection from './CheckboxCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-// Type für die Widget-Daten wird aus dem Context abgeleitet
-type CheckboxWidgetData = CheckboxCollectionContextProps['widget']['data'];
-
-class CheckboxCollectionWidget extends Generic<CheckboxWidgetData> {
+class CheckboxCollectionWidget extends Generic<
+    CheckboxFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplCheckboxCollectionWidget',
@@ -25,12 +24,16 @@ class CheckboxCollectionWidget extends Generic<CheckboxWidgetData> {
             visAttrs: [
                 {
                     name: 'common', // group name
-                    fields: [...commonFields({ groupName: '', allFields: true })],
+                    fields: [...commonFields()],
                 },
                 {
                     name: 'checkbox', // group name
                     label: 'group_checkbox',
-                    fields: [...commonObjectFields(['boolean']), ...delayFields(), ...checkboxFields()],
+                    fields: [
+                        ...commonObjectFields(['boolean']),
+                        ...delayFields(),
+                        ...checkboxFields(),
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
 
                 {

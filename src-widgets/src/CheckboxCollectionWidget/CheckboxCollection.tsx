@@ -20,7 +20,7 @@ function CheckboxCollection(): React.JSX.Element {
     const { widget, theme } = context;
 
     // Sicherer Zugriff auf optionale Properties
-    const oidObject = (widget.data as any).oidObject;
+    const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
