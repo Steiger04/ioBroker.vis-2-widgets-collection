@@ -17,7 +17,7 @@ const defaultIconFalse =
 function CheckboxCollection(): React.JSX.Element {
     // CheckboxCollection wird nur im CheckboxCollectionWidget verwendet
     const context = useContext(CollectionContext) as CheckboxCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
 
     // Sicherer Zugriff auf optionale Properties
     const oidObject = (widget.data as any).oidObject;
@@ -95,13 +95,13 @@ function CheckboxCollection(): React.JSX.Element {
 
                                             objectFit: 'contain',
 
-                                            color: data.iconColorActive || data.iconColor,
+                                            color: data.iconColorActive || data.iconColor || theme.palette.primary.main,
                                             filter:
-                                                data.iconColorActive || data.iconColor
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
                                                     ? 'drop-shadow(0px 10000px 0)'
                                                     : undefined,
                                             transform:
-                                                data.iconColorActive || data.iconColor
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
                                                     ? 'translateY(-10000px)'
                                                     : undefined,
                                         }}
@@ -123,13 +123,13 @@ function CheckboxCollection(): React.JSX.Element {
 
                                             objectFit: 'contain',
 
-                                            color: data.iconColorActive || data.iconColor,
+                                            color: data.iconColorActive || data.iconColor || theme.palette.primary.main,
                                             filter:
-                                                data.iconColorActive || data.iconColor
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
                                                     ? 'drop-shadow(0px 10000px 0)'
                                                     : undefined,
                                             transform:
-                                                data.iconColorActive || data.iconColor
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
                                                     ? 'translateY(-10000px)'
                                                     : undefined,
                                         }}
