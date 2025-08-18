@@ -1,18 +1,31 @@
 import { Box } from '@mui/material';
-import React, { useContext, useMemo, useRef, useEffect } from 'react';
+import React, { useContext, useRef, useMemo, useEffect } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import Gauge from './Gauge';
-
 import type { GaugeCollectionContextProps } from 'src';
 
 interface Highlight {
     from: number;
     to: number;
     color: string;
-    state: any;
+    state: {
+        icon?: string;
+        iconColor?: string;
+        iconSize?: number;
+        iconXOffset?: string;
+        iconYOffset?: string;
+        frameBackgroundColor?: string;
+        frameBackgroundColorActive?: string;
+        backgroundColor?: string;
+        backgroundColorActive?: string;
+        background?: string;
+        backgroundActive?: string;
+        frameBackground?: string;
+        frameBackgroundActive?: string;
+    };
 }
 
 const findSegment = (highlights: Highlight[], value: number, maxValue: number): Highlight | null => {
@@ -68,7 +81,21 @@ function GaugeCollection(): React.JSX.Element {
                 from: Number(state.value),
                 to: Number(nextValue),
                 color: state.textColor || 'transparent',
-                state,
+                state: {
+                    icon: state.icon || undefined,
+                    iconColor: state.iconColor || undefined,
+                    iconSize: state.iconSize || undefined,
+                    iconXOffset: state.iconXOffset,
+                    iconYOffset: state.iconYOffset,
+                    frameBackgroundColor: state.frameBackgroundColor,
+                    frameBackgroundColorActive: state.frameBackgroundColorActive,
+                    backgroundColor: state.backgroundColor,
+                    backgroundColorActive: state.backgroundColorActive,
+                    background: state.background,
+                    backgroundActive: state.backgroundActive,
+                    frameBackground: state.frameBackground,
+                    frameBackgroundActive: state.frameBackgroundActive,
+                },
             });
         });
 

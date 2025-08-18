@@ -226,7 +226,7 @@ interface GaugeProps extends Partial<GaugeFieldsRxData> {
 }
 
 const Gauge = (props: GaugeProps): React.JSX.Element => {
-    const gaugeRef = useRef<any>(null);
+    const gaugeRef = useRef<RadialGauge | LinearGauge | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -259,7 +259,7 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
     useEffect(() => {
         if (gaugeRef.current !== null && props.width && props.height) {
             if (props.width > 30 && props.height > 30) {
-                gaugeRef.current.value = props.value;
+                gaugeRef.current.value = props.value ?? 0;
                 gaugeRef.current.update(props);
             }
         }
