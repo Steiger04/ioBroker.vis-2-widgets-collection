@@ -2,18 +2,17 @@ import React from 'react';
 import { type ButtonGroupCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import buttonGroupFields from '../lib/buttonGroupFields';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
-import delayFields from '../lib/delayFields';
+import buttonGroupFields, { type ButtonGroupFieldsRxData } from '../lib/buttonGroupFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-// Type für die Widget-Daten wird aus dem Context abgeleitet
-type ButtonGroupWidgetData = ButtonGroupCollectionContextProps['widget']['data'];
-
-class ButtonGroupCollectionWidget extends Generic<ButtonGroupWidgetData> {
+class ButtonGroupCollectionWidget extends Generic<
+    ButtonGroupFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplButtonGroupCollectionWidget',
@@ -34,7 +33,7 @@ class ButtonGroupCollectionWidget extends Generic<ButtonGroupWidgetData> {
                         ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
                         ...delayFields(),
                         ...buttonGroupFields(),
-                    ],
+                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
                     name: 'active',
