@@ -61,7 +61,7 @@ export default function ViewDialog({
     const baseRef = useRef<HTMLDivElement>(null);
     const [titleRef, setTitleRef] = useState<HTMLElement | null>(null);
 
-    const header = (baseRef.current as any)?.header;
+    const header = (baseRef.current as HTMLDivElement & { header?: HTMLElement })?.header;
 
     useEffect(() => {
         if (!widget.data.dialogHeaderAsTitle) {

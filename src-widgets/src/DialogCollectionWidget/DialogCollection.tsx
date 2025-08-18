@@ -7,7 +7,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
-import type { DialogCollectionContextProps } from 'src';
+import type { DialogCollectionContextProps, CollectionContextProps } from 'src';
 
 // OID Object Interface
 interface OidObject {
@@ -39,7 +39,7 @@ function DialogCollection(): React.ReactElement {
     const { data, oidValue } = useData('oid');
 
     // Sicherer Zugriff auf oidObject
-    const oidObject = (widget.data as any).oidObject as OidObject | undefined;
+    const oidObject = (widget.data as unknown as { oidObject?: OidObject }).oidObject;
 
     const oid = oidObject?._id;
     const oidType = oidObject?.type;
@@ -51,18 +51,22 @@ function DialogCollection(): React.ReactElement {
             return;
         }
 
-        let timeout: any = widget.data.dialogAutoClose;
+        const timeoutValue = widget.data.dialogAutoClose;
 
-        if (timeout === null || timeout === undefined || timeout === '') {
+        // Behandle verschiedene Eingabeformate durch String-Konvertierung
+        const timeoutStr = String(timeoutValue);
+
+        if (!timeoutValue || timeoutStr === '' || timeoutStr === '0') {
             setOpen(true);
             return;
         }
 
-        if (timeout === true || timeout === 'true') {
+        let timeout: number;
+        if (timeoutStr === 'true') {
             timeout = 10000;
+        } else {
+            timeout = parseInt(timeoutStr, 10);
         }
-
-        timeout = parseInt(String(timeout), 10);
         if (timeout < 60) {
             // maybe this is seconds
             timeout *= 1000;
@@ -93,7 +97,7 @@ function DialogCollection(): React.ReactElement {
     }, [oid, setValue]);
 
     // HTML value formatting
-    const htmlValue = useHtmlValue(oidValue, widget as any, data);
+    const htmlValue = useHtmlValue(oidValue, widget as unknown as CollectionContextProps['widget'], data);
 
     useEffect(() => {
         if (oidValue === undefined || oidValue === null) {
@@ -180,8 +184,8 @@ function DialogCollection(): React.ReactElement {
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                             '100%',
                                         color: data.iconColor,
-                                        filter: data.iconColor ? ('drop-shadow(0px 10000px 0)' as any) : undefined,
-                                        transform: data.iconColor ? ('translateY(-10000px)' as any) : undefined,
+                                        filter: data.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
+                                        transform: data.iconColor ? 'translateY(-10000px)' : undefined,
                                     }}
                                 />
                             </Box>
