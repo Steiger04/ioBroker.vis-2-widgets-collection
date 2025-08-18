@@ -1,6 +1,7 @@
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useContext, useRef } from 'react';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -31,9 +32,9 @@ function SelectCollection(): React.ReactElement {
 
     const valueIndex = states.findIndex(state => String(state.value) === String(oidValue));
 
-    const changeHandler = (event: any): void => {
+    const changeHandler = (event: SelectChangeEvent<string | number>): void => {
         const selectedIndex = event.target.value;
-        const selectedState = states[selectedIndex];
+        const selectedState = states[selectedIndex as number];
         const value = selectedState.value;
 
         if (cidObject) {
@@ -264,13 +265,13 @@ function SelectCollection(): React.ReactElement {
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
                                                 itemColor
-                                                    ? ('drop-shadow(0px 10000px 0)' as any)
+                                                    ? 'drop-shadow(0px 10000px 0)'
                                                     : undefined,
                                             transform:
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
                                                 itemColor
-                                                    ? ('translateY(-10000px)' as any)
+                                                    ? 'translateY(-10000px)'
                                                     : undefined,
                                         }}
                                     />
