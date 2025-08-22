@@ -21,10 +21,18 @@ interface LightPickerProps {
     cctBri?: boolean;
 }
 
+function setRef<T>(ref: React.Ref<T> | undefined, value: T): void {
+    if (typeof ref === 'function') {
+        ref(value);
+    } else if (ref && 'current' in ref) {
+        (ref as React.MutableRefObject<T>).current = value;
+    }
+}
+
 const LightPicker = forwardRef<IroColorPicker, LightPickerProps>(
     ({ widget, cctLight, onMount, onChange, wheelSize, cctBri = false }, ref) => {
         const elementRef = useRef<HTMLDivElement>(null);
-        const lightPicker = useRef<IroColorPicker>(null);
+        const lightPicker = useRef<IroColorPicker | null>(null);
 
         const layout = useMemo(() => {
             const wheel = { component: iro.ui.Wheel, options: {} };
@@ -88,17 +96,22 @@ const LightPicker = forwardRef<IroColorPicker, LightPickerProps>(
         ]);
 
         useEffect(() => {
-            if (elementRef.current && ref && typeof ref === 'object' && 'current' in ref) {
-                ref.current = lightPicker.current = iro.ColorPicker(elementRef.current, {
+            if (elementRef.current) {
+                const picker = iro.ColorPicker(elementRef.current, {
                     display: 'flex',
                     layoutDirection: 'horizontal',
                     wheelLightness: widget.data.colorWheelLightness,
                     layout,
                 });
+                lightPicker.current = picker;
+                setRef(ref, picker);
 
                 if (lightPicker.current) {
-                    lightPicker.current.state.sliderSize =
-                        (wheelSize || 200) * (widget.data.colorLightSliderWidth || 1);
+                    /* lightPicker.current.state.sliderSize =
+                        (wheelSize || 200) * (widget.data.colorLightSliderWidth || 1); */
+                    lightPicker.current.setOptions({
+                        sliderSize: (wheelSize || 200) * (widget.data.colorLightSliderWidth || 0.15),
+                    });
                     lightPicker.current.resize(wheelSize || 200);
                     lightPicker.current.forceUpdate();
 
@@ -138,7 +151,11 @@ const LightPicker = forwardRef<IroColorPicker, LightPickerProps>(
                 if (!lightPicker.current) {
                     return;
                 }
-                lightPicker.current.state.sliderSize = (wheelSize || 200) * (widget.data.colorLightSliderWidth || 1);
+                console.log('lightPicker.current', lightPicker.current);
+                lightPicker.current.setOptions({
+                    sliderSize: (wheelSize || 200) * (widget.data.colorLightSliderWidth || 0.15),
+                });
+                // lightPicker.current.state.sliderSize = (wheelSize || 200) * (widget.data.colorLightSliderWidth || 1);
                 lightPicker.current.resize(wheelSize || 200);
             }, 0);
         }, [wheelSize, widget.data.colorLightSliderWidth]);
@@ -148,7 +165,10 @@ const LightPicker = forwardRef<IroColorPicker, LightPickerProps>(
             if (!lightPicker.current) {
                 return;
             }
-            lightPicker.current.state.wheelLightness = widget.data.colorWheelLightness;
+            // lightPicker.current.state.wheelLightness = widget.data.colorWheelLightness;
+            lightPicker.current.setOptions({
+                wheelLightness: widget.data.colorWheelLightness,
+            });
             lightPicker.current.forceUpdate();
         }, [widget.data.colorWheelLightness]);
 
