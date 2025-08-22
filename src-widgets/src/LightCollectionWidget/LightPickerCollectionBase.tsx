@@ -12,12 +12,10 @@ import LightPicker from './LightPicker';
 
 import type { IroColor } from '@irojs/iro-core';
 import { type LightCollectionContextProps } from '..';
+import { type IroColorPicker } from '@jaames/iro/dist/ColorPicker';
 
-interface ChangeEvent {
-    h?: boolean;
-    s?: boolean;
-    v?: boolean;
-    type?: string;
+interface Changes {
+    [key: string]: boolean;
 }
 
 const ColorWheelIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
@@ -120,8 +118,6 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
 );
 
 function LightPickerCollectionBase(): React.ReactElement {
-    const [initColor, setInitColor] = useState<IroColor | null>(null);
-
     const { values, getPropertyValue, widget } = useContext(CollectionContext) as LightCollectionContextProps;
 
     const widgetData = widget.data;
@@ -200,41 +196,79 @@ function LightPickerCollectionBase(): React.ReactElement {
                 : Math.min(wheelWidth, wheelHeight)
             : 200;
 
-    const mountHandler = (_picker: { color: IroColor }): void => {
-        // console.log("LightPicker mounted", picker);
+    const mountHandler = (_picker: IroColorPicker): void => {
+        // Initialisiere nur die für den Lichttyp relevanten Farbwerte
 
-        const color: IroColor = {} as IroColor;
+        const color = _picker.color;
+        const type = cctLight ? 'cct' : widgetData.colorLightType;
 
-        color.kelvin = Number(getPropertyValue('colorLightTemperatureOid')) || 2000;
-        color.hexString = (getPropertyValue('colorLightRgbHexOid') as string) || '#000000';
-        color.red = Number(getPropertyValue('colorLightRedOid')) || 0;
-        color.green = Number(getPropertyValue('colorLightGreenOid')) || 0;
-        color.blue = Number(getPropertyValue('colorLightBlueOid')) || 0;
-        color.hue = Number(getPropertyValue('colorLightHueOid')) || 0;
+        switch (type) {
+            case 'cct':
+                color.kelvin = Number(getPropertyValue('colorLightTemperatureOid')) || 2000;
+                if (widgetData.colorLightBrightnessOidObject) {
+                    const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
+                    let val = Number(getPropertyValue('colorLightBrightnessOid')) || 0;
+                    if (isHueVal) {
+                        val = Math.round((val / 254) * 100);
+                    } else {
+                        val = Math.round(val);
+                    }
+                    color.value = val;
+                }
+                break;
 
-        const isHueSat = widgetData.colorLightSaturationOidObject?.maxValue === 254;
-        let sat = Number(getPropertyValue('colorLightSaturationOid')) || 0;
-        if (isHueSat) {
-            sat = Math.round((sat / 254) * 100);
-        } else {
-            sat = Math.round(sat);
+            case 'rgb':
+            case 'rgbcct':
+                color.hexString = (getPropertyValue('colorLightRgbHexOid') as string) || '#000000';
+                break;
+
+            case 'r/g/b':
+            case 'r/g/b/cct': {
+                color.red = Number(getPropertyValue('colorLightRedOid')) || 0;
+                color.green = Number(getPropertyValue('colorLightGreenOid')) || 0;
+                color.blue = Number(getPropertyValue('colorLightBlueOid')) || 0;
+
+                const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
+                let val = Number(getPropertyValue('colorLightBrightnessOid')) || 0;
+                if (isHueVal) {
+                    val = Math.round((val / 254) * 100);
+                } else {
+                    val = Math.round(val);
+                }
+                color.value = val;
+                break;
+            }
+
+            case 'h/s/v':
+            case 'h/s/v/cct': {
+                color.hue = Number(getPropertyValue('colorLightHueOid')) || 0;
+                const isHueSat = widgetData.colorLightSaturationOidObject?.maxValue === 254;
+                let sat = Number(getPropertyValue('colorLightSaturationOid')) || 0;
+                if (isHueSat) {
+                    sat = Math.round((sat / 254) * 100);
+                } else {
+                    sat = Math.round(sat);
+                }
+                color.saturation = sat;
+
+                const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
+                let val = Number(getPropertyValue('colorLightBrightnessOid')) || 0;
+                if (isHueVal) {
+                    val = Math.round((val / 254) * 100);
+                } else {
+                    val = Math.round(val);
+                }
+                color.value = val;
+                break;
+            }
+
+            default:
+                break;
         }
-        color.saturation = sat;
-
-        const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
-        let val = Number(getPropertyValue('colorLightBrightnessOid')) || 0;
-        if (isHueVal) {
-            val = Math.round((val / 254) * 100);
-        } else {
-            val = Math.round(val);
-        }
-        color.value = val;
-
-        setInitColor(color);
     };
 
-    const changeHandler = (color: IroColor, change: ChangeEvent): void => {
-        if (!change || !color) {
+    const changeHandler = (color: IroColor, changes: Changes): void => {
+        if (!changes || !color) {
             return;
         }
 
@@ -253,7 +287,7 @@ function LightPickerCollectionBase(): React.ReactElement {
 
         switch (type) {
             case 'cct':
-                if (change.v && !change.h && !change.s && widgetData.colorLightBrightnessOidObject) {
+                if (changes.v && !changes.h && !changes.s && widgetData.colorLightBrightnessOidObject) {
                     setBrightnessValueState(val || 0);
                 } else if (widgetData.colorLightTemperatureOidObject) {
                     setTemperatureValueState(Math.round(color.kelvin) || 2000);
@@ -262,7 +296,6 @@ function LightPickerCollectionBase(): React.ReactElement {
 
             case 'rgb':
             case 'rgbcct':
-                //if (colorLightRgbHexOidObject && !colorLightRgbHexOidObject.noObject)
                 if (widgetData.colorLightRgbHexOidObject) {
                     setRgbHexValueState(color.hexString || '#000000');
                 }
@@ -271,17 +304,14 @@ function LightPickerCollectionBase(): React.ReactElement {
 
             case 'r/g/b':
             case 'r/g/b/cct':
-                // if (colorLightRedOidObject && !colorLightRedOidObject.noObject) setRedValueState(color.red || 0);
                 if (widgetData.colorLightRedOidObject) {
                     setRedValueState(color.red || 0);
                 }
 
-                // if (colorLightGreenOidObject && !colorLightGreenOidObject.noObject)
                 if (widgetData.colorLightGreenOidObject) {
                     setGreenValueState(color.green || 0);
                 }
 
-                // if (colorLightBlueOidObject && !colorLightBlueOidObject.noObject) setBlueValueState(color.blue || 0);
                 if (widgetData.colorLightBlueOidObject) {
                     setBlueValueState(color.blue || 0);
                 }
@@ -289,15 +319,12 @@ function LightPickerCollectionBase(): React.ReactElement {
 
             case 'h/s/v':
             case 'h/s/v/cct':
-                // if (change.h && colorLightHueOidObject && !colorLightHueOidObject.noObject) {
-                if (change.h && widgetData.colorLightHueOidObject) {
+                if (changes.h && widgetData.colorLightHueOidObject) {
                     setHueValueState(Math.round(color.hue) || 0);
                 }
 
-                // if (change.s && colorLightSaturationOidObject && !colorLightSaturationOidObject.noObject) {
-                if (change.s && widgetData.colorLightSaturationOidObject) {
+                if (changes.s && widgetData.colorLightSaturationOidObject) {
                     const isHueSat = widgetData.colorLightSaturationOidObject?.maxValue === 254;
-                    // console.log("isHueSat: ", isHueSat);
 
                     let sat = Math.round(color.saturation);
 
@@ -305,21 +332,18 @@ function LightPickerCollectionBase(): React.ReactElement {
                         sat = Math.round((color.saturation / 100) * 254);
                     }
 
-                    // console.log("color.saturation: ", sat);
                     setSaturationValueState(sat || 0);
                 }
 
-                // if (change.v && colorLightBrightnessOidObject && !colorLightBrightnessOidObject.noObject) {
-                if (change.v && widgetData.colorLightBrightnessOidObject) {
+                if (changes.v && widgetData.colorLightBrightnessOidObject) {
                     const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
-                    // console.log("isHueVal: ", isHueVal);
 
                     let val = Math.round(color.value);
 
                     if (isHueVal) {
                         val = Math.round((color.value / 100) * 254);
                     }
-                    // console.log("color.value: ", Math.round(color.value));
+
                     setBrightnessValueState(val || 0);
                 }
 
@@ -339,9 +363,6 @@ function LightPickerCollectionBase(): React.ReactElement {
         const color = iroRef.current.color;
         const cctBriColor = iroCctBriRef.current.color;
 
-        // console.log("temperatureValue: ", temperatureValue);
-        // console.log("temperatureChanged: ", temperatureChanged);
-
         if (temperatureChanged) {
             color.kelvin = temperatureValue;
 
@@ -358,11 +379,6 @@ function LightPickerCollectionBase(): React.ReactElement {
         }
 
         const color = iroRef.current.color;
-
-        // console.log("redChanged: ", redChanged);
-        // console.log("greenChanged: ", greenChanged);
-        // console.log("blueChanged: ", blueChanged);
-        // console.log("rgbHexChanged: ", rgbHexChanged);
 
         if (redChanged) {
             color.red = redValue;
@@ -402,8 +418,6 @@ function LightPickerCollectionBase(): React.ReactElement {
                 ? Math.round((Number(brightnessValue) / 254) * 100)
                 : Math.round(Number(brightnessValue) || 0);
 
-        // const roundedBrightness = Math.round(brightnessValue);
-
         const setHue = (): void => {
             if (hueChanged) {
                 color.hue = roundedHue;
@@ -421,10 +435,6 @@ function LightPickerCollectionBase(): React.ReactElement {
                 color.value = roundedBrightness;
             }
         };
-
-        /* console.log("hueChanged: ", hueChanged);
-        console.log("saturationChanged: ", saturationChanged);
-        console.log("brightnessChanged: ", brightnessChanged); */
 
         if (uiComponent === 'wheel' || uiComponent === 'box' || uiComponent === 'slider') {
             setHue();
@@ -479,7 +489,6 @@ function LightPickerCollectionBase(): React.ReactElement {
                         />
                     </IconButton>
                 </Box>
-                {/* <Divider flexItem variant="middle" /> */}
                 {isCctLight && (
                     <>
                         <IconButton onClick={() => setCctLight(false)}>
@@ -543,7 +552,6 @@ function LightPickerCollectionBase(): React.ReactElement {
                         {isValues && (
                             <LightPicker
                                 ref={iroRef}
-                                initColor={initColor}
                                 cctLight={cctLight}
                                 widget={widget}
                                 onChange={changeHandler}
@@ -556,7 +564,6 @@ function LightPickerCollectionBase(): React.ReactElement {
                                 <LightPicker
                                     cctBri={true}
                                     ref={iroCctBriRef}
-                                    initColor={initColor}
                                     cctLight={cctLight}
                                     widget={widget}
                                     onChange={changeHandler}

@@ -1,16 +1,11 @@
+import { type IroColor } from '@irojs/iro-core/dist/color';
 import iro from '@jaames/iro';
+import { type IroColorPicker } from '@jaames/iro/dist/ColorPicker';
 import { Box } from '@mui/material';
 import React, { useRef, useEffect, useMemo, forwardRef } from 'react';
 
-interface LightColorValues {
-    kelvin?: number;
-    value?: number;
-    hexString?: string;
-    red?: number;
-    green?: number;
-    blue?: number;
-    hue?: number;
-    saturation?: number;
+interface Changes {
+    [key: string]: boolean;
 }
 
 interface LightPickerProps {
@@ -18,7 +13,7 @@ interface LightPickerProps {
         data: any;
         style: React.CSSProperties;
     };
-    initColor?: LightColorValues | null;
+    initColor?: IroColor | null;
     cctLight?: boolean;
     onMount?: (picker: any) => void;
     onChange?: (color: any, change: any) => void;
@@ -26,23 +21,22 @@ interface LightPickerProps {
     cctBri?: boolean;
 }
 
-const LightPicker = forwardRef<any, LightPickerProps>(
-    ({ widget, initColor, cctLight, onMount, onChange, wheelSize, cctBri = false }, ref) => {
+const LightPicker = forwardRef<IroColorPicker, LightPickerProps>(
+    ({ widget, cctLight, onMount, onChange, wheelSize, cctBri = false }, ref) => {
         const elementRef = useRef<HTMLDivElement>(null);
-        const lightPicker = useRef<any>(null);
+        const lightPicker = useRef<IroColorPicker>(null);
 
         const layout = useMemo(() => {
-            const iroAny = iro;
-            const wheel = { component: iroAny.ui.Wheel, options: {} };
-            const box = { component: iroAny.ui.Box, options: {} };
-            const hueSlider = { component: iroAny.ui.Slider, options: { sliderType: 'hue' } };
-            const saturationSlider = { component: iroAny.ui.Slider, options: { sliderType: 'saturation' } };
-            const valueSlider = { component: iroAny.ui.Slider, options: { sliderType: 'value' } };
-            const redSlider = { component: iroAny.ui.Slider, options: { sliderType: 'red' } };
-            const greenSlider = { component: iroAny.ui.Slider, options: { sliderType: 'green' } };
-            const blueSlider = { component: iroAny.ui.Slider, options: { sliderType: 'blue' } };
+            const wheel = { component: iro.ui.Wheel, options: {} };
+            const box = { component: iro.ui.Box, options: {} };
+            const hueSlider = { component: iro.ui.Slider, options: { sliderType: 'hue' } };
+            const saturationSlider = { component: iro.ui.Slider, options: { sliderType: 'saturation' } };
+            const valueSlider = { component: iro.ui.Slider, options: { sliderType: 'value' } };
+            const redSlider = { component: iro.ui.Slider, options: { sliderType: 'red' } };
+            const greenSlider = { component: iro.ui.Slider, options: { sliderType: 'green' } };
+            const blueSlider = { component: iro.ui.Slider, options: { sliderType: 'blue' } };
             const kelvinSlider = {
-                component: iroAny.ui.Slider,
+                component: iro.ui.Slider,
                 options: {
                     sliderType: 'kelvin',
                     sliderShape: 'circle',
@@ -93,10 +87,9 @@ const LightPicker = forwardRef<any, LightPickerProps>(
             cctLight,
         ]);
 
-        // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
         useEffect(() => {
             if (elementRef.current && ref && typeof ref === 'object' && 'current' in ref) {
-                ref.current = lightPicker.current = new (iro as any).ColorPicker(elementRef.current, {
+                ref.current = lightPicker.current = iro.ColorPicker(elementRef.current, {
                     display: 'flex',
                     layoutDirection: 'horizontal',
                     wheelLightness: widget.data.colorWheelLightness,
@@ -110,10 +103,16 @@ const LightPicker = forwardRef<any, LightPickerProps>(
                     lightPicker.current.forceUpdate();
 
                     if (onMount) {
-                        lightPicker.current.on('mount', onMount);
+                        lightPicker.current.on('mount', (_picker: { color: IroColor }) => {
+                            console.log('mount', _picker);
+                            onMount(_picker);
+                        });
                     }
                     if (onChange) {
-                        lightPicker.current.on('input:change', onChange);
+                        lightPicker.current.on('input:change', (color: IroColor, changes: Changes) => {
+                            console.log('input:change', color, changes);
+                            onChange(color, changes);
+                        });
                     }
                 }
             }
@@ -126,76 +125,12 @@ const LightPicker = forwardRef<any, LightPickerProps>(
                     if (onChange) {
                         lightPicker.current.off('input:change', onChange);
                     }
-                    lightPicker.current.base.remove();
+                    lightPicker.current.base!.remove();
                     lightPicker.current = null;
                 }
             };
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [layout]);
-
-        // onChange-Handler immer aktuell halten
-        useEffect(() => {
-            if (!lightPicker.current || !onChange) {
-                return;
-            }
-            lightPicker.current.off('input:change', onChange);
-            lightPicker.current.on('input:change', onChange);
-        }, [onChange]);
-
-        // initColor bei Änderung setzen
-        useEffect(() => {
-            if (!initColor || !lightPicker.current) {
-                return;
-            }
-
-            const type = cctLight ? 'cct' : widget.data.colorLightType;
-            switch (type) {
-                case 'cct':
-                    if (cctBri) {
-                        if (initColor.kelvin !== undefined) {
-                            lightPicker.current.color.kelvin = initColor.kelvin;
-                        }
-                        if (initColor.value !== undefined) {
-                            lightPicker.current.color.value = initColor.value;
-                        }
-                    } else {
-                        if (initColor.kelvin !== undefined) {
-                            lightPicker.current.color.kelvin = initColor.kelvin;
-                        }
-                    }
-                    break;
-                case 'rgb':
-                case 'rgbcct':
-                    if (initColor.hexString) {
-                        lightPicker.current.color.hexString = initColor.hexString;
-                    }
-                    break;
-                case 'r/g/b':
-                case 'r/g/b/cct':
-                    if (initColor.red !== undefined && initColor.green !== undefined && initColor.blue !== undefined) {
-                        lightPicker.current.color.rgb = {
-                            r: initColor.red,
-                            g: initColor.green,
-                            b: initColor.blue,
-                        };
-                    }
-                    break;
-                case 'h/s/v':
-                case 'h/s/v/cct':
-                    if (initColor.hue !== undefined) {
-                        lightPicker.current.color.hue = initColor.hue;
-                    }
-                    if (initColor.saturation !== undefined) {
-                        lightPicker.current.color.saturation = initColor.saturation;
-                    }
-                    if (initColor.value !== undefined) {
-                        lightPicker.current.color.value = initColor.value;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }, [cctBri, initColor, cctLight, widget.data.colorLightType]);
 
         // Wheel-Größe und Slider-Breite anpassen
         useEffect(() => {
