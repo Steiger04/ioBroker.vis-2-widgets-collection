@@ -4,7 +4,7 @@ declare module '@iobroker/types-vis-2' {
     }
 }
 import type { ThemeType } from '@iobroker/adapter-react-v5';
-import type { type Theme, LegacyConnection } from '@iobroker/types-vis-2';
+import type { type Theme, LegacyConnection, VisRxData } from '@iobroker/types-vis-2';
 
 import type { StateFieldsRxData } from './lib/stateFields';
 import type { CommonObjectFieldsRxData } from './lib/commonObjectFields';
@@ -26,7 +26,7 @@ export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxDa
     refService: React.RefObject<HTMLElement>;
     style: React.CSSProperties;
     widget: {
-        data: T;
+        data: VisRxData & T;
         style: CSSProperties;
     };
     setValue: (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack?: boolean) => void;
@@ -88,5 +88,5 @@ export type GaugeCollectionContextProps = CollectionContextProps<
     GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData
 >;
 export type LightCollectionContextProps = CollectionContextProps<
-    LightFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+    LightFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;

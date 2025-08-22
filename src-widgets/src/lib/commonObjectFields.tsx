@@ -195,7 +195,11 @@ export const oidChangeHandlerAsync =
         }
     };
 
-export interface CommonObjectFieldsRxData {
+type ValueFields = {
+    [K in `value${string}`]?: string | number | boolean;
+};
+
+export interface CommonObjectFieldsRxData extends ValueFields {
     oid: string;
     unit: string;
     values_count: number;
@@ -216,9 +220,8 @@ export interface CommonObjectFieldsRxData {
         minValue?: number;
         maxValue?: number;
     };
-    [key: `value${string | number}`]: boolean | number | string;
-    [key: `alias${string | number}`]: string;
-    [key: string]: any;
+    [key: `alias${string | number}?`]: string;
+    // [key: string]: any;
 }
 
 const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributesField[] => [

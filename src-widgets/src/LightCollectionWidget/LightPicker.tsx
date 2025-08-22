@@ -32,7 +32,7 @@ const LightPicker = forwardRef<any, LightPickerProps>(
         const lightPicker = useRef<any>(null);
 
         const layout = useMemo(() => {
-            const iroAny = iro as any;
+            const iroAny = iro;
             const wheel = { component: iroAny.ui.Wheel, options: {} };
             const box = { component: iroAny.ui.Box, options: {} };
             const hueSlider = { component: iroAny.ui.Slider, options: { sliderType: 'hue' } };

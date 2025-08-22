@@ -10,28 +10,8 @@ import useValueState from '../hooks/useValueState';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import LightPicker from './LightPicker';
 
-interface LightColorValues {
-    kelvin?: number;
-    value?: number;
-    hexString?: string;
-    red?: number;
-    green?: number;
-    blue?: number;
-    hue?: number;
-    saturation?: number;
-}
-
-interface IroColor {
-    kelvin: number;
-    hexString: string;
-    red: number;
-    green: number;
-    blue: number;
-    hue: number;
-    saturation: number;
-    value: number;
-    rgb: { r: number; g: number; b: number };
-}
+import type { IroColor } from '@irojs/iro-core';
+import { type LightCollectionContextProps } from '..';
 
 interface ChangeEvent {
     h?: boolean;
@@ -140,11 +120,11 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
 );
 
 function LightPickerCollectionBase(): React.ReactElement {
-    const [initColor, setInitColor] = useState<LightColorValues | null>(null);
+    const [initColor, setInitColor] = useState<IroColor | null>(null);
 
-    const { values, getPropertyValue, widget } = useContext(CollectionContext);
+    const { values, getPropertyValue, widget } = useContext(CollectionContext) as LightCollectionContextProps;
 
-    const widgetData = widget.data as any;
+    const widgetData = widget.data;
 
     const { data } = useData('');
 
@@ -223,7 +203,7 @@ function LightPickerCollectionBase(): React.ReactElement {
     const mountHandler = (_picker: { color: IroColor }): void => {
         // console.log("LightPicker mounted", picker);
 
-        const color: LightColorValues = {};
+        const color: IroColor = {} as IroColor;
 
         color.kelvin = Number(getPropertyValue('colorLightTemperatureOid')) || 2000;
         color.hexString = (getPropertyValue('colorLightRgbHexOid') as string) || '#000000';
@@ -262,7 +242,7 @@ function LightPickerCollectionBase(): React.ReactElement {
         if (cctLight) {
             type = 'cct';
         } else {
-            type = widgetData.colorLightType;
+            type = widgetData.colorLightType!;
         }
 
         const isHueVal = widgetData.colorLightBrightnessOidObject?.maxValue === 254;
@@ -273,13 +253,7 @@ function LightPickerCollectionBase(): React.ReactElement {
 
         switch (type) {
             case 'cct':
-                if (
-                    change.v &&
-                    !change.h &&
-                    !change.s &&
-                    widgetData.colorLightBrightnessOidObject &&
-                    !widgetData.colorLightBrightnessOidObject.noObject
-                ) {
+                if (change.v && !change.h && !change.s && widgetData.colorLightBrightnessOidObject) {
                     setBrightnessValueState(val || 0);
                 } else if (widgetData.colorLightTemperatureOidObject) {
                     setTemperatureValueState(Math.round(color.kelvin) || 2000);
