@@ -300,10 +300,7 @@ function useData(oid: string) {
             case 'boolean':
             case 'number':
             case 'string': {
-                const _activeIndex = states.findIndex(state => {
-                    console.log('state.value:', state.value);
-                    return String(state.value) === String(oidValue);
-                });
+                const _activeIndex = states.findIndex(state => String(state.value) === String(oidValue));
 
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);
