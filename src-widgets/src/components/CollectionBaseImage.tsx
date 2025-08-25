@@ -1,26 +1,12 @@
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
+import { type AllCollectionContextProps } from '..';
+import { type StyleData } from '../hooks/useData';
 
 // Typen für die Props basierend auf der Verwendung in Collection-Komponenten
 interface CollectionBaseImageProps {
-    data: {
-        icon?: string | false;
-        iconActive?: string | false;
-        iconSize?: string;
-        iconSizeActive?: string | false;
-        iconColor?: string;
-        iconColorActive?: string;
-        [key: string]: any; // Für weitere dynamische Properties
-    };
-    widget: {
-        data: {
-            noHeaderIcon?: boolean;
-            iconYOffset?: string | number;
-            iconXOffset?: string | number;
-            [key: string]: any; // Für weitere Widget-Data-Properties
-        };
-        [key: string]: any; // Für weitere Widget-Properties
-    };
+    data: StyleData;
+    widget: AllCollectionContextProps['widget'];
 }
 
 const CollectionBaseImage: React.FC<CollectionBaseImageProps> = ({ data, widget }) => {

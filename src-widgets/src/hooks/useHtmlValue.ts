@@ -9,8 +9,6 @@ import { type CommonFieldsRxData } from '../lib/commonFields';
 interface UseHtmlValueData {
     alias?: string;
     value?: string | number | boolean;
-    // Weitere Properties für Kompatibilität mit StyleData
-    // [key: string]: any;
 }
 
 /**
@@ -45,7 +43,7 @@ const useHtmlValue = (
             oidValue !== null &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
-            const unit = (widget?.data as any)?.unit;
+            const unit = widget!.data.unit;
             const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;
@@ -54,7 +52,7 @@ const useHtmlValue = (
         // Fallback: undefined wenn nichts verfügbar
 
         return undefined;
-    }, [oidValue, widget?.data, data]);
+    }, [oidValue, widget, data]);
 
     return contentValue;
 };

@@ -8,8 +8,6 @@ import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
 import LightPickerCollectionBase from './LightPickerCollectionBase';
 
-import type { LightCollectionContextProps } from 'src';
-
 /**
  * LightCollection Component
  *
@@ -17,7 +15,7 @@ import type { LightCollectionContextProps } from 'src';
  * Verwendet Long Press für das Öffnen des Color Pickers und normalen Klick für Ein-/Ausschalten
  */
 function LightCollection(): React.JSX.Element {
-    const context = useContext(CollectionContext) as LightCollectionContextProps;
+    const context = useContext(CollectionContext);
     const { widget } = context;
     const [open, setOpen] = useState<boolean>(false);
 

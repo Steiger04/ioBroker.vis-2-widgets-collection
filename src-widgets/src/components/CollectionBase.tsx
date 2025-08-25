@@ -4,14 +4,16 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
+import { type StyleData } from '../hooks/useData';
+import { type SxProps, type Theme } from '@mui/material/styles';
 
 interface CollectionBaseProps {
     children?: JSX.Element | JSX.Element[] | null;
-    data: Record<string, any>;
-    oidValue?: any;
+    data: StyleData;
+    oidValue?: ioBroker.StateValue;
     isValidType?: boolean;
     bgActive?: boolean;
-    sx?: Record<string, any>;
+    sx?: SxProps<Theme>;
 }
 
 export interface CollectionBaseHandle {

@@ -221,7 +221,6 @@ export interface CommonObjectFieldsRxData extends ValueFields {
         maxValue?: number;
     };
     [key: `alias${string | number}?`]: string;
-    // [key: string]: any;
 }
 
 const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributesField[] => [

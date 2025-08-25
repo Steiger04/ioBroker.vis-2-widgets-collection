@@ -120,7 +120,7 @@ class GaugeCollectionWidget extends Generic<GaugeFieldsRxData & CommonObjectFiel
             this.wrappedCollectionContent = true;
         }
 
-        return withCollectionProvider(this.wrapContent(<GaugeCollection />), collectionContext as any);
+        return withCollectionProvider(this.wrapContent(<GaugeCollection />), collectionContext);
     }
 }
 

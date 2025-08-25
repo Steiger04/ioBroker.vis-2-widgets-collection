@@ -31,7 +31,6 @@ declare module 'canvas-gauges' {
         animationRule?: string;
         animatedValue?: boolean;
         animateOnInit?: boolean;
-        // [key: string]: any;
     }
 
     export interface Gauge {
