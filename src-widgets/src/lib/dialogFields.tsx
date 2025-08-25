@@ -10,7 +10,7 @@ export interface DialogFieldsRxData {
     dialogHeight: number;
     dialogInPixel: boolean;
     dialogBackgroundColor: string;
-    value: string;
+    // value: string;
     dialogCloseButtonTop: boolean;
     dialogCloseButtonBottom: boolean;
     dialogCloseButtonColor: string;

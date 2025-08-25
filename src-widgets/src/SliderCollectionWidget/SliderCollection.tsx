@@ -16,19 +16,6 @@ interface SliderMarkLabelProps {
     defaultIconColor?: string;
 }
 
-interface SliderMark {
-    value: number;
-    label: string;
-    fontSize: string | null;
-    textColor?: string;
-    icon: string | null;
-    iconWidth: number;
-    iconHeight: number;
-    iconXOffset: string;
-    iconYOffset: string;
-    iconColor: string | null;
-}
-
 const SliderCollection: FC = () => {
     const {
         widget: {
@@ -61,9 +48,9 @@ const SliderCollection: FC = () => {
         [widget.data.onlyStates, widget.data.maxValue, maxValue],
     );
 
-    const sliderMarks = useMemo((): SliderMark[] => {
+    const sliderMarks = useMemo(() => {
         // Convert states to SliderMark format, preserving the existing labels (which contain aliases if available)
-        const _sliderMarks: SliderMark[] = states.map(state => ({
+        const _sliderMarks = states.map(state => ({
             value: Number(state.value),
             label: state.label, // Use the existing label which contains alias or value+unit
             fontSize: state.fontSize,
@@ -87,14 +74,14 @@ const SliderCollection: FC = () => {
             _sliderMarks.push({
                 value: minValue,
                 label: `${minValue}${oidObject?.unit || ''}`,
-                fontSize: null,
+                fontSize: undefined,
                 textColor: undefined,
                 icon: null,
                 iconWidth: 100,
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: null,
+                iconColor: undefined,
             });
         }
 
@@ -102,14 +89,14 @@ const SliderCollection: FC = () => {
             _sliderMarks.push({
                 value: maxValue,
                 label: `${maxValue}${oidObject?.unit || ''}`,
-                fontSize: null,
+                fontSize: undefined,
                 textColor: undefined,
                 icon: null,
                 iconWidth: 100,
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: null,
+                iconColor: undefined,
             });
         }
 
@@ -121,14 +108,14 @@ const SliderCollection: FC = () => {
                     _sliderMarks.push({
                         value: i,
                         label: `${i}${oidObject?.unit || ''}`,
-                        fontSize: null,
+                        fontSize: undefined,
                         textColor: undefined,
                         icon: null,
                         iconWidth: 100,
                         iconHeight: 100,
                         iconXOffset: '0px',
                         iconYOffset: '0px',
-                        iconColor: null,
+                        iconColor: undefined,
                     });
                 }
             }

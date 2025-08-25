@@ -3,7 +3,42 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
 import { type AllCollectionContextProps } from '..';
 
-function useData(oid: string): any {
+// Interface for StyleData
+export interface StyleData {
+    textColor: string;
+    textColorActive?: string;
+    header: string;
+    headerSize: string | null;
+    footer: string;
+    footerSize: string | null;
+    alias: string;
+    value?: string;
+    valueSize: string | null;
+    valueSizeActive: string | false | null;
+    icon: string | false;
+    iconActive: string | false;
+    iconSize: string;
+    iconSizeActive: string | false;
+    iconSizeActiveOnly?: number;
+    iconSizeOnly?: number;
+    iconColor?: string;
+    iconColorActive?: string;
+    iconHover?: string;
+    iconHoverActive?: string;
+    iconXOffset: string;
+    iconYOffset: string;
+    backgroundColor: string;
+    backgroundColorActive?: string;
+    background: string;
+    backgroundActive?: string;
+    frameBackgroundColor: string;
+    frameBackgroundColorActive?: string;
+    frameBackground: string;
+    frameBackgroundActive?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+function useData(oid: string) {
     const {
         theme,
         widget,
@@ -13,7 +48,7 @@ function useData(oid: string): any {
         },
         // [`${oid}Object`]: oidObject,
         getPropertyValue,
-    } = useContext(CollectionContext) as AllCollectionContextProps;
+    } = useContext(CollectionContext);
 
     const oidObject = rxData[`${oid}Object`];
 
@@ -70,7 +105,9 @@ function useData(oid: string): any {
 
                         states.push({
                             value: commonStateEntry
-                                ? commonStateEntry[0]
+                                ? oidType === 'number'
+                                    ? Number(commonStateEntry[0])
+                                    : String(commonStateEntry[0])
                                 : oidType === 'number'
                                   ? Number(_value)
                                   : _value,
@@ -78,17 +115,16 @@ function useData(oid: string): any {
                                 _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
-                            fontSize: formatSize(rxData[`valueSize${i}`]),
+                            fontSize: formatSize(rxData[`valueSize${i}`]) ?? undefined,
 
-                            textColor: rxData[`textColor${i}`],
+                            textColor: rxData[`textColor${i}`] as string | undefined,
 
-                            icon:
-                                rxData[`icon${i}`] ||
-                                rxData[`iconSmall${i}`] ||
-                                rxData.icon ||
-                                rxData.iconSmall ||
-                                null,
-                            iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : null,
+                            icon: (() => {
+                                const iconValue =
+                                    rxData[`icon${i}`] || rxData[`iconSmall${i}`] || rxData.icon || rxData.iconSmall;
+                                return typeof iconValue === 'string' ? iconValue : undefined;
+                            })(),
+                            iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : undefined,
                             iconWidth:
                                 typeof rxData[`iconSize${i}`] === 'number'
                                     ? rxData[`iconSize${i}`]
@@ -101,16 +137,14 @@ function useData(oid: string): any {
                                     : typeof rxData.iconSize === 'number'
                                       ? rxData.iconSize
                                       : 100,
-                            iconXOffset:
-                                (!!getDataValue('iconXOffset', String(i)) &&
-                                    getDataValue('iconXOffset', String(i)) !== '0px' &&
-                                    getDataValue('iconXOffset', String(i))) ||
-                                '0px',
-                            iconYOffset:
-                                (!!getDataValue('iconYOffset', String(i)) &&
-                                    getDataValue('iconYOffset', String(i)) !== '0px' &&
-                                    getDataValue('iconYOffset', String(i))) ||
-                                '0px',
+                            iconXOffset: (() => {
+                                const val = getDataValue<string>('iconXOffset', String(i));
+                                return val && val !== '0px' ? val : '0px';
+                            })(),
+                            iconYOffset: (() => {
+                                const val = getDataValue<string>('iconYOffset', String(i));
+                                return val && val !== '0px' ? val : '0px';
+                            })(),
                             iconColor:
                                 rxData[`iconColor${i}`] ||
                                 rxData.sliderColor ||
@@ -120,25 +154,31 @@ function useData(oid: string): any {
                                 theme.palette.primary.main,
 
                             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
-                            backgroundColorActive: getDataValue('backgroundColor', String(i)),
+                            backgroundColorActive: getDataValue<string>('backgroundColor', String(i)),
 
                             background: String(rxData.background || backgroundStyles.background || ''),
-                            backgroundActive: getDataValue('background', String(i)),
+                            backgroundActive: getDataValue<string>('background', String(i)),
 
                             frameBackgroundColor: rxData.frameBackgroundColor || backgroundStyles.backgroundColor || '',
-                            frameBackgroundColorActive: getDataValue('frameBackgroundColor', String(i)),
+                            frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(i)),
 
                             frameBackground: String(rxData.frameBackground || backgroundStyles.background || ''),
-                            frameBackgroundActive: getDataValue('frameBackground', String(i)),
+                            frameBackgroundActive: getDataValue<string>('frameBackground', String(i)),
                         });
 
                         const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                        widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
+                        (widgetStates as unknown as Record<string, string>)[key] =
+                            _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
                     }
                 }
                 if (oidType === 'number' && states.length) {
-                    minValue = Math.min(...states.map(state => state.value as number));
-                    maxValue = Math.max(...states.map(state => state.value as number));
+                    const numericValues = states
+                        .map(state => (typeof state.value === 'number' ? state.value : NaN))
+                        .filter(val => !isNaN(val));
+                    if (numericValues.length > 0) {
+                        minValue = Math.min(...numericValues);
+                        maxValue = Math.max(...numericValues);
+                    }
                 }
             }
 
@@ -163,31 +203,29 @@ function useData(oid: string): any {
 
     // Styling-Daten
     const data = useMemo(() => {
-        const getStyleData = (ext: string | number = ''): any => ({
+        const getStyleData = (ext: string | number = ''): StyleData => ({
             textColor: rxData.textColor || textStyles.color || theme.palette.primary.main,
-            textColorActive: getDataValue('textColor', ext),
+            textColorActive: getDataValue<string>('textColor', String(ext)),
 
-            header: (rxData.headerActive || getDataValue('header', ext) || rxData.header || oidName || '').replace(
-                /(\r\n|\n|\r)/gm,
-                '',
-            ),
+            header: String(
+                rxData.headerActive || getDataValue<string>('header', String(ext)) || rxData.header || oidName || '',
+            ).replace(/(\r\n|\n|\r)/gm, ''),
             headerSize:
                 formatSize(rxData.headerSize) ||
                 formatSize(rxData.headerSizeActive) ||
                 formatSize(getDataValue('headerSize', String(ext))) ||
                 (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
 
-            footer: (rxData.footerActive || getDataValue('footer', String(ext)) || rxData.footer || '').replace(
-                /(\r\n|\n|\r)/gm,
-                '',
-            ),
+            footer: String(
+                rxData.footerActive || getDataValue<string>('footer', String(ext)) || rxData.footer || '',
+            ).replace(/(\r\n|\n|\r)/gm, ''),
             footerSize:
                 formatSize(rxData.footerSize) ||
                 formatSize(rxData.footerSizeActive) ||
                 formatSize(getDataValue('footerSize', String(ext))) ||
                 (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
 
-            alias: String(getDataValue('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
+            alias: String(getDataValue<string>('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
 
             value: (() => {
                 const val = getDataValue<ioBroker.StateValue>('value', String(ext));
@@ -203,45 +241,55 @@ function useData(oid: string): any {
                     : false,
 
             icon: !rxData.noIcon && (rxData.icon || rxData.iconSmall),
-            iconActive: !rxData.noIcon && (getDataValue('icon', String(ext)) || getDataValue('iconSmall', String(ext))),
+            iconActive: (() => {
+                const iconVal =
+                    !rxData.noIcon &&
+                    (getDataValue<string>('icon', String(ext)) || getDataValue<string>('iconSmall', String(ext)));
+                return typeof iconVal === 'string' ? iconVal : false;
+            })(),
             iconSize: (typeof rxData.iconSize === 'number' && `calc(24px * ${rxData.iconSize} / 100)`) || '24px',
-            iconSizeActive:
-                getDataValue('iconSize', String(ext)) && `calc(24px * ${getDataValue('iconSize', String(ext))} / 100)`,
+            iconSizeActive: (() => {
+                const size = getDataValue<number>('iconSize', String(ext));
+                return size ? `calc(24px * ${size} / 100)` : false;
+            })(),
 
-            iconSizeActiveOnly: getDataValue('iconSize', String(ext)),
+            iconSizeActiveOnly: getDataValue<number>('iconSize', String(ext)),
             iconSizeOnly:
-                getDataValue('iconSize', String(ext)) || getDataValue('iconSize', String(ext)) === 0
-                    ? getDataValue('iconSize', String(ext))
+                getDataValue<number>('iconSize', String(ext)) || getDataValue<number>('iconSize', String(ext)) === 0
+                    ? getDataValue<number>('iconSize', String(ext))
                     : rxData.iconSize,
 
             iconColor: rxData.iconColor,
-            iconColorActive: getDataValue('iconColor', String(ext)),
+            iconColorActive: getDataValue<string>('iconColor', String(ext)),
 
             iconHover: rxData.iconHover ? `${rxData.iconHover}%` : undefined,
-            iconHoverActive: getDataValue('iconHover', String(ext)) && `${getDataValue('iconHover', String(ext))}%`,
+            iconHoverActive: (() => {
+                const val = getDataValue<number>('iconHover', String(ext));
+                return val ? `${val}%` : undefined;
+            })(),
 
             iconXOffset:
-                (!!getDataValue('iconXOffset', String(ext)) &&
-                    getDataValue('iconXOffset', String(ext)) !== '0px' &&
-                    getDataValue('iconXOffset', String(ext))) ||
+                (!!getDataValue<string>('iconXOffset', String(ext)) &&
+                    getDataValue<string>('iconXOffset', String(ext)) !== '0px' &&
+                    getDataValue<string>('iconXOffset', String(ext))) ||
                 '0px',
             iconYOffset:
-                (!!getDataValue('iconYOffset', String(ext)) &&
-                    getDataValue('iconYOffset', String(ext)) !== '0px' &&
-                    getDataValue('iconYOffset', String(ext))) ||
+                (!!getDataValue<string>('iconYOffset', String(ext)) &&
+                    getDataValue<string>('iconYOffset', String(ext)) !== '0px' &&
+                    getDataValue<string>('iconYOffset', String(ext))) ||
                 '0px',
 
             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
-            backgroundColorActive: getDataValue('backgroundColor', String(ext)),
+            backgroundColorActive: getDataValue<string>('backgroundColor', String(ext)),
 
             background: String(rxData.background || backgroundStyles.background || ''),
-            backgroundActive: getDataValue('background', String(ext)),
+            backgroundActive: getDataValue<string>('background', String(ext)),
 
             frameBackgroundColor: rxData.frameBackgroundColor || backgroundStyles.backgroundColor || '',
-            frameBackgroundColorActive: getDataValue('frameBackgroundColor', String(ext)),
+            frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(ext)),
 
             frameBackground: String(rxData.frameBackground || backgroundStyles.background || ''),
-            frameBackgroundActive: getDataValue('frameBackground', String(ext)),
+            frameBackgroundActive: getDataValue<string>('frameBackground', String(ext)),
         });
 
         // const oidType = oidObject?.common?.type;

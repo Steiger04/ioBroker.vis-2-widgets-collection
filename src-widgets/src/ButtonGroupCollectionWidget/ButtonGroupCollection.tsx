@@ -140,7 +140,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                         return (
                             <ToggleButton
                                 // disableRipple
-                                value={value}
+                                value={value!}
                                 key={index}
                                 sx={{
                                     width: '100%',

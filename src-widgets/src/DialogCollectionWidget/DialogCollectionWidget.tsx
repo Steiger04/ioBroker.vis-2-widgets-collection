@@ -93,7 +93,7 @@ class DialogCollectionWidget extends Generic<DialogFieldsRxData & CommonFieldsRx
             widget: {
                 // ...props.widget,
                 data: this.state.rxData,
-                style: (this.state.rxStyle || {}) as React.CSSProperties,
+                style: this.state.rxStyle,
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),

@@ -17,7 +17,7 @@ import {
 import React, { useCallback, useContext, useState, useMemo, type FC, type MouseEvent } from 'react';
 import useValueState from '../hooks/useValueState';
 import { CollectionContext } from './CollectionProvider';
-import type { StateCollectionContextProps } from '../index';
+import type { AllCollectionContextProps, StateCollectionContextProps } from '../index';
 
 /**
  * Widget States Map für die Darstellung verfügbarer Werte
@@ -42,7 +42,7 @@ interface OidObject {
  */
 interface CollectionChangeDialogProps {
     /** Verfügbare Widget-States für die Auswahl */
-    widgetStates: WidgetStates;
+    widgetStates: Partial<AllCollectionContextProps['widget']['data']>;
     /** Widget-Daten mit Styling-Informationen */
     data: {
         header?: string;
@@ -206,7 +206,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                         >
                             <ListItemText
                                 primaryTypographyProps={{ variant: 'body2' }}
-                                primary={String(value)}
+                                primary={String(value as string | number | boolean)}
                             />
                         </ListItemButton>
                     </ListItem>

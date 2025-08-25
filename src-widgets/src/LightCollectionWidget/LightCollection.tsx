@@ -28,7 +28,7 @@ function LightCollection(): React.JSX.Element {
     const { data } = useData('colorLightSwitchOid');
 
     // Type-safe Zugriff auf das OID Object
-    const colorLightSwitchOidObject = (widget.data as Record<string, any>).colorLightSwitchOidObject;
+    const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
 

@@ -8,13 +8,12 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
-import type { StateCollectionContextProps } from 'src';
 
 function StateCollection(): React.ReactElement {
     // const contentRef = useRef<HTMLDivElement>(null);
     // const [setContentRef] = useState<HTMLSpanElement | null>(null);
     // StateCollection wird nur im StateCollectionWidget verwendet, daher ist der Cast sicher
-    const context = useContext(CollectionContext) as StateCollectionContextProps;
+    const context = useContext(CollectionContext);
     const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);

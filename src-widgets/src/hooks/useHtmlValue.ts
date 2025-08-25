@@ -10,7 +10,7 @@ interface UseHtmlValueData {
     alias?: string;
     value?: string | number | boolean;
     // Weitere Properties für Kompatibilität mit StyleData
-    [key: string]: any;
+    // [key: string]: any;
 }
 
 /**

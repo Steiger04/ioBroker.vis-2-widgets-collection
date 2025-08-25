@@ -4,14 +4,14 @@ import { deepmerge } from '@mui/utils';
 
 import type { AllCollectionContextProps } from 'src';
 
-const CollectionContext = createContext<Partial<AllCollectionContextProps>>({});
+const CollectionContext = createContext<AllCollectionContextProps>({} as AllCollectionContextProps);
 
 function CollectionProvider({
     children,
     context,
 }: {
     children: JSX.Element | JSX.Element[] | null;
-    context: Partial<AllCollectionContextProps>;
+    context: AllCollectionContextProps;
 }): JSX.Element | JSX.Element[] | null {
     /* const _context = useMemo(() => {
 		return context;

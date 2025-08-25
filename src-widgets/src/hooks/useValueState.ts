@@ -2,6 +2,7 @@ import { useCallback, useContext } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
 import useDebounce from './useDebounce';
+import { type VisRxWidgetState } from '@iobroker/types-vis-2';
 
 /**
  * Interface für den Return-Typ des useValueState Hooks
@@ -22,7 +23,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
     const { setState, widget, getPropertyValue, hasPropertyValueChanged } = useContext(CollectionContext);
 
     // Sicherer Zugriff auf dynamische Properties
-    const oidObject = (widget.data as any)[`${idName}Object`];
+    const oidObject = widget.data[`${idName}Object`];
 
     // const value = useOidValue(idName);
     const value = getPropertyValue(idName);
@@ -85,7 +86,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
             if (onlyValues) {
                 setTimeout(
                     () =>
-                        setState((prevState: any) => ({
+                        setState((prevState: VisRxWidgetState) => ({
                             values: {
                                 ...prevState.values,
                                 ...stateUpdate.values,
@@ -96,7 +97,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
             } else {
                 setTimeout(
                     () =>
-                        setState((prevState: any) => ({
+                        setState((prevState: VisRxWidgetState) => ({
                             values: {
                                 ...prevState.values,
                                 ...stateUpdate.values,

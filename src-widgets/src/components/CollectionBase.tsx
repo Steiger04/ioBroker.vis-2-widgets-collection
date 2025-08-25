@@ -31,7 +31,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         const { wrappedContent, widget } = useContext(CollectionContext);
 
         // Sicherer Zugriff auf oidObject - könnte nicht existieren bei einigen Widgets
-        const oidObject = (widget.data as any).oidObject;
+        const oidObject = widget.data.oidObject;
         const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(widget.style);
 
         // Fallback-Ref für useSize falls ref noch null ist

@@ -40,6 +40,11 @@ export interface CommonFieldsRxData {
     [key: `backgroundColor${string}`]: string;
     [key: `frameBackground${string}`]: string;
     [key: `frameBackgroundColor${string}`]: string;
+    // für states-Objekte
+    [key: `label${string}`]: string;
+    [key: `fontSize${string}`]: string;
+    'signals-count': number | undefined;
+    [key: `signals-color-${number}`]: string;
 }
 
 const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
