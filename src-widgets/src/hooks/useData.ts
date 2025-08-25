@@ -70,7 +70,7 @@ function useData(oid: string): any {
 
                         states.push({
                             value: commonStateEntry
-                                ? StringcommonStateEntry[0]
+                                ? commonStateEntry[0]
                                 : oidType === 'number'
                                   ? Number(_value)
                                   : _value,
