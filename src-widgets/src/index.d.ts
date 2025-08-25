@@ -21,7 +21,7 @@ import type { DialogFieldsRxData } from './lib/dialogFields';
 import type { LightFieldsRxData } from './lib/lightFields';
 import type { CSSProperties } from 'react';
 
-export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxData> {
+export interface CollectionContextProps<T> {
     id: string;
     refService: React.RefObject<HTMLElement>;
     style: React.CSSProperties;
@@ -39,30 +39,14 @@ export interface CollectionContextProps<T = CommonFieldsRxData & DelayFieldsRxDa
     socket: LegacyConnection;
     theme: Theme;
     wrappedContent: boolean;
-}
-
-export interface DialogCollectionContextProps {
-    id: string;
-    refService: React.RefObject<HTMLElement>;
-    style: React.CSSProperties;
-    widget: {
-        data: DialogFieldsRxData & CommonFieldsRxData;
-        style: CSSProperties;
-    };
-    setValue: (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack?: boolean) => void;
-    setState: React.Component['setState'];
-    values: VisRxWidgetStateValues;
-    isSignalVisible: (index: number) => boolean;
-    getPropertyValue: (stateName: string) => ioBroker.StateValue;
-    hasPropertyValueChanged: (stateName: string) => boolean;
-    mode: ThemeType;
-    socket: LegacyConnection;
-    theme: Theme;
-    wrappedContent: boolean;
     getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
 }
 
 // Spezifische Context-Types für einzelne Widgets
+export type DialogCollectionContextProps = CollectionContextProps<
+    DialogFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData
+>;
+
 export type StateCollectionContextProps = CollectionContextProps<
     StateFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;
@@ -90,3 +74,5 @@ export type GaugeCollectionContextProps = CollectionContextProps<
 export type LightCollectionContextProps = CollectionContextProps<
     LightFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;
+
+export type TemplateCollectionContextProps = CollectionContextProps<CommonObjectFieldsRxData & CommonFieldsRxData>;

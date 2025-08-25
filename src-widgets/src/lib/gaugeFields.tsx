@@ -84,6 +84,7 @@ export interface GaugeFieldsRxData {
     gaugeColorNeedleShadowUp: string;
     gaugeColorNeedleShadowDown: string;
     gaugeColorBarStroke: string;
+    gaugeColorNeedleCircleShadowUp: string;
     gaugeColorBar: string;
     gaugeColorBarProgress: string;
     gaugeHighlightsLineCap: 'butt' | 'round' | 'square';

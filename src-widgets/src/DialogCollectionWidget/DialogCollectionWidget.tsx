@@ -86,7 +86,7 @@ class DialogCollectionWidget extends Generic<DialogFieldsRxData & CommonFieldsRx
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element {
         super.renderWidgetBody(props);
 
-        const collectionContext: DialogCollectionContextProps = {
+        const collectionContext = {
             id: props.id,
             refService: props.refService,
             style: props.style,
@@ -108,7 +108,7 @@ class DialogCollectionWidget extends Generic<DialogFieldsRxData & CommonFieldsRx
             getWidgetView: this.getWidgetView.bind(this),
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as DialogCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
@@ -116,10 +116,7 @@ class DialogCollectionWidget extends Generic<DialogFieldsRxData & CommonFieldsRx
             this.wrappedCollectionContent = true;
         }
 
-        return withCollectionProvider(
-            this.wrapContent(<DialogCollection />),
-            collectionContext as any,
-        ) as React.JSX.Element;
+        return withCollectionProvider(this.wrapContent(<DialogCollection />), collectionContext);
     }
 }
 

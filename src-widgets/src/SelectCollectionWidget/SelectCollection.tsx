@@ -9,9 +9,10 @@ import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import SafeImg from '../components/SafeImg';
 import type { SelectCollectionContextProps } from 'src';
 
-const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+// const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
@@ -231,9 +232,15 @@ function SelectCollection(): React.ReactElement {
                                         alignItems: 'center',
                                     }}
                                 >
-                                    <img
+                                    <SafeImg
                                         alt=""
-                                        src={imgSrc || emptyIcon}
+                                        src={
+                                            typeof imgSrc === 'string'
+                                                ? imgSrc
+                                                : typeof imgSrc === 'number'
+                                                  ? imgSrc.toString()
+                                                  : undefined
+                                        }
                                         style={{
                                             position: 'relative',
 

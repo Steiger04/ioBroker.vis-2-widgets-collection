@@ -4,14 +4,17 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
+import { type TemplateCollectionContextProps } from '..';
 
-function LightCollection() {
-    const { oidObject } = useContext(CollectionContext);
+function TemplateCollection(): React.ReactElement {
+    const context = useContext(CollectionContext) as TemplateCollectionContextProps;
+    const { widget } = context;
+    const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
     const oidValue = useOidValue('oid');
 
-    const oidType = oidObject?.common?.type;
+    const oidType = oidObject?.type;
 
     const isValidType = oidType === 'boolean';
 
@@ -36,4 +39,4 @@ function LightCollection() {
     );
 }
 
-export default LightCollection;
+export default TemplateCollection;

@@ -196,7 +196,7 @@ export const oidChangeHandlerAsync =
     };
 
 type ValueFields = {
-    [K in `value${string}`]?: string | number | boolean;
+    [K in `value${string}`]?: string | number | boolean | undefined;
 };
 
 export interface CommonObjectFieldsRxData extends ValueFields {

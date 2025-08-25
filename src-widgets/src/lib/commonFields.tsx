@@ -9,8 +9,9 @@ type Settings = {
 };
 
 export interface CommonFieldsRxData {
+    [key: `alias${string}`]: string;
     [key: `iconSmall${string}`]: string;
-    [key: `icon${string}?`]: string | number;
+    [key: `icon${string}`]: string | number;
     [key: `iconSize${string}`]: number;
     [key: `iconColor${string}`]: string;
     [key: `iconHover${string}`]: number;

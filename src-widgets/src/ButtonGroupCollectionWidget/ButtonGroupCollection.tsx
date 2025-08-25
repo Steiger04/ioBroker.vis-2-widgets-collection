@@ -7,6 +7,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import SafeImg from '../components/SafeImg';
 import type { ButtonGroupCollectionContextProps } from 'src';
 
 function ButtonGroupCollection(): React.JSX.Element {
@@ -361,7 +362,110 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                     alignItems: 'center',
                                                 }}
                                             >
-                                                <img
+                                                <SafeImg
+                                                    src={(() => {
+                                                        const srcValue =
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                (widget.data.iconActive ||
+                                                                    widget.data.iconSmallActive)) ||
+                                                            widget.data[`icon${index + 1}`] ||
+                                                            widget.data[`iconSmall${index + 1}`] ||
+                                                            data.icon;
+                                                        return typeof srcValue === 'string'
+                                                            ? srcValue
+                                                            : typeof srcValue === 'number'
+                                                              ? srcValue.toString()
+                                                              : undefined;
+                                                    })()}
+                                                    style={{
+                                                        position: 'relative',
+
+                                                        left:
+                                                            (activeIndex === index + 1 &&
+                                                                !!widget.data.iconXOffsetActive &&
+                                                                widget.data.iconXOffsetActive !== '0px' &&
+                                                                `${widget.data.iconXOffsetActive}`) ||
+                                                            (!!widget.data[`iconXOffset${index + 1}`] &&
+                                                                widget.data[`iconXOffset${index + 1}`] !== '0px' &&
+                                                                `${widget.data[`iconXOffset${index + 1}`]}`) ||
+                                                            (!!widget.data.iconXOffset &&
+                                                                widget.data.iconXOffset !== '0px' &&
+                                                                `${widget.data.iconXOffset}`) ||
+                                                            '0px',
+
+                                                        bottom:
+                                                            (activeIndex === index + 1 &&
+                                                                !!widget.data.iconYOffsetActive &&
+                                                                widget.data.iconYOffsetActive !== '0px' &&
+                                                                `${widget.data.iconYOffsetActive}`) ||
+                                                            (!!widget.data[`iconYOffset${index + 1}`] &&
+                                                                widget.data[`iconYOffset${index + 1}`] !== '0px' &&
+                                                                `${widget.data[`iconYOffset${index + 1}`]}`) ||
+                                                            (!!widget.data.iconYOffset &&
+                                                                widget.data.iconYOffset !== '0px' &&
+                                                                `${widget.data.iconYOffset}`) ||
+                                                            '0px',
+
+                                                        objectFit: 'contain',
+
+                                                        width:
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                typeof widget.data.iconSizeActive === 'number' &&
+                                                                `calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
+                                                            (typeof widget.data[`iconSize${index + 1}`] === 'number' &&
+                                                                `calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+                                                            (typeof widget.data.iconSize === 'number' &&
+                                                                `calc(100% * ${widget.data.iconSize} / 100)`) ||
+                                                            '100%',
+                                                        height:
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                typeof widget.data.iconSizeActive === 'number' &&
+                                                                `calc(100% * ${widget.data.iconSizeActive} / 100)`) ||
+                                                            (typeof widget.data[`iconSize${index + 1}`] === 'number' &&
+                                                                `calc(100% * ${widget.data[`iconSize${index + 1}`]} / 100)`) ||
+                                                            (typeof widget.data.iconSize === 'number' &&
+                                                                `calc(100% * ${widget.data.iconSize} / 100)`) ||
+                                                            '100%',
+                                                        color:
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.buttonGroupColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main,
+                                                        filter:
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.buttonGroupColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main
+                                                                ? 'drop-shadow(0px 10000px 0)'
+                                                                : undefined,
+                                                        transform:
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                widget.data.iconColorActive) ||
+                                                            widget.data[`iconColor${index + 1}`] ||
+                                                            widget.data.buttonGroupColor ||
+                                                            data.iconColor ||
+                                                            theme.palette.primary.main
+                                                                ? 'translateY(-10000px)'
+                                                                : undefined,
+                                                    }}
+                                                />
+                                                {/* <img
                                                     src={
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -457,7 +561,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                                 ? 'translateY(-10000px)'
                                                                 : undefined,
                                                     }}
-                                                />
+                                                /> */}
                                             </Box>
                                         )}
                                     {!widget.data.onlyIcon && (

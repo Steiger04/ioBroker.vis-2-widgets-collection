@@ -14,7 +14,13 @@ interface CollectionBaseProps {
     sx?: Record<string, any>;
 }
 
-const CollectionBase = forwardRef<any, CollectionBaseProps>(
+export interface CollectionBaseHandle {
+    paper0: HTMLDivElement | null;
+    paper1: HTMLDivElement | null;
+    header: HTMLSpanElement | null;
+}
+
+const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
     ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
         const paper0Ref = useRef<HTMLDivElement>(null);
         const paper1Ref = useRef<HTMLDivElement>(null);

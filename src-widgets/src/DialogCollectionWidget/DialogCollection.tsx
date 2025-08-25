@@ -7,17 +7,17 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
-import type { DialogCollectionContextProps, CollectionContextProps } from 'src';
+import type { DialogCollectionContextProps } from 'src';
 
 // OID Object Interface
-interface OidObject {
+/* interface OidObject {
     _id?: string;
     type?: string;
     unit?: string;
     name?: string;
     min?: number;
     max?: number;
-}
+} */
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -33,13 +33,13 @@ function DialogCollection(): React.ReactElement {
     const hideTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // DialogCollection wird nur im DialogCollectionWidget verwendet, daher ist der Cast sicher
-    const context = useContext(CollectionContext) as unknown as DialogCollectionContextProps;
+    const context = useContext(CollectionContext) as DialogCollectionContextProps;
     const { widget, getWidgetView, setValue } = context;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, oidValue } = useData('oid');
 
     // Sicherer Zugriff auf oidObject
-    const oidObject = (widget.data as unknown as { oidObject?: OidObject }).oidObject;
+    const oidObject = widget.data.oidObject;
 
     const oid = oidObject?._id;
     const oidType = oidObject?.type;
@@ -97,7 +97,7 @@ function DialogCollection(): React.ReactElement {
     }, [oid, setValue]);
 
     // HTML value formatting
-    const htmlValue = useHtmlValue(oidValue, widget as unknown as CollectionContextProps['widget'], data);
+    const htmlValue = useHtmlValue(oidValue, widget, data);
 
     useEffect(() => {
         if (oidValue === undefined || oidValue === null) {

@@ -2,7 +2,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
-import CollectionBase from '../components/CollectionBase';
+import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import type { DialogCollectionContextProps } from 'src';
 
 // Import StyleData type from useData
@@ -58,10 +58,10 @@ export default function ViewDialog({
     fontStyles,
     textStyles,
 }: ViewDialogProps): React.ReactElement {
-    const baseRef = useRef<HTMLDivElement>(null);
+    const baseRef = useRef<CollectionBaseHandle>(null);
     const [titleRef, setTitleRef] = useState<HTMLElement | null>(null);
 
-    const header = (baseRef.current as HTMLDivElement & { header?: HTMLElement })?.header;
+    const header = baseRef.current?.header;
 
     useEffect(() => {
         if (!widget.data.dialogHeaderAsTitle) {

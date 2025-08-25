@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import React, { useContext, useRef, useMemo, useEffect } from 'react';
-import CollectionBase from '../components/CollectionBase';
+import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
@@ -36,7 +36,7 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
 };
 
 function GaugeCollection(): React.JSX.Element {
-    const baseRef = useRef<HTMLDivElement & { paper0?: HTMLElement; paper1?: HTMLElement }>(null);
+    const baseRef = useRef<CollectionBaseHandle>(null);
     const gaugeRef = useRef<HTMLDivElement>(null);
     const {
         wrappedContent,

@@ -1,13 +1,16 @@
 import React from 'react';
+import { type TemplateCollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields from '../lib/commonFields';
-import commonObjectFields from '../lib/commonObjectFields';
+import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
+import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
 import lightFields from '../lib/lightFields';
-import LightCollection from './LightCollection';
+import TemplateCollection from './TemplateCollection';
 
-class LightCollectionWidget extends Generic {
-    static getWidgetInfo() {
+import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+
+class TemplateCollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFieldsRxData> {
+    static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplLightCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
@@ -44,12 +47,12 @@ class LightCollectionWidget extends Generic {
 
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
-        return LightCollectionWidget.getWidgetInfo();
+    getWidgetInfo(): RxWidgetInfo {
+        return TemplateCollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate() {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -68,25 +71,25 @@ class LightCollectionWidget extends Generic {
     }
 
     // This function is called every time when rxData is changed
-    onRxDataChanged() {
+    onRxDataChanged(): void {
         this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
     // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged() {}
+    onRxStyleChanged(): void {}
 
     // This function is called every time when some Object State updated, but all changes lands into this.state.values too
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    onStateUpdated(_id, _state) {}
+    // eslint-disable-next-line class-methods-use-this
+    onStateUpdated(_id: string, _state: ioBroker.State): void {}
 
-    componentDidMount() {
+    componentDidMount(): void {
         super.componentDidMount();
         // Update data
         this.propertiesUpdate();
     }
 
-    renderWidgetBody(props) {
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
         const collectionContext = {
@@ -110,7 +113,7 @@ class LightCollectionWidget extends Generic {
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-        };
+        } as TemplateCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
@@ -118,8 +121,8 @@ class LightCollectionWidget extends Generic {
             this.wrappedCollectionContent = true;
         }
 
-        return withCollectionProvider(this.wrapContent(<LightCollection />), collectionContext);
+        return withCollectionProvider(this.wrapContent(<TemplateCollection />), collectionContext);
     }
 }
 
-export default LightCollectionWidget;
+export default TemplateCollectionWidget;

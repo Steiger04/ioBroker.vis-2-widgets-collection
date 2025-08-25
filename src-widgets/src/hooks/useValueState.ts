@@ -9,7 +9,7 @@ import useDebounce from './useDebounce';
 interface UseValueStateReturn {
     value: string | number | boolean | undefined | null;
     hasValueChanged: boolean;
-    updateValue: (value: string | number | boolean, onlyValues?: boolean) => void;
+    updateValue: (value: string | number | boolean | undefined, onlyValues?: boolean) => void;
 }
 
 /**
@@ -35,16 +35,16 @@ const useValueState = (idName: string): UseValueStateReturn => {
     }) as { next: (value: string | number | boolean) => void } | null;
 
     const updateValue = useCallback(
-        (value: string | number | boolean, onlyValues = false): void => {
+        (value: string | number | boolean | undefined, onlyValues = false): void => {
             const _oid = oidObject?._id;
 
-            if (!_oid) {
+            if (!_oid || value === undefined) {
                 return;
             }
 
             //n const oidType = oidObject?.common?.type;
             const oidType = oidObject?.type;
-            let processedValue: string | number | boolean = value;
+            let processedValue: string | number | boolean | undefined = value;
 
             switch (oidType) {
                 case 'string':

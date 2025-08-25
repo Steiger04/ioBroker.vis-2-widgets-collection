@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { CollectionContextProps } from '../index.d';
+import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import { type CommonFieldsRxData } from '../lib/commonFields';
 
 /**
  * Interface für die Daten-Parameter (kompatibel mit useData-Return)
@@ -22,7 +24,7 @@ interface UseHtmlValueData {
  */
 const useHtmlValue = (
     oidValue: string | number | boolean | undefined | null,
-    widget: CollectionContextProps['widget'] | undefined,
+    widget: CollectionContextProps<Partial<CommonObjectFieldsRxData & CommonFieldsRxData>>['widget'] | undefined,
     data: UseHtmlValueData | undefined,
 ): string | number | boolean | undefined => {
     // Memoization für bessere Performance
