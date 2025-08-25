@@ -2,16 +2,16 @@ import { createContext, useMemo } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 
-import type { CollectionContextProps } from 'src';
+import type { AllCollectionContextProps } from 'src';
 
-const CollectionContext = createContext({} as CollectionContextProps);
+const CollectionContext = createContext<Partial<AllCollectionContextProps>>({});
 
 function CollectionProvider({
     children,
     context,
 }: {
     children: JSX.Element | JSX.Element[] | null;
-    context: CollectionContextProps;
+    context: Partial<AllCollectionContextProps>;
 }): JSX.Element | JSX.Element[] | null {
     /* const _context = useMemo(() => {
 		return context;

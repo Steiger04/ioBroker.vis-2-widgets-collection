@@ -1,79 +1,9 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
+import { type AllCollectionContextProps } from '..';
 
-// Typ-Definitionen
-interface StateItem {
-    value: string | number | boolean;
-    label: string;
-    fontSize: string | null;
-    textColor?: string;
-    icon: string | null;
-    iconSize: number | null;
-    iconWidth: number;
-    iconHeight: number;
-    iconXOffset: string;
-    iconYOffset: string;
-    iconColor: string | null;
-    backgroundColor: string;
-    backgroundColorActive?: string;
-    background: string;
-    backgroundActive?: string;
-    frameBackgroundColor: string;
-    frameBackgroundColorActive?: string;
-    frameBackground: string;
-    frameBackgroundActive?: string;
-}
-
-interface WidgetStates {
-    [key: string]: string;
-}
-
-export interface StyleData {
-    textColor: string;
-    textColorActive?: string;
-    header: string;
-    headerSize: string | null;
-    footer: string;
-    footerSize: string | null;
-    alias: string;
-    value?: string;
-    valueSize: string | null;
-    valueSizeActive: string | false | null;
-    icon: string | false;
-    iconActive: string | false;
-    iconSize: string;
-    iconSizeActive: string | false;
-    iconSizeActiveOnly?: number;
-    iconSizeOnly?: number;
-    iconColor?: string;
-    iconColorActive?: string;
-    iconHover?: string;
-    iconHoverActive?: string;
-    iconXOffset: string;
-    iconYOffset: string;
-    backgroundColor: string;
-    backgroundColorActive?: string;
-    background: string;
-    backgroundActive?: string;
-    frameBackgroundColor: string;
-    frameBackgroundColorActive?: string;
-    frameBackground: string;
-    frameBackgroundActive?: string;
-}
-
-interface UseDataReturn {
-    states: StateItem[];
-    data: StyleData;
-    activeIndex: number | undefined;
-    setActiveIndex: (index: number | undefined) => void;
-    oidValue: any;
-    minValue: number | null;
-    maxValue: number | null;
-    widgetStates: WidgetStates;
-}
-
-function useData(oid: string): UseDataReturn {
+function useData(oid: string): any {
     const {
         theme,
         widget,
@@ -83,7 +13,7 @@ function useData(oid: string): UseDataReturn {
         },
         // [`${oid}Object`]: oidObject,
         getPropertyValue,
-    } = useContext(CollectionContext) as any;
+    } = useContext(CollectionContext) as AllCollectionContextProps;
 
     const oidObject = rxData[`${oid}Object`];
 
@@ -95,18 +25,27 @@ function useData(oid: string): UseDataReturn {
 
     // Hilfsfunktionen
     const formatSize = useCallback((size: any): string | null => (typeof size === 'number' ? `${size}%` : null), []);
-    const getDataValue = useCallback((key: string, ext: string | number = ''): any => rxData[`${key}${ext}`], [rxData]);
+    const getDataValue = useCallback(
+        <T = unknown>(key: string, ext: string = ''): T | undefined => {
+            const fullKey = `${key}${ext}`;
+            if (fullKey in rxData) {
+                return (rxData as Record<string, any>)[fullKey] as T;
+            }
+            return undefined;
+        },
+        [rxData],
+    );
 
     // States-Berechnung
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
         const processStates = (): {
-            states: StateItem[];
-            widgetStates: WidgetStates;
+            states: Partial<AllCollectionContextProps['widget']['data']>[];
+            widgetStates: Partial<AllCollectionContextProps['widget']['data']>;
             minValue: number | null;
             maxValue: number | null;
         } => {
-            const states: StateItem[] = [];
-            const widgetStates: WidgetStates = {};
+            const states: Partial<AllCollectionContextProps['widget']['data']>[] = [];
+            const widgetStates: Partial<AllCollectionContextProps['widget']['data']> = {};
             let minValue: number | null = null;
             let maxValue: number | null = null;
 
@@ -131,7 +70,7 @@ function useData(oid: string): UseDataReturn {
 
                         states.push({
                             value: commonStateEntry
-                                ? commonStateEntry[0]
+                                ? StringcommonStateEntry[0]
                                 : oidType === 'number'
                                   ? Number(_value)
                                   : _value,
@@ -224,7 +163,7 @@ function useData(oid: string): UseDataReturn {
 
     // Styling-Daten
     const data = useMemo(() => {
-        const getStyleData = (ext: string | number = ''): StyleData => ({
+        const getStyleData = (ext: string | number = ''): any => ({
             textColor: rxData.textColor || textStyles.color || theme.palette.primary.main,
             textColorActive: getDataValue('textColor', ext),
 
@@ -250,10 +189,12 @@ function useData(oid: string): UseDataReturn {
 
             alias: String(getDataValue('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
 
-            value:
-                getDataValue('value', String(ext)) &&
-                // `${getDataValue('value', ext)}${rxData.unit !== undefined ? rxData.unit : ''}`,
-                `${getDataValue('value', String(ext))}${oidObject?.unit !== undefined ? oidObject.unit : ''}`,
+            value: (() => {
+                const val = getDataValue<ioBroker.StateValue>('value', String(ext));
+                return val !== undefined && val !== null
+                    ? `${val}${oidObject?.unit !== undefined ? oidObject.unit : ''}`
+                    : undefined;
+            })(),
             valueSize:
                 formatSize(rxData.valueSize) || (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
             valueSizeActive:
@@ -311,7 +252,10 @@ function useData(oid: string): UseDataReturn {
             case 'boolean':
             case 'number':
             case 'string': {
-                const _activeIndex = states.findIndex(state => String(state.value) === String(oidValue));
+                const _activeIndex = states.findIndex(state => {
+                    console.log('state.value:', state.value);
+                    return String(state.value) === String(oidValue);
+                });
 
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);

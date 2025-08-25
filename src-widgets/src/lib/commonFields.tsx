@@ -22,6 +22,7 @@ export interface CommonFieldsRxData {
     [key: `header${string}`]: string | number;
     [key: `headerSize${string}`]: number;
     [key: `valueSize${string}`]: number;
+    [key: `value${string}`]: ioBroker.StateValue;
     [key: `noFooter${string}`]: boolean;
     [key: `footer${string}`]: number | string;
     [key: `footerSize${string}`]: number;

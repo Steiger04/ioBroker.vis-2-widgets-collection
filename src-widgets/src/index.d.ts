@@ -4,7 +4,7 @@ declare module '@iobroker/types-vis-2' {
     }
 }
 import type { ThemeType } from '@iobroker/adapter-react-v5';
-import type { type Theme, LegacyConnection, VisRxData } from '@iobroker/types-vis-2';
+import type { type Theme, LegacyConnection } from '@iobroker/types-vis-2';
 
 import type { StateFieldsRxData } from './lib/stateFields';
 import type { CommonObjectFieldsRxData } from './lib/commonObjectFields';
@@ -26,7 +26,7 @@ export interface CollectionContextProps<T> {
     refService: React.RefObject<HTMLElement>;
     style: React.CSSProperties;
     widget: {
-        data: VisRxData & T;
+        data: T;
         style: CSSProperties;
     };
     setValue: (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack?: boolean) => void;
@@ -41,6 +41,22 @@ export interface CollectionContextProps<T> {
     wrappedContent: boolean;
     getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
 }
+
+export type AllCollectionContextProps = CollectionContextProps<
+    DialogFieldsRxData &
+        StateFieldsRxData &
+        CheckboxFieldsRxData &
+        SwitchFieldsRxData &
+        SliderFieldsRxData &
+        RadioGroupFieldsRxData &
+        ButtonGroupFieldsRxData &
+        SelectFieldsRxData &
+        GaugeFieldsRxData &
+        LightFieldsRxData &
+        CommonObjectFieldsRxData &
+        CommonFieldsRxData &
+        DelayFieldsRxData
+>;
 
 // Spezifische Context-Types für einzelne Widgets
 export type DialogCollectionContextProps = CollectionContextProps<
