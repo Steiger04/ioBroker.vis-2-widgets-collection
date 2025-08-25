@@ -19,6 +19,7 @@ import type { SelectFieldsRxData } from './lib/selectFields';
 import type { GaugeFieldsRxData } from './lib/gaugeFields';
 import type { DialogFieldsRxData } from './lib/dialogFields';
 import type { LightFieldsRxData } from './lib/lightFields';
+import type { Light2FieldsRxData } from './lib/light2Fields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T> {
@@ -53,6 +54,7 @@ export type AllCollectionContextProps = CollectionContextProps<
         SelectFieldsRxData &
         GaugeFieldsRxData &
         LightFieldsRxData &
+        Light2FieldsRxData &
         CommonObjectFieldsRxData &
         CommonFieldsRxData &
         DelayFieldsRxData
@@ -89,6 +91,10 @@ export type GaugeCollectionContextProps = CollectionContextProps<
 >;
 export type LightCollectionContextProps = CollectionContextProps<
     LightFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
+>;
+
+export type Light2CollectionContextProps = CollectionContextProps<
+    Light2FieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;
 
 export type TemplateCollectionContextProps = CollectionContextProps<CommonObjectFieldsRxData & CommonFieldsRxData>;

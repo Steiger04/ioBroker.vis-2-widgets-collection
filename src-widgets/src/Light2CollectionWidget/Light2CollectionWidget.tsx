@@ -1,24 +1,25 @@
 import React from 'react';
-import { type LightCollectionContextProps } from 'src';
+import { type Light2CollectionContextProps } from 'src';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import lightFields, { type LightFieldsRxData } from '../lib/lightFields';
-import LightCollection from './LightCollection';
+import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import light2Fields from '../lib/light2Fields';
+
+import Light2Collection from './Light2Collection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
-class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxData & DelayFieldsRxData> {
+class Light2CollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFieldsRxData> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
-            id: 'tplLightCollectionWidget',
+            id: 'tplLight2CollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
-            visName: 'LightCollectionWidget', // Name of widget
+            visName: 'Light2CollectionWidget', // Name of widget
             visWidgetLabel: 'light_collection_widget', // Label for widget
-            visOrder: 10,
+            visOrder: 11,
             visAttrs: [
                 {
                     name: 'common', // group name
@@ -30,7 +31,7 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
                     fields: [
                         // ...commonObjectFields(["boolean"]),
                         ...delayFields(),
-                        ...lightFields(),
+                        ...light2Fields(),
                     ] as RxWidgetInfoAttributesField[], // muss optimiert werden
                 },
                 {
@@ -45,7 +46,7 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
             ],
             visDefaultStyle: {
                 width: '100%',
-                height: '250px',
+                height: '100px',
                 position: 'relative',
             },
             visPrev: 'widgets/vis-2-widgets-collection/img/prev-collection-light.png',
@@ -55,11 +56,11 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
     getWidgetInfo(): RxWidgetInfo {
-        return LightCollectionWidget.getWidgetInfo();
+        return Light2CollectionWidget.getWidgetInfo();
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async propertiesUpdate(): Promise<void> {
+    propertiesUpdate(): void {
         // The widget has 3 important states
         // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
         //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
@@ -74,33 +75,12 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
         }
         this.lastRxData = actualRxData;
 
-        console.time('LightCollectionWidget propertiesUpdate');
-        await Promise.all([
-            // ON/OFF
-            this.createStateObjectAsync('colorLightSwitchOid'),
-            // Temperature
-            this.createStateObjectAsync('colorLightTemperatureOid'),
-            // RGB
-            this.createStateObjectAsync('colorLightRgbHexOid'),
-            // R/G/B
-            this.createStateObjectAsync('colorLightRedOid'),
-            this.createStateObjectAsync('colorLightGreenOid'),
-            this.createStateObjectAsync('colorLightBlueOid'),
-            // HSV
-            this.createStateObjectAsync('colorLightHsvOid'),
-            // H/S/V
-            this.createStateObjectAsync('colorLightHueOid'),
-            this.createStateObjectAsync('colorLightSaturationOid'),
-            this.createStateObjectAsync('colorLightBrightnessOid'),
-        ]);
-        console.timeEnd('LightCollectionWidget propertiesUpdate');
-
-        console.log('LightCollectionWidget propertiesUpdate --> this', this); */
+        await this.createStateObjectAsync('oid'); */
     }
 
     // This function is called every time when rxData is changed
     onRxDataChanged(): void {
-        void this.propertiesUpdate();
+        this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -114,7 +94,7 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        void this.propertiesUpdate();
+        this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
@@ -141,22 +121,7 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
             theme: this.props.context.theme,
 
             wrappedContent: this.wrappedCollectionContent,
-
-            // ON/OFF
-            // colorLightSwitchOidObject: this.state.colorLightSwitchOidObject,
-            // Temperature
-            // colorLightTemperatureOidObject: this.state.colorLightTemperatureOidObject,
-            // RGB
-            // colorLightRgbHexOidObject: this.state.colorLightRgbHexOidObject,
-            // R/G/B
-            // colorLightRedOidObject: this.state.colorLightRedOidObject,
-            // colorLightGreenOidObject: this.state.colorLightGreenOidObject,
-            // colorLightBlueOidObject: this.state.colorLightBlueOidObject,
-            // H/S/V
-            // colorLightHueOidObject: this.state.colorLightHueOidObject,
-            // colorLightSaturationOidObject: this.state.colorLightSaturationOidObject,
-            // colorLightBrightnessOidObject: this.state.colorLightBrightnessOidObject,
-        } as LightCollectionContextProps;
+        } as Light2CollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {
             this.wrappedCollectionContent = false;
@@ -164,8 +129,8 @@ class LightCollectionWidget extends Generic<LightFieldsRxData & CommonFieldsRxDa
             this.wrappedCollectionContent = true;
         }
 
-        return withCollectionProvider(this.wrapContent(<LightCollection />), collectionContext);
+        return withCollectionProvider(this.wrapContent(<Light2Collection />), collectionContext);
     }
 }
 
-export default LightCollectionWidget;
+export default Light2CollectionWidget;
