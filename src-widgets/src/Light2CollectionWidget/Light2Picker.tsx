@@ -1,60 +1,78 @@
 import React, { useEffect, useRef } from 'react';
 import iro from '@jaames/iro';
 import { Box } from '@mui/material';
+import { type ElementDimensions } from '../hooks/useElementDimensions';
 
-interface ColorPickerProps {
-    color?: string;
-    onChange?: (color: string) => void;
-    width?: number;
+interface LightPickerProps {
+    dimensions: ElementDimensions;
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ color = '#f00', onChange, width }) => {
-    const pickerRef = useRef<HTMLDivElement | null>(null);
-    const iroRef = useRef<iro.ColorPicker | null>(null);
+const MinimalColorPicker: React.FC<LightPickerProps> = ({ dimensions }) => {
+    const colorPickerRef = useRef<HTMLDivElement>(null);
+    const iroPickerRef = useRef<iro.ColorPicker | null>(null);
 
-    // Initialisierung
     useEffect(() => {
-        if (pickerRef.current && !iroRef.current) {
-            iroRef.current = iro.ColorPicker(pickerRef.current, {
-                width,
-                color,
-                layout: [
-                    {
-                        component: iro.ui.Wheel,
+        if (!colorPickerRef.current) {
+            return;
+        }
+
+        iroPickerRef.current = iro.ColorPicker(colorPickerRef.current, {
+            width: 0, // Startpunkt, wird mit erstem resize sofort überschrieben
+            margin: 32,
+            sliderSize: 40,
+            display: 'flex',
+            padding: 6,
+            handleRadius: 8,
+            layoutDirection: 'horizontal',
+            layout: [
+                {
+                    component: iro.ui.Wheel,
+                    options: {
+                        wheelLightness: false, // wir regeln Helligkeit über Slider
                     },
-                ],
-            });
+                },
+                {
+                    component: iro.ui.Slider,
+                    options: {
+                        sliderType: 'value',
+                    },
+                },
+            ],
+        });
 
-            iroRef.current.on('color:change', (c: iro.Color) => {
-                onChange?.(c.hexString);
-            });
-        }
-    }, [onChange, width, color]);
+        return () => {
+            iroPickerRef.current = null;
+        };
+    }, []);
 
-    // Reagiere auf Änderungen der Props
     useEffect(() => {
-        if (iroRef.current) {
-            if (color) {
-                iroRef.current.color.set(color);
-            }
-            if (width) {
-                console.log('Width changed:', width);
-                iroRef.current.resize(width);
-            }
+        if (!dimensions.maxWidth) {
+            return;
         }
-    }, [color, width]);
+
+        iroPickerRef.current?.resize(dimensions.maxWidth); // etwas Padding abziehen
+    }, [dimensions]);
 
     return (
         <Box
-            ref={pickerRef}
-            sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                p: 1,
-            }}
+            ref={colorPickerRef}
+
+            /* sx={{
+                '& .IroColorPicker': {},
+                '& .IroWheel': {
+                    width: '200px !important',
+                    height: '200px !important',
+                },
+                '& .IroSlider': {
+                    width: '200px !important',
+                    height: '90px !important',
+                    '& .IroHandle': {
+                        transform: 'translate(186px, 45px) !important',
+                    },
+                },
+            }} */
         />
     );
 };
 
-export default ColorPicker;
+export default MinimalColorPicker;

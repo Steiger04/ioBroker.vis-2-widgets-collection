@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback, useMemo, type RefObject } from 'react
 /**
  * Interface für Dimensionen-Return-Werte
  */
-interface ElementDimensions {
+export interface ElementDimensions {
     width: number | undefined;
     height: number | undefined;
     maxWidth: number | undefined;

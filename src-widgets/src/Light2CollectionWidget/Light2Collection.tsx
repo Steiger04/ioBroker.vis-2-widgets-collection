@@ -36,10 +36,10 @@ function Light2Collection(): React.ReactElement {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    p: 0,
+                    p: 1,
                 }}
             >
-                <LightPicker width={dimensions.maxWidth} />
+                <LightPicker dimensions={dimensions} />
             </Box>
         </CollectionBase>
     );
