@@ -188,9 +188,9 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         label: 'color_light_slider_width',
         type: 'slider',
         min: 0,
-        max: 1,
-        default: 0.15,
-        step: 0.05,
+        max: 10,
+        default: 1,
+        step: 0.1,
     },
     {
         name: 'colorLightBorderWidth',
@@ -210,8 +210,8 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         name: 'colorLightPadding',
         type: 'number',
         label: 'color_light_padding',
-        default: 2,
-        step: 1,
+        default: 1,
+        step: 0.5,
         min: 0,
     },
     {

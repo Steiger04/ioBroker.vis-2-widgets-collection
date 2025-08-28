@@ -9,7 +9,10 @@ import LightPicker from './Light2Picker';
 
 function Light2Collection(): React.ReactElement {
     const context = useContext(CollectionContext);
-    const { widget } = context;
+    const {
+        widget,
+        widget: { data: rxData },
+    } = context;
 
     const { data } = useData('oid');
     const oidValue = useOidValue('oid');
@@ -21,6 +24,8 @@ function Light2Collection(): React.ReactElement {
     const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
+
+    console.log('rxData.colorLightPadding', rxData.colorLightPadding);
 
     return (
         <CollectionBase
@@ -36,10 +41,14 @@ function Light2Collection(): React.ReactElement {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    p: 1,
+                    p: Number(rxData.colorLightPadding),
                 }}
             >
-                <LightPicker dimensions={dimensions} />
+                <LightPicker
+                    dimensions={dimensions}
+                    colorLightUIComponent={rxData.colorLightUIComponent}
+                    colorLightSliderWidth={rxData.colorLightSliderWidth}
+                />
             </Box>
         </CollectionBase>
     );
