@@ -1,98 +1,41 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import iro from '@jaames/iro';
 import { Box } from '@mui/material';
 import { type ElementDimensions } from '../hooks/useElementDimensions';
 import { type Light2FieldsRxData } from '../lib/light2Fields';
+import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerUtils/colorPickerUtils';
+import { CollectionContext } from '../components/CollectionProvider';
 
 interface LightPickerProps {
     dimensions: ElementDimensions;
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'];
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
+    colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];
+    colorLightBorderColor: Light2FieldsRxData['colorLightBorderColor'];
 }
 
-const Light2Picker: React.FC<LightPickerProps> = ({ dimensions, colorLightUIComponent, colorLightSliderWidth }) => {
+const Light2Picker: React.FC<LightPickerProps> = ({
+    dimensions,
+    colorLightUIComponent,
+    colorLightSliderWidth,
+    colorLightBorderWidth,
+    colorLightBorderColor,
+}) => {
+    const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const iroPickerRef = useRef<iro.ColorPicker | null>(null);
 
-    const colorLightLayout = useMemo(() => {
-        switch (colorLightUIComponent) {
-            case 'wheel':
-                return [
-                    {
-                        component: iro.ui.Wheel,
-                        options: {
-                            wheelLightness: false,
-                        },
-                    },
-                    {
-                        component: iro.ui.Slider,
-                        options: {
-                            sliderType: 'value',
-                        },
-                    },
-                ];
-            case 'box':
-                return [
-                    {
-                        component: iro.ui.Box,
-                        options: {
-                            boxLightness: false,
-                        },
-                    },
-                    {
-                        component: iro.ui.Slider,
-                        options: {
-                            sliderType: 'hue',
-                        },
-                    },
-                ];
+    const colorLightLayout = useMemo(() => getColorLightLayout(colorLightUIComponent), [colorLightUIComponent]);
 
-            case 'slider':
-                return [
-                    {
-                        component: iro.ui.Slider,
-                        options: {
-                            sliderType: 'red',
-                        },
-                    },
-                    {
-                        component: iro.ui.Slider,
-                        options: {
-                            sliderType: 'green',
-                        },
-                    },
-                    {
-                        component: iro.ui.Slider,
-                        options: {
-                            sliderType: 'blue',
-                        },
-                    },
-                ];
-            default:
-                return [];
-        }
-    }, [colorLightUIComponent]);
+    const colorLightWidth = useMemo(
+        () => getColorLightWidth(dimensions, colorLightUIComponent),
+        [dimensions, colorLightUIComponent],
+    );
 
-    const colorLightWidth = useMemo(() => {
-        switch (colorLightUIComponent) {
-            case 'wheel':
-            case 'box':
-                return dimensions.maxWidth;
-
-            case 'slider':
-                return dimensions.height;
-            default:
-                return 0;
-        }
-    }, [dimensions, colorLightUIComponent]);
-
-    const marginBetweenPickers = useMemo(() => {
-        if (!dimensions.width || colorLightUIComponent !== 'slider') {
-            return 12;
-        }
-
-        return (dimensions.width - 3 * Number(colorLightSliderWidth ?? 1) * 28) / 2;
-    }, [dimensions, colorLightUIComponent, colorLightSliderWidth]);
+    const marginBetweenPickers = useMemo(
+        () => getMarginBetweenPickers(dimensions, colorLightUIComponent, colorLightSliderWidth),
+        [dimensions, colorLightUIComponent, colorLightSliderWidth],
+    );
 
     // Initialize color picker
     useEffect(() => {
@@ -109,6 +52,8 @@ const Light2Picker: React.FC<LightPickerProps> = ({ dimensions, colorLightUIComp
             handleRadius: 8,
             layoutDirection: 'horizontal',
         });
+
+        console.log('iroPickerRef.current', iroPickerRef.current);
 
         return () => {
             iroPickerRef.current = null;
@@ -133,9 +78,22 @@ const Light2Picker: React.FC<LightPickerProps> = ({ dimensions, colorLightUIComp
         iroPickerRef.current.setOptions({
             layout: colorLightLayout,
             margin: marginBetweenPickers,
-            sliderSize: Number(colorLightSliderWidth ?? 1) * 28,
+            sliderSize: (colorLightSliderWidth || 1) * 28,
+            borderWidth: colorLightBorderWidth || 0,
+            borderColor:
+                !colorLightBorderColor ||
+                (typeof colorLightBorderColor === 'string' && colorLightBorderColor.trim() === '')
+                    ? theme.palette.primary.main
+                    : colorLightBorderColor,
         });
-    }, [colorLightLayout, marginBetweenPickers, colorLightSliderWidth]);
+    }, [
+        theme.palette.primary.main,
+        colorLightLayout,
+        marginBetweenPickers,
+        colorLightSliderWidth,
+        colorLightBorderWidth,
+        colorLightBorderColor,
+    ]);
 
     return <Box ref={colorPickerRef} />;
 };

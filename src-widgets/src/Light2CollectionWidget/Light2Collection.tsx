@@ -25,8 +25,6 @@ function Light2Collection(): React.ReactElement {
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
 
-    console.log('rxData.colorLightPadding', rxData.colorLightPadding);
-
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -41,13 +39,15 @@ function Light2Collection(): React.ReactElement {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    p: Number(rxData.colorLightPadding),
+                    p: Number(rxData.colorLightPadding) || 0,
                 }}
             >
                 <LightPicker
                     dimensions={dimensions}
                     colorLightUIComponent={rxData.colorLightUIComponent}
                     colorLightSliderWidth={rxData.colorLightSliderWidth}
+                    colorLightBorderWidth={rxData.colorLightBorderWidth}
+                    colorLightBorderColor={rxData.colorLightBorderColor}
                 />
             </Box>
         </CollectionBase>
