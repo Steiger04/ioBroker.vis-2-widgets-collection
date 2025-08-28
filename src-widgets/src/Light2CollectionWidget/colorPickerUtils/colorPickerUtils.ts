@@ -8,7 +8,30 @@ type IroLayout = Array<{
 }>;
 
 // Gibt das Layout für den ColorPicker zurück
-export function getColorLightLayout(colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent']): IroLayout {
+export function getColorLightLayout(
+    colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
+    colorLightType: Light2FieldsRxData['colorLightType'],
+    colorLightCtMin: Light2FieldsRxData['colorLightCtMin'],
+    colorLightCtMax: Light2FieldsRxData['colorLightCtMax'],
+): IroLayout {
+    if (colorLightType === 'cct') {
+        // CCT spezifische Optionen
+        return [
+            {
+                component: iro.ui.Slider,
+                options: {
+                    sliderType: 'kelvin',
+                    sliderShape: 'circle',
+                    minTemperature: colorLightCtMin,
+                    maxTemperature: colorLightCtMax,
+                },
+            },
+            {
+                component: iro.ui.Slider,
+                options: { sliderType: 'value' },
+            },
+        ];
+    }
     switch (colorLightUIComponent) {
         case 'wheel':
             return [
@@ -47,7 +70,12 @@ export function getColorLightLayout(colorLightUIComponent: Light2FieldsRxData['c
 export function getColorLightWidth(
     dimensions: ElementDimensions,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
+    colorLightType: Light2FieldsRxData['colorLightType'],
 ): number | undefined {
+    if (colorLightType === 'cct') {
+        return dimensions.height;
+    }
+
     switch (colorLightUIComponent) {
         case 'wheel':
         case 'box':
@@ -64,8 +92,9 @@ export function getMarginBetweenPickers(
     dimensions: ElementDimensions,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'],
+    colorLightType: Light2FieldsRxData['colorLightType'],
 ): number {
-    if (!dimensions.width || colorLightUIComponent !== 'slider') {
+    if (!dimensions.width || colorLightUIComponent !== 'slider' || colorLightType === 'cct') {
         return 12;
     }
     return (dimensions.width - 3 * (colorLightSliderWidth || 1) * 28) / 2;

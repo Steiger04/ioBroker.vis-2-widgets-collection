@@ -13,6 +13,9 @@ interface LightPickerProps {
     colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];
     colorLightBorderColor: Light2FieldsRxData['colorLightBorderColor'];
     colorWheelLightness: Light2FieldsRxData['colorWheelLightness'];
+    colorLightType: Light2FieldsRxData['colorLightType'];
+    colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
+    colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
 }
 
 const Light2Picker: React.FC<LightPickerProps> = ({
@@ -22,21 +25,27 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightBorderWidth,
     colorLightBorderColor,
     colorWheelLightness,
+    colorLightType,
+    colorLightCtMin,
+    colorLightCtMax,
 }) => {
     const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const iroPickerRef = useRef<iro.ColorPicker | null>(null);
 
-    const colorLightLayout = useMemo(() => getColorLightLayout(colorLightUIComponent), [colorLightUIComponent]);
+    const colorLightLayout = useMemo(
+        () => getColorLightLayout(colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax),
+        [colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax],
+    );
 
     const colorLightWidth = useMemo(
-        () => getColorLightWidth(dimensions, colorLightUIComponent),
-        [dimensions, colorLightUIComponent],
+        () => getColorLightWidth(dimensions, colorLightUIComponent, colorLightType),
+        [dimensions, colorLightUIComponent, colorLightType],
     );
 
     const marginBetweenPickers = useMemo(
-        () => getMarginBetweenPickers(dimensions, colorLightUIComponent, colorLightSliderWidth),
-        [dimensions, colorLightUIComponent, colorLightSliderWidth],
+        () => getMarginBetweenPickers(dimensions, colorLightUIComponent, colorLightSliderWidth, colorLightType),
+        [dimensions, colorLightUIComponent, colorLightSliderWidth, colorLightType],
     );
 
     // Initialize color picker
@@ -46,6 +55,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
         }
 
         iroPickerRef.current = iro.ColorPicker(colorPickerRef.current, {
+            color: '#ffffff',
             width: 0, // Startpunkt, wird mit erstem resize sofort überschrieben
             margin: 12,
             sliderSize: 28,

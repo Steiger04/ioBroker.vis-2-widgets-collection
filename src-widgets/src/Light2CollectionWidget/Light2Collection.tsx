@@ -49,6 +49,9 @@ function Light2Collection(): React.ReactElement {
                     colorLightSliderWidth={rxData.colorLightSliderWidth}
                     colorLightBorderWidth={rxData.colorLightBorderWidth}
                     colorLightBorderColor={rxData.colorLightBorderColor}
+                    colorLightType={rxData.colorLightType}
+                    colorLightCtMin={rxData.colorLightCtMin}
+                    colorLightCtMax={rxData.colorLightCtMax}
                 />
             </Box>
         </CollectionBase>
