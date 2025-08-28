@@ -17,10 +17,10 @@ export function cleanupColorPicker(pickerRef: React.MutableRefObject<iro.ColorPi
 }
 
 export function resizeColorPicker(picker: iro.ColorPicker | null, width: number | undefined): void {
-    if (!width) {
+    if (!picker || !width) {
         return;
     }
-    picker?.resize(width);
+    picker.resize(width);
 }
 
 export function setColorPickerOptions(picker: iro.ColorPicker | null, options: Record<string, any>): void {
