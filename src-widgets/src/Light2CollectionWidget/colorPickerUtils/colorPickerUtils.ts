@@ -14,7 +14,7 @@ export function getColorLightLayout(colorLightUIComponent: Light2FieldsRxData['c
             return [
                 {
                     component: iro.ui.Wheel,
-                    options: { wheelLightness: false },
+                    options: {},
                 },
                 {
                     component: iro.ui.Slider,

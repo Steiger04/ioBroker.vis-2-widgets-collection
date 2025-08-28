@@ -12,6 +12,7 @@ interface LightPickerProps {
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
     colorLightBorderWidth: Light2FieldsRxData['colorLightBorderWidth'];
     colorLightBorderColor: Light2FieldsRxData['colorLightBorderColor'];
+    colorWheelLightness: Light2FieldsRxData['colorWheelLightness'];
 }
 
 const Light2Picker: React.FC<LightPickerProps> = ({
@@ -20,6 +21,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightSliderWidth,
     colorLightBorderWidth,
     colorLightBorderColor,
+    colorWheelLightness,
 }) => {
     const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
             layoutDirection: 'horizontal',
         });
 
-        console.log('iroPickerRef.current', iroPickerRef.current);
+        console.log('initial - iroPickerRef.current', iroPickerRef.current);
 
         return () => {
             iroPickerRef.current = null;
@@ -78,6 +80,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
         iroPickerRef.current.setOptions({
             layout: colorLightLayout,
             margin: marginBetweenPickers,
+            wheelLightness: colorWheelLightness,
             sliderSize: (colorLightSliderWidth || 1) * 28,
             borderWidth: colorLightBorderWidth || 0,
             borderColor:
@@ -93,6 +96,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
         colorLightSliderWidth,
         colorLightBorderWidth,
         colorLightBorderColor,
+        colorWheelLightness,
     ]);
 
     return <Box ref={colorPickerRef} />;

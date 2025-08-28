@@ -44,6 +44,7 @@ function Light2Collection(): React.ReactElement {
             >
                 <LightPicker
                     dimensions={dimensions}
+                    colorWheelLightness={rxData.colorWheelLightness}
                     colorLightUIComponent={rxData.colorLightUIComponent}
                     colorLightSliderWidth={rxData.colorLightSliderWidth}
                     colorLightBorderWidth={rxData.colorLightBorderWidth}
