@@ -1,10 +1,17 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
-import iro from '@jaames/iro';
+import type iro from '@jaames/iro';
 import { Box } from '@mui/material';
 import { type ElementDimensions } from '../hooks/useElementDimensions';
 import { type Light2FieldsRxData } from '../lib/light2Fields';
-import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerUtils/colorPickerUtils';
+import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
 import { CollectionContext } from '../components/CollectionProvider';
+
+import {
+    initializeColorPicker,
+    cleanupColorPicker,
+    resizeColorPicker,
+    setColorPickerOptions,
+} from './colorPickerUtils/colorPickerEffects';
 
 interface LightPickerProps {
     dimensions: ElementDimensions;
@@ -48,15 +55,10 @@ const Light2Picker: React.FC<LightPickerProps> = ({
         [dimensions, colorLightUIComponent, colorLightSliderWidth, colorLightType],
     );
 
-    // Initialize color picker
     useEffect(() => {
-        if (!colorPickerRef.current) {
-            return;
-        }
-
-        iroPickerRef.current = iro.ColorPicker(colorPickerRef.current, {
+        initializeColorPicker(colorPickerRef, iroPickerRef, {
             color: '#ffffff',
-            width: 0, // Startpunkt, wird mit erstem resize sofort überschrieben
+            width: 0,
             margin: 12,
             sliderSize: 28,
             display: 'flex',
@@ -64,30 +66,15 @@ const Light2Picker: React.FC<LightPickerProps> = ({
             handleRadius: 8,
             layoutDirection: 'horizontal',
         });
-
-        console.log('initial - iroPickerRef.current', iroPickerRef.current);
-
-        return () => {
-            iroPickerRef.current = null;
-        };
+        return () => cleanupColorPicker(iroPickerRef);
     }, []);
 
-    // Update color picker dimensions
     useEffect(() => {
-        if (!colorLightWidth) {
-            return;
-        }
-
-        iroPickerRef.current?.resize(colorLightWidth); // etwas Padding abziehen
+        resizeColorPicker(iroPickerRef.current, colorLightWidth);
     }, [colorLightWidth]);
 
-    // Update color picker options
     useEffect(() => {
-        if (!iroPickerRef.current) {
-            return;
-        }
-
-        iroPickerRef.current.setOptions({
+        setColorPickerOptions(iroPickerRef.current, {
             layout: colorLightLayout,
             margin: marginBetweenPickers,
             wheelLightness: colorWheelLightness,
