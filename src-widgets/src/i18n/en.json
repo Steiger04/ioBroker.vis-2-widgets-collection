@@ -283,5 +283,6 @@
     "color_light_temperature_oid": "Color temperature",
     "color_light_ct_min": "Color temperature (min)",
     "color_light_ct_max": "Color temperature (max)",
-    "color_wheel_lightness": "Wheel darken"
+    "color_wheel_lightness": "Wheel darken",
+		"color_light_gamut": "Color gamut"
 }

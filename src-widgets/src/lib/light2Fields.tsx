@@ -144,6 +144,23 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider />,
     },
     {
+        name: 'colorLightGamut',
+        type: 'select',
+        label: 'color_light_gamut',
+        options: [
+            { value: 'default', label: 'default' },
+            { value: 'A', label: 'A' },
+            { value: 'B', label: 'B' },
+            { value: 'C', label: 'C' },
+        ],
+        default: 'default',
+        noTranslation: true,
+    },
+    {
+        type: 'custom',
+        component: () => <CollectionDivider />,
+    },
+    {
         name: 'colorLightButton',
         label: 'color_light_button',
         type: 'checkbox',
