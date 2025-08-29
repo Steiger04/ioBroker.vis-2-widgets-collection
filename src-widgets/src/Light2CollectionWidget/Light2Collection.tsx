@@ -6,6 +6,7 @@ import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import LightPicker from './Light2Picker';
+import type iro from '@jaames/iro';
 
 function Light2Collection(): React.ReactElement {
     const context = useContext(CollectionContext);
@@ -25,6 +26,10 @@ function Light2Collection(): React.ReactElement {
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
 
+    const cctChange = (color: iro.Color): void => {
+        console.log('cctChange - color:', color);
+    };
+
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -43,7 +48,7 @@ function Light2Collection(): React.ReactElement {
                 }}
             >
                 <LightPicker
-                    cctComponentNumber={1}
+                    cctComponentNumber={1} // kelvin
                     dimensions={dimensions}
                     colorWheelLightness={rxData.colorWheelLightness}
                     colorLightUIComponent={rxData.colorLightUIComponent}
@@ -58,7 +63,8 @@ function Light2Collection(): React.ReactElement {
                 {rxData.colorLightType === 'cct' ? (
                     <Box sx={{ ml: '12px' }}>
                         <LightPicker
-                            cctComponentNumber={2}
+                            cctComponentNumber={2} // brightness
+                            onColorChange={cctChange}
                             dimensions={dimensions}
                             colorWheelLightness={rxData.colorWheelLightness}
                             colorLightUIComponent={rxData.colorLightUIComponent}

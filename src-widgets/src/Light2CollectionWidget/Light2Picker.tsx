@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import type iro from '@jaames/iro';
 import { Box } from '@mui/material';
 import { type ElementDimensions } from '../hooks/useElementDimensions';
@@ -24,6 +24,7 @@ interface LightPickerProps {
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
     cctComponentNumber: number;
+    onColorChange?: (color: iro.Color) => void; // optionaler Handler
 }
 
 const Light2Picker: React.FC<LightPickerProps> = ({
@@ -37,10 +38,25 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightCtMin,
     colorLightCtMax,
     cctComponentNumber,
+    onColorChange,
 }) => {
     const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const iroPickerRef = useRef<iro.ColorPicker | null>(null);
+
+    // 1. useCallback für den Handler (optional, aber empfohlen)
+    const handleColorChange = useCallback(
+        (color: iro.Color) => {
+            if (onColorChange) {
+                onColorChange(color);
+            }
+        },
+        [onColorChange],
+    );
+
+    // 2. Ref für den Handler, immer aktuell halten
+    const onColorChangeRef = useRef(handleColorChange);
+    onColorChangeRef.current = handleColorChange;
 
     const colorLightLayout = useMemo(
         () =>
@@ -65,16 +81,21 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     );
 
     useEffect(() => {
-        initializeColorPicker(colorPickerRef, iroPickerRef, {
-            color: '#ffffff',
-            width: 0,
-            margin: 12,
-            sliderSize: 28,
-            display: 'flex',
-            padding: 6,
-            handleRadius: 8,
-            layoutDirection: 'horizontal',
-        });
+        initializeColorPicker(
+            colorPickerRef,
+            iroPickerRef,
+            {
+                color: '#ffffff',
+                width: 0,
+                margin: 12,
+                sliderSize: 28,
+                display: 'flex',
+                padding: 6,
+                handleRadius: 8,
+                layoutDirection: 'horizontal',
+            },
+            color => onColorChangeRef.current(color), // Proxy-Handler
+        );
         return () => cleanupColorPicker(iroPickerRef);
     }, []);
 
