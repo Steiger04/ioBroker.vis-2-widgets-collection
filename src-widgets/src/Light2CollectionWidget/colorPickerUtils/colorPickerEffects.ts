@@ -10,6 +10,11 @@ export function initializeColorPicker(
         return;
     }
     pickerRef.current = iro.ColorPicker(ref.current, options);
+
+    // Event-Listener für Farbänderung hinzufügen
+    pickerRef.current.on('input:change', (color: iro.Color) => {
+        console.log('Color:', color);
+    });
 }
 
 export function cleanupColorPicker(pickerRef: React.MutableRefObject<iro.ColorPicker | null>): void {
