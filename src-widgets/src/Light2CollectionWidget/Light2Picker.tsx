@@ -23,6 +23,7 @@ interface LightPickerProps {
     colorLightType: Light2FieldsRxData['colorLightType'];
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
+    cctComponentNumber: number;
 }
 
 const Light2Picker: React.FC<LightPickerProps> = ({
@@ -35,14 +36,22 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightType,
     colorLightCtMin,
     colorLightCtMax,
+    cctComponentNumber,
 }) => {
     const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const iroPickerRef = useRef<iro.ColorPicker | null>(null);
 
     const colorLightLayout = useMemo(
-        () => getColorLightLayout(colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax),
-        [colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax],
+        () =>
+            getColorLightLayout(
+                cctComponentNumber,
+                colorLightUIComponent,
+                colorLightType,
+                colorLightCtMin,
+                colorLightCtMax,
+            ),
+        [cctComponentNumber, colorLightUIComponent, colorLightType, colorLightCtMin, colorLightCtMax],
     );
 
     const colorLightWidth = useMemo(

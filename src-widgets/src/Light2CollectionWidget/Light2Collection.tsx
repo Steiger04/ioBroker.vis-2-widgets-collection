@@ -43,6 +43,7 @@ function Light2Collection(): React.ReactElement {
                 }}
             >
                 <LightPicker
+                    cctComponentNumber={1}
                     dimensions={dimensions}
                     colorWheelLightness={rxData.colorWheelLightness}
                     colorLightUIComponent={rxData.colorLightUIComponent}
@@ -53,6 +54,23 @@ function Light2Collection(): React.ReactElement {
                     colorLightCtMin={rxData.colorLightCtMin}
                     colorLightCtMax={rxData.colorLightCtMax}
                 />
+
+                {rxData.colorLightType === 'cct' ? (
+                    <Box sx={{ ml: '12px' }}>
+                        <LightPicker
+                            cctComponentNumber={2}
+                            dimensions={dimensions}
+                            colorWheelLightness={rxData.colorWheelLightness}
+                            colorLightUIComponent={rxData.colorLightUIComponent}
+                            colorLightSliderWidth={rxData.colorLightSliderWidth}
+                            colorLightBorderWidth={rxData.colorLightBorderWidth}
+                            colorLightBorderColor={rxData.colorLightBorderColor}
+                            colorLightType={rxData.colorLightType}
+                            colorLightCtMin={rxData.colorLightCtMin}
+                            colorLightCtMax={rxData.colorLightCtMax}
+                        />
+                    </Box>
+                ) : null}
             </Box>
         </CollectionBase>
     );

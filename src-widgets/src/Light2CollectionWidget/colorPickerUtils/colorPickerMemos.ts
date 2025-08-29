@@ -9,14 +9,14 @@ type IroLayout = Array<{
 
 // Gibt das Layout für den ColorPicker zurück
 export function getColorLightLayout(
+    cctComponentNumber: number,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
     colorLightType: Light2FieldsRxData['colorLightType'],
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'],
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'],
 ): IroLayout {
     if (colorLightType === 'cct') {
-        // CCT spezifische Optionen
-        return [
+        const cctLayout = [
             {
                 component: iro.ui.Slider,
                 options: {
@@ -31,6 +31,8 @@ export function getColorLightLayout(
                 options: { sliderType: 'value' },
             },
         ];
+        // CCT spezifische Optionen
+        return [cctLayout[cctComponentNumber - 1]];
     }
     switch (colorLightUIComponent) {
         case 'wheel':
