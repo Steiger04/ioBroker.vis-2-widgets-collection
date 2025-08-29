@@ -30,6 +30,7 @@ export interface Light2FieldsRxData {
     colorLightHueOid?: string;
     colorLightSaturationOid?: string;
     colorLightBrightnessOid?: string;
+    colorLightGamut?: 'default' | 'A' | 'B' | 'C';
 }
 
 // Extended WidgetData interface to include icon properties and value configurations
