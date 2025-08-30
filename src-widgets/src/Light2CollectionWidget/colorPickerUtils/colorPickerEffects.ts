@@ -5,17 +5,25 @@ export function initializeColorPicker(
     ref: React.RefObject<HTMLDivElement>,
     pickerRef: React.MutableRefObject<iro.ColorPicker | null>,
     options: Record<string, any>,
-    onChange?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
+    onInputChange?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
+    onInit?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
 ): void {
     if (!ref.current) {
         return;
     }
     pickerRef.current = iro.ColorPicker(ref.current, options);
 
+    // Event-Listener für Farbinitialisierung hinzufügen
+    pickerRef.current.on('color:init', (color: iro.Color) => {
+        if (onInit) {
+            onInit(color);
+        }
+    });
+
     // Event-Listener für Farbänderung hinzufügen
     pickerRef.current.on('input:change', (color: iro.Color) => {
-        if (onChange) {
-            onChange(color);
+        if (onInputChange) {
+            onInputChange(color);
         }
     });
 }

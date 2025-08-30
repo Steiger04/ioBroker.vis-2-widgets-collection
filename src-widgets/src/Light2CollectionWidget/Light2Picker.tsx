@@ -24,7 +24,8 @@ interface LightPickerProps {
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
     cctComponentNumber: number;
-    onColorChange?: (color: iro.Color) => void; // optionaler Handler
+    onInputChange?: (color: iro.Color) => void; // optionaler Handler
+    onColorInit?: (color: iro.Color) => void; // optionaler Handler
 }
 
 const Light2Picker: React.FC<LightPickerProps> = ({
@@ -38,25 +39,40 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightCtMin,
     colorLightCtMax,
     cctComponentNumber,
-    onColorChange,
+    onInputChange,
+    onColorInit,
 }) => {
     const { theme } = useContext(CollectionContext);
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const iroPickerRef = useRef<iro.ColorPicker | null>(null);
 
     // 1. useCallback für den Handler (optional, aber empfohlen)
-    const handleColorChange = useCallback(
+    const handleColorInit = useCallback(
         (color: iro.Color) => {
-            if (onColorChange) {
-                onColorChange(color);
+            if (onColorInit) {
+                onColorInit(color);
             }
         },
-        [onColorChange],
+        [onColorInit],
     );
 
     // 2. Ref für den Handler, immer aktuell halten
-    const onColorChangeRef = useRef(handleColorChange);
-    onColorChangeRef.current = handleColorChange;
+    const onColorInitRef = useRef(handleColorInit);
+    onColorInitRef.current = handleColorInit;
+
+    // 1. useCallback für den Handler (optional, aber empfohlen)
+    const handleInputChange = useCallback(
+        (color: iro.Color) => {
+            if (onInputChange) {
+                onInputChange(color);
+            }
+        },
+        [onInputChange],
+    );
+
+    // 2. Ref für den Handler, immer aktuell halten
+    const onInputChangeRef = useRef(handleInputChange);
+    onInputChangeRef.current = handleInputChange;
 
     const colorLightLayout = useMemo(
         () =>
@@ -94,7 +110,8 @@ const Light2Picker: React.FC<LightPickerProps> = ({
                 handleRadius: 8,
                 layoutDirection: 'horizontal',
             },
-            color => onColorChangeRef.current(color), // Proxy-Handler
+            color => onInputChangeRef.current(color), // Proxy-Handler
+            color => onColorInitRef.current(color), // Proxy-Handler
         );
         return () => cleanupColorPicker(iroPickerRef);
     }, []);

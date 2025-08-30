@@ -26,8 +26,12 @@ function Light2Collection(): React.ReactElement {
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
 
-    const cctChange = (color: iro.Color): void => {
-        console.log('cctChange - color:', color);
+    const initHandler = (color: iro.Color): void => {
+        console.log('init - color:', color);
+    };
+
+    const cctInputChangeHandler = (color: iro.Color): void => {
+        console.log('cctInputChange - color:', color);
     };
 
     return (
@@ -64,7 +68,8 @@ function Light2Collection(): React.ReactElement {
                     <Box sx={{ ml: '12px' }}>
                         <LightPicker
                             cctComponentNumber={2} // brightness
-                            onColorChange={cctChange}
+                            onColorInit={initHandler}
+                            onInputChange={cctInputChangeHandler}
                             dimensions={dimensions}
                             colorWheelLightness={rxData.colorWheelLightness}
                             colorLightUIComponent={rxData.colorLightUIComponent}
