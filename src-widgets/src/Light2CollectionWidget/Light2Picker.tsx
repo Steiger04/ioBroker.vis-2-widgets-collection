@@ -23,6 +23,7 @@ interface LightPickerProps {
     colorLightType: Light2FieldsRxData['colorLightType'];
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
+    colorLightGamut: Light2FieldsRxData['colorLightGamut'];
     cctComponentNumber: number;
     onInputChange?: (color: iro.Color) => void; // optionaler Handler
     onColorInit?: (color: iro.Color) => void; // optionaler Handler
@@ -38,6 +39,7 @@ const Light2Picker: React.FC<LightPickerProps> = ({
     colorLightType,
     colorLightCtMin,
     colorLightCtMax,
+    colorLightGamut,
     cctComponentNumber,
     onInputChange,
     onColorInit,

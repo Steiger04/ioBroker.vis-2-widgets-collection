@@ -54,6 +54,7 @@ function Light2Collection(): React.ReactElement {
                 <LightPicker
                     cctComponentNumber={1} // kelvin
                     dimensions={dimensions}
+                    colorLightGamut={rxData.colorLightGamut}
                     colorWheelLightness={rxData.colorWheelLightness}
                     colorLightUIComponent={rxData.colorLightUIComponent}
                     colorLightSliderWidth={rxData.colorLightSliderWidth}
@@ -71,6 +72,7 @@ function Light2Collection(): React.ReactElement {
                             onColorInit={initHandler}
                             onInputChange={cctInputChangeHandler}
                             dimensions={dimensions}
+                            colorLightGamut={rxData.colorLightGamut}
                             colorWheelLightness={rxData.colorWheelLightness}
                             colorLightUIComponent={rxData.colorLightUIComponent}
                             colorLightSliderWidth={rxData.colorLightSliderWidth}
