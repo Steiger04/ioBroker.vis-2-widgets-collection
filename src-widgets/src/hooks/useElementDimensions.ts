@@ -14,10 +14,12 @@ export interface ElementDimensions {
  * Verwendet ResizeObserver für optimale Performance und automatische Updates
  *
  * @param element Element oder RefObject für das zu messende DOM-Element
- * @returns Objekt mit aktueller width und height (undefined wenn Element nicht verfügbar)
+ * @param sliderSize Optionale Slider-Größe für maxWidth-Berechnung (Standard: 28)
+ * @returns Objekt mit aktueller width, height und maxWidth
  */
 const useElementDimensions = (
     element: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | null | undefined,
+    sliderSize: number = 28,
 ): ElementDimensions => {
     const [dimensions, setDimensions] = useState<ElementDimensions>({
         width: undefined,
@@ -26,24 +28,27 @@ const useElementDimensions = (
     });
 
     // Memoization der Dimensions-Update-Funktion
-    const updateDimensions = useCallback((entries: ResizeObserverEntry[]) => {
-        if (entries.length === 0) {
-            return;
-        }
+    const updateDimensions = useCallback(
+        (entries: ResizeObserverEntry[]) => {
+            if (entries.length === 0) {
+                return;
+            }
 
-        const entry = entries[0];
-        const { width: clientWidth, height: clientHeight } = entry.contentRect;
+            const entry = entries[0];
+            const { width: clientWidth, height: clientHeight } = entry.contentRect;
 
-        const width = Math.round(clientWidth);
-        const height = Math.round(clientHeight);
-        const maxWidth = width <= height ? width : height;
+            const width = Math.round(clientWidth);
+            const height = Math.round(clientHeight);
+            const maxWidth = width <= height + sliderSize + 12 ? width - sliderSize - 12 : height;
 
-        setDimensions({
-            width,
-            height,
-            maxWidth,
-        });
-    }, []);
+            setDimensions({
+                width,
+                height,
+                maxWidth,
+            });
+        },
+        [sliderSize],
+    );
 
     // Memoization des tatsächlichen DOM-Elements
     const targetElement = useMemo(() => {

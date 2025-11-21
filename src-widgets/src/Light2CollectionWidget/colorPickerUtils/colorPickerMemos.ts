@@ -75,7 +75,7 @@ export function getColorLightWidth(
     colorLightType: Light2FieldsRxData['colorLightType'],
 ): number | undefined {
     if (colorLightType === 'cct') {
-        return dimensions.height;
+        return dimensions.maxWidth;
     }
 
     switch (colorLightUIComponent) {
@@ -96,8 +96,19 @@ export function getMarginBetweenPickers(
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'],
     colorLightType: Light2FieldsRxData['colorLightType'],
 ): number {
-    if (!dimensions.width || colorLightUIComponent !== 'slider' || colorLightType === 'cct') {
+    if (!dimensions.width || !dimensions.height) {
         return 12;
     }
-    return (dimensions.width - 3 * (colorLightSliderWidth || 1) * 28) / 2;
+
+    // Für Slider-Layout (RGB): Abstand zwischen 3 Slidern
+    if (colorLightUIComponent === 'slider' && colorLightType !== 'cct') {
+        return (dimensions.width - 3 * (colorLightSliderWidth || 1) * 28) / 2;
+    }
+
+    // Für CCT, Wheel und Box: maximaler Abstand zwischen Hauptelement und Value-Slider
+    const mainPickerSize = dimensions.maxWidth;
+    const sliderWidth = (colorLightSliderWidth || 1) * 28;
+    const availableSpace = dimensions.width - mainPickerSize! - sliderWidth;
+
+    return Math.max(8, availableSpace);
 }
