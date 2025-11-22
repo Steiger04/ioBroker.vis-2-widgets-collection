@@ -46,6 +46,23 @@ function Light2Collection(): React.ReactElement {
         [dimensions, rxData.colorLightUIComponent, rxData.colorLightSliderWidth, rxData.colorLightType],
     );
 
+    // Gemeinsame Props für LightPicker
+    const commonLightPickerProps = useMemo(
+        () => ({
+            dimensions,
+            colorLightGamut: rxData.colorLightGamut,
+            colorWheelLightness: rxData.colorWheelLightness,
+            colorLightUIComponent: rxData.colorLightUIComponent,
+            colorLightSliderWidth: rxData.colorLightSliderWidth,
+            colorLightBorderWidth: rxData.colorLightBorderWidth,
+            colorLightBorderColor: rxData.colorLightBorderColor,
+            colorLightType: rxData.colorLightType,
+            colorLightCtMin: rxData.colorLightCtMin,
+            colorLightCtMax: rxData.colorLightCtMax,
+        }),
+        [dimensions, rxData],
+    );
+
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -63,39 +80,27 @@ function Light2Collection(): React.ReactElement {
                     p: Number(rxData.colorLightPadding) || 0,
                 }}
             >
-                <LightPicker
-                    cctComponentNumber={1} // kelvin
-                    dimensions={dimensions}
-                    colorLightGamut={rxData.colorLightGamut}
-                    colorWheelLightness={rxData.colorWheelLightness}
-                    colorLightUIComponent={rxData.colorLightUIComponent}
-                    colorLightSliderWidth={rxData.colorLightSliderWidth}
-                    colorLightBorderWidth={rxData.colorLightBorderWidth}
-                    colorLightBorderColor={rxData.colorLightBorderColor}
-                    colorLightType={rxData.colorLightType}
-                    colorLightCtMin={rxData.colorLightCtMin}
-                    colorLightCtMax={rxData.colorLightCtMax}
-                />
+                <Box>
+                    {dimensions.width !== undefined && (
+                        <>
+                            <LightPicker
+                                cctComponentNumber={1} // kelvin
+                                {...commonLightPickerProps}
+                            />
 
-                {rxData.colorLightType === 'cct' ? (
-                    <Box sx={{ ml: `${marginLeft}px` }}>
-                        <LightPicker
-                            cctComponentNumber={2} // brightness
-                            onColorInit={initHandler}
-                            onInputChange={cctInputChangeHandler}
-                            dimensions={dimensions}
-                            colorLightGamut={rxData.colorLightGamut}
-                            colorWheelLightness={rxData.colorWheelLightness}
-                            colorLightUIComponent={rxData.colorLightUIComponent}
-                            colorLightSliderWidth={rxData.colorLightSliderWidth}
-                            colorLightBorderWidth={rxData.colorLightBorderWidth}
-                            colorLightBorderColor={rxData.colorLightBorderColor}
-                            colorLightType={rxData.colorLightType}
-                            colorLightCtMin={rxData.colorLightCtMin}
-                            colorLightCtMax={rxData.colorLightCtMax}
-                        />
-                    </Box>
-                ) : null}
+                            {rxData.colorLightType === 'cct' && (
+                                <Box sx={{ ml: `${marginLeft}px` }}>
+                                    <LightPicker
+                                        cctComponentNumber={2} // brightness
+                                        onColorInit={initHandler}
+                                        onInputChange={cctInputChangeHandler}
+                                        {...commonLightPickerProps}
+                                    />
+                                </Box>
+                            )}
+                        </>
+                    )}
+                </Box>
             </Box>
         </CollectionBase>
     );

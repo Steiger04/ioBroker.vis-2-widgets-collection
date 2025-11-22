@@ -110,5 +110,5 @@ export function getMarginBetweenPickers(
     const sliderWidth = (colorLightSliderWidth || 1) * 28;
     const availableSpace = dimensions.width - mainPickerSize! - sliderWidth;
 
-    return Math.max(8, availableSpace);
+    return Math.max(12, availableSpace);
 }
