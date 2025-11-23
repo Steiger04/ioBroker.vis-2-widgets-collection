@@ -8,7 +8,7 @@ import { type StyleData } from '../hooks/useData';
 import { type SxProps, type Theme } from '@mui/material/styles';
 
 interface CollectionBaseProps {
-    children?: JSX.Element | JSX.Element[] | null;
+    children?: JSX.Element | JSX.Element[] | (JSX.Element | null)[] | null;
     data: StyleData;
     oidValue?: ioBroker.StateValue;
     isValidType?: boolean;
@@ -163,7 +163,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             <Paper
                                 ref={paper1Ref}
                                 className="BASE-PAPER-1"
-                                elevation={Number(widget.data.baseElevation) || 0}
+                                elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
                                 square={!widget.data.basePadding || widget.data.squaredCorner}
                                 variant={widget.data.outlined ? 'outlined' : 'elevation'}
                                 sx={{

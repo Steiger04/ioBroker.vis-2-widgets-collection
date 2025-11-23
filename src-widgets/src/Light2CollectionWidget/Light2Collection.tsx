@@ -175,80 +175,84 @@ function Light2Collection(): React.ReactElement {
             data={data}
             oidValue={oidValue}
         >
-            <Box
-                sx={{
-                    minWidth: 0,
-                    height: '100%',
-                    display: 'flex',
-                    flexShrink: 0,
-                    flexDirection: 'column',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                }}
-            >
-                <IconButton
-                    onClick={() => {
-                        if (onOffValue) {
-                            setOnOffValueState(false);
-                        } else {
-                            setOnOffValueState(true);
-                        }
-                    }}
-                >
-                    <PowerSettingsNewIcon
-                        sx={{
-                            color: onOffValue ? 'red' : 'green',
-                            width: '26px',
-                            height: '26px',
-                        }}
-                    />
-                </IconButton>
-
+            {rxData.colorLightType !== 'none' ? (
                 <Box
                     sx={{
-                        display: 'inline-block',
+                        minWidth: 0,
+                        height: '100%',
+                        display: 'flex',
+                        flexShrink: 0,
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        alignItems: 'center',
                     }}
                 >
-                    <Divider
-                        orientation="horizontal"
-                        flexItem
-                        variant="fullWidth"
-                    />
-                    <IconButton onClick={() => setCctLight(false)}>
-                        <ColorWheelIcon
+                    <IconButton
+                        onClick={() => {
+                            if (onOffValue) {
+                                setOnOffValueState(false);
+                            } else {
+                                setOnOffValueState(true);
+                            }
+                        }}
+                    >
+                        <PowerSettingsNewIcon
                             sx={{
-                                width: '24px',
-                                height: '24px',
+                                color: onOffValue ? 'red' : 'green',
+                                width: '26px',
+                                height: '26px',
                             }}
                         />
                     </IconButton>
-                </Box>
 
-                {/* <Divider
+                    <Box
+                        sx={{
+                            display: 'inline-block',
+                        }}
+                    >
+                        <Divider
+                            orientation="horizontal"
+                            flexItem
+                            variant="fullWidth"
+                        />
+                        <IconButton onClick={() => setCctLight(false)}>
+                            <ColorWheelIcon
+                                sx={{
+                                    width: '24px',
+                                    height: '24px',
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
+
+                    {/* <Divider
                     flexItem
                     variant="middle"
                 /> */}
 
-                <Box
-                    sx={{
-                        display: 'inline-block',
-                    }}
-                >
-                    <IconButton onClick={() => setCctLight(true)}>
-                        <CctWhiteIcon
-                            sx={{
-                                width: '24px',
-                                height: '24px',
-                            }}
-                        />
-                    </IconButton>
+                    <Box
+                        sx={{
+                            display: 'block',
+                        }}
+                    >
+                        <IconButton onClick={() => setCctLight(true)}>
+                            <CctWhiteIcon
+                                sx={{
+                                    width: '24px',
+                                    height: '24px',
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
                 </Box>
-            </Box>
+            ) : null}
+
             <Divider
                 orientation="vertical"
                 flexItem
                 variant="middle"
             />
+
             <Box
                 ref={boxRef}
                 sx={{
@@ -261,7 +265,7 @@ function Light2Collection(): React.ReactElement {
                     p: Number(rxData.colorLightPadding) || 0,
                 }}
             >
-                {dimensions.width !== undefined && (
+                {dimensions.width !== undefined && rxData.colorLightType !== 'none' && (
                     <>
                         <LightPicker
                             cctComponentNumber={1} // kelvin
