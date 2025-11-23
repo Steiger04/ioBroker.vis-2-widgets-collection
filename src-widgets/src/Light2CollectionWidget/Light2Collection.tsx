@@ -125,6 +125,13 @@ function Light2Collection(): React.ReactElement {
     const boxRef = useRef<HTMLDivElement>(null);
     const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);
 
+    const isCctLight =
+        rxData.colorLightType === 'rgbcct' ||
+        rxData.colorLightType === 'r/g/b/cct' ||
+        rxData.colorLightType === 'h/s/v/cct';
+
+    const effectiveColorLightType = cctLight && isCctLight ? 'cct' : rxData.colorLightType;
+
     // ON/OFF
     const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
 
@@ -147,9 +154,9 @@ function Light2Collection(): React.ReactElement {
                 dimensions,
                 rxData.colorLightUIComponent,
                 rxData.colorLightSliderWidth,
-                rxData.colorLightType,
+                effectiveColorLightType,
             ),
-        [dimensions, rxData.colorLightUIComponent, rxData.colorLightSliderWidth, rxData.colorLightType],
+        [dimensions, rxData.colorLightUIComponent, rxData.colorLightSliderWidth, effectiveColorLightType],
     );
 
     // Gemeinsame Props für LightPicker
@@ -162,11 +169,22 @@ function Light2Collection(): React.ReactElement {
             colorLightSliderWidth: rxData.colorLightSliderWidth,
             colorLightBorderWidth: rxData.colorLightBorderWidth,
             colorLightBorderColor: rxData.colorLightBorderColor,
-            colorLightType: rxData.colorLightType,
+            colorLightType: effectiveColorLightType,
             colorLightCtMin: rxData.colorLightCtMin,
             colorLightCtMax: rxData.colorLightCtMax,
         }),
-        [dimensions, rxData],
+        [
+            dimensions,
+            rxData.colorLightGamut,
+            rxData.colorWheelLightness,
+            rxData.colorLightUIComponent,
+            rxData.colorLightSliderWidth,
+            rxData.colorLightBorderWidth,
+            rxData.colorLightBorderColor,
+            rxData.colorLightCtMin,
+            rxData.colorLightCtMax,
+            effectiveColorLightType,
+        ],
     );
 
     return (
@@ -205,45 +223,49 @@ function Light2Collection(): React.ReactElement {
                         />
                     </IconButton>
 
-                    <Box
-                        sx={{
-                            display: 'inline-block',
-                        }}
-                    >
-                        <Divider
-                            orientation="horizontal"
-                            flexItem
-                            variant="fullWidth"
-                        />
-                        <IconButton onClick={() => setCctLight(false)}>
-                            <ColorWheelIcon
-                                sx={{
-                                    width: '24px',
-                                    height: '24px',
-                                }}
+                    {isCctLight && (
+                        <Box
+                            sx={{
+                                display: 'inline-block',
+                            }}
+                        >
+                            <Divider
+                                orientation="horizontal"
+                                flexItem
+                                variant="fullWidth"
                             />
-                        </IconButton>
-                    </Box>
+                            <IconButton onClick={() => setCctLight(false)}>
+                                <ColorWheelIcon
+                                    sx={{
+                                        width: '24px',
+                                        height: '24px',
+                                    }}
+                                />
+                            </IconButton>
+                        </Box>
+                    )}
 
                     {/* <Divider
                     flexItem
                     variant="middle"
                 /> */}
 
-                    <Box
-                        sx={{
-                            display: 'block',
-                        }}
-                    >
-                        <IconButton onClick={() => setCctLight(true)}>
-                            <CctWhiteIcon
-                                sx={{
-                                    width: '24px',
-                                    height: '24px',
-                                }}
-                            />
-                        </IconButton>
-                    </Box>
+                    {isCctLight && (
+                        <Box
+                            sx={{
+                                display: 'block',
+                            }}
+                        >
+                            <IconButton onClick={() => setCctLight(true)}>
+                                <CctWhiteIcon
+                                    sx={{
+                                        width: '24px',
+                                        height: '24px',
+                                    }}
+                                />
+                            </IconButton>
+                        </Box>
+                    )}
                 </Box>
             ) : null}
 
@@ -272,7 +294,7 @@ function Light2Collection(): React.ReactElement {
                             {...commonLightPickerProps}
                         />
 
-                        {rxData.colorLightType === 'cct' && (
+                        {effectiveColorLightType === 'cct' && (
                             <Box sx={{ ml: `${marginLeft}px` }}>
                                 <LightPicker
                                     cctComponentNumber={2} // brightness
