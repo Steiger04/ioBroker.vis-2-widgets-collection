@@ -183,6 +183,7 @@ function Light2Collection(): React.ReactElement {
                     flexShrink: 0,
                     flexDirection: 'column',
                     justifyContent: 'flex-start',
+                    alignItems: 'center',
                 }}
             >
                 <IconButton
@@ -203,7 +204,11 @@ function Light2Collection(): React.ReactElement {
                     />
                 </IconButton>
 
-                <>
+                <Box
+                    sx={{
+                        display: 'inline-block',
+                    }}
+                >
                     <Divider
                         orientation="horizontal"
                         flexItem
@@ -217,10 +222,18 @@ function Light2Collection(): React.ReactElement {
                             }}
                         />
                     </IconButton>
-                    {/* <Divider
-                        flexItem
-                        variant="middle"
-                    /> */}
+                </Box>
+
+                {/* <Divider
+                    flexItem
+                    variant="middle"
+                /> */}
+
+                <Box
+                    sx={{
+                        display: 'inline-block',
+                    }}
+                >
                     <IconButton onClick={() => setCctLight(true)}>
                         <CctWhiteIcon
                             sx={{
@@ -229,7 +242,7 @@ function Light2Collection(): React.ReactElement {
                             }}
                         />
                     </IconButton>
-                </>
+                </Box>
             </Box>
             <Divider
                 orientation="vertical"
