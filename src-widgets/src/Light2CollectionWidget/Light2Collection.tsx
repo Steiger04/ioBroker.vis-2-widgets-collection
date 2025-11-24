@@ -2,6 +2,7 @@ import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
 import { useContext, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
+import withButtonModal from '../components/withButtonModal';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
@@ -111,7 +112,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     </SvgIcon>
 );
 
-function Light2Collection(): React.ReactElement {
+function Light2CollectionContent(): React.ReactElement {
     const [cctLight, setCctLight] = useState(false);
     const context = useContext(CollectionContext);
     const {
@@ -310,5 +311,7 @@ function Light2Collection(): React.ReactElement {
         </CollectionBase>
     );
 }
+
+const Light2Collection = withButtonModal(Light2CollectionContent);
 
 export default Light2Collection;
