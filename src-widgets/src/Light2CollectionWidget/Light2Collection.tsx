@@ -1,5 +1,5 @@
 import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
-import { useContext, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import withButtonModal from '../components/withButtonModal';
@@ -125,6 +125,9 @@ function Light2CollectionContent(): React.ReactElement {
 
     const boxRef = useRef<HTMLDivElement>(null);
     const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);
+    const kelvinPickerRef = useRef<iro.ColorPicker | null>(null);
+    const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
+    const [kelvinChanged, setKelvinChanged] = useState(false);
 
     const isCctLight =
         rxData.colorLightType === 'rgbcct' ||
@@ -135,6 +138,9 @@ function Light2CollectionContent(): React.ReactElement {
 
     // ON/OFF
     const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
+
+    // Temperature (Backend/OID)
+    const { value: temperatureValue, hasValueChanged: temperatureChanged } = useValueState('colorLightTemperatureOid');
 
     // Type-safe Zugriff auf das OID Object
     const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
@@ -147,6 +153,10 @@ function Light2CollectionContent(): React.ReactElement {
 
     const cctInputChangeHandler = (color: iro.Color): void => {
         console.log('cctInputChange - color:', color);
+    };
+
+    const kelvinInputChangeHandler = (): void => {
+        setKelvinChanged(prev => !prev);
     };
 
     const marginLeft = useMemo(
@@ -187,6 +197,51 @@ function Light2CollectionContent(): React.ReactElement {
             effectiveColorLightType,
         ],
     );
+
+    useEffect(() => {
+        if (effectiveColorLightType !== 'cct') {
+            return;
+        }
+
+        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+            return;
+        }
+
+        const kelvinColor = kelvinPickerRef.current.color;
+        const brightnessColor = brightnessPickerRef.current.color;
+
+        if (kelvinChanged) {
+            const tmpValue = brightnessColor.value;
+            brightnessColor.hexString = kelvinColor.hexString;
+            brightnessColor.value = tmpValue;
+        }
+    }, [effectiveColorLightType, kelvinChanged]);
+
+    useEffect(() => {
+        if (effectiveColorLightType !== 'cct') {
+            return;
+        }
+
+        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+            return;
+        }
+
+        if (!temperatureChanged) {
+            return;
+        }
+
+        const kelvinColor = kelvinPickerRef.current.color;
+        const brightnessColor = brightnessPickerRef.current.color;
+
+        if (temperatureValue === undefined || temperatureValue === null) {
+            return;
+        }
+
+        kelvinColor.kelvin = Number(temperatureValue);
+        const tmpValue = brightnessColor.value;
+        brightnessColor.hexString = kelvinColor.hexString;
+        brightnessColor.value = tmpValue;
+    }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
 
     return (
         <CollectionBase
@@ -292,6 +347,8 @@ function Light2CollectionContent(): React.ReactElement {
                     <>
                         <LightPicker
                             cctComponentNumber={1} // kelvin
+                            ref={kelvinPickerRef}
+                            onInputChange={effectiveColorLightType === 'cct' ? kelvinInputChangeHandler : undefined}
                             {...commonLightPickerProps}
                         />
 
@@ -301,6 +358,7 @@ function Light2CollectionContent(): React.ReactElement {
                                     cctComponentNumber={2} // brightness
                                     onColorInit={initHandler}
                                     onInputChange={cctInputChangeHandler}
+                                    ref={brightnessPickerRef}
                                     {...commonLightPickerProps}
                                 />
                             </Box>
