@@ -12,6 +12,7 @@ import { getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
 import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
+import { initializeColorFromStates } from './initHandlers';
 
 const ColorWheelIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     <SvgIcon
@@ -118,6 +119,8 @@ function Light2CollectionContent(): React.ReactElement {
     const {
         widget,
         widget: { data: rxData },
+        values,
+        getPropertyValue,
     } = context;
 
     const { data } = useData('oid');
@@ -147,12 +150,12 @@ function Light2CollectionContent(): React.ReactElement {
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
 
-    const initHandler = (color: iro.Color): void => {
-        console.log('init - color:', color);
+    const initHandler = (color: iro.Color, cctComponentNumber?: number): void => {
+        initializeColorFromStates(color, effectiveColorLightType, getPropertyValue, widget.data, cctComponentNumber);
     };
 
-    const cctInputChangeHandler = (color: iro.Color): void => {
-        console.log('cctInputChange - color:', color);
+    const cctInputChangeHandler = (_color: iro.Color): void => {
+        // console.log('cctInputChange - color:', color);
     };
 
     const kelvinInputChangeHandler = (): void => {
@@ -343,28 +346,31 @@ function Light2CollectionContent(): React.ReactElement {
                     p: Number(rxData.colorLightPadding) || 0,
                 }}
             >
-                {dimensions.width !== undefined && rxData.colorLightType !== 'none' && (
-                    <>
-                        <LightPicker
-                            cctComponentNumber={1} // kelvin
-                            ref={kelvinPickerRef}
-                            onInputChange={effectiveColorLightType === 'cct' ? kelvinInputChangeHandler : undefined}
-                            {...commonLightPickerProps}
-                        />
+                {Object.keys(values).length !== 0 &&
+                    dimensions.width !== undefined &&
+                    rxData.colorLightType !== 'none' && (
+                        <>
+                            <LightPicker
+                                cctComponentNumber={1} // kelvin
+                                ref={kelvinPickerRef}
+                                onColorInit={initHandler}
+                                onInputChange={effectiveColorLightType === 'cct' ? kelvinInputChangeHandler : undefined}
+                                {...commonLightPickerProps}
+                            />
 
-                        {effectiveColorLightType === 'cct' && (
-                            <Box sx={{ ml: `${marginLeft}px` }}>
-                                <LightPicker
-                                    cctComponentNumber={2} // brightness
-                                    onColorInit={initHandler}
-                                    onInputChange={cctInputChangeHandler}
-                                    ref={brightnessPickerRef}
-                                    {...commonLightPickerProps}
-                                />
-                            </Box>
-                        )}
-                    </>
-                )}
+                            {effectiveColorLightType === 'cct' && (
+                                <Box sx={{ ml: `${marginLeft}px` }}>
+                                    <LightPicker
+                                        cctComponentNumber={2} // brightness
+                                        onColorInit={initHandler}
+                                        onInputChange={cctInputChangeHandler}
+                                        ref={brightnessPickerRef}
+                                        {...commonLightPickerProps}
+                                    />
+                                </Box>
+                            )}
+                        </>
+                    )}
             </Box>
         </CollectionBase>
     );

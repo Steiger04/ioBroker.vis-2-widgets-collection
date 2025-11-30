@@ -6,7 +6,8 @@ export function initializeColorPicker(
     pickerRef: React.MutableRefObject<iro.ColorPicker | null>,
     options: Record<string, any>,
     onInputChange?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
-    onInit?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
+    onInit?: (color: iro.Color, cctComponentNumber?: number) => void, // <-- zusätzlicher Parameter
+    cctComponentNumber?: number,
 ): void {
     if (!ref.current) {
         return;
@@ -16,7 +17,7 @@ export function initializeColorPicker(
     // Event-Listener für Farbinitialisierung hinzufügen
     pickerRef.current.on('color:init', (color: iro.Color) => {
         if (onInit) {
-            onInit(color);
+            onInit(color, cctComponentNumber);
         }
     });
 
