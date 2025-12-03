@@ -72,8 +72,6 @@ const loadStatesAsync = async (
     changeData: (newData: WidgetData) => void,
     socket: LegacyConnection,
 ): Promise<void> => {
-    console.log('loadStatesAsync -> field', field);
-
     const fieldName = field.name;
     if (fieldName && data[fieldName]) {
         const object = await socket.getObject(data[fieldName] as string);

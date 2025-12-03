@@ -12,7 +12,7 @@ import { getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
 import type iro from '@jaames/iro';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
-import { initializeColorFromStates } from './initHandlers';
+import { initializeColorFromStates, initializeKelvin, initializeBrightness } from './initHandlers';
 
 const ColorWheelIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     <SvgIcon
@@ -130,6 +130,11 @@ function Light2CollectionContent(): React.ReactElement {
     const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);
     const kelvinPickerRef = useRef<iro.ColorPicker | null>(null);
     const brightnessPickerRef = useRef<iro.ColorPicker | null>(null);
+    const prevCctLightRef = useRef(cctLight);
+    const widgetDataRef = useRef(widget.data);
+    widgetDataRef.current = widget.data;
+    const getPropertyValueRef = useRef(getPropertyValue);
+    getPropertyValueRef.current = getPropertyValue;
     const [kelvinChanged, setKelvinChanged] = useState(false);
 
     const isCctLight =
@@ -245,6 +250,41 @@ function Light2CollectionContent(): React.ReactElement {
         brightnessColor.hexString = kelvinColor.hexString;
         brightnessColor.value = tmpValue;
     }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
+
+    useEffect(() => {
+        if (!cctLight || !isCctLight) {
+            return;
+        }
+
+        if (!kelvinPickerRef.current || !brightnessPickerRef.current) {
+            return;
+        }
+
+        const kelvinColor = kelvinPickerRef.current.color;
+        const brightnessColor = brightnessPickerRef.current.color;
+
+        initializeKelvin(kelvinColor, widgetDataRef.current, getPropertyValueRef.current);
+
+        const tmpValue = brightnessColor.value;
+        brightnessColor.hexString = kelvinColor.hexString;
+        brightnessColor.value = tmpValue;
+    }, [cctLight, isCctLight]);
+
+    useEffect(() => {
+        if (!prevCctLightRef.current || cctLight || !isCctLight) {
+            return;
+        }
+
+        if (!kelvinPickerRef.current) {
+            return;
+        }
+
+        initializeBrightness(kelvinPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
+    }, [cctLight, isCctLight]);
+
+    useEffect(() => {
+        prevCctLightRef.current = cctLight;
+    }, [cctLight]);
 
     return (
         <CollectionBase

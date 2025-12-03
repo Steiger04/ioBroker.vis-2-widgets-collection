@@ -45,6 +45,30 @@ const normalizePercentValue = (value: number | undefined, maxValue?: number | nu
     return Math.round(value);
 };
 
+export function initializeKelvin(
+    color: iro.Color,
+    widgetData: Light2WidgetData,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+): void {
+    const kelvinValue = readNumericValue('colorLightTemperatureOid', widgetData, getPropertyValue) ?? 2000;
+    color.kelvin = kelvinValue;
+}
+
+export function initializeBrightness(
+    color: iro.Color,
+    widgetData: Light2WidgetData,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+): void {
+    const brightnessRaw = readNumericValue('colorLightBrightnessOid', widgetData, getPropertyValue);
+    const brightnessValue = normalizePercentValue(brightnessRaw, widgetData.colorLightBrightnessOidObject?.maxValue);
+
+    if (brightnessValue === undefined) {
+        return;
+    }
+
+    color.value = brightnessValue;
+}
+
 /**
  * Initializes the Light2 picker with the latest ioBroker states so the UI mirrors the real device.
  * The optional CCT component number (1 = Kelvin, 2 = Brightness) decides which part of the twin pickers is initialized.
@@ -61,8 +85,8 @@ export function initializeColorFromStates(
     switch (colorLightType) {
         case 'cct': {
             if (cctComponentNumber === 1) {
-                const kelvinValue = readNumericValue('colorLightTemperatureOid', widgetData, getPropertyValue) ?? 2000;
-                color.kelvin = kelvinValue;
+                console.log('Initializing kelvin component');
+                initializeKelvin(color, widgetData, getPropertyValue);
             } else if (cctComponentNumber === 2) {
                 const brightnessRaw = readNumericValue('colorLightBrightnessOid', widgetData, getPropertyValue);
                 const brightnessValue = normalizePercentValue(
@@ -82,14 +106,23 @@ export function initializeColorFromStates(
                 break;
             }
 
+            /* if (colorLightType === 'rgbcct') {
+                initializeKelvin(color, widgetData, getPropertyValue);
+            } */
+
             const hexValue = getPropertyValue('colorLightRgbHexOid');
             const hexString = typeof hexValue === 'string' && hexValue.trim().length > 0 ? hexValue : '#ffffff';
 
             color.hexString = hexString;
+
             break;
         }
         case 'r/g/b':
         case 'r/g/b/cct': {
+            /* if (colorLightType === 'r/g/b/cct') {
+                initializeKelvin(color, widgetData, getPropertyValue);
+            } */
+
             if (widgetData.colorLightRedOid && widgetData.colorLightGreenOid && widgetData.colorLightBlueOid) {
                 const red = readNumericValue('colorLightRedOid', widgetData, getPropertyValue);
                 const green = readNumericValue('colorLightGreenOid', widgetData, getPropertyValue);
@@ -99,10 +132,15 @@ export function initializeColorFromStates(
                 color.green = green ?? 0;
                 color.blue = blue ?? 0;
             }
+
             break;
         }
         case 'h/s/v':
         case 'h/s/v/cct': {
+            /* if (colorLightType === 'h/s/v/cct') {
+                initializeKelvin(color, widgetData, getPropertyValue);
+            } */
+
             if (
                 widgetData.colorLightHueOid &&
                 widgetData.colorLightSaturationOid &&
@@ -132,6 +170,7 @@ export function initializeColorFromStates(
                     color.value = brightness;
                 }
             }
+
             break;
         }
         default:
