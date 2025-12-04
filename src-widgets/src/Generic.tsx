@@ -1,8 +1,7 @@
 import { Box, CssBaseline } from '@mui/material';
 
-const VALUE_NOT_CHANGED_TIMESTAMP = 1111111111111;
-
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
+import { VALUE_NOT_CHANGED_TIMESTAMP } from './lib/constants';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 /* type ExtendedObject = ioBroker.Object & {
