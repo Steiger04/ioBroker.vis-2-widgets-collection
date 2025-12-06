@@ -156,6 +156,7 @@ function Light2CollectionContent(): React.ReactElement {
     const getPropertyValueRef = useRef(getPropertyValue);
     getPropertyValueRef.current = getPropertyValue;
     const [kelvinChanged, setKelvinChanged] = useState(false);
+    const isSyncingRef = useRef(false);
 
     const isCctLight =
         rxData.colorLightType === 'rgbcct' ||
@@ -345,6 +346,10 @@ function Light2CollectionContent(): React.ReactElement {
                     return;
                 }
 
+                if (isSyncingRef.current) {
+                    return;
+                }
+
                 const config = lightTypeConfigMap[effectiveColorLightType];
 
                 if (!config) {
@@ -457,9 +462,14 @@ function Light2CollectionContent(): React.ReactElement {
         const brightnessColor = brightnessPickerRef.current.color;
 
         if (kelvinChanged) {
-            const tmpValue = brightnessColor.value;
-            brightnessColor.hexString = kelvinColor.hexString;
-            brightnessColor.value = tmpValue;
+            isSyncingRef.current = true;
+            try {
+                const tmpValue = brightnessColor.value;
+                brightnessColor.hexString = kelvinColor.hexString;
+                brightnessColor.value = tmpValue;
+            } finally {
+                isSyncingRef.current = false;
+            }
         }
     }, [effectiveColorLightType, kelvinChanged]);
 
@@ -483,10 +493,15 @@ function Light2CollectionContent(): React.ReactElement {
             return;
         }
 
-        kelvinColor.kelvin = Number(temperatureValue);
-        const tmpValue = brightnessColor.value;
-        brightnessColor.hexString = kelvinColor.hexString;
-        brightnessColor.value = tmpValue;
+        isSyncingRef.current = true;
+        try {
+            kelvinColor.kelvin = Number(temperatureValue);
+            const tmpValue = brightnessColor.value;
+            brightnessColor.hexString = kelvinColor.hexString;
+            brightnessColor.value = tmpValue;
+        } finally {
+            isSyncingRef.current = false;
+        }
     }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
 
     useEffect(() => {
@@ -501,11 +516,16 @@ function Light2CollectionContent(): React.ReactElement {
         const kelvinColor = kelvinPickerRef.current.color;
         const brightnessColor = brightnessPickerRef.current.color;
 
-        initializeKelvin(kelvinColor, widgetDataRef.current, getPropertyValueRef.current);
+        isSyncingRef.current = true;
+        try {
+            initializeKelvin(kelvinColor, widgetDataRef.current, getPropertyValueRef.current);
 
-        const tmpValue = brightnessColor.value;
-        brightnessColor.hexString = kelvinColor.hexString;
-        brightnessColor.value = tmpValue;
+            const tmpValue = brightnessColor.value;
+            brightnessColor.hexString = kelvinColor.hexString;
+            brightnessColor.value = tmpValue;
+        } finally {
+            isSyncingRef.current = false;
+        }
     }, [cctLight, isCctLight]);
 
     useEffect(() => {
