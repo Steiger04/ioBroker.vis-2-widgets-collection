@@ -1,11 +1,18 @@
 // colorPickerUtils/colorPickerEffects.ts
 import iro from '@jaames/iro';
 
+// Changes-Typ für H/S/V-Änderungsinformationen
+export type ColorChanges = {
+    h?: boolean;
+    s?: boolean;
+    v?: boolean;
+};
+
 export function initializeColorPicker(
     ref: React.RefObject<HTMLDivElement>,
     pickerRef: React.MutableRefObject<iro.ColorPicker | null>,
     options: Record<string, any>,
-    onInputChange?: (color: iro.Color) => void, // <-- zusätzlicher Parameter
+    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void, // <-- mit changes Parameter
     onInit?: (color: iro.Color, cctComponentNumber?: number) => void, // <-- zusätzlicher Parameter
     cctComponentNumber?: number,
 ): void {
@@ -21,10 +28,10 @@ export function initializeColorPicker(
         }
     });
 
-    // Event-Listener für Farbänderung hinzufügen
-    pickerRef.current.on('input:change', (color: iro.Color) => {
+    // Event-Listener für Farbänderung hinzufügen (mit changes für H/S/V-Optimierung)
+    pickerRef.current.on('input:change', (color: iro.Color, changes: ColorChanges) => {
         if (onInputChange) {
-            onInputChange(color);
+            onInputChange(color, changes);
         }
     });
 }

@@ -12,6 +12,7 @@ import {
     cleanupColorPicker,
     resizeColorPicker,
     setColorPickerOptions,
+    type ColorChanges,
 } from './colorPickerUtils/colorPickerEffects';
 
 function setRef<T>(ref: Ref<T> | undefined, value: T): void {
@@ -34,7 +35,7 @@ interface LightPickerProps {
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
     colorLightGamut: Light2FieldsRxData['colorLightGamut'];
     cctComponentNumber: number;
-    onInputChange?: (color: iro.Color) => void; // optionaler Handler
+    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void; // mit changes Parameter
     onColorInit?: (color: iro.Color, cctComponentNumber?: number) => void; // optionaler Handler
 }
 
@@ -77,9 +78,9 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
 
         // 1. useCallback für den Handler (optional, aber empfohlen)
         const handleInputChange = useCallback(
-            (color: iro.Color) => {
+            (color: iro.Color, changes?: ColorChanges) => {
                 if (onInputChange) {
-                    onInputChange(color);
+                    onInputChange(color, changes);
                 }
             },
             [onInputChange],
@@ -125,7 +126,7 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
                     handleRadius: 8,
                     layoutDirection: 'horizontal',
                 },
-                color => onInputChangeRef.current(color), // Proxy-Handler
+                (color, changes) => onInputChangeRef.current(color, changes), // Proxy-Handler mit changes
                 (color, componentNumber) => onColorInitRef.current(color, componentNumber), // Proxy-Handler
                 cctComponentNumber,
             );
