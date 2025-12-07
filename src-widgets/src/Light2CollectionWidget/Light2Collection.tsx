@@ -33,6 +33,36 @@ type ColorPropertyConfig = {
     changeKey?: 'h' | 's' | 'v'; // Optionaler Key für Changes-basierte Filterung
 };
 
+const shouldApplyChange = (changeKey: ColorPropertyConfig['changeKey'], changes?: ColorChanges): boolean => {
+    if (!changeKey) {
+        return true;
+    }
+
+    if (!changes) {
+        return true;
+    }
+
+    return Boolean(changes[changeKey]);
+};
+
+const getDefaultValueForColorProp = (colorProp: ScalarColorProp): string | number => {
+    if (colorProp === 'kelvin') {
+        return 2000;
+    }
+
+    if (colorProp === 'hexString') {
+        return '#ffffff';
+    }
+
+    return 0;
+};
+
+const syncKelvinHexToBrightness = (kelvinColor: iro.Color, brightnessColor: iro.Color): void => {
+    const tmpValue = brightnessColor.value;
+    brightnessColor.hexString = kelvinColor.hexString;
+    brightnessColor.value = tmpValue;
+};
+
 const ColorWheelIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
     <SvgIcon
         component={ColorWheelSvg}
@@ -364,7 +394,7 @@ function Light2CollectionContent(): React.ReactElement {
                     }
 
                     // Für H/S/V-Typen: Nur schreiben wenn entsprechender Change-Flag gesetzt ist
-                    if (changeKey && changes && !changes[changeKey]) {
+                    if (!shouldApplyChange(changeKey, changes)) {
                         return;
                     }
 
@@ -388,13 +418,7 @@ function Light2CollectionContent(): React.ReactElement {
 
                     // Fallback-Werte für undefined
                     if (value === undefined || value === null) {
-                        if (colorProp === 'kelvin') {
-                            value = 2000;
-                        } else if (colorProp === 'hexString') {
-                            value = '#000000';
-                        } else {
-                            value = 0;
-                        }
+                        value = getDefaultValueForColorProp(colorProp);
                     }
 
                     // State aktualisieren
@@ -448,6 +472,7 @@ function Light2CollectionContent(): React.ReactElement {
         ],
     );
 
+    /* Synchronisiert Kelvin-Picker-Änderungen aus der UI in den Brightness-Picker, damit die Verläufe identisch bleiben. */
     useEffect(() => {
         if (effectiveColorLightType !== 'cct') {
             return;
@@ -463,15 +488,14 @@ function Light2CollectionContent(): React.ReactElement {
         if (kelvinChanged) {
             isSyncingRef.current = true;
             try {
-                const tmpValue = brightnessColor.value;
-                brightnessColor.hexString = kelvinColor.hexString;
-                brightnessColor.value = tmpValue;
+                syncKelvinHexToBrightness(kelvinColor, brightnessColor);
             } finally {
                 isSyncingRef.current = false;
             }
         }
     }, [effectiveColorLightType, kelvinChanged]);
 
+    /* Synchronisiert Backend-Temperaturänderungen in Kelvin- und Brightness-Picker, wenn eine neue Temperatur eintrifft. */
     useEffect(() => {
         if (effectiveColorLightType !== 'cct') {
             return;
@@ -495,14 +519,13 @@ function Light2CollectionContent(): React.ReactElement {
         isSyncingRef.current = true;
         try {
             kelvinColor.kelvin = Number(temperatureValue);
-            const tmpValue = brightnessColor.value;
-            brightnessColor.hexString = kelvinColor.hexString;
-            brightnessColor.value = tmpValue;
+            syncKelvinHexToBrightness(kelvinColor, brightnessColor);
         } finally {
             isSyncingRef.current = false;
         }
     }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
 
+    /* Beim Umschalten auf den Kelvin-Teil des CCT-Lichts beide Picker initial synchronisieren. */
     useEffect(() => {
         if (!cctLight || !isCctLight) {
             return;
@@ -525,9 +548,7 @@ function Light2CollectionContent(): React.ReactElement {
                 }
             }
 
-            const tmpValue = brightnessColor.value;
-            brightnessColor.hexString = kelvinColor.hexString;
-            brightnessColor.value = tmpValue;
+            syncKelvinHexToBrightness(kelvinColor, brightnessColor);
         } finally {
             isSyncingRef.current = false;
         }

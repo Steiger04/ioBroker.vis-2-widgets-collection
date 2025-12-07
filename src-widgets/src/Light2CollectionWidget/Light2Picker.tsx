@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, forwardRef } from 'react';
+import { useContext, useEffect, useMemo, useRef, forwardRef } from 'react';
 import type { MutableRefObject, Ref } from 'react';
 import type iro from '@jaames/iro';
 import { Box } from '@mui/material';
@@ -61,34 +61,10 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
         const { theme } = useContext(CollectionContext);
         const colorPickerRef = useRef<HTMLDivElement>(null);
         const iroPickerRef = useRef<iro.ColorPicker | null>(null);
-
-        // 1. useCallback für den Handler (optional, aber empfohlen)
-        const handleColorInit = useCallback(
-            (color: iro.Color, componentNumber?: number) => {
-                if (onColorInit) {
-                    onColorInit(color, componentNumber);
-                }
-            },
-            [onColorInit],
-        );
-
-        // 2. Ref für den Handler, immer aktuell halten
-        const onColorInitRef = useRef(handleColorInit);
-        onColorInitRef.current = handleColorInit;
-
-        // 1. useCallback für den Handler (optional, aber empfohlen)
-        const handleInputChange = useCallback(
-            (color: iro.Color, changes?: ColorChanges) => {
-                if (onInputChange) {
-                    onInputChange(color, changes);
-                }
-            },
-            [onInputChange],
-        );
-
-        // 2. Ref für den Handler, immer aktuell halten
-        const onInputChangeRef = useRef(handleInputChange);
-        onInputChangeRef.current = handleInputChange;
+        const onColorInitRef = useRef(onColorInit);
+        const onInputChangeRef = useRef(onInputChange);
+        onColorInitRef.current = onColorInit;
+        onInputChangeRef.current = onInputChange;
 
         const colorLightLayout = useMemo(
             () =>
@@ -126,8 +102,8 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
                     handleRadius: 8,
                     layoutDirection: 'horizontal',
                 },
-                (color, changes) => onInputChangeRef.current(color, changes), // Proxy-Handler mit changes
-                (color, componentNumber) => onColorInitRef.current(color, componentNumber), // Proxy-Handler
+                (color, changes) => onInputChangeRef.current?.(color, changes), // Proxy-Handler mit changes
+                (color, componentNumber) => onColorInitRef.current?.(color, componentNumber), // Proxy-Handler
                 cctComponentNumber,
             );
             setRef(ref, iroPickerRef.current);

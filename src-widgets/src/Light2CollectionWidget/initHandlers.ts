@@ -45,6 +45,24 @@ const normalizePercentValue = (value: number | undefined, maxValue?: number | nu
     return Math.round(value);
 };
 
+const readNormalizedPercentValue = (
+    propertyName: WidgetPropertyName,
+    widgetData: Light2WidgetData,
+    getPropertyValue: (stateName: string) => ioBroker.StateValue,
+    maxValue?: number | null,
+): number | undefined => {
+    const rawValue = readNumericValue(propertyName, widgetData, getPropertyValue);
+    return normalizePercentValue(rawValue, maxValue);
+};
+
+/**
+ * Default fallbacks used while initializing colors from ioBroker states:
+ * - Kelvin defaults to 2000K when no temperature value is available.
+ * - Hex strings default to '#ffffff' if missing or empty.
+ * - Numeric channels (RGB/HSV) default to 0 when undefined.
+ * - Hue-compatible channels with maxValue 254 are normalized to percent values before applying to iro.Color.
+ */
+
 export function initializeKelvin(
     color: iro.Color,
     widgetData: Light2WidgetData,
@@ -59,8 +77,12 @@ export function initializeBrightness(
     widgetData: Light2WidgetData,
     getPropertyValue: (stateName: string) => ioBroker.StateValue,
 ): void {
-    const brightnessRaw = readNumericValue('colorLightBrightnessOid', widgetData, getPropertyValue);
-    const brightnessValue = normalizePercentValue(brightnessRaw, widgetData.colorLightBrightnessOidObject?.maxValue);
+    const brightnessValue = readNormalizedPercentValue(
+        'colorLightBrightnessOid',
+        widgetData,
+        getPropertyValue,
+        widgetData.colorLightBrightnessOidObject?.maxValue,
+    );
 
     if (brightnessValue === undefined) {
         return;
@@ -85,12 +107,12 @@ export function initializeColorFromStates(
     switch (colorLightType) {
         case 'cct': {
             if (cctComponentNumber === 1) {
-                console.log('Initializing kelvin component');
                 initializeKelvin(color, widgetData, getPropertyValue);
             } else if (cctComponentNumber === 2) {
-                const brightnessRaw = readNumericValue('colorLightBrightnessOid', widgetData, getPropertyValue);
-                const brightnessValue = normalizePercentValue(
-                    brightnessRaw,
+                const brightnessValue = readNormalizedPercentValue(
+                    'colorLightBrightnessOid',
+                    widgetData,
+                    getPropertyValue,
                     widgetData.colorLightBrightnessOidObject?.maxValue,
                 );
 
@@ -147,25 +169,27 @@ export function initializeColorFromStates(
                 widgetData.colorLightBrightnessOid
             ) {
                 const hue = readNumericValue('colorLightHueOid', widgetData, getPropertyValue);
-                const saturationRaw = readNumericValue('colorLightSaturationOid', widgetData, getPropertyValue);
-                const brightnessRaw = readNumericValue('colorLightBrightnessOid', widgetData, getPropertyValue);
+                const saturation = readNormalizedPercentValue(
+                    'colorLightSaturationOid',
+                    widgetData,
+                    getPropertyValue,
+                    widgetData.colorLightSaturationOidObject?.maxValue,
+                );
+                const brightness = readNormalizedPercentValue(
+                    'colorLightBrightnessOid',
+                    widgetData,
+                    getPropertyValue,
+                    widgetData.colorLightBrightnessOidObject?.maxValue,
+                );
 
                 if (hue !== undefined) {
                     color.hue = hue;
                 }
 
-                const saturation = normalizePercentValue(
-                    saturationRaw,
-                    widgetData.colorLightSaturationOidObject?.maxValue,
-                );
                 if (saturation !== undefined) {
                     color.saturation = saturation;
                 }
 
-                const brightness = normalizePercentValue(
-                    brightnessRaw,
-                    widgetData.colorLightBrightnessOidObject?.maxValue,
-                );
                 if (brightness !== undefined) {
                     color.value = brightness;
                 }
