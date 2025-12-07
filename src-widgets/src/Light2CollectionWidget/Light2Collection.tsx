@@ -23,7 +23,6 @@ type ColorChanges = {
 
 // Skalare Properties, die tatsächlich in der Konfigurations-Map verwendet werden
 type ScalarColorProp = 'kelvin' | 'hexString' | 'red' | 'green' | 'blue' | 'hue' | 'saturation' | 'value';
-
 // Konfigurations-Typ für Lichttyp-zu-OID-Mapping
 type ColorPropertyConfig = {
     colorProp: ScalarColorProp;
@@ -520,13 +519,19 @@ function Light2CollectionContent(): React.ReactElement {
         try {
             initializeKelvin(kelvinColor, widgetDataRef.current, getPropertyValueRef.current);
 
+            if (prevCctLightRef.current === false) {
+                if (Number(temperatureValue) !== Number(kelvinColor.kelvin)) {
+                    setTemperatureValueState(Number(kelvinColor.kelvin));
+                }
+            }
+
             const tmpValue = brightnessColor.value;
             brightnessColor.hexString = kelvinColor.hexString;
             brightnessColor.value = tmpValue;
         } finally {
             isSyncingRef.current = false;
         }
-    }, [cctLight, isCctLight]);
+    }, [cctLight, isCctLight]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!prevCctLightRef.current || cctLight || !isCctLight) {
