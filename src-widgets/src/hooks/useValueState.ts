@@ -76,7 +76,6 @@ function isSignificantBackendChange(
  */
 interface UseValueStateReturn {
     value: string | number | boolean | undefined | null;
-    hasValueChanged: boolean;
     hasBackendChange: boolean;
     /**
      * Aktualisiert den Wert im lokalen State und optional im Backend.
@@ -96,15 +95,13 @@ interface UseValueStateReturn {
  * @returns Objekt mit value und updateValue
  */
 const useValueState = (idName: string): UseValueStateReturn => {
-    const { setState, widget, getPropertyValue, hasPropertyValueChanged, values } = useContext(CollectionContext);
+    const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
     const { data } = useData('oid');
 
     // Direkter Zugriff auf widget.data um Stale-Referenzen bei möglicher in-place Mutation zu vermeiden
     const oidObject = widget.data[`${idName}Object`] as OidObject | undefined;
 
     const value = getPropertyValue(idName);
-    const hasValueChanged = hasPropertyValueChanged(idName);
-
     const prevStateRef = useRef<{
         lc: number | undefined;
         value: string | number | boolean | undefined | null;
@@ -196,7 +193,6 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
     return {
         value,
-        hasValueChanged,
         hasBackendChange,
         updateValue,
     };

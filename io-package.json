@@ -160,7 +160,6 @@
                     "SelectCollectionWidget",
                     "RadioGroupCollectionWidget",
                     "GaugeCollectionWidget",
-                    "LightCollectionWidget",
                     "Light2CollectionWidget"
                 ]
             }

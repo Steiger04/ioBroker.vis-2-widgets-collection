@@ -1,7 +1,6 @@
 import { Box, CssBaseline } from '@mui/material';
 
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
-import { VALUE_NOT_CHANGED_TIMESTAMP } from './lib/constants';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 /* type ExtendedObject = ioBroker.Object & {
@@ -24,18 +23,6 @@ class Generic<
 
     getPropertyValue = (stateName: string): ioBroker.StateValue =>
         this.state.values[`${this.state.rxData[stateName]}.val`];
-
-    hasPropertyValueChanged = (stateName: string): boolean => {
-        const lastChange = this.state.values[`${this.state.rxData[stateName]}.lc`];
-        const timestamp = this.state.values[`${this.state.rxData[stateName]}.ts`];
-        const ack = this.state.values[`${this.state.rxData[stateName]}.ack`];
-
-        if (lastChange === VALUE_NOT_CHANGED_TIMESTAMP) {
-            return false;
-        }
-
-        return timestamp === lastChange && ack === false;
-    };
 
     setValue = (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack = false): void => {
         if (!id || id === 'nothing_selected') {

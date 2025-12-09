@@ -18,7 +18,6 @@ import type { ButtonGroupFieldsRxData } from './lib/buttonGroupFields';
 import type { SelectFieldsRxData } from './lib/selectFields';
 import type { GaugeFieldsRxData } from './lib/gaugeFields';
 import type { DialogFieldsRxData } from './lib/dialogFields';
-import type { LightFieldsRxData } from './lib/lightFields';
 import type { Light2FieldsRxData } from './lib/light2Fields';
 import type { CSSProperties } from 'react';
 
@@ -35,7 +34,6 @@ export interface CollectionContextProps<T> {
     values: VisRxWidgetStateValues;
     isSignalVisible: (index: number) => boolean;
     getPropertyValue: (stateName: string) => ioBroker.StateValue;
-    hasPropertyValueChanged: (stateName: string) => boolean;
     mode: ThemeType;
     socket: LegacyConnection;
     theme: Theme;
@@ -53,7 +51,6 @@ export type AllCollectionContextProps = CollectionContextProps<
         ButtonGroupFieldsRxData &
         SelectFieldsRxData &
         GaugeFieldsRxData &
-        LightFieldsRxData &
         Light2FieldsRxData &
         CommonObjectFieldsRxData &
         CommonFieldsRxData &
@@ -89,10 +86,6 @@ export type SelectCollectionContextProps = CollectionContextProps<
 export type GaugeCollectionContextProps = CollectionContextProps<
     GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData
 >;
-export type LightCollectionContextProps = CollectionContextProps<
-    LightFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
->;
-
 export type Light2CollectionContextProps = CollectionContextProps<
     Light2FieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
 >;

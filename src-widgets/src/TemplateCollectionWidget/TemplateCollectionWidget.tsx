@@ -4,7 +4,6 @@ import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
 import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import lightFields from '../lib/lightFields';
 import TemplateCollection from './TemplateCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
@@ -25,7 +24,7 @@ class TemplateCollectionWidget extends Generic<CommonObjectFieldsRxData & Common
                 {
                     name: 'dialog', // group name
                     label: 'group_dialog',
-                    fields: [...commonObjectFields(['boolean']), ...lightFields()],
+                    fields: [...commonObjectFields(['boolean'])],
                 },
                 {
                     name: 'values',
@@ -107,7 +106,6 @@ class TemplateCollectionWidget extends Generic<CommonObjectFieldsRxData & Common
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
-            hasPropertyValueChanged: this.hasPropertyValueChanged.bind(this),
             mode: this.props.context.themeType,
             socket: this.props.context.socket,
             theme: this.props.context.theme,

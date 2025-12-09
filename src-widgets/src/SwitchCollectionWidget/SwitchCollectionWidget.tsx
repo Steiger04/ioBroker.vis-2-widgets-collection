@@ -115,7 +115,6 @@ class SwitchCollectionWidget extends Generic<
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
-            hasPropertyValueChanged: this.hasPropertyValueChanged.bind(this),
             mode: this.props.context.themeType,
             socket: this.props.context.socket,
             theme: this.props.context.theme,

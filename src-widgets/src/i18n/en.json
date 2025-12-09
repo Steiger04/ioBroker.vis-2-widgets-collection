@@ -9,7 +9,7 @@
     "select_collection_widget": "Select (boolean, number, string, mixed)",
     "radio_group_collection_widget": "Radio group (boolean, number, string, mixed)",
     "gauge_collection_widget": "Gauge (number)",
-    "light_collection_widget": "Light",
+    "light2_collection_widget": "Light 2",
     "group_button": "State",
     "group_slider": "Slider",
     "group_switch": "Switch",

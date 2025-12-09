@@ -23,7 +23,6 @@ const config = {
                 './SelectCollectionWidget': './src/SelectCollectionWidget/SelectCollectionWidget',
                 './RadioGroupCollectionWidget': './src/RadioGroupCollectionWidget/RadioGroupCollectionWidget',
                 './GaugeCollectionWidget': './src/GaugeCollectionWidget/GaugeCollectionWidget',
-                './LightCollectionWidget': './src/LightCollectionWidget/LightCollectionWidget',
                 './Light2CollectionWidget': './src/Light2CollectionWidget/Light2CollectionWidget',
                 './translations': './src/translations',
             },

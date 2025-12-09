@@ -18,7 +18,7 @@ class Light2CollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFi
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'Light2CollectionWidget', // Name of widget
-            visWidgetLabel: 'light_collection_widget', // Label for widget
+            visWidgetLabel: 'light2_collection_widget', // Label for widget
             visOrder: 11,
             visAttrs: [
                 {
@@ -96,7 +96,6 @@ class Light2CollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFi
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
-            hasPropertyValueChanged: this.hasPropertyValueChanged.bind(this),
             mode: this.props.context.themeType,
             socket: this.props.context.socket,
             theme: this.props.context.theme,
