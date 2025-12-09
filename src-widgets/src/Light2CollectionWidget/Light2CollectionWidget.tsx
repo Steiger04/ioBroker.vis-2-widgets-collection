@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Light2CollectionContextProps } from 'src';
+import { type Light2CollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';

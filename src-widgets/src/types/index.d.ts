@@ -6,19 +6,19 @@ declare module '@iobroker/types-vis-2' {
 import type { ThemeType } from '@iobroker/adapter-react-v5';
 import type { type Theme, LegacyConnection, VisRxData } from '@iobroker/types-vis-2';
 
-import type { StateFieldsRxData } from './lib/stateFields';
-import type { CommonObjectFieldsRxData } from './lib/commonObjectFields';
-import type { CommonFieldsRxData } from './lib/commonFields';
-import type { DelayFieldsRxData } from './lib/delayFields';
-import type { CheckboxFieldsRxData } from './lib/checkboxFields';
-import type { SwitchFieldsRxData } from './lib/switchFields';
-import type { SliderFieldsRxData } from './lib/sliderFields';
-import type { RadioGroupFieldsRxData } from './lib/radioGroupFields';
-import type { ButtonGroupFieldsRxData } from './lib/buttonGroupFields';
-import type { SelectFieldsRxData } from './lib/selectFields';
-import type { GaugeFieldsRxData } from './lib/gaugeFields';
-import type { DialogFieldsRxData } from './lib/dialogFields';
-import type { Light2FieldsRxData } from './lib/light2Fields';
+import type { StateFieldsRxData } from '../lib/stateFields';
+import type { CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import type { CommonFieldsRxData } from '../lib/commonFields';
+import type { DelayFieldsRxData } from '../lib/delayFields';
+import type { CheckboxFieldsRxData } from '../lib/checkboxFields';
+import type { SwitchFieldsRxData } from '../lib/switchFields';
+import type { SliderFieldsRxData } from '../lib/sliderFields';
+import type { RadioGroupFieldsRxData } from '../lib/radioGroupFields';
+import type { ButtonGroupFieldsRxData } from '../lib/buttonGroupFields';
+import type { SelectFieldsRxData } from '../lib/selectFields';
+import type { GaugeFieldsRxData } from '../lib/gaugeFields';
+import type { DialogFieldsRxData } from '../lib/dialogFields';
+import type { Light2FieldsRxData } from '../lib/light2Fields';
 import type { CSSProperties } from 'react';
 
 export interface CollectionContextProps<T> {

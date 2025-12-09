@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CollectionContextProps } from '../index.d';
+import type { CollectionContextProps } from '../types';
 import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
 import { type CommonFieldsRxData } from '../lib/commonFields';
 
