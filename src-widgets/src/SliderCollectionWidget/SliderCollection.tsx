@@ -25,7 +25,10 @@ const SliderCollection: FC = () => {
     } = useContext(CollectionContext) as SliderCollectionContextProps;
     const { data, states, minValue, maxValue } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
-    const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
+    const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
+    const [sliderValue, setSliderValue] = useState<number | undefined>(
+        typeof oidValue === 'number' ? oidValue : undefined,
+    );
 
     // Refs für die dynamische Track-Positionierung
     const sliderContainerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +130,20 @@ const SliderCollection: FC = () => {
         return _sliderMarks;
     }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject?.unit, widget.data.onlyStates]);
 
+    useEffect(() => {
+        if (sliderValue === undefined && typeof oidValue === 'number') {
+            setSliderValue(oidValue);
+        }
+    }, [oidValue, sliderValue]);
+
+    useEffect(() => {
+        if (!oidValueChanged) {
+            return;
+        }
+
+        setSliderValue(typeof oidValue === 'number' ? oidValue : undefined);
+    }, [oidValueChanged, oidValue]);
+
     // Funktion zur Berechnung der Track-Position
     const calculateTrackOffset = (): void => {
         if (!sliderContainerRef.current) {
@@ -167,7 +184,7 @@ const SliderCollection: FC = () => {
         widget.data.sliderOrientation,
         widget.data.iconSizeStart,
         widget.data.iconSizeEnd,
-        oidValue,
+        sliderValue,
     ]);
 
     // ResizeObserver für dynamische Anpassung
@@ -273,7 +290,7 @@ const SliderCollection: FC = () => {
                             minHeight: widget.data.sliderOrientation === 'vertical' ? '200px' : 'auto',
                         }}
                     >
-                        {typeof oidValue === 'number' && (
+                        {typeof sliderValue === 'number' && (
                             <Slider
                                 slots={{
                                     markLabel: CollectionMark,
@@ -301,9 +318,10 @@ const SliderCollection: FC = () => {
                                           : undefined
                                 }
                                 size={widget.data.sliderSize}
-                                value={oidValue}
+                                value={sliderValue}
                                 onChange={(_, value) => {
                                     if (typeof value === 'number') {
+                                        setSliderValue(value);
                                         setOidValueState(value);
                                     }
                                 }}
