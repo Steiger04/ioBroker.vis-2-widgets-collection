@@ -186,6 +186,7 @@ function Light2CollectionContent(): React.ReactElement {
     getPropertyValueRef.current = getPropertyValue;
     const [kelvinChanged, setKelvinChanged] = useState(false);
     const isSyncingRef = useRef(false);
+    const processingRef = useRef(false);
 
     const isCctLight =
         rxData.colorLightType === 'rgbcct' ||
@@ -200,12 +201,13 @@ function Light2CollectionContent(): React.ReactElement {
     // Temperature (Backend/OID)
     const {
         value: temperatureValue,
-        hasValueChanged: temperatureChanged,
+        hasBackendChange: temperatureChanged,
         updateValue: setTemperatureValueState,
     } = useValueState('colorLightTemperatureOid');
 
     // Brightness
-    const { updateValue: setBrightnessValueState } = useValueState('colorLightBrightnessOid');
+    const { updateValue: setBrightnessValueState, hasBackendChange: brightnessChanged } =
+        useValueState('colorLightBrightnessOid');
 
     // RGB Hex
     const { updateValue: setRgbHexValueState } = useValueState('colorLightRgbHexOid');
@@ -371,66 +373,70 @@ function Light2CollectionContent(): React.ReactElement {
     const handleColorChange = useMemo(
         () =>
             (color: iro.Color, cctComponentNumber?: number, changes?: ColorChanges): void => {
-                if (!effectiveColorLightType) {
+                if (!effectiveColorLightType || processingRef.current || isSyncingRef.current) {
                     return;
                 }
 
-                if (isSyncingRef.current) {
-                    return;
-                }
+                processingRef.current = true;
 
-                const config = lightTypeConfigMap[effectiveColorLightType];
+                try {
+                    const config = lightTypeConfigMap[effectiveColorLightType];
 
-                if (!config) {
-                    return;
-                }
-
-                config.forEach((configItem: ColorPropertyConfig) => {
-                    const { colorProp, oidField, setter, normalize, cctComponent, changeKey } = configItem;
-
-                    // Für CCT-Modus: Nur relevanten Picker-Werte verarbeiten
-                    if (cctComponent !== undefined && cctComponentNumber !== cctComponent) {
+                    if (!config) {
                         return;
                     }
 
-                    // Für H/S/V-Typen: Nur schreiben wenn entsprechender Change-Flag gesetzt ist
-                    if (!shouldApplyChange(changeKey, changes)) {
-                        return;
+                    config.forEach((configItem: ColorPropertyConfig) => {
+                        const { colorProp, oidField, setter, normalize, cctComponent, changeKey } = configItem;
+
+                        // Für CCT-Modus: Nur relevanten Picker-Werte verarbeiten
+                        if (cctComponent !== undefined && cctComponentNumber !== cctComponent) {
+                            return;
+                        }
+
+                        // Für H/S/V-Typen: Nur schreiben wenn entsprechender Change-Flag gesetzt ist
+                        if (!shouldApplyChange(changeKey, changes)) {
+                            return;
+                        }
+
+                        // Prüfen ob OID-Objekt existiert
+                        const oidObjectKey = `${oidField}Object` as keyof typeof widget.data;
+                        const oidObject = widget.data[oidObjectKey] as { maxValue?: number | null } | undefined;
+
+                        if (!oidObject) {
+                            return;
+                        }
+
+                        // Wert aus iro.Color extrahieren
+                        let value: string | number | undefined = color[colorProp];
+
+                        // Wert normalisieren falls nötig
+                        if (normalize && typeof value === 'number') {
+                            value = normalizeValue(value, oidObject);
+                        } else if (typeof value === 'number') {
+                            value = Math.round(value);
+                        }
+
+                        // Fallback-Werte für undefined
+                        if (value === undefined || value === null) {
+                            value = getDefaultValueForColorProp(colorProp);
+                        }
+
+                        // State aktualisieren
+                        setter(value);
+                    });
+
+                    // Für Kelvin-Änderungen: Flag setzen (für Brightness-Picker-Sync)
+                    if (cctComponentNumber === 1) {
+                        setKelvinChanged(prev => !prev);
                     }
-
-                    // Prüfen ob OID-Objekt existiert
-                    const oidObjectKey = `${oidField}Object` as keyof typeof widget.data;
-                    const oidObject = widget.data[oidObjectKey] as { maxValue?: number | null } | undefined;
-
-                    if (!oidObject) {
-                        return;
-                    }
-
-                    // Wert aus iro.Color extrahieren
-                    let value: string | number | undefined = color[colorProp];
-
-                    // Wert normalisieren falls nötig
-                    if (normalize && typeof value === 'number') {
-                        value = normalizeValue(value, oidObject);
-                    } else if (typeof value === 'number') {
-                        value = Math.round(value);
-                    }
-
-                    // Fallback-Werte für undefined
-                    if (value === undefined || value === null) {
-                        value = getDefaultValueForColorProp(colorProp);
-                    }
-
-                    // State aktualisieren
-                    setter(value);
-                });
-
-                // Für Kelvin-Änderungen: Flag setzen (für Brightness-Picker-Sync)
-                if (cctComponentNumber === 1) {
-                    setKelvinChanged(prev => !prev);
+                } finally {
+                    void Promise.resolve().then(() => {
+                        processingRef.current = false;
+                    });
                 }
             },
-        [effectiveColorLightType, lightTypeConfigMap, widget, normalizeValue],
+        [effectiveColorLightType, lightTypeConfigMap, widget, normalizeValue, processingRef],
     );
 
     const marginLeft = useMemo(
@@ -569,6 +575,10 @@ function Light2CollectionContent(): React.ReactElement {
     useEffect(() => {
         prevCctLightRef.current = cctLight;
     }, [cctLight]);
+
+    useEffect(() => {
+        console.log('brightnessChanged:', brightnessChanged);
+    }, [brightnessChanged]);
 
     return (
         <CollectionBase

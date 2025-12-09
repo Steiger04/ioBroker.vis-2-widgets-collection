@@ -1,6 +1,7 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
+import useData from './useData';
 import useDebounce, { type OidObject, type OidType } from './useDebounce';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
@@ -50,11 +51,33 @@ function convertToOidType(
 }
 
 /**
+ * Prüft, ob eine Backend-Änderung signifikant ist (Differenz > 1) und daher synchronisiert werden soll.
+ * Wird nur aufgerufen, wenn die Last-Change-Timestamps unterschiedlich sind.
+ */
+function isSignificantBackendChange(
+    prevValue: string | number | boolean | undefined | null,
+    currentValue: string | number | boolean | undefined | null,
+): boolean {
+    const prevStr = String(prevValue ?? '');
+    const currStr = String(currentValue ?? '');
+
+    if (prevStr === currStr) {
+        return false;
+    }
+
+    const prevNum = Number(prevValue ?? 0);
+    const currNum = Number(currentValue ?? 0);
+
+    return Math.abs(prevNum - currNum) >= 1;
+}
+
+/**
  * Interface für den Return-Typ des useValueState Hooks
  */
 interface UseValueStateReturn {
     value: string | number | boolean | undefined | null;
     hasValueChanged: boolean;
+    hasBackendChange: boolean;
     /**
      * Aktualisiert den Wert im lokalen State und optional im Backend.
      *
@@ -73,13 +96,53 @@ interface UseValueStateReturn {
  * @returns Objekt mit value und updateValue
  */
 const useValueState = (idName: string): UseValueStateReturn => {
-    const { setState, widget, getPropertyValue, hasPropertyValueChanged } = useContext(CollectionContext);
+    const { setState, widget, getPropertyValue, hasPropertyValueChanged, values } = useContext(CollectionContext);
+    const { data } = useData('oid');
 
     // Direkter Zugriff auf widget.data um Stale-Referenzen bei möglicher in-place Mutation zu vermeiden
     const oidObject = widget.data[`${idName}Object`] as OidObject | undefined;
 
     const value = getPropertyValue(idName);
     const hasValueChanged = hasPropertyValueChanged(idName);
+
+    const prevStateRef = useRef<{
+        lc: number | undefined;
+        value: string | number | boolean | undefined | null;
+    }>({ lc: undefined, value: undefined });
+    const ignoreUntilRef = useRef<number>(0);
+
+    const delay = Number((data as { delay?: number }).delay ?? widget.data.delay) || 300;
+
+    const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
+    const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;
+
+    const hasBackendChange = useMemo(() => {
+        if (!oidObject?._id) {
+            return false;
+        }
+
+        if (currentLc === VALUE_NOT_CHANGED_TIMESTAMP) {
+            prevStateRef.current = { lc: VALUE_NOT_CHANGED_TIMESTAMP, value: currentValue };
+            return false;
+        }
+
+        if (Date.now() < ignoreUntilRef.current) {
+            prevStateRef.current = { lc: currentLc, value: currentValue };
+            return false;
+        }
+
+        if (prevStateRef.current.lc === undefined) {
+            prevStateRef.current = { lc: currentLc, value: currentValue };
+            return false;
+        }
+
+        const lcChanged = prevStateRef.current.lc !== currentLc;
+        const significantChange = isSignificantBackendChange(prevStateRef.current.value, currentValue);
+
+        prevStateRef.current = { lc: currentLc, value: currentValue };
+
+        return lcChanged && significantChange;
+    }, [oidObject?._id, currentLc, currentValue]);
 
     const debounce = useDebounce({
         oidObject,
@@ -112,6 +175,12 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 },
             }));
 
+            ignoreUntilRef.current = Date.now() + delay + 100;
+            prevStateRef.current = {
+                lc: VALUE_NOT_CHANGED_TIMESTAMP,
+                value: processedValue,
+            };
+
             // Bei skipBackendWrite wird nur der lokale State aktualisiert
             if (skipBackendWrite) {
                 return;
@@ -122,12 +191,13 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 debounce.next(processedValue);
             }
         },
-        [oidObject, setState, debounce],
+        [delay, debounce, oidObject, setState],
     );
 
     return {
         value,
         hasValueChanged,
+        hasBackendChange,
         updateValue,
     };
 };
