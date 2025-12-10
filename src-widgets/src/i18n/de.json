@@ -9,7 +9,7 @@
     "select_collection_widget": "Auswahl (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
     "radio_group_collection_widget": "Radio-Gruppe (boolescher Wert, Zahl, Zeichenfolge, gemischt)",
     "gauge_collection_widget": "Gauge (Zahl)",
-    "light2_collection_widget": "Licht 2",
+    "light2_collection_widget": "Licht",
     "group_button": "Zustand",
     "group_slider": "Schieberegler",
     "group_switch": "Schalter",
