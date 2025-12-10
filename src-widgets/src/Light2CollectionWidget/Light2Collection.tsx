@@ -210,16 +210,17 @@ function Light2CollectionContent(): React.ReactElement {
         useValueState('colorLightBrightnessOid');
 
     // RGB Hex
-    const { updateValue: setRgbHexValueState } = useValueState('colorLightRgbHexOid');
+    const { updateValue: setRgbHexValueState, hasBackendChange: rgbHexChanged } = useValueState('colorLightRgbHexOid');
 
     // R/G/B einzeln
-    const { updateValue: setRedValueState } = useValueState('colorLightRedOid');
-    const { updateValue: setGreenValueState } = useValueState('colorLightGreenOid');
-    const { updateValue: setBlueValueState } = useValueState('colorLightBlueOid');
+    const { updateValue: setRedValueState, hasBackendChange: redChanged } = useValueState('colorLightRedOid');
+    const { updateValue: setGreenValueState, hasBackendChange: greenChanged } = useValueState('colorLightGreenOid');
+    const { updateValue: setBlueValueState, hasBackendChange: blueChanged } = useValueState('colorLightBlueOid');
 
     // H/S/V
-    const { updateValue: setHueValueState } = useValueState('colorLightHueOid');
-    const { updateValue: setSaturationValueState } = useValueState('colorLightSaturationOid');
+    const { updateValue: setHueValueState, hasBackendChange: hueChanged } = useValueState('colorLightHueOid');
+    const { updateValue: setSaturationValueState, hasBackendChange: saturationChanged } =
+        useValueState('colorLightSaturationOid');
 
     // Type-safe Zugriff auf das OID Object
     const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
@@ -531,6 +532,97 @@ function Light2CollectionContent(): React.ReactElement {
         }
     }, [effectiveColorLightType, temperatureChanged, temperatureValue]);
 
+    useEffect(() => {
+        if (!cctLight || effectiveColorLightType !== 'cct') {
+            return;
+        }
+
+        if (!brightnessChanged || !brightnessPickerRef.current) {
+            return;
+        }
+
+        isSyncingRef.current = true;
+        try {
+            initializeBrightness(brightnessPickerRef.current.color, widgetDataRef.current, getPropertyValueRef.current);
+        } finally {
+            isSyncingRef.current = false;
+        }
+    }, [cctLight, effectiveColorLightType, brightnessChanged]);
+
+    useEffect(() => {
+        if (cctLight || !['rgb', 'rgbcct'].includes(effectiveColorLightType || '')) {
+            return;
+        }
+
+        if (!rgbHexChanged || !kelvinPickerRef.current) {
+            return;
+        }
+
+        isSyncingRef.current = true;
+        try {
+            initializeColorFromStates(
+                kelvinPickerRef.current.color,
+                effectiveColorLightType,
+                getPropertyValue,
+                widget.data,
+            );
+        } finally {
+            isSyncingRef.current = false;
+        }
+    }, [cctLight, effectiveColorLightType, rgbHexChanged, getPropertyValue, widget.data]);
+
+    useEffect(() => {
+        if (cctLight || !['r/g/b', 'r/g/b/cct'].includes(effectiveColorLightType || '')) {
+            return;
+        }
+
+        if ((!redChanged && !greenChanged && !blueChanged) || !kelvinPickerRef.current) {
+            return;
+        }
+
+        isSyncingRef.current = true;
+        try {
+            initializeColorFromStates(
+                kelvinPickerRef.current.color,
+                effectiveColorLightType,
+                getPropertyValue,
+                widget.data,
+            );
+        } finally {
+            isSyncingRef.current = false;
+        }
+    }, [cctLight, effectiveColorLightType, redChanged, greenChanged, blueChanged, getPropertyValue, widget.data]);
+
+    useEffect(() => {
+        if (cctLight || !['h/s/v', 'h/s/v/cct'].includes(effectiveColorLightType || '')) {
+            return;
+        }
+
+        if ((!hueChanged && !saturationChanged && !brightnessChanged) || !kelvinPickerRef.current) {
+            return;
+        }
+
+        isSyncingRef.current = true;
+        try {
+            initializeColorFromStates(
+                kelvinPickerRef.current.color,
+                effectiveColorLightType,
+                getPropertyValue,
+                widget.data,
+            );
+        } finally {
+            isSyncingRef.current = false;
+        }
+    }, [
+        cctLight,
+        effectiveColorLightType,
+        hueChanged,
+        saturationChanged,
+        brightnessChanged,
+        getPropertyValue,
+        widget.data,
+    ]);
+
     /* Beim Umschalten auf den Kelvin-Teil des CCT-Lichts beide Picker initial synchronisieren. */
     useEffect(() => {
         if (!cctLight || !isCctLight) {
@@ -573,12 +665,26 @@ function Light2CollectionContent(): React.ReactElement {
     }, [cctLight, isCctLight]);
 
     useEffect(() => {
-        prevCctLightRef.current = cctLight;
-    }, [cctLight]);
+        if (prevCctLightRef.current !== true || cctLight || !isCctLight || !kelvinPickerRef.current) {
+            return;
+        }
+
+        isSyncingRef.current = true;
+        try {
+            initializeColorFromStates(
+                kelvinPickerRef.current.color,
+                effectiveColorLightType,
+                getPropertyValueRef.current,
+                widgetDataRef.current,
+            );
+        } finally {
+            isSyncingRef.current = false;
+        }
+    }, [cctLight, isCctLight, effectiveColorLightType]);
 
     useEffect(() => {
-        console.log('brightnessChanged:', brightnessChanged);
-    }, [brightnessChanged]);
+        prevCctLightRef.current = cctLight;
+    }, [cctLight]);
 
     return (
         <CollectionBase

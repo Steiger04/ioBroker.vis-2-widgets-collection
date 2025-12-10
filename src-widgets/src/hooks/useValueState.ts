@@ -172,7 +172,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 },
             }));
 
-            ignoreUntilRef.current = Date.now() + delay + 100;
+            ignoreUntilRef.current = Date.now() + delay + 1500;
             prevStateRef.current = {
                 lc: VALUE_NOT_CHANGED_TIMESTAMP,
                 value: processedValue,
