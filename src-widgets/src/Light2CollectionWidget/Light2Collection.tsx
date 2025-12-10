@@ -1,6 +1,7 @@
 import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
+import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import withButtonModal from '../components/withButtonModal';
 import useData from '../hooks/useData';
@@ -692,6 +693,10 @@ function Light2CollectionContent(): React.ReactElement {
             data={data}
             oidValue={oidValue}
         >
+            <CollectionBaseImage
+                data={data}
+                widget={widget}
+            />
             {rxData.colorLightType !== 'none' ? (
                 <Box
                     sx={{

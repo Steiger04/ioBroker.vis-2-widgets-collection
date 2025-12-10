@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
-import { type AllCollectionContextProps } from '..';
+import { type AllCollectionContextProps } from '../types';
 import { type StyleData } from '../hooks/useData';
 
 // Typen für die Props basierend auf der Verwendung in Collection-Komponenten
