@@ -251,7 +251,7 @@ export interface UseDebounceReturn {
 function useDebounce({
     oidObject,
     data: { sampleInterval, sampleIntervalValue, delay },
-    persistOnUnmount = true,
+    persistOnUnmount = false,
     onError,
 }: UseDebounceParams): UseDebounceReturn | null {
     const { setValue, id: widgetId } = useContext(CollectionContext);
