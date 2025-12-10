@@ -5,8 +5,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
-
-import type { SliderCollectionContextProps } from 'src';
+import CollectionBaseImage from '../components/CollectionBaseImage';
 
 interface SliderMarkLabelProps {
     marks: boolean;
@@ -17,12 +16,13 @@ interface SliderMarkLabelProps {
 }
 
 const SliderCollection: FC = () => {
+    const context = useContext(CollectionContext);
     const {
         widget: {
             data: { oidObject },
         },
         widget,
-    } = useContext(CollectionContext) as SliderCollectionContextProps;
+    } = context;
     const { data, states, minValue, maxValue } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
@@ -217,6 +217,10 @@ const SliderCollection: FC = () => {
             data={data}
             oidValue={oidValue}
         >
+            <CollectionBaseImage
+                data={data}
+                widget={widget}
+            />
             {isValidType ? (
                 <Box
                     ref={sliderContainerRef}

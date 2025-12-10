@@ -1,5 +1,5 @@
 import React from 'react';
-import { type SelectCollectionContextProps } from 'src';
+import { type SelectCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { type ButtonGroupCollectionContextProps } from 'src';
+import { type ButtonGroupCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import buttonGroupFields, { type ButtonGroupFieldsRxData } from '../lib/buttonGroupFields';

@@ -7,7 +7,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
-import type { DialogCollectionContextProps } from 'src';
+import type { DialogCollectionContextProps } from 'src/types';
 
 // OID Object Interface
 /* interface OidObject {

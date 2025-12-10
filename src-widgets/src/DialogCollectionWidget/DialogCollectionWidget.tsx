@@ -1,5 +1,5 @@
 import React from 'react';
-import { type DialogCollectionContextProps } from 'src';
+import { type DialogCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 

@@ -5,7 +5,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import Gauge from './Gauge';
-import type { GaugeCollectionContextProps } from 'src';
+import CollectionBaseImage from '../components/CollectionBaseImage';
 
 interface Highlight {
     from: number;
@@ -38,13 +38,16 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
 function GaugeCollection(): React.JSX.Element {
     const baseRef = useRef<CollectionBaseHandle>(null);
     const gaugeRef = useRef<HTMLDivElement>(null);
+
+    const context = useContext(CollectionContext);
     const {
         wrappedContent,
         widget: {
             data: { oidObject },
         },
         widget,
-    } = useContext(CollectionContext) as unknown as GaugeCollectionContextProps;
+    } = context;
+    const theme = context.theme;
 
     const { data, states } = useData('oid');
     const oidValue = useOidValue('oid');
@@ -52,6 +55,8 @@ function GaugeCollection(): React.JSX.Element {
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
+
+    const iconColor = data.iconColor || theme.palette.primary.main;
 
     const majorTicks = useMemo(() => {
         const minValue = Number(widget.data.gaugeMinValue) || 0;
@@ -167,6 +172,10 @@ function GaugeCollection(): React.JSX.Element {
             data={data}
             oidValue={oidValue}
         >
+            <CollectionBaseImage
+                data={data}
+                widget={widget}
+            />
             <Box
                 ref={gaugeRef}
                 sx={{
@@ -181,7 +190,7 @@ function GaugeCollection(): React.JSX.Element {
                 <Gauge
                     gaugeData={{
                         icon: typeof data.icon === 'string' ? data.icon : undefined,
-                        iconColor: data.iconColor,
+                        iconColor: iconColor,
                         header: data.header,
                     }}
                     gaugeWidgetData={widget.data}

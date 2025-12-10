@@ -1,5 +1,5 @@
 import React from 'react';
-import { type CheckboxCollectionContextProps } from 'src';
+import { type CheckboxCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import checkboxFields, { type CheckboxFieldsRxData } from '../lib/checkboxFields';

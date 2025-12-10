@@ -2,7 +2,7 @@ import { type CommonFieldsRxData } from '../lib/commonFields';
 import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
 import CollectionProvider from './CollectionProvider';
 
-import type { CollectionContextProps } from 'src';
+import type { CollectionContextProps } from 'src/types';
 
 function withCollectionProvider(
     component: JSX.Element | JSX.Element[] | null,

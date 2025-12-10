@@ -1,5 +1,5 @@
 import React from 'react';
-import { type RadioGroupCollectionContextProps } from 'src';
+import { type RadioGroupCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';

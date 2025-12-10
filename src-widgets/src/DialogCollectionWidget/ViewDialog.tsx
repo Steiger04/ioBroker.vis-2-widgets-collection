@@ -3,7 +3,7 @@ import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
-import type { DialogCollectionContextProps } from 'src';
+import type { DialogCollectionContextProps } from 'src/types';
 
 // Import StyleData type from useData
 type StyleData = {

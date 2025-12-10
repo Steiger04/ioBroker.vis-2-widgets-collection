@@ -1,4 +1,4 @@
-import { type GaugeCollectionContextProps } from 'src';
+import { type GaugeCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 

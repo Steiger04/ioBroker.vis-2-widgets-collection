@@ -1,4 +1,4 @@
-import { type StateCollectionContextProps } from 'src';
+import { type StateCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 

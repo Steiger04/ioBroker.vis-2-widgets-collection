@@ -1,5 +1,5 @@
 import React from 'react';
-import { type SliderCollectionContextProps } from 'src';
+import { type SliderCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
