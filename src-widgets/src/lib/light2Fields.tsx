@@ -138,7 +138,7 @@ const loadStatesAsync = async (
 };
 
 const light2Fields = (): RxWidgetInfoAttributesField[] => [
-    {
+    /* {
         type: 'custom',
         component: () => <CollectionDivider />,
     },
@@ -154,7 +154,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         ],
         default: 'default',
         noTranslation: true,
-    },
+    }, */
     {
         type: 'custom',
         component: () => <CollectionDivider />,
