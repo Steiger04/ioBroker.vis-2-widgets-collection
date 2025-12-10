@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
-import { type AllCollectionContextProps } from '..';
+import { type AllCollectionContextProps } from '../types';
 
 // Interface for StyleData
 export interface StyleData {

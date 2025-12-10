@@ -4,7 +4,7 @@ import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
-import { type TemplateCollectionContextProps } from '..';
+import { type TemplateCollectionContextProps } from '../types';
 
 function TemplateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as TemplateCollectionContextProps;
