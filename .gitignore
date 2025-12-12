@@ -1,4 +1,5 @@
 /.idea
+/.github/copilot-instructions.md
 /node_modules
 /package-lock.json
 /src-widgets/build
