@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import type { CollectionContextProps } from '../types';
-import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import { type CommonFieldsRxData } from '../lib/commonFields';
+import type { CommonObjectFieldsRxData } from '../lib/commonObjectFields';
 
 /**
  * Interface für die Daten-Parameter (kompatibel mit useData-Return)
@@ -15,6 +14,8 @@ interface UseHtmlValueData {
  * Hook für HTML-Wert-Formatierung mit Unit-Unterstützung
  * Optimiert für Performance mit useMemo
  *
+ * Accepts any widget type - uses only CommonObjectFieldsRxData properties (unit) at runtime.
+ *
  * @param oidValue Der aktuelle Wert des OID
  * @param widget Das Widget-Objekt mit Daten
  * @param data Die Daten-Map mit alias/value Informationen
@@ -22,7 +23,7 @@ interface UseHtmlValueData {
  */
 const useHtmlValue = (
     oidValue: string | number | boolean | undefined | null,
-    widget: CollectionContextProps<Partial<CommonObjectFieldsRxData & CommonFieldsRxData>>['widget'] | undefined,
+    widget: CollectionContextProps<any>['widget'] | undefined,
     data: UseHtmlValueData | undefined,
 ): string | number | boolean | undefined => {
     // Memoization für bessere Performance
@@ -43,7 +44,8 @@ const useHtmlValue = (
             oidValue !== null &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
-            const unit = widget!.data.unit;
+            // Access unit property directly - T extends CommonObjectFieldsRxData ensures it exists
+            const unit = widget?.data.unit;
             const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;

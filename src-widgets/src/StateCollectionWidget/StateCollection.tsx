@@ -8,12 +8,13 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import type { StateCollectionContextProps } from '../newTypes';
 
 function StateCollection(): React.ReactElement {
     // const contentRef = useRef<HTMLDivElement>(null);
     // const [setContentRef] = useState<HTMLSpanElement | null>(null);
     // StateCollection wird nur im StateCollectionWidget verwendet, daher ist der Cast sicher
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget } = context;
     const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
@@ -30,14 +31,26 @@ function StateCollection(): React.ReactElement {
     const contentValue = htmlValue !== undefined && htmlValue !== null ? String(htmlValue) : '';
 
     const downHandler = (): void => {
-        if (onlyStates && Number(widget.data.values_count) === 2 && widget.data.statePushButton) {
-            setTimeout(() => setOidValueState(widget.data.value1), 0);
+        const value1 = widget.data.value1;
+        if (
+            onlyStates &&
+            Number(widget.data.values_count) === 2 &&
+            widget.data.statePushButton &&
+            value1 !== undefined
+        ) {
+            setTimeout(() => setOidValueState(value1), 0);
         }
     };
 
     const upHandler = (): void => {
-        if (onlyStates && Number(widget.data.values_count) === 2 && widget.data.statePushButton) {
-            setTimeout(() => setOidValueState(widget.data.value2), 0);
+        const value2 = widget.data.value2;
+        if (
+            onlyStates &&
+            Number(widget.data.values_count) === 2 &&
+            widget.data.statePushButton &&
+            value2 !== undefined
+        ) {
+            setTimeout(() => setOidValueState(value2), 0);
         }
     };
 
@@ -49,12 +62,16 @@ function StateCollection(): React.ReactElement {
 
         switch (Number(widget.data.values_count)) {
             case 1:
-                setOidValueState(widget.data.value1);
+                if (widget.data.value1 !== undefined) {
+                    setOidValueState(widget.data.value1);
+                }
                 break;
             case 2:
-                !widget.data.statePushButton && String(oidValue) === String(widget.data.value1)
-                    ? setOidValueState(widget.data.value2)
-                    : setOidValueState(widget.data.value1);
+                if (widget.data.value1 !== undefined && widget.data.value2 !== undefined) {
+                    !widget.data.statePushButton && String(oidValue) === String(widget.data.value1)
+                        ? setOidValueState(widget.data.value2)
+                        : setOidValueState(widget.data.value1);
+                }
                 break;
             default:
                 setOpen(true);

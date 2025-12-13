@@ -1,15 +1,20 @@
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
-import { type AllCollectionContextProps } from '../types';
+import type { CollectionContextProps } from '../types';
+import type { CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import type { CommonFieldsRxData } from '../lib/commonFields';
 import { type StyleData } from '../hooks/useData';
 
-// Typen für die Props basierend auf der Verwendung in Collection-Komponenten
+/**
+ * Props for CollectionBaseImage component.
+ * Accepts any widget type - uses only CommonFieldsRxData and CommonObjectFieldsRxData properties at runtime.
+ */
 interface CollectionBaseImageProps {
     data: StyleData;
-    widget: AllCollectionContextProps['widget'];
+    widget: CollectionContextProps<any>['widget'];
 }
 
-const CollectionBaseImage: React.FC<CollectionBaseImageProps> = ({ data, widget }) => {
+const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.ReactElement | null => {
     const context = useContext(CollectionContext);
     const theme = context.theme;
 

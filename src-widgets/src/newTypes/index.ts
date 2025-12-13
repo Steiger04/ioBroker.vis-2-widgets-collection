@@ -9,3 +9,8 @@
 
 // Re-export runtime types from utility-types
 export type { OidType, OidObject } from './utility-types';
+
+// Re-export type-only exports for TypeScript resolution
+export type * from './widget-registry';
+export type * from './context-types';
+export type * from './field-definitions';

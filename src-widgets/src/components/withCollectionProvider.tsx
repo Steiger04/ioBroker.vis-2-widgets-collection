@@ -1,14 +1,18 @@
-import { type CommonFieldsRxData } from '../lib/commonFields';
-import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
 import CollectionProvider from './CollectionProvider';
 
 import type { CollectionContextProps } from 'src/types';
 
-function withCollectionProvider(
+/**
+ * Generic wrapper function for Collection widgets.
+ * Accepts any CollectionContextProps type including WidgetRegistry-based types.
+ * The context is cast to AllCollectionContextProps internally by CollectionProvider.
+ */
+function withCollectionProvider<T extends object = object>(
     component: JSX.Element | JSX.Element[] | null,
-    context: CollectionContextProps<CommonObjectFieldsRxData & CommonFieldsRxData>,
+    context: CollectionContextProps<T>,
 ): JSX.Element {
-    return <CollectionProvider context={context}>{component}</CollectionProvider>;
+    // Cast is safe because CollectionProvider accepts AllCollectionContextProps which is a union of all widget types
+    return <CollectionProvider context={context as any}>{component}</CollectionProvider>;
 }
 
 export default withCollectionProvider;

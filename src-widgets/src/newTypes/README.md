@@ -507,17 +507,42 @@ Phase 5 successfully migrated all core hooks to use new types from `newTypes/`:
 
 For detailed information, see [PHASE-5-COMPLETE.md](./PHASE-5-COMPLETE.md).
 
-### Phase 6-8: Widget Implementation Migration (⏳ Next)
+### Phase 6: Widget Migration - Template, State, Checkbox (✅ Complete)
 
-Phase 6-8 will migrate all 11 widget implementations to use registry types:
+**Status:** Successfully migrated 3 simplest widgets to newTypes system.
+
+**Migrated Components:**
+
+- ✅ TemplateCollectionWidget + TemplateCollection
+- ✅ StateCollectionWidget + StateCollection
+- ✅ CheckboxCollectionWidget + CheckboxCollection
+
+**Key Changes:**
+
+- Generic parameters use `WidgetRegistry['tpl*CollectionWidget']`
+- Context types imported from `../newTypes`
+- Found and fixed 5 potential bugs through stricter type checking
+- Added type casts for compatibility with Phase 9 base components
+
+**Metrics:**
+
+- Files changed: 7
+- Type imports removed: 12
+- Manual intersections replaced: 3
+- Bugs found: 5 (missing undefined checks)
+
+For detailed information, see [PHASE-6-COMPLETE.md](./PHASE-6-COMPLETE.md).
+
+### Phase 7-8: Widget Implementation Migration (⏳ Next)
+
+Phase 7-8 will migrate remaining 8 widget implementations to use registry types:
 
 **Approach:**
 
-- Phase 6: Migrate 3-4 simple widgets (Template, State, Checkbox, Switch)
-- Phase 7: Migrate 4-5 medium widgets (Slider, RadioGroup, ButtonGroup, Select, Dialog)
-- Phase 8: Migrate 2-3 complex widgets (Gauge, Light2)
+- Phase 7: Migrate 5 medium widgets (Switch, Slider, RadioGroup, ButtonGroup, Select)
+- Phase 8: Migrate 3 complex widgets (Gauge, Dialog, Light2)
 
-**Estimated Effort:** ~7-10 days
+**Estimated Effort:** ~5-7 days
 
 ### Phase 9-10: Cleanup & Finalization
 
@@ -608,15 +633,18 @@ Phase 6-8 will migrate all 11 widget implementations to use registry types:
 
 ## 📊 Implementierungsstatus
 
-| Phase         | Status           | Dateien     | Beschreibung                                                                 |
-| ------------- | ---------------- | ----------- | ---------------------------------------------------------------------------- |
-| **Phase 1**   | ✅ Abgeschlossen | 4 Dateien   | Basis-Infrastruktur (widget-builder, utility-types, vis-2-extensions, index) |
-| **Phase 2**   | ✅ Abgeschlossen | 2 Dateien   | Common Fields (~40 Properties)                                               |
-| **Phase 3**   | ✅ Abgeschlossen | 11 Dateien  | Widget-spezifische Fields (~167 Properties)                                  |
-| **Phase 4**   | ✅ Abgeschlossen | 2 Dateien   | Widget Registry & Context Types                                              |
-| **Phase 5**   | ✅ Abgeschlossen | 4 Dateien   | Hooks-Migration (useDebounce, useOidValue, useValueState, useData)           |
-| **Phase 6-9** | ⏳ Geplant       | ~30 Dateien | Widget-Komponenten-Migration                                                 |
-| **Phase 10**  | ⏳ Geplant       | Cleanup     | Legacy-Type-Entfernung                                                       |
+| Phase        | Status           | Dateien     | Beschreibung                                                                 |
+| ------------ | ---------------- | ----------- | ---------------------------------------------------------------------------- |
+| **Phase 1**  | ✅ Abgeschlossen | 4 Dateien   | Basis-Infrastruktur (widget-builder, utility-types, vis-2-extensions, index) |
+| **Phase 2**  | ✅ Abgeschlossen | 2 Dateien   | Common Fields (~40 Properties)                                               |
+| **Phase 3**  | ✅ Abgeschlossen | 11 Dateien  | Widget-spezifische Fields (~167 Properties)                                  |
+| **Phase 4**  | ✅ Abgeschlossen | 2 Dateien   | Widget Registry & Context Types                                              |
+| **Phase 5**  | ✅ Abgeschlossen | 4 Dateien   | Hooks-Migration (useDebounce, useOidValue, useValueState, useData)           |
+| **Phase 6**  | ✅ Abgeschlossen | 7 Dateien   | Widget-Migration: Template, State, Checkbox                                  |
+| **Phase 7**  | ⏳ Geplant       | ~10 Dateien | Widget-Migration: Switch, Slider, RadioGroup, ButtonGroup, Select            |
+| **Phase 8**  | ⏳ Geplant       | ~6 Dateien  | Widget-Migration: Gauge, Dialog, Light2                                      |
+| **Phase 9**  | ⏳ Geplant       | ~6 Dateien  | Base-Komponenten (Generic, CollectionProvider, withCollectionProvider)       |
+| **Phase 10** | ⏳ Geplant       | Cleanup     | Legacy-Type-Entfernung                                                       |
 
 ### ⚠️ Bekannte Kompatibilitätsprobleme
 

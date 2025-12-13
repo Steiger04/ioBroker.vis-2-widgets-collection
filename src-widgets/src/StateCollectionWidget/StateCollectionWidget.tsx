@@ -1,18 +1,16 @@
-import { type StateCollectionContextProps } from 'src/types';
+import type { StateCollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import stateFields, { type StateFieldsRxData } from '../lib/stateFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import stateFields from '../lib/stateFields';
 import StateCollection from './StateCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-class StateCollectionWidget extends Generic<
-    StateFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
     // private lastRxData: string | null = null;
 
     static getWidgetInfo(): RxWidgetInfo {

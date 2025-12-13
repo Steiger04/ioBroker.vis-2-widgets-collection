@@ -1,21 +1,21 @@
 import React from 'react';
-import { type TemplateCollectionContextProps } from 'src/types';
+import type { TemplateCollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
 import TemplateCollection from './TemplateCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
 
-class TemplateCollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFieldsRxData> {
+class TemplateCollectionWidget extends Generic<WidgetRegistry['tplTemplateCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
-            id: 'tplLightCollectionWidget',
+            id: 'tplTemplateCollectionWidget',
             visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
-            visName: 'LightCollectionWidget', // Name of widget
-            visWidgetLabel: 'light_collection_widget', // Label for widget
+            visName: 'TemplateCollectionWidget', // Name of widget
+            visWidgetLabel: 'template_collection_widget', // Label for widget
             visAttrs: [
                 {
                     name: 'common', // group name

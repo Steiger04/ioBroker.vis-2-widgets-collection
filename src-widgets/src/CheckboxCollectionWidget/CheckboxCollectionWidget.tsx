@@ -1,18 +1,16 @@
 import React from 'react';
-import { type CheckboxCollectionContextProps } from 'src/types';
+import type { CheckboxCollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import checkboxFields, { type CheckboxFieldsRxData } from '../lib/checkboxFields';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import checkboxFields from '../lib/checkboxFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
 import CheckboxCollection from './CheckboxCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-class CheckboxCollectionWidget extends Generic<
-    CheckboxFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplCheckboxCollectionWidget',
