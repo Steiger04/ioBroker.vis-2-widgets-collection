@@ -1,32 +1,96 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
-import { type AllCollectionContextProps } from '../types';
+import type { OidObject } from '../newTypes/utility-types';
 
-// Interface for StyleData
+/**
+ * Interface für Style-Daten eines Collection Widgets.
+ * Enthält alle visuellen Eigenschaften für Icons, Header, Footer, Werte und Hintergründe.
+ */
 export interface StyleData {
+    /** Textfarbe (Standard oder aus Theme) */
     textColor: string;
+    /** Textfarbe im aktiven Zustand */
     textColorActive?: string;
+
+    /** Header-Text (mit Zeilenumbrüchen entfernt) */
     header: string;
+    /** Header-Schriftgröße in % oder px */
     headerSize: string | null;
+
+    /** Footer-Text (mit Zeilenumbrüchen entfernt) */
     footer: string;
+    /** Footer-Schriftgröße in % oder px */
     footerSize: string | null;
+
+    /** Alias-Text für Wert-Anzeige */
     alias: string;
+    /** Formatierter Wert mit Einheit */
     value?: string;
+    /** Wert-Schriftgröße in % oder px */
     valueSize: string | null;
+    /** Aktive Wert-Schriftgröße oder false wenn nicht gesetzt */
     valueSizeActive: string | false | null;
+
+    /** Icon-Pfad oder false wenn kein Icon */
     icon: string | false;
+    /** Aktives Icon-Pfad oder false */
     iconActive: string | false;
+    /** Icon-Größe als CSS calc() oder px */
     iconSize: string;
+    /** Aktive Icon-Größe oder false */
     iconSizeActive: string | false;
+    /** Nur Icon-Größe als Zahl (aktiv) */
     iconSizeActiveOnly?: number;
+    /** Nur Icon-Größe als Zahl */
     iconSizeOnly?: number;
+    /** Icon-Farbe */
     iconColor?: string;
+    /** Aktive Icon-Farbe */
     iconColorActive?: string;
+    /** Icon-Hover-Effekt in % */
     iconHover?: string;
+    /** Aktiver Icon-Hover-Effekt in % */
     iconHoverActive?: string;
+    /** Icon X-Offset (CSS-Wert mit Einheit) */
+    iconXOffset: string;
+    /** Icon Y-Offset (CSS-Wert mit Einheit) */
+    iconYOffset: string;
+
+    /** Hintergrundfarbe */
+    backgroundColor: string;
+    /** Aktive Hintergrundfarbe */
+    backgroundColorActive?: string;
+    /** Hintergrund (Gradient/Image) */
+    background: string;
+    /** Aktiver Hintergrund */
+    backgroundActive?: string;
+
+    /** Frame-Hintergrundfarbe */
+    frameBackgroundColor: string;
+    /** Aktive Frame-Hintergrundfarbe */
+    frameBackgroundColorActive?: string;
+    /** Frame-Hintergrund (Gradient/Image) */
+    frameBackground: string;
+    /** Aktiver Frame-Hintergrund */
+    frameBackgroundActive?: string;
+}
+
+/**
+ * Interface für State-Array-Items mit allen visuellen Properties.
+ */
+interface StateItem {
+    value: string | number | boolean;
+    label: string;
+    fontSize?: string;
+    textColor?: string;
+    icon?: string;
+    iconSize?: number;
+    iconWidth: number;
+    iconHeight: number;
     iconXOffset: string;
     iconYOffset: string;
+    iconColor: string;
     backgroundColor: string;
     backgroundColorActive?: string;
     background: string;
@@ -37,6 +101,16 @@ export interface StyleData {
     frameBackgroundActive?: string;
 }
 
+/**
+ * Hook für Widget-Daten-Management mit State-Verarbeitung und Styling.
+ * Dieser Hook verarbeitet OID-Objekt-Daten, dynamische Style-Properties,
+ * State-Werte und deren Visualisierung, sowie Min/Max-Werte für numerische States.
+ *
+ * @param oid - OID-Bezeichner (z.B. 'oid', 'oid1', 'oid2')
+ * @returns Objekt mit states, widgetStates, minValue, maxValue, data, activeIndex, setActiveIndex, oidValue
+ * @example
+ * const { states, data, activeIndex } = useData('oid1');
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 function useData(oid: string) {
     const {
@@ -50,7 +124,7 @@ function useData(oid: string) {
         getPropertyValue,
     } = useContext(CollectionContext);
 
-    const oidObject = rxData[`${oid}Object`];
+    const oidObject = rxData[`${oid}Object`] as OidObject | undefined;
 
     const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
@@ -59,12 +133,15 @@ function useData(oid: string) {
     const oidName = oidObject?.name;
 
     // Hilfsfunktionen
-    const formatSize = useCallback((size: any): string | null => (typeof size === 'number' ? `${size}%` : null), []);
+    const formatSize = useCallback(
+        (size: number | string | undefined): string | null => (typeof size === 'number' ? `${size}%` : null),
+        [],
+    );
     const getDataValue = useCallback(
         <T = unknown>(key: string, ext: string = ''): T | undefined => {
             const fullKey = `${key}${ext}`;
             if (fullKey in rxData) {
-                return (rxData as Record<string, any>)[fullKey] as T;
+                return rxData[fullKey as keyof typeof rxData] as T;
             }
             return undefined;
         },
@@ -74,13 +151,13 @@ function useData(oid: string) {
     // States-Berechnung
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
         const processStates = (): {
-            states: Partial<AllCollectionContextProps['widget']['data']>[];
-            widgetStates: Partial<AllCollectionContextProps['widget']['data']>;
+            states: StateItem[];
+            widgetStates: Record<string, string>;
             minValue: number | null;
             maxValue: number | null;
         } => {
-            const states: Partial<AllCollectionContextProps['widget']['data']>[] = [];
-            const widgetStates: Partial<AllCollectionContextProps['widget']['data']> = {};
+            const states: StateItem[] = [];
+            const widgetStates: Record<string, string> = {};
             let minValue: number | null = null;
             let maxValue: number | null = null;
 
@@ -167,8 +244,7 @@ function useData(oid: string) {
                         });
 
                         const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                        (widgetStates as unknown as Record<string, string>)[key] =
-                            _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
+                        widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
                     }
                 }
                 if (oidType === 'number' && states.length) {

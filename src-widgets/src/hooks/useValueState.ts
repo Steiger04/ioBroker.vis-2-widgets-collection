@@ -2,7 +2,8 @@ import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
 import useData from './useData';
-import useDebounce, { type OidObject, type OidType } from './useDebounce';
+import useDebounce from './useDebounce';
+import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../newTypes';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 
@@ -89,17 +90,19 @@ interface UseValueStateReturn {
 }
 
 /**
- * Hook für Wert-State Management mit Typkonvertierung und Debouncing
+ * Hook für Wert-State Management mit Typkonvertierung und Debouncing.
+ * Verwendet OidObject aus newTypes für präzise OID-Typisierung.
+ * Unterstützt DelayFieldsRxData für Delay-Konfiguration.
  *
- * @param idName Der Name der OID-Property
- * @returns Objekt mit value und updateValue
+ * @param idName Der Name der OID-Property (z.B. 'oid', 'oid1', 'oid2')
+ * @returns Objekt mit value, hasBackendChange und updateValue
  */
 const useValueState = (idName: string): UseValueStateReturn => {
     const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
     const { data } = useData('oid');
 
     // Direkter Zugriff auf widget.data um Stale-Referenzen bei möglicher in-place Mutation zu vermeiden
-    const oidObject = widget.data[`${idName}Object`] as OidObject | undefined;
+    const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
 
     const value = getPropertyValue(idName);
     const prevStateRef = useRef<{
@@ -108,7 +111,7 @@ const useValueState = (idName: string): UseValueStateReturn => {
     }>({ lc: undefined, value: undefined });
     const ignoreUntilRef = useRef<number>(0);
 
-    const delay = Number((data as { delay?: number }).delay ?? widget.data.delay) || 300;
+    const delay = Number((data as DelayFieldsRxData).delay ?? widget.data.delay) || 300;
 
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;

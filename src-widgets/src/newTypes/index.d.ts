@@ -47,6 +47,8 @@ export type * from './widget-builder';
  * Utility functions and type guards for runtime operations.
  *
  * Key exports:
+ * - `OidObject` - Interface for OID object parameters (runtime + type)
+ * - `OidType` - Union type for supported OID types (runtime + type)
  * - `getDynamicProperty<T, K>` - Type-safe dynamic property access
  * - `setDynamicProperty<T, K, V>` - Type-safe dynamic property assignment
  * - `getAllIndexedProperties<T, P>` - Get all indexed properties (oid1, oid2, ...)
@@ -54,17 +56,19 @@ export type * from './widget-builder';
  * - `hasIndexedProperty<T, P>` - Check if indexed property exists
  *
  * @remarks
- * These are type declarations only. Implementations will be created in .ts files
- * when the utilities are needed by widget components.
+ * OidObject and OidType are runtime types exported from utility-types.ts.
+ * Other utilities are type declarations only - implementations will be created
+ * in .ts files when needed by widget components.
  *
  * @example
  * ```typescript
- * import { getDynamicProperty } from 'vis-2-widgets-collection/newTypes';
+ * import { getDynamicProperty, type OidObject } from 'vis-2-widgets-collection/newTypes';
  *
  * const oid = getDynamicProperty(this.props, `oid${index}`);
  * ```
  */
-export type * from './utility-types';
+export type * from './utility-types.d';
+export type { OidObject, OidType } from './utility-types';
 
 /**
  * Module augmentation and extensions for @iobroker/types-vis-2.

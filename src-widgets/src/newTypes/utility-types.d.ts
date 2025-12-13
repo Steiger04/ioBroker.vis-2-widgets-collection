@@ -6,9 +6,14 @@
  * @see file:src-widgets/src/newTypes/all-ideas-for-new-types.md (lines 716-760)
  *
  * @remarks
- * This file contains only type declarations. The actual implementations will be
- * created in separate .ts files when these utilities are needed by widget components.
+ * This file contains type declarations and re-exports runtime types from utility-types.ts.
+ * The runtime implementations are available for hooks and components that need them.
  */
+
+/**
+ * Re-export runtime types from utility-types.ts
+ */
+export type { OidType, OidObject } from './utility-types';
 
 /**
  * Type-safe getter for dynamic property access.

@@ -1,21 +1,7 @@
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import { Subject, debounceTime, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { DelayFieldsRxData } from '../lib/delayFields';
-
-/**
- * Unterstützte OID-Typen für die Wertkonvertierung
- */
-export type OidType = 'string' | 'number' | 'boolean' | 'mixed';
-
-/**
- * Interface für OID-Objekt Parameter
- */
-export interface OidObject {
-    _id: string;
-    name: string;
-    type: OidType;
-}
+import type { DelayFieldsRxData, OidObject, OidType } from '../newTypes';
 
 /**
  * Interface für useDebounce Parameter
