@@ -28,6 +28,7 @@ export default [
             'src-widgets/vite.config.*',
             'src-widgets/vite-env.d.ts',
             'src-widgets/public/',
+            'src-widgets/**/*.test-d.ts',
         ],
     },
     {
@@ -37,6 +38,16 @@ export default [
             'jsdoc/require-param': 'off',
             // Regel kann ab React 17 deaktiviert werden
             'react/react-in-jsx-scope': 'off',
+        },
+    },
+    {
+        // Special rules for newTypes directory - allow comprehensive JSDoc comments
+        files: ['src-widgets/src/newTypes/**/*.{ts,d.ts}'],
+        rules: {
+            'jsdoc/check-tag-names': ['error', { typed: true, definedTags: ['remarks'] }],
+            'jsdoc/tag-lines': 'off',
+            '@typescript-eslint/no-import-type-side-effects': 'off',
+            '@typescript-eslint/consistent-type-exports': 'off',
         },
     },
 ];

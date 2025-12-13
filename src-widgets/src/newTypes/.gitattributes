@@ -1,0 +1,6 @@
+# Line endings configuration for newTypes directory
+# Run prettier to fix line ending issues if needed
+
+*.ts text eol=lf
+*.d.ts text eol=lf
+*.md text eol=lf

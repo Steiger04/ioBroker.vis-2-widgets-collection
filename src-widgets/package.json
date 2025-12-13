@@ -3,6 +3,17 @@
     "private": true,
     "version": "1.8.1",
     "type": "module",
+    "exports": {
+        ".": "./src/index.js",
+        "./newTypes": "./src/newTypes/index.d.ts",
+        "./types": "./src/types/index.d.ts"
+    },
+    "typesVersions": {
+        "*": {
+            "newTypes": ["src/newTypes/index.d.ts"],
+            "types": ["src/types/index.d.ts"]
+        }
+    },
     "devDependencies": {
         "@iobroker/adapter-dev": "^1.4.0",
         "@iobroker/adapter-react-v5": "^7.7.1",
