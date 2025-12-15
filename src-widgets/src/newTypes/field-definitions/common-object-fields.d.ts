@@ -185,6 +185,60 @@ export interface CommonObjectFieldsRxData {
      */
     maxValue?: number;
 
+    /**
+     * Main OID object metadata (static base property without index).
+     * Contains type, unit, common states, etc. for the primary state.
+     *
+     * @remarks
+     * This is the static version of the dynamic `${string}Object` pattern.
+     * Used in CollectionBase and other base components that need direct access
+     * to the main object metadata without knowing the dynamic key.
+     *
+     * @example
+     * ```typescript
+     * oidObject: {
+     *     _id: 'hm-rpc.0.device.TEMPERATURE',
+     *     name: 'Living Room Temperature',
+     *     type: 'number',
+     *     unit: '°C',
+     *     write: false,
+     *     minValue: -50,
+     *     maxValue: 50
+     * }
+     * ```
+     */
+    oidObject?: {
+        /** State ID from ioBroker */
+        _id: string;
+
+        /** Human-readable name */
+        name: string;
+
+        /** Data type of the state */
+        type: AllowedType;
+
+        /** Possible values for enum/list types */
+        commonStates?: ioBroker.StateCommon['states'];
+
+        /** Unit of measurement */
+        unit?: string;
+
+        /** Icon identifier */
+        icon?: string | null;
+
+        /** Write permission */
+        write?: boolean;
+
+        /** Display-only mode */
+        onlyDisplay?: boolean;
+
+        /** Minimum value */
+        minValue?: number;
+
+        /** Maximum value */
+        maxValue?: number;
+    };
+
     // ========================================
     // Object Metadata (Dynamic)
     // ========================================

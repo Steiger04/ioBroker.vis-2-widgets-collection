@@ -472,6 +472,225 @@ export interface CommonFieldsRxData {
     [key: `signals-color-${number}`]: string | undefined;
 
     // ========================================
+    // Static Base Properties (ohne Index)
+    // ========================================
+
+    /**
+     * Hide header section (base property without index).
+     * Used in CollectionBase and other base components.
+     * @default false
+     */
+    noHeader?: boolean;
+
+    /**
+     * Hide header icon (base property without index).
+     * @default false
+     */
+    noHeaderIcon?: boolean;
+
+    /**
+     * Hide footer section (base property without index).
+     * @default false
+     */
+    noFooter?: boolean;
+
+    /**
+     * Hide card container (base property without index).
+     * @default false
+     */
+    noCard?: boolean;
+
+    /**
+     * Use squared corners (base property without index).
+     * @default false
+     */
+    squaredCorner?: boolean;
+
+    /**
+     * Text color (base property without index).
+     */
+    textColor?: string;
+
+    /**
+     * Use outlined card style (base property without index).
+     * @default false
+     */
+    outlined?: boolean;
+
+    /**
+     * Use outlined frame style (base property without index).
+     * @default false
+     */
+    outlinedFrame?: boolean;
+
+    /**
+     * Padding inside base container in pixels (base property without index).
+     * @default 8
+     */
+    basePadding?: number;
+
+    /**
+     * Material-UI elevation level (base property without index).
+     * Range: 0-24
+     * @default 2
+     */
+    baseElevation?: number;
+
+    /**
+     * Use square shape (base property without index).
+     * @default false
+     */
+    square?: boolean;
+
+    /**
+     * Use ellipse shape (base property without index).
+     * @default false
+     */
+    ellipse?: boolean;
+
+    /**
+     * Use circular shape (base property without index).
+     * @default false
+     */
+    circle?: boolean;
+
+    /**
+     * Background image URL or path (base property without index).
+     */
+    background?: string;
+
+    /**
+     * Background color (base property without index).
+     */
+    backgroundColor?: string;
+
+    /**
+     * Background image URL or path when active (base property without index).
+     */
+    backgroundActive?: string;
+
+    /**
+     * Background color when active (base property without index).
+     */
+    backgroundColorActive?: string;
+
+    /**
+     * Frame background image URL or path (base property without index).
+     */
+    frameBackground?: string;
+
+    /**
+     * Frame background color (base property without index).
+     */
+    frameBackgroundColor?: string;
+
+    /**
+     * Frame background image URL or path when active (base property without index).
+     */
+    frameBackgroundActive?: string;
+
+    /**
+     * Frame background color when active (base property without index).
+     */
+    frameBackgroundColorActive?: string;
+
+    /**
+     * Header text (base property without index).
+     */
+    header?: string | number;
+
+    /**
+     * Header font size (base property without index).
+     */
+    headerSize?: number | string;
+
+    /**
+     * Footer text (base property without index).
+     */
+    footer?: string | number;
+
+    /**
+     * Footer font size (base property without index).
+     */
+    footerSize?: number | string;
+
+    /**
+     * Value font size (base property without index).
+     */
+    valueSize?: number | string;
+
+    /**
+     * Icon identifier (base property without index).
+     */
+    icon?: string | number;
+
+    /**
+     * Small icon identifier (base property without index).
+     */
+    iconSmall?: string | number;
+
+    /**
+     * Icon size in pixels (base property without index).
+     * @default 24
+     */
+    iconSize?: number;
+
+    /**
+     * Icon color (base property without index).
+     */
+    iconColor?: string;
+
+    /**
+     * Icon hover effect in % (base property without index).
+     */
+    iconHover?: number;
+
+    /**
+     * Horizontal icon offset (base property without index).
+     * @default '0px'
+     */
+    iconXOffset?: string;
+
+    /**
+     * Vertical icon offset (base property without index).
+     * @default '0px'
+     */
+    iconYOffset?: string;
+
+    /**
+     * Hide icon (base property without index).
+     * @default false
+     */
+    noIcon?: boolean;
+
+    /**
+     * Hide value display (base property without index).
+     * @default false
+     */
+    noValue?: boolean;
+
+    /**
+     * Display only (no interaction, base property without index).
+     * @default false
+     */
+    onlyDisplay?: boolean;
+
+    /**
+     * Alias name (base property without index).
+     */
+    alias?: string;
+
+    /**
+     * Value text (base property without index).
+     */
+    value?: string | number;
+
+    /**
+     * Text color when active (base property without index).
+     */
+    textColorActive?: string;
+
+    // ========================================
     // Active-State Overrides
     // ========================================
 

@@ -11,6 +11,18 @@ export interface CollectionGenericState extends VisRxWidgetState {
     [key: `${string}Object`]: ExtendedObject | null;
 } */
 
+/**
+ * Base class for all Collection widgets.
+ *
+ * @template RxData - Widget data type. Use WidgetRegistry types for type-safe implementations:
+ * @example
+ * ```typescript
+ * class MyWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
+ *   // Full type safety for widget.data properties
+ * }
+ * ```
+ * @template State - Widget state type (extends VisRxWidgetState)
+ */
 class Generic<
     RxData extends Record<string, any>,
     State extends Partial<VisRxWidgetState> = VisRxWidgetState,

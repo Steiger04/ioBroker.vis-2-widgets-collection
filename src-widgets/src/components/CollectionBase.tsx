@@ -30,7 +30,11 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
         const headerRef1 = useRef<HTMLSpanElement | null>(null);
         const [footerRef, setFooterRef] = useState<HTMLElement | null>(null);
-        const { wrappedContent, widget } = useContext(CollectionContext);
+        const context = useContext(CollectionContext);
+        if (!context) {
+            throw new Error('CollectionBase must be used within CollectionProvider');
+        }
+        const { wrappedContent, widget } = context;
 
         // Sicherer Zugriff auf oidObject - könnte nicht existieren bei einigen Widgets
         const oidObject = widget.data.oidObject;
@@ -123,8 +127,8 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             sx={{
                                 width: !widget.data.noHeader ? '100%' : '0%',
                                 height: widget.data.noHeader ? '0%' : 'auto',
-                                mt: widget.data.basePadding / 2,
-                                mb: -widget.data.basePadding / 2,
+                                mt: (widget.data.basePadding ?? 8) / 2,
+                                mb: -(widget.data.basePadding ?? 8) / 2,
                             }}
                         >
                             <Typography
@@ -199,8 +203,8 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             sx={{
                                 width: !widget.data.noFooter ? '100%' : '0%',
                                 height: widget.data.noFooter ? '0%' : 'auto',
-                                mt: -widget.data.basePadding / 2,
-                                mb: widget.data.basePadding / 2,
+                                mt: -(widget.data.basePadding ?? 8) / 2,
+                                mb: (widget.data.basePadding ?? 8) / 2,
                             }}
                         >
                             <Typography

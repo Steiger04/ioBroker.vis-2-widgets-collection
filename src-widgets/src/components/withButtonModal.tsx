@@ -6,8 +6,14 @@ import { CollectionContext } from './CollectionProvider';
 import useData from '../hooks/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
+import type { Light2FieldsRxData } from '../newTypes/field-definitions';
 
 type WithButtonModalProps<P> = P;
+
+// Type guard to check if widget data has Light2 fields
+function hasLight2Fields(data: any): data is Light2FieldsRxData {
+    return 'colorLightButton' in data && 'colorLightSwitchOid' in data;
+}
 
 function withButtonModal<P extends object>(Component: React.ComponentType<P>): React.ComponentType<P> {
     const WithButtonModal = (props: WithButtonModalProps<P>): React.JSX.Element => {
@@ -18,27 +24,37 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
         const { widget } = context;
         const [open, setOpen] = useState(false);
 
+        // Type-safe access to Light2-specific properties
+        const widgetData = widget.data;
+
+        // Call hooks unconditionally (React hooks rules)
         const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
         const { data } = useData('colorLightSwitchOid');
 
-        const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
+        // Check if this is a Light2 widget with button mode
+        const isLight2ButtonMode = hasLight2Fields(widgetData) && widgetData.colorLightButton;
+
+        const colorLightSwitchOidObject = isLight2ButtonMode ? widgetData.colorLightSwitchOidObject : undefined;
         const oidType = colorLightSwitchOidObject?.type;
         const isValidType = oidType === 'boolean';
 
         const longPressProps = useLongPress({
             onClick: () => setOnOffValueState(!onOffValue),
             onLongPress: () => setOpen(true),
-            ms: widget.data.colorLightDelayLongPress ?? 500,
+            ms: isLight2ButtonMode ? (widgetData.colorLightDelayLongPress ?? 500) : 500,
         });
 
-        const sliderSize = (widget.data.colorLightSliderWidth || 1) * 28;
+        const sliderSize = isLight2ButtonMode ? (widgetData.colorLightSliderWidth || 1) * 28 : 28;
         const hasModalWidth =
-            typeof widget.data.colorLightModalWidth === 'number' && widget.data.colorLightModalWidth > 0;
+            isLight2ButtonMode &&
+            typeof widgetData.colorLightModalWidth === 'number' &&
+            widgetData.colorLightModalWidth > 0;
         const modalWidth = hasModalWidth
-            ? widget.data.colorLightModalWidth
-            : (widget.data.colorLightModalHeight || 300) + 40 + 12 + sliderSize;
+            ? widgetData.colorLightModalWidth!
+            : (isLight2ButtonMode ? widgetData.colorLightModalHeight || 300 : 300) + 40 + 12 + sliderSize;
 
-        if (!widget.data.colorLightButton) {
+        // Conditional render based on widget type
+        if (!isLight2ButtonMode) {
             return <Component {...props} />;
         }
 
@@ -101,7 +117,7 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                             left: '50%',
                             transform: 'translate(-50%, -50%)',
                             width: modalWidth,
-                            height: widget.data.colorLightModalHeight || 300,
+                            height: widgetData.colorLightModalHeight || 300,
                         }}
                     >
                         <Component {...props} />
