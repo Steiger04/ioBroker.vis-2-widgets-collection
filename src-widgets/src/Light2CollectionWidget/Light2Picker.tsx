@@ -3,7 +3,7 @@ import type { MutableRefObject, Ref } from 'react';
 import type iro from '@jaames/iro';
 import { Box } from '@mui/material';
 import { type ElementDimensions } from '../hooks/useElementDimensions';
-import { type Light2FieldsRxData } from '../lib/light2Fields';
+import type { Light2FieldsRxData } from '../newTypes';
 import { getColorLightLayout, getColorLightWidth, getMarginBetweenPickers } from './colorPickerUtils/colorPickerMemos';
 import { CollectionContext } from '../components/CollectionProvider';
 

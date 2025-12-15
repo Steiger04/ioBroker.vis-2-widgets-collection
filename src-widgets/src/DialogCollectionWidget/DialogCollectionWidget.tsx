@@ -1,15 +1,15 @@
 import React from 'react';
-import { type DialogCollectionContextProps } from 'src/types';
+import type { DialogCollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import dialogFields, { type DialogFieldsRxData } from '../lib/dialogFields';
+import commonFields from '../lib/commonFields';
+import dialogFields from '../lib/dialogFields';
 import DialogCollection from './DialogCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-class DialogCollectionWidget extends Generic<DialogFieldsRxData & CommonFieldsRxData> {
+class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplDialogCollectionWidget',

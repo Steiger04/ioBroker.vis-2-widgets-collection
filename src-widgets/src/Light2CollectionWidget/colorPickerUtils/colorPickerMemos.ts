@@ -1,6 +1,6 @@
 import iro from '@jaames/iro';
 import { type ElementDimensions } from '../../hooks/useElementDimensions';
-import { type Light2FieldsRxData } from '../../lib/light2Fields';
+import type { Light2FieldsRxData } from '../../newTypes';
 
 type IroLayout = Array<{
     component: typeof iro.ui.Wheel | typeof iro.ui.Box | typeof iro.ui.Slider;

@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import React, { useContext, useRef, useMemo, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
+import type { GaugeCollectionContextProps } from '../newTypes';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import Gauge from './Gauge';
@@ -39,7 +40,7 @@ function GaugeCollection(): React.JSX.Element {
     const baseRef = useRef<CollectionBaseHandle>(null);
     const gaugeRef = useRef<HTMLDivElement>(null);
 
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as GaugeCollectionContextProps;
     const {
         wrappedContent,
         widget: {
@@ -155,12 +156,11 @@ function GaugeCollection(): React.JSX.Element {
                 paper0.style.borderColor = '';
 
                 paper0.style.background =
-                    (wrappedContent && (widget.data.frameBackgroundColor || widget.data.frameBackground || null)) || '';
+                    (wrappedContent && (data.frameBackgroundColor || data.frameBackground || null)) || '';
                 // ----------------------------------------------------------
                 paper1.style.borderColor = '';
 
-                paper1.style.background =
-                    (wrappedContent && (widget.data.backgroundColor || widget.data.background || null)) || '';
+                paper1.style.background = (wrappedContent && (data.backgroundColor || data.background || null)) || '';
             }
         }
     }, [paper0, paper1, wrappedContent, segment, widget.data]);
@@ -195,7 +195,7 @@ function GaugeCollection(): React.JSX.Element {
                     }}
                     gaugeWidgetData={widget.data}
                     gaugeSegment={segment}
-                    gaugeType={widget.data.gaugeType}
+                    gaugeType={(widget.data.gaugeType || 'linear') as 'linear' | 'radial'}
                     // Basic Options
                     width={(gaugeRef.current?.clientWidth || 0) - Number(widget.data.gaugePadding || 0)}
                     height={(gaugeRef.current?.clientHeight || 0) - Number(widget.data.gaugePadding || 0)}

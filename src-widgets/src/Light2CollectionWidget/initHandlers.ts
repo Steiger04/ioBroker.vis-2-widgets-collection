@@ -1,9 +1,6 @@
 import type iro from '@jaames/iro';
 import type { VisRxData } from '@iobroker/types-vis-2';
-import type { Light2FieldsRxData } from '../lib/light2Fields';
-import type { CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import type { CommonFieldsRxData } from '../lib/commonFields';
-import type { DelayFieldsRxData } from '../lib/delayFields';
+import type { Light2FieldsRxData, CommonObjectFieldsRxData, CommonFieldsRxData, DelayFieldsRxData } from '../newTypes';
 
 export type Light2WidgetData = VisRxData &
     Light2FieldsRxData &

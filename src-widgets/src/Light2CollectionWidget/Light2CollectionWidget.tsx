@@ -1,9 +1,8 @@
 import React from 'react';
-import { type Light2CollectionContextProps } from 'src/types';
+import type { Light2CollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
+import commonFields from '../lib/commonFields';
 import delayFields from '../lib/delayFields';
 import light2Fields from '../lib/light2Fields';
 
@@ -11,7 +10,7 @@ import Light2Collection from './Light2Collection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
-class Light2CollectionWidget extends Generic<CommonObjectFieldsRxData & CommonFieldsRxData> {
+class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2CollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplLight2CollectionWidget',

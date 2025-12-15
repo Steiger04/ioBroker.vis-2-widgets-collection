@@ -1,15 +1,15 @@
-import { type GaugeCollectionContextProps } from 'src/types';
+import type { GaugeCollectionContextProps, WidgetRegistry } from '../newTypes';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import gaugeFields, { type GaugeFieldsRxData } from '../lib/gaugeFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import gaugeFields from '../lib/gaugeFields';
 import GaugeCollection from './GaugeCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-class GaugeCollectionWidget extends Generic<GaugeFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData> {
+class GaugeCollectionWidget extends Generic<WidgetRegistry['tplGaugeCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplGaugeCollectionWidget',

@@ -3,6 +3,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
+import type { Light2CollectionContextProps } from '../newTypes';
 import withButtonModal from '../components/withButtonModal';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
@@ -165,7 +166,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
 
 function Light2CollectionContent(): React.ReactElement {
     const [cctLight, setCctLight] = useState(false);
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as Light2CollectionContextProps;
     const {
         widget,
         widget: { data: rxData },

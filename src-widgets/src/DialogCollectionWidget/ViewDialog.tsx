@@ -3,48 +3,15 @@ import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
-import type { DialogCollectionContextProps } from 'src/types';
-
-// Import StyleData type from useData
-type StyleData = {
-    textColor: string;
-    textColorActive?: string;
-    header: string;
-    headerSize: string | null;
-    footer: string;
-    footerSize: string | null;
-    alias: string;
-    value?: string;
-    valueSize: string | null;
-    valueSizeActive: string | false | null;
-    icon: string | false;
-    iconActive: string | false;
-    iconSize: string;
-    iconSizeActive: string | false;
-    iconSizeActiveOnly?: number;
-    iconSizeOnly?: number;
-    iconColor?: string;
-    iconColorActive?: string;
-    iconHover?: string;
-    iconHoverActive?: string;
-    iconXOffset: string;
-    iconYOffset: string;
-    backgroundColor: string;
-    backgroundColorActive?: string;
-    background: string;
-    backgroundActive?: string;
-    frameBackgroundColor: string;
-    frameBackgroundColorActive?: string;
-    frameBackground: string;
-    frameBackgroundActive?: string;
-};
+import type { StyleData } from '../hooks/useData';
+import type { DialogCollectionContextProps } from '../newTypes';
 
 interface ViewDialogProps {
     open: boolean;
     handleClose: () => void;
     widget: DialogCollectionContextProps['widget'];
     data: StyleData;
-    getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
+    getWidgetView: DialogCollectionContextProps['getWidgetView'];
     fontStyles: React.CSSProperties;
     textStyles: React.CSSProperties;
 }
@@ -186,7 +153,7 @@ export default function ViewDialog({
                             height: '100%',
                         }}
                     >
-                        {getWidgetView(widget.data.view, {
+                        {getWidgetView(widget.data.view || '', {
                             style: {
                                 // "background-color": "inherit",
                             },

@@ -3,21 +3,11 @@ import { styled } from '@mui/material/styles';
 import React, { useRef, useContext, useState, useEffect, useCallback } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
+import type { DialogCollectionContextProps } from '../newTypes';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import ViewDialog from './ViewDialog';
-import type { DialogCollectionContextProps } from 'src/types';
-
-// OID Object Interface
-/* interface OidObject {
-    _id?: string;
-    type?: string;
-    unit?: string;
-    name?: string;
-    min?: number;
-    max?: number;
-} */
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -173,8 +163,8 @@ function DialogCollection(): React.ReactElement {
                                         position: 'relative',
 
                                         objectFit: 'contain',
-                                        top: `calc(0px - ${widget.data.iconYOffset})`,
-                                        right: `calc(0px - ${widget.data.iconXOffset})`,
+                                        top: `calc(0px - ${data.iconYOffset})`,
+                                        right: `calc(0px - ${data.iconXOffset})`,
                                         width:
                                             (typeof data.iconSizeOnly === 'number' &&
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
