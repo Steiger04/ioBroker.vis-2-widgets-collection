@@ -1,18 +1,16 @@
 import React from 'react';
-import { type RadioGroupCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import radioGroupFields, { type RadioGroupFieldsRxData } from '../lib/radioGroupFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import radioGroupFields from '../lib/radioGroupFields';
 import RadioGroupCollection from './RadioGroupCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RadioGroupCollectionContextProps, WidgetRegistry } from '../newTypes';
 
-class RadioGroupCollectionWidget extends Generic<
-    RadioGroupFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplRadioGroupCollectionWidget',

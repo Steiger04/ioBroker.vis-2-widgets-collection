@@ -7,6 +7,8 @@ import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 
+import type { SliderCollectionContextProps } from '../newTypes';
+
 interface SliderMarkLabelProps {
     marks: boolean;
     sliderOrientation: 'horizontal' | 'vertical';
@@ -16,7 +18,7 @@ interface SliderMarkLabelProps {
 }
 
 const SliderCollection: FC = () => {
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as SliderCollectionContextProps;
     const {
         widget: {
             data: { oidObject },
@@ -79,12 +81,12 @@ const SliderCollection: FC = () => {
                 label: `${minValue}${oidObject?.unit || ''}`,
                 fontSize: undefined,
                 textColor: undefined,
-                icon: null,
+                icon: '',
                 iconWidth: 100,
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: undefined,
+                iconColor: '',
             });
         }
 
@@ -94,12 +96,12 @@ const SliderCollection: FC = () => {
                 label: `${maxValue}${oidObject?.unit || ''}`,
                 fontSize: undefined,
                 textColor: undefined,
-                icon: null,
+                icon: '',
                 iconWidth: 100,
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: undefined,
+                iconColor: '',
             });
         }
 
@@ -113,12 +115,12 @@ const SliderCollection: FC = () => {
                         label: `${i}${oidObject?.unit || ''}`,
                         fontSize: undefined,
                         textColor: undefined,
-                        icon: null,
+                        icon: '',
                         iconWidth: 100,
                         iconHeight: 100,
                         iconXOffset: '0px',
                         iconYOffset: '0px',
-                        iconColor: undefined,
+                        iconColor: '',
                     });
                 }
             }

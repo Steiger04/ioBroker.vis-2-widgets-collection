@@ -8,7 +8,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
-import type { RadioGroupCollectionContextProps } from 'src/types';
+import type { RadioGroupCollectionContextProps } from '../newTypes';
 
 function RadioGroupCollection(): React.ReactElement {
     const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);

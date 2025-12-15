@@ -10,6 +10,7 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
+import type { SelectCollectionContextProps } from '../newTypes';
 
 // const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -17,7 +18,7 @@ function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
     const { width } = useElementDimensions(contentRef?.current);
     // SelectCollection wird nur im SelectCollectionWidget verwendet, daher ist der Cast sicher
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget, theme } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;

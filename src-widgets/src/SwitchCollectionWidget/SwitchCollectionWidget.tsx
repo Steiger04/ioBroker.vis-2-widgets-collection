@@ -1,18 +1,16 @@
 import React from 'react';
-import { type SwitchCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import switchFields, { type SwitchFieldsRxData } from '../lib/switchFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import switchFields from '../lib/switchFields';
 import SwitchCollection from './SwitchCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { SwitchCollectionContextProps, WidgetRegistry } from '../newTypes';
 
-class SwitchCollectionWidget extends Generic<
-    SwitchFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSwitchCollectionWidget',

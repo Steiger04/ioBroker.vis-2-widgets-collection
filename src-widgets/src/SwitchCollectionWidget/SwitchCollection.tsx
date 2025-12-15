@@ -6,10 +6,11 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
+import type { SwitchCollectionContextProps } from '../newTypes';
 
 function SwitchCollection(): React.JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
-    const context = useContext(CollectionContext);
+    const context = useContext(CollectionContext) as SwitchCollectionContextProps;
     const { widget } = context;
 
     // Sicherer Zugriff auf oidObject

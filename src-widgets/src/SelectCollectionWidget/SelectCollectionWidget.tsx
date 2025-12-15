@@ -1,18 +1,16 @@
 import React from 'react';
-import { type SelectCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import selectFields, { type SelectFieldsRxData } from '../lib/selectFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import selectFields from '../lib/selectFields';
 import SelectCollection from './SelectCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { SelectCollectionContextProps, WidgetRegistry } from '../newTypes';
 
-class SelectCollectionWidget extends Generic<
-    SelectFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSelectCollectionWidget',

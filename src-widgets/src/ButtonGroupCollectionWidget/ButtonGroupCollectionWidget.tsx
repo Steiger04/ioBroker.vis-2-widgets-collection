@@ -1,18 +1,16 @@
 import React from 'react';
-import { type ButtonGroupCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
-import buttonGroupFields, { type ButtonGroupFieldsRxData } from '../lib/buttonGroupFields';
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
+import buttonGroupFields from '../lib/buttonGroupFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { ButtonGroupCollectionContextProps, WidgetRegistry } from '../newTypes';
 
-class ButtonGroupCollectionWidget extends Generic<
-    ButtonGroupFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData
-> {
+class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplButtonGroupCollectionWidget',

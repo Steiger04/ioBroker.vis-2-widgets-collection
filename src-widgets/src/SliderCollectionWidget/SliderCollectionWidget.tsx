@@ -1,19 +1,17 @@
 import React from 'react';
-import { type SliderCollectionContextProps } from 'src/types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
-import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
-import commonObjectFields, { type CommonObjectFieldsRxData } from '../lib/commonObjectFields';
-import delayFields, { type DelayFieldsRxData } from '../lib/delayFields';
-import sliderFields, { type SliderFieldsRxData } from '../lib/sliderFields';
+import commonFields from '../lib/commonFields';
+import commonObjectFields from '../lib/commonObjectFields';
+import delayFields from '../lib/delayFields';
+import sliderFields from '../lib/sliderFields';
 import SliderCollection from './SliderCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { SliderCollectionContextProps, WidgetRegistry } from '../newTypes';
 
-type SliderWidgetData = SliderFieldsRxData & CommonObjectFieldsRxData & CommonFieldsRxData & DelayFieldsRxData;
-
-class SliderCollectionWidget extends Generic<SliderWidgetData> {
+class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSliderCollectionWidget',
