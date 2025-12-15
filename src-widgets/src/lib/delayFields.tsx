@@ -1,12 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/delay-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-export interface DelayFieldsRxData {
-    sampleInterval: boolean;
-    sampleIntervalValue: number;
-    delay: number;
-}
 
 const delayFields = (): RxWidgetInfoAttributesField[] => [
     {

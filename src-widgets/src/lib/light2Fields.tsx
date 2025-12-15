@@ -1,3 +1,7 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/light2-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 
@@ -7,7 +11,20 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
 const PowerSettingsNewIcon =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=';
 
-export interface Light2FieldsRxData {
+// Extended WidgetData interface to include icon properties and value configurations
+interface ExtendedWidgetData extends WidgetData {
+    values_count?: number;
+    value1?: boolean;
+    alias1?: string;
+    value2?: boolean;
+    alias2?: string;
+    iconSize?: number;
+    iconSmall1?: string;
+    iconColor1?: string;
+    iconSize1?: number;
+    iconSmall2?: string;
+    iconColor2?: string;
+    iconSize2?: number;
     colorLightButton?: boolean;
     colorLightDelayLongPress?: number;
     colorLightModalWidth?: number;
@@ -33,24 +50,8 @@ export interface Light2FieldsRxData {
     colorLightGamut?: 'default' | 'A' | 'B' | 'C';
 }
 
-// Extended WidgetData interface to include icon properties and value configurations
-interface ExtendedWidgetData extends WidgetData, Light2FieldsRxData {
-    values_count?: number;
-    value1?: boolean;
-    alias1?: string;
-    value2?: boolean;
-    alias2?: string;
-    iconSize?: number;
-    iconSmall1?: string;
-    iconColor1?: string;
-    iconSize1?: number;
-    iconSmall2?: string;
-    iconColor2?: string;
-    iconSize2?: number;
-}
-
 // RGB role mappings based on ioBroker object roles
-const RGB_ROLES: Record<string, keyof Light2FieldsRxData> = {
+const RGB_ROLES: Record<string, string> = {
     'switch.light': 'colorLightSwitchOid',
     'level.color.rgb': 'colorLightRgbHexOid',
     'level.color.red': 'colorLightRedOid',
@@ -96,8 +97,8 @@ const loadStatesAsync = async (
                             fieldName !== role
                         ) {
                             const targetField = RGB_ROLES[role];
-                            // Type-safe assignment using index signature
-                            (extendedData as Record<string, any>)[targetField] = state._id;
+                            // Type-safe assignment to ExtendedWidgetData
+                            extendedData[targetField as keyof ExtendedWidgetData] = state._id;
 
                             await oidChangeHandlerAsync(
                                 ['boolean', 'number', 'string', 'mixed'],
@@ -256,8 +257,8 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         default: 'wheel',
         noTranslation: true,
         hidden: (data: WidgetData) =>
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'cct' ||
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'none',
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
     },
     {
         name: 'colorWheelLightness',
@@ -265,16 +266,16 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         type: 'checkbox',
         default: false,
         hidden: (data: WidgetData) =>
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'none' ||
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'cct' ||
-            (data as Partial<Light2FieldsRxData>).colorLightUIComponent !== 'wheel',
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'none' ||
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
+            (data as Partial<ExtendedWidgetData>).colorLightUIComponent !== 'wheel',
     },
     {
         type: 'custom',
         component: () => <CollectionDivider />,
         hidden: (data: WidgetData) =>
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'cct' ||
-            (data as Partial<Light2FieldsRxData>).colorLightType === 'none',
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'cct' ||
+            (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
     },
     {
         name: 'colorLightType',
@@ -296,7 +297,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: WidgetData) => (data as Partial<Light2FieldsRxData>).colorLightType === 'none',
+        hidden: (data: WidgetData) => (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
     },
     {
         name: 'colorLightTemperatureOid',
@@ -304,7 +305,7 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         label: 'color_light_temperature_oid',
         hidden: (data: WidgetData) =>
             !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<Light2FieldsRxData>).colorLightType || '',
+                (data as Partial<ExtendedWidgetData>).colorLightType || '',
             ),
     },
     {
@@ -316,8 +317,8 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         label: 'color_light_ct_min',
         hidden: (data: WidgetData) =>
             !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<Light2FieldsRxData>).colorLightType || '',
-            ) || !(data as Partial<Light2FieldsRxData>).colorLightTemperatureOid,
+                (data as Partial<ExtendedWidgetData>).colorLightType || '',
+            ) || !(data as Partial<ExtendedWidgetData>).colorLightTemperatureOid,
     },
     {
         name: 'colorLightCtMax',
@@ -328,65 +329,65 @@ const light2Fields = (): RxWidgetInfoAttributesField[] => [
         label: 'color_light_ct_max',
         hidden: (data: WidgetData) =>
             !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<Light2FieldsRxData>).colorLightType || '',
-            ) || !(data as Partial<Light2FieldsRxData>).colorLightTemperatureOid,
+                (data as Partial<ExtendedWidgetData>).colorLightType || '',
+            ) || !(data as Partial<ExtendedWidgetData>).colorLightTemperatureOid,
     },
     {
         type: 'custom',
         component: () => <CollectionDivider />,
         hidden: (data: WidgetData) =>
             !['cct', 'rgbcct', 'r/g/b/cct', 'h/s/v/cct'].includes(
-                (data as Partial<Light2FieldsRxData>).colorLightType || '',
-            ) || (data as Partial<Light2FieldsRxData>).colorLightType === 'none',
+                (data as Partial<ExtendedWidgetData>).colorLightType || '',
+            ) || (data as Partial<ExtendedWidgetData>).colorLightType === 'none',
     },
     {
         name: 'colorLightRgbHexOid',
         type: 'id',
         label: 'color_light_rgb_hex_oid',
         hidden: (data: WidgetData) =>
-            !['rgb', 'rgbcct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['rgb', 'rgbcct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightRedOid',
         type: 'id',
         label: 'color_light_red_oid',
         hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightGreenOid',
         type: 'id',
         label: 'color_light_green_oid',
         hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightBlueOid',
         type: 'id',
         label: 'color_light_blue_oid',
         hidden: (data: WidgetData) =>
-            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['r/g/b', 'r/g/b/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightHueOid',
         type: 'id',
         label: 'color_light_hue_oid',
         hidden: (data: WidgetData) =>
-            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightSaturationOid',
         type: 'id',
         label: 'color_light_saturation_oid',
         hidden: (data: WidgetData) =>
-            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
     {
         name: 'colorLightBrightnessOid',
         type: 'id',
         label: 'color_light_brightness_oid',
         hidden: (data: WidgetData) =>
-            !['cct', 'h/s/v', 'h/s/v/cct'].includes((data as Partial<Light2FieldsRxData>).colorLightType || ''),
+            !['cct', 'h/s/v', 'h/s/v/cct'].includes((data as Partial<ExtendedWidgetData>).colorLightType || ''),
     },
 ];
 

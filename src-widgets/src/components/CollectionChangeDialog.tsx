@@ -17,7 +17,7 @@ import {
 import React, { useCallback, useContext, useState, useMemo, type FC, type MouseEvent } from 'react';
 import useValueState from '../hooks/useValueState';
 import { CollectionContext } from './CollectionProvider';
-import type { AllCollectionContextProps, StateCollectionContextProps } from '../index';
+import type { CollectionContextProps, AllCollectionContextProps, StateCollectionContextProps } from '../newTypes';
 
 /**
  * Widget States Map für die Darstellung verfügbarer Werte

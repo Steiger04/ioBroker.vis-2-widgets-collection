@@ -1,12 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/radio-group-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-
-export interface RadioGroupFieldsRxData {
-    radioOrientation?: 'horizontal' | 'vertical';
-    radioGroupUncheckedIconColor?: string;
-    onlyDisplay?: boolean;
-}
 
 const radioGroupFields = (): RxWidgetInfoAttributesField[] => [
     {

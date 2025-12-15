@@ -1,22 +1,9 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/dialog-fields`.
+ */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
-
-export interface DialogFieldsRxData {
-    view: string;
-    dialogAutoClose: number;
-    oid: string;
-    dialogHeaderAsTitle: boolean;
-    dialogWidth: number;
-    dialogHeight: number;
-    dialogInPixel: boolean;
-    dialogBackgroundColor: string;
-    // value: string;
-    dialogCloseButtonTop: boolean;
-    dialogCloseButtonBottom: boolean;
-    dialogCloseButtonColor: string;
-    onlyIcon: boolean;
-    onlyText: boolean;
-}
 
 const dialogFields = (): RxWidgetInfoAttributesField[] => [
     {

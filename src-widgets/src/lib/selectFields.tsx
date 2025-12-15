@@ -1,11 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/select-fields`.
+ */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
-
-export interface SelectFieldsRxData {
-    arrowColor: string;
-    cid: string;
-}
 
 const selectFields = (): RxWidgetInfoAttributesField[] => [
     {

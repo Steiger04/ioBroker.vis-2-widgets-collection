@@ -1,14 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/button-group-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-export interface ButtonGroupFieldsRxData {
-    onlyIcon: boolean;
-    onlyText: boolean;
-    buttonGroupVariant: 'text' | 'outlined';
-    buttonGroupOrientation: 'horizontal' | 'vertical';
-    buttonGroupColor: string;
-}
 
 const buttonGroupFields = (): RxWidgetInfoAttributesField[] => [
     {

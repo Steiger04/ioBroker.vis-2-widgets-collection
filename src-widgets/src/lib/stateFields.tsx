@@ -1,14 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/state-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-export interface StateFieldsRxData {
-    onlyStates: boolean;
-    statePushButton: boolean;
-    onlyDisplay: boolean;
-    noIcon: boolean;
-    noValue: boolean;
-}
 
 const stateFields = (): RxWidgetInfoAttributesField[] => [
     {

@@ -1,10 +1,24 @@
-# vis-2-widgets-collection: New Type Infrastructure (Phase 1)
+# vis-2-widgets-collection: New Type Infrastructure
 
 ## Overview
 
-This directory contains the new type infrastructure for vis-2 Collection widgets. Phase 1 establishes foundational type utilities that enable type-safe widget composition with compile-time validation and enhanced TypeScript support.
+**Status:** ✅ **Complete** (Phase 10 - All widgets migrated, legacy types removed)
 
-The new type system coexists with the existing types in `src/types/index.d.ts` to ensure backward compatibility during the migration process.
+This directory contains the **single source of truth** for all vis-2 Collection widget types. After completing Phase 10 cleanup, all legacy type definitions have been removed, and `newTypes/` is now the exclusive type system.
+
+## 🎯 Architecture
+
+### Single Source of Truth
+
+- **✅ `newTypes/`**: All type definitions (field types, widget types, context types)
+- **✅ `lib/`**: Runtime-only field generators for vis-2 editor (no type exports)
+- **❌ `src/types/`**: Removed in Phase 10
+
+### Type Safety
+
+- **TypeScript Strict Mode:** `strict: true`, `noImplicitAny: true`, `noImplicitReturns: true`
+- **No `any` casts:** All type-unsafe code eliminated
+- **Compile-time validation:** Full type checking for all widgets
 
 ## Files
 
@@ -21,16 +35,102 @@ The new type system coexists with the existing types in `src/types/index.d.ts` t
 
 ```
 newTypes/
-├── widget-builder.d.ts      # Widget composition types
-├── utility-types.d.ts        # Runtime utilities (declarations only)
-├── vis-2-extensions.d.ts     # vis-2 type extensions
-├── index.d.ts                # Central export point
-├── README.md                 # This file
-├── all-ideas-for-new-types.md # Complete blueprint (~1300 lines)
-├── field-definitions/        # Phase 2: Field type definitions (empty)
+├── index.ts                      # Central export point
+├── widget-builder.d.ts           # Widget composition types
+├── utility-types.d.ts            # Runtime utilities (declarations only)
+├── vis-2-extensions.d.ts         # vis-2 type extensions
+├── README.md                     # This file
+├── PHASE-10-FINAL-COMPLETE.md    # ✅ Phase 10 completion docs
+├── all-ideas-for-new-types.md    # Complete blueprint (~1300 lines)
+├── field-definitions/            # ✅ All field type definitions
+│   ├── common-fields.ts
+│   ├── common-object-fields.ts
+│   ├── state-fields.ts
+│   ├── delay-fields.ts
+│   ├── switch-fields.ts
+│   ├── checkbox-fields.ts
+│   ├── dialog-fields.ts
+│   ├── select-fields.ts
+│   ├── radio-group-fields.ts
+│   ├── button-group-fields.ts
+│   ├── slider-fields.ts
+│   ├── gauge-fields.ts
+│   └── light2-fields.ts
 └── __tests__/
-    └── type-tests.ts         # Type-level validation tests
+    └── compatibility-validation.test-d.ts  # Type-level tests
 ```
+
+## 📝 Quick Start
+
+### ✅ For Widget Developers
+
+**Import types from `newTypes/` ONLY:**
+
+```typescript
+// ✅ CORRECT - Import from newTypes
+import type {
+    CommonFieldsRxData,
+    StateFieldsRxData,
+    DelayFieldsRxData,
+} from 'vis-2-widgets-collection/newTypes/field-definitions';
+
+import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+
+// ✅ CORRECT - Runtime field generators from lib/
+import commonFields from '../lib/commonFields';
+import stateFields from '../lib/stateFields';
+
+// ❌ WRONG - These paths no longer exist
+import type { CommonFieldsRxData } from '../lib/commonFields';
+import type { CollectionContextProps } from '../types';
+```
+
+### ✅ Widget Type Composition
+
+```typescript
+import type {
+    CommonFieldsRxData,
+    CommonObjectFieldsRxData,
+    StateFieldsRxData,
+    DelayFieldsRxData,
+} from '../newTypes/field-definitions';
+
+// Compose widget data type
+type MyWidgetData = CommonFieldsRxData & CommonObjectFieldsRxData & StateFieldsRxData & DelayFieldsRxData;
+
+// Use in widget class
+class MyWidget extends Generic<MyWidgetData> {
+    // Full type safety
+}
+```
+
+### ✅ Widget Implementation
+
+```typescript
+import type { RxWidgetInfo } from '@iobroker/types-vis-2';
+import commonFields from '../lib/commonFields'; // Runtime
+import stateFields from '../lib/stateFields';
+
+class MyWidget extends Generic<MyWidgetData> {
+    static getWidgetInfo(): RxWidgetInfo {
+        return {
+            id: 'tplMyWidget',
+            visAttrs: [
+                {
+                    name: 'common',
+                    fields: [...commonFields()], // Runtime generator
+                },
+                {
+                    name: 'state',
+                    fields: [...stateFields()],
+                },
+            ],
+        };
+    }
+}
+```
+
+---
 
 ## Usage
 

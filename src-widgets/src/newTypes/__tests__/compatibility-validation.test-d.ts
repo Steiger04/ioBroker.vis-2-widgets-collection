@@ -1,32 +1,27 @@
 /**
- * Compatibility validation tests between newTypes and legacy types.
- * Ensures smooth migration without breaking changes.
+ * Type validation tests for newTypes.
+ * Validates compile-time type safety and structure.
  *
  * Note: These are type-level tests only (test-d pattern).
- * They validate compile-time compatibility, not runtime behavior.
+ * Legacy compatibility tests removed after Phase 10 cleanup.
  */
 
-import type { CommonFieldsRxData as NewCommonFields } from '../field-definitions/common-fields';
-import type { CommonFieldsRxData as LegacyCommonFields } from '../../lib/commonFields';
-import type { DialogFieldsRxData as NewDialogFields } from '../field-definitions/dialog-fields';
-import type { DialogFieldsRxData as LegacyDialogFields } from '../../lib/dialogFields';
+import type { CommonFieldsRxData } from '../field-definitions/common-fields';
+import type { DialogFieldsRxData } from '../field-definitions/dialog-fields';
 
 // ============================================================================
-// Type Compatibility Tests
+// Type Structure Tests
 // ============================================================================
 
 /**
- * Test 1: Static property compatibility
- * New types use specific properties that work with legacy system
+ * Test 1: Property types
+ * Validate that field types are correctly defined
  */
-declare const newCommonData: NewCommonFields;
-declare const legacyCommonData: LegacyCommonFields;
+declare const commonData: CommonFieldsRxData;
 
-// String properties are compatible
-const iconXOffsetNew: string | undefined = newCommonData.iconXOffset1;
-const iconXOffsetLegacy: string | undefined = legacyCommonData.iconXOffset1;
-const iconYOffsetNew: string | undefined = newCommonData.iconYOffset1;
-const iconYOffsetLegacy: string | undefined = legacyCommonData.iconYOffset1;
+// String properties
+const iconXOffset: string | undefined = commonData.iconXOffset1;
+const iconYOffset: string | undefined = commonData.iconYOffset1;
 
 // fontSize supports both string and number in new system
 const fontSizeNew: string | number | undefined = newCommonData.fontSize1;

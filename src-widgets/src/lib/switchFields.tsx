@@ -1,14 +1,10 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/switch-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-export interface SwitchFieldsRxData {
-    thumbSize: number;
-    thumbColorTrue: string;
-    thumbColorFalse: string;
-    trackSize: number;
-    trackColor: string;
-}
 
 const switchFields = (): RxWidgetInfoAttributesField[] => [
     {

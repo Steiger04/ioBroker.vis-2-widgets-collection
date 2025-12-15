@@ -1,30 +1,9 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/slider-fields`.
+ */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
-
-export interface SliderFieldsRxData {
-    sliderSize: 'small' | 'medium';
-    sliderOrientation: 'horizontal' | 'vertical';
-    valueLabelDisplay: 'on' | 'off' | 'auto';
-    labelPosition: string;
-    sliderColor: string;
-    minValue: number;
-    maxValue: number;
-    step: number;
-    onlyStates: boolean;
-    marks: boolean;
-    markPosition: string;
-    markStep: number;
-    markerTextColor: string;
-    markerTextSize: number;
-    iconSmallMin: string;
-    iconMin: string;
-    iconSizeStart: string;
-    startIconColor: string;
-    iconSmallMax: string;
-    iconMax: string;
-    iconSizeEnd: string;
-    endIconColor: string;
-}
 
 const sliderFields = (): RxWidgetInfoAttributesField[] => [
     {

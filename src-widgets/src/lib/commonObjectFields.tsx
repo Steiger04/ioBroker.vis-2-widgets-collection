@@ -1,3 +1,7 @@
+/**
+ * Runtime field generator für vis-2 Editor.
+ * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/common-object-fields`.
+ */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
@@ -194,34 +198,6 @@ export const oidChangeHandlerAsync =
             setTimeout(() => changeData(data), 100);
         }
     };
-
-type ValueFields = {
-    [K in `value${string}`]?: string | number | boolean | undefined;
-};
-
-export interface CommonObjectFieldsRxData extends ValueFields {
-    oid: string;
-    unit: string;
-    values_count: number;
-    icon?: string | null;
-    write?: boolean;
-    onlyDisplay?: boolean;
-    minValue?: number;
-    maxValue?: number;
-    [key: `${string}Object`]: {
-        _id: string;
-        name: string;
-        type: AllowedType;
-        commonStates?: ioBroker.StateCommon['states'];
-        unit: string;
-        icon?: string | null;
-        write?: boolean;
-        onlyDisplay?: boolean;
-        minValue?: number;
-        maxValue?: number;
-    };
-    [key: `alias${string | number}?`]: string;
-}
 
 const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributesField[] => [
     {
