@@ -171,7 +171,7 @@ function CheckboxCollection(): React.JSX.Element {
                                         flexGrow: 1,
                                         display: 'flex',
                                         alignItems: 'center', // Vertikale Zentrierung
-                                        justifyContent: 'center', // Horizontale Zentrierung des Textblocks
+                                        justifyContent: 'flex-start', // Horizontale Zentrierung des Textblocks
                                         overflowWrap: 'break-word', // Moderne CSS-Eigenschaft für Wortumbruch
                                         wordBreak: 'break-word', // Zusätzlicher Schutz für lange Wörter
                                         whiteSpace: 'normal', // Erlaubt Zeilenumbrüche
@@ -182,7 +182,7 @@ function CheckboxCollection(): React.JSX.Element {
                                         },
                                     }}
                                     dangerouslySetInnerHTML={{
-                                        __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
+                                        __html: `<div style="text-align: center; display: inline-block; width: 100%;">${contentValue || ''}</div>`,
                                     }}
                                 />
                             )
