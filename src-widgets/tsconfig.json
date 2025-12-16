@@ -12,7 +12,6 @@
 		"esModuleInterop": false,
 		"allowSyntheticDefaultImports": true,
 		"strict": true,
-		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,

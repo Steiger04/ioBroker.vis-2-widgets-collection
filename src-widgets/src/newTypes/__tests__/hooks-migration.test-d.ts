@@ -163,11 +163,102 @@ const maybeUnit: string | undefined = fullObj.unit;
 const maybeStates: Record<string, string> | undefined = fullObj.commonStates;
 
 // ============================================================================
+// Test WidgetStates Compatibility with useData Hook
+// ============================================================================
+
+/**
+ * WidgetStates type from CollectionChangeDialog
+ * Used to validate compatibility with useData hook return type
+ */
+interface WidgetStates {
+    [key: string]: string | number | boolean;
+}
+
+/**
+ * Mock useData hook return type
+ * Based on actual implementation in useData.ts (line 173)
+ */
+interface UseDataReturn {
+    widgetStates: Record<string, string>;
+    data: {
+        icon?: string;
+        iconActive?: string;
+        textColor?: string;
+        backgroundColor?: string;
+    };
+}
+
+// Declare mock useData function
+declare function useData(oidKey: string): UseDataReturn;
+
+// Test: useData widgetStates should be assignable to WidgetStates
+const useDataResult = useData('oid');
+const widgetStatesFromHook: WidgetStates = useDataResult.widgetStates; // ✅ Should compile
+
+// Test: WidgetStates should accept string values (from useData)
+const stringStates: WidgetStates = {
+    '0': 'Off',
+    '1': 'On',
+    '50': 'Dimmen 50%',
+};
+
+// Test: WidgetStates should accept number values
+const numberStates: WidgetStates = {
+    '0': 0,
+    '1': 1,
+    '50': 50,
+};
+
+// Test: WidgetStates should accept boolean values
+const booleanStates: WidgetStates = {
+    false: false,
+    true: true,
+};
+
+// Test: WidgetStates should accept mixed values
+const mixedStates: WidgetStates = {
+    '0': 'Off',
+    '1': 1,
+    enabled: true,
+    '50': 'Dimmen 50%',
+};
+
+// Test: Record<string, string> is assignable to WidgetStates
+const stringRecord: Record<string, string> = {
+    '0': 'Aus',
+    '1': 'Ein',
+};
+const assignableToWidgetStates: WidgetStates = stringRecord; // ✅ Should compile
+
+// Test: WidgetStates used in CollectionChangeDialog props
+interface CollectionChangeDialogProps {
+    widgetStates: WidgetStates;
+    open: boolean;
+    closeHandler: () => void;
+}
+
+// Test: useData result should be compatible with CollectionChangeDialog
+const dialogProps: CollectionChangeDialogProps = {
+    widgetStates: useDataResult.widgetStates, // ✅ Should compile
+    open: true,
+    closeHandler: () => {},
+};
+
+// Test: Invalid values should not compile (commented to allow compilation)
+// const invalidStates: WidgetStates = {
+//     '0': null, // ❌ Error: null not assignable to string | number | boolean
+//     '1': undefined, // ❌ Error: undefined not assignable to string | number | boolean
+//     '2': { nested: 'object' }, // ❌ Error: object not assignable to string | number | boolean
+//     '3': ['array'], // ❌ Error: array not assignable to string | number | boolean
+// };
+
+// ============================================================================
 // Summary
 // ============================================================================
 
 // If this file compiles without errors, all type tests pass successfully.
 // The OidObject and OidType types are correctly defined and can be used
 // safely throughout the hooks and components.
+// WidgetStates is correctly typed and compatible with useData hook return type.
 
 export type { OidObject, OidType };

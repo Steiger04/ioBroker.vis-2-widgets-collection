@@ -6,7 +6,7 @@
  * @see file:src-widgets/src/newTypes/all-ideas-for-new-types.md (lines 716-760)
  *
  * @remarks
- * This file contains type declarations and re-exports runtime types from utility-types.ts.
+ * This file contains type declarations for runtime utility functions implemented in utility-types.ts.
  * The runtime implementations are available for hooks and components that need them.
  */
 
@@ -19,6 +19,10 @@ export type { OidType, OidObject } from './utility-types';
  * Type-safe getter for dynamic property access.
  * Provides a safe alternative to `(data as any)[key]` with full type inference.
  *
+ * Provides two overloads:
+ * 1. Strict mode: K must be a key of T (compile-time validation)
+ * 2. Dynamic mode: K can be any string (for template literal keys like `icon${i}`)
+ *
  * @example
  * ```typescript
  * interface WidgetData {
@@ -28,16 +32,22 @@ export type { OidType, OidObject } from './utility-types';
  * }
  *
  * const data: WidgetData = { oid1: 'light.on', oid2: 'light.brightness', label: 'My Light' };
- * const dynamicKey = 'oid1';
- * const value = getDynamicProperty(data, dynamicKey); // Type: string | undefined
+ *
+ * // Strict mode - key must exist on type
+ * const icon = getDynamicProperty(data, 'oid1'); // ✅ Type-safe
+ * const invalid = getDynamicProperty(data, 'nonexistent'); // ❌ Compile error
+ *
+ * // Dynamic mode - for computed keys
+ * const dynamicIcon = getDynamicProperty(data, `oid${i}`); // ✅ Runtime-safe
  * ```
  *
  * @remarks
  * This function eliminates the need for `as any` casts when accessing properties
- * with computed keys. It preserves type safety by:
- * - Restricting keys to strings that exist on the object type
- * - Inferring the correct return type from the object's property type
- * - Returning `undefined` when the property doesn't exist at runtime
+ * with computed keys. It provides:
+ * - Compile-time validation for known keys (strict overload)
+ * - Runtime safety for dynamic keys (dynamic overload)
+ * - Proper type inference for return values
+ * - Returns `undefined` when the property doesn't exist at runtime
  *
  * Common use case: Iterating over indexed properties (oid1, oid2, ...)
  * ```typescript
@@ -50,19 +60,21 @@ export type { OidType, OidObject } from './utility-types';
  * ```
  *
  * @template T - The object type (must extend Record<string, any>)
- * @template K - The key type (must be an existing property of T)
+ * @template K - The key type (strict: keyof T, dynamic: string)
  * @param obj - The object to access
  * @param key - The property key to retrieve
  * @returns The property value or undefined if not found
  */
-export function getDynamicProperty<T extends Record<string, any>, K extends keyof T & string>(
-    obj: T,
-    key: K,
-): T[K] | undefined;
+export function getDynamicProperty<T extends Record<string, any>, K extends keyof T>(obj: T, key: K): T[K] | undefined;
+export function getDynamicProperty<T extends Record<string, any>>(obj: T, key: string): T[keyof T] | undefined;
 
 /**
  * Type-safe setter for dynamic property assignment.
  * Prevents type errors when setting properties with computed keys.
+ *
+ * Provides two overloads:
+ * 1. Strict mode: K must be a key of T (compile-time validation)
+ * 2. Dynamic mode: K can be any string (for template literal keys)
  *
  * @example
  * ```typescript
@@ -72,13 +84,19 @@ export function getDynamicProperty<T extends Record<string, any>, K extends keyo
  * }
  *
  * const data: WidgetData = {};
- * setDynamicProperty(data, 'oid1', 'light.on'); // OK
- * setDynamicProperty(data, 'oid2', 42); // Type error: number not assignable to string
+ *
+ * // Strict mode - key must exist on type
+ * setDynamicProperty(data, 'oid1', 'light.on'); // ✅ Type-safe
+ *
+ * // Dynamic mode - for computed keys
+ * setDynamicProperty(data, `oid${i}`, 'light.on'); // ✅ Runtime-safe
  * ```
  *
  * @remarks
  * This function provides type-checked assignment for computed property keys.
  * Benefits:
+ * - Compile-time validation for known keys (strict overload)
+ * - Runtime safety for dynamic keys (dynamic overload)
  * - Type safety: Ensures assigned value matches property type
  * - No casts needed: Eliminates `as any` in assignment operations
  * - IntelliSense support: IDE provides autocomplete for valid keys
@@ -95,16 +113,13 @@ export function getDynamicProperty<T extends Record<string, any>, K extends keyo
  * ```
  *
  * @template T - The object type (must extend Record<string, any>)
- * @template K - The key type (must be an existing property of T)
+ * @template K - The key type (strict: keyof T, dynamic: string)
  * @param obj - The object to modify
  * @param key - The property key to set
  * @param value - The value to assign
  */
-export function setDynamicProperty<T extends Record<string, any>, K extends keyof T & string>(
-    obj: T,
-    key: K,
-    value: T[K],
-): void;
+export function setDynamicProperty<T extends Record<string, any>, K extends keyof T>(obj: T, key: K, value: T[K]): void;
+export function setDynamicProperty<T extends Record<string, any>>(obj: T, key: string, value: T[keyof T]): void;
 
 /**
  * Retrieves all indexed properties with a specific prefix.

@@ -7,7 +7,7 @@ import commonFields from '../lib/commonFields';
 import dialogFields from '../lib/dialogFields';
 import DialogCollection from './DialogCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
 
 class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

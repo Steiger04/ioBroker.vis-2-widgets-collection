@@ -1,8 +1,6 @@
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
 import type { CollectionContextProps } from '../newTypes';
-import type { CommonObjectFieldsRxData } from '../newTypes/field-definitions/common-object-fields';
-import type { CommonFieldsRxData } from '../newTypes/field-definitions/common-fields';
 import { type StyleData } from '../hooks/useData';
 
 /**

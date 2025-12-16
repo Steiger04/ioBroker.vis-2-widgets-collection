@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
 import type { OidObject } from '../newTypes/utility-types';
+import { getDynamicProperty, isSliderFieldsRxData } from '../newTypes/utility-types';
 
 /**
  * Interface für Style-Daten eines Collection Widgets.
@@ -137,13 +138,30 @@ function useData(oid: string) {
         (size: number | string | undefined): string | null => (typeof size === 'number' ? `${size}%` : null),
         [],
     );
+
+    /**
+     * Hilfsfunktion zum sicheren Zugriff auf dynamische rxData-Properties.
+     *
+     * Nutzt getDynamicProperty für type-safe Zugriffe ohne any-Casts.
+     * Diese Funktion wird intern von useData verwendet für dynamische Property-Zugriffe.
+     *
+     * @template T - Erwarteter Rückgabe-Type
+     * @param key - Basis-Property-Name (z.B. 'icon', 'alias')
+     * @param ext - Optionaler Suffix (z.B. '1', '2' für icon1, icon2)
+     * @returns Property-Wert oder undefined
+     * @example
+     * ```typescript
+     * const icon = getDataValue<string>('icon', '1'); // icon1
+     * const alias = getDataValue<string>('alias', String(i)); // alias${i}
+     * ```
+     */
     const getDataValue = useCallback(
         <T = unknown>(key: string, ext: string = ''): T | undefined => {
             const fullKey = `${key}${ext}`;
-            if (fullKey in rxData) {
-                return rxData[fullKey as keyof typeof rxData] as T;
-            }
-            return undefined;
+            // Nutze getDynamicProperty für type-safe Zugriff
+            // Note: rxData is cast to Record to avoid complex union type distribution
+            const value = getDynamicProperty(rxData as Record<string, any>, fullKey);
+            return value as T | undefined;
         },
         [rxData],
     );
@@ -192,9 +210,11 @@ function useData(oid: string) {
                                 _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
-                            fontSize: formatSize(rxData[`valueSize${i}`]) ?? undefined,
+                            fontSize:
+                                formatSize(getDynamicProperty(rxData as Record<string, any>, `valueSize${i}`)) ||
+                                undefined,
 
-                            textColor: rxData[`textColor${i}`] as string | undefined,
+                            textColor: getDynamicProperty(rxData as Record<string, any>, `textColor${i}`),
 
                             icon: (() => {
                                 const iconValue =
@@ -202,18 +222,22 @@ function useData(oid: string) {
                                 return typeof iconValue === 'string' ? iconValue : undefined;
                             })(),
                             iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : undefined,
-                            iconWidth:
-                                typeof rxData[`iconSize${i}`] === 'number'
-                                    ? rxData[`iconSize${i}`]
+                            iconWidth: (() => {
+                                const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
+                                return typeof dynamicSize === 'number'
+                                    ? dynamicSize
                                     : typeof rxData.iconSize === 'number'
                                       ? rxData.iconSize
-                                      : 100,
-                            iconHeight:
-                                typeof rxData[`iconSize${i}`] === 'number'
-                                    ? rxData[`iconSize${i}`]
+                                      : 100;
+                            })(),
+                            iconHeight: (() => {
+                                const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
+                                return typeof dynamicSize === 'number'
+                                    ? dynamicSize
                                     : typeof rxData.iconSize === 'number'
                                       ? rxData.iconSize
-                                      : 100,
+                                      : 100;
+                            })(),
                             iconXOffset: (() => {
                                 const val = getDataValue<string>('iconXOffset', String(i));
                                 return val && val !== '0px' ? val : '0px';
@@ -223,8 +247,8 @@ function useData(oid: string) {
                                 return val && val !== '0px' ? val : '0px';
                             })(),
                             iconColor:
-                                rxData[`iconColor${i}`] ||
-                                rxData.sliderColor ||
+                                getDynamicProperty(rxData as Record<string, any>, `iconColor${i}`) ||
+                                (isSliderFieldsRxData(rxData) ? rxData.sliderColor : undefined) ||
                                 rxData.iconColor ||
                                 rxData.textColor ||
                                 textStyles.color ||
@@ -316,7 +340,13 @@ function useData(oid: string) {
                     ? formatSize(getDataValue('valueSize', String(ext)))
                     : false,
 
-            icon: !rxData.noIcon && (rxData.icon || rxData.iconSmall),
+            icon: (() => {
+                if (rxData.noIcon) {
+                    return false;
+                }
+                const iconValue = rxData.icon || rxData.iconSmall;
+                return typeof iconValue === 'string' ? iconValue : false;
+            })(),
             iconActive: (() => {
                 const iconVal =
                     !rxData.noIcon &&

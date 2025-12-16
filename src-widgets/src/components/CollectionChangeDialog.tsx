@@ -17,10 +17,24 @@ import {
 import React, { useCallback, useContext, useState, useMemo, type FC, type MouseEvent } from 'react';
 import useValueState from '../hooks/useValueState';
 import { CollectionContext } from './CollectionProvider';
-import type { CollectionContextProps, AllCollectionContextProps, StateCollectionContextProps } from '../newTypes';
+import type { StateCollectionContextProps } from '../newTypes';
 
 /**
- * Widget States Map für die Darstellung verfügbarer Werte
+ * Widget States Map für die Darstellung verfügbarer Werte.
+ *
+ *
+ * Diese Map enthält State-Werte als Keys und ihre Display-Labels als Values.
+ * Wird von useData Hook generiert und in CollectionChangeDialog für die
+ * Auswahl-Liste verwendet.
+ *
+ * @example
+ * ```typescript
+ * const widgetStates: WidgetStates = {
+ *     '0': 'Aus',
+ *     '1': 'Ein',
+ *     '50': 'Dimmen 50%'
+ * };
+ * ```
  */
 interface WidgetStates {
     [key: string]: string | number | boolean;
@@ -42,7 +56,7 @@ interface OidObject {
  */
 interface CollectionChangeDialogProps {
     /** Verfügbare Widget-States für die Auswahl */
-    widgetStates: Partial<AllCollectionContextProps['widget']['data']>;
+    widgetStates: WidgetStates;
     /** Widget-Daten mit Styling-Informationen */
     data: {
         header?: string;
@@ -206,7 +220,7 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
                         >
                             <ListItemText
                                 primaryTypographyProps={{ variant: 'body2' }}
-                                primary={String(value as string | number | boolean)}
+                                primary={String(value)}
                             />
                         </ListItemButton>
                     </ListItem>

@@ -163,7 +163,17 @@ function GaugeCollection(): React.JSX.Element {
                 paper1.style.background = (wrappedContent && (data.backgroundColor || data.background || null)) || '';
             }
         }
-    }, [paper0, paper1, wrappedContent, segment, widget.data]);
+    }, [
+        paper0,
+        paper1,
+        wrappedContent,
+        segment,
+        widget.data,
+        data.frameBackgroundColor,
+        data.frameBackground,
+        data.backgroundColor,
+        data.background,
+    ]);
 
     return (
         <CollectionBase
@@ -195,7 +205,7 @@ function GaugeCollection(): React.JSX.Element {
                     }}
                     gaugeWidgetData={widget.data}
                     gaugeSegment={segment}
-                    gaugeType={(widget.data.gaugeType || 'linear') as 'linear' | 'radial'}
+                    gaugeType={widget.data.gaugeType!}
                     // Basic Options
                     width={(gaugeRef.current?.clientWidth || 0) - Number(widget.data.gaugePadding || 0)}
                     height={(gaugeRef.current?.clientHeight || 0) - Number(widget.data.gaugePadding || 0)}

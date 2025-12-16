@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import type { CollectionContextProps } from '../newTypes';
-import type { CommonObjectFieldsRxData } from '../newTypes/field-definitions/common-object-fields';
 
 /**
  * Interface für die Daten-Parameter (kompatibel mit useData-Return)

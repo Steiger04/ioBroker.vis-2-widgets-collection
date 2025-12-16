@@ -140,7 +140,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                         return (
                             <ToggleButton
                                 // disableRipple
-                                value={value!}
+                                value={value}
                                 key={index}
                                 sx={{
                                     width: '100%',
@@ -584,11 +584,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             String(oidValue) ===
                                                                 String(widget.data[`value${index + 1}`]) &&
                                                             widget.data.aliasActive) ||
-                                                        (widget.data[`alias${index + 1}`] &&
-                                                            widget.data[`alias${index + 1}`].replace(
-                                                                /(\r\n|\n|\r)/gm,
-                                                                '',
-                                                            )) ||
+                                                        widget.data[`alias${index + 1}`]?.replace(
+                                                            /(\r\n|\n|\r)/gm,
+                                                            '',
+                                                        ) ||
                                                         (widget.data[`value${index + 1}`] &&
                                                             `${widget.data[`value${index + 1}`]}${oidObject?.unit}`) ||
                                                         '',

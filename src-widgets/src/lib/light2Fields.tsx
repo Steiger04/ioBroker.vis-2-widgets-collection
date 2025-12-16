@@ -100,10 +100,12 @@ const loadStatesAsync = async (
                             // Type-safe assignment to ExtendedWidgetData
                             extendedData[targetField as keyof ExtendedWidgetData] = state._id;
 
-                            await oidChangeHandlerAsync(
-                                ['boolean', 'number', 'string', 'mixed'],
-                                targetField as string,
-                            )(field, data, changeData, socket);
+                            await oidChangeHandlerAsync(['boolean', 'number', 'string', 'mixed'], targetField)(
+                                field,
+                                data,
+                                changeData,
+                                socket,
+                            );
 
                             if (targetField === 'colorLightTemperatureOid') {
                                 if (!extendedData.colorLightCtMin && state.common.min) {

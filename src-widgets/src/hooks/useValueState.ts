@@ -93,6 +93,8 @@ interface UseValueStateReturn {
  * Hook für Wert-State Management mit Typkonvertierung und Debouncing.
  * Verwendet OidObject aus newTypes für präzise OID-Typisierung.
  * Unterstützt DelayFieldsRxData für Delay-Konfiguration.
+ * Funktioniert mit allen Widget-Types. Widgets ohne DelayFieldsRxData
+ * (Template, Gauge, Dialog) verwenden Default-Delay von 300ms.
  *
  * @param idName Der Name der OID-Property (z.B. 'oid', 'oid1', 'oid2')
  * @returns Objekt mit value, hasBackendChange und updateValue
@@ -111,7 +113,8 @@ const useValueState = (idName: string): UseValueStateReturn => {
     }>({ lc: undefined, value: undefined });
     const ignoreUntilRef = useRef<number>(0);
 
-    const delay = Number((data as DelayFieldsRxData).delay ?? widget.data.delay) || 300;
+    const delay =
+        Number((data as Partial<DelayFieldsRxData>).delay ?? (widget.data as Partial<DelayFieldsRxData>).delay) || 300;
 
     const currentLc = oidObject?._id ? values[`${oidObject._id}.lc`] : undefined;
     const currentValue = oidObject?._id ? values[`${oidObject._id}.val`] : undefined;
@@ -146,7 +149,11 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
     const debounce = useDebounce({
         oidObject,
-        data: widget.data,
+        data: {
+            delay: (widget.data as Partial<DelayFieldsRxData>).delay,
+            sampleInterval: (widget.data as Partial<DelayFieldsRxData>).sampleInterval,
+            sampleIntervalValue: (widget.data as Partial<DelayFieldsRxData>).sampleIntervalValue,
+        },
     });
 
     /**
