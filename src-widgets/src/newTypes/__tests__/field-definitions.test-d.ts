@@ -7,8 +7,72 @@
 
 import { expectType, expectAssignable } from 'tsd';
 import type { CommonFieldsRxData } from '../field-definitions/common-fields';
+import type { BaseFieldsRxData } from '../field-definitions/base-fields';
 import type { CommonObjectFieldsRxData, AllowedType } from '../field-definitions/common-object-fields';
 import type { FieldDefinitions } from '../field-definitions';
+
+// ============================================================================
+// BaseFieldsRxData Tests
+// ============================================================================
+
+describe('BaseFieldsRxData', () => {
+    const data: BaseFieldsRxData = {};
+
+    describe('Static base properties used in CollectionBase', () => {
+        // Layout properties
+        expectType<boolean | undefined>(data.noHeader);
+        expectType<boolean | undefined>(data.noHeaderIcon);
+        expectType<boolean | undefined>(data.noFooter);
+        expectType<boolean | undefined>(data.noCard);
+        expectType<boolean | undefined>(data.squaredCorner);
+        expectType<boolean | undefined>(data.outlined);
+        expectType<boolean | undefined>(data.outlinedFrame);
+
+        // Geometry properties
+        expectType<number | undefined>(data.basePadding);
+        expectType<number | undefined>(data.baseElevation);
+        expectType<boolean | undefined>(data.square);
+        expectType<boolean | undefined>(data.ellipse);
+        expectType<boolean | undefined>(data.circle);
+
+        // Style properties
+        expectType<string | undefined>(data.textColor);
+        expectType<string | undefined>(data.textColorActive);
+        expectType<string | undefined>(data.background);
+        expectType<string | undefined>(data.backgroundColor);
+        expectType<string | undefined>(data.backgroundActive);
+        expectType<string | undefined>(data.backgroundColorActive);
+        expectType<string | undefined>(data.frameBackground);
+        expectType<string | undefined>(data.frameBackgroundColor);
+        expectType<string | undefined>(data.frameBackgroundActive);
+        expectType<string | undefined>(data.frameBackgroundColorActive);
+
+        // Content properties
+        expectType<string | number | undefined>(data.header);
+        expectType<number | string | undefined>(data.headerSize);
+        expectType<string | number | undefined>(data.footer);
+        expectType<number | string | undefined>(data.footerSize);
+        expectType<number | string | undefined>(data.valueSize);
+
+        // Icon properties
+        expectType<string | number | undefined>(data.icon);
+        expectType<string | number | undefined>(data.iconSmall);
+        expectType<number | undefined>(data.iconSize);
+        expectType<string | undefined>(data.iconColor);
+        expectType<number | undefined>(data.iconHover);
+        expectType<string | undefined>(data.iconXOffset);
+        expectType<string | undefined>(data.iconYOffset);
+        expectType<boolean | undefined>(data.noIcon);
+
+        // Behavior properties
+        expectType<boolean | undefined>(data.noValue);
+        expectType<boolean | undefined>(data.onlyDisplay);
+
+        // Value properties
+        expectType<string | undefined>(data.alias);
+        expectType<string | number | undefined>(data.value);
+    });
+});
 
 // ============================================================================
 // CommonFieldsRxData Tests
@@ -130,80 +194,6 @@ describe('CommonFieldsRxData', () => {
         expectType<number | undefined>(data['signals-count']);
         expectType<string | undefined>(data['signals-color-1']);
         expectType<string | undefined>(data['signals-color-10']);
-    });
-
-    // ========================================
-    // Static Base Properties (without index)
-    // ========================================
-
-    describe('Static base properties used in CollectionBase', () => {
-        // Layout properties
-        expectType<boolean | undefined>(data.noHeader);
-        expectType<boolean | undefined>(data.noHeaderIcon);
-        expectType<boolean | undefined>(data.noFooter);
-        expectType<boolean | undefined>(data.noCard);
-        expectType<boolean | undefined>(data.squaredCorner);
-        expectType<boolean | undefined>(data.outlined);
-        expectType<boolean | undefined>(data.outlinedFrame);
-
-        // Geometry properties
-        expectType<number | undefined>(data.basePadding);
-        expectType<number | undefined>(data.baseElevation);
-        expectType<boolean | undefined>(data.square);
-        expectType<boolean | undefined>(data.ellipse);
-        expectType<boolean | undefined>(data.circle);
-
-        // Style properties
-        expectType<string | undefined>(data.textColor);
-        expectType<string | undefined>(data.textColorActive);
-        expectType<string | undefined>(data.background);
-        expectType<string | undefined>(data.backgroundColor);
-        expectType<string | undefined>(data.backgroundActive);
-        expectType<string | undefined>(data.backgroundColorActive);
-        expectType<string | undefined>(data.frameBackground);
-        expectType<string | undefined>(data.frameBackgroundColor);
-        expectType<string | undefined>(data.frameBackgroundActive);
-        expectType<string | undefined>(data.frameBackgroundColorActive);
-
-        // Content properties
-        expectType<string | number | undefined>(data.header);
-        expectType<number | string | undefined>(data.headerSize);
-        expectType<string | number | undefined>(data.footer);
-        expectType<number | string | undefined>(data.footerSize);
-        expectType<number | string | undefined>(data.valueSize);
-
-        // Icon properties
-        expectType<string | number | undefined>(data.icon);
-        expectType<string | number | undefined>(data.iconSmall);
-        expectType<number | undefined>(data.iconSize);
-        expectType<string | undefined>(data.iconColor);
-        expectType<number | undefined>(data.iconHover);
-        expectType<string | undefined>(data.iconXOffset);
-        expectType<string | undefined>(data.iconYOffset);
-        expectType<boolean | undefined>(data.noIcon);
-
-        // Behavior properties
-        expectType<boolean | undefined>(data.noValue);
-        expectType<boolean | undefined>(data.onlyDisplay);
-
-        // Value properties
-        expectType<string | undefined>(data.alias);
-        expectType<string | number | undefined>(data.value);
-    });
-
-    describe('Static properties still work alongside dynamic ones', () => {
-        const mixedData: CommonFieldsRxData = {
-            // Static (no index)
-            noHeader: false,
-            basePadding: 8,
-            textColor: '#000000',
-            // Dynamic (with index)
-            noHeader1: true,
-            basePadding2: 16,
-            textColor3: '#FF0000',
-        };
-
-        expectAssignable<CommonFieldsRxData>(mixedData);
     });
 
     // ========================================

@@ -1,4 +1,6 @@
 import type { CommonFieldsRxData } from './common-fields';
+import type { BaseFieldsRxData } from './base-fields';
+import type { ActiveStateFieldsRxData } from './active-state-fields';
 import type { CommonObjectFieldsRxData } from './common-object-fields';
 import type { StateFieldsRxData } from './state-fields';
 import type { DelayFieldsRxData } from './delay-fields';
@@ -41,6 +43,30 @@ import type { Light2FieldsRxData } from './light2-fields';
  * ```
  */
 export interface FieldDefinitions {
+    /**
+     * Base field types (static properties without index)
+     *
+     * @remarks
+     * Contains ~30 static properties for global widget configuration.
+     * Used in CollectionBase and other base components.
+     * Separated from CommonFieldsRxData for better structure.
+     *
+     * @see {@link BaseFieldsRxData}
+     */
+    base: BaseFieldsRxData;
+
+    /**
+     * Active-State field types (overrides for active state)
+     *
+     * @remarks
+     * Contains 19 properties for styling widgets in active state.
+     * Used by SliderCollectionWidget and ButtonGroupCollectionWidget.
+     * Generated via commonFields({ groupName: 'Active', allFields: false }).
+     *
+     * @see {@link ActiveStateFieldsRxData}
+     */
+    activeState: ActiveStateFieldsRxData;
+
     /**
      * Common field types (icons, headers, footers, backgrounds, etc.)
      *
@@ -110,6 +136,16 @@ export interface FieldDefinitions {
  * Re-export all types from common-fields for convenience.
  */
 export type * from './common-fields';
+
+/**
+ * Re-export all types from base-fields for convenience.
+ */
+export type * from './base-fields';
+
+/**
+ * Re-export active-state field types.
+ */
+export type * from './active-state-fields';
 
 /**
  * Re-export all types from common-object-fields for convenience.

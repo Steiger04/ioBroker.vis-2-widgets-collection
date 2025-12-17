@@ -4,6 +4,9 @@
  * @remarks
  * This interface defines all common UI properties used across Collection widgets.
  * Properties use Template Literal Types with `${number}` for strict type-safety.
+ * Static base properties (without index) are defined in BaseFieldsRxData.
+ *
+ * @see {@link BaseFieldsRxData}
  *
  * @example
  * ```typescript
@@ -472,509 +475,125 @@ export interface CommonFieldsRxData {
     [key: `signals-color-${number}`]: string | undefined;
 
     // ========================================
-    // Static Base Properties (ohne Index)
-    // ========================================
-
-    /**
-     * Hide header section (base property without index).
-     * Used in CollectionBase and other base components.
-     * @default false
-     */
-    noHeader?: boolean;
-
-    /**
-     * Hide header icon (base property without index).
-     * @default false
-     */
-    noHeaderIcon?: boolean;
-
-    /**
-     * Hide footer section (base property without index).
-     * @default false
-     */
-    noFooter?: boolean;
-
-    /**
-     * Hide card container (base property without index).
-     * @default false
-     */
-    noCard?: boolean;
-
-    /**
-     * Use squared corners (base property without index).
-     * @default false
-     */
-    squaredCorner?: boolean;
-
-    /**
-     * Text color (base property without index).
-     */
-    textColor?: string;
-
-    /**
-     * Use outlined card style (base property without index).
-     * @default false
-     */
-    outlined?: boolean;
-
-    /**
-     * Use outlined frame style (base property without index).
-     * @default false
-     */
-    outlinedFrame?: boolean;
-
-    /**
-     * Padding inside base container in pixels (base property without index).
-     * @default 8
-     */
-    basePadding?: number;
-
-    /**
-     * Material-UI elevation level (base property without index).
-     * Range: 0-24
-     * @default 2
-     */
-    baseElevation?: number;
-
-    /**
-     * Use square shape (base property without index).
-     * @default false
-     */
-    square?: boolean;
-
-    /**
-     * Use ellipse shape (base property without index).
-     * @default false
-     */
-    ellipse?: boolean;
-
-    /**
-     * Use circular shape (base property without index).
-     * @default false
-     */
-    circle?: boolean;
-
-    /**
-     * Background image URL or path (base property without index).
-     */
-    background?: string;
-
-    /**
-     * Background color (base property without index).
-     */
-    backgroundColor?: string;
-
-    /**
-     * Background image URL or path when active (base property without index).
-     */
-    backgroundActive?: string;
-
-    /**
-     * Background color when active (base property without index).
-     */
-    backgroundColorActive?: string;
-
-    /**
-     * Frame background image URL or path (base property without index).
-     */
-    frameBackground?: string;
-
-    /**
-     * Frame background color (base property without index).
-     */
-    frameBackgroundColor?: string;
-
-    /**
-     * Frame background image URL or path when active (base property without index).
-     */
-    frameBackgroundActive?: string;
-
-    /**
-     * Frame background color when active (base property without index).
-     */
-    frameBackgroundColorActive?: string;
-
-    /**
-     * Header text (base property without index).
-     */
-    header?: string | number;
-
-    /**
-     * Header font size (base property without index).
-     */
-    headerSize?: number | string;
-
-    /**
-     * Footer text (base property without index).
-     */
-    footer?: string | number;
-
-    /**
-     * Footer font size (base property without index).
-     */
-    footerSize?: number | string;
-
-    /**
-     * Value font size (base property without index).
-     */
-    valueSize?: number | string;
-
-    /**
-     * Icon identifier (base property without index).
-     */
-    icon?: string | number;
-
-    /**
-     * Small icon identifier (base property without index).
-     */
-    iconSmall?: string | number;
-
-    /**
-     * Icon size in pixels (base property without index).
-     * @default 24
-     */
-    iconSize?: number;
-
-    /**
-     * Icon color (base property without index).
-     */
-    iconColor?: string;
-
-    /**
-     * Icon hover effect in % (base property without index).
-     */
-    iconHover?: number;
-
-    /**
-     * Horizontal icon offset (base property without index).
-     * @default '0px'
-     */
-    iconXOffset?: string;
-
-    /**
-     * Vertical icon offset (base property without index).
-     * @default '0px'
-     */
-    iconYOffset?: string;
-
-    /**
-     * Hide icon (base property without index).
-     * @default false
-     */
-    noIcon?: boolean;
-
-    /**
-     * Hide value display (base property without index).
-     * @default false
-     */
-    noValue?: boolean;
-
-    /**
-     * Display only (no interaction, base property without index).
-     * @default false
-     */
-    onlyDisplay?: boolean;
-
-    /**
-     * Alias name (base property without index).
-     */
-    alias?: string;
-
-    /**
-     * Value text (base property without index).
-     */
-    value?: string | number;
-
-    /**
-     * Text color when active (base property without index).
-     */
-    textColorActive?: string;
-
-    // ========================================
     // Active-State Overrides
     // ========================================
+    // NOTE: Active-State Properties sind in ActiveStateFieldsRxData definiert
+    // und werden hier durch Interface-Erweiterung eingebunden, da sie von
+    // commonFields({ groupName: 'Active', allFields: false }) generiert werden
+    // und in allen Widgets via CollectionBase verfügbar sein müssen.
+    // @see {@link ActiveStateFieldsRxData}
 
     /**
      * Alias name override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in ButtonGroupCollectionWidget for displaying alternative labels in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * aliasActive: 'Active Label'
-     * aliasActive: 'Currently Selected'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.aliasActive}
      */
     aliasActive?: string;
 
     /**
      * Value font size override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in visAttrs "active" group (SliderCollectionWidget, ButtonGroupCollectionWidget).
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * valueSizeActive: '120%'
-     * valueSizeActive: 150 // interpreted as 150%
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.valueSizeActive}
      */
     valueSizeActive?: string | number;
 
     /**
      * Font size override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * fontSizeActive: '1.5rem'
-     * fontSizeActive: 18 // interpreted as 18px
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.fontSizeActive}
      */
     fontSizeActive?: string | number;
 
     /**
      * Text color override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in ButtonGroupCollectionWidget for active button text color.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * textColorActive: '#FF5722'
-     * textColorActive: 'rgb(255, 87, 34)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.textColorActive}
      */
     textColorActive?: string;
 
     /**
      * Main icon identifier for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in ButtonGroupCollectionWidget for active button icon display.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconActive: 'active-icon.svg'
-     * iconActive: '/icons/active.png'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconActive}
      */
     iconActive?: string;
 
     /**
      * Small icon identifier for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in ButtonGroupCollectionWidget for compact active icon display.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconSmallActive: 'small-active.svg'
-     * iconSmallActive: 'mdi-check-circle'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconSmallActive}
      */
     iconSmallActive?: string;
 
     /**
      * Icon size override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Frequently used in SliderCollectionWidget and ButtonGroupCollectionWidget.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconSizeActive: 150 // 150% of base size
-     * iconSizeActive: '32px'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconSizeActive}
      */
     iconSizeActive?: string | number;
 
     /**
      * Icon color override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Most frequently used Active property across Collection widgets.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconColorActive: '#00ff00'
-     * iconColorActive: 'rgba(0, 255, 0, 0.8)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconColorActive}
      */
     iconColorActive?: string;
 
     /**
      * Icon hover brightness override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in ButtonGroupCollectionWidget for hover effect brightness in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconHoverActive: 150 // 150% brightness on hover
-     * iconHoverActive: 200 // 200% brightness on hover
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconHoverActive}
      */
     iconHoverActive?: number;
 
     /**
      * Horizontal icon offset override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in SliderCollectionWidget for precise icon positioning. Supports CSS units (px, %, em, rem).
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconXOffsetActive: '10px'  // move 10px right when active
-     * iconXOffsetActive: '-5%'   // move 5% left when active
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconXOffsetActive}
      */
     iconXOffsetActive?: string;
 
     /**
      * Vertical icon offset override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in SliderCollectionWidget for precise icon positioning. Supports CSS units (px, %, em, rem).
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * iconYOffsetActive: '-10px' // move 10px up when active
-     * iconYOffsetActive: '5rem'  // move 5rem down when active
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.iconYOffsetActive}
      */
     iconYOffsetActive?: string;
 
     /**
      * Header text override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for displaying alternative header text in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * headerActive: 'Active Header'
-     * headerActive: 'Currently Selected'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.headerActive}
      */
     headerActive?: string | number;
 
     /**
      * Header font size override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for header size in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * headerSizeActive: 20
-     * headerSizeActive: '1.5rem'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.headerSizeActive}
      */
     headerSizeActive?: number | string;
 
     /**
      * Footer text override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for displaying alternative footer text in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * footerActive: 'Active Footer'
-     * footerActive: 'Selected'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.footerActive}
      */
     footerActive?: string | number;
 
     /**
      * Footer font size override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for footer size in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * footerSizeActive: 14
-     * footerSizeActive: '0.9rem'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.footerSizeActive}
      */
     footerSizeActive?: number | string;
 
     /**
      * Background gradient override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for background gradient in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * backgroundActive: 'linear-gradient(to right, #ff0000, #00ff00)'
-     * backgroundActive: 'radial-gradient(circle, #333, #000)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.backgroundActive}
      */
     backgroundActive?: string;
 
     /**
      * Background color override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for solid background color in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * backgroundColorActive: '#FF5722'
-     * backgroundColorActive: 'rgb(255, 87, 34)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.backgroundColorActive}
      */
     backgroundColorActive?: string;
 
     /**
      * Frame background gradient override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for frame background gradient in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * frameBackgroundActive: 'linear-gradient(to bottom, #000, #333)'
-     * frameBackgroundActive: 'radial-gradient(ellipse, #fff, #ccc)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.frameBackgroundActive}
      */
     frameBackgroundActive?: string;
 
     /**
      * Frame background color override for active state.
-     * Generated by commonFields({ groupName: 'Active', allFields: false }).
-     * Used in CollectionBase for frame solid background color in active state.
-     *
-     * @default undefined
-     * @example
-     * ```typescript
-     * frameBackgroundColorActive: '#0288D1'
-     * frameBackgroundColorActive: 'rgba(2, 136, 209, 0.8)'
-     * ```
-     * @remarks groupName: 'Active' → Suffix
+     * @see {@link ActiveStateFieldsRxData.frameBackgroundColorActive}
      */
     frameBackgroundColorActive?: string;
 }

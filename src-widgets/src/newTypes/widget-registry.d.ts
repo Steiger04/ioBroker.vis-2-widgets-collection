@@ -41,6 +41,7 @@ import type { UnionToIntersection } from './widget-builder';
  * are automatically generated from this mapping.
  *
  * Field Names Reference:
+ * - `base`: Base fields (static properties without index) - ~30 properties
  * - `common`: Common fields (alias, style, visibility, etc.) - ~30 properties
  * - `commonObject`: Object-related fields (oid, writeDelay, states) - ~15 properties
  * - `state`: State display fields (onlyStates, showIcon) - ~5 properties
@@ -65,69 +66,69 @@ import type { UnionToIntersection } from './widget-builder';
 export interface WidgetFieldMappings {
     /**
      * Template Widget - Base widget with minimal fields
-     * Fields: common (30) + commonObject (15) = ~45 properties
+     * Fields: base (30) + common (30) + commonObject (15) = ~75 properties
      */
-    tplTemplateCollectionWidget: ['common', 'commonObject'];
+    tplTemplateCollectionWidget: ['base', 'common', 'commonObject'];
 
     /**
      * State Widget - Display and monitor state values
-     * Fields: common (30) + commonObject (15) + state (5) + delay (2) = ~52 properties
+     * Fields: base (30) + common (30) + commonObject (15) + state (5) + delay (2) = ~82 properties
      */
-    tplStateCollectionWidget: ['common', 'commonObject', 'state', 'delay'];
+    tplStateCollectionWidget: ['base', 'common', 'commonObject', 'state', 'delay'];
 
     /**
      * Checkbox Widget - Boolean state control via checkbox
-     * Fields: common (30) + commonObject (15) + checkbox (3) + delay (2) = ~50 properties
+     * Fields: base (30) + common (30) + commonObject (15) + checkbox (3) + delay (2) = ~80 properties
      */
-    tplCheckboxCollectionWidget: ['common', 'commonObject', 'checkbox', 'delay'];
+    tplCheckboxCollectionWidget: ['base', 'common', 'commonObject', 'checkbox', 'delay'];
 
     /**
      * Switch Widget - Boolean state control via switch/toggle
-     * Fields: common (30) + commonObject (15) + switch (4) + delay (2) = ~51 properties
+     * Fields: base (30) + common (30) + commonObject (15) + switch (4) + delay (2) = ~81 properties
      */
-    tplSwitchCollectionWidget: ['common', 'commonObject', 'switch', 'delay'];
+    tplSwitchCollectionWidget: ['base', 'common', 'commonObject', 'switch', 'delay'];
 
     /**
      * Slider Widget - Numeric state control via slider
-     * Fields: common (30) + commonObject (15) + slider (7) + delay (2) = ~54 properties
+     * Fields: base (30) + common (30) + commonObject (15) + slider (7) + activeState (19) + delay (2) = ~103 properties
      */
-    tplSliderCollectionWidget: ['common', 'commonObject', 'slider', 'delay'];
+    tplSliderCollectionWidget: ['base', 'common', 'commonObject', 'slider', 'activeState', 'delay'];
 
     /**
      * Radio Group Widget - Single selection from options
-     * Fields: common (30) + commonObject (15) + radioGroup (5) + delay (2) = ~52 properties
+     * Fields: base (30) + common (30) + commonObject (15) + radioGroup (5) + delay (2) = ~82 properties
      */
-    tplRadioGroupCollectionWidget: ['common', 'commonObject', 'radioGroup', 'delay'];
+    tplRadioGroupCollectionWidget: ['base', 'common', 'commonObject', 'radioGroup', 'delay'];
 
     /**
      * Button Group Widget - Multiple action buttons
-     * Fields: common (30) + commonObject (15) + buttonGroup (6) + delay (2) = ~53 properties
+     * Fields: base (30) + common (30) + commonObject (15) + buttonGroup (6) + activeState (19) + delay (2) = ~102 properties
      */
-    tplButtonGroupCollectionWidget: ['common', 'commonObject', 'buttonGroup', 'delay'];
+    tplButtonGroupCollectionWidget: ['base', 'common', 'commonObject', 'buttonGroup', 'activeState', 'delay'];
 
     /**
      * Select Widget - Dropdown selection control
-     * Fields: common (30) + commonObject (15) + select (4) + delay (2) = ~51 properties
+     * Fields: base (30) + common (30) + commonObject (15) + select (4) + delay (2) = ~81 properties
      */
-    tplSelectCollectionWidget: ['common', 'commonObject', 'select', 'delay'];
+    tplSelectCollectionWidget: ['base', 'common', 'commonObject', 'select', 'delay'];
 
     /**
      * Gauge Widget - Visual value representation with thresholds
-     * Fields: common (30) + commonObject (15) + gauge (80) = ~125 properties
+     * Fields: base (30) + common (30) + commonObject (15) + gauge (80) = ~155 properties
      */
-    tplGaugeCollectionWidget: ['common', 'commonObject', 'gauge'];
+    tplGaugeCollectionWidget: ['base', 'common', 'commonObject', 'gauge'];
 
     /**
      * Dialog Widget - Modal/dialog display and interaction
-     * Fields: common (30) + commonObject (15) + dialog (5) = ~50 properties
+     * Fields: base (30) + common (30) + commonObject (15) + dialog (5) = ~80 properties
      */
-    tplDialogCollectionWidget: ['common', 'commonObject', 'dialog'];
+    tplDialogCollectionWidget: ['base', 'common', 'commonObject', 'dialog'];
 
     /**
      * Light2 Widget - Advanced light control (brightness, color, effects)
-     * Fields: common (30) + commonObject (15) + light2 (24) + delay (2) = ~71 properties
+     * Fields: base (30) + common (30) + commonObject (15) + light2 (24) + delay (2) = ~101 properties
      */
-    tplLight2CollectionWidget: ['common', 'commonObject', 'light2', 'delay'];
+    tplLight2CollectionWidget: ['base', 'common', 'commonObject', 'light2', 'delay'];
 }
 
 // ============================================================================

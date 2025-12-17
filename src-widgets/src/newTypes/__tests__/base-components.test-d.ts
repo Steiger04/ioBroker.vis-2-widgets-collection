@@ -7,7 +7,7 @@ class TestWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
     testMethod() {
         // Should have type-safe access to widget data
         expectType<string | undefined>(this.state.rxData.alias1);
-        expectType<string | undefined>(this.state.rxData.oid1);
+        expectType<string | undefined>(this.state.rxData.oid);
         expectType<boolean | undefined>(this.state.rxData.onlyStates);
     }
 }
