@@ -38,7 +38,7 @@ Phase 4 establishes the **Widget Registry and Context Type Infrastructure** as t
     - Added Phase 4-8 migration roadmap
     - Clarified future type refinement strategy
 
-2. **`index.d.ts`**
+2. **`index.ts`**
     - Added Phase 4 exports section
     - Updated module declaration with registry and context types
     - Documented 11 supported widgets
@@ -414,7 +414,7 @@ const oldContext: OldContext<StateFieldsRxData & CommonFieldsRxData & ...> = new
 
 ### Prerequisites (Completed)
 
-- ✅ Phase 1: Type utilities (`widget-builder.d.ts`, `utility-types.d.ts`)
+- ✅ Phase 1: Type utilities (`widget-builder.d.ts`, `utility-types.ts`)
 - ✅ Phase 2: Common field definitions (`common-fields.d.ts`, `common-object-fields.d.ts`)
 - ✅ Phase 3: Widget-specific field definitions (11 widgets)
 

@@ -217,15 +217,15 @@ import type { OidObject, OidType } from '../newTypes';
 
 ## Geänderte Dateien
 
-| Datei                             | Änderungen    | Impact                                           |
-| --------------------------------- | ------------- | ------------------------------------------------ |
-| `src/hooks/useData.ts`            | 10 Änderungen | Eliminierung von `any`, vollständige Typisierung |
-| `src/hooks/useOidValue.ts`        | 2 Änderungen  | Import-Updates, JSDoc                            |
-| `src/hooks/useValueState.ts`      | 3 Änderungen  | OidObject aus newTypes, Type-Safety              |
-| `src/hooks/useDebounce.ts`        | 2 Änderungen  | OidObject/OidType nach newTypes verschoben       |
-| `src/newTypes/utility-types.d.ts` | 1 Änderung    | Re-Exports hinzugefügt                           |
-| `src/newTypes/index.d.ts`         | 2 Änderungen  | OidObject/OidType Exports                        |
-| `src/newTypes/README.md`          | 1 Änderung    | Phase 5 Status-Update                            |
+| Datei                           | Änderungen    | Impact                                           |
+| ------------------------------- | ------------- | ------------------------------------------------ |
+| `src/hooks/useData.ts`          | 10 Änderungen | Eliminierung von `any`, vollständige Typisierung |
+| `src/hooks/useOidValue.ts`      | 2 Änderungen  | Import-Updates, JSDoc                            |
+| `src/hooks/useValueState.ts`    | 3 Änderungen  | OidObject aus newTypes, Type-Safety              |
+| `src/hooks/useDebounce.ts`      | 2 Änderungen  | OidObject/OidType nach newTypes verschoben       |
+| `src/newTypes/utility-types.ts` | 1 Änderung    | Runtime-Implementierungen hinzugefügt            |
+| `src/newTypes/index.ts`         | 2 Änderungen  | OidObject/OidType Exports                        |
+| `src/newTypes/README.md`        | 1 Änderung    | Phase 5 Status-Update                            |
 
 ## Technische Details
 

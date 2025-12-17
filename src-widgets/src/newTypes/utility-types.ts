@@ -7,7 +7,7 @@ import type { SliderFieldsRxData, CommonObjectFieldsRxData } from './field-defin
  * @module utility-types
  * @remarks
  * These types are used by hooks and components for OID management and value conversion.
- * The types are re-exported from utility-types.d.ts for declaration file compatibility.
+ * These types are exported directly from this file and re-exported via index.ts.
  */
 
 /**
@@ -202,16 +202,76 @@ export function isCommonObjectFieldsRxData(data: any): data is CommonObjectField
  *
  * @template T - Expected type
  * @param data - Data to check
- * @param requiredFields - Array of required field names
- * @returns true if all required fields exist
+ * @param requiredFields - Optional array of required field names (default: [])
+ * @returns true if data is an object and all required fields exist
  *
  * @example
  * ```typescript
+ * // Basic object type check
+ * if (isValidWidgetData<MyWidgetData>(data)) {
+ *     // TypeScript knows data is MyWidgetData here
+ *     console.log(data.oid, data.label);
+ * }
+ *
+ * // With required fields validation
  * if (isValidWidgetData(data, ['oid1', 'alias1'])) {
  *     const oid = data.oid1; // ✅ Guaranteed to exist
  * }
  * ```
  */
-export function isValidWidgetData<T extends Record<string, any>>(data: any, requiredFields: (keyof T)[]): data is T {
+export function isValidWidgetData<T extends Record<string, any>>(
+    data: any,
+    requiredFields: (keyof T)[] = [],
+): data is T {
     return typeof data === 'object' && data !== null && requiredFields.every(field => field in data);
+}
+
+/**
+ * Type guard to check if an indexed property exists at a specific index.
+ * Validates both existence and non-null value of indexed properties.
+ *
+ * @template T - The object type (must extend Record<string, any>)
+ * @template P - The property prefix type
+ * @param obj - The object to check
+ * @param prefix - The property prefix (e.g., 'oid', 'label')
+ * @param index - The numeric index to check
+ * @returns True if property exists and is not null/undefined
+ *
+ * @example
+ * ```typescript
+ * const data = { oid1: 'light.on', oid2: 'light.brightness' };
+ *
+ * if (hasIndexedProperty(data, 'oid', 1)) {
+ *   console.log(data.oid1); // Type-safe access
+ * }
+ *
+ * if (hasIndexedProperty(data, 'oid', 3)) {
+ *   // Won't execute - oid3 is undefined
+ * }
+ * ```
+ *
+ * @remarks
+ * This function is specifically designed for Collection widgets that use
+ * numbered properties. It provides:
+ * - Existence check: Property is defined on object
+ * - Null/undefined check: Property has a non-null value
+ * - Index safety: Validates specific index
+ *
+ * Common usage:
+ * ```typescript
+ * for (let i = 1; i <= 10; i++) {
+ *   if (hasIndexedProperty(this.props, 'oid', i)) {
+ *     const oid = this.props[`oid${i}`];
+ *     // Subscribe to state
+ *   }
+ * }
+ * ```
+ */
+export function hasIndexedProperty<T extends Record<string, any>, P extends string>(
+    obj: T,
+    prefix: P,
+    index: number,
+): boolean {
+    const key = `${prefix}${index}`;
+    return Object.prototype.hasOwnProperty.call(obj, key) && obj[key] != null;
 }

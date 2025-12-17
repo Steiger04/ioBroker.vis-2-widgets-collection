@@ -18,6 +18,7 @@ export {
     isSliderFieldsRxData,
     isCommonObjectFieldsRxData,
     isValidWidgetData,
+    hasIndexedProperty,
 } from './utility-types';
 
 // Re-export type-only exports for TypeScript resolution

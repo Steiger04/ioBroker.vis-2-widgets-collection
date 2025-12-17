@@ -67,7 +67,7 @@ export type * from './widget-builder';
  * const oid = getDynamicProperty(this.props, `oid${index}`);
  * ```
  */
-export type * from './utility-types.d';
+export type * from './utility-types';
 export type { OidObject, OidType } from './utility-types';
 
 /**

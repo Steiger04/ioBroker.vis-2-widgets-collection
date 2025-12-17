@@ -27,9 +27,9 @@ This directory contains the **single source of truth** for all vis-2 Collection 
 | File                                                 | Purpose                               | Key Exports                                                                                                      |
 | ---------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **[widget-builder.d.ts](./widget-builder.d.ts)**     | Type utilities for widget composition | `UnionToIntersection`, `BuildWidgetData`, `BuildWidgetState`, `ExtractFieldTypes`, `ValidateFields`              |
-| **[utility-types.d.ts](./utility-types.d.ts)**       | Helper functions and type guards      | `getDynamicProperty`, `setDynamicProperty`, `getAllIndexedProperties`, `isValidWidgetData`, `hasIndexedProperty` |
+| **[utility-types.ts](./utility-types.ts)**           | Helper functions and type guards      | `getDynamicProperty`, `setDynamicProperty`, `getAllIndexedProperties`, `isValidWidgetData`, `hasIndexedProperty` |
 | **[vis-2-extensions.d.ts](./vis-2-extensions.d.ts)** | Module augmentation for vis-2         | `CollectionWidgetInfo`, `FieldChangeCallback`, `FieldValidationCallback`                                         |
-| **[index.d.ts](./index.d.ts)**                       | Central export point                  | Re-exports all types                                                                                             |
+| **[index.ts](./index.ts)**                           | Central export point                  | All public types and utilities                                                                                   |
 
 ### Directory Structure
 
@@ -37,7 +37,7 @@ This directory contains the **single source of truth** for all vis-2 Collection 
 newTypes/
 ├── index.ts                      # Central export point
 ├── widget-builder.d.ts           # Widget composition types
-├── utility-types.d.ts            # Runtime utilities (declarations only)
+├── utility-types.ts              # Runtime utilities (types + implementations)
 ├── vis-2-extensions.d.ts         # vis-2 type extensions
 ├── README.md                     # This file
 ├── PHASE-10-FINAL-COMPLETE.md    # ✅ Phase 10 completion docs
@@ -59,6 +59,49 @@ newTypes/
 └── __tests__/
     └── compatibility-validation.test-d.ts  # Type-level tests
 ```
+
+## 🏗️ Architektur-Prinzipien
+
+Das `newTypes`-System folgt einer klaren Datei-Konvention:
+
+### `.d.ts` Dateien - Reine Type-Deklarationen
+
+Verwendet für **Type-Level-Programmierung** ohne Runtime-Code:
+
+- `widget-builder.d.ts` - Type-Utilities (UnionToIntersection, BuildWidgetData)
+- `widget-registry.d.ts` - Widget-Type-Mappings
+- `context-types.d.ts` - React Context Types
+- `vis-2-extensions.d.ts` - Module Augmentation
+
+**Eigenschaften:**
+
+- Keine Runtime-Implementierungen
+- Nur TypeScript-Types und Interfaces
+- Werden nicht in JavaScript kompiliert
+- Ideal für generische Type-Transformationen
+
+### `.ts` Dateien - Types + Runtime-Code
+
+Verwendet für **Types mit Runtime-Implementierungen**:
+
+- `utility-types.ts` - Type-Definitionen + Helper-Funktionen
+- `index.ts` - Type-Exports + Runtime-Exports
+
+**Eigenschaften:**
+
+- Kombiniert TypeScript-Types mit JavaScript-Code
+- Wird zu JavaScript kompiliert
+- Exportiert sowohl Types als auch Funktionen
+- Ideal für Utility-Funktionen mit Type-Safety
+
+### Warum diese Trennung?
+
+| Aspekt           | `.d.ts` (Pure Types)      | `.ts` (Types + Runtime)        |
+| ---------------- | ------------------------- | ------------------------------ |
+| **Zweck**        | Type-Level-Programmierung | Runtime-Funktionalität         |
+| **Kompilierung** | Nur Type-Checking         | JavaScript-Output              |
+| **Verwendung**   | Type-Transformationen     | Helper-Funktionen              |
+| **Beispiel**     | `UnionToIntersection<T>`  | `getDynamicProperty(obj, key)` |
 
 ## 📝 Quick Start
 
@@ -317,16 +360,16 @@ type Invalid = ValidateFields<string>; // never (compilation error)
 
 **Use case:** Ensuring field definitions are proper object types.
 
-## Runtime Utilities (Declarations)
+## Runtime Utilities
 
-The functions in [utility-types.d.ts](./utility-types.d.ts) are **type declarations only**. The actual implementations will be created in `.ts` files when widgets are migrated and need these utilities.
+The functions in [utility-types.ts](./utility-types.ts) provide **both type definitions and runtime implementations**. This file follows the pattern of combining TypeScript types with JavaScript runtime code in a single `.ts` file.
 
 This approach:
 
-- Defines the type contracts upfront
-- Allows progressive implementation
-- Prevents TypeScript errors during development
-- Ensures consistency across implementations
+- Provides type safety at compile time
+- Includes runtime implementations for immediate use
+- Eliminates the need for separate `.d.ts` declaration files
+- Follows modern TypeScript best practices for library code
 
 ## Module Augmentation
 

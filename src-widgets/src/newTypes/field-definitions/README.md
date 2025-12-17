@@ -19,7 +19,7 @@ Field definitions serve as the foundation for:
 | ----------------------------- | -------------------------- | ---------------------- | ------------------------------------------------------------ |
 | **common-fields.d.ts**        | `CommonFieldsRxData`       | ~35 dynamic + 2 static | UI elements (icons, headers, footers, backgrounds, geometry) |
 | **common-object-fields.d.ts** | `CommonObjectFieldsRxData` | 8 static + 3 dynamic   | ioBroker state handling (OID, unit, values, metadata)        |
-| **index.d.ts**                | `FieldDefinitions`         | Registry               | Central registry for all field types                         |
+| **index.ts**                  | `FieldDefinitions`         | Registry               | Central registry for all field types                         |
 
 ## Phase 3: Widget-Specific Fields (✅ Complete)
 
@@ -411,8 +411,8 @@ export interface FieldDefinitions {
 
 - [Type Infrastructure Blueprint](../all-ideas-for-new-types.md) - Complete specification (~1300 lines)
 - [Widget Builder](../widget-builder.d.ts) - BuildWidgetData utility (Phase 3)
-- [Utility Types](../utility-types.d.ts) - Helper types
-- [Main Index](../index.d.ts) - Package exports
+- [Utility Types](../utility-types.ts) - Helper types and runtime functions
+- [Main Index](../index.ts) - Package exports
 
 ## Contributing
 

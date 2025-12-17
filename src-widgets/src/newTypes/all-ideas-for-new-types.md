@@ -354,13 +354,13 @@ Erweiterung der vis-2 Typen um Collection-spezifische Properties.
 
 ```
 newTypes/
-├── index.d.ts                    # Haupt-Export mit declare module
+├── index.ts                      # Haupt-Export (runtime + types)
 ├── vis-2-extensions.d.ts         # Erweiterungen für vis-2
 ├── field-definitions.d.ts        # Field-RxData-Typen (dynamisch!)
 ├── widget-builder.d.ts           # Widget-Builder
 ├── widget-registry.d.ts          # Widget-Registry
 ├── context-types.d.ts            # Context-Typen
-├── utility-types.d.ts            # Helper & Guards
+├── utility-types.ts              # Helper & Guards (types + implementations)
 ├── new-types-usage.md            # Migrations-Anleitung
 └── README.md                     # Deutsche Dokumentation
 ```
@@ -712,7 +712,7 @@ Widget-spezifische Context-Typen
 export type WidgetContext<T extends keyof WidgetRegistry> = CollectionContextProps<WidgetRegistry[T]>;
 ```
 
-### 6.5 utility-types.d.ts
+### 6.5 utility-types.ts
 
 #### getDynamicProperty (Ersatz für unsichere Casts)
 
@@ -790,7 +790,7 @@ export type FieldChangeCallback<T = any> = (field: string, value: T) => void;
 export type FieldValidationCallback<T = any> = (field: string, value: T) => boolean;
 ```
 
-### 6.7 index.d.ts
+### 6.7 index.ts
 
 #### declare module 'vis-2-widgets-collection'
 
