@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import { Subject, debounceTime, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { DelayFieldsRxData, OidObject } from '../newTypes';
+import type { DelayFieldsRxData, OidObject } from '../types';
 
 /**
  * Interface für useDebounce Parameter

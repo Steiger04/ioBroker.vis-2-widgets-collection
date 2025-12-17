@@ -1,8 +1,8 @@
-# Migration Guide: Legacy Types → newTypes
+﻿# Migration Guide: Legacy Types → types
 
 ## Übersicht
 
-Dieses Dokument beschreibt die Migration von `src/types/` zu `src/newTypes/`.
+Dieses Dokument beschreibt die Migration vom alten `src/types/` System zum neuen `src/types/` System.
 
 ## Import-Änderungen
 
@@ -13,11 +13,11 @@ import type { StateCollectionContextProps } from '../types';
 import type { CommonFieldsRxData } from '../lib/commonFields';
 ```
 
-### Nachher (newTypes)
+### Nachher (types)
 
 ```typescript
-import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
-import type { CommonFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
+import type { CommonFieldsRxData } from 'vis-2-widgets-collection/types';
 ```
 
 ## Type-Änderungen

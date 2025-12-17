@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { Light2CollectionContextProps } from '../newTypes';
+import type { Light2CollectionContextProps } from '../types';
 import withButtonModal from '../components/withButtonModal';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';

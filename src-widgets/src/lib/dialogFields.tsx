@@ -1,6 +1,6 @@
 /**
  * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/dialog-fields`.
+ * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/dialog-fields`.
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';

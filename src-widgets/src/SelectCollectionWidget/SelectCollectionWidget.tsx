@@ -8,7 +8,7 @@ import selectFields from '../lib/selectFields';
 import SelectCollection from './SelectCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-import type { SelectCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { SelectCollectionContextProps, WidgetRegistry } from '../types';
 
 class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

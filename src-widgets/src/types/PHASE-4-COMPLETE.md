@@ -1,4 +1,4 @@
-# Phase 4 Complete: Widget Registry & Context Types
+﻿# Phase 4 Complete: Widget Registry & Context Types
 
 **Status:** ✅ Complete
 **Date:** December 13, 2025
@@ -139,7 +139,7 @@ type StateCollectionContextProps = CollectionContextProps<WidgetRegistry['tplSta
 ### 1. Widget Class with Registry
 
 ```typescript
-import type { WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+import type { WidgetRegistry } from 'vis-2-widgets-collection/types';
 import Generic from '../Generic';
 
 class StateWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
@@ -158,7 +158,7 @@ class StateWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
 
 ```typescript
 import React from 'react';
-import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 const StateContext = React.createContext<StateCollectionContextProps>(null!);
 
@@ -186,7 +186,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 ```typescript
 import React from 'react';
-import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 const StateContext = React.createContext<StateCollectionContextProps>(null!);
 
@@ -204,7 +204,7 @@ function StateDisplay() {
 ### 4. Generic Widget Handler
 
 ```typescript
-import type { AllCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { AllCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 function handleAnyWidget(context: AllCollectionContextProps) {
     // Works with any Collection widget context
@@ -243,7 +243,7 @@ import type {
     WidgetRegistry,
     StateCollectionContextProps,
     WidgetFieldMappings,
-} from 'vis-2-widgets-collection/newTypes';
+} from 'vis-2-widgets-collection/types';
 
 // ✅ All imports resolve correctly
 type Test = WidgetRegistry['tplStateCollectionWidget'];
@@ -267,7 +267,7 @@ export type WidgetRegistry = {
 
 ```typescript
 // Phase 5-8 widgets use registry types
-import type { WidgetRegistry, StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { WidgetRegistry, StateCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 class StateWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
     // Full type safety from registry
@@ -310,7 +310,7 @@ declare module '@iobroker/types-vis-2' {
 // Old context types (src/types/index.d.ts)
 import type { CollectionContextProps as OldContext } from '../types';
 
-// New context types (newTypes/context-types.d.ts)
+// New context types (types/context-types.d.ts)
 import type { StateCollectionContextProps as NewContext } from './context-types';
 
 // ✅ New types are compatible with old types
@@ -354,7 +354,7 @@ const oldContext: OldContext<StateFieldsRxData & CommonFieldsRxData & ...> = new
 
 3. **Phase 10:** Full type system unification
     - Remove old types from `src/types/index.d.ts`
-    - Migrate all imports to `newTypes/`
+    - Migrate all imports to `types/`
     - Single type system for entire codebase
 
 ## Testing Results
@@ -399,14 +399,14 @@ const oldContext: OldContext<StateFieldsRxData & CommonFieldsRxData & ...> = new
 
 ### New Files (3)
 
-1. `src-widgets/src/newTypes/widget-registry.d.ts` (+371 lines)
-2. `src-widgets/src/newTypes/context-types.d.ts` (+574 lines)
-3. `src-widgets/src/newTypes/__tests__/phase-4.test-d.ts` (+485 lines)
+1. `src-widgets/src/types/widget-registry.d.ts` (+371 lines)
+2. `src-widgets/src/types/context-types.d.ts` (+574 lines)
+3. `src-widgets/src/types/__tests__/phase-4.test-d.ts` (+485 lines)
 
 ### Modified Files (2)
 
-1. `src-widgets/src/newTypes/vis-2-extensions.d.ts` (+40 lines JSDoc)
-2. `src-widgets/src/newTypes/index.d.ts` (+109 lines exports/docs)
+1. `src-widgets/src/types/vis-2-extensions.d.ts` (+40 lines JSDoc)
+2. `src-widgets/src/types/index.d.ts` (+109 lines exports/docs)
 
 **Total Changes:** +1,579 lines of new code and documentation
 

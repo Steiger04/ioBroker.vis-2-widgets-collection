@@ -1,8 +1,8 @@
-# Phase 6: Widget-Migration (Template, State, Checkbox) - Abgeschlossen
+﻿# Phase 6: Widget-Migration (Template, State, Checkbox) - Abgeschlossen
 
 ## Zusammenfassung
 
-Erfolgreich 3 einfachste Widgets zu `newTypes` migriert: Template, State, Checkbox.
+Erfolgreich 3 einfachste Widgets zu `types` migriert: Template, State, Checkbox.
 
 ## Migrierte Komponenten
 

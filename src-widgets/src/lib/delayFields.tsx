@@ -1,6 +1,6 @@
 /**
  * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/delay-fields`.
+ * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/delay-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

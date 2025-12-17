@@ -1,4 +1,4 @@
-import type { StateCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { StateCollectionContextProps, WidgetRegistry } from '../types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 

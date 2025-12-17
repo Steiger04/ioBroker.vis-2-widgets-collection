@@ -1,4 +1,4 @@
-# Phase 7: Active Properties - Complete Implementation
+﻿# Phase 7: Active Properties - Complete Implementation
 
 ## Summary
 
@@ -46,7 +46,7 @@ These properties were **missing from type definitions**, causing TypeScript erro
 
 ## Files Modified
 
-### 1. `src-widgets/src/newTypes/field-definitions/common-fields.d.ts`
+### 1. `src-widgets/src/types/field-definitions/common-fields.d.ts`
 
 - **Lines added:** ~270 (including JSDoc)
 - **File size:** 627 lines (was 596)

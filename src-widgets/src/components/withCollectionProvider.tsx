@@ -1,6 +1,6 @@
 import CollectionProvider from './CollectionProvider';
 
-import type { CollectionContextProps, AllCollectionContextProps } from '../newTypes';
+import type { CollectionContextProps, AllCollectionContextProps } from '../types';
 
 /**
  * Generic wrapper function for Collection widgets.

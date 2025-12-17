@@ -30,7 +30,7 @@
 		"src",
 	],
 	"exclude": [
-		"src/newTypes/__tests__/**/*"
+		"src/types/__tests__/**/*"
 	],
 	"references": [
 		{

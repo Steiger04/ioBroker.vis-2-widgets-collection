@@ -1,4 +1,4 @@
-# Vollständige Langversion - Neues Typsystem für vis-2-widgets-collection
+﻿# Vollständige Langversion - Neues Typsystem für vis-2-widgets-collection
 
 ## Executive Summary
 
@@ -353,7 +353,7 @@ Erweiterung der vis-2 Typen um Collection-spezifische Properties.
 ## Dateistruktur (Detailliert)
 
 ```
-newTypes/
+types/
 ├── index.ts                      # Haupt-Export (runtime + types)
 ├── vis-2-extensions.d.ts         # Erweiterungen für vis-2
 ├── field-definitions.d.ts        # Field-RxData-Typen (dynamisch!)

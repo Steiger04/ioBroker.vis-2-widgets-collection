@@ -8,7 +8,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
-import type { StateCollectionContextProps } from '../newTypes';
+import type { StateCollectionContextProps } from '../types';
 
 function StateCollection(): React.ReactElement {
     // const contentRef = useRef<HTMLDivElement>(null);

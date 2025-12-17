@@ -1,4 +1,4 @@
-# Verification Report: Comments 1 & 2 Implementation
+﻿# Verification Report: Comments 1 & 2 Implementation
 
 **Date:** December 13, 2025
 **Status:** ✅ Both comments fully implemented
@@ -8,7 +8,7 @@
 ### Required Elements (from comment):
 
 1. ✅ **Generic Interface Definition**
-    - Location: `src-widgets/src/newTypes/context-types.d.ts:116`
+    - Location: `src-widgets/src/types/context-types.d.ts:116`
     - Signature: `export interface CollectionContextProps<T extends Record<string, unknown> = Record<string, unknown>>`
     - Constraint changed from `object` to `Record<string, unknown>` as specified
 
@@ -67,7 +67,7 @@
 
 7. ✅ **Integration**:
     - `WidgetRegistry` imported from `./widget-registry` ✅
-    - `newTypes/index.d.ts` re-exports via `export * from './context-types'` (line 248) ✅
+    - `types/index.d.ts` re-exports via `export * from './context-types'` (line 248) ✅
 
 8. ✅ **Validation**:
     - Type tests in `__tests__/phase-4-validation.test-d.ts` ✅
@@ -81,7 +81,7 @@
 ### Required Elements (from comment):
 
 1. ✅ **Module Augmentation Present**:
-    - Location: `src-widgets/src/newTypes/vis-2-extensions.d.ts:33`
+    - Location: `src-widgets/src/types/vis-2-extensions.d.ts:33`
 
     ```typescript
     declare module '@iobroker/types-vis-2' {
@@ -122,7 +122,7 @@
     - Comment documents augmentation: "Note: VisRxWidgetStateValues is exported from @iobroker/types-vis-2/index.d.ts and is augmented in vis-2-extensions.d.ts" (lines 48-49) ✅
 
 6. ✅ **Export**:
-    - Re-exported from `newTypes/index.d.ts`: `export type * from './vis-2-extensions'` (line 96) ✅
+    - Re-exported from `types/index.d.ts`: `export type * from './vis-2-extensions'` (line 96) ✅
 
 7. ✅ **CollectionWidgetInfo Preserved** (lines 99-221):
     - `CollectionWidgetInfo` interface with `collectionType` and `maxItems` ✅

@@ -7,7 +7,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
-import type { CheckboxCollectionContextProps } from '../newTypes';
+import type { CheckboxCollectionContextProps } from '../types';
 
 const defaultIconTrue =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==';

@@ -2,7 +2,7 @@ import { Box } from '@mui/material';
 import React, { useContext, useRef, useMemo, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { GaugeCollectionContextProps } from '../newTypes';
+import type { GaugeCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import Gauge from './Gauge';

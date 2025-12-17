@@ -1,4 +1,4 @@
-# Phase 9: Base Components Migration - Complete
+﻿# Phase 9: Base Components Migration - Complete
 
 ## Summary
 
@@ -43,7 +43,7 @@ Migrated all base components to new type system while maintaining vis-2 compatib
 
 ### withCollectionProvider.tsx
 
-- Migrated from `src/types` to `newTypes` imports
+- Migrated from `src/types` to `types` imports
 - Changed import: `CollectionContextProps, AllCollectionContextProps` from `../newTypes`
 - Replaced unsafe `as any` cast with type-safe `as AllCollectionContextProps`
 - Added comprehensive JSDoc with template parameter documentation
@@ -51,7 +51,7 @@ Migrated all base components to new type system while maintaining vis-2 compatib
 
 ### withButtonModal.tsx
 
-- Added import for `Light2FieldsRxData` from `../newTypes/field-definitions`
+- Added import for `Light2FieldsRxData` from `../types/field-definitions`
 - Created type guard `hasLight2Fields()` to check for Light2-specific properties
 - Moved early return check to use type guard: `if (!hasLight2Fields(widgetData) || !widgetData.colorLightButton)`
 - All accesses to `widget.data.colorLightXXX` properties are now type-safe after guard
@@ -87,7 +87,7 @@ if (!hasLight2Fields(widgetData) || !widgetData.colorLightButton) {
 
 All base components now:
 
-1. Use `newTypes` instead of legacy `src/types`
+1. Use `types` instead of legacy `src/types`
 2. Have explicit context validation
 3. Use type guards for conditional property access
 4. Maintain structural compatibility with vis-2 base classes
@@ -110,5 +110,5 @@ This completes the migration of the entire widget collection to the new type sys
 
 ## Files Created
 
-1. `src-widgets/src/newTypes/__tests__/base-components.test-d.ts` - Type tests for base components
-2. `src-widgets/src/newTypes/PHASE-9-COMPLETE.md` - This documentation
+1. `src-widgets/src/types/__tests__/base-components.test-d.ts` - Type tests for base components
+2. `src-widgets/src/types/PHASE-9-COMPLETE.md` - This documentation

@@ -8,7 +8,7 @@ import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
-import type { ButtonGroupCollectionContextProps } from '../newTypes';
+import type { ButtonGroupCollectionContextProps } from '../types';
 
 function ButtonGroupCollection(): React.JSX.Element {
     // ButtonGroupCollection wird nur im ButtonGroupCollectionWidget verwendet

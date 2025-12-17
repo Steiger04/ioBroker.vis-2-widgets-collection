@@ -1,4 +1,4 @@
-# Phase 10 Final: Typsystem Cleanup Complete
+﻿# Phase 10 Final: Typsystem Cleanup Complete
 
 **Datum:** 2025-12-15
 **Status:** ✅ Complete
@@ -11,7 +11,7 @@ Vollständige Bereinigung des Typsystems nach Migration aller Widgets:
 
 - Entfernung obsoleter Type-Definitionen in `src/types/`
 - Eliminierung redundanter Type-Interfaces in `lib/*Fields.tsx`
-- Single Source of Truth: Nur noch `newTypes/`
+- Single Source of Truth: Nur noch `types/`
 - Maximale Type-Safety mit `noImplicitAny: true`
 
 ---
@@ -24,7 +24,7 @@ Vollständige Bereinigung des Typsystems nach Migration aller Widgets:
 
 - War: 94 Zeilen mit Legacy-Type-Interfaces
 - Nutzer: 0 (alle Widgets migriert)
-- Resultat: Single Source of Truth in `newTypes/`
+- Resultat: Single Source of Truth in `types/`
 
 ### 2. Type-Interfaces entfernt (13 Dateien)
 
@@ -51,20 +51,20 @@ Alle `export interface *FieldsRxData` entfernt, Runtime-Funktionen beibehalten:
 ```typescript
 /**
  * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/newTypes/field-definitions/[name]-fields`.
+ * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/[name]-fields`.
  */
 ```
 
 ### 3. Imports aktualisiert (4 Dateien)
 
-**✅ Migration auf `newTypes/`:**
+**✅ Migration auf `types/`:**
 
 | Datei                                                   | Alt                                                            | Neu                                                                 |
 | ------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `hooks/useHtmlValue.ts`                                 | `../types`, `../lib/commonObjectFields`                        | `../newTypes`, `../newTypes/field-definitions/common-object-fields` |
-| `components/CollectionBaseImage.tsx`                    | `../types`, `../lib/commonObjectFields`, `../lib/commonFields` | `../newTypes`, `../newTypes/field-definitions/*`                    |
-| `GaugeCollectionWidget/Gauge.tsx`                       | `../lib/gaugeFields`                                           | `../newTypes/field-definitions/gauge-fields`                        |
-| `newTypes/__tests__/compatibility-validation.test-d.ts` | Legacy-Imports (gelöscht)                                      | Nur neue Types                                                      |
+| `hooks/useHtmlValue.ts`                                 | `../types`, `../lib/commonObjectFields`                        | `../newTypes`, `../types/field-definitions/common-object-fields` |
+| `components/CollectionBaseImage.tsx`                    | `../types`, `../lib/commonObjectFields`, `../lib/commonFields` | `../newTypes`, `../types/field-definitions/*`                    |
+| `GaugeCollectionWidget/Gauge.tsx`                       | `../lib/gaugeFields`                                           | `../types/field-definitions/gauge-fields`                        |
+| `types/__tests__/compatibility-validation.test-d.ts` | Legacy-Imports (gelöscht)                                      | Nur neue Types                                                      |
 
 ### 4. Type-Safety maximiert
 
@@ -97,10 +97,10 @@ extendedData[targetField as keyof ExtendedWidgetData] = state._id;
 
 | Metrik                   | Vorher                            | Nachher                                | Δ            |
 | ------------------------ | --------------------------------- | -------------------------------------- | ------------ |
-| Type-Definitions-Dateien | 2 (`types/`, `newTypes/`)         | 1 (`newTypes/`)                        | **-50%**     |
+| Type-Definitions-Dateien | 2 (`types/`, `types/`)         | 1 (`types/`)                        | **-50%**     |
 | Redundante Interfaces    | 13                                | 0                                      | **-100%**    |
 | `any`-Casts              | 1                                 | 0                                      | **-100%**    |
-| Type-Import-Quellen      | 3 (`types/`, `lib/`, `newTypes/`) | 1 (`newTypes/`)                        | **-66%**     |
+| Type-Import-Quellen      | 3 (`types/`, `lib/`, `types/`) | 1 (`types/`)                        | **-66%**     |
 | TypeScript Strict Flags  | `strict: true`                    | `strict: true` + `noImplicitAny: true` | **Explizit** |
 
 ---
@@ -109,7 +109,7 @@ extendedData[targetField as keyof ExtendedWidgetData] = state._id;
 
 ```
 src-widgets/src/
-├── newTypes/                              # ✅ SINGLE SOURCE OF TRUTH
+├── types/                              # ✅ SINGLE SOURCE OF TRUTH
 │   ├── index.ts                          # WidgetRegistry, Context Types
 │   ├── field-definitions/                # Alle Field Types
 │   │   ├── common-fields.ts
@@ -154,9 +154,9 @@ src-widgets/src/
 
 ```typescript
 // ✅ RICHTIG - Importiere aus newTypes
-import type { CommonFieldsRxData, StateFieldsRxData } from 'vis-2-widgets-collection/newTypes/field-definitions';
+import type { CommonFieldsRxData, StateFieldsRxData } from 'vis-2-widgets-collection/types/field-definitions';
 
-import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/types';
 
 // ❌ FALSCH - Diese Pfade existieren nicht mehr
 import type { CommonFieldsRxData } from '../lib/commonFields';
@@ -167,7 +167,7 @@ import type { CollectionContextProps } from '../types';
 
 ```typescript
 import commonFields from '../lib/commonFields';  // ✅ Runtime-Funktion
-import type { CommonFieldsRxData } from '../newTypes/field-definitions/common-fields';  // ✅ Types
+import type { CommonFieldsRxData } from '../types/field-definitions/common-fields';  // ✅ Types
 
 static getWidgetInfo(): RxWidgetInfo {
   return {
@@ -220,15 +220,15 @@ npm run build
 1. **✅ Abgeschlossen:** Vollständige Typsystem-Migration
 2. **✅ Abgeschlossen:** Cleanup alter Type-Definitionen
 3. **Dokumentation:** README.md aktualisieren mit finaler Architektur
-4. **Langfristig:** Bei neuen Widgets nur noch `newTypes/` verwenden
+4. **Langfristig:** Bei neuen Widgets nur noch `types/` verwenden
 
 ---
 
 ## 🔗 Referenzen
 
-- **Phase 7:** Initiale Migration zu `newTypes/`
+- **Phase 7:** Initiale Migration zu `types/`
 - **Phase 8:** Widget-Migrationen
-- **Phase 9:** Template-Widget mit `newTypes`
+- **Phase 9:** Template-Widget mit `types`
 - **Phase 10:** Finale Bereinigung (diese Phase)
 
 ---

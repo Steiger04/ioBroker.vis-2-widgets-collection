@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TemplateCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { TemplateCollectionContextProps, WidgetRegistry } from '../types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields from '../lib/commonFields';

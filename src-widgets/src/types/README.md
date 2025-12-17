@@ -1,16 +1,16 @@
-# vis-2-widgets-collection: New Type Infrastructure
+﻿# vis-2-widgets-collection: Type Infrastructure
 
 ## Overview
 
 **Status:** ✅ **Complete** (Phase 10 - All widgets migrated, legacy types removed)
 
-This directory contains the **single source of truth** for all vis-2 Collection widget types. After completing Phase 10 cleanup, all legacy type definitions have been removed, and `newTypes/` is now the exclusive type system.
+This directory contains the **single source of truth** for all vis-2 Collection widget types. After completing Phase 10 cleanup, all legacy type definitions have been removed, and `types/` is now the exclusive type system.
 
 ## 🎯 Architecture
 
 ### Single Source of Truth
 
-- **✅ `newTypes/`**: All type definitions (field types, widget types, context types)
+- **✅ `types/`**: All type definitions (field types, widget types, context types)
 - **✅ `lib/`**: Runtime-only field generators for vis-2 editor (no type exports)
 - **❌ `src/types/`**: Removed in Phase 10
 
@@ -34,7 +34,7 @@ This directory contains the **single source of truth** for all vis-2 Collection 
 ### Directory Structure
 
 ```
-newTypes/
+types/
 ├── index.ts                      # Central export point
 ├── widget-builder.d.ts           # Widget composition types
 ├── utility-types.ts              # Runtime utilities (types + implementations)
@@ -62,7 +62,7 @@ newTypes/
 
 ## 🏗️ Architektur-Prinzipien
 
-Das `newTypes`-System folgt einer klaren Datei-Konvention:
+Das `types`-System folgt einer klaren Datei-Konvention:
 
 ### `.d.ts` Dateien - Reine Type-Deklarationen
 
@@ -107,17 +107,17 @@ Verwendet für **Types mit Runtime-Implementierungen**:
 
 ### ✅ For Widget Developers
 
-**Import types from `newTypes/` ONLY:**
+**Import types from `types/` ONLY:**
 
 ```typescript
-// ✅ CORRECT - Import from newTypes
+// ✅ CORRECT - Import from types
 import type {
     CommonFieldsRxData,
     StateFieldsRxData,
     DelayFieldsRxData,
-} from 'vis-2-widgets-collection/newTypes/field-definitions';
+} from 'vis-2-widgets-collection/types/field-definitions';
 
-import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/types';
 
 // ✅ CORRECT - Runtime field generators from lib/
 import commonFields from '../lib/commonFields';
@@ -136,7 +136,7 @@ import type {
     CommonObjectFieldsRxData,
     StateFieldsRxData,
     DelayFieldsRxData,
-} from '../newTypes/field-definitions';
+} from '../types/field-definitions';
 
 // Compose widget data type
 type MyWidgetData = CommonFieldsRxData & CommonObjectFieldsRxData & StateFieldsRxData & DelayFieldsRxData;
@@ -182,7 +182,7 @@ class MyWidget extends Generic<MyWidgetData> {
 The core pattern for creating widget types is using `BuildWidgetData`:
 
 ```typescript
-import type { BuildWidgetData } from 'vis-2-widgets-collection/newTypes';
+import type { BuildWidgetData } from 'vis-2-widgets-collection/types';
 
 // Define your field modules
 type MyWidgetFields = [typeof commonFields, typeof stateFields, typeof delayFields];
@@ -203,7 +203,7 @@ class MyWidget extends Generic<MyWidgetData> {
 Use `BuildWidgetState` to create state types with nullable properties:
 
 ```typescript
-import type { BuildWidgetData, BuildWidgetState } from 'vis-2-widgets-collection/newTypes';
+import type { BuildWidgetData, BuildWidgetState } from 'vis-2-widgets-collection/types';
 
 type MyWidgetData = BuildWidgetData<[typeof commonFields, typeof stateFields]>;
 type MyWidgetState = BuildWidgetState<MyWidgetData>;
@@ -220,7 +220,7 @@ interface MyWidgetFullState extends MyWidgetState {
 Replace `as any` casts with type-safe utilities:
 
 ```typescript
-import { getDynamicProperty } from 'vis-2-widgets-collection/newTypes';
+import { getDynamicProperty } from 'vis-2-widgets-collection/types';
 
 // Old (unsafe):
 const oid = (this.props as any)[`oid${index}`];
@@ -234,7 +234,7 @@ const oid = getDynamicProperty(this.props, `oid${index}`);
 Collection widgets use numbered properties (oid1, oid2, ...):
 
 ```typescript
-import { getAllIndexedProperties, hasIndexedProperty } from 'vis-2-widgets-collection/newTypes';
+import { getAllIndexedProperties, hasIndexedProperty } from 'vis-2-widgets-collection/types';
 
 // Get all OIDs
 const allOids = getAllIndexedProperties(this.props, 'oid');
@@ -252,7 +252,7 @@ if (hasIndexedProperty(this.props, 'oid', 5)) {
 Use type guards for runtime validation:
 
 ```typescript
-import { isValidWidgetData } from 'vis-2-widgets-collection/newTypes';
+import { isValidWidgetData } from 'vis-2-widgets-collection/types';
 
 interface MyWidgetData {
     oid: string;
@@ -275,7 +275,7 @@ function processData(data: unknown) {
 Use `CollectionWidgetInfo` for collection-specific metadata:
 
 ```typescript
-import type { CollectionWidgetInfo } from 'vis-2-widgets-collection/newTypes';
+import type { CollectionWidgetInfo } from 'vis-2-widgets-collection/types';
 
 class MyWidget extends Generic<MyWidgetData> {
     static getWidgetInfo(): CollectionWidgetInfo {
@@ -392,7 +392,7 @@ This allows Collection widgets to use state properties like `collection_state`, 
 The new type system does **not** replace the existing types in [src/types/index.d.ts](../types/index.d.ts). Both systems coexist:
 
 - **Old system:** `src/types/index.d.ts` - Used by current widgets
-- **New system:** `src/newTypes/` - Used by migrated widgets (future phases)
+- **New system:** `src/types/` - Used by migrated widgets (future phases)
 
 ### Import Paths
 
@@ -400,10 +400,10 @@ New types can be imported in two ways:
 
 ```typescript
 // Relative import (within src-widgets/src/)
-import type { BuildWidgetData } from './newTypes';
+import type { BuildWidgetData } from './types';
 
 // Package import (from outside package)
-import type { BuildWidgetData } from 'vis-2-widgets-collection/newTypes';
+import type { BuildWidgetData } from 'vis-2-widgets-collection/types';
 ```
 
 The package import requires the `exports` field in [package.json](../../package.json) to be configured (see Phase 1, Step 10).
@@ -422,7 +422,7 @@ The [field-definitions/](./field-definitions/) directory contains type-safe fiel
 ### Usage Example
 
 ```typescript
-import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/types';
 
 interface MyWidgetData extends CommonFieldsRxData, CommonObjectFieldsRxData {
     // Widget-specific properties
@@ -550,7 +550,7 @@ type GaugeCollectionContextProps = CollectionContextProps<WidgetRegistry['tplGau
 #### Widget Class with Registry
 
 ```typescript
-import type { WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+import type { WidgetRegistry } from 'vis-2-widgets-collection/types';
 import Generic from '../Generic';
 
 class StateWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
@@ -569,7 +569,7 @@ class StateWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
 
 ```typescript
 import React from 'react';
-import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 const StateContext = React.createContext<StateCollectionContextProps>(null!);
 
@@ -597,7 +597,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 ```typescript
 import React from 'react';
-import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
 
 const StateContext = React.createContext<StateCollectionContextProps>(null!);
 
@@ -628,12 +628,12 @@ For detailed information, see [PHASE-4-COMPLETE.md](./PHASE-4-COMPLETE.md).
 
 ### Phase 5: Hooks & Utilities Migration (✅ Complete)
 
-Phase 5 successfully migrated all core hooks to use new types from `newTypes/`:
+Phase 5 successfully migrated all core hooks to use new types from `types/`:
 
 **Completed Tasks:**
 
 ✅ Created `utility-types.ts` with runtime exports for `OidObject` and `OidType`
-✅ Migrated `hooks/useDebounce.ts` to import OidObject/OidType from newTypes
+✅ Migrated `hooks/useDebounce.ts` to import OidObject/OidType from types
 ✅ Migrated `hooks/useOidValue.ts` with enhanced JSDoc documentation
 ✅ Migrated `hooks/useValueState.ts` to use CommonObjectFieldsRxData and DelayFieldsRxData
 ✅ Migrated `hooks/useData.ts` - eliminated all `any` types, added full typing
@@ -652,7 +652,7 @@ For detailed information, see [PHASE-5-COMPLETE.md](./PHASE-5-COMPLETE.md).
 
 ### Phase 6: Widget Migration - Template, State, Checkbox (✅ Complete)
 
-**Status:** Successfully migrated 3 simplest widgets to newTypes system.
+**Status:** Successfully migrated 3 simplest widgets to types system.
 
 **Migrated Components:**
 
@@ -663,7 +663,7 @@ For detailed information, see [PHASE-5-COMPLETE.md](./PHASE-5-COMPLETE.md).
 **Key Changes:**
 
 - Generic parameters use `WidgetRegistry['tpl*CollectionWidget']`
-- Context types imported from `../newTypes`
+- Context types imported from `../types`
 - Found and fixed 5 potential bugs through stricter type checking
 - Added type casts for compatibility with Phase 9 base components
 
@@ -715,7 +715,7 @@ Phase 7-8 will migrate remaining 8 widget implementations to use registry types:
 
 ### Phase 1 (✅ Complete)
 
-✅ All 4 core files exist in `src/newTypes/`
+✅ All 4 core files exist in `src/types/`
 ✅ `npm run build` compiles without TypeScript errors
 ✅ Type tests validate correct functionality
 ✅ README.md documents all new types with examples
@@ -763,7 +763,7 @@ Phase 7-8 will migrate remaining 8 widget implementations to use registry types:
 ### Phase 5 (✅ Complete)
 
 ✅ `utility-types.ts` created with runtime OidObject and OidType exports
-✅ `hooks/useDebounce.ts` migrated to newTypes
+✅ `hooks/useDebounce.ts` migrated to types
 ✅ `hooks/useOidValue.ts` migrated with enhanced JSDoc
 ✅ `hooks/useValueState.ts` migrated to use CommonObjectFieldsRxData and DelayFieldsRxData
 ✅ `hooks/useData.ts` migrated - eliminated 2 `any` types, added full typing
@@ -803,7 +803,7 @@ Phase 7-8 will migrate remaining 8 widget implementations to use registry types:
 
 3. **Export-Pfade:**
     - Legacy: `import from '../types'`
-    - Neu: `import from 'vis-2-widgets-collection/newTypes'`
+    - Neu: `import from 'vis-2-widgets-collection/types'`
     - ✅ Beide parallel aktiv bis Phase 10 - **KONFIGURIERT**
 
 4. **Kompatibilitäts-Tests:**

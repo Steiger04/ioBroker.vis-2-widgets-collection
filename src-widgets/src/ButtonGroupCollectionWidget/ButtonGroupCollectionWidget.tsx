@@ -8,7 +8,7 @@ import delayFields from '../lib/delayFields';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-import type { ButtonGroupCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { ButtonGroupCollectionContextProps, WidgetRegistry } from '../types';
 
 class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

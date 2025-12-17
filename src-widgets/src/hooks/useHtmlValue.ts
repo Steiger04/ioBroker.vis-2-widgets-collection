@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CollectionContextProps } from '../newTypes';
+import type { CollectionContextProps } from '../types';
 
 /**
  * Interface für die Daten-Parameter (kompatibel mit useData-Return)

@@ -1,4 +1,4 @@
-# Field Definitions (Phase 2)
+﻿# Field Definitions (Phase 2)
 
 ## Overview
 
@@ -45,7 +45,7 @@ Field definitions serve as the foundation for:
 
 **Migration Strategy:**
 
-- **New Widget Code:** Always import from `vis-2-widgets-collection/newTypes`
+- **New Widget Code:** Always import from `vis-2-widgets-collection/types`
 - **Legacy Code:** Imports from `src/lib/*Fields.tsx` will continue to work during migration
 - **Phase 10:** Legacy interfaces in `lib/*Fields.tsx` will be removed
 
@@ -53,7 +53,7 @@ Field definitions serve as the foundation for:
 
 ```typescript
 // ✅ New Type System (recommended) - all properties optional
-import type { DialogFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { DialogFieldsRxData } from 'vis-2-widgets-collection/types';
 
 interface MyDialogWidget extends DialogFieldsRxData {
     // Flexible: only define what you need
@@ -131,13 +131,13 @@ const invalid = data.aliasABC; // ❌ Error: Type 'string' is not assignable
 ### Basic Import
 
 ```typescript
-import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/types';
 ```
 
 ### Widget Data Composition
 
 ```typescript
-import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/types';
 
 interface MyWidgetData extends CommonFieldsRxData, CommonObjectFieldsRxData {
     // Widget-specific properties
@@ -159,7 +159,7 @@ const widgetData: MyWidgetData = {
 ### Widget-Specific Field Usage (Phase 3)
 
 ```typescript
-import type { GaugeFieldsRxData, SliderFieldsRxData, Light2FieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { GaugeFieldsRxData, SliderFieldsRxData, Light2FieldsRxData } from 'vis-2-widgets-collection/types';
 
 // Gauge widget data
 interface GaugeWidgetData extends CommonFieldsRxData, CommonObjectFieldsRxData, GaugeFieldsRxData {
@@ -197,7 +197,7 @@ interface Light2WidgetData extends CommonFieldsRxData, CommonObjectFieldsRxData,
 ### Registry Pattern
 
 ```typescript
-import type { FieldDefinitions } from 'vis-2-widgets-collection/newTypes';
+import type { FieldDefinitions } from 'vis-2-widgets-collection/types';
 
 // Access specific field types
 type CommonFields = FieldDefinitions['common'];
@@ -347,7 +347,7 @@ All existing code remains compatible:
 import type { CommonFieldsRxData } from '../lib/commonFields';
 
 // New imports also work:
-import type { CommonFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData } from 'vis-2-widgets-collection/types';
 
 // Same interface, no breaking changes
 ```

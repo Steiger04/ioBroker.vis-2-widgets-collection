@@ -8,7 +8,7 @@ import switchFields from '../lib/switchFields';
 import SwitchCollection from './SwitchCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-import type { SwitchCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { SwitchCollectionContextProps, WidgetRegistry } from '../types';
 
 class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

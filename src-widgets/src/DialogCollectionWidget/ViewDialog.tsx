@@ -4,7 +4,7 @@ import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import type { StyleData } from '../hooks/useData';
-import type { DialogCollectionContextProps } from '../newTypes';
+import type { DialogCollectionContextProps } from '../types';
 
 interface ViewDialogProps {
     open: boolean;

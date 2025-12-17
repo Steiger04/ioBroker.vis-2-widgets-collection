@@ -1,4 +1,4 @@
-# Phase 2 Implementation Complete ✅
+﻿# Phase 2 Implementation Complete ✅
 
 ## Summary
 
@@ -78,7 +78,7 @@ Example:
 ### ✅ Type-Safe Property Access
 
 ```typescript
-import type { CommonFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData } from 'vis-2-widgets-collection/types';
 
 const data: CommonFieldsRxData = {};
 
@@ -191,7 +191,7 @@ sensorObject: { ... }
 ### Basic Widget Composition
 
 ```typescript
-import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+import type { CommonFieldsRxData, CommonObjectFieldsRxData } from 'vis-2-widgets-collection/types';
 
 interface MyWidgetData extends CommonFieldsRxData, CommonObjectFieldsRxData {
     customProp: string;
@@ -218,7 +218,7 @@ const data: MyWidgetData = {
 ### Registry Pattern
 
 ```typescript
-import type { FieldDefinitions } from 'vis-2-widgets-collection/newTypes';
+import type { FieldDefinitions } from 'vis-2-widgets-collection/types';
 
 type CommonFields = FieldDefinitions['common'];
 type ObjectFields = FieldDefinitions['commonObject'];
@@ -242,7 +242,7 @@ type ObjectFields = FieldDefinitions['commonObject'];
 
 ### Main Index Updated
 
-File: `src/newTypes/index.d.ts`
+File: `src/types/index.d.ts`
 
 **Changes:**
 
@@ -252,7 +252,7 @@ File: `src/newTypes/index.d.ts`
 
 ### README Updated
 
-File: `src/newTypes/README.md`
+File: `src/types/README.md`
 
 **Additions:**
 
@@ -291,7 +291,7 @@ File: `src/newTypes/README.md`
 
 ### Type Tests Created
 
-File: `src/newTypes/__tests__/field-definitions.test-d.ts`
+File: `src/types/__tests__/field-definitions.test-d.ts`
 
 **Coverage:**
 

@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import React, { useRef, useContext, useState, useEffect, useCallback } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { DialogCollectionContextProps } from '../newTypes';
+import type { DialogCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';

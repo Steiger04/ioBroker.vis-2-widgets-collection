@@ -1,8 +1,8 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
-import type { OidObject } from '../newTypes/utility-types';
-import { getDynamicProperty, isSliderFieldsRxData } from '../newTypes/utility-types';
+import type { OidObject } from '../types/utility-types';
+import { getDynamicProperty, isSliderFieldsRxData } from '../types/utility-types';
 /**
  * Interface für Style-Daten eines Collection Widgets.
  * Enthält alle visuellen Eigenschaften für Icons, Header, Footer, Werte und Hintergründe.

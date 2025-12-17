@@ -6,7 +6,7 @@ import { CollectionContext } from './CollectionProvider';
 import useData from '../hooks/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
-import type { Light2FieldsRxData } from '../newTypes/field-definitions';
+import type { Light2FieldsRxData } from '../types/field-definitions';
 
 type WithButtonModalProps<P> = P;
 

@@ -2,7 +2,7 @@ import { createContext, useMemo } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 
-import type { AllCollectionContextProps } from '../newTypes';
+import type { AllCollectionContextProps } from '../types';
 
 const CollectionContext = createContext<AllCollectionContextProps>({} as AllCollectionContextProps);
 

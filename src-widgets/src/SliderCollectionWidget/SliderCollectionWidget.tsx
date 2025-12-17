@@ -9,7 +9,7 @@ import sliderFields from '../lib/sliderFields';
 import SliderCollection from './SliderCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
-import type { SliderCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { SliderCollectionContextProps, WidgetRegistry } from '../types';
 
 class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

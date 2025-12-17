@@ -8,7 +8,7 @@ import radioGroupFields from '../lib/radioGroupFields';
 import RadioGroupCollection from './RadioGroupCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-import type { RadioGroupCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { RadioGroupCollectionContextProps, WidgetRegistry } from '../types';
 
 class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {

@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react';
 
 import { LinearGauge, RadialGauge } from 'canvas-gauges';
 
-import type { GaugeFieldsRxData } from '../newTypes/field-definitions/gauge-fields';
+import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
 
 const TransparentImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 

@@ -7,7 +7,7 @@ import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 
-import type { SliderCollectionContextProps } from '../newTypes';
+import type { SliderCollectionContextProps } from '../types';
 
 interface SliderMarkLabelProps {
     marks: boolean;

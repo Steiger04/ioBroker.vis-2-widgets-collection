@@ -10,7 +10,7 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
-import type { SelectCollectionContextProps } from '../newTypes';
+import type { SelectCollectionContextProps } from '../types';
 
 // const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 

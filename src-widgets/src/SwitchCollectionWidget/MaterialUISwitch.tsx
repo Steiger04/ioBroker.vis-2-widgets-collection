@@ -1,6 +1,6 @@
 import Switch from '@mui/material/Switch';
 import { styled, alpha } from '@mui/material/styles';
-import type { SwitchCollectionContextProps } from '../newTypes';
+import type { SwitchCollectionContextProps } from '../types';
 import type { StyleData } from '../hooks/useData';
 
 interface MaterialUISwitchProps {

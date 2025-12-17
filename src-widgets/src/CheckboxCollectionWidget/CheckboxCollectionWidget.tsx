@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CheckboxCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { CheckboxCollectionContextProps, WidgetRegistry } from '../types';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 import checkboxFields from '../lib/checkboxFields';
