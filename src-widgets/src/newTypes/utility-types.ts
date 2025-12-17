@@ -1,3 +1,5 @@
+import type { SliderFieldsRxData, CommonObjectFieldsRxData } from './field-definitions';
+
 /**
  * Runtime utility types for Collection widgets.
  * This module provides runtime-accessible types that are also exported via .d.ts files.
@@ -181,7 +183,7 @@ export function getAllIndexedProperties<T extends Record<string, any>, P extends
  * }
  * ```
  */
-export function isSliderFieldsRxData(data: any): data is import('./field-definitions').SliderFieldsRxData {
+export function isSliderFieldsRxData(data: any): data is SliderFieldsRxData {
     return typeof data === 'object' && data !== null && 'sliderColor' in data;
 }
 
@@ -191,7 +193,7 @@ export function isSliderFieldsRxData(data: any): data is import('./field-definit
  * @param data - Data to check
  * @returns true if data is CommonObjectFieldsRxData
  */
-export function isCommonObjectFieldsRxData(data: any): data is import('./field-definitions').CommonObjectFieldsRxData {
+export function isCommonObjectFieldsRxData(data: any): data is CommonObjectFieldsRxData {
     return typeof data === 'object' && data !== null && 'values_count' in data;
 }
 
