@@ -11,10 +11,9 @@
  * Used by:
  * - SliderCollectionWidget (active slider value state)
  * - ButtonGroupCollectionWidget (active button state)
- *
  * @example
  * ```typescript
- * import type { ActiveStateFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+ * import type { ActiveStateFieldsRxData } from 'vis-2-widgets-collection/types';
  *
  * const activeConfig: ActiveStateFieldsRxData = {
  *     iconColorActive: '#00ff00',

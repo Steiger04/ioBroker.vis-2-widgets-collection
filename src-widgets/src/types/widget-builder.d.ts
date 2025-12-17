@@ -3,7 +3,7 @@
  * These types enable type-safe widget building with compile-time validation.
  *
  * @module widget-builder
- * @see file:src-widgets/src/newTypes/all-ideas-for-new-types.md (lines 599-651)
+ * @see file:src-widgets/src/types/all-ideas-for-new-types.md (lines 599-651)
  */
 
 /**
@@ -16,7 +16,6 @@
  * type B = { b: number };
  * type Result = UnionToIntersection<A | B>; // { a: string } & { b: number }
  * ```
- *
  * @remarks
  * This utility is fundamental for combining multiple field definitions into a single
  * widget data type. It leverages TypeScript's contravariant position in function
@@ -26,7 +25,6 @@
  * 1. For each type in the union, create a function type (k: T) => void
  * 2. Create a union of these function types
  * 3. Infer the parameter type from this union (which becomes an intersection)
- *
  * @template U - The union type to convert
  */
 export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
@@ -42,7 +40,6 @@ export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) ex
  * };
  * type Data = ExtractFieldTypes<typeof commonFields>; // { label: string, visible: boolean }
  * ```
- *
  * @remarks
  * Field modules in vis-2 follow a pattern where they export an object with an
  * `rxData` property containing the TypeScript types for the fields they define.
@@ -50,7 +47,6 @@ export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) ex
  *
  * If the module doesn't have an `rxData` property, it returns `never`, which
  * is safely ignored in union/intersection operations.
- *
  * @template T - The field module type to extract from
  */
 export type ExtractFieldTypes<T> = T extends { rxData: infer R } ? R : never;
@@ -69,7 +65,6 @@ export type ExtractFieldTypes<T> = T extends { rxData: infer R } ? R : never;
  * type MyWidgetData = BuildWidgetData<MyWidgetFields>;
  * // Result: { label: string, visible: boolean, oid: string, delay: number, ... }
  * ```
- *
  * @remarks
  * This is the primary type utility used by widget implementations. It enables
  * type-safe composition of widget properties from reusable field modules.
@@ -89,7 +84,6 @@ export type ExtractFieldTypes<T> = T extends { rxData: infer R } ? R : never;
  *   // Widget implementation with full type safety
  * }
  * ```
- *
  * @template T - Readonly array of field module types
  */
 export type BuildWidgetData<T extends readonly any[]> = UnionToIntersection<ExtractFieldTypes<T[number]>>;
@@ -104,7 +98,6 @@ export type BuildWidgetData<T extends readonly any[]> = UnionToIntersection<Extr
  * type WidgetState = BuildWidgetState<WidgetData>;
  * // Result: { label: string, value: number | null }
  * ```
- *
  * @remarks
  * In vis-2 widgets, the state is initialized asynchronously from ioBroker states.
  * During initialization, optional properties from `rxData` should be represented
@@ -122,7 +115,6 @@ export type BuildWidgetData<T extends readonly any[]> = UnionToIntersection<Extr
  *   isLoading: boolean;
  * }
  * ```
- *
  * @template T - The widget data type to convert
  */
 export type BuildWidgetState<T> = {
@@ -138,7 +130,6 @@ export type BuildWidgetState<T> = {
  * type ValidFields = ValidateFields<{ label: string }>; // OK
  * type InvalidFields = ValidateFields<string>; // never
  * ```
- *
  * @remarks
  * This utility provides compile-time safety when creating field definitions.
  * It ensures that field configurations are always object types (Record<string, any>)
@@ -157,7 +148,6 @@ export type BuildWidgetState<T> = {
  *   // Field definitions
  * });
  * ```
- *
  * @template T - The type to validate
  */
 export type ValidateFields<T> = T extends Record<string, any> ? T : never;

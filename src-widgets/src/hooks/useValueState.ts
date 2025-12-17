@@ -91,7 +91,7 @@ interface UseValueStateReturn {
 
 /**
  * Hook für Wert-State Management mit Typkonvertierung und Debouncing.
- * Verwendet OidObject aus newTypes für präzise OID-Typisierung.
+ * Verwendet OidObject aus types für präzise OID-Typisierung.
  * Unterstützt DelayFieldsRxData für Delay-Konfiguration.
  * Funktioniert mit allen Widget-Types. Widgets ohne DelayFieldsRxData
  * (Template, Gauge, Dialog) verwenden Default-Delay von 300ms.

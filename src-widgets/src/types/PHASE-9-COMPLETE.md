@@ -8,7 +8,7 @@ Migrated all base components to new type system while maintaining vis-2 compatib
 
 - ✅ Generic.tsx: Added JSDoc for WidgetRegistry usage
 - ✅ CollectionBase.tsx: Added explicit context validation
-- ✅ withCollectionProvider.tsx: Migrated to newTypes, removed `any` cast
+- ✅ withCollectionProvider.tsx: Migrated to types, removed `any` cast
 - ✅ withButtonModal.tsx: Added generic typing with Light2 type guard
 
 ## Metrics
@@ -44,7 +44,7 @@ Migrated all base components to new type system while maintaining vis-2 compatib
 ### withCollectionProvider.tsx
 
 - Migrated from `src/types` to `types` imports
-- Changed import: `CollectionContextProps, AllCollectionContextProps` from `../newTypes`
+- Changed import: `CollectionContextProps, AllCollectionContextProps` from `../types`
 - Replaced unsafe `as any` cast with type-safe `as AllCollectionContextProps`
 - Added comprehensive JSDoc with template parameter documentation
 - Documented the structural compatibility reasoning for the type assertion
@@ -105,7 +105,7 @@ This completes the migration of the entire widget collection to the new type sys
 
 1. `src-widgets/src/Generic.tsx` - JSDoc documentation
 2. `src-widgets/src/components/CollectionBase.tsx` - Context validation
-3. `src-widgets/src/components/withCollectionProvider.tsx` - newTypes migration
+3. `src-widgets/src/components/withCollectionProvider.tsx` - types migration
 4. `src-widgets/src/components/withButtonModal.tsx` - Generic typing with type guard
 
 ## Files Created

@@ -7,14 +7,12 @@
  * @module widget-registry
  * @see {@link field-definitions/index.d.ts} for available field definitions
  * @see {@link context-types.d.ts} for React Context integration
- *
  * @remarks
  * Added in Phase 4 of the type system migration.
- *
  * @example
  * ```typescript
  * // Get widget data type automatically
- * import type { WidgetRegistry, WidgetDataFor } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetRegistry, WidgetDataFor } from 'vis-2-widgets-collection/types';
  *
  * // Direct registry access
  * type StateWidgetData = WidgetRegistry['tplStateCollectionWidget'];
@@ -55,7 +53,6 @@ import type { UnionToIntersection } from './widget-builder';
  * - `dialog`: Dialog/modal fields (dialogTitle, dialogContent) - ~5 properties
  * - `light2`: Advanced light control fields (brightness, color, effects) - ~24 properties
  * - `delay`: Delay behavior fields (delay, delayEnabled) - ~2 properties
- *
  * @example
  * ```typescript
  * // Check which fields a widget uses
@@ -148,11 +145,10 @@ export interface WidgetFieldMappings {
  * 2. Get the array of field names for that widget
  * 3. Map each field name to its corresponding type in FieldDefinitions
  * 4. Combine all field types using UnionToIntersection
- *
  * @example
  * ```typescript
  * // Access widget data types
- * import type { WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetRegistry } from 'vis-2-widgets-collection/types';
  *
  * // State widget combines 4 field definition types
  * type StateData = WidgetRegistry['tplStateCollectionWidget'];
@@ -167,7 +163,6 @@ export interface WidgetFieldMappings {
  *     // - delay, delayEnabled (delay)
  * }
  * ```
- *
  * @example
  * ```typescript
  * // Check widget data at compile time
@@ -201,10 +196,9 @@ export type WidgetRegistry = {
  * Extract widget data type for a specific widget ID.
  *
  * @template T - Widget ID (must be a key in WidgetRegistry)
- *
  * @example
  * ```typescript
- * import type { WidgetDataFor } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetDataFor } from 'vis-2-widgets-collection/types';
  *
  * // Equivalent to WidgetRegistry['tplSliderCollectionWidget']
  * type SliderData = WidgetDataFor<'tplSliderCollectionWidget'>;
@@ -224,10 +218,9 @@ export type WidgetDataFor<T extends keyof WidgetRegistry> = WidgetRegistry[T];
  * Extract field names used by a specific widget.
  *
  * @template T - Widget ID (must be a key in WidgetFieldMappings)
- *
  * @example
  * ```typescript
- * import type { WidgetFieldsFor } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetFieldsFor } from 'vis-2-widgets-collection/types';
  *
  * // Get field names for state widget
  * type StateFields = WidgetFieldsFor<'tplStateCollectionWidget'>;
@@ -250,7 +243,7 @@ export type WidgetFieldsFor<T extends keyof WidgetRegistry> = WidgetFieldMapping
  *
  * @example
  * ```typescript
- * import type { WidgetId } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetId } from 'vis-2-widgets-collection/types';
  *
  * // Type-safe widget ID handling
  * function getWidgetInfo(widgetId: WidgetId): string {
@@ -266,7 +259,7 @@ export type WidgetId = keyof WidgetRegistry;
  *
  * @example
  * ```typescript
- * import type { AnyWidgetData } from 'vis-2-widgets-collection/newTypes';
+ * import type { AnyWidgetData } from 'vis-2-widgets-collection/types';
  *
  * // Accept any widget data
  * function processWidgetData(data: AnyWidgetData): void {
@@ -289,7 +282,7 @@ export type AnyWidgetData = WidgetRegistry[keyof WidgetRegistry];
  *
  * @example
  * ```typescript
- * import type { IsValidWidgetId } from 'vis-2-widgets-collection/newTypes';
+ * import type { IsValidWidgetId } from 'vis-2-widgets-collection/types';
  *
  * // Compile-time validation
  * type Valid = IsValidWidgetId<'tplStateCollectionWidget'>; // true
@@ -302,10 +295,9 @@ export type IsValidWidgetId<T extends string> = T extends keyof WidgetRegistry ?
  * Get widget ID from widget data type (reverse lookup).
  *
  * @template T - Widget data type
- *
  * @example
  * ```typescript
- * import type { WidgetIdFromData, WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetIdFromData, WidgetRegistry } from 'vis-2-widgets-collection/types';
  *
  * // Get widget ID from data type
  * type StateWidgetId = WidgetIdFromData<WidgetRegistry['tplStateCollectionWidget']>;

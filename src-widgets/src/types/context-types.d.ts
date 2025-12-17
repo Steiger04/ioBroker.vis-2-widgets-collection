@@ -8,15 +8,13 @@
  * @module context-types
  * @see {@link widget-registry.d.ts} for widget data type generation
  * @see {@link field-definitions/index.d.ts} for individual field types
- *
  * @remarks
  * Added in Phase 4 of the type system migration.
- *
  * @example
  * ```typescript
  * // Use in React Context provider
  * import React from 'react';
- * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const StateContext = React.createContext<StateCollectionContextProps>(null!);
  *
@@ -56,7 +54,6 @@ import type { WidgetRegistry } from './widget-registry';
  * Generic React Context properties for Collection widgets.
  *
  * @template T - Widget data type (object that will be intersected with {@link VisRxData})
- *
  * @remarks
  * This interface defines the complete context structure available to all
  * Collection widgets. It includes:
@@ -72,10 +69,9 @@ import type { WidgetRegistry } from './widget-registry';
  *
  * Typically, `T` should be a type from {@link WidgetRegistry} which automatically
  * composes the correct field definitions for each widget.
- *
  * @example
  * ```typescript
- * import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+ * import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/types';
  *
  * // Create custom context type with registry
  * type CustomContext = CollectionContextProps<WidgetRegistry['tplStateCollectionWidget']>;
@@ -92,12 +88,11 @@ import type { WidgetRegistry } from './widget-registry';
  *     };
  * };
  * ```
- *
  * @example
  * ```typescript
  * // Use with React.useContext
  * import React from 'react';
- * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const StateContext = React.createContext<StateCollectionContextProps>(null!);
  *
@@ -120,7 +115,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Format: `w${5-digit-number}` (e.g., 'w00001', 'w12345')
      * Used for widget tracking and DOM element IDs.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -135,7 +129,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Used for DOM manipulation, measurements, and scroll handling.
      * The ref points to the widget's root container element.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -150,7 +143,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Applied to the widget's outer container. Includes positioning,
      * sizing, and custom user-defined styles from vis-2 editor.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -169,7 +161,6 @@ export interface CollectionContextProps<T extends object = object> {
      *
      * The `data` property includes all fields defined in the widget's
      * field definitions (common, commonObject, widget-specific, etc.).
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -201,12 +192,10 @@ export interface CollectionContextProps<T extends object = object> {
      * @param id - State ID (object ID)
      * @param value - New state value
      * @param ack - Acknowledgment flag (default: false)
-     *
      * @remarks
      * Sends state change to ioBroker backend via Socket.IO.
      * Use `ack: false` for control commands (user input).
      * Use `ack: true` for confirmed values (rare in widgets).
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -230,7 +219,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Provides access to the parent widget's React state setter.
      * Used for internal widget state management.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -250,9 +238,7 @@ export interface CollectionContextProps<T extends object = object> {
      *
      * Extended by vis-2-extensions.d.ts to include collection-specific
      * state patterns: `collection_${string}`
-     *
      * @see {@link vis-2-extensions.d.ts} for collection state patterns
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -275,11 +261,9 @@ export interface CollectionContextProps<T extends object = object> {
      *
      * @param index - Signal index (1-based)
      * @returns True if signal should be visible
-     *
      * @remarks
      * Used for showing/hiding signal indicators (icons, badges) based on
      * widget configuration and state values.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -298,11 +282,9 @@ export interface CollectionContextProps<T extends object = object> {
      *
      * @param stateName - State property name
      * @returns Current state value
-     *
      * @remarks
      * Retrieves value from widget's state values by property name.
      * Useful for dynamic property access.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -320,7 +302,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Used for conditional styling based on vis-2 theme.
      * Widgets should adapt their appearance to match the theme.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -341,9 +322,7 @@ export interface CollectionContextProps<T extends object = object> {
      * - State reads/writes
      * - Object queries
      * - File operations
-     *
      * @see {@link LegacyConnection} for available methods
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -369,9 +348,7 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Provides access to Material-UI theme configuration for consistent
      * styling across widgets. Includes palette, typography, spacing, etc.
-     *
      * @see {@link Theme} for theme properties
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -390,7 +367,6 @@ export interface CollectionContextProps<T extends object = object> {
      * @remarks
      * Used for conditional rendering and styling based on container structure.
      * When true, widget is wrapped in additional div for layout purposes.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -408,11 +384,9 @@ export interface CollectionContextProps<T extends object = object> {
      * @param options - Optional view configuration
      * @param options.style - CSS styles to apply to view
      * @returns React element representing the view
-     *
      * @remarks
      * Used for embedding other vis-2 views within a widget.
      * Allows creation of composite widgets and view hierarchies.
-     *
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -441,11 +415,10 @@ export interface CollectionContextProps<T extends object = object> {
  * - Common object fields (oid, writeDelay, etc.)
  *
  * Total properties: ~45
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { TemplateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { TemplateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const TemplateContext = React.createContext<TemplateCollectionContextProps>(null!);
  *
@@ -469,11 +442,10 @@ export type TemplateCollectionContextProps = CollectionContextProps<WidgetRegist
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~52
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const StateContext = React.createContext<StateCollectionContextProps>(null!);
  *
@@ -499,11 +471,10 @@ export type StateCollectionContextProps = CollectionContextProps<WidgetRegistry[
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~50
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { CheckboxCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { CheckboxCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const CheckboxContext = React.createContext<CheckboxCollectionContextProps>(null!);
  *
@@ -529,11 +500,10 @@ export type CheckboxCollectionContextProps = CollectionContextProps<WidgetRegist
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~51
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { SwitchCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { SwitchCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const SwitchContext = React.createContext<SwitchCollectionContextProps>(null!);
  *
@@ -559,11 +529,10 @@ export type SwitchCollectionContextProps = CollectionContextProps<WidgetRegistry
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~54
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { SliderCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { SliderCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const SliderContext = React.createContext<SliderCollectionContextProps>(null!);
  *
@@ -589,11 +558,10 @@ export type SliderCollectionContextProps = CollectionContextProps<WidgetRegistry
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~52
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { RadioGroupCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { RadioGroupCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const RadioGroupContext = React.createContext<RadioGroupCollectionContextProps>(null!);
  *
@@ -619,11 +587,10 @@ export type RadioGroupCollectionContextProps = CollectionContextProps<WidgetRegi
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~53
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { ButtonGroupCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { ButtonGroupCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const ButtonGroupContext = React.createContext<ButtonGroupCollectionContextProps>(null!);
  *
@@ -650,11 +617,10 @@ export type ButtonGroupCollectionContextProps = CollectionContextProps<
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~51
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { SelectCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { SelectCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const SelectContext = React.createContext<SelectCollectionContextProps>(null!);
  *
@@ -679,11 +645,10 @@ export type SelectCollectionContextProps = CollectionContextProps<WidgetRegistry
  * - Gauge-specific fields (gaugeType, min, max, thresholds, etc.)
  *
  * Total properties: ~125
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { GaugeCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { GaugeCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const GaugeContext = React.createContext<GaugeCollectionContextProps>(null!);
  *
@@ -708,11 +673,10 @@ export type GaugeCollectionContextProps = CollectionContextProps<WidgetRegistry[
  * - Dialog-specific fields (dialogTitle, dialogContent, etc.)
  *
  * Total properties: ~50
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { DialogCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { DialogCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const DialogContext = React.createContext<DialogCollectionContextProps>(null!);
  *
@@ -737,11 +701,10 @@ export type DialogCollectionContextProps = CollectionContextProps<WidgetRegistry
  * - Delay fields (delay, delayEnabled)
  *
  * Total properties: ~71
- *
  * @example
  * ```typescript
  * import React from 'react';
- * import type { Light2CollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { Light2CollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const Light2Context = React.createContext<Light2CollectionContextProps>(null!);
  *
@@ -764,10 +727,9 @@ export type Light2CollectionContextProps = CollectionContextProps<WidgetRegistry
  *
  * @remarks
  * Useful for generic handlers that can work with any Collection widget.
- *
  * @example
  * ```typescript
- * import type { AllCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { AllCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * function handleAnyWidgetContext(context: AllCollectionContextProps) {
  *     // Works with any Collection widget context
@@ -792,10 +754,9 @@ export type AllCollectionContextProps =
  * Generate context type for a specific widget ID.
  *
  * @template T - Widget ID (must be a key in {@link WidgetRegistry})
- *
  * @example
  * ```typescript
- * import type { WidgetContextFor } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetContextFor } from 'vis-2-widgets-collection/types';
  *
  * // Equivalent to StateCollectionContextProps
  * type StateContext = WidgetContextFor<'tplStateCollectionWidget'>;
@@ -814,10 +775,9 @@ export type WidgetContextFor<T extends keyof WidgetRegistry> = CollectionContext
  * Extract widget data type from a context type.
  *
  * @template T - Context type (extends {@link CollectionContextProps})
- *
  * @example
  * ```typescript
- * import type { ExtractWidgetData, StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { ExtractWidgetData, StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * // Extract data type from context
  * type StateData = ExtractWidgetData<StateCollectionContextProps>;
@@ -838,10 +798,9 @@ export type ExtractWidgetData<T extends CollectionContextProps<any>> =
  * Check if a type is a valid Collection context type.
  *
  * @template T - Type to check
- *
  * @example
  * ```typescript
- * import type { IsCollectionContext, StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { IsCollectionContext, StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * // Compile-time validation
  * type Valid = IsCollectionContext<StateCollectionContextProps>; // true

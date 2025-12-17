@@ -6,9 +6,9 @@ Alle zentralen Hooks wurden erfolgreich zu den neuen Types aus `types/` migriert
 
 ### Migrierte Hooks
 
-- ✅ **useDebounce.ts** - OidObject/OidType nach newTypes verschoben
+- ✅ **useDebounce.ts** - OidObject/OidType nach types verschoben
 - ✅ **useOidValue.ts** - Imports aktualisiert, JSDoc erweitert
-- ✅ **useValueState.ts** - OidObject aus newTypes, DelayFieldsRxData typisiert
+- ✅ **useValueState.ts** - OidObject aus types, DelayFieldsRxData typisiert
 - ✅ **useData.ts** - Alle `any`-Types eliminiert, StyleData vollständig typisiert
 
 ## Implementierte Änderungen
@@ -139,16 +139,16 @@ Alle Hooks nutzen nun relative Imports aus `../types/`:
 
 ```typescript
 // useDebounce.ts
-import type { DelayFieldsRxData, OidObject, OidType } from '../newTypes';
+import type { DelayFieldsRxData, OidObject, OidType } from '../types';
 
 // useOidValue.ts
-import type { CommonObjectFieldsRxData } from '../newTypes';
+import type { CommonObjectFieldsRxData } from '../types';
 
 // useValueState.ts
-import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../newTypes';
+import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../types';
 
 // useData.ts
-import type { OidObject } from '../newTypes';
+import type { OidObject } from '../types';
 ```
 
 **Begründung:** Relative Imports funktionieren zuverlässiger als Package-Alias während der Entwicklung.
@@ -176,7 +176,7 @@ Alle Hooks haben nun ausführliche JSDoc-Kommentare:
 | `any`-Types in Hooks              | 2                | 0                                 | **-100%**    |
 | Type-Assertions (`as`)            | 8                | 5                                 | -37.5%       |
 | JSDoc-Coverage                    | ~40%             | ~95%                              | **+137.5%**  |
-| Import-Quellen                    | 2 (types/, lib/) | 1 (types/)                     | Vereinfacht  |
+| Import-Quellen                    | 2 (types/, lib/) | 1 (types/)                        | Vereinfacht  |
 | Neue Type-Definitionen            | 0                | 3 (OidObject, OidType, StateItem) | +3           |
 | Vollständig typisierte Interfaces | 1                | 2                                 | +100%        |
 
@@ -204,25 +204,25 @@ Falls externe Widgets die Hook-Types importieren:
 import type { AllCollectionContextProps } from '../types';
 
 // ✅ Neu (empfohlen)
-import type { OidObject, OidType } from '../newTypes';
+import type { OidObject, OidType } from '../types';
 ```
 
 ## Neue Dateien
 
-| Datei                                              | Zeilen | Beschreibung                                  |
-| -------------------------------------------------- | ------ | --------------------------------------------- |
+| Datei                                           | Zeilen | Beschreibung                                  |
+| ----------------------------------------------- | ------ | --------------------------------------------- |
 | `src/types/utility-types.ts`                    | 58     | Runtime-Implementierung für OidObject/OidType |
 | `src/types/__tests__/hooks-migration.test-d.ts` | 200+   | Type-Level-Tests für Hook-Migration           |
 | `src/types/PHASE-5-COMPLETE.md`                 | ~400   | Diese Dokumentation                           |
 
 ## Geänderte Dateien
 
-| Datei                           | Änderungen    | Impact                                           |
-| ------------------------------- | ------------- | ------------------------------------------------ |
-| `src/hooks/useData.ts`          | 10 Änderungen | Eliminierung von `any`, vollständige Typisierung |
-| `src/hooks/useOidValue.ts`      | 2 Änderungen  | Import-Updates, JSDoc                            |
-| `src/hooks/useValueState.ts`    | 3 Änderungen  | OidObject aus newTypes, Type-Safety              |
-| `src/hooks/useDebounce.ts`      | 2 Änderungen  | OidObject/OidType nach newTypes verschoben       |
+| Datei                        | Änderungen    | Impact                                           |
+| ---------------------------- | ------------- | ------------------------------------------------ |
+| `src/hooks/useData.ts`       | 10 Änderungen | Eliminierung von `any`, vollständige Typisierung |
+| `src/hooks/useOidValue.ts`   | 2 Änderungen  | Import-Updates, JSDoc                            |
+| `src/hooks/useValueState.ts` | 3 Änderungen  | OidObject aus types, Type-Safety                 |
+| `src/hooks/useDebounce.ts`   | 2 Änderungen  | OidObject/OidType nach types verschoben          |
 | `src/types/utility-types.ts` | 1 Änderung    | Runtime-Implementierungen hinzugefügt            |
 | `src/types/index.ts`         | 2 Änderungen  | OidObject/OidType Exports                        |
 | `src/types/README.md`        | 1 Änderung    | Phase 5 Status-Update                            |
@@ -317,7 +317,7 @@ Die Hook-Migration etabliert Muster für Widget-Migration:
 import type { StateFieldsRxData } from '../lib/stateFields';
 
 // Nachher:
-import type { StateFieldsRxData } from '../newTypes';
+import type { StateFieldsRxData } from '../types';
 ```
 
 ### Pattern 2: any-Elimination
@@ -348,9 +348,9 @@ interface WidgetState {
 
 ### Phase 6: Widget-Migration (Template, State, Checkbox)
 
-1. Migriere TemplateCollectionWidget zu newTypes
-2. Migriere StateCollectionWidget zu newTypes
-3. Migriere CheckboxCollectionWidget zu newTypes
+1. Migriere TemplateCollectionWidget zu types
+2. Migriere StateCollectionWidget zu types
+3. Migriere CheckboxCollectionWidget zu types
 4. Teste alle drei Widgets im laufenden System
 
 **Geschätzte Dauer:** 6-8 Stunden

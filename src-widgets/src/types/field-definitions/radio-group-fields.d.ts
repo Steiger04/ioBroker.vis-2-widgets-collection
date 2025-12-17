@@ -5,6 +5,7 @@
 export interface RadioGroupFieldsRxData {
     /**
      * Radio button layout orientation.
+     *
      * @default 'horizontal'
      */
     radioOrientation?: 'horizontal' | 'vertical';
@@ -16,6 +17,7 @@ export interface RadioGroupFieldsRxData {
 
     /**
      * Display-only mode (no interaction).
+     *
      * @default false
      */
     onlyDisplay?: boolean;

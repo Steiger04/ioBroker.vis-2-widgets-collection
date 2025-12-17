@@ -27,7 +27,6 @@ export type OidType = 'string' | 'number' | 'boolean' | 'mixed';
  * @remarks
  * OID (Object ID) is the unique identifier for ioBroker state objects.
  * This interface provides essential metadata for state management and value conversion.
- *
  * @example
  * ```typescript
  * const oidObj: OidObject = {
@@ -71,7 +70,6 @@ export interface OidObject {
  * @param obj - Object to access
  * @param key - Property key (can be dynamic like 'icon1', 'alias2')
  * @returns Property value or undefined if not found
- *
  * @example
  * ```typescript
  * // Strict mode - key must exist on type
@@ -81,7 +79,6 @@ export interface OidObject {
  * // Dynamic mode - for computed keys
  * const dynamicIcon = getDynamicProperty(rxData, `icon${i}`); // ✅ Runtime-safe
  * ```
- *
  * @remarks
  * This function provides compile-time type safety for known keys and runtime
  * safety for dynamic keys. It's the recommended way to access dynamic
@@ -108,7 +105,6 @@ export function getDynamicProperty<T extends Record<string, any>>(obj: T, key: s
  * @param obj - Object to modify
  * @param key - Property key
  * @param value - Value to set
- *
  * @example
  * ```typescript
  * // Strict mode - key must exist on type
@@ -135,7 +131,6 @@ export function setDynamicProperty<T extends Record<string, any>>(obj: T, key: s
  * @param obj - Object to search
  * @param prefix - Property prefix to search for
  * @returns Array of {index, value} pairs sorted by index
- *
  * @example
  * ```typescript
  * // Get all icon properties
@@ -175,7 +170,6 @@ export function getAllIndexedProperties<T extends Record<string, any>, P extends
  *
  * @param data - Data to check
  * @returns true if data is SliderFieldsRxData
- *
  * @example
  * ```typescript
  * if (isSliderFieldsRxData(rxData)) {
@@ -204,7 +198,6 @@ export function isCommonObjectFieldsRxData(data: any): data is CommonObjectField
  * @param data - Data to check
  * @param requiredFields - Optional array of required field names (default: [])
  * @returns true if data is an object and all required fields exist
- *
  * @example
  * ```typescript
  * // Basic object type check
@@ -236,7 +229,6 @@ export function isValidWidgetData<T extends Record<string, any>>(
  * @param prefix - The property prefix (e.g., 'oid', 'label')
  * @param index - The numeric index to check
  * @returns True if property exists and is not null/undefined
- *
  * @example
  * ```typescript
  * const data = { oid1: 'light.on', oid2: 'light.brightness' };
@@ -249,7 +241,6 @@ export function isValidWidgetData<T extends Record<string, any>>(
  *   // Won't execute - oid3 is undefined
  * }
  * ```
- *
  * @remarks
  * This function is specifically designed for Collection widgets that use
  * numbered properties. It provides:

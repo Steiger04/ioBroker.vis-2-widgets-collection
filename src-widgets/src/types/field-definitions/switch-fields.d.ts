@@ -5,6 +5,7 @@
 export interface SwitchFieldsRxData {
     /**
      * Thumb (handle) size in pixels.
+     *
      * @default 62
      * @remarks Valid range: 0-500
      */
@@ -22,6 +23,7 @@ export interface SwitchFieldsRxData {
 
     /**
      * Track (background) size in pixels.
+     *
      * @default 10
      * @remarks Valid range: 0-100
      */

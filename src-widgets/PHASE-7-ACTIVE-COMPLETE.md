@@ -211,7 +211,7 @@ npx tsc --noEmit 2>&1 | Select-String "Active"
 # Result: No Active-property errors ✅
 
 # Verify file sizes
-(Get-Content src\newTypes\field-definitions\common-fields.d.ts).Count
+(Get-Content src\types\field-definitions\common-fields.d.ts).Count
 # Result: 627 lines (+31 from 596)
 
 (Get-Content src\lib\commonFields.tsx).Count

@@ -302,7 +302,7 @@ Open any widget file and verify:
 - [x] All 11 widget field definition files created
 - [x] Each property has complete JSDoc documentation
 - [x] FieldDefinitions registry extended with all widgets
-- [x] Main newTypes index updated with Phase 3 exports
+- [x] Main types index updated with Phase 3 exports
 - [x] Type tests created for all widget fields
 - [x] README updated with Phase 3 section and examples
 - [x] PHASE-3-COMPLETE.md created

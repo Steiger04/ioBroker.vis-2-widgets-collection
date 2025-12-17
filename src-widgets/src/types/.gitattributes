@@ -1,4 +1,4 @@
-# Line endings configuration for newTypes directory
+# Line endings configuration for types directory
 # Run prettier to fix line ending issues if needed
 
 *.ts text eol=lf

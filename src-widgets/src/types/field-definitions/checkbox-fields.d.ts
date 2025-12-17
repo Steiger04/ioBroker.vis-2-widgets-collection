@@ -5,18 +5,21 @@
 export interface CheckboxFieldsRxData {
     /**
      * Hide label text.
+     *
      * @default false
      */
     withoutLabel?: boolean;
 
     /**
      * Label placement relative to checkbox.
+     *
      * @default 'end'
      */
     checkboxLabelPlacement?: 'top' | 'bottom' | 'start' | 'end';
 
     /**
      * Display-only mode (no interaction).
+     *
      * @default false
      */
     onlyDisplay?: boolean;

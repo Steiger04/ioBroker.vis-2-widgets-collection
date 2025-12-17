@@ -5,10 +5,9 @@
  * Diese Interface definiert alle statischen Base-Properties, die in Collection-Base-Komponenten
  * verwendet werden. Im Gegensatz zu den dynamischen Properties in CommonFieldsRxData haben
  * diese Properties keine numerischen Indizes und dienen als globale Einstellungen.
- *
  * @example
  * ```typescript
- * import type { BaseFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+ * import type { BaseFieldsRxData } from 'vis-2-widgets-collection/types';
  *
  * const baseConfig: BaseFieldsRxData = {
  *     noHeader: true,

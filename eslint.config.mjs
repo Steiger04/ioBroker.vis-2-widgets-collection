@@ -36,13 +36,14 @@ export default [
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/require-param': 'off',
+            'jsdoc/check-tag-names': ['error', { definedTags: ['remarks'] }],
             // Regel kann ab React 17 deaktiviert werden
             'react/react-in-jsx-scope': 'off',
         },
     },
     {
-        // Special rules for newTypes directory - allow comprehensive JSDoc comments
-        files: ['src-widgets/src/newTypes/**/*.{ts,d.ts}'],
+        // Special rules for types directory - allow comprehensive JSDoc comments
+        files: ['src-widgets/src/types/**/*.{ts,d.ts}'],
         rules: {
             'jsdoc/check-tag-names': ['error', { typed: true, definedTags: ['remarks'] }],
             'jsdoc/tag-lines': 'off',

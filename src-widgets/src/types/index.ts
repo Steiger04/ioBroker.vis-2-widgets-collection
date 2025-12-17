@@ -1,10 +1,10 @@
 /**
  * Runtime exports for the new type infrastructure.
  *
- * This module provides runtime-accessible exports from the newTypes system.
+ * This module provides runtime-accessible exports from the types system.
  * Type-only exports are defined in index.d.ts.
  *
- * @module newTypes
+ * @module types
  */
 
 // Re-export runtime types from utility-types

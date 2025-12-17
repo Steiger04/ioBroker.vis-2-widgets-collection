@@ -25,7 +25,6 @@ import type { Light2FieldsRxData } from './light2-fields';
  * Verwendung:
  * - `FieldDefinitions['common']` → CommonFieldsRxData
  * - `FieldDefinitions['commonObject']` → CommonObjectFieldsRxData
- *
  * @example
  * ```typescript
  * import type { FieldDefinitions } from './field-definitions';
@@ -50,7 +49,6 @@ export interface FieldDefinitions {
      * Contains ~30 static properties for global widget configuration.
      * Used in CollectionBase and other base components.
      * Separated from CommonFieldsRxData for better structure.
-     *
      * @see {@link BaseFieldsRxData}
      */
     base: BaseFieldsRxData;
@@ -62,7 +60,6 @@ export interface FieldDefinitions {
      * Contains 19 properties for styling widgets in active state.
      * Used by SliderCollectionWidget and ButtonGroupCollectionWidget.
      * Generated via commonFields({ groupName: 'Active', allFields: false }).
-     *
      * @see {@link ActiveStateFieldsRxData}
      */
     activeState: ActiveStateFieldsRxData;
@@ -73,7 +70,6 @@ export interface FieldDefinitions {
      * @remarks
      * Contains ~35 dynamic properties with `${number}` index signatures
      * and 2 static properties for signals.
-     *
      * @see {@link CommonFieldsRxData}
      */
     common: CommonFieldsRxData;
@@ -84,7 +80,6 @@ export interface FieldDefinitions {
      * @remarks
      * Contains 8 static properties for main configuration and
      * 3 dynamic index signatures for objects, aliases, and values.
-     *
      * @see {@link CommonObjectFieldsRxData}
      * @see {@link AllowedType}
      */

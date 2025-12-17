@@ -15,12 +15,12 @@ Erfolgreich 3 einfachste Widgets zu `types` migriert: Template, State, Checkbox.
 ### Widget-Klassen
 
 - Generic-Parameter nutzen `WidgetRegistry['tpl*CollectionWidget']` statt manueller Intersektionen
-- Import von Context-Types aus `../newTypes` statt `src/types`
+- Import von Context-Types aus `../types` statt `src/types`
 - Field-Type-Imports entfernt (Generator-Funktionen bleiben für `visAttrs`)
 
 ### Collection-Komponenten
 
-- Context-Types aus `../newTypes` importiert
+- Context-Types aus `../types` importiert
 - Explizite Type-Assertions für Context (`as *CollectionContextProps`)
 - Type-Casts für Kompatibilität mit alten Base-Komponenten (werden in Phase 9 entfernt)
 
@@ -70,7 +70,7 @@ import { type TemplateCollectionContextProps } from 'src/types';
 import commonFields, { type CommonFieldsRxData } from '../lib/commonFields';
 
 // Neu
-import type { TemplateCollectionContextProps, WidgetRegistry } from '../newTypes';
+import type { TemplateCollectionContextProps, WidgetRegistry } from '../types';
 import commonFields from '../lib/commonFields';
 ```
 
@@ -110,7 +110,7 @@ const context = useContext(CollectionContext) as StateCollectionContextProps;
 
 ### Provider-Import Migration
 
-- **Implementierung:** `CollectionProvider.tsx` Import auf `../newTypes` aktualisiert
+- **Implementierung:** `CollectionProvider.tsx` Import auf `../types` aktualisiert
 - **Impact:** Konsistente Nutzung neuer Types (1 Zeile geändert)
 - **Kompatibilität:** Strukturell identisch zu altem System
 

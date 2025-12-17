@@ -3,8 +3,7 @@
  * Adds Collection-specific types and interfaces to the vis-2 type system.
  *
  * @module vis-2-extensions
- * @see file:src-widgets/src/newTypes/all-ideas-for-new-types.md (lines 762-792)
- *
+ * @see file:src-widgets/src/types/all-ideas-for-new-types.md (lines 762-792)
  * @remarks
  * This file extends the official vis-2 types with Collection widget-specific
  * additions without modifying the original type definitions. It uses TypeScript's
@@ -14,7 +13,6 @@
  * - The module string `'@iobroker/types-vis-2'` matches the package name exactly
  * - The interface `VisRxWidgetStateValues` is exported from `@iobroker/types-vis-2/index.d.ts` (line 1152)
  * - TypeScript will merge this augmentation with the original interface declaration
- *
  * @see {@link ../../../../../../ioBroker.vis-2/packages/types-vis-2/index.d.ts} for original VisRxWidgetStateValues definition
  */
 
@@ -60,7 +58,6 @@ declare module '@iobroker/types-vis-2' {
      *
      * This will provide type-safe access to widget-specific state properties
      * while maintaining backward compatibility during migration.
-     *
      * @example
      * ```typescript
      * // Phase 4: Generic access (current)
@@ -87,7 +84,6 @@ declare module '@iobroker/types-vis-2' {
          * Includes legacy `.ack` pattern for backward compatibility:
          * - `${string}.ack`: boolean (from legacy types/index.d.ts)
          * - `collection_${string}`: any (new collection states)
-         *
          * @see {@link context-types.d.ts} for widget-specific context types
          */
         [key: `collection_${string}`]: any;
@@ -119,7 +115,6 @@ declare module '@iobroker/types-vis-2' {
  *   };
  * }
  * ```
- *
  * @remarks
  * Collection widgets share common characteristics:
  * - They manage multiple items (states, buttons, sliders, etc.)
@@ -150,7 +145,6 @@ export interface CollectionWidgetInfo extends RxWidgetInfo {
      * Optional - if undefined, no limit is enforced.
      *
      * @default undefined (no limit)
-     *
      * @remarks
      * This is used for:
      * - Validation in the property editor
@@ -171,7 +165,6 @@ export interface CollectionWidgetInfo extends RxWidgetInfo {
  *   // Update widget configuration
  * };
  * ```
- *
  * @remarks
  * This callback type is used throughout the Collection widget system for:
  * - Property editor field updates
@@ -187,7 +180,6 @@ export interface CollectionWidgetInfo extends RxWidgetInfo {
  *   // value is typed as number
  * };
  * ```
- *
  * @template T - The type of the field value (default: any)
  * @param field - The name of the field that changed
  * @param value - The new value of the field
@@ -209,7 +201,6 @@ export type FieldChangeCallback<T = any> = (field: string, value: T) => void;
  *   return value >= 0 && value <= 100;
  * };
  * ```
- *
  * @remarks
  * Validation callbacks are used for:
  * - Real-time validation in property editor
@@ -230,7 +221,6 @@ export type FieldChangeCallback<T = any> = (field: string, value: T) => void;
  *   validate: validateOid  // This callback
  * }
  * ```
- *
  * @template T - The type of the field value (default: any)
  * @param field - The name of the field being validated
  * @param value - The value to validate

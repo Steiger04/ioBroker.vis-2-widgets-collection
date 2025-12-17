@@ -9,12 +9,11 @@
  * **Legacy Compatibility:** The interface with the same name in `src/lib/dialogFields.tsx`
  * may have required properties. That is a legacy runtime definition maintained for backward
  * compatibility and will be removed in Phase 10. New widget code should always import from
- * `vis-2-widgets-collection/newTypes` instead.
- *
+ * `vis-2-widgets-collection/types` instead.
  * @example
  * ```typescript
- * // ✅ Recommended: Import from newTypes
- * import type { DialogFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+ * // ✅ Recommended: Import from types
+ * import type { DialogFieldsRxData } from 'vis-2-widgets-collection/types';
  *
  * interface MyDialogWidget extends DialogFieldsRxData {
  *     customProp: string;
@@ -29,6 +28,7 @@ export interface DialogFieldsRxData {
 
     /**
      * Auto-close delay in milliseconds (0 = disabled).
+     *
      * @default 0
      * @remarks Valid range: 0-30000
      */
@@ -41,12 +41,14 @@ export interface DialogFieldsRxData {
 
     /**
      * Use header as dialog title.
+     *
      * @default false
      */
     dialogHeaderAsTitle?: boolean;
 
     /**
      * Dialog width (percentage or pixels).
+     *
      * @default 100
      * @remarks Valid range: 1-100
      */
@@ -54,6 +56,7 @@ export interface DialogFieldsRxData {
 
     /**
      * Dialog height (percentage or pixels).
+     *
      * @default 100
      * @remarks Valid range: 1-100
      */
@@ -61,6 +64,7 @@ export interface DialogFieldsRxData {
 
     /**
      * Use pixels instead of percentage for dimensions.
+     *
      * @default false
      */
     dialogInPixel?: boolean;
@@ -72,12 +76,14 @@ export interface DialogFieldsRxData {
 
     /**
      * Show close button at top.
+     *
      * @default false
      */
     dialogCloseButtonTop?: boolean;
 
     /**
      * Show close button at bottom.
+     *
      * @default false
      */
     dialogCloseButtonBottom?: boolean;
@@ -89,12 +95,14 @@ export interface DialogFieldsRxData {
 
     /**
      * Show only icon (no text).
+     *
      * @default false
      */
     onlyIcon?: boolean;
 
     /**
      * Show only text (no icon).
+     *
      * @default false
      */
     onlyText?: boolean;

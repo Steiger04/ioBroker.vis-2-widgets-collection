@@ -5,12 +5,14 @@
 export interface Light2FieldsRxData {
     /**
      * Enable button mode (long-press opens picker).
+     *
      * @default false
      */
     colorLightButton?: boolean;
 
     /**
      * Long-press delay in milliseconds.
+     *
      * @default 500
      */
     colorLightDelayLongPress?: number;
@@ -22,18 +24,21 @@ export interface Light2FieldsRxData {
 
     /**
      * Modal height in pixels.
+     *
      * @default 300
      */
     colorLightModalHeight?: number;
 
     /**
      * Slider width multiplier.
+     *
      * @default 1
      */
     colorLightSliderWidth?: number;
 
     /**
      * Border width in pixels.
+     *
      * @default 3
      */
     colorLightBorderWidth?: number;
@@ -45,6 +50,7 @@ export interface Light2FieldsRxData {
 
     /**
      * Padding multiplier.
+     *
      * @default 1
      */
     colorLightPadding?: number;
@@ -56,18 +62,21 @@ export interface Light2FieldsRxData {
 
     /**
      * UI component type for color selection.
+     *
      * @default 'wheel'
      */
     colorLightUIComponent?: 'wheel' | 'box' | 'slider';
 
     /**
      * Show lightness control in color wheel.
+     *
      * @default false
      */
     colorWheelLightness?: boolean;
 
     /**
      * Color control type.
+     *
      * @default 'none'
      */
     colorLightType?: 'none' | 'cct' | 'rgb' | 'rgbcct' | 'r/g/b' | 'r/g/b/cct' | 'h/s/v' | 'h/s/v/cct';
@@ -79,12 +88,14 @@ export interface Light2FieldsRxData {
 
     /**
      * Minimum color temperature in Kelvin.
+     *
      * @default 2000
      */
     colorLightCtMin?: number;
 
     /**
      * Maximum color temperature in Kelvin.
+     *
      * @default 6500
      */
     colorLightCtMax?: number;
@@ -126,6 +137,7 @@ export interface Light2FieldsRxData {
 
     /**
      * Philips Hue gamut type (currently commented out in UI form).
+     *
      * @default 'default' (not exposed).
      */
     colorLightGamut?: 'default' | 'A' | 'B' | 'C';

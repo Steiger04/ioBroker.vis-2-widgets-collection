@@ -59,12 +59,12 @@ Alle `export interface *FieldsRxData` entfernt, Runtime-Funktionen beibehalten:
 
 **✅ Migration auf `types/`:**
 
-| Datei                                                   | Alt                                                            | Neu                                                                 |
-| ------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `hooks/useHtmlValue.ts`                                 | `../types`, `../lib/commonObjectFields`                        | `../newTypes`, `../types/field-definitions/common-object-fields` |
-| `components/CollectionBaseImage.tsx`                    | `../types`, `../lib/commonObjectFields`, `../lib/commonFields` | `../newTypes`, `../types/field-definitions/*`                    |
-| `GaugeCollectionWidget/Gauge.tsx`                       | `../lib/gaugeFields`                                           | `../types/field-definitions/gauge-fields`                        |
-| `types/__tests__/compatibility-validation.test-d.ts` | Legacy-Imports (gelöscht)                                      | Nur neue Types                                                      |
+| Datei                                                | Alt                                                            | Neu                                                           |
+| ---------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------- |
+| `hooks/useHtmlValue.ts`                              | `../types`, `../lib/commonObjectFields`                        | `../types`, `../types/field-definitions/common-object-fields` |
+| `components/CollectionBaseImage.tsx`                 | `../types`, `../lib/commonObjectFields`, `../lib/commonFields` | `../types`, `../types/field-definitions/*`                    |
+| `GaugeCollectionWidget/Gauge.tsx`                    | `../lib/gaugeFields`                                           | `../types/field-definitions/gauge-fields`                     |
+| `types/__tests__/compatibility-validation.test-d.ts` | Legacy-Imports (gelöscht)                                      | Nur neue Types                                                |
 
 ### 4. Type-Safety maximiert
 
@@ -95,13 +95,13 @@ extendedData[targetField as keyof ExtendedWidgetData] = state._id;
 
 ## 📊 Metriken
 
-| Metrik                   | Vorher                            | Nachher                                | Δ            |
-| ------------------------ | --------------------------------- | -------------------------------------- | ------------ |
-| Type-Definitions-Dateien | 2 (`types/`, `types/`)         | 1 (`types/`)                        | **-50%**     |
-| Redundante Interfaces    | 13                                | 0                                      | **-100%**    |
-| `any`-Casts              | 1                                 | 0                                      | **-100%**    |
-| Type-Import-Quellen      | 3 (`types/`, `lib/`, `types/`) | 1 (`types/`)                        | **-66%**     |
-| TypeScript Strict Flags  | `strict: true`                    | `strict: true` + `noImplicitAny: true` | **Explizit** |
+| Metrik                   | Vorher                         | Nachher                                | Δ            |
+| ------------------------ | ------------------------------ | -------------------------------------- | ------------ |
+| Type-Definitions-Dateien | 2 (`types/`, `types/`)         | 1 (`types/`)                           | **-50%**     |
+| Redundante Interfaces    | 13                             | 0                                      | **-100%**    |
+| `any`-Casts              | 1                              | 0                                      | **-100%**    |
+| Type-Import-Quellen      | 3 (`types/`, `lib/`, `types/`) | 1 (`types/`)                           | **-66%**     |
+| TypeScript Strict Flags  | `strict: true`                 | `strict: true` + `noImplicitAny: true` | **Explizit** |
 
 ---
 
@@ -136,14 +136,14 @@ src-widgets/src/
 ├── types/                                 # ❌ GELÖSCHT
 │   └── index.d.ts                        # ❌ Entfernt
 │
-├── [Widget]/                              # ✅ Verwenden newTypes
-│   └── [Widget].tsx                      # import from '../newTypes'
+├── [Widget]/                              # ✅ Verwenden types
+│   └── [Widget].tsx                      # import from '../types'
 │
-├── components/                            # ✅ Verwenden newTypes
-│   └── *.tsx                             # import from '../newTypes'
+├── components/                            # ✅ Verwenden types
+│   └── *.tsx                             # import from '../types'
 │
-└── hooks/                                 # ✅ Verwenden newTypes
-    └── *.ts                              # import from '../newTypes'
+└── hooks/                                 # ✅ Verwenden types
+    └── *.ts                              # import from '../types'
 ```
 
 ---
@@ -153,7 +153,7 @@ src-widgets/src/
 ### ✅ Für Entwickler: Type-Imports
 
 ```typescript
-// ✅ RICHTIG - Importiere aus newTypes
+// ✅ RICHTIG - Importiere aus types
 import type { CommonFieldsRxData, StateFieldsRxData } from 'vis-2-widgets-collection/types/field-definitions';
 
 import type { CollectionContextProps, WidgetRegistry } from 'vis-2-widgets-collection/types';

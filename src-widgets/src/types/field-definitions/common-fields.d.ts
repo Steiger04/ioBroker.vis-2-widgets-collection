@@ -5,12 +5,10 @@
  * This interface defines all common UI properties used across Collection widgets.
  * Properties use Template Literal Types with `${number}` for strict type-safety.
  * Static base properties (without index) are defined in BaseFieldsRxData.
- *
  * @see {@link BaseFieldsRxData}
- *
  * @example
  * ```typescript
- * import type { CommonFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+ * import type { CommonFieldsRxData } from 'vis-2-widgets-collection/types';
  *
  * interface MyWidgetData extends CommonFieldsRxData {
  *     customProp: string;
@@ -485,114 +483,133 @@ export interface CommonFieldsRxData {
 
     /**
      * Alias name override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.aliasActive}
      */
     aliasActive?: string;
 
     /**
      * Value font size override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.valueSizeActive}
      */
     valueSizeActive?: string | number;
 
     /**
      * Font size override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.fontSizeActive}
      */
     fontSizeActive?: string | number;
 
     /**
      * Text color override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.textColorActive}
      */
     textColorActive?: string;
 
     /**
      * Main icon identifier for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconActive}
      */
     iconActive?: string;
 
     /**
      * Small icon identifier for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconSmallActive}
      */
     iconSmallActive?: string;
 
     /**
      * Icon size override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconSizeActive}
      */
     iconSizeActive?: string | number;
 
     /**
      * Icon color override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconColorActive}
      */
     iconColorActive?: string;
 
     /**
      * Icon hover brightness override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconHoverActive}
      */
     iconHoverActive?: number;
 
     /**
      * Horizontal icon offset override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconXOffsetActive}
      */
     iconXOffsetActive?: string;
 
     /**
      * Vertical icon offset override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.iconYOffsetActive}
      */
     iconYOffsetActive?: string;
 
     /**
      * Header text override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.headerActive}
      */
     headerActive?: string | number;
 
     /**
      * Header font size override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.headerSizeActive}
      */
     headerSizeActive?: number | string;
 
     /**
      * Footer text override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.footerActive}
      */
     footerActive?: string | number;
 
     /**
      * Footer font size override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.footerSizeActive}
      */
     footerSizeActive?: number | string;
 
     /**
      * Background gradient override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.backgroundActive}
      */
     backgroundActive?: string;
 
     /**
      * Background color override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.backgroundColorActive}
      */
     backgroundColorActive?: string;
 
     /**
      * Frame background gradient override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.frameBackgroundActive}
      */
     frameBackgroundActive?: string;
 
     /**
      * Frame background color override for active state.
+     *
      * @see {@link ActiveStateFieldsRxData.frameBackgroundColorActive}
      */
     frameBackgroundColorActive?: string;

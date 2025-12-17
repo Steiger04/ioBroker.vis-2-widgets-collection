@@ -5,7 +5,6 @@
  * @remarks
  * These types correspond to ioBroker's common.type values.
  * 'mixed' allows any combination of the other types.
- *
  * @example
  * ```typescript
  * const sensorType: AllowedType = 'number';
@@ -26,10 +25,9 @@ export type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
  *
  * Object metadata is stored in properties with the pattern `${string}Object`,
  * allowing flexible naming like 'oidObject', 'oid1Object', 'temperatureObject', etc.
- *
  * @example
  * ```typescript
- * import type { CommonObjectFieldsRxData, AllowedType } from 'vis-2-widgets-collection/newTypes';
+ * import type { CommonObjectFieldsRxData, AllowedType } from 'vis-2-widgets-collection/types';
  *
  * interface MyWidgetData extends CommonObjectFieldsRxData {
  *     customProp: string;
@@ -65,7 +63,6 @@ export interface CommonObjectFieldsRxData {
      * @remarks
      * Must be a valid ioBroker state ID.
      * Format: `adapter.instance.device.channel.state`
-     *
      * @example
      * ```typescript
      * oid: 'javascript.0.temperature'
@@ -98,7 +95,6 @@ export interface CommonObjectFieldsRxData {
      * Controls the rendering of dynamic value properties.
      * Widget will process value1 through valueN where N = values_count.
      * Minimum value: 1
-     *
      * @default 1
      * @example
      * ```typescript
@@ -141,7 +137,6 @@ export interface CommonObjectFieldsRxData {
      * @remarks
      * Differs from `write: false` - this is a UI-level restriction,
      * while `write` is a state-level permission.
-     *
      * @default false
      * @example
      * ```typescript
@@ -158,7 +153,6 @@ export interface CommonObjectFieldsRxData {
      * @remarks
      * Applies to numeric state types.
      * Widget controls (sliders, gauges) will respect this limit.
-     *
      * @example
      * ```typescript
      * minValue: 0     // temperature in °C
@@ -175,7 +169,6 @@ export interface CommonObjectFieldsRxData {
      * @remarks
      * Applies to numeric state types.
      * Widget controls (sliders, gauges) will respect this limit.
-     *
      * @example
      * ```typescript
      * maxValue: 100   // percentage
@@ -193,7 +186,6 @@ export interface CommonObjectFieldsRxData {
      * This is the static version of the dynamic `${string}Object` pattern.
      * Used in CollectionBase and other base components that need direct access
      * to the main object metadata without knowing the dynamic key.
-     *
      * @example
      * ```typescript
      * oidObject: {
@@ -264,7 +256,6 @@ export interface CommonObjectFieldsRxData {
      * - `onlyDisplay`: Display-only mode
      * - `minValue`: Minimum value
      * - `maxValue`: Maximum value
-     *
      * @example
      * ```typescript
      * // Main object
@@ -346,7 +337,6 @@ export interface CommonObjectFieldsRxData {
      * @remarks
      * Indexed by number (1, 2, 3, ...).
      * Used to override default state names.
-     *
      * @example
      * ```typescript
      * alias1: 'Living Room'
@@ -367,7 +357,6 @@ export interface CommonObjectFieldsRxData {
      * - boolean: true, false
      * - string: 'ON', 'Hello', '2024-01-01'
      * - mixed: any of the above
-     *
      * @example
      * ```typescript
      * value1: 22.5        // temperature

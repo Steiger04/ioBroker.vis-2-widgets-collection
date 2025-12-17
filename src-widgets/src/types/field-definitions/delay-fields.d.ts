@@ -5,6 +5,7 @@
 export interface DelayFieldsRxData {
     /**
      * Enable sample interval mode instead of delay.
+     *
      * @default false
      * @remarks When true, `sampleIntervalValue` is used and `delay` is ignored/hidden.
      */
@@ -12,6 +13,7 @@ export interface DelayFieldsRxData {
 
     /**
      * Sample interval value in milliseconds.
+     *
      * @default 200
      * @remarks Valid range: 0-10000; effective only when `sampleInterval` is true.
      */
@@ -19,6 +21,7 @@ export interface DelayFieldsRxData {
 
     /**
      * Delay before writing value in milliseconds.
+     *
      * @default 300
      * @remarks Valid range: 0-10000; effective only when `sampleInterval` is false (default mode).
      */

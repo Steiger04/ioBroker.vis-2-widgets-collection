@@ -5,24 +5,28 @@
 export interface SliderFieldsRxData {
     /**
      * Slider size variant.
+     *
      * @default 'medium'
      */
     sliderSize?: 'small' | 'medium';
 
     /**
      * Slider orientation.
+     *
      * @default 'horizontal'
      */
     sliderOrientation?: 'horizontal' | 'vertical';
 
     /**
      * Value label display mode.
+     *
      * @default 'off'
      */
     valueLabelDisplay?: 'on' | 'off' | 'auto';
 
     /**
      * Label position offset (CSS value).
+     *
      * @default '-5px'
      */
     labelPosition?: string;
@@ -34,42 +38,49 @@ export interface SliderFieldsRxData {
 
     /**
      * Minimum slider value.
+     *
      * @default 0
      */
     minValue?: number;
 
     /**
      * Maximum slider value.
+     *
      * @default 100
      */
     maxValue?: number;
 
     /**
      * Step increment value.
+     *
      * @default 10
      */
     step?: number;
 
     /**
      * Only allow predefined state values.
+     *
      * @default false
      */
     onlyStates?: boolean;
 
     /**
      * Show tick marks on slider.
+     *
      * @default false
      */
     marks?: boolean;
 
     /**
      * Mark position offset (CSS value).
+     *
      * @default '30px'
      */
     markPosition?: string;
 
     /**
      * Step between marks.
+     *
      * @default 10
      */
     markStep?: number;
@@ -81,6 +92,7 @@ export interface SliderFieldsRxData {
 
     /**
      * Mark text size in percentage.
+     *
      * @default 80
      * @remarks Valid range: 0-500
      */
@@ -98,6 +110,7 @@ export interface SliderFieldsRxData {
 
     /**
      * Start icon size (CSS value).
+     *
      * @default '24px'
      */
     iconSizeStart?: string;
@@ -119,6 +132,7 @@ export interface SliderFieldsRxData {
 
     /**
      * End icon size (CSS value).
+     *
      * @default '24px'
      */
     iconSizeEnd?: string;

@@ -4,8 +4,8 @@
  * This module provides type-safe utilities for building vis-2 Collection widgets
  * with compile-time validation and enhanced TypeScript support.
  *
- * @module newTypes
- * @see file:src-widgets/src/newTypes/all-ideas-for-new-types.md
+ * @module types
+ * @see file:src-widgets/src/types/all-ideas-for-new-types.md
  *
  * @remarks
  * Phase 1 establishes the foundational type infrastructure. Future phases will add:
@@ -33,7 +33,7 @@
  *
  * @example
  * ```typescript
- * import type { BuildWidgetData } from 'vis-2-widgets-collection/newTypes';
+ * import type { BuildWidgetData } from 'vis-2-widgets-collection/types';
  *
  * type MyWidgetData = BuildWidgetData<[
  *   typeof commonFields,
@@ -62,7 +62,7 @@ export type * from './widget-builder';
  *
  * @example
  * ```typescript
- * import { getDynamicProperty, type OidObject } from 'vis-2-widgets-collection/newTypes';
+ * import { getDynamicProperty, type OidObject } from 'vis-2-widgets-collection/types';
  *
  * const oid = getDynamicProperty(this.props, `oid${index}`);
  * ```
@@ -83,7 +83,7 @@ export type { OidObject, OidType } from './utility-types';
  *
  * @example
  * ```typescript
- * import type { CollectionWidgetInfo } from 'vis-2-widgets-collection/newTypes';
+ * import type { CollectionWidgetInfo } from 'vis-2-widgets-collection/types';
  *
  * static getWidgetInfo(): CollectionWidgetInfo {
  *   return {
@@ -178,7 +178,7 @@ export * from './field-definitions/light2-fields';
  *
  * @example
  * ```typescript
- * import type { WidgetRegistry } from 'vis-2-widgets-collection/newTypes';
+ * import type { WidgetRegistry } from 'vis-2-widgets-collection/types';
  *
  * // Get widget data type automatically
  * type StateWidgetData = WidgetRegistry['tplStateCollectionWidget'];
@@ -226,7 +226,7 @@ export * from './widget-registry';
  * @example
  * ```typescript
  * import React from 'react';
- * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/newTypes';
+ * import type { StateCollectionContextProps } from 'vis-2-widgets-collection/types';
  *
  * const StateContext = React.createContext<StateCollectionContextProps>(null!);
  *
@@ -257,13 +257,13 @@ export * from './context-types';
 
 /**
  * Module declaration to enable imports from package path.
- * Allows: import { ... } from 'vis-2-widgets-collection/newTypes'
+ * Allows: import { ... } from 'vis-2-widgets-collection/types'
  *
  * @remarks
  * This declaration works in conjunction with the package.json "exports" field
  * to provide a clean import path for consumers of this package.
  */
-declare module 'vis-2-widgets-collection/newTypes' {
+declare module 'vis-2-widgets-collection/types' {
     export type * from './widget-builder';
     export type * from './utility-types';
     export type * from './vis-2-extensions';
@@ -303,7 +303,7 @@ declare module 'vis-2-widgets-collection/newTypes' {
  *
  * @example
  * ```typescript
- * import type { BuildWidgetData } from 'vis-2-widgets-collection/newTypes';
+ * import type { BuildWidgetData } from 'vis-2-widgets-collection/types';
  *
  * type MyWidgetData = BuildWidgetData<[
  *   typeof commonFields,
@@ -325,14 +325,14 @@ declare module 'vis-2-widgets-collection/newTypes' {
  * @deprecated These types are from the legacy type system in src/types/index.d.ts
  * @remarks
  * During the migration period, these aliases help maintain compatibility.
- * New code should use types from newTypes/ instead.
+ * New code should use types from types/ instead.
  *
  * Migration guide:
  * - Old: import type { CommonFieldsRxData } from '../lib/commonFields'
- * - New: import type { CommonFieldsRxData } from 'vis-2-widgets-collection/newTypes'
+ * - New: import type { CommonFieldsRxData } from 'vis-2-widgets-collection/types'
  *
  * **Important for Widget-Specific Fields (Phase 3):**
- * - Widget code should ONLY import from `vis-2-widgets-collection/newTypes` for all field types
+ * - Widget code should ONLY import from `vis-2-widgets-collection/types` for all field types
  * - Legacy interfaces in `src/lib/*Fields.tsx` (e.g., DialogFieldsRxData in dialogFields.tsx) are
  *   maintained for runtime compatibility but will be removed in Phase 10
  * - The new type system defines all properties as optional for flexibility, while legacy interfaces
@@ -345,7 +345,7 @@ declare module 'vis-2-widgets-collection/newTypes' {
  * import type { DialogFieldsRxData } from '../lib/dialogFields';
  *
  * // ✅ New (recommended, use this for all new code)
- * import type { DialogFieldsRxData } from 'vis-2-widgets-collection/newTypes';
+ * import type { DialogFieldsRxData } from 'vis-2-widgets-collection/types';
  * ```
  *
  * These aliases will be removed in Phase 10 (final cleanup).
