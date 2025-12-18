@@ -1,3 +1,9 @@
+/**
+ * Light2 collection widget.
+ *
+ * @module widgets/Light2CollectionWidget
+ */
+
 import React from 'react';
 import type { Light2CollectionContextProps, WidgetRegistry } from '../types';
 import Generic from '../Generic';
@@ -10,6 +16,13 @@ import Light2Collection from './Light2Collection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
+/**
+ * Widget entry (vis-2 runtime).
+ *
+ * @remarks
+ * Defines the widget schema and provides the collection context consumed by
+ * {@link Light2Collection}.
+ */
 class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2CollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -31,7 +44,7 @@ class Light2CollectionWidget extends Generic<WidgetRegistry['tplLight2Collection
                         // ...commonObjectFields(["boolean"]),
                         ...delayFields(),
                         ...light2Fields(),
-                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
+                    ] as RxWidgetInfoAttributesField[],
                 },
                 {
                     name: 'values',

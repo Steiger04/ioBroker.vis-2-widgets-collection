@@ -1,3 +1,9 @@
+/**
+ * Slider Collection widget.
+ *
+ * @module widgets/SliderCollectionWidget
+ */
+
 import React from 'react';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
@@ -15,10 +21,10 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSliderCollectionWidget',
-            visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
-            visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
-            visName: 'SliderCollectionWidget', // Name of widget
-            visWidgetLabel: 'slider_collection_widget', // Label for widget
+            visSet: 'vis-2-widgets-collection',
+            visSetLabel: 'widgets_collection',
+            visName: 'SliderCollectionWidget',
+            visWidgetLabel: 'slider_collection_widget',
             visOrder: 4,
             visAttrs: [
                 {
@@ -42,8 +48,6 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
                     indexTo: 'values_count',
                     fields: [...commonFields({ groupName: '', allFields: false })],
                 },
-
-                // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -62,21 +66,7 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
 
     // eslint-disable-next-line class-methods-use-this
     propertiesUpdate(): void {
-        // The widget has 3 important states
-        // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
-        //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
-        // 2. this.state.rxData - contains all widget data with replaced bindings. E.g. if this.state.data.type is `{system.adapter.admin.0.alive}`,
-        //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
-        // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
-        //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-        // console.log("inside propertiesUpdate", this.state.values);
-        /* const actualRxData = JSON.stringify(this.state.rxData);
-        if (this.lastRxData === actualRxData) {
-            return;
-        }
-        this.lastRxData = actualRxData;
-
-        await this.createStateObjectAsync('oid'); */
+        // Intentionally empty: the Slider widget has no derived runtime state.
     }
 
     // This function is called every time when rxData is changed

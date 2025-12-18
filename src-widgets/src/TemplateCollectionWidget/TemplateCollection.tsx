@@ -1,3 +1,9 @@
+/**
+ * Renderer for the Template Collection widget.
+ *
+ * @module widgets/TemplateCollection
+ */
+
 import { Box } from '@mui/material';
 import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -6,6 +12,11 @@ import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import type { TemplateCollectionContextProps } from '../types';
 
+/**
+ * Minimal example widget body.
+ *
+ * @returns Widget body element.
+ */
 function TemplateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as TemplateCollectionContextProps;
     const { widget } = context;

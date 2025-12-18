@@ -1,9 +1,18 @@
+/**
+ * Hook that computes the effective widget size based on configuration (square/circle) and available space.
+ *
+ * @module hooks/useSize
+ * @remarks
+ * For square/circle widgets, the resulting width/height is based on the smaller of the available
+ * dimensions after subtracting base padding.
+ */
+
 import { useContext, useEffect, useState, useMemo, type RefObject } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useElementDimensions from './useElementDimensions';
 
 /**
- * Interface für Dimensionen-Return-Werte
+ * Dimensions returned by {@link module:hooks/useElementDimensions.default}.
  */
 interface Dimensions {
     width: number | null;
@@ -11,19 +20,27 @@ interface Dimensions {
 }
 
 /**
- * Interface für den Return-Typ des useSize Hooks
+ * Return type for {@link module:hooks/useSize.default}.
  */
 interface UseSizeReturn {
+    /** CSS width value (e.g. `"100%"`, `"120px"`). */
     width: string;
+    /** CSS height value (e.g. `"100%"`, `"120px"`). */
     height: string;
 }
 
 /**
- * Hook für dynamische Größenberechnung basierend auf Widget-Konfiguration
- * Unterstützt quadratische und kreisförmige Layouts mit automatischer Größenanpassung
+ * Computes the widget size for square/circle layouts.
  *
- * @param ref React RefObject für das zu messende Element
- * @returns Objekt mit berechneter width und height als CSS-Strings
+ * @param ref - Ref to the element that should be measured.
+ * @returns Computed `width` and `height` as CSS strings.
+ * @example
+ * ```tsx
+ * const ref = useRef<HTMLDivElement>(null);
+ * const { width, height } = useSize(ref);
+ *
+ * return <div ref={ref} style={{ width, height }} />;
+ * ```
  */
 const useSize = (ref: RefObject<HTMLElement | HTMLDivElement>): UseSizeReturn => {
     const { widget } = useContext(CollectionContext);
@@ -33,7 +50,6 @@ const useSize = (ref: RefObject<HTMLElement | HTMLDivElement>): UseSizeReturn =>
 
     const { width: clientWidth, height: clientHeight } = useElementDimensions(ref) as Dimensions;
 
-    // Memoization der Widget-Konfiguration für bessere Performance
     const widgetConfig = useMemo(
         () => ({
             basePadding: widget.data.basePadding || 0,
@@ -43,35 +59,29 @@ const useSize = (ref: RefObject<HTMLElement | HTMLDivElement>): UseSizeReturn =>
         [widget.data.basePadding, widget.data.square, widget.data.circle],
     );
 
-    // Memoization der Padding-Berechnung
     const paddingOffset = useMemo(() => {
         return widgetConfig.basePadding * 16;
     }, [widgetConfig.basePadding]);
 
     useEffect(() => {
-        // Frühe Rückgabe wenn Dimensionen nicht verfügbar
         if (!clientWidth || !clientHeight || clientWidth < 0 || clientHeight < 0) {
             return;
         }
 
-        // Standard-Layout: Vollbreite/Vollhöhe
         if (!widgetConfig.isSquare && !widgetConfig.isCircle) {
             setWidth('100%');
             setHeight('100%');
             return;
         }
 
-        // Quadratisches/Kreisförmiges Layout
         const hasMinimumSpace = clientWidth >= paddingOffset && clientHeight >= paddingOffset;
 
         if (!hasMinimumSpace) {
-            // Nicht genug Platz - Element ausblenden
             setWidth('0px');
             setHeight('0px');
             return;
         }
 
-        // Berechnung der quadratischen Größe basierend auf kleinerer Dimension
         const availableWidth = clientWidth - paddingOffset;
         const availableHeight = clientHeight - paddingOffset;
         const squareSize = Math.min(availableWidth, availableHeight);

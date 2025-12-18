@@ -1,12 +1,20 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
+ * Helpers and field generators related to selecting ioBroker objects (OIDs) in the vis-2 editor.
+ *
+ * @module lib/commonObjectFields
+ * @remarks
+ * The main export in this module is `oidChangeHandlerAsync()`, an `onChange` handler factory used by several
+ * widgets. It resolves the selected object and populates common widget fields (icons, labels, min/max, etc.)
+ * based on object metadata.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/common-object-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
+/** Supported value type hints used by `oidChangeHandlerAsync()`. */
 type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
 
 const getObjectIconAsync = async (socket: LegacyConnection, object: ioBroker.Object): Promise<string | null> => {
@@ -108,6 +116,12 @@ const convertValueByType = (value: string, type: AllowedType): boolean | number 
     }
 };
 
+/**
+ * Creates an async `onChange` handler for an OID/id editor field.
+ *
+ * @param allowedTypes Allowed JS types for the selected state/object.
+ * @param oid The name of the data property that stores the selected object id.
+ */
 export const oidChangeHandlerAsync =
     (allowedTypes: AllowedType[], oid = 'oid') =>
     async (

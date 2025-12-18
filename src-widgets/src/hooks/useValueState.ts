@@ -1,3 +1,15 @@
+/**
+ * Hook for local value state management with type conversion and debounced backend writes.
+ *
+ * @module hooks/useValueState
+ * @remarks
+ * This hook is used by multiple widgets to keep a local “optimistic” value in sync with ioBroker state.
+ * It supports:
+ * - type-aware conversion via the configured `OidObject.type`
+ * - throttled/debounced writes via {@link module:hooks/useDebounce}
+ * - a short “ignore window” to avoid immediately re-applying backend echoes while the user is interacting
+ */
+
 import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
@@ -8,11 +20,17 @@ import { type VisRxWidgetState } from '@iobroker/types-vis-2';
 import { VALUE_NOT_CHANGED_TIMESTAMP } from '../lib/constants';
 
 /**
- * Konvertiert einen Wert basierend auf dem OID-Typ.
+ * Converts a primitive value to the configured ioBroker OID type.
  *
- * @param value Der zu konvertierende Wert
- * @param oidType Der Zieltyp ('string' | 'number' | 'boolean' | 'mixed')
- * @returns Der konvertierte Wert oder undefined bei ungültiger Konvertierung
+ * @param value - Value to convert.
+ * @param oidType - Target type as configured by the selected OID.
+ * @returns The converted value or `undefined` if the conversion is not valid.
+ * @remarks
+ * Conversion rules:
+ * - `string`: `String(value)`
+ * - `number`: only converts if the input is numeric
+ * - `boolean`: only the string `"true"` (case-insensitive) becomes `true`
+ * - `mixed`: attempts boolean → number → string
  */
 function convertToOidType(
     value: string | number | boolean,
@@ -22,14 +40,14 @@ function convertToOidType(
         case 'string':
             return String(value);
         case 'number':
-            // Bei nicht-numerischen Eingaben wird undefined zurückgegeben
             return isNumber(value) ? Number(value) : undefined;
         /*
-         * mixed-Typ: Versucht den Eingabewert intelligent zu konvertieren:
+         * Mixed type: tries to convert in this order:
          * - "true"/"false" (case-insensitive) → boolean
-         * - Numerische Werte → number
-         * - Alles andere → string
-         * Hinweis: Numerische Booleans (1/0) werden als Zahlen behandelt, nicht als Booleans.
+         * - numeric values → number
+         * - everything else → string
+         *
+         * Note: numeric booleans (1/0) are treated as numbers, not booleans.
          */
         case 'mixed':
             return /^true$/i.test(String(value))
@@ -40,9 +58,8 @@ function convertToOidType(
                     ? Number(value)
                     : String(value);
         /*
-         * boolean-Typ: Konvertiert den Eingabewert zu boolean.
-         * Nur der String "true" (case-insensitive) ergibt true,
-         * alle anderen Werte (inkl. "1", "yes", etc.) ergeben false.
+         * Boolean type: only the string "true" (case-insensitive) becomes true.
+         * All other values (including "1", "yes", etc.) become false.
          */
         case 'boolean':
             return /^true$/i.test(String(value));
@@ -52,8 +69,14 @@ function convertToOidType(
 }
 
 /**
- * Prüft, ob eine Backend-Änderung signifikant ist (Differenz > 1) und daher synchronisiert werden soll.
- * Wird nur aufgerufen, wenn die Last-Change-Timestamps unterschiedlich sind.
+ * Determines whether a backend value change should be treated as significant.
+ *
+ * @param prevValue - Previously observed value.
+ * @param currentValue - Newly observed value.
+ * @returns `true` if the change is considered significant.
+ * @remarks
+ * This is only evaluated when the backend "last change" timestamp has changed.
+ * For numeric-like values, a delta of at least 1 is treated as significant.
  */
 function isSignificantBackendChange(
     prevValue: string | number | boolean | undefined | null,
@@ -73,37 +96,49 @@ function isSignificantBackendChange(
 }
 
 /**
- * Interface für den Return-Typ des useValueState Hooks
+ * Return type for {@link module:hooks/useValueState.default}.
  */
 interface UseValueStateReturn {
+    /** Current (optimistic) value for the configured OID. */
     value: string | number | boolean | undefined | null;
+
+    /** Indicates the backend value has changed since last local update. */
     hasBackendChange: boolean;
+
     /**
-     * Aktualisiert den Wert im lokalen State und optional im Backend.
+     * Updates the local widget value and (optionally) schedules a backend write.
      *
-     * @param value Der neue Wert (string, number oder boolean). null-Werte werden nicht unterstützt
-     *              und führen zu einem frühen Return ohne State-Änderung.
-     * @param skipBackendWrite Wenn true, wird nur der lokale State aktualisiert und der
-     *                         Debounce-/Backend-Schreibvorgang übersprungen. Standard: false.
+     * @param value - New value (string/number/boolean). `null` is intentionally not supported.
+     * @param skipBackendWrite - When `true`, only the local state is updated.
      */
     updateValue: (value: string | number | boolean, skipBackendWrite?: boolean) => void;
 }
 
 /**
- * Hook für Wert-State Management mit Typkonvertierung und Debouncing.
- * Verwendet OidObject aus types für präzise OID-Typisierung.
- * Unterstützt DelayFieldsRxData für Delay-Konfiguration.
- * Funktioniert mit allen Widget-Types. Widgets ohne DelayFieldsRxData
- * (Template, Gauge, Dialog) verwenden Default-Delay von 300ms.
+ * Manages a value associated with an OID, including conversion and debounced writes.
  *
- * @param idName Der Name der OID-Property (z.B. 'oid', 'oid1', 'oid2')
- * @returns Objekt mit value, hasBackendChange und updateValue
+ * @param idName - Name of the OID property (e.g. `"oid"`, `"oid1"`, `"oid2"`).
+ * @returns An object containing the current value, backend-change flag, and an update function.
+ * @example
+ * ```tsx
+ * const { value, updateValue, hasBackendChange } = useValueState('oid');
+ *
+ * return (
+ *   <TextField
+ *     value={String(value ?? '')}
+ *     error={hasBackendChange}
+ *     onChange={e => updateValue(e.target.value)}
+ *   />
+ * );
+ * ```
+ * @remarks
+ * Delay configuration is read from `DelayFieldsRxData` when available.
+ * Widgets that don't expose delay fields effectively fall back to a default delay of 300ms.
  */
 const useValueState = (idName: string): UseValueStateReturn => {
     const { setState, widget, getPropertyValue, values } = useContext(CollectionContext);
     const { data } = useData('oid');
 
-    // Direkter Zugriff auf widget.data um Stale-Referenzen bei möglicher in-place Mutation zu vermeiden
     const oidObject = widget.data[`${idName}Object` as keyof CommonObjectFieldsRxData] as OidObject | undefined;
 
     const value = getPropertyValue(idName);
@@ -155,11 +190,6 @@ const useValueState = (idName: string): UseValueStateReturn => {
             sampleIntervalValue: (widget.data as Partial<DelayFieldsRxData>).sampleIntervalValue,
         },
     });
-
-    /**
-     * Aktualisiert den Wert im lokalen State und optional im Backend.
-     * null-Werte werden nicht unterstützt und führen zu einem frühen Return.
-     */
     const updateValue = useCallback(
         (value: string | number | boolean, skipBackendWrite = false): void => {
             if (!oidObject?._id) {
@@ -168,12 +198,10 @@ const useValueState = (idName: string): UseValueStateReturn => {
 
             const processedValue = convertToOidType(value, oidObject?.type);
 
-            // Abbruch bei ungültigen Werten (undefined nach fehlgeschlagener Konvertierung)
             if (processedValue === undefined || processedValue === null) {
                 return;
             }
 
-            // Zentraler State-Update
             setState((prevState: VisRxWidgetState) => ({
                 values: {
                     ...prevState.values,
@@ -188,12 +216,10 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 value: processedValue,
             };
 
-            // Bei skipBackendWrite wird nur der lokale State aktualisiert
             if (skipBackendWrite) {
                 return;
             }
 
-            // Backend-Schreibvorgang via Debounce
             if (debounce) {
                 debounce.next(processedValue);
             }

@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/delay-fields`.
+ * vis-2 widget editor field generator for write-delay and sampling options.
+ *
+ * @module lib/delayFields
+ * @remarks
+ * This field list is typically paired with widgets that write values and need a configurable delay or sampling
+ * interval.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/delay-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

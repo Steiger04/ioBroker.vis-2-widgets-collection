@@ -1,28 +1,48 @@
+/**
+ * Hook that creates an RxJS pipeline to debounce or throttle outgoing value writes.
+ *
+ * @module hooks/useDebounce
+ * @remarks
+ * This hook provides a stable `next()` function that schedules backend writes via
+ * `CollectionContext.setValue`. It recreates the RxJS subscription when the OID or
+ * delay mode changes and ensures proper cleanup on unmount.
+ */
+
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import { Subject, debounceTime, throttleTime, type Subscription } from 'rxjs';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { DelayFieldsRxData, OidObject } from '../types';
 
 /**
- * Interface für useDebounce Parameter
+ * Parameters for {@link module:hooks/useDebounce.default}.
  */
 interface UseDebounceParams {
-    /** Das OID-Objekt mit State-Informationen */
+    /** Selected OID metadata (including `_id`). */
     oidObject: OidObject | undefined;
-    /** Die Delay-Konfiguration aus den Widget-Daten */
+    /** Delay configuration read from widget data. */
     data: DelayFieldsRxData;
 }
 
 /**
- * Interface für den Return-Typ des useDebounce Hooks
+ * Return value for {@link module:hooks/useDebounce.default}.
  */
 export interface UseDebounceReturn {
-    /** Funktion zum Senden eines neuen Werts an das Debounce-Observable */
+    /** Pushes a new value into the debounce/throttle stream. */
     next: (value: string | number | boolean) => void;
 }
 
 /**
- * Hook für verzögerte Wert-Übertragung mit Debounce/Throttle.
+ * Creates a debounced/throttled writer for a given OID.
+ *
+ * @param params - Hook parameters.
+ * @param params.oidObject - Selected OID object (must contain `_id`).
+ * @param params.data - Delay configuration.
+ * @returns A writer with `next()`, or `null` if no OID is selected.
+ * @example
+ * ```ts
+ * const writer = useDebounce({ oidObject, data: widget.data });
+ * writer?.next(42);
+ * ```
  */
 function useDebounce({
     oidObject,
@@ -30,14 +50,12 @@ function useDebounce({
 }: UseDebounceParams): UseDebounceReturn | null {
     const { setValue } = useContext(CollectionContext);
 
-    // Stabile Referenzen für RxJS-Objekte und setValue
     const subjectRef = useRef<Subject<string | number | boolean>>();
     const subscriptionRef = useRef<Subscription | null>(null);
     const setValueRef = useRef(setValue);
     setValueRef.current = setValue;
     const oid = oidObject?._id;
 
-    // Memoization der Delay-Berechnung für bessere Performance
     const _delay = useMemo(() => {
         const intervalValue = Number(sampleIntervalValue);
         const delayValue = Number(delay);

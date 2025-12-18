@@ -1,3 +1,9 @@
+/**
+ * Radio-group collection renderer.
+ *
+ * @module widgets/RadioGroupCollection
+ */
+
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
@@ -10,10 +16,13 @@ import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import type { RadioGroupCollectionContextProps } from '../types';
 
+/**
+ * Renders the configured values as a radio group and writes back the selected value.
+ */
 function RadioGroupCollection(): React.ReactElement {
     const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
     const [clientHeight, setClientHeight] = useState<number | null>(null);
-    // RadioGroupCollection wird nur im RadioGroupCollectionWidget verwendet, daher ist der Cast sicher
+    // RadioGroupCollection is only used by RadioGroupCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const {
         widget: {

@@ -1,5 +1,25 @@
+/**
+ * Hook that splits a CSSProperties object into groups typically consumed by MUI components.
+ *
+ * @module hooks/useStyles
+ * @remarks
+ * The vis-2 editor provides style objects that may contain kebab-case keys.
+ * This hook normalizes and groups known style keys into:
+ * - background
+ * - border
+ * - text
+ * - font
+ * - box/layout
+ */
+
 import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 
+/**
+ * Style keys that are extracted and mapped to camelCase.
+ *
+ * @remarks
+ * This list intentionally focuses on properties that frequently occur in vis-2 widget styles.
+ */
 const POSSIBLE_MUI_STYLES = [
     'background',
     'background-color',
@@ -29,6 +49,25 @@ const POSSIBLE_MUI_STYLES = [
     'box-shadow',
 ];
 
+/**
+ * Splits a CSSProperties map into grouped style objects.
+ *
+ * @param _styles - Incoming style object from vis-2 / widget config.
+ * @returns Grouped styles (background, border, text, font, box).
+ * @example
+ * ```tsx
+ * const { backgroundStyles, textStyles } = useStyles(widget.style);
+ *
+ * return (
+ *   <Box sx={{ ...backgroundStyles, ...textStyles }}>
+ *     Content
+ *   </Box>
+ * );
+ * ```
+ * @remarks
+ * The input is JSON-stringified to create a stable memo dependency.
+ * This works well for plain style objects coming from the vis editor.
+ */
 const useStyles = (
     _styles: CSSProperties,
 ): {

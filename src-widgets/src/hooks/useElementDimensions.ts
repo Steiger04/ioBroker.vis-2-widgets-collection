@@ -1,21 +1,39 @@
+/**
+ * Hook that measures an element using `ResizeObserver` and exposes width/height/maxWidth.
+ *
+ * @module hooks/useElementDimensions
+ * @remarks
+ * `maxWidth` is derived from the element size and an optional slider size.
+ * It is used by some widgets to keep slider controls within bounds.
+ */
+
 import { useEffect, useState, useCallback, useMemo, type RefObject } from 'react';
 
 /**
- * Interface für Dimensionen-Return-Werte
+ * Measured element dimensions.
  */
 export interface ElementDimensions {
+    /** Current width in px (rounded), if measurable. */
     width: number | undefined;
+    /** Current height in px (rounded), if measurable. */
     height: number | undefined;
+    /** Derived max width used by slider layouts, if measurable. */
     maxWidth: number | undefined;
 }
 
 /**
- * Hook für Echtzeit-Dimensionsmessung von DOM-Elementen
- * Verwendet ResizeObserver für optimale Performance und automatische Updates
+ * Measures a DOM element and updates on resize.
  *
- * @param element Element oder RefObject für das zu messende DOM-Element
- * @param sliderSize Optionale Slider-Größe für maxWidth-Berechnung (Standard: 28)
- * @returns Objekt mit aktueller width, height und maxWidth
+ * @param element - Element or ref to measure.
+ * @param sliderSize - Optional slider size used for calculating `maxWidth` (default: 28).
+ * @returns Current `width`, `height` and `maxWidth`.
+ * @example
+ * ```tsx
+ * const ref = useRef<HTMLDivElement>(null);
+ * const { width, height } = useElementDimensions(ref);
+ *
+ * return <div ref={ref}>{width}×{height}</div>;
+ * ```
  */
 const useElementDimensions = (
     element: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | null | undefined,
@@ -27,7 +45,6 @@ const useElementDimensions = (
         maxWidth: undefined,
     });
 
-    // Memoization der Dimensions-Update-Funktion
     const updateDimensions = useCallback(
         (entries: ResizeObserverEntry[]) => {
             if (entries.length === 0) {
@@ -50,29 +67,24 @@ const useElementDimensions = (
         [sliderSize],
     );
 
-    // Memoization des tatsächlichen DOM-Elements
     const targetElement = useMemo(() => {
         if (!element) {
             return null;
         }
 
-        // Prüfung ob es ein RefObject ist
         if (typeof element === 'object' && 'current' in element) {
             return element.current;
         }
 
-        // Direktes HTMLElement
         return element;
     }, [element]);
 
     useEffect(() => {
         if (!targetElement) {
-            // Reset dimensions wenn kein Element verfügbar
             setDimensions({ width: undefined, height: undefined, maxWidth: undefined });
             return;
         }
 
-        // ResizeObserver für optimale Performance
         const observer = new ResizeObserver(updateDimensions);
 
         try {
@@ -82,7 +94,6 @@ const useElementDimensions = (
             return;
         }
 
-        // Cleanup-Funktion
         return () => {
             try {
                 observer.disconnect();
@@ -95,6 +106,12 @@ const useElementDimensions = (
     return dimensions;
 };
 
-// Export sowohl als useElementDimensions als auch als useRefDimensions für Kompatibilität
 export default useElementDimensions;
+
+/**
+ * Compatibility export for older code paths.
+ *
+ * @remarks
+ * `useRefDimensions` is kept to avoid churn in widget implementations.
+ */
 export { useElementDimensions as useRefDimensions };

@@ -1,19 +1,31 @@
-// colorPickerUtils/colorPickerEffects.ts
+/**
+ * Side-effect helpers for creating and controlling an iro.js ColorPicker instance.
+ *
+ * @module Light2CollectionWidget/colorPickerUtils/colorPickerEffects
+ * @remarks
+ * This module wraps `iro.ColorPicker(...)` and provides small utilities that are convenient to call from React
+ * effects (initialize, clean up, resize, and update options).
+ */
 import iro from '@jaames/iro';
 
-// Changes-Typ für H/S/V-Änderungsinformationen
+/**
+ * Partial change information for HSV channels emitted by iro.js.
+ */
 export type ColorChanges = {
     h?: boolean;
     s?: boolean;
     v?: boolean;
 };
 
+/**
+ * Creates an `iro.ColorPicker` instance for the given DOM ref and wires up the relevant event handlers.
+ */
 export function initializeColorPicker(
     ref: React.RefObject<HTMLDivElement>,
     pickerRef: React.MutableRefObject<iro.ColorPicker | null>,
     options: Record<string, any>,
-    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void, // <-- mit changes Parameter
-    onInit?: (color: iro.Color, cctComponentNumber?: number) => void, // <-- zusätzlicher Parameter
+    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void,
+    onInit?: (color: iro.Color, cctComponentNumber?: number) => void,
     cctComponentNumber?: number,
 ): void {
     if (!ref.current) {
@@ -21,14 +33,14 @@ export function initializeColorPicker(
     }
     pickerRef.current = iro.ColorPicker(ref.current, options);
 
-    // Event-Listener für Farbinitialisierung hinzufügen
+    // Initialize the current color when iro fires its init event.
     pickerRef.current.on('color:init', (color: iro.Color) => {
         if (onInit) {
             onInit(color, cctComponentNumber);
         }
     });
 
-    // Event-Listener für Farbänderung hinzufügen (mit changes für H/S/V-Optimierung)
+    // Subscribe to interactive changes (optionally with HSV change flags).
     pickerRef.current.on('input:change', (color: iro.Color, changes: ColorChanges) => {
         if (onInputChange) {
             onInputChange(color, changes);

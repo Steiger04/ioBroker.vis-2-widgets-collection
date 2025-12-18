@@ -1,3 +1,9 @@
+/**
+ * Gauge collection renderer.
+ *
+ * @module widgets/GaugeCollection
+ */
+
 import { Box } from '@mui/material';
 import React, { useContext, useRef, useMemo, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
@@ -8,6 +14,9 @@ import useOidValue from '../hooks/useOidValue';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 
+/**
+ * Highlight segment for the gauge (range + styling overrides).
+ */
 interface Highlight {
     from: number;
     to: number;
@@ -29,6 +38,9 @@ interface Highlight {
     };
 }
 
+/**
+ * Returns the highlight segment for a given value.
+ */
 const findSegment = (highlights: Highlight[], value: number, maxValue: number): Highlight | null => {
     const segment = highlights.find(highlight => {
         return value >= highlight.from && (value < highlight.to || (value === highlight.to && value === maxValue));
@@ -36,6 +48,9 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
     return segment || null;
 };
 
+/**
+ * Renders a canvas-gauges based gauge and updates frame/background based on the active segment.
+ */
 function GaugeCollection(): React.JSX.Element {
     const baseRef = useRef<CollectionBaseHandle>(null);
     const gaugeRef = useRef<HTMLDivElement>(null);
@@ -68,7 +83,7 @@ function GaugeCollection(): React.JSX.Element {
         if (widget.data.gaugeMajorTicks && Number(widget.data.gaugeMajorTicks > 0)) {
             for (let i = 0; i <= Number(widget.data.gaugeMajorTicks); i++) {
                 const value = minValue + ((maxValue - minValue) / Number(widget.data.gaugeMajorTicks) || 1) * i;
-                // zwei Nachkommastellen
+                // Two decimal places.
                 _majorTicks.push(Math.round(value * 100) / 100);
             }
         }

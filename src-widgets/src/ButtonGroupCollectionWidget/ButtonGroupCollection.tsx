@@ -1,3 +1,9 @@
+/**
+ * Button-group collection renderer.
+ *
+ * @module widgets/ButtonGroupCollection
+ */
+
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useContext } from 'react';
@@ -11,11 +17,11 @@ import SafeImg from '../components/SafeImg';
 import type { ButtonGroupCollectionContextProps } from '../types';
 
 function ButtonGroupCollection(): React.JSX.Element {
-    // ButtonGroupCollection wird nur im ButtonGroupCollectionWidget verwendet
+    // ButtonGroupCollection is only used by ButtonGroupCollectionWidget.
     const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
     const { widget, theme } = context;
 
-    // Sicherer Zugriff auf optionale Properties
+    // Safe access to optional properties.
     const oidObject = widget.data.oidObject;
     const { data, states, activeIndex } = useData('oid');
     const { fontStyles, textStyles } = useStyles(widget.style);
@@ -61,14 +67,14 @@ function ButtonGroupCollection(): React.JSX.Element {
                         flexDirection: buttonGroupOrientation === 'vertical' ? 'column' : 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        // Höheneinschränkung nur für vertikale Orientierung
+                        // Height constraints only apply for vertical orientation.
                         height: buttonGroupOrientation === 'vertical' ? '100%' : 'auto',
                         maxHeight: buttonGroupOrientation === 'vertical' ? '100%' : 'none',
 
                         '&.MuiToggleButtonGroup-root': {
                             // color: widget.data.buttonGroupColor || "background.default",
                         },
-                        // Bei vertikaler Ausrichtung: alle Buttons gleichmäßig verteilen
+                        // For vertical orientation: distribute all buttons evenly.
                         ...(buttonGroupOrientation === 'vertical' && {
                             '& .MuiToggleButton-root': {
                                 flex: '1 1 0',
@@ -159,11 +165,11 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         data.textColor ||
                                         theme.palette.primary.main,
 
-                                    // Ripple-Effekt: gleiche Farblogik wie Hover/Selection
+                                    // Ripple effect: use the same color logic as hover/selection.
                                     '& .MuiTouchRipple-root': {
                                         color:
                                             !widget.data.onlyText && !widget.data.onlyIcon
-                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                ? // Icon + text visible: use icon color.
                                                   (activeIndex === index + 1 &&
                                                       String(oidValue) === String(widget.data[`value${index + 1}`]) &&
                                                       widget.data.iconColorActive) ||
@@ -172,7 +178,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                   data.iconColor ||
                                                   theme.palette.primary.main
                                                 : widget.data.onlyIcon
-                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                  ? // Icon only: use icon color.
                                                     (activeIndex === index + 1 &&
                                                         String(oidValue) === String(widget.data[`value${index + 1}`]) &&
                                                         widget.data.iconColorActive) ||
@@ -180,7 +186,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                     widget.data.iconColor ||
                                                     data.iconColor ||
                                                     theme.palette.primary.main
-                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                  : // Text only: use text color.
                                                     (activeIndex === index + 1 &&
                                                         String(oidValue) === String(widget.data[`value${index + 1}`]) &&
                                                         widget.data.textColorActive) ||
@@ -191,10 +197,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                                     },
 
                                     background:
-                                        // Ausgewählter Button: gleiche Farblogik wie beim Hover
+                                        // Selected button: same color logic as hover.
                                         String(oidValue) === String(value)
                                             ? !widget.data.onlyText && !widget.data.onlyIcon
-                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                ? // Icon + text visible: use icon color.
                                                   alpha(
                                                       (activeIndex === index + 1 &&
                                                           String(oidValue) ===
@@ -207,7 +213,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                       0.1,
                                                   )
                                                 : widget.data.onlyIcon
-                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                  ? // Icon only: use icon color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -219,7 +225,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             theme.palette.primary.main,
                                                         0.1,
                                                     )
-                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                  : // Text only: use text color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -235,9 +241,9 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                     '&.MuiToggleButton-root.Mui-selected': {
                                         background:
-                                            // Ausgewählter Button: gleiche Farblogik wie beim Hover
+                                            // Selected button: same color logic as hover.
                                             !widget.data.onlyText && !widget.data.onlyIcon
-                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                ? // Icon + text visible: use icon color.
                                                   alpha(
                                                       (activeIndex === index + 1 &&
                                                           String(oidValue) ===
@@ -250,7 +256,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                       0.1,
                                                   )
                                                 : widget.data.onlyIcon
-                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                  ? // Icon only: use icon color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -262,7 +268,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             theme.palette.primary.main,
                                                         0.1,
                                                     )
-                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                  : // Text only: use text color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -287,9 +293,9 @@ function ButtonGroupCollection(): React.JSX.Element {
                                             (data.iconHover && `brightness(${data.iconHover || '100%'})`),
 
                                         background:
-                                            // Hover-Hintergrundfarbe basierend auf sichtbaren Elementen
+                                            // Hover background depends on visible elements.
                                             !widget.data.onlyText && !widget.data.onlyIcon
-                                                ? // Icon und Text sichtbar: Icon-Farbe verwenden
+                                                ? // Icon + text visible: use icon color.
                                                   alpha(
                                                       (activeIndex === index + 1 &&
                                                           String(oidValue) ===
@@ -302,7 +308,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                       0.1,
                                                   )
                                                 : widget.data.onlyIcon
-                                                  ? // Nur Icon sichtbar: Icon-Farbe verwenden
+                                                  ? // Icon only: use icon color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===
@@ -314,7 +320,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             theme.palette.primary.main,
                                                         0.1,
                                                     )
-                                                  : // Nur Text sichtbar: Text-Farbe verwenden
+                                                  : // Text only: use text color.
                                                     alpha(
                                                         (activeIndex === index + 1 &&
                                                             String(oidValue) ===

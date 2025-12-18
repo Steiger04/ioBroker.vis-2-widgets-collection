@@ -1,3 +1,16 @@
+/**
+ * Layout wrapper used by most Collection widgets.
+ *
+ * @module components/CollectionBase
+ * @remarks
+ * This component renders:
+ * - optional header/footer Typography
+ * - a framed Paper container
+ * - an inner Paper for the actual widget content
+ *
+ * Header/footer text is applied via `innerHTML` to support rich text from vis.
+ */
+
 import { Box, Paper, Typography } from '@mui/material';
 import { useRef, forwardRef, useImperativeHandle, useState, useContext, useEffect, type RefObject } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -7,21 +20,40 @@ import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData';
 import { type SxProps, type Theme } from '@mui/material/styles';
 
+/**
+ * Props for {@link module:components/CollectionBase.default}.
+ */
 interface CollectionBaseProps {
+    /** Inner widget content. */
     children?: JSX.Element | JSX.Element[] | (JSX.Element | null)[] | null;
+    /** Presentation data produced by {@link module:hooks/useData}. */
     data: StyleData;
+    /** Current OID value (used for footer fallback). */
     oidValue?: ioBroker.StateValue;
+    /** Whether the currently selected OID type is valid for the widget. */
     isValidType?: boolean;
+    /** Whether active background styling should be applied. */
     bgActive?: boolean;
+    /** Additional `sx` passed to the inner Paper. */
     sx?: SxProps<Theme>;
 }
 
+/**
+ * Imperative handle for accessing key DOM nodes.
+ */
 export interface CollectionBaseHandle {
     paper0: HTMLDivElement | null;
     paper1: HTMLDivElement | null;
     header: HTMLSpanElement | null;
 }
 
+/**
+ * Base frame for Collection widgets.
+ *
+ * @param props - Component props.
+ * @param baseRef - Optional ref for imperative access.
+ * @returns The widget frame.
+ */
 const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
     ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
         const paper0Ref = useRef<HTMLDivElement>(null);
@@ -36,11 +68,9 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         }
         const { wrappedContent, widget } = context;
 
-        // Sicherer Zugriff auf oidObject - könnte nicht existieren bei einigen Widgets
         const oidObject = widget.data.oidObject;
         const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(widget.style);
 
-        // Fallback-Ref für useSize falls ref noch null ist
         const fallbackRef = useRef<HTMLDivElement>(null);
         const { width, height } = useSize(ref || fallbackRef);
 

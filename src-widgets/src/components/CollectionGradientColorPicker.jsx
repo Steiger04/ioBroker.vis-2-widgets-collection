@@ -1,3 +1,11 @@
+/**
+ * Gradient color picker field component for the vis-2 widget editor.
+ *
+ * @module components/CollectionGradientColorPicker
+ * @remarks
+ * This component is used inside widget attribute editors to edit gradient/background fields.
+ */
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, Popover } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -5,6 +13,19 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import ColorPicker, { useColorPicker } from 'react-best-gradient-color-picker';
 
+/**
+ * @typedef {Object} CollectionGradientColorPickerProps
+ * @property {{ name?: string }=} field Field definition (expects `name`).
+ * @property {Record<string, any>=} data Current editor data map.
+ * @property {(patch: Record<string, any>) => void} onDataChange Callback invoked with partial updates.
+ */
+
+/**
+ * Renders a compact gradient picker with a popover editor.
+ *
+ * @param {CollectionGradientColorPickerProps} props Component props.
+ * @returns {JSX.Element} Rendered field UI.
+ */
 function CollectionGradientColorPicker({ field, data, onDataChange }) {
     const fieldName = field?.name;
     const theme = useTheme();

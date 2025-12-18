@@ -1,24 +1,39 @@
+/**
+ * Hook that styles and updates the visibility of vis-2 “signal” icons rendered inside a widget container.
+ *
+ * @module hooks/useSignals
+ * @remarks
+ * Signals are rendered by vis-2 with fixed class names. This hook queries the DOM underneath
+ * `refService.current` and applies a drop-shadow/translate trick to recolor icons reliably.
+ */
+
 import { useEffect, useContext, useMemo } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 
 /**
- * Interface für Signal-Elemente
+ * DOM element shape for signal icons.
  */
 interface SignalElement extends HTMLElement {
     style: CSSStyleDeclaration;
 }
 
 /**
- * Hook für Signal-Visualisierung und -Styling
- * Verwaltet die Sichtbarkeit und das Styling von Signal-Ikonen basierend auf Widget-Konfiguration
+ * Applies signal visibility and styling according to widget configuration.
+ *
+ * @returns Nothing. This hook performs DOM side effects.
+ * @example
+ * ```tsx
+ * function WidgetFrame() {
+ *   useSignals();
+ *   return <div ref={refService} />;
+ * }
+ * ```
  */
 const useSignals = (): void => {
     const { isSignalVisible, refService, widget } = useContext(CollectionContext);
 
-    // Memoization der sichtbaren Signal-Indices für bessere Performance
     const visibleSignals = useMemo(() => {
         const visible: number[] = [];
-        // Sicherer Zugriff auf signals-count - könnte nicht in allen Widgets existieren
         const signalCount = Number(widget.data['signals-count']) || 0;
 
         for (let i = 0; i < signalCount; i++) {
@@ -30,12 +45,11 @@ const useSignals = (): void => {
         return visible;
     }, [widget.data, isSignalVisible]);
 
-    // Memoization der Signal-Styling-Konfiguration
     const signalStyles = useMemo(() => {
         const styles: Record<number, string | undefined> = {};
 
         visibleSignals.forEach(signalIndex => {
-            // Sicherer Zugriff auf signal-color Properties
+            // Safe access to signal color properties.
             styles[signalIndex] = widget.data[`signals-color-${signalIndex}`];
         });
 
@@ -50,10 +64,8 @@ const useSignals = (): void => {
         const currentElement = refService.current;
         const elementChildren = currentElement.children;
 
-        // Sammlung aller Signal-Elemente
         const signalElements: SignalElement[] = [];
 
-        // Durchsuche alle Child-Elemente nach Signal-Icons
         Array.from(elementChildren).forEach(child => {
             const signalIcon = child.children[0];
 
@@ -62,18 +74,15 @@ const useSignals = (): void => {
             }
         });
 
-        // Styling anwenden
         signalElements.forEach((signalElement, index) => {
             const visibleIndex = visibleSignals[index];
             const signalColor = visibleIndex !== undefined ? signalStyles[visibleIndex] : undefined;
 
-            // Signal-Styling mit Drop-Shadow-Trick für Farbgebung
             if (signalColor) {
                 signalElement.style.color = signalColor;
                 signalElement.style.filter = 'drop-shadow(0px 10000px 0)';
                 signalElement.style.transform = 'translateY(-10000px)';
             } else {
-                // Reset styling wenn keine Farbe definiert
                 signalElement.style.color = '';
                 signalElement.style.filter = '';
                 signalElement.style.transform = '';

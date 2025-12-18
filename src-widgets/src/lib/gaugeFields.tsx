@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/gauge-fields`.
+ * vis-2 widget editor field generator for gauge-specific options.
+ *
+ * @module lib/gaugeFields
+ * @remarks
+ * The Gauge widget supports both linear and radial gauges, so this list includes a number of conditional fields
+ * that are shown/hidden based on the selected gauge type.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/gauge-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

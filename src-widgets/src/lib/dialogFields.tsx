@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/dialog-fields`.
+ * vis-2 widget editor field generator for dialog-specific options.
+ *
+ * @module lib/dialogFields
+ * @remarks
+ * Provides the additional fields required by the Dialog collection widget (view selection, sizing, auto-close,
+ * close button options, and button/icon presentation).
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/dialog-fields`.
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';

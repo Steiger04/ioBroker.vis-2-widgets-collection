@@ -1,3 +1,9 @@
+/**
+ * Slider mark-label renderer used by MUI `Slider`.
+ *
+ * @module widgets/CollectionMark
+ */
+
 import { SliderMarkLabel, Box } from '@mui/material';
 import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react';
 
@@ -14,7 +20,7 @@ interface MarkData {
     iconColor: string | null;
 }
 
-// Erweitere HTMLAttributes für die restlichen Props, die an SliderMarkLabel weitergegeben werden
+// Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
 interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
     marks: boolean;
     sliderOrientation: 'horizontal' | 'vertical';
@@ -25,11 +31,18 @@ interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'childre
     ownerState: {
         marks?: MarkData[];
     };
-    // Zusätzliche MUI-spezifische Props
+    // Additional MUI-specific props.
     style?: React.CSSProperties;
     className?: string;
 }
 
+/**
+ * Renders a mark label with optional icon.
+ *
+ * @remarks
+ * MUI passes mark metadata via `ownerState.marks` and the current index via
+ * `data-index`. This component uses `innerHTML` to support markup in labels.
+ */
 const CollectionMark: FC<CollectionMarkProps> = ({
     marks,
     sliderOrientation,

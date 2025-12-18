@@ -1,3 +1,9 @@
+/**
+ * Canvas-gauges wrapper used by GaugeCollection.
+ *
+ * @module widgets/Gauge
+ */
+
 import { Box } from '@mui/material';
 import React, { useRef, useEffect } from 'react';
 
@@ -7,12 +13,18 @@ import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields'
 
 const TransparentImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
+/**
+ * Display data (icon + header) coming from the collection's derived style data.
+ */
 interface GaugeData {
     icon?: string;
     iconColor?: string;
     header?: string;
 }
 
+/**
+ * Segment-specific overrides derived from the active highlight range.
+ */
 interface GaugeSegment {
     state: {
         icon?: string;
@@ -23,6 +35,13 @@ interface GaugeSegment {
     };
 }
 
+/**
+ * Props passed into the underlying canvas-gauges instance.
+ *
+ * @remarks
+ * This is intentionally broad because canvas-gauges supports a large option
+ * surface; the widget supplies values from its configuration schema.
+ */
 interface GaugeProps extends Partial<GaugeFieldsRxData> {
     gaugeData: GaugeData;
     gaugeWidgetData: {
@@ -225,6 +244,9 @@ interface GaugeProps extends Partial<GaugeFieldsRxData> {
     useMinPath?: boolean;
 }
 
+/**
+ * Creates (or recreates) a canvas-gauges instance and updates it when props change.
+ */
 const Gauge = (props: GaugeProps): React.JSX.Element => {
     const gaugeRef = useRef<RadialGauge | LinearGauge | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);

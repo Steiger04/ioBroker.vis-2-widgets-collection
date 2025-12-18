@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/light2-fields`.
+ * vis-2 widget editor field generator for Light2 (color light) options.
+ *
+ * @module lib/light2Fields
+ * @remarks
+ * Light2 can auto-detect related RGB/CCT states from a selected "switch" object and pre-fill additional OID
+ * fields in the widget configuration.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/light2-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
@@ -11,7 +17,12 @@ import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vi
 const PowerSettingsNewIcon =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=';
 
-// Extended WidgetData interface to include icon properties and value configurations
+/**
+ * Light2 configuration extension of `WidgetData`.
+ *
+ * @remarks
+ * Only used internally by the field generator to type `data` while pre-filling values.
+ */
 interface ExtendedWidgetData extends WidgetData {
     values_count?: number;
     value1?: boolean;
@@ -50,7 +61,9 @@ interface ExtendedWidgetData extends WidgetData {
     colorLightGamut?: 'default' | 'A' | 'B' | 'C';
 }
 
-// RGB role mappings based on ioBroker object roles
+/**
+ * Mapping of ioBroker state roles to the corresponding Light2 configuration field.
+ */
 const RGB_ROLES: Record<string, string> = {
     'switch.light': 'colorLightSwitchOid',
     'level.color.rgb': 'colorLightRgbHexOid',
@@ -67,6 +80,13 @@ const RGB_ROLES: Record<string, string> = {
     'level.color.white': 'colorLightBrightnessOid',
 };
 
+/**
+ * `onChange` handler for the Light2 switch OID field.
+ *
+ * @remarks
+ * When the selected object looks like a device channel, this scans related states and populates matching Light2
+ * OID fields based on ioBroker roles.
+ */
 const loadStatesAsync = async (
     field: RxWidgetInfoAttributesField,
     data: WidgetData,
@@ -141,23 +161,6 @@ const loadStatesAsync = async (
 };
 
 const light2Fields = (): RxWidgetInfoAttributesField[] => [
-    /* {
-        type: 'custom',
-        component: () => <CollectionDivider />,
-    },
-    {
-        name: 'colorLightGamut',
-        type: 'select',
-        label: 'color_light_gamut',
-        options: [
-            { value: 'default', label: 'default' },
-            { value: 'A', label: 'A' },
-            { value: 'B', label: 'B' },
-            { value: 'C', label: 'C' },
-        ],
-        default: 'default',
-        noTranslation: true,
-    }, */
     {
         type: 'custom',
         component: () => <CollectionDivider />,

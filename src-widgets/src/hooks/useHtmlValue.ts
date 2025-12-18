@@ -1,56 +1,64 @@
+/**
+ * Hook that formats an OID value for display, preferring configured alias/value and optionally appending a unit.
+ *
+ * @module hooks/useHtmlValue
+ * @remarks
+ * Precedence order:
+ * 1) `data.alias` (non-empty)
+ * 2) `data.value` (non-empty; assumed already formatted)
+ * 3) `oidValue` (with `widget.data.unit` appended when available)
+ */
+
 import { useMemo } from 'react';
 import type { CollectionContextProps } from '../types';
 
 /**
- * Interface für die Daten-Parameter (kompatibel mit useData-Return)
+ * Subset of `useData()` output consumed by {@link module:hooks/useHtmlValue.default}.
  */
 interface UseHtmlValueData {
+    /** Optional alias text that replaces the raw value. */
     alias?: string;
+    /** Optional pre-formatted value (may already include units). */
     value?: string | number | boolean;
 }
 
 /**
- * Hook für HTML-Wert-Formatierung mit Unit-Unterstützung
- * Optimiert für Performance mit useMemo
+ * Formats a value for HTML/text rendering.
  *
- * Accepts any widget type - uses only CommonObjectFieldsRxData properties (unit) at runtime.
- *
- * @param oidValue Der aktuelle Wert des OID
- * @param widget Das Widget-Objekt mit Daten
- * @param data Die Daten-Map mit alias/value Informationen
- * @returns Formatierter Wert mit Unit oder alias/value
+ * @param oidValue - Current raw value for the selected OID.
+ * @param widget - Widget reference (used for reading the configured unit).
+ * @param data - Optional alias/value data from {@link module:hooks/useData}.
+ * @returns The preferred display value, or `undefined` when nothing is available.
+ * @example
+ * ```tsx
+ * const displayValue = useHtmlValue(oidValue, widget, data);
+ * return <span>{String(displayValue ?? '')}</span>;
+ * ```
  */
 const useHtmlValue = (
     oidValue: string | number | boolean | undefined | null,
     widget: CollectionContextProps<any>['widget'] | undefined,
     data: UseHtmlValueData | undefined,
 ): string | number | boolean | undefined => {
-    // Memoization für bessere Performance
     const contentValue = useMemo(() => {
-        // Priorität 1: alias aus data (nur wenn wirklich vorhanden und nicht leer)
         if (data?.alias && data.alias !== '') {
             return data.alias;
         }
 
-        // Priorität 2: value aus data (bereits formatiert mit Unit, nur wenn vorhanden und nicht leer)
         if (data?.value && data.value !== '') {
             return data.value;
         }
 
-        // Priorität 3: oidValue mit Unit-Formatierung
         if (
             oidValue !== undefined &&
             oidValue !== null &&
             (typeof oidValue === 'string' || typeof oidValue === 'number' || typeof oidValue === 'boolean')
         ) {
-            // Access unit property directly - T extends CommonObjectFieldsRxData ensures it exists
             const unit = widget?.data.unit;
             const result = unit && unit !== '' ? `${oidValue}${unit}` : oidValue;
 
             return result;
         }
-
-        // Fallback: undefined wenn nichts verfügbar
 
         return undefined;
     }, [oidValue, widget, data]);

@@ -1,3 +1,9 @@
+/**
+ * Light2 collection renderer.
+ *
+ * @module widgets/Light2Collection
+ */
+
 import { Box, Divider, IconButton, SvgIcon } from '@mui/material';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -16,23 +22,23 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import ColorWheelSvg from '../img/colorWheel.svg?react';
 import { initializeColorFromStates, initializeKelvin, initializeBrightness } from './initHandlers';
 
-// Changes-Typ für H/S/V-Änderungsinformationen
+// Changes type used for H/S/V change information.
 type ColorChanges = {
     h?: boolean;
     s?: boolean;
     v?: boolean;
 };
 
-// Skalare Properties, die tatsächlich in der Konfigurations-Map verwendet werden
+// Scalar properties that are actually used in the config map.
 type ScalarColorProp = 'kelvin' | 'hexString' | 'red' | 'green' | 'blue' | 'hue' | 'saturation' | 'value';
-// Konfigurations-Typ für Lichttyp-zu-OID-Mapping
+// Configuration type for light-type to OID mapping.
 type ColorPropertyConfig = {
     colorProp: ScalarColorProp;
     oidField: string;
     setter: (value: string | number) => void;
     normalize?: boolean;
     cctComponent?: 1 | 2;
-    changeKey?: 'h' | 's' | 'v'; // Optionaler Key für Changes-basierte Filterung
+    changeKey?: 'h' | 's' | 'v'; // Optional key for changes-based filtering.
 };
 
 const shouldApplyChange = (changeKey: ColorPropertyConfig['changeKey'], changes?: ColorChanges): boolean => {
@@ -96,7 +102,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
                 />
             </linearGradient>
 
-            {/* Optionaler Schlagschatten-Filter für Tiefe */}
+            {/* Optional drop-shadow filter for depth. */}
             <filter
                 id="insetShadow"
                 x="-50%"
@@ -135,7 +141,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
             </filter>
         </defs>
 
-        {/* Dicker, kräftiger Außenrand */}
+        {/* Thick outer ring. */}
         <circle
             cx="256"
             cy="256"
@@ -143,7 +149,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
             fill="#FFF176"
         />
 
-        {/* Deutlich kleinerer innerer Kreis mit Verlauf & Schatteneffekt */}
+        {/* Inner circle with gradient + shadow effect. */}
         <circle
             cx="256"
             cy="256"
@@ -152,7 +158,7 @@ const CctWhiteIcon: React.FC<React.ComponentProps<typeof SvgIcon>> = props => (
             filter="url(#insetShadow)"
         />
 
-        {/* Vergrößertes Lampensymbol */}
+        {/* Enlarged lamp symbol. */}
         <g transform="translate(256 280) scale(1.2) translate(-256 -256)">
             <path
                 d="M192 200c0-35 29-64 64-64s64 29 64 64c0 23.1-12.2 43.5-30.6 55.3V288c0 8.8-7.2 16-16 16h-35c-8.8 0-16-7.2-16-16v-32.7C204.2 243.5 192 223.1 192 200zm56 136h16c4.4 0 8 3.6 8 8v16h-32v-16c0-4.4 3.6-8 8-8z"
@@ -224,7 +230,7 @@ function Light2CollectionContent(): React.ReactElement {
     const { updateValue: setSaturationValueState, hasBackendChange: saturationChanged } =
         useValueState('colorLightSaturationOid');
 
-    // Type-safe Zugriff auf das OID Object
+    // Type-safe access to the OID object.
     const colorLightSwitchOidObject = widget.data.colorLightSwitchOidObject;
     const oidType = colorLightSwitchOidObject?.type;
     const isValidType = oidType === 'boolean';
@@ -233,7 +239,7 @@ function Light2CollectionContent(): React.ReactElement {
         initializeColorFromStates(color, effectiveColorLightType, getPropertyValue, widget.data, cctComponentNumber);
     };
 
-    // Hilfsfunktion für Wert-Normalisierung (Hue-kompatible Werte mit maxValue 254)
+    // Helper for value normalization (Hue-compatible values with maxValue 254).
     const normalizeValue = useMemo(
         () =>
             (value: number, oidObject: { maxValue?: number | null } | undefined): number => {
@@ -249,7 +255,7 @@ function Light2CollectionContent(): React.ReactElement {
         [],
     );
 
-    // Konfigurations-Map für Lichttyp-zu-OID-Mapping
+    // Config map for light-type to OID mapping.
     const lightTypeConfigMap = useMemo(
         (): Record<string, ColorPropertyConfig[]> => ({
             cct: [
@@ -372,7 +378,7 @@ function Light2CollectionContent(): React.ReactElement {
         ],
     );
 
-    // Zentrale handleColorChange-Funktion
+    // Central handleColorChange function.
     const handleColorChange = useMemo(
         () =>
             (color: iro.Color, cctComponentNumber?: number, changes?: ColorChanges): void => {
@@ -392,17 +398,17 @@ function Light2CollectionContent(): React.ReactElement {
                     config.forEach((configItem: ColorPropertyConfig) => {
                         const { colorProp, oidField, setter, normalize, cctComponent, changeKey } = configItem;
 
-                        // Für CCT-Modus: Nur relevanten Picker-Werte verarbeiten
+                        // For CCT mode: only process the relevant picker component.
                         if (cctComponent !== undefined && cctComponentNumber !== cctComponent) {
                             return;
                         }
 
-                        // Für H/S/V-Typen: Nur schreiben wenn entsprechender Change-Flag gesetzt ist
+                        // For H/S/V types: only write when the corresponding change flag is set.
                         if (!shouldApplyChange(changeKey, changes)) {
                             return;
                         }
 
-                        // Prüfen ob OID-Objekt existiert
+                        // Ensure the OID object exists.
                         const oidObjectKey = `${oidField}Object` as keyof typeof widget.data;
                         const oidObject = widget.data[oidObjectKey] as { maxValue?: number | null } | undefined;
 
@@ -410,26 +416,26 @@ function Light2CollectionContent(): React.ReactElement {
                             return;
                         }
 
-                        // Wert aus iro.Color extrahieren
+                        // Extract the value from iro.Color.
                         let value: string | number | undefined = color[colorProp];
 
-                        // Wert normalisieren falls nötig
+                        // Normalize if needed.
                         if (normalize && typeof value === 'number') {
                             value = normalizeValue(value, oidObject);
                         } else if (typeof value === 'number') {
                             value = Math.round(value);
                         }
 
-                        // Fallback-Werte für undefined
+                        // Fallback for undefined/null.
                         if (value === undefined || value === null) {
                             value = getDefaultValueForColorProp(colorProp);
                         }
 
-                        // State aktualisieren
+                        // Update state.
                         setter(value);
                     });
 
-                    // Für Kelvin-Änderungen: Flag setzen (für Brightness-Picker-Sync)
+                    // For kelvin changes: toggle a flag (used to sync gradients into brightness picker).
                     if (cctComponentNumber === 1) {
                         setKelvinChanged(prev => !prev);
                     }
@@ -453,7 +459,7 @@ function Light2CollectionContent(): React.ReactElement {
         [dimensions, rxData.colorLightUIComponent, rxData.colorLightSliderWidth, effectiveColorLightType],
     );
 
-    // Gemeinsame Props für LightPicker
+    // Shared props for LightPicker.
     const commonLightPickerProps = useMemo(
         () => ({
             dimensions,
@@ -481,7 +487,9 @@ function Light2CollectionContent(): React.ReactElement {
         ],
     );
 
-    /* Synchronisiert Kelvin-Picker-Änderungen aus der UI in den Brightness-Picker, damit die Verläufe identisch bleiben. */
+    /*
+     * Sync Kelvin picker UI changes into the brightness picker so gradients stay identical.
+     */
     useEffect(() => {
         if (effectiveColorLightType !== 'cct') {
             return;
@@ -504,7 +512,9 @@ function Light2CollectionContent(): React.ReactElement {
         }
     }, [effectiveColorLightType, kelvinChanged]);
 
-    /* Synchronisiert Backend-Temperaturänderungen in Kelvin- und Brightness-Picker, wenn eine neue Temperatur eintrifft. */
+    /*
+     * Sync backend temperature updates into both Kelvin and brightness pickers.
+     */
     useEffect(() => {
         if (effectiveColorLightType !== 'cct') {
             return;
@@ -625,7 +635,9 @@ function Light2CollectionContent(): React.ReactElement {
         widget.data,
     ]);
 
-    /* Beim Umschalten auf den Kelvin-Teil des CCT-Lichts beide Picker initial synchronisieren. */
+    /*
+     * When switching to the Kelvin part of a CCT light, initialize both pickers in sync.
+     */
     useEffect(() => {
         if (!cctLight || !isCctLight) {
             return;
@@ -749,11 +761,6 @@ function Light2CollectionContent(): React.ReactElement {
                             </IconButton>
                         </Box>
                     )}
-
-                    {/* <Divider
-                    flexItem
-                    variant="middle"
-                /> */}
 
                     {isCctLight && (
                         <Box

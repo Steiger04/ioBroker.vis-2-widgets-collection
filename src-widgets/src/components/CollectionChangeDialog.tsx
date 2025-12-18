@@ -1,3 +1,11 @@
+/**
+ * Dialog component used to change a widget's value via slider or discrete state list.
+ *
+ * @module components/CollectionChangeDialog
+ * @remarks
+ * Value updates are delegated to {@link module:hooks/useValueState.default}, which may debounce backend writes.
+ */
+
 import CloseIcon from '@mui/icons-material/Close';
 import {
     Box,
@@ -20,19 +28,14 @@ import { CollectionContext } from './CollectionProvider';
 import type { StateCollectionContextProps } from '../types';
 
 /**
- * Widget States Map für die Darstellung verfügbarer Werte.
- *
- *
- * Diese Map enthält State-Werte als Keys und ihre Display-Labels als Values.
- * Wird von useData Hook generiert und in CollectionChangeDialog für die
- * Auswahl-Liste verwendet.
+ * Map of selectable state keys to their display labels.
  *
  * @example
- * ```typescript
+ * ```ts
  * const widgetStates: WidgetStates = {
- *     '0': 'Aus',
- *     '1': 'Ein',
- *     '50': 'Dimmen 50%'
+ *   '0': 'Off',
+ *   '1': 'On',
+ *   '50': 'Dim 50%'
  * };
  * ```
  */
@@ -41,7 +44,7 @@ interface WidgetStates {
 }
 
 /**
- * OID Object Interface für Objekt-Informationen
+ * Minimal shape of the OID object used by this dialog.
  */
 interface OidObject {
     commonStates?: WidgetStates;
@@ -52,12 +55,12 @@ interface OidObject {
 }
 
 /**
- * Props für CollectionChangeDialog Komponente
+ * Props for {@link module:components/CollectionChangeDialog.default}.
  */
 interface CollectionChangeDialogProps {
-    /** Verfügbare Widget-States für die Auswahl */
+    /** Available states to render as a selectable list. */
     widgetStates: WidgetStates;
-    /** Widget-Daten mit Styling-Informationen */
+    /** Widget style/presentation data used to theme the dialog. */
     data: {
         header?: string;
         backgroundColor?: string;
@@ -65,33 +68,35 @@ interface CollectionChangeDialogProps {
         sampleInterval?: boolean;
         sampleIntervalValue?: number;
         delay?: number;
-        [key: string]: unknown; // Zusätzliche Eigenschaften erlauben
+        [key: string]: unknown;
     };
-    /** Dialog-Öffnungsstatus */
+    /** Whether the dialog is open. */
     open: boolean;
-    /** Handler zum Schließen des Dialogs */
+    /** Callback to close the dialog. */
     closeHandler: () => void;
 }
 
 /**
- * Dialog-Komponente für die Änderung von Widget-Werten
- * Unterstützt sowohl Slider für numerische Werte als auch Listen für diskrete Werte
+ * Dialog for changing a widget's current value.
  *
- * @param props - Props für die Komponente
- * @param props.widgetStates - Verfügbare Widget-States für die Auswahl
- * @param props.data - Widget-Daten mit Styling-Informationen
- * @param props.open - Dialog-Öffnungsstatus
- * @param props.closeHandler - Handler zum Schließen des Dialogs
- * @returns React-Komponente für Wert-Änderung
+ * @param props - Component props.
+ * @returns Dialog UI.
+ * @example
+ * ```tsx
+ * <CollectionChangeDialog
+ *   open={open}
+ *   closeHandler={() => setOpen(false)}
+ *   widgetStates={widgetStates}
+ *   data={data}
+ * />
+ * ```
  */
 const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates, data, open, closeHandler }) => {
     const { widget, getPropertyValue } = useContext(CollectionContext);
 
-    // Sicherer Zugriff auf optionale Properties mit präziserer Typisierung
     const oidObject = (widget.data as StateCollectionContextProps['widget']['data']).oidObject;
     const onlyStates = (widget.data as StateCollectionContextProps['widget']['data']).onlyStates;
 
-    // State für Slider-Wert
     const [sliderValue, setSliderValue] = useState<number>(() => {
         const value = getPropertyValue('oid');
         return typeof value === 'number' ? value : 0;
@@ -99,7 +104,6 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
 
     const { updateValue: setOidValueState } = useValueState('oid');
 
-    // Memoized OID-Objekt-Eigenschaften
     const oidObjectProps = useMemo(() => {
         const commonStates = (oidObject as OidObject)?.commonStates;
         const oidType = (oidObject as OidObject)?.type;
@@ -116,7 +120,6 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         };
     }, [oidObject]);
 
-    // Memoized Change Handler (jetzt ohne eigenes Tracking)
     const changeHandler = useCallback(
         (value: string | number | boolean) => {
             setOidValueState(value);
@@ -124,7 +127,6 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         [setOidValueState],
     );
 
-    // Memoized Slider Change Handler
     const handleSliderChange = useCallback(
         (_event: Event, value: number | number[]) => {
             const numericValue = Array.isArray(value) ? value[0] : value;
@@ -134,10 +136,8 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         [changeHandler],
     );
 
-    // Standard Close Handler (lässt Debounce-Observable weiterlaufen)
     const handleClose = useCallback(
         (event?: object, reason?: 'backdropClick' | 'escapeKeyDown') => {
-            // Kein Flush - Debounce-Observable läuft weiter und schreibt nach Ablauf der Verzögerung
             if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
                 closeHandler();
             }
@@ -145,17 +145,13 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         [closeHandler],
     );
 
-    // Standard External Close Handler (lässt Debounce-Observable weiterlaufen)
     const handleExternalClose = useCallback(() => {
-        // Kein Flush - Debounce-Observable läuft weiter und schreibt nach Ablauf der Verzögerung
         closeHandler();
     }, [closeHandler]);
 
-    // Memoized List Item Click Handler
     const createListItemClickHandler = useCallback(
         (key: string) => (event: MouseEvent<HTMLDivElement>) => {
             event.preventDefault();
-            // Wenn der Wert numerisch ist, auch den Slider-Wert aktualisieren
             const numericValue = Number(key);
             if (!isNaN(numericValue)) {
                 setSliderValue(numericValue);
@@ -165,7 +161,6 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         [changeHandler],
     );
 
-    // Memoized Slider-Komponente
     const ChangeSlider = useMemo(() => {
         const { oidType, commonStates, minValue, maxValue } = oidObjectProps;
 
@@ -201,7 +196,6 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         );
     }, [oidObjectProps, onlyStates, sliderValue, handleSliderChange]);
 
-    // Memoized List-Komponente
     const ChangeList = useMemo(() => {
         if (!widgetStates || !Object.keys(widgetStates).length) {
             return null;
@@ -229,12 +223,10 @@ const CollectionChangeDialog: FC<CollectionChangeDialogProps> = ({ widgetStates,
         );
     }, [widgetStates, createListItemClickHandler]);
 
-    // Memoized Dialog-Titel
     const dialogTitle = useMemo(() => {
         return data.header || oidObjectProps.oidName || 'Change Value';
     }, [data.header, oidObjectProps.oidName]);
 
-    // Memoized Widget States Keys für Divider-Logik
     const hasWidgetStates = useMemo(() => {
         return widgetStates && Object.keys(widgetStates).length > 0;
     }, [widgetStates]);

@@ -1,3 +1,9 @@
+/**
+ * Checkbox collection renderer.
+ *
+ * @module widgets/CheckboxCollection
+ */
+
 import { Box, Typography, Checkbox, FormControlLabel } from '@mui/material';
 import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -15,11 +21,11 @@ const defaultIconFalse =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==';
 
 function CheckboxCollection(): React.JSX.Element {
-    // CheckboxCollection wird nur im CheckboxCollectionWidget verwendet
+    // CheckboxCollection is only used by CheckboxCollectionWidget.
     const context = useContext(CollectionContext) as CheckboxCollectionContextProps;
     const { widget, theme } = context;
 
-    // Sicherer Zugriff auf optionale Properties
+    // Safe access to optional properties.
     const oidObject = widget.data.oidObject;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data } = useData('oid');
@@ -159,7 +165,7 @@ function CheckboxCollection(): React.JSX.Element {
                                         ...fontStyles,
                                         ...textStyles,
                                         fontSize: data.valueSizeActive || data.valueSize,
-                                        textAlign: 'center', // Für HTML-Inhalt mit Tags
+                                        textAlign: 'center',
                                         bgcolor: 'transparent',
                                         color: data.textColorActive || data.textColor,
                                         textTransform: 'none',
@@ -170,14 +176,14 @@ function CheckboxCollection(): React.JSX.Element {
                                         height: '100%',
                                         flexGrow: 1,
                                         display: 'flex',
-                                        alignItems: 'center', // Vertikale Zentrierung
-                                        justifyContent: 'flex-start', // Horizontale Zentrierung des Textblocks
-                                        overflowWrap: 'break-word', // Moderne CSS-Eigenschaft für Wortumbruch
-                                        wordBreak: 'break-word', // Zusätzlicher Schutz für lange Wörter
-                                        whiteSpace: 'normal', // Erlaubt Zeilenumbrüche
-                                        hyphens: 'auto', // Automatische Silbentrennung wenn unterstützt
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        overflowWrap: 'break-word',
+                                        wordBreak: 'break-word',
+                                        whiteSpace: 'normal',
+                                        hyphens: 'auto',
                                         '& > div': {
-                                            textAlign: 'left', // Linksbündige Zeilen bei Umbrüchen im HTML
+                                            textAlign: 'left',
                                             display: 'inline-block',
                                         },
                                     }}

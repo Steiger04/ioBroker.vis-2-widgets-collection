@@ -1,3 +1,11 @@
+/**
+ * Light2 picker initialization helpers.
+ *
+ * @module Light2CollectionWidget/initHandlers
+ * @remarks
+ * This module converts ioBroker state values into `iro.Color` values when the Light2 widget is initialized.
+ * It deliberately favors safe fallbacks over throwing when a state is missing.
+ */
 import type iro from '@jaames/iro';
 import type { VisRxData } from '@iobroker/types-vis-2';
 import type { Light2FieldsRxData, CommonObjectFieldsRxData, CommonFieldsRxData, DelayFieldsRxData } from '../types';
@@ -11,8 +19,9 @@ export type Light2WidgetData = VisRxData &
 type WidgetPropertyName = Extract<keyof Light2WidgetData, string>;
 
 /**
- * Reads a numeric state value by referencing the widget property name (not the OID string itself).
- * Returns undefined when the widget data does not provide an OID or the value cannot be parsed.
+ * Reads a numeric value from a widget property (referenced by property name, not by raw OID).
+ *
+ * @returns `undefined` when the widget property does not contain a usable OID or the value is not numeric.
  */
 const readNumericValue = (
     propertyName: WidgetPropertyName,
@@ -53,11 +62,13 @@ const readNormalizedPercentValue = (
 };
 
 /**
- * Default fallbacks used while initializing colors from ioBroker states:
+ * Default fallbacks used while initializing colors from ioBroker states.
+ *
+ * @remarks
  * - Kelvin defaults to 2000K when no temperature value is available.
- * - Hex strings default to '#ffffff' if missing or empty.
+ * - Hex strings default to `#ffffff` if missing or empty.
  * - Numeric channels (RGB/HSV) default to 0 when undefined.
- * - Hue-compatible channels with maxValue 254 are normalized to percent values before applying to iro.Color.
+ * - Hue-compatible channels with `maxValue = 254` are normalized to percent values before applying to `iro.Color`.
  */
 
 export function initializeKelvin(
@@ -125,10 +136,6 @@ export function initializeColorFromStates(
                 break;
             }
 
-            /* if (colorLightType === 'rgbcct') {
-                initializeKelvin(color, widgetData, getPropertyValue);
-            } */
-
             const hexValue = getPropertyValue('colorLightRgbHexOid');
             const hexString = typeof hexValue === 'string' && hexValue.trim().length > 0 ? hexValue : '#ffffff';
 
@@ -138,10 +145,6 @@ export function initializeColorFromStates(
         }
         case 'r/g/b':
         case 'r/g/b/cct': {
-            /* if (colorLightType === 'r/g/b/cct') {
-                initializeKelvin(color, widgetData, getPropertyValue);
-            } */
-
             if (widgetData.colorLightRedOid && widgetData.colorLightGreenOid && widgetData.colorLightBlueOid) {
                 const red = readNumericValue('colorLightRedOid', widgetData, getPropertyValue);
                 const green = readNumericValue('colorLightGreenOid', widgetData, getPropertyValue);
@@ -156,10 +159,6 @@ export function initializeColorFromStates(
         }
         case 'h/s/v':
         case 'h/s/v/cct': {
-            /* if (colorLightType === 'h/s/v/cct') {
-                initializeKelvin(color, widgetData, getPropertyValue);
-            } */
-
             if (
                 widgetData.colorLightHueOid &&
                 widgetData.colorLightSaturationOid &&

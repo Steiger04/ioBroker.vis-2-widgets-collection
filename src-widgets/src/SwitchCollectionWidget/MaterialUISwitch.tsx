@@ -1,15 +1,36 @@
+/**
+ * MUI Switch variant used by the Switch Collection widget.
+ *
+ * @module widgets/MaterialUISwitch
+ * @remarks
+ * This is a styled wrapper around MUI's `Switch` that supports:
+ * - dynamic sizing based on the widget container
+ * - configurable thumb/track colors
+ * - optional icon rendering inside the thumb
+ */
+
 import Switch from '@mui/material/Switch';
 import { styled, alpha } from '@mui/material/styles';
 import type { SwitchCollectionContextProps } from '../types';
 import type { StyleData } from '../hooks/useData';
 
 interface MaterialUISwitchProps {
+    /** Measured container width (px). */
     width?: number;
+    /** Max thumb height (px). */
     maxheight?: number;
+    /** Presentation data computed by {@link module:hooks/useData}. */
     data: StyleData;
+    /** Widget instance (used for reading switch config fields). */
     widget: SwitchCollectionContextProps['widget'];
 }
 
+/**
+ * Validates a string against common CSS color formats.
+ *
+ * @param str - Candidate color string.
+ * @returns `true` when the format looks like a CSS color.
+ */
 function isValidColorFormat(str: string): boolean {
     const patterns = [
         /^#([0-9a-fA-F]{3})$/, // #nnn
@@ -35,7 +56,7 @@ const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheig
         margin: 0,
 
         '&.MuiSwitch-root': {
-            overflow: 'visible', // erforderlich
+            overflow: 'visible',
         },
 
         '& .MuiSwitch-switchBase': {

@@ -1,3 +1,9 @@
+/**
+ * Switch Collection widget.
+ *
+ * @module widgets/SwitchCollectionWidget
+ */
+
 import React from 'react';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
@@ -10,18 +16,21 @@ import SwitchCollection from './SwitchCollection';
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { SwitchCollectionContextProps, WidgetRegistry } from '../types';
 
+/**
+ * Registers the widget and provides the runtime rendering entry point.
+ */
 class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplSwitchCollectionWidget',
-            visSet: 'vis-2-widgets-collection', // Widget set name in which this widget is located
-            visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
-            visName: 'SwitchCollectionWidget', // Name of widget
-            visWidgetLabel: 'switch_collection_widget', // Label for widget
+            visSet: 'vis-2-widgets-collection',
+            visSetLabel: 'widgets_collection',
+            visName: 'SwitchCollectionWidget',
+            visWidgetLabel: 'switch_collection_widget',
             visOrder: 2,
             visAttrs: [
                 {
-                    name: 'common', // group name
+                    name: 'common',
                     fields: [...commonFields()],
                 },
                 {
@@ -31,7 +40,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
                         ...commonObjectFields(['boolean']),
                         ...delayFields(),
                         ...switchFields(),
-                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
+                    ] as RxWidgetInfoAttributesField[],
                 },
                 {
                     name: 'values',
@@ -40,8 +49,6 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
                     indexTo: 'values_count',
                     fields: [...commonFields({ groupName: '', allFields: false })],
                 },
-
-                // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -60,20 +67,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
 
     // eslint-disable-next-line class-methods-use-this
     propertiesUpdate(): void {
-        // The widget has 3 important states
-        // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
-        //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
-        // 2. this.state.rxData - contains all widget data with replaced bindings. E.g. if this.state.data.type is `{system.adapter.admin.0.alive}`,
-        //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
-        // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
-        //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-        /* const actualRxData = JSON.stringify(this.state.rxData);
-        if (this.lastRxData === actualRxData) {
-            return;
-        }
-        this.lastRxData = actualRxData;
-
-        await this.createStateObjectAsync('oid'); */
+        // Intentionally empty: the Switch widget has no derived runtime state.
     }
 
     // This function is called every time when rxData is changed

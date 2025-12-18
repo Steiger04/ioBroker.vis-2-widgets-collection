@@ -1,3 +1,10 @@
+/**
+ * Translation registry for the widget set.
+ *
+ * @module translations
+ * @remarks
+ * vis-2 expects this module to provide a language map plus a common `prefix`.
+ */
 const translations = {
     en: require('./i18n/en.json'),
     de: require('./i18n/de.json'),

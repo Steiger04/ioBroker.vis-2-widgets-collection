@@ -1,83 +1,99 @@
+/**
+ * Hook that derives presentation and state-mapping data for Collection widgets.
+ *
+ * @module hooks/useData
+ * @remarks
+ * This hook centralizes common widget computations:
+ * - reading the selected OID object metadata
+ * - building state/value lists (e.g. for dropdowns or button groups)
+ * - resolving dynamic, indexed properties (`icon1`, `alias2`, ...)
+ * - computing style values and derived min/max for numeric OIDs
+ */
+
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
 import type { OidObject } from '../types/utility-types';
 import { getDynamicProperty, isSliderFieldsRxData } from '../types/utility-types';
+
 /**
- * Interface für Style-Daten eines Collection Widgets.
- * Enthält alle visuellen Eigenschaften für Icons, Header, Footer, Werte und Hintergründe.
+ * Derived style/presentation data for a Collection widget.
+ *
+ * @remarks
+ * This structure is consumed by multiple widget renderers to avoid duplicating
+ * the same “resolve dynamic props and fallback to theme” logic everywhere.
  */
 export interface StyleData {
-    /** Textfarbe (Standard oder aus Theme) */
+    /** Text color (from widget config or theme). */
     textColor: string;
-    /** Textfarbe im aktiven Zustand */
+    /** Active-state text color. */
     textColorActive?: string;
 
-    /** Header-Text (mit Zeilenumbrüchen entfernt) */
+    /** Header text (newlines removed). */
     header: string;
-    /** Header-Schriftgröße in % oder px */
+    /** Header font size (usually `%` or CSS size string). */
     headerSize: string | null;
 
-    /** Footer-Text (mit Zeilenumbrüchen entfernt) */
+    /** Footer text (newlines removed). */
     footer: string;
-    /** Footer-Schriftgröße in % oder px */
+    /** Footer font size (usually `%` or CSS size string). */
     footerSize: string | null;
 
-    /** Alias-Text für Wert-Anzeige */
+    /** Alias text shown instead of the raw value. */
     alias: string;
-    /** Formatierter Wert mit Einheit */
+    /** Formatted value (may include unit). */
     value?: string;
-    /** Wert-Schriftgröße in % oder px */
+    /** Value font size. */
     valueSize: string | null;
-    /** Aktive Wert-Schriftgröße oder false wenn nicht gesetzt */
+    /** Active value font size (or `false` when not configured). */
     valueSizeActive: string | false | null;
 
-    /** Icon-Pfad oder false wenn kein Icon */
+    /** Icon URL/name or `false` when not configured. */
     icon: string | false;
-    /** Aktives Icon-Pfad oder false */
+    /** Active icon URL/name (or `false`). */
     iconActive: string | false;
-    /** Icon-Größe als CSS calc() oder px */
+    /** Icon size as CSS string. */
     iconSize: string;
-    /** Aktive Icon-Größe oder false */
+    /** Active icon size (or `false`). */
     iconSizeActive: string | false;
-    /** Nur Icon-Größe als Zahl (aktiv) */
+    /** Active icon size as numeric percent when available. */
     iconSizeActiveOnly?: number;
-    /** Nur Icon-Größe als Zahl */
+    /** Icon size as numeric percent when available. */
     iconSizeOnly?: number;
-    /** Icon-Farbe */
+    /** Icon color. */
     iconColor?: string;
-    /** Aktive Icon-Farbe */
+    /** Active icon color. */
     iconColorActive?: string;
-    /** Icon-Hover-Effekt in % */
+    /** Icon hover effect in percent. */
     iconHover?: string;
-    /** Aktiver Icon-Hover-Effekt in % */
+    /** Active icon hover effect in percent. */
     iconHoverActive?: string;
-    /** Icon X-Offset (CSS-Wert mit Einheit) */
+    /** Icon X offset as a CSS value (with unit). */
     iconXOffset: string;
-    /** Icon Y-Offset (CSS-Wert mit Einheit) */
+    /** Icon Y offset as a CSS value (with unit). */
     iconYOffset: string;
 
-    /** Hintergrundfarbe */
+    /** Background color. */
     backgroundColor: string;
-    /** Aktive Hintergrundfarbe */
+    /** Active background color. */
     backgroundColorActive?: string;
-    /** Hintergrund (Gradient/Image) */
+    /** Background (gradient/image). */
     background: string;
-    /** Aktiver Hintergrund */
+    /** Active background. */
     backgroundActive?: string;
 
-    /** Frame-Hintergrundfarbe */
+    /** Frame background color. */
     frameBackgroundColor: string;
-    /** Aktive Frame-Hintergrundfarbe */
+    /** Active frame background color. */
     frameBackgroundColorActive?: string;
-    /** Frame-Hintergrund (Gradient/Image) */
+    /** Frame background (gradient/image). */
     frameBackground: string;
-    /** Aktiver Frame-Hintergrund */
+    /** Active frame background. */
     frameBackgroundActive?: string;
 }
 
 /**
- * Interface für State-Array-Items mit allen visuellen Properties.
+ * Internal representation of a state entry, enriched with resolved presentation properties.
  */
 interface StateItem {
     value: string | number | boolean;
@@ -102,14 +118,14 @@ interface StateItem {
 }
 
 /**
- * Hook für Widget-Daten-Management mit State-Verarbeitung und Styling.
- * Dieser Hook verarbeitet OID-Objekt-Daten, dynamische Style-Properties,
- * State-Werte und deren Visualisierung, sowie Min/Max-Werte für numerische States.
+ * Computes derived widget data for a given OID property name.
  *
- * @param oid - OID-Bezeichner (z.B. 'oid', 'oid1', 'oid2')
- * @returns Objekt mit states, widgetStates, minValue, maxValue, data, activeIndex, setActiveIndex, oidValue
+ * @param oid - OID property name (e.g. `"oid"`, `"oid1"`).
+ * @returns A data bundle used by widgets (states, style data, active index, min/max, etc.).
  * @example
+ * ```ts
  * const { states, data, activeIndex } = useData('oid1');
+ * ```
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 function useData(oid: string) {
@@ -132,22 +148,21 @@ function useData(oid: string) {
 
     const oidName = oidObject?.name;
 
-    // Hilfsfunktionen
     const formatSize = useCallback(
         (size: number | string | undefined): string | null => (typeof size === 'number' ? `${size}%` : null),
         [],
     );
 
     /**
-     * Hilfsfunktion zum sicheren Zugriff auf dynamische rxData-Properties.
+     * Safe accessor for dynamic `rxData` properties.
      *
-     * Nutzt getDynamicProperty für type-safe Zugriffe ohne any-Casts.
-     * Diese Funktion wird intern von useData verwendet für dynamische Property-Zugriffe.
+     * Uses {@link module:utility-types.getDynamicProperty} to keep dynamic access readable
+     * while avoiding widespread `any` casts.
      *
-     * @template T - Erwarteter Rückgabe-Type
-     * @param key - Basis-Property-Name (z.B. 'icon', 'alias')
-     * @param ext - Optionaler Suffix (z.B. '1', '2' für icon1, icon2)
-     * @returns Property-Wert oder undefined
+     * @template T - Expected return type.
+     * @param key - Base key name (e.g. `"icon"`, `"alias"`).
+     * @param ext - Optional suffix (e.g. `"1"` for `icon1`).
+     * @returns The property value or `undefined`.
      * @example
      * ```typescript
      * const icon = getDataValue<string>('icon', '1'); // icon1
@@ -157,7 +172,7 @@ function useData(oid: string) {
     const getDataValue = useCallback(
         <T = unknown>(key: string, ext: string = ''): T | undefined => {
             const fullKey = `${key}${ext}`;
-            // Nutze getDynamicProperty für type-safe Zugriff
+            // Use getDynamicProperty for type-safe access.
             // Note: rxData is cast to Record to avoid complex union type distribution
             const value = getDynamicProperty(rxData as Record<string, any>, fullKey);
             return value as T | undefined;
@@ -165,7 +180,6 @@ function useData(oid: string) {
         [rxData],
     );
 
-    // States-Berechnung
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
         const processStates = (): {
             states: StateItem[];
@@ -191,11 +205,6 @@ function useData(oid: string) {
 
                     if (_value !== undefined && _value !== null && /\S/.test(String(_value))) {
                         const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
-
-                        // Wofür war das? Noch gebraucht?
-                        /* if (commonStateEntry && oidType === 'number') {
-                            commonStateEntry[0] = Number(commonStateEntry[0]);
-                        } */
 
                         states.push({
                             value: commonStateEntry
@@ -280,19 +289,6 @@ function useData(oid: string) {
                     }
                 }
             }
-
-            /* if (oidType === "boolean") {
-				for (let i = 1; i <= Number(rxData.values_count); i++) {
-					const _value = rxData[`value${i}`];
-					const _alias = rxData[`alias${i}`];
-
-					states.push({
-						value: _value,
-						label: _alias,
-					});
-					widgetStates[String(_value)] = _value;
-				}
-			} */
 
             return { states, widgetStates, minValue, maxValue };
         };

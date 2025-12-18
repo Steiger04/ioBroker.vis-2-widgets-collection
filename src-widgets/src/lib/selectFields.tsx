@@ -1,6 +1,11 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/select-fields`.
+ * vis-2 widget editor field generator for select-specific options.
+ *
+ * @module lib/selectFields
+ * @remarks
+ * Provides additional fields used by the Select collection widget (e.g. content OID and arrow styling).
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/select-fields`.
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';

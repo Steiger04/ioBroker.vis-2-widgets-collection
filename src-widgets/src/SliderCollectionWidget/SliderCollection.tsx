@@ -1,3 +1,9 @@
+/**
+ * Slider collection renderer.
+ *
+ * @module widgets/SliderCollection
+ */
+
 import { Box, Slider } from '@mui/material';
 import React, { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -17,6 +23,14 @@ interface SliderMarkLabelProps {
     defaultIconColor?: string;
 }
 
+/**
+ * Renders a MUI slider which writes back to `oid`.
+ *
+ * @remarks
+ * The mark-label renderer is overridden via the `markLabel` slot
+ * (see {@link CollectionMark}) to support per-mark icons/colors and an
+ * alternate label for the currently selected mark.
+ */
 const SliderCollection: FC = () => {
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
     const {
@@ -32,7 +46,7 @@ const SliderCollection: FC = () => {
         typeof oidValue === 'number' ? oidValue : undefined,
     );
 
-    // Refs für die dynamische Track-Positionierung
+    // Refs used for dynamic track positioning.
     const sliderContainerRef = useRef<HTMLDivElement>(null);
     const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
@@ -146,13 +160,13 @@ const SliderCollection: FC = () => {
         setSliderValue(typeof oidValue === 'number' ? oidValue : undefined);
     }, [oidValueChanged, oidValue]);
 
-    // Funktion zur Berechnung der Track-Position
+    // Calculates the relative offset from the container center to the slider rail center.
     const calculateTrackOffset = (): void => {
         if (!sliderContainerRef.current) {
             return;
         }
 
-        // Suche nach dem Slider-Track innerhalb des Containers
+        // Find the slider rail within the container.
         const sliderElement = sliderContainerRef.current.querySelector('.MuiSlider-root');
         const railElement = sliderContainerRef.current.querySelector('.MuiSlider-rail');
 
@@ -160,15 +174,15 @@ const SliderCollection: FC = () => {
             const containerRect = sliderContainerRef.current.getBoundingClientRect();
             const railRect = railElement.getBoundingClientRect();
 
-            // Berechne die relative Position der Rail (Slider-Track) zum Container
+            // Compute the rail center relative to the container.
             const railCenterX = railRect.left - containerRect.left + railRect.width / 2;
             const railCenterY = railRect.top - containerRect.top + railRect.height / 2;
 
-            // Berechne die Container-Mitte
+            // Compute container center.
             const containerCenterX = containerRect.width / 2;
             const containerCenterY = containerRect.height / 2;
 
-            // Offset ist die Differenz zwischen Rail-Mitte und Container-Mitte
+            // Offset is the difference between rail center and container center.
             setTrackOffset({
                 x: railCenterX - containerCenterX,
                 y: railCenterY - containerCenterY,
@@ -176,9 +190,9 @@ const SliderCollection: FC = () => {
         }
     };
 
-    // Berechne Track-Position bei Änderungen
+    // Recompute track position when layout-dependent inputs change.
     useEffect(() => {
-        // Kleine Verzögerung, damit MUI den DOM aktualisiert hat
+        // Small delay to allow MUI to update the DOM.
         const timer = setTimeout(calculateTrackOffset, 100);
         return () => clearTimeout(timer);
     }, [
@@ -189,7 +203,7 @@ const SliderCollection: FC = () => {
         sliderValue,
     ]);
 
-    // ResizeObserver für dynamische Anpassung
+    // ResizeObserver for dynamic adjustments.
     useEffect(() => {
         if (!sliderContainerRef.current) {
             return;

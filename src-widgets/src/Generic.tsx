@@ -1,15 +1,18 @@
+/**
+ * Shared base class for all widgets in this collection.
+ *
+ * @module Generic
+ * @remarks
+ * All widgets extend this class (directly or indirectly). It provides:
+ * - the i18n prefix used by vis-2
+ * - a convenience `getPropertyValue()` wrapper around the widget runtime state
+ * - a safe `setValue()` helper
+ * - a common wrapper layout via `wrapContent()`
+ */
 import { Box, CssBaseline } from '@mui/material';
 
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
-
-/* type ExtendedObject = ioBroker.Object & {
-    noObject: boolean;
-};
-
-export interface CollectionGenericState extends VisRxWidgetState {
-    [key: `${string}Object`]: ExtendedObject | null;
-} */
 
 /**
  * Base class for all Collection widgets.
@@ -29,13 +32,25 @@ class Generic<
 > extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
     protected wrappedCollectionContent = true;
 
+    /** Returns the translation prefix used by this widget set. */
     static getI18nPrefix(): string {
         return 'vis_2_widgets_collection_';
     }
 
+    /**
+     * Reads the current value for a configured widget property.
+     *
+     * @param stateName Widget data property name that stores the OID (e.g. `"oid"`, `"colorLightHueOid"`).
+     */
     getPropertyValue = (stateName: string): ioBroker.StateValue =>
         this.state.values[`${this.state.rxData[stateName]}.val`];
 
+    /**
+     * Writes a value to an ioBroker state.
+     *
+     * @remarks
+     * This is a convenience wrapper around the vis socket connection used by widgets.
+     */
     setValue = (id: string, value: string | number | boolean | ioBroker.SettableState | null, ack = false): void => {
         if (!id || id === 'nothing_selected') {
             return;

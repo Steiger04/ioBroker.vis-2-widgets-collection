@@ -1,3 +1,13 @@
+/**
+ * Higher-order component that adds Light2 “button mode” behavior.
+ *
+ * @module components/withButtonModal
+ * @remarks
+ * In Light2 button mode, the wrapped widget toggles a boolean on click and opens a modal on long press.
+ * For non-Light2 widgets (or when button mode is disabled), this HOC is a no-op and simply renders the
+ * original component.
+ */
+
 import { Box, Button, Modal } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import CollectionBase from './CollectionBase';
@@ -10,11 +20,27 @@ import type { Light2FieldsRxData } from '../types/field-definitions';
 
 type WithButtonModalProps<P> = P;
 
-// Type guard to check if widget data has Light2 fields
+/**
+ * Type guard for checking whether widget data contains Light2-specific fields.
+ *
+ * @param data - Widget data object.
+ * @returns `true` when `data` conforms to {@link Light2FieldsRxData}.
+ */
 function hasLight2Fields(data: any): data is Light2FieldsRxData {
     return 'colorLightButton' in data && 'colorLightSwitchOid' in data;
 }
 
+/**
+ * Wraps a component to support Light2 button interactions.
+ *
+ * @template P - Wrapped component props.
+ * @param Component - Component to wrap.
+ * @returns A component with optional Light2 modal behavior.
+ * @example
+ * ```tsx
+ * export default withButtonModal(Light2CollectionWidget);
+ * ```
+ */
 function withButtonModal<P extends object>(Component: React.ComponentType<P>): React.ComponentType<P> {
     const WithButtonModal = (props: WithButtonModalProps<P>): React.JSX.Element => {
         const context = useContext(CollectionContext);
@@ -24,14 +50,12 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
         const { widget } = context;
         const [open, setOpen] = useState(false);
 
-        // Type-safe access to Light2-specific properties
         const widgetData = widget.data;
 
         // Call hooks unconditionally (React hooks rules)
         const { value: onOffValue, updateValue: setOnOffValueState } = useValueState('colorLightSwitchOid');
         const { data } = useData('colorLightSwitchOid');
 
-        // Check if this is a Light2 widget with button mode
         const isLight2ButtonMode = hasLight2Fields(widgetData) && widgetData.colorLightButton;
 
         const colorLightSwitchOidObject = isLight2ButtonMode ? widgetData.colorLightSwitchOidObject : undefined;
@@ -53,7 +77,6 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
             ? widgetData.colorLightModalWidth!
             : (isLight2ButtonMode ? widgetData.colorLightModalHeight || 300 : 300) + 40 + 12 + sliderSize;
 
-        // Conditional render based on widget type
         if (!isLight2ButtonMode) {
             return <Component {...props} />;
         }

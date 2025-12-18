@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/checkbox-fields`.
+ * vis-2 widget editor field generator for checkbox-specific options.
+ *
+ * @module lib/checkboxFields
+ * @remarks
+ * The vis-2 property editor consumes arrays of `RxWidgetInfoAttributesField`. This helper returns the additional
+ * fields required by the Checkbox collection widget.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/checkbox-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

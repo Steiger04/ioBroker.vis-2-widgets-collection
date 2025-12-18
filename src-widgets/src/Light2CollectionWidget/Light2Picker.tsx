@@ -1,3 +1,9 @@
+/**
+ * Light2 color picker wrapper (iro.js).
+ *
+ * @module widgets/Light2Picker
+ */
+
 import { useContext, useEffect, useMemo, useRef, forwardRef } from 'react';
 import type { MutableRefObject, Ref } from 'react';
 import type iro from '@jaames/iro';
@@ -15,6 +21,9 @@ import {
     type ColorChanges,
 } from './colorPickerUtils/colorPickerEffects';
 
+/**
+ * Assigns a value to a forwarded ref (callback or object ref).
+ */
 function setRef<T>(ref: Ref<T> | undefined, value: T): void {
     if (typeof ref === 'function') {
         ref(value);
@@ -24,6 +33,7 @@ function setRef<T>(ref: Ref<T> | undefined, value: T): void {
 }
 
 interface LightPickerProps {
+    /** Host element dimensions used to compute picker layout. */
     dimensions: ElementDimensions;
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'];
     colorLightSliderWidth: Light2FieldsRxData['colorLightSliderWidth'];
@@ -34,9 +44,12 @@ interface LightPickerProps {
     colorLightCtMin: Light2FieldsRxData['colorLightCtMin'];
     colorLightCtMax: Light2FieldsRxData['colorLightCtMax'];
     colorLightGamut: Light2FieldsRxData['colorLightGamut'];
+    /** 1 = CCT kelvin picker, 2 = CCT brightness picker (only relevant for CCT mode). */
     cctComponentNumber: number;
-    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void; // mit changes Parameter
-    onColorInit?: (color: iro.Color, cctComponentNumber?: number) => void; // optionaler Handler
+    /** Called on user interaction (includes granular change info where available). */
+    onInputChange?: (color: iro.Color, changes?: ColorChanges) => void;
+    /** Called after picker initialization to sync the initial color from backend state. */
+    onColorInit?: (color: iro.Color, cctComponentNumber?: number) => void;
 }
 
 const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
@@ -102,8 +115,8 @@ const Light2Picker = forwardRef<iro.ColorPicker, LightPickerProps>(
                     handleRadius: 8,
                     layoutDirection: 'horizontal',
                 },
-                (color, changes) => onInputChangeRef.current?.(color, changes), // Proxy-Handler mit changes
-                (color, componentNumber) => onColorInitRef.current?.(color, componentNumber), // Proxy-Handler
+                (color, changes) => onInputChangeRef.current?.(color, changes),
+                (color, componentNumber) => onColorInitRef.current?.(color, componentNumber),
                 cctComponentNumber,
             );
             setRef(ref, iroPickerRef.current);

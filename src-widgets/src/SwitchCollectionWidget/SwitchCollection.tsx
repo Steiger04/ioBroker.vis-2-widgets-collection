@@ -1,3 +1,9 @@
+/**
+ * Renderer for the Switch Collection widget.
+ *
+ * @module widgets/SwitchCollection
+ */
+
 import { Box } from '@mui/material';
 import React, { useRef, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -8,12 +14,16 @@ import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
 import type { SwitchCollectionContextProps } from '../types';
 
+/**
+ * Switch widget body.
+ *
+ * @returns Widget body element.
+ */
 function SwitchCollection(): React.JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const context = useContext(CollectionContext) as SwitchCollectionContextProps;
     const { widget } = context;
 
-    // Sicherer Zugriff auf oidObject
     const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
@@ -23,7 +33,7 @@ function SwitchCollection(): React.JSX.Element {
 
     const isValidType = oidType === 'boolean';
 
-    // Handler für Switch-Änderungen mit Debouncing
+    /** Toggles the boolean state using debounced backend writes. */
     const handleSwitchChange = (): void => {
         updateValue(!oidValue);
     };

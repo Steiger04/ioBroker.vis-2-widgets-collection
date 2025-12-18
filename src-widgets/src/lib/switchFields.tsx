@@ -1,6 +1,11 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/switch-fields`.
+ * vis-2 widget editor field generator for switch-specific styling options.
+ *
+ * @module lib/switchFields
+ * @remarks
+ * Provides thumb/track sizing and colors for the Switch collection widget.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/switch-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

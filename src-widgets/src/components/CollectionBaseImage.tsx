@@ -1,22 +1,35 @@
+/**
+ * Header/icon rendering helper used by multiple Collection widgets.
+ *
+ * @module components/CollectionBaseImage
+ */
+
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
 import type { CollectionContextProps } from '../types';
 import { type StyleData } from '../hooks/useData';
 
 /**
- * Props for CollectionBaseImage component.
- * Accepts any widget type - uses only CommonFieldsRxData and CommonObjectFieldsRxData properties at runtime.
+ * Props for {@link module:components/CollectionBaseImage.default}.
  */
 interface CollectionBaseImageProps {
+    /** Style data computed by {@link module:hooks/useData}. */
     data: StyleData;
+    /** Widget instance (used for reading config flags like `noHeaderIcon`). */
     widget: CollectionContextProps<any>['widget'];
 }
 
+/**
+ * Renders the configured icon (active or inactive) in the header corner.
+ *
+ * @param props - Component props.
+ * @returns An `<img>` element or `null` if icons are disabled.
+ */
 const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.ReactElement | null => {
     const context = useContext(CollectionContext);
     const theme = context.theme;
 
-    // Type Guards für string-Werte (filtere false heraus)
+    // Filter out `false` and keep string-only sources.
     const iconSrc =
         (typeof data.icon === 'string' ? data.icon : undefined) ||
         (typeof data.iconActive === 'string' ? data.iconActive : undefined);

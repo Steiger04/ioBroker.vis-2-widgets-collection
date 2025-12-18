@@ -1,17 +1,34 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/common-fields`.
+ * vis-2 widget editor field generator for shared (cross-widget) options.
+ *
+ * @module lib/commonFields
+ * @remarks
+ * Many widgets in this collection share a large set of configuration fields (icons, header/value/footer,
+ * card/frame settings, background, etc.). This helper produces those shared fields and supports a suffix
+ * mechanism (`groupName`) to generate indexed variants.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
+/**
+ * Options controlling how the shared field list is generated.
+ */
 type Settings = {
+    /** Optional suffix used to create grouped/indexed field names (e.g. `iconSmall1`). */
     groupName?: string;
+    /** If `true`, includes the full common field list; otherwise generates a reduced subset. */
     allFields?: boolean;
 };
 
+/**
+ * Build the shared editor field list used by most widgets.
+ *
+ * @param settings Optional generation settings.
+ */
 const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true } = settings || {};
 

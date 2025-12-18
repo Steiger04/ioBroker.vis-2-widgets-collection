@@ -1,3 +1,9 @@
+/**
+ * Dialog collection renderer.
+ *
+ * @module widgets/DialogCollection
+ */
+
 import { Box, ButtonBase, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React, { useRef, useContext, useState, useEffect, useCallback } from 'react';
@@ -18,17 +24,24 @@ const ImageHtmlButton = styled(ButtonBase)({
     alignItems: 'center',
 });
 
+/**
+ * Renders a button that opens a modal dialog containing a vis view.
+ *
+ * @remarks
+ * - If a boolean `oid` is configured, `true` opens the dialog and `false` closes it.
+ * - Auto-close supports values in milliseconds and (for small numbers) seconds.
+ */
 function DialogCollection(): React.ReactElement {
     const [open, setOpen] = useState<boolean>(false);
     const hideTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // DialogCollection wird nur im DialogCollectionWidget verwendet, daher ist der Cast sicher
+    // DialogCollection is only used by DialogCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as DialogCollectionContextProps;
     const { widget, getWidgetView, setValue } = context;
     const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, oidValue } = useData('oid');
 
-    // Sicherer Zugriff auf oidObject
+    // Safe access to the optional oidObject.
     const oidObject = widget.data.oidObject;
 
     const oid = oidObject?._id;
@@ -43,7 +56,7 @@ function DialogCollection(): React.ReactElement {
 
         const timeoutValue = widget.data.dialogAutoClose;
 
-        // Behandle verschiedene Eingabeformate durch String-Konvertierung
+        // Handle multiple input formats by normalizing to string.
         const timeoutStr = String(timeoutValue);
 
         if (!timeoutValue || timeoutStr === '' || timeoutStr === '0') {
@@ -86,7 +99,7 @@ function DialogCollection(): React.ReactElement {
         setOpen(false);
     }, [oid, setValue]);
 
-    // HTML value formatting
+    // HTML value formatting.
     const htmlValue = useHtmlValue(oidValue, widget, data);
 
     useEffect(() => {
@@ -193,9 +206,6 @@ function DialogCollection(): React.ReactElement {
 
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    /* justifyContent: widget.data.onlyText
-										? "center"
-										: "flex-start", */
                                     justifyContent: 'center',
                                     alignItems: 'center',
 

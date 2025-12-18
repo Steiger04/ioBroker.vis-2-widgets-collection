@@ -1,3 +1,11 @@
+/**
+ * Memo-style helpers for computing iro.js color picker layout and sizing.
+ *
+ * @module Light2CollectionWidget/colorPickerUtils/colorPickerMemos
+ * @remarks
+ * These helpers are intentionally pure: they compute picker layout/geometry from widget configuration and
+ * measured element dimensions.
+ */
 import iro from '@jaames/iro';
 import { type ElementDimensions } from '../../hooks/useElementDimensions';
 import type { Light2FieldsRxData } from '../../types';
@@ -7,7 +15,9 @@ type IroLayout = Array<{
     options?: Record<string, any>;
 }>;
 
-// Gibt das Layout für den ColorPicker zurück
+/**
+ * Returns the iro.js layout for the given Light2 configuration.
+ */
 export function getColorLightLayout(
     cctComponentNumber: number,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
@@ -31,7 +41,7 @@ export function getColorLightLayout(
                 options: { sliderType: 'value' },
             },
         ];
-        // CCT spezifische Optionen
+        // CCT-specific: choose the component based on the CCT picker number.
         return [cctLayout[cctComponentNumber - 1]];
     }
     switch (colorLightUIComponent) {
@@ -68,7 +78,9 @@ export function getColorLightLayout(
     }
 }
 
-// Gibt die Breite für den ColorPicker zurück
+/**
+ * Returns the width used for `picker.resize()`.
+ */
 export function getColorLightWidth(
     dimensions: ElementDimensions,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
@@ -89,7 +101,9 @@ export function getColorLightWidth(
     }
 }
 
-// Gibt den Abstand zwischen Pickern zurück
+/**
+ * Computes the spacing between the main picker UI element and the value slider.
+ */
 export function getMarginBetweenPickers(
     dimensions: ElementDimensions,
     colorLightUIComponent: Light2FieldsRxData['colorLightUIComponent'],
@@ -100,12 +114,12 @@ export function getMarginBetweenPickers(
         return 12;
     }
 
-    // Für Slider-Layout (RGB): Abstand zwischen 3 Slidern
+    // Slider layout (RGB): spacing between the 3 sliders.
     if (colorLightUIComponent === 'slider' && colorLightType !== 'cct') {
         return (dimensions.width - 3 * (colorLightSliderWidth || 1) * 28) / 2;
     }
 
-    // Für CCT, Wheel und Box: maximaler Abstand zwischen Hauptelement und Value-Slider
+    // CCT/Wheel/Box: maximize spacing between the main element and the value slider.
     const mainPickerSize = dimensions.maxWidth;
     const sliderWidth = (colorLightSliderWidth || 1) * 28;
     const availableSpace = dimensions.width - mainPickerSize! - sliderWidth;

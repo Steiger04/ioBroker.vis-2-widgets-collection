@@ -1,3 +1,9 @@
+/**
+ * Select collection renderer.
+ *
+ * @module widgets/SelectCollection
+ */
+
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useContext, useRef } from 'react';
@@ -17,7 +23,7 @@ import type { SelectCollectionContextProps } from '../types';
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
     const { width } = useElementDimensions(contentRef?.current);
-    // SelectCollection wird nur im SelectCollectionWidget verwendet, daher ist der Cast sicher
+    // SelectCollection is only used by SelectCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget, theme } = context;
     const cidObject = widget.data.cidObject;
@@ -91,14 +97,14 @@ function SelectCollection(): React.ReactElement {
                             backgroundColor: alpha(
                                 valueIndex !== -1
                                     ? (() => {
-                                          // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                          // Determine whether an icon is available for the selected value.
                                           const currentImgSrc =
                                               widget.data[`iconSmall${valueIndex + 1}`] ||
                                               widget.data[`icon${valueIndex + 1}`] ||
                                               widget.data.iconSmall ||
                                               widget.data.icon;
 
-                                          // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                          // If an icon exists: use icon color; otherwise: use text color.
                                           return currentImgSrc
                                               ? widget.data[`iconColor${valueIndex + 1}`] ||
                                                     widget.data.iconColor ||
@@ -112,21 +118,21 @@ function SelectCollection(): React.ReactElement {
                                     : widget.data.iconColor || data.textColor || theme.palette.primary.main,
                                 0.15,
                             ),
-                            paddingLeft: 1, // MUI5-Abstand von 1 (entspricht 8px)
+                            paddingLeft: 1,
                         },
 
                         '& .MuiSelect-icon': {
                             color:
                                 valueIndex !== -1
                                     ? (() => {
-                                          // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                          // Determine whether an icon is available for the selected value.
                                           const currentImgSrc =
                                               widget.data[`iconSmall${valueIndex + 1}`] ||
                                               widget.data[`icon${valueIndex + 1}`] ||
                                               widget.data.iconSmall ||
                                               widget.data.icon;
 
-                                          // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                          // If an icon exists: use icon color; otherwise: use text color.
                                           return currentImgSrc
                                               ? widget.data[`iconColor${valueIndex + 1}`] ||
                                                     widget.data.iconColor ||
@@ -149,14 +155,14 @@ function SelectCollection(): React.ReactElement {
                                 backgroundColor: alpha(
                                     valueIndex !== -1
                                         ? (() => {
-                                              // Bestimme, ob ein Icon für den aktuell ausgewählten Wert vorhanden ist
+                                              // Determine whether an icon is available for the selected value.
                                               const currentImgSrc =
                                                   widget.data[`iconSmall${valueIndex + 1}`] ||
                                                   widget.data[`icon${valueIndex + 1}`] ||
                                                   widget.data.iconSmall ||
                                                   widget.data.icon;
 
-                                              // Wenn Icon vorhanden: Icon-Farbe verwenden, sonst Text-Farbe
+                                              // If an icon exists: use icon color; otherwise: use text color.
                                               return currentImgSrc
                                                   ? widget.data[`iconColor${valueIndex + 1}`] ||
                                                         widget.data.iconColor ||
@@ -170,7 +176,7 @@ function SelectCollection(): React.ReactElement {
                                         : widget.data.iconColor || data.textColor || theme.palette.primary.main,
                                     0.2,
                                 ),
-                                paddingLeft: 1, // MUI5-Abstand von 1 auch im Fokus-State
+                                paddingLeft: 1,
                             },
                         },
                     }}
@@ -182,15 +188,15 @@ function SelectCollection(): React.ReactElement {
                             widget.data.iconSmall ||
                             widget.data.icon;
 
-                        // Bestimme die Farbe basierend auf Icon/Text-Verfügbarkeit
+                        // Pick the color based on icon/text availability.
                         const getColorForItem = (): string => {
                             return imgSrc
-                                ? // Icon vorhanden: Icon-Farbe verwenden
+                                ? // Icon present: use icon color.
                                   widget.data[`iconColor${idx + 1}`] ||
                                       widget.data.iconColor ||
                                       data.iconColor ||
                                       theme.palette.primary.main
-                                : // Kein Icon: Text-Farbe verwenden
+                                : // No icon: use text color.
                                   widget.data[`textColor${idx + 1}`] ||
                                       widget.data.textColor ||
                                       data.textColor ||
@@ -201,8 +207,8 @@ function SelectCollection(): React.ReactElement {
 
                         return (
                             <MenuItem
-                                key={String(state.value)} // Sicherer Key-Cast
-                                value={idx} // Index als value verwenden
+                                key={String(state.value)}
+                                value={idx}
                                 sx={{
                                     '& .MuiTouchRipple-root': {
                                         color: itemColor,

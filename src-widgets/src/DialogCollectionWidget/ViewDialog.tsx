@@ -1,3 +1,9 @@
+/**
+ * Dialog modal view (DialogCollectionWidget).
+ *
+ * @module widgets/ViewDialog
+ */
+
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -7,15 +13,25 @@ import type { StyleData } from '../hooks/useData';
 import type { DialogCollectionContextProps } from '../types';
 
 interface ViewDialogProps {
+    /** Whether the modal is visible. */
     open: boolean;
+    /** Closes the dialog and clears any pending auto-close timer. */
     handleClose: () => void;
+    /** Widget configuration and style provided by the collection context. */
     widget: DialogCollectionContextProps['widget'];
+    /** Derived style data from {@link module:hooks/useData}. */
     data: StyleData;
+    /** vis-2 view renderer callback. */
     getWidgetView: DialogCollectionContextProps['getWidgetView'];
+    /** Typography font styles merged from widget style and theme. */
     fontStyles: React.CSSProperties;
+    /** Typography text styles merged from widget style and theme. */
     textStyles: React.CSSProperties;
 }
 
+/**
+ * Modal dialog that renders an embedded vis view.
+ */
 export default function ViewDialog({
     open,
     handleClose,

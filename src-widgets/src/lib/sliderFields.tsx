@@ -1,6 +1,11 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/slider-fields`.
+ * vis-2 widget editor field generator for slider-specific options.
+ *
+ * @module lib/sliderFields
+ * @remarks
+ * Includes configuration for orientation, value label display, min/max/step, optional marks, and min/max icons.
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';

@@ -1,6 +1,12 @@
 /**
- * Runtime field generator für vis-2 Editor.
- * Types: Importiere aus `vis-2-widgets-collection/types/field-definitions/state-fields`.
+ * vis-2 widget editor field generator for state/toggle display options.
+ *
+ * @module lib/stateFields
+ * @remarks
+ * Provides additional fields used across widgets that display or write state values (e.g. "only display",
+ * "only states", push-button mode, and basic visibility toggles).
+ *
+ * Types: import from `vis-2-widgets-collection/types/field-definitions/state-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
 

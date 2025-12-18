@@ -1,3 +1,9 @@
+/**
+ * Radio-group collection widget.
+ *
+ * @module widgets/RadioGroupCollectionWidget
+ */
+
 import React from 'react';
 import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
@@ -10,6 +16,13 @@ import RadioGroupCollection from './RadioGroupCollection';
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { RadioGroupCollectionContextProps, WidgetRegistry } from '../types';
 
+/**
+ * Widget entry (vis-2 runtime).
+ *
+ * @remarks
+ * This class mainly defines the widget schema via {@link getWidgetInfo} and
+ * provides the collection context consumed by {@link RadioGroupCollection}.
+ */
 class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -31,7 +44,7 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
                         ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
                         ...delayFields(),
                         ...radioGroupFields(),
-                    ] as RxWidgetInfoAttributesField[], // muss optimiert werden
+                    ] as RxWidgetInfoAttributesField[],
                 },
                 {
                     name: 'values',
@@ -59,21 +72,8 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
 
     // eslint-disable-next-line class-methods-use-this
     propertiesUpdate(): void {
-        // The widget has 3 important states
-        // 1. this.state.values - contains all state values, that are used in widget (automatically collected from widget info).
-        //                        So you can use `this.state.values[this.state.rxData.oid + '.val']` to get the value of state with id this.state.rxData.oid
-        // 2. this.state.rxData - contains all widget data with replaced bindings. E.g. if this.state.data.type is `{system.adapter.admin.0.alive}`,
-        //                        then this.state.rxData.type will have state value of `system.adapter.admin.0.alive`
-        // 3. this.state.rxStyle - contains all widget styles with replaced bindings. E.g. if this.state.styles.width is `{javascript.0.width}px`,
-        //                        then this.state.rxData.type will have state value of `javascript.0.width` + 'px
-        // console.log("inside propertiesUpdate", this.state.values);
-        /* const actualRxData = JSON.stringify(this.state.rxData);
-        if (this.lastRxData === actualRxData) {
-            return;
-        }
-        this.lastRxData = actualRxData;
-
-        await this.createStateObjectAsync('oid'); */
+        // Intentionally empty.
+        // Kept as a hook for future state/object initialization.
     }
 
     // This function is called every time when rxData is changed

@@ -1,3 +1,13 @@
+/**
+ * Renderer for the State Collection widget.
+ *
+ * @module widgets/StateCollection
+ * @remarks
+ * Depending on configuration, the widget either:
+ * - toggles between a small number of configured states directly, or
+ * - opens {@link module:components/CollectionChangeDialog.default} for selection.
+ */
+
 import { Avatar, Box, Button, Typography } from '@mui/material';
 import React, { useCallback, useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
@@ -10,10 +20,15 @@ import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import type { StateCollectionContextProps } from '../types';
 
+/**
+ * State widget body.
+ *
+ * @returns Widget body element.
+ */
 function StateCollection(): React.ReactElement {
     // const contentRef = useRef<HTMLDivElement>(null);
     // const [setContentRef] = useState<HTMLSpanElement | null>(null);
-    // StateCollection wird nur im StateCollectionWidget verwendet, daher ist der Cast sicher
+    // This component is only used from StateCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget } = context;
     const oidObject = widget.data.oidObject;
