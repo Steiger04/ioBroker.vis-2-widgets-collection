@@ -20,7 +20,6 @@ interface SignalElement extends HTMLElement {
 /**
  * Applies signal visibility and styling according to widget configuration.
  *
- * @returns Nothing. This hook performs DOM side effects.
  * @example
  * ```tsx
  * function WidgetFrame() {

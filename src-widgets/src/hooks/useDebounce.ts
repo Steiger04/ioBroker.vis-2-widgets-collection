@@ -5,7 +5,9 @@
  * @remarks
  * This hook provides a stable `next()` function that schedules backend writes via
  * `CollectionContext.setValue`. It recreates the RxJS subscription when the OID or
- * delay mode changes and ensures proper cleanup on unmount.
+ * delay mode changes and cleans up on unmount. If `oid` becomes missing/falsy, no
+ * new subscription is created, but an existing subscription is left intact until
+ * the component unmounts or you clean it up manually.
  */
 
 import { useContext, useEffect, useMemo, useRef } from 'react';
@@ -37,6 +39,9 @@ export interface UseDebounceReturn {
  * @param params - Hook parameters.
  * @param params.oidObject - Selected OID object (must contain `_id`).
  * @param params.data - Delay configuration.
+ * @param params.data.sampleInterval - Debounce/throttle mode.
+ * @param params.data.sampleIntervalValue - Interval value in milliseconds.
+ * @param params.data.delay - Additional delay before writing.
  * @returns A writer with `next()`, or `null` if no OID is selected.
  * @example
  * ```ts

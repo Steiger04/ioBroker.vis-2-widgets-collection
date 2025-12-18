@@ -23,6 +23,8 @@ interface CollectionBaseImageProps {
  * Renders the configured icon (active or inactive) in the header corner.
  *
  * @param props - Component props.
+ * @param props.data - Style data computed by `useData`.
+ * @param props.widget - Widget instance for config flags (e.g., `noHeaderIcon`).
  * @returns An `<img>` element or `null` if icons are disabled.
  */
 const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.ReactElement | null => {

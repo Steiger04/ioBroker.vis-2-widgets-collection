@@ -33,6 +33,8 @@ interface CollectionProviderProps {
  * Provides `CollectionContext` and an MUI theme for collection widgets.
  *
  * @param props - Provider props.
+ * @param props.children - Child element(s) to render inside the provider.
+ * @param props.context - The fully-typed collection context provided by vis-2.
  * @returns Provider subtree.
  */
 function CollectionProvider({ children, context }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {

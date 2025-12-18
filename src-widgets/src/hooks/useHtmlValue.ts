@@ -5,7 +5,7 @@
  * @remarks
  * Precedence order:
  * 1) `data.alias` (non-empty)
- * 2) `data.value` (non-empty; assumed already formatted)
+ * 2) `data.value` (non-empty and truthy; 0/false are skipped)
  * 3) `oidValue` (with `widget.data.unit` appended when available)
  */
 

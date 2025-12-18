@@ -21,6 +21,9 @@ type SafeImgProps = {
  * Renders an `<img>` that never breaks layout due to missing sources.
  *
  * @param props - Component props.
+ * @param props.src - Image source URL (string).
+ * @param props.alt - Alternate text.
+ * @param props.style - Optional inline styles.
  * @returns An `<img>` element.
  */
 const SafeImg: React.FC<SafeImgProps> = ({ src, style = {}, alt = '' }) => {

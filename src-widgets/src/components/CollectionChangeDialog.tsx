@@ -80,6 +80,10 @@ interface CollectionChangeDialogProps {
  * Dialog for changing a widget's current value.
  *
  * @param props - Component props.
+ * @param props.widgetStates - Current ioBroker states mapped by object id.
+ * @param props.data - Widget configuration data used to render inputs.
+ * @param props.open - Whether the dialog is open.
+ * @param props.closeHandler - Callback to close the dialog.
  * @returns Dialog UI.
  * @example
  * ```tsx
