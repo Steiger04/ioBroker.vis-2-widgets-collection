@@ -1,75 +1,75 @@
-# Implementierungs-Guide: Neues vis-2 Collection-Widget erstellen
+# Implementation Guide: Create a vis-2 Collection Widget
 
-## Inhalt
+## Contents
 
-1. Einleitung
-2. Voraussetzungen
-3. Schritt 1: Widget-Konzept und Planung
-4. Schritt 2: Verzeichnisstruktur erstellen
-5. Schritt 3: Field-Definitionen erstellen oder erweitern
-6. Schritt 4: Widget-Klasse implementieren (`{Name}CollectionWidget.tsx`)
-7. Schritt 5: React-Komponente implementieren (`{Name}Collection.tsx`)
-8. Schritt 6: Widget Registry aktualisieren
-9. Schritt 7: Module Federation konfigurieren
-10. Schritt 8: Internationalisierung (i18n) hinzufuegen
-11. Schritt 9: Vorschaubild erstellen
-12. Schritt 10: Testen und Debuggen
-13. Schritt 11: Build und Deployment
-14. Best Practices und Tipps
-15. Referenzen und Ressourcen
-16. Widget-Architektur (Mermaid Sequenzdiagramm)
-17. Tabelle: Widget-Typen und Field-Dependencies
+1. Introduction
+2. Prerequisites
+3. Step 1: Widget concept and planning
+4. Step 2: Create folder structure
+5. Step 3: Create or extend field definitions
+6. Step 4: Implement the widget class (`{Name}CollectionWidget.tsx`)
+7. Step 5: Implement the React component (`{Name}Collection.tsx`)
+8. Step 6: Update the Widget Registry
+9. Step 7: Configure Module Federation
+10. Step 8: Add internationalization (i18n)
+11. Step 9: Provide a preview image
+12. Step 10: Test and debug
+13. Step 11: Build and deploy
+14. Best practices and tips
+15. References and resources
+16. Widget architecture (Mermaid sequence diagram)
+17. Table: widget types and field dependencies
 18. Troubleshooting
-19. Finalisierung und Review
+19. Final review checklist
 
-## 1. Einleitung
+## 1. Introduction
 
-Dieser Guide fuehrt Schritt fuer Schritt durch die Erstellung eines neuen Collection-Widgets fuer ioBroker vis-2. Zielgruppe sind Entwicklerinnen und Entwickler, die ein neues Widget auf Basis der bestehenden Architektur bereitstellen moechten. Der Fokus liegt auf einer praktischen Anleitung mit konkreten Code-Beispielen, klaren Namenskonventionen und Hinweisen zu Best Practices. Fuer ein einfaches Widget ist mit ca. 1–2 Stunden Aufwand zu rechnen, fuer komplexere Widgets entsprechend mehr.
+This guide walks through creating a new Collection widget for ioBroker vis-2. It targets developers who want to build on the existing architecture with practical steps, concrete code examples, and naming conventions. Expect 1–2 hours for a simple widget; more for complex ones.
 
-## 2. Voraussetzungen
+## 2. Prerequisites
 
-- Grundkenntnisse in TypeScript und React
-- Erfahrung mit Material-UI (MUI)
-- Verstaendnis des ioBroker-Systems und des vis-2 Widget-Schemas
-- Entwicklungsumgebung: Node.js, npm oder yarn
-- Projektkontext: Module Federation mit Vite, zentrales Typsystem unter `src-widgets/src/types/`
+- Working knowledge of TypeScript and React
+- Experience with Material UI (MUI)
+- Understanding of ioBroker and the vis-2 widget schema
+- Tooling: Node.js with npm or yarn
+- Project context: Module Federation with Vite, centralized type system under `src-widgets/src/types/`
 
-## 3. Schritt 1: Widget-Konzept und Planung
+## 3. Step 1: Widget concept and planning
 
-- Bestimme den Widget-Typ: boolean, number, string oder mixed.
-- Definiere die gewuenschte Funktionalitaet und UI-Interaktionen.
-- Identifiziere benoetigte Field-Definitionen (z. B. common, commonObject, state, delay, checkbox, slider).
-- Waehle ein Referenz-Widget als Vorlage, z. B. [src-widgets/src/TemplateCollectionWidget/](../../TemplateCollectionWidget/) fuer ein minimales Beispiel.
+- Decide the widget value type: boolean, number, string, or mixed.
+- Define desired functionality and UI interactions.
+- Identify required field definitions (e.g., common, commonObject, state, delay, checkbox, slider).
+- Pick a reference widget such as [src-widgets/src/TemplateCollectionWidget/](../../TemplateCollectionWidget/) for a minimal baseline.
 
-## 4. Schritt 2: Verzeichnisstruktur erstellen
+## 4. Step 2: Create folder structure
 
-Empfohlene Struktur innerhalb von `src-widgets/src/`:
+Recommended layout under `src-widgets/src/`:
 
 ```
 src-widgets/src/
 └── MyNewCollectionWidget/
-    ├── MyNewCollectionWidget.tsx   # Widget-Definition (Klasse)
-    └── MyNewCollection.tsx         # React-Komponente (UI)
+    ├── MyNewCollectionWidget.tsx   # Widget class definition
+    └── MyNewCollection.tsx         # React component (UI)
 ```
 
-Namenskonventionen:
+Naming conventions:
 
-- Ordner: `{Name}CollectionWidget`
-- Widget-Klasse: `{Name}CollectionWidget.tsx`
-- React-Komponente: `{Name}Collection.tsx`
+- Folder: `{Name}CollectionWidget`
+- Widget class: `{Name}CollectionWidget.tsx`
+- React component: `{Name}Collection.tsx`
 
-## 5. Schritt 3: Field-Definitionen erstellen oder erweitern
+## 5. Step 3: Create or extend field definitions
 
-Neue Field-Definitionen sind nur noetig, wenn bestehende Felder den Bedarf nicht abdecken.
+Add new field definitions only when existing ones do not cover your use case.
 
-- Ort: `src-widgets/src/lib/`
-- Typen: `src-widgets/src/types/field-definitions/`
-- Registry-Eintrag: Sammel-Export in der FieldDefinitions-Registry
-- Beispiel: [src-widgets/src/lib/checkboxFields.tsx](../../lib/checkboxFields.tsx)
+- Location (runtime generators): `src-widgets/src/lib/`
+- Types: `src-widgets/src/types/field-definitions/`
+- Registry entry: re-export in the FieldDefinitions registry
+- Example: [src-widgets/src/lib/checkboxFields.tsx](../../lib/checkboxFields.tsx)
 
-## 6. Schritt 4: Widget-Klasse implementieren (`{Name}CollectionWidget.tsx`)
+## 6. Step 4: Implement the widget class (`{Name}CollectionWidget.tsx`)
 
-Grundstruktur (vereinfacht):
+Baseline structure:
 
 ```typescript
 import React from 'react';
@@ -79,7 +79,7 @@ import withCollectionProvider from '../components/withCollectionProvider';
 import commonFields from '../lib/commonFields';
 import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
-// weitere Field-Imports nach Bedarf
+// add more field imports as needed
 
 class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWidget']> {
     static getWidgetInfo() {
@@ -99,7 +99,7 @@ class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWi
                     fields: [
                         ...commonObjectFields(['string', 'number', 'boolean', 'mixed']),
                         ...delayFields(),
-                        // weitere Fields hier
+                        // add additional field groups here
                     ],
                 },
             ],
@@ -112,19 +112,19 @@ class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWi
     }
 
     componentDidMount() {
-        // optionale Subscriptions oder Initialisierungen
+        // optional subscriptions or initialization
     }
 
     onRxDataChanged() {
-        // reagiere auf Daten-Aenderungen (Editor-Werte)
+        // react to editor data changes
     }
 
     onRxStyleChanged() {
-        // reagiere auf Style-Aenderungen
+        // react to style changes
     }
 
     onStateUpdated(id, state) {
-        // reagiere auf State-Updates vom Socket
+        // react to state updates from the socket
     }
 
     renderWidgetBody(props) {
@@ -136,11 +136,11 @@ class MyNewCollectionWidget extends Generic<WidgetRegistry['tplMyNewCollectionWi
 export default withCollectionProvider(MyNewCollectionWidget);
 ```
 
-Referenz: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollectionWidget.tsx](../../CheckboxCollectionWidget/CheckboxCollectionWidget.tsx)
+Reference: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollectionWidget.tsx](../../CheckboxCollectionWidget/CheckboxCollectionWidget.tsx)
 
-## 7. Schritt 5: React-Komponente implementieren (`{Name}Collection.tsx`)
+## 7. Step 5: Implement the React component (`{Name}Collection.tsx`)
 
-Beispielstruktur:
+Example structure:
 
 ```typescript
 import { useContext } from 'react';
@@ -157,7 +157,7 @@ function MyNewCollection(): React.JSX.Element {
 
     return (
         <CollectionBase data={data} oidValue={value}>
-            {/* Widget-spezifische UI hier implementieren */}
+            {/* Implement widget-specific UI here */}
             <button onClick={() => updateValue(value)}>Update</button>
         </CollectionBase>
     );
@@ -166,140 +166,140 @@ function MyNewCollection(): React.JSX.Element {
 export default MyNewCollection;
 ```
 
-Wichtige Hooks:
+Key hooks:
 
-- `useData('oid')`: Liefert Daten aus Attributen und Styles.
-- `useValueState('oid')`: Liefert aktuellen OID-Wert plus Update-Funktion.
-- `useOidValue('oid')`: Liefert nur den aktuellen Wert.
-- `useStyles(widget.style)`: Verarbeitet Styles.
+- `useData('oid')`: returns attribute and style data.
+- `useValueState('oid')`: returns current OID value plus an update function.
+- `useOidValue('oid')`: returns only the current value.
+- `useStyles(widget.style)`: processes styles.
 
-Referenz: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollection.tsx](../../CheckboxCollectionWidget/CheckboxCollection.tsx)
+Reference: [src-widgets/src/CheckboxCollectionWidget/CheckboxCollection.tsx](../../CheckboxCollectionWidget/CheckboxCollection.tsx)
 
-## 8. Schritt 6: Widget Registry aktualisieren
+## 8. Step 6: Update the Widget Registry
 
-Die Registry verknuepft Widget-IDs mit Field-Gruppen und stellt Typsicherheit bereit. Anpassung in `src-widgets/src/types/widget-registry.d.ts`:
+The registry links widget IDs to field groups and enforces type safety. Update `src-widgets/src/types/widget-registry.d.ts`:
 
 ```typescript
 interface WidgetFieldMappings {
-    // bestehende Widgets ...
+    // existing widgets ...
     tplMyNewCollectionWidget: ['common', 'commonObject', 'myNewFields', 'delay'];
 }
 ```
 
-Dadurch werden die richtigen Feld-Typen fuer `WidgetRegistry['tplMyNewCollectionWidget']` generiert und vom `Generic`-Basistyp genutzt.
+This generates the correct field intersection for `WidgetRegistry['tplMyNewCollectionWidget']` used by the Generic base class.
 
-## 9. Schritt 7: Module Federation konfigurieren
+## 9. Step 7: Configure Module Federation
 
-Expose in `src-widgets/vite.config.ts` ergaenzen:
+Expose the widget in `src-widgets/vite.config.ts`:
 
 ```typescript
 exposes: {
-    // bestehende Widgets ...
+    // existing widgets ...
     './MyNewCollectionWidget': './src/MyNewCollectionWidget/MyNewCollectionWidget',
 }
 ```
 
-## 10. Schritt 8: Internationalisierung (i18n) hinzufuegen
+## 10. Step 8: Add internationalization (i18n)
 
-Keys in `src-widgets/src/i18n/de.json` und `src-widgets/src/i18n/en.json` ergaenzen (weitere Sprachen nach Bedarf):
+Add keys to `src-widgets/src/i18n/de.json` and `src-widgets/src/i18n/en.json` (plus more languages if needed):
 
 ```json
 {
-    "my_new_collection_widget": "Mein neues Widget",
-    "group_my_new": "Mein Widget",
-    "my_new_field_label": "Feldbezeichnung"
+    "my_new_collection_widget": "My new widget",
+    "group_my_new": "My widget",
+    "my_new_field_label": "Field label"
 }
 ```
 
-## 11. Schritt 9: Vorschaubild erstellen
+## 11. Step 9: Provide a preview image
 
-- Pfad: `widgets/vis-2-widgets-collection/img/prev-collection-{name}.png`
-- Groesse: ca. 200x150 px, PNG mit Transparenz
-- Motiv: typische Widget-Darstellung (z. B. Default-Layout)
+- Path: `widgets/vis-2-widgets-collection/img/prev-collection-{name}.png`
+- Size: roughly 200x150 px, PNG with transparency
+- Content: typical widget view (e.g., default layout)
 
-## 12. Schritt 10: Testen und Debuggen
+## 12. Step 10: Test and debug
 
-Entwicklungsserver starten:
+Start the dev server:
 
 ```bash
 cd src-widgets
 npm run dev
 ```
 
-Checkliste:
+Checklist:
 
-- Widget erscheint in der Palette.
-- Attribut-Konfiguration funktioniert.
-- OID-Binding funktioniert (Lesen/Schreiben).
-- Wert-Updates werden angezeigt.
-- Styles werden korrekt angewendet.
-- Responsives Verhalten pruefen.
-- Dark/Light Theme pruefen.
+- Widget appears in the palette.
+- Attribute configuration works.
+- OID binding works (read/write).
+- Value updates display correctly.
+- Styles apply correctly.
+- Responsive behavior verified.
+- Light/Dark theme verified.
 
-Haeufige Probleme:
+Common issues:
 
-- Typfehler in Widget Registry.
-- Fehlender Context-Provider.
-- OID-Objekt undefined oder falscher Typ.
-- Styling-Konflikte oder fehlende CSS-Variablen.
+- Typo in Widget Registry mapping.
+- Missing collection provider.
+- OID object undefined or incorrect type.
+- Styling conflicts or missing CSS variables.
 
-## 13. Schritt 11: Build und Deployment
+## 13. Step 11: Build and deploy
 
-Production-Build:
+Production build:
 
 ```bash
 cd src-widgets
 npm run build
 ```
 
-Pruefen:
+Verify:
 
-- Build ohne Fehler abgeschlossen.
-- `build/customWidgets.js` erzeugt.
-- Module Federation Manifest vorhanden (`build/mf-manifest.json`).
-- Widget in vis-2 verfuegbar (Palette aktualisieren oder Adapter neu starten).
+- Build completes without errors.
+- `build/customWidgets.js` is generated.
+- Module Federation manifest exists (`build/mf-manifest.json`).
+- Widget is available in vis-2 (refresh palette or restart adapter).
 
-## 14. Best Practices und Tipps
+## 14. Best practices and tips
 
-Code-Qualitaet:
+Code quality:
 
-- TypeScript strict mode einhalten, keine `any`-Typen.
-- ESLint-Regeln beachten.
-- Komponenten und Klassen kurz dokumentieren.
+- Keep TypeScript in strict mode; avoid `any`.
+- Follow ESLint rules.
+- Document classes and components briefly.
 
 Performance:
 
-- `useMemo` fuer teure Berechnungen.
-- `useCallback` fuer Event-Handler.
-- Unnoetige Re-Renders vermeiden (Props und Context beachten).
+- Use `useMemo` for expensive calculations.
+- Use `useCallback` for event handlers.
+- Avoid unnecessary re-renders (watch props and context).
 
-Wartbarkeit:
+Maintainability:
 
-- Konsistente Namensgebung fuer Ordner, Klassen und i18n-Keys.
-- Wiederverwendbare Komponenten nutzen (CollectionBase, Hooks).
-- Type-Safety ausschopfend verwenden.
+- Consistent naming for folders, classes, and i18n keys.
+- Reuse components (CollectionBase, hooks).
+- Lean on the type system instead of runtime checks.
 
-## 15. Referenzen und Ressourcen
+## 15. References and resources
 
-Beispiel-Widgets:
+Example widgets:
 
-- Einfach: [src-widgets/src/TemplateCollectionWidget/](../../TemplateCollectionWidget/)
-- Mittel: [src-widgets/src/CheckboxCollectionWidget/](../../CheckboxCollectionWidget/)
-- Komplex: [src-widgets/src/Light2CollectionWidget/](../../Light2CollectionWidget/)
+- Simple: [src-widgets/src/TemplateCollectionWidget/](../../TemplateCollectionWidget/)
+- Medium: [src-widgets/src/CheckboxCollectionWidget/](../../CheckboxCollectionWidget/)
+- Complex: [src-widgets/src/Light2CollectionWidget/](../../Light2CollectionWidget/)
 
-Dokumentation:
+Documentation:
 
-- Type-System: [src-widgets/src/types/docs/README.md](./README.md)
+- Type system: [src-widgets/src/types/docs/README.md](./README.md)
 - Migration: [src-widgets/src/types/docs/MIGRATION-GUIDE.md](./MIGRATION-GUIDE.md)
-- vis-2 Widget Schema (GitHub): https://github.com/ioBroker/ioBroker.vis-2-widgets-react-dev
+- vis-2 widget schema (GitHub): https://github.com/ioBroker/ioBroker.vis-2-widgets-react-dev
 
-Kern-Komponenten:
+Core components:
 
-- Basis-Klasse: [src-widgets/src/Generic.tsx](../../Generic.tsx)
-- UI-Wrapper: [src-widgets/src/components/CollectionBase.tsx](../../components/CollectionBase.tsx)
+- Base class: [src-widgets/src/Generic.tsx](../../Generic.tsx)
+- UI wrapper: [src-widgets/src/components/CollectionBase.tsx](../../components/CollectionBase.tsx)
 - Context: [src-widgets/src/components/CollectionProvider.tsx](../../components/CollectionProvider.tsx)
 
-## 16. Widget-Architektur (Mermaid Sequenzdiagramm)
+## 16. Widget architecture (Mermaid sequence diagram)
 
 ```mermaid
 sequenceDiagram
@@ -326,39 +326,39 @@ sequenceDiagram
     C->>CB: re-render
 ```
 
-## 17. Tabelle: Widget-Typen und Field-Dependencies
+## 17. Table: widget types and field dependencies
 
-| Widget-Typ | Erlaubte OID-Typen             | Benoetigte Fields                     | Komplexitaet |
-| ---------- | ------------------------------ | ------------------------------------- | ------------ |
-| Template   | boolean                        | common, commonObject                  | Einfach      |
-| State      | boolean, number, string, mixed | common, commonObject, state, delay    | Einfach      |
-| Checkbox   | boolean                        | common, commonObject, checkbox, delay | Einfach      |
-| Switch     | boolean                        | common, commonObject, switch, delay   | Mittel       |
-| Slider     | number                         | common, commonObject, slider, delay   | Mittel       |
-| Gauge      | number                         | common, commonObject, gauge           | Komplex      |
-| Light2     | mixed                          | common, commonObject, light2, delay   | Sehr komplex |
+| Widget type | Allowed OID types              | Required field groups                 | Complexity   |
+| ----------- | ------------------------------ | ------------------------------------- | ------------ |
+| Template    | boolean                        | common, commonObject                  | Easy         |
+| State       | boolean, number, string, mixed | common, commonObject, state, delay    | Easy         |
+| Checkbox    | boolean                        | common, commonObject, checkbox, delay | Easy         |
+| Switch      | boolean                        | common, commonObject, switch, delay   | Medium       |
+| Slider      | number                         | common, commonObject, slider, delay   | Medium       |
+| Gauge       | number                         | common, commonObject, gauge           | Complex      |
+| Light2      | mixed                          | common, commonObject, light2, delay   | Very complex |
 
 ## 18. Troubleshooting
 
-Problem: Widget erscheint nicht in Palette
+Issue: Widget does not appear in palette
 
-- Loesung: Module Federation Konfiguration pruefen.
-- Loesung: Build neu durchfuehren und Adapter/vis-2 neu laden.
+- Check Module Federation configuration.
+- Rebuild and reload the adapter/vis-2.
 
-Problem: Typ-Fehler bei WidgetRegistry
+Issue: Type error in WidgetRegistry
 
-- Loesung: Field-Mapping in `widget-registry.d.ts` pruefen.
-- Loesung: Field-Definitionen korrekt exportiert?
+- Verify the field mapping in `widget-registry.d.ts`.
+- Confirm field definitions are exported correctly.
 
-Problem: Context ist undefined
+Issue: Context is undefined
 
-- Loesung: `withCollectionProvider` korrekt verwendet?
-- Loesung: `CollectionContext` korrekt importiert?
+- Confirm `withCollectionProvider` wraps the widget.
+- Ensure `CollectionContext` is imported correctly.
 
-## 19. Finalisierung und Review
+## 19. Final review checklist
 
-- Vollstaendigkeit pruefen (Fields, Registry, i18n, Exposes, Preview-Bild).
-- Code-Beispiele gegen Referenz-Widgets halten.
-- Links verifizieren.
-- Rechtschreibung und Formatierung pruefen.
-- Mermaid-Diagramm in Markdown-Preview validieren.
+- Verify completeness (fields, registry, i18n, exposes, preview image).
+- Compare code examples against reference widgets.
+- Validate links.
+- Check spelling and formatting.
+- Preview Mermaid diagrams in Markdown.

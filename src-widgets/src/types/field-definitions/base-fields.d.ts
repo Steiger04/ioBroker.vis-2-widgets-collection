@@ -2,9 +2,9 @@
  * Base field definitions for vis-2 Collection widgets.
  *
  * @remarks
- * Diese Interface definiert alle statischen Base-Properties, die in Collection-Base-Komponenten
- * verwendet werden. Im Gegensatz zu den dynamischen Properties in CommonFieldsRxData haben
- * diese Properties keine numerischen Indizes und dienen als globale Einstellungen.
+ * Defines all static base properties that Collection base components consume. Unlike
+ * the indexed properties in CommonFieldsRxData these fields are non-indexed and act
+ * as global configuration for a widget instance.
  * @example
  * ```typescript
  * import type { BaseFieldsRxData } from 'vis-2-widgets-collection/types';

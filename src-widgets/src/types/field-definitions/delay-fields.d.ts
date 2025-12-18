@@ -1,29 +1,52 @@
 /**
  * Delay field definitions for vis-2 Collection widgets.
- * Controls write delays and sample intervals for state changes.
+ * Controls debouncing of write operations or periodic sampling intervals.
  */
 export interface DelayFieldsRxData {
     /**
-     * Enable sample interval mode instead of delay.
+     * Enable sample interval mode to poll at a fixed interval instead of delaying writes.
      *
      * @default false
-     * @remarks When true, `sampleIntervalValue` is used and `delay` is ignored/hidden.
+     * @example
+     * ```typescript
+     * const data: DelayFieldsRxData = {
+     *     sampleInterval: true,
+     *     sampleIntervalValue: 500
+     * };
+     * ```
+     * @remarks
+     * When true, `sampleIntervalValue` is respected and `delay` is ignored. Ideal for read-most scenarios.
      */
     sampleInterval?: boolean;
 
     /**
-     * Sample interval value in milliseconds.
+     * Interval in milliseconds for sampling values when `sampleInterval` is enabled.
      *
      * @default 200
-     * @remarks Valid range: 0-10000; effective only when `sampleInterval` is true.
+     * @example
+     * ```typescript
+     * const data: DelayFieldsRxData = {
+     *     sampleInterval: true,
+     *     sampleIntervalValue: 1000
+     * };
+     * ```
+     * @remarks
+     * Valid range: 0-10000. Lower values increase backend load; choose based on device update rate.
      */
     sampleIntervalValue?: number;
 
     /**
-     * Delay before writing value in milliseconds.
+     * Debounce delay in milliseconds before writing a new value.
      *
      * @default 300
-     * @remarks Valid range: 0-10000; effective only when `sampleInterval` is false (default mode).
+     * @example
+     * ```typescript
+     * const data: DelayFieldsRxData = {
+     *     delay: 750
+     * };
+     * ```
+     * @remarks
+     * Valid range: 0-10000. Used when `sampleInterval` is false (default). Helps avoid rapid state toggling.
      */
     delay?: number;
 }

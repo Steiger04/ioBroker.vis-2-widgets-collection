@@ -1,6 +1,21 @@
 /**
  * Gauge widget field definitions for vis-2 Collection.
  * Comprehensive configuration for linear and radial gauge displays.
+ *
+ * @example
+ * ```typescript
+ * const data: GaugeFieldsRxData = {
+ *     gaugeType: 'radial',
+ *     gaugeMinValue: 0,
+ *     gaugeMaxValue: 120,
+ *     gaugeColorBar: '#1de9b6',
+ *     gaugeNeedle: true,
+ *     gaugeAnimationDuration: 750
+ * };
+ * ```
+ * @remarks
+ * Most properties are optional and map directly to `canvas-gauges` options. Choose
+ * a minimal subset for simple gauges or combine advanced styling for rich dashboards.
  */
 export interface GaugeFieldsRxData {
     /**

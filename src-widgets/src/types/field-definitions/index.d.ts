@@ -15,14 +15,15 @@ import type { ButtonGroupFieldsRxData } from './button-group-fields';
 import type { Light2FieldsRxData } from './light2-fields';
 
 /**
- * Registry aller verfügbaren Field-Definitionen für vis-2 Collection Widgets.
- * Wird verwendet für automatische Typ-Generierung und Widget-Komposition.
+ * Registry of all available field definitions for vis-2 Collection widgets.
+ * Used for automatic type generation and widget composition.
  *
  * @remarks
- * Diese Registry mappt Field-Namen zu ihren Type-Definitionen.
- * In Phase 3 werden weitere Field-Typen hinzugefügt (gauge, slider, switch, etc.).
+ * Maps logical field names to their rxData type definitions. New widget-specific
+ * field groups (gauge, slider, switch, etc.) are added here and re-exported for
+ * consumers to compose widget data types.
  *
- * Verwendung:
+ * Usage:
  * - `FieldDefinitions['common']` → CommonFieldsRxData
  * - `FieldDefinitions['commonObject']` → CommonObjectFieldsRxData
  * @example
@@ -86,7 +87,7 @@ export interface FieldDefinitions {
     commonObject: CommonObjectFieldsRxData;
 
     // ========================================
-    // ✅ Phase 3: Widget-spezifische Fields
+    // Widget-specific fields
     // ========================================
 
     /** State field types (state handling, push button) */

@@ -1,28 +1,28 @@
-# vis-2 Collection Widgets: Typsystem-Entwicklerhandbuch
+# vis-2 Collection Widgets: Type System Guide
 
-## Inhalt
+## Contents
 
-- [1. Einfuehrung](#1-einfuehrung)
-- [2. Architektur-Ueberblick](#2-architektur-ueberblick)
+- [1. Introduction](#1-introduction)
+- [2. Architecture Overview](#2-architecture-overview)
 - [3. Field Definitions](#3-field-definitions)
 - [4. Widget Registry](#4-widget-registry)
 - [5. Context Types](#5-context-types)
-- [6. Utility Types und Funktionen](#6-utility-types-und-funktionen)
-- [7. Widget-Implementierung](#7-widget-implementierung)
-- [8. Hooks und State Management](#8-hooks-und-state-management)
-- [9. Neues Widget erstellen](#9-neues-widget-erstellen)
-- [10. Erweiterung und Wartung](#10-erweiterung-und-wartung)
-- [11. Referenz](#11-referenz)
+- [6. Utility Types and Functions](#6-utility-types-and-functions)
+- [7. Widget Implementation](#7-widget-implementation)
+- [8. Hooks and State Management](#8-hooks-and-state-management)
+- [9. Create a New Widget](#9-create-a-new-widget)
+- [10. Extension and Maintenance](#10-extension-and-maintenance)
+- [11. Reference](#11-reference)
 
-## 1. Einfuehrung
+## 1. Introduction
 
-Das Typsystem bildet die Single Source of Truth fuer alle vis-2 Collection Widgets. Es generiert Widget-Datentypen vollautomatisch aus Field Definitions und stellt sie React-Komponenten, Contexts und Hooks strikt typisiert bereit. Entwickler profitieren von weniger Boilerplate, konsistenter Validierung und klaren Erweiterungswegen.
+The type system is the single source of truth for all vis-2 Collection widgets. It automatically composes widget data types from field definitions and exposes them to React components, contexts, and hooks with strict typing. This reduces boilerplate, enforces consistent validation, and provides clear extension paths.
 
-## 2. Architektur-Ueberblick
+## 2. Architecture Overview
 
-- Single-Source-of-Truth: Alle Widget-Daten stammen aus Field Definitions.
-- Type-Level-Komposition: Widget Registry kombiniert Felder per Union-to-Intersection.
-- React-Integration: Generic-Widget-Klassen und Context Types sichern Komponenten ab.
+- Single source of truth: all widget data originates from field definitions.
+- Type-level composition: the Widget Registry combines fields via union-to-intersection.
+- React integration: Generic widget classes and context types secure component contracts.
 
 ```mermaid
 graph TD
@@ -51,29 +51,29 @@ sequenceDiagram
 
 ## 3. Field Definitions
 
-Field Definitions beschreiben Eigenschaftsgruppen (common, state, delay, ...). Sie werden zentral registriert und per Mapping Widgets zugeordnet.
+Field definitions describe groups of properties (common, state, delay, …). They are centrally registered and mapped to widgets.
 
-| Field Type   | Interface                | Properties               | Verwendung            | Widgets               |
-| ------------ | ------------------------ | ------------------------ | --------------------- | --------------------- |
-| common       | CommonFieldsRxData       | ~35 dynamisch            | Icons, Header, Styles | Alle                  |
-| commonObject | CommonObjectFieldsRxData | 8 statisch + 3 dynamisch | OID, Unit, Values     | Alle                  |
-| state        | StateFieldsRxData        | 5                        | State-Handling        | State                 |
-| delay        | DelayFieldsRxData        | 2                        | Verzoegerung          | State, Switch, etc.   |
-| slider       | SliderFieldsRxData       | 6                        | Slider-Config         | Slider                |
-| switch       | SwitchFieldsRxData       | 4                        | Toggle-Config         | Switch, Light         |
-| gauge        | GaugeFieldsRxData        | 7                        | Gauge-Visualisierung  | Gauge                 |
-| dialog       | DialogFieldsRxData       | 5                        | Dialog-States         | Dialog                |
-| select       | SelectFieldsRxData       | 6                        | Auswahlwerte          | Select, Radio         |
-| checkbox     | CheckboxFieldsRxData     | 4                        | Boolean-Handling      | Checkbox              |
-| template     | TemplateFieldsRxData     | 3                        | Layout-Templates      | Template              |
-| light2       | Light2FieldsRxData       | 8                        | Licht-Profile         | Light2                |
-| buttonGroup  | ButtonGroupFieldsRxData  | 6                        | Mehrfach-Actions      | ButtonGroup           |
-| collection   | CollectionFieldsRxData   | 5                        | Mehrfach-Items        | Collections           |
-| valueState   | ValueStateFieldsRxData   | 4                        | Wert + State          | Value-Widgets         |
-| range        | RangeFieldsRxData        | 4                        | Min/Max + Step        | Slider, Gauge         |
-| icon         | IconFieldsRxData         | 3                        | Icon-Konfiguration    | Icon-basierte Widgets |
+| Field Type   | Interface                | Properties           | Purpose               | Widgets             |
+| ------------ | ------------------------ | -------------------- | --------------------- | ------------------- |
+| common       | CommonFieldsRxData       | ~35 dynamic          | Icons, header, styles | All                 |
+| commonObject | CommonObjectFieldsRxData | 8 static + 3 dynamic | OID, unit, values     | All                 |
+| state        | StateFieldsRxData        | 5                    | State handling        | State               |
+| delay        | DelayFieldsRxData        | 2                    | Delay/sampling        | State, Switch, etc. |
+| slider       | SliderFieldsRxData       | 6                    | Slider configuration  | Slider              |
+| switch       | SwitchFieldsRxData       | 4                    | Toggle configuration  | Switch, Light       |
+| gauge        | GaugeFieldsRxData        | 7                    | Gauge visualization   | Gauge               |
+| dialog       | DialogFieldsRxData       | 5                    | Dialog behavior       | Dialog              |
+| select       | SelectFieldsRxData       | 6                    | Selection options     | Select, Radio       |
+| checkbox     | CheckboxFieldsRxData     | 4                    | Boolean handling      | Checkbox            |
+| template     | TemplateFieldsRxData     | 3                    | Layout templates      | Template            |
+| light2       | Light2FieldsRxData       | 8                    | Light profiles        | Light2              |
+| buttonGroup  | ButtonGroupFieldsRxData  | 6                    | Multi-action buttons  | ButtonGroup         |
+| collection   | CollectionFieldsRxData   | 5                    | Multi-item lists      | Collections         |
+| valueState   | ValueStateFieldsRxData   | 4                    | Value + state pairing | Value widgets       |
+| range        | RangeFieldsRxData        | 4                    | Min/Max + step        | Slider, Gauge       |
+| icon         | IconFieldsRxData         | 3                    | Icon configuration    | Icon widgets        |
 
-Beispiel: Field Definition und Nutzung im Widget
+Example: field definition and usage in a widget
 
 ```typescript
 // file:src-widgets/src/types/field-definitions/common.ts
@@ -83,7 +83,7 @@ export interface CommonFieldsRxData {
     icon?: string;
 }
 
-// Widget erhaelt alle Common-Felder automatisch
+// Widget receives all Common fields automatically
 class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
     render() {
         const { widgetTitle, background } = this.props.data;
@@ -94,14 +94,14 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
 
 ## 4. Widget Registry
 
-Die Widget Registry verknuepft Widgets mit ihren Field Definitions und erzeugt so automatisch die vollstaendigen Datentypen.
+The Widget Registry links widgets to their field definitions and produces the final data types.
 
 ```typescript
 // file:src-widgets/src/types/widget-registry.d.ts
 export interface WidgetFieldMappings {
     tplStateCollectionWidget: ['common', 'commonObject', 'state', 'delay'];
     tplSliderCollectionWidget: ['common', 'commonObject', 'slider', 'range'];
-    // ... weitere Widgets
+    // ... additional widgets
 }
 
 type WidgetRegistry = {
@@ -109,21 +109,21 @@ type WidgetRegistry = {
 };
 ```
 
-Beispiel: StateCollectionWidget bezieht den Datentyp direkt aus der Registry.
+Example: StateCollectionWidget derives its data type directly from the registry.
 
 ```typescript
 class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
-    // data enthaelt Common + CommonObject + State + Delay
+    // data contains Common + CommonObject + State + Delay
 }
 ```
 
 ## 5. Context Types
 
-Context Types sichern die Kommunikation zwischen Widgets und Runtime (Socket, Theme, Project Settings).
+Context types secure communication between widgets and the runtime (socket, theme, project settings).
 
-- CollectionContextProps: Basiskontext fuer alle Collections
-- Widget-spezifische Context Types: erweitern um widgetbezogene Services oder Selektoren
-- Verwendung: HoCs wie `withCollectionProvider` injizieren typisierte Props
+- CollectionContextProps: base context for all collections
+- Widget-specific context types: extend with widget services or selectors
+- Usage: HOCs like `withCollectionProvider` inject typed props
 
 ```typescript
 // file:src-widgets/src/types/context-types.d.ts
@@ -133,20 +133,20 @@ export interface CollectionContextProps {
     theme: VisTheme;
 }
 
-// In Komponenten
+// In components
 type Props = RxRenderWidgetProps<WidgetRegistry['tplSwitchCollectionWidget']> & {
     context: CollectionContextProps;
 };
 ```
 
-## 6. Utility Types und Funktionen
+## 6. Utility Types and Functions
 
-Utility Types verbinden Typ-Information mit sicheren Laufzeit-Helpern.
+Utility types connect compile-time knowledge with runtime helpers.
 
-- getDynamicProperty / setDynamicProperty: dynamischer Zugriff mit Typ-Guards
-- getAllIndexedProperties: generiert indexierte Property-Listen aus Field Definitions
-- hasIndexedProperty: prueft auf vorhandene Index-Felder
-- Type Guards: isValidWidgetData, isValidFieldKey
+- getDynamicProperty / setDynamicProperty: type-safe dynamic access with guards
+- getAllIndexedProperties: build indexed property lists from field definitions
+- hasIndexedProperty: check for indexed fields
+- Type guards: isValidWidgetData, isValidFieldKey
 
 ```typescript
 // file:src-widgets/src/types/utility-types.ts
@@ -159,9 +159,9 @@ export function setDynamicProperty<T, K extends keyof T>(data: T, key: K, value:
 }
 ```
 
-## 7. Widget-Implementierung
+## 7. Widget Implementation
 
-Widgets erweitern `Generic<WidgetRegistry['tplWidgetName']>` und nutzen die automatisch zusammengesetzten Datentypen.
+Widgets extend `Generic<WidgetRegistry['tplWidgetName']>` and use the composed data types.
 
 ```typescript
 // file:src-widgets/src/StateCollectionWidget/StateCollectionWidget.tsx
@@ -171,7 +171,7 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
             id: 'tplStateCollectionWidget',
             visSet: 'vis-2-widgets-collection',
             visName: 'StateCollectionWidget',
-            visAttrs: [/* Field Generator output */],
+            visAttrs: [/* field generator output */],
         };
     }
 
@@ -182,16 +182,16 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
 }
 ```
 
-- Field Generator Integration: visAttrs nutzt die Field Definitions (z. B. `commonFields()`, `stateFields()`)
-- React Pattern: renderWidget kapselt die Darstellung, getWidgetInfo meldet die Meta-Daten an vis-2
+- Field generator integration: visAttrs relies on field definitions (e.g., `commonFields()`, `stateFields()`)
+- React pattern: renderWidget renders the body; getWidgetInfo registers metadata with vis-2
 
-## 8. Hooks und State Management
+## 8. Hooks and State Management
 
-Hooks konsumieren die typisierten Daten und Contexts.
+Hooks consume the typed data and context.
 
-- useData: Liefert Widget-Daten, synchronisiert mit Context
-- useValueState: Kapselt Wert + Ack + Timestamp
-- useOidValue: Bindet OID an State-Abos
+- useData: returns widget data, synchronized with context
+- useValueState: pairs value with ack and timestamp
+- useOidValue: binds an OID to state subscriptions
 
 ```typescript
 // file:src-widgets/src/hooks/useData.ts
@@ -199,38 +199,38 @@ export function useData<T>(props: RxRenderWidgetProps<T>): T {
     return props.data;
 }
 
-// Beispiel in Komponente
+// Example in component
 const data = useData<WidgetRegistry['tplSliderCollectionWidget']>(props);
 const valueState = useValueState(data.oid, props.context.socket);
 ```
 
-## 9. Neues Widget erstellen
+## 9. Create a New Widget
 
-1. Field Definitions ergaenzen, falls neue Felder noetig sind.
-2. WidgetFieldMappings um neues Widget + Field-Liste erweitern.
-3. Generic-Klasse mit `Generic<WidgetRegistry['tplNeuesWidget']>` ableiten.
-4. visAttrs mit passenden Field-Generatoren befuellen.
-5. Hooks fuer OID/State-Handling nutzen.
-6. Tests fuer Typ-Safety (z. B. `tsc --noEmit` oder test-d.ts) ausfuehren.
+1. Add field definitions if new fields are required.
+2. Extend WidgetFieldMappings with the new widget and its field list.
+3. Derive the class from `Generic<WidgetRegistry['tplNewWidget']>`.
+4. Populate visAttrs with appropriate field generators.
+5. Use hooks for OID/state handling.
+6. Run type-safety checks (`tsc --noEmit` or test-d.ts).
 
-> Hinweis: Die Typ-Komposition enthaelt alle Felder der angegebenen Field Types; vermeide doppelte Feldnamen oder uneindeutige Keys.
+> Type composition includes all fields from the configured field types; avoid duplicate names or ambiguous keys.
 
-## 10. Erweiterung und Wartung
+## 10. Extension and Maintenance
 
-- Neue Field Definitions hinzufuegen: In `field-definitions` registrieren und in `FieldDefinitions` exportieren.
-- Type-Safety bewahren: Keine `any`-Casts, lieber spezifische Field Interfaces.
-- Debugging: Compiler-Fehler zeigen exakte Feldnamen; Intersection-Typen pruefen mit Quick Info.
-- Haeufige Fehler: Fehlende Registry-Zuordnung, Tippfehler in Field Keys, unpassende Index-Ranges.
+- Add new field definitions: register in `field-definitions` and export in `FieldDefinitions`.
+- Preserve type safety: avoid `any`, prefer specific field interfaces.
+- Debugging: compiler errors show exact field names; inspect intersection types with Quick Info.
+- Common issues: missing registry mapping, typos in field keys, invalid index ranges.
 
-## 11. Referenz
+## 11. Reference
 
-- Field Definitions: file:src-widgets/src/types/field-definitions/index.d.ts
-- Registry: file:src-widgets/src/types/widget-registry.d.ts
-- Context: file:src-widgets/src/types/context-types.d.ts
-- Utilities: file:src-widgets/src/types/utility-types.ts
-- Beispiel-Widget: file:src-widgets/src/StateCollectionWidget/StateCollectionWidget.tsx
-- Field Generator: file:src-widgets/src/lib/commonFields.tsx
-- Hooks: file:src-widgets/src/hooks/useData.ts
+- Field Definitions: src-widgets/src/types/field-definitions/index.d.ts
+- Registry: src-widgets/src/types/widget-registry.d.ts
+- Context: src-widgets/src/types/context-types.d.ts
+- Utilities: src-widgets/src/types/utility-types.ts
+- Example widget: src-widgets/src/StateCollectionWidget/StateCollectionWidget.tsx
+- Field generator: src-widgets/src/lib/commonFields.tsx
+- Hooks: src-widgets/src/hooks/useData.ts
 
 ```mermaid
 graph TB

@@ -53,7 +53,7 @@ export type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
  */
 export interface CommonObjectFieldsRxData {
     // ========================================
-    // Basis Properties
+    // Base properties
     // ========================================
 
     /**

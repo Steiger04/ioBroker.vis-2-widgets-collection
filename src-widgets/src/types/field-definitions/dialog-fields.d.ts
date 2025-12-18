@@ -1,109 +1,172 @@
 /**
  * Dialog field definitions for vis-2 Collection widgets.
- * Controls dialog appearance, dimensions, and behavior.
+ * Configures the embedded view, sizing, close behavior, and dialog chrome.
  *
  * @remarks
- * **Important:** All properties in this interface are optional for maximum flexibility
- * in widget configuration and type composition. This is the new type system standard.
- *
- * **Legacy Compatibility:** The interface with the same name in `src/lib/dialogFields.tsx`
- * may have required properties. That is a legacy runtime definition maintained for backward
- * compatibility and will be removed in Phase 10. New widget code should always import from
- * `vis-2-widgets-collection/types` instead.
- * @example
- * ```typescript
- * // ✅ Recommended: Import from types
- * import type { DialogFieldsRxData } from 'vis-2-widgets-collection/types';
- *
- * interface MyDialogWidget extends DialogFieldsRxData {
- *     customProp: string;
- * }
- * ```
+ * All properties are optional to keep widget composition flexible. Prefer importing
+ * this interface from the types package rather than legacy runtime definitions.
  */
 export interface DialogFieldsRxData {
     /**
-     * View to display in dialog.
+     * Name of the vis-2 view to render inside the dialog.
+     *
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     view: 'DetailView'
+     * };
+     * ```
      */
     view?: string;
 
     /**
-     * Auto-close delay in milliseconds (0 = disabled).
+     * Milliseconds after which the dialog closes automatically. Set to 0 to disable.
      *
      * @default 0
-     * @remarks Valid range: 0-30000
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogAutoClose: 5000 // close after 5 seconds
+     * };
+     * ```
+     * @remarks
+     * Valid range: 0-30000. Useful for transient notifications.
      */
     dialogAutoClose?: number;
 
     /**
-     * Object ID to set when dialog opens.
+     * Object ID that should be written when the dialog opens.
+     *
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     oid: 'javascript.0.dialog.opened'
+     * };
+     * ```
      */
     oid?: string;
 
     /**
-     * Use header as dialog title.
+     * Reuse the widget header text as the dialog title.
      *
      * @default false
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogHeaderAsTitle: true
+     * };
+     * ```
      */
     dialogHeaderAsTitle?: boolean;
 
     /**
-     * Dialog width (percentage or pixels).
+     * Dialog width value. Interpreted as percentage unless `dialogInPixel` is true.
      *
      * @default 100
-     * @remarks Valid range: 1-100
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogWidth: 80 // 80% of viewport or container
+     * };
+     * ```
+     * @remarks
+     * Valid range: 1-100 when used as percentage.
      */
     dialogWidth?: number;
 
     /**
-     * Dialog height (percentage or pixels).
+     * Dialog height value. Interpreted as percentage unless `dialogInPixel` is true.
      *
      * @default 100
-     * @remarks Valid range: 1-100
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogHeight: 60
+     * };
+     * ```
+     * @remarks
+     * Valid range: 1-100 when used as percentage.
      */
     dialogHeight?: number;
 
     /**
-     * Use pixels instead of percentage for dimensions.
+     * Use pixel units for `dialogWidth` and `dialogHeight` instead of percentages.
      *
      * @default false
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogInPixel: true,
+     *     dialogWidth: 640,
+     *     dialogHeight: 360
+     * };
+     * ```
      */
     dialogInPixel?: boolean;
 
     /**
-     * Dialog background color (CSS color).
+     * Dialog background color.
+     *
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogBackgroundColor: '#101522'
+     * };
+     * ```
      */
     dialogBackgroundColor?: string;
 
     /**
-     * Show close button at top.
+     * Show a close button in the dialog header area.
      *
      * @default false
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogCloseButtonTop: true
+     * };
+     * ```
      */
     dialogCloseButtonTop?: boolean;
 
     /**
-     * Show close button at bottom.
+     * Show a close button below the dialog content.
      *
      * @default false
      */
     dialogCloseButtonBottom?: boolean;
 
     /**
-     * Close button color (CSS color).
+     * Color for the close button icon/text.
+     *
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogCloseButtonColor: 'var(--vis2-primary)'
+     * };
+     * ```
      */
     dialogCloseButtonColor?: string;
 
     /**
-     * Show only icon (no text).
+     * Render the control using only an icon (no text label).
      *
      * @default false
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     onlyIcon: true
+     * };
+     * ```
+     * @see {@link onlyText}
      */
     onlyIcon?: boolean;
 
     /**
-     * Show only text (no icon).
+     * Render the control using only text (no icon).
      *
      * @default false
+     * @see {@link onlyIcon}
      */
     onlyText?: boolean;
 }
