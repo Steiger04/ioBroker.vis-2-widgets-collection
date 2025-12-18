@@ -396,9 +396,9 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             (!!widget.data[`iconXOffset${index + 1}`] &&
                                                                 widget.data[`iconXOffset${index + 1}`] !== '0px' &&
                                                                 `${widget.data[`iconXOffset${index + 1}`]}`) ||
-                                                            (!!widget.data.iconXOffset &&
+                                                            /* (!!widget.data.iconXOffset &&
                                                                 widget.data.iconXOffset !== '0px' &&
-                                                                `${widget.data.iconXOffset}`) ||
+                                                                `${widget.data.iconXOffset}`) || */
                                                             '0px',
 
                                                         bottom:
@@ -409,9 +409,9 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             (!!widget.data[`iconYOffset${index + 1}`] &&
                                                                 widget.data[`iconYOffset${index + 1}`] !== '0px' &&
                                                                 `${widget.data[`iconYOffset${index + 1}`]}`) ||
-                                                            (!!widget.data.iconYOffset &&
+                                                            /* (!!widget.data.iconYOffset &&
                                                                 widget.data.iconYOffset !== '0px' &&
-                                                                `${widget.data.iconYOffset}`) ||
+                                                                `${widget.data.iconYOffset}`) || */
                                                             '0px',
 
                                                         objectFit: 'contain',
