@@ -247,7 +247,28 @@ const SliderCollection: FC = () => {
                         alignItems: 'center',
                         width: '100%',
                         height: '100%',
-                        p: 2, // Padding um den gesamten Slider (MUI5 konform)
+                        pl:
+                            widget.data.sliderOrientation === 'horizontal' &&
+                            (widget.data.iconMin || widget.data.iconSmallMin)
+                                ? 0.5
+                                : 2,
+                        pr:
+                            widget.data.sliderOrientation === 'horizontal' &&
+                            (widget.data.iconMax || widget.data.iconSmallMax)
+                                ? 0.5
+                                : 2,
+                        pt:
+                            widget.data.sliderOrientation === 'vertical' &&
+                            (widget.data.iconMax || widget.data.iconSmallMax)
+                                ? 0.5
+                                : 2,
+
+                        pb:
+                            widget.data.sliderOrientation === 'vertical' &&
+                            (widget.data.iconMin || widget.data.iconSmallMin)
+                                ? 0.5
+                                : 2,
+
                         gap: 1.5, // Abstand zwischen Icons und Slider
                     }}
                 >
