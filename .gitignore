@@ -16,3 +16,6 @@
 /widgets
 
 *.tgz
+
+# The file .commitinfo is created by @alcalzone/releasescript and is normally deleted automatically during processing.
+.commitinfo
