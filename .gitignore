@@ -1,5 +1,6 @@
 # ioBroker dev-server
 .dev-server/
+.vscode/
 /.idea
 /.github/copilot-instructions.md
 
