@@ -20,16 +20,21 @@ export default [
             '.github/',
             '.vscode/',
             'node_modules/',
-            'widgets/',
-            'test/',
+            'src-widgets/.__mf__temp/',
             'src-widgets/build/',
             'src-widgets/node_modules/',
-            'src-widgets/.__mf__temp/',
-            'src-widgets/vite.config.*',
-            'src-widgets/vite-env.d.ts',
             'src-widgets/public/',
-            'src-widgets/**/*.test-d.ts',
+            'test/',
+            'tmp/',
+            'widgets/',
         ],
+    },
+    {
+        settings: {
+            react: {
+                version: '18', // explicit version to avoid "detect" lookup
+            },
+        },
     },
     {
         // disable temporary the rule 'jsdoc/require-param' and enable 'jsdoc/require-jsdoc'
@@ -39,6 +44,12 @@ export default [
             'jsdoc/check-tag-names': ['error', { definedTags: ['remarks'] }],
             // Regel kann ab React 17 deaktiviert werden
             'react/react-in-jsx-scope': 'off',
+            'prettier/prettier': [
+                'error',
+                {
+                    endOfLine: 'auto',
+                },
+            ],
         },
     },
     {
