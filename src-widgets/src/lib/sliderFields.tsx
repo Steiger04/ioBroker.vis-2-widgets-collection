@@ -129,7 +129,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
     } as const,
     {
         name: 'markerTextColor',
-        label: 'text_color',
+        label: 'marker_text_color',
         type: 'color',
         hidden: '!data.marks',
     } as const,
@@ -143,6 +143,28 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         step: 1,
         hidden: '!data.marks',
     } as const,
+    {
+        type: 'custom',
+        component: () => <CollectionDivider />,
+        hidden: '!data.marks',
+    } as const,
+    {
+        name: 'markerIconColor',
+        label: 'marker_icon_color',
+        type: 'color',
+        hidden: '!data.marks',
+    } as const,
+    {
+        name: 'markerIconSize',
+        label: 'marker_icon_size',
+        type: 'slider',
+        min: 1,
+        max: 500,
+        // default: 0,
+        step: 1,
+        hidden: '!data.marks',
+    } as const,
+
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="icon" />,

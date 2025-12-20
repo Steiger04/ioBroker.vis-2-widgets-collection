@@ -256,7 +256,37 @@ function useData(oid: string) {
                                 return undefined;
                             })(),
 
-                            textColor: getDynamicProperty(rxData as Record<string, any>, `textColor${i}`),
+                            textColor: (() => {
+                                // Prüfe, ob dieser State der aktuell aktive ist
+                                const isActive = String(oidValue) === String(_value);
+
+                                // 1. Wenn aktiv: Verwende globalen textColorActive aus commonFields (Gruppe Aktiv)
+                                if (isActive && rxData.textColorActive) {
+                                    return rxData.textColorActive;
+                                }
+
+                                // 2. Verwende individuellen textColor${i} (Gruppe Wert[1]-Wert[n])
+                                const individualColor = getDynamicProperty(
+                                    rxData as Record<string, any>,
+                                    `textColor${i}`,
+                                );
+                                if (individualColor) {
+                                    return individualColor;
+                                }
+
+                                // 3. Verwende markerTextColor (Gruppe Schieberegler, nur für Slider-Markierungen die Zustände sind)
+                                if (isSliderFieldsRxData(rxData) && rxData.markerTextColor) {
+                                    return rxData.markerTextColor;
+                                }
+
+                                // 4. Verwende globalen textColor (Gruppe Allgemein)
+                                if (rxData.textColor) {
+                                    return rxData.textColor;
+                                }
+
+                                // 5. Kein spezifischer Wert gefunden - undefined (Fallback auf Theme)
+                                return undefined;
+                            })(),
 
                             icon: (() => {
                                 const iconValue =
@@ -265,20 +295,44 @@ function useData(oid: string) {
                             })(),
                             iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : undefined,
                             iconWidth: (() => {
+                                // 1. Priorität: iconSize${i} (individuell pro Zustand)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
-                                return typeof dynamicSize === 'number'
-                                    ? dynamicSize
-                                    : typeof rxData.iconSize === 'number'
-                                      ? rxData.iconSize
-                                      : 100;
+                                if (typeof dynamicSize === 'number') {
+                                    return dynamicSize;
+                                }
+
+                                // 2. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
+                                    return rxData.markerIconSize;
+                                }
+
+                                // 3. Priorität: iconSize (global)
+                                if (typeof rxData.iconSize === 'number') {
+                                    return rxData.iconSize;
+                                }
+
+                                // 4. Fallback
+                                return 100;
                             })(),
                             iconHeight: (() => {
+                                // 1. Priorität: iconSize${i} (individuell pro Zustand)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
-                                return typeof dynamicSize === 'number'
-                                    ? dynamicSize
-                                    : typeof rxData.iconSize === 'number'
-                                      ? rxData.iconSize
-                                      : 100;
+                                if (typeof dynamicSize === 'number') {
+                                    return dynamicSize;
+                                }
+
+                                // 2. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
+                                    return rxData.markerIconSize;
+                                }
+
+                                // 3. Priorität: iconSize (global)
+                                if (typeof rxData.iconSize === 'number') {
+                                    return rxData.iconSize;
+                                }
+
+                                // 4. Fallback
+                                return 100;
                             })(),
                             iconXOffset: (() => {
                                 const val = getDataValue<string>('iconXOffset', String(i));
@@ -290,10 +344,10 @@ function useData(oid: string) {
                             })(),
                             iconColor:
                                 getDynamicProperty(rxData as Record<string, any>, `iconColor${i}`) ||
-                                (isSliderFieldsRxData(rxData) ? rxData.sliderColor : undefined) ||
+                                (isSliderFieldsRxData(rxData) ? rxData.markerIconColor : undefined) ||
                                 rxData.iconColor ||
-                                rxData.textColor ||
-                                textStyles.color ||
+                                // rxData.textColor ||
+                                // textStyles.color ||
                                 theme.palette.primary.main,
 
                             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
@@ -328,7 +382,7 @@ function useData(oid: string) {
         };
 
         return processStates();
-    }, [oidObject, rxData, getDataValue, backgroundStyles, textStyles.color, theme.palette.primary.main, oidValue]);
+    }, [oidObject, rxData, getDataValue, backgroundStyles, theme.palette.primary.main, oidValue]);
 
     // Styling-Daten
     const data = useMemo(() => {

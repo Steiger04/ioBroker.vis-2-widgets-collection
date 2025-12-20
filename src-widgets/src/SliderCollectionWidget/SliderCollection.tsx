@@ -5,7 +5,7 @@
  */
 
 import { Box, Slider } from '@mui/material';
-import React, { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
+import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
@@ -50,8 +50,11 @@ const SliderCollection: FC = () => {
     const sliderContainerRef = useRef<HTMLDivElement>(null);
     const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
-    const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
-    const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
+    // const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
+    // const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
+
+    const startIconColor = widget.data.startIconColor || data.iconColor;
+    const endIconColor = widget.data.endIconColor || data.iconColor;
 
     const oidType = oidObject?.type;
 
@@ -342,7 +345,8 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
-                                        defaultIconColor: widget.data.sliderColor || data.iconColor || data.textColor,
+                                        // defaultIconColor: widget.data.sliderColor || data.iconColor,
+                                        defaultIconColor: data.iconColor,
                                     } as SliderMarkLabelProps,
                                 }}
                                 disabled={oidType !== 'number'}

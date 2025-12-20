@@ -93,10 +93,21 @@ export interface SliderFieldsRxData {
     /**
      * Mark text size in percentage.
      *
-     * @default 80
      * @remarks Valid range: 0-500
      */
     markerTextSize?: number;
+
+    /**
+     * Mark icon color (CSS color).
+     */
+    markerIconColor?: string;
+
+    /**
+     * Mark icon size in percentage.
+     *
+     * @remarks Valid range: 0-500
+     */
+    markerIconSize?: number;
 
     /**
      * Small icon for minimum value.

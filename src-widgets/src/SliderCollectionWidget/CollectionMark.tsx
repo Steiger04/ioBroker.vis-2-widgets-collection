@@ -104,10 +104,17 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         // 3. data.valueSize (Gruppe Allgemein, globaler Fallback für alle Markierungen)
                         // 4. '1em' (finaler Fallback, entspricht 100%)
                         //
+                        // color: Vollständige Prioritätskette (analog zu fontSize)
+                        // 1. textColorActive (Gruppe Aktiv, wenn diese Markierung aktiv ist)
+                        // 2. mark.textColor (vorberechnet in useData.ts, nur für States)
+                        //    - textColor${i} (Gruppe Wert[1]-Wert[n], individuell für diesen Zustand)
+                        //    - markerTextColor (Gruppe Schieberegler, nur für Markierungen die Zustände sind)
+                        // 3. data.textColor (Gruppe Allgemein, globaler Fallback für alle Markierungen)
+                        //
                         // WICHTIG: Diese Styles überschreiben die globalen MuiSlider-markLabel Styles
-                        // aus SliderCollection.tsx (Zeilen 417-432) durch höhere CSS-Spezifität.
+                        // aus SliderCollection.tsx (Zeilen 415-426) durch höhere CSS-Spezifität.
                         // Min/Max/Step-Markierungen (keine States) haben mark.fontSize=undefined und
-                        // verwenden nur data.valueSize oder '1em'.
+                        // mark.textColor=undefined und verwenden nur data.valueSize/data.textColor oder Fallbacks.
                         fontSize:
                             (isCurrentSelected &&
                                 typeof widget.data.valueSizeActive === 'number' &&
@@ -116,10 +123,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                             data.valueSize ||
                             '1em',
 
-                        // Use styling based on isCurrentSelected for aliasActive
-                        color: mark.textColor,
-                        // For debugging: add a visual indication when aliasActive is applied
-                        fontWeight: isCurrentSelected && aliasActive ? 'bold' : 'normal',
+                        color: (isCurrentSelected && widget.data.textColorActive) || mark.textColor || data.textColor,
                     }}
                 />
                 <Box
