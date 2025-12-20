@@ -73,7 +73,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             type: 'color',
             hidden: 'data.noIcon',
         },
-        {
+        /* {
             name: `iconHover${groupName}`,
             label: 'icon_hover',
             type: 'slider',
@@ -82,7 +82,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
 
             step: 1,
             hidden: 'data.noIcon',
-        },
+        }, */
         {
             name: `iconXOffset${groupName}`,
             label: 'icon_x_offset',
