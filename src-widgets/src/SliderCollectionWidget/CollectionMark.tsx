@@ -96,17 +96,18 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         pr: sliderOrientation === 'vertical' ? 1 : 0,
                         pb: sliderOrientation === 'vertical' ? 0 : 1,
 
-                        // fontSize: Fallback-Kette analog zu ButtonGroupCollection.tsx (Zeilen 607-615)
-                        // 1. valueSizeActive (global, wenn diese Markierung aktiv ist)
-                        // 2. mark.fontSize (vorberechnet in useData.ts basierend auf oidValue)
-                        // 3. data.valueSize (globaler Fallback)
-                        // 4. '1em' (finaler Fallback)
+                        // fontSize: Vollständige Prioritätskette (alle Werte als % relativ zu 1em)
+                        // 1. valueSizeActive (Gruppe Aktiv, wenn diese Markierung aktiv ist)
+                        // 2. mark.fontSize (vorberechnet in useData.ts, nur für States)
+                        //    - valueSize${i} (Gruppe Wert[1]-Wert[n], individuell für diesen Zustand)
+                        //    - markerTextSize (Gruppe Schieberegler, nur für Markierungen die Zustände sind)
+                        // 3. data.valueSize (Gruppe Allgemein, globaler Fallback für alle Markierungen)
+                        // 4. '1em' (finaler Fallback, entspricht 100%)
                         //
                         // WICHTIG: Diese Styles überschreiben die globalen MuiSlider-markLabel Styles
-                        // aus SliderCollection.tsx (Zeilen 411-427) durch höhere CSS-Spezifität.
-                        // Die globalen Styles dienen nur als Fallback für Markierungen ohne individuelle Config.
-                        // Interaktion mit useData.ts: Die Hook liefert mark.fontSize, während hier
-                        // die finale Entscheidung zur Laufzeit mit isCurrentSelected getroffen wird.
+                        // aus SliderCollection.tsx (Zeilen 417-432) durch höhere CSS-Spezifität.
+                        // Min/Max/Step-Markierungen (keine States) haben mark.fontSize=undefined und
+                        // verwenden nur data.valueSize oder '1em'.
                         fontSize:
                             (isCurrentSelected &&
                                 typeof widget.data.valueSizeActive === 'number' &&

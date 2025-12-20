@@ -178,7 +178,7 @@ export function getAllIndexedProperties<T extends Record<string, any>, P extends
  * ```
  */
 export function isSliderFieldsRxData(data: any): data is SliderFieldsRxData {
-    return typeof data === 'object' && data !== null && 'sliderColor' in data;
+    return typeof data === 'object' && data !== null && 'sliderOrientation' in data;
 }
 
 /**

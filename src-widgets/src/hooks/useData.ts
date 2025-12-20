@@ -221,8 +221,9 @@ function useData(oid: string) {
                             // fontSize: Fallback-Kette analog zu ButtonGroupCollection
                             // 1. valueSizeActive (global, wenn dieser State aktiv ist)
                             // 2. valueSize${i} (individuell für diesen State)
-                            // 3. valueSize (global)
-                            // 4. undefined (Fallback auf globalen valueSize in CollectionMark)
+                            // 3. markerTextSize (nur für Slider-Markierungen)
+                            // 4. valueSize (global)
+                            // 5. undefined (Fallback auf globalen valueSize in CollectionMark)
                             fontSize: (() => {
                                 // Prüfe, ob dieser State der aktuell aktive ist
                                 const isActive = String(oidValue) === String(_value);
@@ -241,12 +242,17 @@ function useData(oid: string) {
                                     return `${individualSize}%`;
                                 }
 
-                                // 3. Verwende globalen valueSize
+                                // 3. Verwende markerTextSize (nur für Slider-Markierungen)
+                                if (isSliderFieldsRxData(rxData) && typeof rxData.markerTextSize === 'number') {
+                                    return `${rxData.markerTextSize}%`;
+                                }
+
+                                // 4. Verwende globalen valueSize
                                 if (typeof rxData.valueSize === 'number') {
                                     return `${rxData.valueSize}%`;
                                 }
 
-                                // 4. Kein spezifischer Wert gefunden - undefined
+                                // 5. Kein spezifischer Wert gefunden - undefined
                                 return undefined;
                             })(),
 

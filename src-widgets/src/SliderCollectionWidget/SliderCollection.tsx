@@ -227,8 +227,6 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
-    console.log('data', data);
-
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -415,11 +413,7 @@ const SliderCollection: FC = () => {
                                     // WICHTIG: Diese Styles werden von individuellen Styles in CollectionMark überschrieben.
                                     // Priorität: CollectionMark (individuell) > MuiSlider-markLabel (global)
                                     '& .MuiSlider-markLabel': {
-                                        fontSize:
-                                            (typeof widget.data.markerTextSize === 'number' &&
-                                                `${widget.data.markerTextSize}%`) ||
-                                            data.valueSize ||
-                                            '1em',
+                                        fontSize: data.valueSize || '1em',
                                         color: widget.data.markerTextColor || data.textColor,
                                         top:
                                             widget.data.sliderOrientation === 'horizontal'
