@@ -139,7 +139,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         type: 'slider',
         min: 0,
         max: 500,
-        default: 80,
+        // default: 80,
         step: 1,
         hidden: '!data.marks',
     } as const,

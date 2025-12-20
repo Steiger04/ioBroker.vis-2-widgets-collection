@@ -46,7 +46,7 @@ export interface StyleData {
     /** Value font size. */
     valueSize: string | null;
     /** Active value font size (or `false` when not configured). */
-    valueSizeActive: string | false | null;
+    valueSizeActive: string | null;
 
     /** Icon URL/name or `false` when not configured. */
     icon: string | false;
@@ -218,9 +218,37 @@ function useData(oid: string) {
                                 _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
-                            fontSize:
-                                formatSize(getDynamicProperty(rxData as Record<string, any>, `valueSize${i}`)) ||
-                                undefined,
+                            // fontSize: Fallback-Kette analog zu ButtonGroupCollection
+                            // 1. valueSizeActive (global, wenn dieser State aktiv ist)
+                            // 2. valueSize${i} (individuell für diesen State)
+                            // 3. valueSize (global)
+                            // 4. undefined (Fallback auf globalen valueSize in CollectionMark)
+                            fontSize: (() => {
+                                // Prüfe, ob dieser State der aktuell aktive ist
+                                const isActive = String(oidValue) === String(_value);
+
+                                // 1. Wenn aktiv: Verwende globalen valueSizeActive aus commonFields
+                                if (isActive && typeof rxData.valueSizeActive === 'number') {
+                                    return `${rxData.valueSizeActive}%`;
+                                }
+
+                                // 2. Verwende individuellen valueSize${i}
+                                const individualSize = getDynamicProperty(
+                                    rxData as Record<string, any>,
+                                    `valueSize${i}`,
+                                );
+                                if (typeof individualSize === 'number') {
+                                    return `${individualSize}%`;
+                                }
+
+                                // 3. Verwende globalen valueSize
+                                if (typeof rxData.valueSize === 'number') {
+                                    return `${rxData.valueSize}%`;
+                                }
+
+                                // 4. Kein spezifischer Wert gefunden - undefined
+                                return undefined;
+                            })(),
 
                             textColor: getDynamicProperty(rxData as Record<string, any>, `textColor${i}`),
 
@@ -294,7 +322,7 @@ function useData(oid: string) {
         };
 
         return processStates();
-    }, [oidObject, rxData, getDataValue, formatSize, backgroundStyles, textStyles.color, theme.palette.primary.main]);
+    }, [oidObject, rxData, getDataValue, backgroundStyles, textStyles.color, theme.palette.primary.main, oidValue]);
 
     // Styling-Daten
     const data = useMemo(() => {
@@ -333,7 +361,7 @@ function useData(oid: string) {
             valueSizeActive:
                 typeof getDataValue('valueSize', String(ext)) === 'number'
                     ? formatSize(getDataValue('valueSize', String(ext)))
-                    : false,
+                    : null,
 
             icon: (() => {
                 if (rxData.noIcon) {

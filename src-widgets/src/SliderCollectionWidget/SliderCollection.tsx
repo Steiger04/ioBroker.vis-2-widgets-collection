@@ -227,6 +227,8 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
+    console.log('data', data);
+
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -397,6 +399,7 @@ const SliderCollection: FC = () => {
                                             (widget.data.markerTextSize && `${widget.data.markerTextSize}%`) ||
                                             data.valueSize ||
                                             '1em',
+
                                         color: data.textColorActive || widget.data.markerTextColor || data.textColor,
                                         bgcolor: 'transparent',
                                         top:
@@ -408,6 +411,9 @@ const SliderCollection: FC = () => {
                                                 ? widget.data.labelPosition
                                                 : undefined,
                                     },
+                                    // Globale Styles für alle Markierungen (Fallback)
+                                    // WICHTIG: Diese Styles werden von individuellen Styles in CollectionMark überschrieben.
+                                    // Priorität: CollectionMark (individuell) > MuiSlider-markLabel (global)
                                     '& .MuiSlider-markLabel': {
                                         fontSize:
                                             (typeof widget.data.markerTextSize === 'number' &&

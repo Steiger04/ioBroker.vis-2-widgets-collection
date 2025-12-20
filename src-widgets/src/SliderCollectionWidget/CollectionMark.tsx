@@ -5,7 +5,11 @@
  */
 
 import { SliderMarkLabel, Box } from '@mui/material';
-import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react';
+import React, { useState, useEffect, useContext, type FC, type HTMLAttributes } from 'react';
+import { CollectionContext } from '../components/CollectionProvider';
+import useData from '../hooks/useData';
+
+import type { SliderCollectionContextProps } from '../types';
 
 interface MarkData {
     value: number;
@@ -52,6 +56,9 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     ...props
 }) => {
     const [ref, setRef] = useState<HTMLElement | null>(null);
+    const { data } = useData('oid');
+    const context = useContext(CollectionContext) as SliderCollectionContextProps;
+    const { widget } = context;
 
     const index = props['data-index'];
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
@@ -72,12 +79,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     }, [mark?.label, ref, isCurrentSelected, aliasActive, index]);
 
     return marks && mark ? (
-        <SliderMarkLabel
-            style={{
-                color: 'red',
-            }}
-            {...props}
-        >
+        <SliderMarkLabel {...props}>
             <Box
                 sx={{
                     display: 'flex',
@@ -94,8 +96,24 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         pr: sliderOrientation === 'vertical' ? 1 : 0,
                         pb: sliderOrientation === 'vertical' ? 0 : 1,
 
-                        // fontSize: typeof mark.fontSize === "number" && mark.fontSize}%`,
-                        fontSize: mark.fontSize,
+                        // fontSize: Fallback-Kette analog zu ButtonGroupCollection.tsx (Zeilen 607-615)
+                        // 1. valueSizeActive (global, wenn diese Markierung aktiv ist)
+                        // 2. mark.fontSize (vorberechnet in useData.ts basierend auf oidValue)
+                        // 3. data.valueSize (globaler Fallback)
+                        // 4. '1em' (finaler Fallback)
+                        //
+                        // WICHTIG: Diese Styles überschreiben die globalen MuiSlider-markLabel Styles
+                        // aus SliderCollection.tsx (Zeilen 411-427) durch höhere CSS-Spezifität.
+                        // Die globalen Styles dienen nur als Fallback für Markierungen ohne individuelle Config.
+                        // Interaktion mit useData.ts: Die Hook liefert mark.fontSize, während hier
+                        // die finale Entscheidung zur Laufzeit mit isCurrentSelected getroffen wird.
+                        fontSize:
+                            (isCurrentSelected &&
+                                typeof widget.data.valueSizeActive === 'number' &&
+                                `${widget.data.valueSizeActive}%`) ||
+                            mark.fontSize ||
+                            data.valueSize ||
+                            '1em',
 
                         // Use styling based on isCurrentSelected for aliasActive
                         color: mark.textColor,
