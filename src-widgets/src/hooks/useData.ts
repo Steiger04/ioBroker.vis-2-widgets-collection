@@ -15,6 +15,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
 import type { OidObject } from '../types/utility-types';
 import { getDynamicProperty, isSliderFieldsRxData } from '../types/utility-types';
+import { formatSizeRem } from '../lib/helper/formatSizeRem';
 
 /**
  * Derived style/presentation data for a Collection widget.
@@ -98,7 +99,7 @@ export interface StyleData {
 interface StateItem {
     value: string | number | boolean;
     label: string;
-    fontSize?: string;
+    fontSize?: string | null;
     textColor?: string;
     icon?: string;
     iconSize?: number;
@@ -148,10 +149,7 @@ function useData(oid: string) {
 
     const oidName = oidObject?.name;
 
-    const formatSize = useCallback(
-        (size: number | string | undefined): string | null => (typeof size === 'number' ? `${size}%` : null),
-        [],
-    );
+    const formatSize = useCallback(formatSizeRem, []);
 
     /**
      * Safe accessor for dynamic `rxData` properties.
@@ -230,7 +228,8 @@ function useData(oid: string) {
 
                                 // 1. Wenn aktiv: Verwende globalen valueSizeActive aus commonFields
                                 if (isActive && typeof rxData.valueSizeActive === 'number') {
-                                    return `${rxData.valueSizeActive}%`;
+                                    // return `${rxData.valueSizeActive}%`;
+                                    return formatSize(rxData.valueSizeActive);
                                 }
 
                                 // 2. Verwende individuellen valueSize${i}
@@ -239,17 +238,20 @@ function useData(oid: string) {
                                     `valueSize${i}`,
                                 );
                                 if (typeof individualSize === 'number') {
-                                    return `${individualSize}%`;
+                                    // return `${individualSize}%`;
+                                    return formatSize(individualSize);
                                 }
 
                                 // 3. Verwende markerTextSize (nur für Slider-Markierungen)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerTextSize === 'number') {
-                                    return `${rxData.markerTextSize}%`;
+                                    // return `${rxData.markerTextSize}%`;
+                                    return formatSize(rxData.markerTextSize);
                                 }
 
                                 // 4. Verwende globalen valueSize
                                 if (typeof rxData.valueSize === 'number') {
-                                    return `${rxData.valueSize}%`;
+                                    // return `${rxData.valueSize}%`;
+                                    return formatSize(rxData.valueSize);
                                 }
 
                                 // 5. Kein spezifischer Wert gefunden - undefined
@@ -398,7 +400,18 @@ function useData(oid: string) {
         };
 
         return processStates();
-    }, [oidObject, rxData, getDataValue, backgroundStyles, theme.palette.primary.main, oidValue]);
+    }, [
+        oidObject?.type,
+        oidObject?.commonStates,
+        oidObject?.unit,
+        rxData,
+        theme.palette.primary.main,
+        backgroundStyles.backgroundColor,
+        backgroundStyles.background,
+        getDataValue,
+        oidValue,
+        formatSize,
+    ]);
 
     // Styling-Daten
     const data = useMemo(() => {
@@ -464,7 +477,7 @@ function useData(oid: string) {
                     ? getDataValue<number>('iconSize', String(ext))
                     : rxData.iconSize,
 
-            iconColor: rxData.iconColor,
+            iconColor: rxData.iconColor || theme.palette.primary.main,
             iconColorActive: getDataValue<string>('iconColor', String(ext)),
 
             iconHover: rxData.iconHover ? `${rxData.iconHover}%` : undefined,
@@ -512,6 +525,7 @@ function useData(oid: string) {
                     return getStyleData(String(_activeIndex + 1));
                 }
 
+                setActiveIndex(undefined);
                 return getStyleData('');
             }
             default:

@@ -5,10 +5,11 @@
  */
 
 import { SliderMarkLabel, Box, Typography } from '@mui/material';
-import React, { useState, useEffect, useContext, type FC, type HTMLAttributes } from 'react';
+import React, { useState, useEffect, useContext, useCallback, type FC, type HTMLAttributes } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
+import { formatSizeRem } from '../lib/helper/formatSizeRem';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -70,6 +71,8 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     // Check if this is exactly the current selected mark using our index
     const isCurrentSelected = activeMarkIndex === index;
 
+    const formatSize = useCallback(formatSizeRem, []);
+
     useEffect(() => {
         if (ref && mark?.label) {
             // Use aliasActive ONLY for the currently selected mark (not all active marks)
@@ -124,10 +127,11 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         fontSize:
                             (isCurrentSelected &&
                                 typeof widget.data.valueSizeActive === 'number' &&
-                                `${widget.data.valueSizeActive}%`) ||
+                                formatSize(widget.data.valueSizeActive)) ||
+                            // `${widget.data.valueSizeActive}%`) ||
                             mark.fontSize ||
                             data.valueSize ||
-                            '1em',
+                            '1rem',
 
                         color: (isCurrentSelected && widget.data.textColorActive) || mark.textColor || data.textColor,
                     }}
@@ -154,9 +158,9 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                             width: `${(24 * mark.iconWidth) / 100}px`,
                             height: `${(24 * mark.iconHeight) / 100}px`,
 
-                            color: mark.iconColor || defaultIconColor || undefined,
-                            filter: mark.iconColor || defaultIconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                            transform: mark.iconColor || defaultIconColor ? 'translateY(-10000px)' : undefined,
+                            color: mark.iconColor!,
+                            filter: mark.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
+                            transform: mark.iconColor ? 'translateY(-10000px)' : undefined,
                         }}
                     />
                 </Box>

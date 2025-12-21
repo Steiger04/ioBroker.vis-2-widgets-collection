@@ -5,7 +5,7 @@
  */
 
 import { Box, Slider } from '@mui/material';
-import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
+import { useState, useMemo, useContext, useEffect, useRef, useCallback, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
@@ -13,6 +13,7 @@ import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import useStyles from '../hooks/useStyles';
+import { formatSizeRem } from '../lib/helper/formatSizeRem';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -41,7 +42,7 @@ const SliderCollection: FC = () => {
         widget,
     } = context;
     const { fontStyles, textStyles } = useStyles(widget.style);
-    const { data, states, minValue, maxValue } = useData('oid');
+    const { data, states, minValue, maxValue, activeIndex } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
     const [sliderValue, setSliderValue] = useState<number | undefined>(
@@ -61,6 +62,8 @@ const SliderCollection: FC = () => {
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
+
+    const formatSize = useCallback(formatSizeRem, []);
 
     const sliderMinValue = useMemo(
         () => (!widget.data.onlyStates && widget.data.minValue !== undefined ? Number(widget.data.minValue) : minValue),
@@ -400,18 +403,30 @@ const SliderCollection: FC = () => {
                                     '& .MuiSlider-valueLabel': {
                                         ...fontStyles,
                                         ...textStyles,
-                                        fontSize:
-                                            data.valueSizeActive ||
-                                            (widget.data.markerTextSize && `${widget.data.markerTextSize}%`) ||
-                                            data.valueSize ||
-                                            '1em',
 
-                                        color: data.textColorActive || widget.data.markerTextColor || data.textColor,
+                                        fontSize:
+                                            formatSize(widget.data.valueSizeActive) ||
+                                            data.valueSizeActive ||
+                                            // (widget.data.markerTextSize && `${widget.data.markerTextSize}%`) ||
+                                            (activeIndex &&
+                                                widget.data.markerTextSize &&
+                                                formatSize(widget.data.markerTextSize)) ||
+                                            data.valueSize ||
+                                            '1rem',
+
+                                        color:
+                                            widget.data.textColorActive ||
+                                            data.textColorActive ||
+                                            (activeIndex && widget.data.markerTextColor) ||
+                                            data.textColor,
+
                                         bgcolor: 'transparent',
+
                                         top:
                                             widget.data.sliderOrientation === 'horizontal'
                                                 ? widget.data.labelPosition
                                                 : undefined,
+
                                         right:
                                             widget.data.sliderOrientation === 'vertical'
                                                 ? widget.data.labelPosition
@@ -421,7 +436,7 @@ const SliderCollection: FC = () => {
                                     // WICHTIG: Diese Styles werden von individuellen Styles in CollectionMark überschrieben.
                                     // Priorität: CollectionMark (individuell) > MuiSlider-markLabel (global)
                                     '& .MuiSlider-markLabel': {
-                                        fontSize: data.valueSize || '1em',
+                                        fontSize: data.valueSize || '1rem',
                                         color: widget.data.markerTextColor || data.textColor,
                                         top:
                                             widget.data.sliderOrientation === 'horizontal'
@@ -439,8 +454,11 @@ const SliderCollection: FC = () => {
                                                     ? `${widget.data.textColorActive} !important`
                                                     : undefined,
                                                 fontSize:
-                                                    typeof widget.data.valueSizeActive === 'number'
+                                                    /* typeof widget.data.valueSizeActive === 'number'
                                                         ? `${widget.data.valueSizeActive}% !important`
+                                                        : undefined, */
+                                                    typeof widget.data.valueSizeActive === 'number'
+                                                        ? `${formatSize(widget.data.valueSizeActive)} !important`
                                                         : undefined,
                                             },
                                             "& div[data-position='active']": {
@@ -466,8 +484,17 @@ const SliderCollection: FC = () => {
                                                         : undefined,
                                                 color: widget.data.iconColorActive
                                                     ? `${widget.data.iconColorActive}!important`
-                                                    : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
+                                                    : // : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
+                                                      undefined,
                                                 filter:
+                                                    widget.data.iconColorActive || widget.data.sliderColor
+                                                        ? 'drop-shadow(0px 10000px 0)'
+                                                        : undefined,
+                                                transform:
+                                                    widget.data.iconColorActive || widget.data.sliderColor
+                                                        ? 'translateY(-10000px)'
+                                                        : undefined,
+                                                /* filter:
                                                     widget.data.iconColorActive ||
                                                     widget.data.sliderColor ||
                                                     data.iconColor ||
@@ -480,13 +507,13 @@ const SliderCollection: FC = () => {
                                                     data.iconColor ||
                                                     data.textColor
                                                         ? 'translateY(-10000px)'
-                                                        : undefined,
-                                                pl:
+                                                        : undefined, */
+                                                /* pl:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? typeof widget.data.iconSizeActive === 'number'
                                                             ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
                                                             : undefined
-                                                        : undefined,
+                                                        : undefined, */
                                                 display:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? 'block'
