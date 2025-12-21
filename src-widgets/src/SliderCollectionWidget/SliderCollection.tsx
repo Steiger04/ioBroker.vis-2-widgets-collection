@@ -12,6 +12,7 @@ import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
+import useStyles from '../hooks/useStyles';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -39,6 +40,7 @@ const SliderCollection: FC = () => {
         },
         widget,
     } = context;
+    const { fontStyles, textStyles } = useStyles(widget.style);
     const { data, states, minValue, maxValue } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
@@ -396,6 +398,8 @@ const SliderCollection: FC = () => {
                                         filter: 'brightness(2.5)',
                                     },
                                     '& .MuiSlider-valueLabel': {
+                                        ...fontStyles,
+                                        ...textStyles,
                                         fontSize:
                                             data.valueSizeActive ||
                                             (widget.data.markerTextSize && `${widget.data.markerTextSize}%`) ||
@@ -455,11 +459,11 @@ const SliderCollection: FC = () => {
                                                 width:
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : '24px !important',
+                                                        : undefined,
                                                 height:
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : '24px !important',
+                                                        : undefined,
                                                 color: widget.data.iconColorActive
                                                     ? `${widget.data.iconColorActive}!important`
                                                     : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
@@ -481,7 +485,7 @@ const SliderCollection: FC = () => {
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? typeof widget.data.iconSizeActive === 'number'
                                                             ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                            : '24px'
+                                                            : undefined
                                                         : undefined,
                                                 display:
                                                     widget.data.iconActive || widget.data.iconSmallActive
@@ -500,11 +504,11 @@ const SliderCollection: FC = () => {
                                                         ? `${
                                                               typeof widget.data.iconSizeActive === 'number'
                                                                   ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                                  : '24px'
+                                                                  : undefined
                                                           } ${
                                                               typeof widget.data.iconSizeActive === 'number'
                                                                   ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                                  : '24px'
+                                                                  : undefined
                                                           }`
                                                         : undefined,
                                             },

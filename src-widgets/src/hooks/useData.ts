@@ -295,43 +295,59 @@ function useData(oid: string) {
                             })(),
                             iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : undefined,
                             iconWidth: (() => {
-                                // 1. Priorität: iconSize${i} (individuell pro Zustand)
+                                // Prüfe, ob dieser State der aktuell aktive ist
+                                const isActive = String(oidValue) === String(_value);
+
+                                // 1. Priorität: iconSizeActive (global, wenn dieser State aktiv ist)
+                                if (isActive && typeof rxData.iconSizeActive === 'number') {
+                                    return rxData.iconSizeActive;
+                                }
+
+                                // 2. Priorität: iconSize${i} (individuell pro Zustand)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
                                 if (typeof dynamicSize === 'number') {
                                     return dynamicSize;
                                 }
 
-                                // 2. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                // 3. Priorität: markerIconSize (nur für Slider-Markierungen)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
                                     return rxData.markerIconSize;
                                 }
 
-                                // 3. Priorität: iconSize (global)
+                                // 4. Priorität: iconSize (global)
                                 if (typeof rxData.iconSize === 'number') {
                                     return rxData.iconSize;
                                 }
 
-                                // 4. Fallback
+                                // 5. Fallback
                                 return 100;
                             })(),
                             iconHeight: (() => {
-                                // 1. Priorität: iconSize${i} (individuell pro Zustand)
+                                // Prüfe, ob dieser State der aktuell aktive ist
+                                const isActive = String(oidValue) === String(_value);
+
+                                // 1. Priorität: iconSizeActive (global, wenn dieser State aktiv ist)
+                                if (isActive && typeof rxData.iconSizeActive === 'number') {
+                                    return rxData.iconSizeActive;
+                                }
+
+                                // 2. Priorität: iconSize${i} (individuell pro Zustand)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
                                 if (typeof dynamicSize === 'number') {
                                     return dynamicSize;
                                 }
 
-                                // 2. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                // 3. Priorität: markerIconSize (nur für Slider-Markierungen)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
                                     return rxData.markerIconSize;
                                 }
 
-                                // 3. Priorität: iconSize (global)
+                                // 4. Priorität: iconSize (global)
                                 if (typeof rxData.iconSize === 'number') {
                                     return rxData.iconSize;
                                 }
 
-                                // 4. Fallback
+                                // 5. Fallback
                                 return 100;
                             })(),
                             iconXOffset: (() => {
