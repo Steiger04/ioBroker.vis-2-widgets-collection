@@ -14,6 +14,7 @@ import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import useStyles from '../hooks/useStyles';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
+import { isSmallIcon } from '../lib/helper/isSmallIcon';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -58,6 +59,16 @@ const SliderCollection: FC = () => {
 
     const startIconColor = widget.data.startIconColor || data.iconColor;
     const endIconColor = widget.data.endIconColor || data.iconColor;
+
+    const startIcon =
+        widget.data.sliderOrientation === 'horizontal'
+            ? widget.data.iconMin || widget.data.iconSmallMin
+            : widget.data.iconMax || widget.data.iconSmallMax;
+
+    const endIcon =
+        widget.data.sliderOrientation === 'horizontal'
+            ? widget.data.iconMax || widget.data.iconSmallMax
+            : widget.data.iconMin || widget.data.iconSmallMin;
 
     const oidType = oidObject?.type;
 
@@ -305,24 +316,23 @@ const SliderCollection: FC = () => {
                         >
                             <img
                                 alt=""
-                                src={
-                                    widget.data.sliderOrientation === 'horizontal'
-                                        ? widget.data.iconMin || widget.data.iconSmallMin
-                                        : widget.data.iconMax || widget.data.iconSmallMax
-                                }
+                                src={startIcon}
                                 style={{
                                     width:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeStart || '24px'
                                             : widget.data.iconSizeEnd || '24px',
-                                    height:
+                                    /* height:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeStart || '24px'
-                                            : widget.data.iconSizeEnd || '24px',
-                                    color:
-                                        widget.data.sliderOrientation === 'horizontal' ? startIconColor : endIconColor,
-                                    filter: 'drop-shadow(0px 10000px 0)',
-                                    transform: 'translateY(-10000px)',
+                                            : widget.data.iconSizeEnd || '24px', */
+                                    color: isSmallIcon(startIcon)
+                                        ? widget.data.sliderOrientation === 'horizontal'
+                                            ? startIconColor
+                                            : endIconColor
+                                        : undefined,
+                                    filter: isSmallIcon(startIcon) ? 'drop-shadow(0px 10000px 0)' : undefined,
+                                    transform: isSmallIcon(startIcon) ? 'translateY(-10000px)' : undefined,
                                 }}
                             />
                         </Box>
@@ -478,20 +488,24 @@ const SliderCollection: FC = () => {
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
                                                         : undefined,
-                                                height:
+                                                /* height:
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : undefined,
-                                                color: widget.data.iconColorActive
-                                                    ? `${widget.data.iconColorActive}!important`
-                                                    : // : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
-                                                      undefined,
+                                                        : undefined, */
+                                                color:
+                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
+                                                    widget.data.iconColorActive
+                                                        ? `${widget.data.iconColorActive}!important`
+                                                        : // : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
+                                                          undefined,
                                                 filter:
-                                                    widget.data.iconColorActive || widget.data.sliderColor
+                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
+                                                    (widget.data.iconColorActive || widget.data.sliderColor)
                                                         ? 'drop-shadow(0px 10000px 0)'
                                                         : undefined,
                                                 transform:
-                                                    widget.data.iconColorActive || widget.data.sliderColor
+                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
+                                                    (widget.data.iconColorActive || widget.data.sliderColor)
                                                         ? 'translateY(-10000px)'
                                                         : undefined,
                                                 /* filter:
@@ -571,24 +585,23 @@ const SliderCollection: FC = () => {
                         >
                             <img
                                 alt=""
-                                src={
-                                    widget.data.sliderOrientation === 'horizontal'
-                                        ? widget.data.iconMax || widget.data.iconSmallMax
-                                        : widget.data.iconMin || widget.data.iconSmallMin
-                                }
+                                src={endIcon}
                                 style={{
                                     width:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeEnd || '24px'
                                             : widget.data.iconSizeStart || '24px',
-                                    height:
+                                    /* height:
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeEnd || '24px'
-                                            : widget.data.iconSizeStart || '24px',
-                                    color:
-                                        widget.data.sliderOrientation === 'horizontal' ? endIconColor : startIconColor,
-                                    filter: 'drop-shadow(0px 10000px 0)',
-                                    transform: 'translateY(-10000px)',
+                                            : widget.data.iconSizeStart || '24px', */
+                                    color: isSmallIcon(endIcon)
+                                        ? widget.data.sliderOrientation === 'horizontal'
+                                            ? endIconColor
+                                            : startIconColor
+                                        : undefined,
+                                    filter: isSmallIcon(endIcon) ? 'drop-shadow(0px 10000px 0)' : undefined,
+                                    transform: isSmallIcon(endIcon) ? 'translateY(-10000px)' : undefined,
                                 }}
                             />
                         </Box>

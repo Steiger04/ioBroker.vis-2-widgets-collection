@@ -40,22 +40,22 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             hidden: 'data.noIcon',
         },
         {
-            name: `iconSmall${groupName}`,
-            label: 'small_icon',
-            type: 'icon64',
-            hidden: (data, i) =>
-                data.noIcon ||
-                data[`icon${i === undefined ? '' : i}`] ||
-                (`icon${groupName}` === 'iconActive' && data[`icon${groupName}`]),
-        },
-        {
             name: `icon${groupName}`,
             label: 'icon',
             type: 'image',
-            hidden: (data, i) =>
+            /* hidden: (data, i) =>
                 data.noIcon ||
                 data[`iconSmall${i === undefined ? '' : i}`] ||
-                (`iconSmall${groupName}` === 'iconSmallActive' && data[`iconSmall${groupName}`]),
+                (`iconSmall${groupName}` === 'iconSmallActive' && data[`iconSmall${groupName}`]), */
+        },
+        {
+            name: `iconSmall${groupName}`,
+            label: 'small_icon',
+            type: 'icon64',
+            /* hidden: (data, i) =>
+                data.noIcon ||
+                data[`icon${i === undefined ? '' : i}`] ||
+                (`icon${groupName}` === 'iconActive' && data[`icon${groupName}`]), */
         },
         {
             name: `iconSize${groupName}`,

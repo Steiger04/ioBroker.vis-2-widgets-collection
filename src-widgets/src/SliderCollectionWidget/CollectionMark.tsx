@@ -10,6 +10,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
+import { isSmallIcon } from '../lib/helper/isSmallIcon';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -156,11 +157,19 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         style={{
                             position: 'relative',
                             width: `${(24 * mark.iconWidth) / 100}px`,
-                            height: `${(24 * mark.iconHeight) / 100}px`,
+                            // height: `${(24 * mark.iconHeight) / 100}px`,
 
-                            color: mark.iconColor!,
-                            filter: mark.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                            transform: mark.iconColor ? 'translateY(-10000px)' : undefined,
+                            color: isSmallIcon(mark.icon) ? mark.iconColor! : undefined,
+                            filter: isSmallIcon(mark.icon)
+                                ? mark.iconColor
+                                    ? 'drop-shadow(0px 10000px 0)'
+                                    : undefined
+                                : undefined,
+                            transform: isSmallIcon(mark.icon)
+                                ? mark.iconColor
+                                    ? 'translateY(-10000px)'
+                                    : undefined
+                                : undefined,
                         }}
                     />
                 </Box>
