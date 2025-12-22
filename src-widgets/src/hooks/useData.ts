@@ -107,7 +107,7 @@ interface StateItem {
     iconHeight: number;
     iconXOffset: string;
     iconYOffset: string;
-    iconColor: string;
+    iconColor?: string;
     backgroundColor: string;
     backgroundColorActive?: string;
     background: string;

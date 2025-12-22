@@ -151,27 +151,79 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                     <img
                         data-img="active"
                         src={
+                            // Wenn aktiv UND aktives Icon definiert: aktives Icon verwenden
+                            (isCurrentSelected && (widget.data.iconActive || widget.data.iconSmallActive)) ||
+                            // Sonst: Wert-Icon verwenden
                             mark.icon ||
+                            // Fallback: transparentes Pixel
                             'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
                         }
                         alt=""
                         style={{
                             position: 'relative',
 
-                            width: `${(24 * mark.iconWidth) / 100}px`,
-                            height: `${(24 * mark.iconHeight) / 100}px`,
+                            // Icon-Größe: Aktive Größe verwenden, wenn aktiv, sonst Wert-Größe
+                            width:
+                                isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
+                                    ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                    : `${(24 * mark.iconWidth) / 100}px`,
+                            /* height:
+                                isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
+                                    ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                    : `${(24 * mark.iconHeight) / 100}px`, */
 
-                            color: isSmallIcon(mark.icon) ? mark.iconColor! : undefined,
-                            filter: isSmallIcon(mark.icon)
-                                ? mark.iconColor
-                                    ? 'drop-shadow(0px 10000px 0)'
-                                    : undefined
-                                : undefined,
-                            transform: isSmallIcon(mark.icon)
-                                ? mark.iconColor
-                                    ? 'translateY(-10000px)'
-                                    : undefined
-                                : undefined,
+                            // Icon-Farbe: Aktive Farbe verwenden, wenn aktiv und aktives Icon ist SVG, sonst Wert-Farbe
+                            color:
+                                isCurrentSelected && widget.data.iconActive
+                                    ? undefined // Keine Farbe für iconActive
+                                    : isCurrentSelected && widget.data.iconSmallActive
+                                      ? (widget.data.iconColorActive && widget.data.iconColorActive !== ''
+                                            ? widget.data.iconColorActive
+                                            : null) ||
+                                        (mark.iconColor && mark.iconColor !== '' ? mark.iconColor : null) ||
+                                        (data.iconColor && data.iconColor !== '' ? data.iconColor : null) ||
+                                        defaultIconColor ||
+                                        undefined
+                                      : isSmallIcon(mark.icon)
+                                        ? (mark.iconColor && mark.iconColor !== '' ? mark.iconColor : null) ||
+                                          (data.iconColor && data.iconColor !== '' ? data.iconColor : null) ||
+                                          defaultIconColor ||
+                                          undefined
+                                        : undefined,
+                            filter:
+                                isCurrentSelected && widget.data.iconActive
+                                    ? undefined // Kein Filter für iconActive
+                                    : isCurrentSelected && widget.data.iconSmallActive
+                                      ? (widget.data.iconColorActive && widget.data.iconColorActive !== '') ||
+                                        (mark.iconColor && mark.iconColor !== '') ||
+                                        (data.iconColor && data.iconColor !== '') ||
+                                        defaultIconColor
+                                          ? 'drop-shadow(0px 10000px 0)'
+                                          : undefined
+                                      : isSmallIcon(mark.icon)
+                                        ? (mark.iconColor && mark.iconColor !== '') ||
+                                          (data.iconColor && data.iconColor !== '') ||
+                                          defaultIconColor
+                                            ? 'drop-shadow(0px 10000px 0)'
+                                            : undefined
+                                        : undefined,
+                            transform:
+                                isCurrentSelected && widget.data.iconActive
+                                    ? undefined // Keine Transformation für iconActive
+                                    : isCurrentSelected && widget.data.iconSmallActive
+                                      ? (widget.data.iconColorActive && widget.data.iconColorActive !== '') ||
+                                        (mark.iconColor && mark.iconColor !== '') ||
+                                        (data.iconColor && data.iconColor !== '') ||
+                                        defaultIconColor
+                                          ? 'translateY(-10000px)'
+                                          : undefined
+                                      : isSmallIcon(mark.icon)
+                                        ? (mark.iconColor && mark.iconColor !== '') ||
+                                          (data.iconColor && data.iconColor !== '') ||
+                                          defaultIconColor
+                                            ? 'translateY(-10000px)'
+                                            : undefined
+                                        : undefined,
                         }}
                     />
                 </Box>

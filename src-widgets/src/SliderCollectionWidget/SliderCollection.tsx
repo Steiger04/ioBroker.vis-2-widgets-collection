@@ -120,7 +120,7 @@ const SliderCollection: FC = () => {
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: '',
+                iconColor: undefined,
             });
         }
 
@@ -135,7 +135,7 @@ const SliderCollection: FC = () => {
                 iconHeight: 100,
                 iconXOffset: '0px',
                 iconYOffset: '0px',
-                iconColor: '',
+                iconColor: undefined,
             });
         }
 
@@ -154,7 +154,7 @@ const SliderCollection: FC = () => {
                         iconHeight: 100,
                         iconXOffset: '0px',
                         iconYOffset: '0px',
-                        iconColor: '',
+                        iconColor: undefined,
                     });
                 }
             }
@@ -361,8 +361,7 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
-                                        // defaultIconColor: widget.data.sliderColor || data.iconColor,
-                                        defaultIconColor: data.iconColor,
+                                        defaultIconColor: data.iconColor || theme.palette.primary.main,
                                     } as SliderMarkLabelProps,
                                 }}
                                 disabled={oidType !== 'number'}
@@ -487,74 +486,6 @@ const SliderCollection: FC = () => {
                                                         : widget.data.iconYOffsetActive === ''
                                                           ? undefined
                                                           : '0px !important',
-                                            },
-                                            "& img[data-img='active']": {
-                                                width:
-                                                    typeof widget.data.iconSizeActive === 'number'
-                                                        ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : '24px !important',
-                                                height:
-                                                    typeof widget.data.iconSizeActive === 'number'
-                                                        ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : undefined,
-                                                color:
-                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
-                                                    (widget.data.iconColorActive || widget.data.sliderColor)
-                                                        ? !widget.data.iconActive
-                                                            ? `${widget.data.iconColorActive || widget.data.sliderColor}!important`
-                                                            : undefined
-                                                        : undefined,
-                                                filter:
-                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
-                                                    (widget.data.iconColorActive || widget.data.sliderColor)
-                                                        ? 'drop-shadow(0px 10000px 0) !important'
-                                                        : undefined,
-                                                transform:
-                                                    isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
-                                                    (widget.data.iconColorActive || widget.data.sliderColor)
-                                                        ? 'translateY(-10000px) !important'
-                                                        : undefined,
-                                                /* filter:
-                                                    widget.data.iconColorActive ||
-                                                    widget.data.sliderColor ||
-                                                    data.iconColor ||
-                                                    data.textColor
-                                                        ? 'drop-shadow(0px 10000px 0)'
-                                                        : undefined,
-                                                transform:
-                                                    widget.data.iconColorActive ||
-                                                    widget.data.sliderColor ||
-                                                    data.iconColor ||
-                                                    data.textColor
-                                                        ? 'translateY(-10000px)'
-                                                        : undefined, */
-                                                pl:
-                                                    widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? typeof widget.data.iconSizeActive === 'number'
-                                                            ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                            : undefined
-                                                        : undefined,
-                                                display:
-                                                    widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? 'block'
-                                                        : undefined,
-                                                boxSizing:
-                                                    widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? 'border-box'
-                                                        : undefined,
-
-                                                background:
-                                                    widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? `url('${widget.data.iconActive || widget.data.iconSmallActive}') no-repeat center center`
-                                                        : undefined,
-                                                backgroundSize:
-                                                    widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? `${
-                                                              typeof widget.data.iconSizeActive === 'number'
-                                                                  ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                                  : '24px'
-                                                          } ${'auto'}`
-                                                        : undefined,
                                             },
                                         },
                                     },
