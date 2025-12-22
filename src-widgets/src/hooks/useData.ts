@@ -477,7 +477,7 @@ function useData(oid: string) {
                     ? getDataValue<number>('iconSize', String(ext))
                     : rxData.iconSize,
 
-            iconColor: rxData.iconColor || theme.palette.primary.main,
+            iconColor: rxData.iconColor,
             iconColorActive: getDataValue<string>('iconColor', String(ext)),
 
             iconHover: rxData.iconHover ? `${rxData.iconHover}%` : undefined,

@@ -41,6 +41,7 @@ const SliderCollection: FC = () => {
             data: { oidObject },
         },
         widget,
+        theme,
     } = context;
     const { fontStyles, textStyles } = useStyles(widget.style);
     const { data, states, minValue, maxValue, activeIndex } = useData('oid');
@@ -57,8 +58,8 @@ const SliderCollection: FC = () => {
     // const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
     // const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
 
-    const startIconColor = widget.data.startIconColor || data.iconColor;
-    const endIconColor = widget.data.endIconColor || data.iconColor;
+    const startIconColor = widget.data.startIconColor || data.iconColor || theme.palette.primary.main;
+    const endIconColor = widget.data.endIconColor || data.iconColor || theme.palette.primary.main;
 
     const startIcon =
         widget.data.sliderOrientation === 'horizontal'
@@ -476,37 +477,42 @@ const SliderCollection: FC = () => {
                                                     widget.data.iconXOffsetActive &&
                                                     widget.data.iconXOffsetActive !== '0px'
                                                         ? `${widget.data.iconXOffsetActive} !important`
-                                                        : '0px',
+                                                        : widget.data.iconXOffsetActive === ''
+                                                          ? undefined
+                                                          : '0px !important',
                                                 bottom:
                                                     widget.data.iconYOffsetActive &&
                                                     widget.data.iconYOffsetActive !== '0px'
                                                         ? `${widget.data.iconYOffsetActive} !important`
-                                                        : '0px !important',
+                                                        : widget.data.iconYOffsetActive === ''
+                                                          ? undefined
+                                                          : '0px !important',
                                             },
                                             "& img[data-img='active']": {
                                                 width:
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : undefined,
-                                                /* height:
+                                                        : '24px !important',
+                                                height:
                                                     typeof widget.data.iconSizeActive === 'number'
                                                         ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
-                                                        : undefined, */
+                                                        : undefined,
                                                 color:
                                                     isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
-                                                    widget.data.iconColorActive
-                                                        ? `${widget.data.iconColorActive}!important`
-                                                        : // : `${widget.data.sliderColor || data.iconColor || data.textColor}!important`,
-                                                          undefined,
+                                                    (widget.data.iconColorActive || widget.data.sliderColor)
+                                                        ? !widget.data.iconActive
+                                                            ? `${widget.data.iconColorActive || widget.data.sliderColor}!important`
+                                                            : undefined
+                                                        : undefined,
                                                 filter:
                                                     isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
                                                     (widget.data.iconColorActive || widget.data.sliderColor)
-                                                        ? 'drop-shadow(0px 10000px 0)'
+                                                        ? 'drop-shadow(0px 10000px 0) !important'
                                                         : undefined,
                                                 transform:
                                                     isSmallIcon(`${widget.data.iconSmall}${activeIndex ?? ''}`) &&
                                                     (widget.data.iconColorActive || widget.data.sliderColor)
-                                                        ? 'translateY(-10000px)'
+                                                        ? 'translateY(-10000px) !important'
                                                         : undefined,
                                                 /* filter:
                                                     widget.data.iconColorActive ||
@@ -522,12 +528,12 @@ const SliderCollection: FC = () => {
                                                     data.textColor
                                                         ? 'translateY(-10000px)'
                                                         : undefined, */
-                                                /* pl:
+                                                pl:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? typeof widget.data.iconSizeActive === 'number'
                                                             ? `${(24 * widget.data.iconSizeActive) / 100}px !important`
                                                             : undefined
-                                                        : undefined, */
+                                                        : undefined,
                                                 display:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? 'block'
@@ -536,21 +542,18 @@ const SliderCollection: FC = () => {
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? 'border-box'
                                                         : undefined,
+
                                                 background:
                                                     widget.data.iconActive || widget.data.iconSmallActive
-                                                        ? `url('${widget.data.iconSmallActive || widget.data.iconActive}') no-repeat center center`
+                                                        ? `url('${widget.data.iconActive || widget.data.iconSmallActive}') no-repeat center center`
                                                         : undefined,
                                                 backgroundSize:
                                                     widget.data.iconActive || widget.data.iconSmallActive
                                                         ? `${
                                                               typeof widget.data.iconSizeActive === 'number'
                                                                   ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                                  : undefined
-                                                          } ${
-                                                              typeof widget.data.iconSizeActive === 'number'
-                                                                  ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                                                  : undefined
-                                                          }`
+                                                                  : '24px'
+                                                          } ${'auto'}`
                                                         : undefined,
                                             },
                                         },

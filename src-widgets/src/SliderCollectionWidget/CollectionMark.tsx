@@ -141,6 +141,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                     data-position="active"
                     sx={{
                         position: 'relative',
+
                         bottom: mark.iconYOffset,
                         left: mark.iconXOffset,
 
@@ -156,8 +157,9 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         alt=""
                         style={{
                             position: 'relative',
+
                             width: `${(24 * mark.iconWidth) / 100}px`,
-                            // height: `${(24 * mark.iconHeight) / 100}px`,
+                            height: `${(24 * mark.iconHeight) / 100}px`,
 
                             color: isSmallIcon(mark.icon) ? mark.iconColor! : undefined,
                             filter: isSmallIcon(mark.icon)
