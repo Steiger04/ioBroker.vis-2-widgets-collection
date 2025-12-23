@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "news": {
+      "2.0.2": {
+        "en": "package.json changed",
+        "de": "paket.json geändert",
+        "ru": "package.json изменился",
+        "pt": "pacote.json alterado",
+        "nl": "package.json gewijzigd",
+        "fr": "paquet.json changé",
+        "it": "pacchetto.json cambiato",
+        "es": "paquete.json cambió",
+        "pl": "package.json zmienił",
+        "uk": "пакет.json змінився",
+        "zh-cn": "软件包。 json 已更改"
+      },
       "2.0.1": {
         "en": "package.json changed",
         "de": "paket.json geändert",
@@ -80,19 +93,6 @@
         "pl": "Funkcja przycisku wciskającego dla dodanego widżetu stanu",
         "uk": "Функціональність кнопки Push для державного віджету",
         "zh-cn": "添加了状态部件的按键功能"
-      },
-      "1.7.7": {
-        "en": "Slider optimized",
-        "de": "Slider optimiert",
-        "ru": "Оптимизированный слайдер",
-        "pt": "Slider otimizado",
-        "nl": "Slider geoptimaliseerd",
-        "fr": "Slider optimisé",
-        "it": "Slider ottimizzato",
-        "es": "Slider optimizado",
-        "pl": "Suwak zoptymalizowany",
-        "uk": "Оптимізований слайдер",
-        "zh-cn": "滑动器优化"
       }
     },
     "titleLang": {
