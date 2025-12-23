@@ -1,20 +1,19 @@
+.idea
 # ioBroker dev-server
 .dev-server/
-/.idea
-/.github/copilot-instructions.md
+.github/copilot-instructions.md
 
-/node_modules
+node_modules
 
-/src-widgets/.__mf__temp
-/src-widgets/build
-/src-widgets/node_modules
+src-widgets/.__mf__temp
+src-widgets/build
+src-widgets/node_modules
 
 # /src-widgets/package-lock.json
 # /package-lock.json
 
-/tmp
-# /widgets
-
+tmp
+widgets
 *.tgz
 
 #ignore .commitinfo created by ioBroker release script
