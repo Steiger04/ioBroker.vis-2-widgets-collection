@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "news": {
+      "2.0.4": {
+        "en": "gitignore changed",
+        "de": "gitignore geändert",
+        "ru": "гитиньор изменился",
+        "pt": "gitignore alterado",
+        "nl": "gitignore gewijzigd",
+        "fr": "gitignore modifié",
+        "it": "gitignore cambiato",
+        "es": "gitignore changed",
+        "pl": "gitignore zmienione",
+        "uk": "gitignore змінив",
+        "zh-cn": "吉提格诺尔变了"
+      },
       "2.0.3": {
         "en": "test-and-release.yml changed",
         "de": "test-and-release.yml geändert",
@@ -80,19 +93,6 @@
         "pl": "Światło dodane",
         "uk": "Світло додано",
         "zh-cn": "添加光线"
-      },
-      "1.7.9": {
-        "en": "Widget optimizations",
-        "de": "Widget Optimierungen",
-        "ru": "Оптимизация виджетов",
-        "pt": "Otimizações Widget",
-        "nl": "Widget optimalisaties",
-        "fr": "Optimisations Widget",
-        "it": "Ottimizzazione Widget",
-        "es": "Optimizaciones Widget",
-        "pl": "Optymalizacja widżetu",
-        "uk": "Оптимізація віджету",
-        "zh-cn": "部件优化"
       }
     },
     "titleLang": {
