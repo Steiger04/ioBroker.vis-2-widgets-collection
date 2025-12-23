@@ -289,10 +289,10 @@ const SliderCollection: FC = () => {
                                 ? 0.5
                                 : 2,
 
-                        gap: 1.5, // Abstand zwischen Icons und Slider
+                        gap: 1.5, // Spacing between icons and slider
                     }}
                 >
-                    {/* Start Icon - im normalen Layout-Fluss */}
+                    {/* Start icon - in normal layout flow */}
                     {((widget.data.sliderOrientation === 'horizontal' &&
                         (widget.data.iconMin || widget.data.iconSmallMin)) ||
                         (widget.data.sliderOrientation === 'vertical' &&
@@ -302,15 +302,15 @@ const SliderCollection: FC = () => {
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                flexShrink: 0, // Icon soll nicht schrumpfen
-                                // Dynamische Ausrichtung zur Track-Mitte mit Transform
+                                flexShrink: 0, // Icon should not shrink
+                                // Dynamic alignment to track center with transform
                                 ...(widget.data.sliderOrientation === 'horizontal'
                                     ? {
-                                          // Horizontaler Slider: Icon vertikal zur Track-Mitte ausrichten
+                                          // Horizontal slider: align icon vertically to track center
                                           transform: `translateY(${trackOffset.y}px)`,
                                       }
                                     : {
-                                          // Vertikaler Slider: Icon horizontal zur Track-Mitte ausrichten
+                                          // Vertical slider: align icon horizontally to track center
                                           transform: `translateX(${trackOffset.x}px)`,
                                       }),
                             }}
@@ -336,11 +336,11 @@ const SliderCollection: FC = () => {
                         </Box>
                     )}
 
-                    {/* Slider Container - nimmt verfügbaren Raum ein */}
+                    {/* Slider container - takes available space */}
                     <Box
                         sx={{
                             display: 'flex',
-                            flex: 1, // Nimmt den verfügbaren Raum zwischen den Icons
+                            flex: 1, // Takes available space between icons
                             justifyContent: 'center',
                             alignItems: 'center',
                             minWidth: widget.data.sliderOrientation === 'horizontal' ? '200px' : 'auto',
@@ -369,7 +369,7 @@ const SliderCollection: FC = () => {
                                 marks={sliderMarks}
                                 step={
                                     widget.data.onlyStates
-                                        ? null // Bei onlyStates: null bedeutet, dass nur die marks-Werte ausgewählt werden können
+                                        ? null // For onlyStates: null means only mark values can be selected
                                         : widget.data.step !== undefined
                                           ? Number(widget.data.step)
                                           : undefined
@@ -439,9 +439,9 @@ const SliderCollection: FC = () => {
                                                 ? widget.data.labelPosition
                                                 : undefined,
                                     },
-                                    // Globale Styles für alle Markierungen (Fallback)
-                                    // WICHTIG: Diese Styles werden von individuellen Styles in CollectionMark überschrieben.
-                                    // Priorität: CollectionMark (individuell) > MuiSlider-markLabel (global)
+                                    // Global styles for all marks (fallback)
+                                    // IMPORTANT: These styles are overridden by individual styles in CollectionMark.
+                                    // Priority: CollectionMark (individual) > MuiSlider-markLabel (global)
                                     '& .MuiSlider-markLabel': {
                                         fontSize: data.valueSize || '1rem',
                                         color: widget.data.markerTextColor || data.textColor,
@@ -491,7 +491,7 @@ const SliderCollection: FC = () => {
                         )}
                     </Box>
 
-                    {/* End Icon - im normalen Layout-Fluss */}
+                    {/* End icon - in normal layout flow */}
                     {((widget.data.sliderOrientation === 'horizontal' &&
                         (widget.data.iconMax || widget.data.iconSmallMax)) ||
                         (widget.data.sliderOrientation === 'vertical' &&
@@ -501,15 +501,15 @@ const SliderCollection: FC = () => {
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                flexShrink: 0, // Icon soll nicht schrumpfen
-                                // Dynamische Ausrichtung zur Track-Mitte mit Transform
+                                flexShrink: 0, // Icon should not shrink
+                                // Dynamic alignment to track center with transform
                                 ...(widget.data.sliderOrientation === 'horizontal'
                                     ? {
-                                          // Horizontaler Slider: Icon vertikal zur Track-Mitte ausrichten
+                                          // Horizontal slider: align icon vertically to track center
                                           transform: `translateY(${trackOffset.y}px)`,
                                       }
                                     : {
-                                          // Vertikaler Slider: Icon horizontal zur Track-Mitte ausrichten
+                                          // Vertical slider: align icon horizontally to track center
                                           transform: `translateX(${trackOffset.x}px)`,
                                       }),
                             }}

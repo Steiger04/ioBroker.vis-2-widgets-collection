@@ -16,6 +16,29 @@ import StateCollection from './StateCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
+/**
+ * StateCollectionWidget - Displays and monitors ioBroker state values in a collection layout.
+ *
+ * Supports string, number, boolean, and mixed state types with optional icon display,
+ * configurable delays, and flexible styling for multiple states in a single widget.
+ *
+ * Required props:
+ * - oid: string - Object ID of the state to display
+ *
+ * Optional props:
+ * - delay: number - Delay in milliseconds before state update (default: 0)
+ * - delayEnabled: boolean - Enable/disable delay behavior (default: false)
+ * - onlyStates: boolean - Show only state values, hide icons (default: false)
+ * - showIcon: boolean - Display state icon if available (default: true)
+ * - values_count: number - Number of additional values to display (default: 0)
+ *
+ * @example
+ * <StateCollectionWidget
+ *   oid="sensor.temperature"
+ *   showIcon={true}
+ *   values_count={3}
+ * />
+ */
 class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWidget']> {
     // private lastRxData: string | null = null;
 

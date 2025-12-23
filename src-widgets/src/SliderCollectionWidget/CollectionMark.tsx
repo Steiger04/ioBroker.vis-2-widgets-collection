@@ -106,25 +106,25 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         pr: sliderOrientation === 'vertical' ? 1 : 0,
                         pb: sliderOrientation === 'vertical' ? 0 : 1,
 
-                        // fontSize: Vollständige Prioritätskette (alle Werte als % relativ zu 1em)
-                        // 1. valueSizeActive (Gruppe Aktiv, wenn diese Markierung aktiv ist)
-                        // 2. mark.fontSize (vorberechnet in useData.ts, nur für States)
-                        //    - valueSize${i} (Gruppe Wert[1]-Wert[n], individuell für diesen Zustand)
-                        //    - markerTextSize (Gruppe Schieberegler, nur für Markierungen die Zustände sind)
-                        // 3. data.valueSize (Gruppe Allgemein, globaler Fallback für alle Markierungen)
-                        // 4. '1em' (finaler Fallback, entspricht 100%)
+                        // fontSize: Complete priority chain (all values as % relative to 1em)
+                        // 1. valueSizeActive (Active group, when this mark is active)
+                        // 2. mark.fontSize (precomputed in useData.ts, only for states)
+                        //    - valueSize${i} (Value[1]-Value[n] group, individual for this state)
+                        //    - markerTextSize (Slider group, only for marks that are states)
+                        // 3. data.valueSize (General group, global fallback for all marks)
+                        // 4. '1em' (final fallback, equals 100%)
                         //
-                        // color: Vollständige Prioritätskette (analog zu fontSize)
-                        // 1. textColorActive (Gruppe Aktiv, wenn diese Markierung aktiv ist)
-                        // 2. mark.textColor (vorberechnet in useData.ts, nur für States)
-                        //    - textColor${i} (Gruppe Wert[1]-Wert[n], individuell für diesen Zustand)
-                        //    - markerTextColor (Gruppe Schieberegler, nur für Markierungen die Zustände sind)
-                        // 3. data.textColor (Gruppe Allgemein, globaler Fallback für alle Markierungen)
+                        // color: Complete priority chain (analogous to fontSize)
+                        // 1. textColorActive (Active group, when this mark is active)
+                        // 2. mark.textColor (precomputed in useData.ts, only for states)
+                        //    - textColor${i} (Value[1]-Value[n] group, individual for this state)
+                        //    - markerTextColor (Slider group, only for marks that are states)
+                        // 3. data.textColor (General group, global fallback for all marks)
                         //
-                        // WICHTIG: Diese Styles überschreiben die globalen MuiSlider-markLabel Styles
-                        // aus SliderCollection.tsx (Zeilen 415-426) durch höhere CSS-Spezifität.
-                        // Min/Max/Step-Markierungen (keine States) haben mark.fontSize=undefined und
-                        // mark.textColor=undefined und verwenden nur data.valueSize/data.textColor oder Fallbacks.
+                        // IMPORTANT: These styles override the global MuiSlider-markLabel styles
+                        // from SliderCollection.tsx (lines 415-426) through higher CSS specificity.
+                        // Min/Max/Step marks (no states) have mark.fontSize=undefined and
+                        // mark.textColor=undefined and use only data.valueSize/data.textColor or fallbacks.
                         fontSize:
                             (isCurrentSelected &&
                                 typeof widget.data.valueSizeActive === 'number' &&
@@ -149,13 +149,13 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                     }}
                 >
                     {(() => {
-                        // Bestimme Icon-Quelle: Wenn aktiv → iconActive ODER iconSmallActive, sonst mark.icon
+                        // Determine icon source: If active → iconActive or iconSmallActive, otherwise mark.icon
                         const iconSource =
                             (isCurrentSelected && (widget.data.iconActive || widget.data.iconSmallActive)) ||
                             mark.icon ||
                             'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-                        // Bestimme Icon-Farbe: Priorität: iconColorActive → mark.iconColor → data.iconColor → defaultIconColor
+                        // Determine icon color: Priority: iconColorActive → mark.iconColor → data.iconColor → defaultIconColor
                         const iconColor =
                             (isCurrentSelected && widget.data.iconColorActive && widget.data.iconColorActive !== ''
                                 ? widget.data.iconColorActive
@@ -173,7 +173,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                                 style={{
                                     position: 'relative',
 
-                                    // Icon-Größe: Aktive Größe verwenden, wenn aktiv, sonst Wert-Größe
+                                    // Icon size: Use active size when active, otherwise value size
                                     width:
                                         isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
                                             ? `${(24 * widget.data.iconSizeActive) / 100}px`
@@ -183,7 +183,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                                             ? `${(24 * widget.data.iconSizeActive) / 100}px`
                                             : `${(24 * mark.iconHeight) / 100}px`, */
 
-                                    // Icon-Farbe: Konsolidierte Logik über getIconColorStyles()
+                                    // Icon color: Consolidated logic via getIconColorStyles()
                                     ...getIconColorStyles(iconSource, iconColor),
                                 }}
                             />

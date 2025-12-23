@@ -202,7 +202,7 @@ function StateCollection(): React.ReactElement {
                                 ...fontStyles,
                                 ...textStyles,
                                 fontSize: data.valueSizeActive || data.valueSize,
-                                textAlign: 'center', // Für HTML-Inhalt mit Tags
+                                textAlign: 'center', // For HTML content with tags
                                 bgcolor: 'transparent',
                                 color: data.textColorActive || data.textColor,
                                 textTransform: 'none',
@@ -213,14 +213,14 @@ function StateCollection(): React.ReactElement {
                                 height: '100%',
                                 flexGrow: 1,
                                 display: 'flex',
-                                alignItems: 'center', // Vertikale Zentrierung
-                                justifyContent: 'center', // Horizontale Zentrierung des Textblocks
-                                overflowWrap: 'break-word', // Moderne CSS-Eigenschaft für Wortumbruch
-                                wordBreak: 'break-word', // Zusätzlicher Schutz für lange Wörter
-                                whiteSpace: 'normal', // Erlaubt Zeilenumbrüche
-                                hyphens: 'auto', // Automatische Silbentrennung wenn unterstützt
+                                alignItems: 'center', // Vertical centering
+                                justifyContent: 'center', // Horizontal centering of text block
+                                overflowWrap: 'break-word', // Modern CSS property for word wrapping
+                                wordBreak: 'break-word', // Additional protection for long words
+                                whiteSpace: 'normal', // Allows line breaks
+                                hyphens: 'auto', // Automatic hyphenation when supported
                                 '& > div': {
-                                    textAlign: 'left', // Linksbündige Zeilen bei Umbrüchen im HTML
+                                    textAlign: 'left', // Left-aligned lines for breaks in HTML
                                     display: 'inline-block',
                                 },
                             }}

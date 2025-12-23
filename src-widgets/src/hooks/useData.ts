@@ -216,23 +216,23 @@ function useData(oid: string) {
                                 _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
-                            // fontSize: Fallback-Kette analog zu ButtonGroupCollection
-                            // 1. valueSizeActive (global, wenn dieser State aktiv ist)
-                            // 2. valueSize${i} (individuell für diesen State)
-                            // 3. markerTextSize (nur für Slider-Markierungen)
+                            // fontSize: Fallback chain analogous to ButtonGroupCollection
+                            // 1. valueSizeActive (global, when this state is active)
+                            // 2. valueSize${i} (individual for this state)
+                            // 3. markerTextSize (only for slider marks)
                             // 4. valueSize (global)
-                            // 5. undefined (Fallback auf globalen valueSize in CollectionMark)
+                            // 5. undefined (fallback to global valueSize in CollectionMark)
                             fontSize: (() => {
-                                // Prüfe, ob dieser State der aktuell aktive ist
+                                // Check if this state is the currently active one
                                 const isActive = String(oidValue) === String(_value);
 
-                                // 1. Wenn aktiv: Verwende globalen valueSizeActive aus commonFields
+                                // 1. If active: Use global valueSizeActive from commonFields
                                 if (isActive && typeof rxData.valueSizeActive === 'number') {
                                     // return `${rxData.valueSizeActive}%`;
                                     return formatSize(rxData.valueSizeActive);
                                 }
 
-                                // 2. Verwende individuellen valueSize${i}
+                                // 2. Use individual valueSize${i}
                                 const individualSize = getDynamicProperty(
                                     rxData as Record<string, any>,
                                     `valueSize${i}`,
@@ -242,32 +242,32 @@ function useData(oid: string) {
                                     return formatSize(individualSize);
                                 }
 
-                                // 3. Verwende markerTextSize (nur für Slider-Markierungen)
+                                // 3. Use markerTextSize (only for slider marks)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerTextSize === 'number') {
                                     // return `${rxData.markerTextSize}%`;
                                     return formatSize(rxData.markerTextSize);
                                 }
 
-                                // 4. Verwende globalen valueSize
+                                // 4. Use global valueSize
                                 if (typeof rxData.valueSize === 'number') {
                                     // return `${rxData.valueSize}%`;
                                     return formatSize(rxData.valueSize);
                                 }
 
-                                // 5. Kein spezifischer Wert gefunden - undefined
+                                // 5. No specific value found - undefined
                                 return undefined;
                             })(),
 
                             textColor: (() => {
-                                // Prüfe, ob dieser State der aktuell aktive ist
+                                // Check if this state is the currently active one
                                 const isActive = String(oidValue) === String(_value);
 
-                                // 1. Wenn aktiv: Verwende globalen textColorActive aus commonFields (Gruppe Aktiv)
+                                // 1. If active: Use global textColorActive from commonFields (Active group)
                                 if (isActive && rxData.textColorActive) {
                                     return rxData.textColorActive;
                                 }
 
-                                // 2. Verwende individuellen textColor${i} (Gruppe Wert[1]-Wert[n])
+                                // 2. Use individual textColor${i} (Value[1]-Value[n] group)
                                 const individualColor = getDynamicProperty(
                                     rxData as Record<string, any>,
                                     `textColor${i}`,
@@ -276,17 +276,17 @@ function useData(oid: string) {
                                     return individualColor;
                                 }
 
-                                // 3. Verwende markerTextColor (Gruppe Schieberegler, nur für Slider-Markierungen die Zustände sind)
+                                // 3. Use markerTextColor (Slider group, only for slider marks that are states)
                                 if (isSliderFieldsRxData(rxData) && rxData.markerTextColor) {
                                     return rxData.markerTextColor;
                                 }
 
-                                // 4. Verwende globalen textColor (Gruppe Allgemein)
+                                // 4. Use global textColor (General group)
                                 if (rxData.textColor) {
                                     return rxData.textColor;
                                 }
 
-                                // 5. Kein spezifischer Wert gefunden - undefined (Fallback auf Theme)
+                                // 5. No specific value found - undefined (fallback to theme)
                                 return undefined;
                             })(),
 
@@ -297,26 +297,26 @@ function useData(oid: string) {
                             })(),
                             iconSize: typeof rxData[`iconSize${i}`] === 'number' ? rxData[`iconSize${i}`] : undefined,
                             iconWidth: (() => {
-                                // Prüfe, ob dieser State der aktuell aktive ist
+                                // Check if this state is the currently active one
                                 const isActive = String(oidValue) === String(_value);
 
-                                // 1. Priorität: iconSizeActive (global, wenn dieser State aktiv ist)
+                                // 1. Priority: iconSizeActive (global, when this state is active)
                                 if (isActive && typeof rxData.iconSizeActive === 'number') {
                                     return rxData.iconSizeActive;
                                 }
 
-                                // 2. Priorität: iconSize${i} (individuell pro Zustand)
+                                // 2. Priority: iconSize${i} (individual per state)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
                                 if (typeof dynamicSize === 'number') {
                                     return dynamicSize;
                                 }
 
-                                // 3. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                // 3. Priority: markerIconSize (only for slider marks)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
                                     return rxData.markerIconSize;
                                 }
 
-                                // 4. Priorität: iconSize (global)
+                                // 4. Priority: iconSize (global)
                                 if (typeof rxData.iconSize === 'number') {
                                     return rxData.iconSize;
                                 }
@@ -325,26 +325,26 @@ function useData(oid: string) {
                                 return 100;
                             })(),
                             iconHeight: (() => {
-                                // Prüfe, ob dieser State der aktuell aktive ist
+                                // Check if this state is the currently active one
                                 const isActive = String(oidValue) === String(_value);
 
-                                // 1. Priorität: iconSizeActive (global, wenn dieser State aktiv ist)
+                                // 1. Priority: iconSizeActive (global, when this state is active)
                                 if (isActive && typeof rxData.iconSizeActive === 'number') {
                                     return rxData.iconSizeActive;
                                 }
 
-                                // 2. Priorität: iconSize${i} (individuell pro Zustand)
+                                // 2. Priority: iconSize${i} (individual per state)
                                 const dynamicSize = getDynamicProperty(rxData as Record<string, any>, `iconSize${i}`);
                                 if (typeof dynamicSize === 'number') {
                                     return dynamicSize;
                                 }
 
-                                // 3. Priorität: markerIconSize (nur für Slider-Markierungen)
+                                // 3. Priority: markerIconSize (only for slider marks)
                                 if (isSliderFieldsRxData(rxData) && typeof rxData.markerIconSize === 'number') {
                                     return rxData.markerIconSize;
                                 }
 
-                                // 4. Priorität: iconSize (global)
+                                // 4. Priority: iconSize (global)
                                 if (typeof rxData.iconSize === 'number') {
                                     return rxData.iconSize;
                                 }
@@ -413,7 +413,7 @@ function useData(oid: string) {
         formatSize,
     ]);
 
-    // Styling-Daten
+    // Styling data
     const data = useMemo(() => {
         const getStyleData = (ext: string | number = ''): StyleData => ({
             textColor: rxData.textColor || textStyles.color || theme.palette.primary.main,

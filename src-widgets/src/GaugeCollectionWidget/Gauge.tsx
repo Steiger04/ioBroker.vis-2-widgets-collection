@@ -295,11 +295,11 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
 
     const segment = props.gaugeSegment;
 
-    // Bestimme die Icon-Quelle und Farbe basierend auf Segment oder Standard
+    // Determine icon source and color based on segment or default
     const activeIcon = segment?.state.icon || props.gaugeData.icon;
     const activeIconColor = segment?.state.iconColor || props.gaugeData.iconColor;
 
-    // Berechne die Icon-Farb-Styles mit der Helper-Funktion
+    // Calculate icon color styles with helper function
     const iconColorStyles = getIconColorStyles(activeIcon, activeIconColor);
 
     return (
