@@ -59,8 +59,7 @@
 -->
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 2.0.1 (2025-12-23)
 
 - (steiger04) package.json changed
 

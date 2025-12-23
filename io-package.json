@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "news": {
+      "2.0.1": {
+        "en": "package.json changed",
+        "de": "paket.json geändert",
+        "ru": "package.json изменился",
+        "pt": "pacote.json alterado",
+        "nl": "package.json gewijzigd",
+        "fr": "paquet.json changé",
+        "it": "pacchetto.json cambiato",
+        "es": "paquete.json cambió",
+        "pl": "package.json zmienił",
+        "uk": "пакет.json змінився",
+        "zh-cn": "软件包。 json 已更改"
+      },
       "2.0.0": {
         "en": "Switch to vite and typescript\nWidget optimizations and bug fixes",
         "de": "Wechseln zu Vite und Schrift\nWidget-Optimierungen und Bugfixes",
@@ -80,19 +93,6 @@
         "pl": "Suwak zoptymalizowany",
         "uk": "Оптимізований слайдер",
         "zh-cn": "滑动器优化"
-      },
-      "1.7.6": {
-        "en": "Dialog with width and height in pixel\nWidget optimizations",
-        "de": "Dialog mit Breite und Höhe in Pixel\nWidget Optimierungen",
-        "ru": "Диалог с шириной и высотой в пикселе\nОптимизация виджетов",
-        "pt": "Diálogo com largura e altura em pixel\nOtimizações Widget",
-        "nl": "Dialoog met breedte en hoogte in pixel\nWidget optimalisaties",
-        "fr": "Boîte de dialogue avec largeur et hauteur en pixel\nOptimisations Widget",
-        "it": "Dialogo con larghezza e altezza in pixel\nOttimizzazione Widget",
-        "es": "Dialog con ancho y altura en pixel\nOptimizaciones Widget",
-        "pl": "Okno o szerokości i wysokości w pikselu\nOptymalizacja widżetu",
-        "uk": "Діалог з шириною і висотою в пікселях\nОптимізація віджету",
-        "zh-cn": "宽度和高度为像素的对话框\n部件优化"
       }
     },
     "titleLang": {
