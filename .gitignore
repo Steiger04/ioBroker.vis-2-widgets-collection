@@ -13,7 +13,7 @@
 # /package-lock.json
 
 /tmp
-/widgets
+# /widgets
 
 *.tgz
 

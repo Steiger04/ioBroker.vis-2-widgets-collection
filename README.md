@@ -59,6 +59,11 @@
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+
+- (steiger04) gitignore changed
+
 ### 2.0.3 (2025-12-23)
 
 - (steiger04) test-and-release.yml changed
