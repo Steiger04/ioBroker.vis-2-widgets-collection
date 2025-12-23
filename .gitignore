@@ -13,7 +13,7 @@ src-widgets/node_modules
 # /package-lock.json
 
 tmp
-widgets
+# widgets
 *.tgz
 
 #ignore .commitinfo created by ioBroker release script
