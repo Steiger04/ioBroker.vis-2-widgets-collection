@@ -105,7 +105,7 @@ function GaugeCollection(): React.JSX.Element {
                 state: {
                     icon: state.icon || undefined,
                     iconColor: state.iconColor || undefined,
-                    iconSize: state.iconSize || undefined,
+                    iconSize: state.iconSize !== undefined ? state.iconSize : undefined,
                     iconXOffset: state.iconXOffset,
                     iconYOffset: state.iconYOffset,
                     frameBackgroundColor: state.frameBackgroundColor,
@@ -133,6 +133,21 @@ function GaugeCollection(): React.JSX.Element {
         Number(oidValue) || 0,
         Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100,
     );
+
+    const dataWithSegmentIcon = useMemo(() => {
+        if (segment && (segment.state.icon || segment.state.iconColor || segment.state.iconSize !== undefined)) {
+            return {
+                ...data,
+                iconActive: segment.state.icon || data.icon,
+                iconColorActive: segment.state.iconColor || data.iconColor,
+                iconSizeActive:
+                    segment.state.iconSize !== undefined
+                        ? `calc(24px * ${segment.state.iconSize} / 100)`
+                        : data.iconSize,
+            };
+        }
+        return data;
+    }, [data, segment]);
 
     const paper0 = baseRef.current?.paper0;
     const paper1 = baseRef.current?.paper1;
@@ -198,7 +213,7 @@ function GaugeCollection(): React.JSX.Element {
             oidValue={oidValue}
         >
             <CollectionBaseImage
-                data={data}
+                data={dataWithSegmentIcon}
                 widget={widget}
             />
             <Box

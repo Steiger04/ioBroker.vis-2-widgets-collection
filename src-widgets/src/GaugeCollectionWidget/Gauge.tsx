@@ -10,6 +10,7 @@ import React, { useRef, useEffect } from 'react';
 import { LinearGauge, RadialGauge } from 'canvas-gauges';
 
 import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 const TransparentImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -293,6 +294,14 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
             : null;
 
     const segment = props.gaugeSegment;
+
+    // Bestimme die Icon-Quelle und Farbe basierend auf Segment oder Standard
+    const activeIcon = segment?.state.icon || props.gaugeData.icon;
+    const activeIconColor = segment?.state.iconColor || props.gaugeData.iconColor;
+
+    // Berechne die Icon-Farb-Styles mit der Helper-Funktion
+    const iconColorStyles = getIconColorStyles(activeIcon, activeIconColor);
+
     return (
         <Box
             sx={{
@@ -310,8 +319,8 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
                 style={{
                     position: 'relative',
 
-                    width: Number(segment?.state.iconSize) ? `${segment?.state.iconSize}%` : iconSize || '50%',
-                    height: Number(segment?.state.iconSize) ? `${segment?.state.iconSize}%` : iconSize || '50%',
+                    width: segment?.state.iconSize !== undefined ? `${segment.state.iconSize}%` : iconSize || '50%',
+                    height: segment?.state.iconSize !== undefined ? `${segment.state.iconSize}%` : iconSize || '50%',
 
                     boxSizing: 'border-box',
                     objectFit: props.gaugeWidgetData.gaugeIconFit,
@@ -326,9 +335,7 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
                             `calc(0px + ${props.gaugeWidgetData.iconXOffset})`) ||
                         '0px',
 
-                    color: segment?.state.iconColor || props.gaugeData.iconColor,
-                    filter: (segment?.state.iconColor || props.gaugeData.iconColor) && 'drop-shadow(0px 10000px 0)',
-                    transform: (segment?.state.iconColor || props.gaugeData.iconColor) && 'translateY(-10000px)',
+                    ...iconColorStyles,
                 }}
             />
             <canvas
