@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "news": {
+      "2.0.6": {
+        "en": "gitignore changed",
+        "de": "gitignore geändert",
+        "ru": "гитиньор изменился",
+        "pt": "gitignore alterado",
+        "nl": "gitignore gewijzigd",
+        "fr": "gitignore modifié",
+        "it": "gitignore cambiato",
+        "es": "gitignore changed",
+        "pl": "gitignore zmienione",
+        "uk": "gitignore змінив",
+        "zh-cn": "吉提格诺尔变了"
+      },
       "2.0.5": {
         "en": "gitignore changed",
         "de": "gitignore geändert",
@@ -80,19 +93,6 @@
         "pl": "Przełącz na vite i wpisowy\nOptymalizacja widżetu i poprawki błędów",
         "uk": "Перемикач на vite і типscript\nОптимізація та виправлення помилок",
         "zh-cn": "切换到 vite 和 打字符\n部件优化和错误修正"
-      },
-      "1.8.1": {
-        "en": "Dialog feature (automate open and close via state) added\nUp handler for mouse up in State added",
-        "de": "Dialog-Feature (automatisieren Sie geöffnet und schließen über Zustand) hinzugefügt\nNach oben Griff für Maus nach oben in Staat hinzugefügt",
-        "ru": "Диалоговая функция (автомат открыт и закрыт через состояние)\nUp handler для мыши up in State",
-        "pt": "Recurso de diálogo (automatizar abrir e fechar via estado) adicionado\nManipulador para cima do mouse no estado adicionado",
-        "nl": "Dialoogfunctie (automaat openen en sluiten via status) toegevoegd\nUp handler voor muis in staat toegevoegd",
-        "fr": "Fonction de dialogue (automatiser ouvert et fermer via l'état) ajouté\nHaut du gestionnaire pour souris haut dans l'état ajouté",
-        "it": "Funzione di dialogo (automate open and close via state) aggiunto\nCaricatore per mouse in su in Stato aggiunto",
-        "es": "Función de diálogo (automate abierto y cercano a través del estado) añadido\nEmpuñador para ratón en estado añadido",
-        "pl": "Funkcja dialogowa (automatyzacja otwierania i zamykania przez stan)\nPodajnik do myszki w stanie dodano",
-        "uk": "Додано функцію Діалогу (відкрито та закрито через стан)\nДодана ручка для миші в штаті",
-        "zh-cn": "添加对话框功能( 通过状态自动打开和关闭)\n在状态中添加鼠标上调处理器"
       }
     },
     "titleLang": {
