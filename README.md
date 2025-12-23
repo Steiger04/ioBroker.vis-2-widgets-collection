@@ -59,8 +59,7 @@
 -->
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 2.0.0 (2025-12-23)
 
 - (steiger04) Switch to vite and typescript
 - (steiger04) Widget optimizations and bug fixes
