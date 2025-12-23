@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "news": {
+      "2.0.3": {
+        "en": "test-and-release.yml changed",
+        "de": "test-and-release.yml geändert",
+        "ru": "test-and-release.yml изменился",
+        "pt": "teste e libertação.yml alterado",
+        "nl": "test-and-release.yml gewijzigd",
+        "fr": "test-and-release.yml modifié",
+        "it": "test-and-release.yml cambiato",
+        "es": "test-and-release.yml cambió",
+        "pl": "test- and- releasase.yml zmienione",
+        "uk": "тест-і-випуск.yml змінився",
+        "zh-cn": "测试和释放.yml已更改"
+      },
       "2.0.2": {
         "en": "package.json changed",
         "de": "paket.json geändert",
@@ -80,19 +93,6 @@
         "pl": "Optymalizacja widżetu",
         "uk": "Оптимізація віджету",
         "zh-cn": "部件优化"
-      },
-      "1.7.8": {
-        "en": "Push button functionality for State widget added",
-        "de": "Push-Taste Funktionalität für State Widget hinzugefügt",
-        "ru": "Функциональность кнопки Push для добавленного виджета State",
-        "pt": "Funcionalidade do botão Push para widget de estado adicionado",
-        "nl": "Drukknopfunctionaliteit voor status widget toegevoegd",
-        "fr": "Fonction de bouton-poussoir pour le widget State ajouté",
-        "it": "Pulsante funzionalità per widget Stato aggiunto",
-        "es": "Función del botón pulsar para el widget del Estado añadido",
-        "pl": "Funkcja przycisku wciskającego dla dodanego widżetu stanu",
-        "uk": "Функціональність кнопки Push для державного віджету",
-        "zh-cn": "添加了状态部件的按键功能"
       }
     },
     "titleLang": {
