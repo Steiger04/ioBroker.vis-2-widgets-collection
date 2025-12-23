@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "news": {
+      "2.0.5": {
+        "en": "gitignore changed",
+        "de": "gitignore geändert",
+        "ru": "гитиньор изменился",
+        "pt": "gitignore alterado",
+        "nl": "gitignore gewijzigd",
+        "fr": "gitignore modifié",
+        "it": "gitignore cambiato",
+        "es": "gitignore changed",
+        "pl": "gitignore zmienione",
+        "uk": "gitignore змінив",
+        "zh-cn": "吉提格诺尔变了"
+      },
       "2.0.4": {
         "en": "gitignore changed",
         "de": "gitignore geändert",
@@ -80,19 +93,6 @@
         "pl": "Funkcja dialogowa (automatyzacja otwierania i zamykania przez stan)\nPodajnik do myszki w stanie dodano",
         "uk": "Додано функцію Діалогу (відкрито та закрито через стан)\nДодана ручка для миші в штаті",
         "zh-cn": "添加对话框功能( 通过状态自动打开和关闭)\n在状态中添加鼠标上调处理器"
-      },
-      "1.8.0": {
-        "en": "Light added",
-        "de": "Licht hinzugefügt",
-        "ru": "Свет добавлен",
-        "pt": "Luz adicionada",
-        "nl": "Licht toegevoegd",
-        "fr": "Lumière ajoutée",
-        "it": "Luce aggiunto",
-        "es": "Luz agregada",
-        "pl": "Światło dodane",
-        "uk": "Світло додано",
-        "zh-cn": "添加光线"
       }
     },
     "titleLang": {

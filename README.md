@@ -59,8 +59,7 @@
 -->
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 2.0.5 (2025-12-23)
 
 - (steiger04) gitignore changed
 
