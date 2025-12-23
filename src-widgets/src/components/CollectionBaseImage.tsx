@@ -8,6 +8,7 @@ import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
 import type { CollectionContextProps } from '../types';
 import { type StyleData } from '../hooks/useData';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 /**
  * Props for {@link module:components/CollectionBaseImage.default}.
@@ -50,11 +51,10 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
                 position: 'absolute',
                 top: `calc(0px - ${widget.data.iconYOffset || 0})`,
                 right: `calc(0px - ${widget.data.iconXOffset || 0})`,
-                width: iconSize,
+                // width: iconSize,
                 height: iconSize,
-                color: iconColor,
-                filter: iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                transform: iconColor ? 'translateY(-10000px)' : undefined,
+
+                ...getIconColorStyles(iconSrc, iconColor),
             }}
         />
     ) : null;

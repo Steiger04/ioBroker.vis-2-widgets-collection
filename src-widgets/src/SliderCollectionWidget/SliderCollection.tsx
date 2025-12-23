@@ -14,7 +14,7 @@ import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import useStyles from '../hooks/useStyles';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
-import { isSmallIcon } from '../lib/helper/isSmallIcon';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -327,13 +327,10 @@ const SliderCollection: FC = () => {
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeStart || '24px'
                                             : widget.data.iconSizeEnd || '24px', */
-                                    color: isSmallIcon(startIcon)
-                                        ? widget.data.sliderOrientation === 'horizontal'
-                                            ? startIconColor
-                                            : endIconColor
-                                        : undefined,
-                                    filter: isSmallIcon(startIcon) ? 'drop-shadow(0px 10000px 0)' : undefined,
-                                    transform: isSmallIcon(startIcon) ? 'translateY(-10000px)' : undefined,
+                                    ...getIconColorStyles(
+                                        startIcon,
+                                        widget.data.sliderOrientation === 'horizontal' ? startIconColor : endIconColor,
+                                    ),
                                 }}
                             />
                         </Box>
@@ -529,13 +526,10 @@ const SliderCollection: FC = () => {
                                         widget.data.sliderOrientation === 'horizontal'
                                             ? widget.data.iconSizeEnd || '24px'
                                             : widget.data.iconSizeStart || '24px', */
-                                    color: isSmallIcon(endIcon)
-                                        ? widget.data.sliderOrientation === 'horizontal'
-                                            ? endIconColor
-                                            : startIconColor
-                                        : undefined,
-                                    filter: isSmallIcon(endIcon) ? 'drop-shadow(0px 10000px 0)' : undefined,
-                                    transform: isSmallIcon(endIcon) ? 'translateY(-10000px)' : undefined,
+                                    ...getIconColorStyles(
+                                        endIcon,
+                                        widget.data.sliderOrientation === 'horizontal' ? endIconColor : startIconColor,
+                                    ),
                                 }}
                             />
                         </Box>

@@ -18,6 +18,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { StateCollectionContextProps } from '../types';
 
 /**
@@ -173,9 +174,10 @@ function StateCollection(): React.ReactElement {
                                 top: `calc(0px - ${data.iconYOffset})`,
 
                                 bgcolor: 'transparent',
-                                color: data.iconColorActive || data.iconColor || 'primary.main',
-                                filter: data.iconActive || data.icon ? 'drop-shadow(0px 10000px 0)' : undefined,
-                                transform: data.iconActive || data.icon ? 'translateY(-10000px)' : undefined,
+                                ...getIconColorStyles(
+                                    data.iconActive || data.icon,
+                                    data.iconColorActive || data.iconColor || 'primary.main',
+                                ),
                             }}
                         />
                     </Box>

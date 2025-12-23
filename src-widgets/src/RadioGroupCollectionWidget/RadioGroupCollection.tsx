@@ -14,6 +14,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { RadioGroupCollectionContextProps } from '../types';
 
 /**
@@ -144,11 +145,7 @@ function RadioGroupCollection(): React.ReactElement {
                                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                                             '50%',
 
-                                                        color: state.iconColor || undefined,
-                                                        filter: state.iconColor
-                                                            ? 'drop-shadow(0px 10000px 0)'
-                                                            : undefined,
-                                                        transform: state.iconColor ? 'translateY(-10000px)' : undefined,
+                                                        ...getIconColorStyles(state.icon, state.iconColor),
                                                     }}
                                                 />
                                             </Box>

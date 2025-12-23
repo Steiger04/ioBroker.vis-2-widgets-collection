@@ -13,6 +13,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { CheckboxCollectionContextProps } from '../types';
 
 const defaultIconTrue =
@@ -101,15 +102,10 @@ function CheckboxCollection(): React.JSX.Element {
 
                                             objectFit: 'contain',
 
-                                            color: data.iconColorActive || data.iconColor || theme.palette.primary.main,
-                                            filter:
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
-                                                    ? 'drop-shadow(0px 10000px 0)'
-                                                    : undefined,
-                                            transform:
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
-                                                    ? 'translateY(-10000px)'
-                                                    : undefined,
+                                            ...getIconColorStyles(
+                                                data.iconActive || defaultIconTrue,
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main,
+                                            ),
                                         }}
                                     />
                                 }
@@ -129,15 +125,10 @@ function CheckboxCollection(): React.JSX.Element {
 
                                             objectFit: 'contain',
 
-                                            color: data.iconColorActive || data.iconColor || theme.palette.primary.main,
-                                            filter:
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
-                                                    ? 'drop-shadow(0px 10000px 0)'
-                                                    : undefined,
-                                            transform:
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main
-                                                    ? 'translateY(-10000px)'
-                                                    : undefined,
+                                            ...getIconColorStyles(
+                                                data.iconActive || defaultIconFalse,
+                                                data.iconColorActive || data.iconColor || theme.palette.primary.main,
+                                            ),
                                         }}
                                     />
                                 }

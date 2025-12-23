@@ -11,6 +11,7 @@
 
 import Switch from '@mui/material/Switch';
 import { styled, alpha } from '@mui/material/styles';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { SwitchCollectionContextProps } from '../types';
 import type { StyleData } from '../hooks/useData';
 
@@ -133,9 +134,7 @@ const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheig
                 backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}% ${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
                 backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 
-                color: data.iconColorActive || data.iconColor,
-                filter: data.iconColorActive || data.iconColor ? 'drop-shadow(0px 10000px 0)' : null,
-                transform: data.iconColorActive || data.iconColor ? 'translateY(-10000px)' : null,
+                ...getIconColorStyles(data.iconActive, data.iconColorActive || data.iconColor),
             },
         },
 

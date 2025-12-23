@@ -17,6 +17,7 @@ import useData from '../hooks/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
 import type { Light2FieldsRxData } from '../types/field-definitions';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 type WithButtonModalProps<P> = P;
 
@@ -120,10 +121,11 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                                         `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                     '100%',
                                 objectFit: 'contain',
-                                color: data.iconColorActive || data.iconColor,
-                                filter:
-                                    data.iconColorActive || data.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                                transform: data.iconColorActive || data.iconColor ? 'translateY(-10000px)' : undefined,
+                                ...getIconColorStyles(
+                                    data.iconActive ||
+                                        'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+                                    data.iconColorActive || data.iconColor,
+                                ),
                             }}
                         />
                     </Button>

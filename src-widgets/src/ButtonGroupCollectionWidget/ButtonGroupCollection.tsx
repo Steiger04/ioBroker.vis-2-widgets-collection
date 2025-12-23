@@ -14,6 +14,7 @@ import useData from '../hooks/useData';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { ButtonGroupCollectionContextProps } from '../types';
 
 function ButtonGroupCollection(): React.JSX.Element {
@@ -438,37 +439,24 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                             (typeof widget.data.iconSize === 'number' &&
                                                                 `calc(100% * ${widget.data.iconSize} / 100)`) ||
                                                             '100%',
-                                                        color:
+                                                        ...getIconColorStyles(
+                                                            (activeIndex === index + 1 &&
+                                                                String(oidValue) ===
+                                                                    String(widget.data[`value${index + 1}`]) &&
+                                                                (widget.data.iconActive ||
+                                                                    widget.data.iconSmallActive)) ||
+                                                                widget.data[`icon${index + 1}`] ||
+                                                                widget.data[`iconSmall${index + 1}`] ||
+                                                                data.icon,
                                                             (activeIndex === index + 1 &&
                                                                 String(oidValue) ===
                                                                     String(widget.data[`value${index + 1}`]) &&
                                                                 widget.data.iconColorActive) ||
-                                                            widget.data[`iconColor${index + 1}`] ||
-                                                            widget.data.buttonGroupColor ||
-                                                            data.iconColor ||
-                                                            theme.palette.primary.main,
-                                                        filter:
-                                                            (activeIndex === index + 1 &&
-                                                                String(oidValue) ===
-                                                                    String(widget.data[`value${index + 1}`]) &&
-                                                                widget.data.iconColorActive) ||
-                                                            widget.data[`iconColor${index + 1}`] ||
-                                                            widget.data.buttonGroupColor ||
-                                                            data.iconColor ||
-                                                            theme.palette.primary.main
-                                                                ? 'drop-shadow(0px 10000px 0)'
-                                                                : undefined,
-                                                        transform:
-                                                            (activeIndex === index + 1 &&
-                                                                String(oidValue) ===
-                                                                    String(widget.data[`value${index + 1}`]) &&
-                                                                widget.data.iconColorActive) ||
-                                                            widget.data[`iconColor${index + 1}`] ||
-                                                            widget.data.buttonGroupColor ||
-                                                            data.iconColor ||
-                                                            theme.palette.primary.main
-                                                                ? 'translateY(-10000px)'
-                                                                : undefined,
+                                                                widget.data[`iconColor${index + 1}`] ||
+                                                                widget.data.buttonGroupColor ||
+                                                                data.iconColor ||
+                                                                theme.palette.primary.main,
+                                                        ),
                                                     }}
                                                 />
                                                 {/* <img

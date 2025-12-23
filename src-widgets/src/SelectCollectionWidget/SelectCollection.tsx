@@ -16,6 +16,7 @@ import useElementDimensions from '../hooks/useElementDimensions';
 import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { SelectCollectionContextProps } from '../types';
 
 // const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -253,13 +254,13 @@ function SelectCollection(): React.ReactElement {
                                             top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`]})`,
                                             right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`]})`,
 
-                                            width:
+                                            /* width:
                                                 (!imgSrc && '0px') ||
                                                 (typeof widget.data[`iconSize${idx + 1}`] === 'number'
                                                     ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
                                                     : typeof widget.data.iconSize === 'number'
                                                       ? `calc(24px * ${widget.data.iconSize} / 100)`
-                                                      : '24px'),
+                                                      : '24px'), */
                                             height:
                                                 (!imgSrc && '0px') ||
                                                 (typeof widget.data[`iconSize${idx + 1}`] === 'number'
@@ -267,25 +268,19 @@ function SelectCollection(): React.ReactElement {
                                                     : typeof widget.data.iconSize === 'number'
                                                       ? `calc(24px * ${widget.data.iconSize} / 100)`
                                                       : '24px'),
-                                            color:
+                                            ...getIconColorStyles(
+                                                typeof imgSrc === 'string'
+                                                    ? imgSrc
+                                                    : typeof imgSrc === 'number'
+                                                      ? imgSrc.toString()
+                                                      : undefined,
                                                 (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
                                                     widget.data.iconColorActive) ||
-                                                widget.data[`iconColor${idx + 1}`] ||
-                                                widget.data.iconColor ||
-                                                data.iconColor ||
-                                                theme.palette.primary.main,
-                                            filter:
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                itemColor
-                                                    ? 'drop-shadow(0px 10000px 0)'
-                                                    : undefined,
-                                            transform:
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                itemColor
-                                                    ? 'translateY(-10000px)'
-                                                    : undefined,
+                                                    widget.data[`iconColor${idx + 1}`] ||
+                                                    widget.data.iconColor ||
+                                                    data.iconColor ||
+                                                    theme.palette.primary.main,
+                                            ),
                                         }}
                                     />
                                     <Typography

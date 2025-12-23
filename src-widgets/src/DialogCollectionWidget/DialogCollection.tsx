@@ -13,6 +13,7 @@ import type { DialogCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useStyles from '../hooks/useStyles';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 
 const ImageHtmlButton = styled(ButtonBase)({
@@ -186,9 +187,7 @@ function DialogCollection(): React.ReactElement {
                                             (typeof data.iconSizeOnly === 'number' &&
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                             '100%',
-                                        color: data.iconColor,
-                                        filter: data.iconColor ? 'drop-shadow(0px 10000px 0)' : undefined,
-                                        transform: data.iconColor ? 'translateY(-10000px)' : undefined,
+                                        ...getIconColorStyles(data.icon, data.iconColor),
                                     }}
                                 />
                             </Box>
