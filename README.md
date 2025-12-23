@@ -60,6 +60,11 @@
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+- (steiger04) Switch to vite and typescript
+- (steiger04) Widget optimizations and bug fixes
+
 ### 1.8.1 (2025-06-30)
 
 - (steiger04) Dialog feature (automate open and close via state) added
