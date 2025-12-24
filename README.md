@@ -59,8 +59,7 @@
 -->
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 2.0.7 (2025-12-24)
 
 - (steiger04) Gauge widget optimized
 

@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.6",
+    "version": "2.0.7",
     "news": {
+      "2.0.7": {
+        "en": "Gauge widget optimized",
+        "de": "Gage Widget optimiert",
+        "ru": "Gauge Widget оптимизирован",
+        "pt": "Elemento de calibre otimizado",
+        "nl": "Grootte-widget geoptimaliseerd",
+        "fr": "Widget de jauge optimisé",
+        "it": "Widget Gauge ottimizzato",
+        "es": "Widget Gauge optimizado",
+        "pl": "Zoptymalizowany widżet interfejsu",
+        "uk": "Оптимізований віджет Gauge",
+        "zh-cn": "Gauge 部件优化"
+      },
       "2.0.6": {
         "en": "gitignore changed",
         "de": "gitignore geändert",
@@ -80,19 +93,6 @@
         "pl": "package.json zmienił",
         "uk": "пакет.json змінився",
         "zh-cn": "软件包。 json 已更改"
-      },
-      "2.0.0": {
-        "en": "Switch to vite and typescript\nWidget optimizations and bug fixes",
-        "de": "Wechseln zu Vite und Schrift\nWidget-Optimierungen und Bugfixes",
-        "ru": "Переключитесь на vite и typescript\nОптимизация виджетов и исправление ошибок",
-        "pt": "Mudar para vite e digitação\nOptimizações de widgets e correções de erros",
-        "nl": "Overschakelen naar vite en typescript\nWidget optimalisaties en bug fixes",
-        "fr": "Basculer vers rite et dactylographier\nOptimisations Widget et corrections de bugs",
-        "it": "Passare a vite e scrivere\nOttimizzazione Widget e correzioni di bug",
-        "es": "Cambiar a vite y escribirscript\nWidget optimizaciones y correcciones de errores",
-        "pl": "Przełącz na vite i wpisowy\nOptymalizacja widżetu i poprawki błędów",
-        "uk": "Перемикач на vite і типscript\nОптимізація та виправлення помилок",
-        "zh-cn": "切换到 vite 和 打字符\n部件优化和错误修正"
       }
     },
     "titleLang": {
