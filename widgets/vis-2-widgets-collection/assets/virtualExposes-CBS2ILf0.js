@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-Cp6J4wqx.js","./commonFields-Dc3dYGx-.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./Close-APpa6HX8.js","./listItemTextClasses-DQeLHf2R.js","./Stack-Dzb7Q6ZE.js","./useHtmlValue-Dcwl_hqT.js","./Button-BK3gDuCC.js","./ButtonGroupCollectionWidget-Bjl7COzs.js","./SafeImg-DHsE-xU3.js","./SwitchCollectionWidget-2KPRtnA9.js","./SwitchBase-C4gssu33.js","./useFormControl--TM4wVzV.js","./CheckboxCollectionWidget-8WjweMs2.js","./FormControlLabel-CHae4jKA.js","./formControlState-Dq1zat_P.js","./DialogCollectionWidget-o_rzKqrW.js","./SelectCollectionWidget-Dh93X-tG.js","./RadioGroupCollectionWidget-dntcZhrq.js","./GaugeCollectionWidget-C7OFMKbW.js","./useOidValue-DGq_wsMY.js","./Light2CollectionWidget-C_bjOKZG.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-Cp6J4wqx.js","./commonFields-Dc3dYGx-.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./Close-APpa6HX8.js","./listItemTextClasses-DQeLHf2R.js","./Stack-Dzb7Q6ZE.js","./useHtmlValue-Dcwl_hqT.js","./Button-BK3gDuCC.js","./ButtonGroupCollectionWidget-Bjl7COzs.js","./SafeImg-DHsE-xU3.js","./SwitchCollectionWidget-2KPRtnA9.js","./SwitchBase-C4gssu33.js","./useFormControl--TM4wVzV.js","./CheckboxCollectionWidget-8WjweMs2.js","./FormControlLabel-CHae4jKA.js","./formControlState-Dq1zat_P.js","./DialogCollectionWidget-o_rzKqrW.js","./SelectCollectionWidget-Dh93X-tG.js","./RadioGroupCollectionWidget-dntcZhrq.js","./GaugeCollectionWidget-BjM2JfqG.js","./useOidValue-DGq_wsMY.js","./Light2CollectionWidget-C_bjOKZG.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let u;
 let __tla = (async () => {
@@ -84,7 +84,7 @@ let __tla = (async () => {
       }), e;
     },
     "./GaugeCollectionWidget": async () => {
-      const t = await o(() => import("./GaugeCollectionWidget-C7OFMKbW.js").then(async (m) => {
+      const t = await o(() => import("./GaugeCollectionWidget-BjM2JfqG.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([21,1,2,3,4,22]), import.meta.url), e = {};
