@@ -59,6 +59,11 @@
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+
+- (steiger04) Gauge widget optimized
+
 ### 2.0.6 (2025-12-23)
 
 - (steiger04) gitignore changed
