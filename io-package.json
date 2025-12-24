@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.8",
+    "version": "2.0.9",
     "news": {
+      "2.0.9": {
+        "en": "sync-wiki.yml changed",
+        "de": "sync-wiki.yml geändert",
+        "ru": "sync-wiki.yml изменился",
+        "pt": "sync- wiki.yml alterado",
+        "nl": "synchronisatie-wiki.yml is veranderd",
+        "fr": "sync-wiki.yml modifié",
+        "it": "sync-wiki.yml cambiato",
+        "es": "sinc-wiki.yml cambió",
+        "pl": "sync- wiki.yml zmienione",
+        "uk": "sync-wiki.yml змінився",
+        "zh-cn": "同步- wiki. yml 更改"
+      },
       "2.0.8": {
         "en": "User documentation added (GitHub Wiki)",
         "de": "Benutzerdokumentation hinzugefügt (GitHub Wiki)",
@@ -80,19 +93,6 @@
         "pl": "test- and- releasase.yml zmienione",
         "uk": "тест-і-випуск.yml змінився",
         "zh-cn": "测试和释放.yml已更改"
-      },
-      "2.0.2": {
-        "en": "package.json changed",
-        "de": "paket.json geändert",
-        "ru": "package.json изменился",
-        "pt": "pacote.json alterado",
-        "nl": "package.json gewijzigd",
-        "fr": "paquet.json changé",
-        "it": "pacchetto.json cambiato",
-        "es": "paquete.json cambió",
-        "pl": "package.json zmienił",
-        "uk": "пакет.json змінився",
-        "zh-cn": "软件包。 json 已更改"
       }
     },
     "titleLang": {
