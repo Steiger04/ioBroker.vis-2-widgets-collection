@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.7",
+    "version": "2.0.8",
     "news": {
+      "2.0.8": {
+        "en": "User documentation added (GitHub Wiki)",
+        "de": "Benutzerdokumentation hinzugefügt (GitHub Wiki)",
+        "ru": "Добавлена пользовательская документация (GitHub Wiki)",
+        "pt": "Documentação do usuário adicionada (GitHub Wiki)",
+        "nl": "Gebruikersdocumentatie toegevoegd (GitHub Wiki)",
+        "fr": "Documentation utilisateur ajoutée (Wiki GitHub)",
+        "it": "Documentazione utente aggiunta (GitHub Wiki)",
+        "es": "Documentación de usuario agregada (GitHub Wiki)",
+        "pl": "Dodano dokumentację użytkownika (GitHub Wiki)",
+        "uk": "Додано документацію користувача (GitHub Wiki)",
+        "zh-cn": "添加用户文档 (GitHub 维基)"
+      },
       "2.0.7": {
         "en": "Gauge widget optimized",
         "de": "Gage Widget optimiert",
@@ -69,19 +82,6 @@
         "zh-cn": "测试和释放.yml已更改"
       },
       "2.0.2": {
-        "en": "package.json changed",
-        "de": "paket.json geändert",
-        "ru": "package.json изменился",
-        "pt": "pacote.json alterado",
-        "nl": "package.json gewijzigd",
-        "fr": "paquet.json changé",
-        "it": "pacchetto.json cambiato",
-        "es": "paquete.json cambió",
-        "pl": "package.json zmienił",
-        "uk": "пакет.json змінився",
-        "zh-cn": "软件包。 json 已更改"
-      },
-      "2.0.1": {
         "en": "package.json changed",
         "de": "paket.json geändert",
         "ru": "package.json изменился",
