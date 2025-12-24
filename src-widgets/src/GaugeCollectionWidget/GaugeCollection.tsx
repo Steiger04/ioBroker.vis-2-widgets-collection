@@ -5,12 +5,13 @@
  */
 
 import { Box } from '@mui/material';
-import React, { useContext, useRef, useMemo, useEffect } from 'react';
+import React, { useContext, useRef, useMemo, useEffect, useState } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
+import useElementDimensions from '../hooks/useElementDimensions';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 
@@ -53,7 +54,8 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
  */
 function GaugeCollection(): React.JSX.Element {
     const baseRef = useRef<CollectionBaseHandle>(null);
-    const gaugeRef = useRef<HTMLDivElement>(null);
+    const [gaugeElement, setGaugeElement] = useState<HTMLDivElement | null>(null);
+    const { width: gaugeWidth, height: gaugeHeight } = useElementDimensions(gaugeElement);
 
     const context = useContext(CollectionContext) as GaugeCollectionContextProps;
     const {
@@ -217,7 +219,7 @@ function GaugeCollection(): React.JSX.Element {
                 widget={widget}
             />
             <Box
-                ref={gaugeRef}
+                ref={setGaugeElement}
                 sx={{
                     width: '100%',
                     height: '100%',
@@ -237,8 +239,8 @@ function GaugeCollection(): React.JSX.Element {
                     gaugeSegment={segment}
                     gaugeType={widget.data.gaugeType!}
                     // Basic Options
-                    width={(gaugeRef.current?.clientWidth || 0) - Number(widget.data.gaugePadding || 0)}
-                    height={(gaugeRef.current?.clientHeight || 0) - Number(widget.data.gaugePadding || 0)}
+                    width={(gaugeWidth || 0) - Number(widget.data.gaugePadding || 0)}
+                    height={(gaugeHeight || 0) - Number(widget.data.gaugePadding || 0)}
                     minValue={Number(widget.data.gaugeMinValue) ? Number(widget.data.gaugeMinValue) : 0}
                     maxValue={Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100}
                     value={Number(oidValue) || 0}
