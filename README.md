@@ -59,8 +59,7 @@
 -->
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 2.0.10 (2025-12-24)
 
 - (steiger04) sync-wiki.yml optimized
 

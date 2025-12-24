@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.9",
+    "version": "2.0.10",
     "news": {
+      "2.0.10": {
+        "en": "sync-wiki.yml optimized",
+        "de": "sync-wiki.yml optimiert",
+        "ru": "sync-wiki.yml оптимизирован",
+        "pt": "sync-wiki.yml otimizado",
+        "nl": "sync-wiki.yml geoptimaliseerd",
+        "fr": "sync-wiki.yml optimisé",
+        "it": "sync-wiki.yml ottimizzato",
+        "es": "sync-wiki.yml optimizado",
+        "pl": "sync- wiki.yml zoptymalizowany",
+        "uk": "sync-wiki.yml оптимізований",
+        "zh-cn": "同步- wiki. yml 优化"
+      },
       "2.0.9": {
         "en": "sync-wiki.yml changed",
         "de": "sync-wiki.yml geändert",
@@ -80,19 +93,6 @@
         "pl": "gitignore zmienione",
         "uk": "gitignore змінив",
         "zh-cn": "吉提格诺尔变了"
-      },
-      "2.0.3": {
-        "en": "test-and-release.yml changed",
-        "de": "test-and-release.yml geändert",
-        "ru": "test-and-release.yml изменился",
-        "pt": "teste e libertação.yml alterado",
-        "nl": "test-and-release.yml gewijzigd",
-        "fr": "test-and-release.yml modifié",
-        "it": "test-and-release.yml cambiato",
-        "es": "test-and-release.yml cambió",
-        "pl": "test- and- releasase.yml zmienione",
-        "uk": "тест-і-випуск.yml змінився",
-        "zh-cn": "测试和释放.yml已更改"
       }
     },
     "titleLang": {
