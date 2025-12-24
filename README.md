@@ -59,6 +59,11 @@
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+
+- (steiger04) User documentation added (GitHub Wiki)
+
 ### 2.0.7 (2025-12-24)
 
 - (steiger04) Gauge widget optimized
