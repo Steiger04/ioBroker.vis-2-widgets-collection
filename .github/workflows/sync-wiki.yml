@@ -10,7 +10,7 @@ on:
         paths:
             - 'src-widgets/src/documentation/**'
             - '.github/workflows/sync-wiki.yml'
-    # workflow_call:
+    workflow_call:
 
 permissions:
     contents: write
