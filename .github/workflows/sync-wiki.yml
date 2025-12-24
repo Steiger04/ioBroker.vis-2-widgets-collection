@@ -1,15 +1,6 @@
 name: Sync Documentation to Wiki
 
 on:
-    push:
-        branches:
-            - 'main'
-        tags:
-            - 'v?[0-9]+.[0-9]+.[0-9]+'
-            - 'v?[0-9]+.[0-9]+.[0-9]+-**'
-        paths:
-            - 'src-widgets/src/documentation/**'
-            - '.github/workflows/sync-wiki.yml'
     workflow_call:
 
 permissions:
@@ -25,19 +16,19 @@ jobs:
             # Sync documentation directories to wiki
             # The img/ folder (sibling to de/ and en/) will be synced automatically
             - name: Sync German Documentation to Wiki
-              uses: Andrew-Chen-Wang/github-wiki-action@v4
+              uses: Andrew-Chen-Wang/github-wiki-action@v5
               with:
                   path: src-widgets/src/documentation/de
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Sync English Documentation to Wiki
-              uses: Andrew-Chen-Wang/github-wiki-action@v4
+              uses: Andrew-Chen-Wang/github-wiki-action@v5
               with:
                   path: src-widgets/src/documentation/en
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Sync Images to Wiki
-              uses: Andrew-Chen-Wang/github-wiki-action@v4
+              uses: Andrew-Chen-Wang/github-wiki-action@v5
               with:
                   path: src-widgets/src/documentation/img
                   token: ${{ secrets.GITHUB_TOKEN }}
