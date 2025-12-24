@@ -59,6 +59,11 @@
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+
+- (steiger04) sync-wiki.yml changed
+
 ### 2.0.8 (2025-12-24)
 
 - (steiger04) User documentation added (GitHub Wiki)
