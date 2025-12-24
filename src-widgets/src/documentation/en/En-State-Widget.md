@@ -1,6 +1,6 @@
-# State Widget
+﻿# State Widget
 
-![State Widget](img/collection-state.png)
+![State Widget](../img/collection-state.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The State Widget is used to display and control states of various data types (bo
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific and value-specific settings override the more general settings.
 

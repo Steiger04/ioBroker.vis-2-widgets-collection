@@ -1,6 +1,6 @@
-# ButtonGroup Widget
+﻿# ButtonGroup Widget
 
-![ButtonGroup Widget](img/collection-button-group.png)
+![ButtonGroup Widget](../img/collection-button-group.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The ButtonGroup Widget displays multiple values as a button group. It supports v
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

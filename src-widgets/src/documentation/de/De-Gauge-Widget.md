@@ -1,6 +1,6 @@
-# Gauge Widget
+﻿# Gauge Widget
 
-![Gauge Widget](img/collection-gauge.png)
+![Gauge Widget](../img/collection-gauge.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Gauge Widget zeigt numerische Werte als Linear- oder Radial-Gauge an. Es bie
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

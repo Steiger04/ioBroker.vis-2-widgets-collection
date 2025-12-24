@@ -6,33 +6,45 @@ This directory contains the complete documentation for the ioBroker.vis-2 Widget
 
 ```
 documentation/
+├── Home.md          # Main entry point with language selection
 ├── de/              # German documentation
-│   ├── Home.md
-│   ├── _Sidebar.md
-│   ├── State-Widget.md
-│   ├── Switch-Widget.md
-│   ├── Checkbox-Widget.md
-│   ├── Slider-Widget.md
-│   ├── ButtonGroup-Widget.md
-│   ├── Select-Widget.md
-│   ├── RadioGroup-Widget.md
-│   ├── Dialog-Widget.md
-│   ├── Gauge-Widget.md
-│   └── Light-Widget.md
-└── en/              # English documentation
-    ├── Home.md
-    ├── _Sidebar.md
-    ├── State-Widget.md
-    ├── Switch-Widget.md
-    ├── Checkbox-Widget.md
-    ├── Slider-Widget.md
-    ├── ButtonGroup-Widget.md
-    ├── Select-Widget.md
-    ├── RadioGroup-Widget.md
-    ├── Dialog-Widget.md
-    ├── Gauge-Widget.md
-    └── Light-Widget.md
+│   ├── De-Home.md
+│   ├── De-_Sidebar.md
+│   ├── De-State-Widget.md
+│   ├── De-Switch-Widget.md
+│   ├── De-Checkbox-Widget.md
+│   ├── De-Slider-Widget.md
+│   ├── De-ButtonGroup-Widget.md
+│   ├── De-Select-Widget.md
+│   ├── De-RadioGroup-Widget.md
+│   ├── De-Dialog-Widget.md
+│   ├── De-Gauge-Widget.md
+│   └── De-Light-Widget.md
+├── en/              # English documentation
+│   ├── En-Home.md
+│   ├── En-_Sidebar.md
+│   ├── En-State-Widget.md
+│   ├── En-Switch-Widget.md
+│   ├── En-Checkbox-Widget.md
+│   ├── En-Slider-Widget.md
+│   ├── En-ButtonGroup-Widget.md
+│   ├── En-Select-Widget.md
+│   ├── En-RadioGroup-Widget.md
+│   ├── En-Dialog-Widget.md
+│   ├── En-Gauge-Widget.md
+│   └── En-Light-Widget.md
+└── img/             # Images shared by all languages
+    ├── collection-state.png
+    ├── collection-switch.png
+    └── ...
 ```
+
+**File Naming Convention:**
+
+- All German documentation files use `De-` prefix
+- All English documentation files use `En-` prefix
+- Main `Home.md` has no prefix (language selection page)
+- This prevents conflicts when syncing to GitHub Wiki's flat structure
 
 ## Settings Hierarchy
 
@@ -51,7 +63,15 @@ The documentation is automatically synchronized to the GitHub Wiki via GitHub Ac
 
 - **Trigger**: Pushes to `main` branch, tags, or changes in `src/documentation/**`
 - **Workflow**: `.github/workflows/sync-wiki.yml`
-- **Result**: Both German and English documentation are published to the wiki
+- **Process**:
+    1. Creates a temporary directory `/tmp/wiki-sync`
+    2. Copies `Home.md` (language selection page)
+    3. Copies all `De-*.md` files from `de/`
+    4. Copies all `En-*.md` files from `en/`
+    5. Copies all images from `img/`
+    6. Adjusts image paths for wiki compatibility (`../img/` → `img/`)
+    7. Performs a single sync operation to the wiki
+- **Result**: Both German and English documentation are published to the wiki with proper language prefixes
 
 ## Editing Documentation
 
@@ -73,19 +93,27 @@ The documentation is automatically synchronized to the GitHub Wiki via GitHub Ac
 
 ## File Naming
 
-- Use hyphenated names: `State-Widget.md`, `ButtonGroup-Widget.md`
+- Use language prefixes: `De-State-Widget.md`, `En-ButtonGroup-Widget.md`
 - Keep consistent naming across languages
-- `_Sidebar.md` is the wiki navigation sidebar
+- `De-_Sidebar.md` and `En-_Sidebar.md` are the wiki navigation sidebars for each language
+- Main `Home.md` has no prefix (serves as language selection page)
 
 ## Images
 
 Images are stored in `src-widgets/src/documentation/img/` and referenced as:
 
+**In local files (de/ and en/ directories):**
+
 ```markdown
-![Widget Name](img/collection-widget-name.png)
+![Widget Name](../img/collection-widget-name.png)
 ```
 
-**Important:** Use `img/` (not `../img/` or `../../img/`) for GitHub Wiki compatibility. The sync action handles the path mapping automatically.
+**In the wiki (after sync):**
+
+- Paths are automatically converted to `img/collection-widget-name.png`
+- The sync workflow handles this conversion
+
+**Important:** Use `../img/` in source files for local viewing. The sync action automatically converts these paths to `img/` for wiki compatibility.
 
 ## Language Support
 
@@ -98,4 +126,9 @@ To add a new language:
 
 1. Create a new directory (e.g., `fr/` for French)
 2. Copy and translate all files from `en/` or `de/`
-3. Update `.github/workflows/sync-wiki.yml` to include the new language
+3. Rename all files with the appropriate language prefix (e.g., `Fr-Home.md`)
+4. Update all internal links to use the new prefix
+5. Update image paths to use `../img/` (for local viewing)
+6. Add a link to the new language in the main `Home.md` file
+7. The sync workflow will automatically include the new language files
+8. Update `.github/workflows/sync-wiki.yml` to include the new language

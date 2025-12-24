@@ -1,6 +1,6 @@
-# Light Widget
+﻿# Light Widget
 
-![Light Widget](img/collection-light.png)
+![Light Widget](../img/collection-light.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Light Widget ist eine umfassende Lichtsteuerung mit Farbauswahl, Helligkeits
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

@@ -1,6 +1,6 @@
-# Select Widget
+﻿# Select Widget
 
-![Select Widget](img/collection-select.png)
+![Select Widget](../img/collection-select.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Select Widget bietet eine Dropdown-Auswahl für verschiedene Datentypen. Es 
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

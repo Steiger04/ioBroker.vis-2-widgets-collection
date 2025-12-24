@@ -1,6 +1,6 @@
-# State Widget
+﻿# State Widget
 
-![State Widget](img/collection-state.png)
+![State Widget](../img/collection-state.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das State Widget dient zur Anzeige und Steuerung von Zuständen verschiedener Da
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen und Value-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

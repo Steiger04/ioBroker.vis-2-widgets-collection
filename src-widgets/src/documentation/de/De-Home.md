@@ -1,4 +1,4 @@
-# ioBroker.vis-2 Widget Collection - Benutzerhandbuch
+﻿# ioBroker.vis-2 Widget Collection - Benutzerhandbuch
 
 Willkommen zur Dokumentation der Widget Collection für ioBroker.vis-2. Diese Sammlung bietet professionelle Widgets zur Visualisierung und Steuerung Ihrer Smart Home Geräte.
 
@@ -165,13 +165,13 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 
 Die Widget Collection umfasst folgende Widgets:
 
-- [State Widget](State-Widget.md) - Anzeige und Steuerung von Zuständen (boolean, number, string, mixed)
-- [Switch Widget](Switch-Widget.md) - Schalter für boolesche Werte
-- [Checkbox Widget](Checkbox-Widget.md) - Checkbox für boolesche Werte
-- [Slider Widget](Slider-Widget.md) - Schieberegler für numerische Werte
-- [ButtonGroup Widget](ButtonGroup-Widget.md) - Button-Gruppe für verschiedene Datentypen
-- [Select Widget](Select-Widget.md) - Dropdown-Auswahl für verschiedene Datentypen
-- [RadioGroup Widget](RadioGroup-Widget.md) - Radio-Gruppe für verschiedene Datentypen
-- [Dialog Widget](Dialog-Widget.md) - Dialog zur Anzeige von Views
-- [Gauge Widget](Gauge-Widget.md) - Gauge zur Anzeige numerischer Werte (Linear/Radial)
-- [Light Widget](Light-Widget.md) - Lichtsteuerung mit Farbauswahl
+- [State Widget](De-State-Widget.md) - Anzeige und Steuerung von Zuständen (boolean, number, string, mixed)
+- [Switch Widget](De-Switch-Widget.md) - Schalter für boolesche Werte
+- [Checkbox Widget](De-Checkbox-Widget.md) - Checkbox für boolesche Werte
+- [Slider Widget](De-Slider-Widget.md) - Schieberegler für numerische Werte
+- [ButtonGroup Widget](De-ButtonGroup-Widget.md) - Button-Gruppe für verschiedene Datentypen
+- [Select Widget](De-Select-Widget.md) - Dropdown-Auswahl für verschiedene Datentypen
+- [RadioGroup Widget](De-RadioGroup-Widget.md) - Radio-Gruppe für verschiedene Datentypen
+- [Dialog Widget](De-Dialog-Widget.md) - Dialog zur Anzeige von Views
+- [Gauge Widget](De-Gauge-Widget.md) - Gauge zur Anzeige numerischer Werte (Linear/Radial)
+- [Light Widget](De-Light-Widget.md) - Lichtsteuerung mit Farbauswahl

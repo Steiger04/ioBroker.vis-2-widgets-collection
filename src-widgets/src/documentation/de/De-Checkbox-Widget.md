@@ -1,6 +1,6 @@
-# Checkbox Widget
+﻿# Checkbox Widget
 
-![Checkbox Widget](img/collection-checkbox.png)
+![Checkbox Widget](../img/collection-checkbox.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Checkbox Widget bietet eine Checkbox-Darstellung für boolesche Werte mit ko
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

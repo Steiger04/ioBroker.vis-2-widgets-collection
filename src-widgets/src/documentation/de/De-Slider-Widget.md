@@ -1,6 +1,6 @@
-# Slider Widget
+﻿# Slider Widget
 
-![Slider Widget](img/collection-slider.png)
+![Slider Widget](../img/collection-slider.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Slider Widget ist ein Schieberegler für numerische Werte mit umfangreichen 
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

@@ -1,6 +1,6 @@
-# Light Widget
+﻿# Light Widget
 
-![Light Widget](img/collection-light.png)
+![Light Widget](../img/collection-light.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The Light Widget is a comprehensive light control with color selection, brightne
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

@@ -1,6 +1,6 @@
-# Dialog Widget
+﻿# Dialog Widget
 
-![Dialog Widget](img/collection-dialog.png)
+![Dialog Widget](../img/collection-dialog.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The Dialog Widget opens an overlay window to display a selected view. It enables
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

@@ -1,6 +1,6 @@
-# Switch Widget
+﻿# Switch Widget
 
-![Switch Widget](img/collection-switch.png)
+![Switch Widget](../img/collection-switch.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Switch Widget ist ein spezialisierter Schalter für boolesche Werte. Es biet
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

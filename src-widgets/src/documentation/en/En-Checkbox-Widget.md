@@ -1,6 +1,6 @@
-# Checkbox Widget
+﻿# Checkbox Widget
 
-![Checkbox Widget](img/collection-checkbox.png)
+![Checkbox Widget](../img/collection-checkbox.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The Checkbox Widget provides a checkbox representation for boolean values with c
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

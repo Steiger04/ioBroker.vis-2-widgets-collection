@@ -1,6 +1,6 @@
-# Slider Widget
+﻿# Slider Widget
 
-![Slider Widget](img/collection-slider.png)
+![Slider Widget](../img/collection-slider.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The Slider Widget is a slider for numeric values with extensive configuration op
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

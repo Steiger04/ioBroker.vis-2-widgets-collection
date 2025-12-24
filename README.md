@@ -9,6 +9,8 @@
 
 <h2 align="center">Widgets for ioBroker.vis 2.0</h2>
 
+📖 **[Ausführliche Dokumentation im GitHub Wiki](https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/wiki)**
+
 ## Widgets
 
 ### State
@@ -59,6 +61,11 @@
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+
+- (steiger04) sync-wiki.yml for en and de optimized
+
 ### 2.0.10 (2025-12-24)
 
 - (steiger04) sync-wiki.yml optimized

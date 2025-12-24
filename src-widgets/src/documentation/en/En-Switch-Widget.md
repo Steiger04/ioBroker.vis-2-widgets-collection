@@ -1,6 +1,6 @@
-# Switch Widget
+﻿# Switch Widget
 
-![Switch Widget](img/collection-switch.png)
+![Switch Widget](../img/collection-switch.png)
 
 ## Description
 
@@ -8,7 +8,7 @@ The Switch Widget is a specialized switch for boolean values. It provides a mode
 
 ## Settings Hierarchy
 
-This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](Home.md) for details.
+This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-Home.md) for details.
 
 The widget-specific settings override the more general settings.
 

@@ -1,4 +1,4 @@
-# ioBroker.vis-2 Widget Collection - User Guide
+﻿# ioBroker.vis-2 Widget Collection - User Guide
 
 Welcome to the documentation for the Widget Collection for ioBroker.vis-2. This collection provides professional widgets for visualizing and controlling your smart home devices.
 
@@ -165,13 +165,13 @@ These settings are available for all widgets in the collection.
 
 The Widget Collection includes the following widgets:
 
-- [State Widget](State-Widget.md) - Display and control of states (boolean, number, string, mixed)
-- [Switch Widget](Switch-Widget.md) - Switch for boolean values
-- [Checkbox Widget](Checkbox-Widget.md) - Checkbox for boolean values
-- [Slider Widget](Slider-Widget.md) - Slider for numeric values
-- [ButtonGroup Widget](ButtonGroup-Widget.md) - Button group for various data types
-- [Select Widget](Select-Widget.md) - Dropdown selection for various data types
-- [RadioGroup Widget](RadioGroup-Widget.md) - Radio group for various data types
-- [Dialog Widget](Dialog-Widget.md) - Dialog for displaying views
-- [Gauge Widget](Gauge-Widget.md) - Gauge for displaying numeric values (Linear/Radial)
-- [Light Widget](Light-Widget.md) - Light control with color selection
+- [State Widget](En-State-Widget.md) - Display and control of states (boolean, number, string, mixed)
+- [Switch Widget](En-Switch-Widget.md) - Switch for boolean values
+- [Checkbox Widget](En-Checkbox-Widget.md) - Checkbox for boolean values
+- [Slider Widget](En-Slider-Widget.md) - Slider for numeric values
+- [ButtonGroup Widget](En-ButtonGroup-Widget.md) - Button group for various data types
+- [Select Widget](En-Select-Widget.md) - Dropdown selection for various data types
+- [RadioGroup Widget](En-RadioGroup-Widget.md) - Radio group for various data types
+- [Dialog Widget](En-Dialog-Widget.md) - Dialog for displaying views
+- [Gauge Widget](En-Gauge-Widget.md) - Gauge for displaying numeric values (Linear/Radial)
+- [Light Widget](En-Light-Widget.md) - Light control with color selection

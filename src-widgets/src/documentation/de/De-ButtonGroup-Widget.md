@@ -1,6 +1,6 @@
-# ButtonGroup Widget
+﻿# ButtonGroup Widget
 
-![ButtonGroup Widget](img/collection-button-group.png)
+![ButtonGroup Widget](../img/collection-button-group.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das ButtonGroup Widget stellt mehrere Werte als Button-Gruppe dar. Es unterstüt
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

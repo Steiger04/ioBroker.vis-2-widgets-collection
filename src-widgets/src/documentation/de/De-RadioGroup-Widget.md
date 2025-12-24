@@ -1,6 +1,6 @@
-# RadioGroup Widget
+﻿# RadioGroup Widget
 
-![RadioGroup Widget](img/collection-radio-group.png)
+![RadioGroup Widget](../img/collection-radio-group.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das RadioGroup Widget stellt mehrere Werte als Radio-Buttons dar. Alle Optionen 
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 

@@ -13,22 +13,33 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            # Sync documentation directories to wiki
-            # The img/ folder (sibling to de/ and en/) will be synced automatically
-            - name: Sync German Documentation to Wiki
-              uses: Andrew-Chen-Wang/github-wiki-action@v5
-              with:
-                  path: src-widgets/src/documentation/de
-                  token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Prepare Wiki Content
+              run: |
+                  # Create temporary directory for wiki sync
+                  mkdir -p /tmp/wiki-sync/img
 
-            - name: Sync English Documentation to Wiki
-              uses: Andrew-Chen-Wang/github-wiki-action@v5
-              with:
-                  path: src-widgets/src/documentation/en
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  # Copy main entry point
+                  cp src-widgets/src/documentation/Home.md /tmp/wiki-sync/
 
-            - name: Sync Images to Wiki
+                  # Copy wiki sidebar
+                  cp src-widgets/src/documentation/_Sidebar.md /tmp/wiki-sync/
+
+                  # Copy German documentation files
+                  cp src-widgets/src/documentation/de/De-*.md /tmp/wiki-sync/
+
+                  # Copy English documentation files
+                  cp src-widgets/src/documentation/en/En-*.md /tmp/wiki-sync/
+
+                  # Copy images
+                  cp src-widgets/src/documentation/img/* /tmp/wiki-sync/img/
+
+                  # Adjust image paths for wiki (../img/ → img/)
+                  find /tmp/wiki-sync -name "*.md" -type f -exec sed -i 's|../img/|img/|g' {} +
+
+                  echo "Wiki content prepared successfully"
+
+            - name: Sync to Wiki
               uses: Andrew-Chen-Wang/github-wiki-action@v5
               with:
-                  path: src-widgets/src/documentation/img
+                  path: /tmp/wiki-sync
                   token: ${{ secrets.GITHUB_TOKEN }}

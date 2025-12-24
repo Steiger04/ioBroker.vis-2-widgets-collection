@@ -1,6 +1,6 @@
-# Dialog Widget
+﻿# Dialog Widget
 
-![Dialog Widget](img/collection-dialog.png)
+![Dialog Widget](../img/collection-dialog.png)
 
 ## Beschreibung
 
@@ -8,7 +8,7 @@ Das Dialog Widget öffnet ein Overlay-Fenster zur Anzeige einer ausgewählten Vi
 
 ## Einstellungshierarchie
 
-Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](Home.md) für Details.
+Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 
