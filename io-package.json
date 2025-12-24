@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.10",
+    "version": "2.0.11",
     "news": {
+      "2.0.11": {
+        "en": "sync-wiki.yml for en and de optimized",
+        "de": "sync-wiki.yml für en und de optimiert",
+        "ru": "sync-wiki.yml для en и de оптимизирован",
+        "pt": "sync-wiki.yml para en e de otimizado",
+        "nl": "sync-wiki.yml voor en en de geoptimaliseerd",
+        "fr": "sync-wiki.yml pour en et de optimisé",
+        "it": "sync-wiki.yml per en e de ottimizzato",
+        "es": "sync-wiki.yml para en y de optimizado",
+        "pl": "sync- wiki.yml dla en i de zoptymalizowane",
+        "uk": "sync-wiki.yml для en і de оптимізований",
+        "zh-cn": "en和de 优化的同步- wiki. yml"
+      },
       "2.0.10": {
         "en": "sync-wiki.yml optimized",
         "de": "sync-wiki.yml optimiert",
@@ -69,19 +82,6 @@
         "zh-cn": "吉提格诺尔变了"
       },
       "2.0.5": {
-        "en": "gitignore changed",
-        "de": "gitignore geändert",
-        "ru": "гитиньор изменился",
-        "pt": "gitignore alterado",
-        "nl": "gitignore gewijzigd",
-        "fr": "gitignore modifié",
-        "it": "gitignore cambiato",
-        "es": "gitignore changed",
-        "pl": "gitignore zmienione",
-        "uk": "gitignore змінив",
-        "zh-cn": "吉提格诺尔变了"
-      },
-      "2.0.4": {
         "en": "gitignore changed",
         "de": "gitignore geändert",
         "ru": "гитиньор изменился",
