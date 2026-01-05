@@ -7,12 +7,13 @@
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
+import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { RadioGroupCollectionContextProps } from '../types';
 
@@ -21,7 +22,8 @@ import type { RadioGroupCollectionContextProps } from '../types';
  */
 function RadioGroupCollection(): React.ReactElement {
     const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
-    const [clientHeight, setClientHeight] = useState<number | null>(null);
+    const { height: radioGroupHeight } = useElementDimensions(stackRef);
+
     // RadioGroupCollection is only used by RadioGroupCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const {
@@ -40,12 +42,6 @@ function RadioGroupCollection(): React.ReactElement {
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         updateOidValue(event.target.value);
     };
-
-    useEffect(() => {
-        if (stackRef?.clientHeight) {
-            setClientHeight(stackRef.clientHeight);
-        }
-    }, [stackRef?.clientHeight]);
 
     return (
         <CollectionBase
@@ -163,9 +159,9 @@ function RadioGroupCollection(): React.ReactElement {
                                     height: '100%',
                                     maxHeight:
                                         widget.data.radioOrientation === 'horizontal'
-                                            ? clientHeight || undefined
-                                            : clientHeight
-                                              ? clientHeight / states.length
+                                            ? radioGroupHeight || undefined
+                                            : radioGroupHeight
+                                              ? radioGroupHeight / states.length
                                               : undefined,
 
                                     '& .MuiTouchRipple-root': {
@@ -180,9 +176,9 @@ function RadioGroupCollection(): React.ReactElement {
                                         height: '100%',
                                         maxHeight:
                                             widget.data.radioOrientation === 'horizontal'
-                                                ? clientHeight || undefined
-                                                : clientHeight
-                                                  ? clientHeight / states.length
+                                                ? radioGroupHeight || undefined
+                                                : radioGroupHeight
+                                                  ? radioGroupHeight / states.length
                                                   : undefined,
                                     },
                                 }}
