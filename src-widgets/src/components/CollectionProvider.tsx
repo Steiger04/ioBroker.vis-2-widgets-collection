@@ -9,8 +9,9 @@
  */
 
 import { createContext, useMemo } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
+import useStyles from '../hooks/useStyles';
 
 import type { AllCollectionContextProps } from '../types';
 
@@ -38,33 +39,34 @@ interface CollectionProviderProps {
  * @returns Provider subtree.
  */
 function CollectionProvider({ children, context }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {
-    const mode = context.mode;
     const theme = context.theme;
+    const widget = context.widget;
+
+    const { fontStyles, textStyles } = useStyles(widget.style || {});
 
     const _theme = useMemo(() => {
-        const mergeOptions =
-            mode === 'dark'
-                ? {
-                      palette: {
-                          mode: 'dark',
-                      },
-                  }
-                : {};
-
         return createTheme(
-            deepmerge(
-                theme,
-                deepmerge(mergeOptions, {
-                    components: {
-                        MuiTypography: {},
+            deepmerge(theme, {
+                components: {
+                    MuiTypography: {
+                        styleOverrides: {
+                            root: {
+                                // Merge fontStyles and textStyles into the root style overrides
+                                // This ensures CSS properties like textShadow are applied as styles, not props
+                                ...fontStyles,
+                                ...textStyles,
+                                color: textStyles.color || theme.palette.primary.main,
+                            },
+                        },
                     },
-                }),
-            ),
+                },
+            }),
         );
-    }, [mode, theme]);
+    }, [theme, fontStyles, textStyles]);
 
     return (
         <ThemeProvider theme={_theme}>
+            <CssBaseline />
             <CollectionContext.Provider value={context}>{children}</CollectionContext.Provider>
         </ThemeProvider>
     );

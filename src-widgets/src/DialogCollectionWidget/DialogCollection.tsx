@@ -12,7 +12,6 @@ import { CollectionContext } from '../components/CollectionProvider';
 import type { DialogCollectionContextProps } from '../types';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
-import useStyles from '../hooks/useStyles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 
@@ -39,7 +38,6 @@ function DialogCollection(): React.ReactElement {
     // DialogCollection is only used by DialogCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as DialogCollectionContextProps;
     const { widget, getWidgetView, setValue } = context;
-    const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, oidValue } = useData('oid');
 
     // Safe access to the optional oidObject.
@@ -124,8 +122,6 @@ function DialogCollection(): React.ReactElement {
                     widget,
                     data,
                     getWidgetView,
-                    fontStyles,
-                    textStyles,
                 }}
             />
             <CollectionBase
@@ -208,8 +204,6 @@ function DialogCollection(): React.ReactElement {
                                     justifyContent: 'center',
                                     alignItems: 'center',
 
-                                    ...fontStyles,
-                                    ...textStyles,
                                     fontSize: data.valueSize,
                                     color: data.textColor,
                                     textTransform: 'none',

@@ -12,7 +12,6 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { RadioGroupCollectionContextProps } from '../types';
@@ -32,7 +31,6 @@ function RadioGroupCollection(): React.ReactElement {
         widget,
     } = context;
     const { data, states } = useData('oid');
-    const { fontStyles, textStyles } = useStyles(widget.style);
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
@@ -200,8 +198,6 @@ function RadioGroupCollection(): React.ReactElement {
                                 noWrap
                                 sx={{
                                     whiteSpace: 'pre-wrap',
-                                    ...fontStyles,
-                                    ...textStyles,
                                     fontSize: state.fontSize || data.valueSize,
                                     textAlign: 'left',
 

@@ -13,7 +13,6 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
-import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -29,7 +28,6 @@ function SelectCollection(): React.ReactElement {
     const { widget, theme } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
-    const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const { updateValue: setCidValueState } = useValueState('cid');
@@ -288,8 +286,6 @@ function SelectCollection(): React.ReactElement {
                                         variant="subtitle2"
                                         sx={{
                                             whiteSpace: 'pre-wrap',
-                                            ...fontStyles,
-                                            ...textStyles,
                                             fontSize: widget.data[`valueSize${idx + 1}`] || data.valueSize,
                                             textAlign: 'left',
                                             bgcolor: 'transparent',

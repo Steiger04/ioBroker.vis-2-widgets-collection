@@ -1,5 +1,5 @@
 import { v as n, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { g as u, a as p, u as b, j as c, s as f, d as C, e as v, __tla as __tla_1 } from "./commonFields-Dc3dYGx-.js";
+import { g as u, a as p, u as b, j as c, s as f, d as C, e as v, __tla as __tla_1 } from "./commonFields-B5KdVoLe.js";
 let y, S, U, j;
 let __tla = Promise.all([
   (() => {

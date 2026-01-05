@@ -9,7 +9,7 @@
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
  */
-import { Box, CssBaseline } from '@mui/material';
+import { Box } from '@mui/material';
 
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
@@ -62,7 +62,6 @@ class Generic<
     wrapContent(content: JSX.Element | JSX.Element[]): JSX.Element | JSX.Element[] | null {
         return (
             <>
-                <CssBaseline />
                 <Box
                     className="GENERIC-0"
                     sx={{

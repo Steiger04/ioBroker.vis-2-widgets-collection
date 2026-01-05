@@ -11,7 +11,6 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -25,7 +24,6 @@ function ButtonGroupCollection(): React.JSX.Element {
     // Safe access to optional properties.
     const oidObject = widget.data.oidObject;
     const { data, states, activeIndex } = useData('oid');
-    const { fontStyles, textStyles } = useStyles(widget.style);
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
@@ -589,8 +587,6 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                 noWrap
                                                 variant="body2"
                                                 sx={{
-                                                    ...fontStyles,
-                                                    ...textStyles,
                                                     textTransform: 'none',
                                                     fontSize:
                                                         (activeIndex === index + 1 &&

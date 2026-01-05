@@ -1,7 +1,7 @@
-import { j as g, C as W, a9 as Nt, q as Me, v as j, y as st, A as ht, E as ut, z as Dt, M as Ft, w as N, c as Vt, aa as Gt, I as xe, D as Ze, al as dt, G as $t, H as Je, K as Ut, L as Xt, __tla as __tla_0 } from "./commonFields-Dc3dYGx-.js";
+import { j as g, C as W, a9 as Nt, q as Me, v as j, y as st, A as ht, E as ut, z as Dt, M as Ft, w as N, c as Vt, aa as Gt, I as xe, D as Ze, al as dt, G as $t, H as Je, K as Ut, L as Xt, __tla as __tla_0 } from "./commonFields-B5KdVoLe.js";
 import { v as f, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { B as Kt, __tla as __tla_2 } from "./Button-BK3gDuCC.js";
-import { u as Yt, __tla as __tla_3 } from "./useOidValue-DGq_wsMY.js";
+import { B as Kt, __tla as __tla_2 } from "./Button-C98dyMu0.js";
+import { u as Yt, __tla as __tla_3 } from "./useOidValue-B5XYnVMr.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let It;

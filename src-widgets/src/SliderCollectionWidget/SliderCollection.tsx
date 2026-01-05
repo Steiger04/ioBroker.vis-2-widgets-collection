@@ -12,7 +12,6 @@ import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
-import useStyles from '../hooks/useStyles';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
@@ -43,7 +42,6 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { fontStyles, textStyles } = useStyles(widget.style);
     const { data, states, minValue, maxValue, activeIndex } = useData('oid');
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
@@ -408,9 +406,6 @@ const SliderCollection: FC = () => {
                                         filter: 'brightness(2.5)',
                                     },
                                     '& .MuiSlider-valueLabel': {
-                                        ...fontStyles,
-                                        ...textStyles,
-
                                         fontSize:
                                             formatSize(widget.data.valueSizeActive) ||
                                             data.valueSizeActive ||

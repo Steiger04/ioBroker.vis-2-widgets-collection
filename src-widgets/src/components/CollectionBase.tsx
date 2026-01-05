@@ -69,7 +69,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         const { wrappedContent, widget } = context;
 
         const oidObject = widget.data.oidObject;
-        const { backgroundStyles, borderStyles, textStyles, fontStyles } = useStyles(widget.style);
+        const { backgroundStyles, borderStyles } = useStyles(widget.style);
 
         const fallbackRef = useRef<HTMLDivElement>(null);
         const { width, height } = useSize(ref || fallbackRef);
@@ -170,8 +170,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 noWrap
                                 variant="body2"
                                 sx={{
-                                    ...fontStyles,
-                                    ...textStyles,
                                     fontSize: data.headerSize,
                                     color: widget.data.textColor || data.textColorActive || data.textColor,
                                 }}
@@ -242,8 +240,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 noWrap
                                 variant="body2"
                                 sx={{
-                                    ...fontStyles,
-                                    ...textStyles,
                                     fontSize: data.footerSize,
                                     color: widget.data.textColor || data.textColorActive || data.textColor,
                                 }}
@@ -263,7 +259,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                         }}
                     >
                         <Typography
-                            color="primary.main"
                             variant="body2"
                             sx={{
                                 p: 1,

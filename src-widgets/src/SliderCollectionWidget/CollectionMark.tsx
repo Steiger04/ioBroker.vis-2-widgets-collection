@@ -8,7 +8,6 @@ import { SliderMarkLabel, Box, Typography } from '@mui/material';
 import React, { useState, useEffect, useContext, useCallback, type FC, type HTMLAttributes } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
-import useStyles from '../hooks/useStyles';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
@@ -63,8 +62,6 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
     const { widget } = context;
 
-    const { fontStyles, textStyles } = useStyles(widget.style);
-
     const index = props['data-index'];
     // Get the mark data from MUI's ownerState.marks (which contains our sliderMarks)
     const mark = props.ownerState?.marks?.[index];
@@ -99,8 +96,6 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                     data-font="active"
                     ref={setRef}
                     sx={{
-                        ...fontStyles,
-                        ...textStyles,
                         textTransform: 'none',
                         flexGrow: 1,
                         pr: sliderOrientation === 'vertical' ? 1 : 0,

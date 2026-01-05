@@ -16,7 +16,6 @@ import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
-import useStyles from '../hooks/useStyles';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { StateCollectionContextProps } from '../types';
@@ -33,7 +32,6 @@ function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget } = context;
     const oidObject = widget.data.oidObject;
-    const { textStyles, fontStyles } = useStyles(widget.style);
     const { data, widgetStates } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
@@ -199,8 +197,6 @@ function StateCollection(): React.ReactElement {
                             component={Box}
                             variant="body2"
                             sx={{
-                                ...fontStyles,
-                                ...textStyles,
                                 fontSize: data.valueSizeActive || data.valueSize,
                                 textAlign: 'center', // For HTML content with tags
                                 bgcolor: 'transparent',

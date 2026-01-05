@@ -23,10 +23,6 @@ interface ViewDialogProps {
     data: StyleData;
     /** vis-2 view renderer callback. */
     getWidgetView: DialogCollectionContextProps['getWidgetView'];
-    /** Typography font styles merged from widget style and theme. */
-    fontStyles: React.CSSProperties;
-    /** Typography text styles merged from widget style and theme. */
-    textStyles: React.CSSProperties;
 }
 
 /**
@@ -38,8 +34,6 @@ export default function ViewDialog({
     widget,
     data,
     getWidgetView,
-    fontStyles,
-    textStyles,
 }: ViewDialogProps): React.ReactElement {
     const baseRef = useRef<CollectionBaseHandle>(null);
     const [titleRef, setTitleRef] = useState<HTMLElement | null>(null);
@@ -130,8 +124,6 @@ export default function ViewDialog({
                                 noWrap
                                 variant="body2"
                                 sx={{
-                                    ...fontStyles,
-                                    ...textStyles,
                                     fontSize: data.headerSize,
                                     color: data.textColor,
                                     px: widget.data.dialogCloseButtonTop ? 4 : 0,
