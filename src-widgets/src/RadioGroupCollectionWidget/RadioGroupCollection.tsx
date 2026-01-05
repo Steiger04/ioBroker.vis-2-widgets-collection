@@ -71,9 +71,11 @@ function RadioGroupCollection(): React.ReactElement {
                         key={index}
                         labelPlacement={widget.data.labelPlacement}
                         sx={{
-                            // m: 0,
+                            m: 0,
                             display: 'flex',
                             alignItems: 'center',
+                            // Center icons when labels are hidden
+                            justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
 
                             // For vertical orientation: equal height distribution
                             ...(widget.data.radioOrientation === 'vertical' && {
@@ -217,30 +219,32 @@ function RadioGroupCollection(): React.ReactElement {
                             />
                         }
                         label={
-                            <Typography
-                                component={Box}
-                                variant="body2"
-                                sx={{
-                                    width: '100%',
-                                    display: '-webkit-box',
-                                    WebkitBoxOrient: 'vertical',
-                                    WebkitLineClamp: 2,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    wordBreak: 'break-word',
-                                    fontSize: state.fontSize || data.valueSize,
-                                    textAlign: 'left',
+                            !widget.data.hideLabels ? (
+                                <Typography
+                                    component={Box}
+                                    variant="body2"
+                                    sx={{
+                                        width: '100%',
+                                        display: '-webkit-box',
+                                        WebkitBoxOrient: 'vertical',
+                                        WebkitLineClamp: 2,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        wordBreak: 'break-word',
+                                        fontSize: state.fontSize || data.valueSize,
+                                        textAlign: 'left',
 
-                                    color: state.textColor || data.textColor,
-                                }}
-                                contentEditable="false"
-                                dangerouslySetInnerHTML={{
-                                    __html:
-                                        (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
-                                        (value && `${value}${oidObject?.unit}`) ||
-                                        '',
-                                }}
-                            />
+                                        color: state.textColor || data.textColor,
+                                    }}
+                                    contentEditable="false"
+                                    dangerouslySetInnerHTML={{
+                                        __html:
+                                            (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
+                                            (value && `${value}${oidObject?.unit}`) ||
+                                            '',
+                                    }}
+                                />
+                            ) : undefined
                         }
                     />
                 ))}

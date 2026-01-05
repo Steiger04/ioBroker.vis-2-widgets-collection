@@ -290,5 +290,8 @@
     "color_light_ct_max": "Farbtemperatur (max)",
     "color_wheel_lightness": "Wheel abdunkeln",
 		"color_light_gamut": "Farbspektrum",
-		"label_placement": "Labelposition"
+		"label_placement": "Labelposition",
+		"hide_labels": "Label ausblenden",
+		"selection": "Auswahl",
+		"arrow": "Pfeil"
 }

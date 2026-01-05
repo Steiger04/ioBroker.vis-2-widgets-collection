@@ -32,6 +32,12 @@ const radioGroupFields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider />,
     },
     {
+        name: 'hideLabels',
+        label: 'hide_labels',
+        type: 'checkbox',
+        default: false,
+    },
+    {
         name: 'labelPlacement',
         label: 'label_placement',
         type: 'select',
@@ -41,6 +47,7 @@ const radioGroupFields = (): RxWidgetInfoAttributesField[] => [
         ],
         default: 'end',
         noTranslation: true,
+        hidden: (data: WidgetData) => !!data.hideLabels,
     },
     {
         type: 'custom',

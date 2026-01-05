@@ -288,5 +288,8 @@
     "color_light_ct_max": "Color temperature (max)",
     "color_wheel_lightness": "Wheel darken",
 		"color_light_gamut": "Color gamut",
-		"label_placement": "Label placement"
+		"label_placement": "Label placement",
+		"hide_labels": "Hide labels",
+		"selection": "Selection",
+		"arrow": "Arrow"
 }

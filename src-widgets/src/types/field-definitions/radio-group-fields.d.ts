@@ -34,6 +34,21 @@ export interface RadioGroupFieldsRxData {
     labelPlacement?: 'start' | 'end';
 
     /**
+     * Hide text labels, showing only radio button icons.
+     *
+     * @default false
+     * @example
+     * ```typescript
+     * const data: RadioGroupFieldsRxData = {
+     *     hideLabels: true
+     * };
+     * ```
+     * @remarks
+     * Useful for icon-only radio groups or when space is limited.
+     */
+    hideLabels?: boolean;
+
+    /**
      * Icon color for unchecked radio options.
      *
      * @example
