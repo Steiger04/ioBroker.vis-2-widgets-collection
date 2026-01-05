@@ -69,8 +69,7 @@ function RadioGroupCollection(): React.ReactElement {
                 {states.map(({ value, label: alias, ...state }, index) => (
                     <FormControlLabel
                         key={index}
-                        // labelPlacement="top"
-
+                        labelPlacement={widget.data.labelPlacement}
                         sx={{
                             // m: 0,
                             display: 'flex',

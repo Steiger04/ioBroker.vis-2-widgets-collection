@@ -32,6 +32,21 @@ const radioGroupFields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider />,
     },
     {
+        name: 'labelPlacement',
+        label: 'label_placement',
+        type: 'select',
+        options: [
+            { value: 'start', label: 'Start' },
+            { value: 'end', label: 'End' },
+        ],
+        default: 'end',
+        noTranslation: true,
+    },
+    {
+        type: 'custom',
+        component: () => <CollectionDivider />,
+    },
+    {
         name: 'radioGroupUncheckedIconColor',
         label: 'radio_group_unchecked_icon_color',
         type: 'color',

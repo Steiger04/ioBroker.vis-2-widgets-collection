@@ -19,6 +19,21 @@ export interface RadioGroupFieldsRxData {
     radioOrientation?: 'horizontal' | 'vertical';
 
     /**
+     * Label placement orientation for the radio options.
+     *
+     * @default 'end'
+     * @example
+     * ```typescript
+     * const data: RadioGroupFieldsRxData = {
+     *     labelPlacement: 'end'
+     * };
+     * ```
+     * @remarks
+     * Use label placement to adjust the position of labels relative to radio buttons.
+     */
+    labelPlacement?: 'start' | 'end';
+
+    /**
      * Icon color for unchecked radio options.
      *
      * @example
