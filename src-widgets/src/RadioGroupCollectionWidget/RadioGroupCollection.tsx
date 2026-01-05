@@ -111,6 +111,13 @@ function RadioGroupCollection(): React.ReactElement {
                                     color: widget.data.radioGroupUncheckedIconColor || 'action.active',
                                 },
                             },
+
+                            // Label styling - ensure it has defined width for text-align
+                            '& .MuiFormControlLabel-label': {
+                                flex: '1 1 auto',
+                                minWidth: 0,
+                                overflow: 'hidden',
+                            },
                         }}
                         control={
                             <Radio
@@ -214,9 +221,14 @@ function RadioGroupCollection(): React.ReactElement {
                             <Typography
                                 component={Box}
                                 variant="body2"
-                                noWrap
                                 sx={{
-                                    whiteSpace: 'pre-wrap',
+                                    width: '100%',
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 2,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    wordBreak: 'break-word',
                                     fontSize: state.fontSize || data.valueSize,
                                     textAlign: 'left',
 
