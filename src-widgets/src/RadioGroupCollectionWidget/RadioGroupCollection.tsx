@@ -60,8 +60,10 @@ function RadioGroupCollection(): React.ReactElement {
                 sx={{
                     width: 'auto',
                     height: '100%',
-                    justifyContent: 'space-around',
-                    alignItems: 'stretch',
+                    // For horizontal: space-around centers buttons nicely
+                    // For vertical: flex-start allows flex children to distribute equally
+                    justifyContent: widget.data.radioOrientation === 'horizontal' ? 'space-around' : 'flex-start',
+                    alignItems: widget.data.radioOrientation === 'horizontal' ? 'center' : 'stretch',
                 }}
             >
                 {states.map(({ value, label: alias, ...state }, index) => (
@@ -70,16 +72,37 @@ function RadioGroupCollection(): React.ReactElement {
                         // labelPlacement="top"
 
                         sx={{
-                            // width: "100%",
-                            height: '100%',
-
                             m: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+
+                            // For vertical orientation: equal height distribution
+                            ...(widget.data.radioOrientation === 'vertical' && {
+                                flex: '1 1 0',
+                                minHeight: 0,
+                            }),
+                            // For horizontal orientation: auto sizing based on content
+                            ...(widget.data.radioOrientation === 'horizontal' && {
+                                height: '100%',
+                            }),
 
                             '& .MuiButtonBase-root': {
-                                flexBasis: 'fit-content',
-                                flexShrink: 1,
-                                width: '100%',
-                                height: '100%',
+                                // For horizontal orientation: enforce square shape
+                                ...(widget.data.radioOrientation === 'horizontal' && {
+                                    aspectRatio: '1',
+                                    maxWidth: radioGroupHeight || undefined,
+                                    maxHeight: radioGroupHeight || undefined,
+                                    width: 'auto',
+                                    flexShrink: 0,
+                                }),
+                                // For vertical orientation: fixed size per button
+                                ...(widget.data.radioOrientation === 'vertical' && {
+                                    width: radioGroupHeight ? `${radioGroupHeight / states.length}px` : 'auto',
+                                    height: radioGroupHeight ? `${radioGroupHeight / states.length}px` : 'auto',
+                                    maxWidth: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
+                                    maxHeight: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
+                                    flexShrink: 0,
+                                }),
 
                                 '&.Mui-disabled': {
                                     '&.Mui-checked': {
