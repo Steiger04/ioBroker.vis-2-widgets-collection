@@ -55,6 +55,7 @@ function RadioGroupCollection(): React.ReactElement {
             />
 
             <Stack
+                spacing={0}
                 ref={setStackRef}
                 direction={widget.data.radioOrientation === 'vertical' ? 'column' : 'row'}
                 sx={{
@@ -71,7 +72,9 @@ function RadioGroupCollection(): React.ReactElement {
                         key={index}
                         labelPlacement={widget.data.labelPlacement}
                         sx={{
-                            m: 0,
+                            mr: widget.data.labelPlacement === 'end' ? undefined : 0,
+                            ml: widget.data.labelPlacement === 'start' ? undefined : 0,
+
                             display: 'flex',
                             alignItems: 'center',
                             // Center icons when labels are hidden
