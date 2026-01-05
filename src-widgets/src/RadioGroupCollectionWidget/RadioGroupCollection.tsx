@@ -72,8 +72,8 @@ function RadioGroupCollection(): React.ReactElement {
                         key={index}
                         labelPlacement={widget.data.labelPlacement}
                         sx={{
-                            mr: widget.data.labelPlacement === 'end' ? undefined : 0,
-                            ml: widget.data.labelPlacement === 'start' ? undefined : 0,
+                            mr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
+                            ml: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
 
                             display: 'flex',
                             alignItems: 'center',
