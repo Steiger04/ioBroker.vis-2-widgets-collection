@@ -62,6 +62,8 @@ The widget-specific settings override the more general settings.
 | iconSizeEnd  | slider | -       | Size of end icon          | -         |
 | endIconColor | color  | -       | Color of end icon         | -         |
 
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
 ## Orientation
 
 ### Horizontal

@@ -14,11 +14,15 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name                   | Type     | Default      | Description                                | Condition            |
-| ---------------------------- | -------- | ------------ | ------------------------------------------ | -------------------- |
-| radioOrientation             | select   | 'horizontal' | Orientation of the radio group             | -                    |
-| radioGroupUncheckedIconColor | color    | -            | Color of unselected radio buttons          | -                    |
-| onlyDisplay                  | checkbox | false        | Display only (no write permissions on OID) | Only when write=true |
+| Field Name                   | Type     | Default      | Description                                    | Condition                  |
+| ---------------------------- | -------- | ------------ | ---------------------------------------------- | -------------------------- |
+| radioOrientation             | select   | 'horizontal' | Orientation of the radio group                 | -                          |
+| radioGroupUncheckedIconColor | color    | -            | Color of unselected radio buttons              | -                          |
+| onlyDisplay                  | checkbox | false        | Display only (no write permissions on OID)     | Only when write=true       |
+| hideLabels                   | checkbox | false        | Hide labels (show icons only)                  | -                          |
+| labelPlacement               | select   | 'end'        | Position of the label relative to radio button | Only when hideLabels=false |
+
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 
 ## Orientation
 
@@ -35,6 +39,30 @@ The widget-specific settings override the more general settings.
 - Space-saving in width
 - Good for more than 4 options or long labels
 - Clear display
+
+## Label Settings
+
+### Hide Labels
+
+- Enable `hideLabels` to show only the radio buttons without text
+- Useful for compact displays or when icons are self-explanatory
+- Radio buttons are centered
+
+### Label Placement
+
+The position of the label can be controlled via `labelPlacement` (only visible when `hideLabels` is disabled):
+
+#### Start
+
+- Label is displayed to the left of the radio button (in LTR layout)
+- Horizontal arrangement
+- Default left-aligned
+
+#### End (Default)
+
+- Label is displayed to the right of the radio button (in LTR layout)
+- Horizontal arrangement
+- Default right-aligned
 
 ## Icon Colors
 

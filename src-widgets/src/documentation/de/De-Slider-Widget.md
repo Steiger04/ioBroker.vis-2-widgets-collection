@@ -62,6 +62,8 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | iconSizeEnd  | slider | -        | Größe des End-Icons        | -         |
 | endIconColor | color  | -        | Farbe des End-Icons        | -         |
 
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
 ## Orientierung
 
 ### Horizontal

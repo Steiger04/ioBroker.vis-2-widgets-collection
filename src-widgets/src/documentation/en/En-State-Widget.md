@@ -22,6 +22,8 @@ The widget-specific and value-specific settings override the more general settin
 | noIcon          | checkbox | false   | Don't show icon                                          | -                                              |
 | noValue         | checkbox | false   | Don't show value                                         | -                                              |
 
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
 ## Data Types
 
 The State Widget supports the following data types:

@@ -20,6 +20,8 @@ The widget-specific settings override the more general settings.
 | buttonGroupOrientation | select | 'horizontal' | Orientation of the button group | -         |
 | buttonGroupColor       | select | 'primary'    | Color scheme of the buttons     | -         |
 
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
 ## Variants
 
 ### Contained (Default)

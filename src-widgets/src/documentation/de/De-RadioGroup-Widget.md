@@ -14,11 +14,15 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## Widget-spezifische Einstellungen
 
-| Feldname                     | Typ      | Standard     | Beschreibung                               | Bedingung           |
-| ---------------------------- | -------- | ------------ | ------------------------------------------ | ------------------- |
-| radioOrientation             | select   | 'horizontal' | Ausrichtung der Radio-Gruppe               | -                   |
-| radioGroupUncheckedIconColor | color    | -            | Farbe der nicht ausgewählten Radio-Buttons | -                   |
-| onlyDisplay                  | checkbox | false        | Nur Anzeige (keine Schreibrechte auf OID)  | Nur wenn write=true |
+| Feldname                     | Typ      | Standard     | Beschreibung                                 | Bedingung                 |
+| ---------------------------- | -------- | ------------ | -------------------------------------------- | ------------------------- |
+| radioOrientation             | select   | 'horizontal' | Ausrichtung der Radio-Gruppe                 | -                         |
+| radioGroupUncheckedIconColor | color    | -            | Farbe der nicht ausgewählten Radio-Buttons   | -                         |
+| onlyDisplay                  | checkbox | false        | Nur Anzeige (keine Schreibrechte auf OID)    | Nur wenn write=true       |
+| hideLabels                   | checkbox | false        | Labels ausblenden (nur Icons anzeigen)       | -                         |
+| labelPlacement               | select   | 'end'        | Position des Labels relativ zum Radio-Button | Nur wenn hideLabels=false |
+
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
 
 ## Orientierung
 
@@ -35,6 +39,30 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 - Platzsparend in der Breite
 - Gut für mehr als 4 Optionen oder lange Beschriftungen
 - Übersichtliche Darstellung
+
+## Label-Einstellungen
+
+### Label ausblenden
+
+- Aktiviere `hideLabels` um nur die Radio-Buttons ohne Beschriftung anzuzeigen
+- Nützlich für kompakte Darstellungen oder wenn Icons selbsterklärend sind
+- Radio-Buttons werden zentriert ausgerichtet
+
+### Label-Platzierung
+
+Die Position des Labels kann über `labelPlacement` gesteuert werden (nur sichtbar wenn `hideLabels` deaktiviert ist):
+
+#### Start
+
+- Label wird links vom Radio-Button angezeigt (bei LTR-Layout)
+- Horizontale Anordnung
+- Standardmäßig linksbündig
+
+#### End (Standard)
+
+- Label wird rechts vom Radio-Button angezeigt (bei LTR-Layout)
+- Horizontale Anordnung
+- Standardmäßig rechtsbündig
 
 ## Icon-Farben
 

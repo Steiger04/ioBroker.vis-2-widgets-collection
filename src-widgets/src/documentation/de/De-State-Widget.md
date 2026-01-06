@@ -22,6 +22,8 @@ Die Widget-spezifischen und Value-spezifischen Einstellungen überschreiben die 
 | noIcon          | checkbox | false    | Kein Icon anzeigen                                         | -                                          |
 | noValue         | checkbox | false    | Keinen Wert anzeigen                                       | -                                          |
 
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
 ## Datentypen
 
 Das State Widget unterstützt folgende Datentypen:

@@ -161,6 +161,24 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 | frameBackground      | text  | -        | Rahmenhintergrund (Gradient möglich) |
 | frameBackgroundColor | color | -        | Rahmen-Hintergrundfarbe              |
 
+### Wert schreiben
+
+Diese Einstellungen steuern, wie Wertänderungen an die OID geschrieben werden. Sie sind nur für Widgets verfügbar, die Werte schreiben können (State, Switch, Slider, Select, RadioGroup, Checkbox, ButtonGroup, Light).
+
+| Feldname            | Typ      | Standard | Beschreibung                                                                              |
+| ------------------- | -------- | -------- | ----------------------------------------------------------------------------------------- |
+| sampleInterval      | checkbox | false    | Intervall-Modus aktivieren (statt Verzögerung)                                            |
+| sampleIntervalValue | number   | 200      | Sampling-Intervall in Millisekunden (0-10000, nur sichtbar wenn sampleInterval aktiviert) |
+| delay               | number   | 300      | Verzögerung in Millisekunden (0-10000, nur sichtbar wenn sampleInterval deaktiviert)      |
+
+**Verzögerung vs. Intervall:**
+
+- **Verzögerung (delay)**: Wartet nach der letzten Änderung X Millisekunden, bevor der Wert geschrieben wird. Dies verhindert zu häufiges Schreiben bei schnellen Änderungen (z.B. beim Bewegen eines Sliders). Der Wert wird erst geschrieben, wenn der Benutzer die Interaktion beendet hat.
+
+- **Intervall (sampleInterval)**: Schreibt den Wert in regelmäßigen Abständen (alle X Millisekunden), solange Änderungen vorgenommen werden. Nützlich für kontinuierliche Aktualisierungen während der Interaktion (z.B. Echtzeit-Feedback beim Slider-Bewegen).
+
+**Empfehlung:** Für die meisten Anwendungsfälle ist die Verzögerung (delay) ausreichend und performanter. Das Intervall sollte nur verwendet werden, wenn kontinuierliche Updates während der Interaktion erforderlich sind.
+
 ## Widget-Übersicht
 
 Die Widget Collection umfasst folgende Widgets:

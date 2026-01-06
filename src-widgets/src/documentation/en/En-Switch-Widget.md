@@ -23,6 +23,8 @@ The widget-specific settings override the more general settings.
 | trackColor      | color          | -       | Color of the track                         | -                    |
 | onlyDisplay     | checkbox       | false   | Display only (no write permissions on OID) | Only when write=true |
 
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
 ## Boolean Options
 
 The Switch Widget works with two boolean values:

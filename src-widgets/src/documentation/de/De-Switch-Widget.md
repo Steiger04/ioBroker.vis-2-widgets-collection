@@ -23,6 +23,8 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | trackColor      | color          | -        | Farbe der Schiene                           | -                   |
 | onlyDisplay     | checkbox       | false    | Nur Anzeige (keine Schreibrechte auf OID)   | Nur wenn write=true |
 
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
 ## Boolean-Optionen
 
 Das Switch Widget arbeitet mit zwei Boolean-Werten:

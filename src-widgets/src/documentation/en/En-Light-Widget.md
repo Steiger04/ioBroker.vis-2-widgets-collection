@@ -78,6 +78,8 @@ The widget-specific settings override the more general settings.
 | colorWheelLightness | checkbox | false   | Show lightness in color wheel               | Only with colorLightUiComponent='wheel' |
 | colorLightGamut     | select   | -       | Color space (sRGB, DCI-P3, Adobe RGB, etc.) | -                                       |
 
+**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+
 ## Light Types
 
 ### RGB

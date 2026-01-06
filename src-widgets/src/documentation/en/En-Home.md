@@ -161,6 +161,24 @@ These settings are available for all widgets in the collection.
 | frameBackground      | text  | -       | Frame background (gradient possible) |
 | frameBackgroundColor | color | -       | Frame background color               |
 
+### Write Value
+
+These settings control how value changes are written to the OID. They are only available for widgets that can write values (State, Switch, Slider, Select, RadioGroup, Checkbox, ButtonGroup, Light).
+
+| Field Name          | Type     | Default | Description                                                                              |
+| ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------- |
+| sampleInterval      | checkbox | false   | Enable interval mode (instead of delay)                                                  |
+| sampleIntervalValue | number   | 200     | Sampling interval in milliseconds (0-10000, only visible when sampleInterval is enabled) |
+| delay               | number   | 300     | Delay in milliseconds (0-10000, only visible when sampleInterval is disabled)            |
+
+**Delay vs. Interval:**
+
+- **Delay**: Waits X milliseconds after the last change before writing the value. This prevents too frequent writes during rapid changes (e.g., when moving a slider). The value is only written after the user has finished the interaction.
+
+- **Interval (sampleInterval)**: Writes the value at regular intervals (every X milliseconds) as long as changes are being made. Useful for continuous updates during interaction (e.g., real-time feedback when moving a slider).
+
+**Recommendation:** For most use cases, delay is sufficient and more performant. Interval should only be used when continuous updates during interaction are required.
+
 ## Widget Overview
 
 The Widget Collection includes the following widgets:

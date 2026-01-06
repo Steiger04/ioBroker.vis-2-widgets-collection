@@ -20,6 +20,8 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | withoutLabel           | checkbox | false    | Checkbox ohne Label anzeigen              | -                   |
 | onlyDisplay            | checkbox | false    | Nur Anzeige (keine Schreibrechte auf OID) | Nur wenn write=true |
 
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
 ## Label-Platzierung
 
 Die Position des Labels kann über `checkboxLabelPlacement` gesteuert werden:

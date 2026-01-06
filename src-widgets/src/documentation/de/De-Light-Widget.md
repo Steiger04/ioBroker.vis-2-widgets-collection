@@ -78,6 +78,8 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | colorWheelLightness | checkbox | false    | Helligkeit im Farbrad anzeigen           | Nur bei colorLightUiComponent='wheel' |
 | colorLightGamut     | select   | -        | Farbraum (sRGB, DCI-P3, Adobe RGB, etc.) | -                                     |
 
+**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+
 ## Lichttypen
 
 ### RGB
