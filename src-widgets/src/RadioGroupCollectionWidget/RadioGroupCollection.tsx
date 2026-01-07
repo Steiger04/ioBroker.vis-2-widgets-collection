@@ -59,7 +59,7 @@ function RadioGroupCollection(): React.ReactElement {
                 ref={setStackRef}
                 direction={widget.data.radioOrientation === 'vertical' ? 'column' : 'row'}
                 sx={{
-                    width: 'auto',
+                    width: widget.data.radioOrientation === 'horizontal' ? '100%' : 'auto',
                     height: '100%',
                     // For horizontal: space-around centers buttons nicely
                     // For vertical: flex-start allows flex children to distribute equally
@@ -72,13 +72,17 @@ function RadioGroupCollection(): React.ReactElement {
                         key={index}
                         labelPlacement={widget.data.labelPlacement}
                         sx={{
-                            mr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
-                            ml: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
+                            m: 0,
+                            pr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
+                            pl: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
 
                             display: 'flex',
                             alignItems: 'center',
                             // Center icons when labels are hidden
                             justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
+
+                            // Full width for FormControlLabel
+                            width: '100%',
 
                             // For vertical orientation: equal height distribution
                             ...(widget.data.radioOrientation === 'vertical' && {
@@ -91,17 +95,19 @@ function RadioGroupCollection(): React.ReactElement {
                             }),
 
                             '& .MuiButtonBase-root': {
+                                // Full width for Radio button
+                                width: '100%',
+                                padding: 0,
+
                                 // For horizontal orientation: enforce square shape
                                 ...(widget.data.radioOrientation === 'horizontal' && {
                                     aspectRatio: '1',
                                     maxWidth: radioGroupHeight || undefined,
                                     maxHeight: radioGroupHeight || undefined,
-                                    width: 'auto',
                                     flexShrink: 0,
                                 }),
                                 // For vertical orientation: fixed size per button
                                 ...(widget.data.radioOrientation === 'vertical' && {
-                                    width: radioGroupHeight ? `${radioGroupHeight / states.length}px` : 'auto',
                                     height: radioGroupHeight ? `${radioGroupHeight / states.length}px` : 'auto',
                                     maxWidth: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
                                     maxHeight: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
@@ -121,12 +127,15 @@ function RadioGroupCollection(): React.ReactElement {
                                 flex: '1 1 auto',
                                 minWidth: 0,
                                 overflow: 'hidden',
+                                // Hide label completely when hideLabels is active
+                                ...(widget.data.hideLabels && {
+                                    display: 'none',
+                                }),
                             },
                         }}
                         control={
                             <Radio
                                 disabled={widget.data.onlyDisplay}
-                                // disableRipple
                                 checkedIcon={
                                     (state.icon && (
                                         <Box
@@ -137,13 +146,13 @@ function RadioGroupCollection(): React.ReactElement {
                                                 height: '100%',
                                                 display: 'flex',
                                                 justifyContent: 'center',
+                                                alignItems: 'center',
                                             }}
                                         >
                                             <RadioButtonUncheckedIcon
                                                 sx={{
                                                     color: state.iconColor,
                                                     position: 'relative',
-
                                                     width: '100%',
                                                     height: '100%',
                                                 }}
@@ -152,9 +161,10 @@ function RadioGroupCollection(): React.ReactElement {
                                                 sx={{
                                                     position: 'absolute',
                                                     width: '100%',
+                                                    height: '100%',
                                                     display: 'flex',
                                                     justifyContent: 'center',
-                                                    alignSelf: 'center',
+                                                    alignItems: 'center',
                                                 }}
                                             >
                                                 <img
@@ -164,15 +174,10 @@ function RadioGroupCollection(): React.ReactElement {
                                                         position: 'relative',
                                                         left: `calc(0px + ${data.iconXOffset})`,
                                                         top: `calc(0px - ${data.iconYOffset})`,
-
-                                                        /* width:
-															(state.iconSize && `${state.iconSize}%`) || "50%", */
-
                                                         width:
                                                             (typeof data.iconSizeOnly === 'number' &&
                                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                                             '50%',
-
                                                         ...getIconColorStyles(state.icon, state.iconColor),
                                                     }}
                                                 />
@@ -182,11 +187,20 @@ function RadioGroupCollection(): React.ReactElement {
                                         <RadioButtonCheckedIcon
                                             sx={{
                                                 color: state.iconColor,
+                                                width: '100%',
+                                                height: '100%',
                                             }}
                                         />
                                     )
                                 }
-                                icon={<RadioButtonUncheckedIcon />}
+                                icon={
+                                    <RadioButtonUncheckedIcon
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                        }}
+                                    />
+                                }
                                 sx={{
                                     color: widget.data.radioGroupUncheckedIconColor,
                                     width: '100%',

@@ -4,7 +4,7 @@
  * @module widgets/SliderCollection
  */
 
-import { Box, Slider } from '@mui/material';
+import { Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useState, useMemo, useContext, useEffect, useRef, useCallback, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -16,6 +16,59 @@ import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
 import type { SliderCollectionContextProps } from '../types';
+
+type CollectionSliderProps = SliderProps & {
+    thumbColor?: string;
+    data?: SliderCollectionContextProps['widget']['data'];
+    slots: {
+        markLabel: typeof CollectionMark;
+    };
+    slotProps: {
+        markLabel: SliderMarkLabelProps;
+    };
+};
+
+const CollectionSlider = styled(Slider, {
+    shouldForwardProp: prop => prop !== 'data' && prop !== 'thumbColor',
+})<CollectionSliderProps>(({ theme, thumbColor, data }) => ({
+    '&.MuiSlider-root': {
+        //height: '16px',
+    },
+    '& .MuiSlider-thumb': {
+        width: '96px',
+        height: '96px',
+        color: thumbColor || theme.palette.primary.main,
+
+        '&:hover, &.Mui-focusVisible': {},
+    },
+    '& .MuiSlider-track': {
+        height: data?.sliderOrientation === 'horizontal' ? '72px' : 'auto',
+        width: data?.sliderOrientation === 'vertical' ? '72px' : 'auto',
+
+        borderColor: thumbColor || theme.palette.primary.main,
+        backgroundColor: thumbColor || theme.palette.primary.main,
+    },
+    '& .MuiSlider-rail': {
+        height: data?.sliderOrientation === 'horizontal' ? '24px' : '100%',
+        width: data?.sliderOrientation === 'vertical' ? '24px' : '100%',
+
+        backgroundColor: thumbColor || theme.palette.primary.main,
+    },
+    '& .MuiSlider-mark': {
+        width: data?.sliderOrientation === 'horizontal' ? '3px' : '16px',
+        height: data?.sliderOrientation === 'horizontal' ? '16px' : '3px',
+        backgroundColor: thumbColor || theme.palette.primary.main,
+    },
+    '& .MuiSlider-markActive': {
+        width: data?.sliderOrientation === 'horizontal' ? '3px' : '16px',
+        height: data?.sliderOrientation === 'horizontal' ? '16px' : '3px',
+
+        backgroundColor: thumbColor || theme.palette.primary.main,
+        '&.MuiSlider-markActive': {
+            backgroundColor: thumbColor || theme.palette.primary.main,
+        },
+    },
+}));
 
 interface SliderMarkLabelProps {
     marks: boolean;
@@ -265,6 +318,7 @@ const SliderCollection: FC = () => {
                         alignItems: 'center',
                         width: '100%',
                         height: '100%',
+
                         pl:
                             widget.data.sliderOrientation === 'horizontal' &&
                             (widget.data.iconMin || widget.data.iconSmallMin)
@@ -346,7 +400,9 @@ const SliderCollection: FC = () => {
                         }}
                     >
                         {typeof sliderValue === 'number' && (
-                            <Slider
+                            <CollectionSlider
+                                data={widget.data}
+                                thumbColor="rgba(255, 0, 0, 0.3)"
                                 slots={{
                                     markLabel: CollectionMark,
                                 }}

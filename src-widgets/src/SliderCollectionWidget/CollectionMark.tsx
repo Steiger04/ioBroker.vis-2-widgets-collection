@@ -27,7 +27,7 @@ interface MarkData {
 }
 
 // Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
-interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
+export interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
     marks: boolean;
     sliderOrientation: 'horizontal' | 'vertical';
     aliasActive?: string;
