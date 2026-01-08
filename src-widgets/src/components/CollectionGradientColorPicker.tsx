@@ -16,7 +16,14 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
+import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
+import type {
+    RxWidgetInfoAttributesField,
+    RxWidgetInfoCustomComponentProperties,
+    WidgetData,
+    VisTheme,
+} from '@iobroker/types-vis-2';
 
 /**
  * Validates color input string and returns normalized value.
@@ -28,15 +35,15 @@ import ColorPicker from 'react-best-gradient-color-picker';
  * - Gradients must start with linear-gradient or radial-gradient
  * - All valid inputs are trimmed and returned as normalizedValue
  *
- * @param {string} value - Input string to validate.
- * @returns {{ isValid: boolean, normalizedValue: string }} Validation result with isValid flag and normalized value.
+ * @param value - Input string to validate.
+ * @returns Validation result with isValid flag and normalized value.
  */
-function validateColorInput(value) {
+function validateColorInput(value: string): { isValid: boolean; normalizedValue: string } {
     if (!value || value.trim() === '') {
         return { isValid: true, normalizedValue: '' };
     }
 
-    const trimmedValue = value.trim();
+    const trimmedValue: string = value.trim();
 
     // Hex color validation: #RGB, #RRGGBB, #RRGGBBAA
     const hexRegex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
@@ -60,12 +67,20 @@ function validateColorInput(value) {
 }
 
 /**
- * @typedef {Object} CollectionGradientColorPickerProps
- * @property {{ name?: string }=} field Field definition (expects `name`).
- * @property {Record<string, any>=} data Current editor data map.
- * @property {(patch: Record<string, any>) => void} onDataChange Callback invoked with partial updates.
- * @property {Record<string, any>=} props Additional properties (e.g., socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID).
+ * Props for CollectionGradientColorPicker component.
+ *
+ * @interface CollectionGradientColorPickerProps
+ * @property {RxWidgetInfoAttributesField} field - Field definition (expects `name` property).
+ * @property {WidgetData} data - Current editor data map.
+ * @property {(patch: WidgetData) => void} onDataChange - Callback invoked with partial updates.
+ * @property {RxWidgetInfoCustomComponentProperties} props - Additional properties (e.g., socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID).
  */
+interface CollectionGradientColorPickerProps {
+    field: RxWidgetInfoAttributesField;
+    data: WidgetData;
+    onDataChange: (patch: WidgetData) => void;
+    props: RxWidgetInfoCustomComponentProperties;
+}
 
 /**
  * Renders a compact gradient picker with a popover editor.
@@ -78,21 +93,32 @@ function validateColorInput(value) {
  * - Valid inputs immediately trigger onDataChange callbacks
  * - Empty values are normalized to null for consistency
  *
- * @param {CollectionGradientColorPickerProps} props Component props.
- * @returns {JSX.Element} Rendered field UI.
+ * @param props - Component props.
+ * @param props.field - Field definition (expects `name` property).
+ * @param props.data - Current editor data map.
+ * @param props.onDataChange - Callback invoked with partial updates.
+ * @param props.props - Additional properties (e.g., socket, context, theme).
+ * @returns Rendered field UI.
  */
-function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
-    const fieldName = field?.name;
-    const [cachedValue, setCachedValue] = useState(data[fieldName] || '');
-    const [error, setError] = useState(false);
-    const [anchorEl, setAnchorEl] = useState(null);
+function CollectionGradientColorPicker({
+    field,
+    data,
+    onDataChange,
+    props,
+}: CollectionGradientColorPickerProps): React.JSX.Element {
+    const fieldName: string = field.name!;
+    const [cachedValue, setCachedValue] = useState<string>(data[fieldName] || '');
+    const [error, setError] = useState<boolean>(false);
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     // Track the last prop value to detect external changes only
-    const lastPropValueRef = useRef(data[fieldName]);
+    const lastPropValueRef: React.MutableRefObject<string | null | undefined> = useRef<string | null | undefined>(
+        data[fieldName],
+    );
 
-    const theme = props.context.theme;
+    const theme: VisTheme = props.context.theme;
 
-    const handleChange = newValue => {
+    const handleChange = (newValue: string | null | undefined): void => {
         // Step 1: Handle null/undefined - treat as empty and clear error
         if (newValue === null || newValue === undefined) {
             setCachedValue('');
@@ -110,7 +136,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
         }
 
         // Step 3: Handle empty string (after trimming) - clear value and error
-        const trimmedValue = newValue.trim();
+        const trimmedValue: string = newValue.trim();
         if (trimmedValue === '') {
             setCachedValue('');
             setError(false);
@@ -119,7 +145,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
         }
 
         // Step 4: Validate non-empty string values
-        const validation = validateColorInput(newValue);
+        const validation: { isValid: boolean; normalizedValue: string } = validateColorInput(newValue);
 
         // Always update cachedValue to reflect user input (even if invalid)
         setCachedValue(newValue);
@@ -136,27 +162,28 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
         }
     };
 
-    const handlePickerChange = gradient => handleChange(gradient);
-    const handleTextChange = event => handleChange(event.target.value);
-    const handleClear = () => handleChange(null);
+    const handlePickerChange = (gradient: string): void => handleChange(gradient);
+    const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>): void => handleChange(event.target.value);
+    const handleClear = (): void => handleChange(null);
 
     const open = Boolean(anchorEl);
 
     // Synchronize with external prop changes (e.g., undo/redo, preset loading)
     // Only react to actual prop changes, not user input changes
     useEffect(() => {
-        const propValue = data[fieldName];
+        const propValue: string | null | undefined = data[fieldName];
 
         // Only update if the prop value has actually changed from the outside
         // (not as a result of user input via onDataChange)
         if (propValue !== lastPropValueRef.current) {
             lastPropValueRef.current = propValue;
 
-            const normalizedPropValue = propValue || '';
+            const normalizedPropValue: string = propValue || '';
             setCachedValue(normalizedPropValue);
             setError(false); // Clear error on external update
         }
-    }, [data[fieldName], fieldName]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data[fieldName]]);
 
     return (
         <>
@@ -178,7 +205,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                                     paddingBottom: '2px',
                                     fontSize: '80%',
                                     // color: theme.palette.text.primary,
-                                },
+                                } as React.CSSProperties,
                             },
                         }}
                     />
@@ -197,7 +224,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                     )}
 
                     <Box
-                        onClick={e => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
                             setAnchorEl(e.currentTarget);
                         }}
                         title="Choose color"
@@ -254,7 +281,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                     }}
                     open={open}
                     anchorEl={anchorEl}
-                    onClose={() => setAnchorEl(null)}
+                    onClose={(): void => setAnchorEl(null)}
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'center',
