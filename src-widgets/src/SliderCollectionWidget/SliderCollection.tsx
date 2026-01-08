@@ -37,7 +37,10 @@ const CollectionSlider = styled(Slider, {
         [data?.thumbColor, data?.sliderColor, theme.palette.primary.main],
     );
 
-    const shadowBase = extractedColor || theme.palette.primary.main;
+    const shadowBase = useMemo(
+        () => extractedColor || theme.palette.primary.main,
+        [extractedColor, theme.palette.primary.main],
+    );
 
     return {
         '& .MuiSlider-thumb': {

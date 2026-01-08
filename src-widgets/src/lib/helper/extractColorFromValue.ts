@@ -337,7 +337,6 @@ function interpolateColorAt50(colorStops: ColorStop[]): string | null {
  * extractColorFromValue('invalid-color') // → null
  */
 export function extractColorFromValue(value: string | null | undefined): string | null {
-    console.log('extractColorFromValue: value=', value);
     // Null/undefined check
     if (value == null) {
         return null;
