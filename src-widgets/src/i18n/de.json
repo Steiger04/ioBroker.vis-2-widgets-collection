@@ -311,5 +311,7 @@
 		"mark_width": "Mark Breite",
 		"mark_height": "Mark Höhe",
 		"mark_background_color": "Markfarbe",
-		"slider_padding": "Padding"
+		"slider_padding": "Padding",
+		"choose_color": "Farbe wählen",
+		"clear_color": "Farbe löschen"
 }

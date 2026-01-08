@@ -18,6 +18,7 @@ import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/materia
 import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
+import Generic from '../Generic';
 import type {
     RxWidgetInfoAttributesField,
     RxWidgetInfoCustomComponentProperties,
@@ -212,7 +213,7 @@ function CollectionGradientColorPicker({
                     {cachedValue && (
                         <IconButton
                             onClick={handleClear}
-                            title="Clear color"
+                            title={Generic.t('clear_color')}
                             size="large"
                             sx={{
                                 mt: -1,
@@ -227,7 +228,7 @@ function CollectionGradientColorPicker({
                         onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
                             setAnchorEl(e.currentTarget);
                         }}
-                        title="Choose color"
+                        title={Generic.t('choose_color')}
                         sx={{
                             mt: cachedValue ? '4px' : '-2px',
                             px: '4px',

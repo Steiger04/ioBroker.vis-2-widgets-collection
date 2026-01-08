@@ -309,5 +309,7 @@
 		"mark_width": "Mark Width",
 		"mark_height": "Mark Height",
 		"mark_background_color": "Mark Color",
-		"slider_padding": "Padding"
+		"slider_padding": "Padding",
+		"choose_color": "Choose color",
+		"clear_color": "Clear color"
 }
