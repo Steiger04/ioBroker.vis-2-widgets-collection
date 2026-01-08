@@ -54,10 +54,32 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         default: '-5px',
         hidden: "data.valueLabelDisplay === 'off'",
     } as const,
-    {
+    /* {
         name: 'sliderColor',
         label: 'slider_color',
         type: 'color',
+    } as const, */
+    {
+        name: 'sliderColor',
+        label: 'slider_color',
+        default: '',
+        type: 'custom', // important
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     } as const,
     {
         name: 'sliderPadding',

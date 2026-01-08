@@ -4,7 +4,7 @@
  * @module widgets/SliderCollection
  */
 
-import { Box, Slider, type SliderProps, styled } from '@mui/material';
+import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useState, useMemo, useContext, useEffect, useRef, useCallback, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -14,6 +14,7 @@ import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -30,41 +31,57 @@ type CollectionSliderProps = SliderProps & {
 
 const CollectionSlider = styled(Slider, {
     shouldForwardProp: prop => prop !== 'data',
-})<CollectionSliderProps>(({ theme, data }) => ({
-    '&.MuiSlider-root': {
-        //height: '16px',
-    },
-    '& .MuiSlider-thumb': {
-        width: `${data?.thumbWidth ?? 20}px`,
-        height: `${data?.thumbHeight ?? 20}px`,
-        background: data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
-        '&:hover, &.Mui-focusVisible': {},
-    },
-    '& .MuiSlider-track': {
-        height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
-        width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
-        borderColor: data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
-        background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-    },
-    '& .MuiSlider-rail': {
-        height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
-        width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
-        background: data?.railBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-    },
-    '& .MuiSlider-mark': {
-        width: data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
-        height: data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-        background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-    },
-    '& .MuiSlider-markActive': {
-        width: data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
-        height: data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
-        backgroundColor: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
-        '&.MuiSlider-markActive': {
+})<CollectionSliderProps>(({ theme, data }) => {
+    const extractedColor = useMemo(
+        () => extractColorFromValue(data?.thumbColor || data?.sliderColor || theme.palette.primary.main),
+        [data?.thumbColor, data?.sliderColor, theme.palette.primary.main],
+    );
+
+    const shadowBase = extractedColor || theme.palette.primary.main;
+
+    return {
+        '& .MuiSlider-thumb': {
+            width: `${data?.thumbWidth ?? 20}px`,
+            height: `${data?.thumbHeight ?? 20}px`,
+            background: data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
+            border: '10px solid red',
+            '&:hover': {
+                boxShadow: `0px 0px 0px 8px ${alpha(shadowBase, 0.32)}`,
+            },
+            '&:active': {
+                boxShadow: `0px 0px 0px 14px ${alpha(shadowBase, 0.32)}`,
+            },
+        },
+        '& .MuiSlider-track': {
+            height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
+            width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
+            borderColor: data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
+            background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+        },
+        '& .MuiSlider-rail': {
+            height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
+            width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
+            background: data?.railBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+        },
+        '& .MuiSlider-mark': {
+            width:
+                data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
+            height:
+                data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
             background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
         },
-    },
-}));
+        '& .MuiSlider-markActive': {
+            width:
+                data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
+            height:
+                data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
+            backgroundColor: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+            '&.MuiSlider-markActive': {
+                background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+            },
+        },
+    };
+});
 
 interface SliderMarkLabelProps {
     marks: boolean;
