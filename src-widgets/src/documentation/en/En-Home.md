@@ -173,6 +173,59 @@ These settings control how value changes are written to the OID. They are only a
 
 **Delay vs. Interval:**
 
+- **Delay**: Waits the specified time after the last change before writing the value. Each new change resets the timer.
+- **Interval**: Writes the value at regular intervals while the value is changing.
+
+### Gradient Syntax
+
+Fields marked with "(gradient possible)" support CSS gradients in addition to simple colors.
+
+#### Linear Gradients
+
+Syntax: `linear-gradient(direction, color1, color2, ...)`
+
+**Examples:**
+
+```css
+/* Horizontal from left to right */
+linear-gradient(90deg, #ff0000, #0000ff)
+
+/* Vertical from top to bottom */
+linear-gradient(180deg, #00ff00, #ffff00)
+
+/* Diagonal */
+linear-gradient(45deg, #ff00ff, #00ffff)
+
+/* Multiple color stops */
+linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)
+```
+
+#### Radial Gradients
+
+Syntax: `radial-gradient(shape, color1, color2, ...)`
+
+**Examples:**
+
+```css
+/* Circular */
+radial-gradient(circle, #ff0000, #0000ff)
+
+/* Elliptical */
+radial-gradient(ellipse, #00ff00, #ffff00)
+
+/* With position */
+radial-gradient(circle at center, #ff00ff, #00ffff)
+```
+
+#### Applicable Fields
+
+The following fields support gradients:
+
+- **Common Settings**: `background`, `frameBackground`
+- **Slider Widget**: `sliderColor`, `thumbColor`, `trackBackgroundColor`, `railBackgroundColor`, `markBackgroundColor`
+
+**Note:** Enter the gradient as text, not via the color picker.
+
 - **Delay**: Waits X milliseconds after the last change before writing the value. This prevents too frequent writes during rapid changes (e.g., when moving a slider). The value is only written after the user has finished the interaction.
 
 - **Interval (sampleInterval)**: Writes the value at regular intervals (every X milliseconds) as long as changes are being made. Useful for continuous updates during interaction (e.g., real-time feedback when moving a slider).

@@ -173,6 +173,59 @@ Diese Einstellungen steuern, wie Wertänderungen an die OID geschrieben werden. 
 
 **Verzögerung vs. Intervall:**
 
+- **Verzögerung (delay)**: Wartet nach der letzten Änderung die angegebene Zeit, bevor der Wert geschrieben wird. Jede neue Änderung setzt den Timer zurück.
+- **Intervall (sampleInterval)**: Schreibt den Wert in regelmäßigen Abständen, während sich der Wert ändert.
+
+### Gradient-Syntax
+
+Felder mit der Kennzeichnung "(Gradient möglich)" unterstützen CSS-Gradienten zusätzlich zu einfachen Farben.
+
+#### Linear-Gradienten
+
+Syntax: `linear-gradient(Richtung, Farbe1, Farbe2, ...)`
+
+**Beispiele:**
+
+```css
+/* Horizontal von links nach rechts */
+linear-gradient(90deg, #ff0000, #0000ff)
+
+/* Vertikal von oben nach unten */
+linear-gradient(180deg, #00ff00, #ffff00)
+
+/* Diagonal */
+linear-gradient(45deg, #ff00ff, #00ffff)
+
+/* Mehrere Farbstopps */
+linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)
+```
+
+#### Radial-Gradienten
+
+Syntax: `radial-gradient(Form, Farbe1, Farbe2, ...)`
+
+**Beispiele:**
+
+```css
+/* Kreisförmig */
+radial-gradient(circle, #ff0000, #0000ff)
+
+/* Elliptisch */
+radial-gradient(ellipse, #00ff00, #ffff00)
+
+/* Mit Position */
+radial-gradient(circle at center, #ff00ff, #00ffff)
+```
+
+#### Anwendbare Felder
+
+Folgende Felder unterstützen Gradienten:
+
+- **Common Einstellungen**: `background`, `frameBackground`
+- **Slider Widget**: `sliderColor`, `thumbColor`, `trackBackgroundColor`, `railBackgroundColor`, `markBackgroundColor`
+
+**Hinweis:** Geben Sie den Gradienten als Text ein, nicht über den Farbwähler.
+
 - **Verzögerung (delay)**: Wartet nach der letzten Änderung X Millisekunden, bevor der Wert geschrieben wird. Dies verhindert zu häufiges Schreiben bei schnellen Änderungen (z.B. beim Bewegen eines Sliders). Der Wert wird erst geschrieben, wenn der Benutzer die Interaktion beendet hat.
 
 - **Intervall (sampleInterval)**: Schreibt den Wert in regelmäßigen Abständen (alle X Millisekunden), solange Änderungen vorgenommen werden. Nützlich für kontinuierliche Aktualisierungen während der Interaktion (z.B. Echtzeit-Feedback beim Slider-Bewegen).
