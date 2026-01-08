@@ -122,5 +122,20 @@
     "arrow_color": "Color de flecha",
     "radio_orientation": "Orientación",
     "radio_group": "Grupo de radio",
-    "radio_group_unchecked_icon_color": "Color de icono sin control"
+    "radio_group_unchecked_icon_color": "Color de icono sin control",
+    "thumb": "Pulgar",
+    "track": "Pista",
+    "rail": "Riel",
+    "mark": "Marca",
+    "thumb_width": "Ancho del pulgar",
+    "thumb_height": "Altura del pulgar",
+    "thumb_color": "Color del pulgar",
+    "track_length": "Longitud de la pista",
+    "track_border_color": "Color del borde de la pista",
+    "track_background_color": "Color de fondo de la pista",
+    "rail_length": "Longitud del riel",
+    "rail_background_color": "Color de fondo del riel",
+    "mark_width": "Ancho de la marca",
+    "mark_height": "Altura de la marca",
+    "mark_background_color": "Color de fondo de la marca"
 }

@@ -122,5 +122,20 @@
     "arrow_color": "箭头颜色",
     "radio_orientation": "方向",
     "radio_group": "无线电小组",
-    "radio_group_unchecked_icon_color": "未选中的图标颜色"
+    "radio_group_unchecked_icon_color": "未选中的图标颜色",
+    "thumb": "滑块",
+    "track": "轨道",
+    "rail": "导轨",
+    "mark": "标记",
+    "thumb_width": "滑块宽度",
+    "thumb_height": "滑块高度",
+    "thumb_color": "滑块颜色",
+    "track_length": "轨道长度",
+    "track_border_color": "轨道边框颜色",
+    "track_background_color": "轨道背景颜色",
+    "rail_length": "导轨长度",
+    "rail_background_color": "导轨背景颜色",
+    "mark_width": "标记宽度",
+    "mark_height": "标记高度",
+    "mark_background_color": "标记背景颜色"
 }

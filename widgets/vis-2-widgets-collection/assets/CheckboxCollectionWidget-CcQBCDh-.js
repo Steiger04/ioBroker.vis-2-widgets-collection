@@ -1,12 +1,10 @@
-import { c as y, j as a, a as F, g as V, u as W, b as B, R, d as H, s as $, i as p, e as G, r as E, m as J, o as w, N as k, C as M, q as U, x as Z, v as Q, z as Y, A as X, w as j, T as q, y as P, G as K, E as A, H as ee, J as te, K as oe, __tla as __tla_0 } from "./commonFields-8_mIPW_t.js";
+import { c as y, j as a, a as W, g as F, u as V, b as B, W as R, d as H, s as $, i as p, e as G, r as E, m as J, o as w, R as k, C as M, v as U, z as Z, w as Q, E as Y, G as X, x as j, T as K, A as P, H as q, J as A, K as ee, N as te, O as oe, __tla as __tla_0 } from "./commonFields-tb-swNng.js";
 import { v as d, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 import { u as ae, __tla as __tla_2 } from "./useHtmlValue-Dcwl_hqT.js";
-import { F as ie, __tla as __tla_3 } from "./FormControlLabel-aqK6rJcw.js";
-import { S as le, __tla as __tla_4 } from "./SwitchBase-C2KYw59S.js";
+import { F as ie, __tla as __tla_3 } from "./FormControlLabel-C5njMVoi.js";
+import { S as le, __tla as __tla_4 } from "./SwitchBase-CcbJ_Pj3.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import "./formControlState-Dq1zat_P.js";
-import { __tla as __tla_5 } from "./useFormControl--TM4wVzV.js";
 let O;
 let __tla = Promise.all([
   (() => {
@@ -38,12 +36,6 @@ let __tla = Promise.all([
       return __tla_4;
     } catch {
     }
-  })(),
-  (() => {
-    try {
-      return __tla_5;
-    } catch {
-    }
   })()
 ]).then(async () => {
   const ne = y(a.jsx("path", {
@@ -54,9 +46,9 @@ let __tla = Promise.all([
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
   function re(e) {
-    return V("MuiCheckbox", e);
+    return F("MuiCheckbox", e);
   }
-  const b = F("MuiCheckbox", [
+  const b = W("MuiCheckbox", [
     "root",
     "checked",
     "disabled",
@@ -143,7 +135,7 @@ let __tla = Promise.all([
       }
     ]
   }))), me = a.jsx(se, {}), he = a.jsx(ne, {}), ue = a.jsx(ce, {}), xe = d.forwardRef(function(t, i) {
-    const n = W({
+    const n = V({
       props: t,
       name: "MuiCheckbox"
     }), { checkedIcon: o = me, color: l = "primary", icon: s = he, indeterminate: c = false, indeterminateIcon: r = ue, inputProps: m, size: h = "medium", disableRipple: v = false, className: L, slots: C = {}, slotProps: g = {}, ..._ } = n, I = c ? r : s, S = c ? r : o, u = {
@@ -309,7 +301,7 @@ let __tla = Promise.all([
                 }
               }
             }),
-            label: !t.data.withoutLabel && a.jsx(q, {
+            label: !t.data.withoutLabel && a.jsx(K, {
               component: j,
               variant: "body2",
               sx: {
@@ -345,7 +337,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  O = class extends K {
+  O = class extends q {
     static getWidgetInfo() {
       return {
         id: "tplCheckboxCollectionWidget",

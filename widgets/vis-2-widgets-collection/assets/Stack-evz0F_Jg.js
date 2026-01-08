@@ -1,6 +1,6 @@
-import { ab as R, L as V, ac as _, ad as b, j as D, d as B, ae as h, af as u, ag as F, Z as M, ah as E, e as G, g as N, ai as O, aj as v, s as U, u as $, __tla as __tla_0 } from "./commonFields-8_mIPW_t.js";
+import { a3 as R, Q as V, a4 as _, a5 as b, j as D, d as B, a6 as v, a7 as u, a8 as F, a9 as M, aa as E, e as G, g as N, ab as O, ac as h, s as U, u as $, __tla as __tla_0 } from "./commonFields-tb-swNng.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-let Y;
+let Z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -20,7 +20,7 @@ let __tla = Promise.all([
     const { theme: s, name: o, props: t } = e;
     return !s || !s.components || !s.components[o] || !s.components[o].defaultProps ? t : V(s.components[o].defaultProps, t);
   }
-  function W({ props: e, name: s, defaultTheme: o, themeId: t }) {
+  function Q({ props: e, name: s, defaultTheme: o, themeId: t }) {
     let n = _(o);
     return t && (n = n[t] || n), L({
       theme: n,
@@ -28,16 +28,16 @@ let __tla = Promise.all([
       props: e
     });
   }
-  const Z = O(), q = A("div", {
+  const W = O(), q = A("div", {
     name: "MuiStack",
     slot: "Root",
     overridesResolver: (e, s) => s.root
   });
   function z(e) {
-    return W({
+    return Q({
       props: e,
       name: "MuiStack",
-      defaultTheme: Z
+      defaultTheme: W
     });
   }
   function H(e, s) {
@@ -55,7 +55,7 @@ let __tla = Promise.all([
     let o = {
       display: "flex",
       flexDirection: "column",
-      ...h({
+      ...v({
         theme: s
       }, u({
         values: e.direction,
@@ -68,7 +68,7 @@ let __tla = Promise.all([
       const t = F(s), n = Object.keys(s.breakpoints.values).reduce((r, c) => ((typeof e.spacing == "object" && e.spacing[c] != null || typeof e.direction == "object" && e.direction[c] != null) && (r[c] = true), r), {}), a = u({
         values: e.direction,
         base: n
-      }), d = u({
+      }), m = u({
         values: e.spacing,
         base: n
       });
@@ -77,16 +77,16 @@ let __tla = Promise.all([
           const l = c > 0 ? a[i[c - 1]] : "column";
           a[r] = l;
         }
-      }), o = M(o, h({
+      }), o = M(o, v({
         theme: s
-      }, d, (r, c) => e.useFlexGap ? {
-        gap: v(t, r)
+      }, m, (r, c) => e.useFlexGap ? {
+        gap: h(t, r)
       } : {
         "& > :not(style):not(style)": {
           margin: 0
         },
         "& > :not(style) ~ :not(style)": {
-          [`margin${I(c ? a[c] : e.direction)}`]: v(t, r)
+          [`margin${I(c ? a[c] : e.direction)}`]: h(t, r)
         }
       }));
     }
@@ -99,22 +99,22 @@ let __tla = Promise.all([
       ]
     }, (r) => N(t, r), {}), a = s(J);
     return p.forwardRef(function(r, c) {
-      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: j = false, ...x } = f, C = {
+      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, j = {
         direction: k,
         spacing: P,
-        useFlexGap: j
+        useFlexGap: x
       }, T = n();
       return D.jsx(a, {
         as: l,
-        ownerState: C,
+        ownerState: j,
         ref: c,
         className: B(T.root, S),
-        ...x,
+        ...C,
         children: y ? H(g, y) : g
       });
     });
   }
-  Y = K({
+  Z = K({
     createStyledComponent: U("div", {
       name: "MuiStack",
       slot: "Root",
@@ -127,6 +127,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  Y as S,
+  Z as S,
   __tla
 };

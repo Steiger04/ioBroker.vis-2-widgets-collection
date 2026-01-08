@@ -293,5 +293,21 @@
 		"label_placement": "Labelposition",
 		"hide_labels": "Label ausblenden",
 		"selection": "Auswahl",
-		"arrow": "Pfeil"
+		"arrow": "Pfeil",
+		"thumb": "Thumb",
+		"track": "Track",
+		"rail": "Rail",
+		"mark": "Mark",
+		"thumb_width": "Thumbbreite",
+		"thumb_height": "Thumbhöhe",
+		"thumb_color": "Thumbfarbe",
+		"track_length": "Trackdicke",
+		"track_border_color": "Trackrahmenfarbe",
+		"track_background_color": "Trackfarbe",
+		"rail_length": "Raildicke",
+		"rail_background_color": "Railfarbe",
+		"mark_width": "Mark Breite",
+		"mark_height": "Mark Höhe",
+		"mark_background_color": "Markfarbe",
+		"slider_padding": "Padding"
 }

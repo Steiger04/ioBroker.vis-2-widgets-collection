@@ -122,5 +122,20 @@
     "arrow_color": "Kolor strzałki",
     "radio_orientation": "Orientacja",
     "radio_group": "Grupa radiowa",
-    "radio_group_unchecked_icon_color": "Niezazorowany kolor ikony"
+    "radio_group_unchecked_icon_color": "Niezazorowany kolor ikony",
+    "thumb": "Kciuk",
+    "track": "Ścieżka",
+    "rail": "Szyna",
+    "mark": "Znak",
+    "thumb_width": "Szerokość kciuka",
+    "thumb_height": "Wysokość kciuka",
+    "thumb_color": "Kolor kciuka",
+    "track_length": "Długość ścieżki",
+    "track_border_color": "Kolor obramowania ścieżki",
+    "track_background_color": "Kolor tła ścieżki",
+    "rail_length": "Długość szyny",
+    "rail_background_color": "Kolor tła szyny",
+    "mark_width": "Szerokość znaku",
+    "mark_height": "Wysokość znaku",
+    "mark_background_color": "Kolor tła znaku"
 }

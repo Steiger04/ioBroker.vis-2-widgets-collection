@@ -37,6 +37,80 @@ export interface SliderFieldsRxData {
     sliderColor?: string;
 
     /**
+     * Thumb width in pixels.
+     *
+     * @default 1
+     */
+    sliderPadding?: number;
+
+    /**
+     * Thumb width in pixels.
+     *
+     * @default 20
+     */
+    thumbWidth?: number;
+
+    /**
+     * Thumb height in pixels.
+     *
+     * @default 20
+     */
+    thumbHeight?: number;
+
+    /**
+     * Thumb color (CSS color).
+     */
+    thumbColor?: string;
+
+    /**
+     * Track length in pixels (height for horizontal, width for vertical).
+     *
+     * @default 4
+     */
+    trackLength?: number;
+
+    /**
+     * Track border color (CSS color).
+     */
+    trackBorderColor?: string;
+
+    /**
+     * Track background color (CSS color).
+     */
+    trackBackgroundColor?: string;
+
+    /**
+     * Rail length in pixels (height for horizontal, width for vertical).
+     *
+     * @default 4
+     */
+    railLength?: number;
+
+    /**
+     * Rail background color (CSS color).
+     */
+    railBackgroundColor?: string;
+
+    /**
+     * Mark width in pixels.
+     *
+     * @default 2
+     */
+    markWidth?: number;
+
+    /**
+     * Mark height in pixels.
+     *
+     * @default 2
+     */
+    markHeight?: number;
+
+    /**
+     * Mark background color (CSS color).
+     */
+    markBackgroundColor?: string;
+
+    /**
      * Minimum slider value.
      *
      * @default 0

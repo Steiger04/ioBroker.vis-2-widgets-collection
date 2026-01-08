@@ -1,9 +1,8 @@
-import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, N as D, O as U, Q as N, C as y, y as X, q as E, x as H, v as L, z as G, A as Y, w as x, G as q, E as $, H as J, J as K, K as Q, __tla as __tla_0 } from "./commonFields-8_mIPW_t.js";
+import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, R as D, U, V as N, C as y, A as X, v as E, z as H, w as L, E as G, G as Y, x, H as J, J as $, K, N as q, O as Q, __tla as __tla_0 } from "./commonFields-tb-swNng.js";
 import { v as C, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as Z, __tla as __tla_2 } from "./SwitchBase-C2KYw59S.js";
+import { S as Z, __tla as __tla_2 } from "./SwitchBase-CcbJ_Pj3.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_3 } from "./useFormControl--TM4wVzV.js";
 let B;
 let __tla = Promise.all([
   (() => {
@@ -21,12 +20,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_3;
     } catch {
     }
   })()
@@ -259,14 +252,14 @@ let __tla = Promise.all([
       additionalProps: {
         sx: b
       }
-    }), [j, T] = f("thumb", {
+    }), [j, R] = f("thumb", {
       className: m.thumb,
       elementType: at,
       externalForwardedProps: v,
       ownerState: d
     }), k = n.jsx(j, {
-      ...T
-    }), [R, P] = f("track", {
+      ...R
+    }), [T, P] = f("track", {
       className: m.track,
       elementType: st,
       externalForwardedProps: v,
@@ -303,7 +296,7 @@ let __tla = Promise.all([
             }
           }
         }),
-        n.jsx(R, {
+        n.jsx(T, {
           ...P
         })
       ]
@@ -479,7 +472,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  B = class extends q {
+  B = class extends J {
     static getWidgetInfo() {
       return {
         id: "tplSwitchCollectionWidget",
@@ -499,10 +492,10 @@ let __tla = Promise.all([
             name: "switch",
             label: "group_switch",
             fields: [
-              ...J([
+              ...K([
                 "boolean"
               ]),
-              ...K(),
+              ...q(),
               ...nt()
             ]
           },

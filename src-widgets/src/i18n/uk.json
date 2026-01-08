@@ -122,5 +122,20 @@
     "arrow_color": "Колір стрілки",
     "radio_orientation": "Орієнтація",
     "radio_group": "Радіогрупа",
-    "radio_group_unchecked_icon_color": "Неперевірений колір значка"
+    "radio_group_unchecked_icon_color": "Неперевірений колір значка",
+    "thumb": "Повзунок",
+    "track": "Доріжка",
+    "rail": "Рейка",
+    "mark": "Мітка",
+    "thumb_width": "Ширина повзунка",
+    "thumb_height": "Висота повзунка",
+    "thumb_color": "Колір повзунка",
+    "track_length": "Довжина доріжки",
+    "track_border_color": "Колір межі доріжки",
+    "track_background_color": "Колір фону доріжки",
+    "rail_length": "Довжина рейки",
+    "rail_background_color": "Колір фону рейки",
+    "mark_width": "Ширина мітки",
+    "mark_height": "Висота мітки",
+    "mark_background_color": "Колір фону мітки"
 }

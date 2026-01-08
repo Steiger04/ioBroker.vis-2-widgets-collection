@@ -122,5 +122,20 @@
     "arrow_color": "Pijlkleur",
     "radio_orientation": "Oriëntatie",
     "radio_group": "Radiogroep",
-    "radio_group_unchecked_icon_color": "Ongecontroleerde pictogramkleur"
+    "radio_group_unchecked_icon_color": "Ongecontroleerde pictogramkleur",
+    "thumb": "Duim",
+    "track": "Spoor",
+    "rail": "Rail",
+    "mark": "Markering",
+    "thumb_width": "Duimbreedte",
+    "thumb_height": "Duimhoogte",
+    "thumb_color": "Duimkleur",
+    "track_length": "Tracklengte",
+    "track_border_color": "Track randkleur",
+    "track_background_color": "Track achtergrondkleur",
+    "rail_length": "Raillengte",
+    "rail_background_color": "Rail achtergrondkleur",
+    "mark_width": "Markbreedte",
+    "mark_height": "Markhoogte",
+    "mark_background_color": "Mark achtergrondkleur"
 }

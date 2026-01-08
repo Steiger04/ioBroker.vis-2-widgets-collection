@@ -122,5 +122,20 @@
     "arrow_color": "Цвет стрелы",
     "radio_orientation": "Ориентация",
     "radio_group": "Радио Группа",
-    "radio_group_unchecked_icon_color": "Неконтролируемый цвет значков"
+    "radio_group_unchecked_icon_color": "Неконтролируемый цвет значков",
+    "thumb": "Ползунок",
+    "track": "Дорожка",
+    "rail": "Рельс",
+    "mark": "Метка",
+    "thumb_width": "Ширина ползунка",
+    "thumb_height": "Высота ползунка",
+    "thumb_color": "Цвет ползунка",
+    "track_length": "Длина дорожки",
+    "track_border_color": "Цвет границы дорожки",
+    "track_background_color": "Цвет фона дорожки",
+    "rail_length": "Длина рельса",
+    "rail_background_color": "Цвет фона рельса",
+    "mark_width": "Ширина метки",
+    "mark_height": "Высота метки",
+    "mark_background_color": "Цвет фона метки"
 }

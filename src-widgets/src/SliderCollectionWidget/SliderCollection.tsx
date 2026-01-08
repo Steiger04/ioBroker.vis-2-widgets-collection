@@ -29,43 +29,39 @@ type CollectionSliderProps = SliderProps & {
 };
 
 const CollectionSlider = styled(Slider, {
-    shouldForwardProp: prop => prop !== 'data' && prop !== 'thumbColor',
-})<CollectionSliderProps>(({ theme, thumbColor, data }) => ({
+    shouldForwardProp: prop => prop !== 'data',
+})<CollectionSliderProps>(({ theme, data }) => ({
     '&.MuiSlider-root': {
         //height: '16px',
     },
     '& .MuiSlider-thumb': {
-        width: '96px',
-        height: '96px',
-        color: thumbColor || theme.palette.primary.main,
-
+        width: `${data?.thumbWidth ?? 20}px`,
+        height: `${data?.thumbHeight ?? 20}px`,
+        background: data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
         '&:hover, &.Mui-focusVisible': {},
     },
     '& .MuiSlider-track': {
-        height: data?.sliderOrientation === 'horizontal' ? '72px' : 'auto',
-        width: data?.sliderOrientation === 'vertical' ? '72px' : 'auto',
-
-        borderColor: thumbColor || theme.palette.primary.main,
-        backgroundColor: thumbColor || theme.palette.primary.main,
+        height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
+        width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
+        borderColor: data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
+        background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
     },
     '& .MuiSlider-rail': {
-        height: data?.sliderOrientation === 'horizontal' ? '24px' : '100%',
-        width: data?.sliderOrientation === 'vertical' ? '24px' : '100%',
-
-        backgroundColor: thumbColor || theme.palette.primary.main,
+        height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
+        width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
+        background: data?.railBackgroundColor || data?.sliderColor || theme.palette.primary.main,
     },
     '& .MuiSlider-mark': {
-        width: data?.sliderOrientation === 'horizontal' ? '3px' : '16px',
-        height: data?.sliderOrientation === 'horizontal' ? '16px' : '3px',
-        backgroundColor: thumbColor || theme.palette.primary.main,
+        width: data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
+        height: data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
+        background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
     },
     '& .MuiSlider-markActive': {
-        width: data?.sliderOrientation === 'horizontal' ? '3px' : '16px',
-        height: data?.sliderOrientation === 'horizontal' ? '16px' : '3px',
-
-        backgroundColor: thumbColor || theme.palette.primary.main,
+        width: data?.sliderOrientation === 'horizontal' ? `${data?.markWidth ?? 2}px` : `${data?.markHeight ?? 16}px`,
+        height: data?.sliderOrientation === 'horizontal' ? `${data?.markHeight ?? 2}px` : `${data?.markWidth ?? 3}px`,
+        backgroundColor: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
         '&.MuiSlider-markActive': {
-            backgroundColor: thumbColor || theme.palette.primary.main,
+            background: data?.markBackgroundColor || data?.sliderColor || theme.palette.primary.main,
         },
     },
 }));
@@ -303,6 +299,9 @@ const SliderCollection: FC = () => {
             isValidType={isValidType}
             data={data}
             oidValue={oidValue}
+            sx={{
+                p: Number(widget.data.sliderPadding) || 1,
+            }}
         >
             <CollectionBaseImage
                 data={data}
@@ -318,30 +317,6 @@ const SliderCollection: FC = () => {
                         alignItems: 'center',
                         width: '100%',
                         height: '100%',
-
-                        pl:
-                            widget.data.sliderOrientation === 'horizontal' &&
-                            (widget.data.iconMin || widget.data.iconSmallMin)
-                                ? 0.5
-                                : 2,
-                        pr:
-                            widget.data.sliderOrientation === 'horizontal' &&
-                            (widget.data.iconMax || widget.data.iconSmallMax)
-                                ? 0.5
-                                : 2,
-                        pt:
-                            widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMax || widget.data.iconSmallMax)
-                                ? 0.5
-                                : 2,
-
-                        pb:
-                            widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMin || widget.data.iconSmallMin)
-                                ? 0.5
-                                : 2,
-
-                        gap: 1.5, // Spacing between icons and slider
                     }}
                 >
                     {/* Start icon - in normal layout flow */}
@@ -402,7 +377,6 @@ const SliderCollection: FC = () => {
                         {typeof sliderValue === 'number' && (
                             <CollectionSlider
                                 data={widget.data}
-                                thumbColor="rgba(255, 0, 0, 0.3)"
                                 slots={{
                                     markLabel: CollectionMark,
                                 }}

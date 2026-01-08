@@ -1,8 +1,6 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { a as D, g as U, u as A, b as E, T as P, j as c, d as v, s as x, i as F, e as W, m as L, __tla as __tla_1 } from "./commonFields-8_mIPW_t.js";
-import { f as z } from "./formControlState-Dq1zat_P.js";
-import { u as B, __tla as __tla_2 } from "./useFormControl--TM4wVzV.js";
-let oe;
+import { a as D, g as U, u as A, $ as E, a1 as W, b as z, T as P, j as c, d as v, s as x, i as F, e as B, m as L, __tla as __tla_1 } from "./commonFields-tb-swNng.js";
+let Z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -13,12 +11,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_1;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_2;
     } catch {
     }
   })()
@@ -39,13 +31,13 @@ let __tla = Promise.all([
     "asterisk"
   ]);
   I = (e) => {
-    const { classes: o, disabled: s, labelPlacement: r, error: p, required: m } = e, d = {
+    const { classes: o, disabled: s, labelPlacement: r, error: p, required: d } = e, m = {
       root: [
         "root",
         s && "disabled",
         `labelPlacement${F(r)}`,
         p && "error",
-        m && "required"
+        d && "required"
       ],
       label: [
         "label",
@@ -56,7 +48,7 @@ let __tla = Promise.all([
         p && "error"
       ]
     };
-    return W(d, H, o);
+    return B(m, H, o);
   };
   G = x("label", {
     name: "MuiFormControlLabel",
@@ -130,11 +122,11 @@ let __tla = Promise.all([
       color: (e.vars || e).palette.error.main
     }
   })));
-  oe = y.forwardRef(function(o, s) {
+  Z = y.forwardRef(function(o, s) {
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: m, componentsProps: d = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = B(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: $, slots: k = {}, slotProps: q = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = $ ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -147,7 +139,7 @@ let __tla = Promise.all([
     ].forEach((i) => {
       typeof a.props[i] > "u" && typeof r[i] < "u" && (g[i] = r[i]);
     });
-    const w = z({
+    const w = W({
       props: r,
       muiFormControl: f,
       states: [
@@ -160,12 +152,12 @@ let __tla = Promise.all([
       required: b,
       error: w.error
     }, u = I(n), M = {
-      slots: q,
+      slots: k,
       slotProps: {
-        ...d,
-        ...$
+        ...m,
+        ...q
       }
-    }, [N, h] = E("typography", {
+    }, [N, h] = z("typography", {
       elementType: P,
       externalForwardedProps: M,
       ownerState: n
@@ -177,7 +169,7 @@ let __tla = Promise.all([
       className: v(u.label, h == null ? void 0 : h.className),
       children: l
     })), c.jsxs(G, {
-      className: v(u.root, m),
+      className: v(u.root, d),
       ownerState: n,
       ref: s,
       ...j,
@@ -202,6 +194,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  oe as F,
+  Z as F,
   __tla
 };

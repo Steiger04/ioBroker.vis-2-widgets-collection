@@ -9,6 +9,7 @@
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
+import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
 const sliderFields = (): RxWidgetInfoAttributesField[] => [
     {
@@ -57,6 +58,185 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         name: 'sliderColor',
         label: 'slider_color',
         type: 'color',
+    } as const,
+    {
+        name: 'sliderPadding',
+        label: 'slider_padding',
+        type: 'number',
+        default: 1,
+        min: 0,
+        step: 0.5,
+    } as const,
+    {
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="thumb" />,
+    } as const,
+    {
+        name: 'thumbWidth',
+        label: 'thumb_width',
+        type: 'number',
+        default: 20,
+        min: 0,
+    } as const,
+    {
+        name: 'thumbHeight',
+        label: 'thumb_height',
+        type: 'number',
+        default: 20,
+        min: 0,
+    } as const,
+    /* {
+        name: 'thumbColor',
+        label: 'thumb_color',
+        type: 'color',
+    } as const, */
+    {
+        name: 'thumbColor',
+        label: 'thumb_color',
+        default: '',
+        type: 'custom', // important
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    } as const,
+    {
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="track" />,
+    } as const,
+    {
+        name: 'trackLength',
+        label: 'track_length',
+        type: 'number',
+        default: 4,
+        min: 0,
+    } as const,
+    {
+        name: 'trackBorderColor',
+        label: 'track_border_color',
+        type: 'color',
+    } as const,
+    /* {
+        name: 'trackBackgroundColor',
+        label: 'track_background_color',
+        type: 'color',
+    } as const, */
+    {
+        name: 'trackBackgroundColor',
+        label: 'track_background_color',
+        default: '',
+        type: 'custom', // important
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    } as const,
+    {
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="rail" />,
+    } as const,
+    {
+        name: 'railLength',
+        label: 'rail_length',
+        type: 'number',
+        default: 4,
+        min: 0,
+    } as const,
+    /* {
+        name: 'railBackgroundColor',
+        label: 'rail_background_color',
+        type: 'color',
+    } as const, */
+    {
+        name: 'railBackgroundColor',
+        label: 'rail_background_color',
+        default: '',
+        type: 'custom', // important
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    } as const,
+    {
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="mark" />,
+    } as const,
+    {
+        name: 'markWidth',
+        label: 'mark_width',
+        type: 'number',
+        default: 2,
+        min: 0,
+    } as const,
+    {
+        name: 'markHeight',
+        label: 'mark_height',
+        type: 'number',
+        default: 2,
+        min: 0,
+    } as const,
+    /* {
+        name: 'markBackgroundColor',
+        label: 'mark_background_color',
+        type: 'color',
+    } as const, */
+    {
+        name: 'markBackgroundColor',
+        label: 'mark_background_color',
+        default: '',
+        type: 'custom', // important
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     } as const,
     {
         type: 'custom',

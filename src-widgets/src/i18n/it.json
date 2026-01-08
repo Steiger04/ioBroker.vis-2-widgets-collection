@@ -122,5 +122,20 @@
     "arrow_color": "Colore freccia",
     "radio_orientation": "Orientamento",
     "radio_group": "Gruppo radio",
-    "radio_group_unchecked_icon_color": "Colore icona incontrollato"
+    "radio_group_unchecked_icon_color": "Colore icona incontrollato",
+    "thumb": "Pollice",
+    "track": "Traccia",
+    "rail": "Binario",
+    "mark": "Segno",
+    "thumb_width": "Larghezza del pollice",
+    "thumb_height": "Altezza del pollice",
+    "thumb_color": "Colore del pollice",
+    "track_length": "Lunghezza della traccia",
+    "track_border_color": "Colore del bordo della traccia",
+    "track_background_color": "Colore di sfondo della traccia",
+    "rail_length": "Lunghezza del binario",
+    "rail_background_color": "Colore di sfondo del binario",
+    "mark_width": "Larghezza del segno",
+    "mark_height": "Altezza del segno",
+    "mark_background_color": "Colore di sfondo del segno"
 }

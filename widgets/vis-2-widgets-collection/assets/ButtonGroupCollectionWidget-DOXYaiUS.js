@@ -1,6 +1,6 @@
-import { a as I, g as k, L as U, u as M, j as p, s as V, d as L, i as R, e as P, n as X, m as N, o as s, N as Y, C as E, q, x as J, v as K, z as Q, A as Z, w as A, y as tt, T as ot, G as at, E as j, H as et, J as rt, K as it, __tla as __tla_0 } from "./commonFields-8_mIPW_t.js";
+import { a as I, g as k, Q as U, u as M, j as p, s as V, d as L, i as R, e as P, n as X, m as N, o as s, R as Y, C as E, v as J, z as K, w as Q, E as q, G as Z, x as A, A as tt, T as ot, H as at, J as j, K as et, N as rt, O as it, __tla as __tla_0 } from "./commonFields-tb-swNng.js";
 import { v as b, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as lt, __tla as __tla_2 } from "./SafeImg-tj5GQGHs.js";
+import { S as lt, __tla as __tla_2 } from "./SafeImg-617kPqEq.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let F;
@@ -153,13 +153,13 @@ let __tla = Promise.all([
     }, t), e = M({
       props: l,
       name: "MuiToggleButton"
-    }), { children: B, className: d, color: g = "standard", disabled: v = false, disableFocusRipple: m = false, fullWidth: c = false, onChange: o, onClick: $, selected: h, size: O = "medium", value: T, ...W } = e, x = {
+    }), { children: B, className: d, color: g = "standard", disabled: v = false, disableFocusRipple: m = false, fullWidth: c = false, onChange: o, onClick: $, selected: h, size: z = "medium", value: T, ...W } = e, x = {
       ...e,
       color: g,
       disabled: v,
       disableFocusRipple: m,
       fullWidth: c,
-      size: O
+      size: z
     }, w = ct(x), _ = (u) => {
       $ && ($(u, T), u.defaultPrevented) || o && o(u, T);
     }, y = C || "";
@@ -318,11 +318,11 @@ let __tla = Promise.all([
       fullWidth: d,
       orientation: v,
       size: m
-    }, h = vt($), O = b.useCallback((y, u) => {
+    }, h = vt($), z = b.useCallback((y, u) => {
       if (!g) return;
-      const z = c && c.indexOf(u);
+      const O = c && c.indexOf(u);
       let G;
-      c && z >= 0 ? (G = c.slice(), G.splice(z, 1)) : G = c ? c.concat(u) : [
+      c && O >= 0 ? (G = c.slice(), G.splice(O, 1)) : G = c ? c.concat(u) : [
         u
       ], g(y, G);
     }, [
@@ -335,7 +335,7 @@ let __tla = Promise.all([
       c
     ]), W = b.useMemo(() => ({
       className: h.grouped,
-      onChange: B ? T : O,
+      onChange: B ? T : z,
       value: c,
       size: m,
       fullWidth: d,
@@ -345,15 +345,15 @@ let __tla = Promise.all([
       h.grouped,
       B,
       T,
-      O,
+      z,
       c,
       m,
       d,
       l,
       e
     ]), x = nt(i), w = x.length, _ = (y) => {
-      const u = y === 0, z = y === w - 1;
-      return u && z ? "" : u ? h.firstButton : z ? h.lastButton : h.middleButton;
+      const u = y === 0, O = y === w - 1;
+      return u && O ? "" : u ? h.firstButton : O ? h.lastButton : h.middleButton;
     };
     return p.jsx(bt, {
       role: "group",
@@ -425,8 +425,8 @@ let __tla = Promise.all([
     }
   ];
   function $t() {
-    const a = b.useContext(q), { widget: t, theme: r } = a, f = t.data.oidObject, { data: i, states: C, activeIndex: l } = J("oid"), { value: e, updateValue: B } = K("oid"), d = t.data.buttonGroupVariant, g = t.data.buttonGroupOrientation, v = f == null ? void 0 : f.type, m = v === "boolean" || v === "number" || v === "string" || v === "mixed";
-    return p.jsxs(Q, {
+    const a = b.useContext(J), { widget: t, theme: r } = a, f = t.data.oidObject, { data: i, states: C, activeIndex: l } = K("oid"), { value: e, updateValue: B } = Q("oid"), d = t.data.buttonGroupVariant, g = t.data.buttonGroupOrientation, v = f == null ? void 0 : f.type, m = v === "boolean" || v === "number" || v === "string" || v === "mixed";
+    return p.jsxs(q, {
       isValidType: m,
       data: i,
       oidValue: e,

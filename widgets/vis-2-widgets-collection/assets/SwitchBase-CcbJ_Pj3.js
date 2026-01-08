@@ -1,7 +1,6 @@
 import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { g as J, a as K, a5 as Q, b as C, s as F, j as b, i as V, e as X, n as Y, r as Z, __tla as __tla_1 } from "./commonFields-8_mIPW_t.js";
-import { u as ee, __tla as __tla_2 } from "./useFormControl--TM4wVzV.js";
-let le;
+import { g as J, a as K, a2 as Q, $ as V, b as C, s as F, j as b, i as X, e as Y, n as Z, r as ee, __tla as __tla_1 } from "./commonFields-tb-swNng.js";
+let ie;
 let __tla = Promise.all([
   (() => {
     try {
@@ -12,12 +11,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_1;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_2;
     } catch {
     }
   })()
@@ -40,15 +33,15 @@ let __tla = Promise.all([
         "root",
         l && "checked",
         d && "disabled",
-        n && `edge${V(n)}`
+        n && `edge${X(n)}`
       ],
       input: [
         "input"
       ]
     };
-    return X(c, oe, s);
+    return Y(c, oe, s);
   };
-  se = F(Y, {
+  se = F(Z, {
     name: "MuiSwitchBase"
   })({
     padding: 9,
@@ -88,7 +81,7 @@ let __tla = Promise.all([
   });
   ae = F("input", {
     name: "MuiSwitchBase",
-    shouldForwardProp: Z
+    shouldForwardProp: ee
   })({
     cursor: "inherit",
     position: "absolute",
@@ -101,24 +94,24 @@ let __tla = Promise.all([
     padding: 0,
     zIndex: 1
   });
-  le = H.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: m, onChange: f, onFocus: g, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [w, N] = Q({
+  ie = H.forwardRef(function(s, l) {
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [w, N] = Q({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
       state: "checked"
-    }), a = ee(), T = (e) => {
-      g && g(e), a && a.onFocus && a.onFocus(e);
+    }), a = V(), T = (e) => {
+      m && m(e), a && a.onFocus && a.onFocus(e);
+    }, $ = (e) => {
+      g && g(e), a && a.onBlur && a.onBlur(e);
     }, q = (e) => {
-      m && m(e), a && a.onBlur && a.onBlur(e);
-    }, O = (e) => {
       if (e.nativeEvent.defaultPrevented) return;
       const o = e.target.checked;
       N(o), f && f(e, o);
     };
     let r = k;
     a && typeof r > "u" && (r = a.disabled);
-    const W = i === "checkbox" || i === "radio", p = {
+    const O = i === "checkbox" || i === "radio", p = {
       ...s,
       checked: w,
       disabled: r,
@@ -130,7 +123,7 @@ let __tla = Promise.all([
         input: _,
         ...L
       }
-    }, [$, A] = C("root", {
+    }, [W, A] = C("root", {
       ref: l,
       elementType: se,
       className: B.root,
@@ -148,7 +141,7 @@ let __tla = Promise.all([
         },
         onBlur: (o) => {
           var _a;
-          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), q(o);
+          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), $(o);
         }
       }),
       ownerState: p,
@@ -167,7 +160,7 @@ let __tla = Promise.all([
       getSlotProps: (e) => ({
         onChange: (o) => {
           var _a;
-          (_a = e.onChange) == null ? void 0 : _a.call(e, o), O(o);
+          (_a = e.onChange) == null ? void 0 : _a.call(e, o), q(o);
         }
       }),
       ownerState: p,
@@ -176,7 +169,7 @@ let __tla = Promise.all([
         checked: n,
         defaultChecked: u,
         disabled: r,
-        id: W ? R : void 0,
+        id: O ? R : void 0,
         name: z,
         readOnly: v,
         required: j,
@@ -187,7 +180,7 @@ let __tla = Promise.all([
         }
       }
     });
-    return b.jsxs($, {
+    return b.jsxs(W, {
       ...A,
       children: [
         b.jsx(D, {
@@ -199,6 +192,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  le as S,
+  ie as S,
   __tla
 };

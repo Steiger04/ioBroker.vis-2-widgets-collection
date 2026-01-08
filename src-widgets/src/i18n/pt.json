@@ -122,5 +122,20 @@
     "arrow_color": "Cor da seta",
     "radio_orientation": "Orientação",
     "radio_group": "Grupo de rádio",
-    "radio_group_unchecked_icon_color": "Cor do ícone sem verificação"
+    "radio_group_unchecked_icon_color": "Cor do ícone sem verificação",
+    "thumb": "Polegar",
+    "track": "Trilha",
+    "rail": "Trilho",
+    "mark": "Marca",
+    "thumb_width": "Largura do polegar",
+    "thumb_height": "Altura do polegar",
+    "thumb_color": "Cor do polegar",
+    "track_length": "Comprimento da trilha",
+    "track_border_color": "Cor da borda da trilha",
+    "track_background_color": "Cor de fundo da trilha",
+    "rail_length": "Comprimento do trilho",
+    "rail_background_color": "Cor de fundo do trilho",
+    "mark_width": "Largura da marca",
+    "mark_height": "Altura da marca",
+    "mark_background_color": "Cor de fundo da marca"
 }
