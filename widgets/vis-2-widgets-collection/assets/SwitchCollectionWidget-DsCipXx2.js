@@ -1,6 +1,8 @@
-import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, R as D, U, V as N, C as y, A as X, v as E, z as H, w as L, E as G, G as Y, x, H as J, J as $, K, N as q, O as Q, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v as C, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as Z, __tla as __tla_2 } from "./SwitchBase-pT8B3nuc.js";
+import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, Y as D, Z as U, _ as N, C as y, z as X, v as E, y as H, A as L, w as x, G as Y, E as $, H as G, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { C as Z, c as q, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { u as J, d as K, __tla as __tla_2 } from "./useValueState-CBTmm9_k.js";
+import { v as C, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { S as Q, __tla as __tla_4 } from "./SwitchBase-B2S2DH0_.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let B;
@@ -20,6 +22,18 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_3;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_4;
     } catch {
     }
   })()
@@ -63,10 +77,10 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = W(u, tt, e);
+    }, m = W(u, tt, e);
     return {
       ...e,
-      ...b
+      ...m
     };
   }, ot = w("span", {
     name: "MuiSwitch",
@@ -131,7 +145,7 @@ let __tla = Promise.all([
         }
       }
     ]
-  }), it = w(Z, {
+  }), it = w(Q, {
     name: "MuiSwitch",
     slot: "SwitchBase",
     overridesResolver: (t, e) => {
@@ -236,37 +250,37 @@ let __tla = Promise.all([
     const i = F({
       props: e,
       name: "MuiSwitch"
-    }), { className: a, color: s = "primary", edge: g = false, size: u = "medium", sx: b, slots: c = {}, slotProps: l = {}, ...M } = i, d = {
+    }), { className: a, color: s = "primary", edge: g = false, size: u = "medium", sx: m, slots: c = {}, slotProps: l = {}, ...M } = i, d = {
       ...i,
       color: s,
       edge: g,
       size: u
-    }, m = et(d), v = {
+    }, b = et(d), v = {
       slots: c,
       slotProps: l
-    }, [O, _] = f("root", {
-      className: V(m.root, a),
+    }, [_, O] = f("root", {
+      className: V(b.root, a),
       elementType: ot,
       externalForwardedProps: v,
       ownerState: d,
       additionalProps: {
-        sx: b
+        sx: m
       }
-    }), [j, R] = f("thumb", {
-      className: m.thumb,
+    }), [j, T] = f("thumb", {
+      className: b.thumb,
       elementType: at,
       externalForwardedProps: v,
       ownerState: d
     }), k = n.jsx(j, {
-      ...R
-    }), [T, P] = f("track", {
-      className: m.track,
+      ...T
+    }), [R, P] = f("track", {
+      className: b.track,
       elementType: st,
       externalForwardedProps: v,
       ownerState: d
     });
-    return n.jsxs(O, {
-      ..._,
+    return n.jsxs(_, {
+      ...O,
       children: [
         n.jsx(it, {
           type: "checkbox",
@@ -276,8 +290,8 @@ let __tla = Promise.all([
           ownerState: d,
           ...M,
           classes: {
-            ...m,
-            root: m.switchBase
+            ...b,
+            root: b.switchBase
           },
           slots: {
             ...c.switchBase && {
@@ -296,7 +310,7 @@ let __tla = Promise.all([
             }
           }
         }),
-        n.jsx(T, {
+        n.jsx(R, {
           ...P
         })
       ]
@@ -425,15 +439,15 @@ let __tla = Promise.all([
   });
   function ct() {
     var _a, _b, _c, _d;
-    const t = C.useRef(null), e = C.useContext(E), { widget: o } = e, i = o.data.oidObject, { data: a } = H("oid"), { value: s, updateValue: g } = L("oid"), u = i == null ? void 0 : i.type, b = u === "boolean", c = () => {
+    const t = C.useRef(null), e = C.useContext(E), { widget: o } = e, i = o.data.oidObject, { data: a } = H("oid"), { value: s, updateValue: g } = J("oid"), u = i == null ? void 0 : i.type, m = u === "boolean", c = () => {
       g(!s);
     };
-    return n.jsxs(G, {
-      isValidType: b,
+    return n.jsxs(L, {
+      isValidType: m,
       data: a,
       oidValue: s,
       children: [
-        n.jsx(Y, {
+        n.jsx(Z, {
           data: a,
           widget: o
         }),
@@ -472,7 +486,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  B = class extends J {
+  B = class extends Y {
     static getWidgetInfo() {
       return {
         id: "tplSwitchCollectionWidget",
@@ -492,10 +506,10 @@ let __tla = Promise.all([
             name: "switch",
             label: "group_switch",
             fields: [
-              ...K([
+              ...q([
                 "boolean"
               ]),
-              ...q(),
+              ...K(),
               ...nt()
             ]
           },
@@ -555,7 +569,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Q(this.wrapContent(n.jsx(ct, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, G(this.wrapContent(n.jsx(ct, {})), o);
     }
   };
 });

@@ -1,8 +1,10 @@
-import { a as F, g as B, u as L, L as w, k as D, l as P, j as l, s as z, d as k, e as U, n as H, r as N, m as G, o as p, X as M, Y as E, C as O, Z as A, v as X, z as Y, w as j, E as J, G as K, x as _, _ as Z, A as q, T as Q, H as ee, J as V, K as te, N as ae, O as oe, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as ne, __tla as __tla_2 } from "./SafeImg-D3G5vGGp.js";
-import { l as T, __tla as __tla_3 } from "./listItemTextClasses-DoDeiAK_.js";
-import { S as ie, __tla as __tla_4 } from "./Stack-DsAoxzWO.js";
+import { a as F, g as B, u as L, L as w, k as D, l as P, j as l, s as z, d as k, e as U, n as H, r as G, m as N, o as p, a1 as M, C as j, a2 as E, v as A, y as X, A as Y, w as O, a3 as q, z as J, T as K, G as Q, E as V, H as Z, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { o as tt, C as et, c as at, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { u as _, d as ot, __tla as __tla_2 } from "./useValueState-CBTmm9_k.js";
+import { v, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { S as it, __tla as __tla_4 } from "./SafeImg-oB0ioRZB.js";
+import { l as T, __tla as __tla_5 } from "./listItemTextClasses-C46brdSm.js";
+import { S as nt, __tla as __tla_6 } from "./Stack-BeWatUSE.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let W;
@@ -36,14 +38,26 @@ let __tla = Promise.all([
       return __tla_4;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_5;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_6;
+    } catch {
+    }
   })()
 ]).then(async () => {
   const R = F("MuiListItemIcon", [
     "root",
     "alignItemsFlexStart"
   ]);
-  function re(t) {
-    return B("MuiMenuItem", t);
+  function rt(e) {
+    return B("MuiMenuItem", e);
   }
   const x = F("MuiMenuItem", [
     "root",
@@ -53,36 +67,36 @@ let __tla = Promise.all([
     "divider",
     "gutters",
     "selected"
-  ]), se = (t, a) => {
-    const { ownerState: c } = t;
+  ]), st = (e, a) => {
+    const { ownerState: c } = e;
     return [
       a.root,
       c.dense && a.dense,
       c.divider && a.divider,
       !c.disableGutters && a.gutters
     ];
-  }, le = (t) => {
-    const { disabled: a, dense: c, divider: e, disableGutters: r, selected: f, classes: m } = t, u = U({
+  }, lt = (e) => {
+    const { disabled: a, dense: c, divider: t, disableGutters: r, selected: f, classes: m } = e, u = U({
       root: [
         "root",
         c && "dense",
         a && "disabled",
         !r && "gutters",
-        e && "divider",
+        t && "divider",
         f && "selected"
       ]
-    }, re, m);
+    }, rt, m);
     return {
       ...m,
       ...u
     };
-  }, ce = z(H, {
-    shouldForwardProp: (t) => N(t) || t === "classes",
+  }, ct = z(H, {
+    shouldForwardProp: (e) => G(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
-    overridesResolver: se
-  })(G(({ theme: t }) => ({
-    ...t.typography.body1,
+    overridesResolver: st
+  })(N(({ theme: e }) => ({
+    ...e.typography.body1,
     display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -95,32 +109,32 @@ let __tla = Promise.all([
     whiteSpace: "nowrap",
     "&:hover": {
       textDecoration: "none",
-      backgroundColor: (t.vars || t).palette.action.hover,
+      backgroundColor: (e.vars || e).palette.action.hover,
       "@media (hover: none)": {
         backgroundColor: "transparent"
       }
     },
     [`&.${x.selected}`]: {
-      backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / ${t.vars.palette.action.selectedOpacity})` : p(t.palette.primary.main, t.palette.action.selectedOpacity),
+      backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : p(e.palette.primary.main, e.palette.action.selectedOpacity),
       [`&.${x.focusVisible}`]: {
-        backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / calc(${t.vars.palette.action.selectedOpacity} + ${t.vars.palette.action.focusOpacity}))` : p(t.palette.primary.main, t.palette.action.selectedOpacity + t.palette.action.focusOpacity)
+        backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.focusOpacity}))` : p(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.focusOpacity)
       }
     },
     [`&.${x.selected}:hover`]: {
-      backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / calc(${t.vars.palette.action.selectedOpacity} + ${t.vars.palette.action.hoverOpacity}))` : p(t.palette.primary.main, t.palette.action.selectedOpacity + t.palette.action.hoverOpacity),
+      backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.hoverOpacity}))` : p(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.hoverOpacity),
       "@media (hover: none)": {
-        backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / ${t.vars.palette.action.selectedOpacity})` : p(t.palette.primary.main, t.palette.action.selectedOpacity)
+        backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : p(e.palette.primary.main, e.palette.action.selectedOpacity)
       }
     },
     [`&.${x.focusVisible}`]: {
-      backgroundColor: (t.vars || t).palette.action.focus
+      backgroundColor: (e.vars || e).palette.action.focus
     },
     [`&.${x.disabled}`]: {
-      opacity: (t.vars || t).palette.action.disabledOpacity
+      opacity: (e.vars || e).palette.action.disabledOpacity
     },
     [`& + .${M.root}`]: {
-      marginTop: t.spacing(1),
-      marginBottom: t.spacing(1)
+      marginTop: e.spacing(1),
+      marginBottom: e.spacing(1)
     },
     [`& + .${M.inset}`]: {
       marginLeft: 52
@@ -146,14 +160,14 @@ let __tla = Promise.all([
       {
         props: ({ ownerState: a }) => a.divider,
         style: {
-          borderBottom: `1px solid ${(t.vars || t).palette.divider}`,
+          borderBottom: `1px solid ${(e.vars || e).palette.divider}`,
           backgroundClip: "padding-box"
         }
       },
       {
         props: ({ ownerState: a }) => !a.dense,
         style: {
-          [t.breakpoints.up("sm")]: {
+          [e.breakpoints.up("sm")]: {
             minHeight: "auto"
           }
         }
@@ -164,22 +178,22 @@ let __tla = Promise.all([
           minHeight: 32,
           paddingTop: 4,
           paddingBottom: 4,
-          ...t.typography.body2,
+          ...e.typography.body2,
           [`& .${R.root} svg`]: {
             fontSize: "1.25rem"
           }
         }
       }
     ]
-  }))), de = v.forwardRef(function(a, c) {
-    const e = L({
+  }))), dt = v.forwardRef(function(a, c) {
+    const t = L({
       props: a,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: f = "li", dense: m = false, divider: n = false, disableGutters: u = false, focusVisibleClassName: b, role: h = "menuitem", tabIndex: S, className: C, ...I } = e, i = v.useContext(w), $ = v.useMemo(() => ({
-      dense: m || i.dense || false,
+    }), { autoFocus: r = false, component: f = "li", dense: m = false, divider: i = false, disableGutters: u = false, focusVisibleClassName: y, role: h = "menuitem", tabIndex: S, className: C, ...I } = t, n = v.useContext(w), $ = v.useMemo(() => ({
+      dense: m || n.dense || false,
       disableGutters: u
     }), [
-      i.dense,
+      n.dense,
       m,
       u
     ]), d = v.useRef(null);
@@ -189,30 +203,30 @@ let __tla = Promise.all([
       r
     ]);
     const o = {
-      ...e,
+      ...t,
       dense: $.dense,
-      divider: n,
+      divider: i,
       disableGutters: u
-    }, s = le(e), y = P(d, c);
+    }, s = lt(t), b = P(d, c);
     let g;
-    return e.disabled || (g = S !== void 0 ? S : -1), l.jsx(w.Provider, {
+    return t.disabled || (g = S !== void 0 ? S : -1), l.jsx(w.Provider, {
       value: $,
-      children: l.jsx(ce, {
-        ref: y,
+      children: l.jsx(ct, {
+        ref: b,
         role: h,
         tabIndex: g,
         component: f,
-        focusVisibleClassName: k(s.focusVisible, b),
+        focusVisibleClassName: k(s.focusVisible, y),
         className: k(s.root, C),
         ...I,
         ownerState: o,
         classes: s
       })
     });
-  }), pe = () => [
+  }), pt = () => [
     {
       type: "custom",
-      component: () => l.jsx(O, {
+      component: () => l.jsx(j, {
         dividerText: "selection"
       })
     },
@@ -220,7 +234,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: E([
+      onChange: tt([
         "boolean",
         "number",
         "string",
@@ -229,7 +243,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => l.jsx(O, {
+      component: () => l.jsx(j, {
         dividerText: "arrow"
       })
     },
@@ -239,22 +253,22 @@ let __tla = Promise.all([
       type: "color"
     }
   ];
-  function ue() {
-    const t = v.useRef(null), { width: a } = A(t == null ? void 0 : t.current), c = v.useContext(X), { widget: e, theme: r } = c, f = e.data.cidObject, m = e.data.oidObject, { data: n, states: u } = Y("oid"), { value: b, updateValue: h } = j("oid"), { updateValue: S } = j("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", i = u.findIndex((d) => String(d.value) === String(b)), $ = (d) => {
-      const o = d.target.value, y = u[o].value;
-      f && S(y), h(y);
+  function ut() {
+    const e = v.useRef(null), { width: a } = E(e == null ? void 0 : e.current), c = v.useContext(A), { widget: t, theme: r } = c, f = t.data.cidObject, m = t.data.oidObject, { data: i, states: u } = X("oid"), { value: y, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = u.findIndex((d) => String(d.value) === String(y)), $ = (d) => {
+      const o = d.target.value, b = u[o].value;
+      f && S(b), h(b);
     };
-    return l.jsxs(J, {
+    return l.jsxs(Y, {
       isValidType: I,
-      data: n,
-      oidValue: b,
+      data: i,
+      oidValue: y,
       children: [
-        l.jsx(K, {
-          data: n,
-          widget: e
+        l.jsx(et, {
+          data: i,
+          widget: t
         }),
-        l.jsx(_, {
-          ref: t,
+        l.jsx(O, {
+          ref: e,
           sx: {
             overflow: "auto",
             width: "100%",
@@ -263,10 +277,10 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: l.jsx(Z, {
+          children: l.jsx(q, {
             variant: "standard",
             disableUnderline: true,
-            value: i !== -1 ? i : "",
+            value: n !== -1 ? n : "",
             onChange: $,
             MenuProps: {
               sx: {
@@ -274,7 +288,7 @@ let __tla = Promise.all([
               },
               MenuListProps: {
                 sx: {
-                  background: n.backgroundColor ? p(n.backgroundColor, 0.7) : n.background
+                  background: i.backgroundColor ? p(i.backgroundColor, 0.7) : i.background
                 }
               }
             },
@@ -283,24 +297,24 @@ let __tla = Promise.all([
               height: "100%",
               maxWidth: `calc(${a}px - 10%)`,
               "& .MuiSelect-select": {
-                backgroundColor: p(i !== -1 ? e.data[`iconSmall${i + 1}`] || e.data[`icon${i + 1}`] || e.data.iconSmall || e.data.icon ? e.data[`iconColor${i + 1}`] || e.data.iconColor || n.iconColor || r.palette.primary.main : e.data[`textColor${i + 1}`] || e.data.textColor || n.textColor || r.palette.primary.main : e.data.iconColor || n.textColor || r.palette.primary.main, 0.15),
+                backgroundColor: p(n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.iconColor || i.textColor || r.palette.primary.main, 0.15),
                 paddingLeft: 1
               },
               "& .MuiSelect-icon": {
-                color: i !== -1 ? e.data[`iconSmall${i + 1}`] || e.data[`icon${i + 1}`] || e.data.iconSmall || e.data.icon ? e.data[`iconColor${i + 1}`] || e.data.iconColor || n.iconColor || r.palette.primary.main : e.data[`textColor${i + 1}`] || e.data.textColor || n.textColor || r.palette.primary.main : e.data.arrowColor || e.data.iconColor || n.textColor || r.palette.primary.main
+                color: n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.arrowColor || t.data.iconColor || i.textColor || r.palette.primary.main
               },
               "&.Mui-focused": {
                 ariaHidden: "true",
                 "& .MuiSelect-select": {
-                  backgroundColor: p(i !== -1 ? e.data[`iconSmall${i + 1}`] || e.data[`icon${i + 1}`] || e.data.iconSmall || e.data.icon ? e.data[`iconColor${i + 1}`] || e.data.iconColor || n.iconColor || r.palette.primary.main : e.data[`textColor${i + 1}`] || e.data.textColor || n.textColor || r.palette.primary.main : e.data.iconColor || n.textColor || r.palette.primary.main, 0.2),
+                  backgroundColor: p(n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.iconColor || i.textColor || r.palette.primary.main, 0.2),
                   paddingLeft: 1
                 }
               }
             },
             children: u.map((d, o) => {
               var _a;
-              const s = e.data[`iconSmall${o + 1}`] || e.data[`icon${o + 1}`] || e.data.iconSmall || e.data.icon, g = s ? e.data[`iconColor${o + 1}`] || e.data.iconColor || n.iconColor || r.palette.primary.main : e.data[`textColor${o + 1}`] || e.data.textColor || n.textColor || r.palette.primary.main;
-              return l.jsx(de, {
+              const s = t.data[`iconSmall${o + 1}`] || t.data[`icon${o + 1}`] || t.data.iconSmall || t.data.icon, g = s ? t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${o + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main;
+              return l.jsx(dt, {
                 value: o,
                 sx: {
                   "& .MuiTouchRipple-root": {
@@ -315,35 +329,35 @@ let __tla = Promise.all([
                   "&:hover": {
                     backgroundColor: p(g, 0.08)
                   },
-                  background: e.data[`backgroundColor${o + 1}`] && `${e.data[`backgroundColor${o + 1}`]}!important` || `${e.data[`background${o + 1}`]}!important`
+                  background: t.data[`backgroundColor${o + 1}`] && `${t.data[`backgroundColor${o + 1}`]}!important` || `${t.data[`background${o + 1}`]}!important`
                 },
-                children: l.jsxs(ie, {
+                children: l.jsxs(nt, {
                   direction: "row",
                   spacing: s ? 1 : 0,
                   sx: {
                     alignItems: "center"
                   },
                   children: [
-                    l.jsx(ne, {
+                    l.jsx(it, {
                       alt: "",
                       src: typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0,
                       style: {
                         position: "relative",
-                        top: `calc(0px - ${e.data[`iconYOffset${o + 1}`]})`,
-                        right: `calc(0px - ${e.data[`iconXOffset${o + 1}`]})`,
-                        height: !s && "0px" || (typeof e.data[`iconSize${o + 1}`] == "number" ? `calc(24px * ${e.data[`iconSize${o + 1}`]} / 100)` : typeof e.data.iconSize == "number" ? `calc(24px * ${e.data.iconSize} / 100)` : "24px"),
-                        ...q(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(b) === String(e.data[`value${o + 1}`]) && e.data.iconColorActive || e.data[`iconColor${o + 1}`] || e.data.iconColor || n.iconColor || r.palette.primary.main)
+                        top: `calc(0px - ${t.data[`iconYOffset${o + 1}`]})`,
+                        right: `calc(0px - ${t.data[`iconXOffset${o + 1}`]})`,
+                        height: !s && "0px" || (typeof t.data[`iconSize${o + 1}`] == "number" ? `calc(24px * ${t.data[`iconSize${o + 1}`]} / 100)` : typeof t.data.iconSize == "number" ? `calc(24px * ${t.data.iconSize} / 100)` : "24px"),
+                        ...J(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(y) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main)
                       }
                     }),
-                    l.jsx(Q, {
-                      component: _,
+                    l.jsx(K, {
+                      component: O,
                       variant: "subtitle2",
                       sx: {
                         whiteSpace: "pre-wrap",
-                        fontSize: e.data[`valueSize${o + 1}`] || n.valueSize,
+                        fontSize: t.data[`valueSize${o + 1}`] || i.valueSize,
                         textAlign: "left",
                         bgcolor: "transparent",
-                        color: e.data[`textColor${o + 1}`] || e.data.textColor || n.textColor || r.palette.primary.main,
+                        color: t.data[`textColor${o + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main,
                         textTransform: "none",
                         width: "100%",
                         height: "100%",
@@ -352,7 +366,7 @@ let __tla = Promise.all([
                       },
                       contentEditable: "false",
                       dangerouslySetInnerHTML: {
-                        __html: e.data[`alias${o + 1}`] && ((_a = e.data[`alias${o + 1}`]) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || e.data[`value${o + 1}`] && `${e.data[`value${o + 1}`]}${m == null ? void 0 : m.unit}` || ""
+                        __html: t.data[`alias${o + 1}`] && ((_a = t.data[`alias${o + 1}`]) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || t.data[`value${o + 1}`] && `${t.data[`value${o + 1}`]}${m == null ? void 0 : m.unit}` || ""
                       }
                     })
                   ]
@@ -364,7 +378,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  W = class extends ee {
+  W = class extends Q {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -386,14 +400,14 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...te([
+              ...at([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
-              ...ae(),
-              ...pe()
+              ...ot(),
+              ...pt()
             ]
           },
           {
@@ -452,7 +466,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, oe(this.wrapContent(l.jsx(ue, {})), c);
+      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Z(this.wrapContent(l.jsx(ut, {})), c);
     }
   };
 });

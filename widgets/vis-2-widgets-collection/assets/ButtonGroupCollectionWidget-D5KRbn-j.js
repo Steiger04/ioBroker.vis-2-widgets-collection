@@ -1,6 +1,8 @@
-import { a as I, g as k, Q as U, u as M, j as p, s as V, d as L, i as R, e as P, n as X, m as N, o as s, R as Y, C as E, v as J, z as K, w as Q, E as q, G as Z, x as A, A as tt, T as ot, H as at, J as j, K as et, N as rt, O as it, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v as b, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as lt, __tla as __tla_2 } from "./SafeImg-D3G5vGGp.js";
+import { a as I, g as k, $ as U, u as M, j as p, s as V, d as L, i as R, e as P, n as Y, m as D, o as s, Y as X, C as E, v as q, y as J, A as K, w as A, z as Q, T as Z, G as tt, E as j, H as ot, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { C as at, c as et, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { u as rt, d as it, __tla as __tla_2 } from "./useValueState-CBTmm9_k.js";
+import { v as b, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { S as lt, __tla as __tla_4 } from "./SafeImg-oB0ioRZB.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let F;
@@ -22,6 +24,18 @@ let __tla = Promise.all([
       return __tla_2;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_3;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_4;
+    } catch {
+    }
   })()
 ]).then(async () => {
   function nt(a) {
@@ -41,7 +55,7 @@ let __tla = Promise.all([
     "sizeMedium",
     "sizeLarge",
     "fullWidth"
-  ]), D = b.createContext({}), H = b.createContext(void 0);
+  ]), H = b.createContext({}), N = b.createContext(void 0);
   function dt(a, t) {
     return t === void 0 || a === void 0 ? false : Array.isArray(t) ? t.includes(a) : a === t;
   }
@@ -57,7 +71,7 @@ let __tla = Promise.all([
       ]
     };
     return P(e, st, t);
-  }, ut = V(X, {
+  }, ut = V(Y, {
     name: "MuiToggleButton",
     slot: "Root",
     overridesResolver: (a, t) => {
@@ -67,7 +81,7 @@ let __tla = Promise.all([
         t[`size${R(r.size)}`]
       ];
     }
-  })(N(({ theme: a }) => ({
+  })(D(({ theme: a }) => ({
     ...a.typography.button,
     borderRadius: (a.vars || a).shape.borderRadius,
     padding: 11,
@@ -102,7 +116,7 @@ let __tla = Promise.all([
           }
         }
       },
-      ...Object.entries(a.palette).filter(Y()).map(([t]) => ({
+      ...Object.entries(a.palette).filter(X()).map(([t]) => ({
         props: {
           color: t
         },
@@ -147,26 +161,26 @@ let __tla = Promise.all([
       }
     ]
   }))), pt = b.forwardRef(function(t, r) {
-    const { value: f, ...i } = b.useContext(D), C = b.useContext(H), l = U({
+    const { value: f, ...i } = b.useContext(H), C = b.useContext(N), l = U({
       ...i,
       selected: dt(t.value, f)
     }, t), e = M({
       props: l,
       name: "MuiToggleButton"
-    }), { children: B, className: d, color: g = "standard", disabled: v = false, disableFocusRipple: m = false, fullWidth: c = false, onChange: o, onClick: $, selected: h, size: z = "medium", value: T, ...W } = e, x = {
+    }), { children: B, className: d, color: g = "standard", disabled: v = false, disableFocusRipple: y = false, fullWidth: c = false, onChange: o, onClick: $, selected: h, size: O = "medium", value: T, ...W } = e, x = {
       ...e,
       color: g,
       disabled: v,
-      disableFocusRipple: m,
+      disableFocusRipple: y,
       fullWidth: c,
-      size: z
+      size: O
     }, w = ct(x), _ = (u) => {
       $ && ($(u, T), u.defaultPrevented) || o && o(u, T);
-    }, y = C || "";
+    }, m = C || "";
     return p.jsx(ut, {
-      className: L(i.className, w.root, d, y),
+      className: L(i.className, w.root, d, m),
       disabled: v,
-      focusRipple: !m,
+      focusRipple: !y,
       ref: r,
       onClick: _,
       onChange: o,
@@ -242,7 +256,7 @@ let __tla = Promise.all([
         r.fullWidth && t.fullWidth
       ];
     }
-  })(N(({ theme: a }) => ({
+  })(D(({ theme: a }) => ({
     display: "inline-flex",
     borderRadius: (a.vars || a).shape.borderRadius,
     variants: [
@@ -312,32 +326,32 @@ let __tla = Promise.all([
     const f = M({
       props: t,
       name: "MuiToggleButtonGroup"
-    }), { children: i, className: C, color: l = "standard", disabled: e = false, exclusive: B = false, fullWidth: d = false, onChange: g, orientation: v = "horizontal", size: m = "medium", value: c, ...o } = f, $ = {
+    }), { children: i, className: C, color: l = "standard", disabled: e = false, exclusive: B = false, fullWidth: d = false, onChange: g, orientation: v = "horizontal", size: y = "medium", value: c, ...o } = f, $ = {
       ...f,
       disabled: e,
       fullWidth: d,
       orientation: v,
-      size: m
-    }, h = vt($), z = b.useCallback((y, u) => {
+      size: y
+    }, h = vt($), O = b.useCallback((m, u) => {
       if (!g) return;
-      const O = c && c.indexOf(u);
+      const z = c && c.indexOf(u);
       let G;
-      c && O >= 0 ? (G = c.slice(), G.splice(O, 1)) : G = c ? c.concat(u) : [
+      c && z >= 0 ? (G = c.slice(), G.splice(z, 1)) : G = c ? c.concat(u) : [
         u
-      ], g(y, G);
+      ], g(m, G);
     }, [
       g,
       c
-    ]), T = b.useCallback((y, u) => {
-      g && g(y, c === u ? null : u);
+    ]), T = b.useCallback((m, u) => {
+      g && g(m, c === u ? null : u);
     }, [
       g,
       c
     ]), W = b.useMemo(() => ({
       className: h.grouped,
-      onChange: B ? T : z,
+      onChange: B ? T : O,
       value: c,
-      size: m,
+      size: y,
       fullWidth: d,
       color: l,
       disabled: e
@@ -345,15 +359,15 @@ let __tla = Promise.all([
       h.grouped,
       B,
       T,
-      z,
+      O,
       c,
-      m,
+      y,
       d,
       l,
       e
-    ]), x = nt(i), w = x.length, _ = (y) => {
-      const u = y === 0, O = y === w - 1;
-      return u && O ? "" : u ? h.firstButton : O ? h.lastButton : h.middleButton;
+    ]), x = nt(i), w = x.length, _ = (m) => {
+      const u = m === 0, z = m === w - 1;
+      return u && z ? "" : u ? h.firstButton : z ? h.lastButton : h.middleButton;
     };
     return p.jsx(bt, {
       role: "group",
@@ -361,11 +375,11 @@ let __tla = Promise.all([
       ref: r,
       ownerState: $,
       ...o,
-      children: p.jsx(D.Provider, {
+      children: p.jsx(H.Provider, {
         value: W,
-        children: x.map((y, u) => p.jsx(H.Provider, {
+        children: x.map((m, u) => p.jsx(N.Provider, {
           value: _(u),
-          children: y
+          children: m
         }, u))
       })
     });
@@ -425,14 +439,14 @@ let __tla = Promise.all([
     }
   ];
   function $t() {
-    const a = b.useContext(J), { widget: t, theme: r } = a, f = t.data.oidObject, { data: i, states: C, activeIndex: l } = K("oid"), { value: e, updateValue: B } = Q("oid"), d = t.data.buttonGroupVariant, g = t.data.buttonGroupOrientation, v = f == null ? void 0 : f.type, m = v === "boolean" || v === "number" || v === "string" || v === "mixed";
-    return p.jsxs(q, {
-      isValidType: m,
+    const a = b.useContext(q), { widget: t, theme: r } = a, f = t.data.oidObject, { data: i, states: C, activeIndex: l } = J("oid"), { value: e, updateValue: B } = rt("oid"), d = t.data.buttonGroupVariant, g = t.data.buttonGroupOrientation, v = f == null ? void 0 : f.type, y = v === "boolean" || v === "number" || v === "string" || v === "mixed";
+    return p.jsxs(K, {
+      isValidType: y,
       data: i,
       oidValue: e,
       bgActive: false,
       children: [
-        p.jsx(Z, {
+        p.jsx(at, {
           data: i,
           widget: t
         }),
@@ -544,7 +558,7 @@ let __tla = Promise.all([
                           objectFit: "contain",
                           width: l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && typeof t.data.iconSizeActive == "number" && `calc(100% * ${t.data.iconSizeActive} / 100)` || typeof t.data[`iconSize${o + 1}`] == "number" && `calc(100% * ${t.data[`iconSize${o + 1}`]} / 100)` || typeof t.data.iconSize == "number" && `calc(100% * ${t.data.iconSize} / 100)` || "100%",
                           height: l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && typeof t.data.iconSizeActive == "number" && `calc(100% * ${t.data.iconSizeActive} / 100)` || typeof t.data[`iconSize${o + 1}`] == "number" && `calc(100% * ${t.data[`iconSize${o + 1}`]} / 100)` || typeof t.data.iconSize == "number" && `calc(100% * ${t.data.iconSize} / 100)` || "100%",
-                          ...tt(l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && (t.data.iconActive || t.data.iconSmallActive) || t.data[`icon${o + 1}`] || t.data[`iconSmall${o + 1}`] || i.icon, l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.buttonGroupColor || i.iconColor || r.palette.primary.main)
+                          ...Q(l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && (t.data.iconActive || t.data.iconSmallActive) || t.data[`icon${o + 1}`] || t.data[`iconSmall${o + 1}`] || i.icon, l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.buttonGroupColor || i.iconColor || r.palette.primary.main)
                         }
                       })
                     }),
@@ -556,7 +570,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: p.jsx(ot, {
+                      children: p.jsx(Z, {
                         contentEditable: "false",
                         dangerouslySetInnerHTML: {
                           __html: l === o + 1 && String(e) === String(t.data[`value${o + 1}`]) && t.data.aliasActive || ((_a = t.data[`alias${o + 1}`]) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || t.data[`value${o + 1}`] && `${t.data[`value${o + 1}`]}${f == null ? void 0 : f.unit}` || ""
@@ -579,7 +593,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  F = class extends at {
+  F = class extends tt {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -605,7 +619,7 @@ let __tla = Promise.all([
                 "boolean",
                 "mixed"
               ]),
-              ...rt(),
+              ...it(),
               ...Ct()
             ]
           },
@@ -675,7 +689,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, it(this.wrapContent(p.jsx($t, {})), r);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, ot(this.wrapContent(p.jsx($t, {})), r);
     }
   };
 });

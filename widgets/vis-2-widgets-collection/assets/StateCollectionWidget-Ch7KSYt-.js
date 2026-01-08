@@ -1,10 +1,13 @@
-import { c as je, j as a, g as F, a as V, u as B, b as $, s as j, d as R, e as N, m as q, f as De, P as ee, F as te, h as Re, i as H, M as Te, B as Me, T as z, L as W, k as Ae, l as re, n as $e, r as Le, o as K, p as Be, q as oe, t as se, C as ae, v as ie, w as le, x as U, S as Ne, y as We, I as Fe, D as Ve, z as Oe, A as _e, E as Ue, G as Ge, H as ze, J as ne, K as He, N as Ee, O as Ye, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v as l, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { C as qe, __tla as __tla_2 } from "./Close-BMt36a-T.js";
-import { g as Xe, l as J, __tla as __tla_3 } from "./listItemTextClasses-DoDeiAK_.js";
-import { S as Ke, __tla as __tla_4 } from "./Stack-DsAoxzWO.js";
-import { u as Je, __tla as __tla_5 } from "./useHtmlValue-Dcwl_hqT.js";
-import { B as Qe, __tla as __tla_6 } from "./Button-CysZo4dh.js";
+import { c as je, j as a, g as F, a as V, u as B, b as $, s as j, d as R, e as N, m as q, f as De, P as ee, F as te, h as Re, i as H, M as Te, B as Me, T as z, L as W, k as Ae, l as re, n as $e, r as Le, o as K, p as Be, q as oe, t as se, C as ae, v as ie, w as U, x as Ne, I as We, D as Fe, y as Ve, z as _e, A as Oe, G as Ue, E as ne, H as Ge, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { C as ze, c as He, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { u as le, d as Ee, __tla as __tla_2 } from "./useValueState-CBTmm9_k.js";
+import { v as l, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { C as Ye, __tla as __tla_4 } from "./Close-CoVjrK_j.js";
+import { S as qe, __tla as __tla_5 } from "./Slider-DUq53ain.js";
+import { g as Xe, l as J, __tla as __tla_6 } from "./listItemTextClasses-C46brdSm.js";
+import { S as Ke, __tla as __tla_7 } from "./Stack-BeWatUSE.js";
+import { u as Je, __tla as __tla_8 } from "./useHtmlValue-Dcwl_hqT.js";
+import { B as Qe, __tla as __tla_9 } from "./Button-BjDKvJSY.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let pe;
@@ -48,6 +51,24 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_6;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_7;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_8;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_9;
     } catch {
     }
   })()
@@ -431,17 +452,17 @@ let __tla = Promise.all([
     }), r = De(), i = {
       enter: r.transitions.duration.enteringScreen,
       exit: r.transitions.duration.leavingScreen
-    }, { "aria-describedby": n, "aria-labelledby": c, "aria-modal": u = true, BackdropComponent: m, BackdropProps: b, children: C, className: S, disableEscapeKeyDown: h = false, fullScreen: f = false, fullWidth: I = false, maxWidth: v = "sm", onBackdropClick: p, onClick: y, onClose: k, open: P, PaperComponent: d = ee, PaperProps: g = {}, scroll: x = "paper", slots: w = {}, slotProps: M = {}, TransitionComponent: L = te, transitionDuration: E = i, TransitionProps: X, ...O } = o, D = {
+    }, { "aria-describedby": n, "aria-labelledby": c, "aria-modal": u = true, BackdropComponent: m, BackdropProps: b, children: C, className: S, disableEscapeKeyDown: h = false, fullScreen: f = false, fullWidth: I = false, maxWidth: v = "sm", onBackdropClick: p, onClick: y, onClose: k, open: P, PaperComponent: d = ee, PaperProps: g = {}, scroll: x = "paper", slots: w = {}, slotProps: M = {}, TransitionComponent: L = te, transitionDuration: E = i, TransitionProps: X, ..._ } = o, D = {
       ...o,
       disableEscapeKeyDown: h,
       fullScreen: f,
       fullWidth: I,
       maxWidth: v,
       scroll: x
-    }, A = ct(D), T = l.useRef(), ue = (_) => {
-      T.current = _.target === _.currentTarget;
-    }, me = (_) => {
-      y && y(_), T.current && (T.current = null, p && p(_), k && k(_, "backdropClick"));
+    }, A = ct(D), T = l.useRef(), ue = (O) => {
+      T.current = O.target === O.currentTarget;
+    }, me = (O) => {
+      y && y(O), T.current && (T.current = null, p && p(O), k && k(O, "backdropClick"));
     }, Q = Re(c), ge = l.useMemo(() => ({
       titleId: Q
     }), [
@@ -508,7 +529,7 @@ let __tla = Promise.all([
       open: P,
       onClick: me,
       ...xe,
-      ...O,
+      ..._,
       children: a.jsx(Ie, {
         ...Pe,
         children: a.jsx(ke, {
@@ -991,7 +1012,7 @@ let __tla = Promise.all([
       disablePadding: I,
       divider: v,
       hasSecondaryAction: M
-    }, E = $t(L), X = re(x, s), O = k.root || u.Root || Lt, D = y.root || m.root || {}, A = {
+    }, E = $t(L), X = re(x, s), _ = k.root || u.Root || Lt, D = y.root || m.root || {}, A = {
       className: R(E.root, D.className, n),
       ...P
     };
@@ -1005,9 +1026,9 @@ let __tla = Promise.all([
         ownerState: L,
         ...S,
         children: [
-          a.jsx(O, {
+          a.jsx(_, {
             ...D,
-            ...!oe(O) && {
+            ...!oe(_) && {
               as: T,
               ownerState: {
                 ...L,
@@ -1022,11 +1043,11 @@ let __tla = Promise.all([
       })
     })) : a.jsx(W.Provider, {
       value: g,
-      children: a.jsxs(O, {
+      children: a.jsxs(_, {
         ...D,
         as: T,
         ref: X,
-        ...!oe(O) && {
+        ...!oe(_) && {
           ownerState: {
             ...L,
             ...D.ownerState
@@ -1158,7 +1179,7 @@ let __tla = Promise.all([
         p
       ]
     });
-  }), Ot = () => [
+  }), _t = () => [
     {
       type: "custom",
       component: () => a.jsx(ae, {})
@@ -1201,7 +1222,7 @@ let __tla = Promise.all([
       type: "checkbox",
       label: "no_value"
     }
-  ], _t = ({ widgetStates: t, data: e, open: s, closeHandler: o }) => {
+  ], Ot = ({ widgetStates: t, data: e, open: s, closeHandler: o }) => {
     const { widget: r, getPropertyValue: i } = l.useContext(ie), n = r.data.oidObject, c = r.data.onlyStates, [u, m] = l.useState(() => {
       const d = i("oid");
       return typeof d == "number" ? d : 0;
@@ -1245,7 +1266,7 @@ let __tla = Promise.all([
         sx: {
           px: 3
         },
-        children: a.jsx(Ne, {
+        children: a.jsx(qe, {
           sx: {
             pb: g ? 4 : 3
           },
@@ -1272,7 +1293,7 @@ let __tla = Promise.all([
       c,
       u,
       h
-    ]), y = l.useMemo(() => !t || !Object.keys(t).length ? null : a.jsx(We, {
+    ]), y = l.useMemo(() => !t || !Object.keys(t).length ? null : a.jsx(Ne, {
       children: Object.entries(t).map(([d, g]) => a.jsx(Nt, {
         disablePadding: true,
         children: a.jsx(Dt, {
@@ -1314,7 +1335,7 @@ let __tla = Promise.all([
           id: "customized-dialog-title",
           children: k
         }),
-        a.jsx(Fe, {
+        a.jsx(We, {
           "aria-label": "close",
           onClick: I,
           sx: (d) => ({
@@ -1323,14 +1344,14 @@ let __tla = Promise.all([
             top: 8,
             color: d.palette.grey[500]
           }),
-          children: a.jsx(qe, {})
+          children: a.jsx(Ye, {})
         }),
         a.jsx(bt, {
           sx: {
             overflow: "unset"
           },
           children: a.jsxs(Ke, {
-            divider: P && a.jsx(Ve, {}),
+            divider: P && a.jsx(Fe, {}),
             spacing: 0,
             component: ee,
             children: [
@@ -1343,7 +1364,7 @@ let __tla = Promise.all([
     });
   };
   function Ut() {
-    const t = l.useContext(ie), { widget: e } = t, s = e.data.oidObject, { data: o, widgetStates: r } = Oe("oid"), { value: i, updateValue: n } = le("oid"), [c, u] = l.useState(false), m = s == null ? void 0 : s.type, b = e.data.onlyStates, C = Je(i, e, o), S = C != null ? String(C) : "", h = () => {
+    const t = l.useContext(ie), { widget: e } = t, s = e.data.oidObject, { data: o, widgetStates: r } = Ve("oid"), { value: i, updateValue: n } = le("oid"), [c, u] = l.useState(false), m = s == null ? void 0 : s.type, b = e.data.onlyStates, C = Je(i, e, o), S = C != null ? String(C) : "", h = () => {
       const y = e.data.value1;
       b && Number(e.data.values_count) === 2 && e.data.statePushButton && y !== void 0 && setTimeout(() => n(y), 0);
     }, f = () => {
@@ -1473,7 +1494,7 @@ let __tla = Promise.all([
     }), p = m === "boolean" || m === "number" || m === "string" || m === "mixed";
     return a.jsxs(a.Fragment, {
       children: [
-        c && a.jsx(_t, {
+        c && a.jsx(Ot, {
           data: {
             sampleInterval: false,
             sampleIntervalValue: 200,
@@ -1483,12 +1504,12 @@ let __tla = Promise.all([
           open: c,
           closeHandler: () => u(false)
         }),
-        a.jsxs(Ue, {
+        a.jsxs(Oe, {
           isValidType: p,
           data: o,
           oidValue: i,
           children: [
-            a.jsx(Ge, {
+            a.jsx(ze, {
               data: o,
               widget: e
             }),
@@ -1507,7 +1528,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  pe = class extends ze {
+  pe = class extends Ue {
     static getWidgetInfo() {
       return {
         id: "tplStateCollectionWidget",
@@ -1535,7 +1556,7 @@ let __tla = Promise.all([
                 "mixed"
               ]),
               ...Ee(),
-              ...Ot()
+              ..._t()
             ]
           },
           {
@@ -1594,7 +1615,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Ye(this.wrapContent(a.jsx(Ut, {})), s);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Ge(this.wrapContent(a.jsx(Ut, {})), s);
     }
   };
 });

@@ -1,26 +1,38 @@
 /**
- * Simple divider component used by widget property editors.
+ * Simple divider component for widget property editors.
  *
  * @module components/CollectionDivider
  */
 
 import { Box, Divider, Typography } from '@mui/material';
 import React from 'react';
-import SliderCollectionWidget from '../SliderCollectionWidget/SliderCollectionWidget';
+import Generic from '../Generic';
 
 /**
- * @typedef {Object} CollectionDividerProps
- * @property {string=} dividerText Optional translation key to render as divider label.
+ * Props for the CollectionDivider component.
  */
+interface CollectionDividerProps {
+    /** Optional translation key for the divider label */
+    dividerText?: string;
+}
 
 /**
  * Renders a full-width divider optionally labeled using widget translations.
  *
- * @param {CollectionDividerProps} props Component props.
- * @returns {JSX.Element} Divider block.
+ * @remarks
+ * This component is used in widget property editors to visually separate sections.
+ * If `dividerText` is provided, the text is translated via `Generic.t()`.
+ * @example
+ * ```tsx
+ * // Divider without text
+ * <CollectionDivider />
+ *
+ * // Divider with translation key
+ * <CollectionDivider dividerText="thumb" />
+ * ```
  */
-function CollectionDivider({ dividerText = '' }) {
-    const style = {
+const CollectionDivider: React.FC<CollectionDividerProps> = ({ dividerText = '' }) => {
+    const style: React.CSSProperties = {
         position: 'absolute',
         left: 0,
         width: '100%',
@@ -29,7 +41,7 @@ function CollectionDivider({ dividerText = '' }) {
     return (
         <Box
             sx={{
-                display: 'block',
+                display: 'inline-block',
                 pt: 1.5,
                 pb: dividerText ? 2 : 1.5,
             }}
@@ -38,12 +50,12 @@ function CollectionDivider({ dividerText = '' }) {
                 <Divider sx={style}>
                     <Typography
                         sx={{
-                            opacity: 0.5,
+                            opacity: 0.7,
                             color: 'primary.main',
                         }}
                         variant="caption"
                     >
-                        {SliderCollectionWidget.t(dividerText)}
+                        {Generic.t(dividerText)}
                     </Typography>
                 </Divider>
             ) : (
@@ -51,6 +63,6 @@ function CollectionDivider({ dividerText = '' }) {
             )}
         </Box>
     );
-}
+};
 
 export default CollectionDivider;

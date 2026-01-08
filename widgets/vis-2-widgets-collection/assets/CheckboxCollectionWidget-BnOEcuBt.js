@@ -1,8 +1,10 @@
-import { c as y, j as a, a as W, g as F, u as V, b as B, W as R, d as H, s as $, i as p, e as G, r as E, m as J, o as w, R as k, C as M, v as U, z as Z, w as Q, E as Y, G as X, x as j, T as K, A as P, H as q, J as A, K as ee, N as te, O as oe, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v as d, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as ae, __tla as __tla_2 } from "./useHtmlValue-Dcwl_hqT.js";
-import { F as ie, __tla as __tla_3 } from "./FormControlLabel-im8OHbOd.js";
-import { S as le, __tla as __tla_4 } from "./SwitchBase-pT8B3nuc.js";
+import { c as y, j as a, a as N, g as V, u as W, b as B, a0 as R, d as H, s as $, i as p, e as G, r as E, m as U, o as w, Y as k, C as M, v as Z, y as J, A as Y, w as j, T as Q, z as P, G as X, E as A, H as q, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { C as K, c as ee, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { u as te, d as oe, __tla as __tla_2 } from "./useValueState-CBTmm9_k.js";
+import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as ae, __tla as __tla_4 } from "./useHtmlValue-Dcwl_hqT.js";
+import { F as ie, __tla as __tla_5 } from "./FormControlLabel-2J1VNjC7.js";
+import { S as le, __tla as __tla_6 } from "./SwitchBase-B2S2DH0_.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let O;
@@ -36,6 +38,18 @@ let __tla = Promise.all([
       return __tla_4;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_5;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_6;
+    } catch {
+    }
   })()
 ]).then(async () => {
   const ne = y(a.jsx("path", {
@@ -46,9 +60,9 @@ let __tla = Promise.all([
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
   function re(e) {
-    return F("MuiCheckbox", e);
+    return V("MuiCheckbox", e);
   }
-  const b = W("MuiCheckbox", [
+  const b = N("MuiCheckbox", [
     "root",
     "checked",
     "disabled",
@@ -83,7 +97,7 @@ let __tla = Promise.all([
         i.color !== "default" && t[`color${p(i.color)}`]
       ];
     }
-  })(J(({ theme: e }) => ({
+  })(U(({ theme: e }) => ({
     color: (e.vars || e).palette.text.secondary,
     variants: [
       {
@@ -135,7 +149,7 @@ let __tla = Promise.all([
       }
     ]
   }))), me = a.jsx(se, {}), he = a.jsx(ne, {}), ue = a.jsx(ce, {}), xe = d.forwardRef(function(t, i) {
-    const n = V({
+    const n = W({
       props: t,
       name: "MuiCheckbox"
     }), { checkedIcon: o = me, color: l = "primary", icon: s = he, indeterminate: c = false, indeterminateIcon: r = ue, inputProps: m, size: h = "medium", disableRipple: v = false, className: L, slots: C = {}, slotProps: g = {}, ..._ } = n, I = c ? r : s, S = c ? r : o, u = {
@@ -144,7 +158,7 @@ let __tla = Promise.all([
       color: l,
       indeterminate: c,
       size: h
-    }, f = de(u), x = g.input ?? m, [N, T] = B("root", {
+    }, f = de(u), x = g.input ?? m, [T, F] = B("root", {
       ref: i,
       elementType: pe,
       className: H(f.root, L),
@@ -172,8 +186,8 @@ let __tla = Promise.all([
         }
       }
     });
-    return a.jsx(N, {
-      ...T,
+    return a.jsx(T, {
+      ...F,
       classes: f
     });
   }), be = () => [
@@ -228,13 +242,13 @@ let __tla = Promise.all([
     }
   ], z = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==", D = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==";
   function ye() {
-    const e = d.useContext(U), { widget: t, theme: i } = e, n = t.data.oidObject, { data: o } = Z("oid"), { value: l, updateValue: s } = Q("oid"), r = (n == null ? void 0 : n.type) === "boolean", m = ae(l, t, o);
+    const e = d.useContext(Z), { widget: t, theme: i } = e, n = t.data.oidObject, { data: o } = J("oid"), { value: l, updateValue: s } = te("oid"), r = (n == null ? void 0 : n.type) === "boolean", m = ae(l, t, o);
     return a.jsxs(Y, {
       isValidType: r,
       data: o,
       oidValue: l,
       children: [
-        a.jsx(X, {
+        a.jsx(K, {
           data: o,
           widget: t
         }),
@@ -301,7 +315,7 @@ let __tla = Promise.all([
                 }
               }
             }),
-            label: !t.data.withoutLabel && a.jsx(K, {
+            label: !t.data.withoutLabel && a.jsx(Q, {
               component: j,
               variant: "body2",
               sx: {
@@ -337,7 +351,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  O = class extends q {
+  O = class extends X {
     static getWidgetInfo() {
       return {
         id: "tplCheckboxCollectionWidget",
@@ -360,7 +374,7 @@ let __tla = Promise.all([
               ...ee([
                 "boolean"
               ]),
-              ...te(),
+              ...oe(),
               ...be()
             ]
           },
@@ -420,7 +434,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, oe(this.wrapContent(a.jsx(ye, {})), i);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, q(this.wrapContent(a.jsx(ye, {})), i);
     }
   };
 });

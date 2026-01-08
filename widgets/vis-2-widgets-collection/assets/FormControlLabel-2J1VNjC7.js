@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { a as D, g as U, u as A, $ as E, a1 as W, b as z, T as P, j as c, d as v, s as x, i as F, e as B, m as L, __tla as __tla_1 } from "./commonFields-DH-obq-U.js";
+import { a as D, g as U, u as A, a4 as E, a6 as W, b as z, T as P, j as c, d as v, s as x, i as F, e as B, m as L, __tla as __tla_1 } from "./useData-eK8DFeaZ.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: $, slots: k = {}, slotProps: q = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = $ ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -152,10 +152,10 @@ let __tla = Promise.all([
       required: b,
       error: w.error
     }, u = I(n), M = {
-      slots: k,
+      slots: q,
       slotProps: {
         ...m,
-        ...q
+        ...$
       }
     }, [N, h] = z("typography", {
       elementType: P,

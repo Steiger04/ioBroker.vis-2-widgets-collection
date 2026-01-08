@@ -1,6 +1,7 @@
-import { j as A, C as D, x as Ke, A as xa, Z as Ta, v as wa, z as Sa, E as Ca, G as Ba, H as Na, J as Je, K as Va, O as Wa, __tla as __tla_0 } from "./commonFields-DH-obq-U.js";
-import { v as q, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Aa, __tla as __tla_2 } from "./useOidValue-B_ZlzsV3.js";
+import { j as A, C as D, w as Qe, z as xa, a2 as Ta, v as wa, y as Sa, A as Ca, G as Ba, E as Je, H as Na, __tla as __tla_0 } from "./useData-eK8DFeaZ.js";
+import { C as Va, c as Wa, __tla as __tla_1 } from "./CollectionBaseImage-BOziIbkL.js";
+import { v as q, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as Aa, __tla as __tla_3 } from "./useOidValue-CruBkn0x.js";
 import { c as Ne } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
@@ -20,6 +21,12 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_3;
     } catch {
     }
   })()
@@ -1351,7 +1358,7 @@ let __tla = Promise.all([
       noTranslation: true
     }
   ];
-  var Qe = {
+  var Ke = {
     exports: {}
   };
   (function(g) {
@@ -1413,7 +1420,7 @@ let __tla = Promise.all([
           return o !== void 0 ? o : t;
         });
       }
-      function Q(a) {
+      function K(a) {
         return a.majorTicks instanceof Array || (a.majorTicks = a.majorTicks ? [
           a.majorTicks
         ] : []), a.majorTicks.length || (a.majorTicks.push(m.formatMajorTickNumber(a.minValue, a)), a.majorTicks.push(m.formatMajorTickNumber(a.maxValue, a))), [
@@ -1502,7 +1509,7 @@ let __tla = Promise.all([
           indented: e < t ? t - o : e > r ? r + o : e
         };
       }
-      function K(a, e, t, r, o) {
+      function Q(a, e, t, r, o) {
         t.beginPath(), t.arc(0, 0, U(a), 0, 2 * de, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
       }
       function ee(a, e) {
@@ -1511,7 +1518,7 @@ let __tla = Promise.all([
       }
       function Ve(a, e) {
         var t = L.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, i = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, l = i - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = ee(a, e), u = void 0, s = false;
-        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), K(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), K(i, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), K(l, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, U(d), 0, 2 * de, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
+        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), Q(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), Q(i, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), Q(l, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, U(d), 0, 2 * de, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
       }
       function We(a, e) {
         var t = a.max * (parseFloat(e.highlightsWidth) || 0) / 100;
@@ -2352,7 +2359,7 @@ let __tla = Promise.all([
         drawNeedleShadow: ke,
         drawValueBox: te,
         verifyError: ve,
-        prepareTicks: Q,
+        prepareTicks: K,
         drawShadow: M,
         font: J,
         normalizedValue: I,
@@ -2498,8 +2505,8 @@ let __tla = Promise.all([
         vendorize: z
       });
     })(g.exports);
-  })(Qe);
-  var Ze = Qe.exports;
+  })(Ke);
+  var Ze = Ke.exports;
   const Oa = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", ja = (g) => {
     const w = q.useRef(null), R = q.useRef(null);
     q.useEffect(() => {
@@ -2524,7 +2531,7 @@ let __tla = Promise.all([
       g
     ]);
     const $ = g.gaugeWidgetData.iconSize || g.gaugeWidgetData.iconSize === 0 ? `${g.gaugeWidgetData.iconSize}%` : null, E = g.gaugeSegment, F = (E == null ? void 0 : E.state.icon) || g.gaugeData.icon, z = (E == null ? void 0 : E.state.iconColor) || g.gaugeData.iconColor, ae = xa(F, z);
-    return A.jsxs(Ke, {
+    return A.jsxs(Qe, {
       sx: {
         width: "100%",
         height: "100%",
@@ -2559,10 +2566,10 @@ let __tla = Promise.all([
   }, Pa = (g, w, R) => g.find((E) => w >= E.from && (w < E.to || w === E.to && w === R)) || null;
   function Ea() {
     var _a, _b;
-    const g = q.useRef(null), [w, R] = q.useState(null), { width: $, height: E } = Ta(w), F = q.useContext(wa), { wrappedContent: z, widget: { data: { oidObject: ae } }, widget: n } = F, ve = F.theme, { data: P, states: Q } = Sa("oid"), ie = Aa("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = P.iconColor || ve.palette.primary.main, _e = q.useMemo(() => {
+    const g = q.useRef(null), [w, R] = q.useState(null), { width: $, height: E } = Ta(w), F = q.useContext(wa), { wrappedContent: z, widget: { data: { oidObject: ae } }, widget: n } = F, ve = F.theme, { data: P, states: K } = Sa("oid"), ie = Aa("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = P.iconColor || ve.palette.primary.main, _e = q.useMemo(() => {
       const H = Number(n.data.gaugeMinValue) || 0, te = Number(n.data.gaugeMaxValue) || 100, I = [];
-      if (n.data.gaugeMajorTicks && +(n.data.gaugeMajorTicks > 0)) for (let K = 0; K <= Number(n.data.gaugeMajorTicks); K++) {
-        const ee = H + ((te - H) / Number(n.data.gaugeMajorTicks) || 1) * K;
+      if (n.data.gaugeMajorTicks && +(n.data.gaugeMajorTicks > 0)) for (let Q = 0; Q <= Number(n.data.gaugeMajorTicks); Q++) {
+        const ee = H + ((te - H) / Number(n.data.gaugeMajorTicks) || 1) * Q;
         I.push(Math.round(ee * 100) / 100);
       }
       return I;
@@ -2572,9 +2579,9 @@ let __tla = Promise.all([
       n.data.gaugeMajorTicks
     ]), ce = q.useMemo(() => {
       const H = [], te = Number(n.data.gaugeMaxValue) || 100;
-      return Q.forEach((I, K) => {
+      return K.forEach((I, Q) => {
         var _a2;
-        const ee = ((_a2 = Q[K + 1]) == null ? void 0 : _a2.value) || te;
+        const ee = ((_a2 = K[Q + 1]) == null ? void 0 : _a2.value) || te;
         H.push({
           from: Number(I.value),
           to: Number(ee),
@@ -2595,9 +2602,9 @@ let __tla = Promise.all([
             frameBackgroundActive: I.frameBackgroundActive
           }
         });
-      }), Q.length > 0 && Number(Q[Q.length - 1].value) < te && (H[H.length - 1].to = te), H;
+      }), K.length > 0 && Number(K[K.length - 1].value) < te && (H[H.length - 1].to = te), H;
     }, [
-      Q,
+      K,
       n.data.gaugeMaxValue
     ]), M = Pa(ce, Number(ie) || 0, Number(n.data.gaugeMaxValue) ? Number(n.data.gaugeMaxValue) : 100), ke = q.useMemo(() => M && (M.state.icon || M.state.iconColor || M.state.iconSize !== void 0) ? {
       ...P,
@@ -2626,11 +2633,11 @@ let __tla = Promise.all([
       data: P,
       oidValue: ie,
       children: [
-        A.jsx(Ba, {
+        A.jsx(Va, {
           data: ke,
           widget: n
         }),
-        A.jsx(Ke, {
+        A.jsx(Qe, {
           ref: R,
           sx: {
             width: "100%",
@@ -2765,7 +2772,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  ea = class extends Na {
+  ea = class extends Ba {
     static getWidgetInfo() {
       return {
         id: "tplGaugeCollectionWidget",
@@ -2788,7 +2795,7 @@ let __tla = Promise.all([
             name: "gauge",
             label: "group_gauge",
             fields: [
-              ...Va([
+              ...Wa([
                 "number"
               ]),
               ...Ma()
@@ -2850,7 +2857,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Wa(this.wrapContent(A.jsx(Ea, {})), R);
+      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Na(this.wrapContent(A.jsx(Ea, {})), R);
     }
   };
 });
