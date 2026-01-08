@@ -42,12 +42,25 @@ const CollectionSlider = styled(Slider, {
         [extractedColor, theme.palette.primary.main],
     );
 
+    // Calculate border width and color with fallback chain
+    const borderWidth = data?.thumbBorderWidth ?? 0;
+    const borderColor = useMemo(
+        () =>
+            extractColorFromValue(
+                data?.thumbBorderColor || data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
+            ),
+        [data?.thumbBorderColor, data?.thumbColor, data?.sliderColor, theme.palette.primary.main],
+    );
+
     return {
         '& .MuiSlider-thumb': {
             width: `${data?.thumbWidth ?? 20}px`,
             height: `${data?.thumbHeight ?? 20}px`,
             background: data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
-            border: '10px solid red',
+            // Apply border only when borderWidth > 0
+            ...(borderWidth > 0 && {
+                border: `${borderWidth}px solid ${borderColor || theme.palette.primary.main}`,
+            }),
             '&:hover': {
                 boxShadow: `0px 0px 0px 8px ${alpha(shadowBase, 0.32)}`,
             },

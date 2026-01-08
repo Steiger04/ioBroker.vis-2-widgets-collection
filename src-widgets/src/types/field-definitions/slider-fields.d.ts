@@ -58,9 +58,22 @@ export interface SliderFieldsRxData {
     thumbHeight?: number;
 
     /**
+     * Thumb border width in pixels.
+     *
+     * @default 0
+     */
+    thumbBorderWidth?: number;
+
+    /**
      * Thumb color (CSS color).
      */
     thumbColor?: string;
+
+    /**
+     * Thumb border color (CSS color).
+     * Follows fallback chain: thumbBorderColor → thumbColor → sliderColor → theme.palette.primary.main
+     */
+    thumbBorderColor?: string;
 
     /**
      * Track length in pixels (height for horizontal, width for vertical).

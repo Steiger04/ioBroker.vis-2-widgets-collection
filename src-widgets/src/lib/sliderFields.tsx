@@ -135,6 +135,19 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         ),
     } as const,
     {
+        name: 'thumbBorderWidth',
+        label: 'thumb_border_width',
+        type: 'number',
+        default: 0,
+        min: 0,
+        max: 100,
+    } as const,
+    {
+        name: 'thumbBorderColor',
+        label: 'thumb_border_color',
+        type: 'color',
+    } as const,
+    {
         type: 'custom',
         component: () => <CollectionDivider dividerText="track" />,
     } as const,
