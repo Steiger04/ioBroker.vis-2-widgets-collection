@@ -4,19 +4,32 @@
  * @module components/CollectionGradientColorPicker
  * @remarks
  * This component is used inside widget attribute editors to edit gradient/background fields.
+ * Supports multiple color formats:
+ * - Hex colors: #fff, #ffffff, #ffffffff (with alpha)
+ * - RGB/RGBA: rgb(255, 255, 255), rgba(255, 255, 255, 0.5)
+ * - Gradients: linear-gradient(...), radial-gradient(...)
+ *
+ * Validation is performed in real-time. Invalid inputs are marked with an error state
+ * and do not trigger onDataChange callbacks. Empty values are treated as null.
  */
 
-import { Theme } from '@iobroker/adapter-react-v5';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/material';
-import { useRef, useEffect, useState, useContext } from 'react';
-import ColorPicker, { useColorPicker } from 'react-best-gradient-color-picker';
+import { useEffect, useRef, useState } from 'react';
+import ColorPicker from 'react-best-gradient-color-picker';
 
 /**
  * Validates color input string and returns normalized value.
  *
+ * Validation rules:
+ * - Empty or whitespace-only strings are considered valid and normalized to ''
+ * - Hex colors must match #RGB, #RRGGBB, or #RRGGBBAA format (case-insensitive)
+ * - RGB/RGBA must have valid syntax with numeric components
+ * - Gradients must start with linear-gradient or radial-gradient
+ * - All valid inputs are trimmed and returned as normalizedValue
+ *
  * @param {string} value - Input string to validate.
- * @returns {{ isValid: boolean, normalizedValue: string }} Validation result.
+ * @returns {{ isValid: boolean, normalizedValue: string }} Validation result with isValid flag and normalized value.
  */
 function validateColorInput(value) {
     if (!value || value.trim() === '') {
@@ -57,79 +70,105 @@ function validateColorInput(value) {
 /**
  * Renders a compact gradient picker with a popover editor.
  *
+ * Component behavior:
+ * - TextField allows manual color input with real-time validation
+ * - Visual color preview box opens the gradient picker on click
+ * - Delete button clears the current value (sets to null)
+ * - Invalid inputs show error state but are NOT saved to parent data
+ * - Valid inputs immediately trigger onDataChange callbacks
+ * - Empty values are normalized to null for consistency
+ *
  * @param {CollectionGradientColorPickerProps} props Component props.
  * @returns {JSX.Element} Rendered field UI.
  */
 function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
     const fieldName = field?.name;
-    const [color, setColor] = useState(data[fieldName] || null);
-    const [textValue, setTextValue] = useState(data[fieldName] || '');
+    const [cachedValue, setCachedValue] = useState(data[fieldName] || '');
     const [error, setError] = useState(false);
-    const { setGradient } = useColorPicker(color, setColor);
     const [anchorEl, setAnchorEl] = useState(null);
+
+    // Track the last prop value to detect external changes only
+    const lastPropValueRef = useRef(data[fieldName]);
 
     const theme = props.context.theme;
 
-    const handleClick = event => {
-        setAnchorEl(event.currentTarget);
-        color ? setGradient(color) : setGradient();
-    };
-
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleTextFieldChange = event => {
-        setTextValue(event.target.value);
-        setError(false);
-    };
-
-    const handleTextFieldBlur = () => {
-        const validation = validateColorInput(textValue);
-        if (validation.isValid) {
-            const newColor = validation.normalizedValue || null;
-            setColor(newColor);
+    const handleChange = newValue => {
+        // Step 1: Handle null/undefined - treat as empty and clear error
+        if (newValue === null || newValue === undefined) {
+            setCachedValue('');
             setError(false);
-            onDataChange({ [fieldName]: newColor });
+            onDataChange({ [fieldName]: null });
+            return;
+        }
+
+        // Step 2: Type check - reject non-string inputs with error state
+        if (typeof newValue !== 'string') {
+            console.warn('CollectionGradientColorPicker: Non-string value received:', newValue);
+            setError(true);
+            // Do NOT call onDataChange for invalid type
+            return;
+        }
+
+        // Step 3: Handle empty string (after trimming) - clear value and error
+        const trimmedValue = newValue.trim();
+        if (trimmedValue === '') {
+            setCachedValue('');
+            setError(false);
+            onDataChange({ [fieldName]: null });
+            return;
+        }
+
+        // Step 4: Validate non-empty string values
+        const validation = validateColorInput(newValue);
+
+        // Always update cachedValue to reflect user input (even if invalid)
+        setCachedValue(newValue);
+
+        // Step 5: Handle validation result
+        if (validation.isValid) {
+            // Valid input: clear error and save normalized value
+            setError(false);
+            onDataChange({ [fieldName]: validation.normalizedValue || null });
         } else {
+            // Invalid input: set error but do NOT call onDataChange
+            // This prevents saving invalid data while preserving user input for correction
             setError(true);
         }
     };
 
-    const handleClear = () => {
-        setColor(null);
-        setTextValue('');
-        setError(false);
-        onDataChange({ [fieldName]: null });
-    };
-
-    const onChangeHandler = gradient => {
-        setColor(gradient);
-        onDataChange({ [fieldName]: gradient });
-    };
+    const handlePickerChange = gradient => handleChange(gradient);
+    const handleTextChange = event => handleChange(event.target.value);
+    const handleClear = () => handleChange(null);
 
     const open = Boolean(anchorEl);
 
+    // Synchronize with external prop changes (e.g., undo/redo, preset loading)
+    // Only react to actual prop changes, not user input changes
     useEffect(() => {
-        // Synchronize color to textValue
-        setTextValue(color || '');
-    }, [color]);
+        const propValue = data[fieldName];
 
-    useEffect(() => {
-        console.log('props.context.theme', props?.context?.theme);
-    }, [props?.context?.theme]);
+        // Only update if the prop value has actually changed from the outside
+        // (not as a result of user input via onDataChange)
+        if (propValue !== lastPropValueRef.current) {
+            lastPropValueRef.current = propValue;
+
+            const normalizedPropValue = propValue || '';
+            setCachedValue(normalizedPropValue);
+            setError(false); // Clear error on external update
+        }
+    }, [data[fieldName], fieldName]);
 
     return (
         <>
             <ThemeProvider theme={theme}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.5, mt: '7px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
                     <TextField
                         variant="standard"
                         fullWidth
-                        value={textValue}
+                        value={cachedValue}
                         error={error}
-                        onChange={handleTextFieldChange}
-                        onBlur={handleTextFieldBlur}
+                        helperText={error ? 'Invalid color format (use Hex, RGB, RGBA, or Gradient)' : ''}
+                        onChange={handleTextChange}
                         slotProps={{
                             htmlInput: {
                                 style: {
@@ -143,13 +182,13 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                             },
                         }}
                     />
-                    {color && (
+                    {cachedValue && (
                         <IconButton
                             onClick={handleClear}
                             title="Clear color"
                             size="large"
                             sx={{
-                                mb: '-14px',
+                                mt: -1,
                                 mr: -1.5,
                             }}
                         >
@@ -158,12 +197,15 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                     )}
 
                     <Box
-                        onClick={handleClick}
-                        title="Wähle Farbe"
+                        onClick={e => {
+                            setAnchorEl(e.currentTarget);
+                        }}
+                        title="Choose color"
                         sx={{
+                            mt: cachedValue ? '4px' : '-2px',
                             px: '4px',
-                            py: color ? '4px' : '3px',
-                            backgroundColor: color
+                            py: cachedValue ? '4px' : '3px',
+                            backgroundColor: cachedValue
                                 ? theme.name === 'light'
                                     ? theme.palette.common.white
                                     : '#121212'
@@ -173,23 +215,33 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                             cursor: 'pointer',
                             verticalAlign: 'middle',
                             boxSizing: 'border-box',
-                            border: color
-                                ? `1px solid ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.common.black}`
-                                : `1px dashed ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.text.secondary}`,
+                            // Show error border in red when validation fails
+                            border: error
+                                ? `1px solid ${theme.palette.error.main}`
+                                : cachedValue
+                                  ? `1px solid ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.common.black}`
+                                  : `1px dashed ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.text.secondary}`,
+                            opacity: error ? 0.6 : 1,
                         }}
                     >
                         <Box
                             sx={{
-                                width: color ? '36px' : '38px',
-                                height: color ? '14px' : '18px',
+                                width: cachedValue ? '36px' : '38px',
+                                height: cachedValue ? '14px' : '18px',
                                 borderRadius: '2px',
-                                background: color ? color : 'transparent',
+                                // Only show color preview if valid, otherwise show striped error pattern
+                                background: error
+                                    ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)'
+                                    : cachedValue
+                                      ? cachedValue
+                                      : 'transparent',
                             }}
                         />
                     </Box>
                 </Box>
 
                 <Popover
+                    aria-hidden={!open}
                     slotProps={{
                         paper: {
                             elevation: 0,
@@ -202,7 +254,7 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                     }}
                     open={open}
                     anchorEl={anchorEl}
-                    onClose={handleClose}
+                    onClose={() => setAnchorEl(null)}
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'center',
@@ -218,8 +270,8 @@ function CollectionGradientColorPicker({ field, data, onDataChange, props }) {
                         }}
                     >
                         <ColorPicker
-                            value={color}
-                            onChange={onChangeHandler}
+                            value={cachedValue || ''}
+                            onChange={handlePickerChange}
                             hidePresets
                             hideInputs
                             hideEyeDrop
