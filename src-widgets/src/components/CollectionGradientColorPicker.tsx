@@ -395,13 +395,13 @@ function CollectionGradientColorPicker({
                         }}
                     >
                         <ColorPicker
-                            value={cachedValue || ''}
+                            value={cachedValue || theme.palette.primary.main}
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs
                             // hideEyeDrop
-                            hideAdvancedSliders={false}
-                            hideColorGuide={false}
+                            // hideAdvancedSliders
+                            // hideColorGuide
                             hideInputType
                             // hideColorTypeBtns
                         />
