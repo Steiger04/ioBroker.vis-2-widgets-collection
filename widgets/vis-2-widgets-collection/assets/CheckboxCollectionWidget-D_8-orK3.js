@@ -1,10 +1,10 @@
-import { c as y, j as a, a as N, g as V, u as W, b as B, a0 as R, d as H, s as $, i as p, e as G, r as E, m as U, o as w, Y as k, C as M, v as Z, y as J, A as Y, w as j, T as Q, z as P, G as X, E as A, H as q, __tla as __tla_0 } from "./useData-BBwgvCqY.js";
-import { C as K, c as ee, __tla as __tla_1 } from "./CollectionBaseImage-ClKW21v8.js";
-import { u as te, d as oe, __tla as __tla_2 } from "./useValueState-DIGDaDEf.js";
+import { c as y, j as a, a as N, g as V, u as W, b as B, a0 as R, d as H, s as $, i as p, e as G, r as E, m as U, o as w, Y as k, C as M, v as Z, y as J, A as Y, w as j, T as Q, z as P, G as X, E as A, H as q, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
+import { C as K, c as ee, __tla as __tla_1 } from "./CollectionBaseImage-DtLpy4OM.js";
+import { u as te, d as oe, __tla as __tla_2 } from "./useValueState-O1j7ZVnY.js";
 import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 import { u as ae, __tla as __tla_4 } from "./useHtmlValue-Dcwl_hqT.js";
-import { F as ie, __tla as __tla_5 } from "./FormControlLabel-BuEvxM0-.js";
-import { S as le, __tla as __tla_6 } from "./SwitchBase-D1j3RI5H.js";
+import { F as ie, __tla as __tla_5 } from "./FormControlLabel-DdFHKCUM.js";
+import { S as le, __tla as __tla_6 } from "./SwitchBase-BeDe1_LB.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let O;

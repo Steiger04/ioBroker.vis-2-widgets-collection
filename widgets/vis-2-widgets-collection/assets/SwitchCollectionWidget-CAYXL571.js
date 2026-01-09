@@ -1,8 +1,8 @@
-import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, Y as D, Z as U, _ as N, C as y, z as X, v as E, y as H, A as L, w as x, G as Y, E as $, H as G, __tla as __tla_0 } from "./useData-BBwgvCqY.js";
-import { C as Z, c as q, __tla as __tla_1 } from "./CollectionBaseImage-ClKW21v8.js";
-import { u as J, d as K, __tla as __tla_2 } from "./useValueState-DIGDaDEf.js";
+import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, Y as D, Z as U, _ as N, C as y, z as X, v as E, y as H, A as L, w as x, G as Y, E as $, H as G, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
+import { C as Z, c as q, __tla as __tla_1 } from "./CollectionBaseImage-DtLpy4OM.js";
+import { u as J, d as K, __tla as __tla_2 } from "./useValueState-O1j7ZVnY.js";
 import { v as C, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as Q, __tla as __tla_4 } from "./SwitchBase-D1j3RI5H.js";
+import { S as Q, __tla as __tla_4 } from "./SwitchBase-BeDe1_LB.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let B;

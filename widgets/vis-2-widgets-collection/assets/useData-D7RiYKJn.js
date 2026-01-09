@@ -19272,6 +19272,7 @@ export default theme;`;
                 onChange: b,
                 hidePresets: true,
                 hideInputs: true,
+                hideEyeDrop: true,
                 hideInputType: true
               })
             })
