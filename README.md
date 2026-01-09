@@ -61,6 +61,7 @@
 -->
 
 ## Changelog
+
 ### 2.0.11 (2025-12-24)
 
 - (steiger04) sync-wiki.yml for en and de optimized
@@ -261,7 +262,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2025 Steiger04 <steiger04@posteo.de>
+Copyright (c) 2026 Steiger04 <steiger04@posteo.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
