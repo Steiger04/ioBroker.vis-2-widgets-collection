@@ -62,6 +62,12 @@
 
 ## Changelog
 
+### __WORK IN PROGRESS__
+
+- (steiger04) Slder widget optimized
+- (steiger04) RadioButtonGroup widget optimized
+- (steiger04) RadioGroup widget optimized
+
 ### 2.0.11 (2025-12-24)
 
 - (steiger04) sync-wiki.yml for en and de optimized
