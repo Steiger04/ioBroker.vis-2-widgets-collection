@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "news": {
+      "2.1.1": {
+        "en": "GradientColorPicker bug fixed",
+        "de": "Gradientenfarbe Picker Bug behoben",
+        "ru": "Градиентный цвет Баг Пикера исправлен",
+        "pt": "GradientColor Erro de seleção corrigido",
+        "nl": "Kleur kleurverloop Pickerbug gerepareerd",
+        "fr": "Couleur du dégradé Correction d'un bug de sélection",
+        "it": "Colore gradiente Insetto di selezione fisso",
+        "es": "GradientColor Insecto de Picker fijo",
+        "pl": "GradientColor Błąd wyboru",
+        "uk": "ГрадієнтКолор Підбирач зафіксувати помилки",
+        "zh-cn": "渐变颜色 清除错误"
+      },
       "2.1.0": {
         "en": "Slder widget optimized\nRadioButtonGroup widget optimized\nRadioGroup widget optimized",
         "de": "Slder Widget optimiert\nRadioButton Gruppen-Widget optimiert\nRadioGroup Widget optimiert",
@@ -69,19 +82,6 @@
         "zh-cn": "Gauge 部件优化"
       },
       "2.0.6": {
-        "en": "gitignore changed",
-        "de": "gitignore geändert",
-        "ru": "гитиньор изменился",
-        "pt": "gitignore alterado",
-        "nl": "gitignore gewijzigd",
-        "fr": "gitignore modifié",
-        "it": "gitignore cambiato",
-        "es": "gitignore changed",
-        "pl": "gitignore zmienione",
-        "uk": "gitignore змінив",
-        "zh-cn": "吉提格诺尔变了"
-      },
-      "2.0.5": {
         "en": "gitignore changed",
         "de": "gitignore geändert",
         "ru": "гитиньор изменился",
