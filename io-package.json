@@ -42,19 +42,6 @@
         "uk": "sync-wiki.yml змінився",
         "zh-cn": "同步- wiki. yml 更改"
       },
-      "2.0.8": {
-        "en": "User documentation added (GitHub Wiki)",
-        "de": "Benutzerdokumentation hinzugefügt (GitHub Wiki)",
-        "ru": "Добавлена пользовательская документация (GitHub Wiki)",
-        "pt": "Documentação do usuário adicionada (GitHub Wiki)",
-        "nl": "Gebruikersdocumentatie toegevoegd (GitHub Wiki)",
-        "fr": "Documentation utilisateur ajoutée (Wiki GitHub)",
-        "it": "Documentazione utente aggiunta (GitHub Wiki)",
-        "es": "Documentación de usuario agregada (GitHub Wiki)",
-        "pl": "Dodano dokumentację użytkownika (GitHub Wiki)",
-        "uk": "Додано документацію користувача (GitHub Wiki)",
-        "zh-cn": "添加用户文档 (GitHub 维基)"
-      },
       "2.0.7": {
         "en": "Gauge widget optimized",
         "de": "Gage Widget optimiert",
