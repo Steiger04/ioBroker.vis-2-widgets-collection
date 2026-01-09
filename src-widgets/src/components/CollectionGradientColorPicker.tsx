@@ -399,7 +399,7 @@ function CollectionGradientColorPicker({
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs
-                            // hideEyeDrop
+                            hideEyeDrop
                             // hideAdvancedSliders
                             // hideColorGuide
                             hideInputType

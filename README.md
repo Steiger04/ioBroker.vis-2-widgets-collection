@@ -61,9 +61,13 @@
 -->
 
 ## Changelog
+
+### __WORK IN PROGRESS__
+- (steiger04) GradientColorPicker bug fixed
+
 ### 2.1.0 (2026-01-09)
 
-- (steiger04) Slder widget optimized
+- (steiger04) Slider widget optimized
 - (steiger04) RadioButtonGroup widget optimized
 - (steiger04) RadioGroup widget optimized
 
