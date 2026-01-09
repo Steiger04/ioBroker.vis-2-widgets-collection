@@ -1,8 +1,8 @@
-import { j as n, C as b, J as A, y as X, v as Y, K as N, w as z, T as Q, z as T, A as Z, s as ee, o as D, G as te, E as V, H as ie, __tla as __tla_0 } from "./useData-B6ap6FGc.js";
-import { C as ae, c as oe, __tla as __tla_1 } from "./CollectionBaseImage-DUfHSKtc.js";
-import { u as re, d as ne, __tla as __tla_2 } from "./useValueState-BSkef547.js";
+import { j as n, C as h, J as A, y as X, v as Y, K as N, w as z, T as Q, z as T, A as Z, s as ee, o as D, G as te, E as V, H as ie, __tla as __tla_0 } from "./useData-BBwgvCqY.js";
+import { C as ae, c as oe, __tla as __tla_1 } from "./CollectionBaseImage-ClKW21v8.js";
+import { u as re, d as ne, __tla as __tla_2 } from "./useValueState-DIGDaDEf.js";
 import { v as c, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { a as le, S as se, __tla as __tla_4 } from "./Slider-BsNWQa72.js";
+import { a as le, S as se, __tla as __tla_4 } from "./Slider-BsLUabtg.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let U;
@@ -41,7 +41,7 @@ let __tla = Promise.all([
   const de = () => [
     {
       type: "custom",
-      component: () => n.jsx(b, {})
+      component: () => n.jsx(h, {})
     },
     {
       name: "sliderSize",
@@ -124,7 +124,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "thumb"
       })
     },
@@ -147,6 +147,9 @@ let __tla = Promise.all([
       label: "thumb_color",
       default: "",
       type: "custom",
+      fallbackFields: [
+        "sliderColor"
+      ],
       component: (a, t, e, o) => n.jsx(A, {
         field: a,
         data: t,
@@ -169,7 +172,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "track"
       })
     },
@@ -190,6 +193,9 @@ let __tla = Promise.all([
       label: "track_background_color",
       default: "",
       type: "custom",
+      fallbackFields: [
+        "sliderColor"
+      ],
       component: (a, t, e, o) => n.jsx(A, {
         field: a,
         data: t,
@@ -199,7 +205,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "rail"
       })
     },
@@ -215,6 +221,9 @@ let __tla = Promise.all([
       label: "rail_background_color",
       default: "",
       type: "custom",
+      fallbackFields: [
+        "sliderColor"
+      ],
       component: (a, t, e, o) => n.jsx(A, {
         field: a,
         data: t,
@@ -224,7 +233,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "mark"
       })
     },
@@ -247,6 +256,9 @@ let __tla = Promise.all([
       label: "mark_background_color",
       default: "",
       type: "custom",
+      fallbackFields: [
+        "sliderColor"
+      ],
       component: (a, t, e, o) => n.jsx(A, {
         field: a,
         data: t,
@@ -256,7 +268,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "values"
       })
     },
@@ -280,7 +292,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {}),
+      component: () => n.jsx(h, {}),
       hidden: "!data.values_count"
     },
     {
@@ -292,7 +304,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "marks"
       })
     },
@@ -304,7 +316,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {}),
+      component: () => n.jsx(h, {}),
       hidden: "!data.marks"
     },
     {
@@ -323,7 +335,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {}),
+      component: () => n.jsx(h, {}),
       hidden: "!data.marks"
     },
     {
@@ -343,7 +355,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {}),
+      component: () => n.jsx(h, {}),
       hidden: "!data.marks"
     },
     {
@@ -363,7 +375,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "icon"
       })
     },
@@ -394,7 +406,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(b, {
+      component: () => n.jsx(h, {
         dividerText: "icon"
       })
     },
@@ -631,11 +643,11 @@ let __tla = Promise.all([
         }
       }
     };
-  }), he = () => {
+  }), be = () => {
     const a = c.useContext(Y), { widget: { data: { oidObject: t } }, widget: e, theme: o } = a, { data: r, states: l, minValue: m, maxValue: p, activeIndex: f } = X("oid"), [y, x] = c.useState(null), { value: u, updateValue: i, hasBackendChange: v } = re("oid"), [S, _] = c.useState(typeof u == "number" ? u : void 0), C = c.useRef(null), [O, q] = c.useState({
       x: 0,
       y: 0
-    }), W = e.data.startIconColor || r.iconColor || o.palette.primary.main, R = e.data.endIconColor || r.iconColor || o.palette.primary.main, L = e.data.sliderOrientation === "horizontal" ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, H = e.data.sliderOrientation === "horizontal" ? e.data.iconMax || e.data.iconSmallMax : e.data.iconMin || e.data.iconSmallMin, E = t == null ? void 0 : t.type, P = E === "number", w = c.useCallback(N, []), j = c.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : m, [
+    }), W = e.data.startIconColor || r.iconColor || o.palette.primary.main, R = e.data.endIconColor || r.iconColor || o.palette.primary.main, L = e.data.sliderOrientation === "horizontal" ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, F = e.data.sliderOrientation === "horizontal" ? e.data.iconMax || e.data.iconSmallMax : e.data.iconMin || e.data.iconSmallMin, H = t == null ? void 0 : t.type, E = H === "number", w = c.useCallback(N, []), j = c.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : m, [
       e.data.onlyStates,
       e.data.minValue,
       m
@@ -657,10 +669,10 @@ let __tla = Promise.all([
         iconColor: s.iconColor
       }));
       if (e.data.onlyStates) return d.sort((s, M) => s.value - M.value);
-      const h = j, g = I;
-      d && h !== null && !d.some((s) => s.value === h) && d.push({
-        value: h,
-        label: `${h}${(t == null ? void 0 : t.unit) || ""}`,
+      const b = j, g = I;
+      d && b !== null && !d.some((s) => s.value === b) && d.push({
+        value: b,
+        label: `${b}${(t == null ? void 0 : t.unit) || ""}`,
         fontSize: void 0,
         textColor: void 0,
         icon: "",
@@ -682,7 +694,7 @@ let __tla = Promise.all([
         iconColor: void 0
       });
       const k = Number(e.data.markStep) || 1;
-      if (h !== null && g !== null) for (let s = h + k; s < g; s += k) d.some((M) => M.value === s) || d.push({
+      if (b !== null && g !== null) for (let s = b + k; s < g; s += k) d.some((M) => M.value === s) || d.push({
         value: s,
         label: `${s}${(t == null ? void 0 : t.unit) || ""}`,
         fontSize: void 0,
@@ -714,11 +726,11 @@ let __tla = Promise.all([
       v,
       u
     ]);
-    const F = () => {
+    const P = () => {
       if (!C.current) return;
-      const d = C.current.querySelector(".MuiSlider-root"), h = C.current.querySelector(".MuiSlider-rail");
-      if (d && h) {
-        const g = C.current.getBoundingClientRect(), k = h.getBoundingClientRect(), s = k.left - g.left + k.width / 2, M = k.top - g.top + k.height / 2, J = g.width / 2, K = g.height / 2;
+      const d = C.current.querySelector(".MuiSlider-root"), b = C.current.querySelector(".MuiSlider-rail");
+      if (d && b) {
+        const g = C.current.getBoundingClientRect(), k = b.getBoundingClientRect(), s = k.left - g.left + k.width / 2, M = k.top - g.top + k.height / 2, J = g.width / 2, K = g.height / 2;
         q({
           x: s - J,
           y: M - K
@@ -726,7 +738,7 @@ let __tla = Promise.all([
       }
     };
     return c.useEffect(() => {
-      const d = setTimeout(F, 100);
+      const d = setTimeout(P, 100);
       return () => clearTimeout(d);
     }, [
       e.data.marks,
@@ -736,17 +748,17 @@ let __tla = Promise.all([
       S
     ]), c.useEffect(() => {
       if (!C.current) return;
-      const d = new ResizeObserver(F);
+      const d = new ResizeObserver(P);
       return d.observe(C.current), () => d.disconnect();
     }, []), c.useEffect(() => {
       if (u === void 0) return;
-      const d = B.findIndex((h) => String(h.value) === String(u));
+      const d = B.findIndex((b) => String(b.value) === String(u));
       d !== -1 && x(d);
     }, [
       u,
       B
     ]), n.jsxs(Z, {
-      isValidType: P,
+      isValidType: E,
       data: r,
       oidValue: u,
       sx: {
@@ -757,7 +769,7 @@ let __tla = Promise.all([
           data: r,
           widget: e
         }),
-        P ? n.jsxs(z, {
+        E ? n.jsxs(z, {
           ref: C,
           sx: {
             display: "flex",
@@ -812,7 +824,7 @@ let __tla = Promise.all([
                     defaultIconColor: r.iconColor || o.palette.primary.main
                   }
                 },
-                disabled: E !== "number",
+                disabled: H !== "number",
                 valueLabelDisplay: e.data.valueLabelDisplay,
                 orientation: e.data.sliderOrientation,
                 min: j ?? void 0,
@@ -821,8 +833,8 @@ let __tla = Promise.all([
                 step: e.data.onlyStates ? null : e.data.step !== void 0 ? Number(e.data.step) : void 0,
                 size: e.data.sliderSize,
                 value: S,
-                onChange: (d, h) => {
-                  typeof h == "number" && (_(h), i(h));
+                onChange: (d, b) => {
+                  typeof b == "number" && (_(b), i(b));
                 },
                 sx: {
                   mb: e.data.marks && e.data.sliderOrientation === "horizontal" ? "20px" : "0px",
@@ -885,10 +897,10 @@ let __tla = Promise.all([
               },
               children: n.jsx("img", {
                 alt: "",
-                src: H,
+                src: F,
                 style: {
                   width: e.data.sliderOrientation === "horizontal" ? e.data.iconSizeEnd || "24px" : e.data.iconSizeStart || "24px",
-                  ...T(H, e.data.sliderOrientation === "horizontal" ? R : W)
+                  ...T(F, e.data.sliderOrientation === "horizontal" ? R : W)
                 }
               })
             })
@@ -990,7 +1002,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, ie(this.wrapContent(n.jsx(he, {})), e);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, ie(this.wrapContent(n.jsx(be, {})), e);
     }
   };
 });
