@@ -11,7 +11,16 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
-const sliderFields = (): RxWidgetInfoAttributesField[] => [
+/**
+ * Extended field definition that supports additional custom properties like fallbackFields.
+ * This extends the base RxWidgetInfoAttributesField to allow custom field extensions
+ * without violating TypeScript excess property checks.
+ */
+type ExtendedSliderField = RxWidgetInfoAttributesField & {
+    fallbackFields?: string[];
+};
+
+const sliderFields = (): ExtendedSliderField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -117,6 +126,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         label: 'thumb_color',
         default: '',
         type: 'custom', // important
+        fallbackFields: ['sliderColor'],
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -133,7 +143,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
                 props={props}
             />
         ),
-    } as const,
+    } as ExtendedSliderField,
     {
         name: 'thumbBorderWidth',
         label: 'thumb_border_width',
@@ -173,6 +183,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         label: 'track_background_color',
         default: '',
         type: 'custom', // important
+        fallbackFields: ['sliderColor'],
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -189,7 +200,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
                 props={props}
             />
         ),
-    } as const,
+    } as ExtendedSliderField,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="rail" />,
@@ -211,6 +222,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         label: 'rail_background_color',
         default: '',
         type: 'custom', // important
+        fallbackFields: ['sliderColor'],
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -227,7 +239,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
                 props={props}
             />
         ),
-    } as const,
+    } as ExtendedSliderField,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="mark" />,
@@ -256,6 +268,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
         label: 'mark_background_color',
         default: '',
         type: 'custom', // important
+        fallbackFields: ['sliderColor'],
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -272,7 +285,7 @@ const sliderFields = (): RxWidgetInfoAttributesField[] => [
                 props={props}
             />
         ),
-    } as const,
+    } as ExtendedSliderField,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="values" />,

@@ -282,6 +282,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             label: 'background',
             default: '',
             type: 'custom', // important
+            fallbackFields: [],
             component: (
                 // important
                 field, // field properties: {name, label, type, set, singleName, component,...}

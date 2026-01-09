@@ -9,6 +9,14 @@
  * - RGB/RGBA: rgb(255, 255, 255), rgba(255, 255, 255, 0.5)
  * - Gradients: linear-gradient(...), radial-gradient(...)
  *
+ * Fallback initialization:
+ * - When opening the picker for the first time with an empty field, the component
+ *   checks `field.fallbackFields` (optional string array) for valid color values.
+ * - Uses the first valid fallback value found, or falls back to `theme.palette.primary.main`.
+ * - Example: `fallbackFields: ['sliderColor']` → uses sliderColor if available.
+ * - To disable all fallbacks (including theme.palette.primary.main), use an empty array: `fallbackFields: []`.
+ * - If `fallbackFields` is undefined, the picker defaults to `theme.palette.primary.main`.
+ *
  * Validation is performed in real-time. Invalid inputs are marked with an error state
  * and do not trigger onDataChange callbacks. Empty values are treated as null.
  */
@@ -68,16 +76,27 @@ function validateColorInput(value: string): { isValid: boolean; normalizedValue:
 }
 
 /**
+ * Extended field definition with optional fallbackFields array.
+ *
+ * @typedef ExtendedField
+ * @type {RxWidgetInfoAttributesField & { fallbackFields?: string[] }}
+ * @property {string[]} [fallbackFields] - Optional array of field names to use as fallbacks during initialization.
+ */
+type ExtendedField = RxWidgetInfoAttributesField & {
+    fallbackFields?: string[];
+};
+
+/**
  * Props for CollectionGradientColorPicker component.
  *
  * @interface CollectionGradientColorPickerProps
- * @property {RxWidgetInfoAttributesField} field - Field definition (expects `name` property).
+ * @property {ExtendedField} field - Field definition with optional `fallbackFields` array.
  * @property {WidgetData} data - Current editor data map.
  * @property {(patch: WidgetData) => void} onDataChange - Callback invoked with partial updates.
  * @property {RxWidgetInfoCustomComponentProperties} props - Additional properties (e.g., socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID).
  */
 interface CollectionGradientColorPickerProps {
-    field: RxWidgetInfoAttributesField;
+    field: ExtendedField;
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
     props: RxWidgetInfoCustomComponentProperties;
@@ -111,6 +130,10 @@ function CollectionGradientColorPicker({
     const [cachedValue, setCachedValue] = useState<string>(data[fieldName] || '');
     const [error, setError] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+    const popoverActionRef = useRef<{ updatePosition: () => void }>(null);
+    // State for the ColorPicker container element (callback-ref pattern)
+    const [colorPickerContainer, setColorPickerContainer] = useState<HTMLDivElement | null>(null);
+    const hasInitializedRef = useRef<boolean>(false);
 
     // Track the last prop value to detect external changes only
     const lastPropValueRef: React.MutableRefObject<string | null | undefined> = useRef<string | null | undefined>(
@@ -125,12 +148,12 @@ function CollectionGradientColorPicker({
             setCachedValue('');
             setError(false);
             onDataChange({ [fieldName]: null });
+            hasInitializedRef.current = false;
             return;
         }
 
         // Step 2: Type check - reject non-string inputs with error state
         if (typeof newValue !== 'string') {
-            console.warn('CollectionGradientColorPicker: Non-string value received:', newValue);
             setError(true);
             // Do NOT call onDataChange for invalid type
             return;
@@ -142,6 +165,7 @@ function CollectionGradientColorPicker({
             setCachedValue('');
             setError(false);
             onDataChange({ [fieldName]: null });
+            hasInitializedRef.current = false;
             return;
         }
 
@@ -182,9 +206,78 @@ function CollectionGradientColorPicker({
             const normalizedPropValue: string = propValue || '';
             setCachedValue(normalizedPropValue);
             setError(false); // Clear error on external update
+
+            // Reset initialization flag on external changes
+            if (!normalizedPropValue || normalizedPropValue.trim() === '') {
+                hasInitializedRef.current = false;
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data[fieldName]]);
+
+    useEffect(() => {
+        // Wait until the Popover is open AND the container element exists
+        if (!open || !colorPickerContainer) {
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver(() => {
+            popoverActionRef.current?.updatePosition();
+        });
+
+        resizeObserver.observe(colorPickerContainer);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [open, colorPickerContainer]);
+
+    useEffect(() => {
+        // Initialize only on first popover open
+        if (!open || hasInitializedRef.current) {
+            return;
+        }
+
+        // Check if field already has a value
+        const currentValue = data[fieldName];
+        if (currentValue && currentValue.trim() !== '') {
+            hasInitializedRef.current = true;
+            return;
+        }
+
+        // Fallback chain: fallbackFields > theme.palette.primary.main
+        let initialColor: string | null = null;
+
+        // 1. Check fallbackFields (if defined)
+        if (field.fallbackFields && Array.isArray(field.fallbackFields) && field.fallbackFields.length > 0) {
+            for (const fallbackFieldName of field.fallbackFields) {
+                const fallbackValue = data[fallbackFieldName];
+                if (fallbackValue && typeof fallbackValue === 'string') {
+                    const validation = validateColorInput(fallbackValue);
+                    if (validation.isValid && validation.normalizedValue.trim() !== '') {
+                        initialColor = validation.normalizedValue;
+                        break; // Use first valid fallback
+                    }
+                }
+            }
+        }
+
+        // 2. Fallback to theme.palette.primary.main
+        if (!initialColor && (!field.fallbackFields || field.fallbackFields.length > 0)) {
+            initialColor = theme.palette.primary.main;
+        }
+
+        // Validate and set initial color (only if a value was found)
+        if (initialColor) {
+            const validation = validateColorInput(initialColor);
+            if (validation.isValid) {
+                setCachedValue(initialColor);
+                setError(false);
+                onDataChange({ [fieldName]: initialColor });
+            }
+        }
+        hasInitializedRef.current = true;
+    }, [open, data, fieldName, field.fallbackFields, theme.palette.primary.main, onDataChange]);
 
     return (
         <>
@@ -269,6 +362,7 @@ function CollectionGradientColorPicker({
                 </Box>
 
                 <Popover
+                    action={popoverActionRef}
                     aria-hidden={!open}
                     slotProps={{
                         paper: {
@@ -277,6 +371,8 @@ function CollectionGradientColorPicker({
                                 p: '9px',
                                 borderRadius: '6px',
                                 backgroundColor: 'rgb(32,32,32)',
+                                maxHeight: 'calc(100vh - 100px)',
+                                overflow: 'auto',
                             },
                         },
                     }}
@@ -293,6 +389,7 @@ function CollectionGradientColorPicker({
                     }}
                 >
                     <Box
+                        ref={setColorPickerContainer}
                         sx={{
                             borderRadius: '6px',
                         }}
@@ -302,9 +399,9 @@ function CollectionGradientColorPicker({
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs
-                            hideEyeDrop
-                            hideAdvancedSliders
-                            hideColorGuide
+                            // hideEyeDrop
+                            hideAdvancedSliders={false}
+                            hideColorGuide={false}
                             hideInputType
                             // hideColorTypeBtns
                         />
