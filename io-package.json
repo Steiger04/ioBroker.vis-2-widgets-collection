@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.0.11",
+    "version": "2.1.0",
     "news": {
+      "2.1.0": {
+        "en": "Slder widget optimized\nRadioButtonGroup widget optimized\nRadioGroup widget optimized",
+        "de": "Slder Widget optimiert\nRadioButton Gruppen-Widget optimiert\nRadioGroup Widget optimiert",
+        "ru": "Slder Widget оптимизирован\nRadioButton Групповой виджет оптимизирован\nВиджет RadioGroup оптимизирован",
+        "pt": "Elemento Slder otimizado\nRadioButton Elemento de grupo otimizado\nElemento RadioGroup otimizado",
+        "nl": "Grootte-widget geoptimaliseerd\nRadioButton Groepswidget geoptimaliseerd\nRadioGroup-widget geoptimaliseerd",
+        "fr": "Widget Solder optimisé\nBouton radio Widget de groupe optimisé\nWidget RadioGroup optimisé",
+        "it": "Widget Slder ottimizzato\nRadioButton widget di gruppo ottimizzato\nWidget di RadioGroup ottimizzato",
+        "es": "Widget Slder optimizado\nRadioButton widget de grupo optimizado\nWidget de radioGroup optimizado",
+        "pl": "Widżet sldera zoptymalizowany\nRadioButton Widget grupy zoptymalizowany\nWidget RadioGroup zoptymalizowany",
+        "uk": "Slder віджет оптимізований\nРадіостанція Груповий віджет оптимізований\nРадіоГруповий віджет оптимізований",
+        "zh-cn": "焊德部件优化\n无线电按钮 组合部件优化\n优化了无线电组部件"
+      },
       "2.0.11": {
         "en": "sync-wiki.yml for en and de optimized",
         "de": "sync-wiki.yml für en und de optimiert",

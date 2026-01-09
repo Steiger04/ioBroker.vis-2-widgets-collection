@@ -61,8 +61,7 @@
 -->
 
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 2.1.0 (2026-01-09)
 
 - (steiger04) Slder widget optimized
 - (steiger04) RadioButtonGroup widget optimized
