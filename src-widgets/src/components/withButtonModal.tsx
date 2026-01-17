@@ -27,8 +27,8 @@ type WithButtonModalProps<P> = P;
  * @param data - Widget data object.
  * @returns `true` when `data` conforms to {@link Light2FieldsRxData}.
  */
-function hasLight2Fields(data: any): data is Light2FieldsRxData {
-    return 'colorLightButton' in data && 'colorLightSwitchOid' in data;
+function hasLight2Fields(data: unknown): data is Light2FieldsRxData {
+    return typeof data === 'object' && data !== null && 'colorLightButton' in data && 'colorLightSwitchOid' in data;
 }
 
 /**
