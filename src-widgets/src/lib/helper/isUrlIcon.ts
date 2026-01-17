@@ -11,7 +11,6 @@
  *
  * @param icon - The icon string (URL, data URI, or icon name)
  * @returns true if the icon is a URL-based image, otherwise false
- *
  * @example
  * ```typescript
  * // URL-based icons (returns true)
