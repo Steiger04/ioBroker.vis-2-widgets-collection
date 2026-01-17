@@ -10,7 +10,7 @@
  */
 
 import { useMemo } from 'react';
-import type { CollectionContextProps } from '../types';
+import type { CollectionContextProps, UseHtmlValueWidgetData } from '../types';
 
 /**
  * Subset of `useData()` output consumed by {@link module:hooks/useHtmlValue.default}.
@@ -37,7 +37,7 @@ interface UseHtmlValueData {
  */
 const useHtmlValue = (
     oidValue: string | number | boolean | undefined | null,
-    widget: CollectionContextProps<any>['widget'] | undefined,
+    widget: CollectionContextProps<UseHtmlValueWidgetData>['widget'] | undefined,
     data: UseHtmlValueData | undefined,
 ): string | number | boolean | undefined => {
     const contentValue = useMemo(() => {
