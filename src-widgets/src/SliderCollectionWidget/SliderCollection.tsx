@@ -5,7 +5,7 @@
  */
 
 import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
-import { useState, useMemo, useContext, useEffect, useRef, useCallback, type FC } from 'react';
+import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
@@ -135,27 +135,30 @@ const SliderCollection: FC = () => {
     const sliderContainerRef = useRef<HTMLDivElement>(null);
     const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
-    // const startIconColor = widget.data.startIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
-    // const endIconColor = widget.data.endIconColor || widget.data.sliderColor || data.iconColor || data.textColor;
-
     const startIconColor = widget.data.startIconColor || data.iconColor || theme.palette.primary.main;
     const endIconColor = widget.data.endIconColor || data.iconColor || theme.palette.primary.main;
 
-    const startIcon =
-        widget.data.sliderOrientation === 'horizontal'
-            ? widget.data.iconMin || widget.data.iconSmallMin
-            : widget.data.iconMax || widget.data.iconSmallMax;
+    const isHorizontal = widget.data.sliderOrientation === 'horizontal';
 
-    const endIcon =
-        widget.data.sliderOrientation === 'horizontal'
-            ? widget.data.iconMax || widget.data.iconSmallMax
-            : widget.data.iconMin || widget.data.iconSmallMin;
+    const startIcon = useMemo(
+        () =>
+            isHorizontal
+                ? widget.data.iconMin || widget.data.iconSmallMin
+                : widget.data.iconMax || widget.data.iconSmallMax,
+        [isHorizontal, widget.data.iconMin, widget.data.iconSmallMin, widget.data.iconMax, widget.data.iconSmallMax],
+    );
+
+    const endIcon = useMemo(
+        () =>
+            isHorizontal
+                ? widget.data.iconMax || widget.data.iconSmallMax
+                : widget.data.iconMin || widget.data.iconSmallMin,
+        [isHorizontal, widget.data.iconMax, widget.data.iconSmallMax, widget.data.iconMin, widget.data.iconSmallMin],
+    );
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
-
-    const formatSize = useCallback(formatSizeRem, []);
 
     const sliderMinValue = useMemo(
         () => (!widget.data.onlyStates && widget.data.minValue !== undefined ? Number(widget.data.minValue) : minValue),
@@ -168,10 +171,9 @@ const SliderCollection: FC = () => {
     );
 
     const sliderMarks = useMemo(() => {
-        // Convert states to SliderMark format, preserving the existing labels (which contain aliases if available)
-        const _sliderMarks = states.map(state => ({
+        const marks = states.map(state => ({
             value: Number(state.value),
-            label: state.label, // Use the existing label which contains alias or value+unit
+            label: state.label,
             fontSize: state.fontSize,
             textColor: state.textColor,
             icon: state.icon,
@@ -180,71 +182,63 @@ const SliderCollection: FC = () => {
             iconXOffset: state.iconXOffset,
             iconYOffset: state.iconYOffset,
             iconColor: state.iconColor,
+            forceColorMask: state.forceColorMask,
         }));
 
         if (widget.data.onlyStates) {
-            return _sliderMarks.sort((a, b) => a.value - b.value);
-        }
-        // Ensure minimum and maximum values are included
-        const minValue = sliderMinValue;
-        const maxValue = sliderMaxValue;
-
-        if (_sliderMarks && minValue !== null && !_sliderMarks.some(state => state.value === minValue)) {
-            _sliderMarks.push({
-                value: minValue,
-                label: `${minValue}${oidObject?.unit || ''}`,
-                fontSize: undefined,
-                textColor: undefined,
-                icon: '',
-                iconWidth: 100,
-                iconHeight: 100,
-                iconXOffset: '0px',
-                iconYOffset: '0px',
-                iconColor: undefined,
-            });
+            return marks.sort((a, b) => a.value - b.value);
         }
 
-        if (_sliderMarks && maxValue !== null && !_sliderMarks.some(state => state.value === maxValue)) {
-            _sliderMarks.push({
-                value: maxValue,
-                label: `${maxValue}${oidObject?.unit || ''}`,
-                fontSize: undefined,
-                textColor: undefined,
-                icon: '',
-                iconWidth: 100,
-                iconHeight: 100,
-                iconXOffset: '0px',
-                iconYOffset: '0px',
-                iconColor: undefined,
-            });
+        const createDefaultMark = (
+            value: number,
+        ): {
+            value: number;
+            label: string;
+            fontSize: undefined;
+            textColor: undefined;
+            icon: string;
+            iconWidth: number;
+            iconHeight: number;
+            iconXOffset: string;
+            iconYOffset: string;
+            iconColor: undefined;
+            forceColorMask: undefined;
+        } => ({
+            value,
+            label: `${value}${oidObject?.unit || ''}`,
+            fontSize: undefined,
+            textColor: undefined,
+            icon: '',
+            iconWidth: 100,
+            iconHeight: 100,
+            iconXOffset: '0px',
+            iconYOffset: '0px',
+            iconColor: undefined,
+            forceColorMask: undefined,
+        });
+
+        // Ensure minimum value is included
+        if (sliderMinValue !== null && !marks.some(m => m.value === sliderMinValue)) {
+            marks.push(createDefaultMark(sliderMinValue));
+        }
+
+        // Ensure maximum value is included
+        if (sliderMaxValue !== null && !marks.some(m => m.value === sliderMaxValue)) {
+            marks.push(createDefaultMark(sliderMaxValue));
         }
 
         // Add step divisions
-        const step = Number(widget.data.markStep) || 1;
-        if (minValue !== null && maxValue !== null) {
-            for (let i = minValue + step; i < maxValue; i += step) {
-                if (!_sliderMarks.some(state => state.value === i)) {
-                    _sliderMarks.push({
-                        value: i,
-                        label: `${i}${oidObject?.unit || ''}`,
-                        fontSize: undefined,
-                        textColor: undefined,
-                        icon: '',
-                        iconWidth: 100,
-                        iconHeight: 100,
-                        iconXOffset: '0px',
-                        iconYOffset: '0px',
-                        iconColor: undefined,
-                    });
+        if (sliderMinValue !== null && sliderMaxValue !== null) {
+            const step = Number(widget.data.markStep) || 1;
+            for (let i = sliderMinValue + step; i < sliderMaxValue; i += step) {
+                if (!marks.some(m => m.value === i)) {
+                    marks.push(createDefaultMark(i));
                 }
             }
         }
 
-        // Sort the states by value
-        _sliderMarks.sort((a, b) => a.value - b.value);
-
-        return _sliderMarks;
-    }, [states, sliderMinValue, sliderMaxValue, widget.data.markStep, oidObject?.unit, widget.data.onlyStates]);
+        return marks.sort((a, b) => a.value - b.value);
+    }, [states, widget.data.onlyStates, widget.data.markStep, sliderMinValue, sliderMaxValue, oidObject?.unit]);
 
     useEffect(() => {
         if (sliderValue === undefined && typeof oidValue === 'number') {
@@ -345,7 +339,7 @@ const SliderCollection: FC = () => {
                     ref={sliderContainerRef}
                     sx={{
                         display: 'flex',
-                        flexDirection: widget.data.sliderOrientation === 'horizontal' ? 'row' : 'column',
+                        flexDirection: isHorizontal ? 'row' : 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
                         width: '100%',
@@ -353,44 +347,26 @@ const SliderCollection: FC = () => {
                     }}
                 >
                     {/* Start icon - in normal layout flow */}
-                    {((widget.data.sliderOrientation === 'horizontal' &&
-                        (widget.data.iconMin || widget.data.iconSmallMin)) ||
-                        (widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMax || widget.data.iconSmallMax))) && (
+                    {startIcon && (
                         <Box
                             sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                flexShrink: 0, // Icon should not shrink
-                                // Dynamic alignment to track center with transform
-                                ...(widget.data.sliderOrientation === 'horizontal'
-                                    ? {
-                                          // Horizontal slider: align icon vertically to track center
-                                          transform: `translateY(${trackOffset.y}px)`,
-                                      }
-                                    : {
-                                          // Vertical slider: align icon horizontally to track center
-                                          transform: `translateX(${trackOffset.x}px)`,
-                                      }),
+                                flexShrink: 0,
+                                transform: isHorizontal
+                                    ? `translateY(${trackOffset.y}px)`
+                                    : `translateX(${trackOffset.x}px)`,
                             }}
                         >
                             <img
                                 alt=""
                                 src={startIcon}
                                 style={{
-                                    width:
-                                        widget.data.sliderOrientation === 'horizontal'
-                                            ? widget.data.iconSizeStart || '24px'
-                                            : widget.data.iconSizeEnd || '24px',
-                                    /* height:
-                                        widget.data.sliderOrientation === 'horizontal'
-                                            ? widget.data.iconSizeStart || '24px'
-                                            : widget.data.iconSizeEnd || '24px', */
-                                    ...getIconColorStyles(
-                                        startIcon,
-                                        widget.data.sliderOrientation === 'horizontal' ? startIconColor : endIconColor,
-                                    ),
+                                    width: isHorizontal
+                                        ? widget.data.iconSizeStart || '24px'
+                                        : widget.data.iconSizeEnd || '24px',
+                                    ...getIconColorStyles(startIcon, isHorizontal ? startIconColor : endIconColor),
                                 }}
                             />
                         </Box>
@@ -400,11 +376,11 @@ const SliderCollection: FC = () => {
                     <Box
                         sx={{
                             display: 'flex',
-                            flex: 1, // Takes available space between icons
+                            flex: 1,
                             justifyContent: 'center',
                             alignItems: 'center',
-                            minWidth: widget.data.sliderOrientation === 'horizontal' ? '200px' : 'auto',
-                            minHeight: widget.data.sliderOrientation === 'vertical' ? '200px' : 'auto',
+                            minWidth: isHorizontal ? '200px' : 'auto',
+                            minHeight: isHorizontal ? 'auto' : '200px',
                         }}
                     >
                         {typeof sliderValue === 'number' && (
@@ -437,21 +413,15 @@ const SliderCollection: FC = () => {
                                 }
                                 size={widget.data.sliderSize}
                                 value={sliderValue}
-                                onChange={(_, value) => {
-                                    if (typeof value === 'number') {
-                                        setSliderValue(value);
-                                        setOidValueState(value);
+                                onChange={(_, newValue: number | number[]) => {
+                                    if (typeof newValue === 'number') {
+                                        setSliderValue(newValue);
+                                        setOidValueState(newValue);
                                     }
                                 }}
                                 sx={{
-                                    mb:
-                                        widget.data.marks && widget.data.sliderOrientation === 'horizontal'
-                                            ? '20px'
-                                            : '0px',
-                                    mr:
-                                        widget.data.marks && widget.data.sliderOrientation === 'vertical'
-                                            ? '44px'
-                                            : '0px',
+                                    mb: widget.data.marks && isHorizontal ? '20px' : '0px',
+                                    mr: widget.data.marks && !isHorizontal ? '44px' : '0px',
                                     '& .MuiSlider-thumb': {
                                         color: widget.data.sliderColor,
                                     },
@@ -470,47 +440,27 @@ const SliderCollection: FC = () => {
                                     },
                                     '& .MuiSlider-valueLabel': {
                                         fontSize:
-                                            formatSize(widget.data.valueSizeActive) ||
+                                            formatSizeRem(widget.data.valueSizeActive) ||
                                             data.valueSizeActive ||
-                                            // (widget.data.markerTextSize && `${widget.data.markerTextSize}%`) ||
                                             (activeIndex &&
                                                 widget.data.markerTextSize &&
-                                                formatSize(widget.data.markerTextSize)) ||
+                                                formatSizeRem(widget.data.markerTextSize)) ||
                                             data.valueSize ||
                                             '1rem',
-
                                         color:
                                             widget.data.textColorActive ||
                                             data.textColorActive ||
                                             (activeIndex && widget.data.markerTextColor) ||
                                             data.textColor,
-
                                         bgcolor: 'transparent',
-
-                                        top:
-                                            widget.data.sliderOrientation === 'horizontal'
-                                                ? widget.data.labelPosition
-                                                : undefined,
-
-                                        right:
-                                            widget.data.sliderOrientation === 'vertical'
-                                                ? widget.data.labelPosition
-                                                : undefined,
+                                        top: isHorizontal ? widget.data.labelPosition : undefined,
+                                        right: !isHorizontal ? widget.data.labelPosition : undefined,
                                     },
-                                    // Global styles for all marks (fallback)
-                                    // IMPORTANT: These styles are overridden by individual styles in CollectionMark.
-                                    // Priority: CollectionMark (individual) > MuiSlider-markLabel (global)
                                     '& .MuiSlider-markLabel': {
                                         fontSize: data.valueSize || '1rem',
                                         color: widget.data.markerTextColor || data.textColor,
-                                        top:
-                                            widget.data.sliderOrientation === 'horizontal'
-                                                ? widget.data.markPosition
-                                                : undefined,
-                                        left:
-                                            widget.data.sliderOrientation === 'vertical'
-                                                ? widget.data.markPosition
-                                                : undefined,
+                                        top: isHorizontal ? widget.data.markPosition : undefined,
+                                        left: !isHorizontal ? widget.data.markPosition : undefined,
                                     },
                                     '& .MuiSlider-markLabelActive': {
                                         [`&[data-index='${sliderMarksIndex}']`]: {
@@ -519,11 +469,8 @@ const SliderCollection: FC = () => {
                                                     ? `${widget.data.textColorActive} !important`
                                                     : undefined,
                                                 fontSize:
-                                                    /* typeof widget.data.valueSizeActive === 'number'
-                                                        ? `${widget.data.valueSizeActive}% !important`
-                                                        : undefined, */
                                                     typeof widget.data.valueSizeActive === 'number'
-                                                        ? `${formatSize(widget.data.valueSizeActive)} !important`
+                                                        ? `${formatSizeRem(widget.data.valueSizeActive)} !important`
                                                         : undefined,
                                             },
                                             "& div[data-position='active']": {
@@ -550,44 +497,26 @@ const SliderCollection: FC = () => {
                     </Box>
 
                     {/* End icon - in normal layout flow */}
-                    {((widget.data.sliderOrientation === 'horizontal' &&
-                        (widget.data.iconMax || widget.data.iconSmallMax)) ||
-                        (widget.data.sliderOrientation === 'vertical' &&
-                            (widget.data.iconMin || widget.data.iconSmallMin))) && (
+                    {endIcon && (
                         <Box
                             sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                flexShrink: 0, // Icon should not shrink
-                                // Dynamic alignment to track center with transform
-                                ...(widget.data.sliderOrientation === 'horizontal'
-                                    ? {
-                                          // Horizontal slider: align icon vertically to track center
-                                          transform: `translateY(${trackOffset.y}px)`,
-                                      }
-                                    : {
-                                          // Vertical slider: align icon horizontally to track center
-                                          transform: `translateX(${trackOffset.x}px)`,
-                                      }),
+                                flexShrink: 0,
+                                transform: isHorizontal
+                                    ? `translateY(${trackOffset.y}px)`
+                                    : `translateX(${trackOffset.x}px)`,
                             }}
                         >
                             <img
                                 alt=""
                                 src={endIcon}
                                 style={{
-                                    width:
-                                        widget.data.sliderOrientation === 'horizontal'
-                                            ? widget.data.iconSizeEnd || '24px'
-                                            : widget.data.iconSizeStart || '24px',
-                                    /* height:
-                                        widget.data.sliderOrientation === 'horizontal'
-                                            ? widget.data.iconSizeEnd || '24px'
-                                            : widget.data.iconSizeStart || '24px', */
-                                    ...getIconColorStyles(
-                                        endIcon,
-                                        widget.data.sliderOrientation === 'horizontal' ? endIconColor : startIconColor,
-                                    ),
+                                    width: isHorizontal
+                                        ? widget.data.iconSizeEnd || '24px'
+                                        : widget.data.iconSizeStart || '24px',
+                                    ...getIconColorStyles(endIcon, isHorizontal ? endIconColor : startIconColor),
                                 }}
                             />
                         </Box>

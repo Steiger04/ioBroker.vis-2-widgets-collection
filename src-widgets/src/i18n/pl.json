@@ -139,5 +139,7 @@
     "rail_background_color": "Kolor tła szyny",
     "mark_width": "Szerokość znaku",
     "mark_height": "Wysokość znaku",
-    "mark_background_color": "Kolor tła znaku"
+    "mark_background_color": "Kolor tła znaku",
+    "enable_icon_color_mask": "Włącz maskę kolorów",
+    "enable_icon_color_mask_tooltip": "Stosuje maskę kolorów do ikon opartych na URL. Niedostępne dla ikon Base64/osadzonych."
 }

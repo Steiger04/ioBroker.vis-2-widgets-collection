@@ -139,5 +139,7 @@
     "rail_background_color": "Couleur de fond du rail",
     "mark_width": "Largeur de la marque",
     "mark_height": "Hauteur de la marque",
-    "mark_background_color": "Couleur de fond de la marque"
+    "mark_background_color": "Couleur de fond de la marque",
+    "enable_icon_color_mask": "Activer le masque de couleur",
+    "enable_icon_color_mask_tooltip": "Applique un masque de couleur aux icônes basées sur URL. Non disponible pour les icônes Base64/intégrées."
 }

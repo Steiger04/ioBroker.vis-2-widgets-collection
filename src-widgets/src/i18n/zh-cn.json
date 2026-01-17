@@ -139,5 +139,7 @@
     "rail_background_color": "导轨背景颜色",
     "mark_width": "标记宽度",
     "mark_height": "标记高度",
-    "mark_background_color": "标记背景颜色"
+    "mark_background_color": "标记背景颜色",
+    "enable_icon_color_mask": "启用颜色遮罩",
+    "enable_icon_color_mask_tooltip": "将颜色遮罩应用于基于URL的图标。不适用于Base64/嵌入式图标。"
 }

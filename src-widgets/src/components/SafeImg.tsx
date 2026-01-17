@@ -10,7 +10,7 @@ const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAAC
 
 type SafeImgProps = {
     /** Image source URL (string). */
-    src?: string;
+    src?: string | null;
     /** Alternate text. */
     alt?: string;
     /** Optional inline styles. */
@@ -27,7 +27,7 @@ type SafeImgProps = {
  * @returns An `<img>` element.
  */
 const SafeImg: React.FC<SafeImgProps> = ({ src, style = {}, alt = '' }) => {
-    const safeSrc = src && src !== 'undefined' ? src : fallback;
+    const safeSrc = src && src !== 'undefined' && src !== null ? src : fallback;
 
     return (
         <img
@@ -35,6 +35,7 @@ const SafeImg: React.FC<SafeImgProps> = ({ src, style = {}, alt = '' }) => {
             alt={alt}
             style={style}
             onError={e => {
+                console.log('ERROR LOADING IMAGE, FALLING BACK TO TRANSPARENT PIXEL');
                 const target = e.currentTarget as HTMLImageElement;
                 target.onerror = null; // prevent infinite onError loops
                 target.src = fallback;

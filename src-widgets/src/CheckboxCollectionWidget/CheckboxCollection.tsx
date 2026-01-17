@@ -13,6 +13,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { gradientColor } from '../lib/helper/gradientColor';
 import type { CheckboxCollectionContextProps } from '../types';
 
 const defaultIconTrue =
@@ -104,6 +105,7 @@ function CheckboxCollection(): React.JSX.Element {
                                             ...getIconColorStyles(
                                                 data.iconActive || defaultIconTrue,
                                                 data.iconColorActive || data.iconColor || theme.palette.primary.main,
+                                                data.forceColorMaskActive ?? false,
                                             ),
                                         }}
                                     />
@@ -127,6 +129,7 @@ function CheckboxCollection(): React.JSX.Element {
                                             ...getIconColorStyles(
                                                 data.iconActive || defaultIconFalse,
                                                 data.iconColorActive || data.iconColor || theme.palette.primary.main,
+                                                data.forceColorMaskActive ?? false,
                                             ),
                                         }}
                                     />
@@ -155,7 +158,14 @@ function CheckboxCollection(): React.JSX.Element {
                                         fontSize: data.valueSizeActive || data.valueSize,
                                         textAlign: 'center',
                                         bgcolor: 'transparent',
-                                        color: data.textColorActive || data.textColor,
+
+                                        background: gradientColor(data.textColorActive || data.textColor),
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: gradientColor(data.textColorActive || data.textColor)
+                                            ? 'transparent'
+                                            : data.textColorActive || data.textColor,
+
                                         textTransform: 'none',
                                         px: 1,
                                         pl: 0,

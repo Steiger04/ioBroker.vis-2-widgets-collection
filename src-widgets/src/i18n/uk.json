@@ -139,5 +139,7 @@
     "rail_background_color": "Колір фону рейки",
     "mark_width": "Ширина мітки",
     "mark_height": "Висота мітки",
-    "mark_background_color": "Колір фону мітки"
+    "mark_background_color": "Колір фону мітки",
+    "enable_icon_color_mask": "Увімкнути кольорову маску",
+    "enable_icon_color_mask_tooltip": "Застосовує кольорову маску до іконок на основі URL. Недоступно для Base64/вбудованих іконок."
 }

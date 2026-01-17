@@ -1,4 +1,4 @@
-import { a7 as R, $ as V, a8 as _, a9 as b, j as D, d as B, aa as v, ab as u, ac as F, ad as M, ae as $, e as E, g as G, af as N, ag as h, s as O, u as U, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
+import { a9 as R, a1 as V, aa as _, ab as b, j as D, d as B, ac as h, ad as u, ae as F, af as M, ag as E, e as G, g as N, ah as O, ai as v, s as U, u as $, __tla as __tla_0 } from "./useData-jcT7BVTY.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 let Z;
 let __tla = Promise.all([
@@ -28,7 +28,7 @@ let __tla = Promise.all([
       props: e
     });
   }
-  const q = N(), z = A("div", {
+  const q = O(), z = A("div", {
     name: "MuiStack",
     slot: "Root",
     overridesResolver: (e, s) => s.root
@@ -55,7 +55,7 @@ let __tla = Promise.all([
     let o = {
       display: "flex",
       flexDirection: "column",
-      ...v({
+      ...h({
         theme: s
       }, u({
         values: e.direction,
@@ -77,27 +77,27 @@ let __tla = Promise.all([
           const l = c > 0 ? a[i[c - 1]] : "column";
           a[r] = l;
         }
-      }), o = M(o, v({
+      }), o = M(o, h({
         theme: s
       }, d, (r, c) => e.useFlexGap ? {
-        gap: h(t, r)
+        gap: v(t, r)
       } : {
         "& > :not(style):not(style)": {
           margin: 0
         },
         "& > :not(style) ~ :not(style)": {
-          [`margin${J(c ? a[c] : e.direction)}`]: h(t, r)
+          [`margin${J(c ? a[c] : e.direction)}`]: v(t, r)
         }
       }));
     }
-    return o = $(s.breakpoints, o), o;
+    return o = E(s.breakpoints, o), o;
   };
   function Q(e = {}) {
-    const { createStyledComponent: s = z, useThemeProps: o = H, componentName: t = "MuiStack" } = e, n = () => E({
+    const { createStyledComponent: s = z, useThemeProps: o = H, componentName: t = "MuiStack" } = e, n = () => G({
       root: [
         "root"
       ]
-    }, (r) => G(t, r), {}), a = s(K);
+    }, (r) => N(t, r), {}), a = s(K);
     return p.forwardRef(function(r, c) {
       const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, j = {
         direction: k,
@@ -115,12 +115,12 @@ let __tla = Promise.all([
     });
   }
   Z = Q({
-    createStyledComponent: O("div", {
+    createStyledComponent: U("div", {
       name: "MuiStack",
       slot: "Root",
       overridesResolver: (e, s) => s.root
     }),
-    useThemeProps: (e) => U({
+    useThemeProps: (e) => $({
       props: e,
       name: "MuiStack"
     })

@@ -43,6 +43,12 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
 
     const iconColor = data.iconColorActive || data.iconColor || theme.palette.primary.main;
 
+    // Determine which toggle to use based on which icon is being rendered
+    // const isActiveIcon = !data.icon && typeof data.iconActive === 'string';
+    /* const forceColorMask = isActiveIcon
+        ? (widget.data.enableIconColorMaskActive ?? false)
+        : (widget.data.enableIconColorMask ?? false); */
+
     return !widget.data.noHeaderIcon && iconSrc ? (
         <img
             alt=""
@@ -54,7 +60,12 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
                 // width: iconSize,
                 height: iconSize,
 
-                ...getIconColorStyles(iconSrc, iconColor),
+                ...getIconColorStyles(
+                    iconSrc,
+                    iconColor,
+                    (data.forceColorMaskActive && data.iconColorActive) ||
+                        (widget.data.enableIconColorMask && widget.data.iconColor),
+                ),
             }}
         />
     ) : null;

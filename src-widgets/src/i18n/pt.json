@@ -139,5 +139,7 @@
     "rail_background_color": "Cor de fundo do trilho",
     "mark_width": "Largura da marca",
     "mark_height": "Altura da marca",
-    "mark_background_color": "Cor de fundo da marca"
+    "mark_background_color": "Cor de fundo da marca",
+    "enable_icon_color_mask": "Ativar máscara de cor",
+    "enable_icon_color_mask_tooltip": "Aplica máscara de cor a ícones baseados em URL. Não disponível para ícones Base64/incorporados."
 }

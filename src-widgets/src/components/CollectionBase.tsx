@@ -19,6 +19,7 @@ import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData';
 import { type SxProps, type Theme } from '@mui/material/styles';
+import { gradientColor } from '../lib/helper/gradientColor';
 
 /**
  * Props for {@link module:components/CollectionBase.default}.
@@ -171,7 +172,13 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.headerSize,
-                                    color: widget.data.textColor || data.textColorActive || data.textColor,
+                                    // background: widget.data.textColor || data.textColorActive || data.textColor,
+                                    background: gradientColor(data.textColorActive || data.textColor),
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: gradientColor(data.textColorActive || data.textColor)
+                                        ? 'transparent'
+                                        : data.textColorActive || data.textColor,
                                 }}
                             />
                         </Box>
@@ -212,10 +219,10 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                         ? data.backgroundColorActive || data.backgroundColor || borderStyles.borderColor
                                         : borderStyles.borderColor,
                                     background: wrappedContent
-                                        ? widget.data.backgroundColorActive ||
+                                        ? (bgActive && widget.data.backgroundColorActive) ||
                                           (bgActive && data.backgroundColorActive) ||
-                                          data.backgroundColor ||
-                                          widget.data.backgroundActive ||
+                                          (bgActive && data.backgroundColor) ||
+                                          (bgActive && widget.data.backgroundActive) ||
                                           (bgActive && data.backgroundActive) ||
                                           data.background
                                         : 'transparent',
@@ -241,7 +248,13 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.footerSize,
-                                    color: widget.data.textColor || data.textColorActive || data.textColor,
+                                    // background: widget.data.textColor || data.textColorActive || data.textColor,
+                                    background: gradientColor(data.textColorActive || data.textColor),
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: gradientColor(data.textColorActive || data.textColor)
+                                        ? 'transparent'
+                                        : data.textColorActive || data.textColor,
                                 }}
                             />
                         </Box>

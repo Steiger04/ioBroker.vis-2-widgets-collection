@@ -15,6 +15,7 @@ import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { gradientColor } from '../lib/helper/gradientColor';
 import type { RadioGroupCollectionContextProps } from '../types';
 
 /**
@@ -36,11 +37,22 @@ function RadioGroupCollection(): React.ReactElement {
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
-
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
+
+    // Extract orientation-dependent values for clarity
+    const isHorizontal = widget.data.radioOrientation === 'horizontal';
+    const itemSize = radioGroupHeight && states.length > 0 ? radioGroupHeight / states.length : undefined;
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         updateOidValue(event.target.value);
+    };
+
+    // Calculate icon size once
+    const getIconSize = (): string => {
+        if (typeof data.iconSizeOnly === 'number') {
+            return `calc(100% * ${data.iconSizeOnly} / 100)`;
+        }
+        return '50%';
     };
 
     return (
@@ -57,109 +69,81 @@ function RadioGroupCollection(): React.ReactElement {
             <Stack
                 spacing={0}
                 ref={setStackRef}
-                direction={widget.data.radioOrientation === 'vertical' ? 'column' : 'row'}
+                direction={isHorizontal ? 'row' : 'column'}
                 sx={{
-                    width: widget.data.radioOrientation === 'horizontal' ? '100%' : 'auto',
+                    width: isHorizontal ? '100%' : 'auto',
                     height: '100%',
-                    // For horizontal: space-around centers buttons nicely
-                    // For vertical: flex-start allows flex children to distribute equally
-                    justifyContent: widget.data.radioOrientation === 'horizontal' ? 'space-around' : 'flex-start',
-                    alignItems: widget.data.radioOrientation === 'horizontal' ? 'center' : 'stretch',
+                    justifyContent: isHorizontal ? 'space-around' : 'flex-start',
+                    alignItems: isHorizontal ? 'center' : 'stretch',
                 }}
             >
-                {states.map(({ value, label: alias, ...state }, index) => (
-                    <FormControlLabel
-                        key={index}
-                        labelPlacement={widget.data.labelPlacement}
-                        sx={{
-                            m: 0,
-                            pr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
-                            pl: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
+                {states.map(({ value, label: alias, ...state }, index) => {
+                    const textColorValue = state.textColor || data.textColor;
+                    const gradient = gradientColor(textColorValue);
 
-                            display: 'flex',
-                            alignItems: 'center',
-                            // Center icons when labels are hidden
-                            justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
-
-                            // Full width for FormControlLabel
-                            width: '100%',
-
-                            // For vertical orientation: equal height distribution
-                            ...(widget.data.radioOrientation === 'vertical' && {
-                                flex: '1 1 0',
-                                minHeight: 0,
-                            }),
-                            // For horizontal orientation: auto sizing based on content
-                            ...(widget.data.radioOrientation === 'horizontal' && {
-                                height: '100%',
-                            }),
-
-                            '& .MuiButtonBase-root': {
-                                // Full width for Radio button
+                    return (
+                        <FormControlLabel
+                            key={index}
+                            labelPlacement={widget.data.labelPlacement}
+                            sx={{
+                                m: 0,
+                                pr: widget.data.labelPlacement === 'end' && !widget.data.hideLabels ? 1 : 0,
+                                pl: widget.data.labelPlacement === 'start' && !widget.data.hideLabels ? 1 : 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: widget.data.hideLabels ? 'center' : 'flex-start',
                                 width: '100%',
-                                padding: 0,
-
-                                // For horizontal orientation: enforce square shape
-                                ...(widget.data.radioOrientation === 'horizontal' && {
-                                    aspectRatio: '1',
-                                    maxWidth: radioGroupHeight || undefined,
-                                    maxHeight: radioGroupHeight || undefined,
-                                    flexShrink: 0,
+                                // Vertical: equal height distribution
+                                ...(!isHorizontal && {
+                                    flex: '1 1 0',
+                                    minHeight: 0,
                                 }),
-                                // For vertical orientation: fixed size per button
-                                ...(widget.data.radioOrientation === 'vertical' && {
-                                    height: radioGroupHeight ? `${radioGroupHeight / states.length}px` : 'auto',
-                                    maxWidth: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
-                                    maxHeight: radioGroupHeight ? `${radioGroupHeight / states.length}px` : undefined,
-                                    flexShrink: 0,
+                                // Horizontal: auto sizing based on content
+                                ...(isHorizontal && {
+                                    height: '100%',
                                 }),
-
-                                '&.Mui-disabled': {
-                                    '&.Mui-checked': {
-                                        color: state.iconColor || 'primary.main',
+                                '& .MuiButtonBase-root': {
+                                    width: '100%',
+                                    padding: 0,
+                                    // Horizontal: enforce square shape
+                                    ...(isHorizontal && {
+                                        aspectRatio: '1',
+                                        maxWidth: radioGroupHeight || undefined,
+                                        maxHeight: radioGroupHeight || undefined,
+                                        flexShrink: 0,
+                                    }),
+                                    // Vertical: fixed size per button
+                                    ...(!isHorizontal && {
+                                        height: itemSize ? `${itemSize}px` : 'auto',
+                                        maxWidth: itemSize || undefined,
+                                        maxHeight: itemSize || undefined,
+                                        flexShrink: 0,
+                                    }),
+                                    '&.Mui-disabled': {
+                                        '&.Mui-checked': {
+                                            color: state.iconColor || 'primary.main',
+                                        },
+                                        color: widget.data.radioGroupUncheckedIconColor || 'action.active',
                                     },
-                                    color: widget.data.radioGroupUncheckedIconColor || 'action.active',
                                 },
-                            },
-
-                            // Label styling - ensure it has defined width for text-align
-                            '& .MuiFormControlLabel-label': {
-                                flex: '1 1 auto',
-                                minWidth: 0,
-                                overflow: 'hidden',
-                                // Hide label completely when hideLabels is active
-                                ...(widget.data.hideLabels && {
-                                    display: 'none',
-                                }),
-                            },
-                        }}
-                        control={
-                            <Radio
-                                disabled={widget.data.onlyDisplay}
-                                checkedIcon={
-                                    (state.icon && (
-                                        <Box
-                                            sx={{
-                                                overflow: 'hidden',
-                                                position: 'relative',
-                                                width: '100%',
-                                                height: '100%',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                            }}
-                                        >
-                                            <RadioButtonUncheckedIcon
-                                                sx={{
-                                                    color: state.iconColor,
-                                                    position: 'relative',
-                                                    width: '100%',
-                                                    height: '100%',
-                                                }}
-                                            />
+                                '& .MuiFormControlLabel-label': {
+                                    flex: '1 1 auto',
+                                    minWidth: 0,
+                                    overflow: 'hidden',
+                                    ...(widget.data.hideLabels && {
+                                        display: 'none',
+                                    }),
+                                },
+                            }}
+                            control={
+                                <Radio
+                                    disabled={widget.data.onlyDisplay}
+                                    checkedIcon={
+                                        state.icon ? (
                                             <Box
                                                 sx={{
-                                                    position: 'absolute',
+                                                    overflow: 'hidden',
+                                                    position: 'relative',
                                                     width: '100%',
                                                     height: '100%',
                                                     display: 'flex',
@@ -167,104 +151,114 @@ function RadioGroupCollection(): React.ReactElement {
                                                     alignItems: 'center',
                                                 }}
                                             >
-                                                <img
-                                                    alt=""
-                                                    src={state.icon}
-                                                    style={{
+                                                <RadioButtonUncheckedIcon
+                                                    sx={{
+                                                        color: state.iconColor,
                                                         position: 'relative',
-                                                        left: `calc(0px + ${data.iconXOffset})`,
-                                                        top: `calc(0px - ${data.iconYOffset})`,
-                                                        width:
-                                                            (typeof data.iconSizeOnly === 'number' &&
-                                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                                            '50%',
-                                                        ...getIconColorStyles(state.icon, state.iconColor),
+                                                        width: '100%',
+                                                        height: '100%',
                                                     }}
                                                 />
+                                                <Box
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        display: 'flex',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center',
+                                                    }}
+                                                >
+                                                    <img
+                                                        alt=""
+                                                        src={state.icon}
+                                                        style={{
+                                                            position: 'relative',
+                                                            left: `calc(0px + ${data.iconXOffset})`,
+                                                            top: `calc(0px - ${data.iconYOffset})`,
+                                                            width: getIconSize(),
+                                                            ...getIconColorStyles(
+                                                                state.icon,
+                                                                state.iconColor,
+                                                                state.forceColorMask,
+                                                            ),
+                                                        }}
+                                                    />
+                                                </Box>
                                             </Box>
-                                        </Box>
-                                    )) || (
-                                        <RadioButtonCheckedIcon
+                                        ) : (
+                                            <RadioButtonCheckedIcon
+                                                sx={{
+                                                    color: state.iconColor,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                }}
+                                            />
+                                        )
+                                    }
+                                    icon={
+                                        <RadioButtonUncheckedIcon
                                             sx={{
-                                                color: state.iconColor,
                                                 width: '100%',
                                                 height: '100%',
                                             }}
                                         />
-                                    )
-                                }
-                                icon={
-                                    <RadioButtonUncheckedIcon
-                                        sx={{
-                                            width: '100%',
-                                            height: '100%',
-                                        }}
-                                    />
-                                }
-                                sx={{
-                                    color: widget.data.radioGroupUncheckedIconColor,
-                                    width: '100%',
-                                    height: '100%',
-                                    maxHeight:
-                                        widget.data.radioOrientation === 'horizontal'
-                                            ? radioGroupHeight || undefined
-                                            : radioGroupHeight
-                                              ? radioGroupHeight / states.length
-                                              : undefined,
-
-                                    '& .MuiTouchRipple-root': {
-                                        color:
-                                            widget.data[`iconColor${index + 1}`] ||
-                                            widget.data.iconColor ||
-                                            data.textColor,
-                                    },
-
-                                    '& .MuiSvgIcon-root': {
+                                    }
+                                    sx={{
+                                        color: widget.data.radioGroupUncheckedIconColor,
                                         width: '100%',
                                         height: '100%',
-                                        maxHeight:
-                                            widget.data.radioOrientation === 'horizontal'
-                                                ? radioGroupHeight || undefined
-                                                : radioGroupHeight
-                                                  ? radioGroupHeight / states.length
-                                                  : undefined,
-                                    },
-                                }}
-                                checked={String(value) === String(oidValue)}
-                                onChange={handleChange}
-                                value={value}
-                            />
-                        }
-                        label={
-                            !widget.data.hideLabels ? (
-                                <Typography
-                                    component={Box}
-                                    variant="body2"
-                                    sx={{
-                                        width: '100%',
-                                        display: '-webkit-box',
-                                        WebkitBoxOrient: 'vertical',
-                                        WebkitLineClamp: 2,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        wordBreak: 'break-word',
-                                        fontSize: state.fontSize || data.valueSize,
-                                        textAlign: 'left',
-
-                                        color: state.textColor || data.textColor,
+                                        maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
+                                        '& .MuiTouchRipple-root': {
+                                            color:
+                                                widget.data[`iconColor${index + 1}`] ||
+                                                widget.data.iconColor ||
+                                                data.textColor,
+                                        },
+                                        '& .MuiSvgIcon-root': {
+                                            width: '100%',
+                                            height: '100%',
+                                            maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
+                                        },
                                     }}
-                                    contentEditable="false"
-                                    dangerouslySetInnerHTML={{
-                                        __html:
-                                            (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
-                                            (value && `${value}${oidObject?.unit}`) ||
-                                            '',
-                                    }}
+                                    checked={String(value) === String(oidValue)}
+                                    onChange={handleChange}
+                                    value={value}
                                 />
-                            ) : undefined
-                        }
-                    />
-                ))}
+                            }
+                            label={
+                                !widget.data.hideLabels ? (
+                                    <Typography
+                                        component={Box}
+                                        variant="body2"
+                                        sx={{
+                                            width: '100%',
+                                            display: '-webkit-box',
+                                            WebkitBoxOrient: 'vertical',
+                                            WebkitLineClamp: 2,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            wordBreak: 'break-word',
+                                            fontSize: state.fontSize || data.valueSize,
+                                            textAlign: 'left',
+                                            background: gradient,
+                                            WebkitBackgroundClip: 'text',
+                                            backgroundClip: 'text',
+                                            color: gradient ? 'transparent' : textColorValue,
+                                        }}
+                                        contentEditable="false"
+                                        dangerouslySetInnerHTML={{
+                                            __html:
+                                                (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
+                                                (value && `${value}${oidObject?.unit}`) ||
+                                                '',
+                                        }}
+                                    />
+                                ) : undefined
+                            }
+                        />
+                    );
+                })}
             </Stack>
         </CollectionBase>
     );

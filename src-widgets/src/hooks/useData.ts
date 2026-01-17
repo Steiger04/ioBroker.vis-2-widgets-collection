@@ -26,7 +26,7 @@ import { formatSizeRem } from '../lib/helper/formatSizeRem';
  */
 export interface StyleData {
     /** Text color (from widget config or theme). */
-    textColor: string;
+    textColor?: string;
     /** Active-state text color. */
     textColorActive?: string;
 
@@ -49,16 +49,18 @@ export interface StyleData {
     /** Active value font size (or `false` when not configured). */
     valueSizeActive: string | null;
 
-    /** Icon URL/name or `false` when not configured. */
-    icon: string | false;
-    /** Active icon URL/name (or `false`). */
-    iconActive: string | false;
+    /** Icon URL/name or `null` when not configured. */
+    icon: string | null;
+    /** Active icon URL/name (or `null`). */
+    iconActive: string | null;
     /** Icon size as CSS string. */
     iconSize: string;
     /** Active icon size (or `false`). */
     iconSizeActive: string | false;
     /** Active icon size as numeric percent when available. */
     iconSizeActiveOnly?: number;
+    /** Force color mask on icon when active. */
+    forceColorMaskActive?: boolean;
     /** Icon size as numeric percent when available. */
     iconSizeOnly?: number;
     /** Icon color. */
@@ -96,9 +98,39 @@ export interface StyleData {
 /**
  * Internal representation of a state entry, enriched with resolved presentation properties.
  */
-interface StateItem {
+/**
+ * Represents a state item with visual and data properties.
+ *
+ * @interface StateItem
+ * @property {string | number | boolean} value - The current value of the state item
+ * @property {string | null} valueSize - Size specification for the value display
+ * @property {string} label - Display label for the state item
+ * @property {string} alias - Alternative name or identifier for the state item
+ * @property {string | null} [fontSize] - Optional font size for text display
+ * @property {string} [textColor] - Optional color for text display
+ * @property {string} [icon] - Optional icon identifier or path
+ * @property {number} [iconSize] - Optional size of the icon
+ * @property {number} iconWidth - Width of the icon in pixels
+ * @property {number} iconHeight - Height of the icon in pixels
+ * @property {string} iconXOffset - Horizontal offset for icon positioning
+ * @property {string} iconYOffset - Vertical offset for icon positioning
+ * @property {string} [iconColor] - Optional color for the icon
+ * @property {string} [iconHover] - Optional icon to display on hover
+ * @property {boolean} [forceColorMask] - Optional flag to force color mask application
+ * @property {string} backgroundColor - Background color in default state
+ * @property {string} [backgroundColorActive] - Optional background color when active
+ * @property {string} background - Background style or image in default state
+ * @property {string} [backgroundActive] - Optional background style or image when active
+ * @property {string} frameBackgroundColor - Frame background color in default state
+ * @property {string} [frameBackgroundColorActive] - Optional frame background color when active
+ * @property {string} frameBackground - Frame background style or image in default state
+ * @property {string} [frameBackgroundActive] - Optional frame background style or image when active
+ */
+export interface StateItem {
     value: string | number | boolean;
+    valueSize: string | null;
     label: string;
+    alias: string;
     fontSize?: string | null;
     textColor?: string;
     icon?: string;
@@ -108,6 +140,8 @@ interface StateItem {
     iconXOffset: string;
     iconYOffset: string;
     iconColor?: string;
+    iconHover?: string;
+    forceColorMask?: boolean;
     backgroundColor: string;
     backgroundColorActive?: string;
     background: string;
@@ -143,7 +177,7 @@ function useData(oid: string) {
 
     const oidObject = rxData[`${oid}Object`] as OidObject | undefined;
 
-    const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
+    const { fontStyles, backgroundStyles } = useStyles(widget.style);
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
     const oidValue = getPropertyValue(oid);
 
@@ -212,7 +246,17 @@ function useData(oid: string) {
                                 : oidType === 'number'
                                   ? Number(_value)
                                   : _value,
+
+                            valueSize:
+                                typeof getDataValue('valueSize', String(i)) === 'number'
+                                    ? formatSize(getDataValue('valueSize', String(i)))
+                                    : null,
+
                             label: String(
+                                _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
+                            ).replace(/(\r\n|\n|\r)/gm, ''),
+
+                            alias: String(
                                 _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`,
                             ).replace(/(\r\n|\n|\r)/gm, ''),
 
@@ -368,6 +412,14 @@ function useData(oid: string) {
                                 // textStyles.color ||
                                 theme.palette.primary.main,
 
+                            iconHover: (() => {
+                                const val = getDataValue<number>('iconHover', String(i));
+                                return val ? `${val}%` : undefined;
+                            })(),
+
+                            forceColorMask:
+                                rxData[`enableIconColorMask${i}`] ?? (rxData.enableIconColorMaskActive || false),
+
                             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
                             backgroundColorActive: getDataValue<string>('backgroundColor', String(i)),
 
@@ -416,7 +468,8 @@ function useData(oid: string) {
     // Styling data
     const data = useMemo(() => {
         const getStyleData = (ext: string | number = ''): StyleData => ({
-            textColor: rxData.textColor || textStyles.color || theme.palette.primary.main,
+            // textColor: rxData.textColor || textStyles.color || theme.palette.primary.main,
+            textColor: rxData.textColor,
             textColorActive: getDataValue<string>('textColor', String(ext)),
 
             header: String(
@@ -454,22 +507,24 @@ function useData(oid: string) {
 
             icon: (() => {
                 if (rxData.noIcon) {
-                    return false;
+                    return null;
                 }
                 const iconValue = rxData.icon || rxData.iconSmall;
-                return typeof iconValue === 'string' ? iconValue : false;
+                return typeof iconValue === 'string' ? iconValue : null;
             })(),
             iconActive: (() => {
                 const iconVal =
                     !rxData.noIcon &&
                     (getDataValue<string>('icon', String(ext)) || getDataValue<string>('iconSmall', String(ext)));
-                return typeof iconVal === 'string' ? iconVal : false;
+                return typeof iconVal === 'string' ? iconVal : null;
             })(),
             iconSize: (typeof rxData.iconSize === 'number' && `calc(24px * ${rxData.iconSize} / 100)`) || '24px',
             iconSizeActive: (() => {
                 const size = getDataValue<number>('iconSize', String(ext));
                 return size ? `calc(24px * ${size} / 100)` : false;
             })(),
+
+            forceColorMaskActive: getDataValue<boolean>('enableIconColorMask', String(ext)) || false,
 
             iconSizeActiveOnly: getDataValue<number>('iconSize', String(ext)),
             iconSizeOnly:
@@ -531,19 +586,7 @@ function useData(oid: string) {
             default:
                 return getStyleData('');
         }
-    }, [
-        oidObject,
-        oidValue,
-        oidName,
-        rxData,
-        states,
-        theme,
-        fontStyles,
-        textStyles,
-        backgroundStyles,
-        formatSize,
-        getDataValue,
-    ]);
+    }, [oidObject, oidValue, oidName, rxData, states, fontStyles, backgroundStyles, formatSize, getDataValue]);
 
     return {
         states,

@@ -14,6 +14,8 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
+import { gradientColor } from '../lib/helper/gradientColor';
+import CollectionBaseImage from '../components/CollectionBaseImage';
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -128,6 +130,10 @@ function DialogCollection(): React.ReactElement {
                 isValidType={isValidType}
                 data={data}
             >
+                <CollectionBaseImage
+                    data={data}
+                    widget={widget}
+                />
                 <Box
                     sx={{
                         width: '100%',
@@ -183,7 +189,11 @@ function DialogCollection(): React.ReactElement {
                                             (typeof data.iconSizeOnly === 'number' &&
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                             '100%',
-                                        ...getIconColorStyles(data.icon, data.iconColor),
+                                        ...getIconColorStyles(
+                                            data.icon,
+                                            data.iconColor,
+                                            data.forceColorMaskActive ?? false,
+                                        ),
                                     }}
                                 />
                             </Box>
@@ -205,8 +215,12 @@ function DialogCollection(): React.ReactElement {
                                     alignItems: 'center',
 
                                     fontSize: data.valueSize,
-                                    color: data.textColor,
                                     textTransform: 'none',
+
+                                    background: gradientColor(data.textColorActive || data.textColor),
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
                                 }}
                                 dangerouslySetInnerHTML={{
                                     __html: htmlValue !== undefined ? String(htmlValue) : '',

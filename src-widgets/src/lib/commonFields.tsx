@@ -11,6 +11,7 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
+import { isUrlIcon } from './helper/isUrlIcon';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
@@ -66,6 +67,36 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             // default: 0,
             step: 1,
             hidden: 'data.noIcon',
+        },
+        {
+            name: `enableIconColorMask${groupName}`,
+            label: 'enable_icon_color_mask',
+            type: 'checkbox',
+            default: false,
+            tooltip: 'enable_icon_color_mask_tooltip',
+            hidden: (data, index) => {
+                let _hidden = true;
+
+                const suffix = index !== undefined ? index : groupName;
+                const iconField = data[`icon${suffix}`];
+                const iconSmallField = data[`iconSmall${suffix}`];
+
+                if (suffix === '' || suffix === 'Active') {
+                    _hidden = !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                }
+
+                if (index !== undefined) {
+                    _hidden = !data.icon && !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                }
+
+                return _hidden;
+            },
+            /* hidden: (data, index) => {
+                const suffix = index !== undefined ? index : groupName;
+                const iconField = data[`icon${suffix}`];
+                const iconSmallField = data[`iconSmall${suffix}`];
+                return !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+            }, */
         },
         {
             name: `iconColor${groupName}`,
@@ -202,10 +233,33 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             label: 'squared_corner',
             type: 'checkbox',
         },
-        {
+        /* {
             name: `textColor${groupName}`,
             label: 'text_color',
             type: 'color',
+        }, */
+        {
+            name: `textColor${groupName}`,
+            label: 'text_color',
+            default: '',
+            type: 'custom', // important
+            fallbackFields: [],
+            component: (
+                // important
+                field, // field properties: {name, label, type, set, singleName, component,...}
+                data, // widget data
+                onDataChange, // function to call, when data changed
+                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+            ) => (
+                <CollectionGradientColorPicker
+                    field={field}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            ),
         },
         {
             label: '',

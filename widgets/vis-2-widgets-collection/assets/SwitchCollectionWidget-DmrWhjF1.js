@@ -1,11 +1,11 @@
-import { a as A, g as I, u as F, b as f, s as w, d as V, j as n, i as h, e as W, m as S, o as p, Y as D, Z as U, _ as N, C as y, z as X, v as E, y as H, A as L, w as x, G as Y, E as $, H as G, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
-import { C as Z, c as q, __tla as __tla_1 } from "./CollectionBaseImage-DtLpy4OM.js";
-import { u as J, d as K, __tla as __tla_2 } from "./useValueState-O1j7ZVnY.js";
-import { v as C, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as Q, __tla as __tla_4 } from "./SwitchBase-BeDe1_LB.js";
+import { a as I, g as F, u as W, b as S, s as b, d as D, j as n, i as u, e as V, m as w, o as x, _ as U, $ as N, a0 as X, C as y, N as f, z as $, v as E, y as G, E as H, G as L, w as z, H as Y, J as M, K as J, __tla as __tla_0 } from "./useData-jcT7BVTY.js";
+import { c as K, __tla as __tla_1 } from "./commonObjectFields-BdQ1taWT.js";
+import { u as q, d as Q, __tla as __tla_2 } from "./useValueState-Dh4wU42k.js";
+import { v as k, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { S as Z, __tla as __tla_4 } from "./SwitchBase-BWBrJprg.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let B;
+let j;
 let __tla = Promise.all([
   (() => {
     try {
@@ -39,9 +39,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function tt(t) {
-    return I("MuiSwitch", t);
+    return F("MuiSwitch", t);
   }
-  const r = A("MuiSwitch", [
+  const r = I("MuiSwitch", [
     "root",
     "edgeStart",
     "edgeEnd",
@@ -56,17 +56,17 @@ let __tla = Promise.all([
     "thumb",
     "track"
   ]), et = (t) => {
-    const { classes: e, edge: o, size: i, color: a, checked: s, disabled: g } = t, u = {
+    const { classes: e, edge: o, size: i, color: s, checked: a, disabled: h } = t, p = {
       root: [
         "root",
-        o && `edge${h(o)}`,
-        `size${h(i)}`
+        o && `edge${u(o)}`,
+        `size${u(i)}`
       ],
       switchBase: [
         "switchBase",
-        `color${h(a)}`,
-        s && "checked",
-        g && "disabled"
+        `color${u(s)}`,
+        a && "checked",
+        h && "disabled"
       ],
       thumb: [
         "thumb"
@@ -77,20 +77,20 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, m = W(u, tt, e);
+    }, g = V(p, tt, e);
     return {
       ...e,
-      ...m
+      ...g
     };
-  }, ot = w("span", {
+  }, ot = b("span", {
     name: "MuiSwitch",
     slot: "Root",
     overridesResolver: (t, e) => {
       const { ownerState: o } = t;
       return [
         e.root,
-        o.edge && e[`edge${h(o.edge)}`],
-        e[`size${h(o.size)}`]
+        o.edge && e[`edge${u(o.edge)}`],
+        e[`size${u(o.size)}`]
       ];
     }
   })({
@@ -145,7 +145,7 @@ let __tla = Promise.all([
         }
       }
     ]
-  }), it = w(Q, {
+  }), it = b(Z, {
     name: "MuiSwitch",
     slot: "SwitchBase",
     overridesResolver: (t, e) => {
@@ -155,10 +155,10 @@ let __tla = Promise.all([
         {
           [`& .${r.input}`]: e.input
         },
-        o.color !== "default" && e[`color${h(o.color)}`]
+        o.color !== "default" && e[`color${u(o.color)}`]
       ];
     }
-  })(S(({ theme: t }) => ({
+  })(w(({ theme: t }) => ({
     position: "absolute",
     top: 0,
     left: 0,
@@ -186,15 +186,15 @@ let __tla = Promise.all([
       left: "-100%",
       width: "300%"
     }
-  })), S(({ theme: t }) => ({
+  })), w(({ theme: t }) => ({
     "&:hover": {
-      backgroundColor: t.vars ? `rgba(${t.vars.palette.action.activeChannel} / ${t.vars.palette.action.hoverOpacity})` : p(t.palette.action.active, t.palette.action.hoverOpacity),
+      backgroundColor: t.vars ? `rgba(${t.vars.palette.action.activeChannel} / ${t.vars.palette.action.hoverOpacity})` : x(t.palette.action.active, t.palette.action.hoverOpacity),
       "@media (hover: none)": {
         backgroundColor: "transparent"
       }
     },
     variants: [
-      ...Object.entries(t.palette).filter(D([
+      ...Object.entries(t.palette).filter(U([
         "light"
       ])).map(([e]) => ({
         props: {
@@ -204,13 +204,13 @@ let __tla = Promise.all([
           [`&.${r.checked}`]: {
             color: (t.vars || t).palette[e].main,
             "&:hover": {
-              backgroundColor: t.vars ? `rgba(${t.vars.palette[e].mainChannel} / ${t.vars.palette.action.hoverOpacity})` : p(t.palette[e].main, t.palette.action.hoverOpacity),
+              backgroundColor: t.vars ? `rgba(${t.vars.palette[e].mainChannel} / ${t.vars.palette.action.hoverOpacity})` : x(t.palette[e].main, t.palette.action.hoverOpacity),
               "@media (hover: none)": {
                 backgroundColor: "transparent"
               }
             },
             [`&.${r.disabled}`]: {
-              color: t.vars ? t.vars.palette.Switch[`${e}DisabledColor`] : `${t.palette.mode === "light" ? U(t.palette[e].main, 0.62) : N(t.palette[e].main, 0.55)}`
+              color: t.vars ? t.vars.palette.Switch[`${e}DisabledColor`] : `${t.palette.mode === "light" ? N(t.palette[e].main, 0.62) : X(t.palette[e].main, 0.55)}`
             }
           },
           [`&.${r.checked} + .${r.track}`]: {
@@ -219,11 +219,11 @@ let __tla = Promise.all([
         }
       }))
     ]
-  }))), st = w("span", {
+  }))), at = b("span", {
     name: "MuiSwitch",
     slot: "Track",
     overridesResolver: (t, e) => e.track
-  })(S(({ theme: t }) => ({
+  })(w(({ theme: t }) => ({
     height: "100%",
     width: "100%",
     borderRadius: 14 / 2,
@@ -236,82 +236,82 @@ let __tla = Promise.all([
     }),
     backgroundColor: t.vars ? t.vars.palette.common.onBackground : `${t.palette.mode === "light" ? t.palette.common.black : t.palette.common.white}`,
     opacity: t.vars ? t.vars.opacity.switchTrack : `${t.palette.mode === "light" ? 0.38 : 0.3}`
-  }))), at = w("span", {
+  }))), st = b("span", {
     name: "MuiSwitch",
     slot: "Thumb",
     overridesResolver: (t, e) => e.thumb
-  })(S(({ theme: t }) => ({
+  })(w(({ theme: t }) => ({
     boxShadow: (t.vars || t).shadows[1],
     backgroundColor: "currentColor",
     width: 20,
     height: 20,
     borderRadius: "50%"
-  }))), rt = C.forwardRef(function(e, o) {
-    const i = F({
+  }))), rt = k.forwardRef(function(e, o) {
+    const i = W({
       props: e,
       name: "MuiSwitch"
-    }), { className: a, color: s = "primary", edge: g = false, size: u = "medium", sx: m, slots: c = {}, slotProps: l = {}, ...M } = i, d = {
+    }), { className: s, color: a = "primary", edge: h = false, size: p = "medium", sx: g, slots: l = {}, slotProps: c = {}, ...B } = i, d = {
       ...i,
-      color: s,
-      edge: g,
-      size: u
-    }, b = et(d), v = {
-      slots: c,
-      slotProps: l
-    }, [_, O] = f("root", {
-      className: V(b.root, a),
+      color: a,
+      edge: h,
+      size: p
+    }, m = et(d), v = {
+      slots: l,
+      slotProps: c
+    }, [_, T] = S("root", {
+      className: D(m.root, s),
       elementType: ot,
       externalForwardedProps: v,
       ownerState: d,
       additionalProps: {
-        sx: m
+        sx: g
       }
-    }), [j, T] = f("thumb", {
-      className: b.thumb,
-      elementType: at,
+    }), [O, R] = S("thumb", {
+      className: m.thumb,
+      elementType: st,
       externalForwardedProps: v,
       ownerState: d
-    }), k = n.jsx(j, {
-      ...T
-    }), [R, P] = f("track", {
-      className: b.track,
-      elementType: st,
+    }), C = n.jsx(O, {
+      ...R
+    }), [P, A] = S("track", {
+      className: m.track,
+      elementType: at,
       externalForwardedProps: v,
       ownerState: d
     });
     return n.jsxs(_, {
-      ...O,
+      ...T,
       children: [
         n.jsx(it, {
           type: "checkbox",
-          icon: k,
-          checkedIcon: k,
+          icon: C,
+          checkedIcon: C,
           ref: o,
           ownerState: d,
-          ...M,
+          ...B,
           classes: {
-            ...b,
-            root: b.switchBase
+            ...m,
+            root: m.switchBase
           },
           slots: {
-            ...c.switchBase && {
-              root: c.switchBase
+            ...l.switchBase && {
+              root: l.switchBase
             },
-            ...c.input && {
-              input: c.input
+            ...l.input && {
+              input: l.input
             }
           },
           slotProps: {
-            ...l.switchBase && {
-              root: typeof l.switchBase == "function" ? l.switchBase(d) : l.switchBase
+            ...c.switchBase && {
+              root: typeof c.switchBase == "function" ? c.switchBase(d) : c.switchBase
             },
-            ...l.input && {
-              input: typeof l.input == "function" ? l.input(d) : l.input
+            ...c.input && {
+              input: typeof c.input == "function" ? c.input(d) : c.input
             }
           }
         }),
-        n.jsx(R, {
-          ...P
+        n.jsx(P, {
+          ...A
         })
       ]
     });
@@ -332,12 +332,28 @@ let __tla = Promise.all([
     {
       name: "thumbColorTrue",
       label: "thumb_color_true",
-      type: "color"
+      default: "",
+      type: "custom",
+      fallbackFields: [],
+      component: (t, e, o, i) => n.jsx(f, {
+        field: t,
+        data: e,
+        onDataChange: o,
+        props: i
+      })
     },
     {
       name: "thumbColorFalse",
       label: "thumb_color_false",
-      type: "color"
+      default: "",
+      type: "custom",
+      fallbackFields: [],
+      component: (t, e, o, i) => n.jsx(f, {
+        field: t,
+        data: e,
+        onDataChange: o,
+        props: i
+      })
     },
     {
       type: "custom",
@@ -355,22 +371,18 @@ let __tla = Promise.all([
     {
       name: "trackColor",
       label: "track_color",
-      type: "color"
+      default: "",
+      type: "custom",
+      fallbackFields: [],
+      component: (t, e, o, i) => n.jsx(f, {
+        field: t,
+        data: e,
+        onDataChange: o,
+        props: i
+      })
     }
-  ];
-  function z(t) {
-    return [
-      /^#([0-9a-fA-F]{3})$/,
-      /^#([0-9a-fA-F]{6})$/,
-      /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/,
-      /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0|1|0?\.\d+)\s*\)$/,
-      /^hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)$/,
-      /^hsla\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*,\s*(0|1|0?\.\d+)\s*\)$/,
-      /^color\(\s*[\w-]+\s+(?:\d+(\.\d+)?%?\s*)+\)$/
-    ].some((o) => o.test(t));
-  }
-  const lt = w(rt)(({ width: t, maxheight: e, data: o, widget: i, theme: a }) => {
-    const s = i.data.thumbSize ?? 62;
+  ], ct = b(rt)(({ width: t, maxheight: e, data: o, widget: i, theme: s }) => {
+    const a = i.data.thumbSize ?? 62;
     return {
       width: "100%",
       height: "100%",
@@ -384,7 +396,7 @@ let __tla = Promise.all([
         padding: 0,
         top: "50%",
         left: "0%",
-        transform: `translate(-50%, -50%) translateX(${(e || 0) >= s ? s / 2 - 4 : (e || 0) / 2 - 4}px)`,
+        transform: `translate(-50%, -50%) translateX(${(e || 0) >= a ? a / 2 - 4 : (e || 0) / 2 - 4}px)`,
         "& .MuiSwitch-input": {
           left: 0,
           width: t || 0
@@ -392,30 +404,34 @@ let __tla = Promise.all([
         "&.Mui-checked": {
           top: "50%",
           left: "100%",
-          transform: `translate(-50%, -50%) translateX(${(e || 0) >= s ? -(s / 2 - 4) : -((e || 0) / 2 - 4)}px)`,
+          transform: `translate(-50%, -50%) translateX(${(e || 0) >= a ? -(a / 2 - 4) : -((e || 0) / 2 - 4)}px)`,
           "& .MuiSwitch-input": {
-            left: -(t || 0) + s,
+            left: -(t || 0) + a,
             width: t || 0
           },
           "& .MuiSwitch-thumb": {
-            backgroundColor: i.data.thumbColorTrue || a.palette.primary.main
+            background: i.data.thumbColorTrue || s.palette.primary.main
           },
           "& .MuiSwitch-thumb:before": {
             top: `calc(${o.iconYOffset} * -1)`,
             left: o.iconXOffset,
-            backgroundSize: `${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}% ${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}%`,
-            backgroundImage: o.iconActive && `url('${o.iconActive}')`
+            backgroundSize: `${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}%`,
+            backgroundImage: o.iconActive && `url('${o.iconActive}')`,
+            ...$(o.iconActive, o.iconColorActive || o.iconColor || s.palette.primary.dark, o.forceColorMaskActive)
           },
           "& + .MuiSwitch-track": {
-            backgroundColor: i.data.trackColor && z(i.data.trackColor) && i.data.trackColor || (a.palette.mode === "dark" ? p("rgb(144, 202, 249)", 0.5) : p("#1976d2", 0.5))
+            background: i.data.trackColor
           }
         }
       },
+      "& .MuiSwitch-track": {
+        background: i.data.trackColor
+      },
       "& .MuiSwitch-thumb": {
-        backgroundColor: i.data.thumbColorFalse,
-        width: s,
+        background: i.data.thumbColorFalse,
+        width: a,
         maxWidth: e,
-        height: s,
+        height: a,
         maxHeight: e,
         "&::before": {
           content: "''",
@@ -426,38 +442,34 @@ let __tla = Promise.all([
           top: `calc(0px - ${o.iconYOffset})`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: `${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}% ${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}%`,
+          backgroundSize: `${o.iconSizeOnly === 0 ? "0" : o.iconSizeOnly || "100"}%`,
           backgroundImage: o.iconActive && `url('${o.iconActive}')`,
-          ...X(o.iconActive, o.iconColorActive || o.iconColor)
+          ...$(o.iconActive, o.iconColorActive || o.iconColor || s.palette.primary.main, o.forceColorMaskActive)
         }
-      },
-      "& .MuiSwitch-track": {
-        backgroundColor: i.data.trackColor && z(i.data.trackColor) && p(i.data.trackColor, 0.5) || (a.palette.mode === "dark" ? p("#ffffff", 0.3) : p("#000000", 0.38)),
-        borderRadius: 20 / 2
       }
     };
   });
-  function ct() {
+  function lt() {
     var _a, _b, _c, _d;
-    const t = C.useRef(null), e = C.useContext(E), { widget: o } = e, i = o.data.oidObject, { data: a } = H("oid"), { value: s, updateValue: g } = J("oid"), u = i == null ? void 0 : i.type, m = u === "boolean", c = () => {
-      g(!s);
+    const t = k.useRef(null), e = k.useContext(E), { widget: o } = e, i = o.data.oidObject, { data: s } = G("oid"), { value: a, updateValue: h } = q("oid"), p = i == null ? void 0 : i.type, g = p === "boolean", l = () => {
+      h(!a);
     };
-    return n.jsxs(L, {
-      isValidType: m,
-      data: a,
-      oidValue: s,
+    return n.jsxs(H, {
+      isValidType: g,
+      data: s,
+      oidValue: a,
       children: [
-        n.jsx(Z, {
-          data: a,
+        n.jsx(L, {
+          data: s,
           widget: o
         }),
-        n.jsx(x, {
+        n.jsx(z, {
           sx: {
             position: "relative",
             width: "100%",
             height: o.data.trackSize && `${o.data.trackSize}%` || "10%"
           },
-          children: n.jsx(x, {
+          children: n.jsx(z, {
             ref: t,
             sx: {
               width: "100%",
@@ -467,17 +479,17 @@ let __tla = Promise.all([
               justifyContent: "center",
               alignItems: "center"
             },
-            children: s !== void 0 && o.data.thumbSize !== void 0 && n.jsx(lt, {
-              disabled: u !== "boolean",
+            children: a !== void 0 && o.data.thumbSize !== void 0 && n.jsx(ct, {
+              disabled: p !== "boolean",
               width: (_a = t.current) == null ? void 0 : _a.clientWidth,
               maxheight: (_d = (_c = (_b = t.current) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.parentElement) == null ? void 0 : _d.clientHeight,
-              data: a,
+              data: s,
               widget: o,
-              checked: !!s,
-              onChange: c,
+              checked: !!a,
+              onChange: l,
               sx: {
                 "& .MuiTouchRipple-root": {
-                  color: a.iconColorActive || a.iconColor || a.textColorActive || a.textColor
+                  color: s.iconColorActive || s.iconColor || s.textColorActive || s.textColor
                 }
               }
             })
@@ -486,7 +498,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  B = class extends Y {
+  j = class extends Y {
     static getWidgetInfo() {
       return {
         id: "tplSwitchCollectionWidget",
@@ -499,17 +511,17 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...$()
+              ...M()
             ]
           },
           {
             name: "switch",
             label: "group_switch",
             fields: [
-              ...q([
+              ...K([
                 "boolean"
               ]),
-              ...K(),
+              ...Q(),
               ...nt()
             ]
           },
@@ -519,7 +531,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...$({
+              ...M({
                 groupName: "",
                 allFields: false
               })
@@ -535,7 +547,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return B.getWidgetInfo();
+      return j.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -569,11 +581,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, G(this.wrapContent(n.jsx(ct, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, J(this.wrapContent(n.jsx(lt, {})), o);
     }
   };
 });
 export {
   __tla,
-  B as default
+  j as default
 };

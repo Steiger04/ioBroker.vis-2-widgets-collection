@@ -18,6 +18,7 @@ import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { gradientColor } from '../lib/helper/gradientColor';
 import type { StateCollectionContextProps } from '../types';
 
 /**
@@ -30,7 +31,7 @@ function StateCollection(): React.ReactElement {
     // const [setContentRef] = useState<HTMLSpanElement | null>(null);
     // This component is only used from StateCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as StateCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
     const oidObject = widget.data.oidObject;
     const { data, widgetStates } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
@@ -134,52 +135,61 @@ function StateCollection(): React.ReactElement {
                     alignItems: 'center',
                 }}
             >
-                {!widget.data.noIcon && (data.iconActive || data.icon) && (
-                    <Box
-                        sx={{
-                            // overflow: "hidden",
+                {!widget.data.noIcon &&
+                    (data.iconActive || data.icon) &&
+                    (() => {
+                        // Pre-calculate icon styles
+                        const iconSrc = data.iconActive || data.icon;
+                        const iconColor = data.iconColorActive || data.iconColor || theme.palette.primary.main;
+                        const forceMask = data.iconActive
+                            ? (data.forceColorMaskActive ?? false)
+                            : (data.forceColorMaskActive ?? false);
+                        const iconStyles = getIconColorStyles(iconSrc, iconColor, forceMask);
 
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            flexGrow: 1,
+                        return (
+                            <Box
+                                sx={{
+                                    // overflow: "hidden",
 
-                            width: '100%',
-                            height: '100%',
-                        }}
-                    >
-                        <Avatar
-                            variant="square"
-                            src={data.iconActive || data.icon || undefined}
-                            imgProps={{
-                                style: {
-                                    objectFit: 'contain',
-                                },
-                            }}
-                            sx={{
-                                overflow: 'hidden',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    flexGrow: 1,
 
-                                width:
-                                    (typeof data.iconSizeOnly === 'number' &&
-                                        `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                    '100%',
-                                height:
-                                    (typeof data.iconSizeOnly === 'number' &&
-                                        `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                    '100%',
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                            >
+                                <Avatar
+                                    variant="square"
+                                    src={iconSrc || undefined}
+                                    slotProps={{
+                                        img: {
+                                            style: {
+                                                objectFit: 'contain',
+                                                ...iconStyles,
+                                            },
+                                        },
+                                    }}
+                                    sx={{
+                                        overflow: 'visible',
 
-                                left: `calc(0px + ${data.iconXOffset})`,
-                                top: `calc(0px - ${data.iconYOffset})`,
+                                        width:
+                                            (typeof data.iconSizeOnly === 'number' &&
+                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
+                                            '100%',
+                                        height:
+                                            (typeof data.iconSizeOnly === 'number' &&
+                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
+                                            '100%',
 
-                                bgcolor: 'transparent',
-                                ...getIconColorStyles(
-                                    data.iconActive || data.icon,
-                                    data.iconColorActive || data.iconColor || 'primary.main',
-                                ),
-                            }}
-                        />
-                    </Box>
-                )}
+                                        left: `calc(0px + ${data.iconXOffset})`,
+                                        top: `calc(0px - ${data.iconYOffset})`,
+                                    }}
+                                />
+                            </Box>
+                        );
+                    })()}
 
                 {!widget.data.noValue && (
                     <Box
@@ -200,7 +210,14 @@ function StateCollection(): React.ReactElement {
                                 fontSize: data.valueSizeActive || data.valueSize,
                                 textAlign: 'center', // For HTML content with tags
                                 bgcolor: 'transparent',
-                                color: data.textColorActive || data.textColor,
+
+                                background: gradientColor(data.textColorActive || data.textColor),
+                                WebkitBackgroundClip: 'text',
+                                backgroundClip: 'text',
+                                color: gradientColor(data.textColorActive || data.textColor)
+                                    ? 'transparent'
+                                    : data.textColorActive || data.textColor,
+
                                 textTransform: 'none',
                                 px: 1,
                                 pl: 0,

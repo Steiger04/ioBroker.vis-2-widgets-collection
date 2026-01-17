@@ -259,6 +259,8 @@
     "dialog_header_as_title": "Header as title",
     "dialog_close_button_color": "Close button color",
     "dialog_in_pixel": "Width / height in pixel",
+    "enable_icon_color_mask": "Enable color mask",
+    "enable_icon_color_mask_tooltip": "Applies color mask to URL-based icons. Not available for Base64/embedded icons.",
     "state_push_button": "Push button",
     "state_push_button_tooltip": "Pressing the button sets value[1] and releasing it sets value[2].",
     "no_header_icon": "No header icon",

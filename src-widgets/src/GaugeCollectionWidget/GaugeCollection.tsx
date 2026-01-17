@@ -23,8 +23,10 @@ interface Highlight {
     to: number;
     color: string;
     state: {
+        textColor?: string;
         icon?: string;
         iconColor?: string;
+        forceColorMask?: boolean;
         iconSize?: number;
         iconXOffset?: string;
         iconYOffset?: string;
@@ -105,8 +107,10 @@ function GaugeCollection(): React.JSX.Element {
                 to: Number(nextValue),
                 color: state.textColor || 'transparent',
                 state: {
+                    textColor: state.textColor,
                     icon: state.icon || undefined,
                     iconColor: state.iconColor || undefined,
+                    forceColorMask: state.forceColorMask,
                     iconSize: state.iconSize !== undefined ? state.iconSize : undefined,
                     iconXOffset: state.iconXOffset,
                     iconYOffset: state.iconYOffset,
@@ -130,10 +134,14 @@ function GaugeCollection(): React.JSX.Element {
         return _highlights;
     }, [states, widget.data.gaugeMaxValue]);
 
-    const segment = findSegment(
-        highlights,
-        Number(oidValue) || 0,
-        Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100,
+    const segment = useMemo(
+        () =>
+            findSegment(
+                highlights,
+                Number(oidValue) || 0,
+                Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100,
+            ),
+        [highlights, oidValue, widget.data.gaugeMaxValue],
     );
 
     const dataWithSegmentIcon = useMemo(() => {
@@ -141,7 +149,7 @@ function GaugeCollection(): React.JSX.Element {
             return {
                 ...data,
                 iconActive: segment.state.icon || data.icon,
-                iconColorActive: segment.state.iconColor || data.iconColor,
+                iconColorActive: data.iconColor || segment.state.iconColor,
                 iconSizeActive:
                     segment.state.iconSize !== undefined
                         ? `calc(24px * ${segment.state.iconSize} / 100)`
@@ -211,11 +219,14 @@ function GaugeCollection(): React.JSX.Element {
         <CollectionBase
             ref={baseRef}
             isValidType={isValidType}
-            data={data}
+            data={{ ...data, textColor: segment?.state.textColor || data.textColor }}
             oidValue={oidValue}
         >
             <CollectionBaseImage
-                data={dataWithSegmentIcon}
+                data={{
+                    ...dataWithSegmentIcon,
+                    forceColorMaskActive: segment?.state.forceColorMask ?? (data.forceColorMaskActive || false),
+                }}
                 widget={widget}
             />
             <Box
@@ -234,6 +245,7 @@ function GaugeCollection(): React.JSX.Element {
                         icon: typeof data.icon === 'string' ? data.icon : undefined,
                         iconColor: iconColor,
                         header: data.header,
+                        forceColorMask: data.forceColorMaskActive,
                     }}
                     gaugeWidgetData={widget.data}
                     gaugeSegment={segment}

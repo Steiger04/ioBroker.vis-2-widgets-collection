@@ -51,7 +51,7 @@ export interface CommonFieldsRxData {
      * iconSmall2: '/icons/humidity.svg'
      * ```
      */
-    [key: `iconSmall${number}`]: string | number | undefined;
+    [key: `iconSmall${number}`]: string | undefined;
 
     /**
      * Main icon identifier for standard display.
@@ -61,10 +61,9 @@ export interface CommonFieldsRxData {
      * ```typescript
      * icon1: 'mdi-home'
      * icon2: '/icons/custom-icon.svg'
-     * icon3: 12345 // numeric icon ID
      * ```
      */
-    [key: `icon${number}`]: string | number | undefined;
+    [key: `icon${number}`]: string | undefined;
 
     /**
      * Icon size in pixels.
@@ -127,6 +126,24 @@ export interface CommonFieldsRxData {
      * ```
      */
     [key: `iconYOffset${number}`]: string | undefined;
+
+    /**
+     * Enable color mask for icon coloring (forces coloring for URL-based icons).
+     *
+     * @remarks
+     * By default, the CSS filter technique for icon coloring only applies to Base64-encoded icons.
+     * When this option is enabled, the color mask is also applied to URL-based icons (e.g., '/local/icon.png').
+     * This forces the CSS filter technique (drop-shadow + translateY) to work with external image resources.
+     *
+     * @default false
+     * @example
+     * ```typescript
+     * enableIconColorMask1: true  // enable color mask for first icon
+     * enableIconColorMask2: false // disable color mask for second icon
+     * enableIconColorMask3: true  // enable color mask for third icon
+     * ```
+     */
+    [key: `enableIconColorMask${number}`]: boolean | undefined;
 
     // ========================================
     // Header Properties
@@ -557,6 +574,14 @@ export interface CommonFieldsRxData {
      * @see {@link ActiveStateFieldsRxData.iconYOffsetActive}
      */
     iconYOffsetActive?: string;
+
+    /**
+     * Enable color mask for active state icon.
+     *
+     * @default false
+     * @see {@link ActiveStateFieldsRxData.enableIconColorMaskActive}
+     */
+    enableIconColorMaskActive?: boolean;
 
     /**
      * Header text override for active state.

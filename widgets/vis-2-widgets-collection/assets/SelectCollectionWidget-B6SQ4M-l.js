@@ -1,10 +1,10 @@
-import { a as F, g as B, u as L, L as w, k as D, l as P, j as l, s as z, d as k, e as U, n as H, r as G, m as N, o as p, a1 as M, C as j, a2 as E, v as A, y as X, A as Y, w as O, a3 as q, z as J, T as K, G as Q, E as V, H as Z, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
-import { o as tt, C as et, c as at, __tla as __tla_1 } from "./CollectionBaseImage-DtLpy4OM.js";
-import { u as _, d as ot, __tla as __tla_2 } from "./useValueState-O1j7ZVnY.js";
+import { a as F, g as B, u as L, L as w, k as D, l as P, j as l, s as z, d as k, e as U, n as H, r as G, m as N, o as p, a3 as M, C as j, a4 as E, v as A, y as J, E as K, G as X, w as O, a5 as Y, z as q, T as Q, H as Z, J as V, K as tt, __tla as __tla_0 } from "./useData-jcT7BVTY.js";
+import { o as et, c as at, __tla as __tla_1 } from "./commonObjectFields-BdQ1taWT.js";
+import { u as _, d as ot, __tla as __tla_2 } from "./useValueState-Dh4wU42k.js";
 import { v, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as it, __tla as __tla_4 } from "./SafeImg-G4D7rCqQ.js";
-import { l as T, __tla as __tla_5 } from "./listItemTextClasses-CJKG6a8l.js";
-import { S as nt, __tla as __tla_6 } from "./Stack-CfkJdlzV.js";
+import { S as it, __tla as __tla_4 } from "./SafeImg-CrvNCqyH.js";
+import { l as T, __tla as __tla_5 } from "./listItemTextClasses-H0DUQLJh.js";
+import { S as nt, __tla as __tla_6 } from "./Stack-B9cG0iWf.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let W;
@@ -234,7 +234,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: tt([
+      onChange: et([
         "boolean",
         "number",
         "string",
@@ -254,16 +254,16 @@ let __tla = Promise.all([
     }
   ];
   function ut() {
-    const e = v.useRef(null), { width: a } = E(e == null ? void 0 : e.current), c = v.useContext(A), { widget: t, theme: r } = c, f = t.data.cidObject, m = t.data.oidObject, { data: i, states: u } = X("oid"), { value: y, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = u.findIndex((d) => String(d.value) === String(y)), $ = (d) => {
+    const e = v.useRef(null), { width: a } = E(e == null ? void 0 : e.current), c = v.useContext(A), { widget: t, theme: r } = c, f = t.data.cidObject, m = t.data.oidObject, { data: i, states: u } = J("oid"), { value: y, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = u.findIndex((d) => String(d.value) === String(y)), $ = (d) => {
       const o = d.target.value, b = u[o].value;
       f && S(b), h(b);
     };
-    return l.jsxs(Y, {
+    return l.jsxs(K, {
       isValidType: I,
       data: i,
       oidValue: y,
       children: [
-        l.jsx(et, {
+        l.jsx(X, {
           data: i,
           widget: t
         }),
@@ -277,7 +277,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: l.jsx(q, {
+          children: l.jsx(Y, {
             variant: "standard",
             disableUnderline: true,
             value: n !== -1 ? n : "",
@@ -346,10 +346,10 @@ let __tla = Promise.all([
                         top: `calc(0px - ${t.data[`iconYOffset${o + 1}`]})`,
                         right: `calc(0px - ${t.data[`iconXOffset${o + 1}`]})`,
                         height: !s && "0px" || (typeof t.data[`iconSize${o + 1}`] == "number" ? `calc(24px * ${t.data[`iconSize${o + 1}`]} / 100)` : typeof t.data.iconSize == "number" ? `calc(24px * ${t.data.iconSize} / 100)` : "24px"),
-                        ...J(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(y) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main)
+                        ...q(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(y) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main)
                       }
                     }),
-                    l.jsx(K, {
+                    l.jsx(Q, {
                       component: O,
                       variant: "subtitle2",
                       sx: {
@@ -378,7 +378,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  W = class extends Q {
+  W = class extends Z {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -466,7 +466,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Z(this.wrapContent(l.jsx(ut, {})), c);
+      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, tt(this.wrapContent(l.jsx(ut, {})), c);
     }
   };
 });

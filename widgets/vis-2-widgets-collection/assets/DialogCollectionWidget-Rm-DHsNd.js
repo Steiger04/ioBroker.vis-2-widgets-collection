@@ -1,10 +1,10 @@
-import { j as e, C as c, M as S, w as g, A as v, T as A, D as _, o as j, I as T, v as w, y as I, s as W, z as D, n as V, G as H, E as O, H as R, __tla as __tla_0 } from "./useData-D7RiYKJn.js";
-import { v as r, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as z, __tla as __tla_2 } from "./useHtmlValue-Dcwl_hqT.js";
-import { C as P, __tla as __tla_3 } from "./Close-DezUfW5S.js";
+import { j as e, C as c, M as T, w as g, E as j, T as A, A as f, D as _, o as v, I, v as w, y as W, G as D, s as V, z as H, n as O, H as R, J as z, K as M, __tla as __tla_0 } from "./useData-jcT7BVTY.js";
+import { v as d, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as P, __tla as __tla_2 } from "./useHtmlValue-Dcwl_hqT.js";
+import { C as $, __tla as __tla_3 } from "./Close-2s5EnFKi.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let k;
+let B;
 let __tla = Promise.all([
   (() => {
     try {
@@ -31,7 +31,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const $ = () => [
+  const F = () => [
     {
       name: "view",
       label: "view",
@@ -167,18 +167,18 @@ let __tla = Promise.all([
       hidden: "data.onlyIcon"
     }
   ];
-  function F({ open: f, handleClose: i, widget: t, data: l, getWidgetView: a }) {
+  function E({ open: m, handleClose: i, widget: t, data: l, getWidgetView: a }) {
     var _a;
-    const h = r.useRef(null), [s, o] = r.useState(null), d = (_a = h.current) == null ? void 0 : _a.header;
-    r.useEffect(() => {
-      t.data.dialogHeaderAsTitle && d && s && (t.data.dialogHeaderAsTitle && (d.style.width = "0px", d.style.height = "0px"), s.innerHTML = l.header, s.style.height = "auto", s.style.width = "auto");
+    const h = d.useRef(null), [s, o] = d.useState(null), r = (_a = h.current) == null ? void 0 : _a.header;
+    d.useEffect(() => {
+      t.data.dialogHeaderAsTitle && r && s && (t.data.dialogHeaderAsTitle && (r.style.width = "0px", r.style.height = "0px"), s.innerHTML = l.header, s.style.height = "auto", s.style.width = "auto");
     }, [
-      d,
+      r,
       s,
       l.header,
       t.data.dialogHeaderAsTitle
     ]);
-    const p = e.jsx(T, {
+    const p = e.jsx(I, {
       sx: {
         alignSelf: "flex-end",
         filter: "brightness(1.5)",
@@ -186,11 +186,11 @@ let __tla = Promise.all([
       },
       "aria-label": "delete",
       onClick: i,
-      children: e.jsx(P, {})
+      children: e.jsx($, {})
     });
-    return e.jsx(S, {
+    return e.jsx(T, {
       onClose: i,
-      open: f,
+      open: m,
       sx: {
         display: "flex",
         justifyContent: "center",
@@ -202,7 +202,7 @@ let __tla = Promise.all([
           width: t.data.dialogInPixel ? `${t.data.dialogWidth}px` : `${t.data.dialogWidth}%`,
           height: t.data.dialogInPixel ? `${t.data.dialogHeight}px` : `${t.data.dialogHeight}%`
         },
-        children: e.jsxs(v, {
+        children: e.jsxs(j, {
           ref: h,
           data: l,
           sx: {
@@ -233,8 +233,11 @@ let __tla = Promise.all([
                     variant: "body2",
                     sx: {
                       fontSize: l.headerSize,
-                      color: l.textColor,
-                      px: t.data.dialogCloseButtonTop ? 4 : 0
+                      px: t.data.dialogCloseButtonTop ? 4 : 0,
+                      background: f(l.textColor),
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: f(l.textColor) ? "transparent" : l.textColor
                     }
                   })
                 }),
@@ -253,11 +256,11 @@ let __tla = Promise.all([
             e.jsx(g, {
               sx: {
                 "::-webkit-scrollbar-track": {
-                  background: l.frameBackgroundColor && j(l.frameBackgroundColor, 0.5)
+                  background: l.frameBackgroundColor && v(l.frameBackgroundColor, 0.5)
                 },
                 "::-webkit-scrollbar-thumb": {
                   opacity: "0.5",
-                  background: l.frameBackgroundColor && j(l.frameBackgroundColor, 0.7)
+                  background: l.frameBackgroundColor && v(l.frameBackgroundColor, 0.7)
                 },
                 position: "relative",
                 overflow: "auto",
@@ -285,120 +288,129 @@ let __tla = Promise.all([
       })
     });
   }
-  const M = W(V)({
+  const L = V(O)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
   });
-  function E() {
-    const [f, i] = r.useState(false), t = r.useRef(null), l = r.useContext(w), { widget: a, getWidgetView: h, setValue: s } = l, { data: o, oidValue: d } = I("oid"), p = a.data.oidObject, n = p == null ? void 0 : p._id, B = (p == null ? void 0 : p.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected", x = r.useCallback(() => {
+  function U() {
+    const [m, i] = d.useState(false), t = d.useRef(null), l = d.useContext(w), { widget: a, getWidgetView: h, setValue: s } = l, { data: o, oidValue: r } = W("oid"), p = a.data.oidObject, n = p == null ? void 0 : p._id, S = (p == null ? void 0 : p.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected", y = d.useCallback(() => {
       if (t.current) return;
-      const C = a.data.dialogAutoClose, m = String(C);
-      if (!C || m === "" || m === "0") {
+      const k = a.data.dialogAutoClose, x = String(k);
+      if (!k || x === "" || x === "0") {
         i(true);
         return;
       }
       let u;
-      m === "true" ? u = 1e4 : u = parseInt(m, 10), u < 60 && (u *= 1e3), u = u || 1e3, t.current = setTimeout(() => {
+      x === "true" ? u = 1e4 : u = parseInt(x, 10), u < 60 && (u *= 1e3), u = u || 1e3, t.current = setTimeout(() => {
         t.current = null, n && s(n, false), i(false);
       }, u), i(true);
     }, [
       n,
       s,
       a.data.dialogAutoClose
-    ]), y = r.useCallback(() => {
+    ]), b = d.useCallback(() => {
       t.current && (clearTimeout(t.current), t.current = null), n && s(n, false), i(false);
     }, [
       n,
       s
-    ]), b = z(d, a, o);
-    return r.useEffect(() => {
-      d != null && (d ? x() : y());
+    ]), C = P(r, a, o);
+    return d.useEffect(() => {
+      r != null && (r ? y() : b());
     }, [
-      d,
-      x,
-      y
+      r,
+      y,
+      b
     ]), e.jsxs(e.Fragment, {
       children: [
-        e.jsx(F, {
-          open: f,
-          handleClose: y,
+        e.jsx(E, {
+          open: m,
+          handleClose: b,
           widget: a,
           data: o,
           getWidgetView: h
         }),
-        e.jsx(v, {
-          isValidType: B,
+        e.jsxs(j, {
+          isValidType: S,
           data: o,
-          children: e.jsx(g, {
-            sx: {
-              width: "100%",
-              height: "100%",
-              display: "flex"
-            },
-            children: e.jsxs(M, {
-              onClick: () => {
-                n && s(n, true), x();
-              },
+          children: [
+            e.jsx(D, {
+              data: o,
+              widget: a
+            }),
+            e.jsx(g, {
               sx: {
-                "& .MuiTouchRipple-root span": {
-                  color: o.iconColor
-                }
+                width: "100%",
+                height: "100%",
+                display: "flex"
               },
-              children: [
-                a.data.onlyIcon || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(g, {
-                  sx: {
-                    overflow: "hidden",
-                    p: 0.5,
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center"
-                  },
-                  children: e.jsx("img", {
-                    alt: "",
-                    src: o.icon || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-                    style: {
-                      position: "relative",
-                      objectFit: "contain",
-                      top: `calc(0px - ${o.iconYOffset})`,
-                      right: `calc(0px - ${o.iconXOffset})`,
-                      width: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
-                      height: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
-                      ...D(o.icon, o.iconColor)
-                    }
-                  })
-                }) : null,
-                a.data.onlyText || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(A, {
-                  variant: "body2",
-                  sx: {
-                    overflow: "hidden",
-                    width: "100%",
-                    height: "100%",
-                    p: 0.5,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    fontSize: o.valueSize,
-                    color: o.textColor,
-                    textTransform: "none"
-                  },
-                  dangerouslySetInnerHTML: {
-                    __html: b !== void 0 ? String(b) : ""
+              children: e.jsxs(L, {
+                onClick: () => {
+                  n && s(n, true), y();
+                },
+                sx: {
+                  "& .MuiTouchRipple-root span": {
+                    color: o.iconColor
                   }
-                }) : null
-              ]
+                },
+                children: [
+                  a.data.onlyIcon || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(g, {
+                    sx: {
+                      overflow: "hidden",
+                      p: 0.5,
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    },
+                    children: e.jsx("img", {
+                      alt: "",
+                      src: o.icon || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                      style: {
+                        position: "relative",
+                        objectFit: "contain",
+                        top: `calc(0px - ${o.iconYOffset})`,
+                        right: `calc(0px - ${o.iconXOffset})`,
+                        width: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
+                        height: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
+                        ...H(o.icon, o.iconColor, o.forceColorMaskActive ?? false)
+                      }
+                    })
+                  }) : null,
+                  a.data.onlyText || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(A, {
+                    variant: "body2",
+                    sx: {
+                      overflow: "hidden",
+                      width: "100%",
+                      height: "100%",
+                      p: 0.5,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      fontSize: o.valueSize,
+                      textTransform: "none",
+                      background: f(o.textColorActive || o.textColor),
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: f(o.textColor) ? "transparent" : o.textColor
+                    },
+                    dangerouslySetInnerHTML: {
+                      __html: C !== void 0 ? String(C) : ""
+                    }
+                  }) : null
+                ]
+              })
             })
-          })
+          ]
         })
       ]
     });
   }
-  k = class extends H {
+  B = class extends R {
     static getWidgetInfo() {
       return {
         id: "tplDialogCollectionWidget",
@@ -411,7 +423,7 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...O({
+              ...z({
                 groupName: "",
                 allFields: true
               })
@@ -421,7 +433,7 @@ let __tla = Promise.all([
             name: "dialog",
             label: "group_dialog",
             fields: [
-              ...$()
+              ...F()
             ]
           }
         ],
@@ -434,7 +446,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return k.getWidgetInfo();
+      return B.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -469,11 +481,11 @@ let __tla = Promise.all([
         getWidgetView: this.getWidgetView.bind(this),
         wrappedContent: this.wrappedCollectionContent
       };
-      return i.widget.data.noCard || i.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, R(this.wrapContent(e.jsx(E, {})), t);
+      return i.widget.data.noCard || i.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, M(this.wrapContent(e.jsx(U, {})), t);
     }
   };
 });
 export {
   __tla,
-  k as default
+  B as default
 };

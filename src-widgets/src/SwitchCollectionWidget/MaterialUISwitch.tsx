@@ -10,7 +10,7 @@
  */
 
 import Switch from '@mui/material/Switch';
-import { styled, alpha } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { SwitchCollectionContextProps } from '../types';
 import type { StyleData } from '../hooks/useData';
@@ -32,7 +32,7 @@ interface MaterialUISwitchProps {
  * @param str - Candidate color string.
  * @returns `true` when the format looks like a CSS color.
  */
-function isValidColorFormat(str: string): boolean {
+/* function isValidColorFormat(str: string): boolean {
     const patterns = [
         /^#([0-9a-fA-F]{3})$/, // #nnn
         /^#([0-9a-fA-F]{6})$/, // #nnnnnn
@@ -44,7 +44,7 @@ function isValidColorFormat(str: string): boolean {
     ];
 
     return patterns.some(pattern => pattern.test(str));
-}
+} */
 
 const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheight, data, widget, theme }) => {
     const thumbSize = widget.data.thumbSize ?? 62;
@@ -61,8 +61,6 @@ const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheig
         },
 
         '& .MuiSwitch-switchBase': {
-            // overflow: "hidden", // ???
-
             margin: 0,
             padding: 0,
 
@@ -86,29 +84,51 @@ const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheig
                 },
 
                 '& .MuiSwitch-thumb': {
-                    backgroundColor: widget.data.thumbColorTrue || theme.palette.primary.main,
+                    background: widget.data.thumbColorTrue || theme.palette.primary.main,
                 },
 
                 '& .MuiSwitch-thumb:before': {
                     top: `calc(${data.iconYOffset} * -1)`,
                     left: data.iconXOffset,
 
-                    backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}% ${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
+                    // backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}% ${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
+                    backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
                     backgroundImage: data.iconActive && `url('${data.iconActive}')`,
+
+                    ...getIconColorStyles(
+                        data.iconActive,
+                        data.iconColorActive || data.iconColor || theme.palette.primary.dark,
+                        data.forceColorMaskActive,
+                    ),
                 },
 
-                '& + .MuiSwitch-track': {
-                    backgroundColor:
+                /* '& + .MuiSwitch-track': {
+                    background:
                         (widget.data.trackColor &&
                             isValidColorFormat(widget.data.trackColor) &&
                             widget.data.trackColor) ||
                         (theme.palette.mode === 'dark' ? alpha('rgb(144, 202, 249)', 0.5) : alpha('#1976d2', 0.5)),
+                }, */
+                '& + .MuiSwitch-track': {
+                    background: widget.data.trackColor,
                 },
             },
         },
 
+        /* '& .MuiSwitch-track': {
+            background:
+                (widget.data.trackColor &&
+                    isValidColorFormat(widget.data.trackColor) &&
+                    alpha(widget.data.trackColor, 0.5)) ||
+                (theme.palette.mode === 'dark' ? alpha('#ffffff', 0.3) : alpha('#000000', 0.38)),
+            borderRadius: 20 / 2,
+        }, */
+        '& .MuiSwitch-track': {
+            background: widget.data.trackColor,
+        },
+
         '& .MuiSwitch-thumb': {
-            backgroundColor: widget.data.thumbColorFalse,
+            background: widget.data.thumbColorFalse,
 
             width: thumbSize,
             maxWidth: maxheight,
@@ -131,20 +151,16 @@ const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheig
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
 
-                backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}% ${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
+                // backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}% ${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
+                backgroundSize: `${data.iconSizeOnly === 0 ? '0' : data.iconSizeOnly || '100'}%`,
                 backgroundImage: data.iconActive && `url('${data.iconActive}')`,
 
-                ...getIconColorStyles(data.iconActive, data.iconColorActive || data.iconColor),
+                ...getIconColorStyles(
+                    data.iconActive,
+                    data.iconColorActive || data.iconColor || theme.palette.primary.main,
+                    data.forceColorMaskActive,
+                ),
             },
-        },
-
-        '& .MuiSwitch-track': {
-            backgroundColor:
-                (widget.data.trackColor &&
-                    isValidColorFormat(widget.data.trackColor) &&
-                    alpha(widget.data.trackColor, 0.5)) ||
-                (theme.palette.mode === 'dark' ? alpha('#ffffff', 0.3) : alpha('#000000', 0.38)),
-            borderRadius: 20 / 2,
         },
     };
 });

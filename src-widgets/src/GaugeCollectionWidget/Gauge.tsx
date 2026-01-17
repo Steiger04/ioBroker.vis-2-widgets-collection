@@ -21,6 +21,7 @@ interface GaugeData {
     icon?: string;
     iconColor?: string;
     header?: string;
+    forceColorMask?: boolean;
 }
 
 /**
@@ -30,6 +31,7 @@ interface GaugeSegment {
     state: {
         icon?: string;
         iconColor?: string;
+        forceColorMask?: boolean;
         iconSize?: number;
         iconXOffset?: string;
         iconYOffset?: string;
@@ -300,7 +302,7 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
     const activeIconColor = segment?.state.iconColor || props.gaugeData.iconColor;
 
     // Calculate icon color styles with helper function
-    const iconColorStyles = getIconColorStyles(activeIcon, activeIconColor);
+    const iconColorStyles = getIconColorStyles(activeIcon, activeIconColor, segment?.state.forceColorMask ?? false);
 
     return (
         <Box

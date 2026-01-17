@@ -139,5 +139,7 @@
     "rail_background_color": "Colore di sfondo del binario",
     "mark_width": "Larghezza del segno",
     "mark_height": "Altezza del segno",
-    "mark_background_color": "Colore di sfondo del segno"
+    "mark_background_color": "Colore di sfondo del segno",
+    "enable_icon_color_mask": "Abilita maschera colore",
+    "enable_icon_color_mask_tooltip": "Applica maschera colore alle icone basate su URL. Non disponibile per icone Base64/incorporate."
 }

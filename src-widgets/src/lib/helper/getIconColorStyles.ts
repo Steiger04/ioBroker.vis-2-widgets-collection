@@ -24,14 +24,30 @@ export interface IconColorStyles {
  *
  * @param iconSrc - The icon string (data URI or URL)
  * @param iconColor - The desired color for the icon
+ * @param forceColorMask - Optional. When true, applies color mask to all icons (including URL-based icons), not only Base64-encoded icons.
  * @returns Object with CSS styles or empty object
+ * @example
+ * ```typescript
+ * // Base64 icon with color (works automatically)
+ * getIconColorStyles('data:image/png;base64,iVBORw0K...', '#ff0000')
+ * // Returns: { color: '#ff0000', filter: '...', transform: '...' }
+ *
+ * // URL icon without forceColorMask (no coloring)
+ * getIconColorStyles('/local/icon.png', '#ff0000')
+ * // Returns: {}
+ *
+ * // URL icon with forceColorMask: true (coloring enabled)
+ * getIconColorStyles('/local/icon.png', '#ff0000', true)
+ * // Returns: { color: '#ff0000', filter: '...', transform: '...' }
+ * ```
  */
 export const getIconColorStyles = (
     iconSrc: string | null | undefined,
     iconColor: string | null | undefined,
+    forceColorMask?: boolean,
 ): IconColorStyles => {
-    // Check if the icon is Base64-encoded
-    if (!isBase64Icon(iconSrc)) {
+    // Check if the icon is Base64-encoded (skip check if forceColorMask is true)
+    if (!forceColorMask && !isBase64Icon(iconSrc)) {
         return {};
     }
 

@@ -10,6 +10,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { SliderCollectionContextProps } from '../types';
 
@@ -24,6 +25,7 @@ interface MarkData {
     iconXOffset: string;
     iconYOffset: string;
     iconColor: string | null;
+    forceColorMask?: boolean;
 }
 
 // Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
@@ -70,6 +72,44 @@ const CollectionMark: FC<CollectionMarkProps> = ({
     const isCurrentSelected = activeMarkIndex === index;
 
     const formatSize = useCallback(formatSizeRem, []);
+
+    // Helper: Determine effective icon source (active or default)
+    const getIconSource = useCallback((): string => {
+        if (isCurrentSelected && (widget.data.iconActive || widget.data.iconSmallActive)) {
+            return widget.data.iconActive || widget.data.iconSmallActive || '';
+        }
+        return mark?.icon || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    }, [isCurrentSelected, widget.data.iconActive, widget.data.iconSmallActive, mark?.icon]);
+
+    // Helper: Determine effective icon color with priority chain
+    const getIconColor = useCallback((): string | undefined => {
+        if (isCurrentSelected && widget.data.iconColorActive && widget.data.iconColorActive !== '') {
+            return widget.data.iconColorActive;
+        }
+        if (mark?.iconColor && mark.iconColor !== '') {
+            return mark.iconColor;
+        }
+        if (data.iconColor && data.iconColor !== '') {
+            return data.iconColor;
+        }
+        return defaultIconColor || undefined;
+    }, [isCurrentSelected, widget.data.iconColorActive, mark?.iconColor, data.iconColor, defaultIconColor]);
+
+    // Helper: Determine effective text color with priority chain
+    const getTextColor = useCallback((): string | undefined => {
+        if (isCurrentSelected && widget.data.textColorActive) {
+            return widget.data.textColorActive;
+        }
+        return mark?.textColor || data.textColor;
+    }, [isCurrentSelected, widget.data.textColorActive, mark?.textColor, data.textColor]);
+
+    // Helper: Determine effective font size with priority chain
+    const getFontSize = useCallback((): string => {
+        if (isCurrentSelected && typeof widget.data.valueSizeActive === 'number') {
+            return formatSize(widget.data.valueSizeActive) || '1rem';
+        }
+        return mark?.fontSize || data.valueSize || '1rem';
+    }, [isCurrentSelected, widget.data.valueSizeActive, mark?.fontSize, data.valueSize, formatSize]);
 
     useEffect(() => {
         if (ref && mark?.label) {
@@ -120,16 +160,12 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         // from SliderCollection.tsx (lines 415-426) through higher CSS specificity.
                         // Min/Max/Step marks (no states) have mark.fontSize=undefined and
                         // mark.textColor=undefined and use only data.valueSize/data.textColor or fallbacks.
-                        fontSize:
-                            (isCurrentSelected &&
-                                typeof widget.data.valueSizeActive === 'number' &&
-                                formatSize(widget.data.valueSizeActive)) ||
-                            // `${widget.data.valueSizeActive}%`) ||
-                            mark.fontSize ||
-                            data.valueSize ||
-                            '1rem',
+                        fontSize: getFontSize(),
 
-                        color: (isCurrentSelected && widget.data.textColorActive) || mark.textColor || data.textColor,
+                        background: gradientColor(getTextColor()),
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        color: gradientColor(getTextColor()) ? 'transparent' : getTextColor(),
                     }}
                 />
                 <Box
@@ -143,47 +179,27 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         flexGrow: 1,
                     }}
                 >
-                    {(() => {
-                        // Determine icon source: If active → iconActive or iconSmallActive, otherwise mark.icon
-                        const iconSource =
-                            (isCurrentSelected && (widget.data.iconActive || widget.data.iconSmallActive)) ||
-                            mark.icon ||
-                            'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                    <img
+                        data-img="active"
+                        src={getIconSource()}
+                        alt=""
+                        style={{
+                            position: 'relative',
 
-                        // Determine icon color: Priority: iconColorActive → mark.iconColor → data.iconColor → defaultIconColor
-                        const iconColor =
-                            (isCurrentSelected && widget.data.iconColorActive && widget.data.iconColorActive !== ''
-                                ? widget.data.iconColorActive
-                                : null) ||
-                            (mark.iconColor && mark.iconColor !== '' ? mark.iconColor : null) ||
-                            (data.iconColor && data.iconColor !== '' ? data.iconColor : null) ||
-                            defaultIconColor ||
-                            undefined;
+                            // Icon size: Use active size when active, otherwise value size
+                            width:
+                                isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
+                                    ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                    : `${(24 * (mark?.iconWidth || 100)) / 100}px`,
+                            /* height:
+                                isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
+                                    ? `${(24 * widget.data.iconSizeActive) / 100}px`
+                                    : `${(24 * mark.iconHeight) / 100}px`, */
 
-                        return (
-                            <img
-                                data-img="active"
-                                src={iconSource}
-                                alt=""
-                                style={{
-                                    position: 'relative',
-
-                                    // Icon size: Use active size when active, otherwise value size
-                                    width:
-                                        isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
-                                            ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                            : `${(24 * mark.iconWidth) / 100}px`,
-                                    /* height:
-                                        isCurrentSelected && typeof widget.data.iconSizeActive === 'number'
-                                            ? `${(24 * widget.data.iconSizeActive) / 100}px`
-                                            : `${(24 * mark.iconHeight) / 100}px`, */
-
-                                    // Icon color: Consolidated logic via getIconColorStyles()
-                                    ...getIconColorStyles(iconSource, iconColor),
-                                }}
-                            />
-                        );
-                    })()}
+                            // Icon color: Consolidated logic via getIconColorStyles()
+                            ...getIconColorStyles(getIconSource(), getIconColor(), mark?.forceColorMask),
+                        }}
+                    />
                 </Box>
             </Box>
         </SliderMarkLabel>

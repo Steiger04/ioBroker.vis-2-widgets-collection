@@ -139,5 +139,7 @@
     "rail_background_color": "Rail achtergrondkleur",
     "mark_width": "Markbreedte",
     "mark_height": "Markhoogte",
-    "mark_background_color": "Mark achtergrondkleur"
+    "mark_background_color": "Mark achtergrondkleur",
+    "enable_icon_color_mask": "Kleurmasker inschakelen",
+    "enable_icon_color_mask_tooltip": "Past kleurmasker toe op URL-gebaseerde pictogrammen. Niet beschikbaar voor Base64/ingesloten pictogrammen."
 }

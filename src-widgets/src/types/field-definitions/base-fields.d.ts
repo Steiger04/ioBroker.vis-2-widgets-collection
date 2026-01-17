@@ -475,6 +475,14 @@ export interface BaseFieldsRxData {
     iconSize?: number;
 
     /**
+     * Enable color mask for active state icon.
+     *
+     * @default false
+     * @see {@link StateFieldsRxData.enableIconColorMask}
+     */
+    enableIconColorMask?: boolean;
+
+    /**
      * Icon color (base property without index).
      * Global icon color.
      *

@@ -139,5 +139,7 @@
     "rail_background_color": "Цвет фона рельса",
     "mark_width": "Ширина метки",
     "mark_height": "Высота метки",
-    "mark_background_color": "Цвет фона метки"
+    "mark_background_color": "Цвет фона метки",
+    "enable_icon_color_mask": "Включить цветовую маску",
+    "enable_icon_color_mask_tooltip": "Применяет цветовую маску к иконкам на основе URL. Недоступно для Base64/встроенных иконок."
 }
