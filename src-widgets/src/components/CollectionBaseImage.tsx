@@ -6,7 +6,7 @@
 
 import React, { useContext } from 'react';
 import { CollectionContext } from './CollectionProvider';
-import type { CollectionContextProps } from '../types';
+import type { CollectionContextProps, CollectionBaseImageWidgetData } from '../types';
 import { type StyleData } from '../hooks/useData';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
@@ -17,7 +17,7 @@ interface CollectionBaseImageProps {
     /** Style data computed by {@link module:hooks/useData}. */
     data: StyleData;
     /** Widget instance (used for reading config flags like `noHeaderIcon`). */
-    widget: CollectionContextProps<any>['widget'];
+    widget: CollectionContextProps<CollectionBaseImageWidgetData>['widget'];
 }
 
 /**
@@ -63,8 +63,10 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
                 ...getIconColorStyles(
                     iconSrc,
                     iconColor,
-                    (data.forceColorMaskActive && data.iconColorActive) ||
+                    Boolean(
+                        (data.forceColorMaskActive && data.iconColorActive) ||
                         (widget.data.enableIconColorMask && widget.data.iconColor),
+                    ),
                 ),
             }}
         />
