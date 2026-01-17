@@ -86,7 +86,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
                 }
 
                 if (index !== undefined) {
-                    _hidden = !data.icon && !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                    _hidden = (!data.icon || !data.iconColor) && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
                 }
 
                 return _hidden;
