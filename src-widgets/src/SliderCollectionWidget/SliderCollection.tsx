@@ -323,7 +323,6 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
-    console.log('gap', widget.data.sliderGap);
     return (
         <CollectionBase
             isValidType={isValidType}
