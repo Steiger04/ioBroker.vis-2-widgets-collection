@@ -89,6 +89,7 @@
     "vertical": "Vertical",
     "mark_position": "Mark position",
     "label_position": "Label position",
+    "slider_gap": "Gap between slider and icons (min/max)",
     "write_value": "Write value",
     "button_group": "Button group",
     "button_group_variant": "Variant",

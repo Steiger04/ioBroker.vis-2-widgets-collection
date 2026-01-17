@@ -71,7 +71,9 @@ const CollectionSlider = styled(Slider, {
         '& .MuiSlider-track': {
             height: data?.sliderOrientation === 'horizontal' ? `${data?.trackLength ?? 4}px` : 'auto',
             width: data?.sliderOrientation === 'vertical' ? `${data?.trackLength ?? 4}px` : 'auto',
-            borderColor: data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
+            borderColor: extractColorFromValue(
+                data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
+            ),
             background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
         },
         '& .MuiSlider-rail': {
@@ -321,13 +323,14 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
+    console.log('gap', widget.data.sliderGap);
     return (
         <CollectionBase
             isValidType={isValidType}
             data={data}
             oidValue={oidValue}
             sx={{
-                p: Number(widget.data.sliderPadding) || 1,
+                p: Number(widget.data.sliderPadding),
             }}
         >
             <CollectionBaseImage
@@ -338,6 +341,7 @@ const SliderCollection: FC = () => {
                 <Box
                     ref={sliderContainerRef}
                     sx={{
+                        gap: Number(widget.data.sliderGap) || 0,
                         display: 'flex',
                         flexDirection: isHorizontal ? 'row' : 'column',
                         justifyContent: 'center',

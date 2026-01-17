@@ -18,6 +18,13 @@ export interface SliderFieldsRxData {
     sliderOrientation?: 'horizontal' | 'vertical';
 
     /**
+     * Gap between slider and min/max icons.
+     *
+     * @default 0
+     */
+    sliderGap?: number;
+
+    /**
      * Value label display mode.
      *
      * @default 'off'

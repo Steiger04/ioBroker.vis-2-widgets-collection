@@ -89,6 +89,7 @@
     "vertical": "Vertikal",
     "mark_position": "Markierungsposition",
     "label_position": "Labelposition",
+    "slider_gap": "Abstand Slider - Icon (min/max)",
     "write_value": "Wert schreiben",
     "button_group": "Button-Gruppe",
     "button_group_variant": "Variante",
