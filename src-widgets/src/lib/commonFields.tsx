@@ -354,11 +354,11 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
                 />
             ),
         },
-        {
+        /* {
             name: `backgroundColor${groupName}`,
             label: 'background_color',
             type: 'color',
-        },
+        }, */
         {
             label: '',
             type: 'custom',
@@ -387,11 +387,11 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
                 />
             ),
         },
-        {
+        /* {
             name: `frameBackgroundColor${groupName}`,
             label: 'frame_background_color',
             type: 'color',
-        },
+        }, */
     ] as RxWidgetInfoAttributesField[];
 
     if (allFields) {
