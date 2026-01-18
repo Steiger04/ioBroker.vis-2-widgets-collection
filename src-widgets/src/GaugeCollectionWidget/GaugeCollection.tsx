@@ -14,6 +14,7 @@ import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import Gauge from './Gauge';
 import CollectionBaseImage from '../components/CollectionBaseImage';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 /**
  * Highlight segment for the gauge (range + styling overrides).
@@ -105,7 +106,7 @@ function GaugeCollection(): React.JSX.Element {
             _highlights.push({
                 from: Number(state.value),
                 to: Number(nextValue),
-                color: state.textColor || 'transparent',
+                color: extractColorFromValue(state.textColor) || 'transparent',
                 state: {
                     textColor: state.textColor,
                     icon: state.icon || undefined,
