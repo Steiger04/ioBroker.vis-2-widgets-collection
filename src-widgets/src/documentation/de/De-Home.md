@@ -93,14 +93,15 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 
 ### Icon
 
-| Feldname    | Typ            | Standard | Beschreibung         |
-| ----------- | -------------- | -------- | -------------------- |
-| icon        | image          | -        | Großes Icon (Bild)   |
-| iconSmall   | icon64         | -        | Kleines Icon (SVG)   |
-| iconSize    | slider (1-500) | -        | Icon-Größe in Pixel  |
-| iconColor   | color          | -        | Icon-Farbe           |
-| iconXOffset | text           | 0px      | Horizontaler Versatz |
-| iconYOffset | text           | 0px      | Vertikaler Versatz   |
+| Feldname             | Typ            | Standard | Beschreibung                                                                        |
+| -------------------- | -------------- | -------- | ----------------------------------------------------------------------------------- |
+| icon                 | image          | -        | Großes Icon (Bild)                                                                  |
+| iconSmall            | icon64         | -        | Kleines Icon (SVG)                                                                  |
+| iconSize             | slider (1-500) | -        | Icon-Größe in Pixel                                                                 |
+| iconColor            | color          | -        | Icon-Farbe                                                                          |
+| enableIconColorMask  | checkbox       | false    | Farbmaske für URL-basierte Icons aktivieren (ermöglicht iconColor auf Bilder anzuwenden)|
+| iconXOffset          | text           | 0px      | Horizontaler Versatz                                                                |
+| iconYOffset          | text           | 0px      | Vertikaler Versatz                                                                  |
 
 ### Header
 
@@ -149,17 +150,15 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 
 ### Hintergrund
 
-| Feldname        | Typ   | Standard | Beschreibung                   |
-| --------------- | ----- | -------- | ------------------------------ |
-| background      | text  | -        | Hintergrund (Gradient möglich) |
-| backgroundColor | color | -        | Hintergrundfarbe               |
+| Feldname   | Typ    | Standard | Beschreibung                                                                    |
+| ---------- | ------ | -------- | ------------------------------------------------------------------------------- |
+| background | custom | -        | Hintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten)    |
 
 ### Rahmenhintergrund
 
-| Feldname             | Typ   | Standard | Beschreibung                         |
-| -------------------- | ----- | -------- | ------------------------------------ |
-| frameBackground      | text  | -        | Rahmenhintergrund (Gradient möglich) |
-| frameBackgroundColor | color | -        | Rahmen-Hintergrundfarbe              |
+| Feldname        | Typ    | Standard | Beschreibung                                                                    |
+| --------------- | ------ | -------- | ------------------------------------------------------------------------------- |
+| frameBackground | custom | -        | Rahmenhintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten)|
 
 ### Wert schreiben
 
@@ -202,16 +201,15 @@ linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)
 
 #### Radial-Gradienten
 
-Syntax: `radial-gradient(Form, Farbe1, Farbe2, ...)`
+Syntax: `radial-gradient(circle, Farbe1, Farbe2, ...)`
+
+**Hinweis:** Nur kreisförmige Radial-Gradienten werden unterstützt. Elliptische Gradienten sind nicht verfügbar.
 
 **Beispiele:**
 
 ```css
 /* Kreisförmig */
 radial-gradient(circle, #ff0000, #0000ff)
-
-/* Elliptisch */
-radial-gradient(ellipse, #00ff00, #ffff00)
 
 /* Mit Position */
 radial-gradient(circle at center, #ff00ff, #00ffff)
@@ -221,10 +219,10 @@ radial-gradient(circle at center, #ff00ff, #00ffff)
 
 Folgende Felder unterstützen Gradienten:
 
-- **Common Einstellungen**: `background`, `frameBackground`
-- **Slider Widget**: `sliderColor`, `thumbColor`, `trackBackgroundColor`, `railBackgroundColor`, `markBackgroundColor`
+- **Common Einstellungen**: `background`, `frameBackground`, `textColor`
+- **Slider Widget**: `sliderColor`, `thumbColor`, `thumbBorderColor`, `trackBackgroundColor`, `trackBorderColor`, `railBackgroundColor`, `railBorderColor`, `markBackgroundColor`, `markerTextColor`
 
-**Hinweis:** Geben Sie den Gradienten als Text ein, nicht über den Farbwähler.
+**Hinweis:** Diese Felder verwenden einen benutzerdefinierten Gradient-Farbwähler. Sie können Farben als Hex (#fff), RGB (rgb(255,255,255)), RGBA (rgba(255,255,255,0.5)) oder CSS-Gradienten (linear-gradient(...), radial-gradient(circle, ...)) eingeben. Der Farbwähler bietet eine visuelle Oberfläche, aber Sie können auch die Gradient-Syntax direkt in das Textfeld eingeben.
 
 - **Verzögerung (delay)**: Wartet nach der letzten Änderung X Millisekunden, bevor der Wert geschrieben wird. Dies verhindert zu häufiges Schreiben bei schnellen Änderungen (z.B. beim Bewegen eines Sliders). Der Wert wird erst geschrieben, wenn der Benutzer die Interaktion beendet hat.
 

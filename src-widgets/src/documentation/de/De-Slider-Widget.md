@@ -24,6 +24,7 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | labelPosition     | text   | '-5px'       | Position des Labels (Pixel-Offset)          | Nur wenn valueLabelDisplay != 'off' |
 | sliderColor       | color  | -            | Farbe des Schiebereglers (Gradient möglich) | -                                   |
 | sliderPadding     | number | 1            | Innenabstand des Sliders                    | -                                   |
+| sliderGap         | number | 0            | Abstand zwischen Slider-Komponenten (0-100) | -                                   |
 
 ### Wertebereich
 
@@ -126,7 +127,18 @@ sequenceDiagram
 
 ### Gradient-Unterstützung
 
-Felder mit der Kennzeichnung "(Gradient möglich)" unterstützen CSS-Gradienten. Siehe [Gradient-Syntax](De-Home.md#gradient-syntax) für Details.
+Die folgenden Slider-Felder unterstützen CSS-Gradienten zusätzlich zu einfachen Farben:
+- `sliderColor`
+- `thumbColor`
+- `thumbBorderColor`
+- `trackBackgroundColor`
+- `trackBorderColor`
+- `railBackgroundColor`
+- `railBorderColor`
+- `markBackgroundColor`
+- `markerTextColor`
+
+Siehe [Gradient-Syntax](De-Home.md#gradient-syntax) für Details. Beachten Sie, dass nur kreisförmige Radial-Gradienten unterstützt werden.
 
 ## Orientierung
 

@@ -6,6 +6,8 @@
 
 Das Gauge Widget zeigt numerische Werte als Linear- oder Radial-Gauge an. Es bietet umfangreiche Konfigurationsmöglichkeiten für ein professionelles Aussehen.
 
+**Hinweis:** Dieses Widget basiert auf der canvas-gauges-Bibliothek und bietet über 100 Konfigurationsoptionen. Diese Dokumentation behandelt die am häufigsten verwendeten Einstellungen. Für erweiterte Konfiguration siehe den Feld-Editor des Widgets, der alle verfügbaren Optionen mit Tooltips anzeigt.
+
 ## Einstellungshierarchie
 
 Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. Siehe [Home](De-Home.md) für Details.

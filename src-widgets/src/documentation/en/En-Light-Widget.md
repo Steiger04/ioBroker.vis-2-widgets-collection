@@ -12,73 +12,79 @@ This widget uses all **vis-2 Settings** and **Common Settings**. See [Home](En-H
 
 The widget-specific settings override the more general settings.
 
-## Widget-Specific Settings
+## Color Light Configuration
 
-### Basic Configuration
+### UI Component Selection
 
-| Field Name            | Type   | Default | Description                           | Condition |
-| --------------------- | ------ | ------- | ------------------------------------- | --------- |
-| colorLightType        | select | 'rgb'   | Type of light control (rgb, cct, hsv) | -         |
-| colorLightUiComponent | select | 'wheel' | UI component (wheel, box, slider)     | -         |
-| colorLightPadding     | number | 10      | Inner padding                         | -         |
-| colorLightBorderColor | color  | -       | Border color                          | -         |
-| colorLightBorderWidth | number | -       | Border width                          | -         |
+| Field Name           | Type     | Default | Description                                      | Condition                                    |
+| -------------------- | -------- | ------- | ------------------------------------------------ | -------------------------------------------- |
+| colorLightUIComponent| select   | 'wheel' | Color picker UI (wheel, box, slider)             | Only when colorLightType is not 'none' or 'cct'|
+| colorWheelLightness  | checkbox | false   | Show lightness control in color wheel            | Only when colorLightUIComponent='wheel'      |
 
-### Switch OID
+### Color Type Configuration
 
-| Field Name               | Type     | Default | Description                     | Condition                       |
-| ------------------------ | -------- | ------- | ------------------------------- | ------------------------------- |
-| colorLightSwitchOid      | text     | -       | OID for on/off switch (boolean) | -                               |
-| colorLightButton         | checkbox | false   | Use as button (no OID)          | -                               |
-| colorLightDelayLongPress | number   | 500     | Delay for long-press (ms)       | Only with colorLightButton=true |
-
-### RGB Settings
-
-| Field Name          | Type | Default | Description                           | Condition |
-| ------------------- | ---- | ------- | ------------------------------------- | --------- |
-| colorLightRgbHexOid | text | -       | OID for RGB hex value (e.g., #FF0000) | -         |
-| colorLightRedOid    | text | -       | OID for red channel (0-255)           | -         |
-| colorLightGreenOid  | text | -       | OID for green channel (0-255)         | -         |
-| colorLightBlueOid   | text | -       | OID for blue channel (0-255)          | -         |
-
-### Brightness
-
-| Field Name              | Type | Default | Description                | Condition |
-| ----------------------- | ---- | ------- | -------------------------- | --------- |
-| colorLightBrightnessOid | text | -       | OID for brightness (0-100) | -         |
-
-### HSV Settings
-
-| Field Name              | Type | Default | Description                | Condition                      |
-| ----------------------- | ---- | ------- | -------------------------- | ------------------------------ |
-| colorLightHueOid        | text | -       | OID for hue (0-360)        | Only with colorLightType='hsv' |
-| colorLightSaturationOid | text | -       | OID for saturation (0-100) | Only with colorLightType='hsv' |
-| colorLightHsvOid        | text | -       | OID for combined HSV value | Only with colorLightType='hsv' |
+| Field Name           | Type   | Default | Description                                      | Condition |
+| -------------------- | ------ | ------- | ------------------------------------------------ | --------- |
+| colorLightType       | select | 'none'  | Color control type (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct) | - |
 
 ### Color Temperature (CCT)
 
-| Field Name               | Type   | Default | Description                        | Condition                      |
-| ------------------------ | ------ | ------- | ---------------------------------- | ------------------------------ |
-| colorLightTemperatureOid | text   | -       | OID for color temperature (Kelvin) | Only with colorLightType='cct' |
-| colorLightCtMin          | number | 2700    | Minimum color temperature (warm)   | Only with colorLightType='cct' |
-| colorLightCtMax          | number | 6500    | Maximum color temperature (cold)   | Only with colorLightType='cct' |
+| Field Name              | Type   | Default | Description                           | Condition                                    |
+| ----------------------- | ------ | ------- | ------------------------------------- | -------------------------------------------- |
+| colorLightTemperatureOid| id     | -       | OID for color temperature control     | Only when colorLightType includes 'cct'      |
+| colorLightCtMin         | number | 2000    | Minimum color temperature (500-10000K)| Only when colorLightTemperatureOid is set   |
+| colorLightCtMax         | number | 6500    | Maximum color temperature (500-10000K)| Only when colorLightTemperatureOid is set   |
 
-### UI Sizes
+### RGB Configuration
 
-| Field Name            | Type   | Default | Description                | Condition |
-| --------------------- | ------ | ------- | -------------------------- | --------- |
-| colorLightSliderWidth | number | -       | Width of brightness slider | -         |
-| colorLightModalWidth  | number | -       | Width of color modal       | -         |
-| colorLightModalHeight | number | -       | Height of color modal      | -         |
+| Field Name           | Type   | Default | Description                           | Condition                                    |
+| -------------------- | ------ | ------- | ------------------------------------- | -------------------------------------------- |
+| colorLightRgbHexOid  | id     | -       | OID for RGB hex value (#RRGGBB)       | Only when colorLightType is 'rgb' or 'rgbcct'|
+| colorLightRedOid     | id     | -       | OID for red channel (0-255)           | Only when colorLightType is 'r/g/b' or 'r/g/b/cct'|
+| colorLightGreenOid   | id     | -       | OID for green channel (0-255)         | Only when colorLightType is 'r/g/b' or 'r/g/b/cct'|
+| colorLightBlueOid    | id     | -       | OID for blue channel (0-255)          | Only when colorLightType is 'r/g/b' or 'r/g/b/cct'|
 
-### Advanced Settings
+### HSV Configuration
 
-| Field Name          | Type     | Default | Description                                 | Condition                               |
-| ------------------- | -------- | ------- | ------------------------------------------- | --------------------------------------- |
-| colorWheelLightness | checkbox | false   | Show lightness in color wheel               | Only with colorLightUiComponent='wheel' |
-| colorLightGamut     | select   | -       | Color space (sRGB, DCI-P3, Adobe RGB, etc.) | -                                       |
+| Field Name              | Type   | Default | Description                           | Condition                                    |
+| ----------------------- | ------ | ------- | ------------------------------------- | -------------------------------------------- |
+| colorLightHueOid        | id     | -       | OID for hue (0-360)                   | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'|
+| colorLightSaturationOid | id     | -       | OID for saturation (0-100)            | Only when colorLightType is 'h/s/v' or 'h/s/v/cct'|
+| colorLightBrightnessOid | id     | -       | OID for brightness/value (0-100)      | Only when colorLightType is 'cct', 'h/s/v', or 'h/s/v/cct'|
 
-**Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
+### Button Mode
+
+| Field Name                 | Type     | Default | Description                                      | Condition                    |
+| -------------------------- | -------- | ------- | ------------------------------------------------ | ---------------------------- |
+| colorLightButton           | checkbox | false   | Enable button mode (long press opens color picker)| -                           |
+| colorLightDelayLongPress   | number   | 500     | Long press delay in milliseconds (0-10000)       | Only when colorLightButton=true|
+| colorLightModalWidth       | number   | -       | Width of color picker modal (0-5000px)           | Only when colorLightButton=true|
+| colorLightModalHeight      | number   | 300     | Height of color picker modal (0-5000px)          | Only when colorLightButton=true|
+
+### Styling
+
+| Field Name              | Type   | Default | Description                           | Condition |
+| ----------------------- | ------ | ------- | ------------------------------------- | --------- |
+| colorLightSliderWidth   | slider | 1       | Width of color sliders (0-10)         | -         |
+| colorLightBorderWidth   | slider | 3       | Border width (0-100)                  | -         |
+| colorLightBorderColor   | color  | -       | Border color                          | -         |
+| colorLightPadding       | number | 1       | Inner padding (min: 0, step: 0.5)     | -         |
+
+### Switch OID
+
+| Field Name           | Type | Default | Description                           | Condition |
+| -------------------- | ---- | ------- | ------------------------------------- | --------- |
+| colorLightSwitchOid  | id   | -       | OID for on/off switch (boolean)       | -         |
+
+### Color Space
+
+| Field Name      | Type   | Default | Description                                       | Condition |
+| --------------- | ------ | ------- | ------------------------------------------------- | --------- |
+| colorLightGamut | select | -       | Color space (default, A, B, C for Philips Hue)    | -         |
+
+### Auto-Detection
+
+The Light widget can automatically detect related color control states when you select a switch OID. If the selected object is part of a device channel, the widget will scan for related states (RGB, CCT, brightness, etc.) based on ioBroker state roles and pre-fill the corresponding OID fields.
 
 ## Light Types
 

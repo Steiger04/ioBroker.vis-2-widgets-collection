@@ -12,73 +12,79 @@ Dieses Widget nutzt alle **vis-2 Einstellungen** und **Common Einstellungen**. S
 
 Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellungen.
 
-## Widget-spezifische Einstellungen
+## Farblicht-Konfiguration
 
-### Grundkonfiguration
+### UI-Komponenten-Auswahl
 
-| Feldname              | Typ    | Standard | Beschreibung                           | Bedingung |
-| --------------------- | ------ | -------- | -------------------------------------- | --------- |
-| colorLightType        | select | 'rgb'    | Typ der Lichtsteuerung (rgb, cct, hsv) | -         |
-| colorLightUiComponent | select | 'wheel'  | UI-Komponente (wheel, box, slider)     | -         |
-| colorLightPadding     | number | 10       | Innenabstand                           | -         |
-| colorLightBorderColor | color  | -        | Rahmenfarbe                            | -         |
-| colorLightBorderWidth | number | -        | Rahmenbreite                           | -         |
+| Feldname             | Typ      | Standard | Beschreibung                                      | Bedingung                                    |
+| -------------------- | -------- | -------- | ------------------------------------------------- | -------------------------------------------- |
+| colorLightUIComponent| select   | 'wheel'  | Farbwähler-UI (wheel, box, slider)                | Nur wenn colorLightType nicht 'none' oder 'cct'|
+| colorWheelLightness  | checkbox | false    | Helligkeitsregler im Farbrad anzeigen             | Nur wenn colorLightUIComponent='wheel'       |
 
-### Schalter-OID
+### Farbtyp-Konfiguration
 
-| Feldname                 | Typ      | Standard | Beschreibung                       | Bedingung                     |
-| ------------------------ | -------- | -------- | ---------------------------------- | ----------------------------- |
-| colorLightSwitchOid      | text     | -        | OID für Ein/Aus-Schalter (boolean) | -                             |
-| colorLightButton         | checkbox | false    | Als Button verwenden (keine OID)   | -                             |
-| colorLightDelayLongPress | number   | 500      | Verzögerung für Long-Press (ms)    | Nur bei colorLightButton=true |
-
-### RGB Einstellungen
-
-| Feldname            | Typ  | Standard | Beschreibung                        | Bedingung |
-| ------------------- | ---- | -------- | ----------------------------------- | --------- |
-| colorLightRgbHexOid | text | -        | OID für RGB Hex-Wert (z.B. #FF0000) | -         |
-| colorLightRedOid    | text | -        | OID für Rot-Kanal (0-255)           | -         |
-| colorLightGreenOid  | text | -        | OID für Grün-Kanal (0-255)          | -         |
-| colorLightBlueOid   | text | -        | OID für Blau-Kanal (0-255)          | -         |
-
-### Helligkeit
-
-| Feldname                | Typ  | Standard | Beschreibung               | Bedingung |
-| ----------------------- | ---- | -------- | -------------------------- | --------- |
-| colorLightBrightnessOid | text | -        | OID für Helligkeit (0-100) | -         |
-
-### HSV Einstellungen
-
-| Feldname                | Typ  | Standard | Beschreibung                  | Bedingung                    |
-| ----------------------- | ---- | -------- | ----------------------------- | ---------------------------- |
-| colorLightHueOid        | text | -        | OID für Farbton/Hue (0-360)   | Nur bei colorLightType='hsv' |
-| colorLightSaturationOid | text | -        | OID für Sättigung (0-100)     | Nur bei colorLightType='hsv' |
-| colorLightHsvOid        | text | -        | OID für kombinierter HSV-Wert | Nur bei colorLightType='hsv' |
+| Feldname             | Typ    | Standard | Beschreibung                                      | Bedingung |
+| -------------------- | ------ | -------- | ------------------------------------------------- | --------- |
+| colorLightType       | select | 'none'   | Farbsteuerungstyp (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct) | - |
 
 ### Farbtemperatur (CCT)
 
-| Feldname                 | Typ    | Standard | Beschreibung                    | Bedingung                    |
-| ------------------------ | ------ | -------- | ------------------------------- | ---------------------------- |
-| colorLightTemperatureOid | text   | -        | OID für Farbtemperatur (Kelvin) | Nur bei colorLightType='cct' |
-| colorLightCtMin          | number | 2700     | Minimale Farbtemperatur (warm)  | Nur bei colorLightType='cct' |
-| colorLightCtMax          | number | 6500     | Maximale Farbtemperatur (kalt)  | Nur bei colorLightType='cct' |
+| Feldname                | Typ    | Standard | Beschreibung                           | Bedingung                                    |
+| ----------------------- | ------ | -------- | -------------------------------------- | -------------------------------------------- |
+| colorLightTemperatureOid| id     | -        | OID für Farbtemperatursteuerung        | Nur wenn colorLightType 'cct' enthält        |
+| colorLightCtMin         | number | 2000     | Minimale Farbtemperatur (500-10000K)   | Nur wenn colorLightTemperatureOid gesetzt    |
+| colorLightCtMax         | number | 6500     | Maximale Farbtemperatur (500-10000K)   | Nur wenn colorLightTemperatureOid gesetzt    |
 
-### UI-Größen
+### RGB-Konfiguration
 
-| Feldname              | Typ    | Standard | Beschreibung                   | Bedingung |
-| --------------------- | ------ | -------- | ------------------------------ | --------- |
-| colorLightSliderWidth | number | -        | Breite des Helligkeits-Sliders | -         |
-| colorLightModalWidth  | number | -        | Breite des Farb-Modals         | -         |
-| colorLightModalHeight | number | -        | Höhe des Farb-Modals           | -         |
+| Feldname             | Typ | Standard | Beschreibung                           | Bedingung                                    |
+| -------------------- | --- | -------- | -------------------------------------- | -------------------------------------------- |
+| colorLightRgbHexOid  | id  | -        | OID für RGB-Hex-Wert (#RRGGBB)         | Nur wenn colorLightType 'rgb' oder 'rgbcct'  |
+| colorLightRedOid     | id  | -        | OID für Rot-Kanal (0-255)              | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
+| colorLightGreenOid   | id  | -        | OID für Grün-Kanal (0-255)             | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
+| colorLightBlueOid    | id  | -        | OID für Blau-Kanal (0-255)             | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
 
-### Erweiterte Einstellungen
+### HSV-Konfiguration
 
-| Feldname            | Typ      | Standard | Beschreibung                             | Bedingung                             |
-| ------------------- | -------- | -------- | ---------------------------------------- | ------------------------------------- |
-| colorWheelLightness | checkbox | false    | Helligkeit im Farbrad anzeigen           | Nur bei colorLightUiComponent='wheel' |
-| colorLightGamut     | select   | -        | Farbraum (sRGB, DCI-P3, Adobe RGB, etc.) | -                                     |
+| Feldname                | Typ | Standard | Beschreibung                           | Bedingung                                    |
+| ----------------------- | --- | -------- | -------------------------------------- | -------------------------------------------- |
+| colorLightHueOid        | id  | -        | OID für Farbton (0-360)                | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'|
+| colorLightSaturationOid | id  | -        | OID für Sättigung (0-100)              | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'|
+| colorLightBrightnessOid | id     | -        | OID für Helligkeit/Wert (0-100)        | Nur wenn colorLightType 'cct', 'h/s/v' oder 'h/s/v/cct'|
 
-**Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
+### Button-Modus
+
+| Feldname                   | Typ      | Standard | Beschreibung                                      | Bedingung                    |
+| -------------------------- | -------- | -------- | ------------------------------------------------- | ---------------------------- |
+| colorLightButton           | checkbox | false    | Button-Modus aktivieren (Langer Druck öffnet Farbwähler)| -                     |
+| colorLightDelayLongPress   | number   | 500      | Verzögerung für langen Druck in Millisekunden (0-10000)| Nur wenn colorLightButton=true|
+| colorLightModalWidth       | number   | -        | Breite des Farbwähler-Modals (0-5000px)          | Nur wenn colorLightButton=true|
+| colorLightModalHeight      | number   | 300      | Höhe des Farbwähler-Modals (0-5000px)            | Nur wenn colorLightButton=true|
+
+### Styling
+
+| Feldname                | Typ    | Standard | Beschreibung                           | Bedingung |
+| ----------------------- | ------ | -------- | -------------------------------------- | --------- |
+| colorLightSliderWidth   | slider | 1        | Breite der Farbregler (0-10)           | -         |
+| colorLightBorderWidth   | slider | 3        | Rahmenbreite (0-100)                   | -         |
+| colorLightBorderColor   | color  | -        | Rahmenfarbe                            | -         |
+| colorLightPadding       | number | 1        | Innenabstand (min: 0, Schritt: 0.5)    | -         |
+
+### Schalter-OID
+
+| Feldname            | Typ | Standard | Beschreibung                        | Bedingung |
+| ------------------- | --- | -------- | ----------------------------------- | --------- |
+| colorLightSwitchOid | id  | -        | OID für Ein/Aus-Schalter (boolean) | -         |
+
+### Farbraum
+
+| Feldname        | Typ    | Standard | Beschreibung                                   | Bedingung |
+| --------------- | ------ | -------- | ---------------------------------------------- | --------- |
+| colorLightGamut | select | -        | Farbraum (default, A, B, C für Philips Hue)   | -         |
+
+### Automatische Erkennung
+
+Das Light-Widget kann automatisch zugehörige Farbsteuerungs-Zustände erkennen, wenn Sie eine Schalter-OID auswählen. Wenn das ausgewählte Objekt Teil eines Gerätekanals ist, durchsucht das Widget verwandte Zustände (RGB, CCT, Helligkeit usw.) basierend auf ioBroker-Zustandsrollen und füllt die entsprechenden OID-Felder automatisch aus.
 
 ## Lichttypen
 

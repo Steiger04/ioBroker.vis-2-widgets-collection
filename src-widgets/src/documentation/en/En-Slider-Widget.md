@@ -24,6 +24,7 @@ The widget-specific settings override the more general settings.
 | labelPosition     | text   | '-5px'       | Position of the label (pixel offset)    | Only when valueLabelDisplay != 'off' |
 | sliderColor       | color  | -            | Color of the slider (gradient possible) | -                                    |
 | sliderPadding     | number | 1            | Inner padding of the slider             | -                                    |
+| sliderGap         | number | 0            | Gap between slider components (0-100)   | -                                    |
 
 ### Value Range
 
@@ -126,7 +127,18 @@ sequenceDiagram
 
 ### Gradient Support
 
-Fields marked with "(gradient possible)" support CSS gradients. See [Gradient Syntax](En-Home.md#gradient-syntax) for details.
+The following slider fields support CSS gradients in addition to solid colors:
+- `sliderColor`
+- `thumbColor`
+- `thumbBorderColor`
+- `trackBackgroundColor`
+- `trackBorderColor`
+- `railBackgroundColor`
+- `railBorderColor`
+- `markBackgroundColor`
+- `markerTextColor`
+
+See [Gradient Syntax](En-Home.md#gradient-syntax) for details. Note that only circular radial gradients are supported.
 
 ## Orientation
 
