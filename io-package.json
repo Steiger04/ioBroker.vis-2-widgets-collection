@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.1.1",
+    "version": "2.2.0",
     "news": {
+      "2.2.0": {
+        "en": "CollectionWidgets optimized and expanded",
+        "de": "CollectionWidgets optimiert und erweitert",
+        "ru": "CollectionWidgets оптимизирована и расширена",
+        "pt": "ColectionWidgets otimizado e expandido",
+        "nl": "CollectieWidgets geoptimaliseerd en uitgebreid",
+        "fr": "CollectionWidgets optimisé et élargi",
+        "it": "CollectionWidget ottimizzati e ampliati",
+        "es": "CollectionWidgets optimizados y ampliados",
+        "pl": "CollectionWidgets zoptymalizowane i rozszerzone",
+        "uk": "КолекціяОптимізоване та розширене",
+        "zh-cn": "优化和扩大收藏部件"
+      },
       "2.1.1": {
         "en": "GradientColorPicker bug fixed",
         "de": "Gradientenfarbe Picker Bug behoben",
@@ -80,19 +93,6 @@
         "pl": "Zoptymalizowany widżet interfejsu",
         "uk": "Оптимізований віджет Gauge",
         "zh-cn": "Gauge 部件优化"
-      },
-      "2.0.6": {
-        "en": "gitignore changed",
-        "de": "gitignore geändert",
-        "ru": "гитиньор изменился",
-        "pt": "gitignore alterado",
-        "nl": "gitignore gewijzigd",
-        "fr": "gitignore modifié",
-        "it": "gitignore cambiato",
-        "es": "gitignore changed",
-        "pl": "gitignore zmienione",
-        "uk": "gitignore змінив",
-        "zh-cn": "吉提格诺尔变了"
       }
     },
     "titleLang": {

@@ -61,10 +61,8 @@
 -->
 
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 2.2.0 (2026-01-18)
 - (steiger04) CollectionWidgets optimized and expanded
-
 
 ### 2.1.1 (2026-01-09)
 - (steiger04) GradientColorPicker bug fixed
