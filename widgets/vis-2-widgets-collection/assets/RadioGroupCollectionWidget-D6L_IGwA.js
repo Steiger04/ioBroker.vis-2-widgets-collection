@@ -1,10 +1,10 @@
-import { c as R, j as o, s as j, r as D, m as T, a as J, g as K, u as X, a6 as Y, a7 as Z, b as Q, d as ee, i as w, e as te, o as W, _ as U, C as k, a4 as oe, v as ae, y as ie, E as ne, G as se, A as le, T as re, w as M, z as de, H as ce, J as G, K as pe, __tla as __tla_0 } from "./useData-C785wdBl.js";
-import { c as ue, __tla as __tla_1 } from "./commonObjectFields-DEMuVNf8.js";
-import { u as he, d as me, __tla as __tla_2 } from "./useValueState-Bt_d7CjV.js";
+import { c as R, j as o, s as j, r as D, m as T, a as J, g as K, u as X, a7 as Y, a8 as Z, b as Q, d as ee, i as w, e as te, o as W, $ as U, C as k, a5 as oe, v as ae, y as ie, E as ne, G as se, A as le, T as re, w as M, z as de, H as ce, J as G, K as pe, __tla as __tla_0 } from "./useData-vpnuohUP.js";
+import { c as ue, __tla as __tla_1 } from "./commonObjectFields-DfDz2RT7.js";
+import { u as he, d as me, __tla as __tla_2 } from "./useValueState-xh8B4_VZ.js";
 import { v as m, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as fe, __tla as __tla_4 } from "./Stack-CNvxhofJ.js";
-import { F as ge, __tla as __tla_5 } from "./FormControlLabel---2QGE0T.js";
-import { S as xe, __tla as __tla_6 } from "./SwitchBase-DzmNbif2.js";
+import { S as fe, __tla as __tla_4 } from "./Stack-DbW5Dsvw.js";
+import { F as ge, __tla as __tla_5 } from "./FormControlLabel-CfFmAdzs.js";
+import { S as xe, __tla as __tla_6 } from "./SwitchBase-g6pb4xzk.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let E;
@@ -211,11 +211,11 @@ let __tla = Promise.all([
   }
   const Pe = o.jsx(H, {
     checked: true
-  }), _e = o.jsx(H, {}), Be = m.forwardRef(function(t, a) {
+  }), Be = o.jsx(H, {}), _e = m.forwardRef(function(t, a) {
     const l = X({
       props: t,
       name: "MuiRadio"
-    }), { checked: d, checkedIcon: i = Pe, color: r = "primary", icon: f = _e, name: b, onChange: I, size: c = "medium", className: z, disabled: s, disableRipple: p = false, slots: v = {}, slotProps: y = {}, inputProps: u, ...S } = l, n = Y();
+    }), { checked: d, checkedIcon: i = Pe, color: r = "primary", icon: f = Be, name: b, onChange: I, size: c = "medium", className: z, disabled: s, disableRipple: p = false, slots: v = {}, slotProps: y = {}, inputProps: u, ...S } = l, n = Y();
     let h = s;
     n && typeof h > "u" && (h = n.disabled), h ??= false;
     const g = {
@@ -227,9 +227,9 @@ let __tla = Promise.all([
     }, x = je(g), C = we();
     let P = d;
     const N = Z(I, C && C.onChange);
-    let _ = b;
-    C && (typeof P > "u" && (P = ze(C.value, l.value)), typeof _ > "u" && (_ = C.name));
-    const B = y.input ?? u, [A, q] = Q("root", {
+    let B = b;
+    C && (typeof P > "u" && (P = ze(C.value, l.value)), typeof B > "u" && (B = C.name));
+    const _ = y.input ?? u, [A, q] = Q("root", {
       ref: a,
       elementType: Ie,
       className: ee(x.root, z),
@@ -239,11 +239,11 @@ let __tla = Promise.all([
         slotProps: y,
         ...S
       },
-      getSlotProps: (F) => ({
-        ...F,
-        onChange: (O, ...$) => {
+      getSlotProps: ($) => ({
+        ...$,
+        onChange: (F, ...O) => {
           var _a;
-          (_a = F.onChange) == null ? void 0 : _a.call(F, O, ...$), N(O, ...$);
+          (_a = $.onChange) == null ? void 0 : _a.call($, F, ...O), N(F, ...O);
         }
       }),
       ownerState: g,
@@ -256,11 +256,11 @@ let __tla = Promise.all([
           fontSize: i.props.fontSize ?? c
         }),
         disabled: h,
-        name: _,
+        name: B,
         checked: P,
         slots: v,
         slotProps: {
-          input: typeof B == "function" ? B(g) : B
+          input: typeof _ == "function" ? _(g) : _
         }
       }
     });
@@ -338,12 +338,12 @@ let __tla = Promise.all([
       default: false,
       hidden: (e, t) => !e.write
     }
-  ], Fe = R(o.jsx("path", {
+  ], $e = R(o.jsx("path", {
     d: "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5m0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8"
   }), "RadioButtonChecked"), L = R(o.jsx("path", {
     d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8"
   }), "RadioButtonUnchecked");
-  function Oe() {
+  function Fe() {
     const [e, t] = m.useState(null), { height: a } = oe(e), l = m.useContext(ae), { widget: { data: { oidObject: d } }, widget: i } = l, { data: r, states: f } = ie("oid"), { value: b, updateValue: I } = he("oid"), c = d == null ? void 0 : d.type, z = c === "boolean" || c === "number" || c === "string" || c === "mixed", s = i.data.radioOrientation === "horizontal", p = a && f.length > 0 ? a / f.length : void 0, v = (u) => {
       I(u.target.value);
     }, y = () => typeof r.iconSizeOnly == "number" ? `calc(100% * ${r.iconSizeOnly} / 100)` : "50%";
@@ -416,7 +416,7 @@ let __tla = Promise.all([
                   }
                 }
               },
-              control: o.jsx(Be, {
+              control: o.jsx(_e, {
                 disabled: i.data.onlyDisplay,
                 checkedIcon: n.icon ? o.jsxs(M, {
                   sx: {
@@ -459,7 +459,7 @@ let __tla = Promise.all([
                       })
                     })
                   ]
-                }) : o.jsx(Fe, {
+                }) : o.jsx($e, {
                   sx: {
                     color: n.iconColor,
                     width: "100%",
@@ -608,7 +608,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, pe(this.wrapContent(o.jsx(Oe, {})), a);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, pe(this.wrapContent(o.jsx(Fe, {})), a);
     }
   };
 });

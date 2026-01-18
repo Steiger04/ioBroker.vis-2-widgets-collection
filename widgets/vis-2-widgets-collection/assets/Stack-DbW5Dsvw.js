@@ -1,4 +1,4 @@
-import { a9 as R, a1 as V, aa as _, ab as b, j as D, d as B, ac as h, ad as u, ae as F, af as M, ag as E, e as G, g as N, ah as O, ai as v, s as U, u as $, __tla as __tla_0 } from "./useData-C785wdBl.js";
+import { aa as R, a2 as V, ab as _, ac as b, j as D, d as B, ad as h, ae as u, af as F, ag as M, ah as E, e as G, g as N, ai as O, aj as v, s as U, u as $, __tla as __tla_0 } from "./useData-vpnuohUP.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 let Z;
 let __tla = Promise.all([
@@ -99,17 +99,17 @@ let __tla = Promise.all([
       ]
     }, (r) => N(t, r), {}), a = s(K);
     return p.forwardRef(function(r, c) {
-      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, j = {
+      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: j = false, ...x } = f, C = {
         direction: k,
         spacing: P,
-        useFlexGap: x
+        useFlexGap: j
       }, T = n();
       return D.jsx(a, {
         as: l,
-        ownerState: j,
+        ownerState: C,
         ref: c,
         className: B(T.root, S),
-        ...C,
+        ...x,
         children: y ? I(g, y) : g
       });
     });

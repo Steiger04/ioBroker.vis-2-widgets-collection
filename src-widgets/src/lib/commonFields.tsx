@@ -243,7 +243,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             label: 'text_color',
             default: '',
             type: 'custom', // important
-            fallbackFields: [],
+            fallbackFields: [''],
             component: (
                 // important
                 field, // field properties: {name, label, type, set, singleName, component,...}

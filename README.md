@@ -61,6 +61,9 @@
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) Slider widget color for min / max icon optimized
+
 ### 2.2.0 (2026-01-18)
 - (steiger04) CollectionWidgets optimized and expanded
 

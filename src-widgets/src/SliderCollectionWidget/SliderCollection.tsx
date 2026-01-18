@@ -17,6 +17,7 @@ import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 import type { SliderCollectionContextProps } from '../types';
+import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 type CollectionSliderProps = SliderProps & {
     thumbColor?: string;
@@ -146,9 +147,6 @@ const SliderCollection: FC = () => {
     const sliderContainerRef = useRef<HTMLDivElement>(null);
     const [trackOffset, setTrackOffset] = useState({ x: 0, y: 0 });
 
-    const startIconColor = widget.data.startIconColor || data.iconColor || theme.palette.primary.main;
-    const endIconColor = widget.data.endIconColor || data.iconColor || theme.palette.primary.main;
-
     const isHorizontal = widget.data.sliderOrientation === 'horizontal';
 
     const startIcon = useMemo(
@@ -165,6 +163,14 @@ const SliderCollection: FC = () => {
                 ? widget.data.iconMax || widget.data.iconSmallMax
                 : widget.data.iconMin || widget.data.iconSmallMin,
         [isHorizontal, widget.data.iconMax, widget.data.iconSmallMax, widget.data.iconMin, widget.data.iconSmallMin],
+    );
+
+    const startIconColor = extractColorFromValue(
+        widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined),
+    );
+
+    const endIconColor = extractColorFromValue(
+        widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined),
     );
 
     const oidType = oidObject?.type;
@@ -378,7 +384,11 @@ const SliderCollection: FC = () => {
                                     width: isHorizontal
                                         ? widget.data.iconSizeStart || '24px'
                                         : widget.data.iconSizeEnd || '24px',
-                                    ...getIconColorStyles(startIcon, isHorizontal ? startIconColor : endIconColor),
+                                    ...getIconColorStyles(
+                                        startIcon,
+                                        isHorizontal ? startIconColor : endIconColor,
+                                        true,
+                                    ),
                                 }}
                             />
                         </Box>
@@ -528,7 +538,7 @@ const SliderCollection: FC = () => {
                                     width: isHorizontal
                                         ? widget.data.iconSizeEnd || '24px'
                                         : widget.data.iconSizeStart || '24px',
-                                    ...getIconColorStyles(endIcon, isHorizontal ? endIconColor : startIconColor),
+                                    ...getIconColorStyles(endIcon, isHorizontal ? endIconColor : startIconColor, true),
                                 }}
                             />
                         </Box>

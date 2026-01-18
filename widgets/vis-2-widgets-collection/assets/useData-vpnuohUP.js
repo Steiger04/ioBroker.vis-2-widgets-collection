@@ -1,7 +1,7 @@
 import { v as B, R as na, a as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 import { g as Ja, c as dn } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as Cf } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let ms, Xn, B0, Re, uo, cU, d0, yU, Fa, Xh, QU, vU, CC, G0, ra, fU, ha, dl, Pp, Lt, Zn, He, Ru, gl, tB, Jp, zu, mt, IA, Cs, ca, nh, wU, sU, sd, fr, sl, dr, Rp, Bs, bu, et, CU, ds, YA, hU, gs, on, ga, Nh, le, Yu, pA, RA, Us, kA, oi, hA, L, tt, pe, OA, Th, ir, Fi, va, $e, lA, mU, KA, gr, Ie, QC, bU, dU;
+let mt, Xn, B0, Re, uo, cU, d0, yU, Fa, Xh, QU, vU, CC, G0, ra, fU, ha, uU, dl, Pp, Zn, Lt, He, Ru, gl, tB, Jp, zu, IA, ms, Cs, ca, nh, wU, sU, sd, fr, sl, dr, Rp, Bs, bu, et, CU, ds, YA, hU, gs, on, ga, Nh, le, Yu, pA, RA, Us, kA, oi, hA, L, tt, pe, OA, Th, ir, Fi, va, $e, lA, mU, KA, gr, Ie, QC, bU, dU;
 let __tla = Promise.all([
   (() => {
     try {
@@ -19466,7 +19466,9 @@ export default theme;`;
         label: "text_color",
         default: "",
         type: "custom",
-        fallbackFields: [],
+        fallbackFields: [
+          ""
+        ],
         component: (o, i, a, s) => L.jsx(ra, {
           field: o,
           data: i,
@@ -19876,7 +19878,6 @@ export default theme;`;
     });
   });
   cU.displayName = "CollectionBase";
-  let uU;
   uU = (A) => !A || typeof A != "string" ? false : /^data:image\/(svg\+xml|png|jpe?g|gif);base64,/i.test(A);
   dU = (A, e, t) => !t && !uU(A) ? {} : !e || e === "" ? {} : {
     color: e,
@@ -20087,7 +20088,7 @@ export default theme;`;
   };
 });
 export {
-  ms as $,
+  mt as $,
   Xn as A,
   B0 as B,
   Re as C,
@@ -20104,40 +20105,41 @@ export {
   ra as N,
   fU as O,
   ha as P,
-  dl as Q,
-  Pp as R,
-  Lt as S,
+  uU as Q,
+  dl as R,
+  Pp as S,
   Zn as T,
-  He as U,
-  Ru as V,
-  gl as W,
-  tB as X,
-  Jp as Y,
-  zu as Z,
-  mt as _,
+  Lt as U,
+  He as V,
+  Ru as W,
+  gl as X,
+  tB as Y,
+  Jp as Z,
+  zu as _,
   __tla,
   IA as a,
-  Cs as a0,
-  ca as a1,
-  nh as a2,
-  wU as a3,
-  sU as a4,
-  sd as a5,
-  fr as a6,
-  sl as a7,
-  dr as a8,
-  Rp as a9,
-  Bs as aa,
-  bu as ab,
-  et as ac,
-  CU as ad,
-  ds as ae,
-  YA as af,
-  hU as ag,
-  gs as ah,
-  on as ai,
-  ga as aj,
-  Nh as ak,
+  ms as a0,
+  Cs as a1,
+  ca as a2,
+  nh as a3,
+  wU as a4,
+  sU as a5,
+  sd as a6,
+  fr as a7,
+  sl as a8,
+  dr as a9,
+  Rp as aa,
+  Bs as ab,
+  bu as ac,
+  et as ad,
+  CU as ae,
+  ds as af,
+  YA as ag,
+  hU as ah,
+  gs as ai,
+  on as aj,
+  ga as ak,
+  Nh as al,
   le as b,
   Yu as c,
   pA as d,

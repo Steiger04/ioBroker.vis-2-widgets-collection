@@ -1,4 +1,4 @@
-import { a as e, g as s, __tla as __tla_0 } from "./useData-C785wdBl.js";
+import { a as e, g as s, __tla as __tla_0 } from "./useData-vpnuohUP.js";
 let a, l;
 let __tla = Promise.all([
   (() => {
