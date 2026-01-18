@@ -1,8 +1,9 @@
-import { j as A, C as D, z as xa, w as Ke, a4 as Ta, v as wa, y as Sa, E as Ca, G as Ba, H as Na, J as Je, K as Va, __tla as __tla_0 } from "./useData-CgqtnjcW.js";
-import { c as Wa, __tla as __tla_1 } from "./commonObjectFields-BjSiO2Us.js";
+import { j as A, C as D, z as xa, w as Ke, a4 as Ta, v as wa, y as Sa, E as Ca, G as Ba, H as Na, J as Je, K as Va, __tla as __tla_0 } from "./useData-C785wdBl.js";
+import { c as Wa, __tla as __tla_1 } from "./commonObjectFields-DEMuVNf8.js";
 import { v as L, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Aa, __tla as __tla_3 } from "./useOidValue-BAW-6i0B.js";
+import { u as Aa, __tla as __tla_3 } from "./useOidValue-p6fCDjon.js";
 import { c as Ne } from "./_commonjsHelpers-Cpj98o6Y.js";
+import { e as Ma } from "./extractColorFromValue-BwqGCJvl.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
 let __tla = Promise.all([
@@ -31,7 +32,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const Ma = () => [
+  const Oa = () => [
     {
       label: "",
       type: "custom",
@@ -2507,7 +2508,7 @@ let __tla = Promise.all([
     })(g.exports);
   })(Qe);
   var Ze = Qe.exports;
-  const Oa = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", ja = (g) => {
+  const ja = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", Pa = (g) => {
     const w = L.useRef(null), R = L.useRef(null);
     L.useEffect(() => {
       if (w.current === null || w.current.options.gaugeType !== g.gaugeType) {
@@ -2542,7 +2543,7 @@ let __tla = Promise.all([
       children: [
         A.jsx("img", {
           alt: "",
-          src: (I == null ? void 0 : I.state.icon) || g.gaugeData.icon || Oa,
+          src: (I == null ? void 0 : I.state.icon) || g.gaugeData.icon || ja,
           style: {
             position: "relative",
             width: (I == null ? void 0 : I.state.iconSize) !== void 0 ? `${I.state.iconSize}%` : $ || "50%",
@@ -2563,8 +2564,8 @@ let __tla = Promise.all([
         })
       ]
     });
-  }, Pa = (g, w, R) => g.find((I) => w >= I.from && (w < I.to || w === I.to && w === R)) || null;
-  function Ea() {
+  }, Ea = (g, w, R) => g.find((I) => w >= I.from && (w < I.to || w === I.to && w === R)) || null;
+  function Ia() {
     var _a, _b;
     const g = L.useRef(null), [w, R] = L.useState(null), { width: $, height: I } = Ta(w), F = L.useContext(wa), { wrappedContent: z, widget: { data: { oidObject: ae } }, widget: i } = F, ve = F.theme, { data: O, states: Q } = Sa("oid"), te = Aa("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = O.iconColor || ve.palette.primary.main, _e = L.useMemo(() => {
       const H = Number(i.data.gaugeMinValue) || 0, re = Number(i.data.gaugeMaxValue) || 100, E = [];
@@ -2585,7 +2586,7 @@ let __tla = Promise.all([
         H.push({
           from: Number(E.value),
           to: Number(ee),
-          color: E.textColor || "transparent",
+          color: Ma(E.textColor) || "transparent",
           state: {
             textColor: E.textColor,
             icon: E.icon || void 0,
@@ -2608,7 +2609,7 @@ let __tla = Promise.all([
     }, [
       Q,
       i.data.gaugeMaxValue
-    ]), M = L.useMemo(() => Pa(le, Number(te) || 0, Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100), [
+    ]), M = L.useMemo(() => Ea(le, Number(te) || 0, Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100), [
       le,
       te,
       i.data.gaugeMaxValue
@@ -2658,7 +2659,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: A.jsx(ja, {
+          children: A.jsx(Pa, {
             gaugeData: {
               icon: typeof O.icon == "string" ? O.icon : void 0,
               iconColor: ye,
@@ -2811,7 +2812,7 @@ let __tla = Promise.all([
               ...Wa([
                 "number"
               ]),
-              ...Ma()
+              ...Oa()
             ]
           },
           {
@@ -2870,7 +2871,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Va(this.wrapContent(A.jsx(Ea, {})), R);
+      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Va(this.wrapContent(A.jsx(Ia, {})), R);
     }
   };
 });
