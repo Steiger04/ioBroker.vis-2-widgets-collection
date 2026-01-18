@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-QtAMMAjZ.js","./useData-CgqtnjcW.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./commonObjectFields-BjSiO2Us.js","./useValueState-BUSze0XD.js","./Close-C1N1cNSi.js","./Slider-KNNpeeCb.js","./listItemTextClasses-BuFjYnVC.js","./Stack-Dh1YNN0Q.js","./useHtmlValue-Dcwl_hqT.js","./Button-DBFmN6pF.js","./SliderCollectionWidget-B-QQ1Egi.js","./extractColorFromValue-BwqGCJvl.js","./ButtonGroupCollectionWidget-nifq0oYK.js","./SafeImg-6OsJLTPA.js","./SwitchCollectionWidget-B14TrPjC.js","./SwitchBase-CgIptbgD.js","./CheckboxCollectionWidget-BG2neRBF.js","./FormControlLabel-C9hLLXLl.js","./DialogCollectionWidget-gKBblzXy.js","./SelectCollectionWidget-4cctcD7U.js","./RadioGroupCollectionWidget-DSzG4Sgb.js","./GaugeCollectionWidget-DpDiSUs-.js","./useOidValue-BAW-6i0B.js","./Light2CollectionWidget-DuWhpX4p.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-QtAMMAjZ.js","./useData-CgqtnjcW.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./commonObjectFields-BjSiO2Us.js","./useValueState-BUSze0XD.js","./Close-C1N1cNSi.js","./Slider-KNNpeeCb.js","./listItemTextClasses-BuFjYnVC.js","./Stack-Dh1YNN0Q.js","./useHtmlValue-Dcwl_hqT.js","./Button-DBFmN6pF.js","./SliderCollectionWidget-DQWnSRu4.js","./extractColorFromValue-BwqGCJvl.js","./ButtonGroupCollectionWidget-nifq0oYK.js","./SafeImg-6OsJLTPA.js","./SwitchCollectionWidget-B14TrPjC.js","./SwitchBase-CgIptbgD.js","./CheckboxCollectionWidget-BG2neRBF.js","./FormControlLabel-C9hLLXLl.js","./DialogCollectionWidget-gKBblzXy.js","./SelectCollectionWidget-4cctcD7U.js","./RadioGroupCollectionWidget-DSzG4Sgb.js","./GaugeCollectionWidget-DpDiSUs-.js","./useOidValue-BAW-6i0B.js","./Light2CollectionWidget-DuWhpX4p.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
@@ -14,7 +14,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SliderCollectionWidget": async () => {
-      const t = await o(() => import("./SliderCollectionWidget-B-QQ1Egi.js").then(async (m) => {
+      const t = await o(() => import("./SliderCollectionWidget-DQWnSRu4.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([13,1,2,3,4,5,6,8,14]), import.meta.url), e = {};
@@ -104,7 +104,7 @@ let __tla = (async () => {
       }), e;
     },
     "./translations": async () => {
-      const t = await o(() => import("./translations-CdMftg_t.js"), [], import.meta.url), e = {};
+      const t = await o(() => import("./translations-ComNQe-J.js"), [], import.meta.url), e = {};
       return Object.assign(e, t), Object.defineProperty(e, "__esModule", {
         value: true,
         enumerable: false
