@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "news": {
+      "2.2.1": {
+        "en": "Slider widget color for min / max icon optimized",
+        "de": "Slider Widget Farbe für min / max Icon optimiert",
+        "ru": "Цвет виджета слайдера для иконки min/max оптимизирован",
+        "pt": "Cor do widget deslizante para ícone min / max otimizado",
+        "nl": "Slider widget kleur voor min / max pictogram geoptimaliseerd",
+        "fr": "Couleur du widget slider pour l'icône min / max optimisée",
+        "it": "Slider widget colore per min / max icona ottimizzata",
+        "es": "Color de widget deslizante para min / icono max optimizado",
+        "pl": "Kolor widget suwak dla min / max ikona zoptymalizowana",
+        "uk": "Колір віджету Slider для min / макс оптимізований",
+        "zh-cn": "分钟/最大图标优化的滑动部件颜色"
+      },
       "2.2.0": {
         "en": "CollectionWidgets optimized and expanded",
         "de": "CollectionWidgets optimiert und erweitert",
@@ -80,19 +93,6 @@
         "pl": "sync- wiki.yml zmienione",
         "uk": "sync-wiki.yml змінився",
         "zh-cn": "同步- wiki. yml 更改"
-      },
-      "2.0.7": {
-        "en": "Gauge widget optimized",
-        "de": "Gage Widget optimiert",
-        "ru": "Gauge Widget оптимизирован",
-        "pt": "Elemento de calibre otimizado",
-        "nl": "Grootte-widget geoptimaliseerd",
-        "fr": "Widget de jauge optimisé",
-        "it": "Widget Gauge ottimizzato",
-        "es": "Widget Gauge optimizado",
-        "pl": "Zoptymalizowany widżet interfejsu",
-        "uk": "Оптимізований віджет Gauge",
-        "zh-cn": "Gauge 部件优化"
       }
     },
     "titleLang": {
