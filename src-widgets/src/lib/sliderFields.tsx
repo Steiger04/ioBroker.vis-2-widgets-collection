@@ -201,13 +201,13 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
     } as const,
     /* {
-        name: 'trackBorderColor',
-        label: 'track_border_color',
+        name: 'trackBackgroundColor',
+        label: 'track_background_color',
         type: 'color',
     } as const, */
     {
-        name: 'trackBorderColor',
-        label: 'track_border_color',
+        name: 'trackBackgroundColor',
+        label: 'track_background_color',
         default: '',
         type: 'custom', // important
         fallbackFields: ['sliderColor'],
@@ -228,14 +228,22 @@ const sliderFields = (): ExtendedSliderField[] => [
             />
         ),
     } as ExtendedSliderField,
+    {
+        name: 'trackBorderWidth',
+        label: 'track_border_width',
+        type: 'number',
+        default: 1,
+        min: 0,
+        max: 100,
+    } as const,
     /* {
-        name: 'trackBackgroundColor',
-        label: 'track_background_color',
+        name: 'trackBorderColor',
+        label: 'track_border_color',
         type: 'color',
     } as const, */
     {
-        name: 'trackBackgroundColor',
-        label: 'track_background_color',
+        name: 'trackBorderColor',
+        label: 'track_border_color',
         default: '',
         type: 'custom', // important
         fallbackFields: ['sliderColor'],
@@ -287,6 +295,29 @@ const sliderFields = (): ExtendedSliderField[] => [
             // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
             // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
         ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    } as ExtendedSliderField,
+    {
+        name: 'railBorderWidth',
+        label: 'rail_border_width',
+        type: 'number',
+        default: 0,
+        min: 0,
+        max: 100,
+    } as const,
+    {
+        name: 'railBorderColor',
+        label: 'rail_border_color',
+        default: '',
+        type: 'custom',
+        fallbackFields: ['sliderColor'],
+        component: (field, data, onDataChange, props) => (
             <CollectionGradientColorPicker
                 field={field}
                 data={data}

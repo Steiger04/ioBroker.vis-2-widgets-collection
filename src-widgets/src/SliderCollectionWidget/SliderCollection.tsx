@@ -75,11 +75,20 @@ const CollectionSlider = styled(Slider, {
                 data?.trackBorderColor || data?.sliderColor || theme.palette.primary.main,
             ),
             background: data?.trackBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+
+            borderWidth: data?.trackBorderWidth ? `${data.trackBorderWidth}px` : '0px',
+            borderStyle: 'solid',
         },
         '& .MuiSlider-rail': {
             height: data?.sliderOrientation === 'horizontal' ? `${data?.railLength ?? 4}px` : '100%',
             width: data?.sliderOrientation === 'vertical' ? `${data?.railLength ?? 4}px` : '100%',
             background: data?.railBackgroundColor || data?.sliderColor || theme.palette.primary.main,
+
+            borderWidth: data?.railBorderWidth ? `${data.railBorderWidth}px` : '0px',
+            borderStyle: 'solid',
+            borderColor: extractColorFromValue(
+                data?.railBorderColor || data?.sliderColor || theme.palette.primary.main,
+            ),
         },
         '& .MuiSlider-mark': {
             width:

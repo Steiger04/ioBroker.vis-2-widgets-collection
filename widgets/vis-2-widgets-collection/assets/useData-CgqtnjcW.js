@@ -19325,7 +19325,7 @@ export default theme;`;
         hidden: (o, i) => {
           let a = true;
           const s = i !== void 0 ? i : e, l = o[`icon${s}`], c = o[`iconSmall${s}`];
-          return (s === "" || s === "Active") && (a = !o.iconColor && !Wn(l) && !Wn(c)), i !== void 0 && (a = !o.icon && !o.iconColor && !Wn(l) && !Wn(c)), a;
+          return (s === "" || s === "Active") && (a = !o.iconColor && !Wn(l) && !Wn(c)), i !== void 0 && (a = (!o.icon || !o.iconColor) && !Wn(l) && !Wn(c)), a;
         }
       },
       {
@@ -19903,7 +19903,7 @@ export default theme;`;
         top: `calc(0px - ${e.data.iconYOffset || 0})`,
         right: `calc(0px - ${e.data.iconXOffset || 0})`,
         height: o,
-        ...dU(n, i, A.forceColorMaskActive)
+        ...dU(n, i, !!(A.forceColorMaskActive && A.iconColorActive || e.data.enableIconColorMask && e.data.iconColor))
       }
     }) : null;
   };

@@ -95,6 +95,13 @@ export interface SliderFieldsRxData {
     trackBorderColor?: string;
 
     /**
+     * Track border width in pixels.
+     *
+     * @default 0
+     */
+    trackBorderWidth?: number;
+
+    /**
      * Track background color (CSS color).
      */
     trackBackgroundColor?: string;
@@ -110,6 +117,19 @@ export interface SliderFieldsRxData {
      * Rail background color (CSS color).
      */
     railBackgroundColor?: string;
+
+    /**
+     * Rail border width in pixels.
+     *
+     * @default 0
+     */
+    railBorderWidth?: number;
+
+    /**
+     * Rail border color (CSS color).
+     * Follows fallback chain: railBorderColor → sliderColor → theme.palette.primary.main
+     */
+    railBorderColor?: string;
 
     /**
      * Mark width in pixels.

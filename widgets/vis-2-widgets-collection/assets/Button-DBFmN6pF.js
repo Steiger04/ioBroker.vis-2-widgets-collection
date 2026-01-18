@@ -1,5 +1,5 @@
 import { v as x, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { a as G, g as D, a1 as H, u as A, h as q, j as e, s as y, d as m, i, e as J, n as K, r as Q, m as X, o as v, _ as Y, ak as Z, __tla as __tla_1 } from "./useData-jcT7BVTY.js";
+import { a as G, g as D, a1 as H, u as A, h as q, j as e, s as y, d as m, i, e as J, n as K, r as Q, m as X, o as v, _ as Y, ak as Z, __tla as __tla_1 } from "./useData-CgqtnjcW.js";
 let co;
 let __tla = Promise.all([
   (() => {
