@@ -12,9 +12,16 @@ import CollectionDivider from '../components/CollectionDivider';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
-const switchFields = (): (RxWidgetInfoAttributesField & {
+/**
+ * Extended field definition that supports additional custom properties like fallbackFields.
+ * This extends the base RxWidgetInfoAttributesField to allow custom field extensions
+ * without violating TypeScript excess property checks.
+ */
+type ExtendedSwitchField = RxWidgetInfoAttributesField & {
     fallbackFields?: string[];
-})[] => [
+};
+
+const switchFields = (): ExtendedSwitchField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,

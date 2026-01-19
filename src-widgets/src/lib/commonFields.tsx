@@ -18,7 +18,7 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 /**
  * Extended field type with custom properties for collection widgets.
  */
-type ExtendedField = RxWidgetInfoAttributesField & {
+type ExtendedCommonField = RxWidgetInfoAttributesField & {
     /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
     fallbackFields?: string[];
 };
@@ -41,7 +41,7 @@ type Settings = {
 const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true } = settings || {};
 
-    const fields: ExtendedField[] = [
+    const fields: ExtendedCommonField[] = [
         {
             label: '',
             type: 'custom',
