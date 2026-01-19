@@ -16,6 +16,14 @@ import { isUrlIcon } from './helper/isUrlIcon';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 /**
+ * Extended field type with custom properties for collection widgets.
+ */
+type ExtendedField = RxWidgetInfoAttributesField & {
+    /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
+    fallbackFields?: string[];
+};
+
+/**
  * Options controlling how the shared field list is generated.
  */
 type Settings = {
@@ -30,10 +38,10 @@ type Settings = {
  *
  * @param settings Optional generation settings.
  */
-const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
+const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true } = settings || {};
 
-    const fields = [
+    const fields: ExtendedField[] = [
         {
             label: '',
             type: 'custom',
@@ -392,7 +400,7 @@ const commonFields = (settings?: Settings): RxWidgetInfoAttributesField[] => {
             label: 'frame_background_color',
             type: 'color',
         }, */
-    ] as RxWidgetInfoAttributesField[];
+    ];
 
     if (allFields) {
         const valuesToDelete = [`alias${groupName}`, `value${groupName}`];
