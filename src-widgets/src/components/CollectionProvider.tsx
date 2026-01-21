@@ -14,6 +14,7 @@ import { deepmerge } from '@mui/utils';
 import useStyles from '../hooks/useStyles';
 
 import type { AllCollectionContextProps } from '../types';
+import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
  * Runtime context used by all Collection widgets.
@@ -53,9 +54,9 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
                             root: {
                                 // Merge fontStyles and textStyles into the root style overrides
                                 // This ensures CSS properties like textShadow are applied as styles, not props
-                                ...fontStyles,
-                                ...textStyles,
-                                color: textStyles.color || theme.palette.primary.main,
+                                ...cleanSx(fontStyles),
+                                ...cleanSx(textStyles),
+                                color: textStyles?.color || theme.palette.primary.main,
                             },
                         },
                     },

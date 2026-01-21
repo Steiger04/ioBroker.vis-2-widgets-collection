@@ -13,7 +13,6 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useStyles from './useStyles';
-import type { OidObject } from '../types/utility-types';
 import { getDynamicProperty, isSliderFieldsRxData } from '../types/utility-types';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 
@@ -175,7 +174,7 @@ function useData(oid: string) {
         getPropertyValue,
     } = useContext(CollectionContext);
 
-    const oidObject = rxData[`${oid}Object`] as OidObject | undefined;
+    const oidObject = rxData[`${oid}Object`];
 
     const { fontStyles, backgroundStyles } = useStyles(widget.style);
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
@@ -421,16 +420,17 @@ function useData(oid: string) {
                                 /* rxData[`enableIconColorMask${i}`] ?? (rxData.enableIconColorMaskActive || false), */
                                 rxData[`enableIconColorMask${i}`],
 
-                            backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
+                            backgroundColor: rxData.backgroundColor || backgroundStyles?.['background-color'] || '',
                             backgroundColorActive: getDataValue<string>('backgroundColor', String(i)),
 
-                            background: String(rxData.background || backgroundStyles.background || ''),
+                            background: String(rxData.background || backgroundStyles?.background || ''),
                             backgroundActive: getDataValue<string>('background', String(i)),
 
-                            frameBackgroundColor: rxData.frameBackgroundColor || backgroundStyles.backgroundColor || '',
+                            frameBackgroundColor:
+                                rxData.frameBackgroundColor || backgroundStyles?.['background-color'] || '',
                             frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(i)),
 
-                            frameBackground: String(rxData.frameBackground || backgroundStyles.background || ''),
+                            frameBackground: String(rxData.frameBackground || backgroundStyles?.background || ''),
                             frameBackgroundActive: getDataValue<string>('frameBackground', String(i)),
                         });
 
@@ -459,8 +459,7 @@ function useData(oid: string) {
         oidObject?.unit,
         rxData,
         theme.palette.primary.main,
-        backgroundStyles.backgroundColor,
-        backgroundStyles.background,
+        backgroundStyles,
         getDataValue,
         oidValue,
         formatSize,
@@ -480,7 +479,7 @@ function useData(oid: string) {
                 formatSize(rxData.headerSize) ||
                 formatSize(rxData.headerSizeActive) ||
                 formatSize(getDataValue('headerSize', String(ext))) ||
-                (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
+                (typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null),
 
             footer: String(
                 rxData.footerActive || getDataValue<string>('footer', String(ext)) || rxData.footer || '',
@@ -489,7 +488,7 @@ function useData(oid: string) {
                 formatSize(rxData.footerSize) ||
                 formatSize(rxData.footerSizeActive) ||
                 formatSize(getDataValue('footerSize', String(ext))) ||
-                (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
+                (typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null),
 
             alias: String(getDataValue<string>('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
 
@@ -500,7 +499,8 @@ function useData(oid: string) {
                     : undefined;
             })(),
             valueSize:
-                formatSize(rxData.valueSize) || (typeof fontStyles.fontSize === 'string' ? fontStyles.fontSize : null),
+                formatSize(rxData.valueSize) ||
+                (typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null),
             valueSizeActive:
                 typeof getDataValue('valueSize', String(ext)) === 'number'
                     ? formatSize(getDataValue('valueSize', String(ext)))
@@ -553,16 +553,16 @@ function useData(oid: string) {
                     getDataValue<string>('iconYOffset', String(ext))) ||
                 '0px',
 
-            backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
+            backgroundColor: rxData.backgroundColor || backgroundStyles?.['background-color'] || '',
             backgroundColorActive: getDataValue<string>('backgroundColor', String(ext)),
 
-            background: String(rxData.background || backgroundStyles.background || ''),
+            background: String(rxData.background || backgroundStyles?.background || ''),
             backgroundActive: getDataValue<string>('background', String(ext)),
 
-            frameBackgroundColor: rxData.frameBackgroundColor || backgroundStyles.backgroundColor || '',
+            frameBackgroundColor: rxData.frameBackgroundColor || backgroundStyles?.['background-color'] || '',
             frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(ext)),
 
-            frameBackground: String(rxData.frameBackground || backgroundStyles.background || ''),
+            frameBackground: String(rxData.frameBackground || backgroundStyles?.background || ''),
             frameBackgroundActive: getDataValue<string>('frameBackground', String(ext)),
         });
 

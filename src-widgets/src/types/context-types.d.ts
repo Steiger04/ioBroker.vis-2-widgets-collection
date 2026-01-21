@@ -40,6 +40,7 @@
 
 import type { ThemeType } from '@iobroker/adapter-react-v5';
 import type { Theme, LegacyConnection, VisRxData, VisRxWidgetStateValues } from '@iobroker/types-vis-2';
+import { type WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { CSSProperties } from 'react';
 import type { WidgetRegistry } from './widget-registry';
 
@@ -247,7 +248,8 @@ export interface CollectionContextProps<T extends object = object> {
          * Additional CSS styles for widget content.
          * Applied to inner widget elements.
          */
-        style: CSSProperties;
+        // style: CSSProperties;
+        style: WidgetStyleState | undefined;
     };
 
     /**
@@ -463,7 +465,7 @@ export interface CollectionContextProps<T extends object = object> {
      * return <div>{subView}</div>;
      * ```
      */
-    getWidgetView: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
+    getWidgetView?: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
 }
 
 // ============================================================================

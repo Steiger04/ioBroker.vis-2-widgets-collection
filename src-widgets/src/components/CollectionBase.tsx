@@ -12,7 +12,7 @@
  */
 
 import { Box, Paper, Typography } from '@mui/material';
-import { useRef, forwardRef, useImperativeHandle, useState, useContext, useEffect, type RefObject } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useContext, useEffect, useMemo } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
@@ -20,6 +20,7 @@ import useStyles from '../hooks/useStyles';
 import { type StyleData } from '../hooks/useData';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
  * Props for {@link module:components/CollectionBase.default}.
@@ -57,62 +58,157 @@ export interface CollectionBaseHandle {
  */
 const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
     ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
+        // Consolidated refs
         const paper0Ref = useRef<HTMLDivElement>(null);
         const paper1Ref = useRef<HTMLDivElement>(null);
-        const [ref, setRef] = useState<RefObject<HTMLDivElement> | null>(null);
-        const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
-        const headerRef1 = useRef<HTMLSpanElement | null>(null);
-        const [footerRef, setFooterRef] = useState<HTMLElement | null>(null);
+        const containerRef = useRef<HTMLDivElement>(null);
+        const headerRef = useRef<HTMLSpanElement>(null);
+        const footerRef = useRef<HTMLDivElement>(null);
+
+        // Get context
         const context = useContext(CollectionContext);
         if (!context) {
             throw new Error('CollectionBase must be used within CollectionProvider');
         }
+
         const { wrappedContent, widget } = context;
 
-        const oidObject = widget.data.oidObject;
+        // Get styles
         const { backgroundStyles, borderStyles } = useStyles(widget.style);
 
-        const fallbackRef = useRef<HTMLDivElement>(null);
-        const { width, height } = useSize(ref || fallbackRef);
+        // Calculate dimensions
+        const { width, height } = useSize(containerRef);
 
-        const oidValueUnit =
-            (oidValue || oidValue === 0 || oidValue === false) &&
-            `${oidValue}${oidObject?.unit === undefined ? '' : oidObject?.unit}`;
-
+        // Use signals for reactive updates
         useSignals();
 
+        // Extract data
+        const oidObject = widget.data.oidObject;
         const oid = oidObject?._id;
 
-        const footerValue = data.footer || data.alias || data.value || oidValueUnit || '';
-
-        useEffect(() => {
+        // Calculate footer value with proper fallback using nullish coalescing
+        const footerValue = useMemo(() => {
             if (widget.data.noFooter) {
-                return;
+                return '';
             }
-            if (footerRef) {
-                footerRef.innerHTML = footerValue;
-            }
-        }, [footerValue, widget.data.noFooter, footerRef]);
 
+            const valueWithUnit =
+                oidValue || oidValue === 0 || oidValue === false ? `${oidValue}${oidObject?.unit ?? ''}` : '';
+
+            return data.footer || data.alias || data.value || valueWithUnit || '';
+        }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);
+
+        // Build memoized sx object for outer Paper
+        const paper0Sx = useMemo((): SxProps<Theme> | undefined => {
+            return cleanSx({
+                overflow: 'hidden',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+
+                // Spread background styles
+                ...backgroundStyles,
+
+                // Background color
+                background: wrappedContent
+                    ? widget.data.frameBackgroundColorActive ||
+                      data.frameBackgroundColorActive ||
+                      data.frameBackgroundColor ||
+                      widget.data.frameBackgroundActive ||
+                      data.frameBackgroundActive ||
+                      data.frameBackground
+                    : 'transparent',
+
+                // Conditional border properties
+                ...(wrappedContent && borderStyles
+                    ? {
+                          'border-width': borderStyles['border-width'],
+                          'border-style': borderStyles['border-style'],
+                          'border-radius': borderStyles['border-radius'],
+                          'border-color':
+                              data.frameBackgroundColorActive ||
+                              data.frameBackgroundColor ||
+                              borderStyles['border-color'],
+                      }
+                    : {}),
+            });
+        }, [
+            backgroundStyles,
+            borderStyles,
+            data,
+            wrappedContent,
+            widget.data.frameBackgroundColorActive,
+            widget.data.frameBackgroundActive,
+        ]);
+
+        // Build memoized sx object for inner Paper
+        const paper1Sx = useMemo((): SxProps<Theme> | undefined => {
+            return cleanSx({
+                overflow: 'hidden',
+                width,
+                height,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderColor: !wrappedContent
+                    ? data.backgroundColorActive || data.backgroundColor || borderStyles?.['border-color']
+                    : borderStyles?.['border-color'],
+                background: wrappedContent
+                    ? (bgActive && widget.data.backgroundColorActive) ||
+                      (bgActive && data.backgroundColorActive) ||
+                      (bgActive && data.backgroundColor) ||
+                      (bgActive && widget.data.backgroundActive) ||
+                      (bgActive && data.backgroundActive) ||
+                      data.background
+                    : 'transparent',
+                borderRadius: widget.data.circle || widget.data.ellipse ? '50%' : undefined,
+                ...sx,
+            });
+        }, [
+            width,
+            height,
+            wrappedContent,
+            data.backgroundColorActive,
+            data.backgroundColor,
+            data.backgroundActive,
+            data.background,
+            borderStyles,
+            bgActive,
+            widget.data.backgroundColorActive,
+            widget.data.backgroundActive,
+            widget.data.circle,
+            widget.data.ellipse,
+            sx,
+        ]);
+
+        // Setup header effect
         useEffect(() => {
-            if (widget.data.noHeader) {
+            if (widget.data.noHeader || !headerRef.current) {
                 return;
             }
-            if (headerRef) {
-                headerRef.innerHTML = data.header;
+            headerRef.current.innerHTML = data.header;
+        }, [data.header, widget.data.noHeader]);
+
+        // Setup footer effect
+        useEffect(() => {
+            if (widget.data.noFooter || !footerRef.current) {
+                return;
             }
-        }, [data.header, widget.data.noHeader, headerRef]);
+            footerRef.current.innerHTML = footerValue;
+        }, [footerValue, widget.data.noFooter]);
 
         useImperativeHandle(baseRef, () => ({
             get paper0() {
-                return paper0Ref?.current;
+                return paper0Ref?.current ?? null;
             },
             get paper1() {
-                return paper1Ref?.current;
+                return paper1Ref?.current ?? null;
             },
-
             get header() {
-                return headerRef1?.current;
+                return headerRef?.current ?? null;
             },
         }));
 
@@ -122,35 +218,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 className="BASE-PAPER-0"
                 square={widget.data.squaredCorner}
                 variant={widget.data.outlinedFrame ? 'outlined' : 'elevation'}
-                sx={{
-                    overflow: 'hidden',
-
-                    width: '100%',
-                    height: '100%',
-
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-
-                    ...backgroundStyles,
-                    // ...borderStyles,
-                    border: !wrappedContent ? null : borderStyles.border,
-                    borderWidth: !wrappedContent ? null : borderStyles.borderWidth,
-                    borderStyle: !wrappedContent ? null : borderStyles.borderStyle,
-                    borderRadius: !wrappedContent ? null : borderStyles.borderRadius,
-                    borderColor: !wrappedContent
-                        ? data.frameBackgroundColorActive || data.frameBackgroundColor || borderStyles.borderColor
-                        : borderStyles.borderColor,
-                    background: wrappedContent
-                        ? widget.data.frameBackgroundColorActive ||
-                          data.frameBackgroundColorActive ||
-                          data.frameBackgroundColor ||
-                          widget.data.frameBackgroundActive ||
-                          data.frameBackgroundActive ||
-                          data.frameBackground
-                        : 'transparent',
-                }}
+                sx={paper0Sx}
             >
                 {!!isValidType && (
                     <>
@@ -163,37 +231,29 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             }}
                         >
                             <Typography
-                                // ref={setHeaderRef}
-                                ref={ref => {
-                                    setHeaderRef(ref);
-                                    headerRef1.current = ref;
-                                }}
+                                ref={headerRef}
                                 noWrap
                                 variant="body2"
                                 sx={{
                                     fontSize: data.headerSize,
-                                    // background: widget.data.textColor || data.textColorActive || data.textColor,
-                                    background: gradientColor(data.textColorActive || data.textColor),
+                                    background: gradientColor(data.textColorActive ?? data.textColor),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
-                                    color: gradientColor(data.textColorActive || data.textColor)
+                                    color: gradientColor(data.textColorActive ?? data.textColor)
                                         ? 'transparent'
-                                        : data.textColorActive || data.textColor,
+                                        : (data.textColorActive ?? data.textColor),
                                 }}
                             />
                         </Box>
 
                         <Box
                             className="BASE-BOX-1"
-                            ref={setRef}
+                            ref={containerRef}
                             sx={{
                                 overflow: 'hidden',
-
                                 p: widget.data.basePadding,
-
                                 width: '100%',
                                 height: '100%',
-
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
@@ -205,30 +265,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 elevation={widget.data.outlined ? 0 : Number(widget.data.baseElevation) || 0}
                                 square={!widget.data.basePadding || widget.data.squaredCorner}
                                 variant={widget.data.outlined ? 'outlined' : 'elevation'}
-                                sx={{
-                                    overflow: 'hidden',
-
-                                    width: width,
-                                    height: height,
-
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-
-                                    borderColor: !wrappedContent
-                                        ? data.backgroundColorActive || data.backgroundColor || borderStyles.borderColor
-                                        : borderStyles.borderColor,
-                                    background: wrappedContent
-                                        ? (bgActive && widget.data.backgroundColorActive) ||
-                                          (bgActive && data.backgroundColorActive) ||
-                                          (bgActive && data.backgroundColor) ||
-                                          (bgActive && widget.data.backgroundActive) ||
-                                          (bgActive && data.backgroundActive) ||
-                                          data.background
-                                        : 'transparent',
-                                    borderRadius: widget.data.circle || widget.data.ellipse ? '50%' : null,
-                                    ...sx,
-                                }}
+                                sx={paper1Sx}
                             >
                                 {children}
                             </Paper>
@@ -243,18 +280,17 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                             }}
                         >
                             <Typography
-                                ref={setFooterRef}
+                                ref={footerRef}
                                 noWrap
                                 variant="body2"
                                 sx={{
                                     fontSize: data.footerSize,
-                                    // background: widget.data.textColor || data.textColorActive || data.textColor,
-                                    background: gradientColor(data.textColorActive || data.textColor),
+                                    background: gradientColor(data.textColorActive ?? data.textColor),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
-                                    color: gradientColor(data.textColorActive || data.textColor)
+                                    color: gradientColor(data.textColorActive ?? data.textColor)
                                         ? 'transparent'
-                                        : data.textColorActive || data.textColor,
+                                        : (data.textColorActive ?? data.textColor),
                                 }}
                             />
                         </Box>
@@ -265,7 +301,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                         sx={{
                             width: '100%',
                             height: '100%',
-
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',

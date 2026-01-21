@@ -4,7 +4,7 @@
  * @module widgets/CheckboxCollection
  */
 
-import { Box, Typography, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
@@ -14,6 +14,7 @@ import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+
 import type { CheckboxCollectionContextProps } from '../types';
 
 const defaultIconTrue =

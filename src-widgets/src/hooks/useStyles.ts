@@ -1,5 +1,5 @@
 /**
- * Hook that splits a CSSProperties object into groups typically consumed by MUI components.
+ * Hook that splits a WidgetStyleState | undefined object into groups typically consumed by MUI components.
  *
  * @module hooks/useStyles
  * @remarks
@@ -12,7 +12,8 @@
  * - box/layout
  */
 
-import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { type WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
+import { useMemo } from 'react';
 
 /**
  * Style keys that are extracted and mapped to camelCase.
@@ -47,10 +48,16 @@ const POSSIBLE_MUI_STYLES = [
     'word-spacing',
     'box-sizing',
     'box-shadow',
-];
+] as const;
 
 /**
- * Splits a CSSProperties map into grouped style objects.
+ * Helper type for building style objects - allows flexible property assignment.
+ * Cast to WidgetStyleState after population.
+ */
+type StyleBuilder = Record<string, string | number | boolean | string[] | null>;
+
+/**
+ * Splits a WidgetStyleState | undefined map into grouped style objects.
  *
  * @param _styles - Incoming style object from vis-2 / widget config.
  * @returns Grouped styles (background, border, text, font, box).
@@ -69,72 +76,67 @@ const POSSIBLE_MUI_STYLES = [
  * This works well for plain style objects coming from the vis editor.
  */
 const useStyles = (
-    _styles: CSSProperties,
+    _styles: WidgetStyleState | undefined,
 ): {
-    backgroundStyles: CSSProperties;
-    borderStyles: CSSProperties;
-    textStyles: CSSProperties;
-    fontStyles: CSSProperties;
-    boxStyles: CSSProperties;
+    backgroundStyles: WidgetStyleState | undefined;
+    borderStyles: WidgetStyleState | undefined;
+    textStyles: WidgetStyleState | undefined;
+    fontStyles: WidgetStyleState | undefined;
+    boxStyles: WidgetStyleState | undefined;
 } => {
-    const [backgroundStyles, setBackgroundStyles] = useState({});
-    const [borderStyles, setBorderStyles] = useState({});
-    const [textStyles, setTextStyles] = useState({});
-    const [fontStyles, setFontStyles] = useState({});
-    const [boxStyles, setBoxStyles] = useState({});
+    return useMemo(() => {
+        if (!_styles) {
+            return {
+                backgroundStyles: undefined,
+                borderStyles: undefined,
+                textStyles: undefined,
+                fontStyles: undefined,
+                boxStyles: undefined,
+            };
+        }
 
-    const _stylesJSON = JSON.stringify(_styles);
+        // Use flexible builder type to allow dynamic property assignment
+        const _backgroundStyles: StyleBuilder = {};
+        const _borderStyles: StyleBuilder = {};
+        const _textStyles: StyleBuilder = {};
+        const _fontStyles: StyleBuilder = {};
+        const _boxStyles: StyleBuilder = {};
 
-    const possibleMuiStyles = useMemo(() => {
-        const _backgroundStyles = {} as CSSProperties;
-        const _borderStyles = {} as CSSProperties;
-        const _textStyles = {} as CSSProperties;
-        const _fontStyles = {} as CSSProperties;
-        const _boxStyles = {} as CSSProperties;
-
-        const _styles = JSON.parse(_stylesJSON);
-
+        // Categorize styles into appropriate groups
         POSSIBLE_MUI_STYLES.forEach(style => {
-            if (_styles[style]) {
-                const _camelCaseStyle = style.replace(/(-\w)/g, text => text[1].toUpperCase());
+            const value = _styles[style as keyof WidgetStyleState];
+            if (value === undefined) {
+                return;
+            }
 
-                if (style.includes('background')) {
-                    _backgroundStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
-                } else if (style.includes('border')) {
-                    _borderStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
-                } else if (
-                    style.includes('font') ||
-                    style.includes('line-height') ||
-                    style.includes('letter-spacing') ||
-                    style.includes('word-spacing')
-                ) {
-                    _fontStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
-                } else if (style.includes('text') || style.includes('color')) {
-                    _textStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
-                } else {
-                    _boxStyles[_camelCaseStyle as keyof CSSProperties] = _styles[style];
-                }
+            if (style.includes('background')) {
+                _backgroundStyles[style] = value;
+            } else if (style.includes('border')) {
+                _borderStyles[style] = value;
+            } else if (
+                style.includes('font') ||
+                style.includes('line-height') ||
+                style.includes('letter-spacing') ||
+                style.includes('word-spacing')
+            ) {
+                _fontStyles[style] = value;
+            } else if (style.includes('text') || style.includes('color')) {
+                _textStyles[style] = value;
+            } else {
+                _boxStyles[style] = value;
             }
         });
 
+        // Cast to WidgetStyleState for return type
+        // Safe because we only assign valid CSS properties with correct value types
         return {
-            _backgroundStyles,
-            _borderStyles,
-            _textStyles,
-            _fontStyles,
-            _boxStyles,
+            backgroundStyles: _backgroundStyles as WidgetStyleState,
+            borderStyles: _borderStyles as WidgetStyleState,
+            textStyles: _textStyles as WidgetStyleState,
+            fontStyles: _fontStyles as WidgetStyleState,
+            boxStyles: _boxStyles as WidgetStyleState,
         };
-    }, [_stylesJSON]);
-
-    useEffect(() => {
-        setBackgroundStyles(possibleMuiStyles._backgroundStyles);
-        setBorderStyles(possibleMuiStyles._borderStyles);
-        setTextStyles(possibleMuiStyles._textStyles);
-        setFontStyles(possibleMuiStyles._fontStyles);
-        setBoxStyles(possibleMuiStyles._boxStyles);
-    }, [possibleMuiStyles]);
-
-    return { boxStyles, backgroundStyles, borderStyles, textStyles, fontStyles };
+    }, [_styles]);
 };
 
 export default useStyles;
