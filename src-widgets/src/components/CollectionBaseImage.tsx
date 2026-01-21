@@ -5,10 +5,11 @@
  */
 
 import React, { useContext } from 'react';
-import { CollectionContext } from './CollectionProvider';
-import type { CollectionContextProps, CollectionBaseImageWidgetData } from '../types';
-import { type StyleData } from '../hooks/useData';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { CollectionContext } from './CollectionProvider';
+
+import { type StyleData } from '../hooks/useData';
+import type { CollectionBaseImageWidgetData, CollectionContextProps } from '../types';
 
 /**
  * Props for {@link module:components/CollectionBaseImage.default}.
@@ -41,7 +42,8 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
         (typeof data.iconSize === 'string' ? data.iconSize : undefined) ||
         (typeof data.iconSizeActive === 'string' ? data.iconSizeActive : undefined);
 
-    const iconColor = data.iconColorActive || data.iconColor || theme.palette.primary.main;
+    const iconColor =
+        widget.data.iconColorActive || data.iconColor || widget.data.iconColor || theme.palette.primary.main;
 
     // Determine which toggle to use based on which icon is being rendered
     // const isActiveIcon = !data.icon && typeof data.iconActive === 'string';
@@ -64,7 +66,8 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
                     iconSrc,
                     iconColor,
                     Boolean(
-                        (data.forceColorMaskActive && data.iconColorActive) ||
+                        /* (data.forceColorMaskActive && data.iconColorActive) || */
+                        widget.data.enableIconColorMaskActive ||
                         (widget.data.enableIconColorMask && widget.data.iconColor),
                     ),
                 ),

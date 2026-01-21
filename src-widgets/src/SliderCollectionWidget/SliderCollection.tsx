@@ -165,14 +165,16 @@ const SliderCollection: FC = () => {
         [isHorizontal, widget.data.iconMax, widget.data.iconSmallMax, widget.data.iconMin, widget.data.iconSmallMin],
     );
 
-    const startIconColor = extractColorFromValue(
+    /* const startIconColor = extractColorFromValue(
         widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined),
-    );
+    ); */
+    const startIconColor =
+        widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined);
 
-    const endIconColor = extractColorFromValue(
+    /* const endIconColor = extractColorFromValue(
         widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined),
-    );
-
+    ); */
+    const endIconColor = widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined);
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';

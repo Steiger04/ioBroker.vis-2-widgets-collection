@@ -21,6 +21,7 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 type ExtendedCommonField = RxWidgetInfoAttributesField & {
     /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
     fallbackFields?: string[];
+    noGradient?: boolean;
 };
 
 /**
@@ -89,12 +90,22 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 const iconField = data[`icon${suffix}`];
                 const iconSmallField = data[`iconSmall${suffix}`];
 
-                if (suffix === '' || suffix === 'Active') {
+                if (suffix === '') {
                     _hidden = !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
                 }
 
+                if (suffix === 'Active') {
+                    _hidden =
+                        !data.iconColor && !data.iconColorActive && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                }
+
                 if (index !== undefined) {
-                    _hidden = (!data.icon || !data.iconColor) && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                    _hidden =
+                        !data.iconColor &&
+                        !data.enableIconColorMask &&
+                        !data[`iconColor${index}`] &&
+                        !isUrlIcon(iconField) &&
+                        !isUrlIcon(iconSmallField);
                 }
 
                 return _hidden;
@@ -106,11 +117,35 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 return !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
             }, */
         },
-        {
+        /* {
             name: `iconColor${groupName}`,
             label: 'icon_color',
             type: 'color',
             hidden: 'data.noIcon',
+        }, */
+        {
+            name: `iconColor${groupName}`,
+            label: 'icon_color',
+            default: '',
+            type: 'custom', // important
+            fallbackFields: [''],
+            noGradient: true,
+            component: (
+                // important
+                field, // field properties: {name, label, type, set, singleName, component,...}
+                data, // widget data
+                onDataChange, // function to call, when data changed
+                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+            ) => (
+                <CollectionGradientColorPicker
+                    field={field}
+                    data={data}
+                    onDataChange={onDataChange}
+                    props={props}
+                />
+            ),
         },
         /* {
             name: `iconHover${groupName}`,

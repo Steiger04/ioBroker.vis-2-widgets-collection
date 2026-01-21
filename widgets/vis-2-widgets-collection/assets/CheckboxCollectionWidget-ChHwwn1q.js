@@ -1,10 +1,10 @@
-import { c as y, j as a, a as F, g as N, u as V, b as R, a3 as $, d as H, s as G, i as p, e as E, r as J, m as U, o as k, $ as w, C as M, v as Z, y as Q, E as Y, G as X, w as j, T as K, A, z as P, H as q, J as z, K as ee, __tla as __tla_0 } from "./useData-vpnuohUP.js";
-import { c as te, __tla as __tla_1 } from "./commonObjectFields-DfDz2RT7.js";
-import { u as oe, d as ae, __tla as __tla_2 } from "./useValueState-xh8B4_VZ.js";
+import { c as y, j as a, a as F, g as N, u as V, b as R, a4 as H, d as $, s as G, i as p, e as E, r as J, m as U, o as k, a0 as w, C as M, v as Z, y as Q, E as Y, G as X, w as j, T as K, A, z as P, H as q, J as z, K as ee, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { c as te, __tla as __tla_1 } from "./commonObjectFields-BC31TM4M.js";
+import { u as oe, d as ae, __tla as __tla_2 } from "./useValueState-CDNrmGNN.js";
 import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 import { u as ie, __tla as __tla_4 } from "./useHtmlValue-Dcwl_hqT.js";
-import { F as le, __tla as __tla_5 } from "./FormControlLabel-CfFmAdzs.js";
-import { S as ne, __tla as __tla_6 } from "./SwitchBase-g6pb4xzk.js";
+import { F as le, __tla as __tla_5 } from "./FormControlLabel-DiAy_jX-.js";
+import { S as ne, __tla as __tla_6 } from "./SwitchBase-BWUH3Kq6.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let L;
@@ -161,7 +161,7 @@ let __tla = Promise.all([
     }, S = pe(u), x = g.input ?? m, [W, B] = R("root", {
       ref: i,
       elementType: me,
-      className: H(S.root, _),
+      className: $(S.root, _),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
         slots: v,
@@ -180,7 +180,7 @@ let __tla = Promise.all([
         disableRipple: C,
         slots: v,
         slotProps: {
-          input: $(typeof x == "function" ? x(u) : x, {
+          input: H(typeof x == "function" ? x(u) : x, {
             "data-indeterminate": c
           })
         }

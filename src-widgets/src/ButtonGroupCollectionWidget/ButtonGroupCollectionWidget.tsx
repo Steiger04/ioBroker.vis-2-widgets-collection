@@ -13,7 +13,7 @@ import commonObjectFields from '../lib/commonObjectFields';
 import delayFields from '../lib/delayFields';
 import ButtonGroupCollection from './ButtonGroupCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxRenderWidgetProps, RxWidgetInfo, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { ButtonGroupCollectionContextProps, WidgetRegistry } from '../types';
 
 /**

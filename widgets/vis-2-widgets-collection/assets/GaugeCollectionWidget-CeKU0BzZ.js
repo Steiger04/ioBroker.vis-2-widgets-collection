@@ -1,9 +1,8 @@
-import { j as A, C as D, z as xa, w as Ke, a5 as Ta, v as wa, y as Sa, E as Ca, G as Ba, H as Na, J as Je, K as Va, __tla as __tla_0 } from "./useData-vpnuohUP.js";
-import { c as Wa, __tla as __tla_1 } from "./commonObjectFields-DfDz2RT7.js";
+import { j as A, C as D, z as xa, w as Ke, a6 as Ta, v as wa, y as Sa, R as Ca, E as Ba, G as Na, H as Va, J as Je, K as Wa, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { c as Aa, __tla as __tla_1 } from "./commonObjectFields-BC31TM4M.js";
 import { v as L, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Aa, __tla as __tla_3 } from "./useOidValue-7GZrPeLW.js";
+import { u as Ma, __tla as __tla_3 } from "./useOidValue-DjDkZgp5.js";
 import { c as Ne } from "./_commonjsHelpers-Cpj98o6Y.js";
-import { e as Ma } from "./extractColorFromValue-BwqGCJvl.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
 let __tla = Promise.all([
@@ -1364,7 +1363,7 @@ let __tla = Promise.all([
   };
   (function(g) {
     (function(w) {
-      function R(a) {
+      function z(a) {
         if (Array.isArray(a)) {
           for (var e = 0, t = Array(a.length); e < a.length; e++) t[e] = a[e];
           return t;
@@ -1389,7 +1388,7 @@ let __tla = Promise.all([
       function F(a, e) {
         if (!(a instanceof e)) throw new TypeError("Cannot call a class as a function");
       }
-      function z(a, e) {
+      function R(a, e) {
         if (e || (e = typeof window > "u" ? Ne : window), e[a] !== void 0) return e[a];
         for (var t = [
           "webkit",
@@ -1591,7 +1590,7 @@ let __tla = Promise.all([
           endAngle: o
         };
       }
-      function ze(a, e) {
+      function Re(a, e) {
         var t = a.max / 100, r = ee(a, e) - 5 * t, o = parseFloat(e.barStrokeWidth + "") || 0, n = (parseFloat(e.barWidth + "") || 0) * t, l = r - 2 * o - n, d = (r - l) / 2, u = l + d, s = o / u, c = e.startAngle, h = e.startAngle + e.ticksAngle;
         if (a.save(), a.rotate(fe), o && (a.beginPath(), a.arc(0, 0, u, m.radians(c) - s, m.radians(h) + s, false), a.strokeStyle = e.colorBarStroke, a.lineWidth = 2 * d, a.stroke(), a.closePath()), n && (a.beginPath(), a.arc(0, 0, u, m.radians(c), m.radians(h), false), a.strokeStyle = e.colorBar, a.lineWidth = n, a.stroke(), a.closePath(), e.barShadow && (a.beginPath(), a.arc(0, 0, r, m.radians(c), m.radians(h), false), a.clip(), a.beginPath(), a.strokeStyle = e.colorBar, a.lineWidth = 1, a.shadowBlur = e.barShadow, a.shadowColor = e.colorBarShadow, a.shadowOffsetX = 0, a.shadowOffsetY = 0, a.arc(0, 0, r, m.radians(e.startAngle), m.radians(e.startAngle + e.ticksAngle), false), a.stroke(), a.closePath(), a.restore(), a.rotate(fe)), e.barProgress)) {
           var v = aa(e), p = v.startAngle, y = v.endAngle;
@@ -1599,7 +1598,7 @@ let __tla = Promise.all([
         }
         a.restore();
       }
-      function Re(a) {
+      function ze(a) {
         return a.options.animatedValue ? a.options.value : a.value;
       }
       function ta(a, e, t, r, o, n, l, d) {
@@ -1892,7 +1891,7 @@ let __tla = Promise.all([
             }
           }
         ]), a;
-      })(), He = z("requestAnimationFrame") || function(a) {
+      })(), He = R("requestAnimationFrame") || function(a) {
         return setTimeout(function() {
           return a((/* @__PURE__ */ new Date()).getTime());
         }, 1e3 / 60);
@@ -1944,7 +1943,7 @@ let __tla = Promise.all([
             value: function(e, t) {
               var r = this;
               this.frame && this.cancel();
-              var o = window.performance && window.performance.now ? window.performance.now() : z("animationStartTime") || Date.now();
+              var o = window.performance && window.performance.now ? window.performance.now() : R("animationStartTime") || Date.now();
               e = e || this.draw, t = t || this.end, this.draw = e, this.end = t, this.frame = He(function(n) {
                 return ae(n, e, o, ue[r.rule] || r.rule, r.duration, t, r);
               });
@@ -1953,7 +1952,7 @@ let __tla = Promise.all([
           {
             key: "cancel",
             value: function() {
-              this.frame && ((z("cancelAnimationFrame") || function(e) {
+              this.frame && ((R("cancelAnimationFrame") || function(e) {
               })(this.frame), this.frame = null);
             }
           },
@@ -2400,16 +2399,16 @@ let __tla = Promise.all([
                     var s = t.contextClone;
                     s.clearRect(o, n, l, d), s.save(), this.emit("beforePlate"), Ve(s, u), this.emit("beforeHighlights"), We(s, u), this.emit("beforeMinorTicks"), Ae(s, u), this.emit("beforeMajorTicks"), Me(s, u), this.emit("beforeNumbers"), je(s, u), this.emit("beforeTitle"), Pe(s, u), this.emit("beforeUnits"), Ee(s, u), t.elementClone.initialized = true;
                   }
-                  this.canvas.commit(), t.context.clearRect(o, n, l, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, l, d), t.context.save(), this.emit("beforeProgressBar"), ze(t.context, u), this.emit("beforeValueBox"), De(t.context, u, Re(this)), this.emit("beforeNeedle"), Ie(t.context, u);
+                  this.canvas.commit(), t.context.clearRect(o, n, l, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, l, d), t.context.save(), this.emit("beforeProgressBar"), Re(t.context, u), this.emit("beforeValueBox"), De(t.context, u, ze(this)), this.emit("beforeNeedle"), Ie(t.context, u);
                 } else {
                   var c = -m.radians((u.value - u.minValue) / (u.maxValue - u.minValue) * u.ticksAngle);
-                  if (t.context.clearRect(o, n, l, d), t.context.save(), this.emit("beforePlate"), Ve(t.context, u), t.context.rotate(c), this.emit("beforeHighlights"), We(t.context, u), this.emit("beforeMinorTicks"), Ae(t.context, u), this.emit("beforeMajorTicks"), Me(t.context, u), this.emit("beforeNumbers"), je(t.context, u), this.emit("beforeProgressBar"), ze(t.context, u), t.context.rotate(-c), t.context.save(), !t.elementClone.initialized) {
+                  if (t.context.clearRect(o, n, l, d), t.context.save(), this.emit("beforePlate"), Ve(t.context, u), t.context.rotate(c), this.emit("beforeHighlights"), We(t.context, u), this.emit("beforeMinorTicks"), Ae(t.context, u), this.emit("beforeMajorTicks"), Me(t.context, u), this.emit("beforeNumbers"), je(t.context, u), this.emit("beforeProgressBar"), Re(t.context, u), t.context.rotate(-c), t.context.save(), !t.elementClone.initialized) {
                     var h = t.contextClone;
                     h.clearRect(o, n, l, d), h.save(), this.emit("beforeTitle"), Pe(h, u), this.emit("beforeUnits"), Ee(h, u), this.emit("beforeNeedle"), Ie(h, u), t.elementClone.initialized = true;
                   }
                   t.context.drawImage(t.elementClone, o, n, l, d);
                 }
-                this.emit("beforeValueBox"), De(t.context, u, Re(this)), we(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
+                this.emit("beforeValueBox"), De(t.context, u, ze(this)), we(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
               } catch (v) {
                 m.verifyError(v);
               }
@@ -2470,16 +2469,16 @@ let __tla = Promise.all([
                   s.clearRect(o, n, l, d), s.save(), this.emit("beforePlate"), this.drawBox = ra(s, u, o, n, l, d), this.emit("beforeBar"), ia.apply(void 0, [
                     s,
                     u
-                  ].concat(R(this.drawBox))), t.context.barDimensions = s.barDimensions, this.emit("beforeHighlights"), la(s, u), this.emit("beforeMinorTicks"), da(s, u), this.emit("beforeMajorTicks"), ua(s, u), this.emit("beforeNumbers"), sa(s, u), this.emit("beforeTitle"), ga(s, u), this.emit("beforeUnits"), ca(s, u), t.elementClone.initialized = true;
+                  ].concat(z(this.drawBox))), t.context.barDimensions = s.barDimensions, this.emit("beforeHighlights"), la(s, u), this.emit("beforeMinorTicks"), da(s, u), this.emit("beforeMajorTicks"), ua(s, u), this.emit("beforeNumbers"), sa(s, u), this.emit("beforeTitle"), ga(s, u), this.emit("beforeUnits"), ca(s, u), t.elementClone.initialized = true;
                 }
                 this.canvas.commit(), t.context.clearRect(o, n, l, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, l, d), t.context.save(), this.emit("beforeProgressBar"), na.apply(void 0, [
                   t.context,
                   u
-                ].concat(R(this.drawBox))), this.emit("beforeNeedle"), ha(t.context, u), this.emit("beforeValueBox"), fa.apply(void 0, [
+                ].concat(z(this.drawBox))), this.emit("beforeNeedle"), ha(t.context, u), this.emit("beforeValueBox"), fa.apply(void 0, [
                   t.context,
                   u,
                   u.animatedValue ? this.options.value : this.value
-                ].concat(R(this.drawBox))), we(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
+                ].concat(z(this.drawBox))), we(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
               } catch (c) {
                 m.verifyError(c);
               }
@@ -2503,17 +2502,17 @@ let __tla = Promise.all([
         drawings: m,
         SmartCanvas: U,
         DomObserver: ne,
-        vendorize: z
+        vendorize: R
       });
     })(g.exports);
   })(Qe);
   var Ze = Qe.exports;
   const ja = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", Pa = (g) => {
-    const w = L.useRef(null), R = L.useRef(null);
+    const w = L.useRef(null), z = L.useRef(null);
     L.useEffect(() => {
       if (w.current === null || w.current.options.gaugeType !== g.gaugeType) {
         const i = Object.assign({}, g, {
-          renderTo: R.current
+          renderTo: z.current
         });
         switch (g.gaugeType) {
           case "radial":
@@ -2531,7 +2530,7 @@ let __tla = Promise.all([
     }, [
       g
     ]);
-    const $ = g.gaugeWidgetData.iconSize || g.gaugeWidgetData.iconSize === 0 ? `${g.gaugeWidgetData.iconSize}%` : null, I = g.gaugeSegment, F = (I == null ? void 0 : I.state.icon) || g.gaugeData.icon, z = (I == null ? void 0 : I.state.iconColor) || g.gaugeData.iconColor, ae = xa(F, z, (I == null ? void 0 : I.state.forceColorMask) ?? false);
+    const $ = g.gaugeWidgetData.iconSize || g.gaugeWidgetData.iconSize === 0 ? `${g.gaugeWidgetData.iconSize}%` : null, I = g.gaugeSegment, F = (I == null ? void 0 : I.state.icon) || g.gaugeData.icon, R = (I == null ? void 0 : I.state.iconColor) || g.gaugeData.iconColor, ae = xa(F, R, (I == null ? void 0 : I.state.forceColorMask) ?? false);
     return A.jsxs(Ke, {
       sx: {
         width: "100%",
@@ -2557,17 +2556,17 @@ let __tla = Promise.all([
         }),
         A.jsx("canvas", {
           id: "my-canvas",
-          ref: R,
+          ref: z,
           style: {
             position: "absolute"
           }
         })
       ]
     });
-  }, Ea = (g, w, R) => g.find((I) => w >= I.from && (w < I.to || w === I.to && w === R)) || null;
+  }, Ea = (g, w, z) => g.find((I) => w >= I.from && (w < I.to || w === I.to && w === z)) || null;
   function Ia() {
     var _a, _b;
-    const g = L.useRef(null), [w, R] = L.useState(null), { width: $, height: I } = Ta(w), F = L.useContext(wa), { wrappedContent: z, widget: { data: { oidObject: ae } }, widget: i } = F, ve = F.theme, { data: O, states: Q } = Sa("oid"), te = Aa("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = O.iconColor || ve.palette.primary.main, _e = L.useMemo(() => {
+    const g = L.useRef(null), [w, z] = L.useState(null), { width: $, height: I } = Ta(w), F = L.useContext(wa), { wrappedContent: R, widget: { data: { oidObject: ae } }, widget: i } = F, ve = F.theme, { data: O, states: Q } = Sa("oid"), te = Ma("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = O.iconColor || ve.palette.primary.main, _e = L.useMemo(() => {
       const H = Number(i.data.gaugeMinValue) || 0, re = Number(i.data.gaugeMaxValue) || 100, E = [];
       if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let K = 0; K <= Number(i.data.gaugeMajorTicks); K++) {
         const ee = H + ((re - H) / Number(i.data.gaugeMajorTicks) || 1) * K;
@@ -2586,7 +2585,7 @@ let __tla = Promise.all([
         H.push({
           from: Number(E.value),
           to: Number(ee),
-          color: Ma(E.textColor) || "transparent",
+          color: Ca(E.textColor) || "transparent",
           state: {
             textColor: E.textColor,
             icon: E.icon || void 0,
@@ -2623,18 +2622,18 @@ let __tla = Promise.all([
       M
     ]), J = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
     return L.useEffect(() => {
-      J && Z && (M ? (J.style.borderColor = !z && ((M == null ? void 0 : M.state.frameBackgroundColorActive) || (M == null ? void 0 : M.state.frameBackgroundColor) || null) || "", J.style.background = (z ? (M == null ? void 0 : M.state.frameBackgroundColorActive) || (M == null ? void 0 : M.state.frameBackgroundColor) || (M == null ? void 0 : M.state.frameBackgroundActive) || (M == null ? void 0 : M.state.frameBackground) || null : "transparent") || "", Z.style.borderColor = !z && ((M == null ? void 0 : M.state.backgroundColorActive) || (M == null ? void 0 : M.state.backgroundColor) || null) || "", Z.style.background = (z ? (M == null ? void 0 : M.state.backgroundColorActive) || (M == null ? void 0 : M.state.backgroundColor) || (M == null ? void 0 : M.state.backgroundActive) || (M == null ? void 0 : M.state.background) || null : "transparent") || "") : (J.style.borderColor = "", J.style.background = z && (O.frameBackgroundColor || O.frameBackground || null) || "", Z.style.borderColor = "", Z.style.background = z && (O.backgroundColor || O.background || null) || ""));
+      J && Z && (M ? (J.style.borderColor = !R && ((M == null ? void 0 : M.state.frameBackgroundColorActive) || (M == null ? void 0 : M.state.frameBackgroundColor) || null) || "", J.style.background = (R ? (M == null ? void 0 : M.state.frameBackgroundColorActive) || (M == null ? void 0 : M.state.frameBackgroundColor) || (M == null ? void 0 : M.state.frameBackgroundActive) || (M == null ? void 0 : M.state.frameBackground) || null : "transparent") || "", Z.style.borderColor = !R && ((M == null ? void 0 : M.state.backgroundColorActive) || (M == null ? void 0 : M.state.backgroundColor) || null) || "", Z.style.background = (R ? (M == null ? void 0 : M.state.backgroundColorActive) || (M == null ? void 0 : M.state.backgroundColor) || (M == null ? void 0 : M.state.backgroundActive) || (M == null ? void 0 : M.state.background) || null : "transparent") || "") : (J.style.borderColor = "", J.style.background = R && (O.frameBackgroundColor || O.frameBackground || null) || "", Z.style.borderColor = "", Z.style.background = R && (O.backgroundColor || O.background || null) || ""));
     }, [
       J,
       Z,
-      z,
+      R,
       M,
       i.data,
       O.frameBackgroundColor,
       O.frameBackground,
       O.backgroundColor,
       O.background
-    ]), A.jsxs(Ca, {
+    ]), A.jsxs(Ba, {
       ref: g,
       isValidType: pe,
       data: {
@@ -2643,7 +2642,7 @@ let __tla = Promise.all([
       },
       oidValue: te,
       children: [
-        A.jsx(Ba, {
+        A.jsx(Na, {
           data: {
             ...ke,
             forceColorMaskActive: (M == null ? void 0 : M.state.forceColorMask) ?? (O.forceColorMaskActive || false)
@@ -2651,7 +2650,7 @@ let __tla = Promise.all([
           widget: i
         }),
         A.jsx(Ke, {
-          ref: R,
+          ref: z,
           sx: {
             width: "100%",
             height: "100%",
@@ -2786,7 +2785,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  ea = class extends Na {
+  ea = class extends Va {
     static getWidgetInfo() {
       return {
         id: "tplGaugeCollectionWidget",
@@ -2809,7 +2808,7 @@ let __tla = Promise.all([
             name: "gauge",
             label: "group_gauge",
             fields: [
-              ...Wa([
+              ...Aa([
                 "number"
               ]),
               ...Oa()
@@ -2846,14 +2845,14 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(w, R) {
+    onStateUpdated(w, z) {
     }
     componentDidMount() {
       super.componentDidMount(), this.propertiesUpdate();
     }
     renderWidgetBody(w) {
       super.renderWidgetBody(w);
-      const R = {
+      const z = {
         id: w.id,
         refService: w.refService,
         style: w.style,
@@ -2871,7 +2870,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Va(this.wrapContent(A.jsx(Ia, {})), R);
+      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Wa(this.wrapContent(A.jsx(Ia, {})), z);
     }
   };
 });

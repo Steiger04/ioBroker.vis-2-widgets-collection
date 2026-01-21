@@ -418,7 +418,8 @@ function useData(oid: string) {
                             })(),
 
                             forceColorMask:
-                                rxData[`enableIconColorMask${i}`] ?? (rxData.enableIconColorMaskActive || false),
+                                /* rxData[`enableIconColorMask${i}`] ?? (rxData.enableIconColorMaskActive || false), */
+                                rxData[`enableIconColorMask${i}`],
 
                             backgroundColor: rxData.backgroundColor || backgroundStyles.backgroundColor || '',
                             backgroundColorActive: getDataValue<string>('backgroundColor', String(i)),

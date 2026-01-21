@@ -57,7 +57,7 @@ function SelectCollection(): React.ReactElement {
             oidValue={oidValue}
         >
             <CollectionBaseImage
-                data={data}
+                data={{ ...data, forceColorMaskActive: states[valueIndex]?.forceColorMask }}
                 widget={widget}
             />
 
@@ -122,7 +122,7 @@ function SelectCollection(): React.ReactElement {
 
                         '& .MuiSelect-icon': {
                             color:
-                                valueIndex !== -1
+                                /* valueIndex !== -1
                                     ? (() => {
                                           // Determine whether an icon is available for the selected value.
                                           const currentImgSrc =
@@ -145,7 +145,11 @@ function SelectCollection(): React.ReactElement {
                                     : widget.data.arrowColor ||
                                       widget.data.iconColor ||
                                       data.textColor ||
-                                      theme.palette.primary.main,
+                                      theme.palette.primary.main, */
+
+                                widget.data.arrowColor ||
+                                widget.data[`iconColor${valueIndex + 1}`] ||
+                                theme.palette.primary.main,
                         },
 
                         '&.Mui-focused': {
@@ -278,6 +282,7 @@ function SelectCollection(): React.ReactElement {
                                                     widget.data.iconColor ||
                                                     data.iconColor ||
                                                     theme.palette.primary.main,
+                                                state.forceColorMask,
                                             ),
                                         }}
                                     />

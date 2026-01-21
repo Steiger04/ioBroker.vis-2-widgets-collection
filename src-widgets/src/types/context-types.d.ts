@@ -81,6 +81,8 @@ export interface CollectionBaseImageWidgetData {
     enableIconColorMaskActive?: boolean;
     /** Icon color (CSS color value). */
     iconColor?: string;
+    /** Active icon color (CSS color value). */
+    iconColorActive?: string;
 }
 
 /**

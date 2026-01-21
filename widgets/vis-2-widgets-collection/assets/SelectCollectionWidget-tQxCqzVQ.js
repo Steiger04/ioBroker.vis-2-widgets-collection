@@ -1,10 +1,10 @@
-import { a as F, g as B, u as L, L as w, k as D, l as P, j as l, s as z, d as k, e as U, n as H, r as G, m as N, o as p, a4 as M, C as j, a5 as E, v as A, y as J, E as K, G as X, w as O, a6 as Y, z as q, T as Q, H as Z, J as V, K as tt, __tla as __tla_0 } from "./useData-vpnuohUP.js";
-import { o as et, c as at, __tla as __tla_1 } from "./commonObjectFields-DfDz2RT7.js";
-import { u as _, d as ot, __tla as __tla_2 } from "./useValueState-xh8B4_VZ.js";
+import { a as F, g as B, u as L, L as w, k as P, l as D, j as c, s as z, d as k, e as G, n as U, r as H, m as N, o as u, a5 as M, C as j, N as E, a6 as A, v as J, y as K, E as X, G as Y, w as O, a7 as q, z as Q, T as Z, H as ee, J as V, K as te, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { o as ae, c as oe, __tla as __tla_1 } from "./commonObjectFields-BC31TM4M.js";
+import { u as _, d as ie, __tla as __tla_2 } from "./useValueState-CDNrmGNN.js";
 import { v, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as it, __tla as __tla_4 } from "./SafeImg-CsVoylRw.js";
-import { l as T, __tla as __tla_5 } from "./listItemTextClasses-jQxKHHRR.js";
-import { S as nt, __tla as __tla_6 } from "./Stack-DbW5Dsvw.js";
+import { S as ne, __tla as __tla_4 } from "./SafeImg-H8fv6qCQ.js";
+import { l as T, __tla as __tla_5 } from "./listItemTextClasses-DT183UrX.js";
+import { S as re, __tla as __tla_6 } from "./Stack-BvJu5agW.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let W;
@@ -56,8 +56,8 @@ let __tla = Promise.all([
     "root",
     "alignItemsFlexStart"
   ]);
-  function rt(e) {
-    return B("MuiMenuItem", e);
+  function se(t) {
+    return B("MuiMenuItem", t);
   }
   const x = F("MuiMenuItem", [
     "root",
@@ -67,36 +67,36 @@ let __tla = Promise.all([
     "divider",
     "gutters",
     "selected"
-  ]), st = (e, a) => {
-    const { ownerState: c } = e;
+  ]), le = (t, a) => {
+    const { ownerState: l } = t;
     return [
       a.root,
-      c.dense && a.dense,
-      c.divider && a.divider,
-      !c.disableGutters && a.gutters
+      l.dense && a.dense,
+      l.divider && a.divider,
+      !l.disableGutters && a.gutters
     ];
-  }, lt = (e) => {
-    const { disabled: a, dense: c, divider: t, disableGutters: r, selected: f, classes: m } = e, u = U({
+  }, ce = (t) => {
+    const { disabled: a, dense: l, divider: e, disableGutters: r, selected: f, classes: m } = t, p = G({
       root: [
         "root",
-        c && "dense",
+        l && "dense",
         a && "disabled",
         !r && "gutters",
-        t && "divider",
+        e && "divider",
         f && "selected"
       ]
-    }, rt, m);
+    }, se, m);
     return {
       ...m,
-      ...u
+      ...p
     };
-  }, ct = z(H, {
-    shouldForwardProp: (e) => G(e) || e === "classes",
+  }, de = z(U, {
+    shouldForwardProp: (t) => H(t) || t === "classes",
     name: "MuiMenuItem",
     slot: "Root",
-    overridesResolver: st
-  })(N(({ theme: e }) => ({
-    ...e.typography.body1,
+    overridesResolver: le
+  })(N(({ theme: t }) => ({
+    ...t.typography.body1,
     display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -109,32 +109,32 @@ let __tla = Promise.all([
     whiteSpace: "nowrap",
     "&:hover": {
       textDecoration: "none",
-      backgroundColor: (e.vars || e).palette.action.hover,
+      backgroundColor: (t.vars || t).palette.action.hover,
       "@media (hover: none)": {
         backgroundColor: "transparent"
       }
     },
     [`&.${x.selected}`]: {
-      backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : p(e.palette.primary.main, e.palette.action.selectedOpacity),
+      backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / ${t.vars.palette.action.selectedOpacity})` : u(t.palette.primary.main, t.palette.action.selectedOpacity),
       [`&.${x.focusVisible}`]: {
-        backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.focusOpacity}))` : p(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.focusOpacity)
+        backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / calc(${t.vars.palette.action.selectedOpacity} + ${t.vars.palette.action.focusOpacity}))` : u(t.palette.primary.main, t.palette.action.selectedOpacity + t.palette.action.focusOpacity)
       }
     },
     [`&.${x.selected}:hover`]: {
-      backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.hoverOpacity}))` : p(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.hoverOpacity),
+      backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / calc(${t.vars.palette.action.selectedOpacity} + ${t.vars.palette.action.hoverOpacity}))` : u(t.palette.primary.main, t.palette.action.selectedOpacity + t.palette.action.hoverOpacity),
       "@media (hover: none)": {
-        backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : p(e.palette.primary.main, e.palette.action.selectedOpacity)
+        backgroundColor: t.vars ? `rgba(${t.vars.palette.primary.mainChannel} / ${t.vars.palette.action.selectedOpacity})` : u(t.palette.primary.main, t.palette.action.selectedOpacity)
       }
     },
     [`&.${x.focusVisible}`]: {
-      backgroundColor: (e.vars || e).palette.action.focus
+      backgroundColor: (t.vars || t).palette.action.focus
     },
     [`&.${x.disabled}`]: {
-      opacity: (e.vars || e).palette.action.disabledOpacity
+      opacity: (t.vars || t).palette.action.disabledOpacity
     },
     [`& + .${M.root}`]: {
-      marginTop: e.spacing(1),
-      marginBottom: e.spacing(1)
+      marginTop: t.spacing(1),
+      marginBottom: t.spacing(1)
     },
     [`& + .${M.inset}`]: {
       marginLeft: 52
@@ -160,14 +160,14 @@ let __tla = Promise.all([
       {
         props: ({ ownerState: a }) => a.divider,
         style: {
-          borderBottom: `1px solid ${(e.vars || e).palette.divider}`,
+          borderBottom: `1px solid ${(t.vars || t).palette.divider}`,
           backgroundClip: "padding-box"
         }
       },
       {
         props: ({ ownerState: a }) => !a.dense,
         style: {
-          [e.breakpoints.up("sm")]: {
+          [t.breakpoints.up("sm")]: {
             minHeight: "auto"
           }
         }
@@ -178,55 +178,55 @@ let __tla = Promise.all([
           minHeight: 32,
           paddingTop: 4,
           paddingBottom: 4,
-          ...e.typography.body2,
+          ...t.typography.body2,
           [`& .${R.root} svg`]: {
             fontSize: "1.25rem"
           }
         }
       }
     ]
-  }))), dt = v.forwardRef(function(a, c) {
-    const t = L({
+  }))), pe = v.forwardRef(function(a, l) {
+    const e = L({
       props: a,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: f = "li", dense: m = false, divider: i = false, disableGutters: u = false, focusVisibleClassName: y, role: h = "menuitem", tabIndex: S, className: C, ...I } = t, n = v.useContext(w), $ = v.useMemo(() => ({
+    }), { autoFocus: r = false, component: f = "li", dense: m = false, divider: i = false, disableGutters: p = false, focusVisibleClassName: b, role: h = "menuitem", tabIndex: S, className: C, ...I } = e, n = v.useContext(w), $ = v.useMemo(() => ({
       dense: m || n.dense || false,
-      disableGutters: u
+      disableGutters: p
     }), [
       n.dense,
       m,
-      u
+      p
     ]), d = v.useRef(null);
-    D(() => {
+    P(() => {
       r && d.current && d.current.focus();
     }, [
       r
     ]);
     const o = {
-      ...t,
+      ...e,
       dense: $.dense,
       divider: i,
-      disableGutters: u
-    }, s = lt(t), b = P(d, c);
+      disableGutters: p
+    }, s = ce(e), y = D(d, l);
     let g;
-    return t.disabled || (g = S !== void 0 ? S : -1), l.jsx(w.Provider, {
+    return e.disabled || (g = S !== void 0 ? S : -1), c.jsx(w.Provider, {
       value: $,
-      children: l.jsx(ct, {
-        ref: b,
+      children: c.jsx(de, {
+        ref: y,
         role: h,
         tabIndex: g,
         component: f,
-        focusVisibleClassName: k(s.focusVisible, y),
+        focusVisibleClassName: k(s.focusVisible, b),
         className: k(s.root, C),
         ...I,
         ownerState: o,
         classes: s
       })
     });
-  }), pt = () => [
+  }), ue = () => [
     {
       type: "custom",
-      component: () => l.jsx(j, {
+      component: () => c.jsx(j, {
         dividerText: "selection"
       })
     },
@@ -234,7 +234,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: et([
+      onChange: ae([
         "boolean",
         "number",
         "string",
@@ -243,32 +243,47 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => l.jsx(j, {
+      component: () => c.jsx(j, {
         dividerText: "arrow"
       })
     },
     {
       name: "arrowColor",
       label: "arrow_color",
-      type: "color"
+      default: "",
+      type: "custom",
+      fallbackFields: [
+        ""
+      ],
+      noGradient: true,
+      component: (t, a, l, e) => c.jsx(E, {
+        field: t,
+        data: a,
+        onDataChange: l,
+        props: e
+      })
     }
   ];
-  function ut() {
-    const e = v.useRef(null), { width: a } = E(e == null ? void 0 : e.current), c = v.useContext(A), { widget: t, theme: r } = c, f = t.data.cidObject, m = t.data.oidObject, { data: i, states: u } = J("oid"), { value: y, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = u.findIndex((d) => String(d.value) === String(y)), $ = (d) => {
-      const o = d.target.value, b = u[o].value;
-      f && S(b), h(b);
+  function me() {
+    var _a;
+    const t = v.useRef(null), { width: a } = A(t == null ? void 0 : t.current), l = v.useContext(J), { widget: e, theme: r } = l, f = e.data.cidObject, m = e.data.oidObject, { data: i, states: p } = K("oid"), { value: b, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = p.findIndex((d) => String(d.value) === String(b)), $ = (d) => {
+      const o = d.target.value, y = p[o].value;
+      f && S(y), h(y);
     };
-    return l.jsxs(K, {
+    return c.jsxs(X, {
       isValidType: I,
       data: i,
-      oidValue: y,
+      oidValue: b,
       children: [
-        l.jsx(X, {
-          data: i,
-          widget: t
+        c.jsx(Y, {
+          data: {
+            ...i,
+            forceColorMaskActive: (_a = p[n]) == null ? void 0 : _a.forceColorMask
+          },
+          widget: e
         }),
-        l.jsx(O, {
-          ref: e,
+        c.jsx(O, {
+          ref: t,
           sx: {
             overflow: "auto",
             width: "100%",
@@ -277,7 +292,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: l.jsx(Y, {
+          children: c.jsx(q, {
             variant: "standard",
             disableUnderline: true,
             value: n !== -1 ? n : "",
@@ -288,7 +303,7 @@ let __tla = Promise.all([
               },
               MenuListProps: {
                 sx: {
-                  background: i.backgroundColor ? p(i.backgroundColor, 0.7) : i.background
+                  background: i.backgroundColor ? u(i.backgroundColor, 0.7) : i.background
                 }
               }
             },
@@ -297,67 +312,67 @@ let __tla = Promise.all([
               height: "100%",
               maxWidth: `calc(${a}px - 10%)`,
               "& .MuiSelect-select": {
-                backgroundColor: p(n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.iconColor || i.textColor || r.palette.primary.main, 0.15),
+                backgroundColor: u(n !== -1 ? e.data[`iconSmall${n + 1}`] || e.data[`icon${n + 1}`] || e.data.iconSmall || e.data.icon ? e.data[`iconColor${n + 1}`] || e.data.iconColor || i.iconColor || r.palette.primary.main : e.data[`textColor${n + 1}`] || e.data.textColor || i.textColor || r.palette.primary.main : e.data.iconColor || i.textColor || r.palette.primary.main, 0.15),
                 paddingLeft: 1
               },
               "& .MuiSelect-icon": {
-                color: n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.arrowColor || t.data.iconColor || i.textColor || r.palette.primary.main
+                color: e.data.arrowColor || e.data[`iconColor${n + 1}`] || r.palette.primary.main
               },
               "&.Mui-focused": {
                 ariaHidden: "true",
                 "& .MuiSelect-select": {
-                  backgroundColor: p(n !== -1 ? t.data[`iconSmall${n + 1}`] || t.data[`icon${n + 1}`] || t.data.iconSmall || t.data.icon ? t.data[`iconColor${n + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${n + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main : t.data.iconColor || i.textColor || r.palette.primary.main, 0.2),
+                  backgroundColor: u(n !== -1 ? e.data[`iconSmall${n + 1}`] || e.data[`icon${n + 1}`] || e.data.iconSmall || e.data.icon ? e.data[`iconColor${n + 1}`] || e.data.iconColor || i.iconColor || r.palette.primary.main : e.data[`textColor${n + 1}`] || e.data.textColor || i.textColor || r.palette.primary.main : e.data.iconColor || i.textColor || r.palette.primary.main, 0.2),
                   paddingLeft: 1
                 }
               }
             },
-            children: u.map((d, o) => {
-              var _a;
-              const s = t.data[`iconSmall${o + 1}`] || t.data[`icon${o + 1}`] || t.data.iconSmall || t.data.icon, g = s ? t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main : t.data[`textColor${o + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main;
-              return l.jsx(dt, {
+            children: p.map((d, o) => {
+              var _a2;
+              const s = e.data[`iconSmall${o + 1}`] || e.data[`icon${o + 1}`] || e.data.iconSmall || e.data.icon, g = s ? e.data[`iconColor${o + 1}`] || e.data.iconColor || i.iconColor || r.palette.primary.main : e.data[`textColor${o + 1}`] || e.data.textColor || i.textColor || r.palette.primary.main;
+              return c.jsx(pe, {
                 value: o,
                 sx: {
                   "& .MuiTouchRipple-root": {
                     color: g
                   },
                   "&.Mui-selected": {
-                    backgroundColor: p(g, 0.16)
+                    backgroundColor: u(g, 0.16)
                   },
                   "&.Mui-selected:hover": {
-                    backgroundColor: p(g, 0.24)
+                    backgroundColor: u(g, 0.24)
                   },
                   "&:hover": {
-                    backgroundColor: p(g, 0.08)
+                    backgroundColor: u(g, 0.08)
                   },
-                  background: t.data[`backgroundColor${o + 1}`] && `${t.data[`backgroundColor${o + 1}`]}!important` || `${t.data[`background${o + 1}`]}!important`
+                  background: e.data[`backgroundColor${o + 1}`] && `${e.data[`backgroundColor${o + 1}`]}!important` || `${e.data[`background${o + 1}`]}!important`
                 },
-                children: l.jsxs(nt, {
+                children: c.jsxs(re, {
                   direction: "row",
                   spacing: s ? 1 : 0,
                   sx: {
                     alignItems: "center"
                   },
                   children: [
-                    l.jsx(it, {
+                    c.jsx(ne, {
                       alt: "",
                       src: typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0,
                       style: {
                         position: "relative",
-                        top: `calc(0px - ${t.data[`iconYOffset${o + 1}`]})`,
-                        right: `calc(0px - ${t.data[`iconXOffset${o + 1}`]})`,
-                        height: !s && "0px" || (typeof t.data[`iconSize${o + 1}`] == "number" ? `calc(24px * ${t.data[`iconSize${o + 1}`]} / 100)` : typeof t.data.iconSize == "number" ? `calc(24px * ${t.data.iconSize} / 100)` : "24px"),
-                        ...q(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(y) === String(t.data[`value${o + 1}`]) && t.data.iconColorActive || t.data[`iconColor${o + 1}`] || t.data.iconColor || i.iconColor || r.palette.primary.main)
+                        top: `calc(0px - ${e.data[`iconYOffset${o + 1}`]})`,
+                        right: `calc(0px - ${e.data[`iconXOffset${o + 1}`]})`,
+                        height: !s && "0px" || (typeof e.data[`iconSize${o + 1}`] == "number" ? `calc(24px * ${e.data[`iconSize${o + 1}`]} / 100)` : typeof e.data.iconSize == "number" ? `calc(24px * ${e.data.iconSize} / 100)` : "24px"),
+                        ...Q(typeof s == "string" ? s : typeof s == "number" ? s.toString() : void 0, String(b) === String(e.data[`value${o + 1}`]) && e.data.iconColorActive || e.data[`iconColor${o + 1}`] || e.data.iconColor || i.iconColor || r.palette.primary.main, d.forceColorMask)
                       }
                     }),
-                    l.jsx(Q, {
+                    c.jsx(Z, {
                       component: O,
                       variant: "subtitle2",
                       sx: {
                         whiteSpace: "pre-wrap",
-                        fontSize: t.data[`valueSize${o + 1}`] || i.valueSize,
+                        fontSize: e.data[`valueSize${o + 1}`] || i.valueSize,
                         textAlign: "left",
                         bgcolor: "transparent",
-                        color: t.data[`textColor${o + 1}`] || t.data.textColor || i.textColor || r.palette.primary.main,
+                        color: e.data[`textColor${o + 1}`] || e.data.textColor || i.textColor || r.palette.primary.main,
                         textTransform: "none",
                         width: "100%",
                         height: "100%",
@@ -366,7 +381,7 @@ let __tla = Promise.all([
                       },
                       contentEditable: "false",
                       dangerouslySetInnerHTML: {
-                        __html: t.data[`alias${o + 1}`] && ((_a = t.data[`alias${o + 1}`]) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || t.data[`value${o + 1}`] && `${t.data[`value${o + 1}`]}${m == null ? void 0 : m.unit}` || ""
+                        __html: e.data[`alias${o + 1}`] && ((_a2 = e.data[`alias${o + 1}`]) == null ? void 0 : _a2.replace(/(\r\n|\n|\r)/gm, "")) || e.data[`value${o + 1}`] && `${e.data[`value${o + 1}`]}${m == null ? void 0 : m.unit}` || ""
                       }
                     })
                   ]
@@ -378,7 +393,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  W = class extends Z {
+  W = class extends ee {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -400,14 +415,14 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...at([
+              ...oe([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
-              ...ot(),
-              ...pt()
+              ...ie(),
+              ...ue()
             ]
           },
           {
@@ -441,14 +456,14 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(a, c) {
+    onStateUpdated(a, l) {
     }
     componentDidMount() {
       super.componentDidMount(), this.propertiesUpdate();
     }
     renderWidgetBody(a) {
       super.renderWidgetBody(a);
-      const c = {
+      const l = {
         id: a.id,
         refService: a.refService,
         style: a.style,
@@ -466,7 +481,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, tt(this.wrapContent(l.jsx(ut, {})), c);
+      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, te(this.wrapContent(c.jsx(me, {})), l);
     }
   };
 });

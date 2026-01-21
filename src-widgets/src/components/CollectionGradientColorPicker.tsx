@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import type {
     RxWidgetInfoAttributesField,
     RxWidgetInfoCustomComponentProperties,
@@ -76,14 +77,17 @@ function validateColorInput(value: string): { isValid: boolean; normalizedValue:
 }
 
 /**
- * Extended field definition with optional fallbackFields array.
+ * Extended field definition with optional fallbackFields array and noGradient flag.
  *
  * @typedef ExtendedField
- * @type {RxWidgetInfoAttributesField & { fallbackFields?: string[] }}
+ * @type {RxWidgetInfoAttributesField & { fallbackFields?: string[]; noGradient?: boolean }}
  * @property {string[]} [fallbackFields] - Optional array of field names to use as fallbacks during initialization.
+ * @property {boolean} [noGradient] - When true, extracts solid color at 50% position from gradients before saving.
+ *                                     User can still input/view gradients in UI, but only solid colors are persisted.
  */
 type ExtendedField = RxWidgetInfoAttributesField & {
     fallbackFields?: string[];
+    noGradient?: boolean;
 };
 
 /**
@@ -177,9 +181,28 @@ function CollectionGradientColorPicker({
 
         // Step 5: Handle validation result
         if (validation.isValid) {
-            // Valid input: clear error and save normalized value
-            setError(false);
-            onDataChange({ [fieldName]: validation.normalizedValue || null });
+            // Check if noGradient flag is enabled
+            if (field.noGradient === true) {
+                // Extract solid color from gradient (or pass through solid colors unchanged)
+                const extractedColor = extractColorFromValue(validation.normalizedValue);
+
+                if (extractedColor === null) {
+                    // Extraction failed: show error and prevent saving
+                    setError(true);
+                    // Note: cachedValue already updated with original input for user correction
+                    return;
+                }
+
+                // Extraction succeeded: save extracted color (cachedValue keeps original input for display)
+                setError(false);
+                // Update lastPropValueRef to extracted color BEFORE onDataChange to prevent sync effect from overwriting cachedValue
+                lastPropValueRef.current = extractedColor;
+                onDataChange({ [fieldName]: extractedColor });
+            } else {
+                // noGradient disabled: save original normalized value
+                setError(false);
+                onDataChange({ [fieldName]: validation.normalizedValue || null });
+            }
         } else {
             // Invalid input: set error but do NOT call onDataChange
             // This prevents saving invalid data while preserving user input for correction
@@ -271,13 +294,28 @@ function CollectionGradientColorPicker({
         if (initialColor) {
             const validation = validateColorInput(initialColor);
             if (validation.isValid) {
-                setCachedValue(initialColor);
-                setError(false);
-                onDataChange({ [fieldName]: initialColor });
+                // Apply noGradient extraction if enabled
+                if (field.noGradient === true) {
+                    const extractedColor = extractColorFromValue(validation.normalizedValue);
+                    if (extractedColor !== null) {
+                        // Save extracted color, display original
+                        setCachedValue(initialColor);
+                        setError(false);
+                        // Update lastPropValueRef to extracted color BEFORE onDataChange to prevent sync effect from overwriting cachedValue
+                        lastPropValueRef.current = extractedColor;
+                        onDataChange({ [fieldName]: extractedColor });
+                    }
+                    // If extraction fails, skip initialization (no error, no save)
+                } else {
+                    // noGradient disabled: use original value
+                    setCachedValue(initialColor);
+                    setError(false);
+                    onDataChange({ [fieldName]: initialColor });
+                }
             }
         }
         hasInitializedRef.current = true;
-    }, [open, data, fieldName, field.fallbackFields, theme.palette.primary.main, onDataChange]);
+    }, [open, data, fieldName, field.fallbackFields, field.noGradient, theme.palette.primary.main, onDataChange]);
 
     return (
         <>

@@ -1,9 +1,8 @@
-import { a as M, g as V, a2 as X, u as L, j as g, s as P, d as D, i as _, e as F, n as Y, m as N, o as $, $ as J, C as K, v as q, y as Q, O as Z, E as tt, G as et, w as k, A as j, a0 as A, z as ot, T as at, H as nt, J as I, K as rt, __tla as __tla_0 } from "./useData-vpnuohUP.js";
-import { c as it, __tla as __tla_1 } from "./commonObjectFields-DfDz2RT7.js";
-import { u as lt, d as st, __tla as __tla_2 } from "./useValueState-xh8B4_VZ.js";
-import { v, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as dt, __tla as __tla_4 } from "./SafeImg-CsVoylRw.js";
-import { e as ut } from "./extractColorFromValue-BwqGCJvl.js";
+import { a as M, g as V, a3 as X, u as P, j as p, s as L, d as F, i as I, e as N, n as Y, m as D, o as $, a0 as J, C as K, N as q, v as Q, y as Z, O as tt, E as et, G as ot, w, A as _, R as at, a1 as A, z as nt, T as rt, H as it, J as j, K as lt, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { c as st, __tla as __tla_1 } from "./commonObjectFields-BC31TM4M.js";
+import { u as dt, d as ct, __tla as __tla_2 } from "./useValueState-CDNrmGNN.js";
+import { v as C, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { S as ut, __tla as __tla_4 } from "./SafeImg-H8fv6qCQ.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let E;
@@ -39,10 +38,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  function ct(t) {
-    return v.Children.toArray(t).filter((e) => v.isValidElement(e));
-  }
   function pt(t) {
+    return C.Children.toArray(t).filter((e) => C.isValidElement(e));
+  }
+  function gt(t) {
     return V("MuiToggleButton", t);
   }
   const O = M("MuiToggleButton", [
@@ -56,33 +55,33 @@ let __tla = Promise.all([
     "sizeMedium",
     "sizeLarge",
     "fullWidth"
-  ]), U = v.createContext({}), H = v.createContext(void 0);
-  function gt(t, e) {
+  ]), U = C.createContext({}), H = C.createContext(void 0);
+  function ft(t, e) {
     return e === void 0 || t === void 0 ? false : Array.isArray(e) ? e.includes(t) : t === e;
   }
-  const ft = (t) => {
-    const { classes: e, fullWidth: r, selected: C, disabled: s, size: h, color: z } = t, y = {
+  const bt = (t) => {
+    const { classes: e, fullWidth: n, selected: v, disabled: s, size: h, color: z } = t, y = {
       root: [
         "root",
-        C && "selected",
+        v && "selected",
         s && "disabled",
-        r && "fullWidth",
-        `size${_(h)}`,
+        n && "fullWidth",
+        `size${I(h)}`,
         z
       ]
     };
-    return F(y, pt, e);
-  }, bt = P(Y, {
+    return N(y, gt, e);
+  }, vt = L(Y, {
     name: "MuiToggleButton",
     slot: "Root",
     overridesResolver: (t, e) => {
-      const { ownerState: r } = t;
+      const { ownerState: n } = t;
       return [
         e.root,
-        e[`size${_(r.size)}`]
+        e[`size${I(n.size)}`]
       ];
     }
-  })(N(({ theme: t }) => ({
+  })(D(({ theme: t }) => ({
     ...t.typography.button,
     borderRadius: (t.vars || t).shape.borderRadius,
     padding: 11,
@@ -161,41 +160,41 @@ let __tla = Promise.all([
         }
       }
     ]
-  }))), vt = v.forwardRef(function(e, r) {
-    const { value: C, ...s } = v.useContext(U), h = v.useContext(H), z = X({
+  }))), Ct = C.forwardRef(function(e, n) {
+    const { value: v, ...s } = C.useContext(U), h = C.useContext(H), z = X({
       ...s,
-      selected: gt(e.value, C)
-    }, e), y = L({
+      selected: ft(e.value, v)
+    }, e), y = P({
       props: z,
       name: "MuiToggleButton"
-    }), { children: R, className: G, color: m = "standard", disabled: T = false, disableFocusRipple: S = false, fullWidth: i = false, onChange: d, onClick: u, selected: a, size: o = "medium", value: c, ...l } = y, f = {
+    }), { children: R, className: G, color: m = "standard", disabled: T = false, disableFocusRipple: S = false, fullWidth: i = false, onChange: c, onClick: d, selected: a, size: o = "medium", value: u, ...l } = y, f = {
       ...y,
       color: m,
       disabled: T,
       disableFocusRipple: S,
       fullWidth: i,
       size: o
-    }, x = ft(f), B = (p) => {
-      u && (u(p, c), p.defaultPrevented) || d && d(p, c);
+    }, x = bt(f), B = (g) => {
+      d && (d(g, u), g.defaultPrevented) || c && c(g, u);
     }, b = h || "";
-    return g.jsx(bt, {
-      className: D(s.className, x.root, G, b),
+    return p.jsx(vt, {
+      className: F(s.className, x.root, G, b),
       disabled: T,
       focusRipple: !S,
-      ref: r,
+      ref: n,
       onClick: B,
-      onChange: d,
-      value: c,
+      onChange: c,
+      value: u,
       ownerState: f,
       "aria-pressed": a,
       ...l,
       children: R
     });
   });
-  function Ct(t) {
+  function xt(t) {
     return V("MuiToggleButtonGroup", t);
   }
-  const n = M("MuiToggleButtonGroup", [
+  const r = M("MuiToggleButtonGroup", [
     "root",
     "selected",
     "horizontal",
@@ -208,16 +207,16 @@ let __tla = Promise.all([
     "firstButton",
     "lastButton",
     "middleButton"
-  ]), xt = (t) => {
-    const { classes: e, orientation: r, fullWidth: C, disabled: s } = t, h = {
+  ]), yt = (t) => {
+    const { classes: e, orientation: n, fullWidth: v, disabled: s } = t, h = {
       root: [
         "root",
-        r,
-        C && "fullWidth"
+        n,
+        v && "fullWidth"
       ],
       grouped: [
         "grouped",
-        `grouped${_(r)}`,
+        `grouped${I(n)}`,
         s && "disabled"
       ],
       firstButton: [
@@ -230,34 +229,34 @@ let __tla = Promise.all([
         "middleButton"
       ]
     };
-    return F(h, Ct, e);
-  }, yt = P("div", {
+    return N(h, xt, e);
+  }, mt = L("div", {
     name: "MuiToggleButtonGroup",
     slot: "Root",
     overridesResolver: (t, e) => {
-      const { ownerState: r } = t;
+      const { ownerState: n } = t;
       return [
         {
-          [`& .${n.grouped}`]: e.grouped
+          [`& .${r.grouped}`]: e.grouped
         },
         {
-          [`& .${n.grouped}`]: e[`grouped${_(r.orientation)}`]
+          [`& .${r.grouped}`]: e[`grouped${I(n.orientation)}`]
         },
         {
-          [`& .${n.firstButton}`]: e.firstButton
+          [`& .${r.firstButton}`]: e.firstButton
         },
         {
-          [`& .${n.lastButton}`]: e.lastButton
+          [`& .${r.lastButton}`]: e.lastButton
         },
         {
-          [`& .${n.middleButton}`]: e.middleButton
+          [`& .${r.middleButton}`]: e.middleButton
         },
         e.root,
-        r.orientation === "vertical" && e.vertical,
-        r.fullWidth && e.fullWidth
+        n.orientation === "vertical" && e.vertical,
+        n.fullWidth && e.fullWidth
       ];
     }
-  })(N(({ theme: t }) => ({
+  })(D(({ theme: t }) => ({
     display: "inline-flex",
     borderRadius: (t.vars || t).shape.borderRadius,
     variants: [
@@ -267,23 +266,23 @@ let __tla = Promise.all([
         },
         style: {
           flexDirection: "column",
-          [`& .${n.grouped}`]: {
-            [`&.${n.selected} + .${n.grouped}.${n.selected}`]: {
+          [`& .${r.grouped}`]: {
+            [`&.${r.selected} + .${r.grouped}.${r.selected}`]: {
               borderTop: 0,
               marginTop: 0
             }
           },
-          [`& .${n.firstButton},& .${n.middleButton}`]: {
+          [`& .${r.firstButton},& .${r.middleButton}`]: {
             borderBottomLeftRadius: 0,
             borderBottomRightRadius: 0
           },
-          [`& .${n.lastButton},& .${n.middleButton}`]: {
+          [`& .${r.lastButton},& .${r.middleButton}`]: {
             marginTop: -1,
             borderTop: "1px solid transparent",
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0
           },
-          [`& .${n.lastButton}.${O.disabled},& .${n.middleButton}.${O.disabled}`]: {
+          [`& .${r.lastButton}.${O.disabled},& .${r.middleButton}.${O.disabled}`]: {
             borderTop: "1px solid transparent"
           }
         }
@@ -301,56 +300,56 @@ let __tla = Promise.all([
           orientation: "horizontal"
         },
         style: {
-          [`& .${n.grouped}`]: {
-            [`&.${n.selected} + .${n.grouped}.${n.selected}`]: {
+          [`& .${r.grouped}`]: {
+            [`&.${r.selected} + .${r.grouped}.${r.selected}`]: {
               borderLeft: 0,
               marginLeft: 0
             }
           },
-          [`& .${n.firstButton},& .${n.middleButton}`]: {
+          [`& .${r.firstButton},& .${r.middleButton}`]: {
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0
           },
-          [`& .${n.lastButton},& .${n.middleButton}`]: {
+          [`& .${r.lastButton},& .${r.middleButton}`]: {
             marginLeft: -1,
             borderLeft: "1px solid transparent",
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0
           },
-          [`& .${n.lastButton}.${O.disabled},& .${n.middleButton}.${O.disabled}`]: {
+          [`& .${r.lastButton}.${O.disabled},& .${r.middleButton}.${O.disabled}`]: {
             borderLeft: "1px solid transparent"
           }
         }
       }
     ]
-  }))), mt = v.forwardRef(function(e, r) {
-    const C = L({
+  }))), ht = C.forwardRef(function(e, n) {
+    const v = P({
       props: e,
       name: "MuiToggleButtonGroup"
-    }), { children: s, className: h, color: z = "standard", disabled: y = false, exclusive: R = false, fullWidth: G = false, onChange: m, orientation: T = "horizontal", size: S = "medium", value: i, ...d } = C, u = {
-      ...C,
+    }), { children: s, className: h, color: z = "standard", disabled: y = false, exclusive: R = false, fullWidth: G = false, onChange: m, orientation: T = "horizontal", size: S = "medium", value: i, ...c } = v, d = {
+      ...v,
       disabled: y,
       fullWidth: G,
       orientation: T,
       size: S
-    }, a = xt(u), o = v.useCallback((b, p) => {
+    }, a = yt(d), o = C.useCallback((b, g) => {
       if (!m) return;
-      const W = i && i.indexOf(p);
-      let w;
-      i && W >= 0 ? (w = i.slice(), w.splice(W, 1)) : w = i ? i.concat(p) : [
-        p
-      ], m(b, w);
+      const k = i && i.indexOf(g);
+      let W;
+      i && k >= 0 ? (W = i.slice(), W.splice(k, 1)) : W = i ? i.concat(g) : [
+        g
+      ], m(b, W);
     }, [
       m,
       i
-    ]), c = v.useCallback((b, p) => {
-      m && m(b, i === p ? null : p);
+    ]), u = C.useCallback((b, g) => {
+      m && m(b, i === g ? null : g);
     }, [
       m,
       i
-    ]), l = v.useMemo(() => ({
+    ]), l = C.useMemo(() => ({
       className: a.grouped,
-      onChange: R ? c : o,
+      onChange: R ? u : o,
       value: i,
       size: S,
       fullWidth: G,
@@ -359,35 +358,35 @@ let __tla = Promise.all([
     }), [
       a.grouped,
       R,
-      c,
+      u,
       o,
       i,
       S,
       G,
       z,
       y
-    ]), f = ct(s), x = f.length, B = (b) => {
-      const p = b === 0, W = b === x - 1;
-      return p && W ? "" : p ? a.firstButton : W ? a.lastButton : a.middleButton;
+    ]), f = pt(s), x = f.length, B = (b) => {
+      const g = b === 0, k = b === x - 1;
+      return g && k ? "" : g ? a.firstButton : k ? a.lastButton : a.middleButton;
     };
-    return g.jsx(yt, {
+    return p.jsx(mt, {
       role: "group",
-      className: D(a.root, h),
-      ref: r,
-      ownerState: u,
-      ...d,
-      children: g.jsx(U.Provider, {
+      className: F(a.root, h),
+      ref: n,
+      ownerState: d,
+      ...c,
+      children: p.jsx(U.Provider, {
         value: l,
-        children: f.map((b, p) => g.jsx(H.Provider, {
-          value: B(p),
+        children: f.map((b, g) => p.jsx(H.Provider, {
+          value: B(g),
           children: b
-        }, p))
+        }, g))
       })
     });
-  }), ht = () => [
+  }), Bt = () => [
     {
       type: "custom",
-      component: () => g.jsx(K, {})
+      component: () => p.jsx(K, {})
     },
     {
       name: "onlyIcon",
@@ -436,48 +435,58 @@ let __tla = Promise.all([
     {
       name: "buttonGroupColor",
       label: "button_group_color",
-      type: "color"
+      default: "",
+      type: "custom",
+      fallbackFields: [
+        "textColor"
+      ],
+      component: (t, e, n, v) => p.jsx(q, {
+        field: t,
+        data: e,
+        onDataChange: n,
+        props: v
+      })
     }
   ];
-  function Bt() {
-    const t = v.useContext(q), { widget: e, theme: r } = t, C = e.data.oidObject, { data: s, states: h, activeIndex: z } = Q("oid"), { value: y, updateValue: R } = lt("oid"), G = e.data.buttonGroupVariant, m = e.data.buttonGroupOrientation, T = C == null ? void 0 : C.type, S = T === "boolean" || T === "number" || T === "string" || T === "mixed", i = m === "vertical", d = G === "outlined", u = v.useMemo(() => ({
+  function $t() {
+    const t = C.useContext(Q), { widget: e, theme: n } = t, v = e.data.oidObject, { data: s, states: h, activeIndex: z } = Z("oid"), { value: y, updateValue: R } = dt("oid"), G = e.data.buttonGroupVariant, m = e.data.buttonGroupOrientation, T = v == null ? void 0 : v.type, S = T === "boolean" || T === "number" || T === "string" || T === "mixed", i = m === "vertical", c = G === "outlined", d = C.useMemo(() => ({
       getBackgroundColor: (a, o) => a && e.data.backgroundActive || o.backgroundActive,
       getIcon: (a, o) => a ? e.data.iconActive || e.data.iconSmallActive || o.icon || s.icon : o.icon || s.icon,
-      getIconColor: (a, o) => a ? e.data.iconColorActive || o.iconColor || e.data.buttonGroupColor || s.iconColor || r.palette.primary.main : o.iconColor || e.data.buttonGroupColor || s.iconColor || r.palette.primary.main,
-      getTextColor: (a, o) => a ? e.data.textColorActive || o.textColor || e.data.buttonGroupColor || s.textColor || r.palette.primary.main : o.textColor || e.data.buttonGroupColor || s.textColor || r.palette.primary.main,
+      getIconColor: (a, o) => a ? e.data.iconColorActive || o.iconColor || e.data.buttonGroupColor || s.iconColor || n.palette.primary.main : o.iconColor || e.data.buttonGroupColor || s.iconColor || n.palette.primary.main,
+      getTextColor: (a, o) => a ? e.data.textColorActive || o.textColor || e.data.buttonGroupColor || s.textColor || n.palette.primary.main : o.textColor || e.data.buttonGroupColor || s.textColor || n.palette.primary.main,
       getIconSize: (a, o) => `calc(100% * ${a && typeof e.data.iconSizeActive == "number" ? e.data.iconSizeActive : typeof o.iconSize == "number" ? o.iconSize : typeof e.data.iconSize == "number" ? e.data.iconSize : 100} / 100)`,
-      getIconOffset: (a, o, c) => {
-        const l = c === "X" ? "iconXOffset" : "iconYOffset", f = c === "X" ? "iconXOffsetActive" : "iconYOffsetActive", x = a ? e.data[f] : void 0, B = o[l];
+      getIconOffset: (a, o, u) => {
+        const l = u === "X" ? "iconXOffset" : "iconYOffset", f = u === "X" ? "iconXOffsetActive" : "iconYOffsetActive", x = a ? e.data[f] : void 0, B = o[l];
         return x && x !== "0px" ? x : B && B !== "0px" ? B : "0px";
       },
-      getTextContent: (a, o, c) => {
+      getTextContent: (a, o, u) => {
         var _a;
-        return a && e.data.aliasActive ? e.data.aliasActive : ((_a = o.alias) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || c && `${c}${C == null ? void 0 : C.unit}` || "";
+        return a && e.data.aliasActive ? e.data.aliasActive : ((_a = o.alias) == null ? void 0 : _a.replace(/(\r\n|\n|\r)/gm, "")) || u && `${u}${v == null ? void 0 : v.unit}` || "";
       },
-      getTextSize: (a, o) => a && typeof e.data.valueSizeActive == "number" ? Z(e.data.valueSizeActive) : typeof o.valueSize == "string" ? `${o.valueSize}` : s.valueSize
+      getTextSize: (a, o) => a && typeof e.data.valueSizeActive == "number" ? tt(e.data.valueSizeActive) : typeof o.valueSize == "string" ? `${o.valueSize}` : s.valueSize
     }), [
       e.data,
       s,
-      C,
-      r.palette.primary.main
+      v,
+      n.palette.primary.main
     ]);
-    return g.jsxs(tt, {
+    return p.jsxs(et, {
       isValidType: S,
       data: s,
       oidValue: y,
       bgActive: false,
       children: [
-        g.jsx(et, {
+        p.jsx(ot, {
           data: s,
           widget: e
         }),
-        g.jsx(k, {
+        p.jsx(w, {
           sx: {
             width: "100%",
             height: "100%",
             display: "flex"
           },
-          children: g.jsx(mt, {
+          children: p.jsx(ht, {
             exclusive: true,
             value: String(y),
             disabled: !S,
@@ -498,32 +507,32 @@ let __tla = Promise.all([
                 }
               },
               "& .MuiToggleButtonGroup-firstButton": {
-                borderTopWidth: d ? null : 0,
-                borderLeftWidth: d ? null : 0,
-                borderRightWidth: d ? null : i ? 0 : null,
-                borderBottomWidth: d || i ? null : 0,
+                borderTopWidth: c ? null : 0,
+                borderLeftWidth: c ? null : 0,
+                borderRightWidth: c ? null : i ? 0 : null,
+                borderBottomWidth: c || i ? null : 0,
                 borderColor: e.data.buttonGroupColor && $(e.data.buttonGroupColor, 0.2),
                 borderRadius: e.data.basePadding ? void 0 : 0
               },
               "& .MuiToggleButtonGroup-middleButton": {
-                borderTopWidth: d || i ? null : 0,
-                borderLeftWidth: d ? null : 0,
-                borderRightWidth: d ? null : 0,
-                borderBottomWidth: d || i ? null : 0,
+                borderTopWidth: c || i ? null : 0,
+                borderLeftWidth: c ? null : 0,
+                borderRightWidth: c ? null : 0,
+                borderBottomWidth: c || i ? null : 0,
                 borderColor: e.data.buttonGroupColor && $(e.data.buttonGroupColor, 0.2)
               },
               "& .MuiToggleButtonGroup-lastButton": {
-                borderTopWidth: d || i ? null : 0,
-                borderLeftWidth: d ? null : 0,
-                borderRightWidth: d ? null : 0,
-                borderBottomWidth: d ? null : 0,
+                borderTopWidth: c || i ? null : 0,
+                borderLeftWidth: c ? null : 0,
+                borderRightWidth: c ? null : 0,
+                borderBottomWidth: c ? null : 0,
                 borderColor: e.data.buttonGroupColor && $(e.data.buttonGroupColor, 0.2),
                 borderRadius: e.data.basePadding ? void 0 : 0
               }
             },
-            children: h.map(({ value: a, ...o }, c) => {
-              const l = z === c + 1, f = u.getBackgroundColor(l, o), x = j(f), B = ut(f), b = u.getIcon(l, o);
-              return g.jsx(vt, {
+            children: h.map(({ value: a, ...o }, u) => {
+              const l = z === u + 1, f = d.getBackgroundColor(l, o), x = _(f), B = at(f), b = d.getIcon(l, o);
+              return console.log("index, icon, helpers.getIconColor(isActive, state), state.forceColorMask", u, b, d.getIconColor(l, o), o.forceColorMask), p.jsx(Ct, {
                 value: a,
                 onClick: () => R(a),
                 sx: {
@@ -545,7 +554,7 @@ let __tla = Promise.all([
                     }
                   }
                 },
-                children: g.jsxs(k, {
+                children: p.jsxs(w, {
                   sx: {
                     width: "100%",
                     height: "100%",
@@ -556,7 +565,7 @@ let __tla = Promise.all([
                     alignItems: "center"
                   },
                   children: [
-                    !e.data.onlyText && b && g.jsx(k, {
+                    !e.data.onlyText && b && p.jsx(w, {
                       sx: {
                         overflow: "hidden",
                         width: "100%",
@@ -565,20 +574,20 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: g.jsx(dt, {
+                      children: p.jsx(ut, {
                         src: b,
                         style: {
                           position: "relative",
-                          left: u.getIconOffset(l, o, "X"),
-                          bottom: u.getIconOffset(l, o, "Y"),
+                          left: d.getIconOffset(l, o, "X"),
+                          bottom: d.getIconOffset(l, o, "Y"),
                           objectFit: "contain",
-                          width: u.getIconSize(l, o),
-                          height: u.getIconSize(l, o),
-                          ...ot(b, u.getIconColor(l, o), o.forceColorMask)
+                          width: d.getIconSize(l, o),
+                          height: d.getIconSize(l, o),
+                          ...nt(b, d.getIconColor(l, o), l && e.data.enableIconColorMaskActive || o.forceColorMask)
                         }
                       })
                     }),
-                    !e.data.onlyIcon && g.jsx(k, {
+                    !e.data.onlyIcon && p.jsx(w, {
                       sx: {
                         width: "100%",
                         pt: 0.5,
@@ -586,33 +595,33 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: g.jsx(at, {
+                      children: p.jsx(rt, {
                         contentEditable: "false",
                         dangerouslySetInnerHTML: {
-                          __html: u.getTextContent(l, o, a)
+                          __html: d.getTextContent(l, o, a)
                         },
                         noWrap: true,
                         variant: "body2",
                         sx: {
                           textTransform: "none",
-                          fontSize: u.getTextSize(l, o),
-                          background: j(u.getTextColor(l, o)),
+                          fontSize: d.getTextSize(l, o),
+                          background: _(d.getTextColor(l, o)),
                           WebkitBackgroundClip: "text",
                           backgroundClip: "text",
-                          color: j(u.getTextColor(l, o)) ? "transparent" : u.getTextColor(l, o)
+                          color: _(d.getTextColor(l, o)) ? "transparent" : d.getTextColor(l, o)
                         }
                       })
                     })
                   ]
                 })
-              }, c);
+              }, u);
             })
           })
         })
       ]
     });
   }
-  E = class extends nt {
+  E = class extends it {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -625,28 +634,28 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...I()
+              ...j()
             ]
           },
           {
             name: "buttonGroup",
             label: "button_group",
             fields: [
-              ...it([
+              ...st([
                 "string",
                 "number",
                 "boolean",
                 "mixed"
               ]),
-              ...st(),
-              ...ht()
+              ...ct(),
+              ...Bt()
             ]
           },
           {
             name: "active",
             label: "group_active",
             fields: [
-              ...I({
+              ...j({
                 groupName: "Active",
                 allFields: false
               })
@@ -658,7 +667,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...I({
+              ...j({
                 groupName: "",
                 allFields: false
               })
@@ -683,14 +692,14 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(e, r) {
+    onStateUpdated(e, n) {
     }
     componentDidMount() {
       super.componentDidMount(), this.propertiesUpdate();
     }
     renderWidgetBody(e) {
       super.renderWidgetBody(e);
-      const r = {
+      const n = {
         id: e.id,
         refService: e.refService,
         style: e.style,
@@ -708,7 +717,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, rt(this.wrapContent(g.jsx(Bt, {})), r);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, lt(this.wrapContent(p.jsx($t, {})), n);
     }
   };
 });

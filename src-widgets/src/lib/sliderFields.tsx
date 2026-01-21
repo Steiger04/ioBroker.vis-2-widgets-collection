@@ -18,6 +18,7 @@ import CollectionGradientColorPicker from '../components/CollectionGradientColor
  */
 type ExtendedSliderField = RxWidgetInfoAttributesField & {
     fallbackFields?: string[];
+    noGradient?: boolean;
 };
 
 const sliderFields = (): ExtendedSliderField[] => [
@@ -152,7 +153,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         name: 'thumbBorderWidth',
         label: 'thumb_border_width',
@@ -188,7 +189,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="track" />,
@@ -227,7 +228,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         name: 'trackBorderWidth',
         label: 'track_border_width',
@@ -263,7 +264,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="rail" />,
@@ -302,7 +303,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         name: 'railBorderWidth',
         label: 'rail_border_width',
@@ -325,7 +326,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="mark" />,
@@ -371,7 +372,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="values" />,
@@ -469,7 +470,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         name: 'markerTextSize',
         label: 'marker_text_size',
@@ -538,6 +539,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         type: 'custom', // important
         hidden: '!data.iconMin && !data.iconSmallMin',
         fallbackFields: ['sliderColor'],
+        noGradient: true,
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -554,7 +556,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="icon" />,
@@ -591,6 +593,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         type: 'custom', // important
         hidden: '!data.iconMax && !data.iconSmallMax',
         fallbackFields: ['sliderColor'],
+        noGradient: true,
         component: (
             // important
             field, // field properties: {name, label, type, set, singleName, component,...}
@@ -607,7 +610,7 @@ const sliderFields = (): ExtendedSliderField[] => [
                 props={props}
             />
         ),
-    } as ExtendedSliderField,
+    } as const,
 ];
 
 export default sliderFields;

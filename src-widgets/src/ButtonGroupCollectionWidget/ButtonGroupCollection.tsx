@@ -10,13 +10,13 @@ import React, { useContext, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
+import SafeImg from '../components/SafeImg';
 import useData, { type StateItem } from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
-import SafeImg from '../components/SafeImg';
-import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
+import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { ButtonGroupCollectionContextProps } from '../types';
 
@@ -182,6 +182,14 @@ function ButtonGroupCollection(): React.JSX.Element {
                         const hasColor = extractColorFromValue(bgColor);
                         const icon = helpers.getIcon(isActive, state);
 
+                        console.log(
+                            'index, icon, helpers.getIconColor(isActive, state), state.forceColorMask',
+                            index,
+                            icon,
+                            helpers.getIconColor(isActive, state),
+                            state.forceColorMask,
+                        );
+
                         return (
                             <ToggleButton
                                 value={value}
@@ -252,7 +260,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                     ...getIconColorStyles(
                                                         icon,
                                                         helpers.getIconColor(isActive, state),
-                                                        state.forceColorMask,
+                                                        isActive
+                                                            ? widget.data.enableIconColorMaskActive ||
+                                                                  state.forceColorMask
+                                                            : state.forceColorMask,
                                                     ),
                                                 }}
                                             />
