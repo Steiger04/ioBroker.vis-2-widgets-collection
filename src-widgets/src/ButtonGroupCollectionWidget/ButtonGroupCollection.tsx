@@ -182,13 +182,13 @@ function ButtonGroupCollection(): React.JSX.Element {
                         const hasColor = extractColorFromValue(bgColor);
                         const icon = helpers.getIcon(isActive, state);
 
-                        console.log(
+                        /* console.log(
                             'index, icon, helpers.getIconColor(isActive, state), state.forceColorMask',
                             index,
                             icon,
                             helpers.getIconColor(isActive, state),
                             state.forceColorMask,
-                        );
+                        ); */
 
                         return (
                             <ToggleButton

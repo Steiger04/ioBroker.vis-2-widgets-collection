@@ -9,7 +9,8 @@ import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+// import useData from '../hooks/useData';
+import { useDataNew } from '../hooks/useDataNew';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -30,7 +31,7 @@ function CheckboxCollection(): React.JSX.Element {
     // Safe access to optional properties.
     const oidObject = widget.data.oidObject;
 
-    const { data } = useData('oid');
+    const { data } = useDataNew('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const oidType = oidObject?.type;

@@ -33,17 +33,18 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
     const context = useContext(CollectionContext);
     const theme = context.theme;
 
+    console.log('data in CollectionBaseImage:', data);
+
     // Filter out `false` and keep string-only sources.
     const iconSrc =
-        (typeof data.icon === 'string' ? data.icon : undefined) ||
-        (typeof data.iconActive === 'string' ? data.iconActive : undefined);
+        (typeof data.iconActive === 'string' ? data.iconActive : undefined) ||
+        (typeof data.icon === 'string' ? data.icon : undefined);
 
-    const iconSize =
-        (typeof data.iconSize === 'string' ? data.iconSize : undefined) ||
-        (typeof data.iconSizeActive === 'string' ? data.iconSizeActive : undefined);
+    const iconSize = typeof data.iconSize === 'string' ? data.iconSize : undefined; /* ||
+        (typeof data.iconSizeActive === 'string' ? data.iconSizeActive : undefined); */
 
     const iconColor =
-        widget.data.iconColorActive || data.iconColor || widget.data.iconColor || theme.palette.primary.main;
+        widget.data.iconColorActive || data.iconColorActive || data.iconColor || theme.palette.primary.main;
 
     // Determine which toggle to use based on which icon is being rendered
     // const isActiveIcon = !data.icon && typeof data.iconActive === 'string';
@@ -65,11 +66,7 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
                 ...getIconColorStyles(
                     iconSrc,
                     iconColor,
-                    Boolean(
-                        /* (data.forceColorMaskActive && data.iconColorActive) || */
-                        widget.data.enableIconColorMaskActive ||
-                        (widget.data.enableIconColorMask && widget.data.iconColor),
-                    ),
+                    Boolean(widget.data.enableIconColorMaskActive || data.forceColorMaskActive),
                 ),
             }}
         />

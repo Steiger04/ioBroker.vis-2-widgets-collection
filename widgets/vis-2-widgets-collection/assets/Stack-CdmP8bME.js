@@ -1,4 +1,4 @@
-import { ab as R, a3 as V, ac as _, ad as b, j as D, d as B, ae as h, af as u, ag as F, ah as M, ai as E, e as G, g as N, aj as O, ak as v, s as U, u as $, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { ae as R, a3 as V, af as _, ag as b, j as D, d as B, ah as h, ai as u, aj as F, ak as M, al as E, e as G, g as N, am as O, an as v, s as U, u as $, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 let Z;
 let __tla = Promise.all([
@@ -68,7 +68,7 @@ let __tla = Promise.all([
       const t = F(s), n = Object.keys(s.breakpoints.values).reduce((r, c) => ((typeof e.spacing == "object" && e.spacing[c] != null || typeof e.direction == "object" && e.direction[c] != null) && (r[c] = true), r), {}), a = u({
         values: e.direction,
         base: n
-      }), d = u({
+      }), m = u({
         values: e.spacing,
         base: n
       });
@@ -79,7 +79,7 @@ let __tla = Promise.all([
         }
       }), o = M(o, h({
         theme: s
-      }, d, (r, c) => e.useFlexGap ? {
+      }, m, (r, c) => e.useFlexGap ? {
         gap: v(t, r)
       } : {
         "& > :not(style):not(style)": {

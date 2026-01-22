@@ -439,7 +439,7 @@ export interface BaseFieldsRxData {
      * Base property without index. For per-value icons, use `icon${number}` from CommonFieldsRxData.
      * @see {@link CommonFieldsRxData.icon}
      */
-    icon?: string | number;
+    icon?: string;
 
     /**
      * Small icon identifier (base property without index).
@@ -455,7 +455,7 @@ export interface BaseFieldsRxData {
      * Base property without index. For per-value small icons, use `iconSmall${number}` from CommonFieldsRxData.
      * @see {@link CommonFieldsRxData.iconSmall}
      */
-    iconSmall?: string | number;
+    iconSmall?: string;
 
     /**
      * Icon size in pixels (base property without index).

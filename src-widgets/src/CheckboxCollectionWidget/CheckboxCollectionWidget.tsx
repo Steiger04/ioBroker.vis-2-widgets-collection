@@ -75,6 +75,8 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
     propertiesUpdate(): void {
         // Intentionally empty.
         // Kept as a hook for future state/object initialization.
+
+        console.log('this.state.rxData in propertiesUpdate:', this.state.rxData);
     }
 
     // This function is called every time when rxData is changed

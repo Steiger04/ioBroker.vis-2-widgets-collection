@@ -1,4 +1,4 @@
-import { j as rt, C as nt, v as H, y as it, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
+import { j as rt, C as nt, v as H, y as it, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
 import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 let Zt, te;
 let __tla = Promise.all([

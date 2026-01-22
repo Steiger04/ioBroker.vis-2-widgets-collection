@@ -1,9 +1,9 @@
-import { j as g, C as W, v as Me, y as at, E as ht, G as ut, z as Nt, M as Dt, w as N, c as Ft, a6 as Vt, I as xe, D as Je, al as dt, H as Gt, J as Ze, K as $t, __tla as __tla_0 } from "./useData-ZqG1ErJr.js";
-import { u as T, d as Ut, __tla as __tla_1 } from "./useValueState-CDNrmGNN.js";
-import { o as Xt, __tla as __tla_2 } from "./commonObjectFields-BC31TM4M.js";
+import { j as g, C as W, v as Me, y as at, E as ht, G as ut, z as Nt, M as Dt, w as N, c as Ft, a9 as Vt, I as xe, D as Je, ao as dt, H as Gt, J as Ze, K as $t, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
+import { u as T, d as Ut, __tla as __tla_1 } from "./useValueState-lsTxmsTs.js";
+import { o as Xt, __tla as __tla_2 } from "./commonObjectFields-Y7Tma-da.js";
 import { v as f, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { B as Kt, __tla as __tla_4 } from "./Button-nMwRquM-.js";
-import { u as Yt, __tla as __tla_5 } from "./useOidValue-DjDkZgp5.js";
+import { B as Kt, __tla as __tla_4 } from "./Button-ByxK8vyi.js";
+import { u as Yt, __tla as __tla_5 } from "./useOidValue-CoM8Eu2P.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let It;

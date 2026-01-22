@@ -53,6 +53,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `icon${groupName}`,
             label: 'icon',
             type: 'image',
+            default: '',
             /* hidden: (data, i) =>
                 data.noIcon ||
                 data[`iconSmall${i === undefined ? '' : i}`] ||
@@ -62,6 +63,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `iconSmall${groupName}`,
             label: 'small_icon',
             type: 'icon64',
+            default: '',
             /* hidden: (data, i) =>
                 data.noIcon ||
                 data[`icon${i === undefined ? '' : i}`] ||
@@ -73,7 +75,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 1,
             max: 500,
-            // default: 0,
+            default: 100,
             step: 1,
             hidden: 'data.noIcon',
         },
@@ -181,6 +183,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `noHeader${groupName}`,
             type: 'checkbox',
             label: 'no_header',
+            default: false,
         },
         {
             name: `noHeaderIcon${groupName}`,
@@ -202,7 +205,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-
+            default: 100,
             step: 1,
             hidden: 'data.noHeader',
         },
@@ -230,7 +233,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-
+            default: 100,
             step: 1,
         },
         {
@@ -243,6 +246,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `noFooter${groupName}`,
             label: 'no_footer',
             type: 'checkbox',
+            default: false,
         },
         {
             name: `footer${groupName}`,
@@ -257,7 +261,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-
+            default: 100,
             step: 1,
             hidden: 'data.noFooter',
         },
@@ -270,11 +274,13 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `noCard${groupName}`,
             label: 'without_card',
             type: 'checkbox',
+            default: false,
         },
         {
             name: `squaredCorner${groupName}`,
             label: 'squared_corner',
             type: 'checkbox',
+            default: false,
         },
         /* {
             name: `textColor${groupName}`,
@@ -314,11 +320,13 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `outlined${groupName}`,
             label: 'outlined',
             type: 'checkbox',
+            default: false,
         },
         {
             name: `outlinedFrame${groupName}`,
             label: 'outlined_frame',
             type: 'checkbox',
+            default: false,
         },
         {
             label: '',
@@ -355,12 +363,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'square',
             type: 'checkbox',
             hidden: 'data.circle || data.ellipse',
+            default: false,
         },
         {
             name: `ellipse${groupName}`,
             label: 'ellipse',
             type: 'checkbox',
             hidden: 'data.circle || data.square',
+            default: false,
         },
         {
             name: `circle${groupName}`,
