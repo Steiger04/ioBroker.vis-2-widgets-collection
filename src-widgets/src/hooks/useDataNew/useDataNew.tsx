@@ -48,9 +48,10 @@ import { useCallback, useContext, useMemo, useState } from 'react';
 import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
 import { getDynamicProperty, isSliderFieldsRxData } from '../../types/utility-types';
+import type { OidObject } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
-import { resolvePriority } from './priorityResolver';
+import { createPropertyResolvers } from './propertyResolvers';
 import type { UseDataResult, SliderProperties, StyleData, StateItem } from './types';
 import type { SliderFieldsRxData } from '../../types/field-definitions';
 
@@ -157,6 +158,35 @@ function useDataNew(_oid: string): UseDataResult {
         return createDefaultResolver(rxData);
     }, [rxData]);
 
+    const propertyResolvers = useMemo(
+        () =>
+            createPropertyResolvers({
+                rxData,
+                oidObject: oidObject as OidObject | undefined,
+                oidName,
+                theme,
+                fontStyles,
+                textStyles,
+                backgroundStyles,
+                formatSize,
+                getDataValue,
+                widgetResolver,
+                isSlider: isSliderFieldsRxData(rxData),
+            }),
+        [
+            rxData,
+            oidObject,
+            oidName,
+            theme,
+            fontStyles,
+            textStyles,
+            backgroundStyles,
+            formatSize,
+            getDataValue,
+            widgetResolver,
+        ],
+    );
+
     // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
 
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
@@ -229,72 +259,20 @@ function useDataNew(_oid: string): UseDataResult {
 
     const data = useMemo(() => {
         /**
-         * Helper to normalize empty strings to undefined for fallback chains.
-         * Ensures resolvePriority treats empty strings as falsy like useData's || operator.
-         */
-        const normalizeString = (val: string | number | undefined): string | undefined =>
-            val && String(val) !== '' ? String(val) : undefined;
-
-        /**
          * Helper function to resolve StyleData properties.
-         * Uses resolvePriority for declarative fallback chains.
+         * Uses property resolvers for declarative fallback chains.
          */
-        const getStyleData = (ext: string | number = ''): StyleData => ({
+        const getStyleData = (ext: string | number = '', includeActive: boolean = false): StyleData => ({
             // Icon properties
             // fixed
-            icon:
-                resolvePriority([
-                    { condition: !!rxData.noIcon, value: '' },
-                    {
-                        value: getDataValue<string>('icon', 'Active'),
-                    },
-                    {
-                        value: getDataValue<string>('iconSmall', 'Active'),
-                    },
-                    {
-                        value: getDataValue<string>('icon', String(ext)),
-                    },
-                    {
-                        value: getDataValue<string>('iconSmall', String(ext)),
-                    },
-                    {
-                        value: getDataValue<string>('icon'),
-                    },
-                    {
-                        value: getDataValue<string>('iconSmall'),
-                    },
-                ]) ?? '',
+            icon: propertyResolvers.icon(ext, includeActive),
 
             // fixed
-            iconActive:
-                resolvePriority([
-                    { condition: !!rxData.noIcon, value: '' },
-                    { value: getDataValue<string>('icon', String(ext)) },
-                    { value: getDataValue<string>('iconSmall', String(ext)) },
-                ]) ?? '',
+            iconActive: propertyResolvers.iconActive(ext, includeActive),
 
-            iconSizeCm:
-                resolvePriority([
-                    { condition: getDataValue<number | string>('iconSize') === 0, value: '0px' },
-                    {
-                        condition: Boolean(getDataValue<number | string>('iconSize')),
-                        value: `calc(24px * ${getDataValue<number | string>('iconSize')} / 100)`,
-                    },
-                ]) ?? '24px',
+            iconSizeCm: propertyResolvers.iconSizeCm(ext, includeActive),
 
-            iconSize:
-                resolvePriority([
-                    { condition: getDataValue<number | string>('iconSize', 'Active') === 0, value: '0px' },
-                    {
-                        condition: Boolean(getDataValue<number | string>('iconSize', 'Active')),
-                        value: `calc(24px * ${getDataValue<number | string>('iconSize', 'Active')} / 100)`,
-                    },
-                    { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
-                    {
-                        condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
-                        value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
-                    },
-                ]) ?? '24px',
+            iconSize: propertyResolvers.iconSize(ext, includeActive),
 
             // fixed
             /* iconSize:
@@ -307,196 +285,61 @@ function useDataNew(_oid: string): UseDataResult {
                 ]) ?? '24px', */
 
             // fixed
-            iconSizeActive:
-                resolvePriority([
-                    { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
-                    {
-                        condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
-                        value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
-                    },
-                ]) ?? '24px',
+            iconSizeActive: propertyResolvers.iconSizeActive(ext, includeActive),
 
             // fixed
-            iconSizeOnly:
-                resolvePriority([
-                    {
-                        condition:
-                            Boolean(getDataValue<number>('iconSize', String(ext))) ||
-                            getDataValue<number>('iconSize', String(ext)) === 0,
-                        value: `${getDataValue<number>('iconSize', String(ext))}%`,
-                    },
-                ]) ?? '100%',
+            iconSizeOnly: propertyResolvers.iconSizeOnly(ext, includeActive),
 
             // ???
-            iconSizeActiveOnly:
-                resolvePriority([{ value: getDataValue<number>('iconSize', String(ext)) }]) ?? undefined,
+            iconSizeActiveOnly: propertyResolvers.iconSizeActiveOnly(ext, includeActive),
 
-            forceColorMaskCm:
-                resolvePriority([
-                    {
-                        value: getDataValue<boolean>('enableIconColorMask'),
-                    },
-                ]) ?? false,
+            forceColorMaskCm: propertyResolvers.forceColorMaskCm(ext, includeActive),
 
             // fixed
-            forceColorMask:
-                resolvePriority([
-                    { value: getDataValue<boolean>('enableIconColorMask', 'Active') },
-                    {
-                        value: getDataValue<boolean>('enableIconColorMask', String(ext)),
-                    },
-                    {
-                        condition: Boolean(getDataValue<boolean>('enableIconColorMask', String(ext))),
-                        value: getDataValue<boolean>('enableIconColorMask'),
-                    },
-                ]) ?? false,
+            forceColorMask: propertyResolvers.forceColorMask(ext, includeActive),
 
             // ???
-            forceColorMaskActive:
-                resolvePriority([{ value: getDataValue<boolean>('enableIconColorMask', String(ext)) }]) ?? false,
+            forceColorMaskActive: propertyResolvers.forceColorMaskActive(ext, includeActive),
 
             // fixed
-            iconColor:
-                resolvePriority([
-                    { value: getDataValue<string>('iconColor', 'Active') },
-                    { value: getDataValue<string>('iconColor', String(ext)) },
-                    { value: getDataValue<string>('iconColor') },
-                ]) ?? '',
+            iconColor: propertyResolvers.iconColor(ext, includeActive),
 
             // fixed
-            iconColorActive: resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '',
+            iconColorActive: propertyResolvers.iconColorActive(ext, includeActive),
 
-            iconHover: resolvePriority([{ value: rxData.iconHover ? `${rxData.iconHover}%` : undefined }]) ?? '',
+            iconHover: propertyResolvers.iconHover(ext, includeActive),
 
-            iconHoverActive:
-                resolvePriority([
-                    {
-                        value: getDataValue<number>('iconHover', String(ext))
-                            ? `${getDataValue<number>('iconHover', String(ext))}%`
-                            : undefined,
-                    },
-                ]) ?? undefined,
+            iconHoverActive: propertyResolvers.iconHoverActive(ext, includeActive),
 
-            iconXOffsetCm:
-                resolvePriority([
-                    {
-                        value: getDataValue<string>('iconXOffset'),
-                    },
-                ]) ?? '0px',
+            iconXOffsetCm: propertyResolvers.iconXOffsetCm(ext, includeActive),
 
             // fixed
-            iconYOffsetCm:
-                resolvePriority([
-                    {
-                        value: getDataValue<string>('iconYOffset'),
-                    },
-                ]) ?? '0px',
+            iconYOffsetCm: propertyResolvers.iconYOffsetCm(ext, includeActive),
 
-            iconXOffset:
-                resolvePriority([
-                    {
-                        value: getDataValue<string>('iconXOffset', 'Active'),
-                    },
-                    {
-                        value: getDataValue<string>('iconXOffset', String(ext)),
-                    },
-                ]) ?? '0px',
+            iconXOffset: propertyResolvers.iconXOffset(ext, includeActive),
 
             // fixed and new
-            iconYOffset:
-                resolvePriority([
-                    {
-                        value: getDataValue<string>('iconYOffset', 'Active'),
-                    },
-                    {
-                        value: getDataValue<string>('iconYOffset', String(ext)),
-                    },
-                ]) ?? '0px',
+            iconYOffset: propertyResolvers.iconYOffset(ext, includeActive),
 
             // fixed and new
-            iconXOffsetActive:
-                resolvePriority([
-                    { condition: !getDataValue<string>('iconXOffset', String(ext)), value: '0px' },
-                    {
-                        value: getDataValue<string>('iconXOffset', String(ext)),
-                    },
-                ]) ?? '0px',
+            iconXOffsetActive: propertyResolvers.iconXOffsetActive(ext, includeActive),
 
             // fixed and new
-            iconYOffsetActive:
-                resolvePriority([
-                    { condition: !getDataValue<string>('iconYOffset', String(ext)), value: '0px' },
-                    {
-                        value: getDataValue<string>('iconYOffset', String(ext)),
-                    },
-                ]) ?? '0px',
+            iconYOffsetActive: propertyResolvers.iconYOffsetActive(ext, includeActive),
 
             // Text color properties
             // textColor: rxData.textColor,
-            textColorActive: getDataValue<string>('textColor', String(ext)),
+            textColorActive: propertyResolvers.textColorActive(ext, includeActive),
 
-            textColorCm:
-                resolvePriority([
-                    {
-                        condition: typeof getDataValue<string>('textColor') === 'string',
-                        value: getDataValue<string>('textColor'),
-                    },
-                    {
-                        condition: typeof textStyles?.color === 'string',
-                        value: textStyles?.color,
-                    },
-                ]) ?? '',
+            textColorCm: propertyResolvers.textColorCm(ext, includeActive),
 
-            textColor:
-                resolvePriority([
-                    {
-                        condition: typeof getDataValue<string>('textColor', 'Active') === 'string',
-                        value: getDataValue<string>('textColor', 'Active'),
-                    },
-                    {
-                        condition: typeof getDataValue<string>('textColor', String(ext)) === 'string',
-                        value: getDataValue<string>('textColor', String(ext)),
-                    },
-                    {
-                        condition: typeof getDataValue<string>('textColor') === 'string',
-                        value: getDataValue<string>('textColor'),
-                    },
-                    {
-                        condition: typeof textStyles?.color === 'string',
-                        value: textStyles?.color,
-                    },
-                ]) ?? '',
+            textColor: propertyResolvers.textColor(ext, includeActive),
 
             // Header properties with fallback chain
             // Normalize empty strings to enable proper fallback to oidName
-            header: String(
-                resolvePriority([
-                    { value: normalizeString(getDataValue<string>('header', 'Active')) },
-                    { value: normalizeString(getDataValue<string>('header', String(ext))) },
-                    { value: normalizeString(getDataValue<string>('header')) },
-                    { value: normalizeString(oidName) },
-                ]) ?? '',
-            ).replace(/(\r\n|\n|\r)/gm, ''),
+            header: propertyResolvers.header(ext, includeActive),
 
-            headerSize:
-                resolvePriority([
-                    {
-                        condition: typeof getDataValue<number>('headerSize', 'Active') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('headerSize', 'Active'))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('headerSize', String(ext)) === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('headerSize', String(ext)))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('headerSize') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('headerSize'))}`,
-                    },
-                    {
-                        condition: typeof fontStyles?.['font-size'] === 'string',
-                        value: fontStyles?.['font-size'],
-                    },
-                ]) ?? '0.875rem',
+            headerSize: propertyResolvers.headerSize(ext, includeActive),
             /* headerSize:
                 resolvePriority([
                     { value: formatSize(rxData.headerSize) },
@@ -507,126 +350,39 @@ function useDataNew(_oid: string): UseDataResult {
 
             // Footer properties with fallback chain
             // Normalize empty strings to enable proper fallback
-            footer: String(
-                resolvePriority([
-                    { value: normalizeString(getDataValue<string>('footer', 'Active')) },
-                    { value: normalizeString(getDataValue<string>('footer', String(ext))) },
-                    { value: normalizeString(getDataValue<string>('footer')) },
-                ]) ?? '',
-            ).replace(/(\r\n|\n|\r)/gm, ''),
+            footer: propertyResolvers.footer(ext, includeActive),
 
-            footerSize:
-                resolvePriority([
-                    {
-                        condition: typeof getDataValue<number>('footerSize', 'Active') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('footerSize', 'Active'))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('footerSize', String(ext)) === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('footerSize', String(ext)))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('footerSize') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('footerSize'))}`,
-                    },
-                    {
-                        condition: typeof fontStyles?.['font-size'] === 'string',
-                        value: fontStyles?.['font-size'],
-                    },
-                ]) ?? '0.875rem',
+            footerSize: propertyResolvers.footerSize(ext, includeActive),
 
             // Alias (remove newlines)
-            alias: String(getDataValue<string>('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
+            alias: propertyResolvers.alias(ext, includeActive),
 
             // Value with unit suffix
-            value: (() => {
-                const val = getDataValue<ioBroker.StateValue>('value', String(ext));
-                return val !== undefined && val !== null
-                    ? `${val}${oidObject?.unit !== undefined ? oidObject.unit : ''}`
-                    : undefined;
-            })(),
+            value: propertyResolvers.value(ext, includeActive),
 
-            valueSize:
-                resolvePriority([
-                    {
-                        condition: typeof getDataValue<number>('valueSize', 'Active') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('valueSize', 'Active'))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('valueSize', String(ext)) === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('valueSize', String(ext)))}`,
-                    },
-                    {
-                        condition: typeof getDataValue<number>('valueSize') === 'number',
-                        value: `${formatSizeRem(getDataValue<number>('valueSize'))}`,
-                    },
-                    {
-                        condition: typeof fontStyles?.['font-size'] === 'string',
-                        value: fontStyles?.['font-size'],
-                    },
-                ]) ?? '0.875rem',
+            valueSize: propertyResolvers.valueSize(ext, includeActive),
 
-            valueSizeActive:
-                resolvePriority([
-                    {
-                        value:
-                            typeof getDataValue<number>('valueSize', String(ext)) === 'number'
-                                ? formatSize(getDataValue<number>('valueSize', String(ext)))
-                                : null,
-                    },
-                ]) ?? null,
+            valueSizeActive: propertyResolvers.valueSizeActive(ext, includeActive),
 
             // Background properties
             // Normalize empty strings to undefined to enable fallback chain continuation
-            backgroundColor:
-                resolvePriority([
-                    {
-                        value:
-                            rxData.backgroundColor && rxData.backgroundColor !== ''
-                                ? rxData.backgroundColor
-                                : undefined,
-                    },
-                    { value: backgroundStyles?.['background-color'] },
-                    { value: '' },
-                ]) ?? '',
+            backgroundColor: propertyResolvers.backgroundColor(ext, includeActive),
 
-            backgroundColorActive: getDataValue<string>('backgroundColor', String(ext)),
+            backgroundColorActive: propertyResolvers.backgroundColorActive(ext, includeActive),
 
-            background:
-                resolvePriority([
-                    { value: getDataValue<string>('background', 'Active') },
-                    { value: getDataValue<string>('background', String(ext)) },
-                    { value: getDataValue<string>('background') },
-                    { value: backgroundStyles?.background },
-                ]) ?? '',
+            background: propertyResolvers.background(ext, includeActive),
 
-            backgroundActive: getDataValue<string>('background', String(ext)),
+            backgroundActive: propertyResolvers.backgroundActive(ext, includeActive),
 
             // Frame background properties
             // Normalize empty strings to undefined to enable fallback chain continuation
-            frameBackgroundColor:
-                resolvePriority([
-                    {
-                        value:
-                            rxData.frameBackgroundColor && rxData.frameBackgroundColor !== ''
-                                ? rxData.frameBackgroundColor
-                                : undefined,
-                    },
-                    { value: backgroundStyles?.['background-color'] },
-                    { value: '' },
-                ]) ?? '',
+            frameBackgroundColor: propertyResolvers.frameBackgroundColor(ext, includeActive),
 
-            frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(ext)),
+            frameBackgroundColorActive: propertyResolvers.frameBackgroundColorActive(ext, includeActive),
 
-            frameBackground:
-                resolvePriority([
-                    { value: getDataValue<string>('frameBackground', 'Active') },
-                    { value: getDataValue<string>('frameBackground', String(ext)) },
-                    { value: getDataValue<string>('frameBackground') },
-                    { value: backgroundStyles?.background },
-                ]) ?? '',
+            frameBackground: propertyResolvers.frameBackground(ext, includeActive),
 
-            frameBackgroundActive: getDataValue<string>('frameBackground', String(ext)),
+            frameBackgroundActive: propertyResolvers.frameBackgroundActive(ext, includeActive),
         });
 
         // ============= PHASE 8: Active State Detection =============
@@ -642,27 +398,16 @@ function useDataNew(_oid: string): UseDataResult {
 
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);
-                    return getStyleData(String(_activeIndex + 1));
+                    return getStyleData(String(_activeIndex + 1), true);
                 }
 
                 setActiveIndex(undefined);
-                return getStyleData('');
+                return getStyleData('', false);
             }
             default:
-                return getStyleData('');
+                return getStyleData('', false);
         }
-    }, [
-        oidObject,
-        oidValue,
-        oidName,
-        rxData,
-        states,
-        fontStyles,
-        textStyles,
-        backgroundStyles,
-        formatSize,
-        getDataValue,
-    ]);
+    }, [oidObject, oidValue, states, propertyResolvers]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
