@@ -46,12 +46,17 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     const { fontStyles, textStyles } = useStyles(widget.style || {});
 
     const _theme = useMemo(() => {
+        console.log('theme in CollectionProvider:', theme);
+        console.log('fontStyles in CollectionProvider:', fontStyles);
+        console.log('textStyles in CollectionProvider:', textStyles);
+
         return createTheme(
             deepmerge(theme, {
                 components: {
                     MuiTypography: {
                         styleOverrides: {
                             root: {
+                                fontSize: '0.875rem', // Default to 14px
                                 // Merge fontStyles and textStyles into the root style overrides
                                 // This ensures CSS properties like textShadow are applied as styles, not props
                                 ...cleanSx(fontStyles),
@@ -64,6 +69,8 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
             }),
         );
     }, [theme, fontStyles, textStyles]);
+
+    console.log('_theme in CollectionProvider:', _theme);
 
     return (
         <ThemeProvider theme={_theme}>

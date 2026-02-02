@@ -1,4 +1,4 @@
-import { j as rt, C as nt, v as H, y as it, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
+import { j as rt, C as nt, v as H, N as it, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
 import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 let Zt, te;
 let __tla = Promise.all([
@@ -50,7 +50,7 @@ let __tla = Promise.all([
       hidden: "data.sampleInterval"
     }
   ];
-  function M(e) {
+  function F(e) {
     return !(e == null || String(e).trim() === "" || Number.isNaN(+e));
   }
   var R = function(e, r) {
@@ -348,7 +348,7 @@ let __tla = Promise.all([
             for (var v = x(f), h = v.next(); !h.done; h = v.next()) {
               var y = h.value;
               try {
-                N(y);
+                M(y);
               } catch (d) {
                 o = o ?? [], d instanceof C ? o = j(j([], P(o)), P(d.errors)) : o.push(d);
               }
@@ -369,7 +369,7 @@ let __tla = Promise.all([
       }
     }, e.prototype.add = function(r) {
       var t;
-      if (r && r !== this) if (this.closed) N(r);
+      if (r && r !== this) if (this.closed) M(r);
       else {
         if (r instanceof e) {
           if (r.closed || r._hasParent(this)) return;
@@ -400,7 +400,7 @@ let __tla = Promise.all([
   function K(e) {
     return e instanceof E || e && "closed" in e && p(e.remove) && p(e.add) && p(e.unsubscribe);
   }
-  function N(e) {
+  function M(e) {
     p(e) ? e() : e.unsubscribe();
   }
   var ct = {
@@ -836,7 +836,7 @@ let __tla = Promise.all([
         throw i;
       }
     }, r;
-  })(q), F = new xt(gt), It = F;
+  })(q), N = new xt(gt), It = N;
   function Et(e) {
     return e && p(e.schedule);
   }
@@ -933,10 +933,10 @@ let __tla = Promise.all([
     if (e instanceof w) return e;
     if (e != null) {
       if (Tt(e)) return Lt(e);
-      if (At(e)) return Ft(e);
-      if (Ot(e)) return Mt(e);
+      if (At(e)) return Nt(e);
+      if (Ot(e)) return Ft(e);
       if (Pt(e)) return tt(e);
-      if (Rt(e)) return Nt(e);
+      if (Rt(e)) return Mt(e);
       if (Ut(e)) return $t(e);
     }
     throw jt(e);
@@ -948,13 +948,13 @@ let __tla = Promise.all([
       throw new TypeError("Provided object does not correctly implement Symbol.observable");
     });
   }
-  function Ft(e) {
+  function Nt(e) {
     return new w(function(r) {
       for (var t = 0; t < e.length && !r.closed; t++) r.next(e[t]);
       r.complete();
     });
   }
-  function Mt(e) {
+  function Ft(e) {
     return new w(function(r) {
       e.then(function(t) {
         r.closed || (r.next(t), r.complete());
@@ -963,7 +963,7 @@ let __tla = Promise.all([
       }).then(null, Q);
     });
   }
-  function Nt(e) {
+  function Mt(e) {
     return new w(function(r) {
       var t, n;
       try {
@@ -1092,7 +1092,7 @@ let __tla = Promise.all([
     });
   }
   function qt(e, r) {
-    return r === void 0 && (r = F), X(function(t, n) {
+    return r === void 0 && (r = N), X(function(t, n) {
       var i = null, o = null, u = null, a = function() {
         if (i) {
           i.unsubscribe(), i = null;
@@ -1140,7 +1140,7 @@ let __tla = Promise.all([
     });
   }
   function Wt(e, r, t) {
-    r === void 0 && (r = F);
+    r === void 0 && (r = N);
     var n = Bt(e, r);
     return Ht(function() {
       return n;
@@ -1187,9 +1187,9 @@ let __tla = Promise.all([
       case "string":
         return String(e);
       case "number":
-        return M(e) ? Number(e) : void 0;
+        return F(e) ? Number(e) : void 0;
       case "mixed":
-        return /^true$/i.test(String(e)) ? true : /^false$/i.test(String(e)) ? false : M(e) ? Number(e) : String(e);
+        return /^true$/i.test(String(e)) ? true : /^false$/i.test(String(e)) ? false : F(e) ? Number(e) : String(e);
       case "boolean":
         return /^true$/i.test(String(e));
       default:

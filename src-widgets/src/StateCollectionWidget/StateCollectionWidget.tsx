@@ -126,7 +126,6 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),

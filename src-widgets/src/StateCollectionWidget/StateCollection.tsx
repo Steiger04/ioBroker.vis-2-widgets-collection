@@ -14,7 +14,7 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -33,12 +33,11 @@ function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget, theme } = context;
     const oidObject = widget.data.oidObject;
-    const { data, widgetStates } = useData('oid');
+    const { data, widgetStates } = useDataNew('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
     const oidType = oidObject?.type;
-    // const oidType = widget.data.oidType;
 
     const onlyStates = widget.data.onlyStates;
 
@@ -115,13 +114,12 @@ function StateCollection(): React.ReactElement {
                 width: '100%',
                 height: '100%',
 
-                color:
-                    data.iconColorActive || data.iconColor || data.textColorActive || data.textColor || 'primary.main',
+                color: data.iconColor || data.textColor || 'primary.main',
                 '&:hover': {
                     bgcolor: 'transparent',
-                    filter:
+                    /* filter:
                         (data.iconHoverActive && `brightness(${data.iconHoverActive})`) ||
-                        (data.iconHover && `brightness(${data.iconHover})`),
+                        (data.iconHover && `brightness(${data.iconHover})`), */
                 },
             }}
         >
@@ -136,21 +134,17 @@ function StateCollection(): React.ReactElement {
                 }}
             >
                 {!widget.data.noIcon &&
-                    (data.iconActive || data.icon) &&
+                    data.icon &&
                     (() => {
                         // Pre-calculate icon styles
-                        const iconSrc = data.iconActive || data.icon;
-                        const iconColor = data.iconColorActive || data.iconColor || theme.palette.primary.main;
-                        const forceMask = data.iconActive
-                            ? (data.forceColorMaskActive ?? false)
-                            : (data.forceColorMaskActive ?? false);
+                        const iconSrc = data.icon;
+                        const iconColor = data.iconColor || theme.palette.primary.main;
+                        const forceMask = data.forceColorMask;
                         const iconStyles = getIconColorStyles(iconSrc, iconColor, forceMask);
 
                         return (
                             <Box
                                 sx={{
-                                    // overflow: "hidden",
-
                                     display: 'flex',
                                     justifyContent: 'center',
                                     alignItems: 'center',
@@ -174,14 +168,8 @@ function StateCollection(): React.ReactElement {
                                     sx={{
                                         overflow: 'visible',
 
-                                        width:
-                                            (typeof data.iconSizeOnly === 'number' &&
-                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                            '100%',
-                                        height:
-                                            (typeof data.iconSizeOnly === 'number' &&
-                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                            '100%',
+                                        width: data.iconSizeOnly,
+                                        height: data.iconSizeOnly,
 
                                         left: `calc(0px + ${data.iconXOffset})`,
                                         top: `calc(0px - ${data.iconYOffset})`,
@@ -207,16 +195,14 @@ function StateCollection(): React.ReactElement {
                             component={Box}
                             variant="body2"
                             sx={{
-                                fontSize: data.valueSizeActive || data.valueSize,
+                                fontSize: data.valueSize,
                                 textAlign: 'center', // For HTML content with tags
                                 bgcolor: 'transparent',
 
-                                background: gradientColor(data.textColorActive || data.textColor),
+                                background: gradientColor(data.textColor),
                                 WebkitBackgroundClip: 'text',
                                 backgroundClip: 'text',
-                                color: gradientColor(data.textColorActive || data.textColor)
-                                    ? 'transparent'
-                                    : data.textColorActive || data.textColor,
+                                color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
 
                                 textTransform: 'none',
                                 px: 1,
@@ -247,7 +233,7 @@ function StateCollection(): React.ReactElement {
         </Button>
     );
 
-    const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
+    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType ?? '');
 
     return (
         <>

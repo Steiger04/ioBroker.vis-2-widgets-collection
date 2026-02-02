@@ -14,7 +14,7 @@ import delayFields from '../lib/delayFields';
 import type { CheckboxCollectionContextProps, WidgetRegistry } from '../types';
 import CheckboxCollection from './CheckboxCollection';
 
-import type { RxRenderWidgetProps, RxWidgetInfo, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxRenderWidgetProps, RxWidgetInfo } from '@iobroker/types-vis-2';
 
 /**
  * Widget entry (vis-2 runtime).
@@ -40,11 +40,7 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
                 {
                     name: 'checkbox', // group name
                     label: 'group_checkbox',
-                    fields: [
-                        ...commonObjectFields(['boolean']),
-                        ...delayFields(),
-                        ...checkboxFields(),
-                    ] as RxWidgetInfoAttributesField[],
+                    fields: [...commonObjectFields(['boolean']), ...delayFields(), ...checkboxFields()],
                 },
 
                 {
@@ -52,6 +48,7 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
                     label: 'values',
                     indexFrom: 1,
                     indexTo: 'values_count',
+                    // indexTo: 2,
                     fields: [...commonFields({ groupName: '', allFields: false })],
                 },
                 // check here all possible types https://github.com/ioBroker/ioBroker.vis/blob/react/src/src/Attributes/Widget/SCHEMA.md
@@ -75,8 +72,6 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
     propertiesUpdate(): void {
         // Intentionally empty.
         // Kept as a hook for future state/object initialization.
-
-        console.log('this.state.rxData in propertiesUpdate:', this.state.rxData);
     }
 
     // This function is called every time when rxData is changed
@@ -106,13 +101,11 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
             refService: props.refService,
             style: props.style,
             widget: {
-                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),

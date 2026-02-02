@@ -11,7 +11,7 @@ import React, { useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -33,11 +33,11 @@ function RadioGroupCollection(): React.ReactElement {
         },
         widget,
     } = context;
-    const { data, states } = useData('oid');
+    const { data, states } = useDataNew('oid');
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
-    const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
+    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType ?? '');
 
     // Extract orientation-dependent values for clarity
     const isHorizontal = widget.data.radioOrientation === 'horizontal';
@@ -45,14 +45,6 @@ function RadioGroupCollection(): React.ReactElement {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         updateOidValue(event.target.value);
-    };
-
-    // Calculate icon size once
-    const getIconSize = (): string => {
-        if (typeof data.iconSizeOnly === 'number') {
-            return `calc(100% * ${data.iconSizeOnly} / 100)`;
-        }
-        return '50%';
     };
 
     return (
@@ -176,7 +168,7 @@ function RadioGroupCollection(): React.ReactElement {
                                                             position: 'relative',
                                                             left: `calc(0px + ${data.iconXOffset})`,
                                                             top: `calc(0px - ${data.iconYOffset})`,
-                                                            width: getIconSize(),
+                                                            width: `calc(${data.iconSizeOnly} * 0.5)`,
                                                             ...getIconColorStyles(
                                                                 state.icon,
                                                                 state.iconColor,

@@ -42,7 +42,7 @@ interface UseSizeReturn {
  * return <div ref={ref} style={{ width, height }} />;
  * ```
  */
-const useSize = (ref: RefObject<HTMLElement | HTMLDivElement>): UseSizeReturn => {
+const useSize = (ref: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | null): UseSizeReturn => {
     const { widget } = useContext(CollectionContext);
 
     const [width, setWidth] = useState<string>('100%');

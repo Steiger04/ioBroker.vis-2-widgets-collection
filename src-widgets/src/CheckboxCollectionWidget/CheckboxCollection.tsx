@@ -9,12 +9,12 @@ import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-// import useData from '../hooks/useData';
 import { useDataNew } from '../hooks/useDataNew';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import SafeImg from '../components/SafeImg';
 
 import type { CheckboxCollectionContextProps } from '../types';
 
@@ -89,54 +89,43 @@ function CheckboxCollection(): React.JSX.Element {
                                 checked={Boolean(oidValue)}
                                 onChange={() => setOidValueState(!oidValue)}
                                 checkedIcon={
-                                    <img
+                                    <SafeImg
                                         alt=""
-                                        src={data.iconActive || defaultIconTrue}
+                                        src={data.icon || defaultIconTrue}
                                         style={{
-                                            width:
-                                                (typeof data.iconSizeOnly === 'number' &&
-                                                    `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                                '100%',
-                                            height:
-                                                (typeof data.iconSizeOnly === 'number' &&
-                                                    `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                                '100%',
-
                                             objectFit: 'contain',
+                                            width: `calc(100% * (${data.iconSize} / 24px))`,
+                                            height: `calc(100% * (${data.iconSize} / 24px))`,
 
                                             ...getIconColorStyles(
-                                                data.iconActive || defaultIconTrue,
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main,
-                                                data.forceColorMaskActive ?? false,
+                                                data.icon || defaultIconTrue,
+                                                data.iconColor || theme.palette.primary.main,
+                                                data.forceColorMask,
                                             ),
                                         }}
                                     />
                                 }
                                 icon={
-                                    <img
+                                    <SafeImg
                                         alt=""
-                                        src={data.iconActive || defaultIconFalse}
+                                        src={data.icon || defaultIconFalse}
                                         style={{
-                                            width:
-                                                (typeof data.iconSizeOnly === 'number' &&
-                                                    `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                                '100%',
-                                            height:
-                                                (typeof data.iconSizeOnly === 'number' &&
-                                                    `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                                '100%',
-
                                             objectFit: 'contain',
+                                            width: `calc(100% * (${data.iconSize} / 24px))`,
+                                            height: `calc(100% * (${data.iconSize} / 24px))`,
 
                                             ...getIconColorStyles(
-                                                data.iconActive || defaultIconFalse,
-                                                data.iconColorActive || data.iconColor || theme.palette.primary.main,
-                                                data.forceColorMaskActive ?? false,
+                                                data.icon || defaultIconFalse,
+                                                data.iconColor || theme.palette.primary.main,
+                                                data.forceColorMask,
                                             ),
                                         }}
                                     />
                                 }
                                 sx={{
+                                    left: data.iconXOffset,
+                                    bottom: data.iconYOffset,
+                                    objectFit: 'contain',
                                     width: '100%',
                                     height: '100%',
 
@@ -157,16 +146,14 @@ function CheckboxCollection(): React.JSX.Element {
                                     component={Box}
                                     variant="body2"
                                     sx={{
-                                        fontSize: data.valueSizeActive || data.valueSize,
+                                        fontSize: data.valueSize,
                                         textAlign: 'center',
                                         bgcolor: 'transparent',
 
-                                        background: gradientColor(data.textColorActive || data.textColor),
+                                        background: gradientColor(data.textColor),
                                         WebkitBackgroundClip: 'text',
                                         backgroundClip: 'text',
-                                        color: gradientColor(data.textColorActive || data.textColor)
-                                            ? 'transparent'
-                                            : data.textColorActive || data.textColor,
+                                        color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
 
                                         textTransform: 'none',
                                         px: 1,

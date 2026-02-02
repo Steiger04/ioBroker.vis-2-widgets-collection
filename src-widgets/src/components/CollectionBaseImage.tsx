@@ -8,7 +8,7 @@ import React, { useContext } from 'react';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { CollectionContext } from './CollectionProvider';
 
-import { type StyleData } from '../hooks/useData';
+import { type StyleData } from '../hooks/useDataNew/types';
 import type { CollectionBaseImageWidgetData, CollectionContextProps } from '../types';
 
 /**
@@ -33,24 +33,9 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
     const context = useContext(CollectionContext);
     const theme = context.theme;
 
-    console.log('data in CollectionBaseImage:', data);
+    const iconSrc = data.icon;
 
-    // Filter out `false` and keep string-only sources.
-    const iconSrc =
-        (typeof data.iconActive === 'string' ? data.iconActive : undefined) ||
-        (typeof data.icon === 'string' ? data.icon : undefined);
-
-    const iconSize = typeof data.iconSize === 'string' ? data.iconSize : undefined; /* ||
-        (typeof data.iconSizeActive === 'string' ? data.iconSizeActive : undefined); */
-
-    const iconColor =
-        widget.data.iconColorActive || data.iconColorActive || data.iconColor || theme.palette.primary.main;
-
-    // Determine which toggle to use based on which icon is being rendered
-    // const isActiveIcon = !data.icon && typeof data.iconActive === 'string';
-    /* const forceColorMask = isActiveIcon
-        ? (widget.data.enableIconColorMaskActive ?? false)
-        : (widget.data.enableIconColorMask ?? false); */
+    const iconColor = data.iconColor || theme.palette.primary.main;
 
     return !widget.data.noHeaderIcon && iconSrc ? (
         <img
@@ -58,15 +43,17 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
             src={iconSrc}
             style={{
                 position: 'absolute',
-                top: `calc(0px - ${widget.data.iconYOffset || 0})`,
-                right: `calc(0px - ${widget.data.iconXOffset || 0})`,
+                top: `calc(0px - ${data.iconYOffsetCm})`,
+                right: `calc(0px - ${data.iconXOffsetCm})`,
+
                 // width: iconSize,
-                height: iconSize,
+                height: data.iconSizeCm,
 
                 ...getIconColorStyles(
                     iconSrc,
                     iconColor,
-                    Boolean(widget.data.enableIconColorMaskActive || data.forceColorMaskActive),
+
+                    Boolean(data.forceColorMaskCm),
                 ),
             }}
         />

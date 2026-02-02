@@ -125,7 +125,7 @@ function useDataNew(_oid: string): UseDataResult {
 
     // ============= PHASE 2: Styles Computation =============
 
-    const { fontStyles, backgroundStyles } = useStyles(widget.style);
+    const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
 
     // ============= PHASE 3: State Management =============
 
@@ -240,48 +240,300 @@ function useDataNew(_oid: string): UseDataResult {
          * Uses resolvePriority for declarative fallback chains.
          */
         const getStyleData = (ext: string | number = ''): StyleData => ({
+            // Icon properties
+            // fixed
+            icon:
+                resolvePriority([
+                    { condition: !!rxData.noIcon, value: '' },
+                    {
+                        value: getDataValue<string>('icon', 'Active'),
+                    },
+                    {
+                        value: getDataValue<string>('iconSmall', 'Active'),
+                    },
+                    {
+                        value: getDataValue<string>('icon', String(ext)),
+                    },
+                    {
+                        value: getDataValue<string>('iconSmall', String(ext)),
+                    },
+                    {
+                        value: getDataValue<string>('icon'),
+                    },
+                    {
+                        value: getDataValue<string>('iconSmall'),
+                    },
+                ]) ?? '',
+
+            // fixed
+            iconActive:
+                resolvePriority([
+                    { condition: !!rxData.noIcon, value: '' },
+                    { value: getDataValue<string>('icon', String(ext)) },
+                    { value: getDataValue<string>('iconSmall', String(ext)) },
+                ]) ?? '',
+
+            iconSizeCm:
+                resolvePriority([
+                    { condition: getDataValue<number | string>('iconSize') === 0, value: '0px' },
+                    {
+                        condition: Boolean(getDataValue<number | string>('iconSize')),
+                        value: `calc(24px * ${getDataValue<number | string>('iconSize')} / 100)`,
+                    },
+                ]) ?? '24px',
+
+            iconSize:
+                resolvePriority([
+                    { condition: getDataValue<number | string>('iconSize', 'Active') === 0, value: '0px' },
+                    {
+                        condition: Boolean(getDataValue<number | string>('iconSize', 'Active')),
+                        value: `calc(24px * ${getDataValue<number | string>('iconSize', 'Active')} / 100)`,
+                    },
+                    { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
+                    {
+                        condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
+                        value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
+                    },
+                ]) ?? '24px',
+
+            // fixed
+            /* iconSize:
+                resolvePriority([
+                    { condition: getDataValue<number | string>('iconSize') === 0, value: '0px' },
+                    {
+                        condition: Boolean(getDataValue<number | string>('iconSize')),
+                        value: `calc(24px * ${getDataValue<number | string>('iconSize')} / 100)`,
+                    },
+                ]) ?? '24px', */
+
+            // fixed
+            iconSizeActive:
+                resolvePriority([
+                    { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
+                    {
+                        condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
+                        value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
+                    },
+                ]) ?? '24px',
+
+            // fixed
+            iconSizeOnly:
+                resolvePriority([
+                    {
+                        condition:
+                            Boolean(getDataValue<number>('iconSize', String(ext))) ||
+                            getDataValue<number>('iconSize', String(ext)) === 0,
+                        value: `${getDataValue<number>('iconSize', String(ext))}%`,
+                    },
+                ]) ?? '100%',
+
+            // ???
+            iconSizeActiveOnly:
+                resolvePriority([{ value: getDataValue<number>('iconSize', String(ext)) }]) ?? undefined,
+
+            forceColorMaskCm:
+                resolvePriority([
+                    {
+                        value: getDataValue<boolean>('enableIconColorMask'),
+                    },
+                ]) ?? false,
+
+            // fixed
+            forceColorMask:
+                resolvePriority([
+                    { value: getDataValue<boolean>('enableIconColorMask', 'Active') },
+                    {
+                        value: getDataValue<boolean>('enableIconColorMask', String(ext)),
+                    },
+                    {
+                        condition: Boolean(getDataValue<boolean>('enableIconColorMask', String(ext))),
+                        value: getDataValue<boolean>('enableIconColorMask'),
+                    },
+                ]) ?? false,
+
+            // ???
+            forceColorMaskActive:
+                resolvePriority([{ value: getDataValue<boolean>('enableIconColorMask', String(ext)) }]) ?? false,
+
+            // fixed
+            iconColor:
+                resolvePriority([
+                    { value: getDataValue<string>('iconColor', 'Active') },
+                    { value: getDataValue<string>('iconColor', String(ext)) },
+                    { value: getDataValue<string>('iconColor') },
+                ]) ?? '',
+
+            // fixed
+            iconColorActive: resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '',
+
+            iconHover: resolvePriority([{ value: rxData.iconHover ? `${rxData.iconHover}%` : undefined }]) ?? '',
+
+            iconHoverActive:
+                resolvePriority([
+                    {
+                        value: getDataValue<number>('iconHover', String(ext))
+                            ? `${getDataValue<number>('iconHover', String(ext))}%`
+                            : undefined,
+                    },
+                ]) ?? undefined,
+
+            iconXOffsetCm:
+                resolvePriority([
+                    {
+                        value: getDataValue<string>('iconXOffset'),
+                    },
+                ]) ?? '0px',
+
+            // fixed
+            iconYOffsetCm:
+                resolvePriority([
+                    {
+                        value: getDataValue<string>('iconYOffset'),
+                    },
+                ]) ?? '0px',
+
+            iconXOffset:
+                resolvePriority([
+                    {
+                        value: getDataValue<string>('iconXOffset', 'Active'),
+                    },
+                    {
+                        value: getDataValue<string>('iconXOffset', String(ext)),
+                    },
+                ]) ?? '0px',
+
+            // fixed and new
+            iconYOffset:
+                resolvePriority([
+                    {
+                        value: getDataValue<string>('iconYOffset', 'Active'),
+                    },
+                    {
+                        value: getDataValue<string>('iconYOffset', String(ext)),
+                    },
+                ]) ?? '0px',
+
+            // fixed and new
+            iconXOffsetActive:
+                resolvePriority([
+                    { condition: !getDataValue<string>('iconXOffset', String(ext)), value: '0px' },
+                    {
+                        value: getDataValue<string>('iconXOffset', String(ext)),
+                    },
+                ]) ?? '0px',
+
+            // fixed and new
+            iconYOffsetActive:
+                resolvePriority([
+                    { condition: !getDataValue<string>('iconYOffset', String(ext)), value: '0px' },
+                    {
+                        value: getDataValue<string>('iconYOffset', String(ext)),
+                    },
+                ]) ?? '0px',
+
             // Text color properties
-            textColor: rxData.textColor,
+            // textColor: rxData.textColor,
             textColorActive: getDataValue<string>('textColor', String(ext)),
+
+            textColorCm:
+                resolvePriority([
+                    {
+                        condition: typeof getDataValue<string>('textColor') === 'string',
+                        value: getDataValue<string>('textColor'),
+                    },
+                    {
+                        condition: typeof textStyles?.color === 'string',
+                        value: textStyles?.color,
+                    },
+                ]) ?? '',
+
+            textColor:
+                resolvePriority([
+                    {
+                        condition: typeof getDataValue<string>('textColor', 'Active') === 'string',
+                        value: getDataValue<string>('textColor', 'Active'),
+                    },
+                    {
+                        condition: typeof getDataValue<string>('textColor', String(ext)) === 'string',
+                        value: getDataValue<string>('textColor', String(ext)),
+                    },
+                    {
+                        condition: typeof getDataValue<string>('textColor') === 'string',
+                        value: getDataValue<string>('textColor'),
+                    },
+                    {
+                        condition: typeof textStyles?.color === 'string',
+                        value: textStyles?.color,
+                    },
+                ]) ?? '',
 
             // Header properties with fallback chain
             // Normalize empty strings to enable proper fallback to oidName
             header: String(
                 resolvePriority([
-                    { value: normalizeString(rxData.headerActive) },
+                    { value: normalizeString(getDataValue<string>('header', 'Active')) },
                     { value: normalizeString(getDataValue<string>('header', String(ext))) },
-                    { value: normalizeString(rxData.header) },
+                    { value: normalizeString(getDataValue<string>('header')) },
                     { value: normalizeString(oidName) },
-                    { value: '' },
                 ]) ?? '',
             ).replace(/(\r\n|\n|\r)/gm, ''),
 
             headerSize:
                 resolvePriority([
+                    {
+                        condition: typeof getDataValue<number>('headerSize', 'Active') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('headerSize', 'Active'))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('headerSize', String(ext)) === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('headerSize', String(ext)))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('headerSize') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('headerSize'))}`,
+                    },
+                    {
+                        condition: typeof fontStyles?.['font-size'] === 'string',
+                        value: fontStyles?.['font-size'],
+                    },
+                ]) ?? '0.875rem',
+            /* headerSize:
+                resolvePriority([
                     { value: formatSize(rxData.headerSize) },
                     { value: formatSize(rxData.headerSizeActive) },
                     { value: formatSize(getDataValue<number>('headerSize', String(ext))) },
                     { value: typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null },
-                ]) ?? null,
+                ]) ?? null, */
 
             // Footer properties with fallback chain
             // Normalize empty strings to enable proper fallback
             footer: String(
                 resolvePriority([
-                    { value: normalizeString(rxData.footerActive) },
+                    { value: normalizeString(getDataValue<string>('footer', 'Active')) },
                     { value: normalizeString(getDataValue<string>('footer', String(ext))) },
-                    { value: normalizeString(rxData.footer) },
-                    { value: '' },
+                    { value: normalizeString(getDataValue<string>('footer')) },
                 ]) ?? '',
             ).replace(/(\r\n|\n|\r)/gm, ''),
 
             footerSize:
                 resolvePriority([
-                    { value: formatSize(rxData.footerSize) },
-                    { value: formatSize(rxData.footerSizeActive) },
-                    { value: formatSize(getDataValue<number>('footerSize', String(ext))) },
-                    { value: typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null },
-                ]) ?? null,
+                    {
+                        condition: typeof getDataValue<number>('footerSize', 'Active') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('footerSize', 'Active'))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('footerSize', String(ext)) === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('footerSize', String(ext)))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('footerSize') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('footerSize'))}`,
+                    },
+                    {
+                        condition: typeof fontStyles?.['font-size'] === 'string',
+                        value: fontStyles?.['font-size'],
+                    },
+                ]) ?? '0.875rem',
 
             // Alias (remove newlines)
             alias: String(getDataValue<string>('alias', String(ext)) || '').replace(/(\r\n|\n|\r)/gm, ''),
@@ -296,9 +548,23 @@ function useDataNew(_oid: string): UseDataResult {
 
             valueSize:
                 resolvePriority([
-                    { value: formatSize(rxData.valueSize) },
-                    { value: typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null },
-                ]) ?? null,
+                    {
+                        condition: typeof getDataValue<number>('valueSize', 'Active') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('valueSize', 'Active'))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('valueSize', String(ext)) === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('valueSize', String(ext)))}`,
+                    },
+                    {
+                        condition: typeof getDataValue<number>('valueSize') === 'number',
+                        value: `${formatSizeRem(getDataValue<number>('valueSize'))}`,
+                    },
+                    {
+                        condition: typeof fontStyles?.['font-size'] === 'string',
+                        value: fontStyles?.['font-size'],
+                    },
+                ]) ?? '0.875rem',
 
             valueSizeActive:
                 resolvePriority([
@@ -309,96 +575,6 @@ function useDataNew(_oid: string): UseDataResult {
                                 : null,
                     },
                 ]) ?? null,
-
-            // Icon properties
-            icon:
-                resolvePriority([
-                    { condition: !!rxData.noIcon, value: null },
-                    { value: getDataValue<string>('icon') },
-                    { value: getDataValue<string>('iconSmall') },
-                ]) ?? null,
-
-            iconActive:
-                resolvePriority([
-                    { condition: !!rxData.noIcon, value: null },
-                    { value: getDataValue<string>('icon', String(ext)) },
-                    { value: getDataValue<string>('iconSmall', String(ext)) },
-                ]) ?? null,
-
-            iconSize:
-                resolvePriority([
-                    {
-                        value:
-                            typeof rxData.iconSize === 'number' ? `calc(24px * ${rxData.iconSize} / 100)` : undefined,
-                    },
-                    { value: '24px' },
-                ]) ?? '24px',
-
-            iconSizeActive:
-                resolvePriority([
-                    {
-                        value: getDataValue<number>('iconSize', String(ext))
-                            ? `calc(24px * ${getDataValue<number>('iconSize', String(ext))} / 100)`
-                            : false,
-                    },
-                ]) ?? false,
-
-            forceColorMaskActive:
-                resolvePriority([{ value: getDataValue<boolean>('enableIconColorMask', String(ext)) }]) ?? false,
-
-            iconSizeActiveOnly:
-                resolvePriority([{ value: getDataValue<number>('iconSize', String(ext)) }]) ?? undefined,
-
-            iconSizeOnly:
-                resolvePriority([
-                    {
-                        value:
-                            getDataValue<number>('iconSize', String(ext)) ||
-                            getDataValue<number>('iconSize', String(ext)) === 0
-                                ? getDataValue<number>('iconSize', String(ext))
-                                : undefined,
-                    },
-                    { value: rxData.iconSize },
-                ]) ?? undefined,
-
-            iconColor: resolvePriority([{ value: rxData.iconColor }]) ?? undefined,
-
-            iconColorActive: resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? undefined,
-
-            iconHover: resolvePriority([{ value: rxData.iconHover ? `${rxData.iconHover}%` : undefined }]) ?? undefined,
-
-            iconHoverActive:
-                resolvePriority([
-                    {
-                        value: getDataValue<number>('iconHover', String(ext))
-                            ? `${getDataValue<number>('iconHover', String(ext))}%`
-                            : undefined,
-                    },
-                ]) ?? undefined,
-
-            iconXOffset:
-                resolvePriority([
-                    {
-                        value:
-                            !!getDataValue<string>('iconXOffset', String(ext)) &&
-                            getDataValue<string>('iconXOffset', String(ext)) !== '0px'
-                                ? getDataValue<string>('iconXOffset', String(ext))
-                                : undefined,
-                    },
-                    { value: '0px' },
-                ]) ?? '0px',
-
-            iconYOffset:
-                resolvePriority([
-                    {
-                        value:
-                            !!getDataValue<string>('iconYOffset', String(ext)) &&
-                            getDataValue<string>('iconYOffset', String(ext)) !== '0px'
-                                ? getDataValue<string>('iconYOffset', String(ext))
-                                : undefined,
-                    },
-                    { value: '0px' },
-                ]) ?? '0px',
 
             // Background properties
             // Normalize empty strings to undefined to enable fallback chain continuation
@@ -416,15 +592,13 @@ function useDataNew(_oid: string): UseDataResult {
 
             backgroundColorActive: getDataValue<string>('backgroundColor', String(ext)),
 
-            background: String(
+            background:
                 resolvePriority([
-                    {
-                        value: rxData.background && rxData.background !== '' ? rxData.background : undefined,
-                    },
+                    { value: getDataValue<string>('background', 'Active') },
+                    { value: getDataValue<string>('background', String(ext)) },
+                    { value: getDataValue<string>('background') },
                     { value: backgroundStyles?.background },
-                    { value: '' },
                 ]) ?? '',
-            ),
 
             backgroundActive: getDataValue<string>('background', String(ext)),
 
@@ -444,18 +618,13 @@ function useDataNew(_oid: string): UseDataResult {
 
             frameBackgroundColorActive: getDataValue<string>('frameBackgroundColor', String(ext)),
 
-            frameBackground: String(
+            frameBackground:
                 resolvePriority([
-                    {
-                        value:
-                            rxData.frameBackground && rxData.frameBackground !== ''
-                                ? rxData.frameBackground
-                                : undefined,
-                    },
+                    { value: getDataValue<string>('frameBackground', 'Active') },
+                    { value: getDataValue<string>('frameBackground', String(ext)) },
+                    { value: getDataValue<string>('frameBackground') },
                     { value: backgroundStyles?.background },
-                    { value: '' },
                 ]) ?? '',
-            ),
 
             frameBackgroundActive: getDataValue<string>('frameBackground', String(ext)),
         });
@@ -482,7 +651,18 @@ function useDataNew(_oid: string): UseDataResult {
             default:
                 return getStyleData('');
         }
-    }, [oidObject, oidValue, oidName, rxData, states, fontStyles, backgroundStyles, formatSize, getDataValue]);
+    }, [
+        oidObject,
+        oidValue,
+        oidName,
+        rxData,
+        states,
+        fontStyles,
+        textStyles,
+        backgroundStyles,
+        formatSize,
+        getDataValue,
+    ]);
 
     // ============= PHASE 9: Assemble Return Object =============
 

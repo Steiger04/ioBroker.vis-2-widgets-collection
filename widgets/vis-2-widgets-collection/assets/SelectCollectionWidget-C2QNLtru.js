@@ -1,10 +1,10 @@
-import { a as F, g as B, u as L, L as w, k as P, l as D, j as c, s as z, d as k, e as G, n as U, r as H, m as N, o as u, a8 as M, C as j, N as E, a9 as A, v as J, y as K, E as X, G as Y, w as O, aa as q, z as Q, T as Z, H as ee, J as V, K as te, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
-import { o as ae, c as oe, __tla as __tla_1 } from "./commonObjectFields-Y7Tma-da.js";
-import { u as _, d as ie, __tla as __tla_2 } from "./useValueState-lsTxmsTs.js";
+import { a as F, g as B, u as L, L as w, k as P, l as D, j as c, s as z, d as k, e as G, n as U, r as H, m as N, o as u, a5 as M, C as j, K as A, a6 as E, v as J, N as K, A as X, E as Y, w as O, a7 as q, y as Q, T as Z, G as ee, H as V, J as te, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
+import { o as ae, c as oe, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
+import { u as _, d as ie, __tla as __tla_2 } from "./useValueState-CANcZOFk.js";
 import { v, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as ne, __tla as __tla_4 } from "./SafeImg-D4ir_SFy.js";
-import { l as T, __tla as __tla_5 } from "./listItemTextClasses-CnTbLXR2.js";
-import { S as re, __tla as __tla_6 } from "./Stack-CdmP8bME.js";
+import { S as ne, __tla as __tla_4 } from "./SafeImg-BfZGZGnV.js";
+import { l as T, __tla as __tla_5 } from "./listItemTextClasses-YJ66dX8c.js";
+import { S as re, __tla as __tla_6 } from "./Stack-Bu2YdDZA.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let W;
@@ -256,7 +256,7 @@ let __tla = Promise.all([
         ""
       ],
       noGradient: true,
-      component: (t, a, l, e) => c.jsx(E, {
+      component: (t, a, l, e) => c.jsx(A, {
         field: t,
         data: a,
         onDataChange: l,
@@ -266,7 +266,7 @@ let __tla = Promise.all([
   ];
   function me() {
     var _a;
-    const t = v.useRef(null), { width: a } = A(t == null ? void 0 : t.current), l = v.useContext(J), { widget: e, theme: r } = l, f = e.data.cidObject, m = e.data.oidObject, { data: i, states: p } = K("oid"), { value: b, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = p.findIndex((d) => String(d.value) === String(b)), $ = (d) => {
+    const t = v.useRef(null), { width: a } = E(t == null ? void 0 : t.current), l = v.useContext(J), { widget: e, theme: r } = l, f = e.data.cidObject, m = e.data.oidObject, { data: i, states: p } = K("oid"), { value: b, updateValue: h } = _("oid"), { updateValue: S } = _("cid"), C = m == null ? void 0 : m.type, I = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = p.findIndex((d) => String(d.value) === String(b)), $ = (d) => {
       const o = d.target.value, y = p[o].value;
       f && S(y), h(y);
     };

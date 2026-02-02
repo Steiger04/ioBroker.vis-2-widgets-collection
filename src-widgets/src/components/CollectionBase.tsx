@@ -12,12 +12,12 @@
  */
 
 import { Box, Paper, Typography } from '@mui/material';
-import { useRef, forwardRef, useImperativeHandle, useContext, useEffect, useMemo } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useContext, useEffect, useMemo, useState } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
-import { type StyleData } from '../hooks/useData';
+import { type StyleData } from '../hooks/useDataNew/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { cleanSx } from '../lib/helper/sxUtils';
@@ -61,7 +61,8 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
         // Consolidated refs
         const paper0Ref = useRef<HTMLDivElement>(null);
         const paper1Ref = useRef<HTMLDivElement>(null);
-        const containerRef = useRef<HTMLDivElement>(null);
+        // const containerRef = useRef<HTMLDivElement>(null);
+        const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
         const headerRef = useRef<HTMLSpanElement>(null);
         const footerRef = useRef<HTMLDivElement>(null);
 
@@ -113,36 +114,17 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 ...backgroundStyles,
 
                 // Background color
-                background: wrappedContent
-                    ? widget.data.frameBackgroundColorActive ||
-                      data.frameBackgroundColorActive ||
-                      data.frameBackgroundColor ||
-                      widget.data.frameBackgroundActive ||
-                      data.frameBackgroundActive ||
-                      data.frameBackground
-                    : 'transparent',
+                background: wrappedContent ? data.frameBackground : 'transparent',
+                borderColor: !wrappedContent ? data.frameBackground || borderStyles?.['border-color'] : '',
 
                 // Conditional border properties
-                ...(wrappedContent && borderStyles
-                    ? {
-                          'border-width': borderStyles['border-width'],
-                          'border-style': borderStyles['border-style'],
-                          'border-radius': borderStyles['border-radius'],
-                          'border-color':
-                              data.frameBackgroundColorActive ||
-                              data.frameBackgroundColor ||
-                              borderStyles['border-color'],
-                      }
-                    : {}),
+                /* ...{
+                    'border-width': borderStyles?.['border-width'],
+                    'border-style': borderStyles?.['border-style'],
+                    'border-radius': borderStyles?.['border-radius'],
+                }, */
             });
-        }, [
-            backgroundStyles,
-            borderStyles,
-            data,
-            wrappedContent,
-            widget.data.frameBackgroundColorActive,
-            widget.data.frameBackgroundActive,
-        ]);
+        }, [backgroundStyles, borderStyles, data.frameBackground, wrappedContent]);
 
         // Build memoized sx object for inner Paper
         const paper1Sx = useMemo((): SxProps<Theme> | undefined => {
@@ -153,32 +135,26 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                borderColor: !wrappedContent
-                    ? data.backgroundColorActive || data.backgroundColor || borderStyles?.['border-color']
-                    : borderStyles?.['border-color'],
-                background: wrappedContent
-                    ? (bgActive && widget.data.backgroundColorActive) ||
-                      (bgActive && data.backgroundColorActive) ||
-                      (bgActive && data.backgroundColor) ||
-                      (bgActive && widget.data.backgroundActive) ||
-                      (bgActive && data.backgroundActive) ||
-                      data.background
-                    : 'transparent',
+
+                background: wrappedContent ? bgActive && data.background : 'transparent',
+                borderColor: !wrappedContent ? data.background || borderStyles?.['border-color'] : '',
+
                 borderRadius: widget.data.circle || widget.data.ellipse ? '50%' : undefined,
+
+                // Conditional border properties
+                /* ...{
+                    'border-width': borderStyles?.['border-width'],
+                    'border-style': borderStyles?.['border-style'],
+                }, */
                 ...sx,
             });
         }, [
             width,
             height,
             wrappedContent,
-            data.backgroundColorActive,
-            data.backgroundColor,
-            data.backgroundActive,
             data.background,
             borderStyles,
             bgActive,
-            widget.data.backgroundColorActive,
-            widget.data.backgroundActive,
             widget.data.circle,
             widget.data.ellipse,
             sx,
@@ -236,19 +212,17 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.headerSize,
-                                    background: gradientColor(data.textColorActive ?? data.textColor),
+                                    background: gradientColor(data.textColorCm),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
-                                    color: gradientColor(data.textColorActive ?? data.textColor)
-                                        ? 'transparent'
-                                        : (data.textColorActive ?? data.textColor),
+                                    color: gradientColor(data.textColorCm) ? 'transparent' : data.textColorCm,
                                 }}
                             />
                         </Box>
 
                         <Box
                             className="BASE-BOX-1"
-                            ref={containerRef}
+                            ref={setContainerRef}
                             sx={{
                                 overflow: 'hidden',
                                 p: widget.data.basePadding,
@@ -285,12 +259,10 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                                 variant="body2"
                                 sx={{
                                     fontSize: data.footerSize,
-                                    background: gradientColor(data.textColorActive ?? data.textColor),
+                                    background: gradientColor(data.textColorCm),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
-                                    color: gradientColor(data.textColorActive ?? data.textColor)
-                                        ? 'transparent'
-                                        : (data.textColorActive ?? data.textColor),
+                                    color: gradientColor(data.textColorCm) ? 'transparent' : data.textColorCm,
                                 }}
                             />
                         </Box>

@@ -75,7 +75,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 1,
             max: 500,
-            default: 100,
+            // default: 100,
             step: 1,
             hidden: 'data.noIcon',
         },
@@ -93,7 +93,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 const iconSmallField = data[`iconSmall${suffix}`];
 
                 if (suffix === '') {
-                    _hidden = !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                    // _hidden = !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                    _hidden = false;
                 }
 
                 if (suffix === 'Active') {
@@ -163,14 +164,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `iconXOffset${groupName}`,
             label: 'icon_x_offset',
             type: 'text',
-            default: '0px',
+            // default: '0px',
             hidden: 'data.noIcon',
         },
         {
             name: `iconYOffset${groupName}`,
             label: 'icon_y_offset',
             type: 'text',
-            default: '0px',
+            // default: '0px',
             hidden: 'data.noIcon',
         },
         {
@@ -205,7 +206,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            default: 100,
+            // default: 100,
             step: 1,
             hidden: 'data.noHeader',
         },
@@ -233,7 +234,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            default: 100,
+            // default: 100,
             step: 1,
         },
         {
@@ -261,7 +262,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            default: 100,
+            // default: 100,
             step: 1,
             hidden: 'data.noFooter',
         },

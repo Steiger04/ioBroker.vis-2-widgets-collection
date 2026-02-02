@@ -80,6 +80,10 @@ export interface CollectionBaseImageWidgetData {
     enableIconColorMask?: boolean;
     /** Enable color mask for active icon. */
     enableIconColorMaskActive?: boolean;
+    /** Active icon URL/name (or ``). */
+    iconActive?: string;
+    /** Active icon URL/name (or ``). */
+    iconSmallActive?: string;
     /** Icon color (CSS color value). */
     iconColor?: string;
     /** Active icon color (CSS color value). */

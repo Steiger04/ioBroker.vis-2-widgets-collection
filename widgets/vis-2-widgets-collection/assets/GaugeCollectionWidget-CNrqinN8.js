@@ -1,7 +1,7 @@
-import { j as A, C as D, z as xa, w as Ke, a9 as Ta, v as wa, y as Sa, R as Ca, E as Ba, G as Na, H as Va, J as Je, K as Wa, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
-import { c as Aa, __tla as __tla_1 } from "./commonObjectFields-Y7Tma-da.js";
+import { j as A, C as D, y as xa, w as Qe, a6 as Ta, v as wa, N as Sa, R as Ca, A as Ba, E as Na, G as Va, H as Je, J as Wa, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
+import { c as Aa, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
 import { v as L, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Ma, __tla as __tla_3 } from "./useOidValue-CoM8Eu2P.js";
+import { u as Ma, __tla as __tla_3 } from "./useOidValue-BaT0EFML.js";
 import { c as Ne } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
@@ -1358,7 +1358,7 @@ let __tla = Promise.all([
       noTranslation: true
     }
   ];
-  var Qe = {
+  var Ke = {
     exports: {}
   };
   (function(g) {
@@ -1420,7 +1420,7 @@ let __tla = Promise.all([
           return o !== void 0 ? o : t;
         });
       }
-      function Q(a) {
+      function K(a) {
         return a.majorTicks instanceof Array || (a.majorTicks = a.majorTicks ? [
           a.majorTicks
         ] : []), a.majorTicks.length || (a.majorTicks.push(m.formatMajorTickNumber(a.minValue, a)), a.majorTicks.push(m.formatMajorTickNumber(a.maxValue, a))), [
@@ -1509,7 +1509,7 @@ let __tla = Promise.all([
           indented: e < t ? t - o : e > r ? r + o : e
         };
       }
-      function K(a, e, t, r, o) {
+      function Q(a, e, t, r, o) {
         t.beginPath(), t.arc(0, 0, G(a), 0, 2 * se, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
       }
       function ee(a, e) {
@@ -1518,7 +1518,7 @@ let __tla = Promise.all([
       }
       function Ve(a, e) {
         var t = U.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, n = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, l = n - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = ee(a, e), u = void 0, s = false;
-        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), K(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), K(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), K(l, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, G(d), 0, 2 * se, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
+        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), Q(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), Q(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), Q(l, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, G(d), 0, 2 * se, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
       }
       function We(a, e) {
         var t = a.max * (parseFloat(e.highlightsWidth) || 0) / 100;
@@ -2359,7 +2359,7 @@ let __tla = Promise.all([
         drawNeedleShadow: ke,
         drawValueBox: re,
         verifyError: ve,
-        prepareTicks: Q,
+        prepareTicks: K,
         drawShadow: M,
         font: J,
         normalizedValue: E,
@@ -2505,8 +2505,8 @@ let __tla = Promise.all([
         vendorize: R
       });
     })(g.exports);
-  })(Qe);
-  var Ze = Qe.exports;
+  })(Ke);
+  var Ze = Ke.exports;
   const ja = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", Pa = (g) => {
     const w = L.useRef(null), z = L.useRef(null);
     L.useEffect(() => {
@@ -2531,7 +2531,7 @@ let __tla = Promise.all([
       g
     ]);
     const $ = g.gaugeWidgetData.iconSize || g.gaugeWidgetData.iconSize === 0 ? `${g.gaugeWidgetData.iconSize}%` : null, I = g.gaugeSegment, F = (I == null ? void 0 : I.state.icon) || g.gaugeData.icon, R = (I == null ? void 0 : I.state.iconColor) || g.gaugeData.iconColor, ae = xa(F, R, (I == null ? void 0 : I.state.forceColorMask) ?? false);
-    return A.jsxs(Ke, {
+    return A.jsxs(Qe, {
       sx: {
         width: "100%",
         height: "100%",
@@ -2566,10 +2566,10 @@ let __tla = Promise.all([
   }, Ea = (g, w, z) => g.find((I) => w >= I.from && (w < I.to || w === I.to && w === z)) || null;
   function Ia() {
     var _a, _b;
-    const g = L.useRef(null), [w, z] = L.useState(null), { width: $, height: I } = Ta(w), F = L.useContext(wa), { wrappedContent: R, widget: { data: { oidObject: ae } }, widget: i } = F, ve = F.theme, { data: O, states: Q } = Sa("oid"), te = Ma("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = O.iconColor || ve.palette.primary.main, _e = L.useMemo(() => {
+    const g = L.useRef(null), [w, z] = L.useState(null), { width: $, height: I } = Ta(w), F = L.useContext(wa), { wrappedContent: R, widget: { data: { oidObject: ae } }, widget: i } = F, ve = F.theme, { data: O, states: K } = Sa("oid"), te = Ma("oid"), pe = (ae == null ? void 0 : ae.type) === "number", ye = O.iconColor || ve.palette.primary.main, _e = L.useMemo(() => {
       const H = Number(i.data.gaugeMinValue) || 0, re = Number(i.data.gaugeMaxValue) || 100, E = [];
-      if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let K = 0; K <= Number(i.data.gaugeMajorTicks); K++) {
-        const ee = H + ((re - H) / Number(i.data.gaugeMajorTicks) || 1) * K;
+      if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let Q = 0; Q <= Number(i.data.gaugeMajorTicks); Q++) {
+        const ee = H + ((re - H) / Number(i.data.gaugeMajorTicks) || 1) * Q;
         E.push(Math.round(ee * 100) / 100);
       }
       return E;
@@ -2579,9 +2579,9 @@ let __tla = Promise.all([
       i.data.gaugeMajorTicks
     ]), le = L.useMemo(() => {
       const H = [], re = Number(i.data.gaugeMaxValue) || 100;
-      return Q.forEach((E, K) => {
+      return K.forEach((E, Q) => {
         var _a2;
-        const ee = ((_a2 = Q[K + 1]) == null ? void 0 : _a2.value) || re;
+        const ee = ((_a2 = K[Q + 1]) == null ? void 0 : _a2.value) || re;
         H.push({
           from: Number(E.value),
           to: Number(ee),
@@ -2604,9 +2604,9 @@ let __tla = Promise.all([
             frameBackgroundActive: E.frameBackgroundActive
           }
         });
-      }), Q.length > 0 && Number(Q[Q.length - 1].value) < re && (H[H.length - 1].to = re), H;
+      }), K.length > 0 && Number(K[K.length - 1].value) < re && (H[H.length - 1].to = re), H;
     }, [
-      Q,
+      K,
       i.data.gaugeMaxValue
     ]), M = L.useMemo(() => Ea(le, Number(te) || 0, Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100), [
       le,
@@ -2649,7 +2649,7 @@ let __tla = Promise.all([
           },
           widget: i
         }),
-        A.jsx(Ke, {
+        A.jsx(Qe, {
           ref: z,
           sx: {
             width: "100%",
@@ -2839,6 +2839,7 @@ let __tla = Promise.all([
       return ea.getWidgetInfo();
     }
     propertiesUpdate() {
+      console.log("this.state.rxData in propertiesUpdate:", this.state.rxData);
     }
     onRxDataChanged() {
       this.propertiesUpdate();

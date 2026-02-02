@@ -84,8 +84,8 @@ export interface OidObject {
  * safety for dynamic keys. It's the recommended way to access dynamic
  * properties in Collection widgets.
  */
-export function getDynamicProperty<T extends Record<string, any>, K extends keyof T>(obj: T, key: K): T[K] | undefined;
-export function getDynamicProperty<T extends Record<string, any>>(obj: T, key: string): T[keyof T] | undefined;
+// export function getDynamicProperty<T extends Record<string, any>, K extends keyof T>(obj: T, key: K): T[K] | undefined;
+// export function getDynamicProperty<T extends Record<string, any>>(obj: T, key: string): T[keyof T] | undefined;
 export function getDynamicProperty<T extends Record<string, any>>(obj: T, key: string): T[keyof T] | undefined {
     return obj[key];
 }

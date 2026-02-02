@@ -16,6 +16,8 @@ import type { OidObject } from '../../types/utility-types';
  */
 export interface StyleData {
     /** Text color (from widget config or theme). */
+    textColorCm?: string;
+    /** Text color (from widget config or theme). */
     textColor?: string;
     /** Active-state text color. */
     textColorActive?: string;
@@ -40,31 +42,45 @@ export interface StyleData {
     valueSizeActive: string | null;
 
     /** Icon URL/name or `null` when not configured. */
-    icon: string | null;
+    icon: string;
     /** Active icon URL/name (or `null`). */
-    iconActive: string | null;
+    iconActive: string;
     /** Icon size as CSS string. */
     iconSize: string;
+    /** Icon size (or `false`). */
+    iconSizeCm: string;
     /** Active icon size (or `false`). */
-    iconSizeActive: string | false;
+    iconSizeActive: string;
     /** Active icon size as numeric percent when available. */
     iconSizeActiveOnly?: number;
+    /** Force color mask on icon. */
+    forceColorMaskCm?: boolean;
+    /** Force color mask on icon. */
+    forceColorMask?: boolean;
     /** Force color mask on icon when active. */
     forceColorMaskActive?: boolean;
-    /** Icon size as numeric percent when available. */
-    iconSizeOnly?: number;
+    /** Icon size as string percent when available. */
+    iconSizeOnly?: string;
     /** Icon color. */
-    iconColor?: string;
+    iconColor: string;
     /** Active icon color. */
-    iconColorActive?: string;
+    iconColorActive: string;
     /** Icon hover effect in percent. */
     iconHover?: string;
     /** Active icon hover effect in percent. */
     iconHoverActive?: string;
     /** Icon X offset as a CSS value (with unit). */
+    iconXOffsetCm: string;
+    /** Icon Y offset as a CSS value (with unit). */
+    iconYOffsetCm: string;
+    /** Icon X offset as a CSS value (with unit). */
     iconXOffset: string;
     /** Icon Y offset as a CSS value (with unit). */
     iconYOffset: string;
+    /** Active icon X offset as a CSS value (with unit). */
+    iconXOffsetActive: string;
+    /** Active icon Y offset as a CSS value (with unit). */
+    iconYOffsetActive: string;
 
     /** Background color. */
     backgroundColor: string;

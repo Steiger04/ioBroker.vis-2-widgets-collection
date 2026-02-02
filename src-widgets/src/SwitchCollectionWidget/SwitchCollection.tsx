@@ -9,7 +9,7 @@ import React, { useRef, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
 import type { SwitchCollectionContextProps } from '../types';
@@ -22,11 +22,11 @@ import type { SwitchCollectionContextProps } from '../types';
 function SwitchCollection(): React.JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const context = useContext(CollectionContext) as SwitchCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
 
     const oidObject = widget.data.oidObject;
 
-    const { data } = useData('oid');
+    const { data } = useDataNew('oid');
     const { value: oidValue, updateValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
@@ -80,11 +80,7 @@ function SwitchCollection(): React.JSX.Element {
                             onChange={handleSwitchChange}
                             sx={{
                                 '& .MuiTouchRipple-root': {
-                                    color:
-                                        data.iconColorActive ||
-                                        data.iconColor ||
-                                        data.textColorActive ||
-                                        data.textColor,
+                                    color: data.iconColor || theme.palette.primary.main,
                                 },
                             }}
                         />

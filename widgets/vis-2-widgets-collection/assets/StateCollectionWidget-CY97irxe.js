@@ -1,13 +1,14 @@
-import { c as Dt, j as a, g as F, a as V, u as L, b as $, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as At, i as H, M as Mt, B as Tt, T as z, L as W, k as $t, l as it, n as Bt, r as Lt, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as U, x as Wt, I as Ft, D as Vt, y as _t, z as Ot, A as rt, E as Ut, G as Gt, H as zt, J as nt, K as Ht, __tla as __tla_0 } from "./useData-DSoqoXK9.js";
-import { c as Et, __tla as __tla_1 } from "./commonObjectFields-Y7Tma-da.js";
-import { u as ct, d as Yt, __tla as __tla_2 } from "./useValueState-lsTxmsTs.js";
+import { c as Dt, j as a, g as F, a as V, u as A, b as L, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as Mt, i as H, M as Tt, B as Bt, T as z, L as W, k as Lt, l as it, n as $t, r as At, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as U, x as Wt, I as Ft, D as Vt, y as _t, z as rt, A as Ot, E as Ut, G as Gt, H as nt, J as zt, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
+import { c as Ht, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
+import { u as ct, d as Et, __tla as __tla_2 } from "./useValueState-CANcZOFk.js";
 import { v as l, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { C as qt, __tla as __tla_4 } from "./Close-CGexDQf2.js";
-import { S as Xt, __tla as __tla_5 } from "./Slider-DcN5vBwD.js";
-import { g as Kt, l as J, __tla as __tla_6 } from "./listItemTextClasses-CnTbLXR2.js";
-import { S as Jt, __tla as __tla_7 } from "./Stack-CdmP8bME.js";
-import { u as Qt, __tla as __tla_8 } from "./useHtmlValue-Dcwl_hqT.js";
-import { B as Zt, __tla as __tla_9 } from "./Button-ByxK8vyi.js";
+import { C as Yt, __tla as __tla_4 } from "./Close-BufaOXnk.js";
+import { S as qt, __tla as __tla_5 } from "./Slider-wfRCoRM3.js";
+import { g as Xt, l as J, __tla as __tla_6 } from "./listItemTextClasses-YJ66dX8c.js";
+import { S as Kt, __tla as __tla_7 } from "./Stack-Bu2YdDZA.js";
+import { u as Jt, __tla as __tla_8 } from "./useDataNew-D8SyzcSc.js";
+import { u as Qt, __tla as __tla_9 } from "./useHtmlValue-Dcwl_hqT.js";
+import { B as Zt, __tla as __tla_10 } from "./Button-CX3LhAZh.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ut;
@@ -69,6 +70,12 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_9;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_10;
     } catch {
     }
   })()
@@ -203,30 +210,30 @@ let __tla = Promise.all([
     ]), s;
   }
   const ie = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiAvatar"
-    }), { alt: s, children: c, className: n, component: i = "div", slots: g = {}, slotProps: v = {}, imgProps: h, sizes: C, src: y, srcSet: S, variant: x = "circular", ...I } = r;
+    }), { alt: s, children: c, className: n, component: i = "div", slots: g = {}, slotProps: v = {}, imgProps: P, sizes: h, src: y, srcSet: C, variant: x = "circular", ...w } = r;
     let f = null;
     const p = {
       ...r,
       component: i,
       variant: x
-    }, k = ne({
-      ...h,
+    }, S = ne({
+      ...P,
       ...typeof v.img == "function" ? v.img(p) : v.img,
       src: y,
-      srcSet: S
-    }), u = y || S, P = u && k !== "error";
-    p.colorDefault = !P, delete p.ownerState;
-    const d = oe(p), [m, b] = $("img", {
+      srcSet: C
+    }), u = y || C, I = u && S !== "error";
+    p.colorDefault = !I, delete p.ownerState;
+    const d = oe(p), [m, b] = L("img", {
       className: d.img,
       elementType: ae,
       externalForwardedProps: {
         slots: g,
         slotProps: {
           img: {
-            ...h,
+            ...P,
             ...v.img
           }
         }
@@ -234,12 +241,12 @@ let __tla = Promise.all([
       additionalProps: {
         alt: s,
         src: y,
-        srcSet: S,
-        sizes: C
+        srcSet: C,
+        sizes: h
       },
       ownerState: p
     });
-    return P ? f = a.jsx(m, {
+    return I ? f = a.jsx(m, {
       ...b
     }) : c || c === 0 ? f = c : u && s ? f = s[0] : f = a.jsx(re, {
       ownerState: p,
@@ -248,7 +255,7 @@ let __tla = Promise.all([
       as: i,
       className: R(d.root, n),
       ref: o,
-      ...I,
+      ...w,
       ownerState: p,
       children: f
     });
@@ -272,7 +279,7 @@ let __tla = Promise.all([
     "paperWidthXl",
     "paperFullWidth",
     "paperFullScreen"
-  ]), dt = l.createContext({}), ce = j(Tt, {
+  ]), dt = l.createContext({}), ce = j(Bt, {
     name: "MuiDialog",
     slot: "Backdrop",
     overrides: (e, t) => t.backdrop
@@ -296,7 +303,7 @@ let __tla = Promise.all([
       ]
     };
     return N(n, le, t);
-  }, pe = j(Mt, {
+  }, pe = j(Tt, {
     name: "MuiDialog",
     slot: "Root",
     overridesResolver: (e, t) => t.root
@@ -446,68 +453,68 @@ let __tla = Promise.all([
       }
     ]
   }))), ge = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiDialog"
     }), s = Rt(), c = {
       enter: s.transitions.duration.enteringScreen,
       exit: s.transitions.duration.leavingScreen
-    }, { "aria-describedby": n, "aria-labelledby": i, "aria-modal": g = true, BackdropComponent: v, BackdropProps: h, children: C, className: y, disableEscapeKeyDown: S = false, fullScreen: x = false, fullWidth: I = false, maxWidth: f = "sm", onBackdropClick: p, onClick: k, onClose: u, open: P, PaperComponent: d = tt, PaperProps: m = {}, scroll: b = "paper", slots: w = {}, slotProps: M = {}, TransitionComponent: B = et, transitionDuration: E = c, TransitionProps: X, ..._ } = r, D = {
+    }, { "aria-describedby": n, "aria-labelledby": i, "aria-modal": g = true, BackdropComponent: v, BackdropProps: P, children: h, className: y, disableEscapeKeyDown: C = false, fullScreen: x = false, fullWidth: w = false, maxWidth: f = "sm", onBackdropClick: p, onClick: S, onClose: u, open: I, PaperComponent: d = tt, PaperProps: m = {}, scroll: b = "paper", slots: k = {}, slotProps: T = {}, TransitionComponent: $ = et, transitionDuration: E = c, TransitionProps: X, ..._ } = r, D = {
       ...r,
-      disableEscapeKeyDown: S,
+      disableEscapeKeyDown: C,
       fullScreen: x,
-      fullWidth: I,
+      fullWidth: w,
       maxWidth: f,
       scroll: b
-    }, T = de(D), A = l.useRef(), mt = (O) => {
-      A.current = O.target === O.currentTarget;
+    }, B = de(D), M = l.useRef(), mt = (O) => {
+      M.current = O.target === O.currentTarget;
     }, gt = (O) => {
-      k && k(O), A.current && (A.current = null, p && p(O), u && u(O, "backdropClick"));
-    }, Q = At(i), vt = l.useMemo(() => ({
+      S && S(O), M.current && (M.current = null, p && p(O), u && u(O, "backdropClick"));
+    }, Q = Mt(i), vt = l.useMemo(() => ({
       titleId: Q
     }), [
       Q
     ]), ft = {
-      transition: B,
-      ...w
+      transition: $,
+      ...k
     }, yt = {
       transition: X,
       paper: m,
-      backdrop: h,
-      ...M
+      backdrop: P,
+      ...T
     }, Y = {
       slots: ft,
       slotProps: yt
-    }, [xt, bt] = $("root", {
+    }, [xt, bt] = L("root", {
       elementType: pe,
       shouldForwardComponentProp: true,
       externalForwardedProps: Y,
       ownerState: D,
-      className: R(T.root, y),
+      className: R(B.root, y),
       ref: o
-    }), [ht, Ct] = $("backdrop", {
+    }), [ht, Ct] = L("backdrop", {
       elementType: ce,
       shouldForwardComponentProp: true,
       externalForwardedProps: Y,
       ownerState: D
-    }), [St, kt] = $("paper", {
+    }), [St, kt] = L("paper", {
       elementType: me,
       shouldForwardComponentProp: true,
       externalForwardedProps: Y,
       ownerState: D,
-      className: R(T.paper, m.className)
-    }), [wt, It] = $("container", {
+      className: R(B.paper, m.className)
+    }), [wt, It] = L("container", {
       elementType: ue,
       externalForwardedProps: Y,
       ownerState: D,
-      className: R(T.container)
-    }), [Pt, jt] = $("transition", {
+      className: R(B.container)
+    }), [Pt, jt] = L("transition", {
       elementType: et,
       externalForwardedProps: Y,
       ownerState: D,
       additionalProps: {
         appear: true,
-        in: P,
+        in: I,
         timeout: E,
         role: "presentation"
       }
@@ -524,9 +531,9 @@ let __tla = Promise.all([
           ...Ct
         }
       },
-      disableEscapeKeyDown: S,
+      disableEscapeKeyDown: C,
       onClose: u,
-      open: P,
+      open: I,
       onClick: gt,
       ...bt,
       ..._,
@@ -545,7 +552,7 @@ let __tla = Promise.all([
             ...kt,
             children: a.jsx(dt.Provider, {
               value: vt,
-              children: C
+              children: h
             })
           })
         })
@@ -606,7 +613,7 @@ let __tla = Promise.all([
       }
     ]
   }))), he = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiDialogContent"
     }), { className: s, dividers: c = false, ...n } = r, i = {
@@ -634,7 +641,7 @@ let __tla = Promise.all([
     padding: "16px 24px",
     flex: "0 0 auto"
   }), ke = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiDialogTitle"
     }), { className: s, id: c, ...n } = r, i = r, g = Ce(i), { titleId: v = c } = l.useContext(dt);
@@ -698,8 +705,8 @@ let __tla = Promise.all([
       ...o,
       ...v
     };
-  }, De = j(Bt, {
-    shouldForwardProp: (e) => Lt(e) || e === "classes",
+  }, De = j($t, {
+    shouldForwardProp: (e) => At(e) || e === "classes",
     name: "MuiListItemButton",
     slot: "Root",
     overridesResolver: Pe
@@ -775,63 +782,63 @@ let __tla = Promise.all([
       }
     ]
   }))), Re = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiListItemButton"
-    }), { alignItems: s = "center", autoFocus: c = false, component: n = "div", children: i, dense: g = false, disableGutters: v = false, divider: h = false, focusVisibleClassName: C, selected: y = false, className: S, ...x } = r, I = l.useContext(W), f = l.useMemo(() => ({
-      dense: g || I.dense || false,
+    }), { alignItems: s = "center", autoFocus: c = false, component: n = "div", children: i, dense: g = false, disableGutters: v = false, divider: P = false, focusVisibleClassName: h, selected: y = false, className: C, ...x } = r, w = l.useContext(W), f = l.useMemo(() => ({
+      dense: g || w.dense || false,
       alignItems: s,
       disableGutters: v
     }), [
       s,
-      I.dense,
+      w.dense,
       g,
       v
     ]), p = l.useRef(null);
-    $t(() => {
+    Lt(() => {
       c && p.current && p.current.focus();
     }, [
       c
     ]);
-    const k = {
+    const S = {
       ...r,
       alignItems: s,
       dense: f.dense,
       disableGutters: v,
-      divider: h,
+      divider: P,
       selected: y
-    }, u = je(k), P = it(p, o);
+    }, u = je(S), I = it(p, o);
     return a.jsx(W.Provider, {
       value: f,
       children: a.jsx(De, {
-        ref: P,
+        ref: I,
         href: x.href || x.to,
         component: (x.href || x.to) && n === "div" ? "button" : n,
-        focusVisibleClassName: R(u.focusVisible, C),
-        ownerState: k,
-        className: R(u.root, S),
+        focusVisibleClassName: R(u.focusVisible, h),
+        ownerState: S,
+        className: R(u.root, C),
         ...x,
         classes: u,
         children: i
       })
     });
   });
-  function Ae(e) {
+  function Me(e) {
     return F("MuiListItemSecondaryAction", e);
   }
   V("MuiListItemSecondaryAction", [
     "root",
     "disableGutters"
   ]);
-  const Me = (e) => {
+  const Te = (e) => {
     const { disableGutters: t, classes: o } = e;
     return N({
       root: [
         "root",
         t && "disableGutters"
       ]
-    }, Ae, o);
-  }, Te = j("div", {
+    }, Me, o);
+  }, Be = j("div", {
     name: "MuiListItemSecondaryAction",
     slot: "Root",
     overridesResolver: (e, t) => {
@@ -855,14 +862,14 @@ let __tla = Promise.all([
       }
     ]
   }), pt = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiListItemSecondaryAction"
     }), { className: s, ...c } = r, n = l.useContext(W), i = {
       ...r,
       disableGutters: n.disableGutters
-    }, g = Me(i);
-    return a.jsx(Te, {
+    }, g = Te(i);
+    return a.jsx(Be, {
       className: R(g.root, s),
       ownerState: i,
       ref: o,
@@ -870,7 +877,7 @@ let __tla = Promise.all([
     });
   });
   pt.muiName = "ListItemSecondaryAction";
-  const $e = (e, t) => {
+  const Le = (e, t) => {
     const { ownerState: o } = e;
     return [
       t.root,
@@ -881,7 +888,7 @@ let __tla = Promise.all([
       !o.disablePadding && t.padding,
       o.hasSecondaryAction && t.secondaryAction
     ];
-  }, Be = (e) => {
+  }, $e = (e) => {
     const { alignItems: t, classes: o, dense: r, disableGutters: s, disablePadding: c, divider: n, hasSecondaryAction: i } = e;
     return N({
       root: [
@@ -897,10 +904,10 @@ let __tla = Promise.all([
         "container"
       ]
     }, we, o);
-  }, Le = j("div", {
+  }, Ae = j("div", {
     name: "MuiListItem",
     slot: "Root",
-    overridesResolver: $e
+    overridesResolver: Le
   })(q(({ theme: e }) => ({
     display: "flex",
     justifyContent: "flex-start",
@@ -990,72 +997,72 @@ let __tla = Promise.all([
   })({
     position: "relative"
   }), We = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiListItem"
-    }), { alignItems: s = "center", children: c, className: n, component: i, components: g = {}, componentsProps: v = {}, ContainerComponent: h = "li", ContainerProps: { className: C, ...y } = {}, dense: S = false, disableGutters: x = false, disablePadding: I = false, divider: f = false, secondaryAction: p, slotProps: k = {}, slots: u = {}, ...P } = r, d = l.useContext(W), m = l.useMemo(() => ({
-      dense: S || d.dense || false,
+    }), { alignItems: s = "center", children: c, className: n, component: i, components: g = {}, componentsProps: v = {}, ContainerComponent: P = "li", ContainerProps: { className: h, ...y } = {}, dense: C = false, disableGutters: x = false, disablePadding: w = false, divider: f = false, secondaryAction: p, slotProps: S = {}, slots: u = {}, ...I } = r, d = l.useContext(W), m = l.useMemo(() => ({
+      dense: C || d.dense || false,
       alignItems: s,
       disableGutters: x
     }), [
       s,
       d.dense,
-      S,
+      C,
       x
-    ]), b = l.useRef(null), w = l.Children.toArray(c), M = w.length && Nt(w[w.length - 1], [
+    ]), b = l.useRef(null), k = l.Children.toArray(c), T = k.length && Nt(k[k.length - 1], [
       "ListItemSecondaryAction"
-    ]), B = {
+    ]), $ = {
       ...r,
       alignItems: s,
       dense: m.dense,
       disableGutters: x,
-      disablePadding: I,
+      disablePadding: w,
       divider: f,
-      hasSecondaryAction: M
-    }, E = Be(B), X = it(b, o), _ = u.root || g.Root || Le, D = k.root || v.root || {}, T = {
+      hasSecondaryAction: T
+    }, E = $e($), X = it(b, o), _ = u.root || g.Root || Ae, D = S.root || v.root || {}, B = {
       className: R(E.root, D.className, n),
-      ...P
+      ...I
     };
-    let A = i || "li";
-    return M ? (A = !T.component && !i ? "div" : A, h === "li" && (A === "li" ? A = "div" : T.component === "li" && (T.component = "div")), a.jsx(W.Provider, {
+    let M = i || "li";
+    return T ? (M = !B.component && !i ? "div" : M, P === "li" && (M === "li" ? M = "div" : B.component === "li" && (B.component = "div")), a.jsx(W.Provider, {
       value: m,
       children: a.jsxs(Ne, {
-        as: h,
-        className: R(E.container, C),
+        as: P,
+        className: R(E.container, h),
         ref: X,
-        ownerState: B,
+        ownerState: $,
         ...y,
         children: [
           a.jsx(_, {
             ...D,
             ...!ot(_) && {
-              as: A,
+              as: M,
               ownerState: {
-                ...B,
+                ...$,
                 ...D.ownerState
               }
             },
-            ...T,
-            children: w
+            ...B,
+            children: k
           }),
-          w.pop()
+          k.pop()
         ]
       })
     })) : a.jsx(W.Provider, {
       value: m,
       children: a.jsxs(_, {
         ...D,
-        as: A,
+        as: M,
         ref: X,
         ...!ot(_) && {
           ownerState: {
-            ...B,
+            ...$,
             ...D.ownerState
           }
         },
-        ...T,
+        ...B,
         children: [
-          w,
+          k,
           p && a.jsx(pt, {
             children: p
           })
@@ -1077,7 +1084,7 @@ let __tla = Promise.all([
       secondary: [
         "secondary"
       ]
-    }, Kt, t);
+    }, Xt, t);
   }, Ve = j("div", {
     name: "MuiListItemText",
     slot: "Root",
@@ -1123,54 +1130,54 @@ let __tla = Promise.all([
       }
     ]
   }), _e = l.forwardRef(function(t, o) {
-    const r = L({
+    const r = A({
       props: t,
       name: "MuiListItemText"
-    }), { children: s, className: c, disableTypography: n = false, inset: i = false, primary: g, primaryTypographyProps: v, secondary: h, secondaryTypographyProps: C, slots: y = {}, slotProps: S = {}, ...x } = r, { dense: I } = l.useContext(W);
-    let f = g ?? s, p = h;
-    const k = {
+    }), { children: s, className: c, disableTypography: n = false, inset: i = false, primary: g, primaryTypographyProps: v, secondary: P, secondaryTypographyProps: h, slots: y = {}, slotProps: C = {}, ...x } = r, { dense: w } = l.useContext(W);
+    let f = g ?? s, p = P;
+    const S = {
       ...r,
       disableTypography: n,
       inset: i,
       primary: !!f,
       secondary: !!p,
-      dense: I
-    }, u = Fe(k), P = {
+      dense: w
+    }, u = Fe(S), I = {
       slots: y,
       slotProps: {
         primary: v,
-        secondary: C,
-        ...S
+        secondary: h,
+        ...C
       }
-    }, [d, m] = $("root", {
+    }, [d, m] = L("root", {
       className: R(u.root, c),
       elementType: Ve,
       externalForwardedProps: {
-        ...P,
+        ...I,
         ...x
       },
-      ownerState: k,
+      ownerState: S,
       ref: o
-    }), [b, w] = $("primary", {
+    }), [b, k] = L("primary", {
       className: u.primary,
       elementType: z,
-      externalForwardedProps: P,
-      ownerState: k
-    }), [M, B] = $("secondary", {
+      externalForwardedProps: I,
+      ownerState: S
+    }), [T, $] = L("secondary", {
       className: u.secondary,
       elementType: z,
-      externalForwardedProps: P,
-      ownerState: k
+      externalForwardedProps: I,
+      ownerState: S
     });
     return f != null && f.type !== z && !n && (f = a.jsx(b, {
-      variant: I ? "body2" : "body1",
-      component: (w == null ? void 0 : w.variant) ? void 0 : "span",
-      ...w,
+      variant: w ? "body2" : "body1",
+      component: (k == null ? void 0 : k.variant) ? void 0 : "span",
+      ...k,
       children: f
-    })), p != null && p.type !== z && !n && (p = a.jsx(M, {
+    })), p != null && p.type !== z && !n && (p = a.jsx(T, {
       variant: "body2",
       color: "textSecondary",
-      ...B,
+      ...$,
       children: p
     })), a.jsxs(d, {
       ...m,
@@ -1226,22 +1233,22 @@ let __tla = Promise.all([
     const { widget: s, getPropertyValue: c } = l.useContext(lt), n = s.data.oidObject, i = s.data.onlyStates, [g, v] = l.useState(() => {
       const d = c("oid");
       return typeof d == "number" ? d : 0;
-    }), { updateValue: h } = ct("oid"), C = l.useMemo(() => {
-      const d = n == null ? void 0 : n.commonStates, m = n == null ? void 0 : n.type, b = n == null ? void 0 : n.name, w = n == null ? void 0 : n.minValue, M = n == null ? void 0 : n.maxValue;
+    }), { updateValue: P } = ct("oid"), h = l.useMemo(() => {
+      const d = n == null ? void 0 : n.commonStates, m = n == null ? void 0 : n.type, b = n == null ? void 0 : n.name, k = n == null ? void 0 : n.minValue, T = n == null ? void 0 : n.maxValue;
       return {
         commonStates: d,
         oidType: m,
         oidName: b,
-        minValue: w,
-        maxValue: M
+        minValue: k,
+        maxValue: T
       };
     }, [
       n
     ]), y = l.useCallback((d) => {
-      h(d);
+      P(d);
     }, [
-      h
-    ]), S = l.useCallback((d, m) => {
+      P
+    ]), C = l.useCallback((d, m) => {
       const b = Array.isArray(m) ? m[0] : m;
       v(b), y(b);
     }, [
@@ -1250,7 +1257,7 @@ let __tla = Promise.all([
       (m === "backdropClick" || m === "escapeKeyDown") && r();
     }, [
       r
-    ]), I = l.useCallback(() => {
+    ]), w = l.useCallback(() => {
       r();
     }, [
       r
@@ -1261,39 +1268,39 @@ let __tla = Promise.all([
     }, [
       y
     ]), p = l.useMemo(() => {
-      const { oidType: d, commonStates: m, minValue: b, maxValue: w } = C;
-      return d === "number" && !i && b !== void 0 && w !== void 0 ? a.jsx(U, {
+      const { oidType: d, commonStates: m, minValue: b, maxValue: k } = h;
+      return d === "number" && !i && b !== void 0 && k !== void 0 ? a.jsx(U, {
         sx: {
           px: 3
         },
-        children: a.jsx(Xt, {
+        children: a.jsx(qt, {
           sx: {
             pb: m ? 4 : 3
           },
           size: "small",
           min: b,
-          max: w,
+          max: k,
           marks: [
             {
               value: b,
               label: String(b)
             },
             {
-              value: w,
-              label: String(w)
+              value: k,
+              label: String(k)
             }
           ],
           valueLabelDisplay: "auto",
           value: g,
-          onChange: S
+          onChange: C
         })
       }) : null;
     }, [
-      C,
+      h,
       i,
       g,
-      S
-    ]), k = l.useMemo(() => !e || !Object.keys(e).length ? null : a.jsx(Wt, {
+      C
+    ]), S = l.useMemo(() => !e || !Object.keys(e).length ? null : a.jsx(Wt, {
       children: Object.entries(e).map(([d, m]) => a.jsx(We, {
         disablePadding: true,
         children: a.jsx(Re, {
@@ -1309,10 +1316,10 @@ let __tla = Promise.all([
     }), [
       e,
       f
-    ]), u = l.useMemo(() => t.header || C.oidName || "Change Value", [
+    ]), u = l.useMemo(() => t.header || h.oidName || "Change Value", [
       t.header,
-      C.oidName
-    ]), P = l.useMemo(() => e && Object.keys(e).length > 0, [
+      h.oidName
+    ]), I = l.useMemo(() => e && Object.keys(e).length > 0, [
       e
     ]);
     return a.jsxs(ge, {
@@ -1337,26 +1344,26 @@ let __tla = Promise.all([
         }),
         a.jsx(Ft, {
           "aria-label": "close",
-          onClick: I,
+          onClick: w,
           sx: (d) => ({
             position: "absolute",
             right: 8,
             top: 8,
             color: d.palette.grey[500]
           }),
-          children: a.jsx(qt, {})
+          children: a.jsx(Yt, {})
         }),
         a.jsx(he, {
           sx: {
             overflow: "unset"
           },
-          children: a.jsxs(Jt, {
-            divider: P && a.jsx(Vt, {}),
+          children: a.jsxs(Kt, {
+            divider: I && a.jsx(Vt, {}),
             spacing: 0,
             component: tt,
             children: [
               p,
-              k
+              S
             ]
           })
         })
@@ -1364,14 +1371,14 @@ let __tla = Promise.all([
     });
   };
   function Ge() {
-    const e = l.useContext(lt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: s, widgetStates: c } = _t("oid"), { value: n, updateValue: i } = ct("oid"), [g, v] = l.useState(false), h = r == null ? void 0 : r.type, C = t.data.onlyStates, y = Qt(n, t, s), S = y != null ? String(y) : "", x = () => {
+    const e = l.useContext(lt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: s, widgetStates: c } = Jt("oid"), { value: n, updateValue: i } = ct("oid"), [g, v] = l.useState(false), P = r == null ? void 0 : r.type, h = t.data.onlyStates, y = Qt(n, t, s), C = y != null ? String(y) : "", x = () => {
       const u = t.data.value1;
-      C && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
-    }, I = () => {
+      h && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
+    }, w = () => {
       const u = t.data.value2;
-      C && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
+      h && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
     }, f = l.useCallback(() => {
-      if (!C) {
+      if (!h) {
         v(true);
         return;
       }
@@ -1388,7 +1395,7 @@ let __tla = Promise.all([
       }
     }, [
       n,
-      C,
+      h,
       t.data.values_count,
       t.data.statePushButton,
       t.data.value1,
@@ -1398,17 +1405,16 @@ let __tla = Promise.all([
       disabled: t.data.onlyDisplay,
       onClick: f,
       onMouseDown: x,
-      onMouseUp: I,
-      onMouseOut: I,
+      onMouseUp: w,
+      onMouseOut: w,
       onTouchStart: x,
-      onTouchEnd: I,
+      onTouchEnd: w,
       sx: {
         width: "100%",
         height: "100%",
-        color: s.iconColorActive || s.iconColor || s.textColorActive || s.textColor || "primary.main",
+        color: s.iconColor || s.textColor || "primary.main",
         "&:hover": {
-          bgcolor: "transparent",
-          filter: s.iconHoverActive && `brightness(${s.iconHoverActive})` || s.iconHover && `brightness(${s.iconHover})`
+          bgcolor: "transparent"
         }
       },
       children: a.jsxs(U, {
@@ -1420,8 +1426,8 @@ let __tla = Promise.all([
           alignItems: "center"
         },
         children: [
-          !t.data.noIcon && (s.iconActive || s.icon) && (() => {
-            const u = s.iconActive || s.icon, P = s.iconColorActive || s.iconColor || o.palette.primary.main, d = (s.iconActive, s.forceColorMaskActive ?? false), m = Ot(u, P, d);
+          !t.data.noIcon && s.icon && (() => {
+            const u = s.icon, I = s.iconColor || o.palette.primary.main, d = s.forceColorMask, m = _t(u, I, d);
             return a.jsx(U, {
               sx: {
                 display: "flex",
@@ -1444,8 +1450,8 @@ let __tla = Promise.all([
                 },
                 sx: {
                   overflow: "visible",
-                  width: typeof s.iconSizeOnly == "number" && `calc(100% * ${s.iconSizeOnly} / 100)` || "100%",
-                  height: typeof s.iconSizeOnly == "number" && `calc(100% * ${s.iconSizeOnly} / 100)` || "100%",
+                  width: s.iconSizeOnly,
+                  height: s.iconSizeOnly,
                   left: `calc(0px + ${s.iconXOffset})`,
                   top: `calc(0px - ${s.iconYOffset})`
                 }
@@ -1465,13 +1471,13 @@ let __tla = Promise.all([
               component: U,
               variant: "body2",
               sx: {
-                fontSize: s.valueSizeActive || s.valueSize,
+                fontSize: s.valueSize,
                 textAlign: "center",
                 bgcolor: "transparent",
-                background: rt(s.textColorActive || s.textColor),
+                background: rt(s.textColor),
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",
-                color: rt(s.textColorActive || s.textColor) ? "transparent" : s.textColorActive || s.textColor,
+                color: rt(s.textColor) ? "transparent" : s.textColor,
                 textTransform: "none",
                 px: 1,
                 pl: 0,
@@ -1492,13 +1498,18 @@ let __tla = Promise.all([
                 }
               },
               dangerouslySetInnerHTML: {
-                __html: `<div style="text-align: left; display: inline-block;">${S || ""}</div>`
+                __html: `<div style="text-align: left; display: inline-block;">${C || ""}</div>`
               }
             })
           })
         ]
       })
-    }), k = h === "boolean" || h === "number" || h === "string" || h === "mixed";
+    }), S = [
+      "boolean",
+      "number",
+      "string",
+      "mixed"
+    ].includes(P ?? "");
     return a.jsxs(a.Fragment, {
       children: [
         g && a.jsx(Ue, {
@@ -1511,12 +1522,12 @@ let __tla = Promise.all([
           open: g,
           closeHandler: () => v(false)
         }),
-        a.jsxs(Ut, {
-          isValidType: k,
+        a.jsxs(Ot, {
+          isValidType: S,
           data: s,
           oidValue: n,
           children: [
-            a.jsx(Gt, {
+            a.jsx(Ut, {
               data: s,
               widget: t
             }),
@@ -1535,7 +1546,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  ut = class extends zt {
+  ut = class extends Gt {
     static getWidgetInfo() {
       return {
         id: "tplStateCollectionWidget",
@@ -1556,13 +1567,13 @@ let __tla = Promise.all([
             name: "button",
             label: "group_button",
             fields: [
-              ...Et([
+              ...Ht([
                 "string",
                 "number",
                 "boolean",
                 "mixed"
               ]),
-              ...Yt(),
+              ...Et(),
               ...Oe()
             ]
           },
@@ -1622,7 +1633,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Ht(this.wrapContent(a.jsx(Ge, {})), o);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, zt(this.wrapContent(a.jsx(Ge, {})), o);
     }
   };
 });

@@ -1,5 +1,5 @@
 import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { g as J, a as K, S as Q, ab as V, b, s as F, j as C, i as X, e as Y, n as Z, r as ee, __tla as __tla_1 } from "./useData-DSoqoXK9.js";
+import { g as J, a as K, S as Q, a8 as V, b as C, s as F, j as b, i as X, e as Y, n as Z, r as ee, __tla as __tla_1 } from "./useData-ySXy5KMl.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -123,7 +123,7 @@ let __tla = Promise.all([
         input: _,
         ...L
       }
-    }, [$, A] = b("root", {
+    }, [$, A] = C("root", {
       ref: l,
       elementType: se,
       className: B.root,
@@ -152,7 +152,7 @@ let __tla = Promise.all([
         role: void 0,
         tabIndex: null
       }
-    }), [D, G] = b("input", {
+    }), [D, G] = C("input", {
       ref: I,
       elementType: ae,
       className: B.input,
@@ -180,10 +180,10 @@ let __tla = Promise.all([
         }
       }
     });
-    return C.jsxs($, {
+    return b.jsxs($, {
       ...A,
       children: [
-        C.jsx(D, {
+        b.jsx(D, {
           ...G
         }),
         w ? c : x
