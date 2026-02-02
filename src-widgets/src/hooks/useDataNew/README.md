@@ -91,6 +91,19 @@ function SliderWidget() {
 
 ## Architecture
 
+### Architecture Update (v2.2.2)
+
+The `getStyleData()` function has been extracted as a separate `useMemo` hook for improved code organization:
+
+- **baseStyleData**: Memoized StyleData with `includeActive: true`, depends on `[propertyResolvers]`
+- **data**: Active state detection logic, depends on `[oidObject, oidValue, states, baseStyleData]`
+
+This separation improves:
+
+- Code readability by isolating style computation from state detection
+- Potential performance optimization through granular memoization
+- Maintainability by reducing the complexity of the `data` useMemo
+
 ### Module Structure
 
 The hook is organized into modular files for maintainability:

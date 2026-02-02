@@ -187,82 +187,19 @@ function useDataNew(_oid: string): UseDataResult {
         ],
     );
 
-    // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
+    // ============= PHASE 6.5: Style Data Resolver =============
 
-    const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-        const states: StateItem[] = [];
-        const widgetStates: Record<string, string> = {};
-        let minValue: number | null = null;
-        let maxValue: number | null = null;
-
-        const oidType = oidObject?.type;
-        const commonStates = oidObject?.commonStates || {};
-        const commonStatesEntries = Object.entries(commonStates);
-
-        if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
-            for (let i = 1; i <= rxData.values_count; i++) {
-                const _value = rxData[`value${i}`];
-                const _alias = rxData[`alias${i}`];
-                const _unit = oidObject?.unit;
-
-                if (_value !== undefined && _value !== null && /\S/.test(String(_value))) {
-                    const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
-
-                    // Convert value to correct type based on oidType
-                    const convertedValue = commonStateEntry
-                        ? oidType === 'number'
-                            ? Number(commonStateEntry[0])
-                            : String(commonStateEntry[0])
-                        : oidType === 'number'
-                          ? Number(_value)
-                          : _value;
-
-                    // Build state item using the resolver
-                    const stateItem = buildStateItem({
-                        value: convertedValue,
-                        rawValue: _value,
-                        index: i,
-                        rxData: rxData as Record<string, any>,
-                        oidObject: oidObject as any,
-                        oidValue,
-                        widgetResolver,
-                        formatSize,
-                        getDynamicProperty: getDataValue,
-                        backgroundStyles,
-                        theme,
-                    });
-
-                    states.push(stateItem);
-
-                    // Map state value to label for widget-specific use
-                    const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
-                    widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
-                }
-            }
-
-            // Calculate min/max for numeric types
-            if (oidType === 'number' && states.length) {
-                const numericValues = states
-                    .map(state => (typeof state.value === 'number' ? state.value : NaN))
-                    .filter(val => !isNaN(val));
-                if (numericValues.length > 0) {
-                    minValue = Math.min(...numericValues);
-                    maxValue = Math.max(...numericValues);
-                }
-            }
-        }
-
-        return { states, widgetStates, minValue, maxValue };
-    }, [oidObject, rxData, theme, backgroundStyles, getDataValue, oidValue, formatSize, widgetResolver]);
-
-    // ============= PHASE 7: StyleData Computation (Analog to useData lines 469-590) =============
-
-    const data = useMemo(() => {
-        /**
-         * Helper function to resolve StyleData properties.
-         * Uses property resolvers for declarative fallback chains.
-         */
-        const getStyleData = (ext: string | number = '', includeActive: boolean = false): StyleData => ({
+    /**
+     * Memoized function to compute StyleData with given extension and active flag.
+     * Used by baseStyleData and data useMemos to resolve style properties.
+     *
+     * @param ext - Extension (empty string for base, numeric index for state-specific)
+     * @param includeActive - Whether to include active state properties
+     * @returns Resolved StyleData object
+     * @since 2.2.2
+     */
+    const getStyleData = useCallback(
+        (ext: string | number = '', includeActive: boolean = false): StyleData => ({
             // Icon properties
             // fixed
             icon: propertyResolvers.icon(ext, includeActive),
@@ -383,10 +320,100 @@ function useDataNew(_oid: string): UseDataResult {
             frameBackground: propertyResolvers.frameBackground(ext, includeActive),
 
             frameBackgroundActive: propertyResolvers.frameBackgroundActive(ext, includeActive),
-        });
+        }),
+        [propertyResolvers],
+    );
 
-        // ============= PHASE 8: Active State Detection =============
+    // ============= PHASE 6.6: Base StyleData Computation =============
 
+    /**
+     * Computes base StyleData with active properties included.
+     * Uses memoized getStyleData callback for consistent style resolution.
+     *
+     * @since 2.2.2
+     */
+    const baseStyleData = useMemo(() => {
+        return getStyleData('', true);
+    }, [getStyleData]);
+
+    // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
+
+    const { states, widgetStates, minValue, maxValue } = useMemo(() => {
+        const states: StateItem[] = [];
+        const widgetStates: Record<string, string> = {};
+        let minValue: number | null = null;
+        let maxValue: number | null = null;
+
+        const oidType = oidObject?.type;
+        const commonStates = oidObject?.commonStates || {};
+        const commonStatesEntries = Object.entries(commonStates);
+
+        if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
+            for (let i = 1; i <= rxData.values_count; i++) {
+                const _value = rxData[`value${i}`];
+                const _alias = rxData[`alias${i}`];
+                const _unit = oidObject?.unit;
+
+                if (_value !== undefined && _value !== null && /\S/.test(String(_value))) {
+                    const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
+
+                    // Convert value to correct type based on oidType
+                    const convertedValue = commonStateEntry
+                        ? oidType === 'number'
+                            ? Number(commonStateEntry[0])
+                            : String(commonStateEntry[0])
+                        : oidType === 'number'
+                          ? Number(_value)
+                          : _value;
+
+                    // Build state item using the resolver
+                    const stateItem = buildStateItem({
+                        value: convertedValue,
+                        rawValue: _value,
+                        index: i,
+                        rxData: rxData as Record<string, any>,
+                        oidObject: oidObject as any,
+                        oidValue,
+                        widgetResolver,
+                        formatSize,
+                        getDynamicProperty: getDataValue,
+                        backgroundStyles,
+                        theme,
+                    });
+
+                    states.push(stateItem);
+
+                    // Map state value to label for widget-specific use
+                    const key = commonStateEntry ? String(commonStateEntry[0]) : String(_value);
+                    widgetStates[key] = _alias && String(_alias).trim() !== '' ? _alias : `${_value}${_unit}`;
+                }
+            }
+
+            // Calculate min/max for numeric types
+            if (oidType === 'number' && states.length) {
+                const numericValues = states
+                    .map(state => (typeof state.value === 'number' ? state.value : NaN))
+                    .filter(val => !isNaN(val));
+                if (numericValues.length > 0) {
+                    minValue = Math.min(...numericValues);
+                    maxValue = Math.max(...numericValues);
+                }
+            }
+        }
+
+        return { states, widgetStates, minValue, maxValue };
+    }, [oidObject, rxData, theme, backgroundStyles, getDataValue, oidValue, formatSize, widgetResolver]);
+
+    // ============= PHASE 7: Active State Detection and Data Resolution =============
+
+    /**
+     * Detects active state and returns appropriate StyleData.
+     * Uses baseStyleData as foundation, applying state-specific overrides via getStyleData
+     * when an active state is matched.
+     *
+     * @since 2.2.2
+     */
+    const data = useMemo(() => {
         const oidType = oidObject?.type;
 
         switch (oidType) {
@@ -398,16 +425,17 @@ function useDataNew(_oid: string): UseDataResult {
 
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);
-                    return getStyleData(String(_activeIndex + 1), true);
+                    // Apply state-specific styles with active properties
+                    return getStyleData(_activeIndex + 1, true);
                 }
 
                 setActiveIndex(undefined);
-                return getStyleData('', false);
+                return baseStyleData;
             }
             default:
-                return getStyleData('', false);
+                return baseStyleData;
         }
-    }, [oidObject, oidValue, states, propertyResolvers]);
+    }, [oidObject, oidValue, states, baseStyleData, getStyleData]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
