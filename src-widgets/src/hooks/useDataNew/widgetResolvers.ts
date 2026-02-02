@@ -134,7 +134,7 @@ export function buildStateItem(params: {
     oidObject: OidObject;
     oidValue: ioBroker.StateValue;
     widgetResolver: SliderProperties | Record<string, never>;
-    formatSize: (size: number | string | undefined) => string | null;
+    formatSize: (size: number | string | undefined) => string | undefined;
     getDynamicProperty: <K>(key: string, ext: string) => K | undefined;
     backgroundStyles: WidgetStyleState | undefined;
     theme: Theme;
@@ -171,7 +171,7 @@ export function buildStateItem(params: {
         value: _value,
 
         valueSize:
-            typeof getDataValue('valueSize', String(index)) === 'number'
+            typeof getDataValue<string>('valueSize', String(index)) === 'number'
                 ? formatSize(getDataValue<number>('valueSize', String(index)))
                 : null,
 

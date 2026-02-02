@@ -675,6 +675,7 @@ function useDataNew(_oid: string): UseDataResult {
         activeIndex,
         setActiveIndex,
         oidValue,
+        statesNew: [], // TODO: Implement getStateStyleData() and populate statesNew with resolved properties
     };
 }
 

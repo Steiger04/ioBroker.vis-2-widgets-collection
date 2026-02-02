@@ -107,7 +107,7 @@ export interface StyleData {
  */
 export interface StateItem {
     value: string | number | boolean;
-    valueSize: string | null;
+    valueSize: string | null | undefined;
     label: string;
     alias: string;
     fontSize?: string | null;
@@ -231,6 +231,121 @@ export interface SliderProperties {
 }
 
 /**
+ * Type-safe resolver functions for all widget properties.
+ *
+ * Each resolver function accepts an extension (state index) and includeActive flag,
+ * returning the resolved property value with proper fallback chain logic.
+ *
+ * @remarks
+ * Defines 46 resolver functions across 5 categories: Icon Properties (23),
+ * Text Properties (3), Size Properties (6), Content Properties (4),
+ * Background Properties (8), and Slider Properties (4).
+ * @since 2.2.0
+ */
+export interface PropertyResolvers {
+    // Icon Properties (23 resolvers)
+    icon: (ext: string | number, includeActive: boolean) => string;
+    iconActive: (ext: string | number, includeActive: boolean) => string;
+    iconSize: (ext: string | number, includeActive: boolean) => string;
+    iconSizeActive: (ext: string | number, includeActive: boolean) => string;
+    iconSizeCm: (ext: string | number, includeActive: boolean) => string;
+    iconSizeOnly: (ext: string | number, includeActive: boolean) => string;
+    iconSizeActiveOnly: (ext: string | number, includeActive: boolean) => number | undefined;
+    iconWidth: (ext: string | number, includeActive: boolean) => number;
+    iconHeight: (ext: string | number, includeActive: boolean) => number;
+    iconColor: (ext: string | number, includeActive: boolean) => string;
+    iconColorActive: (ext: string | number, includeActive: boolean) => string;
+    iconXOffset: (ext: string | number, includeActive: boolean) => string;
+    iconXOffsetActive: (ext: string | number, includeActive: boolean) => string;
+    iconXOffsetCm: (ext: string | number, includeActive: boolean) => string;
+    iconYOffset: (ext: string | number, includeActive: boolean) => string;
+    iconYOffsetActive: (ext: string | number, includeActive: boolean) => string;
+    iconYOffsetCm: (ext: string | number, includeActive: boolean) => string;
+    forceColorMask: (ext: string | number, includeActive: boolean) => boolean;
+    forceColorMaskActive: (ext: string | number, includeActive: boolean) => boolean;
+    forceColorMaskCm: (ext: string | number, includeActive: boolean) => boolean;
+    iconHover: (ext: string | number, includeActive: boolean) => string | undefined;
+    iconHoverActive: (ext: string | number, includeActive: boolean) => string | undefined;
+
+    // Text Properties (3 resolvers)
+    textColor: (ext: string | number, includeActive: boolean) => string;
+    textColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
+    textColorCm: (ext: string | number, includeActive: boolean) => string;
+
+    // Size Properties (6 resolvers)
+    fontSize: (ext: string | number, includeActive: boolean) => string | null;
+    headerSize: (ext: string | number, includeActive: boolean) => string | null;
+    footerSize: (ext: string | number, includeActive: boolean) => string | null;
+    valueSize: (ext: string | number, includeActive: boolean) => string | null;
+    valueSizeActive: (ext: string | number, includeActive: boolean) => string | null;
+
+    // Content Properties (4 resolvers)
+    header: (ext: string | number, includeActive: boolean) => string;
+    footer: (ext: string | number, includeActive: boolean) => string;
+    alias: (ext: string | number, includeActive: boolean) => string;
+    value: (ext: string | number, includeActive: boolean) => string | undefined;
+
+    // Background Properties (8 resolvers)
+    backgroundColor: (ext: string | number, includeActive: boolean) => string;
+    backgroundColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
+    background: (ext: string | number, includeActive: boolean) => string;
+    backgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
+    frameBackgroundColor: (ext: string | number, includeActive: boolean) => string;
+    frameBackgroundColorActive: (ext: string | number, includeActive: boolean) => string | undefined;
+    frameBackground: (ext: string | number, includeActive: boolean) => string;
+    frameBackgroundActive: (ext: string | number, includeActive: boolean) => string | undefined;
+
+    // Slider Properties (4 resolvers)
+    markerIconSize: (ext: string | number, includeActive: boolean) => number | undefined;
+    markerTextColor: (ext: string | number, includeActive: boolean) => string | undefined;
+    markerTextSize: (ext: string | number, includeActive: boolean) => number | undefined;
+    markerIconColor: (ext: string | number, includeActive: boolean) => string | undefined;
+}
+
+/**
+ * Style data for individual state items without active-state overrides.
+ *
+ * Subset of StyleData excluding *Active suffix properties (except background-related).
+ * Used by getStateStyleData() to build independent state items.
+ *
+ * @remarks
+ * Excluded properties: iconActive, iconSizeActive, textColorActive, iconColorActive,
+ * iconXOffsetActive, iconYOffsetActive, forceColorMaskActive, iconHoverActive,
+ * valueSizeActive, iconSizeCm, iconSizeOnly, iconSizeActiveOnly, forceColorMaskCm,
+ * textColorCm, iconXOffsetCm, iconYOffsetCm
+ * @since 2.2.0
+ */
+export interface StateStyleData {
+    // Content Properties
+    alias: string;
+    value?: string;
+
+    // Size Properties
+    fontSize?: string | null;
+    valueSize: string | null;
+
+    // Text Properties
+    textColor?: string;
+
+    // Icon Properties
+    icon: string;
+    iconSize: string;
+    iconWidth: number;
+    iconHeight: number;
+    iconXOffset: string;
+    iconYOffset: string;
+    iconColor: string;
+    iconHover?: string;
+    forceColorMask?: boolean;
+
+    // Background Properties
+    backgroundColor: string;
+    background: string;
+    frameBackgroundColor: string;
+    frameBackground: string;
+}
+
+/**
  * Return type for useDataNew hook.
  * Matches the return type structure of useData for API compatibility.
  */
@@ -258,6 +373,9 @@ export interface UseDataResult {
 
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;
+
+    /** Array of state items with independent property resolution */
+    statesNew: StateItem[];
 }
 
 // Re-exports
