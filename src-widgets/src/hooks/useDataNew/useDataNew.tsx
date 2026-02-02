@@ -52,7 +52,7 @@ import type { OidObject } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
-import type { UseDataResult, SliderProperties, StyleData, StateItem } from './types';
+import type { UseDataResult, SliderProperties, StyleData, StateStyleData, StateItem } from './types';
 import type { SliderFieldsRxData } from '../../types/field-definitions';
 
 /**
@@ -324,6 +324,47 @@ function useDataNew(_oid: string): UseDataResult {
         [propertyResolvers],
     );
 
+    /**
+     * Resolves StateStyleData properties for a given index and active state.
+     * Returns only base properties without *Active suffix variants.
+     *
+     * @returns Function that accepts (index, isActive) and returns StateStyleData
+     * @since 2.2.2
+     */
+    const getStateStyleData = useMemo(
+        () =>
+            (index: number, isActive: boolean): StateStyleData => ({
+                // Content Properties
+                alias: propertyResolvers.alias(index, isActive),
+                value: propertyResolvers.value(index, isActive),
+
+                // Size Properties
+                fontSize: propertyResolvers.fontSize(index, isActive),
+                valueSize: propertyResolvers.valueSize(index, isActive),
+
+                // Text Properties
+                textColor: propertyResolvers.textColor(index, isActive),
+
+                // Icon Properties
+                icon: propertyResolvers.icon(index, isActive),
+                iconSize: propertyResolvers.iconSize(index, isActive),
+                iconWidth: propertyResolvers.iconWidth(index, isActive),
+                iconHeight: propertyResolvers.iconHeight(index, isActive),
+                iconXOffset: propertyResolvers.iconXOffset(index, isActive),
+                iconYOffset: propertyResolvers.iconYOffset(index, isActive),
+                iconColor: propertyResolvers.iconColor(index, isActive),
+                iconHover: propertyResolvers.iconHover(index, isActive),
+                forceColorMask: propertyResolvers.forceColorMask(index, isActive),
+
+                // Background Properties
+                backgroundColor: propertyResolvers.backgroundColor(index, isActive),
+                background: propertyResolvers.background(index, isActive),
+                frameBackgroundColor: propertyResolvers.frameBackgroundColor(index, isActive),
+                frameBackground: propertyResolvers.frameBackground(index, isActive),
+            }),
+        [propertyResolvers],
+    );
+
     // ============= PHASE 6.6: Base StyleData Computation =============
 
     /**
@@ -448,7 +489,8 @@ function useDataNew(_oid: string): UseDataResult {
         activeIndex,
         setActiveIndex,
         oidValue,
-        statesNew: [], // TODO: Implement getStateStyleData() and populate statesNew with resolved properties
+        getStateStyleData,
+        statesNew: [], // TODO: Populate statesNew with resolved properties using getStateStyleData
     };
 }
 

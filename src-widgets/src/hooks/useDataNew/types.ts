@@ -374,6 +374,9 @@ export interface UseDataResult {
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;
 
+    /** Function to resolve StateStyleData for a given index and active state */
+    getStateStyleData: (index: number, isActive: boolean) => StateStyleData;
+
     /** Array of state items with independent property resolution */
     statesNew: StateItem[];
 }
