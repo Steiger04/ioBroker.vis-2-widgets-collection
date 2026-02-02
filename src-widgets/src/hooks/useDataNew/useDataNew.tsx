@@ -365,18 +365,6 @@ function useDataNew(_oid: string): UseDataResult {
         [propertyResolvers],
     );
 
-    // ============= PHASE 6.6: Base StyleData Computation =============
-
-    /**
-     * Computes base StyleData with active properties included.
-     * Uses memoized getStyleData callback for consistent style resolution.
-     *
-     * @since 2.2.2
-     */
-    const baseStyleData = useMemo(() => {
-        return getStyleData('', true);
-    }, [getStyleData]);
-
     // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
 
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
@@ -449,8 +437,8 @@ function useDataNew(_oid: string): UseDataResult {
 
     /**
      * Detects active state and returns appropriate StyleData.
-     * Uses baseStyleData as foundation, applying state-specific overrides via getStyleData
-     * when an active state is matched.
+     * Applies state-specific overrides via getStyleData when an active state is matched.
+     * Falls back to default state properties when no match is found.
      *
      * @since 2.2.2
      */
@@ -471,12 +459,84 @@ function useDataNew(_oid: string): UseDataResult {
                 }
 
                 setActiveIndex(undefined);
-                return baseStyleData;
+                // Default to base state properties with active properties included
+                return getStyleData('', true);
             }
             default:
-                return baseStyleData;
+                return getStyleData('', true);
         }
-    }, [oidObject, oidValue, states, baseStyleData, getStyleData]);
+    }, [oidObject, oidValue, states, getStyleData]);
+
+    // ============= PHASE 8: statesNew Computation =============
+
+    /**
+     * Computes statesNew array with independent property resolution per state.
+     * Each state item receives resolved properties via getStateStyleData().
+     *
+     * @since 2.2.2
+     */
+    const statesNew = useMemo(() => {
+        const result: StateItem[] = [];
+        const oidType = oidObject?.type;
+        const commonStates = oidObject?.commonStates || {};
+        const commonStatesEntries = Object.entries(commonStates);
+
+        if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
+            for (let i = 1; i <= rxData.values_count; i++) {
+                const _value = rxData[`value${i}`];
+
+                if (_value === undefined || _value === null || !/\S/.test(String(_value))) {
+                    continue;
+                }
+
+                const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
+
+                // Type conversion (analog to states useMemo Lines 402-408)
+                const convertedValue = commonStateEntry
+                    ? oidType === 'number'
+                        ? Number(commonStateEntry[0])
+                        : String(commonStateEntry[0])
+                    : oidType === 'number'
+                      ? Number(_value)
+                      : _value;
+
+                // Calculate isActive for this state
+                const isActive = String(oidValue) === String(convertedValue);
+
+                // Get style data via getStateStyleData
+                const styleData = getStateStyleData(i, isActive);
+
+                // Map to StateItem interface
+                result.push({
+                    value: convertedValue,
+                    label: styleData.alias,
+                    alias: styleData.alias,
+                    fontSize: styleData.fontSize,
+                    textColor: styleData.textColor,
+                    icon: styleData.icon,
+                    iconSize: styleData.iconSize ? parseInt(styleData.iconSize) || undefined : undefined,
+                    iconWidth: styleData.iconWidth,
+                    iconHeight: styleData.iconHeight,
+                    iconXOffset: styleData.iconXOffset,
+                    iconYOffset: styleData.iconYOffset,
+                    iconColor: styleData.iconColor,
+                    iconHover: styleData.iconHover,
+                    forceColorMask: styleData.forceColorMask,
+                    valueSize: styleData.valueSize,
+                    backgroundColor: styleData.backgroundColor,
+                    backgroundColorActive: propertyResolvers.backgroundColorActive(i, isActive),
+                    background: styleData.background,
+                    backgroundActive: propertyResolvers.backgroundActive(i, isActive),
+                    frameBackgroundColor: styleData.frameBackgroundColor,
+                    frameBackgroundColorActive: propertyResolvers.frameBackgroundColorActive(i, isActive),
+                    frameBackground: styleData.frameBackground,
+                    frameBackgroundActive: propertyResolvers.frameBackgroundActive(i, isActive),
+                });
+            }
+        }
+
+        return result;
+    }, [rxData, oidObject, oidValue, getStateStyleData, propertyResolvers]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
@@ -489,8 +549,7 @@ function useDataNew(_oid: string): UseDataResult {
         activeIndex,
         setActiveIndex,
         oidValue,
-        getStateStyleData,
-        statesNew: [], // TODO: Populate statesNew with resolved properties using getStateStyleData
+        statesNew,
     };
 }
 

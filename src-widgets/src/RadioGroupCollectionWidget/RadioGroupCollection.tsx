@@ -32,8 +32,13 @@ function RadioGroupCollection(): React.ReactElement {
             data: { oidObject },
         },
         widget,
+        theme,
     } = context;
-    const { data, states } = useDataNew('oid');
+    const { data, states, statesNew } = useDataNew('oid');
+
+    console.log('statesNew:', statesNew);
+    console.log('states:', states);
+
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
     const oidType = oidObject?.type;
@@ -69,7 +74,7 @@ function RadioGroupCollection(): React.ReactElement {
                     alignItems: isHorizontal ? 'center' : 'stretch',
                 }}
             >
-                {states.map(({ value, label: alias, ...state }, index) => {
+                {statesNew.map(({ value, label: alias, ...state }, index) => {
                     const textColorValue = state.textColor || data.textColor;
                     const gradient = gradientColor(textColorValue);
 
@@ -171,7 +176,7 @@ function RadioGroupCollection(): React.ReactElement {
                                                             width: `calc(${data.iconSizeOnly} * 0.5)`,
                                                             ...getIconColorStyles(
                                                                 state.icon,
-                                                                state.iconColor,
+                                                                state.iconColor || theme.palette.primary.main,
                                                                 state.forceColorMask,
                                                             ),
                                                         }}
