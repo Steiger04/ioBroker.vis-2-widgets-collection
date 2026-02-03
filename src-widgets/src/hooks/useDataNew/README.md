@@ -2,7 +2,7 @@
 
 ## Overview
 
-`useDataNew` is an improved data computation hook for collection widgets in the ioBroker vis-2-widgets-collection adapter. It provides declarative priority resolution for widget properties with full API compatibility with the legacy `useData` hook.
+`useDataNew` is an improved data computation hook for collection widgets in the ioBroker vis-2-widgets-collection adapter. It provides declarative priority resolution for widget properties with full API compatibility with the legacy `useData` hook, plus the `statesNew` array for per-state, active-aware style resolution.
 
 ## Features
 
@@ -21,13 +21,14 @@
 import useDataNew from '../hooks/useDataNew/useDataNew';
 
 function MyWidget() {
-    const { states, data, activeIndex } = useDataNew('oid');
+    const { states, statesNew, data, activeIndex } = useDataNew('oid');
 
     return (
         <div>
             <h2>{data.header}</h2>
             <p>Current Value: {data.value}</p>
             <p>Active Index: {activeIndex}</p>
+            <p>First State Background: {statesNew[0]?.backgroundColor}</p>
         </div>
     );
 }
@@ -42,7 +43,7 @@ import useDataNew from '../hooks/useDataNew/useDataNew';
 
 function StateCollectionWidget() {
     const context = useContext(StateCollectionContext);
-    const { states, data, activeIndex } = useDataNew('oid');
+    const { states, statesNew, data, activeIndex } = useDataNew('oid');
 
     return (
         <div>
@@ -53,12 +54,12 @@ function StateCollectionWidget() {
                     style={{
                         backgroundColor:
                             activeIndex === index + 1
-                                ? state.backgroundActive
-                                : state.backgroundColor,
+                                ? statesNew[index]?.backgroundActive
+                                : statesNew[index]?.backgroundColor,
                     }}
                 >
                     {state.icon && <img src={state.icon} />}
-                    {state.text}
+                    {statesNew[index]?.alias}
                 </button>
             ))}
         </div>
@@ -72,16 +73,16 @@ function StateCollectionWidget() {
 import useDataNew from '../hooks/useDataNew/useDataNew';
 
 function SliderWidget() {
-    const { states, data, activeIndex, minValue, maxValue } = useDataNew('oid');
+    const { states, statesNew, data, activeIndex, minValue, maxValue } = useDataNew('oid');
 
     return (
         <Slider
             min={minValue}
             max={maxValue}
             value={activeIndex}
-            marks={states.map((state, i) => ({
+            marks={statesNew.map((state, i) => ({
                 value: i + 1,
-                label: state.text,
+                label: state.alias,
                 icon: state.icon,
             }))}
         />
@@ -184,6 +185,9 @@ function useDataNew(
 interface UseDataResult {
     /** Array of state items with resolved properties */
     states: StateItem[];
+
+    /** Array of per-state resolved properties with active-aware styles */
+    statesNew: StateItem[];
 
     /** Computed widget-level style data */
     data: StyleData;
@@ -307,14 +311,31 @@ import useDataNew from '../hooks/useDataNew/useDataNew';
 import useData from '../hooks/useDataNew/useDataNew';
 ```
 
-### Step 2: Verify Widget Functionality
+### Step 2: Adopt `statesNew` (Recommended)
+
+`statesNew` provides per-state style resolution with active-aware properties and should be used for UI rendering.
+
+**Before (legacy):**
+```typescript
+const { states } = useDataNew('oid');
+const label = states[0]?.text;
+```
+
+**After (recommended):**
+```typescript
+const { statesNew } = useDataNew('oid');
+const label = statesNew[0]?.alias;
+const background = statesNew[0]?.backgroundColor;
+```
+
+### Step 3: Verify Widget Functionality
 
 1. **No code changes required** - API is fully compatible
 2. **Test widget rendering** in vis-2 editor
 3. **Verify state updates** work correctly
 4. **Check active state detection** matches expected behavior
 
-### Step 3: Update Type Imports (if needed)
+### Step 4: Update Type Imports (if needed)
 
 If your widget explicitly imports types from `useData.ts`:
 
@@ -330,7 +351,7 @@ import type { StateItem, StyleData } from '../hooks/useDataNew/types';
 import type { StateItem, StyleData } from '../hooks/useDataNew/useDataNew';
 ```
 
-### Step 4: Integration Testing
+### Step 5: Integration Testing
 
 See [ROLLOUT_PLAN.md](./ROLLOUT_PLAN.md) for detailed testing procedures.
 

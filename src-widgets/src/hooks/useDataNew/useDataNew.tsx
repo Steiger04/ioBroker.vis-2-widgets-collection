@@ -66,6 +66,7 @@ import type { SliderFieldsRxData } from '../../types/field-definitions';
  * @param _oid - OID property name from rxData (e.g. "oid", "oid1", "oid_slider")
  * @returns UseDataResult containing:
  *   - states: Array of StateItem objects with resolved properties for each state
+ *   - statesNew: Array of StateItem objects resolved per state with active-aware styles
  *   - data: StyleData object with widget-level properties (header, footer, icon, etc.)
  *   - activeIndex: 1-based index of currently active state (null if no match)
  *   - oidValue: Current value from ioBroker state
@@ -78,7 +79,7 @@ import type { SliderFieldsRxData } from '../../types/field-definitions';
  * @example
  * ```typescript
  * // Drop-in replacement for useData() in existing widgets
- * const { states, data, activeIndex, minValue, maxValue } = useDataNew('oid');
+ * const { states, statesNew, data, activeIndex, minValue, maxValue } = useDataNew('oid');
  *
  * // Access computed style data for current state
  * const { header, icon, backgroundColor } = data;
@@ -86,6 +87,11 @@ import type { SliderFieldsRxData } from '../../types/field-definitions';
  * // Iterate over states to render buttons
  * states.forEach((state, index) => {
  *   console.log(`State ${index + 1}:`, state.text, state.value);
+ * });
+ *
+ * // Access per-state resolved styles with active-aware values
+ * statesNew.forEach((state, index) => {
+ *   console.log(`State ${index + 1}:`, state.alias, state.backgroundColor);
  * });
  * ```
  * @example
@@ -158,6 +164,7 @@ function useDataNew(_oid: string): UseDataResult {
         return createDefaultResolver(rxData);
     }, [rxData]);
 
+    // PHASE 5.5: Property Resolvers Creation
     const propertyResolvers = useMemo(
         () =>
             createPropertyResolvers({
@@ -188,6 +195,8 @@ function useDataNew(_oid: string): UseDataResult {
     );
 
     // ============= PHASE 6.5: Style Data Resolver =============
+
+    // PHASE 6.5: Centralized style resolver for widget-level data.
 
     /**
      * Memoized function to compute StyleData with given extension and active flag.
@@ -325,12 +334,14 @@ function useDataNew(_oid: string): UseDataResult {
     );
 
     /**
-     * Resolves StateStyleData properties for a given index and active state.
-     * Returns only base properties without *Active suffix variants.
+     * Resolves StateStyleData for a specific state index.
      *
-     * @returns Function that accepts (index, isActive) and returns StateStyleData
+     * @param index - 1-based state index
+     * @param isActive - Whether the state is currently active
+     * @returns StateStyleData with active-aware fallbacks applied
      * @since 2.2.2
      */
+    // PHASE 6.6: State-level style resolver for per-state computation.
     const getStateStyleData = useMemo(
         () =>
             (index: number, isActive: boolean): StateStyleData => ({
@@ -475,6 +486,7 @@ function useDataNew(_oid: string): UseDataResult {
      *
      * @since 2.2.2
      */
+    // PHASE 7.5: Independent per-state resolution using active-aware styles.
     const statesNew = useMemo(() => {
         const result: StateItem[] = [];
         const oidType = oidObject?.type;

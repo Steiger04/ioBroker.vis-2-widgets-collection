@@ -171,9 +171,9 @@ function RadioGroupCollection(): React.ReactElement {
                                                         src={state.icon}
                                                         style={{
                                                             position: 'relative',
-                                                            left: `calc(0px + ${data.iconXOffset})`,
-                                                            top: `calc(0px - ${data.iconYOffset})`,
-                                                            width: `calc(${data.iconSizeOnly} * 0.5)`,
+                                                            left: `calc(0px + ${state.iconXOffset})`,
+                                                            top: `calc(0px - ${state.iconYOffset})`,
+                                                            width: `calc(${data.iconSizeOnly} * 0.5)`, // noch aud state.iconSizeOnly umstellen
                                                             ...getIconColorStyles(
                                                                 state.icon,
                                                                 state.iconColor || theme.palette.primary.main,

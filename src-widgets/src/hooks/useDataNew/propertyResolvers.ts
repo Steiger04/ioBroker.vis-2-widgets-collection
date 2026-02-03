@@ -31,8 +31,12 @@ interface CreatePropertyResolversParams {
 /**
  * Creates resolver functions for all widget properties.
  *
- * Each resolver accepts a state extension and includeActive flag to
+ * Each resolver accepts a state extension and an `includeActive` flag to
  * control whether active-state values participate in the fallback chain.
+ *
+ * @param params - Resolver dependencies derived from widget context and rxData
+ * @returns PropertyResolvers with normalized fallback behavior across all properties
+ * @since 2.2.2
  */
 export function createPropertyResolvers(params: CreatePropertyResolversParams): PropertyResolvers {
     const {

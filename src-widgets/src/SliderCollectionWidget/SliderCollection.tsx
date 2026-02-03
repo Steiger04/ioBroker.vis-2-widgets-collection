@@ -8,7 +8,7 @@ import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
@@ -136,7 +136,12 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, states, minValue, maxValue, activeIndex } = useData('oid');
+    const { data, statesNew, states, minValue, maxValue, activeIndex } = useDataNew('oid');
+
+    console.log('SliderCollection data:', data);
+    console.log('SliderCollection states:', states);
+    console.log('SliderCollection statesNew:', statesNew);
+
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
     const [sliderValue, setSliderValue] = useState<number | undefined>(
@@ -190,7 +195,7 @@ const SliderCollection: FC = () => {
     );
 
     const sliderMarks = useMemo(() => {
-        const marks = states.map(state => ({
+        const marks = statesNew.map(state => ({
             value: Number(state.value),
             label: state.label,
             fontSize: state.fontSize,
@@ -257,7 +262,7 @@ const SliderCollection: FC = () => {
         }
 
         return marks.sort((a, b) => a.value - b.value);
-    }, [states, widget.data.onlyStates, widget.data.markStep, sliderMinValue, sliderMaxValue, oidObject?.unit]);
+    }, [statesNew, widget.data.onlyStates, widget.data.markStep, sliderMinValue, sliderMaxValue, oidObject?.unit]);
 
     useEffect(() => {
         if (sliderValue === undefined && typeof oidValue === 'number') {

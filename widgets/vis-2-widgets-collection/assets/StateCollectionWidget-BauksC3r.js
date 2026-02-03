@@ -6,7 +6,7 @@ import { C as Yt, __tla as __tla_4 } from "./Close-BufaOXnk.js";
 import { S as qt, __tla as __tla_5 } from "./Slider-wfRCoRM3.js";
 import { g as Xt, l as J, __tla as __tla_6 } from "./listItemTextClasses-YJ66dX8c.js";
 import { S as Kt, __tla as __tla_7 } from "./Stack-Bu2YdDZA.js";
-import { u as Jt, __tla as __tla_8 } from "./useDataNew-D8SyzcSc.js";
+import { u as Jt, __tla as __tla_8 } from "./useDataNew-BhEzyQPL.js";
 import { u as Qt, __tla as __tla_9 } from "./useHtmlValue-Dcwl_hqT.js";
 import { B as Zt, __tla as __tla_10 } from "./Button-CX3LhAZh.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";

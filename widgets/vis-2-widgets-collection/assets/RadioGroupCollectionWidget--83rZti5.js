@@ -1,14 +1,14 @@
-import { c as w, j as o, s as R, r as D, m as T, a as J, g as K, u as X, a8 as Y, a9 as Z, b as Q, d as ee, i as k, e as te, o as G, a0 as W, C as S, K as oe, a6 as ae, v as ie, A as ne, E as se, z as le, T as re, w as z, y as de, G as ce, H as U, J as pe, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
+import { c as S, j as o, s as w, r as D, m as N, a as J, g as K, u as X, a8 as Y, a9 as Z, b as Q, d as ee, i as y, e as te, o as G, a0 as W, C as v, K as oe, a6 as ae, v as ie, A as ne, E as se, z as le, T as re, w as M, y as de, G as ce, H as U, J as pe, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
 import { c as ue, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
 import { u as he, d as me, __tla as __tla_2 } from "./useValueState-CANcZOFk.js";
 import { v as h, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as fe, __tla as __tla_4 } from "./useDataNew-D8SyzcSc.js";
+import { u as fe, __tla as __tla_4 } from "./useDataNew-BhEzyQPL.js";
 import { S as ge, __tla as __tla_5 } from "./Stack-Bu2YdDZA.js";
 import { F as xe, __tla as __tla_6 } from "./FormControlLabel-Dpar4xqZ.js";
 import { S as Ce, __tla as __tla_7 } from "./SwitchBase-BlQhbkh0.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let N;
+let H;
 let __tla = Promise.all([
   (() => {
     try {
@@ -59,23 +59,23 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const be = w(o.jsx("path", {
+  const be = S(o.jsx("path", {
     d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
-  }), "RadioButtonUnchecked"), ve = w(o.jsx("path", {
+  }), "RadioButtonUnchecked"), ve = S(o.jsx("path", {
     d: "M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
-  }), "RadioButtonChecked"), ye = R("span", {
+  }), "RadioButtonChecked"), ye = w("span", {
     name: "MuiRadioButtonIcon",
     shouldForwardProp: D
   })({
     position: "relative",
     display: "flex"
-  }), Se = R(be, {
+  }), Se = w(be, {
     name: "MuiRadioButtonIcon"
   })({
     transform: "scale(1)"
-  }), ke = R(ve, {
+  }), we = w(ve, {
     name: "MuiRadioButtonIcon"
-  })(T(({ theme: e }) => ({
+  })(N(({ theme: e }) => ({
     left: 0,
     position: "absolute",
     transform: "scale(0)",
@@ -98,8 +98,8 @@ let __tla = Promise.all([
       }
     ]
   })));
-  function H(e) {
-    const { checked: t = false, classes: a = {}, fontSize: n } = e, r = {
+  function T(e) {
+    const { checked: t = false, classes: a = {}, fontSize: s } = e, r = {
       ...e,
       checked: t
     };
@@ -108,21 +108,21 @@ let __tla = Promise.all([
       ownerState: r,
       children: [
         o.jsx(Se, {
-          fontSize: n,
+          fontSize: s,
           className: a.background,
           ownerState: r
         }),
-        o.jsx(ke, {
-          fontSize: n,
+        o.jsx(we, {
+          fontSize: s,
           className: a.dot,
           ownerState: r
         })
       ]
     });
   }
-  const we = h.createContext(void 0);
+  const ke = h.createContext(void 0);
   function Re() {
-    return h.useContext(we);
+    return h.useContext(ke);
   }
   function je(e) {
     return K("MuiRadio", e);
@@ -135,18 +135,18 @@ let __tla = Promise.all([
     "colorSecondary",
     "sizeSmall"
   ]), Ie = (e) => {
-    const { classes: t, color: a, size: n } = e, r = {
+    const { classes: t, color: a, size: s } = e, r = {
       root: [
         "root",
-        `color${k(a)}`,
-        n !== "medium" && `size${k(n)}`
+        `color${y(a)}`,
+        s !== "medium" && `size${y(s)}`
       ]
     };
     return {
       ...t,
       ...te(r, je, t)
     };
-  }, Pe = R(Ce, {
+  }, Pe = w(Ce, {
     shouldForwardProp: (e) => D(e) || e === "classes",
     name: "MuiRadio",
     slot: "Root",
@@ -154,11 +154,11 @@ let __tla = Promise.all([
       const { ownerState: a } = e;
       return [
         t.root,
-        a.size !== "medium" && t[`size${k(a.size)}`],
-        t[`color${k(a.color)}`]
+        a.size !== "medium" && t[`size${y(a.size)}`],
+        t[`color${y(a.color)}`]
       ];
     }
-  })(T(({ theme: e }) => ({
+  })(N(({ theme: e }) => ({
     color: (e.vars || e).palette.text.secondary,
     [`&.${V.disabled}`]: {
       color: (e.vars || e).palette.action.disabled
@@ -216,35 +216,35 @@ let __tla = Promise.all([
   function Be(e, t) {
     return typeof t == "object" && t !== null ? e === t : String(e) === String(t);
   }
-  const _e = o.jsx(H, {
+  const _e = o.jsx(T, {
     checked: true
-  }), ze = o.jsx(H, {}), Me = h.forwardRef(function(t, a) {
-    const n = X({
+  }), ze = o.jsx(T, {}), Me = h.forwardRef(function(t, a) {
+    const s = X({
       props: t,
       name: "MuiRadio"
-    }), { checked: r, checkedIcon: i = _e, color: d = "primary", icon: m = ze, name: b, onChange: j, size: g = "medium", className: I, disabled: s, disableRipple: p = false, slots: v = {}, slotProps: c = {}, inputProps: y, ...l } = n, x = Y();
-    let u = s;
-    x && typeof u > "u" && (u = x.disabled), u ??= false;
+    }), { checked: r, checkedIcon: i = _e, color: k = "primary", icon: d = ze, name: g, onChange: b, size: m = "medium", className: R, disabled: j, disableRipple: I = false, slots: l = {}, slotProps: c = {}, inputProps: P, ...p } = s, x = Y();
+    let n = j;
+    x && typeof n > "u" && (n = x.disabled), n ??= false;
     const f = {
-      ...n,
-      disabled: u,
-      disableRipple: p,
-      color: d,
-      size: g
-    }, M = Ie(f), C = Re();
-    let P = r;
-    const E = Z(j, C && C.onChange);
-    let B = b;
-    C && (typeof P > "u" && (P = Be(C.value, n.value)), typeof B > "u" && (B = C.name));
-    const _ = c.input ?? y, [A, q] = Q("root", {
+      ...s,
+      disabled: n,
+      disableRipple: I,
+      color: k,
+      size: m
+    }, C = Ie(f), u = Re();
+    let B = r;
+    const E = Z(b, u && u.onChange);
+    let _ = g;
+    u && (typeof B > "u" && (B = Be(u.value, s.value)), typeof _ > "u" && (_ = u.name));
+    const z = c.input ?? P, [A, q] = Q("root", {
       ref: a,
       elementType: Pe,
-      className: ee(M.root, I),
+      className: ee(C.root, R),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
-        slots: v,
+        slots: l,
         slotProps: c,
-        ...l
+        ...p
       },
       getSlotProps: (F) => ({
         ...F,
@@ -256,29 +256,29 @@ let __tla = Promise.all([
       ownerState: f,
       additionalProps: {
         type: "radio",
-        icon: h.cloneElement(m, {
-          fontSize: m.props.fontSize ?? g
+        icon: h.cloneElement(d, {
+          fontSize: d.props.fontSize ?? m
         }),
         checkedIcon: h.cloneElement(i, {
-          fontSize: i.props.fontSize ?? g
+          fontSize: i.props.fontSize ?? m
         }),
-        disabled: u,
-        name: B,
-        checked: P,
-        slots: v,
+        disabled: n,
+        name: _,
+        checked: B,
+        slots: l,
         slotProps: {
-          input: typeof _ == "function" ? _(f) : _
+          input: typeof z == "function" ? z(f) : z
         }
       }
     });
     return o.jsx(A, {
       ...q,
-      classes: M
+      classes: C
     });
   }), Fe = () => [
     {
       type: "custom",
-      component: () => o.jsx(S, {})
+      component: () => o.jsx(v, {})
     },
     {
       name: "radioOrientation",
@@ -298,7 +298,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => o.jsx(S, {})
+      component: () => o.jsx(v, {})
     },
     {
       name: "hideLabels",
@@ -326,7 +326,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => o.jsx(S, {})
+      component: () => o.jsx(v, {})
     },
     {
       name: "radioGroupUncheckedIconColor",
@@ -335,16 +335,16 @@ let __tla = Promise.all([
       type: "custom",
       fallbackFields: [],
       noGradient: true,
-      component: (e, t, a, n) => o.jsx(oe, {
+      component: (e, t, a, s) => o.jsx(oe, {
         field: e,
         data: t,
         onDataChange: a,
-        props: n
+        props: s
       })
     },
     {
       type: "custom",
-      component: () => o.jsx(S, {})
+      component: () => o.jsx(v, {})
     },
     {
       name: "onlyDisplay",
@@ -354,24 +354,26 @@ let __tla = Promise.all([
       default: false,
       hidden: (e, t) => !e.write
     }
-  ], $e = w(o.jsx("path", {
+  ], $e = S(o.jsx("path", {
     d: "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5m0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8"
-  }), "RadioButtonChecked"), L = w(o.jsx("path", {
+  }), "RadioButtonChecked"), L = S(o.jsx("path", {
     d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8"
   }), "RadioButtonUnchecked");
   function Oe() {
-    const [e, t] = h.useState(null), { height: a } = ae(e), n = h.useContext(ie), { widget: { data: { oidObject: r } }, widget: i } = n, { data: d, states: m } = fe("oid"), { value: b, updateValue: j } = he("oid"), g = r == null ? void 0 : r.type, I = [
+    const [e, t] = h.useState(null), { height: a } = ae(e), s = h.useContext(ie), { widget: { data: { oidObject: r } }, widget: i, theme: k } = s, { data: d, states: g, statesNew: b } = fe("oid");
+    console.log("statesNew:", b), console.log("states:", g);
+    const { value: m, updateValue: R } = he("oid"), j = r == null ? void 0 : r.type, I = [
       "boolean",
       "number",
       "string",
       "mixed"
-    ].includes(g ?? ""), s = i.data.radioOrientation === "horizontal", p = a && m.length > 0 ? a / m.length : void 0, v = (c) => {
-      j(c.target.value);
+    ].includes(j ?? ""), l = i.data.radioOrientation === "horizontal", c = a && g.length > 0 ? a / g.length : void 0, P = (p) => {
+      R(p.target.value);
     };
     return o.jsxs(ne, {
       isValidType: I,
       data: d,
-      oidValue: b,
+      oidValue: m,
       children: [
         o.jsx(se, {
           data: d,
@@ -380,15 +382,15 @@ let __tla = Promise.all([
         o.jsx(ge, {
           spacing: 0,
           ref: t,
-          direction: s ? "row" : "column",
+          direction: l ? "row" : "column",
           sx: {
-            width: s ? "100%" : "auto",
+            width: l ? "100%" : "auto",
             height: "100%",
-            justifyContent: s ? "space-around" : "flex-start",
-            alignItems: s ? "center" : "stretch"
+            justifyContent: l ? "space-around" : "flex-start",
+            alignItems: l ? "center" : "stretch"
           },
-          children: m.map(({ value: c, label: y, ...l }, x) => {
-            const u = l.textColor || d.textColor, f = le(u);
+          children: b.map(({ value: p, label: x, ...n }, f) => {
+            const C = n.textColor || d.textColor, u = le(C);
             return o.jsx(xe, {
               labelPlacement: i.data.labelPlacement,
               sx: {
@@ -399,31 +401,31 @@ let __tla = Promise.all([
                 alignItems: "center",
                 justifyContent: i.data.hideLabels ? "center" : "flex-start",
                 width: "100%",
-                ...!s && {
+                ...!l && {
                   flex: "1 1 0",
                   minHeight: 0
                 },
-                ...s && {
+                ...l && {
                   height: "100%"
                 },
                 "& .MuiButtonBase-root": {
                   width: "100%",
                   padding: 0,
-                  ...s && {
+                  ...l && {
                     aspectRatio: "1",
                     maxWidth: a || void 0,
                     maxHeight: a || void 0,
                     flexShrink: 0
                   },
-                  ...!s && {
-                    height: p ? `${p}px` : "auto",
-                    maxWidth: p || void 0,
-                    maxHeight: p || void 0,
+                  ...!l && {
+                    height: c ? `${c}px` : "auto",
+                    maxWidth: c || void 0,
+                    maxHeight: c || void 0,
                     flexShrink: 0
                   },
                   "&.Mui-disabled": {
                     "&.Mui-checked": {
-                      color: l.iconColor || "primary.main"
+                      color: n.iconColor || "primary.main"
                     },
                     color: i.data.radioGroupUncheckedIconColor || "action.active"
                   }
@@ -439,7 +441,7 @@ let __tla = Promise.all([
               },
               control: o.jsx(Me, {
                 disabled: i.data.onlyDisplay,
-                checkedIcon: l.icon ? o.jsxs(z, {
+                checkedIcon: n.icon ? o.jsxs(M, {
                   sx: {
                     overflow: "hidden",
                     position: "relative",
@@ -452,13 +454,13 @@ let __tla = Promise.all([
                   children: [
                     o.jsx(L, {
                       sx: {
-                        color: l.iconColor,
+                        color: n.iconColor,
                         position: "relative",
                         width: "100%",
                         height: "100%"
                       }
                     }),
-                    o.jsx(z, {
+                    o.jsx(M, {
                       sx: {
                         position: "absolute",
                         width: "100%",
@@ -469,20 +471,20 @@ let __tla = Promise.all([
                       },
                       children: o.jsx("img", {
                         alt: "",
-                        src: l.icon,
+                        src: n.icon,
                         style: {
                           position: "relative",
-                          left: `calc(0px + ${d.iconXOffset})`,
-                          top: `calc(0px - ${d.iconYOffset})`,
+                          left: `calc(0px + ${n.iconXOffset})`,
+                          top: `calc(0px - ${n.iconYOffset})`,
                           width: `calc(${d.iconSizeOnly} * 0.5)`,
-                          ...de(l.icon, l.iconColor, l.forceColorMask)
+                          ...de(n.icon, n.iconColor || k.palette.primary.main, n.forceColorMask)
                         }
                       })
                     })
                   ]
                 }) : o.jsx($e, {
                   sx: {
-                    color: l.iconColor,
+                    color: n.iconColor,
                     width: "100%",
                     height: "100%"
                   }
@@ -497,22 +499,22 @@ let __tla = Promise.all([
                   color: i.data.radioGroupUncheckedIconColor,
                   width: "100%",
                   height: "100%",
-                  maxHeight: s ? a || void 0 : p,
+                  maxHeight: l ? a || void 0 : c,
                   "& .MuiTouchRipple-root": {
-                    color: i.data[`iconColor${x + 1}`] || i.data.iconColor || d.textColor
+                    color: i.data[`iconColor${f + 1}`] || i.data.iconColor || d.textColor
                   },
                   "& .MuiSvgIcon-root": {
                     width: "100%",
                     height: "100%",
-                    maxHeight: s ? a || void 0 : p
+                    maxHeight: l ? a || void 0 : c
                   }
                 },
-                checked: String(c) === String(b),
-                onChange: v,
-                value: c
+                checked: String(p) === String(m),
+                onChange: P,
+                value: p
               }),
               label: i.data.hideLabels ? void 0 : o.jsx(re, {
-                component: z,
+                component: M,
                 variant: "body2",
                 sx: {
                   width: "100%",
@@ -522,25 +524,25 @@ let __tla = Promise.all([
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   wordBreak: "break-word",
-                  fontSize: l.fontSize || d.valueSize,
+                  fontSize: n.fontSize || d.valueSize,
                   textAlign: "left",
-                  background: f,
+                  background: u,
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
-                  color: f ? "transparent" : u
+                  color: u ? "transparent" : C
                 },
                 contentEditable: "false",
                 dangerouslySetInnerHTML: {
-                  __html: y && y.replace(/(\r\n|\n|\r)/gm, "") || c && `${c}${r == null ? void 0 : r.unit}` || ""
+                  __html: x && x.replace(/(\r\n|\n|\r)/gm, "") || p && `${p}${r == null ? void 0 : r.unit}` || ""
                 }
               })
-            }, x);
+            }, f);
           })
         })
       ]
     });
   }
-  N = class extends ce {
+  H = class extends ce {
     static getWidgetInfo() {
       return {
         id: "tplRadioGroupCollectionWidget",
@@ -595,7 +597,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return N.getWidgetInfo();
+      return H.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -635,5 +637,5 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  N as default
+  H as default
 };

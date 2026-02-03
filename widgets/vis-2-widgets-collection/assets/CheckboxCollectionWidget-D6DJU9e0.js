@@ -2,7 +2,7 @@ import { c as C, j as a, a as O, g as V, u as R, b as H, a4 as $, d as G, s as E
 import { c as te, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
 import { u as oe, d as ae, __tla as __tla_2 } from "./useValueState-CANcZOFk.js";
 import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as ie, __tla as __tla_4 } from "./useDataNew-D8SyzcSc.js";
+import { u as ie, __tla as __tla_4 } from "./useDataNew-BhEzyQPL.js";
 import { u as le, __tla as __tla_5 } from "./useHtmlValue-Dcwl_hqT.js";
 import { S as A, __tla as __tla_6 } from "./SafeImg-BfZGZGnV.js";
 import { F as se, __tla as __tla_7 } from "./FormControlLabel-Dpar4xqZ.js";
