@@ -10,7 +10,7 @@
  * @since 2.2.0
  */
 
-import type { SliderProperties, StateItem } from './types';
+import type { SliderProperties, StateStyleData } from './types';
 import type { SliderFieldsRxData, CommonFieldsRxData } from '../../types/field-definitions';
 import type { OidObject } from '../../types/utility-types';
 import type { Theme } from '@mui/material';
@@ -138,7 +138,7 @@ export function buildStateItem(params: {
     getDynamicProperty: <K>(key: string, ext: string) => K | undefined;
     backgroundStyles: WidgetStyleState | undefined;
     theme: Theme;
-}): StateItem {
+}): StateStyleData {
     const {
         value,
         rawValue,

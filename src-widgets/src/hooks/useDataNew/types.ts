@@ -23,34 +23,34 @@ export interface StyleData {
     textColorActive?: string;
 
     /** Header text (newlines removed). */
-    header: string;
+    header?: string;
     /** Header font size (usually `%` or CSS size string). */
-    headerSize: string | null;
+    headerSize?: string | null;
 
     /** Footer text (newlines removed). */
-    footer: string;
+    footer?: string;
     /** Footer font size (usually `%` or CSS size string). */
-    footerSize: string | null;
+    footerSize?: string | null;
 
     /** Alias text shown instead of the raw value. */
-    alias: string;
+    alias?: string;
     /** Formatted value (may include unit). */
-    value?: string;
+    value?: string | number | boolean;
     /** Value font size. */
-    valueSize: string | null;
+    valueSize?: string | null;
     /** Active value font size (or `false` when not configured). */
-    valueSizeActive: string | null;
+    valueSizeActive?: string | null;
 
     /** Icon URL/name or `null` when not configured. */
-    icon: string;
+    icon?: string;
     /** Active icon URL/name (or `null`). */
-    iconActive: string;
+    iconActive?: string;
     /** Icon size as CSS string. */
-    iconSize: string;
+    iconSize?: number | string;
     /** Icon size (or `false`). */
-    iconSizeCm: string;
+    iconSizeCm?: string;
     /** Active icon size (or `false`). */
-    iconSizeActive: string;
+    iconSizeActive?: string;
     /** Active icon size as numeric percent when available. */
     iconSizeActiveOnly?: number;
     /** Force color mask on icon. */
@@ -61,42 +61,46 @@ export interface StyleData {
     forceColorMaskActive?: boolean;
     /** Icon size as string percent when available. */
     iconSizeOnly?: string;
+    /** Icon width */
+    iconWidth?: number;
+    /** Icon height */
+    iconHeight?: number;
     /** Icon color. */
-    iconColor: string;
+    iconColor?: string;
     /** Active icon color. */
-    iconColorActive: string;
+    iconColorActive?: string;
     /** Icon hover effect in percent. */
     iconHover?: string;
     /** Active icon hover effect in percent. */
     iconHoverActive?: string;
     /** Icon X offset as a CSS value (with unit). */
-    iconXOffsetCm: string;
+    iconXOffsetCm?: string;
     /** Icon Y offset as a CSS value (with unit). */
-    iconYOffsetCm: string;
+    iconYOffsetCm?: string;
     /** Icon X offset as a CSS value (with unit). */
-    iconXOffset: string;
+    iconXOffset?: string;
     /** Icon Y offset as a CSS value (with unit). */
-    iconYOffset: string;
+    iconYOffset?: string;
     /** Active icon X offset as a CSS value (with unit). */
-    iconXOffsetActive: string;
+    iconXOffsetActive?: string;
     /** Active icon Y offset as a CSS value (with unit). */
-    iconYOffsetActive: string;
+    iconYOffsetActive?: string;
 
     /** Background color. */
-    backgroundColor: string;
+    backgroundColor?: string;
     /** Active background color. */
     backgroundColorActive?: string;
     /** Background (gradient/image). */
-    background: string;
+    background?: string;
     /** Active background. */
     backgroundActive?: string;
 
     /** Frame background color. */
-    frameBackgroundColor: string;
+    frameBackgroundColor?: string;
     /** Active frame background color. */
     frameBackgroundColorActive?: string;
     /** Frame background (gradient/image). */
-    frameBackground: string;
+    frameBackground?: string;
     /** Active frame background. */
     frameBackgroundActive?: string;
 }
@@ -113,7 +117,7 @@ export interface StateItem {
     fontSize?: string | null;
     textColor?: string;
     icon?: string;
-    iconSize?: number;
+    iconSize?: string;
     iconWidth: number;
     iconHeight: number;
     iconXOffset: string;
@@ -121,13 +125,13 @@ export interface StateItem {
     iconColor?: string;
     iconHover?: string;
     forceColorMask?: boolean;
-    backgroundColor: string;
+    backgroundColor?: string;
     backgroundColorActive?: string;
-    background: string;
+    background?: string;
     backgroundActive?: string;
-    frameBackgroundColor: string;
+    frameBackgroundColor?: string;
     frameBackgroundColorActive?: string;
-    frameBackground: string;
+    frameBackground?: string;
     frameBackgroundActive?: string;
 }
 
@@ -315,25 +319,33 @@ export interface PropertyResolvers {
  */
 export type StateStyleData = Pick<
     StyleData,
-    | 'alias'
     | 'value'
-    | 'valueSize'
+    | 'alias'
+    | 'textColor'
     | 'icon'
     | 'iconSize'
     | 'iconColor'
+    | 'iconXOffset'
+    | 'iconYOffset'
     | 'iconHover'
     | 'forceColorMask'
+    | 'valueSize'
     | 'backgroundColor'
+    | 'backgroundColorActive'
     | 'background'
-    | 'frameBackgroundColor'
+    | 'backgroundActive'
     | 'frameBackground'
+    | 'frameBackgroundActive'
+    | 'frameBackgroundColor'
+    | 'frameBackgroundColorActive'
 > & {
+    label?: string;
     fontSize?: string | null;
-    textColor?: string;
-    iconWidth: number;
-    iconHeight: number;
-    iconXOffset: string;
-    iconYOffset: string;
+    // textColor?: string;
+    iconWidth?: number;
+    iconHeight?: number;
+    // iconXOffset: string;
+    // iconYOffset: string;
 };
 
 /**
@@ -342,7 +354,8 @@ export type StateStyleData = Pick<
  */
 export interface UseDataResult {
     /** Array of computed state items with resolved properties */
-    states: StateItem[];
+    // states: StateItem[];
+    states: StateStyleData[];
 
     /** Mapping of state values to string labels for widget-specific use */
     widgetStates: Record<string, string>;
@@ -366,7 +379,24 @@ export interface UseDataResult {
     oidValue: ioBroker.StateValue;
 
     /** Array of state items with independent property resolution */
-    statesNew: StateItem[];
+    statesNew: StateStyleData[];
+
+    /**
+     * Memoized style data resolver function.
+     * Computes StyleData for a given state extension and active flag.
+     *
+     * @param ext - State extension: '' for base, numeric index (1-N) for state-specific
+     * @param includeActive - Whether to include active-state properties in resolution
+     * @returns Resolved StyleData object
+     * @since 2.2.3
+     * @example
+     * ```typescript
+     * const { resolveStyleData } = useDataNew('oid');
+     * const baseStyle = resolveStyleData('', true);
+     * const state1Style = resolveStyleData(1, false);
+     * ```
+     */
+    resolveStyleData: (ext: string | number, includeActive: boolean) => StyleData;
 }
 
 // Re-exports

@@ -15,9 +15,10 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
-import { isBase64Icon } from '../lib/helper/isBase64Icon';
+import { type Mark } from '@mui/material/Slider/useSlider.types';
 
 type CollectionSliderProps = SliderProps & {
     thumbColor?: string;
@@ -136,11 +137,7 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, statesNew, states, minValue, maxValue, activeIndex } = useDataNew('oid');
-
-    console.log('SliderCollection data:', data);
-    console.log('SliderCollection states:', states);
-    console.log('SliderCollection statesNew:', statesNew);
+    const { data, statesNew, minValue, maxValue, activeIndex, resolveStyleData } = useDataNew('oid');
 
     const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
@@ -170,16 +167,11 @@ const SliderCollection: FC = () => {
         [isHorizontal, widget.data.iconMax, widget.data.iconSmallMax, widget.data.iconMin, widget.data.iconSmallMin],
     );
 
-    /* const startIconColor = extractColorFromValue(
-        widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined),
-    ); */
     const startIconColor =
         widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined);
 
-    /* const endIconColor = extractColorFromValue(
-        widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined),
-    ); */
     const endIconColor = widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined);
+
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
@@ -195,60 +187,37 @@ const SliderCollection: FC = () => {
     );
 
     const sliderMarks = useMemo(() => {
-        const marks = statesNew.map(state => ({
-            value: Number(state.value),
-            label: state.label,
-            fontSize: state.fontSize,
-            textColor: state.textColor,
-            icon: state.icon,
-            iconWidth: state.iconWidth,
-            iconHeight: state.iconHeight,
-            iconXOffset: state.iconXOffset,
-            iconYOffset: state.iconYOffset,
-            iconColor: state.iconColor,
-            forceColorMask: state.forceColorMask,
-        }));
+        // Type guard to ensure we only work with numeric values
+        const numericStates = statesNew.filter(
+            (state): state is typeof state & { value: number } => typeof state.value === 'number',
+        );
+
+        const marks = numericStates.filter(
+            state =>
+                (sliderMinValue === null || state.value >= sliderMinValue) &&
+                (sliderMaxValue === null || state.value <= sliderMaxValue),
+        );
 
         if (widget.data.onlyStates) {
             return marks.sort((a, b) => a.value - b.value);
         }
 
-        const createDefaultMark = (
-            value: number,
-        ): {
-            value: number;
-            label: string;
-            fontSize: undefined;
-            textColor: undefined;
-            icon: string;
-            iconWidth: number;
-            iconHeight: number;
-            iconXOffset: string;
-            iconYOffset: string;
-            iconColor: undefined;
-            forceColorMask: undefined;
-        } => ({
-            value,
-            label: `${value}${oidObject?.unit || ''}`,
-            fontSize: undefined,
-            textColor: undefined,
-            icon: '',
-            iconWidth: 100,
-            iconHeight: 100,
-            iconXOffset: '0px',
-            iconYOffset: '0px',
-            iconColor: undefined,
-            forceColorMask: undefined,
-        });
-
         // Ensure minimum value is included
         if (sliderMinValue !== null && !marks.some(m => m.value === sliderMinValue)) {
-            marks.push(createDefaultMark(sliderMinValue));
+            marks.push({
+                ...resolveStyleData('', false),
+                value: sliderMinValue,
+                label: `${sliderMinValue}${oidObject?.unit || ''}`,
+            });
         }
 
         // Ensure maximum value is included
         if (sliderMaxValue !== null && !marks.some(m => m.value === sliderMaxValue)) {
-            marks.push(createDefaultMark(sliderMaxValue));
+            marks.push({
+                ...resolveStyleData('', false),
+                value: sliderMaxValue,
+                label: `${sliderMaxValue}${oidObject?.unit || ''}`,
+            });
         }
 
         // Add step divisions
@@ -256,13 +225,21 @@ const SliderCollection: FC = () => {
             const step = Number(widget.data.markStep) || 1;
             for (let i = sliderMinValue + step; i < sliderMaxValue; i += step) {
                 if (!marks.some(m => m.value === i)) {
-                    marks.push(createDefaultMark(i));
+                    marks.push({ ...resolveStyleData('', false), value: i, label: `${i}${oidObject?.unit || ''}` });
                 }
             }
         }
 
         return marks.sort((a, b) => a.value - b.value);
-    }, [statesNew, widget.data.onlyStates, widget.data.markStep, sliderMinValue, sliderMaxValue, oidObject?.unit]);
+    }, [
+        statesNew,
+        widget.data.onlyStates,
+        widget.data.markStep,
+        sliderMinValue,
+        sliderMaxValue,
+        oidObject?.unit,
+        resolveStyleData,
+    ]);
 
     useEffect(() => {
         if (sliderValue === undefined && typeof oidValue === 'number') {
@@ -345,8 +322,6 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
-    console.log('sliderMarks:', sliderMarks);
-    console.log('statesNew:', statesNew);
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -369,6 +344,7 @@ const SliderCollection: FC = () => {
                         flexDirection: isHorizontal ? 'row' : 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
+
                         width: '100%',
                         height: '100%',
                     }}
@@ -426,7 +402,6 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
-                                        // defaultIconColor: data.iconColor || theme.palette.primary.main,
                                         defaultIconColor: theme.palette.primary.main,
                                     } as SliderMarkLabelProps,
                                 }}
@@ -435,7 +410,7 @@ const SliderCollection: FC = () => {
                                 orientation={widget.data.sliderOrientation}
                                 min={sliderMinValue ?? undefined}
                                 max={sliderMaxValue ?? undefined}
-                                marks={sliderMarks}
+                                marks={sliderMarks as Mark[]}
                                 step={
                                     widget.data.onlyStates
                                         ? null // For onlyStates: null means only mark values can be selected

@@ -80,11 +80,12 @@
  * @see {@link ROLLOUT_PLAN.md} for deployment strategy
  */
 
-import useDataNewImpl from './useDataNew';
+import useDataNewImpl, { useStyleData } from './useDataNew';
 
 // Main hook export (both default and named for flexibility)
 export default useDataNewImpl;
 export { useDataNewImpl as useDataNew };
+export { useStyleData };
 
 // Type exports - re-exported from types module for API compatibility
 export type { StateItem, StyleData, UseDataResult } from './types';
@@ -95,3 +96,4 @@ export type { PriorityOption, SliderProperties } from './types';
 // Utility function exports (optional - for advanced customization)
 export { resolvePriority } from './priorityResolver';
 export { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
+export { getStyleData } from './styleDataResolver';

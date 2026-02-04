@@ -52,7 +52,8 @@ import type { OidObject } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
-import type { UseDataResult, SliderProperties, StyleData, StateItem } from './types';
+import { getStyleData } from './styleDataResolver';
+import type { UseDataResult, SliderProperties, StyleData, StateStyleData } from './types';
 import type { SliderFieldsRxData } from '../../types/field-definitions';
 
 /**
@@ -196,147 +197,18 @@ function useDataNew(_oid: string): UseDataResult {
 
     // ============= PHASE 6.5: Style Data Resolver =============
 
-    // PHASE 6.5: Centralized style resolver for widget-level data.
-
-    /**
-     * Memoized function to compute StyleData with given extension and active flag.
-     * Used by baseStyleData and data useMemos to resolve style properties.
-     *
-     * @param ext - Extension (empty string for base, numeric index for state-specific)
-     * @param includeActive - Whether to include active state properties
-     * @returns Resolved StyleData object
-     * @since 2.2.2
-     */
-    const getStyleData = useCallback(
-        (ext: string | number = '', includeActive: boolean = false): StyleData => ({
-            // Icon properties
-            // fixed
-            icon: propertyResolvers.icon(ext, includeActive),
-
-            // fixed
-            iconActive: propertyResolvers.iconActive(ext, includeActive),
-
-            iconSizeCm: propertyResolvers.iconSizeCm(ext, includeActive),
-
-            iconSize: propertyResolvers.iconSize(ext, includeActive),
-
-            // fixed
-            /* iconSize:
-                resolvePriority([
-                    { condition: getDataValue<number | string>('iconSize') === 0, value: '0px' },
-                    {
-                        condition: Boolean(getDataValue<number | string>('iconSize')),
-                        value: `calc(24px * ${getDataValue<number | string>('iconSize')} / 100)`,
-                    },
-                ]) ?? '24px', */
-
-            // fixed
-            iconSizeActive: propertyResolvers.iconSizeActive(ext, includeActive),
-
-            // fixed
-            iconSizeOnly: propertyResolvers.iconSizeOnly(ext, includeActive),
-
-            // ???
-            iconSizeActiveOnly: propertyResolvers.iconSizeActiveOnly(ext, includeActive),
-
-            forceColorMaskCm: propertyResolvers.forceColorMaskCm(ext, includeActive),
-
-            // fixed
-            forceColorMask: propertyResolvers.forceColorMask(ext, includeActive),
-
-            // ???
-            forceColorMaskActive: propertyResolvers.forceColorMaskActive(ext, includeActive),
-
-            // fixed
-            iconColor: propertyResolvers.iconColor(ext, includeActive),
-
-            // fixed
-            iconColorActive: propertyResolvers.iconColorActive(ext, includeActive),
-
-            iconHover: propertyResolvers.iconHover(ext, includeActive),
-
-            iconHoverActive: propertyResolvers.iconHoverActive(ext, includeActive),
-
-            iconXOffsetCm: propertyResolvers.iconXOffsetCm(ext, includeActive),
-
-            // fixed
-            iconYOffsetCm: propertyResolvers.iconYOffsetCm(ext, includeActive),
-
-            iconXOffset: propertyResolvers.iconXOffset(ext, includeActive),
-
-            // fixed and new
-            iconYOffset: propertyResolvers.iconYOffset(ext, includeActive),
-
-            // fixed and new
-            iconXOffsetActive: propertyResolvers.iconXOffsetActive(ext, includeActive),
-
-            // fixed and new
-            iconYOffsetActive: propertyResolvers.iconYOffsetActive(ext, includeActive),
-
-            // Text color properties
-            // textColor: rxData.textColor,
-            textColorActive: propertyResolvers.textColorActive(ext, includeActive),
-
-            textColorCm: propertyResolvers.textColorCm(ext, includeActive),
-
-            textColor: propertyResolvers.textColor(ext, includeActive),
-
-            // Header properties with fallback chain
-            // Normalize empty strings to enable proper fallback to oidName
-            header: propertyResolvers.header(ext, includeActive),
-
-            headerSize: propertyResolvers.headerSize(ext, includeActive),
-            /* headerSize:
-                resolvePriority([
-                    { value: formatSize(rxData.headerSize) },
-                    { value: formatSize(rxData.headerSizeActive) },
-                    { value: formatSize(getDataValue<number>('headerSize', String(ext))) },
-                    { value: typeof fontStyles?.['font-size'] === 'string' ? fontStyles?.['font-size'] : null },
-                ]) ?? null, */
-
-            // Footer properties with fallback chain
-            // Normalize empty strings to enable proper fallback
-            footer: propertyResolvers.footer(ext, includeActive),
-
-            footerSize: propertyResolvers.footerSize(ext, includeActive),
-
-            // Alias (remove newlines)
-            alias: propertyResolvers.alias(ext, includeActive),
-
-            // Value with unit suffix
-            value: propertyResolvers.value(ext, includeActive),
-
-            valueSize: propertyResolvers.valueSize(ext, includeActive),
-
-            valueSizeActive: propertyResolvers.valueSizeActive(ext, includeActive),
-
-            // Background properties
-            // Normalize empty strings to undefined to enable fallback chain continuation
-            backgroundColor: propertyResolvers.backgroundColor(ext, includeActive),
-
-            backgroundColorActive: propertyResolvers.backgroundColorActive(ext, includeActive),
-
-            background: propertyResolvers.background(ext, includeActive),
-
-            backgroundActive: propertyResolvers.backgroundActive(ext, includeActive),
-
-            // Frame background properties
-            // Normalize empty strings to undefined to enable fallback chain continuation
-            frameBackgroundColor: propertyResolvers.frameBackgroundColor(ext, includeActive),
-
-            frameBackgroundColorActive: propertyResolvers.frameBackgroundColorActive(ext, includeActive),
-
-            frameBackground: propertyResolvers.frameBackground(ext, includeActive),
-
-            frameBackgroundActive: propertyResolvers.frameBackgroundActive(ext, includeActive),
-        }),
+    // getStyleData is now a pure function imported from styleDataResolver.ts
+    // This wrapper memoizes the call with the current propertyResolvers
+    const resolveStyleData = useCallback(
+        (ext: string | number = '', includeActive: boolean = false): StyleData =>
+            getStyleData(ext, includeActive, propertyResolvers),
         [propertyResolvers],
     );
 
     // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
 
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
-        const states: StateItem[] = [];
+        const states: StateStyleData[] = [];
         const widgetStates: Record<string, string> = {};
         let minValue: number | null = null;
         let maxValue: number | null = null;
@@ -405,7 +277,7 @@ function useDataNew(_oid: string): UseDataResult {
 
     /**
      * Detects active state and returns appropriate StyleData.
-     * Applies state-specific overrides via getStyleData when an active state is matched.
+     * Applies state-specific overrides via resolveStyleData when an active state is matched.
      * Falls back to default state properties when no match is found.
      *
      * @since 2.2.2
@@ -423,17 +295,17 @@ function useDataNew(_oid: string): UseDataResult {
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);
                     // Apply state-specific styles with active properties
-                    return getStyleData(_activeIndex + 1, true);
+                    return resolveStyleData(_activeIndex + 1, true);
                 }
 
                 setActiveIndex(undefined);
                 // Default to base state properties with active properties included
-                return getStyleData('', true);
+                return resolveStyleData('', true);
             }
             default:
-                return getStyleData('', true);
+                return resolveStyleData('', true);
         }
-    }, [oidObject, oidValue, states, getStyleData]);
+    }, [oidObject, oidValue, states, resolveStyleData]);
 
     // ============= PHASE 8: statesNew Computation =============
 
@@ -445,16 +317,16 @@ function useDataNew(_oid: string): UseDataResult {
      */
     // PHASE 7.5: Independent per-state resolution using active-aware styles.
     const statesNew = useMemo(() => {
-        const result: StateItem[] = [];
+        const result: StateStyleData[] = [];
         const oidType = oidObject?.type;
         const commonStates = oidObject?.commonStates || {};
         const commonStatesEntries = Object.entries(commonStates);
 
         if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
             for (let i = 1; i <= rxData.values_count; i++) {
-                const _value = rxData[`value${i}`];
+                const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
 
-                if (_value === undefined || _value === null || !/\S/.test(String(_value))) {
+                if (_value === undefined || !/\S/.test(String(_value))) {
                     continue;
                 }
 
@@ -472,40 +344,34 @@ function useDataNew(_oid: string): UseDataResult {
                 // Calculate isActive for this state
                 const isActive = String(oidValue) === String(convertedValue);
 
-                // Get style data via getStyleData
-                const styleData = getStyleData(i, isActive);
+                // Get style data via resolveStyleData
+                const styleData = resolveStyleData(i, isActive);
 
                 // Map to StateItem interface
                 result.push({
                     value: convertedValue,
-                    label: styleData.alias,
+                    label: styleData.alias || String(styleData.value),
                     alias: styleData.alias,
-                    fontSize: propertyResolvers.fontSize(i, isActive),
+                    fontSize: styleData.valueSize,
                     textColor: styleData.textColor,
                     icon: styleData.icon,
-                    iconSize: styleData.iconSize ? parseInt(styleData.iconSize) || undefined : undefined,
-                    iconWidth: propertyResolvers.iconWidth(i, isActive),
-                    iconHeight: propertyResolvers.iconHeight(i, isActive),
-                    iconXOffset: propertyResolvers.iconXOffset(i, isActive),
-                    iconYOffset: propertyResolvers.iconYOffset(i, isActive),
+                    iconSize: styleData.iconSize,
+                    iconWidth: styleData.iconWidth,
+                    iconHeight: styleData.iconHeight,
+                    iconXOffset: styleData.iconXOffset,
+                    iconYOffset: styleData.iconYOffset,
                     iconColor: styleData.iconColor,
                     iconHover: styleData.iconHover,
                     forceColorMask: styleData.forceColorMask,
                     valueSize: styleData.valueSize,
-                    backgroundColor: styleData.backgroundColor,
-                    backgroundColorActive: propertyResolvers.backgroundColorActive(i, isActive),
                     background: styleData.background,
-                    backgroundActive: propertyResolvers.backgroundActive(i, isActive),
-                    frameBackgroundColor: styleData.frameBackgroundColor,
-                    frameBackgroundColorActive: propertyResolvers.frameBackgroundColorActive(i, isActive),
                     frameBackground: styleData.frameBackground,
-                    frameBackgroundActive: propertyResolvers.frameBackgroundActive(i, isActive),
                 });
             }
         }
 
         return result;
-    }, [rxData, oidObject, oidValue, getStyleData, propertyResolvers]);
+    }, [oidObject?.type, oidObject?.commonStates, rxData.values_count, getDataValue, oidValue, resolveStyleData]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
@@ -519,7 +385,37 @@ function useDataNew(_oid: string): UseDataResult {
         setActiveIndex,
         oidValue,
         statesNew,
+        resolveStyleData,
     };
+}
+
+/**
+ * Convenience hook that returns only the resolveStyleData function.
+ *
+ * Use this when you only need the style resolver without the full useDataNew result.
+ * Internally uses useDataNew, so all context dependencies are automatically resolved.
+ *
+ * @param _oid - OID property name from rxData (e.g. "oid", "oid1")
+ * @returns Memoized style data resolver function
+ * @since 2.2.3
+ * @example
+ * ```typescript
+ * import { useStyleData } from '../hooks/useDataNew';
+ *
+ * function MyWidget() {
+ *   const resolveStyleData = useStyleData('oid');
+ *
+ *   // Use resolveStyleData anywhere - no parameter collection needed
+ *   const baseData = resolveStyleData('', true);
+ *   const stateStyle = resolveStyleData(1, false);
+ *
+ *   return <div style={{ background: baseData.backgroundColor }}>...</div>;
+ * }
+ * ```
+ */
+export function useStyleData(_oid: string): (ext: string | number, includeActive: boolean) => StyleData {
+    const { resolveStyleData } = useDataNew(_oid);
+    return resolveStyleData;
 }
 
 export default useDataNew;
