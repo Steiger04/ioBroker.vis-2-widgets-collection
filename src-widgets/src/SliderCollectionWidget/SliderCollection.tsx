@@ -34,24 +34,14 @@ type CollectionSliderProps = SliderProps & {
 const CollectionSlider = styled(Slider, {
     shouldForwardProp: prop => prop !== 'data',
 })<CollectionSliderProps>(({ theme, data }) => {
-    const extractedColor = useMemo(
-        () => extractColorFromValue(data?.thumbColor || data?.sliderColor || theme.palette.primary.main),
-        [data?.thumbColor, data?.sliderColor, theme.palette.primary.main],
-    );
+    const extractedColor = extractColorFromValue(data?.thumbColor || data?.sliderColor || theme.palette.primary.main);
 
-    const shadowBase = useMemo(
-        () => extractedColor || theme.palette.primary.main,
-        [extractedColor, theme.palette.primary.main],
-    );
+    const shadowBase = extractedColor || theme.palette.primary.main;
 
     // Calculate border width and color with fallback chain
     const borderWidth = data?.thumbBorderWidth ?? 0;
-    const borderColor = useMemo(
-        () =>
-            extractColorFromValue(
-                data?.thumbBorderColor || data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
-            ),
-        [data?.thumbBorderColor, data?.thumbColor, data?.sliderColor, theme.palette.primary.main],
+    const borderColor = extractColorFromValue(
+        data?.thumbBorderColor || data?.thumbColor || data?.sliderColor || theme.palette.primary.main,
     );
 
     return {

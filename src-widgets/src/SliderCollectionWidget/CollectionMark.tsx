@@ -63,6 +63,8 @@ const CollectionMark: FC<CollectionMarkProps> = ({
         }
     }, [mark?.label, ref, isCurrentSelected, aliasActive, index]);
 
+    console.log('props.ownerState.marks', props.ownerState.marks);
+
     return marks && mark ? (
         <SliderMarkLabel {...props}>
             <Box

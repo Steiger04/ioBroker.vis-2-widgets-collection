@@ -176,7 +176,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
                 { value: getDataValue<string>('iconColor', String(ext)) },
                 { value: getDataValue<string>('iconColor', '') },
-            ]) ?? '',
+            ]) ?? _theme.palette.primary.main,
 
         iconColorActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? (resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '') : '',
