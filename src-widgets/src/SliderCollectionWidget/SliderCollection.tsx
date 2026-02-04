@@ -345,6 +345,8 @@ const SliderCollection: FC = () => {
         }
     }, [oidValue, sliderMarks]);
 
+    console.log('sliderMarks:', sliderMarks);
+    console.log('statesNew:', statesNew);
     return (
         <CollectionBase
             isValidType={isValidType}
@@ -424,7 +426,8 @@ const SliderCollection: FC = () => {
                                         sliderOrientation: widget.data.sliderOrientation,
                                         aliasActive: widget.data.aliasActive,
                                         activeMarkIndex: sliderMarksIndex,
-                                        defaultIconColor: data.iconColor || theme.palette.primary.main,
+                                        // defaultIconColor: data.iconColor || theme.palette.primary.main,
+                                        defaultIconColor: theme.palette.primary.main,
                                     } as SliderMarkLabelProps,
                                 }}
                                 disabled={oidType !== 'number'}

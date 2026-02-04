@@ -514,6 +514,7 @@ function useDataNew(_oid: string): UseDataResult {
 
                 // Calculate isActive for this state
                 const isActive = String(oidValue) === String(convertedValue);
+                console.log(`State ${i} (value=${convertedValue}) isActive:`, isActive);
 
                 // Get style data via getStateStyleData
                 const styleData = getStateStyleData(i, isActive);
