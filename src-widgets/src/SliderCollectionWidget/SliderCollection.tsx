@@ -139,7 +139,6 @@ const SliderCollection: FC = () => {
     } = context;
     const { data, statesNew, minValue, maxValue, activeIndex, resolveStyleData } = useDataNew('oid');
 
-    const [sliderMarksIndex, setSliderMarksIndex] = useState<number | null>(null);
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
     const [sliderValue, setSliderValue] = useState<number | undefined>(
         typeof oidValue === 'number' ? oidValue : undefined,
@@ -240,6 +239,15 @@ const SliderCollection: FC = () => {
         oidObject?.unit,
         resolveStyleData,
     ]);
+    // Derive the index of the mark corresponding to the current oidValue
+    const sliderMarksIndex = useMemo(() => {
+        if (oidValue === undefined) {
+            return null;
+        }
+
+        const index = sliderMarks.findIndex(mark => String(mark.value) === String(oidValue));
+        return index !== -1 ? index : null;
+    }, [oidValue, sliderMarks]);
 
     useEffect(() => {
         if (sliderValue === undefined && typeof oidValue === 'number') {
@@ -285,11 +293,37 @@ const SliderCollection: FC = () => {
         }
     };
 
-    // Recompute track position when layout-dependent inputs change.
+    // Recalculate track offset on both layout changes and resize events.
+    // Uses debouncing to avoid excessive calculations during slider drag operations.
     useEffect(() => {
-        // Small delay to allow MUI to update the DOM.
-        const timer = setTimeout(calculateTrackOffset, 100);
-        return () => clearTimeout(timer);
+        if (!sliderContainerRef.current) {
+            return;
+        }
+
+        // Ref to track pending timeout for debouncing
+        let offsetTimeoutId: NodeJS.Timeout | null = null;
+
+        // Debounced calculation triggered by both prop changes and resize events
+        const calculateWithDebounce = (): void => {
+            if (offsetTimeoutId) {
+                clearTimeout(offsetTimeoutId);
+            }
+            offsetTimeoutId = setTimeout(calculateTrackOffset, 100);
+        };
+
+        // Setup ResizeObserver
+        const resizeObserver = new ResizeObserver(calculateWithDebounce);
+        resizeObserver.observe(sliderContainerRef.current);
+
+        // Trigger initial calculation on prop changes
+        calculateWithDebounce();
+
+        return () => {
+            resizeObserver.disconnect();
+            if (offsetTimeoutId) {
+                clearTimeout(offsetTimeoutId);
+            }
+        };
     }, [
         widget.data.marks,
         widget.data.sliderOrientation,
@@ -297,30 +331,6 @@ const SliderCollection: FC = () => {
         widget.data.iconSizeEnd,
         sliderValue,
     ]);
-
-    // ResizeObserver for dynamic adjustments.
-    useEffect(() => {
-        if (!sliderContainerRef.current) {
-            return;
-        }
-
-        const resizeObserver = new ResizeObserver(calculateTrackOffset);
-        resizeObserver.observe(sliderContainerRef.current);
-
-        return () => resizeObserver.disconnect();
-    }, []);
-
-    useEffect(() => {
-        if (oidValue === undefined) {
-            return;
-        }
-
-        const index = sliderMarks.findIndex(mark => String(mark.value) === String(oidValue));
-
-        if (index !== -1) {
-            setSliderMarksIndex(index);
-        }
-    }, [oidValue, sliderMarks]);
 
     return (
         <CollectionBase
