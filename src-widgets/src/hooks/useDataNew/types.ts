@@ -305,45 +305,36 @@ export interface PropertyResolvers {
 /**
  * Style data for individual state items without active-state overrides.
  *
- * Subset of StyleData excluding *Active suffix properties (except background-related).
- * Used by getStateStyleData() to build independent state items.
+ * Derived from StyleData by selecting only non-active properties.
+ * Used by statesNew computation to build independent state items.
  *
  * @remarks
- * Excluded properties: iconActive, iconSizeActive, textColorActive, iconColorActive,
- * iconXOffsetActive, iconYOffsetActive, forceColorMaskActive, iconHoverActive,
- * valueSizeActive, iconSizeCm, iconSizeOnly, iconSizeActiveOnly, forceColorMaskCm,
- * textColorCm, iconXOffsetCm, iconYOffsetCm
+ * Excludes all Active suffix properties (except background-related which are handled separately),
+ * Cm suffix properties (common/shared properties), and header/footer properties.
  * @since 2.2.0
  */
-export interface StateStyleData {
-    // Content Properties
-    alias: string;
-    value?: string;
-
-    // Size Properties
+export type StateStyleData = Pick<
+    StyleData,
+    | 'alias'
+    | 'value'
+    | 'valueSize'
+    | 'icon'
+    | 'iconSize'
+    | 'iconColor'
+    | 'iconHover'
+    | 'forceColorMask'
+    | 'backgroundColor'
+    | 'background'
+    | 'frameBackgroundColor'
+    | 'frameBackground'
+> & {
     fontSize?: string | null;
-    valueSize: string | null;
-
-    // Text Properties
     textColor?: string;
-
-    // Icon Properties
-    icon: string;
-    iconSize: string;
     iconWidth: number;
     iconHeight: number;
     iconXOffset: string;
     iconYOffset: string;
-    iconColor: string;
-    iconHover?: string;
-    forceColorMask?: boolean;
-
-    // Background Properties
-    backgroundColor: string;
-    background: string;
-    frameBackgroundColor: string;
-    frameBackground: string;
-}
+};
 
 /**
  * Return type for useDataNew hook.

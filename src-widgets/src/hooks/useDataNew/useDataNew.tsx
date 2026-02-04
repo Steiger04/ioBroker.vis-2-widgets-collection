@@ -52,7 +52,7 @@ import type { OidObject } from '../../types/utility-types';
 import { formatSizeRem } from '../../lib/helper/formatSizeRem';
 import { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
 import { createPropertyResolvers } from './propertyResolvers';
-import type { UseDataResult, SliderProperties, StyleData, StateStyleData, StateItem } from './types';
+import type { UseDataResult, SliderProperties, StyleData, StateItem } from './types';
 import type { SliderFieldsRxData } from '../../types/field-definitions';
 
 /**
@@ -333,49 +333,6 @@ function useDataNew(_oid: string): UseDataResult {
         [propertyResolvers],
     );
 
-    /**
-     * Resolves StateStyleData for a specific state index.
-     *
-     * @param index - 1-based state index
-     * @param isActive - Whether the state is currently active
-     * @returns StateStyleData with active-aware fallbacks applied
-     * @since 2.2.2
-     */
-    // PHASE 6.6: State-level style resolver for per-state computation.
-    const getStateStyleData = useMemo(
-        () =>
-            (index: number, isActive: boolean): StateStyleData => ({
-                // Content Properties
-                alias: propertyResolvers.alias(index, isActive),
-                value: propertyResolvers.value(index, isActive),
-
-                // Size Properties
-                fontSize: propertyResolvers.fontSize(index, isActive),
-                valueSize: propertyResolvers.valueSize(index, isActive),
-
-                // Text Properties
-                textColor: propertyResolvers.textColor(index, isActive),
-
-                // Icon Properties
-                icon: propertyResolvers.icon(index, isActive),
-                iconSize: propertyResolvers.iconSize(index, isActive),
-                iconWidth: propertyResolvers.iconWidth(index, isActive),
-                iconHeight: propertyResolvers.iconHeight(index, isActive),
-                iconXOffset: propertyResolvers.iconXOffset(index, isActive),
-                iconYOffset: propertyResolvers.iconYOffset(index, isActive),
-                iconColor: propertyResolvers.iconColor(index, isActive),
-                iconHover: propertyResolvers.iconHover(index, isActive),
-                forceColorMask: propertyResolvers.forceColorMask(index, isActive),
-
-                // Background Properties
-                backgroundColor: propertyResolvers.backgroundColor(index, isActive),
-                background: propertyResolvers.background(index, isActive),
-                frameBackgroundColor: propertyResolvers.frameBackgroundColor(index, isActive),
-                frameBackground: propertyResolvers.frameBackground(index, isActive),
-            }),
-        [propertyResolvers],
-    );
-
     // ============= PHASE 6: States Computation (Analog to useData lines 214-466) =============
 
     const { states, widgetStates, minValue, maxValue } = useMemo(() => {
@@ -514,24 +471,23 @@ function useDataNew(_oid: string): UseDataResult {
 
                 // Calculate isActive for this state
                 const isActive = String(oidValue) === String(convertedValue);
-                console.log(`State ${i} (value=${convertedValue}) isActive:`, isActive);
 
-                // Get style data via getStateStyleData
-                const styleData = getStateStyleData(i, isActive);
+                // Get style data via getStyleData
+                const styleData = getStyleData(i, isActive);
 
                 // Map to StateItem interface
                 result.push({
                     value: convertedValue,
                     label: styleData.alias,
                     alias: styleData.alias,
-                    fontSize: styleData.fontSize,
+                    fontSize: propertyResolvers.fontSize(i, isActive),
                     textColor: styleData.textColor,
                     icon: styleData.icon,
                     iconSize: styleData.iconSize ? parseInt(styleData.iconSize) || undefined : undefined,
-                    iconWidth: styleData.iconWidth,
-                    iconHeight: styleData.iconHeight,
-                    iconXOffset: styleData.iconXOffset,
-                    iconYOffset: styleData.iconYOffset,
+                    iconWidth: propertyResolvers.iconWidth(i, isActive),
+                    iconHeight: propertyResolvers.iconHeight(i, isActive),
+                    iconXOffset: propertyResolvers.iconXOffset(i, isActive),
+                    iconYOffset: propertyResolvers.iconYOffset(i, isActive),
                     iconColor: styleData.iconColor,
                     iconHover: styleData.iconHover,
                     forceColorMask: styleData.forceColorMask,
@@ -549,7 +505,7 @@ function useDataNew(_oid: string): UseDataResult {
         }
 
         return result;
-    }, [rxData, oidObject, oidValue, getStateStyleData, propertyResolvers]);
+    }, [rxData, oidObject, oidValue, getStyleData, propertyResolvers]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
