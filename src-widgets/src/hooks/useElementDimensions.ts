@@ -36,7 +36,7 @@ export interface ElementDimensions {
  * ```
  */
 const useElementDimensions = (
-    element: HTMLElement | RefObject<HTMLElement | HTMLDivElement> | null | undefined,
+    element: HTMLElement | RefObject<HTMLElement> | null | undefined,
     sliderSize: number = 28,
 ): ElementDimensions => {
     const [dimensions, setDimensions] = useState<ElementDimensions>({

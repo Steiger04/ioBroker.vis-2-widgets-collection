@@ -7,7 +7,7 @@
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Box, FormControlLabel, Radio, Stack, Typography } from '@mui/material';
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -32,12 +32,8 @@ function RadioGroupCollection(): React.ReactElement {
             data: { oidObject },
         },
         widget,
-        theme,
     } = context;
     const { data, states, statesNew } = useDataNew('oid');
-
-    console.log('statesNew:', statesNew);
-    console.log('states:', states);
 
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
@@ -74,10 +70,7 @@ function RadioGroupCollection(): React.ReactElement {
                     alignItems: isHorizontal ? 'center' : 'stretch',
                 }}
             >
-                {statesNew.map(({ value, label: alias, ...state }, index) => {
-                    const textColorValue = state.textColor || data.textColor;
-                    const gradient = gradientColor(textColorValue);
-
+                {statesNew.map((state, index) => {
                     return (
                         <FormControlLabel
                             key={index}
@@ -176,7 +169,7 @@ function RadioGroupCollection(): React.ReactElement {
                                                             width: `calc(${data.iconSizeOnly} * 0.5)`, // noch aud state.iconSizeOnly umstellen
                                                             ...getIconColorStyles(
                                                                 state.icon,
-                                                                state.iconColor || theme.palette.primary.main,
+                                                                state.iconColor,
                                                                 state.forceColorMask,
                                                             ),
                                                         }}
@@ -218,9 +211,9 @@ function RadioGroupCollection(): React.ReactElement {
                                             maxHeight: isHorizontal ? radioGroupHeight || undefined : itemSize,
                                         },
                                     }}
-                                    checked={String(value) === String(oidValue)}
+                                    checked={String(state.value) === String(oidValue)}
                                     onChange={handleChange}
-                                    value={value}
+                                    value={state.value}
                                 />
                             }
                             label={
@@ -236,19 +229,16 @@ function RadioGroupCollection(): React.ReactElement {
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                             wordBreak: 'break-word',
-                                            fontSize: state.fontSize || data.valueSize,
+                                            fontSize: state.valueSize,
                                             textAlign: 'left',
-                                            background: gradient,
+                                            background: gradientColor(state.textColor),
                                             WebkitBackgroundClip: 'text',
                                             backgroundClip: 'text',
-                                            color: gradient ? 'transparent' : textColorValue,
+                                            color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
                                         }}
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
-                                            __html:
-                                                (alias && alias.replace(/(\r\n|\n|\r)/gm, '')) ||
-                                                (value && `${value}${oidObject?.unit}`) ||
-                                                '',
+                                            __html: state.label!,
                                         }}
                                     />
                                 ) : undefined
