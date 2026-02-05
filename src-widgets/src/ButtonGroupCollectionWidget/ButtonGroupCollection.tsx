@@ -6,7 +6,7 @@
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { alpha, lighten } from '@mui/material/styles';
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -19,12 +19,35 @@ import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { ButtonGroupCollectionContextProps } from '../types';
 
+/**
+ * Computes color-related styles for a single toggle button.
+ *
+ * Centralises the gradient/lighten logic that would otherwise be
+ * duplicated across hover, selected and base states.
+ */
+function getButtonColorStyles(bgColor: string | null | undefined): {
+    hasGradient: boolean;
+    hasColor: string | null;
+    hoverBackground: string | undefined;
+    selectedBackground: string | undefined;
+} {
+    const gradient = gradientColor(bgColor);
+    const color = extractColorFromValue(bgColor);
+
+    return {
+        hasGradient: !!gradient,
+        hasColor: color,
+        hoverBackground: gradient ? undefined : color && bgColor ? lighten(bgColor, 0.5) : undefined,
+        selectedBackground: gradient ? undefined : color && bgColor ? lighten(bgColor, 0.3) : undefined,
+    };
+}
+
 function ButtonGroupCollection(): React.JSX.Element {
     const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
     const { widget } = context;
 
     const oidObject = widget.data.oidObject;
-    const { data, statesNew, activeIndex } = useDataNew('oid');
+    const { data: styleData, statesNew: buttonStates, activeIndex } = useDataNew('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
@@ -34,15 +57,22 @@ function ButtonGroupCollection(): React.JSX.Element {
     const isVertical = buttonGroupOrientation === 'vertical';
     const isOutlined = buttonGroupVariant === 'outlined';
 
+    const handleButtonClick = useCallback(
+        (selectedValue: string | number | boolean) => {
+            setOidValueState(selectedValue);
+        },
+        [setOidValueState],
+    );
+
     return (
         <CollectionBase
             isValidType={isValidType}
-            data={data}
+            data={styleData}
             oidValue={oidValue}
             bgActive={false}
         >
             <CollectionBaseImage
-                data={data}
+                data={styleData}
                 widget={widget}
             />
 
@@ -65,46 +95,54 @@ function ButtonGroupCollection(): React.JSX.Element {
                             '& .MuiToggleButton-root': {
                                 flex: '1 1 0',
                                 minHeight: 0,
-                                maxHeight: `calc(100% / ${statesNew.length})`,
+                                maxHeight: `calc(100% / ${buttonStates.length})`,
                             },
                         }),
 
+                        // Border styles differ between outlined and borderless variants.
+                        // For non-outlined mode every edge is collapsed to 0 except
+                        // where a separator line between buttons is desired.
                         '& .MuiToggleButtonGroup-firstButton': {
-                            borderTopWidth: isOutlined ? null : 0,
-                            borderLeftWidth: isOutlined ? null : 0,
-                            borderRightWidth: isOutlined ? null : isVertical ? 0 : null,
-                            borderBottomWidth: isOutlined ? null : isVertical ? null : 0,
+                            ...(!isOutlined && {
+                                borderTopWidth: 0,
+                                borderLeftWidth: 0,
+                                ...(isVertical ? { borderRightWidth: 0 } : { borderBottomWidth: 0 }),
+                            }),
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                         '& .MuiToggleButtonGroup-middleButton': {
-                            borderTopWidth: isOutlined ? null : isVertical ? null : 0,
-                            borderLeftWidth: isOutlined ? null : 0,
-                            borderRightWidth: isOutlined ? null : 0,
-                            borderBottomWidth: isOutlined ? null : isVertical ? null : 0,
+                            ...(!isOutlined && {
+                                borderLeftWidth: 0,
+                                borderRightWidth: 0,
+                                ...(isVertical ? {} : { borderTopWidth: 0, borderBottomWidth: 0 }),
+                            }),
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
                         },
                         '& .MuiToggleButtonGroup-lastButton': {
-                            borderTopWidth: isOutlined ? null : isVertical ? null : 0,
-                            borderLeftWidth: isOutlined ? null : 0,
-                            borderRightWidth: isOutlined ? null : 0,
-                            borderBottomWidth: isOutlined ? null : 0,
+                            ...(!isOutlined && {
+                                borderLeftWidth: 0,
+                                borderRightWidth: 0,
+                                borderBottomWidth: 0,
+                                ...(!isVertical && { borderTopWidth: 0 }),
+                            }),
                             borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                     }}
                 >
-                    {statesNew.map(({ value, ...state }, index) => {
+                    {buttonStates.map(({ value, ...state }, index) => {
+                        // activeIndex is 1-based (0 / undefined = no selection)
                         const isActive = activeIndex === index + 1;
                         const bgColor = state.background;
-                        const hasGradient = gradientColor(bgColor);
-                        const hasColor = extractColorFromValue(bgColor);
+                        const { hasGradient, hoverBackground, selectedBackground } = getButtonColorStyles(bgColor);
+                        const textGradient = gradientColor(state.textColor);
 
                         return (
                             <ToggleButton
                                 value={value!}
-                                onClick={() => setOidValueState(value!)}
-                                key={index}
+                                onClick={() => handleButtonClick(value!)}
+                                key={`${String(value)}-${index}`}
                                 sx={{
                                     width: '100%',
                                     height: '100%',
@@ -119,19 +157,11 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                         '&:hover': {
                                             filter: hasGradient ? 'opacity(80%)' : undefined,
-                                            background: hasGradient
-                                                ? undefined
-                                                : hasColor && bgColor
-                                                  ? lighten(bgColor, 0.5)
-                                                  : undefined,
+                                            background: hoverBackground,
                                         },
 
                                         '&.Mui-selected': {
-                                            background: hasGradient
-                                                ? undefined
-                                                : hasColor && bgColor
-                                                  ? lighten(bgColor, 0.3)
-                                                  : undefined,
+                                            background: selectedBackground,
                                         },
                                     },
                                 }}
@@ -162,15 +192,11 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                 src={state.icon}
                                                 style={{
                                                     position: 'relative',
-
                                                     left: state.iconXOffset,
                                                     bottom: state.iconYOffset,
-
                                                     objectFit: 'contain',
-
                                                     width: state.iconSizeOnly,
                                                     height: state.iconSizeOnly,
-
                                                     ...getIconColorStyles(
                                                         state.icon,
                                                         state.iconColor,
@@ -199,15 +225,11 @@ function ButtonGroupCollection(): React.JSX.Element {
                                                 variant="body2"
                                                 sx={{
                                                     textTransform: 'none',
-
                                                     fontSize: state.valueSize,
-
-                                                    background: gradientColor(state.textColor),
+                                                    background: textGradient,
                                                     WebkitBackgroundClip: 'text',
                                                     backgroundClip: 'text',
-                                                    color: gradientColor(state.textColor)
-                                                        ? 'transparent'
-                                                        : state.textColor,
+                                                    color: textGradient ? 'transparent' : state.textColor,
                                                 }}
                                             />
                                         </Box>
