@@ -108,13 +108,11 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
             refService: props.refService,
             style: props.style,
             widget: {
-                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),
