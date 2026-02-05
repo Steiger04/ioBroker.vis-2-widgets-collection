@@ -356,6 +356,7 @@ function useDataNew(_oid: string): UseDataResult {
                     textColor: styleData.textColor,
                     icon: styleData.icon,
                     iconSize: styleData.iconSize,
+                    iconSizeOnly: styleData.iconSizeOnly,
                     iconWidth: styleData.iconWidth,
                     iconHeight: styleData.iconHeight,
                     iconXOffset: styleData.iconXOffset,

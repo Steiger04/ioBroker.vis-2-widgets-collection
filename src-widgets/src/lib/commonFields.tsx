@@ -92,14 +92,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 const iconField = data[`icon${suffix}`];
                 const iconSmallField = data[`iconSmall${suffix}`];
 
-                if (suffix === '') {
-                    // _hidden = !data.iconColor && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
+                if (suffix === '' || suffix === 'Active') {
                     _hidden = false;
-                }
-
-                if (suffix === 'Active') {
-                    _hidden =
-                        !data.iconColor && !data.iconColorActive && !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
                 }
 
                 if (index !== undefined) {

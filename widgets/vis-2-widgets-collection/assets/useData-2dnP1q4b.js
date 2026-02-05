@@ -1,7 +1,7 @@
 import { v as m, R as aa, a as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
 import { g as qa, c as fn } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as yf } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let qu, CU, v0, Re, po, TU, h0, Sa, HU, Zh, IU, Xn, ym, j0, LU, QU, wa, wU, qc, pl, Ao, $p, Lt, He, Du, hl, aB, eB, IA, Ct, Qs, vs, fa, lh, xU, hU, dd, gr, ul, fr, Ns, Jt, Er, Pp, Cs, Su, et, EU, ps, YA, UU, hs, an, ha, Xh, le, ed, pA, RA, xs, kA, li, hA, L, tt, pe, OA, Oh, ar, xi, ba, $e, lA, SU, KA, pr, Ie, Em, vU, zn;
+let Ct, CU, v0, Re, po, TU, h0, Sa, HU, Zh, IU, Xn, ym, j0, wU, QU, wa, qc, pl, $p, Ao, Lt, He, Du, hl, aB, eB, qu, IA, Qs, vs, fa, LU, lh, xU, hU, dd, gr, ul, fr, Ns, Jt, Er, Pp, Cs, Su, et, EU, ps, YA, UU, hs, an, ha, Xh, le, ed, pA, RA, xs, kA, li, hA, L, tt, pe, OA, Oh, ar, xi, ba, $e, lA, SU, KA, pr, Ie, Em, vU, zn;
 let __tla = Promise.all([
   (() => {
     try {
@@ -10477,7 +10477,7 @@ export default theme;`;
   };
   pr = m.createContext({});
   function gC({ children: A, context: e }) {
-    const t = e.theme, r = e.widget, { fontStyles: n, textStyles: o } = Ns(r.style || {}), i = m.useMemo(() => (console.log("theme in CollectionProvider:", t), console.log("fontStyles in CollectionProvider:", n), console.log("textStyles in CollectionProvider:", o), ci(YA(t, {
+    const t = e.theme, r = e.widget, { fontStyles: n, textStyles: o } = Ns(r.style || {}), i = m.useMemo(() => ci(YA(t, {
       components: {
         MuiTypography: {
           styleOverrides: {
@@ -10490,12 +10490,12 @@ export default theme;`;
           }
         }
       }
-    }))), [
+    })), [
       t,
       n,
       o
     ]);
-    return console.log("_theme in CollectionProvider:", i), L.jsxs(Ad, {
+    return L.jsxs(Ad, {
       theme: i,
       children: [
         L.jsx(S0, {}),
@@ -20274,7 +20274,7 @@ export default theme;`;
   };
 });
 export {
-  qu as $,
+  Ct as $,
   CU as A,
   v0 as B,
   Re as C,
@@ -20288,26 +20288,26 @@ export {
   Xn as K,
   ym as L,
   j0 as M,
-  LU as N,
+  wU as N,
   QU as O,
   wa as P,
-  wU as Q,
-  qc as R,
-  pl as S,
+  qc as Q,
+  pl as R,
+  $p as S,
   Ao as T,
-  $p as U,
-  Lt as V,
-  He as W,
-  Du as X,
-  hl as Y,
-  aB as Z,
-  eB as _,
+  Lt as U,
+  He as V,
+  Du as W,
+  hl as X,
+  aB as Y,
+  eB as Z,
+  qu as _,
   __tla,
   IA as a,
-  Ct as a0,
-  Qs as a1,
-  vs as a2,
-  fa as a3,
+  Qs as a0,
+  vs as a1,
+  fa as a2,
+  LU as a3,
   lh as a4,
   xU as a5,
   hU as a6,

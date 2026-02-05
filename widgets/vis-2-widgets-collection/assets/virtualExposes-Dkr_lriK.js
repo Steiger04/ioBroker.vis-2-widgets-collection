@@ -1,10 +1,10 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-BauksC3r.js","./useData-ySXy5KMl.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./commonObjectFields-uR0K0cpI.js","./useValueState-CANcZOFk.js","./Close-BufaOXnk.js","./Slider-wfRCoRM3.js","./listItemTextClasses-YJ66dX8c.js","./Stack-Bu2YdDZA.js","./useDataNew-BhEzyQPL.js","./useHtmlValue-Dcwl_hqT.js","./Button-CX3LhAZh.js","./SliderCollectionWidget-Dj8BYc98.js","./ButtonGroupCollectionWidget-CONYOyc6.js","./SafeImg-BfZGZGnV.js","./SwitchCollectionWidget-C-zE46CO.js","./SwitchBase-BlQhbkh0.js","./CheckboxCollectionWidget-D6DJU9e0.js","./FormControlLabel-Dpar4xqZ.js","./DialogCollectionWidget-CMsvQKK6.js","./SelectCollectionWidget-C2QNLtru.js","./RadioGroupCollectionWidget--83rZti5.js","./GaugeCollectionWidget-CNrqinN8.js","./useOidValue-BaT0EFML.js","./Light2CollectionWidget-DVg7B_L1.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-soOBfjVy.js","./useData-2dnP1q4b.js","./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./commonObjectFields-DPT5kyDR.js","./useValueState-CcNNBxyO.js","./Close-DEJXQk2V.js","./Slider-LRDJ7L3R.js","./listItemTextClasses-Ci32o1By.js","./Stack-Buihj4Jh.js","./useDataNew-BNdZOaQu.js","./useHtmlValue-Dcwl_hqT.js","./Button-CiMze6pj.js","./SliderCollectionWidget-BsxrmhZw.js","./ButtonGroupCollectionWidget-B0CSpOKR.js","./SafeImg-BzmzM1r9.js","./SwitchCollectionWidget-4o0UFiQ0.js","./SwitchBase-BreQYGG5.js","./CheckboxCollectionWidget-CyQvSS4c.js","./FormControlLabel-BYhrO682.js","./DialogCollectionWidget-tKRmUKRh.js","./SelectCollectionWidget-CZDrupsF.js","./RadioGroupCollectionWidget-GHRfasE-.js","./GaugeCollectionWidget-B4JhXmLs.js","./useOidValue-4-TfRS-y.js","./Light2CollectionWidget-CtJCU9B0.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
   i = {
     "./StateCollectionWidget": async () => {
-      const t = await o(() => import("./StateCollectionWidget-BauksC3r.js").then(async (m) => {
+      const t = await o(() => import("./StateCollectionWidget-soOBfjVy.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([0,1,2,3,4,5,6,7,8,9,10,11,12,13]), import.meta.url), e = {};
@@ -14,17 +14,17 @@ let __tla = (async () => {
       }), e;
     },
     "./SliderCollectionWidget": async () => {
-      const t = await o(() => import("./SliderCollectionWidget-Dj8BYc98.js").then(async (m) => {
+      const t = await o(() => import("./SliderCollectionWidget-BsxrmhZw.js").then(async (m) => {
         await m.__tla;
         return m;
-      }), __vite__mapDeps([14,1,2,3,4,5,6,8]), import.meta.url), e = {};
+      }), __vite__mapDeps([14,1,2,3,4,5,6,11,8]), import.meta.url), e = {};
       return Object.assign(e, t), Object.defineProperty(e, "__esModule", {
         value: true,
         enumerable: false
       }), e;
     },
     "./ButtonGroupCollectionWidget": async () => {
-      const t = await o(() => import("./ButtonGroupCollectionWidget-CONYOyc6.js").then(async (m) => {
+      const t = await o(() => import("./ButtonGroupCollectionWidget-B0CSpOKR.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([15,1,2,3,4,5,6,16]), import.meta.url), e = {};
@@ -34,7 +34,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SwitchCollectionWidget": async () => {
-      const t = await o(() => import("./SwitchCollectionWidget-C-zE46CO.js").then(async (m) => {
+      const t = await o(() => import("./SwitchCollectionWidget-4o0UFiQ0.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([17,1,2,3,4,5,6,11,18]), import.meta.url), e = {};
@@ -44,7 +44,7 @@ let __tla = (async () => {
       }), e;
     },
     "./CheckboxCollectionWidget": async () => {
-      const t = await o(() => import("./CheckboxCollectionWidget-D6DJU9e0.js").then(async (m) => {
+      const t = await o(() => import("./CheckboxCollectionWidget-CyQvSS4c.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([19,1,2,3,4,5,6,11,12,16,20,18]), import.meta.url), e = {};
@@ -54,7 +54,7 @@ let __tla = (async () => {
       }), e;
     },
     "./DialogCollectionWidget": async () => {
-      const t = await o(() => import("./DialogCollectionWidget-CMsvQKK6.js").then(async (m) => {
+      const t = await o(() => import("./DialogCollectionWidget-tKRmUKRh.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([21,1,2,3,4,12,7]), import.meta.url), e = {};
@@ -64,7 +64,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SelectCollectionWidget": async () => {
-      const t = await o(() => import("./SelectCollectionWidget-C2QNLtru.js").then(async (m) => {
+      const t = await o(() => import("./SelectCollectionWidget-CZDrupsF.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([22,1,2,3,4,5,6,16,9,10]), import.meta.url), e = {};
@@ -74,7 +74,7 @@ let __tla = (async () => {
       }), e;
     },
     "./RadioGroupCollectionWidget": async () => {
-      const t = await o(() => import("./RadioGroupCollectionWidget--83rZti5.js").then(async (m) => {
+      const t = await o(() => import("./RadioGroupCollectionWidget-GHRfasE-.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([23,1,2,3,4,5,6,11,10,20,18]), import.meta.url), e = {};
@@ -84,7 +84,7 @@ let __tla = (async () => {
       }), e;
     },
     "./GaugeCollectionWidget": async () => {
-      const t = await o(() => import("./GaugeCollectionWidget-CNrqinN8.js").then(async (m) => {
+      const t = await o(() => import("./GaugeCollectionWidget-B4JhXmLs.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([24,1,2,3,4,5,25]), import.meta.url), e = {};
@@ -94,7 +94,7 @@ let __tla = (async () => {
       }), e;
     },
     "./Light2CollectionWidget": async () => {
-      const t = await o(() => import("./Light2CollectionWidget-DVg7B_L1.js").then(async (m) => {
+      const t = await o(() => import("./Light2CollectionWidget-CtJCU9B0.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([26,1,2,3,4,6,5,13,25]), import.meta.url), e = {};

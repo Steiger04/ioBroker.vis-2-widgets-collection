@@ -6,15 +6,14 @@
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { alpha, lighten } from '@mui/material/styles';
-import React, { useContext, useMemo } from 'react';
+import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import SafeImg from '../components/SafeImg';
-import useData, { type StateItem } from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useValueState from '../hooks/useValueState';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
-import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 
@@ -22,10 +21,10 @@ import type { ButtonGroupCollectionContextProps } from '../types';
 
 function ButtonGroupCollection(): React.JSX.Element {
     const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
-    const { widget, theme } = context;
+    const { widget } = context;
 
     const oidObject = widget.data.oidObject;
-    const { data, states, activeIndex } = useData('oid');
+    const { data, statesNew, activeIndex } = useDataNew('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;
@@ -34,86 +33,6 @@ function ButtonGroupCollection(): React.JSX.Element {
     const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
     const isVertical = buttonGroupOrientation === 'vertical';
     const isOutlined = buttonGroupVariant === 'outlined';
-
-    // Memoized helpers that accept isActive parameter to avoid recalculation
-    const helpers = useMemo(
-        () => ({
-            getBackgroundColor: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                return isActive ? widget.data.backgroundActive || state.backgroundActive : state.backgroundActive;
-            },
-
-            getIcon: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                return isActive
-                    ? widget.data.iconActive || widget.data.iconSmallActive || state.icon || data.icon
-                    : state.icon || data.icon;
-            },
-
-            getIconColor: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                return isActive
-                    ? widget.data.iconColorActive ||
-                          state.iconColor ||
-                          widget.data.buttonGroupColor ||
-                          data.iconColor ||
-                          theme.palette.primary.main
-                    : state.iconColor || widget.data.buttonGroupColor || data.iconColor || theme.palette.primary.main;
-            },
-
-            getTextColor: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                return isActive
-                    ? widget.data.textColorActive ||
-                          state.textColor ||
-                          widget.data.buttonGroupColor ||
-                          data.textColor ||
-                          theme.palette.primary.main
-                    : state.textColor || widget.data.buttonGroupColor || data.textColor || theme.palette.primary.main;
-            },
-
-            getIconSize: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                const size =
-                    isActive && typeof widget.data.iconSizeActive === 'number'
-                        ? widget.data.iconSizeActive
-                        : typeof state.iconSize === 'number'
-                          ? state.iconSize
-                          : typeof widget.data.iconSize === 'number'
-                            ? widget.data.iconSize
-                            : 100;
-                return `calc(100% * ${size} / 100)`;
-            },
-
-            getIconOffset: (isActive: boolean, state: Omit<StateItem, 'value'>, axis: 'X' | 'Y') => {
-                const offsetProp = axis === 'X' ? 'iconXOffset' : 'iconYOffset';
-                const activeOffsetProp = axis === 'X' ? 'iconXOffsetActive' : 'iconYOffsetActive';
-
-                const activeOffset = isActive ? widget.data[activeOffsetProp] : undefined;
-                const stateOffset = state[offsetProp];
-
-                return activeOffset && activeOffset !== '0px'
-                    ? activeOffset
-                    : stateOffset && stateOffset !== '0px'
-                      ? stateOffset
-                      : '0px';
-            },
-
-            getTextContent: (
-                isActive: boolean,
-                state: Omit<StateItem, 'value'>,
-                value: Pick<StateItem, 'value'>['value'],
-            ) => {
-                return isActive && widget.data.aliasActive
-                    ? widget.data.aliasActive
-                    : state.alias?.replace(/(\r\n|\n|\r)/gm, '') || (value && `${value}${oidObject?.unit}`) || '';
-            },
-
-            getTextSize: (isActive: boolean, state: Omit<StateItem, 'value'>) => {
-                return isActive && typeof widget.data.valueSizeActive === 'number'
-                    ? formatSizeRem(widget.data.valueSizeActive)
-                    : typeof state.valueSize === 'string'
-                      ? `${state.valueSize}`
-                      : data.valueSize;
-            },
-        }),
-        [widget.data, data, oidObject, theme.palette.primary.main],
-    );
 
     return (
         <CollectionBase
@@ -146,7 +65,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                             '& .MuiToggleButton-root': {
                                 flex: '1 1 0',
                                 minHeight: 0,
-                                maxHeight: `calc(100% / ${states.length})`,
+                                maxHeight: `calc(100% / ${statesNew.length})`,
                             },
                         }),
 
@@ -175,25 +94,16 @@ function ButtonGroupCollection(): React.JSX.Element {
                         },
                     }}
                 >
-                    {states.map(({ value, ...state }, index) => {
+                    {statesNew.map(({ value, ...state }, index) => {
                         const isActive = activeIndex === index + 1;
-                        const bgColor = helpers.getBackgroundColor(isActive, state);
+                        const bgColor = state.background;
                         const hasGradient = gradientColor(bgColor);
                         const hasColor = extractColorFromValue(bgColor);
-                        const icon = helpers.getIcon(isActive, state);
-
-                        /* console.log(
-                            'index, icon, helpers.getIconColor(isActive, state), state.forceColorMask',
-                            index,
-                            icon,
-                            helpers.getIconColor(isActive, state),
-                            state.forceColorMask,
-                        ); */
 
                         return (
                             <ToggleButton
-                                value={value}
-                                onClick={() => setOidValueState(value)}
+                                value={value!}
+                                onClick={() => setOidValueState(value!)}
                                 key={index}
                                 sx={{
                                     width: '100%',
@@ -205,7 +115,7 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                     '&.MuiToggleButton-root': {
                                         filter: isActive && hasGradient ? 'opacity(80%)' : undefined,
-                                        background: isActive ? bgColor : state.backgroundActive,
+                                        background: bgColor,
 
                                         '&:hover': {
                                             filter: hasGradient ? 'opacity(80%)' : undefined,
@@ -237,7 +147,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                                         alignItems: 'center',
                                     }}
                                 >
-                                    {!widget.data.onlyText && icon && (
+                                    {!widget.data.onlyText && state.icon && (
                                         <Box
                                             sx={{
                                                 overflow: 'hidden',
@@ -249,21 +159,22 @@ function ButtonGroupCollection(): React.JSX.Element {
                                             }}
                                         >
                                             <SafeImg
-                                                src={icon}
+                                                src={state.icon}
                                                 style={{
                                                     position: 'relative',
-                                                    left: helpers.getIconOffset(isActive, state, 'X'),
-                                                    bottom: helpers.getIconOffset(isActive, state, 'Y'),
+
+                                                    left: state.iconXOffset,
+                                                    bottom: state.iconYOffset,
+
                                                     objectFit: 'contain',
-                                                    width: helpers.getIconSize(isActive, state),
-                                                    height: helpers.getIconSize(isActive, state),
+
+                                                    width: state.iconSizeOnly,
+                                                    height: state.iconSizeOnly,
+
                                                     ...getIconColorStyles(
-                                                        icon,
-                                                        helpers.getIconColor(isActive, state),
-                                                        isActive
-                                                            ? widget.data.enableIconColorMaskActive ||
-                                                                  state.forceColorMask
-                                                            : state.forceColorMask,
+                                                        state.icon,
+                                                        state.iconColor,
+                                                        state.forceColorMask,
                                                     ),
                                                 }}
                                             />
@@ -282,19 +193,21 @@ function ButtonGroupCollection(): React.JSX.Element {
                                             <Typography
                                                 contentEditable="false"
                                                 dangerouslySetInnerHTML={{
-                                                    __html: helpers.getTextContent(isActive, state, value),
+                                                    __html: state.label!,
                                                 }}
                                                 noWrap
                                                 variant="body2"
                                                 sx={{
                                                     textTransform: 'none',
-                                                    fontSize: helpers.getTextSize(isActive, state),
-                                                    background: gradientColor(helpers.getTextColor(isActive, state)),
+
+                                                    fontSize: state.valueSize,
+
+                                                    background: gradientColor(state.textColor),
                                                     WebkitBackgroundClip: 'text',
                                                     backgroundClip: 'text',
-                                                    color: gradientColor(helpers.getTextColor(isActive, state))
+                                                    color: gradientColor(state.textColor)
                                                         ? 'transparent'
-                                                        : helpers.getTextColor(isActive, state),
+                                                        : state.textColor,
                                                 }}
                                             />
                                         </Box>

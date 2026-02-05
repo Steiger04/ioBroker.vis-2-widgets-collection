@@ -1,12 +1,12 @@
-import { c as C, j as a, a as O, g as V, u as R, b as H, a4 as $, d as G, s as E, i as p, e as J, r as U, m as Z, o as w, a0 as k, C as M, v as Y, A as Q, E as X, w as j, T as q, z as P, y as D, G as K, H as z, J as ee, __tla as __tla_0 } from "./useData-ySXy5KMl.js";
-import { c as te, __tla as __tla_1 } from "./commonObjectFields-uR0K0cpI.js";
-import { u as oe, d as ae, __tla as __tla_2 } from "./useValueState-CANcZOFk.js";
+import { c as C, j as a, a as O, g as V, u as R, b as $, a4 as H, d as G, s as E, i as p, e as J, r as U, m as Z, o as w, $ as k, C as M, v as Y, A as Q, E as X, w as j, T as q, z as P, y as D, G as K, H as z, J as ee, __tla as __tla_0 } from "./useData-2dnP1q4b.js";
+import { c as te, __tla as __tla_1 } from "./commonObjectFields-DPT5kyDR.js";
+import { u as oe, d as ae, __tla as __tla_2 } from "./useValueState-CcNNBxyO.js";
 import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as ie, __tla as __tla_4 } from "./useDataNew-BhEzyQPL.js";
+import { u as ie, __tla as __tla_4 } from "./useDataNew-BNdZOaQu.js";
 import { u as le, __tla as __tla_5 } from "./useHtmlValue-Dcwl_hqT.js";
-import { S as A, __tla as __tla_6 } from "./SafeImg-BfZGZGnV.js";
-import { F as se, __tla as __tla_7 } from "./FormControlLabel-Dpar4xqZ.js";
-import { S as ne, __tla as __tla_8 } from "./SwitchBase-BlQhbkh0.js";
+import { S as A, __tla as __tla_6 } from "./SafeImg-BzmzM1r9.js";
+import { F as se, __tla as __tla_7 } from "./FormControlLabel-BYhrO682.js";
+import { S as ne, __tla as __tla_8 } from "./SwitchBase-BreQYGG5.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let F;
@@ -172,7 +172,7 @@ let __tla = Promise.all([
       color: l,
       indeterminate: c,
       size: h
-    }, S = me(x), u = v.input ?? m, [W, B] = H("root", {
+    }, S = me(x), u = v.input ?? m, [W, B] = $("root", {
       ref: i,
       elementType: he,
       className: G(S.root, N),
@@ -194,7 +194,7 @@ let __tla = Promise.all([
         disableRipple: g,
         slots: y,
         slotProps: {
-          input: $(typeof u == "function" ? u(x) : u, {
+          input: H(typeof u == "function" ? u(x) : u, {
             "data-indeterminate": c
           })
         }

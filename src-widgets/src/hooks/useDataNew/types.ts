@@ -324,6 +324,7 @@ export type StateStyleData = Pick<
     | 'textColor'
     | 'icon'
     | 'iconSize'
+    | 'iconSizeOnly'
     | 'iconColor'
     | 'iconXOffset'
     | 'iconYOffset'
@@ -341,11 +342,9 @@ export type StateStyleData = Pick<
 > & {
     label?: string;
     fontSize?: string | null;
-    // textColor?: string;
+
     iconWidth?: number;
     iconHeight?: number;
-    // iconXOffset: string;
-    // iconYOffset: string;
 };
 
 /**
