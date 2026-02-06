@@ -6,7 +6,7 @@
 
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useContext, useRef } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
@@ -20,6 +20,32 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+
+/** Computes background color styles for a menu item, handling both gradient and solid backgrounds. */
+function getMenuItemColorStyles(bgColor: string | null | undefined): Record<string, unknown> {
+    const gradient = gradientColor(bgColor);
+    const extractedColor = gradient ? extractColorFromValue(bgColor) : undefined;
+    const hoverBg = gradient ? alpha(extractedColor!, 0.5) : bgColor ? alpha(bgColor, 0.5) : undefined;
+
+    return {
+        background: gradient,
+        bgcolor: gradient ? 'transparent' : bgColor,
+
+        '&.Mui-selected': {
+            background: gradient,
+            bgcolor: gradient ? undefined : bgColor,
+        },
+
+        '&.Mui-selected:hover': {
+            background: gradient ? hoverBg : undefined,
+            bgcolor: gradient ? undefined : hoverBg,
+        },
+        '&:hover': {
+            background: gradient ? hoverBg : undefined,
+            bgcolor: gradient ? undefined : hoverBg,
+        },
+    };
+}
 
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
@@ -37,19 +63,25 @@ function SelectCollection(): React.ReactElement {
 
     const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType || '');
 
-    const valueIndex = statesNew.findIndex(state => String(state.value) === String(oidValue));
+    const valueIndex = useMemo(
+        () => statesNew.findIndex(state => String(state.value) === String(oidValue)),
+        [statesNew, oidValue],
+    );
 
-    const changeHandler = (event: SelectChangeEvent<string | number>): void => {
-        const selectedIndex = event.target.value;
-        const selectedState = statesNew[selectedIndex as number];
-        const value = selectedState.value;
+    const changeHandler = useCallback(
+        (event: SelectChangeEvent<string | number>): void => {
+            const selectedIndex = event.target.value;
+            const selectedState = statesNew[selectedIndex as number];
+            const value = selectedState.value;
 
-        if (cidObject) {
-            setCidValueState(value!);
-        }
+            if (cidObject) {
+                setCidValueState(value!);
+            }
 
-        setOidValueState(value!);
-    };
+            setOidValueState(value!);
+        },
+        [statesNew, cidObject, setCidValueState, setOidValueState],
+    );
 
     return (
         <CollectionBase
@@ -81,6 +113,12 @@ function SelectCollection(): React.ReactElement {
                     MenuProps={{
                         sx: {
                             maxWidth: width,
+                            mt: 0.3,
+
+                            '& .MuiList-root': {
+                                // bgcolor: data.frameBackground,
+                                py: 0,
+                            },
                         },
                     }}
                     sx={{
@@ -89,7 +127,7 @@ function SelectCollection(): React.ReactElement {
                         maxWidth: `calc(${width}px - 10%)`,
 
                         '& .MuiSelect-icon': {
-                            color: widget.data.arrowColor || data.textColor || data.iconColor,
+                            color: extractColorFromValue(widget.data.arrowColor || data.textColor || data.iconColor),
                         },
                     }}
                 >
@@ -98,44 +136,7 @@ function SelectCollection(): React.ReactElement {
                             <MenuItem
                                 key={String(state.value)}
                                 value={idx}
-                                sx={{
-                                    background: gradientColor(state.background),
-                                    bgcolor: gradientColor(state.background) ? 'transparent' : state.background,
-
-                                    '& .MuiTouchRipple-root': {
-                                        /* color: gradientColor(state.background)
-                                            ? alpha(extractColorFromValue(state.background)!, 0.3)
-                                            : state.background
-                                              ? alpha(state.background, 0.3)
-                                              : undefined, */
-                                    },
-
-                                    '&.Mui-selected': {
-                                        background: gradientColor(state.background),
-                                        bgcolor: gradientColor(state.background) ? undefined : state.background,
-                                    },
-
-                                    '&.Mui-selected:hover': {
-                                        background: gradientColor(state.background)
-                                            ? alpha(extractColorFromValue(state.background)!, 0.5)
-                                            : undefined,
-                                        bgcolor: gradientColor(state.background)
-                                            ? undefined
-                                            : state.background
-                                              ? alpha(state.background, 0.5)
-                                              : undefined,
-                                    },
-                                    '&:hover': {
-                                        background: gradientColor(state.background)
-                                            ? alpha(extractColorFromValue(state.background)!, 0.5)
-                                            : undefined,
-                                        bgcolor: gradientColor(state.background)
-                                            ? undefined
-                                            : state.background
-                                              ? alpha(state.background, 0.5)
-                                              : undefined,
-                                    },
-                                }}
+                                sx={getMenuItemColorStyles(state.background)}
                             >
                                 <Stack
                                     direction="row"
