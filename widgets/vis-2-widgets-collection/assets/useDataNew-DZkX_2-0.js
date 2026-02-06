@@ -1,5 +1,5 @@
 import { v as B, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { v as E, ab as F, O as K, ac as q, ad as Y, __tla as __tla_1 } from "./useData-2dnP1q4b.js";
+import { v as E, al as F, O as K, am as q, an as Y, __tla as __tla_1 } from "./useData-D3gzqQso.js";
 let eo;
 let __tla = Promise.all([
   (() => {
@@ -816,6 +816,7 @@ let __tla = Promise.all([
           textColor: g.textColor,
           icon: g.icon,
           iconSize: g.iconSize,
+          iconSizeOnly: g.iconSizeOnly,
           iconWidth: g.iconWidth,
           iconHeight: g.iconHeight,
           iconXOffset: g.iconXOffset,

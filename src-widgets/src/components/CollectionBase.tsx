@@ -96,7 +96,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
             const valueWithUnit =
                 oidValue || oidValue === 0 || oidValue === false ? `${oidValue}${oidObject?.unit ?? ''}` : '';
 
-            return data.footer || data.alias || data.value || valueWithUnit || '';
+            return data.footer || data.alias || String(data.value) || valueWithUnit || '';
         }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);
 
         // Build memoized sx object for outer Paper
@@ -165,7 +165,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
             if (widget.data.noHeader || !headerRef.current) {
                 return;
             }
-            headerRef.current.innerHTML = data.header;
+            headerRef.current.innerHTML = data.header!;
         }, [data.header, widget.data.noHeader]);
 
         // Setup footer effect

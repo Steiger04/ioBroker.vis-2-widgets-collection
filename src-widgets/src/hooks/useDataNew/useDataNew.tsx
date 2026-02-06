@@ -273,40 +273,6 @@ function useDataNew(_oid: string): UseDataResult {
         return { states, widgetStates, minValue, maxValue };
     }, [oidObject, rxData, theme, backgroundStyles, getDataValue, oidValue, formatSize, widgetResolver]);
 
-    // ============= PHASE 7: Active State Detection and Data Resolution =============
-
-    /**
-     * Detects active state and returns appropriate StyleData.
-     * Applies state-specific overrides via resolveStyleData when an active state is matched.
-     * Falls back to default state properties when no match is found.
-     *
-     * @since 2.2.2
-     */
-    const data = useMemo(() => {
-        const oidType = oidObject?.type;
-
-        switch (oidType) {
-            case 'mixed':
-            case 'boolean':
-            case 'number':
-            case 'string': {
-                const _activeIndex = states.findIndex(state => String(state.value) === String(oidValue));
-
-                if (_activeIndex !== -1) {
-                    setActiveIndex(_activeIndex + 1);
-                    // Apply state-specific styles with active properties
-                    return resolveStyleData(_activeIndex + 1, true);
-                }
-
-                setActiveIndex(undefined);
-                // Default to base state properties with active properties included
-                return resolveStyleData('', true);
-            }
-            default:
-                return resolveStyleData('', true);
-        }
-    }, [oidObject, oidValue, states, resolveStyleData]);
-
     // ============= PHASE 8: statesNew Computation =============
 
     /**
@@ -373,6 +339,40 @@ function useDataNew(_oid: string): UseDataResult {
 
         return result;
     }, [oidObject?.type, oidObject?.commonStates, rxData.values_count, getDataValue, oidValue, resolveStyleData]);
+
+    // ============= PHASE 7: Active State Detection and Data Resolution =============
+
+    /**
+     * Detects active state and returns appropriate StyleData.
+     * Applies state-specific overrides via resolveStyleData when an active state is matched.
+     * Falls back to default state properties when no match is found.
+     *
+     * @since 2.2.2
+     */
+    const data = useMemo(() => {
+        const oidType = oidObject?.type;
+
+        switch (oidType) {
+            case 'mixed':
+            case 'boolean':
+            case 'number':
+            case 'string': {
+                const _activeIndex = statesNew.findIndex(state => String(state.value) === String(oidValue));
+
+                if (_activeIndex !== -1) {
+                    setActiveIndex(_activeIndex + 1);
+                    // Apply state-specific styles with active properties
+                    return resolveStyleData(_activeIndex + 1, true);
+                }
+
+                setActiveIndex(undefined);
+                // Default to base state properties with active properties included
+                return resolveStyleData('', true);
+            }
+            default:
+                return resolveStyleData('', true);
+        }
+    }, [oidObject, oidValue, statesNew, resolveStyleData]);
 
     // ============= PHASE 9: Assemble Return Object =============
 

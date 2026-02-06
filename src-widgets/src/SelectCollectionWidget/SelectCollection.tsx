@@ -7,47 +7,48 @@
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useContext, useRef } from 'react';
-import type { SelectChangeEvent } from '@mui/material/Select';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useDataNew from '../hooks/useDataNew';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
-import type { SelectCollectionContextProps } from '../types';
+import { gradientColor } from '../lib/helper/gradientColor';
 
-// const emptyIcon = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import type { SelectCollectionContextProps } from '../types';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
     const { width } = useElementDimensions(contentRef?.current);
     // SelectCollection is only used by SelectCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
-    const { widget, theme } = context;
+    const { widget } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
-    const { data, states } = useData('oid');
+    const { data, statesNew } = useDataNew('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const { updateValue: setCidValueState } = useValueState('cid');
 
     const oidType = oidObject?.type;
 
-    const isValidType = oidType === 'boolean' || oidType === 'number' || oidType === 'string' || oidType === 'mixed';
+    const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType || '');
 
-    const valueIndex = states.findIndex(state => String(state.value) === String(oidValue));
+    const valueIndex = statesNew.findIndex(state => String(state.value) === String(oidValue));
 
     const changeHandler = (event: SelectChangeEvent<string | number>): void => {
         const selectedIndex = event.target.value;
-        const selectedState = states[selectedIndex as number];
+        const selectedState = statesNew[selectedIndex as number];
         const value = selectedState.value;
 
         if (cidObject) {
-            setCidValueState(value);
+            setCidValueState(value!);
         }
 
-        setOidValueState(value);
+        setOidValueState(value!);
     };
 
     return (
@@ -57,7 +58,7 @@ function SelectCollection(): React.ReactElement {
             oidValue={oidValue}
         >
             <CollectionBaseImage
-                data={{ ...data, forceColorMaskActive: states[valueIndex]?.forceColorMask }}
+                data={data}
                 widget={widget}
             />
 
@@ -81,209 +82,79 @@ function SelectCollection(): React.ReactElement {
                         sx: {
                             maxWidth: width,
                         },
-                        MenuListProps: {
-                            sx: {
-                                background: data.backgroundColor ? alpha(data.backgroundColor, 0.7) : data.background,
-                            },
-                        },
                     }}
                     sx={{
                         width: '100%',
                         height: '100%',
                         maxWidth: `calc(${width}px - 10%)`,
 
-                        '& .MuiSelect-select': {
-                            backgroundColor: alpha(
-                                valueIndex !== -1
-                                    ? (() => {
-                                          // Determine whether an icon is available for the selected value.
-                                          const currentImgSrc =
-                                              widget.data[`iconSmall${valueIndex + 1}`] ||
-                                              widget.data[`icon${valueIndex + 1}`] ||
-                                              widget.data.iconSmall ||
-                                              widget.data.icon;
-
-                                          // If an icon exists: use icon color; otherwise: use text color.
-                                          return currentImgSrc
-                                              ? widget.data[`iconColor${valueIndex + 1}`] ||
-                                                    widget.data.iconColor ||
-                                                    data.iconColor ||
-                                                    theme.palette.primary.main
-                                              : widget.data[`textColor${valueIndex + 1}`] ||
-                                                    widget.data.textColor ||
-                                                    data.textColor ||
-                                                    theme.palette.primary.main;
-                                      })()
-                                    : widget.data.iconColor || data.textColor || theme.palette.primary.main,
-                                0.15,
-                            ),
-                            paddingLeft: 1,
-                        },
-
                         '& .MuiSelect-icon': {
-                            color:
-                                /* valueIndex !== -1
-                                    ? (() => {
-                                          // Determine whether an icon is available for the selected value.
-                                          const currentImgSrc =
-                                              widget.data[`iconSmall${valueIndex + 1}`] ||
-                                              widget.data[`icon${valueIndex + 1}`] ||
-                                              widget.data.iconSmall ||
-                                              widget.data.icon;
-
-                                          // If an icon exists: use icon color; otherwise: use text color.
-                                          return currentImgSrc
-                                              ? widget.data[`iconColor${valueIndex + 1}`] ||
-                                                    widget.data.iconColor ||
-                                                    data.iconColor ||
-                                                    theme.palette.primary.main
-                                              : widget.data[`textColor${valueIndex + 1}`] ||
-                                                    widget.data.textColor ||
-                                                    data.textColor ||
-                                                    theme.palette.primary.main;
-                                      })()
-                                    : widget.data.arrowColor ||
-                                      widget.data.iconColor ||
-                                      data.textColor ||
-                                      theme.palette.primary.main, */
-
-                                widget.data.arrowColor ||
-                                widget.data[`iconColor${valueIndex + 1}`] ||
-                                theme.palette.primary.main,
-                        },
-
-                        '&.Mui-focused': {
-                            ariaHidden: 'true',
-                            '& .MuiSelect-select': {
-                                backgroundColor: alpha(
-                                    valueIndex !== -1
-                                        ? (() => {
-                                              // Determine whether an icon is available for the selected value.
-                                              const currentImgSrc =
-                                                  widget.data[`iconSmall${valueIndex + 1}`] ||
-                                                  widget.data[`icon${valueIndex + 1}`] ||
-                                                  widget.data.iconSmall ||
-                                                  widget.data.icon;
-
-                                              // If an icon exists: use icon color; otherwise: use text color.
-                                              return currentImgSrc
-                                                  ? widget.data[`iconColor${valueIndex + 1}`] ||
-                                                        widget.data.iconColor ||
-                                                        data.iconColor ||
-                                                        theme.palette.primary.main
-                                                  : widget.data[`textColor${valueIndex + 1}`] ||
-                                                        widget.data.textColor ||
-                                                        data.textColor ||
-                                                        theme.palette.primary.main;
-                                          })()
-                                        : widget.data.iconColor || data.textColor || theme.palette.primary.main,
-                                    0.2,
-                                ),
-                                paddingLeft: 1,
-                            },
+                            color: widget.data.arrowColor || data.textColor || data.iconColor,
                         },
                     }}
                 >
-                    {states.map((state, idx) => {
-                        const imgSrc =
-                            widget.data[`iconSmall${idx + 1}`] ||
-                            widget.data[`icon${idx + 1}`] ||
-                            widget.data.iconSmall ||
-                            widget.data.icon;
-
-                        // Pick the color based on icon/text availability.
-                        const getColorForItem = (): string => {
-                            return imgSrc
-                                ? // Icon present: use icon color.
-                                  widget.data[`iconColor${idx + 1}`] ||
-                                      widget.data.iconColor ||
-                                      data.iconColor ||
-                                      theme.palette.primary.main
-                                : // No icon: use text color.
-                                  widget.data[`textColor${idx + 1}`] ||
-                                      widget.data.textColor ||
-                                      data.textColor ||
-                                      theme.palette.primary.main;
-                        };
-
-                        const itemColor = getColorForItem();
-
+                    {statesNew.map((state, idx) => {
                         return (
                             <MenuItem
                                 key={String(state.value)}
                                 value={idx}
                                 sx={{
+                                    background: gradientColor(state.background),
+                                    bgcolor: gradientColor(state.background) ? 'transparent' : state.background,
+
                                     '& .MuiTouchRipple-root': {
-                                        color: itemColor,
+                                        /* color: gradientColor(state.background)
+                                            ? alpha(extractColorFromValue(state.background)!, 0.3)
+                                            : state.background
+                                              ? alpha(state.background, 0.3)
+                                              : undefined, */
                                     },
 
                                     '&.Mui-selected': {
-                                        backgroundColor: alpha(itemColor, 0.16),
+                                        background: gradientColor(state.background),
+                                        bgcolor: gradientColor(state.background) ? undefined : state.background,
                                     },
 
                                     '&.Mui-selected:hover': {
-                                        backgroundColor: alpha(itemColor, 0.24),
+                                        background: gradientColor(state.background)
+                                            ? alpha(extractColorFromValue(state.background)!, 0.5)
+                                            : undefined,
+                                        bgcolor: gradientColor(state.background)
+                                            ? undefined
+                                            : state.background
+                                              ? alpha(state.background, 0.5)
+                                              : undefined,
                                     },
                                     '&:hover': {
-                                        backgroundColor: alpha(itemColor, 0.08),
+                                        background: gradientColor(state.background)
+                                            ? alpha(extractColorFromValue(state.background)!, 0.5)
+                                            : undefined,
+                                        bgcolor: gradientColor(state.background)
+                                            ? undefined
+                                            : state.background
+                                              ? alpha(state.background, 0.5)
+                                              : undefined,
                                     },
-
-                                    background:
-                                        (widget.data[`backgroundColor${idx + 1}`] &&
-                                            `${widget.data[`backgroundColor${idx + 1}`]}!important`) ||
-                                        `${widget.data[`background${idx + 1}`]}!important`,
                                 }}
                             >
                                 <Stack
                                     direction="row"
-                                    spacing={imgSrc ? 1 : 0}
+                                    spacing={state.icon ? 1 : 0}
                                     sx={{
                                         alignItems: 'center',
                                     }}
                                 >
                                     <SafeImg
                                         alt=""
-                                        src={
-                                            typeof imgSrc === 'string'
-                                                ? imgSrc
-                                                : typeof imgSrc === 'number'
-                                                  ? imgSrc.toString()
-                                                  : undefined
-                                        }
+                                        src={state.icon}
                                         style={{
                                             position: 'relative',
 
-                                            top: `calc(0px - ${widget.data[`iconYOffset${idx + 1}`]})`,
-                                            right: `calc(0px - ${widget.data[`iconXOffset${idx + 1}`]})`,
+                                            top: `calc(0px - ${state.iconYOffset})`,
+                                            right: `calc(0px - ${state.iconXOffset})`,
 
-                                            /* width:
-                                                (!imgSrc && '0px') ||
-                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widget.data.iconSize === 'number'
-                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
-                                                      : '24px'), */
-                                            height:
-                                                (!imgSrc && '0px') ||
-                                                (typeof widget.data[`iconSize${idx + 1}`] === 'number'
-                                                    ? `calc(24px * ${widget.data[`iconSize${idx + 1}`]} / 100)`
-                                                    : typeof widget.data.iconSize === 'number'
-                                                      ? `calc(24px * ${widget.data.iconSize} / 100)`
-                                                      : '24px'),
-                                            ...getIconColorStyles(
-                                                typeof imgSrc === 'string'
-                                                    ? imgSrc
-                                                    : typeof imgSrc === 'number'
-                                                      ? imgSrc.toString()
-                                                      : undefined,
-                                                (String(oidValue) === String(widget.data[`value${idx + 1}`]) &&
-                                                    widget.data.iconColorActive) ||
-                                                    widget.data[`iconColor${idx + 1}`] ||
-                                                    widget.data.iconColor ||
-                                                    data.iconColor ||
-                                                    theme.palette.primary.main,
-                                                state.forceColorMask,
-                                            ),
+                                            height: state.iconSize,
+                                            ...getIconColorStyles(state.icon, state.iconColor, state.forceColorMask),
                                         }}
                                     />
                                     <Typography
@@ -291,14 +162,14 @@ function SelectCollection(): React.ReactElement {
                                         variant="subtitle2"
                                         sx={{
                                             whiteSpace: 'pre-wrap',
-                                            fontSize: widget.data[`valueSize${idx + 1}`] || data.valueSize,
+                                            fontSize: state.valueSize,
                                             textAlign: 'left',
-                                            bgcolor: 'transparent',
-                                            color:
-                                                widget.data[`textColor${idx + 1}`] ||
-                                                widget.data.textColor ||
-                                                data.textColor ||
-                                                theme.palette.primary.main,
+
+                                            background: gradientColor(state.textColor),
+                                            WebkitBackgroundClip: 'text',
+                                            backgroundClip: 'text',
+                                            color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
+
                                             textTransform: 'none',
 
                                             width: '100%',
@@ -311,12 +182,7 @@ function SelectCollection(): React.ReactElement {
                                         }}
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
-                                            __html:
-                                                (widget.data[`alias${idx + 1}`] &&
-                                                    widget.data[`alias${idx + 1}`]?.replace(/(\r\n|\n|\r)/gm, '')) ||
-                                                (widget.data[`value${idx + 1}`] &&
-                                                    `${widget.data[`value${idx + 1}`]}${oidObject?.unit}`) ||
-                                                '',
+                                            __html: state.label!,
                                         }}
                                     />
                                 </Stack>

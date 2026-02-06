@@ -1,7 +1,7 @@
-import { j as A, C as D, y as xa, w as Qe, a6 as Ta, v as wa, a3 as Sa, Q as Ca, A as Ba, E as Na, G as Va, H as Je, J as Wa, __tla as __tla_0 } from "./useData-2dnP1q4b.js";
-import { c as Aa, __tla as __tla_1 } from "./commonObjectFields-DPT5kyDR.js";
+import { j as A, C as D, y as xa, w as Qe, a6 as Ta, v as wa, a4 as Sa, Q as Ca, A as Ba, E as Na, G as Va, H as Je, J as Wa, __tla as __tla_0 } from "./useData-D3gzqQso.js";
+import { c as Aa, __tla as __tla_1 } from "./commonObjectFields-CmaiWPdW.js";
 import { v as L, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Ma, __tla as __tla_3 } from "./useOidValue-4-TfRS-y.js";
+import { u as Ma, __tla as __tla_3 } from "./useOidValue-D2YiySNn.js";
 import { c as Ne } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
