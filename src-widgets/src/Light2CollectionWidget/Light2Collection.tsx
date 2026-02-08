@@ -11,8 +11,8 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { Light2CollectionContextProps } from '../types';
 import withButtonModal from '../components/withButtonModal';
-import useData from '../hooks/useData';
-import useOidValue from '../hooks/useOidValue';
+import useDataNew from '../hooks/useDataNew';
+// import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import LightPicker from './Light2Picker';
@@ -180,8 +180,10 @@ function Light2CollectionContent(): React.ReactElement {
         getPropertyValue,
     } = context;
 
-    const { data } = useData('oid');
-    const oidValue = useOidValue('oid');
+    const { data } = useDataNew('');
+    // const oidValue = useOidValue('oid');
+
+    // console.log('oidValue', oidValue);
 
     const boxRef = useRef<HTMLDivElement>(null);
     const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);
@@ -704,7 +706,7 @@ function Light2CollectionContent(): React.ReactElement {
         <CollectionBase
             isValidType={isValidType}
             data={data}
-            oidValue={oidValue}
+            // oidValue={oidValue}
         >
             <CollectionBaseImage
                 data={data}

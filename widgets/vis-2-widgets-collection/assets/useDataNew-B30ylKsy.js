@@ -1,5 +1,5 @@
 import { v as B, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { v as E, al as F, O as K, am as q, an as Y, __tla as __tla_1 } from "./useData-D3gzqQso.js";
+import { v as E, al as F, O as K, am as q, an as w, __tla as __tla_1 } from "./useData-BQhxaWlN.js";
 let eo;
 let __tla = Promise.all([
   (() => {
@@ -33,7 +33,7 @@ let __tla = Promise.all([
     return "markerIconSize" in t || "markerTextColor" in t;
   }
   function Q(t) {
-    const { value: n, rawValue: a, index: c, rxData: l, oidObject: S, oidValue: k, widgetResolver: f, formatSize: d, getDynamicProperty: e, backgroundStyles: u, theme: z } = t, b = n, o = a, i = S.unit || "", C = e("alias", String(c)), v = (x, V) => e(x, V), A = String(k) === String(b), y = L(f);
+    const { value: n, rawValue: a, index: c, rxData: l, oidObject: S, oidValue: k, widgetResolver: f, formatSize: d, getDynamicProperty: e, backgroundStyles: u, theme: z } = t, b = n, o = a, i = S.unit || "", C = e("alias", String(c)), v = (x, V) => e(x, V), A = String(k) === String(b), I = L(f);
     return {
       value: b,
       valueSize: typeof v("valueSize", String(c)) == "number" ? d(v("valueSize", String(c))) : null,
@@ -48,7 +48,7 @@ let __tla = Promise.all([
           value: typeof v("valueSize", String(c)) == "number" ? d(v("valueSize", String(c))) : void 0
         },
         {
-          condition: y && typeof f.markerTextSize == "number",
+          condition: I && typeof f.markerTextSize == "number",
           value: d(f.markerTextSize)
         },
         {
@@ -68,7 +68,7 @@ let __tla = Promise.all([
           condition: v("textColor", String(c)) !== ""
         },
         {
-          condition: y,
+          condition: I,
           value: f.markerTextColor && f.markerTextColor !== "" ? f.markerTextColor : void 0
         },
         {
@@ -107,7 +107,7 @@ let __tla = Promise.all([
           value: v("iconSize", String(c))
         },
         {
-          condition: y,
+          condition: I,
           value: f.markerIconSize
         },
         {
@@ -126,7 +126,7 @@ let __tla = Promise.all([
           value: v("iconSize", String(c))
         },
         {
-          condition: y,
+          condition: I,
           value: f.markerIconSize
         },
         {
@@ -150,7 +150,7 @@ let __tla = Promise.all([
           condition: v("iconColor", String(c)) !== ""
         },
         {
-          condition: y,
+          condition: I,
           value: f.markerIconColor && f.markerIconColor !== "" ? f.markerIconColor : void 0
         },
         {
@@ -708,11 +708,11 @@ let __tla = Promise.all([
   }
   eo = function(t) {
     const { theme: n, widget: a, widget: { data: c }, getPropertyValue: l } = B.useContext(E), S = c[`${t}Object`], k = l(t), f = S == null ? void 0 : S.name, { fontStyles: d, textStyles: e, backgroundStyles: u } = F(a.style), [z, b] = B.useState(), o = B.useCallback(K, []), i = B.useCallback((O, m = "") => {
-      const I = `${O}${m}`;
-      return q(c, I);
+      const y = `${O}${m}`;
+      return q(c, y);
     }, [
       c
-    ]), C = B.useMemo(() => Y(c) ? G(c) : J(), [
+    ]), C = B.useMemo(() => w(c) ? G(c) : J(), [
       c
     ]), v = B.useMemo(() => U({
       rxData: c,
@@ -725,7 +725,7 @@ let __tla = Promise.all([
       formatSize: o,
       getDataValue: i,
       widgetResolver: C,
-      isSlider: Y(c)
+      isSlider: w(c)
     }), [
       c,
       S,
@@ -739,13 +739,13 @@ let __tla = Promise.all([
       C
     ]), A = B.useCallback((O = "", m = false) => Z(O, m, v), [
       v
-    ]), { states: y, widgetStates: x, minValue: V, maxValue: w } = B.useMemo(() => {
+    ]), { states: I, widgetStates: x, minValue: V, maxValue: D } = B.useMemo(() => {
       const O = [], m = {};
-      let I = null, M = null;
+      let y = null, M = null;
       const _ = S == null ? void 0 : S.type, $ = (S == null ? void 0 : S.commonStates) || {}, T = Object.entries($);
       if (_ === "number" || _ === "string" || _ === "boolean" || _ === "mixed") {
         for (let h = 1; h <= c.values_count; h++) {
-          const s = c[`value${h}`], g = c[`alias${h}`], X = S == null ? void 0 : S.unit;
+          const s = c[`value${h}`], g = c[`alias${h}`], Y = S == null ? void 0 : S.unit;
           if (s != null && /\S/.test(String(s))) {
             const H = T.find(([j]) => j === String(s)), p = H ? _ === "number" ? Number(H[0]) : String(H[0]) : _ === "number" ? Number(s) : s, P = Q({
               value: p,
@@ -762,18 +762,18 @@ let __tla = Promise.all([
             });
             O.push(P);
             const W = String(H ? H[0] : s);
-            m[W] = g && String(g).trim() !== "" ? g : `${s}${X}`;
+            m[W] = g && String(g).trim() !== "" ? g : `${s}${Y}`;
           }
         }
         if (_ === "number" && O.length) {
           const h = O.map((s) => typeof s.value == "number" ? s.value : NaN).filter((s) => !isNaN(s));
-          h.length > 0 && (I = Math.min(...h), M = Math.max(...h));
+          h.length > 0 && (y = Math.min(...h), M = Math.max(...h));
         }
       }
       return {
         states: O,
         widgetStates: m,
-        minValue: I,
+        minValue: y,
         maxValue: M
       };
     }, [
@@ -785,29 +785,12 @@ let __tla = Promise.all([
       k,
       o,
       C
-    ]), D = B.useMemo(() => {
-      switch (S == null ? void 0 : S.type) {
-        case "mixed":
-        case "boolean":
-        case "number":
-        case "string": {
-          const m = y.findIndex((I) => String(I.value) === String(k));
-          return m !== -1 ? (b(m + 1), A(m + 1, true)) : (b(void 0), A("", true));
-        }
-        default:
-          return A("", true);
-      }
-    }, [
-      S,
-      k,
-      y,
-      A
-    ]), N = B.useMemo(() => {
-      const O = [], m = S == null ? void 0 : S.type, I = (S == null ? void 0 : S.commonStates) || {}, M = Object.entries(I);
+    ]), X = B.useMemo(() => {
+      const O = [], m = S == null ? void 0 : S.type, y = (S == null ? void 0 : S.commonStates) || {}, M = Object.entries(y);
       if (m === "number" || m === "string" || m === "boolean" || m === "mixed") for (let _ = 1; _ <= c.values_count; _++) {
         const $ = i("value", String(_));
         if ($ === void 0 || !/\S/.test(String($))) continue;
-        const T = M.find(([X]) => X === String($)), h = T ? m === "number" ? Number(T[0]) : String(T[0]) : m === "number" ? Number($) : $, s = String(k) === String(h), g = A(_, s);
+        const T = M.find(([Y]) => Y === String($)), h = T ? m === "number" ? Number(T[0]) : String(T[0]) : m === "number" ? Number($) : $, s = String(k) === String(h), g = A(_, s);
         O.push({
           value: h,
           label: g.alias || String(g.value),
@@ -837,17 +820,34 @@ let __tla = Promise.all([
       i,
       k,
       A
+    ]), N = B.useMemo(() => {
+      switch (S == null ? void 0 : S.type) {
+        case "mixed":
+        case "boolean":
+        case "number":
+        case "string": {
+          const m = X.findIndex((y) => String(y.value) === String(k));
+          return m !== -1 ? (b(m + 1), A(m + 1, true)) : (b(void 0), A("", true));
+        }
+        default:
+          return A("", true);
+      }
+    }, [
+      S,
+      k,
+      X,
+      A
     ]);
     return {
-      states: y,
+      states: I,
       widgetStates: x,
       minValue: V,
-      maxValue: w,
-      data: D,
+      maxValue: D,
+      data: N,
       activeIndex: z,
       setActiveIndex: b,
       oidValue: k,
-      statesNew: N,
+      statesNew: X,
       resolveStyleData: A
     };
   };

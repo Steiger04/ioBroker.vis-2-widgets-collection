@@ -6,7 +6,7 @@
 
 import { type CSSProperties } from 'react';
 
-const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 type SafeImgProps = {
     /** Image source URL (string). */

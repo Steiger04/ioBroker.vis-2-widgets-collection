@@ -6,37 +6,16 @@
 
 import { Box } from '@mui/material';
 import React, { useRef, useEffect } from 'react';
-
 import { LinearGauge, RadialGauge } from 'canvas-gauges';
-
-import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 
-const TransparentImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+import type { GaugeFieldsRxData } from '../types/field-definitions/gauge-fields';
+import type { Highlight } from './GaugeCollection';
+import SafeImg from '../components/SafeImg';
 
 /**
  * Display data (icon + header) coming from the collection's derived style data.
  */
-interface GaugeData {
-    icon?: string;
-    iconColor?: string;
-    header?: string;
-    forceColorMask?: boolean;
-}
-
-/**
- * Segment-specific overrides derived from the active highlight range.
- */
-interface GaugeSegment {
-    state: {
-        icon?: string;
-        iconColor?: string;
-        forceColorMask?: boolean;
-        iconSize?: number;
-        iconXOffset?: string;
-        iconYOffset?: string;
-    };
-}
 
 /**
  * Props passed into the underlying canvas-gauges instance.
@@ -46,14 +25,13 @@ interface GaugeSegment {
  * surface; the widget supplies values from its configuration schema.
  */
 interface GaugeProps extends Partial<GaugeFieldsRxData> {
-    gaugeData: GaugeData;
     gaugeWidgetData: {
         iconSize?: number | string;
         iconYOffset?: string;
         iconXOffset?: string;
         gaugeIconFit?: 'contain' | 'cover' | 'fill';
     } & Partial<GaugeFieldsRxData>;
-    gaugeSegment?: GaugeSegment | null;
+    gaugeSegment?: Highlight | null;
     gaugeType: 'linear' | 'radial';
 
     // Canvas Gauge API properties
@@ -290,19 +268,14 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
         }
     }, [props]);
 
-    const iconSize =
-        Boolean(props.gaugeWidgetData.iconSize) || props.gaugeWidgetData.iconSize === 0
-            ? `${props.gaugeWidgetData.iconSize}%`
-            : null;
-
     const segment = props.gaugeSegment;
 
-    // Determine icon source and color based on segment or default
-    const activeIcon = segment?.state.icon || props.gaugeData.icon;
-    const activeIconColor = segment?.state.iconColor || props.gaugeData.iconColor;
-
     // Calculate icon color styles with helper function
-    const iconColorStyles = getIconColorStyles(activeIcon, activeIconColor, segment?.state.forceColorMask ?? false);
+    const iconColorStyles = getIconColorStyles(
+        segment?.state.icon,
+        segment?.state.iconColor,
+        segment?.state.forceColorMask ?? false,
+    );
 
     return (
         <Box
@@ -315,27 +288,20 @@ const Gauge = (props: GaugeProps): React.JSX.Element => {
                 alignItems: 'center',
             }}
         >
-            <img
+            <SafeImg
                 alt=""
-                src={segment?.state.icon || props.gaugeData.icon || TransparentImg}
+                src={segment?.state.icon}
                 style={{
                     position: 'relative',
 
-                    width: segment?.state.iconSize !== undefined ? `${segment.state.iconSize}%` : iconSize || '50%',
-                    height: segment?.state.iconSize !== undefined ? `${segment.state.iconSize}%` : iconSize || '50%',
+                    width: segment?.state.iconSizeOnly,
+                    height: segment?.state.iconSizeOnly,
 
                     boxSizing: 'border-box',
                     objectFit: props.gaugeWidgetData.gaugeIconFit,
-                    top:
-                        (!!segment && `calc(0px - ${segment.state.iconYOffset})`) ||
-                        (props.gaugeWidgetData.iconYOffset !== '0px' &&
-                            `calc(0px - ${props.gaugeWidgetData.iconYOffset})`) ||
-                        '0px',
-                    left:
-                        (!!segment && `calc(0px + ${segment.state.iconXOffset})`) ||
-                        (props.gaugeWidgetData.iconXOffset !== '0px' &&
-                            `calc(0px + ${props.gaugeWidgetData.iconXOffset})`) ||
-                        '0px',
+
+                    top: `calc(0px - ${segment?.state.iconYOffset})`,
+                    left: `calc(0px + ${segment?.state.iconXOffset})`,
 
                     ...iconColorStyles,
                 }}

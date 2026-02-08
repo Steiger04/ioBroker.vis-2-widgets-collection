@@ -93,10 +93,11 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 return '';
             }
 
+            console.log('data.value', data.value);
             const valueWithUnit =
-                oidValue || oidValue === 0 || oidValue === false ? `${oidValue}${oidObject?.unit ?? ''}` : '';
+                oidValue || oidValue === 0 || String(oidValue) === 'false' ? `${oidValue}${oidObject?.unit ?? ''}` : '';
 
-            return data.footer || data.alias || String(data.value) || valueWithUnit || '';
+            return data.footer || data.alias || data.value || valueWithUnit || '';
         }, [data.footer, data.alias, data.value, oidValue, oidObject?.unit, widget.data.noFooter]);
 
         // Build memoized sx object for outer Paper
@@ -173,7 +174,7 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
             if (widget.data.noFooter || !footerRef.current) {
                 return;
             }
-            footerRef.current.innerHTML = footerValue;
+            footerRef.current.innerHTML = String(footerValue);
         }, [footerValue, widget.data.noFooter]);
 
         useImperativeHandle(baseRef, () => ({

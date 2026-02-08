@@ -19904,7 +19904,7 @@ export default theme;`;
     const v = B.data.oidObject, F = v == null ? void 0 : v._id, h = m.useMemo(() => {
       if (B.data.noFooter) return "";
       const H = t || t === 0 || t === false ? `${t}${(v == null ? void 0 : v.unit) ?? ""}` : "";
-      return e.footer || e.alias || e.value || H || "";
+      return e.footer || e.alias || String(e.value) || H || "";
     }, [
       e.footer,
       e.alias,

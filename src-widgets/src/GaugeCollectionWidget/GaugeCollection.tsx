@@ -9,7 +9,7 @@ import React, { useContext, useRef, useMemo, useEffect, useState } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { GaugeCollectionContextProps } from '../types';
-import useData from '../hooks/useData';
+import useDataNew, { type StyleData } from '../hooks/useDataNew';
 import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import Gauge from './Gauge';
@@ -19,27 +19,29 @@ import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 /**
  * Highlight segment for the gauge (range + styling overrides).
  */
-interface Highlight {
+export interface Highlight {
     from: number;
     to: number;
     color: string;
-    state: {
-        textColor?: string;
-        icon?: string;
-        iconColor?: string;
-        forceColorMask?: boolean;
-        iconSize?: number;
-        iconXOffset?: string;
-        iconYOffset?: string;
-        frameBackgroundColor?: string;
-        frameBackgroundColorActive?: string;
-        backgroundColor?: string;
-        backgroundColorActive?: string;
-        background?: string;
-        backgroundActive?: string;
-        frameBackground?: string;
-        frameBackgroundActive?: string;
-    };
+    state: Pick<
+        StyleData,
+        | 'textColor'
+        | 'icon'
+        | 'iconColor'
+        | 'forceColorMask'
+        | 'iconSize'
+        | 'iconSizeOnly'
+        | 'iconXOffset'
+        | 'iconYOffset'
+        | 'frameBackgroundColor'
+        | 'frameBackgroundColorActive'
+        | 'backgroundColor'
+        | 'backgroundColorActive'
+        | 'background'
+        | 'backgroundActive'
+        | 'frameBackground'
+        | 'frameBackgroundActive'
+    >;
 }
 
 /**
@@ -68,16 +70,13 @@ function GaugeCollection(): React.JSX.Element {
         },
         widget,
     } = context;
-    const theme = context.theme;
 
-    const { data, states } = useData('oid');
+    const { data, statesNew } = useDataNew('oid');
     const oidValue = useOidValue('oid');
 
     const oidType = oidObject?.type;
 
     const isValidType = oidType === 'number';
-
-    const iconColor = data.iconColor || theme.palette.primary.main;
 
     const majorTicks = useMemo(() => {
         const minValue = Number(widget.data.gaugeMinValue) || 0;
@@ -97,43 +96,26 @@ function GaugeCollection(): React.JSX.Element {
     }, [widget.data.gaugeMinValue, widget.data.gaugeMaxValue, widget.data.gaugeMajorTicks]);
 
     const highlights = useMemo(() => {
-        const _highlights: Highlight[] = [];
         const maxValue = Number(widget.data.gaugeMaxValue) || 100;
 
-        states.forEach((state, index) => {
-            const nextValue = states[index + 1]?.value || maxValue;
+        const _highlights = statesNew.map((state, index) => {
+            const nextValue = statesNew[index + 1]?.value || maxValue;
 
-            _highlights.push({
+            return {
                 from: Number(state.value),
                 to: Number(nextValue),
                 color: extractColorFromValue(state.textColor) || 'transparent',
-                state: {
-                    textColor: state.textColor,
-                    icon: state.icon || undefined,
-                    iconColor: state.iconColor || undefined,
-                    forceColorMask: state.forceColorMask,
-                    iconSize: state.iconSize !== undefined ? state.iconSize : undefined,
-                    iconXOffset: state.iconXOffset,
-                    iconYOffset: state.iconYOffset,
-                    frameBackgroundColor: state.frameBackgroundColor,
-                    frameBackgroundColorActive: state.frameBackgroundColorActive,
-                    backgroundColor: state.backgroundColor,
-                    backgroundColorActive: state.backgroundColorActive,
-                    background: state.background,
-                    backgroundActive: state.backgroundActive,
-                    frameBackground: state.frameBackground,
-                    frameBackgroundActive: state.frameBackgroundActive,
-                },
-            });
+                state: { ...state },
+            };
         });
 
         // Set the last highlight to maxValue if the last state value is less than maxValue
-        if (states.length > 0 && Number(states[states.length - 1].value) < maxValue) {
+        if (statesNew.length > 0 && Number(statesNew[statesNew.length - 1].value) < maxValue) {
             _highlights[_highlights.length - 1].to = maxValue;
         }
 
         return _highlights;
-    }, [states, widget.data.gaugeMaxValue]);
+    }, [statesNew, widget.data.gaugeMaxValue]);
 
     const segment = useMemo(
         () =>
@@ -144,21 +126,6 @@ function GaugeCollection(): React.JSX.Element {
             ),
         [highlights, oidValue, widget.data.gaugeMaxValue],
     );
-
-    const dataWithSegmentIcon = useMemo(() => {
-        if (segment && (segment.state.icon || segment.state.iconColor || segment.state.iconSize !== undefined)) {
-            return {
-                ...data,
-                iconActive: segment.state.icon || data.icon,
-                iconColorActive: data.iconColor || segment.state.iconColor,
-                iconSizeActive:
-                    segment.state.iconSize !== undefined
-                        ? `calc(24px * ${segment.state.iconSize} / 100)`
-                        : data.iconSize,
-            };
-        }
-        return data;
-    }, [data, segment]);
 
     const paper0 = baseRef.current?.paper0;
     const paper1 = baseRef.current?.paper1;
@@ -220,13 +187,15 @@ function GaugeCollection(): React.JSX.Element {
         <CollectionBase
             ref={baseRef}
             isValidType={isValidType}
-            data={{ ...data, textColor: segment?.state.textColor || data.textColor }}
+            data={data}
             oidValue={oidValue}
         >
             <CollectionBaseImage
                 data={{
-                    ...dataWithSegmentIcon,
-                    forceColorMaskActive: segment?.state.forceColorMask ?? (data.forceColorMaskActive || false),
+                    ...data,
+                    icon: segment?.state.icon,
+                    iconColor: segment?.state.iconColor,
+                    forceColorMask: segment?.state.forceColorMask,
                 }}
                 widget={widget}
             />
@@ -242,12 +211,6 @@ function GaugeCollection(): React.JSX.Element {
                 }}
             >
                 <Gauge
-                    gaugeData={{
-                        icon: typeof data.icon === 'string' ? data.icon : undefined,
-                        iconColor: iconColor,
-                        header: data.header,
-                        forceColorMask: data.forceColorMaskActive,
-                    }}
                     gaugeWidgetData={widget.data}
                     gaugeSegment={segment}
                     gaugeType={widget.data.gaugeType!}
