@@ -1,0 +1,3 @@
+## Use the context7 server to answer any library/API questions --
+
+- 1. Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
