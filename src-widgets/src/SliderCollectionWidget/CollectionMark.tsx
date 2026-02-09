@@ -10,7 +10,8 @@ import React, { useState, useEffect, type FC, type HTMLAttributes } from 'react'
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 
-import { type StateStyleData } from '../hooks/useDataNew/types';
+import { type StateStyleData } from '../hooks/useData/types';
+import SafeImg from '../components/SafeImg';
 
 // Extend HTMLAttributes for the remaining props passed through to SliderMarkLabel.
 export interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
@@ -101,7 +102,7 @@ const CollectionMark: FC<CollectionMarkProps> = ({
                         flexGrow: 1,
                     }}
                 >
-                    <img
+                    <SafeImg
                         data-img="active"
                         src={mark.icon}
                         alt=""

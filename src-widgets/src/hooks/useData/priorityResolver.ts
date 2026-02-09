@@ -1,7 +1,7 @@
 /**
  * Priority-based value resolution.
  *
- * @module hooks/useDataNew/priorityResolver
+ * @module hooks/useData/priorityResolver
  * @since 2.2.0
  */
 

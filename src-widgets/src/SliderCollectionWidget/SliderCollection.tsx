@@ -8,7 +8,7 @@ import { alpha, Box, Slider, type SliderProps, styled } from '@mui/material';
 import { useState, useMemo, useContext, useEffect, useRef, type FC } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import CollectionMark from './CollectionMark';
 import CollectionBaseImage from '../components/CollectionBaseImage';
@@ -19,6 +19,7 @@ import { isBase64Icon } from '../lib/helper/isBase64Icon';
 
 import type { SliderCollectionContextProps } from '../types';
 import { type Mark } from '@mui/material/Slider/useSlider.types';
+import SafeImg from '../components/SafeImg';
 
 type CollectionSliderProps = SliderProps & {
     thumbColor?: string;
@@ -127,7 +128,7 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, statesNew, minValue, maxValue, activeIndex, resolveStyleData } = useDataNew('oid');
+    const { data, statesNew, minValue, maxValue, activeIndex, resolveStyleData } = useData('oid');
 
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
     const [sliderValue, setSliderValue] = useState<number | undefined>(
@@ -362,7 +363,7 @@ const SliderCollection: FC = () => {
                                     : `translateX(${trackOffset.x}px)`,
                             }}
                         >
-                            <img
+                            <SafeImg
                                 alt=""
                                 src={startIcon}
                                 style={{
@@ -516,7 +517,7 @@ const SliderCollection: FC = () => {
                                     : `translateX(${trackOffset.x}px)`,
                             }}
                         >
-                            <img
+                            <SafeImg
                                 alt=""
                                 src={endIcon}
                                 style={{

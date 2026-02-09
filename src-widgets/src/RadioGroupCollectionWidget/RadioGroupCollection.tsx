@@ -11,12 +11,13 @@ import { useState, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import type { RadioGroupCollectionContextProps } from '../types';
+import SafeImg from '../components/SafeImg';
 
 /**
  * Renders the configured values as a radio group and writes back the selected value.
@@ -33,7 +34,7 @@ function RadioGroupCollection(): React.ReactElement {
         },
         widget,
     } = context;
-    const { data, states, statesNew } = useDataNew('oid');
+    const { data, states, statesNew } = useData('oid');
 
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
@@ -159,7 +160,7 @@ function RadioGroupCollection(): React.ReactElement {
                                                         alignItems: 'center',
                                                     }}
                                                 >
-                                                    <img
+                                                    <SafeImg
                                                         alt=""
                                                         src={state.icon}
                                                         style={{

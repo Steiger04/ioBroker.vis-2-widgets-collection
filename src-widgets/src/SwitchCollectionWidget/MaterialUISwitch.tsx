@@ -13,7 +13,7 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import type { SwitchCollectionContextProps } from '../types';
-import type { StyleData } from '../hooks/useDataNew';
+import type { StyleData } from '../hooks/useData';
 
 interface MaterialUISwitchProps {
     /** Measured container width (px). */

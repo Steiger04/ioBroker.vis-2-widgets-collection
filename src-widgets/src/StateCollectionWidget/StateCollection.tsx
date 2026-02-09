@@ -14,7 +14,7 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import CollectionChangeDialog from '../components/CollectionChangeDialog';
 import { CollectionContext } from '../components/CollectionProvider';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -33,7 +33,7 @@ function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget, theme } = context;
     const oidObject = widget.data.oidObject;
-    const { data, widgetStates } = useDataNew('oid');
+    const { data, widgetStates } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
 

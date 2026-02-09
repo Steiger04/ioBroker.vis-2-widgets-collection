@@ -4,7 +4,7 @@
  * Computes resolved widget-level style data (header, footer, icon, background, etc.)
  * by delegating to property resolver functions with extension and active-state control.
  *
- * @module hooks/useDataNew/styleDataResolver
+ * @module hooks/useData/styleDataResolver
  * @since 2.2.0
  */
 

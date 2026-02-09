@@ -1,7 +1,7 @@
 /**
- * Type definitions for useDataNew hook.
+ * Type definitions for useData hook.
  *
- * @module hooks/useDataNew/types
+ * @module hooks/useData/types
  * @since 2.2.0
  */
 
@@ -348,13 +348,12 @@ export type StateStyleData = Pick<
 };
 
 /**
- * Return type for useDataNew hook.
+ * Return type for useData hook.
  * Matches the return type structure of useData for API compatibility.
  */
 export interface UseDataResult {
     /** Array of computed state items with resolved properties */
-    // states: StateItem[];
-    states: StateStyleData[];
+    statesNew: StateStyleData[];
 
     /** Mapping of state values to string labels for widget-specific use */
     widgetStates: Record<string, string>;
@@ -377,9 +376,6 @@ export interface UseDataResult {
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;
 
-    /** Array of state items with independent property resolution */
-    statesNew: StateStyleData[];
-
     /**
      * Memoized style data resolver function.
      * Computes StyleData for a given state extension and active flag.
@@ -390,7 +386,7 @@ export interface UseDataResult {
      * @since 2.2.3
      * @example
      * ```typescript
-     * const { resolveStyleData } = useDataNew('oid');
+     * const { resolveStyleData } = useData('oid');
      * const baseStyle = resolveStyleData('', true);
      * const state1Style = resolveStyleData(1, false);
      * ```

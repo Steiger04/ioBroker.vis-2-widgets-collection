@@ -1,11 +1,11 @@
-import { a as F, g as W, u as D, b as f, s as b, d as V, j as r, i as h, e as U, m as w, o as y, $ as N, a0 as X, a1 as E, C as x, K as v, y as $, v as A, A as G, E as H, w as z, G as L, H as M, J as Y, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
-import { c as J, __tla as __tla_1 } from "./commonObjectFields-BugCVB7j.js";
-import { u as K, d as q, __tla as __tla_2 } from "./useValueState-DBn_oRff.js";
-import { v as k, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Q, __tla as __tla_4 } from "./useDataNew-B30ylKsy.js";
-import { S as Z, __tla as __tla_5 } from "./SwitchBase-Ce0vu8s8.js";
+import { a as F, g as W, u as D, b as f, s as b, d as V, j as r, i as h, e as U, m as w, o as y, a0 as N, a1 as X, a2 as E, C as x, N as v, y as $, v as A, A as G, E as H, w as z, G as L, H as M, J as Y, K as J, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
+import { u as K, d as q, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
+import { v as k, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as Q, __tla as __tla_3 } from "./index-Bt53gQws.js";
+import { S as Z, __tla as __tla_4 } from "./SwitchBase-CI-PgTMb.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
+import { __tla as __tla_5 } from "./useData-EvQhohzn.js";
 let j;
 let __tla = Promise.all([
   (() => {
@@ -525,7 +525,7 @@ let __tla = Promise.all([
             name: "switch",
             label: "group_switch",
             fields: [
-              ...J([
+              ...Y([
                 "boolean"
               ]),
               ...q(),
@@ -588,7 +588,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Y(this.wrapContent(r.jsx(ct, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, J(this.wrapContent(r.jsx(ct, {})), o);
     }
   };
 });

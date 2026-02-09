@@ -13,7 +13,7 @@
 import { useCallback, useContext, useMemo, useRef } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import isNumber from '../lib/helper/isNumber';
-import useData from './useData';
+import useData from './useData/useData';
 import useDebounce from './useDebounce';
 import type { OidObject, OidType, CommonObjectFieldsRxData, DelayFieldsRxData } from '../types';
 import { type VisRxWidgetState } from '@iobroker/types-vis-2';

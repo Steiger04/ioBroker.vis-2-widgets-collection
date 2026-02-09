@@ -13,11 +13,12 @@ import React, { useContext, useState } from 'react';
 import CollectionBase from './CollectionBase';
 import CollectionBaseImage from './CollectionBaseImage';
 import { CollectionContext } from './CollectionProvider';
-import useData from '../hooks/useData';
+import useData from '../hooks/useData/useData';
 import { useLongPress } from '../hooks/useLongPress';
 import useValueState from '../hooks/useValueState';
 import type { Light2FieldsRxData } from '../types/field-definitions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
+import SafeImg from './SafeImg';
 
 type WithButtonModalProps<P> = P;
 
@@ -105,7 +106,7 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                             alignItems: 'center',
                         }}
                     >
-                        <img
+                        <SafeImg
                             alt=""
                             src={
                                 data.iconActive ||

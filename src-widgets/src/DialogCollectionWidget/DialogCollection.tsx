@@ -9,13 +9,15 @@ import { styled } from '@mui/material/styles';
 import React, { useRef, useContext, useState, useEffect, useCallback } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import type { DialogCollectionContextProps } from '../types';
-import useData from '../hooks/useData';
+import useData from '../hooks/useData/useData';
 import useHtmlValue from '../hooks/useHtmlValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 import { gradientColor } from '../lib/helper/gradientColor';
 import CollectionBaseImage from '../components/CollectionBaseImage';
+import SafeImg from '../components/SafeImg';
+
+import type { DialogCollectionContextProps } from '../types';
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -169,31 +171,29 @@ function DialogCollection(): React.ReactElement {
                                     alignItems: 'center',
                                 }}
                             >
-                                <img
+                                <SafeImg
                                     alt=""
-                                    src={
-                                        data.icon ||
-                                        'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                                    }
+                                    src={data.icon}
                                     style={{
                                         position: 'relative',
 
                                         objectFit: 'contain',
                                         top: `calc(0px - ${data.iconYOffset})`,
                                         right: `calc(0px - ${data.iconXOffset})`,
-                                        width:
+
+                                        width: data.iconSizeOnly,
+                                        height: data.iconSizeOnly,
+
+                                        /* width:
                                             (typeof data.iconSizeOnly === 'number' &&
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
                                             '100%',
                                         height:
                                             (typeof data.iconSizeOnly === 'number' &&
                                                 `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                            '100%',
-                                        ...getIconColorStyles(
-                                            data.icon,
-                                            data.iconColor,
-                                            data.forceColorMaskActive ?? false,
-                                        ),
+                                            '100%', */
+
+                                        ...getIconColorStyles(data.icon, data.iconColor, data.forceColorMask ?? false),
                                     }}
                                 />
                             </Box>

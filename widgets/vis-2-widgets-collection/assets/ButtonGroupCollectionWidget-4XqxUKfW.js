@@ -1,11 +1,10 @@
-import { a as V, g as I, a2 as J, u as L, j as r, s as P, d as N, i as j, e as D, n as K, m as F, o as v, $ as Q, C as X, K as Y, v as q, A as Z, E as tt, w as _, z as U, y as et, T as ot, Q as at, a0 as M, G as nt, H as z, J as it, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
-import { c as rt, __tla as __tla_1 } from "./commonObjectFields-BugCVB7j.js";
-import { u as lt, d as st, __tla as __tla_2 } from "./useValueState-DBn_oRff.js";
-import { v as p, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { S as dt, __tla as __tla_4 } from "./SafeImg-B4saaGu7.js";
-import { u as ut, __tla as __tla_5 } from "./useDataNew-B30ylKsy.js";
+import { a as V, g as I, a3 as J, u as L, j as r, s as P, d as N, i as j, e as D, n as K, m as F, o as v, a0 as Q, C as X, N as Y, v as q, A as Z, E as tt, w as _, z as U, S as et, y as ot, T as at, Q as nt, a1 as M, G as it, H as z, J as rt, K as lt, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
+import { u as st, d as dt, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
+import { v as p, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as ut, __tla as __tla_3 } from "./index-Bt53gQws.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
+import { __tla as __tla_4 } from "./useData-EvQhohzn.js";
 let E;
 let __tla = Promise.all([
   (() => {
@@ -35,12 +34,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_4;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_5;
     } catch {
     }
   })()
@@ -174,28 +167,28 @@ let __tla = Promise.all([
     }, e), b = L({
       props: h,
       name: "MuiToggleButton"
-    }), { children: w, className: C, color: u = "standard", disabled: m = false, disableFocusRipple: s = false, fullWidth: i = false, onChange: $, onClick: f, selected: n, size: T = "medium", value: y, ...R } = b, B = {
+    }), { children: R, className: C, color: u = "standard", disabled: m = false, disableFocusRipple: s = false, fullWidth: i = false, onChange: $, onClick: f, selected: n, size: T = "medium", value: y, ...S } = b, B = {
       ...b,
       color: u,
       disabled: m,
       disableFocusRipple: s,
       fullWidth: i,
       size: T
-    }, S = bt(B), W = (l) => {
+    }, W = bt(B), w = (l) => {
       f && (f(l, y), l.defaultPrevented) || $ && $(l, y);
     }, c = x || "";
     return r.jsx(ft, {
-      className: N(g.className, S.root, C, c),
+      className: N(g.className, W.root, C, c),
       disabled: m,
       focusRipple: !s,
       ref: o,
-      onClick: W,
+      onClick: w,
       onChange: $,
       value: y,
       ownerState: B,
       "aria-pressed": n,
-      ...R,
-      children: w
+      ...S,
+      children: R
     });
   });
   function xt(t) {
@@ -333,7 +326,7 @@ let __tla = Promise.all([
     const d = L({
       props: e,
       name: "MuiToggleButtonGroup"
-    }), { children: g, className: x, color: h = "standard", disabled: b = false, exclusive: w = false, fullWidth: C = false, onChange: u, orientation: m = "horizontal", size: s = "medium", value: i, ...$ } = d, f = {
+    }), { children: g, className: x, color: h = "standard", disabled: b = false, exclusive: R = false, fullWidth: C = false, onChange: u, orientation: m = "horizontal", size: s = "medium", value: i, ...$ } = d, f = {
       ...d,
       disabled: b,
       fullWidth: C,
@@ -354,9 +347,9 @@ let __tla = Promise.all([
     }, [
       u,
       i
-    ]), R = p.useMemo(() => ({
+    ]), S = p.useMemo(() => ({
       className: n.grouped,
-      onChange: w ? y : T,
+      onChange: R ? y : T,
       value: i,
       size: s,
       fullWidth: C,
@@ -364,7 +357,7 @@ let __tla = Promise.all([
       disabled: b
     }), [
       n.grouped,
-      w,
+      R,
       y,
       T,
       i,
@@ -372,8 +365,8 @@ let __tla = Promise.all([
       C,
       h,
       b
-    ]), B = ct(g), S = B.length, W = (c) => {
-      const l = c === 0, k = c === S - 1;
+    ]), B = ct(g), W = B.length, w = (c) => {
+      const l = c === 0, k = c === W - 1;
       return l && k ? "" : l ? n.firstButton : k ? n.lastButton : n.middleButton;
     };
     return r.jsx(Ct, {
@@ -383,9 +376,9 @@ let __tla = Promise.all([
       ownerState: f,
       ...$,
       children: r.jsx(A.Provider, {
-        value: R,
+        value: S,
         children: B.map((c, l) => r.jsx(H.Provider, {
-          value: W(l),
+          value: w(l),
           children: c
         }, l))
       })
@@ -456,7 +449,7 @@ let __tla = Promise.all([
     }
   ];
   function mt(t) {
-    const e = U(t), o = at(t);
+    const e = U(t), o = nt(t);
     return {
       hasGradient: !!e,
       hasColor: o,
@@ -465,7 +458,7 @@ let __tla = Promise.all([
     };
   }
   function $t() {
-    const t = p.useContext(q), { widget: e } = t, o = e.data.oidObject, { data: d, statesNew: g, activeIndex: x } = ut("oid"), { value: h, updateValue: b } = lt("oid"), w = e.data.buttonGroupVariant, C = e.data.buttonGroupOrientation, u = o == null ? void 0 : o.type, m = u === "boolean" || u === "number" || u === "string" || u === "mixed", s = C === "vertical", i = w === "outlined", $ = p.useCallback((f) => {
+    const t = p.useContext(q), { widget: e } = t, o = e.data.oidObject, { data: d, statesNew: g, activeIndex: x } = ut("oid"), { value: h, updateValue: b } = st("oid"), R = e.data.buttonGroupVariant, C = e.data.buttonGroupOrientation, u = o == null ? void 0 : o.type, m = u === "boolean" || u === "number" || u === "string" || u === "mixed", s = C === "vertical", i = R === "outlined", $ = p.useCallback((f) => {
       b(f);
     }, [
       b
@@ -544,7 +537,7 @@ let __tla = Promise.all([
               }
             },
             children: g.map(({ value: f, ...n }, T) => {
-              const y = x === T + 1, R = n.background, { hasGradient: B, hoverBackground: S, selectedBackground: W } = mt(R), c = U(n.textColor);
+              const y = x === T + 1, S = n.background, { hasGradient: B, hoverBackground: W, selectedBackground: w } = mt(S), c = U(n.textColor);
               return r.jsx(vt, {
                 value: f,
                 onClick: () => $(f),
@@ -557,13 +550,13 @@ let __tla = Promise.all([
                   alignItems: "center",
                   "&.MuiToggleButton-root": {
                     filter: y && B ? "opacity(80%)" : void 0,
-                    background: R,
+                    background: S,
                     "&:hover": {
                       filter: B ? "opacity(80%)" : void 0,
-                      background: S
+                      background: W
                     },
                     "&.Mui-selected": {
-                      background: W
+                      background: w
                     }
                   }
                 },
@@ -587,7 +580,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: r.jsx(dt, {
+                      children: r.jsx(et, {
                         src: n.icon,
                         style: {
                           position: "relative",
@@ -596,7 +589,7 @@ let __tla = Promise.all([
                           objectFit: "contain",
                           width: n.iconSizeOnly,
                           height: n.iconSizeOnly,
-                          ...et(n.icon, n.iconColor, n.forceColorMask)
+                          ...ot(n.icon, n.iconColor, n.forceColorMask)
                         }
                       })
                     }),
@@ -608,7 +601,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: r.jsx(ot, {
+                      children: r.jsx(at, {
                         contentEditable: "false",
                         dangerouslySetInnerHTML: {
                           __html: n.label
@@ -634,7 +627,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  E = class extends nt {
+  E = class extends it {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -660,7 +653,7 @@ let __tla = Promise.all([
                 "boolean",
                 "mixed"
               ]),
-              ...st(),
+              ...dt(),
               ...Bt()
             ]
           },
@@ -730,7 +723,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, it(this.wrapContent(r.jsx($t, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, lt(this.wrapContent(r.jsx($t, {})), o);
     }
   };
 });

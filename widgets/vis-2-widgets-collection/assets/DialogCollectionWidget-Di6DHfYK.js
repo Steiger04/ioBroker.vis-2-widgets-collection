@@ -1,10 +1,11 @@
-import { j as e, C as c, M as T, w as g, A as j, T as A, z as f, D as _, o as v, I, v as w, a4 as W, E as D, s as V, y as H, n as O, G as R, H as z, J as M, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
+import { j as e, a5 as w, C as c, M as I, w as g, A as v, T as B, z as f, D as _, o as j, I as W, v as V, E as D, s as H, S as A, y as O, n as R, G as M, H as z, K as F, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
 import { v as d, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as P, __tla as __tla_2 } from "./useHtmlValue-Dcwl_hqT.js";
-import { C as $, __tla as __tla_3 } from "./Close-C-wMvGmu.js";
+import { u as P, __tla as __tla_2 } from "./useData-EvQhohzn.js";
+import { u as $, __tla as __tla_3 } from "./useHtmlValue-Dcwl_hqT.js";
+import { C as E, __tla as __tla_4 } from "./Close-cZ7dmw4f.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let B;
+let S;
 let __tla = Promise.all([
   (() => {
     try {
@@ -29,9 +30,15 @@ let __tla = Promise.all([
       return __tla_3;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_4;
+    } catch {
+    }
   })()
 ]).then(async () => {
-  const F = () => [
+  const L = () => [
     {
       name: "view",
       label: "view",
@@ -60,7 +67,10 @@ let __tla = Promise.all([
       name: "oid",
       type: "id",
       label: "oid",
-      tooltip: "dialog_set_oid_tooltip"
+      tooltip: "dialog_set_oid_tooltip",
+      onChange: w([
+        "boolean"
+      ])
     },
     {
       label: "",
@@ -167,7 +177,7 @@ let __tla = Promise.all([
       hidden: "data.onlyIcon"
     }
   ];
-  function E({ open: m, handleClose: i, widget: t, data: l, getWidgetView: a }) {
+  function U({ open: m, handleClose: i, widget: t, data: l, getWidgetView: a }) {
     var _a;
     const h = d.useRef(null), [s, o] = d.useState(null), r = (_a = h.current) == null ? void 0 : _a.header;
     d.useEffect(() => {
@@ -178,7 +188,7 @@ let __tla = Promise.all([
       l.header,
       t.data.dialogHeaderAsTitle
     ]);
-    const p = e.jsx(I, {
+    const p = e.jsx(W, {
       sx: {
         alignSelf: "flex-end",
         filter: "brightness(1.5)",
@@ -186,9 +196,9 @@ let __tla = Promise.all([
       },
       "aria-label": "delete",
       onClick: i,
-      children: e.jsx($, {})
+      children: e.jsx(E, {})
     });
-    return e.jsx(T, {
+    return e.jsx(I, {
       onClose: i,
       open: m,
       sx: {
@@ -202,7 +212,7 @@ let __tla = Promise.all([
           width: t.data.dialogInPixel ? `${t.data.dialogWidth}px` : `${t.data.dialogWidth}%`,
           height: t.data.dialogInPixel ? `${t.data.dialogHeight}px` : `${t.data.dialogHeight}%`
         },
-        children: e.jsxs(j, {
+        children: e.jsxs(v, {
           ref: h,
           data: l,
           sx: {
@@ -227,7 +237,7 @@ let __tla = Promise.all([
                     left: 0,
                     width: "100%"
                   },
-                  children: e.jsx(A, {
+                  children: e.jsx(B, {
                     ref: o,
                     noWrap: true,
                     variant: "body2",
@@ -256,11 +266,11 @@ let __tla = Promise.all([
             e.jsx(g, {
               sx: {
                 "::-webkit-scrollbar-track": {
-                  background: l.frameBackgroundColor && v(l.frameBackgroundColor, 0.5)
+                  background: l.frameBackgroundColor && j(l.frameBackgroundColor, 0.5)
                 },
                 "::-webkit-scrollbar-thumb": {
                   opacity: "0.5",
-                  background: l.frameBackgroundColor && v(l.frameBackgroundColor, 0.7)
+                  background: l.frameBackgroundColor && j(l.frameBackgroundColor, 0.7)
                 },
                 position: "relative",
                 overflow: "auto",
@@ -288,15 +298,15 @@ let __tla = Promise.all([
       })
     });
   }
-  const L = V(O)({
+  const G = H(R)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
   });
-  function U() {
-    const [m, i] = d.useState(false), t = d.useRef(null), l = d.useContext(w), { widget: a, getWidgetView: h, setValue: s } = l, { data: o, oidValue: r } = W("oid"), p = a.data.oidObject, n = p == null ? void 0 : p._id, S = (p == null ? void 0 : p.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected", y = d.useCallback(() => {
+  function N() {
+    const [m, i] = d.useState(false), t = d.useRef(null), l = d.useContext(V), { widget: a, getWidgetView: h, setValue: s } = l, { data: o, oidValue: r } = P("oid"), p = a.data.oidObject, n = p == null ? void 0 : p._id, T = (p == null ? void 0 : p.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected", C = d.useCallback(() => {
       if (t.current) return;
       const k = a.data.dialogAutoClose, x = String(k);
       if (!k || x === "" || x === "0") {
@@ -311,29 +321,29 @@ let __tla = Promise.all([
       n,
       s,
       a.data.dialogAutoClose
-    ]), b = d.useCallback(() => {
+    ]), y = d.useCallback(() => {
       t.current && (clearTimeout(t.current), t.current = null), n && s(n, false), i(false);
     }, [
       n,
       s
-    ]), C = P(r, a, o);
+    ]), b = $(r, a, o);
     return d.useEffect(() => {
-      r != null && (r ? y() : b());
+      r != null && (r ? C() : y());
     }, [
       r,
-      y,
-      b
+      C,
+      y
     ]), e.jsxs(e.Fragment, {
       children: [
-        e.jsx(E, {
+        e.jsx(U, {
           open: m,
-          handleClose: b,
+          handleClose: y,
           widget: a,
           data: o,
           getWidgetView: h
         }),
-        e.jsxs(j, {
-          isValidType: S,
+        e.jsxs(v, {
+          isValidType: T,
           data: o,
           children: [
             e.jsx(D, {
@@ -346,9 +356,9 @@ let __tla = Promise.all([
                 height: "100%",
                 display: "flex"
               },
-              children: e.jsxs(L, {
+              children: e.jsxs(G, {
                 onClick: () => {
-                  n && s(n, true), y();
+                  n && s(n, true), C();
                 },
                 sx: {
                   "& .MuiTouchRipple-root span": {
@@ -366,21 +376,21 @@ let __tla = Promise.all([
                       justifyContent: "center",
                       alignItems: "center"
                     },
-                    children: e.jsx("img", {
+                    children: e.jsx(A, {
                       alt: "",
-                      src: o.icon || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                      src: o.icon,
                       style: {
                         position: "relative",
                         objectFit: "contain",
                         top: `calc(0px - ${o.iconYOffset})`,
                         right: `calc(0px - ${o.iconXOffset})`,
-                        width: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
-                        height: typeof o.iconSizeOnly == "number" && `calc(100% * ${o.iconSizeOnly} / 100)` || "100%",
-                        ...H(o.icon, o.iconColor, o.forceColorMaskActive ?? false)
+                        width: o.iconSizeOnly,
+                        height: o.iconSizeOnly,
+                        ...O(o.icon, o.iconColor, o.forceColorMask ?? false)
                       }
                     })
                   }) : null,
-                  a.data.onlyText || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(A, {
+                  a.data.onlyText || !a.data.onlyText && !a.data.onlyIcon ? e.jsx(B, {
                     variant: "body2",
                     sx: {
                       overflow: "hidden",
@@ -399,7 +409,7 @@ let __tla = Promise.all([
                       color: f(o.textColor) ? "transparent" : o.textColor
                     },
                     dangerouslySetInnerHTML: {
-                      __html: C !== void 0 ? String(C) : ""
+                      __html: b !== void 0 ? String(b) : ""
                     }
                   }) : null
                 ]
@@ -410,7 +420,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  B = class extends R {
+  S = class extends M {
     static getWidgetInfo() {
       return {
         id: "tplDialogCollectionWidget",
@@ -433,7 +443,7 @@ let __tla = Promise.all([
             name: "dialog",
             label: "group_dialog",
             fields: [
-              ...F()
+              ...L()
             ]
           }
         ],
@@ -446,7 +456,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return B.getWidgetInfo();
+      return S.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -481,11 +491,11 @@ let __tla = Promise.all([
         getWidgetView: this.getWidgetView.bind(this),
         wrappedContent: this.wrappedCollectionContent
       };
-      return i.widget.data.noCard || i.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, M(this.wrapContent(e.jsx(U, {})), t);
+      return i.widget.data.noCard || i.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, F(this.wrapContent(e.jsx(N, {})), t);
     }
   };
 });
 export {
   __tla,
-  B as default
+  S as default
 };

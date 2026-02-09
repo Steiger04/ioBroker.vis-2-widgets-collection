@@ -10,7 +10,7 @@ import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
@@ -55,7 +55,7 @@ function SelectCollection(): React.ReactElement {
     const { widget } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
-    const { data, statesNew } = useDataNew('oid');
+    const { data, statesNew } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const { updateValue: setCidValueState } = useValueState('cid');
 

@@ -10,6 +10,7 @@
  */
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
+import { oidChangeHandlerAsync } from './commonObjectFields';
 
 const dialogFields = (): RxWidgetInfoAttributesField[] => [
     {
@@ -41,6 +42,7 @@ const dialogFields = (): RxWidgetInfoAttributesField[] => [
         type: 'id',
         label: 'oid',
         tooltip: 'dialog_set_oid_tooltip',
+        onChange: oidChangeHandlerAsync(['boolean']),
     },
     {
         label: '',

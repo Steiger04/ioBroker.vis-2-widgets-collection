@@ -11,7 +11,7 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import type { Light2CollectionContextProps } from '../types';
 import withButtonModal from '../components/withButtonModal';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 // import useOidValue from '../hooks/useOidValue';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
@@ -180,7 +180,7 @@ function Light2CollectionContent(): React.ReactElement {
         getPropertyValue,
     } = context;
 
-    const { data } = useDataNew('');
+    const { data } = useData('');
     // const oidValue = useOidValue('oid');
 
     // console.log('oidValue', oidValue);

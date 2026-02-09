@@ -17,7 +17,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';
 import useStyles from '../hooks/useStyles';
-import { type StyleData } from '../hooks/useDataNew/types';
+import { type StyleData } from '../hooks/useData/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { cleanSx } from '../lib/helper/sxUtils';
@@ -93,7 +93,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 return '';
             }
 
-            console.log('data.value', data.value);
             const valueWithUnit =
                 oidValue || oidValue === 0 || String(oidValue) === 'false' ? `${oidValue}${oidObject?.unit ?? ''}` : '';
 

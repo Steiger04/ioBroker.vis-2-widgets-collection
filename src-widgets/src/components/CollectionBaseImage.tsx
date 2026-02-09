@@ -8,8 +8,9 @@ import React, { useContext } from 'react';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { CollectionContext } from './CollectionProvider';
 
-import { type StyleData } from '../hooks/useDataNew/types';
+import { type StyleData } from '../hooks/useData/types';
 import type { CollectionBaseImageWidgetData, CollectionContextProps } from '../types';
+import SafeImg from './SafeImg';
 
 /**
  * Props for {@link module:components/CollectionBaseImage.default}.
@@ -38,7 +39,7 @@ const CollectionBaseImage = ({ data, widget }: CollectionBaseImageProps): React.
     const iconColor = data.iconColor || theme.palette.primary.main;
 
     return !widget.data.noHeaderIcon && iconSrc ? (
-        <img
+        <SafeImg
             alt=""
             src={iconSrc}
             style={{

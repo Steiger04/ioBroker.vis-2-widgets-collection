@@ -1,10 +1,10 @@
 /**
- * Property resolver factory for useDataNew.
+ * Property resolver factory for useData.
  *
  * Extracts StyleData property resolution into dedicated resolvers with
  * consistent fallback behavior and active-state control.
  *
- * @module hooks/useDataNew/propertyResolvers
+ * @module hooks/useData/propertyResolvers
  * @since 2.2.0
  */
 

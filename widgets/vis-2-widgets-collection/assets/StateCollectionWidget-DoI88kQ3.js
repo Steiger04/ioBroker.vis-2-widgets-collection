@@ -1,16 +1,16 @@
-import { c as Dt, j as a, g as F, a as V, u as A, b as L, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as Mt, i as H, M as Tt, B as Bt, T as z, L as W, k as Lt, l as it, n as $t, r as At, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as U, x as Wt, I as Ft, D as Vt, y as _t, z as rt, A as Ot, E as Ut, G as Gt, H as nt, J as zt, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
-import { c as Ht, __tla as __tla_1 } from "./commonObjectFields-BugCVB7j.js";
-import { u as ct, d as Et, __tla as __tla_2 } from "./useValueState-DBn_oRff.js";
-import { v as l, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { C as Yt, __tla as __tla_4 } from "./Close-C-wMvGmu.js";
-import { S as qt, __tla as __tla_5 } from "./Slider-CnBrsoOt.js";
-import { g as Xt, l as J, __tla as __tla_6 } from "./listItemTextClasses-DrkfKqAh.js";
-import { S as Kt, __tla as __tla_7 } from "./Stack-DuNlqCGp.js";
-import { u as Jt, __tla as __tla_8 } from "./useDataNew-B30ylKsy.js";
-import { u as Qt, __tla as __tla_9 } from "./useHtmlValue-Dcwl_hqT.js";
-import { B as Zt, __tla as __tla_10 } from "./Button-Djb9GwrL.js";
+import { c as Dt, j as a, g as F, a as V, u as A, b as L, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as Mt, i as H, M as Tt, B as Bt, T as z, L as W, k as Lt, l as it, n as $t, r as At, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as U, x as Wt, I as Ft, D as Vt, y as _t, z as rt, A as Ot, E as Ut, G as Gt, H as nt, J as zt, K as Ht, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
+import { u as ct, d as Et, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
+import { v as l, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { C as Yt, __tla as __tla_3 } from "./Close-cZ7dmw4f.js";
+import { S as qt, __tla as __tla_4 } from "./Slider-DWDaGa8m.js";
+import { g as Xt, l as J, __tla as __tla_5 } from "./listItemTextClasses-E0RgI0NY.js";
+import { S as Kt, __tla as __tla_6 } from "./Stack-B_C-u5Tq.js";
+import { u as Jt, __tla as __tla_7 } from "./index-Bt53gQws.js";
+import { u as Qt, __tla as __tla_8 } from "./useHtmlValue-Dcwl_hqT.js";
+import { B as Zt, __tla as __tla_9 } from "./Button-DLTvJGYp.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
+import { __tla as __tla_10 } from "./useData-EvQhohzn.js";
 let ut;
 let __tla = Promise.all([
   (() => {
@@ -213,8 +213,8 @@ let __tla = Promise.all([
     const r = A({
       props: t,
       name: "MuiAvatar"
-    }), { alt: s, children: c, className: n, component: i = "div", slots: g = {}, slotProps: v = {}, imgProps: P, sizes: h, src: y, srcSet: C, variant: x = "circular", ...w } = r;
-    let f = null;
+    }), { alt: s, children: c, className: n, component: i = "div", slots: g = {}, slotProps: v = {}, imgProps: P, sizes: h, src: f, srcSet: C, variant: x = "circular", ...w } = r;
+    let y = null;
     const p = {
       ...r,
       component: i,
@@ -222,9 +222,9 @@ let __tla = Promise.all([
     }, S = ne({
       ...P,
       ...typeof v.img == "function" ? v.img(p) : v.img,
-      src: y,
+      src: f,
       srcSet: C
-    }), u = y || C, I = u && S !== "error";
+    }), u = f || C, I = u && S !== "error";
     p.colorDefault = !I, delete p.ownerState;
     const d = oe(p), [m, b] = L("img", {
       className: d.img,
@@ -240,15 +240,15 @@ let __tla = Promise.all([
       },
       additionalProps: {
         alt: s,
-        src: y,
+        src: f,
         srcSet: C,
         sizes: h
       },
       ownerState: p
     });
-    return I ? f = a.jsx(m, {
+    return I ? y = a.jsx(m, {
       ...b
-    }) : c || c === 0 ? f = c : u && s ? f = s[0] : f = a.jsx(re, {
+    }) : c || c === 0 ? y = c : u && s ? y = s[0] : y = a.jsx(re, {
       ownerState: p,
       className: d.fallback
     }), a.jsx(se, {
@@ -257,7 +257,7 @@ let __tla = Promise.all([
       ref: o,
       ...w,
       ownerState: p,
-      children: f
+      children: y
     });
   });
   function le(e) {
@@ -459,12 +459,12 @@ let __tla = Promise.all([
     }), s = Rt(), c = {
       enter: s.transitions.duration.enteringScreen,
       exit: s.transitions.duration.leavingScreen
-    }, { "aria-describedby": n, "aria-labelledby": i, "aria-modal": g = true, BackdropComponent: v, BackdropProps: P, children: h, className: y, disableEscapeKeyDown: C = false, fullScreen: x = false, fullWidth: w = false, maxWidth: f = "sm", onBackdropClick: p, onClick: S, onClose: u, open: I, PaperComponent: d = tt, PaperProps: m = {}, scroll: b = "paper", slots: k = {}, slotProps: T = {}, TransitionComponent: $ = et, transitionDuration: E = c, TransitionProps: X, ..._ } = r, D = {
+    }, { "aria-describedby": n, "aria-labelledby": i, "aria-modal": g = true, BackdropComponent: v, BackdropProps: P, children: h, className: f, disableEscapeKeyDown: C = false, fullScreen: x = false, fullWidth: w = false, maxWidth: y = "sm", onBackdropClick: p, onClick: S, onClose: u, open: I, PaperComponent: d = tt, PaperProps: m = {}, scroll: b = "paper", slots: k = {}, slotProps: T = {}, TransitionComponent: $ = et, transitionDuration: E = c, TransitionProps: X, ..._ } = r, D = {
       ...r,
       disableEscapeKeyDown: C,
       fullScreen: x,
       fullWidth: w,
-      maxWidth: f,
+      maxWidth: y,
       scroll: b
     }, B = de(D), M = l.useRef(), mt = (O) => {
       M.current = O.target === O.currentTarget;
@@ -474,23 +474,23 @@ let __tla = Promise.all([
       titleId: Q
     }), [
       Q
-    ]), ft = {
+    ]), yt = {
       transition: $,
       ...k
-    }, yt = {
+    }, ft = {
       transition: X,
       paper: m,
       backdrop: P,
       ...T
     }, Y = {
-      slots: ft,
-      slotProps: yt
+      slots: yt,
+      slotProps: ft
     }, [xt, bt] = L("root", {
       elementType: pe,
       shouldForwardComponentProp: true,
       externalForwardedProps: Y,
       ownerState: D,
-      className: R(B.root, y),
+      className: R(B.root, f),
       ref: o
     }), [ht, Ct] = L("backdrop", {
       elementType: ce,
@@ -566,10 +566,10 @@ let __tla = Promise.all([
     "root",
     "dividers"
   ]);
-  function fe(e) {
+  function ye(e) {
     return F("MuiDialogTitle", e);
   }
-  const ye = V("MuiDialogTitle", [
+  const fe = V("MuiDialogTitle", [
     "root"
   ]), xe = (e) => {
     const { classes: t, dividers: o } = e;
@@ -606,7 +606,7 @@ let __tla = Promise.all([
       {
         props: ({ ownerState: t }) => !t.dividers,
         style: {
-          [`.${ye.root} + &`]: {
+          [`.${fe.root} + &`]: {
             paddingTop: 0
           }
         }
@@ -632,7 +632,7 @@ let __tla = Promise.all([
       root: [
         "root"
       ]
-    }, fe, t);
+    }, ye, t);
   }, Se = j(z, {
     name: "MuiDialogTitle",
     slot: "Root",
@@ -785,7 +785,7 @@ let __tla = Promise.all([
     const r = A({
       props: t,
       name: "MuiListItemButton"
-    }), { alignItems: s = "center", autoFocus: c = false, component: n = "div", children: i, dense: g = false, disableGutters: v = false, divider: P = false, focusVisibleClassName: h, selected: y = false, className: C, ...x } = r, w = l.useContext(W), f = l.useMemo(() => ({
+    }), { alignItems: s = "center", autoFocus: c = false, component: n = "div", children: i, dense: g = false, disableGutters: v = false, divider: P = false, focusVisibleClassName: h, selected: f = false, className: C, ...x } = r, w = l.useContext(W), y = l.useMemo(() => ({
       dense: g || w.dense || false,
       alignItems: s,
       disableGutters: v
@@ -803,13 +803,13 @@ let __tla = Promise.all([
     const S = {
       ...r,
       alignItems: s,
-      dense: f.dense,
+      dense: y.dense,
       disableGutters: v,
       divider: P,
-      selected: y
+      selected: f
     }, u = je(S), I = it(p, o);
     return a.jsx(W.Provider, {
-      value: f,
+      value: y,
       children: a.jsx(De, {
         ref: I,
         href: x.href || x.to,
@@ -1000,7 +1000,7 @@ let __tla = Promise.all([
     const r = A({
       props: t,
       name: "MuiListItem"
-    }), { alignItems: s = "center", children: c, className: n, component: i, components: g = {}, componentsProps: v = {}, ContainerComponent: P = "li", ContainerProps: { className: h, ...y } = {}, dense: C = false, disableGutters: x = false, disablePadding: w = false, divider: f = false, secondaryAction: p, slotProps: S = {}, slots: u = {}, ...I } = r, d = l.useContext(W), m = l.useMemo(() => ({
+    }), { alignItems: s = "center", children: c, className: n, component: i, components: g = {}, componentsProps: v = {}, ContainerComponent: P = "li", ContainerProps: { className: h, ...f } = {}, dense: C = false, disableGutters: x = false, disablePadding: w = false, divider: y = false, secondaryAction: p, slotProps: S = {}, slots: u = {}, ...I } = r, d = l.useContext(W), m = l.useMemo(() => ({
       dense: C || d.dense || false,
       alignItems: s,
       disableGutters: x
@@ -1017,7 +1017,7 @@ let __tla = Promise.all([
       dense: m.dense,
       disableGutters: x,
       disablePadding: w,
-      divider: f,
+      divider: y,
       hasSecondaryAction: T
     }, E = $e($), X = it(b, o), _ = u.root || g.Root || Ae, D = S.root || v.root || {}, B = {
       className: R(E.root, D.className, n),
@@ -1031,7 +1031,7 @@ let __tla = Promise.all([
         className: R(E.container, h),
         ref: X,
         ownerState: $,
-        ...y,
+        ...f,
         children: [
           a.jsx(_, {
             ...D,
@@ -1133,17 +1133,17 @@ let __tla = Promise.all([
     const r = A({
       props: t,
       name: "MuiListItemText"
-    }), { children: s, className: c, disableTypography: n = false, inset: i = false, primary: g, primaryTypographyProps: v, secondary: P, secondaryTypographyProps: h, slots: y = {}, slotProps: C = {}, ...x } = r, { dense: w } = l.useContext(W);
-    let f = g ?? s, p = P;
+    }), { children: s, className: c, disableTypography: n = false, inset: i = false, primary: g, primaryTypographyProps: v, secondary: P, secondaryTypographyProps: h, slots: f = {}, slotProps: C = {}, ...x } = r, { dense: w } = l.useContext(W);
+    let y = g ?? s, p = P;
     const S = {
       ...r,
       disableTypography: n,
       inset: i,
-      primary: !!f,
+      primary: !!y,
       secondary: !!p,
       dense: w
     }, u = Fe(S), I = {
-      slots: y,
+      slots: f,
       slotProps: {
         primary: v,
         secondary: h,
@@ -1169,11 +1169,11 @@ let __tla = Promise.all([
       externalForwardedProps: I,
       ownerState: S
     });
-    return f != null && f.type !== z && !n && (f = a.jsx(b, {
+    return y != null && y.type !== z && !n && (y = a.jsx(b, {
       variant: w ? "body2" : "body1",
       component: (k == null ? void 0 : k.variant) ? void 0 : "span",
       ...k,
-      children: f
+      children: y
     })), p != null && p.type !== z && !n && (p = a.jsx(T, {
       variant: "body2",
       color: "textSecondary",
@@ -1182,7 +1182,7 @@ let __tla = Promise.all([
     })), a.jsxs(d, {
       ...m,
       children: [
-        f,
+        y,
         p
       ]
     });
@@ -1244,15 +1244,15 @@ let __tla = Promise.all([
       };
     }, [
       n
-    ]), y = l.useCallback((d) => {
+    ]), f = l.useCallback((d) => {
       P(d);
     }, [
       P
     ]), C = l.useCallback((d, m) => {
       const b = Array.isArray(m) ? m[0] : m;
-      v(b), y(b);
+      v(b), f(b);
     }, [
-      y
+      f
     ]), x = l.useCallback((d, m) => {
       (m === "backdropClick" || m === "escapeKeyDown") && r();
     }, [
@@ -1261,12 +1261,12 @@ let __tla = Promise.all([
       r();
     }, [
       r
-    ]), f = l.useCallback((d) => (m) => {
+    ]), y = l.useCallback((d) => (m) => {
       m.preventDefault();
       const b = Number(d);
-      isNaN(b) || v(b), y(d);
+      isNaN(b) || v(b), f(d);
     }, [
-      y
+      f
     ]), p = l.useMemo(() => {
       const { oidType: d, commonStates: m, minValue: b, maxValue: k } = h;
       return d === "number" && !i && b !== void 0 && k !== void 0 ? a.jsx(U, {
@@ -1304,7 +1304,7 @@ let __tla = Promise.all([
       children: Object.entries(e).map(([d, m]) => a.jsx(We, {
         disablePadding: true,
         children: a.jsx(Re, {
-          onClick: f(d),
+          onClick: y(d),
           children: a.jsx(_e, {
             primaryTypographyProps: {
               variant: "body2"
@@ -1315,7 +1315,7 @@ let __tla = Promise.all([
       }, d))
     }), [
       e,
-      f
+      y
     ]), u = l.useMemo(() => t.header || h.oidName || "Change Value", [
       t.header,
       h.oidName
@@ -1371,13 +1371,13 @@ let __tla = Promise.all([
     });
   };
   function Ge() {
-    const e = l.useContext(lt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: s, widgetStates: c } = Jt("oid"), { value: n, updateValue: i } = ct("oid"), [g, v] = l.useState(false), P = r == null ? void 0 : r.type, h = t.data.onlyStates, y = Qt(n, t, s), C = y != null ? String(y) : "", x = () => {
+    const e = l.useContext(lt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: s, widgetStates: c } = Jt("oid"), { value: n, updateValue: i } = ct("oid"), [g, v] = l.useState(false), P = r == null ? void 0 : r.type, h = t.data.onlyStates, f = Qt(n, t, s), C = f != null ? String(f) : "", x = () => {
       const u = t.data.value1;
       h && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
     }, w = () => {
       const u = t.data.value2;
       h && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
-    }, f = l.useCallback(() => {
+    }, y = l.useCallback(() => {
       if (!h) {
         v(true);
         return;
@@ -1403,7 +1403,7 @@ let __tla = Promise.all([
       i
     ]), p = a.jsx(Zt, {
       disabled: t.data.onlyDisplay,
-      onClick: f,
+      onClick: y,
       onMouseDown: x,
       onMouseUp: w,
       onMouseOut: w,
@@ -1567,7 +1567,7 @@ let __tla = Promise.all([
             name: "button",
             label: "group_button",
             fields: [
-              ...Ht([
+              ...zt([
                 "string",
                 "number",
                 "boolean",
@@ -1633,7 +1633,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, zt(this.wrapContent(a.jsx(Ge, {})), o);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Ht(this.wrapContent(a.jsx(Ge, {})), o);
     }
   };
 });

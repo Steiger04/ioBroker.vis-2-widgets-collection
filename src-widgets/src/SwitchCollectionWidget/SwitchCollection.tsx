@@ -9,7 +9,7 @@ import React, { useRef, useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
 import type { SwitchCollectionContextProps } from '../types';
@@ -26,7 +26,7 @@ function SwitchCollection(): React.JSX.Element {
 
     const oidObject = widget.data.oidObject;
 
-    const { data } = useDataNew('oid');
+    const { data } = useData('oid');
     const { value: oidValue, updateValue } = useValueState('oid');
 
     const oidType = oidObject?.type;

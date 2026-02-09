@@ -8,7 +8,7 @@ import { Box } from '@mui/material';
 import React, { useContext } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
-import useData from '../hooks/useData';
+import useData from '../hooks/useData/useData';
 import useOidValue from '../hooks/useOidValue';
 import type { TemplateCollectionContextProps } from '../types';
 

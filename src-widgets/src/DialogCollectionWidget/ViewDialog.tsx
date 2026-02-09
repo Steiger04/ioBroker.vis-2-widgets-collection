@@ -10,7 +10,8 @@ import { alpha } from '@mui/material/styles';
 import React, { useRef, useState, useEffect } from 'react';
 import CollectionBase, { type CollectionBaseHandle } from '../components/CollectionBase';
 import { gradientColor } from '../lib/helper/gradientColor';
-import type { StyleData } from '../hooks/useData';
+
+import type { StyleData } from '../hooks/useData/types';
 import type { DialogCollectionContextProps } from '../types';
 
 interface ViewDialogProps {
@@ -52,7 +53,7 @@ export default function ViewDialog({
                 header.style.height = '0px';
             }
 
-            titleRef.innerHTML = data.header;
+            titleRef.innerHTML = data.header!;
             titleRef.style.height = 'auto';
             titleRef.style.width = 'auto';
         }
@@ -166,7 +167,7 @@ export default function ViewDialog({
                             height: '100%',
                         }}
                     >
-                        {getWidgetView(widget.data.view || '', {
+                        {getWidgetView!(widget.data.view || '', {
                             style: {
                                 // "background-color": "inherit",
                             },

@@ -1,6 +1,7 @@
-import { j as rt, C as nt, v as H, a4 as it, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
+import { j as rt, C as nt, v as H, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
 import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-let Zt, te;
+import { u as it, __tla as __tla_2 } from "./useData-EvQhohzn.js";
+let te, ee;
 let __tla = Promise.all([
   (() => {
     try {
@@ -13,9 +14,15 @@ let __tla = Promise.all([
       return __tla_1;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_2;
+    } catch {
+    }
   })()
 ]).then(async () => {
-  Zt = () => [
+  te = () => [
     {
       label: "",
       type: "custom",
@@ -1202,7 +1209,7 @@ let __tla = Promise.all([
     const i = Number(e ?? 0), o = Number(r ?? 0);
     return Math.abs(i - o) >= 1;
   }
-  te = (e) => {
+  ee = (e) => {
     const { setState: r, widget: t, getPropertyValue: n, values: i } = m.useContext(H), { data: o } = it("oid"), u = t.data[`${e}Object`], a = n(e), c = m.useRef({
       lc: void 0,
       value: void 0
@@ -1264,6 +1271,6 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  Zt as d,
-  te as u
+  te as d,
+  ee as u
 };

@@ -1,7 +1,7 @@
 /**
- * useDataNew Hook Module - Public API
+ * useData Hook Module - Public API
  *
- * @module hooks/useDataNew
+ * @module hooks/useData
  * @version 2.2.1
  * @since 2.2.0
  * @description
@@ -23,17 +23,17 @@
  * import useData from '../hooks/useData';
  *
  * // NEW:
- * import useData from '../hooks/useDataNew';
+ * import useData from '../hooks/useData';
  * // or
- * import { useDataNew } from '../hooks/useDataNew';
+ * import { useData } from '../hooks/useData';
  * ```
  * @example
  * Basic usage in a collection widget:
  * ```typescript
- * import { useDataNew } from '../hooks/useDataNew';
+ * import { useData } from '../hooks/useData';
  *
  * function MyWidget() {
- *   const { states, data, activeIndex } = useDataNew('oid');
+ *   const { states, data, activeIndex } = useData('oid');
  *
  *   return (
  *     <div>
@@ -58,10 +58,10 @@
  * @example
  * Advanced usage with slider properties:
  * ```typescript
- * import { useDataNew } from '../hooks/useDataNew';
+ * import { useData } from '../hooks/useData';
  *
  * function SliderWidget() {
- *   const { states, data, minValue, maxValue, step } = useDataNew('oid');
+ *   const { states, data, minValue, maxValue, step } = useData('oid');
  *
  *   return (
  *     <Slider
@@ -80,11 +80,11 @@
  * @see {@link ROLLOUT_PLAN.md} for deployment strategy
  */
 
-import useDataNewImpl, { useStyleData } from './useDataNew';
+import useDataImpl, { useStyleData } from './useData';
 
 // Main hook export (both default and named for flexibility)
-export default useDataNewImpl;
-export { useDataNewImpl as useDataNew };
+export default useDataImpl;
+export { useDataImpl as useData };
 export { useStyleData };
 
 // Type exports - re-exported from types module for API compatibility
@@ -95,5 +95,5 @@ export type { PriorityOption, SliderProperties } from './types';
 
 // Utility function exports (optional - for advanced customization)
 export { resolvePriority } from './priorityResolver';
-export { buildStateItem, createSliderResolver, createDefaultResolver } from './widgetResolvers';
+export { createSliderResolver, createDefaultResolver } from './widgetResolvers';
 export { getStyleData } from './styleDataResolver';

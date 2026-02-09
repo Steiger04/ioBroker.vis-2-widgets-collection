@@ -11,7 +11,7 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import SafeImg from '../components/SafeImg';
-import useDataNew from '../hooks/useDataNew';
+import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -47,7 +47,7 @@ function ButtonGroupCollection(): React.JSX.Element {
     const { widget } = context;
 
     const oidObject = widget.data.oidObject;
-    const { data: styleData, statesNew: buttonStates, activeIndex } = useDataNew('oid');
+    const { data: styleData, statesNew: buttonStates, activeIndex } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;

@@ -1,12 +1,12 @@
-import { j as g, C as W, v as Me, a4 as st, A as ht, E as ut, y as Nt, M as Dt, w as N, c as Ft, a6 as Vt, I as xe, D as Je, ao as dt, G as Gt, H as Ze, J as $t, __tla as __tla_0 } from "./useData-BQhxaWlN.js";
-import { u as T, d as Ut, __tla as __tla_1 } from "./useValueState-DBn_oRff.js";
-import { o as Xt, __tla as __tla_2 } from "./commonObjectFields-BugCVB7j.js";
-import { v as f, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { B as Kt, __tla as __tla_4 } from "./Button-Djb9GwrL.js";
-import { u as Yt, __tla as __tla_5 } from "./useOidValue-Cc22sqYG.js";
+import { j as v, C as z, a5 as Wt, v as Ae, A as at, E as st, S as zt, y as Nt, M as Dt, w as D, c as Ft, a7 as Vt, I as ye, D as qe, am as ht, G as Gt, H as Ze, K as $t, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
+import { u as j, d as Ut, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
+import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { u as Xt, __tla as __tla_3 } from "./useData-EvQhohzn.js";
+import { B as Kt, __tla as __tla_4 } from "./Button-DLTvJGYp.js";
+import { u as Yt, __tla as __tla_5 } from "./index-Bt53gQws.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let It;
+let Mt;
 let __tla = Promise.all([
   (() => {
     try {
@@ -45,7 +45,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const et = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=", tt = {
+  const Je = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=", et = {
     "switch.light": "colorLightSwitchOid",
     "level.color.rgb": "colorLightRgbHexOid",
     "level.color.red": "colorLightRedOid",
@@ -70,14 +70,14 @@ let __tla = Promise.all([
           const s = r;
           await Promise.all(Object.values(c).map(async (u) => {
             const h = u.common.role;
-            if (h && tt[h] && (!r[h] || r[h] === "nothing_selected") && n !== h) {
-              const a = tt[h];
-              s[a] = u._id, await Xt([
+            if (h && et[h] && (!r[h] || r[h] === "nothing_selected") && n !== h) {
+              const a = et[h];
+              s[a] = u._id, await Wt([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
-              ], a)(e, r, i, t), a === "colorLightTemperatureOid" && (!s.colorLightCtMin && u.common.min && (s.colorLightCtMin = u.common.min), !s.colorLightCtMax && u.common.max && (s.colorLightCtMax = u.common.max)), a === "colorLightSwitchOid" && (s.values_count = 2, s.value1 = true, s.alias1 = "TRUE", s.value2 = false, s.alias2 = "FALSE", s.iconSize = 0, s.iconSmall1 = et, s.iconColor1 = "red", s.iconSize1 = 100, s.iconSmall2 = et, s.iconColor2 = "green", s.iconSize2 = 100);
+              ], a)(e, r, i, t), a === "colorLightTemperatureOid" && (!s.colorLightCtMin && u.common.min && (s.colorLightCtMin = u.common.min), !s.colorLightCtMax && u.common.max && (s.colorLightCtMax = u.common.max)), a === "colorLightSwitchOid" && (s.values_count = 2, s.value1 = true, s.alias1 = "TRUE", s.value2 = false, s.alias2 = "FALSE", s.iconSize = 0, s.iconSmall1 = Je, s.iconColor1 = "red", s.iconSize1 = 100, s.iconSmall2 = Je, s.iconColor2 = "green", s.iconSize2 = 100);
             }
           })), i(r);
         }
@@ -86,7 +86,7 @@ let __tla = Promise.all([
   }, qt = () => [
     {
       type: "custom",
-      component: () => g.jsx(W, {})
+      component: () => v.jsx(z, {})
     },
     {
       name: "colorLightButton",
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {})
+      component: () => v.jsx(z, {})
     },
     {
       name: "colorLightSliderWidth",
@@ -161,7 +161,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {})
+      component: () => v.jsx(z, {})
     },
     {
       name: "colorLightSwitchOid",
@@ -171,7 +171,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {})
+      component: () => v.jsx(z, {})
     },
     {
       name: "colorLightUIComponent",
@@ -204,7 +204,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {}),
+      component: () => v.jsx(z, {}),
       hidden: (e) => e.colorLightType === "cct" || e.colorLightType === "none"
     },
     {
@@ -250,7 +250,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {}),
+      component: () => v.jsx(z, {}),
       hidden: (e) => e.colorLightType === "none"
     },
     {
@@ -294,7 +294,7 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => g.jsx(W, {}),
+      component: () => v.jsx(z, {}),
       hidden: (e) => ![
         "cct",
         "rgbcct",
@@ -367,25 +367,25 @@ let __tla = Promise.all([
       ].includes(e.colorLightType || "")
     }
   ];
-  function Jt({ onClick: e = () => {
+  function Zt({ onClick: e = () => {
   }, onLongPress: r = () => {
   }, ms: i = 300 } = {}) {
-    const t = f.useRef(null), n = f.useRef(null), o = f.useRef(false), l = f.useCallback(() => {
+    const t = d.useRef(null), n = d.useRef(null), o = d.useRef(false), l = d.useCallback(() => {
       n.current && (o.current = true, r(n.current)), t.current = null, n.current = null;
     }, [
       r
-    ]), c = f.useCallback((u) => {
+    ]), c = d.useCallback((u) => {
       "touches" in u && u.preventDefault(), n.current = u, o.current = false, t.current = setTimeout(l, i);
     }, [
       l,
       i
-    ]), s = f.useCallback((u) => {
+    ]), s = d.useCallback((u) => {
       const h = n.current, a = o.current;
       t.current && (clearTimeout(t.current), t.current = null), !a && h && e(h), n.current = null, o.current = false;
     }, [
       e
     ]);
-    return f.useMemo(() => ({
+    return d.useMemo(() => ({
       onMouseDown: c,
       onMouseUp: s,
       onMouseLeave: s,
@@ -396,33 +396,33 @@ let __tla = Promise.all([
       s
     ]);
   }
-  function Zt(e) {
+  function Jt(e) {
     return typeof e == "object" && e !== null && "colorLightButton" in e && "colorLightSwitchOid" in e;
   }
   function er(e) {
     const r = (t) => {
       var _a;
-      const n = f.useContext(Me);
+      const n = d.useContext(Ae);
       if (!n || !n.widget) throw new Error("withButtonModal must be used within a CollectionProvider");
-      const { widget: o } = n, [l, c] = f.useState(false), s = o.data, { value: u, updateValue: h } = T("colorLightSwitchOid"), { data: a } = st("colorLightSwitchOid"), d = Zt(s) && s.colorLightButton, b = ((_a = d ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = Jt({
+      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = j("colorLightSwitchOid"), { data: a } = Xt("colorLightSwitchOid"), f = Jt(s) && s.colorLightButton, p = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", L = Zt({
         onClick: () => h(!u),
         onLongPress: () => c(true),
-        ms: d ? s.colorLightDelayLongPress ?? 500 : 500
-      }), L = d ? (s.colorLightSliderWidth || 1) * 28 : 28, k = d && typeof s.colorLightModalWidth == "number" && s.colorLightModalWidth > 0 ? s.colorLightModalWidth : (d && s.colorLightModalHeight || 300) + 40 + 12 + L;
-      return d ? g.jsxs(g.Fragment, {
+        ms: f ? s.colorLightDelayLongPress ?? 500 : 500
+      }), m = f ? (s.colorLightSliderWidth || 1) * 28 : 28, w = f && typeof s.colorLightModalWidth == "number" && s.colorLightModalWidth > 0 ? s.colorLightModalWidth : (f && s.colorLightModalHeight || 300) + 40 + 12 + m;
+      return f ? v.jsxs(v.Fragment, {
         children: [
-          g.jsxs(ht, {
-            isValidType: b,
+          v.jsxs(at, {
+            isValidType: p,
             data: a,
             oidValue: u,
             children: [
-              g.jsx(ut, {
+              v.jsx(st, {
                 data: a,
                 widget: o
               }),
-              g.jsx(Kt, {
+              v.jsx(Kt, {
                 variant: "text",
-                ...x,
+                ...L,
                 sx: {
                   color: a.iconColorActive || "inherit",
                   width: "100%",
@@ -431,7 +431,7 @@ let __tla = Promise.all([
                   justifyContent: "center",
                   alignItems: "center"
                 },
-                children: g.jsx("img", {
+                children: v.jsx(zt, {
                   alt: "",
                   src: a.iconActive || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
                   style: {
@@ -444,48 +444,48 @@ let __tla = Promise.all([
               })
             ]
           }),
-          g.jsx(Dt, {
+          v.jsx(Dt, {
             open: l,
             onClose: () => c(false),
-            children: g.jsx(N, {
+            children: v.jsx(D, {
               sx: {
                 position: "absolute",
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                width: k,
+                width: w,
                 height: s.colorLightModalHeight || 300
               },
-              children: g.jsx(e, {
+              children: v.jsx(e, {
                 ...t
               })
             })
           })
         ]
-      }) : g.jsx(e, {
+      }) : v.jsx(e, {
         ...t
       });
     }, i = e.displayName || e.name || "Component";
     return r.displayName = `withButtonModal(${i})`, r;
   }
-  var S, oe, ft, Ce, gt, H = {}, Re = [], tr = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i;
+  var S, ne, ut, Se, dt, H = {}, Me = [], tr = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i;
   function B(e, r) {
     for (var i in r) e[i] = r[i];
     return e;
   }
-  function vt(e) {
+  function ft(e) {
     var r = e.parentNode;
     r && r.removeChild(e);
   }
-  function y(e, r, i) {
+  function x(e, r, i) {
     var t, n, o, l, c = arguments;
     if (r = B({}, r), arguments.length > 3) for (i = [
       i
     ], t = 3; t < arguments.length; t++) i.push(c[t]);
     if (i != null && (r.children = i), e != null && e.defaultProps != null) for (n in e.defaultProps) r[n] === void 0 && (r[n] = e.defaultProps[n]);
-    return l = r.key, (o = r.ref) != null && delete r.ref, l != null && delete r.key, ke(e, r, l, o);
+    return l = r.key, (o = r.ref) != null && delete r.ref, l != null && delete r.key, Ce(e, r, l, o);
   }
-  function ke(e, r, i, t) {
+  function Ce(e, r, i, t) {
     var n = {
       type: e,
       props: r,
@@ -501,14 +501,14 @@ let __tla = Promise.all([
     };
     return S.vnode && S.vnode(n), n;
   }
-  function ae(e) {
+  function ce(e) {
     return e.children;
   }
   function rr(e) {
     if (e == null || typeof e == "boolean") return null;
-    if (typeof e == "string" || typeof e == "number") return ke(null, e, null, null);
+    if (typeof e == "string" || typeof e == "number") return Ce(null, e, null, null);
     if (e.__e != null || e.__c != null) {
-      var r = ke(e.type, e.props, e.key, null);
+      var r = Ce(e.type, e.props, e.key, null);
       return r.__e = e.__e, r;
     }
     return e;
@@ -516,59 +516,59 @@ let __tla = Promise.all([
   function Q(e, r) {
     this.props = e, this.context = r;
   }
-  function le(e, r) {
-    if (r == null) return e.__p ? le(e.__p, e.__p.__k.indexOf(e) + 1) : null;
+  function oe(e, r) {
+    if (r == null) return e.__p ? oe(e.__p, e.__p.__k.indexOf(e) + 1) : null;
     for (var i; r < e.__k.length; r++) if ((i = e.__k[r]) != null && i.__e != null) return i.__e;
-    return typeof e.type == "function" ? le(e) : null;
+    return typeof e.type == "function" ? oe(e) : null;
   }
-  function mt(e) {
+  function gt(e) {
     var r, i;
     if ((e = e.__p) != null && e.__c != null) {
       for (e.__e = e.__c.base = null, r = 0; r < e.__k.length; r++) if ((i = e.__k[r]) != null && i.__e != null) {
         e.__e = e.__c.base = i.__e;
         break;
       }
-      return mt(e);
+      return gt(e);
     }
   }
-  function Le(e) {
-    (!e.__d && (e.__d = true) && oe.push(e) === 1 || Ce !== S.debounceRendering) && (Ce = S.debounceRendering, (S.debounceRendering || ft)(ir));
+  function xe(e) {
+    (!e.__d && (e.__d = true) && ne.push(e) === 1 || Se !== S.debounceRendering) && (Se = S.debounceRendering, (S.debounceRendering || ut)(ir));
   }
   function ir() {
     var e, r, i, t, n, o, l, c;
-    for (oe.sort(function(s, u) {
+    for (ne.sort(function(s, u) {
       return u.__v.__b - s.__v.__b;
-    }); e = oe.pop(); ) e.__d && (i = void 0, t = void 0, o = (n = (r = e).__v).__e, l = r.__P, c = r.u, r.u = false, l && (i = [], t = je(l, n, B({}, n), r.__n, l.ownerSVGElement !== void 0, null, i, c, o ?? le(n)), pt(i, n), t != o && mt(n)));
+    }); e = ne.pop(); ) e.__d && (i = void 0, t = void 0, o = (n = (r = e).__v).__e, l = r.__P, c = r.u, r.u = false, l && (i = [], t = Re(l, n, B({}, n), r.__n, l.ownerSVGElement !== void 0, null, i, c, o ?? oe(n)), mt(i, n), t != o && gt(n)));
   }
-  function bt(e, r, i, t, n, o, l, c, s) {
-    var u, h, a, d, v, _, b, x = i && i.__k || Re, L = x.length;
-    if (c == H && (c = o != null ? o[0] : L ? le(i, 0) : null), u = 0, r.__k = Ie(r.__k, function(m) {
-      if (m != null) {
-        if (m.__p = r, m.__b = r.__b + 1, (a = x[u]) === null || a && m.key == a.key && m.type === a.type) x[u] = void 0;
-        else for (h = 0; h < L; h++) {
-          if ((a = x[h]) && m.key == a.key && m.type === a.type) {
-            x[h] = void 0;
+  function vt(e, r, i, t, n, o, l, c, s) {
+    var u, h, a, f, g, y, p, L = i && i.__k || Me, m = L.length;
+    if (c == H && (c = o != null ? o[0] : m ? oe(i, 0) : null), u = 0, r.__k = Ie(r.__k, function(_) {
+      if (_ != null) {
+        if (_.__p = r, _.__b = r.__b + 1, (a = L[u]) === null || a && _.key == a.key && _.type === a.type) L[u] = void 0;
+        else for (h = 0; h < m; h++) {
+          if ((a = L[h]) && _.key == a.key && _.type === a.type) {
+            L[h] = void 0;
             break;
           }
           a = null;
         }
-        if (d = je(e, m, a = a || H, t, n, o, l, null, c, s), (h = m.ref) && a.ref != h && (b || (b = [])).push(h, m.__c || d, m), d != null) {
-          if (_ == null && (_ = d), m.l != null) d = m.l, m.l = null;
-          else if (o == a || d != c || d.parentNode == null) {
-            e: if (c == null || c.parentNode !== e) e.appendChild(d);
+        if (f = Re(e, _, a = a || H, t, n, o, l, null, c, s), (h = _.ref) && a.ref != h && (p || (p = [])).push(h, _.__c || f, _), f != null) {
+          if (y == null && (y = f), _.l != null) f = _.l, _.l = null;
+          else if (o == a || f != c || f.parentNode == null) {
+            e: if (c == null || c.parentNode !== e) e.appendChild(f);
             else {
-              for (v = c, h = 0; (v = v.nextSibling) && h < L; h += 2) if (v == d) break e;
-              e.insertBefore(d, c);
+              for (g = c, h = 0; (g = g.nextSibling) && h < m; h += 2) if (g == f) break e;
+              e.insertBefore(f, c);
             }
             r.type == "option" && (e.value = "");
           }
-          c = d.nextSibling, typeof r.type == "function" && (r.l = d);
+          c = f.nextSibling, typeof r.type == "function" && (r.l = f);
         }
       }
-      return u++, m;
-    }), r.__e = _, o != null && typeof r.type != "function") for (u = o.length; u--; ) o[u] != null && vt(o[u]);
-    for (u = L; u--; ) x[u] != null && yt(x[u], x[u]);
-    if (b) for (u = 0; u < b.length; u++) _t(b[u], b[++u], b[++u]);
+      return u++, _;
+    }), r.__e = y, o != null && typeof r.type != "function") for (u = o.length; u--; ) o[u] != null && ft(o[u]);
+    for (u = m; u--; ) L[u] != null && pt(L[u], L[u]);
+    if (p) for (u = 0; u < p.length; u++) bt(p[u], p[++u], p[++u]);
   }
   function Ie(e, r, i) {
     if (i == null && (i = []), e == null || typeof e == "boolean") r && i.push(r(null));
@@ -578,48 +578,48 @@ let __tla = Promise.all([
   }
   function nr(e, r, i, t, n) {
     var o;
-    for (o in i) o in r || it(e, o, null, i[o], t);
-    for (o in r) n && typeof r[o] != "function" || o === "value" || o === "checked" || i[o] === r[o] || it(e, o, r[o], i[o], t);
+    for (o in i) o in r || rt(e, o, null, i[o], t);
+    for (o in r) n && typeof r[o] != "function" || o === "value" || o === "checked" || i[o] === r[o] || rt(e, o, r[o], i[o], t);
   }
-  function rt(e, r, i) {
+  function tt(e, r, i) {
     r[0] === "-" ? e.setProperty(r, i) : e[r] = typeof i == "number" && tr.test(r) === false ? i + "px" : i ?? "";
   }
-  function it(e, r, i, t, n) {
+  function rt(e, r, i, t, n) {
     var o, l, c, s, u;
     if (!((r = n ? r === "className" ? "class" : r : r === "class" ? "className" : r) === "key" || r === "children")) if (r === "style") if (o = e.style, typeof i == "string") o.cssText = i;
     else {
-      if (typeof t == "string" && (o.cssText = "", t = null), t) for (l in t) i && l in i || rt(o, l, "");
-      if (i) for (c in i) t && i[c] === t[c] || rt(o, c, i[c]);
+      if (typeof t == "string" && (o.cssText = "", t = null), t) for (l in t) i && l in i || tt(o, l, "");
+      if (i) for (c in i) t && i[c] === t[c] || tt(o, c, i[c]);
     }
-    else r[0] === "o" && r[1] === "n" ? (s = r !== (r = r.replace(/Capture$/, "")), u = r.toLowerCase(), r = (u in e ? u : r).slice(2), i ? (t || e.addEventListener(r, nt, s), (e.t || (e.t = {}))[r] = i) : e.removeEventListener(r, nt, s)) : r !== "list" && r !== "tagName" && r !== "form" && !n && r in e ? e[r] = i ?? "" : typeof i != "function" && r !== "dangerouslySetInnerHTML" && (r !== (r = r.replace(/^xlink:?/, "")) ? i == null || i === false ? e.removeAttributeNS("http://www.w3.org/1999/xlink", r.toLowerCase()) : e.setAttributeNS("http://www.w3.org/1999/xlink", r.toLowerCase(), i) : i == null || i === false ? e.removeAttribute(r) : e.setAttribute(r, i));
+    else r[0] === "o" && r[1] === "n" ? (s = r !== (r = r.replace(/Capture$/, "")), u = r.toLowerCase(), r = (u in e ? u : r).slice(2), i ? (t || e.addEventListener(r, it, s), (e.t || (e.t = {}))[r] = i) : e.removeEventListener(r, it, s)) : r !== "list" && r !== "tagName" && r !== "form" && !n && r in e ? e[r] = i ?? "" : typeof i != "function" && r !== "dangerouslySetInnerHTML" && (r !== (r = r.replace(/^xlink:?/, "")) ? i == null || i === false ? e.removeAttributeNS("http://www.w3.org/1999/xlink", r.toLowerCase()) : e.setAttributeNS("http://www.w3.org/1999/xlink", r.toLowerCase(), i) : i == null || i === false ? e.removeAttribute(r) : e.setAttribute(r, i));
   }
-  function nt(e) {
+  function it(e) {
     return this.t[e.type](S.event ? S.event(e) : e);
   }
-  function je(e, r, i, t, n, o, l, c, s, u) {
-    var h, a, d, v, _, b, x, L, m, k, w = r.type;
+  function Re(e, r, i, t, n, o, l, c, s, u) {
+    var h, a, f, g, y, p, L, m, _, w, b = r.type;
     if (r.constructor !== void 0) return null;
     (h = S.__b) && h(r);
     try {
-      e: if (typeof w == "function") {
-        if (L = r.props, m = (h = w.contextType) && t[h.__c], k = h ? m ? m.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in w && w.prototype.render ? r.__c = a = new w(L, k) : (r.__c = a = new Q(L, k), a.constructor = w, a.render = lr), m && m.sub(a), a.props = L, a.state || (a.state = {}), a.context = k, a.__n = t, d = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), w.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, w.getDerivedStateFromProps(L, a.__s)), d) w.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
+      e: if (typeof b == "function") {
+        if (m = r.props, _ = (h = b.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? L = (a = r.__c = i.__c).__p = a.__E : ("prototype" in b && b.prototype.render ? r.__c = a = new b(m, w) : (r.__c = a = new Q(m, w), a.constructor = b, a.render = lr), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), b.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, b.getDerivedStateFromProps(m, a.__s)), f) b.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
         else {
-          if (w.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(L, k), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(L, a.__s, k) === false) {
-            for (a.props = L, a.state = a.__s, a.__d = false, a.__v = r, r.__e = s != null ? s !== i.__e ? s : i.__e : null, r.__k = i.__k, h = 0; h < r.__k.length; h++) r.__k[h] && (r.__k[h].__p = r);
+          if (b.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(m, w), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(m, a.__s, w) === false) {
+            for (a.props = m, a.state = a.__s, a.__d = false, a.__v = r, r.__e = s != null ? s !== i.__e ? s : i.__e : null, r.__k = i.__k, h = 0; h < r.__k.length; h++) r.__k[h] && (r.__k[h].__p = r);
             break e;
           }
-          a.componentWillUpdate != null && a.componentWillUpdate(L, a.__s, k);
+          a.componentWillUpdate != null && a.componentWillUpdate(m, a.__s, w);
         }
-        for (v = a.props, _ = a.state, a.context = k, a.props = L, a.state = a.__s, (h = S.__r) && h(r), a.__d = false, a.__v = r, a.__P = e, h = a.render(a.props, a.state, a.context), r.__k = Ie(h != null && h.type == ae && h.key == null ? h.props.children : h), a.getChildContext != null && (t = B(B({}, t), a.getChildContext())), d || a.getSnapshotBeforeUpdate == null || (b = a.getSnapshotBeforeUpdate(v, _)), bt(e, r, i, t, n, o, l, s, u), a.base = r.__e; h = a.__h.pop(); ) a.__s && (a.state = a.__s), h.call(a);
-        d || v == null || a.componentDidUpdate == null || a.componentDidUpdate(v, _, b), x && (a.__E = a.__p = null);
+        for (g = a.props, y = a.state, a.context = w, a.props = m, a.state = a.__s, (h = S.__r) && h(r), a.__d = false, a.__v = r, a.__P = e, h = a.render(a.props, a.state, a.context), r.__k = Ie(h != null && h.type == ce && h.key == null ? h.props.children : h), a.getChildContext != null && (t = B(B({}, t), a.getChildContext())), f || a.getSnapshotBeforeUpdate == null || (p = a.getSnapshotBeforeUpdate(g, y)), vt(e, r, i, t, n, o, l, s, u), a.base = r.__e; h = a.__h.pop(); ) a.__s && (a.state = a.__s), h.call(a);
+        f || g == null || a.componentDidUpdate == null || a.componentDidUpdate(g, y, p), L && (a.__E = a.__p = null);
       } else r.__e = or(i.__e, r, i, t, n, o, l, u);
       (h = S.diffed) && h(r);
-    } catch (p) {
-      S.__e(p, r, i);
+    } catch (W) {
+      S.__e(W, r, i);
     }
     return r.__e;
   }
-  function pt(e, r) {
+  function mt(e, r) {
     for (var i; i = e.pop(); ) try {
       i.componentDidMount();
     } catch (t) {
@@ -628,7 +628,7 @@ let __tla = Promise.all([
     S.__c && S.__c(r);
   }
   function or(e, r, i, t, n, o, l, c) {
-    var s, u, h, a, d = i.props, v = r.props;
+    var s, u, h, a, f = i.props, g = r.props;
     if (n = r.type === "svg" || n, e == null && o != null) {
       for (s = 0; s < o.length; s++) if ((u = o[s]) != null && (r.type === null ? u.nodeType === 3 : u.localName === r.type)) {
         e = u, o[s] = null;
@@ -636,21 +636,21 @@ let __tla = Promise.all([
       }
     }
     if (e == null) {
-      if (r.type === null) return document.createTextNode(v);
+      if (r.type === null) return document.createTextNode(g);
       e = n ? document.createElementNS("http://www.w3.org/2000/svg", r.type) : document.createElement(r.type), o = null;
     }
-    return r.type === null ? d !== v && (o != null && (o[o.indexOf(e)] = null), e.data = v) : r !== i && (o != null && (o = Re.slice.call(e.childNodes)), h = (d = i.props || H).dangerouslySetInnerHTML, a = v.dangerouslySetInnerHTML, c || (a || h) && (a && h && a.__html == h.__html || (e.innerHTML = a && a.__html || "")), nr(e, v, d, n, c), r.__k = r.props.children, a || bt(e, r, i, t, r.type !== "foreignObject" && n, o, l, H, c), c || ("value" in v && v.value !== void 0 && v.value !== e.value && (e.value = v.value == null ? "" : v.value), "checked" in v && v.checked !== void 0 && v.checked !== e.checked && (e.checked = v.checked))), e;
+    return r.type === null ? f !== g && (o != null && (o[o.indexOf(e)] = null), e.data = g) : r !== i && (o != null && (o = Me.slice.call(e.childNodes)), h = (f = i.props || H).dangerouslySetInnerHTML, a = g.dangerouslySetInnerHTML, c || (a || h) && (a && h && a.__html == h.__html || (e.innerHTML = a && a.__html || "")), nr(e, g, f, n, c), r.__k = r.props.children, a || vt(e, r, i, t, r.type !== "foreignObject" && n, o, l, H, c), c || ("value" in g && g.value !== void 0 && g.value !== e.value && (e.value = g.value == null ? "" : g.value), "checked" in g && g.checked !== void 0 && g.checked !== e.checked && (e.checked = g.checked))), e;
   }
-  function _t(e, r, i) {
+  function bt(e, r, i) {
     try {
       typeof e == "function" ? e(r) : e.current = r;
     } catch (t) {
       S.__e(t, i);
     }
   }
-  function yt(e, r, i) {
+  function pt(e, r, i) {
     var t, n, o;
-    if (S.unmount && S.unmount(e), (t = e.ref) && _t(t, null, r), i || typeof e.type == "function" || (i = (n = e.__e) != null), e.__e = e.l = null, (t = e.__c) != null) {
+    if (S.unmount && S.unmount(e), (t = e.ref) && bt(t, null, r), i || typeof e.type == "function" || (i = (n = e.__e) != null), e.__e = e.l = null, (t = e.__c) != null) {
       if (t.componentWillUnmount) try {
         t.componentWillUnmount();
       } catch (l) {
@@ -658,36 +658,36 @@ let __tla = Promise.all([
       }
       t.base = t.__P = null;
     }
-    if (t = e.__k) for (o = 0; o < t.length; o++) t[o] && yt(t[o], r, i);
-    n != null && vt(n);
+    if (t = e.__k) for (o = 0; o < t.length; o++) t[o] && pt(t[o], r, i);
+    n != null && ft(n);
   }
   function lr(e, r, i) {
     return this.constructor(e, i);
   }
   function cr(e, r, i) {
     var t, n, o;
-    S.__p && S.__p(e, r), n = (t = i === gt) ? null : r.__k, e = y(ae, null, [
+    S.__p && S.__p(e, r), n = (t = i === dt) ? null : r.__k, e = x(ce, null, [
       e
-    ]), o = [], je(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Re.slice.call(r.childNodes), o, false, H, t), pt(o, e);
+    ]), o = [], Re(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Me.slice.call(r.childNodes), o, false, H, t), mt(o, e);
   }
   S = {}, Q.prototype.setState = function(e, r) {
     var i = this.__s !== this.state && this.__s || (this.__s = B({}, this.state));
-    (typeof e != "function" || (e = e(i, this.props))) && B(i, e), e != null && this.__v && (this.u = false, r && this.__h.push(r), Le(this));
+    (typeof e != "function" || (e = e(i, this.props))) && B(i, e), e != null && this.__v && (this.u = false, r && this.__h.push(r), xe(this));
   }, Q.prototype.forceUpdate = function(e) {
-    this.__v && (e && this.__h.push(e), this.u = true, Le(this));
-  }, Q.prototype.render = ae, oe = [], ft = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Ce = S.debounceRendering, S.__e = function(e, r, i) {
+    this.__v && (e && this.__h.push(e), this.u = true, xe(this));
+  }, Q.prototype.render = ce, ne = [], ut = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Se = S.debounceRendering, S.__e = function(e, r, i) {
     for (var t; r = r.__p; ) if ((t = r.__c) && !t.__p) try {
       if (t.constructor && t.constructor.getDerivedStateFromError != null) t.setState(t.constructor.getDerivedStateFromError(e));
       else {
         if (t.componentDidCatch == null) continue;
         t.componentDidCatch(e);
       }
-      return Le(t.__E = t);
+      return xe(t.__E = t);
     } catch (n) {
       e = n;
     }
     throw e;
-  }, gt = H;
+  }, dt = H;
   function ar(e, r) {
     for (var i = 0; i < r.length; i++) {
       var t = r[i];
@@ -697,27 +697,27 @@ let __tla = Promise.all([
   function sr(e, r, i) {
     return r && ar(e.prototype, r), e;
   }
-  function R() {
-    return R = Object.assign || function(e) {
+  function M() {
+    return M = Object.assign || function(e) {
       for (var r = arguments, i = 1; i < arguments.length; i++) {
         var t = r[i];
         for (var n in t) Object.prototype.hasOwnProperty.call(t, n) && (e[n] = t[n]);
       }
       return e;
-    }, R.apply(this, arguments);
+    }, M.apply(this, arguments);
   }
-  var hr = "[-\\+]?\\d+%?", ur = "[-\\+]?\\d*\\.\\d+%?", D = "(?:" + ur + ")|(?:" + hr + ")", xt = "[\\s|\\(]+(" + D + ")[,|\\s]+(" + D + ")[,|\\s]+(" + D + ")\\s*\\)?", Lt = "[\\s|\\(]+(" + D + ")[,|\\s]+(" + D + ")[,|\\s]+(" + D + ")[,|\\s]+(" + D + ")\\s*\\)?", dr = new RegExp("rgb" + xt), fr = new RegExp("rgba" + Lt), gr = new RegExp("hsl" + xt), vr = new RegExp("hsla" + Lt), se = "^(?:#?|0x?)", F = "([0-9a-fA-F]{1})", V = "([0-9a-fA-F]{2})", mr = new RegExp(se + F + F + F + "$"), br = new RegExp(se + F + F + F + F + "$"), pr = new RegExp(se + V + V + V + "$"), _r = new RegExp(se + V + V + V + V + "$"), yr = 2e3, xr = 4e4, ie = Math.log, X = Math.round, J = Math.floor;
+  var hr = "[-\\+]?\\d+%?", ur = "[-\\+]?\\d*\\.\\d+%?", F = "(?:" + ur + ")|(?:" + hr + ")", _t = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", yt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", dr = new RegExp("rgb" + _t), fr = new RegExp("rgba" + yt), gr = new RegExp("hsl" + _t), vr = new RegExp("hsla" + yt), ae = "^(?:#?|0x?)", V = "([0-9a-fA-F]{1})", G = "([0-9a-fA-F]{2})", mr = new RegExp(ae + V + V + V + "$"), br = new RegExp(ae + V + V + V + V + "$"), pr = new RegExp(ae + G + G + G + "$"), _r = new RegExp(ae + G + G + G + G + "$"), yr = 2e3, xr = 4e4, re = Math.log, X = Math.round, q = Math.floor;
   function I(e, r, i) {
     return Math.min(Math.max(e, r), i);
   }
-  function A(e, r) {
+  function E(e, r) {
     var i = e.indexOf("%") > -1, t = parseFloat(e);
     return i ? r / 100 * t : t;
   }
-  function M(e) {
+  function A(e) {
     return parseInt(e, 16);
   }
-  function z(e) {
+  function N(e) {
     return e.toString(16).padStart(2, "0");
   }
   var K = (function() {
@@ -727,7 +727,7 @@ let __tla = Promise.all([
         s: 0,
         v: 0,
         a: 1
-      }, i && this.set(i), this.onChange = t, this.initialValue = R({}, this.$);
+      }, i && this.set(i), this.onChange = t, this.initialValue = M({}, this.$);
     }
     var r = e.prototype;
     return r.set = function(t) {
@@ -736,7 +736,7 @@ let __tla = Promise.all([
       else throw new Error("Invalid color value");
     }, r.setChannel = function(t, n, o) {
       var l;
-      this[t] = R({}, this[t], (l = {}, l[n] = o, l));
+      this[t] = M({}, this[t], (l = {}, l[n] = o, l));
     }, r.reset = function() {
       this.hsva = this.initialValue;
     }, r.clone = function() {
@@ -744,35 +744,35 @@ let __tla = Promise.all([
     }, r.unbind = function() {
       this.onChange = void 0;
     }, e.hsvToRgb = function(t) {
-      var n = t.h / 60, o = t.s / 100, l = t.v / 100, c = J(n), s = n - c, u = l * (1 - o), h = l * (1 - s * o), a = l * (1 - (1 - s) * o), d = c % 6, v = [
+      var n = t.h / 60, o = t.s / 100, l = t.v / 100, c = q(n), s = n - c, u = l * (1 - o), h = l * (1 - s * o), a = l * (1 - (1 - s) * o), f = c % 6, g = [
         l,
         h,
         u,
         u,
         a,
         l
-      ][d], _ = [
+      ][f], y = [
         a,
         l,
         l,
         h,
         u,
         u
-      ][d], b = [
+      ][f], p = [
         u,
         u,
         a,
         l,
         l,
         h
-      ][d];
+      ][f];
       return {
-        r: I(v * 255, 0, 255),
-        g: I(_ * 255, 0, 255),
-        b: I(b * 255, 0, 255)
+        r: I(g * 255, 0, 255),
+        g: I(y * 255, 0, 255),
+        b: I(p * 255, 0, 255)
       };
     }, e.rgbToHsv = function(t) {
-      var n = t.r / 255, o = t.g / 255, l = t.b / 255, c = Math.max(n, o, l), s = Math.min(n, o, l), u = c - s, h = 0, a = c, d = c === 0 ? 0 : u / c;
+      var n = t.r / 255, o = t.g / 255, l = t.b / 255, c = Math.max(n, o, l), s = Math.min(n, o, l), u = c - s, h = 0, a = c, f = c === 0 ? 0 : u / c;
       switch (c) {
         case s:
           h = 0;
@@ -789,7 +789,7 @@ let __tla = Promise.all([
       }
       return {
         h: h * 60 % 360,
-        s: I(d * 100, 0, 100),
+        s: I(f * 100, 0, 100),
         v: I(a * 100, 0, 100)
       };
     }, e.hsvToHsl = function(t) {
@@ -808,10 +808,10 @@ let __tla = Promise.all([
       };
     }, e.kelvinToRgb = function(t) {
       var n = t / 100, o, l, c;
-      return n < 66 ? (o = 255, l = -155.25485562709179 - 0.44596950469579133 * (l = n - 2) + 104.49216199393888 * ie(l), c = n < 20 ? 0 : -254.76935184120902 + 0.8274096064007395 * (c = n - 10) + 115.67994401066147 * ie(c)) : (o = 351.97690566805693 + 0.114206453784165 * (o = n - 55) - 40.25366309332127 * ie(o), l = 325.4494125711974 + 0.07943456536662342 * (l = n - 50) - 28.0852963507957 * ie(l), c = 255), {
-        r: I(J(o), 0, 255),
-        g: I(J(l), 0, 255),
-        b: I(J(c), 0, 255)
+      return n < 66 ? (o = 255, l = -155.25485562709179 - 0.44596950469579133 * (l = n - 2) + 104.49216199393888 * re(l), c = n < 20 ? 0 : -254.76935184120902 + 0.8274096064007395 * (c = n - 10) + 115.67994401066147 * re(c)) : (o = 351.97690566805693 + 0.114206453784165 * (o = n - 55) - 40.25366309332127 * re(o), l = 325.4494125711974 + 0.07943456536662342 * (l = n - 50) - 28.0852963507957 * re(l), c = 255), {
+        r: I(q(o), 0, 255),
+        g: I(q(l), 0, 255),
+        b: I(q(c), 0, 255)
       };
     }, e.rgbToKelvin = function(t) {
       for (var n = t.r, o = t.b, l = 0.4, c = yr, s = xr, u; s - c > l; ) {
@@ -833,7 +833,7 @@ let __tla = Promise.all([
         },
         set: function(t) {
           var n = this.$;
-          if (t = R({}, n, t), this.onChange) {
+          if (t = M({}, n, t), this.onChange) {
             var o = {
               h: false,
               v: false,
@@ -848,7 +848,7 @@ let __tla = Promise.all([
       {
         key: "hsva",
         get: function() {
-          return R({}, this.$);
+          return M({}, this.$);
         },
         set: function(t) {
           this.hsv = t;
@@ -893,7 +893,7 @@ let __tla = Promise.all([
           return this.$.a;
         },
         set: function(t) {
-          this.hsv = R({}, this.hsv, {
+          this.hsv = M({}, this.hsv, {
             a: t
           });
         }
@@ -914,7 +914,7 @@ let __tla = Promise.all([
           return t.r;
         },
         set: function(t) {
-          this.rgb = R({}, this.rgb, {
+          this.rgb = M({}, this.rgb, {
             r: t
           });
         }
@@ -926,7 +926,7 @@ let __tla = Promise.all([
           return t.g;
         },
         set: function(t) {
-          this.rgb = R({}, this.rgb, {
+          this.rgb = M({}, this.rgb, {
             g: t
           });
         }
@@ -938,7 +938,7 @@ let __tla = Promise.all([
           return t.b;
         },
         set: function(t) {
-          this.rgb = R({}, this.rgb, {
+          this.rgb = M({}, this.rgb, {
             b: t
           });
         }
@@ -954,7 +954,7 @@ let __tla = Promise.all([
           };
         },
         set: function(t) {
-          this.hsv = R({}, e.rgbToHsv(t), {
+          this.hsv = M({}, e.rgbToHsv(t), {
             a: t.a === void 0 ? 1 : t.a
           });
         }
@@ -962,7 +962,7 @@ let __tla = Promise.all([
       {
         key: "rgba",
         get: function() {
-          return R({}, this.rgb, {
+          return M({}, this.rgb, {
             a: this.alpha
           });
         },
@@ -981,7 +981,7 @@ let __tla = Promise.all([
           };
         },
         set: function(t) {
-          this.hsv = R({}, e.hslToHsv(t), {
+          this.hsv = M({}, e.hslToHsv(t), {
             a: t.a === void 0 ? 1 : t.a
           });
         }
@@ -989,7 +989,7 @@ let __tla = Promise.all([
       {
         key: "hsla",
         get: function() {
-          return R({}, this.hsl, {
+          return M({}, this.hsl, {
             a: this.alpha
           });
         },
@@ -1005,7 +1005,7 @@ let __tla = Promise.all([
         },
         set: function(t) {
           var n, o, l, c, s = 1;
-          if ((n = dr.exec(t)) ? (o = A(n[1], 255), l = A(n[2], 255), c = A(n[3], 255)) : (n = fr.exec(t)) && (o = A(n[1], 255), l = A(n[2], 255), c = A(n[3], 255), s = A(n[4], 1)), n) this.rgb = {
+          if ((n = dr.exec(t)) ? (o = E(n[1], 255), l = E(n[2], 255), c = E(n[3], 255)) : (n = fr.exec(t)) && (o = E(n[1], 255), l = E(n[2], 255), c = E(n[3], 255), s = E(n[4], 1)), n) this.rgb = {
             r: o,
             g: l,
             b: c,
@@ -1028,11 +1028,11 @@ let __tla = Promise.all([
         key: "hexString",
         get: function() {
           var t = this.rgb;
-          return "#" + z(t.r) + z(t.g) + z(t.b);
+          return "#" + N(t.r) + N(t.g) + N(t.b);
         },
         set: function(t) {
           var n, o, l, c, s = 255;
-          if ((n = mr.exec(t)) ? (o = M(n[1]) * 17, l = M(n[2]) * 17, c = M(n[3]) * 17) : (n = br.exec(t)) ? (o = M(n[1]) * 17, l = M(n[2]) * 17, c = M(n[3]) * 17, s = M(n[4]) * 17) : (n = pr.exec(t)) ? (o = M(n[1]), l = M(n[2]), c = M(n[3])) : (n = _r.exec(t)) && (o = M(n[1]), l = M(n[2]), c = M(n[3]), s = M(n[4])), n) this.rgb = {
+          if ((n = mr.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17) : (n = br.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17, s = A(n[4]) * 17) : (n = pr.exec(t)) ? (o = A(n[1]), l = A(n[2]), c = A(n[3])) : (n = _r.exec(t)) && (o = A(n[1]), l = A(n[2]), c = A(n[3]), s = A(n[4])), n) this.rgb = {
             r: o,
             g: l,
             b: c,
@@ -1045,7 +1045,7 @@ let __tla = Promise.all([
         key: "hex8String",
         get: function() {
           var t = this.rgba;
-          return "#" + z(t.r) + z(t.g) + z(t.b) + z(J(t.a * 255));
+          return "#" + N(t.r) + N(t.g) + N(t.b) + N(q(t.a * 255));
         },
         set: function(t) {
           this.hexString = t;
@@ -1059,7 +1059,7 @@ let __tla = Promise.all([
         },
         set: function(t) {
           var n, o, l, c, s = 1;
-          if ((n = gr.exec(t)) ? (o = A(n[1], 360), l = A(n[2], 100), c = A(n[3], 100)) : (n = vr.exec(t)) && (o = A(n[1], 360), l = A(n[2], 100), c = A(n[3], 100), s = A(n[4], 1)), n) this.hsl = {
+          if ((n = gr.exec(t)) ? (o = E(n[1], 360), l = E(n[2], 100), c = E(n[3], 100)) : (n = vr.exec(t)) && (o = E(n[1], 360), l = E(n[2], 100), c = E(n[3], 100), s = E(n[4], 1)), n) this.hsl = {
             h: o,
             s: l,
             l: c,
@@ -1085,7 +1085,7 @@ let __tla = Promise.all([
     minTemperature: 2200,
     maxTemperature: 11e3
   };
-  function Te(e) {
+  function je(e) {
     var r, i = e.width, t = e.sliderSize, n = e.borderWidth, o = e.handleRadius, l = e.padding, c = e.sliderShape, s = e.layoutDirection === "horizontal";
     return t = (r = t) != null ? r : l * 2 + o * 2, c === "circle" ? {
       handleStart: e.padding + e.handleRadius,
@@ -1128,7 +1128,7 @@ let __tla = Promise.all([
     }
   }
   function Sr(e, r, i) {
-    var t = Te(e), n = t.handleRange, o = t.handleStart, l;
+    var t = je(e), n = t.handleRange, o = t.handleStart, l;
     e.layoutDirection === "horizontal" ? l = -1 * i + n + o : l = r - o, l = Math.max(Math.min(l, n), 0);
     var c = Math.round(100 / n * l);
     switch (e.sliderType) {
@@ -1148,7 +1148,7 @@ let __tla = Promise.all([
     }
   }
   function Cr(e, r) {
-    var i = Te(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = wr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
+    var i = je(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = wr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
     return c && (h = -1 * h + o + l * 2), {
       x: c ? u : h,
       y: c ? h : u
@@ -1203,10 +1203,10 @@ let __tla = Promise.all([
         ];
       case "kelvin":
         for (var n = [], o = e.minTemperature, l = e.maxTemperature, c = 8, s = l - o, u = o, h = 0; u < l; u += s / c, h += 1) {
-          var a = K.kelvinToRgb(u), d = a.r, v = a.g, _ = a.b;
+          var a = K.kelvinToRgb(u), f = a.r, g = a.g, y = a.b;
           n.push([
             100 / c * h,
-            "rgb(" + d + "," + v + "," + _ + ")"
+            "rgb(" + f + "," + g + "," + y + ")"
           ]);
         }
         return n;
@@ -1242,11 +1242,11 @@ let __tla = Promise.all([
           ]
         ];
       case "saturation":
-        var b = K.hsvToHsl({
+        var p = K.hsvToHsl({
           h: i.h,
           s: 0,
           v: i.v
-        }), x = K.hsvToHsl({
+        }), L = K.hsvToHsl({
           h: i.h,
           s: 100,
           v: i.v
@@ -1254,15 +1254,15 @@ let __tla = Promise.all([
         return [
           [
             0,
-            "hsl(" + b.h + "," + b.s + "%," + b.l + "%)"
+            "hsl(" + p.h + "," + p.s + "%," + p.l + "%)"
           ],
           [
             100,
-            "hsl(" + x.h + "," + x.s + "%," + x.l + "%)"
+            "hsl(" + L.h + "," + L.s + "%," + L.l + "%)"
           ]
         ];
       default:
-        var L = K.hsvToHsl({
+        var m = K.hsvToHsl({
           h: i.h,
           s: i.s,
           v: 100
@@ -1274,24 +1274,24 @@ let __tla = Promise.all([
           ],
           [
             100,
-            "hsl(" + L.h + "," + L.s + "%," + L.l + "%)"
+            "hsl(" + m.h + "," + m.s + "%," + m.l + "%)"
           ]
         ];
     }
   }
-  var wt = Math.PI * 2, Or = function(r, i) {
+  var xt = Math.PI * 2, Or = function(r, i) {
     return (r % i + i) % i;
-  }, St = function(r, i) {
+  }, Lt = function(r, i) {
     return Math.sqrt(r * r + i * i);
   };
-  function Ct(e) {
+  function wt(e) {
     return e.width / 2 - e.padding - e.handleRadius - e.borderWidth;
   }
   function Er(e, r, i) {
-    var t = he(e), n = t.cx, o = t.cy, l = e.width / 2;
-    return St(n - r, o - i) < l;
+    var t = se(e), n = t.cx, o = t.cy, l = e.width / 2;
+    return Lt(n - r, o - i) < l;
   }
-  function he(e) {
+  function se(e) {
     var r = e.width / 2;
     return {
       width: e.width,
@@ -1300,27 +1300,27 @@ let __tla = Promise.all([
       cy: r
     };
   }
-  function kt(e, r, i) {
+  function St(e, r, i) {
     var t = e.wheelAngle, n = e.wheelDirection;
     return i && n === "clockwise" ? r = t + r : n === "clockwise" ? r = 360 - t + r : i && n === "anticlockwise" ? r = t + 180 - r : n === "anticlockwise" && (r = t - r), Or(r, 360);
   }
   function Ar(e, r) {
-    var i = r.hsv, t = he(e), n = t.cx, o = t.cy, l = Ct(e), c = (180 + kt(e, i.h, true)) * (wt / 360), s = i.s / 100 * l, u = e.wheelDirection === "clockwise" ? -1 : 1;
+    var i = r.hsv, t = se(e), n = t.cx, o = t.cy, l = wt(e), c = (180 + St(e, i.h, true)) * (xt / 360), s = i.s / 100 * l, u = e.wheelDirection === "clockwise" ? -1 : 1;
     return {
       x: n + s * Math.cos(c) * u,
       y: o + s * Math.sin(c) * u
     };
   }
-  function ot(e, r, i) {
-    var t = he(e), n = t.cx, o = t.cy, l = Ct(e);
+  function nt(e, r, i) {
+    var t = se(e), n = t.cx, o = t.cy, l = wt(e);
     r = n - r, i = o - i;
-    var c = kt(e, Math.atan2(-i, -r) * (360 / wt)), s = Math.min(St(r, i), l);
+    var c = St(e, Math.atan2(-i, -r) * (360 / xt)), s = Math.min(Lt(r, i), l);
     return {
       h: Math.round(c),
       s: Math.round(100 / l * s)
     };
   }
-  function Pe(e) {
+  function Te(e) {
     var r = e.width, i = e.boxHeight, t = e.padding, n = e.handleRadius;
     return {
       width: r,
@@ -1328,21 +1328,21 @@ let __tla = Promise.all([
       radius: t + n
     };
   }
-  function lt(e, r, i) {
-    var t = Pe(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
+  function ot(e, r, i) {
+    var t = Te(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
     return {
       s: Math.max(0, Math.min(h, 100)),
       v: Math.max(0, Math.min(100 - a, 100))
     };
   }
   function Mr(e, r) {
-    var i = Pe(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
+    var i = Te(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
     return {
       x: c + l.s / 100 * s,
       y: c + (u - l.v / 100 * u)
     };
   }
-  function Rr(e, r) {
+  function Ir(e, r) {
     var i = r.hue;
     return [
       [
@@ -1367,32 +1367,32 @@ let __tla = Promise.all([
       ]
     ];
   }
-  var we;
-  function Ir(e) {
-    we || (we = document.getElementsByTagName("base"));
+  var Le;
+  function Rr(e) {
+    Le || (Le = document.getElementsByTagName("base"));
     var r = window.navigator.userAgent, i = /^((?!chrome|android).)*safari/i.test(r), t = /iPhone|iPod|iPad/i.test(r), n = window.location;
-    return (i || t) && we.length > 0 ? n.protocol + "//" + n.host + n.pathname + n.search + e : e;
+    return (i || t) && Le.length > 0 ? n.protocol + "//" + n.host + n.pathname + n.search + e : e;
   }
-  function Ot(e, r, i, t) {
+  function Ct(e, r, i, t) {
     for (var n = 0; n < t.length; n++) {
       var o = t[n].x - r, l = t[n].y - i, c = Math.sqrt(o * o + l * l);
       if (c < e.handleRadius) return n;
     }
     return null;
   }
-  function Be(e) {
+  function Pe(e) {
     return {
       boxSizing: "border-box",
       border: e.borderWidth + "px solid " + e.borderColor
     };
   }
-  function Oe(e, r, i) {
+  function ke(e, r, i) {
     return e + "-gradient(" + r + ", " + i.map(function(t) {
       var n = t[0], o = t[1];
       return o + " " + n + "%";
     }).join(",") + ")";
   }
-  function E(e) {
+  function O(e) {
     return typeof e == "string" ? e : e + "px";
   }
   var jr = {
@@ -1417,12 +1417,12 @@ let __tla = Promise.all([
     sliderSize: null,
     sliderMargin: 12,
     boxHeight: null
-  }, ct = [
+  }, lt = [
     "mousemove",
     "touchmove",
     "mouseup",
     "touchend"
-  ], ue = (function(e) {
+  ], he = (function(e) {
     function r(i) {
       e.call(this, i), this.uid = (Math.random() + 1).toString(36).substring(5);
     }
@@ -1434,7 +1434,7 @@ let __tla = Promise.all([
         overflow: "visible",
         display: l ? "inline-block" : "block"
       };
-      return t.index > 0 && (s[l ? "marginLeft" : "marginTop"] = c), y(ae, null, t.children(this.uid, o, s));
+      return t.index > 0 && (s[l ? "marginLeft" : "marginTop"] = c), x(ce, null, t.children(this.uid, o, s));
     }, r.prototype.handleEvent = function(t) {
       var n = this, o = this.props.onInput, l = this.base.getBoundingClientRect();
       t.preventDefault();
@@ -1443,7 +1443,7 @@ let __tla = Promise.all([
         case "mousedown":
         case "touchstart":
           var h = o(s, u, 0);
-          h !== false && ct.forEach(function(a) {
+          h !== false && lt.forEach(function(a) {
             document.addEventListener(a, n, {
               passive: false
             });
@@ -1455,7 +1455,7 @@ let __tla = Promise.all([
           break;
         case "mouseup":
         case "touchend":
-          o(s, u, 2), ct.forEach(function(a) {
+          o(s, u, 2), lt.forEach(function(a) {
             document.removeEventListener(a, n, {
               passive: false
             });
@@ -1464,31 +1464,31 @@ let __tla = Promise.all([
       }
     }, r;
   })(Q);
-  function G(e) {
+  function $(e) {
     var r = e.r, i = e.url, t = r, n = r;
-    return y("svg", {
+    return x("svg", {
       className: "IroHandle IroHandle--" + e.index + " " + (e.isActive ? "IroHandle--isActive" : ""),
       style: {
         "-webkit-tap-highlight-color": "rgba(0, 0, 0, 0);",
-        transform: "translate(" + E(e.x) + ", " + E(e.y) + ")",
+        transform: "translate(" + O(e.x) + ", " + O(e.y) + ")",
         willChange: "transform",
-        top: E(-r),
-        left: E(-r),
-        width: E(r * 2),
-        height: E(r * 2),
+        top: O(-r),
+        left: O(-r),
+        width: O(r * 2),
+        height: O(r * 2),
         position: "absolute",
         overflow: "visible"
       }
-    }, i && y("use", Object.assign({
-      xlinkHref: Ir(i)
-    }, e.props)), !i && y("circle", {
+    }, i && x("use", Object.assign({
+      xlinkHref: Rr(i)
+    }, e.props)), !i && x("circle", {
       cx: t,
       cy: n,
       r,
       fill: "none",
       "stroke-width": 2,
       stroke: "#000"
-    }), !i && y("circle", {
+    }), !i && x("circle", {
       cx: t,
       cy: n,
       r: r - 2,
@@ -1497,7 +1497,7 @@ let __tla = Promise.all([
       stroke: "#fff"
     }));
   }
-  G.defaultProps = {
+  $.defaultProps = {
     fill: "none",
     x: 0,
     y: 0,
@@ -1508,26 +1508,26 @@ let __tla = Promise.all([
       y: 0
     }
   };
-  function ce(e) {
-    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = Te(e), n = t.width, o = t.height, l = t.radius, c = Cr(e, i), s = kr(e, i);
-    function u(h, a, d) {
-      var v = Sr(e, h, a);
-      e.parent.inputActive = true, i[e.sliderType] = v, e.onInput(d, e.id);
+  function le(e) {
+    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = je(e), n = t.width, o = t.height, l = t.radius, c = Cr(e, i), s = kr(e, i);
+    function u(h, a, f) {
+      var g = Sr(e, h, a);
+      e.parent.inputActive = true, i[e.sliderType] = g, e.onInput(f, e.id);
     }
-    return y(ue, Object.assign({}, e, {
+    return x(he, Object.assign({}, e, {
       onInput: u
-    }), function(h, a, d) {
-      return y("div", Object.assign({}, a, {
+    }), function(h, a, f) {
+      return x("div", Object.assign({}, a, {
         className: "IroSlider",
         style: Object.assign({}, {
           position: "relative",
-          width: E(n),
-          height: E(o),
-          borderRadius: E(l),
+          width: O(n),
+          height: O(o),
+          borderRadius: O(l),
           background: "conic-gradient(#ccc 25%, #fff 0 50%, #ccc 0 75%, #fff 0)",
           backgroundSize: "8px 8px"
-        }, d)
-      }), y("div", {
+        }, f)
+      }), x("div", {
         className: "IroSliderGradient",
         style: Object.assign({}, {
           position: "absolute",
@@ -1535,10 +1535,10 @@ let __tla = Promise.all([
           left: 0,
           width: "100%",
           height: "100%",
-          borderRadius: E(l),
-          background: Oe("linear", e.layoutDirection === "horizontal" ? "to top" : "to right", s)
-        }, Be(e))
-      }), y(G, {
+          borderRadius: O(l),
+          background: ke("linear", e.layoutDirection === "horizontal" ? "to top" : "to right", s)
+        }, Pe(e))
+      }), x($, {
         isActive: true,
         index: i.index,
         r: e.handleRadius,
@@ -1549,51 +1549,51 @@ let __tla = Promise.all([
       }));
     });
   }
-  ce.defaultProps = Object.assign({}, Lr);
+  le.defaultProps = Object.assign({}, Lr);
   function Tr(e) {
-    var r = Pe(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Rr(e, s), h = o.map(function(d) {
-      return Mr(e, d);
+    var r = Te(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Ir(e, s), h = o.map(function(f) {
+      return Mr(e, f);
     });
-    function a(d, v, _) {
-      if (_ === 0) {
-        var b = Ot(e, d, v, h);
-        b !== null ? l.setActiveColor(b) : (l.inputActive = true, s.hsv = lt(e, d, v), e.onInput(_, e.id));
-      } else _ === 1 && (l.inputActive = true, s.hsv = lt(e, d, v));
-      e.onInput(_, e.id);
+    function a(f, g, y) {
+      if (y === 0) {
+        var p = Ct(e, f, g, h);
+        p !== null ? l.setActiveColor(p) : (l.inputActive = true, s.hsv = ot(e, f, g), e.onInput(y, e.id));
+      } else y === 1 && (l.inputActive = true, s.hsv = ot(e, f, g));
+      e.onInput(y, e.id);
     }
-    return y(ue, Object.assign({}, e, {
+    return x(he, Object.assign({}, e, {
       onInput: a
-    }), function(d, v, _) {
-      return y("div", Object.assign({}, v, {
+    }), function(f, g, y) {
+      return x("div", Object.assign({}, g, {
         className: "IroBox",
         style: Object.assign({}, {
-          width: E(i),
-          height: E(t),
+          width: O(i),
+          height: O(t),
           position: "relative"
-        }, _)
-      }), y("div", {
+        }, y)
+      }), x("div", {
         className: "IroBox",
         style: Object.assign({}, {
           width: "100%",
           height: "100%",
-          borderRadius: E(n)
-        }, Be(e), {
-          background: Oe("linear", "to bottom", u[1]) + "," + Oe("linear", "to right", u[0])
+          borderRadius: O(n)
+        }, Pe(e), {
+          background: ke("linear", "to bottom", u[1]) + "," + ke("linear", "to right", u[0])
         })
-      }), o.filter(function(b) {
-        return b !== s;
-      }).map(function(b) {
-        return y(G, {
+      }), o.filter(function(p) {
+        return p !== s;
+      }).map(function(p) {
+        return x($, {
           isActive: false,
-          index: b.index,
-          fill: b.hslString,
+          index: p.index,
+          fill: p.hslString,
           r: e.handleRadius,
           url: e.handleSvg,
           props: e.handleProps,
-          x: h[b.index].x,
-          y: h[b.index].y
+          x: h[p.index].x,
+          y: h[p.index].y
         });
-      }), y(G, {
+      }), x($, {
         isActive: true,
         index: s.index,
         fill: s.hslString,
@@ -1606,8 +1606,8 @@ let __tla = Promise.all([
     });
   }
   var Pr = "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", Br = "conic-gradient(red, magenta, blue, aqua, lime, yellow, red)";
-  function Et(e) {
-    var r = he(e), i = r.width, t = e.colors;
+  function kt(e) {
+    var r = se(e), i = r.width, t = e.colors;
     e.borderWidth;
     var n = e.parent, o = e.color, l = o.hsv, c = t.map(function(h) {
       return Ar(e, h);
@@ -1620,58 +1620,58 @@ let __tla = Promise.all([
       borderRadius: "50%",
       boxSizing: "border-box"
     };
-    function u(h, a, d) {
-      if (d === 0) {
+    function u(h, a, f) {
+      if (f === 0) {
         if (!Er(e, h, a)) return false;
-        var v = Ot(e, h, a, c);
-        v !== null ? n.setActiveColor(v) : (n.inputActive = true, o.hsv = ot(e, h, a), e.onInput(d, e.id));
-      } else d === 1 && (n.inputActive = true, o.hsv = ot(e, h, a));
-      e.onInput(d, e.id);
+        var g = Ct(e, h, a, c);
+        g !== null ? n.setActiveColor(g) : (n.inputActive = true, o.hsv = nt(e, h, a), e.onInput(f, e.id));
+      } else f === 1 && (n.inputActive = true, o.hsv = nt(e, h, a));
+      e.onInput(f, e.id);
     }
-    return y(ue, Object.assign({}, e, {
+    return x(he, Object.assign({}, e, {
       onInput: u
-    }), function(h, a, d) {
-      return y("div", Object.assign({}, a, {
+    }), function(h, a, f) {
+      return x("div", Object.assign({}, a, {
         className: "IroWheel",
         style: Object.assign({}, {
-          width: E(i),
-          height: E(i),
+          width: O(i),
+          height: O(i),
           position: "relative"
-        }, d)
-      }), y("div", {
+        }, f)
+      }), x("div", {
         className: "IroWheelHue",
         style: Object.assign({}, s, {
           transform: "rotateZ(" + (e.wheelAngle + 90) + "deg)",
           background: e.wheelDirection === "clockwise" ? Pr : Br
         })
-      }), y("div", {
+      }), x("div", {
         className: "IroWheelSaturation",
         style: Object.assign({}, s, {
           background: "radial-gradient(circle closest-side, #fff, transparent)"
         })
-      }), e.wheelLightness && y("div", {
+      }), e.wheelLightness && x("div", {
         className: "IroWheelLightness",
         style: Object.assign({}, s, {
           background: "#000",
           opacity: 1 - l.v / 100
         })
-      }), y("div", {
+      }), x("div", {
         className: "IroWheelBorder",
-        style: Object.assign({}, s, Be(e))
-      }), t.filter(function(v) {
-        return v !== o;
-      }).map(function(v) {
-        return y(G, {
+        style: Object.assign({}, s, Pe(e))
+      }), t.filter(function(g) {
+        return g !== o;
+      }).map(function(g) {
+        return x($, {
           isActive: false,
-          index: v.index,
-          fill: v.hslString,
+          index: g.index,
+          fill: g.hslString,
           r: e.handleRadius,
           url: e.handleSvg,
           props: e.handleProps,
-          x: c[v.index].x,
-          y: c[v.index].y
+          x: c[g.index].x,
+          y: c[g.index].y
         });
-      }), y(G, {
+      }), x($, {
         isActive: true,
         index: o.index,
         fill: o.hslString,
@@ -1686,7 +1686,7 @@ let __tla = Promise.all([
   function Hr(e) {
     var r = function(i, t) {
       var n, o = document.createElement("div");
-      cr(y(e, Object.assign({}, {
+      cr(x(e, Object.assign({}, {
         ref: function(c) {
           return n = c;
         }
@@ -1699,7 +1699,7 @@ let __tla = Promise.all([
     };
     return r.prototype = e.prototype, Object.assign(r, e), r.__component = e, r;
   }
-  var At = (function(e) {
+  var Ot = (function(e) {
     function r(i) {
       var t = this;
       e.call(this, i), this.colors = [], this.inputActive = false, this.events = {}, this.activeEvents = {}, this.deferredEvents = {}, this.id = i.id;
@@ -1797,17 +1797,17 @@ let __tla = Promise.all([
       var o = this, l = n.layout;
       return Array.isArray(l) || (l = [
         {
-          component: Et
+          component: kt
         },
         {
-          component: ce
+          component: le
         }
       ], n.transparency && l.push({
-        component: ce,
+        component: le,
         options: {
           sliderType: "alpha"
         }
-      })), y("div", {
+      })), x("div", {
         class: "IroColorPicker",
         id: n.id,
         style: {
@@ -1815,7 +1815,7 @@ let __tla = Promise.all([
         }
       }, l.map(function(c, s) {
         var u = c.component, h = c.options;
-        return y(u, Object.assign({}, n, h, {
+        return x(u, Object.assign({}, n, h, {
           ref: void 0,
           onInput: o.emitInputEvent.bind(o),
           parent: o,
@@ -1824,25 +1824,25 @@ let __tla = Promise.all([
       }));
     }, r;
   })(Q);
-  At.defaultProps = Object.assign({}, jr, {
+  Ot.defaultProps = Object.assign({}, jr, {
     colors: [],
     display: "block",
     id: null,
     layout: "default",
     margin: null
   });
-  var Wr = Hr(At), Ee;
+  var Wr = Hr(Ot), Oe;
   (function(e) {
     e.version = "5.5.2", e.Color = K, e.ColorPicker = Wr, (function(r) {
-      r.h = y, r.ComponentBase = ue, r.Handle = G, r.Slider = ce, r.Wheel = Et, r.Box = Tr;
+      r.h = x, r.ComponentBase = he, r.Handle = $, r.Slider = le, r.Wheel = kt, r.Box = Tr;
     })(e.ui || (e.ui = {}));
-  })(Ee || (Ee = {}));
-  var P = Ee;
+  })(Oe || (Oe = {}));
+  var T = Oe;
   function zr(e, r, i, t, n) {
     if (i === "cct") return [
       [
         {
-          component: P.ui.Slider,
+          component: T.ui.Slider,
           options: {
             sliderType: "kelvin",
             sliderShape: "circle",
@@ -1851,7 +1851,7 @@ let __tla = Promise.all([
           }
         },
         {
-          component: P.ui.Slider,
+          component: T.ui.Slider,
           options: {
             sliderType: "value"
           }
@@ -1862,11 +1862,11 @@ let __tla = Promise.all([
       case "wheel":
         return [
           {
-            component: P.ui.Wheel,
+            component: T.ui.Wheel,
             options: {}
           },
           {
-            component: P.ui.Slider,
+            component: T.ui.Slider,
             options: {
               sliderType: "value"
             }
@@ -1875,13 +1875,13 @@ let __tla = Promise.all([
       case "box":
         return [
           {
-            component: P.ui.Box,
+            component: T.ui.Box,
             options: {
               boxLightness: false
             }
           },
           {
-            component: P.ui.Slider,
+            component: T.ui.Slider,
             options: {
               sliderType: "hue"
             }
@@ -1890,19 +1890,19 @@ let __tla = Promise.all([
       case "slider":
         return [
           {
-            component: P.ui.Slider,
+            component: T.ui.Slider,
             options: {
               sliderType: "red"
             }
           },
           {
-            component: P.ui.Slider,
+            component: T.ui.Slider,
             options: {
               sliderType: "green"
             }
           },
           {
-            component: P.ui.Slider,
+            component: T.ui.Slider,
             options: {
               sliderType: "blue"
             }
@@ -1924,14 +1924,14 @@ let __tla = Promise.all([
         return 0;
     }
   }
-  function Mt(e, r, i, t) {
+  function Et(e, r, i, t) {
     if (!e.width || !e.height) return 12;
     if (r === "slider" && t !== "cct") return (e.width - 3 * (i || 1) * 28) / 2;
     const n = e.maxWidth, o = (i || 1) * 28, l = e.width - n - o;
     return Math.max(12, l);
   }
   function Dr(e, r, i, t, n, o) {
-    e.current && (r.current = P.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
+    e.current && (r.current = T.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
       n && n(l, o);
     }), r.current.on("input:change", (l, c) => {
       t && t(l, c);
@@ -1949,26 +1949,26 @@ let __tla = Promise.all([
   function $r(e, r) {
     typeof e == "function" ? e(r) : e && "current" in e && (e.current = r);
   }
-  const Ae = f.forwardRef(({ dimensions: e, colorLightUIComponent: r, colorLightSliderWidth: i, colorLightBorderWidth: t, colorLightBorderColor: n, colorWheelLightness: o, colorLightType: l, colorLightCtMin: c, colorLightCtMax: s, colorLightGamut: u, cctComponentNumber: h, onInputChange: a, onColorInit: d }, v) => {
-    const { theme: _ } = f.useContext(Me), b = f.useRef(null), x = f.useRef(null), L = f.useRef(d), m = f.useRef(a);
-    L.current = d, m.current = a;
-    const k = f.useMemo(() => zr(h, r, l, c, s), [
+  const Ee = d.forwardRef(({ dimensions: e, colorLightUIComponent: r, colorLightSliderWidth: i, colorLightBorderWidth: t, colorLightBorderColor: n, colorWheelLightness: o, colorLightType: l, colorLightCtMin: c, colorLightCtMax: s, colorLightGamut: u, cctComponentNumber: h, onInputChange: a, onColorInit: f }, g) => {
+    const { theme: y } = d.useContext(Ae), p = d.useRef(null), L = d.useRef(null), m = d.useRef(f), _ = d.useRef(a);
+    m.current = f, _.current = a;
+    const w = d.useMemo(() => zr(h, r, l, c, s), [
       h,
       r,
       l,
       c,
       s
-    ]), w = f.useMemo(() => Nr(e, r, l), [
+    ]), b = d.useMemo(() => Nr(e, r, l), [
       e,
       r,
       l
-    ]), p = f.useMemo(() => Mt(e, r, i, l), [
+    ]), W = d.useMemo(() => Et(e, r, i, l), [
       e,
       r,
       i,
       l
     ]);
-    return f.useEffect(() => (Dr(b, x, {
+    return d.useEffect(() => (Dr(p, L, {
       color: "#ffffff",
       width: 0,
       margin: 12,
@@ -1977,44 +1977,44 @@ let __tla = Promise.all([
       padding: 6,
       handleRadius: 8,
       layoutDirection: "horizontal"
-    }, ($, U) => {
+    }, (U, P) => {
       var _a;
-      return (_a = m.current) == null ? void 0 : _a.call(m, $, U);
-    }, ($, U) => {
+      return (_a = _.current) == null ? void 0 : _a.call(_, U, P);
+    }, (U, P) => {
       var _a;
-      return (_a = L.current) == null ? void 0 : _a.call(L, $, U);
-    }, h), $r(v, x.current), () => Fr(x)), [
-      v,
+      return (_a = m.current) == null ? void 0 : _a.call(m, U, P);
+    }, h), $r(g, L.current), () => Fr(L)), [
+      g,
       h
-    ]), f.useEffect(() => {
-      Vr(x.current, w);
+    ]), d.useEffect(() => {
+      Vr(L.current, b);
     }, [
-      w
-    ]), f.useEffect(() => {
-      Gr(x.current, {
-        layout: k,
-        margin: p,
+      b
+    ]), d.useEffect(() => {
+      Gr(L.current, {
+        layout: w,
+        margin: W,
         wheelLightness: o,
         sliderSize: (i || 1) * 28,
         borderWidth: t || 0,
-        borderColor: !n || typeof n == "string" && n.trim() === "" ? _.palette.primary.main : n
+        borderColor: !n || typeof n == "string" && n.trim() === "" ? y.palette.primary.main : n
       });
     }, [
-      _.palette.primary.main,
-      k,
-      p,
+      y.palette.primary.main,
+      w,
+      W,
       i,
       t,
       n,
       o
-    ]), g.jsx(N, {
-      ref: b
+    ]), v.jsx(D, {
+      ref: p
     });
   });
-  Ae.displayName = "Light2Picker";
-  const Ur = Ft(g.jsx("path", {
+  Ee.displayName = "Light2Picker";
+  const Ur = Ft(v.jsx("path", {
     d: "M13 3h-2v10h2zm4.83 2.17-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83"
-  }), "PowerSettingsNew"), Xr = (e) => f.createElement("svg", {
+  }), "PowerSettingsNew"), Xr = (e) => d.createElement("svg", {
     width: "800px",
     height: "800px",
     viewBox: "0 0 128 128",
@@ -2025,55 +2025,55 @@ let __tla = Promise.all([
     className: "iconify iconify--noto",
     preserveAspectRatio: "xMidYMid meet",
     ...e
-  }, f.createElement("path", {
+  }, d.createElement("path", {
     d: "M77.37 19.32C46.83 3.21 19.03 14.69 9.01 30.38c-3.28 5.13-5.6 14.46-5.51 21.86c.18 15.23 8.61 32.2 26.8 49.32c22.38 21.06 45.22 19.22 52.48 17.45c9.14-2.23 15.27-4.13 14.33-12.65c-.12-1.12-1.08-3.15-2.53-4.04c-4.65-2.82-14.36-4.29-18.93-11.08c-6.64-9.89 1.62-10.39 9.53-6.16c8.47 4.53 13.31 7.36 21.81 6.58c6.23-.57 15.29-4.33 16.52-14.84c1.1-9.51-12.78-39.9-46.14-57.5zM89.84 71c-2.34 3.56-8.12 2.34-11.91-1.02c-3.79-3.36-4.28-8.96-1.82-11.16c2.5-2.23 7.2-1.72 10.99 1.64c3.78 3.37 4.57 7.74 2.74 10.54z",
     fill: "#ac5810"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M78.71 15.69C48.17-.42 20.3 12.04 10.28 27.73C.25 43.43 4.61 72.5 31.63 97.93c22.38 21.06 45.22 19.22 52.48 17.45c9.14-2.23 15.59-6.58 11.57-12.13c-2.77-3.83-12.7-6.72-18.69-15.64c-6.64-9.89 1.62-10.39 9.53-6.16c8.47 4.53 13.31 7.36 21.81 6.58c6.23-.57 15.65-5.39 15.37-15.13c-.29-9.57-11.63-39.6-44.99-57.21zm14.06 55.03c-2.85 3.08-8.92 2.24-13.56-1.86c-4.63-4.11-6.08-9.93-3.23-13c2.85-3.08 8.92-2.24 13.56 1.86c4.64 4.1 6.08 9.93 3.23 13z",
     fill: "#f2a259"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M47.62 84.66c1.15-2.94 9.33-6.16 16.85-.81c2.11 1.5 4.75 5.32 4.48 10.12c-.88 15.68-26.61 4.22-21.33-9.31z",
     fill: "#eee"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M23.73 58.07c2.63-4.2 9.02-4.68 14.61-1.05c4.98 3.23 9.14 11.18 3 16.38c-3.29 2.79-8.98 1.06-12.49-1.63c-4.26-3.25-7.95-9.18-5.12-13.7z",
     fill: "#2686c6"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M57.67 21.42c.81-3.33 6.46-3.9 10.46-2.41c6.91 2.58 10.04 9.42 7.49 13.23c-3.73 5.57-11.86 3.66-14.94.47c-5.23-5.4-3.69-8.5-3.01-11.29z",
     fill: "#ffee58"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M97.71 37.72c5.54 2.52 6.26 6.51 5.2 9.42c-.66 1.8-2.01 4.27-4.77 4.49c-4.67.38-5.32-3.48-8.65-4.54c-2.8-.89-3.94-4.72-2.84-7.29c1.02-2.37 4-5.3 11.06-2.08z",
     fill: "#7cb342"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M66.97 96.96c-1.38 1.25-6.17 2.79-12.25-1.01c-2.06-1.29-4.03-3.16-5.14-5.96c-.87-2.2-.68-4.32-.29-5.26c1.12-2.71 2.83-3.21 2.83-3.21c-1.72-.12-4.97 2.16-5.51 5.15c-.17.94-1.38 6.82 6.41 12.15c6.71 4.6 16.63 4.17 15.98-5.09c-.3 1.14-1.15 2.44-2.03 3.23z",
     fill: "#b0b0b0"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M44.26 65.72c-.19 3.57-4.37 5.45-6.7 5.46c-6.59.01-12.51-4.13-12.92-11.5c-.07-1.32.58-3.23.58-3.23c-.87.37-2.1 2.25-2.36 3.31c-1.54 6.36 4.87 13.77 11.62 15.27c3.42.76 7.73-.41 9.3-3.47c1.12-2.18.9-4.05.48-5.84z",
     fill: "#01579b"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M67.32 32.72c-4.48-.51-6.96-3.44-7.61-4.11c-1.78-1.86-2.88-3.67-2.24-6.35c.2-.86.69-1.96 1.29-2.58c-.73.24-1.91 1.81-2.28 2.66c-.38.85-1.76 4.04 1.2 7.97c1.83 2.44 5.02 5.19 9.74 5.85c3.35.47 5.75-.73 7.75-2.68c1.36-1.33 1.96-4.33 1.15-5.88c.13 1.13-1.94 5.93-9 5.12z",
     fill: "#df7f14"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M104.17 44.85c-.41-1.51-1.58-3.08-1.7-3.16c.51.98 1.52 3.92-.6 6.78c-1.07 1.44-4.29 3.21-8.09.13c-1.12-.91-2.02-1.81-4.04-2.55c-5.13-1.89-2.89-7.11-1.11-8.73c-1.4.73-2.67 2.04-3.2 4.04c-.74 2.79 1.09 5.71 3.87 7.11c3.16 1.59 4.18 4.66 8.51 4.66c.22 0 .45-.01.7-.03c2.92-.25 4.15-1.38 5.04-2.76c1.09-1.72 1.12-3.67.62-5.49z",
     fill: "#558b2f"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M25.82 25.79c2.28-2.25 6.25-4.63 12.06-1.6c3.5 1.82 7.57 3.96 5.73 11.36c-1.14 4.59-7.82 7.02-13.4 1.91c-2.21-2.02-10.61-5.53-4.39-11.67z",
     fill: "#f44336"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M44.94 34.56c.07-1.75-.83-3.88-1.14-4.6c.05 1.05.96 3.7-3.21 7.21c-1.45 1.22-4.08 2.15-6.95 1.02c-1.47-.58-3.58-3.01-5.09-3.62c-5.61-2.26-3.19-8.27-2.4-9.09c-1.27.89-2.35 2.31-2.75 4.38c-.52 2.71-.04 5.27 3.68 8.2c10.56 8.33 13.8 3.31 14.95 2.03c1.45-1.56 2.83-3.6 2.91-5.53z",
     fill: "#c62828"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M65.74 19.36c-1.47-.69-5.67-.49-6.48 3.01c-.49 2.1 1.05 4.23 2.5 3.98c1.65-.28.77-2.85 1.76-3.58c1.51-1.1 4.28-2.44 2.22-3.41z",
     fill: "#ffffff"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M34.76 24.46c-1.45-.96-6.08-.97-7.47 2.58c-.84 2.13.47 4.6 2.04 4.56c1.79-.04.93-2.15 2.42-3.49c1.88-1.69 5.04-2.31 3.01-3.65z",
     fill: "#ffffff"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M34.07 56.5c-1.37-.87-5.43-1.21-7.11 1.97c-1.23 2.34.46 4.92 1.93 4.85c1.67-.08 1.11-2.74 2.18-3.34c1.63-.91 4.92-2.26 3-3.48z",
     fill: "#ffffff"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M57.4 83.13c-1.47-.69-5.67-.49-6.48 3.01c-.49 2.1 1.05 4.23 2.5 3.98c1.65-.28.77-2.85 1.76-3.58c1.5-1.1 4.27-2.44 2.22-3.41z",
     fill: "#ffffff"
-  }), f.createElement("path", {
+  }), d.createElement("path", {
     d: "M95.08 38.05c-1.32-.94-5.49-1.49-6.91 1.81c-.85 1.98.28 4.35 1.75 4.36c1.67.01 1.26-2.67 2.37-3.21c1.67-.81 4.64-1.64 2.79-2.96z",
     fill: "#ffffff"
   })), Y = (e, r, i) => {
@@ -2083,26 +2083,26 @@ let __tla = Promise.all([
     return Number.isFinite(o) ? o : void 0;
   }, Kr = (e, r) => {
     if (e !== void 0) return Math.round(typeof r == "number" && r === 254 ? e / 254 * 100 : e);
-  }, ne = (e, r, i, t) => {
+  }, ie = (e, r, i, t) => {
     const n = Y(e, r, i);
     return Kr(n, t);
   };
-  function Rt(e, r, i) {
+  function At(e, r, i) {
     const t = Y("colorLightTemperatureOid", r, i) ?? 2e3;
     e.kelvin = t;
   }
-  function at(e, r, i) {
+  function ct(e, r, i) {
     var _a;
-    const t = ne("colorLightBrightnessOid", r, i, (_a = r.colorLightBrightnessOidObject) == null ? void 0 : _a.maxValue);
+    const t = ie("colorLightBrightnessOid", r, i, (_a = r.colorLightBrightnessOidObject) == null ? void 0 : _a.maxValue);
     t !== void 0 && (e.value = t);
   }
   function Z(e, r, i, t, n) {
     var _a, _b, _c;
     switch (r) {
       case "cct": {
-        if (n === 1) Rt(e, t, i);
+        if (n === 1) At(e, t, i);
         else if (n === 2) {
-          const o = ne("colorLightBrightnessOid", t, i, (_a = t.colorLightBrightnessOidObject) == null ? void 0 : _a.maxValue);
+          const o = ie("colorLightBrightnessOid", t, i, (_a = t.colorLightBrightnessOidObject) == null ? void 0 : _a.maxValue);
           o !== void 0 && (e.value = o);
         }
         break;
@@ -2125,74 +2125,74 @@ let __tla = Promise.all([
       case "h/s/v":
       case "h/s/v/cct": {
         if (t.colorLightHueOid && t.colorLightSaturationOid && t.colorLightBrightnessOid) {
-          const o = Y("colorLightHueOid", t, i), l = ne("colorLightSaturationOid", t, i, (_b = t.colorLightSaturationOidObject) == null ? void 0 : _b.maxValue), c = ne("colorLightBrightnessOid", t, i, (_c = t.colorLightBrightnessOidObject) == null ? void 0 : _c.maxValue);
+          const o = Y("colorLightHueOid", t, i), l = ie("colorLightSaturationOid", t, i, (_b = t.colorLightSaturationOidObject) == null ? void 0 : _b.maxValue), c = ie("colorLightBrightnessOid", t, i, (_c = t.colorLightBrightnessOidObject) == null ? void 0 : _c.maxValue);
           o !== void 0 && (e.hue = o), l !== void 0 && (e.saturation = l), c !== void 0 && (e.value = c);
         }
         break;
       }
     }
   }
-  const Yr = (e, r) => !e || !r ? true : !!r[e], Qr = (e) => e === "kelvin" ? 2e3 : e === "hexString" ? "#ffffff" : 0, Se = (e, r) => {
+  const Yr = (e, r) => !e || !r ? true : !!r[e], Qr = (e) => e === "kelvin" ? 2e3 : e === "hexString" ? "#ffffff" : 0, we = (e, r) => {
     const i = r.value;
     r.hexString = e.hexString, r.value = i;
-  }, qr = (e) => g.jsx(dt, {
+  }, qr = (e) => v.jsx(ht, {
     component: Xr,
     viewBox: "0 0 128 128",
     ...e
-  }), Jr = (e) => g.jsxs(dt, {
+  }), Zr = (e) => v.jsxs(ht, {
     viewBox: "0 0 512 512",
     ...e,
     children: [
-      g.jsxs("defs", {
+      v.jsxs("defs", {
         children: [
-          g.jsxs("linearGradient", {
+          v.jsxs("linearGradient", {
             id: "cctGradient",
             x1: "0",
             y1: "0",
             x2: "0",
             y2: "1",
             children: [
-              g.jsx("stop", {
+              v.jsx("stop", {
                 offset: "0%",
                 stopColor: "#1E90FF"
               }),
-              g.jsx("stop", {
+              v.jsx("stop", {
                 offset: "100%",
                 stopColor: "#FF8C00"
               })
             ]
           }),
-          g.jsxs("filter", {
+          v.jsxs("filter", {
             id: "insetShadow",
             x: "-50%",
             y: "-50%",
             width: "200%",
             height: "200%",
             children: [
-              g.jsx("feOffset", {
+              v.jsx("feOffset", {
                 dx: "0",
                 dy: "2"
               }),
-              g.jsx("feGaussianBlur", {
+              v.jsx("feGaussianBlur", {
                 stdDeviation: "4",
                 result: "offset-blur"
               }),
-              g.jsx("feComposite", {
+              v.jsx("feComposite", {
                 operator: "out",
                 in: "SourceGraphic",
                 in2: "offset-blur",
                 result: "inverse"
               }),
-              g.jsx("feFlood", {
+              v.jsx("feFlood", {
                 floodColor: "#FFF176",
                 floodOpacity: "0.4"
               }),
-              g.jsx("feComposite", {
+              v.jsx("feComposite", {
                 in2: "inverse",
                 operator: "in",
                 result: "shadow"
               }),
-              g.jsx("feComposite", {
+              v.jsx("feComposite", {
                 in: "shadow",
                 in2: "SourceGraphic",
                 operator: "over"
@@ -2201,22 +2201,22 @@ let __tla = Promise.all([
           })
         ]
       }),
-      g.jsx("circle", {
+      v.jsx("circle", {
         cx: "256",
         cy: "256",
         r: "252",
         fill: "#FFF176"
       }),
-      g.jsx("circle", {
+      v.jsx("circle", {
         cx: "256",
         cy: "256",
         r: "240",
         fill: "url(#cctGradient)",
         filter: "url(#insetShadow)"
       }),
-      g.jsx("g", {
+      v.jsx("g", {
         transform: "translate(256 280) scale(1.2) translate(-256 -256)",
-        children: g.jsx("path", {
+        children: v.jsx("path", {
           d: "M192 200c0-35 29-64 64-64s64 29 64 64c0 23.1-12.2 43.5-30.6 55.3V288c0 8.8-7.2 16-16 16h-35c-8.8 0-16-7.2-16-16v-32.7C204.2 243.5 192 223.1 192 200zm56 136h16c4.4 0 8 3.6 8 8v16h-32v-16c0-4.4 3.6-8 8-8z",
           fill: "#FFF176",
           stroke: "#000000",
@@ -2225,29 +2225,29 @@ let __tla = Promise.all([
       })
     ]
   });
-  function Zr() {
+  function Jr() {
     var _a;
-    const [e, r] = f.useState(false), i = f.useContext(Me), { widget: t, widget: { data: n }, values: o, getPropertyValue: l } = i, { data: c } = st("oid"), s = Yt("oid"), u = f.useRef(null), h = Vt(u.current, (n.colorLightSliderWidth || 1) * 28), a = f.useRef(null), d = f.useRef(null), v = f.useRef(e), _ = f.useRef(t.data);
-    _.current = t.data;
-    const b = f.useRef(l);
-    b.current = l;
-    const [x, L] = f.useState(false), m = f.useRef(false), k = f.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", p = e && w ? "cct" : n.colorLightType, { value: $, updateValue: U } = T("colorLightSwitchOid"), { value: q, hasBackendChange: He, updateValue: de } = T("colorLightTemperatureOid"), { updateValue: ee, hasBackendChange: te } = T("colorLightBrightnessOid"), { updateValue: fe, hasBackendChange: We } = T("colorLightRgbHexOid"), { updateValue: ge, hasBackendChange: ze } = T("colorLightRedOid"), { updateValue: ve, hasBackendChange: Ne } = T("colorLightGreenOid"), { updateValue: me, hasBackendChange: De } = T("colorLightBlueOid"), { updateValue: be, hasBackendChange: Fe } = T("colorLightHueOid"), { updateValue: pe, hasBackendChange: Ve } = T("colorLightSaturationOid"), jt = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ge = (C, O) => {
-      Z(C, p, l, t.data, O);
-    }, $e = f.useMemo(() => (C, O) => {
-      const _e = (O == null ? void 0 : O.maxValue) === 254, re = Math.round(C);
-      return _e ? Math.round(C / 100 * 254) : re;
-    }, []), Ue = f.useMemo(() => ({
+    const [e, r] = d.useState(false), i = d.useContext(Ae), { widget: t, widget: { data: n }, values: o, getPropertyValue: l } = i, { data: c } = Yt(""), s = d.useRef(null), u = Vt(s.current, (n.colorLightSliderWidth || 1) * 28), h = d.useRef(null), a = d.useRef(null), f = d.useRef(e), g = d.useRef(t.data);
+    g.current = t.data;
+    const y = d.useRef(l);
+    y.current = l;
+    const [p, L] = d.useState(false), m = d.useRef(false), _ = d.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", b = e && w ? "cct" : n.colorLightType, { value: W, updateValue: U } = j("colorLightSwitchOid"), { value: P, hasBackendChange: Be, updateValue: ue } = j("colorLightTemperatureOid"), { updateValue: J, hasBackendChange: ee } = j("colorLightBrightnessOid"), { updateValue: de, hasBackendChange: He } = j("colorLightRgbHexOid"), { updateValue: fe, hasBackendChange: We } = j("colorLightRedOid"), { updateValue: ge, hasBackendChange: ze } = j("colorLightGreenOid"), { updateValue: ve, hasBackendChange: Ne } = j("colorLightBlueOid"), { updateValue: me, hasBackendChange: De } = j("colorLightHueOid"), { updateValue: be, hasBackendChange: Fe } = j("colorLightSaturationOid"), It = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ve = (C, k) => {
+      Z(C, b, l, t.data, k);
+    }, Ge = d.useMemo(() => (C, k) => {
+      const pe = (k == null ? void 0 : k.maxValue) === 254, te = Math.round(C);
+      return pe ? Math.round(C / 100 * 254) : te;
+    }, []), $e = d.useMemo(() => ({
       cct: [
         {
           colorProp: "kelvin",
           oidField: "colorLightTemperatureOid",
-          setter: de,
+          setter: ue,
           cctComponent: 1
         },
         {
           colorProp: "value",
           oidField: "colorLightBrightnessOid",
-          setter: ee,
+          setter: J,
           normalize: true,
           cctComponent: 2
         }
@@ -2256,68 +2256,68 @@ let __tla = Promise.all([
         {
           colorProp: "hexString",
           oidField: "colorLightRgbHexOid",
-          setter: fe
+          setter: de
         }
       ],
       rgbcct: [
         {
           colorProp: "hexString",
           oidField: "colorLightRgbHexOid",
-          setter: fe
+          setter: de
         }
       ],
       "r/g/b": [
         {
           colorProp: "red",
           oidField: "colorLightRedOid",
-          setter: ge
+          setter: fe
         },
         {
           colorProp: "green",
           oidField: "colorLightGreenOid",
-          setter: ve
+          setter: ge
         },
         {
           colorProp: "blue",
           oidField: "colorLightBlueOid",
-          setter: me
+          setter: ve
         }
       ],
       "r/g/b/cct": [
         {
           colorProp: "red",
           oidField: "colorLightRedOid",
-          setter: ge
+          setter: fe
         },
         {
           colorProp: "green",
           oidField: "colorLightGreenOid",
-          setter: ve
+          setter: ge
         },
         {
           colorProp: "blue",
           oidField: "colorLightBlueOid",
-          setter: me
+          setter: ve
         }
       ],
       "h/s/v": [
         {
           colorProp: "hue",
           oidField: "colorLightHueOid",
-          setter: be,
+          setter: me,
           changeKey: "h"
         },
         {
           colorProp: "saturation",
           oidField: "colorLightSaturationOid",
-          setter: pe,
+          setter: be,
           normalize: true,
           changeKey: "s"
         },
         {
           colorProp: "value",
           oidField: "colorLightBrightnessOid",
-          setter: ee,
+          setter: J,
           normalize: true,
           changeKey: "v"
         }
@@ -2326,77 +2326,77 @@ let __tla = Promise.all([
         {
           colorProp: "hue",
           oidField: "colorLightHueOid",
-          setter: be,
+          setter: me,
           changeKey: "h"
         },
         {
           colorProp: "saturation",
           oidField: "colorLightSaturationOid",
-          setter: pe,
+          setter: be,
           normalize: true,
           changeKey: "s"
         },
         {
           colorProp: "value",
           oidField: "colorLightBrightnessOid",
-          setter: ee,
+          setter: J,
           normalize: true,
           changeKey: "v"
         }
       ]
     }), [
+      ue,
+      J,
       de,
-      ee,
       fe,
       ge,
       ve,
       me,
-      be,
-      pe
-    ]), Xe = f.useMemo(() => (C, O, _e) => {
-      if (!(!p || k.current || m.current)) {
-        k.current = true;
+      be
+    ]), Ue = d.useMemo(() => (C, k, pe) => {
+      if (!(!b || _.current || m.current)) {
+        _.current = true;
         try {
-          const re = Ue[p];
-          if (!re) return;
-          re.forEach((ye) => {
-            const { colorProp: Ye, oidField: Pt, setter: Bt, normalize: Ht, cctComponent: Qe, changeKey: Wt } = ye;
-            if (Qe !== void 0 && O !== Qe || !Yr(Wt, _e)) return;
-            const zt = `${Pt}Object`, qe = t.data[zt];
-            if (!qe) return;
-            let j = C[Ye];
-            Ht && typeof j == "number" ? j = $e(j, qe) : typeof j == "number" && (j = Math.round(j)), j == null && (j = Qr(Ye)), Bt(j);
-          }), O === 1 && L((ye) => !ye);
+          const te = $e[b];
+          if (!te) return;
+          te.forEach((_e) => {
+            const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Pt, cctComponent: Ye, changeKey: Bt } = _e;
+            if (Ye !== void 0 && k !== Ye || !Yr(Bt, pe)) return;
+            const Ht = `${jt}Object`, Qe = t.data[Ht];
+            if (!Qe) return;
+            let R = C[Ke];
+            Pt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Qr(Ke)), Tt(R);
+          }), k === 1 && L((_e) => !_e);
         } finally {
           Promise.resolve().then(() => {
-            k.current = false;
+            _.current = false;
           });
         }
       }
     }, [
-      p,
-      Ue,
-      t,
+      b,
       $e,
-      k
-    ]), Tt = f.useMemo(() => Mt(h, n.colorLightUIComponent, n.colorLightSliderWidth, p), [
-      h,
+      t,
+      Ge,
+      _
+    ]), Rt = d.useMemo(() => Et(u, n.colorLightUIComponent, n.colorLightSliderWidth, b), [
+      u,
       n.colorLightUIComponent,
       n.colorLightSliderWidth,
-      p
-    ]), Ke = f.useMemo(() => ({
-      dimensions: h,
+      b
+    ]), Xe = d.useMemo(() => ({
+      dimensions: u,
       colorLightGamut: n.colorLightGamut,
       colorWheelLightness: n.colorWheelLightness,
       colorLightUIComponent: n.colorLightUIComponent,
       colorLightSliderWidth: n.colorLightSliderWidth,
       colorLightBorderWidth: n.colorLightBorderWidth,
       colorLightBorderColor: n.colorLightBorderColor,
-      colorLightType: p,
+      colorLightType: b,
       colorLightCtMin: n.colorLightCtMin,
       colorLightCtMax: n.colorLightCtMax
     }), [
-      h,
+      u,
       n.colorLightGamut,
       n.colorWheelLightness,
       n.colorLightUIComponent,
@@ -2405,130 +2405,130 @@ let __tla = Promise.all([
       n.colorLightBorderColor,
       n.colorLightCtMin,
       n.colorLightCtMax,
-      p
+      b
     ]);
-    return f.useEffect(() => {
-      if (p !== "cct" || !a.current || !d.current) return;
-      const C = a.current.color, O = d.current.color;
-      if (x) {
+    return d.useEffect(() => {
+      if (b !== "cct" || !h.current || !a.current) return;
+      const C = h.current.color, k = a.current.color;
+      if (p) {
         m.current = true;
         try {
-          Se(C, O);
+          we(C, k);
         } finally {
           m.current = false;
         }
       }
     }, [
-      p,
-      x
-    ]), f.useEffect(() => {
-      if (p !== "cct" || !a.current || !d.current || !He) return;
-      const C = a.current.color, O = d.current.color;
-      if (q != null) {
+      b,
+      p
+    ]), d.useEffect(() => {
+      if (b !== "cct" || !h.current || !a.current || !Be) return;
+      const C = h.current.color, k = a.current.color;
+      if (P != null) {
         m.current = true;
         try {
-          C.kelvin = Number(q), Se(C, O);
+          C.kelvin = Number(P), we(C, k);
         } finally {
           m.current = false;
         }
       }
     }, [
-      p,
-      He,
-      q
-    ]), f.useEffect(() => {
-      if (!(!e || p !== "cct") && !(!te || !d.current)) {
+      b,
+      Be,
+      P
+    ]), d.useEffect(() => {
+      if (!(!e || b !== "cct") && !(!ee || !a.current)) {
         m.current = true;
         try {
-          at(d.current.color, _.current, b.current);
+          ct(a.current.color, g.current, y.current);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      p,
-      te
-    ]), f.useEffect(() => {
+      b,
+      ee
+    ]), d.useEffect(() => {
       if (!(e || ![
         "rgb",
         "rgbcct"
-      ].includes(p || "")) && !(!We || !a.current)) {
+      ].includes(b || "")) && !(!He || !h.current)) {
         m.current = true;
         try {
-          Z(a.current.color, p, l, t.data);
+          Z(h.current.color, b, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      p,
-      We,
+      b,
+      He,
       l,
       t.data
-    ]), f.useEffect(() => {
+    ]), d.useEffect(() => {
       if (!(e || ![
         "r/g/b",
         "r/g/b/cct"
-      ].includes(p || "")) && !(!ze && !Ne && !De || !a.current)) {
+      ].includes(b || "")) && !(!We && !ze && !Ne || !h.current)) {
         m.current = true;
         try {
-          Z(a.current.color, p, l, t.data);
+          Z(h.current.color, b, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      p,
+      b,
+      We,
       ze,
       Ne,
-      De,
       l,
       t.data
-    ]), f.useEffect(() => {
+    ]), d.useEffect(() => {
       if (!(e || ![
         "h/s/v",
         "h/s/v/cct"
-      ].includes(p || "")) && !(!Fe && !Ve && !te || !a.current)) {
+      ].includes(b || "")) && !(!De && !Fe && !ee || !h.current)) {
         m.current = true;
         try {
-          Z(a.current.color, p, l, t.data);
+          Z(h.current.color, b, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      p,
+      b,
+      De,
       Fe,
-      Ve,
-      te,
+      ee,
       l,
       t.data
-    ]), f.useEffect(() => {
-      if (!e || !w || !a.current || !d.current) return;
-      const C = a.current.color, O = d.current.color;
+    ]), d.useEffect(() => {
+      if (!e || !w || !h.current || !a.current) return;
+      const C = h.current.color, k = a.current.color;
       m.current = true;
       try {
-        Rt(C, _.current, b.current), v.current === false && Number(q) !== Number(C.kelvin) && de(Number(C.kelvin)), Se(C, O);
+        At(C, g.current, y.current), f.current === false && Number(P) !== Number(C.kelvin) && ue(Number(C.kelvin)), we(C, k);
       } finally {
         m.current = false;
       }
     }, [
       e,
       w
-    ]), f.useEffect(() => {
-      !v.current || e || !w || a.current && at(a.current.color, _.current, b.current);
+    ]), d.useEffect(() => {
+      !f.current || e || !w || h.current && ct(h.current.color, g.current, y.current);
     }, [
       e,
       w
-    ]), f.useEffect(() => {
-      if (!(v.current !== true || e || !w || !a.current)) {
+    ]), d.useEffect(() => {
+      if (!(f.current !== true || e || !w || !h.current)) {
         m.current = true;
         try {
-          Z(a.current.color, p, b.current, _.current);
+          Z(h.current.color, b, y.current, g.current);
         } finally {
           m.current = false;
         }
@@ -2536,21 +2536,20 @@ let __tla = Promise.all([
     }, [
       e,
       w,
-      p
-    ]), f.useEffect(() => {
-      v.current = e;
+      b
+    ]), d.useEffect(() => {
+      f.current = e;
     }, [
       e
-    ]), g.jsxs(ht, {
-      isValidType: jt,
+    ]), v.jsxs(at, {
+      isValidType: It,
       data: c,
-      oidValue: s,
       children: [
-        g.jsx(ut, {
+        v.jsx(st, {
           data: c,
           widget: t
         }),
-        n.colorLightType !== "none" ? g.jsxs(N, {
+        n.colorLightType !== "none" ? v.jsxs(D, {
           sx: {
             minWidth: 0,
             height: "100%",
@@ -2561,31 +2560,31 @@ let __tla = Promise.all([
             alignItems: "center"
           },
           children: [
-            g.jsx(xe, {
+            v.jsx(ye, {
               onClick: () => {
-                U(!$);
+                U(!W);
               },
-              children: g.jsx(Ur, {
+              children: v.jsx(Ur, {
                 sx: {
-                  color: $ ? "red" : "green",
+                  color: W ? "red" : "green",
                   width: "26px",
                   height: "26px"
                 }
               })
             }),
-            w && g.jsxs(N, {
+            w && v.jsxs(D, {
               sx: {
                 display: "inline-block"
               },
               children: [
-                g.jsx(Je, {
+                v.jsx(qe, {
                   orientation: "horizontal",
                   flexItem: true,
                   variant: "fullWidth"
                 }),
-                g.jsx(xe, {
+                v.jsx(ye, {
                   onClick: () => r(false),
-                  children: g.jsx(qr, {
+                  children: v.jsx(qr, {
                     sx: {
                       width: "24px",
                       height: "24px"
@@ -2594,13 +2593,13 @@ let __tla = Promise.all([
                 })
               ]
             }),
-            w && g.jsx(N, {
+            w && v.jsx(D, {
               sx: {
                 display: "block"
               },
-              children: g.jsx(xe, {
+              children: v.jsx(ye, {
                 onClick: () => r(true),
-                children: g.jsx(Jr, {
+                children: v.jsx(Zr, {
                   sx: {
                     width: "24px",
                     height: "24px"
@@ -2610,13 +2609,13 @@ let __tla = Promise.all([
             })
           ]
         }) : null,
-        g.jsx(Je, {
+        v.jsx(qe, {
           orientation: "vertical",
           flexItem: true,
           variant: "middle"
         }),
-        g.jsx(N, {
-          ref: u,
+        v.jsx(D, {
+          ref: s,
           sx: {
             minWidth: 0,
             width: "100%",
@@ -2626,25 +2625,25 @@ let __tla = Promise.all([
             alignItems: "center",
             p: Number(n.colorLightPadding) || 0
           },
-          children: Object.keys(o).length !== 0 && h.width !== void 0 && n.colorLightType !== "none" && g.jsxs(g.Fragment, {
+          children: Object.keys(o).length !== 0 && u.width !== void 0 && n.colorLightType !== "none" && v.jsxs(v.Fragment, {
             children: [
-              g.jsx(Ae, {
+              v.jsx(Ee, {
                 cctComponentNumber: 1,
-                ref: a,
-                onColorInit: Ge,
-                onInputChange: (C, O) => Xe(C, 1, O),
-                ...Ke
+                ref: h,
+                onColorInit: Ve,
+                onInputChange: (C, k) => Ue(C, 1, k),
+                ...Xe
               }),
-              p === "cct" && g.jsx(N, {
+              b === "cct" && v.jsx(D, {
                 sx: {
-                  ml: `${Tt}px`
+                  ml: `${Rt}px`
                 },
-                children: g.jsx(Ae, {
+                children: v.jsx(Ee, {
                   cctComponentNumber: 2,
-                  onColorInit: Ge,
-                  onInputChange: (C, O) => Xe(C, 2, O),
-                  ref: d,
-                  ...Ke
+                  onColorInit: Ve,
+                  onInputChange: (C, k) => Ue(C, 2, k),
+                  ref: a,
+                  ...Xe
                 })
               })
             ]
@@ -2653,8 +2652,8 @@ let __tla = Promise.all([
       ]
     });
   }
-  const ei = er(Zr);
-  It = class extends Gt {
+  const ei = er(Jr);
+  Mt = class extends Gt {
     static getWidgetInfo() {
       return {
         id: "tplLight2CollectionWidget",
@@ -2704,7 +2703,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return It.getWidgetInfo();
+      return Mt.getWidgetInfo();
     }
     onRxDataChanged() {
     }
@@ -2737,11 +2736,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: i
       };
-      return $t(this.wrapContent(g.jsx(ei, {})), t);
+      return $t(this.wrapContent(v.jsx(ei, {})), t);
     }
   };
 });
 export {
   __tla,
-  It as default
+  Mt as default
 };
