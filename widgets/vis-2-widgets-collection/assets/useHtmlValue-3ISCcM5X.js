@@ -1,4 +1,4 @@
-import { v as s, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { v as s, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 let c;
 let __tla = Promise.all([
   (() => {

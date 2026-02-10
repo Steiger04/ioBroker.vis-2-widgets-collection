@@ -87,11 +87,11 @@ function useData(_oid: string): UseDataResult {
     );
 
     // Independent per-state resolution using active-aware styles.
-    const { statesNew, widgetStates, minValue, maxValue } = useMemo(() => {
+    const { states, widgetStates, minValue, maxValue } = useMemo(() => {
         const widgetStates: Record<string, string> = {};
         let minValue: number | null = null;
         let maxValue: number | null = null;
-        const statesNew: StateStyleData[] = [];
+        const states: StateStyleData[] = [];
         const oidType = oidObject?.type;
         const commonStates = oidObject?.commonStates || {};
         const commonStatesEntries = Object.entries(commonStates);
@@ -124,7 +124,7 @@ function useData(_oid: string): UseDataResult {
                 const styleData = resolveStyleData(i, isActive);
 
                 // Map to StateItem interface
-                statesNew.push({
+                states.push({
                     value: convertedValue,
                     label: styleData.alias || String(styleData.value),
                     alias: styleData.alias,
@@ -152,8 +152,8 @@ function useData(_oid: string): UseDataResult {
         }
 
         // Calculate min/max for numeric types
-        if (oidType === 'number' && statesNew.length) {
-            const numericValues = statesNew
+        if (oidType === 'number' && states.length) {
+            const numericValues = states
                 .map(state => (typeof state.value === 'number' ? state.value : NaN))
                 .filter(val => !isNaN(val));
             if (numericValues.length > 0) {
@@ -162,7 +162,7 @@ function useData(_oid: string): UseDataResult {
             }
         }
 
-        return { statesNew, widgetStates, minValue, maxValue };
+        return { states, widgetStates, minValue, maxValue };
     }, [oidObject?.type, oidObject?.commonStates, oidObject?.unit, rxData, getDataValue, oidValue, resolveStyleData]);
 
     const data = useMemo(() => {
@@ -173,7 +173,7 @@ function useData(_oid: string): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                const _activeIndex = statesNew.findIndex(state => String(state.value) === String(oidValue));
+                const _activeIndex = states.findIndex(state => String(state.value) === String(oidValue));
 
                 if (_activeIndex !== -1) {
                     setActiveIndex(_activeIndex + 1);
@@ -188,7 +188,7 @@ function useData(_oid: string): UseDataResult {
             default:
                 return resolveStyleData('', true);
         }
-    }, [oidObject, oidValue, statesNew, resolveStyleData]);
+    }, [oidObject, oidValue, states, resolveStyleData]);
 
     // ============= PHASE 9: Assemble Return Object =============
 
@@ -200,7 +200,7 @@ function useData(_oid: string): UseDataResult {
         activeIndex,
         setActiveIndex,
         oidValue,
-        statesNew,
+        states,
         resolveStyleData,
     };
 }

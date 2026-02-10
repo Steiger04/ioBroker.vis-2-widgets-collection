@@ -1,10 +1,8 @@
-import { a as V, g as I, a3 as J, u as L, j as r, s as P, d as N, i as j, e as D, n as K, m as F, o as v, a0 as Q, C as X, N as Y, v as q, A as Z, E as tt, w as _, z as U, S as et, y as ot, T as at, Q as nt, a1 as M, G as it, H as z, J as rt, K as lt, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
-import { u as st, d as dt, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
-import { v as p, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as ut, __tla as __tla_3 } from "./index-Bt53gQws.js";
+import { a as V, g as I, a5 as J, u as L, j as r, s as P, d as N, i as j, e as D, n as K, m as F, o as v, a2 as X, C as Y, O as q, v as Q, y as Z, E as tt, G as et, w as _, A as U, S as ot, z as at, T as nt, U as it, a3 as M, H as rt, J as z, K as lt, N as st, __tla as __tla_0 } from "./useData-V3RviNbf.js";
+import { u as dt, d as ut, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { v as p, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_4 } from "./useData-EvQhohzn.js";
 let E;
 let __tla = Promise.all([
   (() => {
@@ -22,18 +20,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_3;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_4;
     } catch {
     }
   })()
@@ -116,7 +102,7 @@ let __tla = Promise.all([
           }
         }
       },
-      ...Object.entries(t.palette).filter(Q()).map(([e]) => ({
+      ...Object.entries(t.palette).filter(X()).map(([e]) => ({
         props: {
           color: e
         },
@@ -386,7 +372,7 @@ let __tla = Promise.all([
   }), Bt = () => [
     {
       type: "custom",
-      component: () => r.jsx(X, {})
+      component: () => r.jsx(Y, {})
     },
     {
       name: "onlyIcon",
@@ -440,7 +426,7 @@ let __tla = Promise.all([
       fallbackFields: [
         "textColor"
       ],
-      component: (t, e, o, d) => r.jsx(Y, {
+      component: (t, e, o, d) => r.jsx(q, {
         field: t,
         data: e,
         onDataChange: o,
@@ -449,7 +435,7 @@ let __tla = Promise.all([
     }
   ];
   function mt(t) {
-    const e = U(t), o = nt(t);
+    const e = U(t), o = it(t);
     return {
       hasGradient: !!e,
       hasColor: o,
@@ -458,18 +444,18 @@ let __tla = Promise.all([
     };
   }
   function $t() {
-    const t = p.useContext(q), { widget: e } = t, o = e.data.oidObject, { data: d, statesNew: g, activeIndex: x } = ut("oid"), { value: h, updateValue: b } = st("oid"), R = e.data.buttonGroupVariant, C = e.data.buttonGroupOrientation, u = o == null ? void 0 : o.type, m = u === "boolean" || u === "number" || u === "string" || u === "mixed", s = C === "vertical", i = R === "outlined", $ = p.useCallback((f) => {
+    const t = p.useContext(Q), { widget: e } = t, o = e.data.oidObject, { data: d, statesNew: g, activeIndex: x } = Z("oid"), { value: h, updateValue: b } = dt("oid"), R = e.data.buttonGroupVariant, C = e.data.buttonGroupOrientation, u = o == null ? void 0 : o.type, m = u === "boolean" || u === "number" || u === "string" || u === "mixed", s = C === "vertical", i = R === "outlined", $ = p.useCallback((f) => {
       b(f);
     }, [
       b
     ]);
-    return r.jsxs(Z, {
+    return r.jsxs(tt, {
       isValidType: m,
       data: d,
       oidValue: h,
       bgActive: false,
       children: [
-        r.jsx(tt, {
+        r.jsx(et, {
           data: d,
           widget: e
         }),
@@ -580,7 +566,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: r.jsx(et, {
+                      children: r.jsx(ot, {
                         src: n.icon,
                         style: {
                           position: "relative",
@@ -589,7 +575,7 @@ let __tla = Promise.all([
                           objectFit: "contain",
                           width: n.iconSizeOnly,
                           height: n.iconSizeOnly,
-                          ...ot(n.icon, n.iconColor, n.forceColorMask)
+                          ...at(n.icon, n.iconColor, n.forceColorMask)
                         }
                       })
                     }),
@@ -601,7 +587,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: r.jsx(at, {
+                      children: r.jsx(nt, {
                         contentEditable: "false",
                         dangerouslySetInnerHTML: {
                           __html: n.label
@@ -627,7 +613,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  E = class extends it {
+  E = class extends rt {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -647,13 +633,13 @@ let __tla = Promise.all([
             name: "buttonGroup",
             label: "button_group",
             fields: [
-              ...rt([
+              ...lt([
                 "string",
                 "number",
                 "boolean",
                 "mixed"
               ]),
-              ...dt(),
+              ...ut(),
               ...Bt()
             ]
           },
@@ -723,7 +709,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, lt(this.wrapContent(r.jsx($t, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, st(this.wrapContent(r.jsx($t, {})), o);
     }
   };
 });

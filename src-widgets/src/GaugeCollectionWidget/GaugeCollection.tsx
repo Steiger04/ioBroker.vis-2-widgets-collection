@@ -71,7 +71,7 @@ function GaugeCollection(): React.JSX.Element {
         widget,
     } = context;
 
-    const { data, statesNew } = useData('oid');
+    const { data, states } = useData('oid');
     const oidValue = useOidValue('oid');
 
     const oidType = oidObject?.type;
@@ -98,8 +98,8 @@ function GaugeCollection(): React.JSX.Element {
     const highlights = useMemo(() => {
         const maxValue = Number(widget.data.gaugeMaxValue) || 100;
 
-        const _highlights = statesNew.map((state, index) => {
-            const nextValue = statesNew[index + 1]?.value || maxValue;
+        const _highlights = states.map((state, index) => {
+            const nextValue = states[index + 1]?.value || maxValue;
 
             return {
                 from: Number(state.value),
@@ -110,12 +110,12 @@ function GaugeCollection(): React.JSX.Element {
         });
 
         // Set the last highlight to maxValue if the last state value is less than maxValue
-        if (statesNew.length > 0 && Number(statesNew[statesNew.length - 1].value) < maxValue) {
+        if (states.length > 0 && Number(states[states.length - 1].value) < maxValue) {
             _highlights[_highlights.length - 1].to = maxValue;
         }
 
         return _highlights;
-    }, [statesNew, widget.data.gaugeMaxValue]);
+    }, [states, widget.data.gaugeMaxValue]);
 
     const segment = useMemo(
         () =>

@@ -1,5 +1,5 @@
 import { g as Na } from "./_commonjsHelpers-Cpj98o6Y.js";
-import { v as Pa, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
+import { v as Pa, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 let jc;
 let __tla = Promise.all([
   (() => {

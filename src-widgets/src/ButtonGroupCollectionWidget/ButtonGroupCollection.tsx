@@ -47,7 +47,7 @@ function ButtonGroupCollection(): React.JSX.Element {
     const { widget } = context;
 
     const oidObject = widget.data.oidObject;
-    const { data: styleData, statesNew: buttonStates, activeIndex } = useData('oid');
+    const { data: styleData, states: buttonStates, activeIndex } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
 
     const buttonGroupVariant = widget.data.buttonGroupVariant;

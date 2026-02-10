@@ -117,6 +117,18 @@ export interface DialogFieldsRxData {
     dialogBackgroundColor?: string;
 
     /**
+     * Text to display in the dialog area.
+     *
+     * @example
+     * ```typescript
+     * const data: DialogFieldsRxData = {
+     *     dialogText: 'Device Details'
+     * };
+     * ```
+     */
+    dialogText?: string;
+
+    /**
      * Show a close button in the dialog header area.
      *
      * @default false

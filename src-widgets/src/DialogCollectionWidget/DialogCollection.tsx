@@ -6,11 +6,10 @@
 
 import { Box, ButtonBase, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import React, { useRef, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData/useData';
-import useHtmlValue from '../hooks/useHtmlValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import ViewDialog from './ViewDialog';
 import { gradientColor } from '../lib/helper/gradientColor';
@@ -18,6 +17,13 @@ import CollectionBaseImage from '../components/CollectionBaseImage';
 import SafeImg from '../components/SafeImg';
 
 import type { DialogCollectionContextProps } from '../types';
+
+/** Default auto-close timeout when `dialogAutoClose` is just `true`. */
+const DEFAULT_AUTO_CLOSE_MS = 10_000;
+/** Values below this threshold are treated as seconds and converted to ms. */
+const SECONDS_THRESHOLD = 60;
+/** Fallback timeout when parsing yields 0 or NaN. */
+const MIN_TIMEOUT_MS = 1_000;
 
 const ImageHtmlButton = styled(ButtonBase)({
     width: '100% !important', // Overrides inline-style
@@ -28,6 +34,49 @@ const ImageHtmlButton = styled(ButtonBase)({
     alignItems: 'center',
 });
 
+/** Static sx for the icon container. */
+const iconContainerSx = {
+    overflow: 'hidden',
+    p: 0.5,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+} as const;
+
+/** Static sx for the outer flex wrapper. */
+const outerBoxSx = {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+} as const;
+
+/**
+ * Parses the dialogAutoClose config value into a millisecond timeout.
+ *
+ * Accepts `"true"` (→ default), numeric strings in ms or seconds (< 60 → s).
+ * Returns `0` when auto-close is disabled.
+ */
+function parseAutoCloseTimeout(value: unknown): number {
+    const str = String(value);
+
+    if (!value || str === '' || str === '0') {
+        return 0;
+    }
+    if (str === 'true') {
+        return DEFAULT_AUTO_CLOSE_MS;
+    }
+
+    let timeout = parseInt(str, 10);
+    if (timeout < SECONDS_THRESHOLD) {
+        // Small numbers are assumed to be seconds.
+        timeout *= 1_000;
+    }
+
+    return timeout || MIN_TIMEOUT_MS;
+}
+
 /**
  * Renders a button that opens a modal dialog containing a vis view.
  *
@@ -36,48 +85,44 @@ const ImageHtmlButton = styled(ButtonBase)({
  * - Auto-close supports values in milliseconds and (for small numbers) seconds.
  */
 function DialogCollection(): React.ReactElement {
-    const [open, setOpen] = useState<boolean>(false);
-    const hideTimeout = useRef<NodeJS.Timeout | null>(null);
+    const [open, setOpen] = useState(false);
+    const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // DialogCollection is only used by DialogCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as DialogCollectionContextProps;
-    const { widget, getWidgetView, setValue } = context;
-    const { data, oidValue } = useData('oid');
+    const {
+        widget,
+        widget: { data: rxData },
+        getWidgetView,
+        setValue,
+    } = context;
+    const { data, oidValue } = useData('dialogId');
 
-    // Safe access to the optional oidObject.
-    const oidObject = widget.data.oidObject;
-
-    const oid = oidObject?._id;
-    const oidType = oidObject?.type;
+    const oid = widget.data.dialogIdObject?._id;
+    const oidType = widget.data.dialogIdObject?.type;
 
     const isValidType = oidType === 'boolean' || !widget.data.oid || widget.data.oid === 'nothing_selected';
+
+    // Clean up pending auto-close timeout on unmount to prevent late state updates.
+    useEffect(() => {
+        return () => {
+            if (hideTimeout.current) {
+                clearTimeout(hideTimeout.current);
+            }
+        };
+    }, []);
 
     const handleClickOpen = useCallback(() => {
         if (hideTimeout.current) {
             return;
         }
 
-        const timeoutValue = widget.data.dialogAutoClose;
+        const timeout = parseAutoCloseTimeout(widget.data.dialogAutoClose);
 
-        // Handle multiple input formats by normalizing to string.
-        const timeoutStr = String(timeoutValue);
-
-        if (!timeoutValue || timeoutStr === '' || timeoutStr === '0') {
+        if (timeout === 0) {
             setOpen(true);
             return;
         }
-
-        let timeout: number;
-        if (timeoutStr === 'true') {
-            timeout = 10000;
-        } else {
-            timeout = parseInt(timeoutStr, 10);
-        }
-        if (timeout < 60) {
-            // maybe this is seconds
-            timeout *= 1000;
-        }
-        timeout = timeout || 1000;
 
         hideTimeout.current = setTimeout(() => {
             hideTimeout.current = null;
@@ -102,11 +147,11 @@ function DialogCollection(): React.ReactElement {
         setOpen(false);
     }, [oid, setValue]);
 
-    // HTML value formatting.
-    const htmlValue = useHtmlValue(oidValue, widget, data);
-
+    // Synchronize dialog open/close state with the backend OID value.
+    // Both handleClickOpen and handleClose are stable callbacks (deps only change
+    // when oid/setValue change), so including them here is safe and correct.
     useEffect(() => {
-        if (oidValue === undefined || oidValue === null) {
+        if (oidValue == null) {
             return;
         }
 
@@ -117,16 +162,73 @@ function DialogCollection(): React.ReactElement {
         }
     }, [oidValue, handleClickOpen, handleClose]);
 
+    const handleButtonClick = useCallback(() => {
+        if (oid) {
+            setValue(oid, true);
+        }
+        handleClickOpen();
+    }, [oid, setValue, handleClickOpen]);
+
+    // Pre-compute visibility booleans once instead of duplicating the condition.
+    const showIcon = useMemo(
+        () => widget.data.onlyIcon || (!widget.data.onlyText && !widget.data.onlyIcon),
+        [widget.data.onlyIcon, widget.data.onlyText],
+    );
+    const showText = useMemo(
+        () => widget.data.onlyText || (!widget.data.onlyText && !widget.data.onlyIcon),
+        [widget.data.onlyText, widget.data.onlyIcon],
+    );
+
+    const rippleSx = useMemo(
+        () => ({
+            '& .MuiTouchRipple-root span': {
+                color: data.iconColor,
+            },
+        }),
+        [data.iconColor],
+    );
+
+    const iconStyle = useMemo(
+        () => ({
+            position: 'relative' as const,
+            objectFit: 'contain' as const,
+            top: `calc(0px - ${data.iconYOffset})`,
+            right: `calc(0px - ${data.iconXOffset})`,
+            width: data.iconSizeOnly,
+            height: data.iconSizeOnly,
+            ...getIconColorStyles(data.icon, data.iconColor, data.forceColorMask ?? false),
+        }),
+        [data.iconYOffset, data.iconXOffset, data.iconSizeOnly, data.icon, data.iconColor, data.forceColorMask],
+    );
+
+    const textSx = useMemo(
+        () => ({
+            overflow: 'hidden',
+            width: '100%',
+            height: '100%',
+            p: 0.5,
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: data.valueSize,
+            textTransform: 'none' as const,
+            background: gradientColor(data.textColorActive || data.textColor),
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
+        }),
+        [data.valueSize, data.textColorActive, data.textColor],
+    );
+
     return (
         <>
             <ViewDialog
-                {...{
-                    open,
-                    handleClose,
-                    widget,
-                    data,
-                    getWidgetView,
-                }}
+                open={open}
+                handleClose={handleClose}
+                widget={widget}
+                data={data}
+                getWidgetView={getWidgetView}
             />
             <CollectionBase
                 isValidType={isValidType}
@@ -136,94 +238,26 @@ function DialogCollection(): React.ReactElement {
                     data={data}
                     widget={widget}
                 />
-                <Box
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                    }}
-                >
+                <Box sx={outerBoxSx}>
                     <ImageHtmlButton
-                        onClick={() => {
-                            if (oid) {
-                                setValue(oid, true);
-                            }
-                            handleClickOpen();
-                        }}
-                        sx={{
-                            '& .MuiTouchRipple-root span': {
-                                color: data.iconColor,
-                            },
-                        }}
+                        onClick={handleButtonClick}
+                        sx={rippleSx}
                     >
-                        {widget.data.onlyIcon || (!widget.data.onlyText && !widget.data.onlyIcon) ? (
-                            <Box
-                                sx={{
-                                    overflow: 'hidden',
-
-                                    p: 0.5,
-
-                                    width: '100%',
-                                    height: '100%',
-
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}
-                            >
+                        {showIcon ? (
+                            <Box sx={iconContainerSx}>
                                 <SafeImg
                                     alt=""
                                     src={data.icon}
-                                    style={{
-                                        position: 'relative',
-
-                                        objectFit: 'contain',
-                                        top: `calc(0px - ${data.iconYOffset})`,
-                                        right: `calc(0px - ${data.iconXOffset})`,
-
-                                        width: data.iconSizeOnly,
-                                        height: data.iconSizeOnly,
-
-                                        /* width:
-                                            (typeof data.iconSizeOnly === 'number' &&
-                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                            '100%',
-                                        height:
-                                            (typeof data.iconSizeOnly === 'number' &&
-                                                `calc(100% * ${data.iconSizeOnly} / 100)`) ||
-                                            '100%', */
-
-                                        ...getIconColorStyles(data.icon, data.iconColor, data.forceColorMask ?? false),
-                                    }}
+                                    style={iconStyle}
                                 />
                             </Box>
                         ) : null}
-                        {widget.data.onlyText || (!widget.data.onlyText && !widget.data.onlyIcon) ? (
+                        {showText ? (
                             <Typography
                                 variant="body2"
-                                sx={{
-                                    overflow: 'hidden',
-
-                                    width: '100%',
-                                    height: '100%',
-
-                                    p: 0.5,
-
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-
-                                    fontSize: data.valueSize,
-                                    textTransform: 'none',
-
-                                    background: gradientColor(data.textColorActive || data.textColor),
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: gradientColor(data.textColor) ? 'transparent' : data.textColor,
-                                }}
+                                sx={textSx}
                                 dangerouslySetInnerHTML={{
-                                    __html: htmlValue !== undefined ? String(htmlValue) : '',
+                                    __html: rxData.dialogText || '',
                                 }}
                             />
                         ) : null}
@@ -234,4 +268,4 @@ function DialogCollection(): React.ReactElement {
     );
 }
 
-export default DialogCollection;
+export default React.memo(DialogCollection);

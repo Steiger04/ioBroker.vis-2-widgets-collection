@@ -84,7 +84,7 @@ export default function ViewDialog({
                 justifyContent: 'center',
                 alignItems: 'center',
 
-                backgroundColor: widget.data.dialogBackgroundColor || 'inherit',
+                background: widget.data.dialogBackgroundColor || 'inherit',
             }}
         >
             <Box

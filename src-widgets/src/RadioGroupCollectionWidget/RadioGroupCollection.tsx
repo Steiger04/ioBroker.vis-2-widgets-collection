@@ -34,7 +34,7 @@ function RadioGroupCollection(): React.ReactElement {
         },
         widget,
     } = context;
-    const { data, states, statesNew } = useData('oid');
+    const { data, states } = useData('oid');
 
     const { value: oidValue, updateValue: updateOidValue } = useValueState('oid');
 
@@ -71,7 +71,7 @@ function RadioGroupCollection(): React.ReactElement {
                     alignItems: isHorizontal ? 'center' : 'stretch',
                 }}
             >
-                {statesNew.map((state, index) => {
+                {states.map((state, index) => {
                     return (
                         <FormControlLabel
                             key={index}

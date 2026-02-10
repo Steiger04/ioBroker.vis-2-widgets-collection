@@ -310,7 +310,7 @@ export interface PropertyResolvers {
  * Style data for individual state items without active-state overrides.
  *
  * Derived from StyleData by selecting only non-active properties.
- * Used by statesNew computation to build independent state items.
+ * Used by states computation to build independent state items.
  *
  * @remarks
  * Excludes all Active suffix properties (except background-related which are handled separately),
@@ -353,7 +353,7 @@ export type StateStyleData = Pick<
  */
 export interface UseDataResult {
     /** Array of computed state items with resolved properties */
-    statesNew: StateStyleData[];
+    states: StateStyleData[];
 
     /** Mapping of state values to string labels for widget-specific use */
     widgetStates: Record<string, string>;

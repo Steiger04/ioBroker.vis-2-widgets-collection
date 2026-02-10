@@ -128,7 +128,7 @@ const SliderCollection: FC = () => {
         widget,
         theme,
     } = context;
-    const { data, statesNew, minValue, maxValue, activeIndex, resolveStyleData } = useData('oid');
+    const { data, states, minValue, maxValue, activeIndex, resolveStyleData } = useData('oid');
 
     const { value: oidValue, updateValue: setOidValueState, hasBackendChange: oidValueChanged } = useValueState('oid');
     const [sliderValue, setSliderValue] = useState<number | undefined>(
@@ -178,7 +178,7 @@ const SliderCollection: FC = () => {
 
     const sliderMarks = useMemo(() => {
         // Type guard to ensure we only work with numeric values
-        const numericStates = statesNew.filter(
+        const numericStates = states.filter(
             (state): state is typeof state & { value: number } => typeof state.value === 'number',
         );
 
@@ -222,7 +222,7 @@ const SliderCollection: FC = () => {
 
         return marks.sort((a, b) => a.value - b.value);
     }, [
-        statesNew,
+        states,
         widget.data.onlyStates,
         widget.data.markStep,
         sliderMinValue,

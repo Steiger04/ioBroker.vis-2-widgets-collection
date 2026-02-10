@@ -1,5 +1,5 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./assets/index-BEpFHtMA.js","./assets/_commonjsHelpers-Cpj98o6Y.js","./assets/index-DMBzzD-N.js","./assets/vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js","./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js"])))=>i.map(i=>d[i]);
-import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-B0SMrCGE.js";
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./assets/index-BEpFHtMA.js","./assets/_commonjsHelpers-Cpj98o6Y.js","./assets/index-UMzeul1g.js","./assets/vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js"])))=>i.map(i=>d[i]);
+import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-BBcJbR0-.js";
 import { _ as __vitePreload } from "./assets/preload-helper-PPVm8Dsz.js";
 import { v as vis2CollectionWidget__mf_v__runtimeInit__mf_v__ } from "./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let getExposes, init;
@@ -2598,7 +2598,7 @@ ${r.slice(0, 5).join(`
   var init_1 = init$1;
   const importMap = {
     react: async () => await __vitePreload(() => import("./assets/index-BEpFHtMA.js").then((e) => e.i), __vite__mapDeps([0,1]), import.meta.url),
-    "react-dom": async () => await __vitePreload(() => import("./assets/index-DMBzzD-N.js").then(async (m) => {
+    "react-dom": async () => await __vitePreload(() => import("./assets/index-UMzeul1g.js").then(async (m) => {
       await m.__tla;
       return m;
     }).then((e) => e.i), __vite__mapDeps([2,1,3,4]), import.meta.url)

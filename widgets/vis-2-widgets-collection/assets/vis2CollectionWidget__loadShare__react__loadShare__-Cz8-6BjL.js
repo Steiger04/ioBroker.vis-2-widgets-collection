@@ -1,6 +1,6 @@
 import { g as s } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as c } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let p, g, i;
+let g, p, i;
 let __tla = (async () => {
   function _(e, n) {
     for (var o = 0; o < n.length; o++) {
@@ -38,8 +38,8 @@ let __tla = (async () => {
   ]);
 })();
 export {
-  p as R,
+  g as R,
   __tla,
-  g as a,
+  p as a,
   i as v
 };

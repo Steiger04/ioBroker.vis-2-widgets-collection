@@ -1,12 +1,10 @@
-import { a as R, g as P, u as L, L as k, k as G, l as N, j as i, s as U, d as M, e as H, n as z, r as E, m as A, o as g, a6 as $, a5 as J, C as j, N as K, a7 as Q, v as X, A as Y, E as q, w as O, a8 as Z, Q as W, S as ee, y as te, T as oe, z as S, G as ae, H as V, J as se, K as ie, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
-import { u as _, d as ne, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
-import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as re, __tla as __tla_3 } from "./index-Bt53gQws.js";
-import { l as T, __tla as __tla_4 } from "./listItemTextClasses-E0RgI0NY.js";
-import { S as le, __tla as __tla_5 } from "./Stack-B_C-u5Tq.js";
+import { a as R, g as P, u as L, L as k, k as U, l as G, j as i, s as N, d as M, e as H, n as z, r as E, m as A, o as g, a8 as $, a7 as J, C as j, O as K, a9 as X, v as Y, y as q, E as Q, G as Z, w as O, aa as ee, U as W, S as te, z as oe, T as ae, A as S, H as se, J as V, K as ie, N as ne, __tla as __tla_0 } from "./useData-V3RviNbf.js";
+import { u as _, d as re, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { l as T, __tla as __tla_3 } from "./listItemTextClasses-D2rxtPfI.js";
+import { S as le, __tla as __tla_4 } from "./Stack-Bf2HlEiX.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_6 } from "./useData-EvQhohzn.js";
 let F;
 let __tla = Promise.all([
   (() => {
@@ -36,18 +34,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_4;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_5;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_6;
     } catch {
     }
   })()
@@ -90,7 +76,7 @@ let __tla = Promise.all([
       ...n,
       ...r
     };
-  }, ue = U(z, {
+  }, ue = N(z, {
     shouldForwardProp: (e) => E(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
@@ -197,7 +183,7 @@ let __tla = Promise.all([
       n,
       r
     ]), p = c.useRef(null);
-    G(() => {
+    U(() => {
       d && p.current && p.current.focus();
     }, [
       d
@@ -207,7 +193,7 @@ let __tla = Promise.all([
       dense: o.dense,
       divider: l,
       disableGutters: r
-    }, u = pe(a), D = N(p, s);
+    }, u = pe(a), D = G(p, s);
     let I;
     return a.disabled || (I = b !== void 0 ? b : -1), i.jsx(k.Provider, {
       value: o,
@@ -284,7 +270,7 @@ let __tla = Promise.all([
     };
   }
   function xe() {
-    const e = c.useRef(null), { width: t } = Q(e == null ? void 0 : e.current), s = c.useContext(X), { widget: a } = s, d = a.data.cidObject, m = a.data.oidObject, { data: n, statesNew: l } = re("oid"), { value: r, updateValue: x } = _("oid"), { updateValue: f } = _("cid"), b = m == null ? void 0 : m.type, h = [
+    const e = c.useRef(null), { width: t } = X(e == null ? void 0 : e.current), s = c.useContext(Y), { widget: a } = s, d = a.data.cidObject, m = a.data.oidObject, { data: n, statesNew: l } = q("oid"), { value: r, updateValue: x } = _("oid"), { updateValue: f } = _("cid"), b = m == null ? void 0 : m.type, h = [
       "boolean",
       "number",
       "string",
@@ -301,12 +287,12 @@ let __tla = Promise.all([
       f,
       x
     ]);
-    return i.jsxs(Y, {
+    return i.jsxs(Q, {
       isValidType: h,
       data: n,
       oidValue: r,
       children: [
-        i.jsx(q, {
+        i.jsx(Z, {
           data: n,
           widget: a
         }),
@@ -320,7 +306,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: i.jsx(Z, {
+          children: i.jsx(ee, {
             variant: "standard",
             disableUnderline: true,
             value: C !== -1 ? C : "",
@@ -352,7 +338,7 @@ let __tla = Promise.all([
                   alignItems: "center"
                 },
                 children: [
-                  i.jsx(ee, {
+                  i.jsx(te, {
                     alt: "",
                     src: o.icon,
                     style: {
@@ -360,10 +346,10 @@ let __tla = Promise.all([
                       top: `calc(0px - ${o.iconYOffset})`,
                       right: `calc(0px - ${o.iconXOffset})`,
                       height: o.iconSize,
-                      ...te(o.icon, o.iconColor, o.forceColorMask)
+                      ...oe(o.icon, o.iconColor, o.forceColorMask)
                     }
                   }),
-                  i.jsx(oe, {
+                  i.jsx(ae, {
                     component: O,
                     variant: "subtitle2",
                     sx: {
@@ -393,7 +379,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  F = class extends ae {
+  F = class extends se {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -415,13 +401,13 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...se([
+              ...ie([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
-              ...ne(),
+              ...re(),
               ...me()
             ]
           },
@@ -481,7 +467,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, ie(this.wrapContent(i.jsx(xe, {})), s);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, ne(this.wrapContent(i.jsx(xe, {})), s);
     }
   };
 });

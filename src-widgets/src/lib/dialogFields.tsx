@@ -11,8 +11,18 @@
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
+import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
-const dialogFields = (): RxWidgetInfoAttributesField[] => [
+/**
+ * Extended field type with custom properties for collection widgets.
+ */
+type ExtendedDialogField = RxWidgetInfoAttributesField & {
+    /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
+    fallbackFields?: string[];
+    noGradient?: boolean;
+};
+
+const dialogFields = (): ExtendedDialogField[] => [
     {
         name: 'view',
         label: 'view',
@@ -38,11 +48,11 @@ const dialogFields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider />,
     },
     {
-        name: 'oid',
+        name: 'dialogId',
         type: 'id',
         label: 'oid',
         tooltip: 'dialog_set_oid_tooltip',
-        onChange: oidChangeHandlerAsync(['boolean']),
+        onChange: oidChangeHandlerAsync(['boolean'], 'dialogId'),
     },
     {
         label: '',
@@ -89,19 +99,42 @@ const dialogFields = (): RxWidgetInfoAttributesField[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    {
+    /* {
         name: 'dialogBackgroundColor',
         label: 'background_color',
         type: 'color',
+    }, */
+    {
+        name: 'dialogBackgroundColor',
+        label: 'background_color',
+        default: '',
+        type: 'custom', // important
+        fallbackFields: [''],
+        noGradient: false,
+        component: (
+            // important
+            field, // field properties: {name, label, type, set, singleName, component,...}
+            data, // widget data
+            onDataChange, // function to call, when data changed
+            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
+            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
+            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
+        ) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
-
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="dialog_button" />,
     },
     {
-        name: 'value',
+        name: 'dialogText',
         label: 'dialog_text',
         type: 'html',
         default: '',

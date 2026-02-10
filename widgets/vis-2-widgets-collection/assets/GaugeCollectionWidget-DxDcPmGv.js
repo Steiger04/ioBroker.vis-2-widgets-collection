@@ -1,6 +1,5 @@
-import { j as M, C as A, v as Ze, y as Ta, w as Ke, S as wa, a7 as Sa, Q as Ca, A as Ba, E as Na, G as Va, H as Je, J as Wa, K as Ma, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
-import { v as R, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Oa, __tla as __tla_2 } from "./index-Bt53gQws.js";
+import { j as M, C as A, v as Ze, z as Ta, w as Ke, S as wa, a9 as Sa, y as Ca, U as Ba, E as Na, G as Va, H as Wa, J as Je, K as Ma, N as Oa, __tla as __tla_0 } from "./useData-V3RviNbf.js";
+import { v as R, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ea;
@@ -14,12 +13,6 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_1;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_2;
     } catch {
     }
   })()
@@ -2571,7 +2564,7 @@ let __tla = Promise.all([
   }, Ea = (g, x, E) => g.find((D) => x >= D.from && (x < D.to || x === D.to && x === E)) || null;
   function Ia() {
     var _a, _b;
-    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: L, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, statesNew: J } = Oa("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
+    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: L, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, statesNew: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
       const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, Y = [];
       if (l.data.gaugeMajorTicks && +(l.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(l.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(l.data.gaugeMajorTicks) || 1) * ee;
@@ -2589,7 +2582,7 @@ let __tla = Promise.all([
         return {
           from: Number(Y.value),
           to: Number(ue),
-          color: Ca(Y.textColor) || "transparent",
+          color: Ba(Y.textColor) || "transparent",
           state: {
             ...Y
           }
@@ -2616,13 +2609,13 @@ let __tla = Promise.all([
       F.frameBackground,
       F.backgroundColor,
       F.background
-    ]), M.jsxs(Ba, {
+    ]), M.jsxs(Na, {
       ref: g,
       isValidType: le,
       data: F,
       oidValue: re,
       children: [
-        M.jsx(Na, {
+        M.jsx(Va, {
           data: {
             ...F,
             icon: P == null ? void 0 : P.state.icon,
@@ -2761,7 +2754,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  ea = class extends Va {
+  ea = class extends Wa {
     static getWidgetInfo() {
       return {
         id: "tplGaugeCollectionWidget",
@@ -2784,7 +2777,7 @@ let __tla = Promise.all([
             name: "gauge",
             label: "group_gauge",
             fields: [
-              ...Wa([
+              ...Ma([
                 "number"
               ]),
               ...ja()
@@ -2846,7 +2839,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return x.widget.data.noCard || x.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Ma(this.wrapContent(M.jsx(Ia, {})), E);
+      return x.widget.data.noCard || x.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Oa(this.wrapContent(M.jsx(Ia, {})), E);
     }
   };
 });

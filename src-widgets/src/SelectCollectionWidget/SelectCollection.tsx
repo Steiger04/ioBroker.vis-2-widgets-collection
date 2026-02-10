@@ -55,7 +55,7 @@ function SelectCollection(): React.ReactElement {
     const { widget } = context;
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
-    const { data, statesNew } = useData('oid');
+    const { data, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const { updateValue: setCidValueState } = useValueState('cid');
 
@@ -64,14 +64,14 @@ function SelectCollection(): React.ReactElement {
     const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType || '');
 
     const valueIndex = useMemo(
-        () => statesNew.findIndex(state => String(state.value) === String(oidValue)),
-        [statesNew, oidValue],
+        () => states.findIndex(state => String(state.value) === String(oidValue)),
+        [states, oidValue],
     );
 
     const changeHandler = useCallback(
         (event: SelectChangeEvent<string | number>): void => {
             const selectedIndex = event.target.value;
-            const selectedState = statesNew[selectedIndex as number];
+            const selectedState = states[selectedIndex as number];
             const value = selectedState.value;
 
             if (cidObject) {
@@ -80,7 +80,7 @@ function SelectCollection(): React.ReactElement {
 
             setOidValueState(value!);
         },
-        [statesNew, cidObject, setCidValueState, setOidValueState],
+        [states, cidObject, setCidValueState, setOidValueState],
     );
 
     return (
@@ -131,7 +131,7 @@ function SelectCollection(): React.ReactElement {
                         },
                     }}
                 >
-                    {statesNew.map((state, idx) => {
+                    {states.map((state, idx) => {
                         return (
                             <MenuItem
                                 key={String(state.value)}

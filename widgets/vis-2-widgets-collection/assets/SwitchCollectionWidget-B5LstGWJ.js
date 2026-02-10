@@ -1,11 +1,9 @@
-import { a as F, g as W, u as D, b as f, s as b, d as V, j as r, i as h, e as U, m as w, o as y, a0 as N, a1 as X, a2 as E, C as x, N as v, y as $, v as A, A as G, E as H, w as z, G as L, H as M, J as Y, K as J, __tla as __tla_0 } from "./CollectionBaseImage-CMDyRI6z.js";
-import { u as K, d as q, __tla as __tla_1 } from "./useValueState-BHrGvNaa.js";
-import { v as k, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-L1bZe9z4.js";
-import { u as Q, __tla as __tla_3 } from "./index-Bt53gQws.js";
-import { S as Z, __tla as __tla_4 } from "./SwitchBase-CI-PgTMb.js";
+import { a as F, g as W, u as D, b as f, s as b, d as V, j as r, i as h, e as U, m as w, o as y, a2 as N, a3 as X, a4 as E, C as x, O as v, z as $, v as A, y as G, E as H, G as L, w as z, H as Y, J as M, K as J, N as K, __tla as __tla_0 } from "./useData-V3RviNbf.js";
+import { u as q, d as Q, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { v as k, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { S as Z, __tla as __tla_3 } from "./SwitchBase-1YAmC1FO.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./useData-EvQhohzn.js";
 let j;
 let __tla = Promise.all([
   (() => {
@@ -31,18 +29,6 @@ let __tla = Promise.all([
       return __tla_3;
     } catch {
     }
-  })(),
-  (() => {
-    try {
-      return __tla_4;
-    } catch {
-    }
-  })(),
-  (() => {
-    try {
-      return __tla_5;
-    } catch {
-    }
   })()
 ]).then(async () => {
   function tt(t) {
@@ -63,7 +49,7 @@ let __tla = Promise.all([
     "thumb",
     "track"
   ]), et = (t) => {
-    const { classes: e, edge: o, size: i, color: l, checked: a, disabled: c } = t, m = {
+    const { classes: e, edge: o, size: i, color: l, checked: a, disabled: c } = t, g = {
       root: [
         "root",
         o && `edge${h(o)}`,
@@ -84,7 +70,7 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, u = U(m, tt, e);
+    }, u = U(g, tt, e);
     return {
       ...e,
       ...u
@@ -257,31 +243,31 @@ let __tla = Promise.all([
     const i = D({
       props: e,
       name: "MuiSwitch"
-    }), { className: l, color: a = "primary", edge: c = false, size: m = "medium", sx: u, slots: d = {}, slotProps: n = {}, ...B } = i, p = {
+    }), { className: l, color: a = "primary", edge: c = false, size: g = "medium", sx: u, slots: d = {}, slotProps: n = {}, ...B } = i, p = {
       ...i,
       color: a,
       edge: c,
-      size: m
-    }, g = et(p), S = {
+      size: g
+    }, m = et(p), S = {
       slots: d,
       slotProps: n
     }, [_, T] = f("root", {
-      className: V(g.root, l),
+      className: V(m.root, l),
       elementType: ot,
       externalForwardedProps: S,
       ownerState: p,
       additionalProps: {
         sx: u
       }
-    }), [R, P] = f("thumb", {
-      className: g.thumb,
+    }), [R, O] = f("thumb", {
+      className: m.thumb,
       elementType: st,
       externalForwardedProps: S,
       ownerState: p
     }), C = r.jsx(R, {
-      ...P
-    }), [O, I] = f("track", {
-      className: g.track,
+      ...O
+    }), [P, I] = f("track", {
+      className: m.track,
       elementType: at,
       externalForwardedProps: S,
       ownerState: p
@@ -297,8 +283,8 @@ let __tla = Promise.all([
           ownerState: p,
           ...B,
           classes: {
-            ...g,
-            root: g.switchBase
+            ...m,
+            root: m.switchBase
           },
           slots: {
             ...d.switchBase && {
@@ -317,7 +303,7 @@ let __tla = Promise.all([
             }
           }
         }),
-        r.jsx(O, {
+        r.jsx(P, {
           ...I
         })
       ]
@@ -458,15 +444,15 @@ let __tla = Promise.all([
   });
   function ct() {
     var _a, _b, _c, _d;
-    const t = k.useRef(null), e = k.useContext(A), { widget: o, theme: i } = e, l = o.data.oidObject, { data: a } = Q("oid"), { value: c, updateValue: m } = K("oid"), u = l == null ? void 0 : l.type, d = u === "boolean", n = () => {
-      m(!c);
+    const t = k.useRef(null), e = k.useContext(A), { widget: o, theme: i } = e, l = o.data.oidObject, { data: a } = G("oid"), { value: c, updateValue: g } = q("oid"), u = l == null ? void 0 : l.type, d = u === "boolean", n = () => {
+      g(!c);
     };
-    return r.jsxs(G, {
+    return r.jsxs(H, {
       isValidType: d,
       data: a,
       oidValue: c,
       children: [
-        r.jsx(H, {
+        r.jsx(L, {
           data: a,
           widget: o
         }),
@@ -505,7 +491,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  j = class extends L {
+  j = class extends Y {
     static getWidgetInfo() {
       return {
         id: "tplSwitchCollectionWidget",
@@ -525,10 +511,10 @@ let __tla = Promise.all([
             name: "switch",
             label: "group_switch",
             fields: [
-              ...Y([
+              ...J([
                 "boolean"
               ]),
-              ...q(),
+              ...Q(),
               ...nt()
             ]
           },
@@ -588,7 +574,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, J(this.wrapContent(r.jsx(ct, {})), o);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, K(this.wrapContent(r.jsx(ct, {})), o);
     }
   };
 });
