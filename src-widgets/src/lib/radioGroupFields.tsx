@@ -60,11 +60,6 @@ const radioGroupFields = (): ExtendedRadioGroupField[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    /* {
-        name: 'radioGroupUncheckedIconColor',
-        label: 'radio_group_unchecked_icon_color',
-        type: 'color',
-    }, */
     {
         name: 'radioGroupUncheckedIconColor',
         label: 'radio_group_unchecked_icon_color',

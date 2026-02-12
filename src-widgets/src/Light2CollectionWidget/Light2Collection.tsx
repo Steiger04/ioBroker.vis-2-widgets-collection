@@ -181,9 +181,6 @@ function Light2CollectionContent(): React.ReactElement {
     } = context;
 
     const { data } = useData('');
-    // const oidValue = useOidValue('oid');
-
-    // console.log('oidValue', oidValue);
 
     const boxRef = useRef<HTMLDivElement>(null);
     const dimensions = useElementDimensions(boxRef.current, (rxData.colorLightSliderWidth || 1) * 28);

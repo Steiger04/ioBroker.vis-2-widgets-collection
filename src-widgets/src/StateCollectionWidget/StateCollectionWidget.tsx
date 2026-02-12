@@ -60,7 +60,6 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
     // Do not delete this method. It is used by vis to read the widget configuration.
     // eslint-disable-next-line class-methods-use-this
     getWidgetInfo(): RxWidgetInfo {
-        // console.log('StateCollectionWidget.getWidgetInfo() called');
         return StateCollectionWidget.getWidgetInfo();
     }
 
@@ -72,7 +71,6 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
     // This function is called every time when rxData is changed
     // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        // console.log('StateCollectionWidget.onRxDataChanged() called');
         // this.propertiesUpdate();
     }
 

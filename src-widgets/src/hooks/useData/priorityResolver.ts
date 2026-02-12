@@ -67,8 +67,6 @@ import type { PriorityOption } from './types';
  * ]) ?? defaultSize;
  */
 export function resolvePriority<T>(options: PriorityOption<T>[]): T | undefined {
-    // console.log('options=', options);
-
     for (const option of options) {
         // Skip if condition is explicitly false
         if (option.condition === false) {
@@ -82,7 +80,6 @@ export function resolvePriority<T>(options: PriorityOption<T>[]): T | undefined 
             option.value !== null &&
             !(typeof option.value === 'string' && option.value.trim() === '')
         ) {
-            // console.log('option.value=', option.value);
             return option.value;
         }
     }

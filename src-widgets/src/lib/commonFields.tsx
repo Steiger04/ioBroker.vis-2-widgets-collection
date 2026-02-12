@@ -54,20 +54,12 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'icon',
             type: 'image',
             default: '',
-            /* hidden: (data, i) =>
-                data.noIcon ||
-                data[`iconSmall${i === undefined ? '' : i}`] ||
-                (`iconSmall${groupName}` === 'iconSmallActive' && data[`iconSmall${groupName}`]), */
         },
         {
             name: `iconSmall${groupName}`,
             label: 'small_icon',
             type: 'icon64',
             default: '',
-            /* hidden: (data, i) =>
-                data.noIcon ||
-                data[`icon${i === undefined ? '' : i}`] ||
-                (`icon${groupName}` === 'iconActive' && data[`icon${groupName}`]), */
         },
         {
             name: `iconSize${groupName}`,
@@ -107,19 +99,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
 
                 return _hidden;
             },
-            /* hidden: (data, index) => {
-                const suffix = index !== undefined ? index : groupName;
-                const iconField = data[`icon${suffix}`];
-                const iconSmallField = data[`iconSmall${suffix}`];
-                return !isUrlIcon(iconField) && !isUrlIcon(iconSmallField);
-            }, */
         },
-        /* {
-            name: `iconColor${groupName}`,
-            label: 'icon_color',
-            type: 'color',
-            hidden: 'data.noIcon',
-        }, */
         {
             name: `iconColor${groupName}`,
             label: 'icon_color',
@@ -144,16 +124,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 />
             ),
         },
-        /* {
-            name: `iconHover${groupName}`,
-            label: 'icon_hover',
-            type: 'slider',
-            min: 0,
-            max: 300,
-
-            step: 1,
-            hidden: 'data.noIcon',
-        }, */
         {
             name: `iconXOffset${groupName}`,
             label: 'icon_x_offset',
@@ -277,11 +247,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'checkbox',
             default: false,
         },
-        /* {
-            name: `textColor${groupName}`,
-            label: 'text_color',
-            type: 'color',
-        }, */
         {
             name: `textColor${groupName}`,
             label: 'text_color',
@@ -402,11 +367,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 />
             ),
         },
-        /* {
-            name: `backgroundColor${groupName}`,
-            label: 'background_color',
-            type: 'color',
-        }, */
         {
             label: '',
             type: 'custom',
@@ -435,11 +395,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                 />
             ),
         },
-        /* {
-            name: `frameBackgroundColor${groupName}`,
-            label: 'frame_background_color',
-            type: 'color',
-        }, */
     ];
 
     if (allFields) {

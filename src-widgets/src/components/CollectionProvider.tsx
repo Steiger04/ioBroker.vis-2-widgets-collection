@@ -46,10 +46,6 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     const { fontStyles, textStyles } = useStyles(widget.style || {});
 
     const _theme = useMemo(() => {
-        // console.log('theme in CollectionProvider:', theme);
-        // console.log('fontStyles in CollectionProvider:', fontStyles);
-        // console.log('textStyles in CollectionProvider:', textStyles);
-
         return createTheme(
             deepmerge(theme, {
                 components: {
@@ -69,8 +65,6 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
             }),
         );
     }, [theme, fontStyles, textStyles]);
-
-    // console.log('_theme in CollectionProvider:', _theme);
 
     return (
         <ThemeProvider theme={_theme}>

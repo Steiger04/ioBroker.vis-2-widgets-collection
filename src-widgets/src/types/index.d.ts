@@ -17,10 +17,6 @@
  * to ensure backward compatibility during the migration.
  */
 
-// ============================================================================
-// Type Utilities (Phase 1)
-// ============================================================================
-
 /**
  * Widget builder types for composing widget data from field definitions.
  *
@@ -97,33 +93,6 @@ export type { OidObject, OidType } from './utility-types';
  */
 export type * from './vis-2-extensions';
 
-// ============================================================================
-// Field Definitions (Phase 2 - Not Yet Implemented)
-// ============================================================================
-
-/**
- * TODO Phase 2: Field definition types will be exported here.
- *
- * Planned exports:
- * - common-fields.d.ts - Common field types (label, visible, etc.)
- * - common-object-fields.d.ts - Object field types (oid, type, etc.)
- * - state-fields.d.ts - State field types
- * - delay-fields.d.ts - Delay field types
- * - gauge-fields.d.ts - Gauge-specific fields
- * - slider-fields.d.ts - Slider-specific fields
- * - button-group-fields.d.ts - Button group fields
- * - ... (more to be added in Phase 2)
- *
- * @example
- * ```typescript
- * // After Phase 2 implementation:
- * export * from './field-definitions/common-fields';
- * export * from './field-definitions/common-object-fields';
- * export * from './field-definitions/state-fields';
- * // etc.
- * ```
- */
-
 // ✅ Phase 2 Complete - Field Definitions
 export * from './field-definitions/common-fields';
 export * from './field-definitions/common-object-fields';
@@ -141,10 +110,6 @@ export * from './field-definitions/dialog-fields';
 export * from './field-definitions/select-fields';
 export * from './field-definitions/radio-group-fields';
 export * from './field-definitions/light2-fields';
-
-// ============================================================================
-// Widget Registry & Context Types (Phase 4)
-// ============================================================================
 
 /**
  * Widget registry with auto-generated widget data types.
@@ -251,10 +216,6 @@ export * from './widget-registry';
  */
 export * from './context-types';
 
-// ============================================================================
-// Module Declaration for Package Exports
-// ============================================================================
-
 /**
  * Module declaration to enable imports from package path.
  * Allows: import { ... } from 'vis-2-widgets-collection/types'
@@ -291,10 +252,6 @@ declare module 'vis-2-widgets-collection/types' {
     export * from './context-types';
 }
 
-// ============================================================================
-// Type Import Notes
-// ============================================================================
-
 /**
  * Best Practice: Always use explicit imports for widget types.
  *
@@ -314,10 +271,6 @@ declare module 'vis-2-widgets-collection/types' {
  * Avoid using overly generic types like `BuildWidgetData<any[]>` in production code.
  * Always specify the exact field modules your widget uses for proper type checking.
  */
-
-// ============================================================================
-// Compatibility Layer (Backward Compatibility)
-// ============================================================================
 
 /**
  * Type aliases for backward compatibility with old type system.

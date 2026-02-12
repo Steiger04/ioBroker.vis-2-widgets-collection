@@ -26,10 +26,6 @@
 import type { FieldDefinitions } from './field-definitions';
 import type { UnionToIntersection } from './widget-builder';
 
-// ============================================================================
-// Widget Field Mappings
-// ============================================================================
-
 /**
  * Central mapping table defining which field definitions each widget uses.
  *
@@ -128,10 +124,6 @@ export interface WidgetFieldMappings {
     tplLight2CollectionWidget: ['base', 'common', 'commonObject', 'light2', 'delay'];
 }
 
-// ============================================================================
-// Widget Registry Type
-// ============================================================================
-
 /**
  * Auto-generated widget registry mapping widget IDs to their composed data types.
  *
@@ -187,10 +179,6 @@ export type WidgetRegistry = {
         ? UnionToIntersection<FieldDefinitions[WidgetFieldMappings[K][number]]>
         : never;
 };
-
-// ============================================================================
-// Helper Types
-// ============================================================================
 
 /**
  * Extract widget data type for a specific widget ID.
@@ -272,10 +260,6 @@ export type WidgetId = keyof WidgetRegistry;
  * ```
  */
 export type AnyWidgetData = WidgetRegistry[keyof WidgetRegistry];
-
-// ============================================================================
-// Validation Types
-// ============================================================================
 
 /**
  * Type guard to check if a widget ID is valid.

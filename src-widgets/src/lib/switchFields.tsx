@@ -35,11 +35,6 @@ const switchFields = (): ExtendedSwitchField[] => [
         default: 62,
         step: 1,
     },
-    /* {
-        name: 'thumbColorTrue',
-        label: 'thumb_color_true',
-        type: 'color',
-    }, */
     {
         name: 'thumbColorTrue',
         label: 'thumb_color_true',
@@ -63,11 +58,6 @@ const switchFields = (): ExtendedSwitchField[] => [
             />
         ),
     },
-    /* {
-        name: 'thumbColorFalse',
-        label: 'thumb_color_false',
-        type: 'color',
-    }, */
     {
         name: 'thumbColorFalse',
         label: 'thumb_color_false',
@@ -104,11 +94,6 @@ const switchFields = (): ExtendedSwitchField[] => [
         default: 10,
         step: 1,
     },
-    /* {
-        name: 'trackColor',
-        label: 'track_color',
-        type: 'color',
-    }, */
     {
         name: 'trackColor',
         label: 'track_color',

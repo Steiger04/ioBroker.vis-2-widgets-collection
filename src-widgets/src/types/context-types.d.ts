@@ -47,10 +47,6 @@ import type { WidgetRegistry } from './widget-registry';
 // Note: VisRxWidgetStateValues is exported from @iobroker/types-vis-2/index.d.ts
 // and is augmented in vis-2-extensions.d.ts to support collection_${string} patterns
 
-// ============================================================================
-// Shared Widget Data Interfaces
-// ============================================================================
-
 /**
  * Minimal widget data interface for {@link module:components/CollectionBaseImage}.
  *
@@ -114,10 +110,6 @@ export interface UseHtmlValueWidgetData {
     /** Unit of measurement displayed alongside the value (e.g., '°C', '%', 'kWh'). */
     unit?: string;
 }
-
-// ============================================================================
-// Base Context Interface
-// ============================================================================
 
 /**
  * Generic React Context properties for Collection widgets.
@@ -472,10 +464,6 @@ export interface CollectionContextProps<T extends object = object> {
     getWidgetView?: (viewName: string, options?: { style?: React.CSSProperties }) => React.ReactElement;
 }
 
-// ============================================================================
-// Widget-Specific Context Types
-// ============================================================================
-
 /**
  * React Context props for Template Collection Widget.
  *
@@ -787,10 +775,6 @@ export type DialogCollectionContextProps = CollectionContextProps<WidgetRegistry
  * ```
  */
 export type Light2CollectionContextProps = CollectionContextProps<WidgetRegistry['tplLight2CollectionWidget']>;
-
-// ============================================================================
-// Union & Helper Types
-// ============================================================================
 
 /**
  * Union of all widget-specific context types.

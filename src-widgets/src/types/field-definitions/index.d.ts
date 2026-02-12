@@ -86,10 +86,6 @@ export interface FieldDefinitions {
      */
     commonObject: CommonObjectFieldsRxData;
 
-    // ========================================
-    // Widget-specific fields
-    // ========================================
-
     /** State field types (state handling, push button) */
     state: StateFieldsRxData;
 
@@ -123,10 +119,6 @@ export interface FieldDefinitions {
     /** Light2-specific field types (RGB/HSV/CCT color control) */
     light2: Light2FieldsRxData;
 }
-
-// ========================================
-// Re-Exports
-// ========================================
 
 /**
  * Re-export all types from common-fields for convenience.

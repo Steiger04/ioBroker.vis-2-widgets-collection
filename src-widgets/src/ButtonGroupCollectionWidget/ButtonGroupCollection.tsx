@@ -64,9 +64,6 @@ function ButtonGroupCollection(): React.JSX.Element {
         [setOidValueState],
     );
 
-    // console.log('buttonStates', buttonStates);
-    // console.log('styleData', styleData);
-
     return (
         <CollectionBase
             isValidType={isValidType}

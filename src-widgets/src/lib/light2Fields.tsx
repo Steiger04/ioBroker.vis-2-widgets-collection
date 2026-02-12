@@ -75,7 +75,6 @@ const RGB_ROLES: Record<string, string> = {
     'level.brightness': 'colorLightBrightnessOid',
     'level.dimmer': 'colorLightBrightnessOid',
     'level.color.temperature': 'colorLightTemperatureOid',
-    // Note: These might need adjustment based on actual field names
     'level.color.luminance': 'colorLightBrightnessOid',
     'level.color.white': 'colorLightBrightnessOid',
 };

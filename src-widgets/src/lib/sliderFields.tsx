@@ -73,11 +73,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '-5px',
         hidden: "data.valueLabelDisplay === 'off'",
     } as const,
-    /* {
-        name: 'sliderColor',
-        label: 'slider_color',
-        type: 'color',
-    } as const, */
     {
         name: 'sliderColor',
         label: 'slider_color',
@@ -126,11 +121,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 20,
         min: 0,
     } as const,
-    /* {
-        name: 'thumbColor',
-        label: 'thumb_color',
-        type: 'color',
-    } as const, */
     {
         name: 'thumbColor',
         label: 'thumb_color',
@@ -162,11 +152,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
         max: 100,
     } as const,
-    /* {
-        name: 'thumbBorderColor',
-        label: 'thumb_border_color',
-        type: 'color',
-    } as const, */
     {
         name: 'thumbBorderColor',
         label: 'thumb_border_color',
@@ -201,11 +186,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 4,
         min: 0,
     } as const,
-    /* {
-        name: 'trackBackgroundColor',
-        label: 'track_background_color',
-        type: 'color',
-    } as const, */
     {
         name: 'trackBackgroundColor',
         label: 'track_background_color',
@@ -237,11 +217,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
         max: 100,
     } as const,
-    /* {
-        name: 'trackBorderColor',
-        label: 'track_border_color',
-        type: 'color',
-    } as const, */
     {
         name: 'trackBorderColor',
         label: 'track_border_color',
@@ -276,11 +251,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 4,
         min: 0,
     } as const,
-    /* {
-        name: 'railBackgroundColor',
-        label: 'rail_background_color',
-        type: 'color',
-    } as const, */
     {
         name: 'railBackgroundColor',
         label: 'rail_background_color',
@@ -345,11 +315,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 2,
         min: 0,
     } as const,
-    /* {
-        name: 'markBackgroundColor',
-        label: 'mark_background_color',
-        type: 'color',
-    } as const, */
     {
         name: 'markBackgroundColor',
         label: 'mark_background_color',
@@ -442,12 +407,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         component: () => <CollectionDivider />,
         hidden: '!data.marks',
     } as const,
-    /* {
-        name: 'markerTextColor',
-        label: 'marker_text_color',
-        type: 'color',
-        hidden: '!data.marks',
-    } as const, */
     {
         name: 'markerTextColor',
         label: 'marker_text_color',
@@ -526,12 +485,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '24px',
         hidden: '!data.iconMin && !data.iconSmallMin',
     } as const,
-    /* {
-        name: 'startIconColor',
-        label: 'icon_color',
-        type: 'color',
-        hidden: '!data.iconMin && !data.iconSmallMin',
-    } as const, */
+
     {
         name: 'startIconColor',
         label: 'icon_color',
@@ -580,12 +534,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '24px',
         hidden: '!data.iconMax && !data.iconSmallMax',
     } as const,
-    /* {
-        name: 'endIconColor',
-        label: 'icon_color',
-        type: 'color',
-        hidden: '!data.iconMax && !data.iconSmallMax',
-    } as const, */
+
     {
         name: 'endIconColor',
         label: 'icon_color',

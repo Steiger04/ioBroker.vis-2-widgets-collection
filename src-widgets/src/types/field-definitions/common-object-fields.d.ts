@@ -52,10 +52,6 @@ export type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
  * ```
  */
 export interface CommonObjectFieldsRxData {
-    // ========================================
-    // Base properties
-    // ========================================
-
     /**
      * Main ioBroker object ID.
      * Primary state identifier for the widget.
@@ -231,10 +227,6 @@ export interface CommonObjectFieldsRxData {
         maxValue?: number;
     };
 
-    // ========================================
-    // Object Metadata (Dynamic)
-    // ========================================
-
     /**
      * Full object metadata from ioBroker.
      * Stores complete state information including type, unit, states, etc.
@@ -325,10 +317,6 @@ export interface CommonObjectFieldsRxData {
               maxValue?: number;
           }
         | undefined;
-
-    // ========================================
-    // Dynamic Value Properties
-    // ========================================
 
     /**
      * Alias names for values.

@@ -17,10 +17,6 @@
  * ```
  */
 export interface BaseFieldsRxData {
-    // ========================================
-    // Header/Footer Control
-    // ========================================
-
     /**
      * Hide header section (base property without index).
      * Used in CollectionBase and other base components for global header visibility control.
@@ -136,10 +132,6 @@ export interface BaseFieldsRxData {
      */
     footerSize?: number | string;
 
-    // ========================================
-    // Card Styling
-    // ========================================
-
     /**
      * Hide card container (base property without index).
      * Removes the Material-UI Card wrapper for a flat appearance.
@@ -224,10 +216,6 @@ export interface BaseFieldsRxData {
      */
     outlinedFrame?: boolean;
 
-    // ========================================
-    // Base Container
-    // ========================================
-
     /**
      * Padding inside base container in pixels (base property without index).
      * Global padding applied to the widget's main container.
@@ -261,10 +249,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.baseElevation}
      */
     baseElevation?: number;
-
-    // ========================================
-    // Geometry
-    // ========================================
 
     /**
      * Use square shape (base property without index).
@@ -316,10 +300,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.circle}
      */
     circle?: boolean;
-
-    // ========================================
-    // Backgrounds
-    // ========================================
 
     /**
      * Background image URL or path (base property without index).
@@ -385,10 +365,6 @@ export interface BaseFieldsRxData {
      */
     frameBackgroundColor?: string;
 
-    // ========================================
-    // Value Display
-    // ========================================
-
     /**
      * Value font size (base property without index).
      * Sets the global value text size.
@@ -420,10 +396,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.value}
      */
     value?: string | number;
-
-    // ========================================
-    // Icon Control
-    // ========================================
 
     /**
      * Icon identifier (base property without index).
@@ -564,10 +536,6 @@ export interface BaseFieldsRxData {
      * @see {@link CommonFieldsRxData.noIcon}
      */
     noIcon?: boolean;
-
-    // ========================================
-    // Misc
-    // ========================================
 
     /**
      * Hide value display (base property without index).

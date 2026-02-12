@@ -33,11 +33,6 @@ const selectFields = (): ExtendedSelectField[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="arrow" />,
     },
-    /* {
-        name: 'arrowColor',
-        label: 'arrow_color',
-        type: 'color',
-    }, */
     {
         name: 'arrowColor',
         label: 'arrow_color',

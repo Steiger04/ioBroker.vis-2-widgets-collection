@@ -99,11 +99,6 @@ const dialogFields = (): ExtendedDialogField[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    /* {
-        name: 'dialogBackgroundColor',
-        label: 'background_color',
-        type: 'color',
-    }, */
     {
         name: 'dialogBackgroundColor',
         label: 'background_color',

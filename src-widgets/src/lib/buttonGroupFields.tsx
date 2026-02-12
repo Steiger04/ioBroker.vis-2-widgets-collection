@@ -56,11 +56,6 @@ const buttonGroupFields = (): ExtendedButtonGroupField[] => [
         ],
         default: 'horizontal',
     },
-    /* {
-        name: 'buttonGroupColor',
-        label: 'button_group_color',
-        type: 'color',
-    }, */
     {
         name: 'buttonGroupColor',
         label: 'button_group_color',
