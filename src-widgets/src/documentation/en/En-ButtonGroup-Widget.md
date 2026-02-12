@@ -14,33 +14,43 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name             | Type   | Default      | Description                     | Condition |
-| ---------------------- | ------ | ------------ | ------------------------------- | --------- |
-| buttonGroupVariant     | select | 'contained'  | Display variant of the buttons  | -         |
-| buttonGroupOrientation | select | 'horizontal' | Orientation of the button group | -         |
-| buttonGroupColor       | select | 'primary'    | Color scheme of the buttons     | -         |
+| Field Name             | Type     | Default       | Description                     | Condition         |
+| ---------------------- | -------- | ------------- | ------------------------------- | --------- |
+| onlyIcon               | checkbox | false         | Show icons only (no text)       | Only when onlyText=false |
+| onlyText               | checkbox | false         | Show text only (no icons)       | Only when onlyIcon=false |
+| buttonGroupVariant     | select   | 'text'        | Display variant (text, outlined)| -         |
+| buttonGroupOrientation | select   | 'horizontal'  | Orientation of the button group | -         |
+| buttonGroupColor       | color    | -             | Color scheme of the buttons     | -         |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 
 ## Variants
 
-### Contained (Default)
-
-- Full-surface buttons with background color
-- Clear visual separation between buttons
-- Recommended for primary actions
-
-### Outlined
-
-- Buttons with border, transparent background
-- Less visual weight than Contained
-- Recommended for secondary actions
-
-### Text
+### Text (Default)
 
 - Minimalist, text only without background or border
 - Lowest visual priority
 - Recommended for tertiary actions or dense layouts
+
+### Outlined
+
+- Buttons with border, transparent background
+- Less visual weight than filled buttons
+- Recommended for secondary actions
+
+## Display Options
+
+### Only Icon
+
+- Enable `onlyIcon` to show only the icons without text
+- Useful for compact displays
+- Icons should be self-explanatory
+
+### Only Text
+
+- Enable `onlyText` to show only the text without icons
+- Useful when visual space is limited
+- Recommended for accessibility
 
 ## Orientation
 
@@ -56,16 +66,11 @@ The widget-specific settings override the more general settings.
 - Space-saving in width
 - Good for narrow layouts or many options
 
-## Color Schemes
+## Styling
 
-The color of the buttons can be controlled via `buttonGroupColor`:
+### Button Group Color
 
-- **Primary**: Primary color of the theme (default)
-- **Secondary**: Secondary color of the theme
-- **Success**: Green for successful/positive actions
-- **Error**: Red for erroneous/negative actions
-- **Warning**: Orange/Yellow for warnings
-- **Info**: Blue for information
+The `buttonGroupColor` field allows you to set a custom color for the button group using a color picker. This color affects the visual appearance of the buttons when they are in a selected or active state.
 
 ## Data Types
 

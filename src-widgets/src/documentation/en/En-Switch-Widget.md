@@ -14,13 +14,13 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name      | Type           | Default | Description                                | Condition            |
-| --------------- | -------------- | ------- | ------------------------------------------ | -------------------- |
-| thumbSize       | slider (1-100) | -       | Size of the switch thumb in pixels         | -                    |
-| thumbColorTrue  | color          | -       | Color of the thumb in "true" state         | -                    |
-| thumbColorFalse | color          | -       | Color of the thumb in "false" state        | -                    |
-| trackSize       | slider (1-100) | -       | Size of the switch track in pixels         | -                    |
-| trackColor      | color          | -       | Color of the track                         | -                    |
+| Field Name      | Type            | Default | Description                                | Condition            |
+| --------------- | --------------- | ------- | ------------------------------------------ | -------------------- |
+| thumbSize       | slider (0-500)  | 62      | Size of the switch thumb in pixels         | -                    |
+| thumbColorTrue  | color           | -       | Color of the thumb in "true" state         | -                    |
+| thumbColorFalse | color           | -       | Color of the thumb in "false" state        | -                    |
+| trackSize       | slider (0-100)  | 10      | Size of the switch track in pixels         | -                    |
+| trackColor      | color           | -       | Color of the track                         | -                    |
 | onlyDisplay     | checkbox       | false   | Display only (no write permissions on OID) | Only when write=true |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.

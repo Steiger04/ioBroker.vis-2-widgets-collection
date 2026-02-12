@@ -14,14 +14,14 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ## Widget-spezifische Einstellungen
 
-| Feldname        | Typ            | Standard | Beschreibung                                | Bedingung           |
-| --------------- | -------------- | -------- | ------------------------------------------- | ------------------- |
-| thumbSize       | slider (1-100) | -        | Größe des Schalter-Knopfs (Thumb) in Pixel  | -                   |
-| thumbColorTrue  | color          | -        | Farbe des Knopfs im Zustand "true"          | -                   |
-| thumbColorFalse | color          | -        | Farbe des Knopfs im Zustand "false"         | -                   |
-| trackSize       | slider (1-100) | -        | Größe der Schalter-Schiene (Track) in Pixel | -                   |
-| trackColor      | color          | -        | Farbe der Schiene                           | -                   |
-| onlyDisplay     | checkbox       | false    | Nur Anzeige (keine Schreibrechte auf OID)   | Nur wenn write=true |
+| Feldname        | Typ             | Standard | Beschreibung                                | Bedingung           |
+| --------------- | --------------- | -------- | ------------------------------------------- | ------------------- |
+| thumbSize       | slider (0-500)  | 62       | Größe des Schalter-Knopfs (Thumb) in Pixel  | -                   |
+| thumbColorTrue  | color           | -        | Farbe des Knopfs im Zustand "true"          | -                   |
+| thumbColorFalse | color           | -        | Farbe des Knopfs im Zustand "false"         | -                   |
+| trackSize       | slider (0-100)  | 10       | Größe der Schalter-Schiene (Track) in Pixel | -                   |
+| trackColor      | color           | -        | Farbe der Schiene                           | -                   |
+| onlyDisplay     | checkbox        | false    | Nur Anzeige (keine Schreibrechte auf OID)   | Nur wenn write=true |
 
 **Hinweis:** Zusätzlich zu den oben genannten Einstellungen sind die **Wert schreiben**-Einstellungen (Verzögerung/Intervall) verfügbar. Diese steuern, wie Wertänderungen an die OID geschrieben werden. Siehe [Common Einstellungen - Wert schreiben](De-Home.md#wert-schreiben) für Details.
 

@@ -25,30 +25,37 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 | Feldname      | Typ      | Standard | Beschreibung                 | Bedingung |
 | ------------- | -------- | -------- | ---------------------------- | --------- |
-| dialogWidth   | number   | 80       | Breite des Dialogs           | -         |
-| dialogHeight  | number   | 80       | Höhe des Dialogs             | -         |
+| dialogWidth   | slider   | 100      | Breite des Dialogs (1-100)         | -         |
+| dialogHeight  | slider   | 100      | Höhe des Dialogs (1-100)           | -         |
 | dialogInPixel | checkbox | false    | Größe in Pixel statt Prozent | -         |
+
+### Dialog-Inhalt
+
+| Feldname                | Typ      | Standard | Beschreibung                | Bedingung          |
+| ----------------------- | -------- | -------- | --------------------------- | ------------------ |
+| dialogText              | html     | -        | Textinhalt des Dialogs      | -                  |
+| onlyIcon                | checkbox | false    | Nur Icon anzeigen           | Nur wenn onlyText=false   |
+| onlyText                | checkbox | false    | Nur Text anzeigen           | Nur wenn onlyIcon=false   |
 
 ### Close-Button
 
-| Feldname                | Typ      | Standard | Beschreibung                     | Bedingung                       |
-| ----------------------- | -------- | -------- | -------------------------------- | ------------------------------- |
-| dialogCloseButton       | checkbox | true     | Schließen-Button anzeigen        | -                               |
-| dialogCloseButtonTop    | text     | -        | Position von oben (z.B. "10px")  | Nur wenn dialogCloseButton=true |
-| dialogCloseButtonBottom | text     | -        | Position von unten (z.B. "10px") | Nur wenn dialogCloseButton=true |
-| dialogCloseButtonColor  | color    | -        | Farbe des Schließen-Buttons      | Nur wenn dialogCloseButton=true |
+| Feldname                | Typ      | Standard | Beschreibung                | Bedingung |
+| ----------------------- | -------- | -------- | --------------------------- | --------- |
+| dialogCloseButtonTop    | checkbox | false    | Schließen-Button oben       | -         |
+| dialogCloseButtonBottom | checkbox | false    | Schließen-Button unten      | -         |
+| dialogCloseButtonColor  | color    | -        | Farbe des Schließen-Buttons | -         |
 
 ### Auto-Close
 
-| Feldname        | Typ    | Standard | Beschreibung                                 | Bedingung |
-| --------------- | ------ | -------- | -------------------------------------------- | --------- |
-| dialogAutoClose | number | -        | Automatisches Schließen nach x Millisekunden | -         |
+| Feldname        | Typ    | Standard | Beschreibung                             | Bedingung |
+| --------------- | ------ | -------- | ---------------------------------------- | --------- |
+| dialogAutoClose | slider | 0        | Automatisches Schließen nach x ms (0-30000) | -         |
 
 ### OID-Steuerung
 
-| Feldname | Typ  | Standard | Beschreibung                                                 | Bedingung |
-| -------- | ---- | -------- | ------------------------------------------------------------ | --------- |
-| cid      | text | -        | OID zur Steuerung des Dialogs (true=öffnen, false=schließen) | -         |
+| Feldname  | Typ | Standard | Beschreibung                                                | Bedingung |
+| --------- | --- | -------- | ----------------------------------------------------------- | --------- |
+| dialogId  | id  | -        | OID zur Steuerung des Dialogs (true=öffnen, false=schließen) | -         |
 
 ## View-Auswahl
 

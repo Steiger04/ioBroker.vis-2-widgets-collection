@@ -25,30 +25,37 @@ The widget-specific settings override the more general settings.
 
 | Field Name    | Type     | Default | Description                       | Condition |
 | ------------- | -------- | ------- | --------------------------------- | --------- |
-| dialogWidth   | number   | 80      | Width of the dialog               | -         |
-| dialogHeight  | number   | 80      | Height of the dialog              | -         |
+| dialogWidth   | slider   | 100     | Width of the dialog (1-100)       | -         |
+| dialogHeight  | slider   | 100     | Height of the dialog (1-100)      | -         |
 | dialogInPixel | checkbox | false   | Size in pixels instead of percent | -         |
+
+### Dialog Content
+
+| Field Name    | Type     | Default | Description                | Condition |
+| ------------- | -------- | ------- | -------------------------- | --------- |
+| dialogText    | html     | -       | Text content of the dialog | -         |
+| onlyIcon      | checkbox | false   | Show icon only             | Only when onlyText=false   |
+| onlyText      | checkbox | false   | Show text only             | Only when onlyIcon=false   |
 
 ### Close Button
 
-| Field Name              | Type     | Default | Description                         | Condition                        |
-| ----------------------- | -------- | ------- | ----------------------------------- | -------------------------------- |
-| dialogCloseButton       | checkbox | true    | Show close button                   | -                                |
-| dialogCloseButtonTop    | text     | -       | Position from top (e.g., "10px")    | Only when dialogCloseButton=true |
-| dialogCloseButtonBottom | text     | -       | Position from bottom (e.g., "10px") | Only when dialogCloseButton=true |
-| dialogCloseButtonColor  | color    | -       | Color of the close button           | Only when dialogCloseButton=true |
+| Field Name              | Type     | Default | Description                    | Condition |
+| ----------------------- | -------- | ------- | ------------------------------ | --------- |
+| dialogCloseButtonTop    | checkbox | false   | Show close button at top       | -         |
+| dialogCloseButtonBottom | checkbox | false   | Show close button at bottom    | -         |
+| dialogCloseButtonColor  | color    | -       | Color of the close button      | -         |
 
 ### Auto-Close
 
 | Field Name      | Type   | Default | Description                          | Condition |
 | --------------- | ------ | ------- | ------------------------------------ | --------- |
-| dialogAutoClose | number | -       | Automatic close after x milliseconds | -         |
+| dialogAutoClose | slider | 0       | Automatic close after x milliseconds (0-30000) | -         |
 
 ### OID Control
 
 | Field Name | Type | Default | Description                                        | Condition |
 | ---------- | ---- | ------- | -------------------------------------------------- | --------- |
-| cid        | text | -       | OID to control the dialog (true=open, false=close) | -         |
+| dialogId   | id   | -       | OID to control the dialog (true=open, false=close) | -         |
 
 ## View Selection
 

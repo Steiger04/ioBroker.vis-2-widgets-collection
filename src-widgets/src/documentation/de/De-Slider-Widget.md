@@ -40,7 +40,7 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | --------------- | -------- | -------- | ---------------------------------------- | ------------------- |
 | marks           | checkbox | false    | Markierungen anzeigen                    | -                   |
 | markPosition    | text     | '30px'   | Position der Markierungen (Pixel-Offset) | Nur wenn marks=true |
-| markStep        | number   | -        | Schrittweite der Markierungen            | Nur wenn marks=true |
+| markStep        | number   | 10       | Schrittweite der Markierungen            | Nur wenn marks=true |
 | markerTextColor | color    | -        | Textfarbe der Markierungen               | Nur wenn marks=true |
 | markerTextSize  | slider   | -        | Textgröße der Markierungen               | Nur wenn marks=true |
 | markerIconColor | color    | -        | Icon-Farbe der Markierungen              | Nur wenn marks=true |
@@ -52,7 +52,7 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | -------------- | ------ | -------- | ---------------------------- | --------- |
 | iconSmallMin   | icon64 | -        | Kleines Icon (SVG) am Anfang | -         |
 | iconMin        | image  | -        | Großes Icon (Bild) am Anfang | -         |
-| iconSizeStart  | slider | -        | Größe des Start-Icons        | -         |
+| iconSizeStart  | text   | '24px'   | Größe des Start-Icons        | -         |
 | startIconColor | color  | -        | Farbe des Start-Icons        | -         |
 
 ### End-Icon (Max)
@@ -61,7 +61,7 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 | ------------ | ------ | -------- | -------------------------- | --------- |
 | iconSmallMax | icon64 | -        | Kleines Icon (SVG) am Ende | -         |
 | iconMax      | image  | -        | Großes Icon (Bild) am Ende | -         |
-| iconSizeEnd  | slider | -        | Größe des End-Icons        | -         |
+| iconSizeEnd  | text   | '24px'   | Größe des End-Icons        | -         |
 | endIconColor | color  | -        | Farbe des End-Icons        | -         |
 
 ### Erweiterte Styling-Optionen

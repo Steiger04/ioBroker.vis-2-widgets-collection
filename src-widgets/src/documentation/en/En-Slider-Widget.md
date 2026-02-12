@@ -40,7 +40,7 @@ The widget-specific settings override the more general settings.
 | --------------- | -------- | ------- | -------------------------------- | -------------------- |
 | marks           | checkbox | false   | Show marks                       | -                    |
 | markPosition    | text     | '30px'  | Position of marks (pixel offset) | Only when marks=true |
-| markStep        | number   | -       | Step size of marks               | Only when marks=true |
+| markStep        | number   | 10      | Step size of marks               | Only when marks=true |
 | markerTextColor | color    | -       | Text color of marks              | Only when marks=true |
 | markerTextSize  | slider   | -       | Text size of marks               | Only when marks=true |
 | markerIconColor | color    | -       | Icon color of marks              | Only when marks=true |
@@ -52,7 +52,7 @@ The widget-specific settings override the more general settings.
 | -------------- | ------ | ------- | --------------------------- | --------- |
 | iconSmallMin   | icon64 | -       | Small icon (SVG) at start   | -         |
 | iconMin        | image  | -       | Large icon (image) at start | -         |
-| iconSizeStart  | slider | -       | Size of start icon          | -         |
+| iconSizeStart  | text   | '24px'  | Size of start icon          | -         |
 | startIconColor | color  | -       | Color of start icon         | -         |
 
 ### End Icon (Max)
@@ -61,7 +61,7 @@ The widget-specific settings override the more general settings.
 | ------------ | ------ | ------- | ------------------------- | --------- |
 | iconSmallMax | icon64 | -       | Small icon (SVG) at end   | -         |
 | iconMax      | image  | -       | Large icon (image) at end | -         |
-| iconSizeEnd  | slider | -       | Size of end icon          | -         |
+| iconSizeEnd  | text   | '24px'  | Size of end icon          | -         |
 | endIconColor | color  | -       | Color of end icon         | -         |
 
 ### Advanced Styling Options
