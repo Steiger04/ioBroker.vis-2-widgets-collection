@@ -1347,9 +1347,9 @@ let __tla = Promise.all([
     const { getPropertyValue: x } = R.useContext(Ze), E = R.useMemo(() => x(g), [
       g,
       x
-    ]), [I, D] = R.useState(E);
+    ]), [I, F] = R.useState(E);
     return R.useEffect(() => {
-      E !== void 0 && D(E);
+      E !== void 0 && F(E);
     }, [
       E
     ]), R.useMemo(() => I, [
@@ -1372,7 +1372,7 @@ let __tla = Promise.all([
         if (!a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
         return !e || typeof e != "object" && typeof e != "function" ? a : e;
       }
-      function D(a, e) {
+      function F(a, e) {
         if (typeof e != "function" && e !== null) throw new TypeError("Super expression must either be null or a function, not " + typeof e);
         a.prototype = Object.create(e && e.prototype, {
           constructor: {
@@ -1386,7 +1386,7 @@ let __tla = Promise.all([
       function z(a, e) {
         if (!(a instanceof e)) throw new TypeError("Cannot call a class as a function");
       }
-      function L(a, e) {
+      function Y(a, e) {
         if (e || (e = typeof window > "u" ? Be : window), e[a] !== void 0) return e[a];
         for (var t = [
           "webkit",
@@ -1409,7 +1409,7 @@ let __tla = Promise.all([
       function l() {
         Array.prototype.constructor.apply(this, arguments);
       }
-      function F(a) {
+      function D(a) {
         if (!(a instanceof DOMException && a.result === 2152923147)) throw a;
       }
       function J(a, e) {
@@ -1473,7 +1473,7 @@ let __tla = Promise.all([
       function Q(a, e, t) {
         return a["font" + e + "Style"] + " " + a["font" + e + "Weight"] + " " + a["font" + e + "Size"] * t + "px " + a["font" + e];
       }
-      function Y(a) {
+      function X(a) {
         a.shadowOffsetX = null, a.shadowOffsetY = null, a.shadowBlur = null, a.shadowColor = "", a.strokeStyle = null, a.lineWidth = 0, a.save();
       }
       function ee(a, e, t, r) {
@@ -1481,7 +1481,7 @@ let __tla = Promise.all([
       }
       function ue(a, e, t, r, o, n) {
         if (e.valueBox) {
-          Y(a);
+          X(a);
           var i = e.valueDec ? 1 + e.valueDec : 0, d = "9".repeat(Math.max.apply(null, [
             String(parseInt(t)).length + i
           ].concat(e.majorTicks.map(function(W) {
@@ -1489,7 +1489,7 @@ let __tla = Promise.all([
           })))), u = e.valueText || le(t, e), s = n / 200, c = n / 100, h = 0.4 * c, p = 1.2 * c;
           a.font = Q(e, "Value", s), ee(a, e, h, p);
           var v = a.measureText(e.valueText ? u : "-" + le(Number(d), e)).width;
-          Y(a);
+          X(a);
           var y = parseFloat(e.fontValueSize) * s + h + p, V = c * parseFloat(e.valueBoxStroke), k = 2 * n - 2 * V, S = v + 10 * c, C = 1.1 * y + h + p, N = c * e.valueBoxBorderRadius, B = (parseFloat(e.valueBoxWidth) || 0) / 100 * k;
           B > S && (S = B), S > k && (S = k);
           var T = r - S / 2, b = o - C / 2, f = o - 5.75 * c;
@@ -1508,20 +1508,20 @@ let __tla = Promise.all([
         };
       }
       function _e(a, e, t, r, o) {
-        t.beginPath(), t.arc(0, 0, G(a), 0, 2 * ge, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
+        t.beginPath(), t.arc(0, 0, U(a), 0, 2 * ge, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
       }
       function he(a, e) {
-        var t = U.pixelRatio;
+        var t = L.pixelRatio;
         return a.maxRadius || (a.maxRadius = a.max - e.borderShadowWidth - e.borderOuterWidth * t - e.borderMiddleWidth * t - e.borderInnerWidth * t + (e.borderOuterWidth ? 0.5 : 0) + (e.borderMiddleWidth ? 0.5 : 0) + (e.borderInnerWidth ? 0.5 : 0)), a.maxRadius;
       }
       function Ne(a, e) {
-        var t = U.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, n = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, i = n - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = he(a, e), u = void 0, s = false;
-        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), _e(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), _e(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), _e(i, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, G(d), 0, 2 * ge, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
+        var t = L.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, n = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, i = n - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = he(a, e), u = void 0, s = false;
+        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), _e(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), _e(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), _e(i, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, U(d), 0, 2 * ge, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
       }
       function Ve(a, e) {
         var t = a.max * (parseFloat(e.highlightsWidth) || 0) / 100;
         if (t) {
-          var r = G(me(a, e) - t / 2), o = 0, n = e.highlights.length, i = (e.maxValue - e.minValue) / e.ticksAngle;
+          var r = U(me(a, e) - t / 2), o = 0, n = e.highlights.length, i = (e.maxValue - e.minValue) / e.ticksAngle;
           for (a.save(); o < n; o++) {
             var d = e.highlights[o];
             a.beginPath(), a.rotate(pe), a.arc(0, 0, r, m.radians(e.startAngle + (d.from - e.minValue) / i), m.radians(e.startAngle + (d.to - e.minValue) / i), false), a.strokeStyle = d.color, a.lineWidth = t, a.lineCap = e.highlightsLineCap, a.stroke(), a.closePath(), a.restore(), a.save();
@@ -1530,7 +1530,7 @@ let __tla = Promise.all([
       }
       function We(a, e) {
         var t = me(a, e), r = void 0, o = void 0, n = void 0, i = 0, d = 0, u = Math.abs(e.minorTicks) || 0, s = e.ticksAngle / (e.maxValue - e.minValue);
-        for (a.lineWidth = U.pixelRatio, a.strokeStyle = e.colorMinorTicks || e.colorStrokeTicks, a.save(), e.exactTicks ? (o = e.maxValue - e.minValue, r = u ? o / u : 0, d = (H.mod(e.majorTicks[0], u) || 0) * s) : r = u * (e.majorTicks.length - 1); i < r; ++i) (n = e.startAngle + d + i * (e.ticksAngle / r)) <= e.ticksAngle + e.startAngle && (a.rotate(m.radians(n)), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.075 * a.max), xe(a));
+        for (a.lineWidth = L.pixelRatio, a.strokeStyle = e.colorMinorTicks || e.colorStrokeTicks, a.save(), e.exactTicks ? (o = e.maxValue - e.minValue, r = u ? o / u : 0, d = (q.mod(e.majorTicks[0], u) || 0) * s) : r = u * (e.majorTicks.length - 1); i < r; ++i) (n = e.startAngle + d + i * (e.ticksAngle / r)) <= e.ticksAngle + e.startAngle && (a.rotate(m.radians(n)), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.075 * a.max), xe(a));
       }
       function me(a, e) {
         var t = a.max / 100;
@@ -1538,7 +1538,7 @@ let __tla = Promise.all([
       }
       function Me(a, e) {
         m.prepareTicks(e);
-        var t = G(me(a, e)), r = void 0, o = void 0, n = e.majorTicks.length, i = U.pixelRatio;
+        var t = U(me(a, e)), r = void 0, o = void 0, n = e.majorTicks.length, i = L.pixelRatio;
         for (a.lineWidth = 2 * i, a.save(), o = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(n).fill(e.colorStrokeTicks || e.colorMajorTicks), r = 0; r < n; ++r) a.strokeStyle = o[r], a.rotate(m.radians(Oe(e, e.exactTicks ? e.majorTicks[r] : r, n))), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.15 * a.max), xe(a);
         e.strokeTicks && (a.strokeStyle = e.colorStrokeTicks || o[0], a.rotate(pe), a.beginPath(), a.arc(0, 0, t, m.radians(e.startAngle), m.radians(e.startAngle + e.ticksAngle), false), xe(a));
       }
@@ -1570,7 +1570,7 @@ let __tla = Promise.all([
         if (e.needle) {
           var t = e.ticksAngle < 360 ? m.normalizedValue(e).indented : e.value, r = p ? e.startAngle : e.startAngle + (t - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle;
           e.barStartPosition === "right" && (r = e.startAngle + e.ticksAngle - (t - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle);
-          var o = he(a, e), n = G(o / 100 * e.needleCircleSize), i = G(o / 100 * e.needleCircleSize * 0.75), d = G(o / 100 * e.needleEnd), u = G(e.needleStart ? o / 100 * e.needleStart : 0), s = o / 100 * e.needleWidth, c = o / 100 * e.needleWidth / 2, h = U.pixelRatio, p = e.animationTarget !== "needle";
+          var o = he(a, e), n = U(o / 100 * e.needleCircleSize), i = U(o / 100 * e.needleCircleSize * 0.75), d = U(o / 100 * e.needleEnd), u = U(e.needleStart ? o / 100 * e.needleStart : 0), s = o / 100 * e.needleWidth, c = o / 100 * e.needleWidth / 2, h = L.pixelRatio, p = e.animationTarget !== "needle";
           a.save(), m.drawNeedleShadow(a, e), a.rotate(m.radians(r)), a.fillStyle = m.linearGradient(a, e.colorNeedle, e.colorNeedleEnd, d - u), e.needleType === "arrow" ? (a.beginPath(), a.moveTo(-c, -u), a.lineTo(-s, 0), a.lineTo(-1 * h, d), a.lineTo(h, d), a.lineTo(s, 0), a.lineTo(c, -u), a.closePath(), a.fill(), a.beginPath(), a.lineTo(-0.5 * h, d), a.lineTo(-1 * h, d), a.lineTo(-s, 0), a.lineTo(-c, -u), a.lineTo(c / 2 * h - 2 * h, -u), a.closePath(), a.fillStyle = e.colorNeedleShadowUp, a.fill()) : (a.beginPath(), a.moveTo(-c, d), a.lineTo(-c, u), a.lineTo(c, u), a.lineTo(c, d), a.closePath(), a.fill()), e.needleCircleSize && (a.restore(), m.drawNeedleShadow(a, e), e.needleCircleOuter && (a.beginPath(), a.arc(0, 0, n, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleOuter, e.colorNeedleCircleOuterEnd, n), a.fill(), a.closePath()), e.needleCircleInner && (a.beginPath(), a.arc(0, 0, i, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleInner, e.colorNeedleCircleInnerEnd, i), a.fill(), a.closePath()), a.restore());
         }
       }
@@ -1606,7 +1606,7 @@ let __tla = Promise.all([
         a.beginPath(), a.lineWidth = e, a.strokeStyle = u ? m.linearGradient(a, d, u, i, true, o) : d, t > 0 ? m.roundRect(a, r, o, n, i, t) : a.rect(r, o, n, i), a.stroke(), a.closePath();
       }
       function oa(a, e, t, r, o, n) {
-        var i = U.pixelRatio;
+        var i = L.pixelRatio;
         a.save();
         var d = e.borderRadius * i, u = o - e.borderShadowWidth - e.borderOuterWidth * i, s = u - e.borderOuterWidth * i - e.borderMiddleWidth * i, c = s - e.borderMiddleWidth * i - e.borderInnerWidth * i, h = c - e.borderInnerWidth * i, p = n - e.borderShadowWidth - e.borderOuterWidth * i, v = p - e.borderOuterWidth * i - e.borderMiddleWidth * i, y = v - e.borderMiddleWidth * i - e.borderInnerWidth * i, V = y - e.borderInnerWidth * i, k = t - (s - u) / 2, S = k - (c - s) / 2, C = S - (h - c) / 2, N = r - (v - p) / 2, B = N - (y - v) / 2, T = B - (V - y) / 2, b = 0, f = false;
         return e.borderOuterWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderOuterWidth * i, d, t + e.borderOuterWidth * i / 2 - b, r + e.borderOuterWidth * i / 2 - b, u, p, e.colorBorderOuter, e.colorBorderOuterEnd), b += 0.5 * i), e.borderMiddleWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderMiddleWidth * i, d -= 1 + 2 * b, k + e.borderMiddleWidth * i / 2 - b, N + e.borderMiddleWidth * i / 2 - b, s + 2 * b, v + 2 * b, e.colorBorderMiddle, e.colorBorderMiddleEnd), b += 0.5 * i), e.borderInnerWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderInnerWidth * i, d -= 1 + 2 * b, S + e.borderInnerWidth * i / 2 - b, B + e.borderInnerWidth * i / 2 - b, c + 2 * b, y + 2 * b, e.colorBorderInner, e.colorBorderInnerEnd), b += 0.5 * i), m.drawShadow(a, e, f), ra(a, d, C, T, h + 2 * b, V + 2 * b, e.colorPlate, e.colorPlateEnd), a.restore(), [
@@ -1617,7 +1617,7 @@ let __tla = Promise.all([
         ];
       }
       function na(a, e, t, r, o, n) {
-        var i = U.pixelRatio, d = n >= o, u = d ? 0.85 * o : n, s = d ? n : o;
+        var i = L.pixelRatio, d = n >= o, u = d ? 0.85 * o : n, s = d ? n : o;
         t = d ? _(t + (o - u) / 2) : t;
         var c = !!e.title, h = !!e.units, p = !!e.valueBox, v = void 0, y = void 0, V = void 0;
         d ? (y = _(0.05 * s), v = _(0.075 * s), V = _(0.11 * s), c && (s -= v, r += v), h && (s -= y), p && (s -= V)) : (y = v = _(0.15 * u), c && (u -= v, r += v), h && (u -= y));
@@ -1650,12 +1650,12 @@ let __tla = Promise.all([
       function Fe(a, e, t, r, o, n, i) {
         var d = na(a, e, r, o, n, i), u = d.isVertical, s = d.width, c = d.barWidth, h = d.barLength, p = d.strokeWidth, v = d.barMargin, y = d.radius, V = d.x0, k = d.y0, S = d.X, C = d.Y, N = h;
         if (a.save(), a.beginPath(), e.barBeginCircle) {
-          var B = m.radians(u ? 270 : 0), T = Math.asin(c / 2 / y), b = Math.cos(T), f = Math.sin(T), w = V + (u ? y * f : y * b - p / 2), W = u ? k - y * b : k + y * f, O = G(u ? W - k : w - V);
+          var B = m.radians(u ? 270 : 0), T = Math.asin(c / 2 / y), b = Math.cos(T), f = Math.sin(T), w = V + (u ? y * f : y * b - p / 2), W = u ? k - y * b : k + y * f, O = U(u ? W - k : w - V);
           a.barDimensions.barOffset = _(O + y);
-          var j = u ? _(V - y * f) : w, q = u ? W : _(k - y * f);
+          var j = u ? _(V - y * f) : w, G = u ? W : _(k - y * f);
           t === "progress" && (h = a.barDimensions.barOffset + (h - a.barDimensions.barOffset) * (m.normalizedValue(e).normal - e.minValue) / (e.maxValue - e.minValue));
-          var X = _(w + h - a.barDimensions.barOffset + p / 2), ce = _(W - h + a.barDimensions.barOffset - p / 2);
-          a.arc(V, k, y, B + T, B - T), u ? (a.moveTo(w, q), a.lineTo(w, ce), a.lineTo(j, ce), a.lineTo(j, q)) : (a.moveTo(w, q), a.lineTo(X, q), a.lineTo(X, W), a.lineTo(w, W));
+          var H = _(w + h - a.barDimensions.barOffset + p / 2), ce = _(W - h + a.barDimensions.barOffset - p / 2);
+          a.arc(V, k, y, B + T, B - T), u ? (a.moveTo(w, G), a.lineTo(w, ce), a.lineTo(j, ce), a.lineTo(j, G)) : (a.moveTo(w, G), a.lineTo(H, G), a.lineTo(H, W), a.lineTo(w, W));
         } else {
           var te = _(u ? S + (s - c) / 2 : S + v), Ye = _(u ? C + h + v : C + (s - c) / 2);
           t === "progress" && (h *= (e.value - e.minValue) / (e.maxValue - e.minValue)), u ? a.rect(te, Ye, c, -h) : a.rect(te, Ye, h, c);
@@ -1676,7 +1676,7 @@ let __tla = Promise.all([
         if (e.highlights && v) {
           var y = e.tickSide !== "right", V = e.tickSide !== "left", k = 0, S = e.highlights.length, C = (o - i) / 2, N = e.maxValue - e.minValue, B = _(r ? s + C : s + u + d), T = v, b = r ? c + n - u - d : c + C, f = _((e.ticksWidth / 100 + p) * o) + (v - e.ticksWidth / 100 * o), w = _(i + p * o);
           for (a.save(); k < S; k++) {
-            var W = e.highlights[k], O = h * G(e.minValue - W.from) / N, j = h * G((W.to - W.from) / N);
+            var W = e.highlights[k], O = h * U(e.minValue - W.from) / N, j = h * U((W.to - W.from) / N);
             a.beginPath(), a.fillStyle = W.color, r ? (y && a.rect(B - f, b - O, T, -j), V && a.rect(B + w, b - O, T, -j)) : (y && a.rect(B + O, b - f, j, T), V && a.rect(B + O, b + w, j, T)), a.fill(), a.closePath();
           }
         }
@@ -1685,14 +1685,14 @@ let __tla = Promise.all([
         a.beginPath(), a.moveTo(e, t), a.lineTo(r, o), a.stroke(), a.closePath(), a.save();
       }
       function Le(a, e, t, r, o, n, i, d, u) {
-        var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.barWidth, v = s.barOffset, y = s.barMargin, V = s.pixelRatio, k = s.width, S = s.X, C = s.Y, N = s.ticksLength, B = s.ticksPadding, T = (k - p) / 2, b = void 0, f = void 0, w = 0, W = t.length, O = void 0, j = u * k, q = T - B * k, X = T + p + j + B * k, ce = e instanceof Array ? e : new Array(t.length).fill(e);
+        var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.barWidth, v = s.barOffset, y = s.barMargin, V = s.pixelRatio, k = s.width, S = s.X, C = s.Y, N = s.ticksLength, B = s.ticksPadding, T = (k - p) / 2, b = void 0, f = void 0, w = 0, W = t.length, O = void 0, j = u * k, G = T - B * k, H = T + p + j + B * k, ce = e instanceof Array ? e : new Array(t.length).fill(e);
         a.lineWidth = d * V, a.save();
-        for (var te = N / (o - r); w < W; w++) O = t[w], a.strokeStyle = ce[w], c ? (f = C + h - y - v + (r - O) * te, n && (b = S + q, be(a, b, f, _(b - j), f)), i && (b = S + X, be(a, b, f, _(b - j), f))) : (b = S + y + v - (r - O) * te, n && (f = C + q, be(a, b, f, b, _(f - j))), i && (f = C + X, be(a, b, _(f), b, f - j)));
+        for (var te = N / (o - r); w < W; w++) O = t[w], a.strokeStyle = ce[w], c ? (f = C + h - y - v + (r - O) * te, n && (b = S + G, be(a, b, f, _(b - j), f)), i && (b = S + H, be(a, b, f, _(b - j), f))) : (b = S + y + v - (r - O) * te, n && (f = C + G, be(a, b, f, b, _(f - j))), i && (f = C + H, be(a, b, _(f), b, f - j)));
       }
       function da(a, e) {
         var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], i = 2, d = (e.maxValue - e.minValue) / (e.majorTicks.length - 1), u = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(e.majorTicks.length).fill(e.colorStrokeTicks || e.colorMajorTicks);
-        if (Le(a, u, e.exactTicks ? e.majorTicks : e.majorTicks.map(function(j, q) {
-          return e.minValue + d * q;
+        if (Le(a, u, e.exactTicks ? e.majorTicks : e.majorTicks.map(function(j, G) {
+          return e.minValue + d * G;
         }), e.minValue, e.maxValue, o, n, i, e.ticksWidth / 100), e.strokeTicks) {
           var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.width, v = s.barWidth, y = s.barMargin, V = s.barOffset, k = s.X, S = s.Y, C = s.ticksLength, N = s.pixelRatio, B = s.ticksPadding, T = (p - v) / 2 + v + B * p, b = (p - v) / 2 - B * p, f = void 0, w = void 0, W = void 0, O = void 0;
           a.strokeStyle = e.colorStrokeTicks || u[0], i *= N, c ? (w = S + h - y - V + i / 2, O = w - C - i, o && (W = f = _(k + b), fe(a, f, w, W, O)), n && (W = f = _(k + T), fe(a, f, w, W, O))) : (f = k + y + V - i / 2, W = f + C + i, o && (O = w = _(S + b), fe(a, f, w, W, O)), n && (O = w = _(S + T), fe(a, f, w, W, O)));
@@ -1703,15 +1703,15 @@ let __tla = Promise.all([
       }
       function sa(a, e) {
         var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], i = [], d = e.minValue, u = Math.abs(e.minorTicks) || 0, s = u ? (e.maxValue - e.minValue) / (u * (e.majorTicks.length - 1)) : 0;
-        if (u) if (e.exactTicks) for (var c = H.mod(e.majorTicks[0], u) || 0; d < e.maxValue; d += u) c + d < e.maxValue && i.push(c + d);
+        if (u) if (e.exactTicks) for (var c = q.mod(e.majorTicks[0], u) || 0; d < e.maxValue; d += u) c + d < e.maxValue && i.push(c + d);
         else for (; d < e.maxValue; d += s) i.push(d);
         Le(a, e.colorMinorTicks || e.colorStrokeTicks, i, e.minValue, e.maxValue, o, n, 1, e.ticksWidthMinor / 100);
       }
       function ga(a, e) {
         var t = a.barDimensions, r = t.isVertical, o = t.length, n = t.width, i = t.barWidth, d = t.barMargin, u = t.barOffset, s = t.X, c = t.Y, h = t.ticksLength, p = t.ticksPadding, v = e.maxValue - e.minValue, y = v / (e.majorTicks.length - 1), V = e.exactTicks ? e.majorTicks : e.majorTicks.map(function(ce, te) {
           return e.minValue + y * te;
-        }), k = V.length, S = e.numberSide !== "right", C = e.numberSide !== "left", N = e.fontNumbersSize * n / 200, B = 0, T = (e.ticksWidth / 100 + 2 * p) * n, b = (n - i) / 2 - T, f = (n - i) / 2 + i + T, w = void 0, W = void 0, O = void 0, j = void 0, q = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(k).fill(e.colorNumbers), X = e.numbersMargin / 100 * n;
-        for (a.font = m.font(e, "Numbers", n / 200), a.lineWidth = 0, a.textAlign = "center"; B < k; B++) a.fillStyle = q[B], j = e.majorTicks[B], O = e.exactTicks ? h * ((V[B] - e.minValue) / v) : B * h / (k - 1), r ? (W = c + o - d - u - O + N / 3, S && (a.textAlign = "right", a.fillText(j, s + b - X, W)), C && (a.textAlign = "left", a.fillText(j, s + f + X, W))) : (a.measureText(j).width, w = s + d + u + O, S && a.fillText(j, w, c + b - X), C && a.fillText(j, w, c + f + N + X));
+        }), k = V.length, S = e.numberSide !== "right", C = e.numberSide !== "left", N = e.fontNumbersSize * n / 200, B = 0, T = (e.ticksWidth / 100 + 2 * p) * n, b = (n - i) / 2 - T, f = (n - i) / 2 + i + T, w = void 0, W = void 0, O = void 0, j = void 0, G = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(k).fill(e.colorNumbers), H = e.numbersMargin / 100 * n;
+        for (a.font = m.font(e, "Numbers", n / 200), a.lineWidth = 0, a.textAlign = "center"; B < k; B++) a.fillStyle = G[B], j = e.majorTicks[B], O = e.exactTicks ? h * ((V[B] - e.minValue) / v) : B * h / (k - 1), r ? (W = c + o - d - u - O + N / 3, S && (a.textAlign = "right", a.fillText(j, s + b - H, W)), C && (a.textAlign = "left", a.fillText(j, s + f + H, W))) : (a.measureText(j).width, w = s + d + u + O, S && a.fillText(j, w, c + b - H), C && a.fillText(j, w, c + f + N + H));
       }
       function ca(a, e) {
         if (e.title) {
@@ -1889,7 +1889,7 @@ let __tla = Promise.all([
             }
           }
         ]), a;
-      })(), qe = L("requestAnimationFrame") || function(a) {
+      })(), qe = Y("requestAnimationFrame") || function(a) {
         return setTimeout(function() {
           return a((/* @__PURE__ */ new Date()).getTime());
         }, 1e3 / 60);
@@ -1941,7 +1941,7 @@ let __tla = Promise.all([
             value: function(e, t) {
               var r = this;
               this.frame && this.cancel();
-              var o = window.performance && window.performance.now ? window.performance.now() : L("animationStartTime") || Date.now();
+              var o = window.performance && window.performance.now ? window.performance.now() : Y("animationStartTime") || Date.now();
               e = e || this.draw, t = t || this.end, this.draw = e, this.end = t, this.frame = qe(function(n) {
                 return ne(n, e, o, de[r.rule] || r.rule, r.duration, t, r);
               });
@@ -1950,7 +1950,7 @@ let __tla = Promise.all([
           {
             key: "cancel",
             value: function() {
-              this.frame && ((L("cancelAnimationFrame") || function(e) {
+              this.frame && ((Y("cancelAnimationFrame") || function(e) {
               })(this.frame), this.frame = null);
             }
           },
@@ -2071,7 +2071,7 @@ let __tla = Promise.all([
             }
           }
         ]), a;
-      })(), U = (function() {
+      })(), L = (function() {
         function a(e, t, r) {
           z(this, a), a.collection.push(this), this.width = t || 0, this.height = r || 0, this.element = e, this.init();
         }
@@ -2118,7 +2118,7 @@ let __tla = Promise.all([
           }
         ]), a;
       })();
-      U.collection = [], window.matchMedia && window.matchMedia("screen and (min-resolution: 2dppx)").addListener(U.redraw);
+      L.collection = [], window.matchMedia && window.matchMedia("screen and (min-resolution: 2dppx)").addListener(L.redraw);
       var Se = {
         renderTo: null,
         width: 0,
@@ -2244,9 +2244,9 @@ let __tla = Promise.all([
         else if (typeof a == "number") return this[a];
         return null;
       };
-      var Ce = "2.1.7", _ = Math.round, G = Math.abs, se = new l();
+      var Ce = "2.1.7", _ = Math.round, U = Math.abs, se = new l();
       se.version = Ce;
-      var H = (function(a) {
+      var q = (function(a) {
         function e(t) {
           z(this, e);
           var r = I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this)), o = r.constructor.name;
@@ -2260,9 +2260,9 @@ let __tla = Promise.all([
           }), r.version = Ce, r.type = x[o] || e, r.initialized = false, t.minValue = parseFloat(t.minValue), t.maxValue = parseFloat(t.maxValue), t.value = parseFloat(t.value) || 0, t.borders || (t.borderInnerWidth = t.borderMiddleWidth = t.borderOuterWidth = 0), !t.renderTo) throw TypeError("Canvas element was not specified when creating the Gauge object!");
           var n = t.renderTo.tagName ? t.renderTo : document.getElementById(t.renderTo);
           if (!(n instanceof HTMLCanvasElement)) throw TypeError("Given gauge canvas element is invalid!");
-          return t.width = parseFloat(t.width) || 0, t.height = parseFloat(t.height) || 0, t.width && t.height || (t.width || (t.width = n.parentNode ? n.parentNode.offsetWidth : n.offsetWidth), t.height || (t.height = n.parentNode ? n.parentNode.offsetHeight : n.offsetHeight)), r.options = t || {}, r.options.animateOnInit && (r._value = r.options.value, r.options.value = r.options.minValue), r.canvas = new U(n, t.width, t.height), r.canvas.onRedraw = r.draw.bind(r), r.animation = new we(t.animationRule, t.animationDuration), r;
+          return t.width = parseFloat(t.width) || 0, t.height = parseFloat(t.height) || 0, t.width && t.height || (t.width || (t.width = n.parentNode ? n.parentNode.offsetWidth : n.offsetWidth), t.height || (t.height = n.parentNode ? n.parentNode.offsetHeight : n.offsetHeight)), r.options = t || {}, r.options.animateOnInit && (r._value = r.options.value, r.options.value = r.options.minValue), r.canvas = new L(n, t.width, t.height), r.canvas.onRedraw = r.draw.bind(r), r.animation = new we(t.animationRule, t.animationDuration), r;
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "update",
             value: function(t) {
@@ -2346,7 +2346,7 @@ let __tla = Promise.all([
           }
         ]), e;
       })(ya);
-      x !== void 0 && (x.BaseGauge = H, x.gauges = (window.document || {}).gauges = se);
+      x !== void 0 && (x.BaseGauge = q, x.gauges = (window.document || {}).gauges = se);
       var _a = /{([_a-zA-Z]+[_a-zA-Z0-9]*)}/g, m = {
         roundRect: ve,
         padValue: le,
@@ -2356,7 +2356,7 @@ let __tla = Promise.all([
         linearGradient: $,
         drawNeedleShadow: K,
         drawValueBox: ue,
-        verifyError: F,
+        verifyError: D,
         prepareTicks: re,
         drawShadow: Z,
         font: Q,
@@ -2381,7 +2381,7 @@ let __tla = Promise.all([
         function e(t) {
           return z(this, e), t = Object.assign({}, He, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2416,7 +2416,7 @@ let __tla = Promise.all([
           {
             key: "value",
             set: function(t) {
-              t = H.ensureValue(t, this.options.minValue), this.options.animation && this.options.ticksAngle === 360 && this.options.useMinPath && (this._value = t, t = this.options.value + ((t - this.options.value) % 360 + 540) % 360 - 180), va(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", t, this);
+              t = q.ensureValue(t, this.options.minValue), this.options.animation && this.options.ticksAngle === 360 && this.options.useMinPath && (this._value = t, t = this.options.value + ((t - this.options.value) % 360 + 540) % 360 - 180), va(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", t, this);
             },
             get: function() {
               return Te(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", this);
@@ -2430,8 +2430,8 @@ let __tla = Promise.all([
             }
           }
         ]), e;
-      })(H);
-      x !== void 0 && (x.RadialGauge = xa), H.initialize("RadialGauge", He);
+      })(q);
+      x !== void 0 && (x.RadialGauge = xa), q.initialize("RadialGauge", He);
       var Xe = Object.assign({}, Se, {
         borderRadius: 0,
         barBeginCircle: 30,
@@ -2451,7 +2451,7 @@ let __tla = Promise.all([
         function e(t) {
           return z(this, e), t = Object.assign({}, Xe, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2487,20 +2487,20 @@ let __tla = Promise.all([
           {
             key: "configure",
             value: function(t) {
-              return t.barStrokeWidth >= t.barWidth && (t.barStrokeWidth = _(t.barWidth / 2)), t.hasLeft = ze("right", t), t.hasRight = ze("left", t), t.value > t.maxValue && (t.value = t.maxValue), t.value < t.minValue && (t.value = t.minValue), H.configure(t);
+              return t.barStrokeWidth >= t.barWidth && (t.barStrokeWidth = _(t.barWidth / 2)), t.hasLeft = ze("right", t), t.hasRight = ze("left", t), t.value > t.maxValue && (t.value = t.maxValue), t.value < t.minValue && (t.value = t.minValue), q.configure(t);
             }
           }
         ]), e;
-      })(H);
-      x !== void 0 && (x.LinearGauge = ka), H.initialize("LinearGauge", Xe), Object.assign(x, {
+      })(q);
+      x !== void 0 && (x.LinearGauge = ka), q.initialize("LinearGauge", Xe), Object.assign(x, {
         Collection: l,
         GenericOptions: Se,
         Animation: we,
-        BaseGauge: H,
+        BaseGauge: q,
         drawings: m,
-        SmartCanvas: U,
+        SmartCanvas: L,
         DomObserver: oe,
-        vendorize: L
+        vendorize: Y
       });
     })(g.exports);
   })(Qe);
@@ -2528,7 +2528,7 @@ let __tla = Promise.all([
     }, [
       g
     ]);
-    const I = g.gaugeSegment, D = Ta(I == null ? void 0 : I.state.icon, I == null ? void 0 : I.state.iconColor, (I == null ? void 0 : I.state.forceColorMask) ?? false);
+    const I = g.gaugeSegment, F = Ta(I == null ? void 0 : I.state.icon, I == null ? void 0 : I.state.iconColor, (I == null ? void 0 : I.state.forceColorMask) ?? false);
     return M.jsxs(Ke, {
       sx: {
         width: "100%",
@@ -2549,7 +2549,7 @@ let __tla = Promise.all([
             objectFit: g.gaugeWidgetData.gaugeIconFit,
             top: `calc(0px - ${I == null ? void 0 : I.state.iconYOffset})`,
             left: `calc(0px + ${I == null ? void 0 : I.state.iconXOffset})`,
-            ...D
+            ...F
           }
         }),
         M.jsx("canvas", {
@@ -2561,30 +2561,30 @@ let __tla = Promise.all([
         })
       ]
     });
-  }, Ea = (g, x, E) => g.find((D) => x >= D.from && (x < D.to || x === D.to && x === E)) || null;
+  }, Ea = (g, x, E) => g.find((F) => x >= F.from && (x < F.to || x === F.to && x === E)) || null;
   function Ia() {
     var _a, _b;
-    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: L, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
-      const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, Y = [];
+    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: F } = Sa(x), z = R.useContext(Ze), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: l } = z, { data: D, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
+      const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, X = [];
       if (l.data.gaugeMajorTicks && +(l.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(l.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(l.data.gaugeMajorTicks) || 1) * ee;
-        Y.push(Math.round(ue * 100) / 100);
+        X.push(Math.round(ue * 100) / 100);
       }
-      return Y;
+      return X;
     }, [
       l.data.gaugeMinValue,
       l.data.gaugeMaxValue,
       l.data.gaugeMajorTicks
     ]), ie = R.useMemo(() => {
-      const K = Number(l.data.gaugeMaxValue) || 100, Q = J.map((Y, ee) => {
+      const K = Number(l.data.gaugeMaxValue) || 100, Q = J.map((X, ee) => {
         var _a2;
         const ue = ((_a2 = J[ee + 1]) == null ? void 0 : _a2.value) || K;
         return {
-          from: Number(Y.value),
+          from: Number(X.value),
           to: Number(ue),
-          color: Ba(Y.textColor) || "transparent",
+          color: Ba(X.textColor) || "transparent",
           state: {
-            ...Y
+            ...X
           }
         };
       });
@@ -2598,26 +2598,26 @@ let __tla = Promise.all([
       l.data.gaugeMaxValue
     ]), $ = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
     return R.useEffect(() => {
-      $ && Z && (P ? ($.style.borderColor = !L && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (L ? (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null : "transparent") || "", Z.style.borderColor = !L && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (L ? (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null : "transparent") || "") : ($.style.borderColor = "", $.style.background = L && (F.frameBackgroundColor || F.frameBackground || null) || "", Z.style.borderColor = "", Z.style.background = L && (F.backgroundColor || F.background || null) || ""));
+      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = D.frameBackgroundColor || D.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = D.backgroundColor || D.background || null || ""));
     }, [
       $,
       Z,
-      L,
+      Y,
       P,
       l.data,
-      F.frameBackgroundColor,
-      F.frameBackground,
-      F.backgroundColor,
-      F.background
-    ]), M.jsxs(Na, {
+      D.frameBackgroundColor,
+      D.frameBackground,
+      D.backgroundColor,
+      D.background
+    ]), console.log("data", D), M.jsxs(Na, {
       ref: g,
       isValidType: le,
-      data: F,
+      data: D,
       oidValue: re,
       children: [
         M.jsx(Va, {
           data: {
-            ...F,
+            ...D,
             icon: P == null ? void 0 : P.state.icon,
             iconColor: P == null ? void 0 : P.state.iconColor,
             forceColorMask: P == null ? void 0 : P.state.forceColorMask
@@ -2638,12 +2638,12 @@ let __tla = Promise.all([
             gaugeSegment: P,
             gaugeType: l.data.gaugeType,
             width: (I || 0) - Number(l.data.gaugePadding || 0),
-            height: (D || 0) - Number(l.data.gaugePadding || 0),
+            height: (F || 0) - Number(l.data.gaugePadding || 0),
             minValue: Number(l.data.gaugeMinValue) ? Number(l.data.gaugeMinValue) : 0,
             maxValue: Number(l.data.gaugeMaxValue) ? Number(l.data.gaugeMaxValue) : 100,
             value: Number(re) || 0,
             units: ne == null ? void 0 : ne.unit,
-            title: F.header,
+            title: D.header,
             exactTicks: l.data.gaugeExactTicks,
             majorTicks: ye,
             minorTicks: typeof l.data.gaugeMinorTicks == "number" ? l.data.gaugeMinorTicks : Number(l.data.gaugeMinorTicks),

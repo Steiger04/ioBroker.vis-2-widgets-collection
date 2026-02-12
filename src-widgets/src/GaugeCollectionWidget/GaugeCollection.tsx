@@ -139,13 +139,12 @@ function GaugeCollection(): React.JSX.Element {
                     '';
 
                 paper0.style.background =
-                    (wrappedContent
-                        ? segment?.state.frameBackgroundColorActive ||
-                          segment?.state.frameBackgroundColor ||
-                          segment?.state.frameBackgroundActive ||
-                          segment?.state.frameBackground ||
-                          null
-                        : 'transparent') || '';
+                    segment?.state.frameBackgroundColorActive ||
+                    segment?.state.frameBackgroundColor ||
+                    segment?.state.frameBackgroundActive ||
+                    segment?.state.frameBackground ||
+                    null ||
+                    '';
                 // ----------------------------------------------------------
                 paper1.style.borderColor =
                     (!wrappedContent &&
@@ -153,22 +152,20 @@ function GaugeCollection(): React.JSX.Element {
                     '';
 
                 paper1.style.background =
-                    (wrappedContent
-                        ? segment?.state.backgroundColorActive ||
-                          segment?.state.backgroundColor ||
-                          segment?.state.backgroundActive ||
-                          segment?.state.background ||
-                          null
-                        : 'transparent') || '';
+                    segment?.state.backgroundColorActive ||
+                    segment?.state.backgroundColor ||
+                    segment?.state.backgroundActive ||
+                    segment?.state.background ||
+                    null ||
+                    '';
             } else {
                 paper0.style.borderColor = '';
 
-                paper0.style.background =
-                    (wrappedContent && (data.frameBackgroundColor || data.frameBackground || null)) || '';
+                paper0.style.background = data.frameBackgroundColor || data.frameBackground || null || '';
                 // ----------------------------------------------------------
                 paper1.style.borderColor = '';
 
-                paper1.style.background = (wrappedContent && (data.backgroundColor || data.background || null)) || '';
+                paper1.style.background = data.backgroundColor || data.background || null || '';
             }
         }
     }, [
