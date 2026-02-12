@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-CA1ufC-8.js","./useData-Ch9c1PRV.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-CLMabNs9.js","./Close-Bxa4CRP4.js","./Slider-9C7-Wp2E.js","./listItemTextClasses-CiAn_OCt.js","./Stack-Dv6Zmy2V.js","./useHtmlValue-3ISCcM5X.js","./Button-D5yvzg7E.js","./SliderCollectionWidget-D2V7idwI.js","./ButtonGroupCollectionWidget-vZrIKmfh.js","./SwitchCollectionWidget-BnVarpJV.js","./SwitchBase-BJ6mn00q.js","./CheckboxCollectionWidget-DH6k0SX-.js","./FormControlLabel-Co4ZhhDq.js","./DialogCollectionWidget-B0Tb2Vhk.js","./SelectCollectionWidget-CXJ9fZwl.js","./RadioGroupCollectionWidget-BP5jmdDK.js","./GaugeCollectionWidget-CzbnSaqs.js","./Light2CollectionWidget-BcymKsfH.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-CA1ufC-8.js","./useData-Ch9c1PRV.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-CLMabNs9.js","./Close-Bxa4CRP4.js","./Slider-9C7-Wp2E.js","./listItemTextClasses-CiAn_OCt.js","./Stack-Dv6Zmy2V.js","./useHtmlValue-3ISCcM5X.js","./Button-D5yvzg7E.js","./SliderCollectionWidget-D2V7idwI.js","./ButtonGroupCollectionWidget-vZrIKmfh.js","./SwitchCollectionWidget-BnVarpJV.js","./SwitchBase-BJ6mn00q.js","./CheckboxCollectionWidget-DH6k0SX-.js","./FormControlLabel-Co4ZhhDq.js","./DialogCollectionWidget-FUBML8g9.js","./SelectCollectionWidget-CXJ9fZwl.js","./RadioGroupCollectionWidget-BP5jmdDK.js","./GaugeCollectionWidget-DOq830P8.js","./Light2CollectionWidget-BcymKsfH.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
@@ -54,7 +54,7 @@ let __tla = (async () => {
       }), e;
     },
     "./DialogCollectionWidget": async () => {
-      const t = await o(() => import("./DialogCollectionWidget-B0Tb2Vhk.js").then(async (m) => {
+      const t = await o(() => import("./DialogCollectionWidget-FUBML8g9.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([18,1,2,3,4,6]), import.meta.url), e = {};
@@ -84,7 +84,7 @@ let __tla = (async () => {
       }), e;
     },
     "./GaugeCollectionWidget": async () => {
-      const t = await o(() => import("./GaugeCollectionWidget-CzbnSaqs.js").then(async (m) => {
+      const t = await o(() => import("./GaugeCollectionWidget-DOq830P8.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([21,1,2,3,4]), import.meta.url), e = {};

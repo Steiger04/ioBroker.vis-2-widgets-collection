@@ -1347,9 +1347,9 @@ let __tla = Promise.all([
     const { getPropertyValue: x } = R.useContext(Ze), E = R.useMemo(() => x(g), [
       g,
       x
-    ]), [I, F] = R.useState(E);
+    ]), [I, D] = R.useState(E);
     return R.useEffect(() => {
-      E !== void 0 && F(E);
+      E !== void 0 && D(E);
     }, [
       E
     ]), R.useMemo(() => I, [
@@ -1372,7 +1372,7 @@ let __tla = Promise.all([
         if (!a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
         return !e || typeof e != "object" && typeof e != "function" ? a : e;
       }
-      function F(a, e) {
+      function D(a, e) {
         if (typeof e != "function" && e !== null) throw new TypeError("Super expression must either be null or a function, not " + typeof e);
         a.prototype = Object.create(e && e.prototype, {
           constructor: {
@@ -1409,7 +1409,7 @@ let __tla = Promise.all([
       function l() {
         Array.prototype.constructor.apply(this, arguments);
       }
-      function D(a) {
+      function F(a) {
         if (!(a instanceof DOMException && a.result === 2152923147)) throw a;
       }
       function J(a, e) {
@@ -2262,7 +2262,7 @@ let __tla = Promise.all([
           if (!(n instanceof HTMLCanvasElement)) throw TypeError("Given gauge canvas element is invalid!");
           return t.width = parseFloat(t.width) || 0, t.height = parseFloat(t.height) || 0, t.width && t.height || (t.width || (t.width = n.parentNode ? n.parentNode.offsetWidth : n.offsetWidth), t.height || (t.height = n.parentNode ? n.parentNode.offsetHeight : n.offsetHeight)), r.options = t || {}, r.options.animateOnInit && (r._value = r.options.value, r.options.value = r.options.minValue), r.canvas = new L(n, t.width, t.height), r.canvas.onRedraw = r.draw.bind(r), r.animation = new we(t.animationRule, t.animationDuration), r;
         }
-        return F(e, a), ae(e, [
+        return D(e, a), ae(e, [
           {
             key: "update",
             value: function(t) {
@@ -2356,7 +2356,7 @@ let __tla = Promise.all([
         linearGradient: $,
         drawNeedleShadow: K,
         drawValueBox: ue,
-        verifyError: D,
+        verifyError: F,
         prepareTicks: re,
         drawShadow: Z,
         font: Q,
@@ -2381,7 +2381,7 @@ let __tla = Promise.all([
         function e(t) {
           return z(this, e), t = Object.assign({}, He, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return F(e, a), ae(e, [
+        return D(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2451,7 +2451,7 @@ let __tla = Promise.all([
         function e(t) {
           return z(this, e), t = Object.assign({}, Xe, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return F(e, a), ae(e, [
+        return D(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2528,7 +2528,7 @@ let __tla = Promise.all([
     }, [
       g
     ]);
-    const I = g.gaugeSegment, F = Ta(I == null ? void 0 : I.state.icon, I == null ? void 0 : I.state.iconColor, (I == null ? void 0 : I.state.forceColorMask) ?? false);
+    const I = g.gaugeSegment, D = Ta(I == null ? void 0 : I.state.icon, I == null ? void 0 : I.state.iconColor, (I == null ? void 0 : I.state.forceColorMask) ?? false);
     return M.jsxs(Ke, {
       sx: {
         width: "100%",
@@ -2549,7 +2549,7 @@ let __tla = Promise.all([
             objectFit: g.gaugeWidgetData.gaugeIconFit,
             top: `calc(0px - ${I == null ? void 0 : I.state.iconYOffset})`,
             left: `calc(0px + ${I == null ? void 0 : I.state.iconXOffset})`,
-            ...F
+            ...D
           }
         }),
         M.jsx("canvas", {
@@ -2561,10 +2561,10 @@ let __tla = Promise.all([
         })
       ]
     });
-  }, Ea = (g, x, E) => g.find((F) => x >= F.from && (x < F.to || x === F.to && x === E)) || null;
+  }, Ea = (g, x, E) => g.find((D) => x >= D.from && (x < D.to || x === D.to && x === E)) || null;
   function Ia() {
     var _a, _b;
-    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: F } = Sa(x), z = R.useContext(Ze), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: l } = z, { data: D, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
+    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
       const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, X = [];
       if (l.data.gaugeMajorTicks && +(l.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(l.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(l.data.gaugeMajorTicks) || 1) * ee;
@@ -2598,26 +2598,26 @@ let __tla = Promise.all([
       l.data.gaugeMaxValue
     ]), $ = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
     return R.useEffect(() => {
-      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = D.frameBackgroundColor || D.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = D.backgroundColor || D.background || null || ""));
+      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = F.frameBackgroundColor || F.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = F.backgroundColor || F.background || null || ""));
     }, [
       $,
       Z,
       Y,
       P,
       l.data,
-      D.frameBackgroundColor,
-      D.frameBackground,
-      D.backgroundColor,
-      D.background
-    ]), console.log("data", D), M.jsxs(Na, {
+      F.frameBackgroundColor,
+      F.frameBackground,
+      F.backgroundColor,
+      F.background
+    ]), M.jsxs(Na, {
       ref: g,
       isValidType: le,
-      data: D,
+      data: F,
       oidValue: re,
       children: [
         M.jsx(Va, {
           data: {
-            ...D,
+            ...F,
             icon: P == null ? void 0 : P.state.icon,
             iconColor: P == null ? void 0 : P.state.iconColor,
             forceColorMask: P == null ? void 0 : P.state.forceColorMask
@@ -2638,12 +2638,12 @@ let __tla = Promise.all([
             gaugeSegment: P,
             gaugeType: l.data.gaugeType,
             width: (I || 0) - Number(l.data.gaugePadding || 0),
-            height: (F || 0) - Number(l.data.gaugePadding || 0),
+            height: (D || 0) - Number(l.data.gaugePadding || 0),
             minValue: Number(l.data.gaugeMinValue) ? Number(l.data.gaugeMinValue) : 0,
             maxValue: Number(l.data.gaugeMaxValue) ? Number(l.data.gaugeMaxValue) : 100,
             value: Number(re) || 0,
             units: ne == null ? void 0 : ne.unit,
-            title: D.header,
+            title: F.header,
             exactTicks: l.data.gaugeExactTicks,
             majorTicks: ye,
             minorTicks: typeof l.data.gaugeMinorTicks == "number" ? l.data.gaugeMinorTicks : Number(l.data.gaugeMinorTicks),
