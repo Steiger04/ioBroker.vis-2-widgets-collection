@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.2.1",
+    "version": "2.3.0",
     "news": {
+      "2.3.0": {
+        "en": "Widget optimizations\nBug fixing\nUser documentation fixed (GitHub Wiki)",
+        "de": "Widget Optimierungen\nFehlerbehebung\nBenutzerdokumentation behoben (GitHub Wiki)",
+        "ru": "Оптимизация виджетов\nИсправление клопов\nФиксированная пользовательская документация (GitHub Wiki)",
+        "pt": "Otimizações de elementos\nResolução de erros\nDocumentação do usuário corrigida (GitHub Wiki)",
+        "nl": "Widget optimalisaties\nBugfixing\nGebruikersdocumentatie gerepareerd (GitHub Wiki)",
+        "fr": "Optimisations Widget\nCorrection des bogues\nDocumentation utilisateur corrigée (Wiki GitHub)",
+        "it": "Ottimizzazione Widget\nCorrezione di bug\nDocumentazione dell'utente fisso (GitHub Wiki)",
+        "es": "Optimizaciones Widget\nCorrección de errores\nDocumentación de usuario fija (GitHub Wiki)",
+        "pl": "Optymalizacja widżetu\nNaprawianie błędów\nStała dokumentacja użytkownika (GitHub Wiki)",
+        "uk": "Оптимізація віджету\nВиправлення помилок\nДокументація користувача фіксована (GitHub Wiki)",
+        "zh-cn": "部件优化\n修复错误\n用户文档固定 (GitHub 维基)"
+      },
       "2.2.1": {
         "en": "Slider widget color for min / max icon optimized",
         "de": "Slider Widget Farbe für min / max Icon optimiert",
@@ -80,19 +93,6 @@
         "pl": "sync- wiki.yml zoptymalizowany",
         "uk": "sync-wiki.yml оптимізований",
         "zh-cn": "同步- wiki. yml 优化"
-      },
-      "2.0.9": {
-        "en": "sync-wiki.yml changed",
-        "de": "sync-wiki.yml geändert",
-        "ru": "sync-wiki.yml изменился",
-        "pt": "sync- wiki.yml alterado",
-        "nl": "synchronisatie-wiki.yml is veranderd",
-        "fr": "sync-wiki.yml modifié",
-        "it": "sync-wiki.yml cambiato",
-        "es": "sinc-wiki.yml cambió",
-        "pl": "sync- wiki.yml zmienione",
-        "uk": "sync-wiki.yml змінився",
-        "zh-cn": "同步- wiki. yml 更改"
       }
     },
     "titleLang": {

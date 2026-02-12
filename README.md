@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.3.0 (2026-02-12)
 - (steiger04) Widget optimizations
 - (steiger04) Bug fixing
 - (steiger04) User documentation fixed (GitHub Wiki)
