@@ -107,6 +107,7 @@ function useData(_oid: string): UseDataResult {
                 }
 
                 const commonStateEntry = commonStatesEntries.find(([value]) => value === String(_value));
+                // console.log('commonStateEntry', { value: _value, commonStateEntry });
 
                 // Type conversion (analog to states useMemo Lines 402-408)
                 const convertedValue = commonStateEntry
@@ -120,6 +121,7 @@ function useData(_oid: string): UseDataResult {
                 // Calculate isActive for this state
                 const isActive = String(oidValue) === String(convertedValue);
 
+                // console.log('isActive', { oidValue, convertedValue, isActive });
                 // Get style data via resolveStyleData
                 const styleData = resolveStyleData(i, isActive);
 

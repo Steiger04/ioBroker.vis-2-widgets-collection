@@ -1,4 +1,4 @@
-import { j as M, C as A, v as Ze, z as Ta, w as Ke, S as wa, a9 as Sa, y as Ca, U as Ba, E as Na, G as Va, H as Wa, J as Je, K as Ma, N as Oa, __tla as __tla_0 } from "./useData-V3RviNbf.js";
+import { j as M, C as A, v as Ze, z as Ta, w as Ke, S as wa, a9 as Sa, y as Ca, U as Ba, E as Na, G as Va, H as Wa, J as Je, K as Ma, N as Oa, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
 import { v as R, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
@@ -2564,7 +2564,7 @@ let __tla = Promise.all([
   }, Ea = (g, x, E) => g.find((D) => x >= D.from && (x < D.to || x === D.to && x === E)) || null;
   function Ia() {
     var _a, _b;
-    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: L, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, statesNew: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
+    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: L, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
       const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, Y = [];
       if (l.data.gaugeMajorTicks && +(l.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(l.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(l.data.gaugeMajorTicks) || 1) * ee;

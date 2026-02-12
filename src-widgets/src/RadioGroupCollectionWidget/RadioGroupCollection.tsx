@@ -19,14 +19,10 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import type { RadioGroupCollectionContextProps } from '../types';
 import SafeImg from '../components/SafeImg';
 
-/**
- * Renders the configured values as a radio group and writes back the selected value.
- */
 function RadioGroupCollection(): React.ReactElement {
     const [stackRef, setStackRef] = useState<HTMLDivElement | null>(null);
     const { height: radioGroupHeight } = useElementDimensions(stackRef);
 
-    // RadioGroupCollection is only used by RadioGroupCollectionWidget, so the cast is safe.
     const context = useContext(CollectionContext) as RadioGroupCollectionContextProps;
     const {
         widget: {

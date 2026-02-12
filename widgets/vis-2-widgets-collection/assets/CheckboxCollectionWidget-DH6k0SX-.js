@@ -1,9 +1,9 @@
-import { c as C, j as a, a as O, g as V, u as R, b as H, a6 as $, d as G, s as E, i as p, e as J, r as U, m as Z, o as k, a2 as w, C as M, v as Y, y as Q, E as X, G as K, w as j, T as q, A as P, S as D, z, H as ee, J as A, K as te, N as oe, __tla as __tla_0 } from "./useData-V3RviNbf.js";
-import { u as ae, d as ie, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { c as C, j as a, a as O, g as V, u as R, b as H, a6 as $, d as G, s as E, i as p, e as J, r as Z, m as U, o as k, a2 as w, C as M, v as Y, y as Q, E as X, G as K, w as j, T as q, A as P, S as D, z, H as ee, J as A, K as te, N as oe, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
+import { u as ae, d as ie, __tla as __tla_1 } from "./useValueState-CLMabNs9.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { u as le, __tla as __tla_3 } from "./useHtmlValue-3ISCcM5X.js";
-import { F as se, __tla as __tla_4 } from "./FormControlLabel-ozRI5Kin.js";
-import { S as ne, __tla as __tla_5 } from "./SwitchBase-1YAmC1FO.js";
+import { F as ne, __tla as __tla_4 } from "./FormControlLabel-Co4ZhhDq.js";
+import { S as se, __tla as __tla_5 } from "./SwitchBase-BJ6mn00q.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let F;
@@ -64,21 +64,21 @@ let __tla = Promise.all([
     "colorSecondary",
     "sizeSmall",
     "sizeMedium"
-  ]), he = (e) => {
-    const { classes: t, indeterminate: i, color: s, size: o } = e, l = {
+  ]), me = (e) => {
+    const { classes: t, indeterminate: i, color: n, size: o } = e, l = {
       root: [
         "root",
         i && "indeterminate",
-        `color${p(s)}`,
+        `color${p(n)}`,
         `size${p(o)}`
       ]
-    }, n = J(l, pe, t);
+    }, s = J(l, pe, t);
     return {
       ...t,
-      ...n
+      ...s
     };
-  }, me = E(ne, {
-    shouldForwardProp: (e) => U(e) || e === "classes",
+  }, xe = E(se, {
+    shouldForwardProp: (e) => Z(e) || e === "classes",
     name: "MuiCheckbox",
     slot: "Root",
     overridesResolver: (e, t) => {
@@ -90,7 +90,7 @@ let __tla = Promise.all([
         i.color !== "default" && t[`color${p(i.color)}`]
       ];
     }
-  })(Z(({ theme: e }) => ({
+  })(U(({ theme: e }) => ({
     color: (e.vars || e).palette.text.secondary,
     variants: [
       {
@@ -141,19 +141,19 @@ let __tla = Promise.all([
         }
       }
     ]
-  }))), xe = a.jsx(re, {}), ue = a.jsx(ce, {}), be = a.jsx(de, {}), Ce = d.forwardRef(function(t, i) {
-    const s = R({
+  }))), he = a.jsx(re, {}), ue = a.jsx(ce, {}), be = a.jsx(de, {}), Ce = d.forwardRef(function(t, i) {
+    const n = R({
       props: t,
       name: "MuiCheckbox"
-    }), { checkedIcon: o = xe, color: l = "primary", icon: n = ue, indeterminate: c = false, indeterminateIcon: r = be, inputProps: h, size: m = "medium", disableRipple: g = false, className: N, slots: y = {}, slotProps: v = {}, ...T } = s, I = c ? r : n, f = c ? r : o, x = {
-      ...s,
+    }), { checkedIcon: o = he, color: l = "primary", icon: s = ue, indeterminate: c = false, indeterminateIcon: r = be, inputProps: m, size: x = "medium", disableRipple: g = false, className: N, slots: y = {}, slotProps: v = {}, ...T } = n, I = c ? r : s, f = c ? r : o, h = {
+      ...n,
       disableRipple: g,
       color: l,
       indeterminate: c,
-      size: m
-    }, S = he(x), u = v.input ?? h, [W, B] = H("root", {
+      size: x
+    }, S = me(h), u = v.input ?? m, [W, B] = H("root", {
       ref: i,
-      elementType: me,
+      elementType: xe,
       className: G(S.root, N),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
@@ -161,19 +161,19 @@ let __tla = Promise.all([
         slotProps: v,
         ...T
       },
-      ownerState: x,
+      ownerState: h,
       additionalProps: {
         type: "checkbox",
         icon: d.cloneElement(I, {
-          fontSize: I.props.fontSize ?? m
+          fontSize: I.props.fontSize ?? x
         }),
         checkedIcon: d.cloneElement(f, {
-          fontSize: f.props.fontSize ?? m
+          fontSize: f.props.fontSize ?? x
         }),
         disableRipple: g,
         slots: y,
         slotProps: {
-          input: $(typeof u == "function" ? u(x) : u, {
+          input: $(typeof u == "function" ? u(h) : u, {
             "data-indeterminate": c
           })
         }
@@ -235,7 +235,7 @@ let __tla = Promise.all([
     }
   ], L = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==", _ = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==";
   function ye() {
-    const e = d.useContext(Y), { widget: t, theme: i } = e, s = t.data.oidObject, { data: o } = Q("oid"), { value: l, updateValue: n } = ae("oid"), r = (s == null ? void 0 : s.type) === "boolean", h = le(l, t, o);
+    const e = d.useContext(Y), { widget: t, theme: i } = e, n = t.data.oidObject, { data: o } = Q("oid"), { value: l, updateValue: s } = ae("oid"), r = (n == null ? void 0 : n.type) === "boolean", m = le(l, t, o);
     return a.jsxs(X, {
       isValidType: r,
       data: o,
@@ -253,7 +253,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: l !== void 0 && a.jsx(se, {
+          children: l !== void 0 && a.jsx(ne, {
             labelPlacement: t.data.checkboxLabelPlacement,
             sx: {
               width: "100%",
@@ -276,7 +276,7 @@ let __tla = Promise.all([
               disabled: t.data.onlyDisplay,
               disableRipple: true,
               checked: !!l,
-              onChange: () => n(!l),
+              onChange: () => s(!l),
               checkedIcon: a.jsx(D, {
                 alt: "",
                 src: o.icon || L,
@@ -342,7 +342,7 @@ let __tla = Promise.all([
                 }
               },
               dangerouslySetInnerHTML: {
-                __html: `<div style="text-align: center; display: inline-block; width: 100%;">${h || ""}</div>`
+                __html: `<div style="text-align: left; display: inline-block; width: 100%;">${m || ""}</div>`
               }
             })
           })
@@ -404,14 +404,13 @@ let __tla = Promise.all([
     propertiesUpdate() {
     }
     onRxDataChanged() {
-      this.propertiesUpdate();
     }
     onRxStyleChanged() {
     }
     onStateUpdated(t, i) {
     }
     componentDidMount() {
-      super.componentDidMount(), this.propertiesUpdate();
+      super.componentDidMount();
     }
     renderWidgetBody(t) {
       super.renderWidgetBody(t);

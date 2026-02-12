@@ -16,13 +16,6 @@ import SelectCollection from './SelectCollection';
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { SelectCollectionContextProps, WidgetRegistry } from '../types';
 
-/**
- * Widget entry (vis-2 runtime).
- *
- * @remarks
- * Defines the widget schema and provides the collection context consumed by
- * {@link SelectCollection}.
- */
 class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -77,8 +70,9 @@ class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollection
     }
 
     // This function is called every time when rxData is changed
+    // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -92,7 +86,7 @@ class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollection
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
@@ -115,8 +109,6 @@ class SelectCollectionWidget extends Generic<WidgetRegistry['tplSelectCollection
             socket: this.props.context.socket,
             theme: this.props.context.theme,
             wrappedContent: this.wrappedCollectionContent,
-
-            // cidObject: this.state.cidObject,
         } as SelectCollectionContextProps;
 
         if (props.widget.data.noCard || props.widget.usedInWidget) {

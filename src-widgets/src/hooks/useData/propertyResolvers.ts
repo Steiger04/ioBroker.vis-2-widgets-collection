@@ -124,6 +124,13 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 {
                     condition:
+                        _includeActive &&
+                        (Boolean(getDataValue<number>('iconSize', 'Active')) ||
+                            getDataValue<number>('iconSize', 'Active') === 0),
+                    value: `${getDataValue<number>('iconSize', 'Active')}%`,
+                },
+                {
+                    condition:
                         Boolean(getDataValue<number>('iconSize', String(ext))) ||
                         getDataValue<number>('iconSize', String(ext)) === 0,
                     value: `${getDataValue<number>('iconSize', String(ext))}%`,
@@ -435,7 +442,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { condition: includeActive, value: getDataValue<string>('background', 'Active') },
                 { value: getDataValue<string>('background', String(ext)) },
                 { value: getDataValue<string>('background', '') },
-                { value: backgroundStyles?.background },
+                // { value: backgroundStyles?.background },
             ]) ?? '',
 
         backgroundActive: (ext: string | number, includeActive: boolean) =>
@@ -461,7 +468,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { condition: includeActive, value: getDataValue<string>('frameBackground', 'Active') },
                 { value: getDataValue<string>('frameBackground', String(ext)) },
                 { value: getDataValue<string>('frameBackground', '') },
-                { value: backgroundStyles?.background },
+                // { value: backgroundStyles?.background },
             ]) ?? '',
 
         frameBackgroundActive: (ext: string | number, includeActive: boolean) =>

@@ -16,13 +16,6 @@ import ButtonGroupCollection from './ButtonGroupCollection';
 import type { RxRenderWidgetProps, RxWidgetInfo, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { ButtonGroupCollectionContextProps, WidgetRegistry } from '../types';
 
-/**
- * Widget entry (vis-2 runtime).
- *
- * @remarks
- * Defines the widget schema and provides the collection context consumed by
- * {@link ButtonGroupCollection}.
- */
 class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroupCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -82,8 +75,9 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
     }
 
     // This function is called every time when rxData is changed
+    // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -97,7 +91,7 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {

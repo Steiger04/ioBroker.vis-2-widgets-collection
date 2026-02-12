@@ -24,11 +24,9 @@ const defaultIconFalse =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==';
 
 function CheckboxCollection(): React.JSX.Element {
-    // CheckboxCollection is only used by CheckboxCollectionWidget.
     const context = useContext(CollectionContext) as CheckboxCollectionContextProps;
     const { widget, theme } = context;
 
-    // Safe access to optional properties.
     const oidObject = widget.data.oidObject;
 
     const { data } = useData('oid');
@@ -175,7 +173,7 @@ function CheckboxCollection(): React.JSX.Element {
                                         },
                                     }}
                                     dangerouslySetInnerHTML={{
-                                        __html: `<div style="text-align: center; display: inline-block; width: 100%;">${contentValue || ''}</div>`,
+                                        __html: `<div style="text-align: left; display: inline-block; width: 100%;">${contentValue || ''}</div>`,
                                     }}
                                 />
                             )

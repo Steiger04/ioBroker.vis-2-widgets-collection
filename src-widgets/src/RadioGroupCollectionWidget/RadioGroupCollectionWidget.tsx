@@ -77,8 +77,9 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
     }
 
     // This function is called every time when rxData is changed
+    // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -92,7 +93,7 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {

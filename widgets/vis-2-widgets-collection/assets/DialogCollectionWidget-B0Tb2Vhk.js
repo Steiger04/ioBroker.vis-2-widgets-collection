@@ -1,9 +1,9 @@
-import { j as t, a7 as H, C as u, O as A, A as C, o as S, M as V, w as m, E as v, T, D as B, I as z, v as E, y as R, z as P, G as $, s as F, S as L, n as U, H as N, J as G, N as X, __tla as __tla_0 } from "./useData-V3RviNbf.js";
-import { R as b, v as n, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as Y, __tla as __tla_2 } from "./Close-BdxMyRct.js";
+import { j as t, a7 as W, C as c, O as M, M as O, w as p, E as k, T as _, A as f, D as y, o as b, I as A, v as H, y as V, z as R, G as E, s as z, S as F, n as P, H as L, J as U, N as $, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
+import { v as n, R as N, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { C as G, __tla as __tla_2 } from "./Close-Bxa4CRP4.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let I;
+let j;
 let __tla = Promise.all([
   (() => {
     try {
@@ -24,7 +24,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const J = () => [
+  const X = () => [
     {
       name: "view",
       label: "view",
@@ -34,7 +34,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogAutoClose",
@@ -47,21 +47,21 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogId",
       type: "id",
       label: "oid",
       tooltip: "dialog_set_oid_tooltip",
-      onChange: H([
+      onChange: W([
         "boolean"
       ], "dialogId")
     },
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogHeaderAsTitle",
@@ -72,7 +72,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogWidth",
@@ -101,7 +101,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogBackgroundColor",
@@ -112,17 +112,17 @@ let __tla = Promise.all([
         ""
       ],
       noGradient: false,
-      component: (s, a, e, l) => t.jsx(A, {
-        field: s,
-        data: a,
+      component: (r, l, e, a) => t.jsx(M, {
+        field: r,
+        data: l,
         onDataChange: e,
-        props: l
+        props: a
       })
     },
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {
+      component: () => t.jsx(c, {
         dividerText: "dialog_button"
       })
     },
@@ -135,7 +135,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "dialogCloseButtonTop",
@@ -157,7 +157,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(u, {})
+      component: () => t.jsx(c, {})
     },
     {
       name: "onlyIcon",
@@ -174,164 +174,134 @@ let __tla = Promise.all([
       hidden: "data.onlyIcon"
     }
   ];
-  function q({ color: s, frameBackgroundColor: a, onClick: e }) {
-    return t.jsx(z, {
+  function Y({ open: r, handleClose: l, widget: e, data: a, getWidgetView: i }) {
+    var _a;
+    const x = n.useRef(null), [u, d] = n.useState(null), o = (_a = x.current) == null ? void 0 : _a.header;
+    n.useEffect(() => {
+      e.data.dialogHeaderAsTitle && o && u && (e.data.dialogHeaderAsTitle && (o.style.width = "0px", o.style.height = "0px"), u.innerHTML = a.header, u.style.height = "auto", u.style.width = "auto");
+    }, [
+      o,
+      u,
+      a.header,
+      e.data.dialogHeaderAsTitle
+    ]);
+    const g = t.jsx(A, {
       sx: {
         alignSelf: "flex-end",
         filter: "brightness(1.5)",
-        color: (l) => s || a || l.palette.background.default
+        color: (s) => e.data.dialogCloseButtonColor || a.frameBackgroundColor || s.palette.background.default
       },
-      "aria-label": "close",
-      onClick: e,
-      children: t.jsx(Y, {})
+      "aria-label": "delete",
+      onClick: l,
+      children: t.jsx(G, {})
     });
-  }
-  const j = b.memo(q), K = (s) => ({
-    width: "100%",
-    opacity: "0.5",
-    background: (a) => s || a.palette.background.default
-  });
-  function Q({ open: s, handleClose: a, widget: e, data: l, getWidgetView: i }) {
-    const f = n.useRef(null), r = e.data.dialogHeaderAsTitle;
-    n.useEffect(() => {
-      var _a;
-      const g = (_a = f.current) == null ? void 0 : _a.header;
-      if (!(!r || !g)) return g.style.width = "0px", g.style.height = "0px", () => {
-        g.style.width = "", g.style.height = "";
-      };
-    }, [
-      r
-    ]);
-    const d = n.useMemo(() => r ? l.header ?? "" : "", [
-      r,
-      l.header
-    ]), o = n.useMemo(() => ({
-      fontSize: l.headerSize,
-      px: e.data.dialogCloseButtonTop ? 4 : 0,
-      height: r ? "auto" : 0,
-      width: r ? "auto" : 0,
-      background: C(l.textColor),
-      WebkitBackgroundClip: "text",
-      backgroundClip: "text",
-      color: C(l.textColor) ? "transparent" : l.textColor
-    }), [
-      l.headerSize,
-      e.data.dialogCloseButtonTop,
-      r,
-      l.textColor
-    ]), h = n.useMemo(() => ({
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: e.data.dialogBackgroundColor || "inherit"
-    }), [
-      e.data.dialogBackgroundColor
-    ]), c = n.useMemo(() => ({
-      width: e.data.dialogInPixel ? `${e.data.dialogWidth}px` : `${e.data.dialogWidth}%`,
-      height: e.data.dialogInPixel ? `${e.data.dialogHeight}px` : `${e.data.dialogHeight}%`
-    }), [
-      e.data.dialogInPixel,
-      e.data.dialogWidth,
-      e.data.dialogHeight
-    ]), k = n.useMemo(() => ({
-      flexDirection: "column",
-      background: l.backgroundColor || l.background
-    }), [
-      l.backgroundColor,
-      l.background
-    ]), y = n.useMemo(() => ({
-      "::-webkit-scrollbar-track": {
-        background: l.frameBackgroundColor && S(l.frameBackgroundColor, 0.5)
+    return t.jsx(O, {
+      onClose: l,
+      open: r,
+      sx: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: e.data.dialogBackgroundColor || "inherit"
       },
-      "::-webkit-scrollbar-thumb": {
-        opacity: "0.5",
-        background: l.frameBackgroundColor && S(l.frameBackgroundColor, 0.7)
-      },
-      position: "relative",
-      overflow: "auto",
-      width: "100%",
-      height: "100%"
-    }), [
-      l.frameBackgroundColor
-    ]), x = n.useMemo(() => ({
-      position: "relative",
-      width: "100%",
-      height: "auto",
-      display: "flex",
-      justifyContent: "flex-end",
-      alignItems: "center",
-      p: e.data.dialogCloseButtonTop || !r ? 0 : 2
-    }), [
-      e.data.dialogCloseButtonTop,
-      r
-    ]), p = n.useMemo(() => K(l.frameBackgroundColor), [
-      l.frameBackgroundColor
-    ]);
-    return t.jsx(V, {
-      onClose: a,
-      open: s,
-      sx: h,
-      children: t.jsx(m, {
-        sx: c,
-        children: t.jsxs(v, {
-          ref: f,
-          data: l,
-          sx: k,
+      children: t.jsx(p, {
+        sx: {
+          width: e.data.dialogInPixel ? `${e.data.dialogWidth}px` : `${e.data.dialogWidth}%`,
+          height: e.data.dialogInPixel ? `${e.data.dialogHeight}px` : `${e.data.dialogHeight}%`
+        },
+        children: t.jsxs(k, {
+          ref: x,
+          data: a,
+          sx: {
+            flexDirection: "column",
+            background: a.backgroundColor || a.background
+          },
           children: [
-            t.jsxs(m, {
-              sx: x,
+            t.jsxs(p, {
+              sx: {
+                position: "relative",
+                width: "100%",
+                height: "auto",
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                p: e.data.dialogCloseButtonTop || !e.data.dialogHeaderAsTitle ? 0 : 2
+              },
               children: [
-                t.jsx(m, {
+                t.jsx(p, {
                   sx: {
                     position: "absolute",
                     left: 0,
                     width: "100%"
                   },
-                  children: t.jsx(T, {
+                  children: t.jsx(_, {
+                    ref: d,
                     noWrap: true,
                     variant: "body2",
-                    sx: o,
-                    dangerouslySetInnerHTML: {
-                      __html: d
+                    sx: {
+                      fontSize: a.headerSize,
+                      px: e.data.dialogCloseButtonTop ? 4 : 0,
+                      background: f(a.textColor),
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: f(a.textColor) ? "transparent" : a.textColor
                     }
                   })
                 }),
-                e.data.dialogCloseButtonTop && t.jsx(j, {
-                  color: e.data.dialogCloseButtonColor,
-                  frameBackgroundColor: l.frameBackgroundColor,
-                  onClick: a
-                })
+                e.data.dialogCloseButtonTop && g
               ]
             }),
-            e.data.dialogCloseButtonTop ? t.jsx(B, {
-              sx: p
-            }) : null,
-            t.jsx(m, {
-              sx: y,
+            t.jsx(t.Fragment, {
+              children: e.data.dialogCloseButtonTop && t.jsx(y, {
+                sx: {
+                  width: "100%",
+                  opacity: "0.5",
+                  background: (s) => a.frameBackgroundColor || s.palette.background.default
+                }
+              })
+            }),
+            t.jsx(p, {
+              sx: {
+                "::-webkit-scrollbar-track": {
+                  background: a.frameBackgroundColor && b(a.frameBackgroundColor, 0.5)
+                },
+                "::-webkit-scrollbar-thumb": {
+                  opacity: "0.5",
+                  background: a.frameBackgroundColor && b(a.frameBackgroundColor, 0.7)
+                },
+                position: "relative",
+                overflow: "auto",
+                width: "100%",
+                height: "100%"
+              },
               children: i(e.data.view || "", {
                 style: {}
               })
             }),
-            e.data.dialogCloseButtonBottom ? t.jsx(B, {
-              sx: p
-            }) : null,
-            e.data.dialogCloseButtonBottom ? t.jsx(j, {
-              color: e.data.dialogCloseButtonColor,
-              frameBackgroundColor: l.frameBackgroundColor,
-              onClick: a
-            }) : null
+            t.jsxs(t.Fragment, {
+              children: [
+                e.data.dialogCloseButtonBottom && t.jsx(y, {
+                  sx: {
+                    width: "100%",
+                    opacity: "0.5",
+                    background: (s) => a.frameBackgroundColor || s.palette.background.default
+                  }
+                }),
+                e.data.dialogCloseButtonBottom && g
+              ]
+            })
           ]
         })
       })
     });
   }
-  const Z = b.memo(Q), ee = 1e4, te = 60, oe = 1e3, le = F(U)({
+  const J = 1e4, q = 60, K = 1e3, Q = z(P)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
-  }), ae = {
+  }), Z = {
     overflow: "hidden",
     p: 0.5,
     width: "100%",
@@ -339,77 +309,77 @@ let __tla = Promise.all([
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
-  }, ne = {
+  }, ee = {
     width: "100%",
     height: "100%",
     display: "flex"
   };
-  function ie(s) {
-    const a = String(s);
-    if (!s || a === "" || a === "0") return 0;
-    if (a === "true") return ee;
-    let e = parseInt(a, 10);
-    return e < te && (e *= 1e3), e || oe;
+  function te(r) {
+    const l = String(r);
+    if (!r || l === "" || l === "0") return 0;
+    if (l === "true") return J;
+    let e = parseInt(l, 10);
+    return e < q && (e *= 1e3), e || K;
   }
-  function se() {
+  function oe() {
     var _a, _b;
-    const [s, a] = n.useState(false), e = n.useRef(null), l = n.useContext(E), { widget: i, widget: { data: f }, getWidgetView: r, setValue: d } = l, { data: o, oidValue: h } = R("oid"), c = (_a = i.data.oidObject) == null ? void 0 : _a._id, y = ((_b = i.data.oidObject) == null ? void 0 : _b.type) === "boolean" || !i.data.oid || i.data.oid === "nothing_selected";
+    const [r, l] = n.useState(false), e = n.useRef(null), a = n.useContext(H), { widget: i, widget: { data: x }, getWidgetView: u, setValue: d } = a, { data: o, oidValue: g } = V("dialogId"), s = (_a = i.data.dialogIdObject) == null ? void 0 : _a._id, T = ((_b = i.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !i.data.oid || i.data.oid === "nothing_selected";
     n.useEffect(() => () => {
       e.current && clearTimeout(e.current);
     }, []);
-    const x = n.useCallback(() => {
+    const h = n.useCallback(() => {
       if (e.current) return;
-      const _ = ie(i.data.dialogAutoClose);
-      if (_ === 0) {
-        a(true);
+      const C = te(i.data.dialogAutoClose);
+      if (C === 0) {
+        l(true);
         return;
       }
       e.current = setTimeout(() => {
-        e.current = null, c && d(c, false), a(false);
-      }, _), a(true);
+        e.current = null, s && d(s, false), l(false);
+      }, C), l(true);
     }, [
-      c,
+      s,
       d,
       i.data.dialogAutoClose
-    ]), p = n.useCallback(() => {
-      e.current && (clearTimeout(e.current), e.current = null), c && d(c, false), a(false);
+    ]), m = n.useCallback(() => {
+      e.current && (clearTimeout(e.current), e.current = null), s && d(s, false), l(false);
     }, [
-      c,
+      s,
       d
     ]);
     n.useEffect(() => {
-      h != null && (h ? x() : p());
+      g != null && (g ? h() : m());
     }, [
+      g,
       h,
-      x,
-      p
+      m
     ]);
-    const g = n.useCallback(() => {
-      c && d(c, true), x();
+    const S = n.useCallback(() => {
+      s && d(s, true), h();
     }, [
-      c,
+      s,
       d,
-      x
-    ]), M = n.useMemo(() => i.data.onlyIcon || !i.data.onlyText && !i.data.onlyIcon, [
+      h
+    ]), v = n.useMemo(() => i.data.onlyIcon || !i.data.onlyText && !i.data.onlyIcon, [
       i.data.onlyIcon,
       i.data.onlyText
-    ]), w = n.useMemo(() => i.data.onlyText || !i.data.onlyText && !i.data.onlyIcon, [
+    ]), B = n.useMemo(() => i.data.onlyText || !i.data.onlyText && !i.data.onlyIcon, [
       i.data.onlyText,
       i.data.onlyIcon
-    ]), D = n.useMemo(() => ({
+    ]), I = n.useMemo(() => ({
       "& .MuiTouchRipple-root span": {
         color: o.iconColor
       }
     }), [
       o.iconColor
-    ]), W = n.useMemo(() => ({
+    ]), w = n.useMemo(() => ({
       position: "relative",
       objectFit: "contain",
       top: `calc(0px - ${o.iconYOffset})`,
       right: `calc(0px - ${o.iconXOffset})`,
       width: o.iconSizeOnly,
       height: o.iconSizeOnly,
-      ...P(o.icon, o.iconColor, o.forceColorMask ?? false)
+      ...R(o.icon, o.iconColor, o.forceColorMask ?? false)
     }), [
       o.iconYOffset,
       o.iconXOffset,
@@ -417,7 +387,7 @@ let __tla = Promise.all([
       o.icon,
       o.iconColor,
       o.forceColorMask
-    ]), O = n.useMemo(() => ({
+    ]), D = n.useMemo(() => ({
       overflow: "hidden",
       width: "100%",
       height: "100%",
@@ -428,10 +398,10 @@ let __tla = Promise.all([
       alignItems: "center",
       fontSize: o.valueSize,
       textTransform: "none",
-      background: C(o.textColorActive || o.textColor),
+      background: f(o.textColorActive || o.textColor),
       WebkitBackgroundClip: "text",
       backgroundClip: "text",
-      color: C(o.textColor) ? "transparent" : o.textColor
+      color: f(o.textColor) ? "transparent" : o.textColor
     }), [
       o.valueSize,
       o.textColorActive,
@@ -439,40 +409,40 @@ let __tla = Promise.all([
     ]);
     return t.jsxs(t.Fragment, {
       children: [
-        t.jsx(Z, {
-          open: s,
-          handleClose: p,
+        t.jsx(Y, {
+          open: r,
+          handleClose: m,
           widget: i,
           data: o,
-          getWidgetView: r
+          getWidgetView: u
         }),
-        t.jsxs(v, {
-          isValidType: y,
+        t.jsxs(k, {
+          isValidType: T,
           data: o,
           children: [
-            t.jsx($, {
+            t.jsx(E, {
               data: o,
               widget: i
             }),
-            t.jsx(m, {
-              sx: ne,
-              children: t.jsxs(le, {
-                onClick: g,
-                sx: D,
+            t.jsx(p, {
+              sx: ee,
+              children: t.jsxs(Q, {
+                onClick: S,
+                sx: I,
                 children: [
-                  M ? t.jsx(m, {
-                    sx: ae,
-                    children: t.jsx(L, {
+                  v ? t.jsx(p, {
+                    sx: Z,
+                    children: t.jsx(F, {
                       alt: "",
                       src: o.icon,
-                      style: W
+                      style: w
                     })
                   }) : null,
-                  w ? t.jsx(T, {
+                  B ? t.jsx(_, {
                     variant: "body2",
-                    sx: O,
+                    sx: D,
                     dangerouslySetInnerHTML: {
-                      __html: f.dialogText || ""
+                      __html: x.dialogText || ""
                     }
                   }) : null
                 ]
@@ -483,8 +453,8 @@ let __tla = Promise.all([
       ]
     });
   }
-  const re = b.memo(se);
-  I = class extends N {
+  const le = N.memo(oe);
+  j = class extends L {
     static getWidgetInfo() {
       return {
         id: "tplDialogCollectionWidget",
@@ -497,7 +467,7 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...G({
+              ...U({
                 groupName: "",
                 allFields: true
               })
@@ -507,7 +477,7 @@ let __tla = Promise.all([
             name: "dialog",
             label: "group_dialog",
             fields: [
-              ...J()
+              ...X()
             ]
           }
         ],
@@ -520,7 +490,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return I.getWidgetInfo();
+      return j.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -529,17 +499,17 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(a, e) {
+    onStateUpdated(l, e) {
     }
     componentDidMount() {
       super.componentDidMount(), this.propertiesUpdate();
     }
-    renderWidgetBody(a) {
-      super.renderWidgetBody(a);
+    renderWidgetBody(l) {
+      super.renderWidgetBody(l);
       const e = {
-        id: a.id,
-        refService: a.refService,
-        style: a.style,
+        id: l.id,
+        refService: l.refService,
+        style: l.style,
         widget: {
           data: this.state.rxData,
           style: this.state.rxStyle
@@ -555,11 +525,11 @@ let __tla = Promise.all([
         getWidgetView: this.getWidgetView.bind(this),
         wrappedContent: this.wrappedCollectionContent
       };
-      return a.widget.data.noCard || a.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, X(this.wrapContent(t.jsx(re, {})), e);
+      return l.widget.data.noCard || l.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, $(this.wrapContent(t.jsx(le, {})), e);
     }
   };
 });
 export {
   __tla,
-  I as default
+  j as default
 };

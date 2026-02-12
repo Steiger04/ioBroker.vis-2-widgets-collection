@@ -16,13 +16,6 @@ import CheckboxCollection from './CheckboxCollection';
 
 import type { RxRenderWidgetProps, RxWidgetInfo } from '@iobroker/types-vis-2';
 
-/**
- * Widget entry (vis-2 runtime).
- *
- * @remarks
- * Defines the widget schema and provides the collection context consumed by
- * {@link CheckboxCollection}.
- */
 class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -75,8 +68,9 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
     }
 
     // This function is called every time when rxData is changed
+    // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -90,7 +84,7 @@ class CheckboxCollectionWidget extends Generic<WidgetRegistry['tplCheckboxCollec
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {

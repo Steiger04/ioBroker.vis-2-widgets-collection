@@ -437,7 +437,7 @@ function CollectionGradientColorPicker({
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs
-                            hideEyeDrop
+                            hideEyeDrop // Pinpette is not supported in iframes due to browser security restrictions, so we hide it to avoid confusion
                             // hideAdvancedSliders
                             // hideColorGuide
                             hideInputType

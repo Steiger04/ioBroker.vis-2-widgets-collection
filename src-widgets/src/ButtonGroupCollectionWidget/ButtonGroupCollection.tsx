@@ -64,12 +64,14 @@ function ButtonGroupCollection(): React.JSX.Element {
         [setOidValueState],
     );
 
+    // console.log('buttonStates', buttonStates);
+    // console.log('styleData', styleData);
+
     return (
         <CollectionBase
             isValidType={isValidType}
             data={styleData}
             oidValue={oidValue}
-            bgActive={false}
         >
             <CollectionBaseImage
                 data={styleData}
@@ -134,8 +136,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                     {buttonStates.map(({ value, ...state }, index) => {
                         // activeIndex is 1-based (0 / undefined = no selection)
                         const isActive = activeIndex === index + 1;
-                        const bgColor = state.background;
-                        const { hasGradient, hoverBackground, selectedBackground } = getButtonColorStyles(bgColor);
+
+                        const { hasGradient, hoverBackground, selectedBackground } = getButtonColorStyles(
+                            state.background,
+                        );
                         const textGradient = gradientColor(state.textColor);
 
                         return (
@@ -153,7 +157,7 @@ function ButtonGroupCollection(): React.JSX.Element {
 
                                     '&.MuiToggleButton-root': {
                                         filter: isActive && hasGradient ? 'opacity(80%)' : undefined,
-                                        background: bgColor,
+                                        background: state.background,
 
                                         '&:hover': {
                                             filter: hasGradient ? 'opacity(80%)' : undefined,

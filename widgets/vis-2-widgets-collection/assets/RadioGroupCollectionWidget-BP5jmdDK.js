@@ -1,12 +1,12 @@
-import { c as y, j as t, s as S, r as D, m as T, a as K, g as X, u as Y, ab as Z, ac as Q, b as ee, d as oe, i as v, e as te, o as $, a2 as G, C as b, O as ae, a9 as ie, v as ne, y as se, E as le, G as re, T as de, A as W, w as B, S as ce, z as pe, H as ue, J as U, K as he, N as me, __tla as __tla_0 } from "./useData-V3RviNbf.js";
-import { u as fe, d as ge, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { c as y, j as t, s as S, r as D, m as T, a as K, g as X, u as Y, ab as Z, ac as Q, b as ee, d as oe, i as v, e as te, o as $, a2 as G, C as b, O as ae, a9 as ie, v as ne, y as se, E as le, G as re, T as de, A as W, w as B, S as ce, z as pe, H as ue, J as L, K as he, N as me, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
+import { u as fe, d as ge, __tla as __tla_1 } from "./useValueState-CLMabNs9.js";
 import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as xe, __tla as __tla_3 } from "./Stack-Bf2HlEiX.js";
-import { F as Ce, __tla as __tla_4 } from "./FormControlLabel-ozRI5Kin.js";
-import { S as be, __tla as __tla_5 } from "./SwitchBase-1YAmC1FO.js";
+import { S as xe, __tla as __tla_3 } from "./Stack-Dv6Zmy2V.js";
+import { F as Ce, __tla as __tla_4 } from "./FormControlLabel-Co4ZhhDq.js";
+import { S as be, __tla as __tla_5 } from "./SwitchBase-BJ6mn00q.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let H;
+let N;
 let __tla = Promise.all([
   (() => {
     try {
@@ -84,7 +84,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  function N(e) {
+  function H(e) {
     const { checked: o = false, classes: a = {}, fontSize: s } = e, r = {
       ...e,
       checked: o
@@ -113,7 +113,7 @@ let __tla = Promise.all([
   function Ie(e) {
     return X("MuiRadio", e);
   }
-  const L = K("MuiRadio", [
+  const U = K("MuiRadio", [
     "root",
     "checked",
     "disabled",
@@ -146,7 +146,7 @@ let __tla = Promise.all([
     }
   })(T(({ theme: e }) => ({
     color: (e.vars || e).palette.text.secondary,
-    [`&.${L.disabled}`]: {
+    [`&.${U.disabled}`]: {
       color: (e.vars || e).palette.action.disabled
     },
     variants: [
@@ -180,7 +180,7 @@ let __tla = Promise.all([
           disabled: false
         },
         style: {
-          [`&.${L.checked}`]: {
+          [`&.${U.checked}`]: {
             color: (e.vars || e).palette[o].main
           }
         }
@@ -202,9 +202,9 @@ let __tla = Promise.all([
   function _e(e, o) {
     return typeof o == "object" && o !== null ? e === o : String(e) === String(o);
   }
-  const ze = t.jsx(N, {
+  const ze = t.jsx(H, {
     checked: true
-  }), Me = t.jsx(N, {}), Fe = c.forwardRef(function(o, a) {
+  }), Me = t.jsx(H, {}), Fe = c.forwardRef(function(o, a) {
     const s = Y({
       props: o,
       name: "MuiRadio"
@@ -346,7 +346,7 @@ let __tla = Promise.all([
     d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8"
   }), "RadioButtonUnchecked");
   function Ge() {
-    const [e, o] = c.useState(null), { height: a } = ie(e), s = c.useContext(ne), { widget: { data: { oidObject: r } }, widget: n } = s, { data: p, statesNew: u } = se("oid"), { value: g, updateValue: k } = fe("oid"), h = r == null ? void 0 : r.type, w = [
+    const [e, o] = c.useState(null), { height: a } = ie(e), s = c.useContext(ne), { widget: { data: { oidObject: r } }, widget: n } = s, { data: p, states: u } = se("oid"), { value: g, updateValue: k } = fe("oid"), h = r == null ? void 0 : r.type, w = [
       "boolean",
       "number",
       "string",
@@ -523,7 +523,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  H = class extends ue {
+  N = class extends ue {
     static getWidgetInfo() {
       return {
         id: "tplRadioGroupCollectionWidget",
@@ -536,7 +536,7 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...U({
+              ...L({
                 groupName: "",
                 allFields: true
               })
@@ -562,7 +562,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...U({
+              ...L({
                 groupName: "",
                 allFields: false
               })
@@ -578,19 +578,18 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return H.getWidgetInfo();
+      return N.getWidgetInfo();
     }
     propertiesUpdate() {
     }
     onRxDataChanged() {
-      this.propertiesUpdate();
     }
     onRxStyleChanged() {
     }
     onStateUpdated(o, a) {
     }
     componentDidMount() {
-      super.componentDidMount(), this.propertiesUpdate();
+      super.componentDidMount();
     }
     renderWidgetBody(o) {
       super.renderWidgetBody(o);
@@ -618,5 +617,5 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  H as default
+  N as default
 };

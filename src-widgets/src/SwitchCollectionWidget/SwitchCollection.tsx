@@ -14,11 +14,6 @@ import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
 import type { SwitchCollectionContextProps } from '../types';
 
-/**
- * Switch widget body.
- *
- * @returns Widget body element.
- */
 function SwitchCollection(): React.JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const context = useContext(CollectionContext) as SwitchCollectionContextProps;

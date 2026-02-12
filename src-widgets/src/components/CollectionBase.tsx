@@ -34,8 +34,6 @@ interface CollectionBaseProps {
     oidValue?: ioBroker.StateValue;
     /** Whether the currently selected OID type is valid for the widget. */
     isValidType?: boolean;
-    /** Whether active background styling should be applied. */
-    bgActive?: boolean;
     /** Additional `sx` passed to the inner Paper. */
     sx?: SxProps<Theme>;
 }
@@ -57,7 +55,7 @@ export interface CollectionBaseHandle {
  * @returns The widget frame.
  */
 const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
-    ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
+    ({ children, data, oidValue = null, isValidType = true, sx = {} }, baseRef) => {
         // Consolidated refs
         const paper0Ref = useRef<HTMLDivElement>(null);
         const paper1Ref = useRef<HTMLDivElement>(null);
@@ -110,19 +108,21 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 justifyContent: 'space-between',
                 alignItems: 'center',
 
-                // Spread background styles
                 ...backgroundStyles,
 
-                // Background color
-                background: wrappedContent ? data.frameBackground : 'transparent',
-                borderColor: !wrappedContent ? data.frameBackground || borderStyles?.['border-color'] : '',
+                backgroundColor: wrappedContent
+                    ? gradientColor(data.frameBackground)
+                        ? undefined
+                        : data.frameBackground
+                    : gradientColor(data.frameBackground)
+                      ? 'transparent'
+                      : data.frameBackground,
 
-                // Conditional border properties
-                /* ...{
-                    'border-width': borderStyles?.['border-width'],
-                    'border-style': borderStyles?.['border-style'],
-                    'border-radius': borderStyles?.['border-radius'],
-                }, */
+                background: wrappedContent
+                    ? gradientColor(data.frameBackground)
+                    : data.frameBackground || 'transparent',
+
+                borderColor: !wrappedContent ? data.frameBackground || borderStyles?.['border-color'] : '',
             });
         }, [backgroundStyles, borderStyles, data.frameBackground, wrappedContent]);
 
@@ -136,29 +136,23 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 justifyContent: 'center',
                 alignItems: 'center',
 
-                background: wrappedContent ? bgActive && data.background : 'transparent',
+                backgroundColor: wrappedContent
+                    ? gradientColor(data.background)
+                        ? undefined
+                        : data.background
+                    : gradientColor(data.background)
+                      ? 'transparent'
+                      : data.background,
+
+                background: wrappedContent ? gradientColor(data.background) : data.background || 'transparent',
+
                 borderColor: !wrappedContent ? data.background || borderStyles?.['border-color'] : '',
 
                 borderRadius: widget.data.circle || widget.data.ellipse ? '50%' : undefined,
 
-                // Conditional border properties
-                /* ...{
-                    'border-width': borderStyles?.['border-width'],
-                    'border-style': borderStyles?.['border-style'],
-                }, */
                 ...sx,
             });
-        }, [
-            width,
-            height,
-            wrappedContent,
-            data.background,
-            borderStyles,
-            bgActive,
-            widget.data.circle,
-            widget.data.ellipse,
-            sx,
-        ]);
+        }, [width, height, wrappedContent, data.background, borderStyles, widget.data.circle, widget.data.ellipse, sx]);
 
         // Setup header effect
         useEffect(() => {

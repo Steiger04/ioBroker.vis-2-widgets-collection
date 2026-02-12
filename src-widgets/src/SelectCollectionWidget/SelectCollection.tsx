@@ -16,16 +16,16 @@ import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
-import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 /** Computes background color styles for a menu item, handling both gradient and solid backgrounds. */
 function getMenuItemColorStyles(bgColor: string | null | undefined): Record<string, unknown> {
     const gradient = gradientColor(bgColor);
     const extractedColor = gradient ? extractColorFromValue(bgColor) : undefined;
-    const hoverBg = gradient ? alpha(extractedColor!, 0.5) : bgColor ? alpha(bgColor, 0.5) : undefined;
+    const hoverBg = extractedColor ? alpha(extractedColor, 0.5) : bgColor ? alpha(bgColor, 0.5) : undefined;
 
     return {
         background: gradient,
@@ -49,8 +49,8 @@ function getMenuItemColorStyles(bgColor: string | null | undefined): Record<stri
 
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
-    const { width } = useElementDimensions(contentRef?.current);
-    // SelectCollection is only used by SelectCollectionWidget, so the cast is safe.
+    const { width = 300 } = useElementDimensions(contentRef?.current);
+
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget } = context;
     const cidObject = widget.data.cidObject;
@@ -63,22 +63,34 @@ function SelectCollection(): React.ReactElement {
 
     const isValidType = ['boolean', 'number', 'string', 'mixed'].includes(oidType || '');
 
-    const valueIndex = useMemo(
-        () => states.findIndex(state => String(state.value) === String(oidValue)),
-        [states, oidValue],
-    );
+    const valueIndex = useMemo(() => {
+        if (oidValue === null || oidValue === undefined) {
+            return -1;
+        }
+        const needle = String(oidValue);
+        return states.findIndex(state => String(state.value) === needle);
+    }, [states, oidValue]);
 
     const changeHandler = useCallback(
         (event: SelectChangeEvent<string | number>): void => {
-            const selectedIndex = event.target.value;
-            const selectedState = states[selectedIndex as number];
-            const value = selectedState.value;
+            const selectedIndex = Number(event.target.value);
 
-            if (cidObject) {
-                setCidValueState(value!);
+            if (selectedIndex < 0 || selectedIndex >= states.length) {
+                return;
             }
 
-            setOidValueState(value!);
+            const selectedState = states[selectedIndex];
+            if (selectedState?.value === undefined) {
+                return;
+            }
+
+            const { value } = selectedState;
+
+            if (cidObject) {
+                setCidValueState(value);
+            }
+
+            setOidValueState(value);
         },
         [states, cidObject, setCidValueState, setOidValueState],
     );
@@ -97,7 +109,6 @@ function SelectCollection(): React.ReactElement {
             <Box
                 ref={contentRef}
                 sx={{
-                    overflow: 'auto',
                     width: '100%',
                     height: '100%',
                     display: 'flex',
@@ -111,14 +122,34 @@ function SelectCollection(): React.ReactElement {
                     value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
                     MenuProps={{
-                        sx: {
-                            maxWidth: width,
-                            mt: 0.3,
-
-                            '& .MuiList-root': {
-                                // bgcolor: data.frameBackground,
-                                py: 0,
+                        slotProps: {
+                            backdrop: {
+                                style: { backgroundColor: 'transparent !important' },
                             },
+                            root: {
+                                sx: {
+                                    maxWidth: width,
+                                    mt: 0.3,
+
+                                    '& .MuiList-root': {
+                                        py: 0,
+                                    },
+                                },
+                            },
+                            paper: widget.data.noCard
+                                ? {
+                                      sx: {
+                                          '--Paper-overlay': 'none !important',
+                                          '--Paper-shadow': 'none !important',
+                                          boxShadow: 'none !important',
+                                          background: data.frameBackground || 'transparent',
+                                      },
+                                  }
+                                : {
+                                      sx: {
+                                          background: data.frameBackground || undefined,
+                                      },
+                                  },
                         },
                     }}
                     sx={{
@@ -183,7 +214,7 @@ function SelectCollection(): React.ReactElement {
                                         }}
                                         contentEditable="false"
                                         dangerouslySetInnerHTML={{
-                                            __html: state.label!,
+                                            __html: state.label ?? '',
                                         }}
                                     />
                                 </Stack>

@@ -1,12 +1,12 @@
-import { c as Dt, j as a, g as F, a as V, u as A, b as L, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as Mt, i as H, M as Tt, B as Bt, T as z, L as W, k as Lt, l as it, n as $t, r as At, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as U, x as Wt, I as Ft, D as Vt, y as _t, z as Ot, A as nt, E as Ut, G as Gt, H as zt, J as rt, K as Ht, N as Et, __tla as __tla_0 } from "./useData-V3RviNbf.js";
-import { u as ct, d as Yt, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { c as Dt, j as a, g as F, a as V, u as A, b as L, s as j, d as R, e as N, m as q, f as Rt, P as tt, F as et, h as Mt, i as H, M as Tt, B as Bt, T as z, L as W, k as Lt, l as it, n as $t, r as At, o as K, p as Nt, q as ot, t as st, C as at, v as lt, w as G, x as Wt, I as Ft, D as Vt, y as _t, z as Ot, A as nt, E as Gt, G as Ut, H as zt, J as rt, K as Ht, N as Et, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
+import { u as ct, d as Yt, __tla as __tla_1 } from "./useValueState-CLMabNs9.js";
 import { v as l, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as qt, __tla as __tla_3 } from "./Close-BdxMyRct.js";
-import { S as Xt, __tla as __tla_4 } from "./Slider-B5BncLQ6.js";
-import { g as Kt, l as J, __tla as __tla_5 } from "./listItemTextClasses-D2rxtPfI.js";
-import { S as Jt, __tla as __tla_6 } from "./Stack-Bf2HlEiX.js";
+import { C as qt, __tla as __tla_3 } from "./Close-Bxa4CRP4.js";
+import { S as Xt, __tla as __tla_4 } from "./Slider-9C7-Wp2E.js";
+import { g as Kt, l as J, __tla as __tla_5 } from "./listItemTextClasses-CiAn_OCt.js";
+import { S as Jt, __tla as __tla_6 } from "./Stack-Dv6Zmy2V.js";
 import { u as Qt, __tla as __tla_7 } from "./useHtmlValue-3ISCcM5X.js";
-import { B as Zt, __tla as __tla_8 } from "./Button-CdDTnNmO.js";
+import { B as Zt, __tla as __tla_8 } from "./Button-D5yvzg7E.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let ut;
@@ -657,7 +657,7 @@ let __tla = Promise.all([
   function Ie(e) {
     return F("MuiListItemButton", e);
   }
-  const G = V("MuiListItemButton", [
+  const U = V("MuiListItemButton", [
     "root",
     "focusVisible",
     "dense",
@@ -718,22 +718,22 @@ let __tla = Promise.all([
         backgroundColor: "transparent"
       }
     },
-    [`&.${G.selected}`]: {
+    [`&.${U.selected}`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : K(e.palette.primary.main, e.palette.action.selectedOpacity),
-      [`&.${G.focusVisible}`]: {
+      [`&.${U.focusVisible}`]: {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.focusOpacity}))` : K(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.focusOpacity)
       }
     },
-    [`&.${G.selected}:hover`]: {
+    [`&.${U.selected}:hover`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.hoverOpacity}))` : K(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.hoverOpacity),
       "@media (hover: none)": {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : K(e.palette.primary.main, e.palette.action.selectedOpacity)
       }
     },
-    [`&.${G.focusVisible}`]: {
+    [`&.${U.focusVisible}`]: {
       backgroundColor: (e.vars || e).palette.action.focus
     },
-    [`&.${G.disabled}`]: {
+    [`&.${U.disabled}`]: {
       opacity: (e.vars || e).palette.action.disabledOpacity
     },
     variants: [
@@ -934,7 +934,7 @@ let __tla = Promise.all([
       {
         props: ({ ownerState: t }) => !!t.secondaryAction,
         style: {
-          [`& > .${G.root}`]: {
+          [`& > .${U.root}`]: {
             paddingRight: 48
           }
         }
@@ -1215,7 +1215,7 @@ let __tla = Promise.all([
       type: "checkbox",
       label: "no_value"
     }
-  ], Ue = ({ widgetStates: e, data: t, open: o, closeHandler: n }) => {
+  ], Ge = ({ widgetStates: e, data: t, open: o, closeHandler: n }) => {
     const { widget: s, getPropertyValue: c } = l.useContext(lt), r = s.data.oidObject, i = s.data.onlyStates, [g, v] = l.useState(() => {
       const d = c("oid");
       return typeof d == "number" ? d : 0;
@@ -1255,7 +1255,7 @@ let __tla = Promise.all([
       f
     ]), p = l.useMemo(() => {
       const { oidType: d, commonStates: m, minValue: b, maxValue: k } = h;
-      return d === "number" && !i && b !== void 0 && k !== void 0 ? a.jsx(U, {
+      return d === "number" && !i && b !== void 0 && k !== void 0 ? a.jsx(G, {
         sx: {
           px: 3
         },
@@ -1356,7 +1356,7 @@ let __tla = Promise.all([
       ]
     });
   };
-  function Ge() {
+  function Ue() {
     const e = l.useContext(lt), { widget: t, theme: o } = e, n = t.data.oidObject, { data: s, widgetStates: c } = _t("oid"), { value: r, updateValue: i } = ct("oid"), [g, v] = l.useState(false), P = n == null ? void 0 : n.type, h = t.data.onlyStates, f = Qt(r, t, s), C = f != null ? String(f) : "", x = () => {
       const u = t.data.value1;
       h && Number(t.data.values_count) === 2 && t.data.statePushButton && u !== void 0 && setTimeout(() => i(u), 0);
@@ -1403,7 +1403,7 @@ let __tla = Promise.all([
           bgcolor: "transparent"
         }
       },
-      children: a.jsxs(U, {
+      children: a.jsxs(G, {
         sx: {
           width: "100%",
           height: "100%",
@@ -1414,7 +1414,7 @@ let __tla = Promise.all([
         children: [
           !t.data.noIcon && s.icon && (() => {
             const u = s.icon, I = s.iconColor || o.palette.primary.main, d = s.forceColorMask, m = Ot(u, I, d);
-            return a.jsx(U, {
+            return a.jsx(G, {
               sx: {
                 display: "flex",
                 justifyContent: "center",
@@ -1444,7 +1444,7 @@ let __tla = Promise.all([
               })
             });
           })(),
-          !t.data.noValue && a.jsx(U, {
+          !t.data.noValue && a.jsx(G, {
             sx: {
               display: "flex",
               justifyContent: "center",
@@ -1454,7 +1454,7 @@ let __tla = Promise.all([
               height: "100%"
             },
             children: a.jsx(z, {
-              component: U,
+              component: G,
               variant: "body2",
               sx: {
                 fontSize: s.valueSize,
@@ -1498,7 +1498,7 @@ let __tla = Promise.all([
     ].includes(P ?? "");
     return a.jsxs(a.Fragment, {
       children: [
-        g && a.jsx(Ue, {
+        g && a.jsx(Ge, {
           data: {
             sampleInterval: false,
             sampleIntervalValue: 200,
@@ -1508,16 +1508,16 @@ let __tla = Promise.all([
           open: g,
           closeHandler: () => v(false)
         }),
-        a.jsxs(Ut, {
+        a.jsxs(Gt, {
           isValidType: S,
           data: s,
           oidValue: r,
           children: [
-            a.jsx(Gt, {
+            a.jsx(Ut, {
               data: s,
               widget: t
             }),
-            a.jsx(U, {
+            a.jsx(G, {
               sx: {
                 width: "100%",
                 height: "100%",
@@ -1590,14 +1590,13 @@ let __tla = Promise.all([
     propertiesUpdate() {
     }
     onRxDataChanged() {
-      this.propertiesUpdate();
     }
     onRxStyleChanged() {
     }
     onStateUpdated(t, o) {
     }
     componentDidMount() {
-      super.componentDidMount(), this.propertiesUpdate();
+      super.componentDidMount();
     }
     renderWidgetBody(t) {
       super.renderWidgetBody(t);
@@ -1619,7 +1618,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Et(this.wrapContent(a.jsx(Ge, {})), o);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Et(this.wrapContent(a.jsx(Ue, {})), o);
     }
   };
 });

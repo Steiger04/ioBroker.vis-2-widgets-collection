@@ -29,13 +29,6 @@ export interface CollectionMarkProps extends Omit<HTMLAttributes<HTMLElement>, '
     className?: string;
 }
 
-/**
- * Renders a mark label with optional icon.
- *
- * @remarks
- * MUI passes mark metadata via `ownerState.marks` and the current index via
- * `data-index`. This component uses `innerHTML` to support markup in labels.
- */
 const CollectionMark: FC<CollectionMarkProps> = ({
     marks,
     sliderOrientation,

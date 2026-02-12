@@ -1,7 +1,7 @@
-import { j as i, C as u, O as b, w as S, T as Q, A as E, S as T, z as V, v as Z, y as ee, Q as H, E as te, G as ae, s as ie, R as W, U as w, o as N, H as le, J as I, K as oe, N as re, __tla as __tla_0 } from "./useData-V3RviNbf.js";
-import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-CYv7cSN1.js";
+import { j as i, C as u, O as b, w as S, T as Q, A as E, S as T, z as V, v as Z, y as ee, Q as H, E as te, G as ae, s as ie, R as W, U as w, o as N, H as le, J as I, K as oe, N as re, __tla as __tla_0 } from "./useData-Ch9c1PRV.js";
+import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-CLMabNs9.js";
 import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as se, S as ce, __tla as __tla_3 } from "./Slider-B5BncLQ6.js";
+import { a as se, S as ce, __tla as __tla_3 } from "./Slider-9C7-Wp2E.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let G;
@@ -627,7 +627,7 @@ let __tla = Promise.all([
       }
     };
   }), xe = () => {
-    const a = c.useContext(Z), { widget: { data: { oidObject: t } }, widget: e, theme: l } = a, { data: p, statesNew: v, minValue: y, maxValue: _, activeIndex: C, resolveStyleData: r } = ee("oid"), { value: s, updateValue: X, hasBackendChange: A } = ne("oid"), [g, $] = c.useState(typeof s == "number" ? s : void 0), k = c.useRef(null), [M, Y] = c.useState({
+    const a = c.useContext(Z), { widget: { data: { oidObject: t } }, widget: e, theme: l } = a, { data: p, states: v, minValue: y, maxValue: _, activeIndex: C, resolveStyleData: r } = ee("oid"), { value: s, updateValue: X, hasBackendChange: A } = ne("oid"), [g, $] = c.useState(typeof s == "number" ? s : void 0), k = c.useRef(null), [M, Y] = c.useState({
       x: 0,
       y: 0
     }), d = e.data.sliderOrientation === "horizontal", j = c.useMemo(() => d ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
@@ -932,14 +932,13 @@ let __tla = Promise.all([
     propertiesUpdate() {
     }
     onRxDataChanged() {
-      this.propertiesUpdate();
     }
     onRxStyleChanged() {
     }
     onStateUpdated(t, e) {
     }
     componentDidMount() {
-      super.componentDidMount(), this.propertiesUpdate();
+      super.componentDidMount();
     }
     renderWidgetBody(t) {
       super.renderWidgetBody(t);

@@ -111,14 +111,6 @@ interface SliderMarkLabelProps {
     defaultIconColor?: string;
 }
 
-/**
- * Renders a MUI slider which writes back to `oid`.
- *
- * @remarks
- * The mark-label renderer is overridden via the `markLabel` slot
- * (see {@link CollectionMark}) to support per-mark icons/colors and an
- * alternate label for the currently selected mark.
- */
 const SliderCollection: FC = () => {
     const context = useContext(CollectionContext) as SliderCollectionContextProps;
     const {

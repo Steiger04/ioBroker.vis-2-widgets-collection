@@ -16,9 +16,6 @@ import SwitchCollection from './SwitchCollection';
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import type { SwitchCollectionContextProps, WidgetRegistry } from '../types';
 
-/**
- * Registers the widget and provides the runtime rendering entry point.
- */
 class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
         return {
@@ -71,8 +68,9 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
     }
 
     // This function is called every time when rxData is changed
+    // eslint-disable-next-line class-methods-use-this
     onRxDataChanged(): void {
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     // This function is called every time when rxStyle is changed
@@ -86,7 +84,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
     componentDidMount(): void {
         super.componentDidMount();
         // Update data
-        this.propertiesUpdate();
+        // this.propertiesUpdate();
     }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
@@ -97,13 +95,11 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
             refService: props.refService,
             style: props.style,
             widget: {
-                // ...props.widget,
                 data: this.state.rxData,
                 style: this.state.rxStyle,
             },
             setValue: this.setValue,
             setState: this.setState.bind(this),
-            // oidObject: this.state.oidObject,
             values: this.state.values,
             isSignalVisible: this.isSignalVisible.bind(this),
             getPropertyValue: this.getPropertyValue.bind(this),

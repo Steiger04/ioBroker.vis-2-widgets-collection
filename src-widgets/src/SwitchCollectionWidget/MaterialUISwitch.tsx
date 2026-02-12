@@ -1,14 +1,3 @@
-/**
- * MUI Switch variant used by the Switch Collection widget.
- *
- * @module widgets/MaterialUISwitch
- * @remarks
- * This is a styled wrapper around MUI's `Switch` that supports:
- * - dynamic sizing based on the widget container
- * - configurable thumb/track colors
- * - optional icon rendering inside the thumb
- */
-
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
@@ -25,26 +14,6 @@ interface MaterialUISwitchProps {
     /** Widget instance (used for reading switch config fields). */
     widget: SwitchCollectionContextProps['widget'];
 }
-
-/**
- * Validates a string against common CSS color formats.
- *
- * @param str - Candidate color string.
- * @returns `true` when the format looks like a CSS color.
- */
-/* function isValidColorFormat(str: string): boolean {
-    const patterns = [
-        /^#([0-9a-fA-F]{3})$/, // #nnn
-        /^#([0-9a-fA-F]{6})$/, // #nnnnnn
-        /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/, // rgb(r, g, b)
-        /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0|1|0?\.\d+)\s*\)$/, // rgba(r, g, b, a)
-        /^hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)$/, // hsl(h, s%, l%)
-        /^hsla\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*,\s*(0|1|0?\.\d+)\s*\)$/, // hsla(h, s%, l%, a)
-        /^color\(\s*[\w-]+\s+(?:\d+(\.\d+)?%?\s*)+\)$/, // basic CSS4 color() check
-    ];
-
-    return patterns.some(pattern => pattern.test(str));
-} */
 
 const MaterialUISwitch = styled(Switch)<MaterialUISwitchProps>(({ width, maxheight, data, widget, theme }) => {
     const thumbSize = widget.data.thumbSize ?? 62;
