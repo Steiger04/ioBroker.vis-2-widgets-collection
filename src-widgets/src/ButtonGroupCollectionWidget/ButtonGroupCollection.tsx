@@ -57,15 +57,18 @@ function ButtonGroupCollection(): React.JSX.Element {
     const isVertical = buttonGroupOrientation === 'vertical';
     const isOutlined = buttonGroupVariant === 'outlined';
 
+    // Separator color used for inset box-shadow dividers (text variant)
+    // and border color (outlined variant).
+    const separatorColor = widget.data.buttonGroupColor
+        ? alpha(widget.data.buttonGroupColor, 0.2)
+        : alpha(theme.palette.text.primary, 0.12);
+
     const handleButtonClick = useCallback(
         (selectedValue: string | number | boolean) => {
             setOidValueState(selectedValue);
         },
         [setOidValueState],
     );
-
-    console.log('buttonStates', buttonStates);
-    console.log('activeIndex', activeIndex);
 
     return (
         <CollectionBase
@@ -103,38 +106,43 @@ function ButtonGroupCollection(): React.JSX.Element {
                         }),
 
                         // Border styles differ between outlined and borderless variants.
-                        // For non-outlined mode every edge is collapsed to 0 except
-                        // where a separator line between buttons is desired.
+                        // For non-outlined (text) mode, borders are fully removed and
+                        // inset box-shadows are used for separator lines so they stay
+                        // visible even when buttons have a background colour.
                         '& .MuiToggleButtonGroup-firstButton': {
                             ...(!isOutlined && {
-                                borderTopWidth: 0,
-                                borderLeftWidth: 0,
-                                ...(isVertical ? { borderRightWidth: 0 } : { borderBottomWidth: 0 }),
+                                border: 'none',
                             }),
-                            borderColor: widget.data.buttonGroupColor
-                                ? alpha(widget.data.buttonGroupColor, 0.2)
-                                : alpha(theme.palette.text.primary, 0.12),
+                            ...(isOutlined && {
+                                borderColor: separatorColor,
+                            }),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                         '& .MuiToggleButtonGroup-middleButton': {
                             ...(!isOutlined && {
-                                borderLeftWidth: 0,
-                                ...(isVertical ? { borderRightWidth: 0 } : { borderTopWidth: 0, borderBottomWidth: 0 }),
+                                border: 'none',
+                                marginLeft: isVertical ? undefined : 0,
+                                marginTop: isVertical ? 0 : undefined,
+                                boxShadow: isVertical
+                                    ? `inset 0 1px 0 0 ${separatorColor}`
+                                    : `inset 1px 0 0 0 ${separatorColor}`,
                             }),
-                            borderColor: widget.data.buttonGroupColor
-                                ? alpha(widget.data.buttonGroupColor, 0.2)
-                                : alpha(theme.palette.text.primary, 0.12),
+                            ...(isOutlined && {
+                                borderColor: separatorColor,
+                            }),
                         },
                         '& .MuiToggleButtonGroup-lastButton': {
                             ...(!isOutlined && {
-                                borderLeftWidth: 0,
-                                borderRightWidth: 0,
-                                borderBottomWidth: 0,
-                                ...(!isVertical && { borderTopWidth: 0 }),
+                                border: 'none',
+                                marginLeft: isVertical ? undefined : 0,
+                                marginTop: isVertical ? 0 : undefined,
+                                boxShadow: isVertical
+                                    ? `inset 0 1px 0 0 ${separatorColor}`
+                                    : `inset 1px 0 0 0 ${separatorColor}`,
                             }),
-                            borderColor: widget.data.buttonGroupColor
-                                ? alpha(widget.data.buttonGroupColor, 0.2)
-                                : alpha(theme.palette.text.primary, 0.12),
+                            ...(isOutlined && {
+                                borderColor: separatorColor,
+                            }),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                     }}
@@ -148,7 +156,6 @@ function ButtonGroupCollection(): React.JSX.Element {
                         );
                         const textGradient = gradientColor(state.textColor);
 
-                        console.log('selectedBackground', selectedBackground);
                         return (
                             <ToggleButton
                                 value={String(value!)}
