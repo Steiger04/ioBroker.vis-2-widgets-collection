@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./assets/index-BEpFHtMA.js","./assets/_commonjsHelpers-Cpj98o6Y.js","./assets/index-UMzeul1g.js","./assets/vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js"])))=>i.map(i=>d[i]);
-import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-C-ldmSGP.js";
+import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-CVJ9ON20.js";
 import { _ as __vitePreload } from "./assets/preload-helper-PPVm8Dsz.js";
 import { v as vis2CollectionWidget__mf_v__runtimeInit__mf_v__ } from "./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let getExposes, init;

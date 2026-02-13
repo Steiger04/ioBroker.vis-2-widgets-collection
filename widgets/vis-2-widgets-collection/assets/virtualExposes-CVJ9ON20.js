@@ -1,10 +1,10 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-CA1ufC-8.js","./useData-Ch9c1PRV.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-CLMabNs9.js","./Close-Bxa4CRP4.js","./Slider-9C7-Wp2E.js","./listItemTextClasses-CiAn_OCt.js","./Stack-Dv6Zmy2V.js","./useHtmlValue-3ISCcM5X.js","./Button-D5yvzg7E.js","./SliderCollectionWidget-D2V7idwI.js","./ButtonGroupCollectionWidget-vZrIKmfh.js","./SwitchCollectionWidget-BnVarpJV.js","./SwitchBase-BJ6mn00q.js","./CheckboxCollectionWidget-DH6k0SX-.js","./FormControlLabel-Co4ZhhDq.js","./DialogCollectionWidget-FUBML8g9.js","./SelectCollectionWidget-CXJ9fZwl.js","./RadioGroupCollectionWidget-BP5jmdDK.js","./GaugeCollectionWidget-DOq830P8.js","./Light2CollectionWidget-BcymKsfH.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-BCeC79VR.js","./useData-Dl8i4AuM.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-B-rp1Txw.js","./Close-CSuoqqUw.js","./Slider-UEEerAAl.js","./listItemTextClasses-YY4ETXQk.js","./Stack-C0T6nmYQ.js","./useHtmlValue-3ISCcM5X.js","./Button-n5MFprW1.js","./SliderCollectionWidget-BSLE5ZQr.js","./ButtonGroupCollectionWidget-DfCKsla5.js","./SwitchCollectionWidget-DUBvH3yg.js","./SwitchBase-CcQyuEwg.js","./CheckboxCollectionWidget-VvjZjVov.js","./FormControlLabel-B_793QwP.js","./DialogCollectionWidget-DdeB56xV.js","./SelectCollectionWidget-B-SSCUit.js","./RadioGroupCollectionWidget-DCSxhKaz.js","./GaugeCollectionWidget-DRSCaBNz.js","./Light2CollectionWidget-B0wapKC4.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
   i = {
     "./StateCollectionWidget": async () => {
-      const t = await o(() => import("./StateCollectionWidget-CA1ufC-8.js").then(async (m) => {
+      const t = await o(() => import("./StateCollectionWidget-BCeC79VR.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([0,1,2,3,4,5,6,7,8,9,10,11]), import.meta.url), e = {};
@@ -14,7 +14,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SliderCollectionWidget": async () => {
-      const t = await o(() => import("./SliderCollectionWidget-D2V7idwI.js").then(async (m) => {
+      const t = await o(() => import("./SliderCollectionWidget-BSLE5ZQr.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([12,1,2,3,4,5,7]), import.meta.url), e = {};
@@ -24,7 +24,7 @@ let __tla = (async () => {
       }), e;
     },
     "./ButtonGroupCollectionWidget": async () => {
-      const t = await o(() => import("./ButtonGroupCollectionWidget-vZrIKmfh.js").then(async (m) => {
+      const t = await o(() => import("./ButtonGroupCollectionWidget-DfCKsla5.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([13,1,2,3,4,5]), import.meta.url), e = {};
@@ -34,7 +34,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SwitchCollectionWidget": async () => {
-      const t = await o(() => import("./SwitchCollectionWidget-BnVarpJV.js").then(async (m) => {
+      const t = await o(() => import("./SwitchCollectionWidget-DUBvH3yg.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([14,1,2,3,4,5,15]), import.meta.url), e = {};
@@ -44,7 +44,7 @@ let __tla = (async () => {
       }), e;
     },
     "./CheckboxCollectionWidget": async () => {
-      const t = await o(() => import("./CheckboxCollectionWidget-DH6k0SX-.js").then(async (m) => {
+      const t = await o(() => import("./CheckboxCollectionWidget-VvjZjVov.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([16,1,2,3,4,5,10,17,15]), import.meta.url), e = {};
@@ -54,7 +54,7 @@ let __tla = (async () => {
       }), e;
     },
     "./DialogCollectionWidget": async () => {
-      const t = await o(() => import("./DialogCollectionWidget-FUBML8g9.js").then(async (m) => {
+      const t = await o(() => import("./DialogCollectionWidget-DdeB56xV.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([18,1,2,3,4,6]), import.meta.url), e = {};
@@ -64,7 +64,7 @@ let __tla = (async () => {
       }), e;
     },
     "./SelectCollectionWidget": async () => {
-      const t = await o(() => import("./SelectCollectionWidget-CXJ9fZwl.js").then(async (m) => {
+      const t = await o(() => import("./SelectCollectionWidget-B-SSCUit.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([19,1,2,3,4,5,8,9]), import.meta.url), e = {};
@@ -74,7 +74,7 @@ let __tla = (async () => {
       }), e;
     },
     "./RadioGroupCollectionWidget": async () => {
-      const t = await o(() => import("./RadioGroupCollectionWidget-BP5jmdDK.js").then(async (m) => {
+      const t = await o(() => import("./RadioGroupCollectionWidget-DCSxhKaz.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([20,1,2,3,4,5,9,17,15]), import.meta.url), e = {};
@@ -84,7 +84,7 @@ let __tla = (async () => {
       }), e;
     },
     "./GaugeCollectionWidget": async () => {
-      const t = await o(() => import("./GaugeCollectionWidget-DOq830P8.js").then(async (m) => {
+      const t = await o(() => import("./GaugeCollectionWidget-DRSCaBNz.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([21,1,2,3,4]), import.meta.url), e = {};
@@ -94,7 +94,7 @@ let __tla = (async () => {
       }), e;
     },
     "./Light2CollectionWidget": async () => {
-      const t = await o(() => import("./Light2CollectionWidget-BcymKsfH.js").then(async (m) => {
+      const t = await o(() => import("./Light2CollectionWidget-B0wapKC4.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([22,1,2,3,4,5,11]), import.meta.url), e = {};
