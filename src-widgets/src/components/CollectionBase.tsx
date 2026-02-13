@@ -34,6 +34,8 @@ interface CollectionBaseProps {
     oidValue?: ioBroker.StateValue;
     /** Whether the currently selected OID type is valid for the widget. */
     isValidType?: boolean;
+    /** Whether active background styling should be applied. */
+    bgActive?: boolean;
     /** Additional `sx` passed to the inner Paper. */
     sx?: SxProps<Theme>;
 }
@@ -55,7 +57,7 @@ export interface CollectionBaseHandle {
  * @returns The widget frame.
  */
 const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
-    ({ children, data, oidValue = null, isValidType = true, sx = {} }, baseRef) => {
+    ({ children, data, oidValue = null, isValidType = true, bgActive = true, sx = {} }, baseRef) => {
         // Consolidated refs
         const paper0Ref = useRef<HTMLDivElement>(null);
         const paper1Ref = useRef<HTMLDivElement>(null);
@@ -110,6 +112,8 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
 
                 ...backgroundStyles,
 
+                background: wrappedContent ? data.frameBackground : data.frameBackground || 'transparent',
+
                 backgroundColor: wrappedContent
                     ? gradientColor(data.frameBackground)
                         ? undefined
@@ -117,10 +121,6 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                     : gradientColor(data.frameBackground)
                       ? 'transparent'
                       : data.frameBackground,
-
-                background: wrappedContent
-                    ? gradientColor(data.frameBackground)
-                    : data.frameBackground || 'transparent',
 
                 borderColor: !wrappedContent ? data.frameBackground || borderStyles?.['border-color'] : '',
             });
@@ -136,15 +136,14 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
                 justifyContent: 'center',
                 alignItems: 'center',
 
-                backgroundColor: wrappedContent
-                    ? gradientColor(data.background)
-                        ? undefined
-                        : data.background
-                    : gradientColor(data.background)
-                      ? 'transparent'
-                      : data.background,
-
-                background: wrappedContent ? gradientColor(data.background) : data.background || 'transparent',
+                background:
+                    bgActive && wrappedContent
+                        ? data.background
+                        : bgActive
+                          ? data.background || 'transparent'
+                          : wrappedContent
+                            ? undefined
+                            : 'transparent',
 
                 borderColor: !wrappedContent ? data.background || borderStyles?.['border-color'] : '',
 
@@ -152,7 +151,17 @@ const CollectionBase = forwardRef<CollectionBaseHandle, CollectionBaseProps>(
 
                 ...sx,
             });
-        }, [width, height, wrappedContent, data.background, borderStyles, widget.data.circle, widget.data.ellipse, sx]);
+        }, [
+            width,
+            height,
+            bgActive,
+            wrappedContent,
+            data.background,
+            borderStyles,
+            widget.data.circle,
+            widget.data.ellipse,
+            sx,
+        ]);
 
         // Setup header effect
         useEffect(() => {

@@ -44,7 +44,7 @@ function getButtonColorStyles(bgColor: string | null | undefined): {
 
 function ButtonGroupCollection(): React.JSX.Element {
     const context = useContext(CollectionContext) as ButtonGroupCollectionContextProps;
-    const { widget } = context;
+    const { widget, theme } = context;
 
     const oidObject = widget.data.oidObject;
     const { data: styleData, states: buttonStates, activeIndex } = useData('oid');
@@ -64,8 +64,12 @@ function ButtonGroupCollection(): React.JSX.Element {
         [setOidValueState],
     );
 
+    console.log('buttonStates', buttonStates);
+    console.log('activeIndex', activeIndex);
+
     return (
         <CollectionBase
+            bgActive={false}
             isValidType={isValidType}
             data={styleData}
             oidValue={oidValue}
@@ -107,16 +111,19 @@ function ButtonGroupCollection(): React.JSX.Element {
                                 borderLeftWidth: 0,
                                 ...(isVertical ? { borderRightWidth: 0 } : { borderBottomWidth: 0 }),
                             }),
-                            borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
+                            borderColor: widget.data.buttonGroupColor
+                                ? alpha(widget.data.buttonGroupColor, 0.2)
+                                : alpha(theme.palette.text.primary, 0.12),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                         '& .MuiToggleButtonGroup-middleButton': {
                             ...(!isOutlined && {
                                 borderLeftWidth: 0,
-                                borderRightWidth: 0,
-                                ...(isVertical ? {} : { borderTopWidth: 0, borderBottomWidth: 0 }),
+                                ...(isVertical ? { borderRightWidth: 0 } : { borderTopWidth: 0, borderBottomWidth: 0 }),
                             }),
-                            borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
+                            borderColor: widget.data.buttonGroupColor
+                                ? alpha(widget.data.buttonGroupColor, 0.2)
+                                : alpha(theme.palette.text.primary, 0.12),
                         },
                         '& .MuiToggleButtonGroup-lastButton': {
                             ...(!isOutlined && {
@@ -125,7 +132,9 @@ function ButtonGroupCollection(): React.JSX.Element {
                                 borderBottomWidth: 0,
                                 ...(!isVertical && { borderTopWidth: 0 }),
                             }),
-                            borderColor: widget.data.buttonGroupColor && alpha(widget.data.buttonGroupColor, 0.2),
+                            borderColor: widget.data.buttonGroupColor
+                                ? alpha(widget.data.buttonGroupColor, 0.2)
+                                : alpha(theme.palette.text.primary, 0.12),
                             borderRadius: !widget.data.basePadding ? 0 : undefined,
                         },
                     }}
@@ -139,9 +148,10 @@ function ButtonGroupCollection(): React.JSX.Element {
                         );
                         const textGradient = gradientColor(state.textColor);
 
+                        console.log('selectedBackground', selectedBackground);
                         return (
                             <ToggleButton
-                                value={value!}
+                                value={String(value!)}
                                 onClick={() => handleButtonClick(value!)}
                                 key={`${String(value)}-${index}`}
                                 sx={{
