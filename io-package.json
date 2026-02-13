@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "news": {
+      "2.3.1": {
+        "en": "ButtonGroupCollection Widget bug fixing",
+        "de": "ButtonGroupCollection Widget Bugfixierung",
+        "ru": "ButtonGroupКоллекция Устранение ошибок виджета",
+        "pt": "Grupo de botõesCollection Resolução de erros de elementos",
+        "nl": "Knoppengroepcollectie Widget bug fixing",
+        "fr": "BoutonGroupCollection Correction du bug Widget",
+        "it": "PulsanteGroupCollezione Correzione di bug Widget",
+        "es": "ButtonGroupCollection Widget bug fixing",
+        "pl": "ButtonGroupCollection Naprawianie błędów interfejsu",
+        "uk": "ButtonGroupВибір Виправлення помилок Widget",
+        "zh-cn": "按钮组合 部件错误修复"
+      },
       "2.3.0": {
         "en": "Widget optimizations\nBug fixing\nUser documentation fixed (GitHub Wiki)",
         "de": "Widget Optimierungen\nFehlerbehebung\nBenutzerdokumentation behoben (GitHub Wiki)",
@@ -80,19 +93,6 @@
         "pl": "sync- wiki.yml dla en i de zoptymalizowane",
         "uk": "sync-wiki.yml для en і de оптимізований",
         "zh-cn": "en和de 优化的同步- wiki. yml"
-      },
-      "2.0.10": {
-        "en": "sync-wiki.yml optimized",
-        "de": "sync-wiki.yml optimiert",
-        "ru": "sync-wiki.yml оптимизирован",
-        "pt": "sync-wiki.yml otimizado",
-        "nl": "sync-wiki.yml geoptimaliseerd",
-        "fr": "sync-wiki.yml optimisé",
-        "it": "sync-wiki.yml ottimizzato",
-        "es": "sync-wiki.yml optimizado",
-        "pl": "sync- wiki.yml zoptymalizowany",
-        "uk": "sync-wiki.yml оптимізований",
-        "zh-cn": "同步- wiki. yml 优化"
       }
     },
     "titleLang": {

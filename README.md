@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.3.1 (2026-02-13)
 - (steiger04) ButtonGroupCollection Widget bug fixing
 
 ### 2.3.0 (2026-02-12)
