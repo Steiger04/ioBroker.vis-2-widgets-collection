@@ -96,7 +96,10 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                     />
                     <Button
                         variant="text"
-                        {...longPressProps}
+                        onPointerDown={longPressProps.onPointerDown}
+                        onPointerUp={longPressProps.onPointerUp}
+                        onPointerLeave={longPressProps.onPointerLeave}
+                        onPointerCancel={longPressProps.onPointerCancel}
                         sx={{
                             color: data.iconColorActive || 'inherit',
                             width: '100%',
@@ -104,6 +107,7 @@ function withButtonModal<P extends object>(Component: React.ComponentType<P>): R
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
+                            touchAction: 'manipulation',
                         }}
                     >
                         <SafeImg

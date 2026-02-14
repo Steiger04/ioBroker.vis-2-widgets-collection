@@ -3,16 +3,20 @@
  *
  * @module hooks/useLongPress
  * @remarks
- * The hook returns event handlers that you can spread onto any interactive element.
- * For touch events, `preventDefault()` is used to reduce accidental native behaviors.
+ * Uses Pointer Events to unify mouse, touch, and pen input in a single handler.
+ * This avoids passive-listener warnings on mobile and prevents ghost mouse events
+ * from firing after touch interactions (which caused double-toggle bugs).
+ *
+ * The returned `style` object sets `touch-action: manipulation` to suppress
+ * browser double-tap zoom while preserving panning.
  */
 
-import { useCallback, useMemo, useRef, type MouseEvent, type TouchEvent } from 'react';
+import { useCallback, useMemo, useRef, type PointerEvent, type CSSProperties } from 'react';
 
 /**
  * Handler types used by {@link module:hooks/useLongPress.useLongPress}.
  */
-type EventHandler<T = Element> = (event: MouseEvent<T> | TouchEvent<T>) => void;
+type EventHandler<T = Element> = (event: PointerEvent<T>) => void;
 type VoidHandler = () => void;
 
 /**
@@ -28,14 +32,15 @@ interface UseLongPressConfig<T = Element> {
 }
 
 /**
- * Returned handlers for mouse/touch events.
+ * Returned handlers for pointer events.
  */
-interface UseLongPressHandlers<T = Element> {
-    onMouseDown: (event: MouseEvent<T>) => void;
-    onMouseUp: (event: MouseEvent<T>) => void;
-    onMouseLeave: (event: MouseEvent<T>) => void;
-    onTouchStart: (event: TouchEvent<T>) => void;
-    onTouchEnd: (event: TouchEvent<T>) => void;
+export interface UseLongPressHandlers<T = Element> {
+    onPointerDown: (event: PointerEvent<T>) => void;
+    onPointerUp: (event: PointerEvent<T>) => void;
+    onPointerLeave: (event: PointerEvent<T>) => void;
+    onPointerCancel: (event: PointerEvent<T>) => void;
+    /** Must be spread onto the element to set `touch-action: manipulation`. */
+    style: CSSProperties;
 }
 
 /**
@@ -46,7 +51,7 @@ interface UseLongPressHandlers<T = Element> {
  * @param config.onClick - Called when the press ends before the threshold.
  * @param config.onLongPress - Called when the press exceeds the threshold.
  * @param config.ms - Threshold in milliseconds.
- * @returns Event handlers to attach to an element.
+ * @returns Event handlers and style to attach to an element.
  * @example
  * ```tsx
  * const handlers = useLongPress<HTMLButtonElement>({
@@ -64,8 +69,10 @@ export function useLongPress<T = Element>({
     ms = 300,
 }: UseLongPressConfig<T> = {}): UseLongPressHandlers<T> {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const eventRef = useRef<MouseEvent<T> | TouchEvent<T> | null>(null);
+    const eventRef = useRef<PointerEvent<T> | null>(null);
     const longPressTriggeredRef = useRef<boolean>(false);
+    /** Track the pointer id to ignore unrelated pointers (e.g. multi-touch). */
+    const activePointerIdRef = useRef<number | null>(null);
 
     const longPressCallback = useCallback(() => {
         if (eventRef.current) {
@@ -77,11 +84,13 @@ export function useLongPress<T = Element>({
     }, [onLongPress]);
 
     const start = useCallback(
-        (event: MouseEvent<T> | TouchEvent<T>) => {
-            if ('touches' in event) {
-                event.preventDefault();
+        (event: PointerEvent<T>) => {
+            // Ignore secondary pointers (multi-touch)
+            if (activePointerIdRef.current !== null) {
+                return;
             }
 
+            activePointerIdRef.current = event.pointerId;
             eventRef.current = event;
             longPressTriggeredRef.current = false;
 
@@ -91,7 +100,12 @@ export function useLongPress<T = Element>({
     );
 
     const stop = useCallback(
-        (_event: MouseEvent<T> | TouchEvent<T>) => {
+        (event: PointerEvent<T>) => {
+            // Ignore events from pointers we aren't tracking
+            if (event.pointerId !== activePointerIdRef.current) {
+                return;
+            }
+
             const currentEvent = eventRef.current;
             const wasLongPress = longPressTriggeredRef.current;
 
@@ -106,17 +120,18 @@ export function useLongPress<T = Element>({
 
             eventRef.current = null;
             longPressTriggeredRef.current = false;
+            activePointerIdRef.current = null;
         },
         [onClick],
     );
 
     return useMemo(
         () => ({
-            onMouseDown: start,
-            onMouseUp: stop,
-            onMouseLeave: stop,
-            onTouchStart: start,
-            onTouchEnd: stop,
+            onPointerDown: start,
+            onPointerUp: stop,
+            onPointerLeave: stop,
+            onPointerCancel: stop,
+            style: { touchAction: 'manipulation' } as CSSProperties,
         }),
         [start, stop],
     );
