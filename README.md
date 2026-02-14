@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.3.2 (2026-02-14)
 - (steiger04) Long press for ButtonGroupCollection widget fixed
 
 ### 2.3.1 (2026-02-13)

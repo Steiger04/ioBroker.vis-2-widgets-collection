@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.3.1",
+    "version": "2.3.2",
     "news": {
+      "2.3.2": {
+        "en": "Long press for ButtonGroupCollection widget fixed",
+        "de": "Lange Presse für ButtonGroupCollection Widget fest",
+        "ru": "Длинный пресс для установки виджета ButtonGroupCollection",
+        "pt": "Longa pressão para o elemento de compilação do ButtonGroup",
+        "nl": "Lange pers voor KnopgroepCollection-widget vast",
+        "fr": "Longue pression pour BoutonGroupCollection widget fixe",
+        "it": "Stampa lunga per PulsanteGroupCollection widget fisso",
+        "es": "Long press for ButtonGroupCollection widget fixed",
+        "pl": "Long press for ButtonGroupCollection widget stałe",
+        "uk": "Довгий прес для ButtonGroupCollection",
+        "zh-cn": "固定按钮组收集部件的长按键"
+      },
       "2.3.1": {
         "en": "ButtonGroupCollection Widget bug fixing",
         "de": "ButtonGroupCollection Widget Bugfixierung",
@@ -80,19 +93,6 @@
         "pl": "Widżet sldera zoptymalizowany\nRadioButton Widget grupy zoptymalizowany\nWidget RadioGroup zoptymalizowany",
         "uk": "Slder віджет оптимізований\nРадіостанція Груповий віджет оптимізований\nРадіоГруповий віджет оптимізований",
         "zh-cn": "焊德部件优化\n无线电按钮 组合部件优化\n优化了无线电组部件"
-      },
-      "2.0.11": {
-        "en": "sync-wiki.yml for en and de optimized",
-        "de": "sync-wiki.yml für en und de optimiert",
-        "ru": "sync-wiki.yml для en и de оптимизирован",
-        "pt": "sync-wiki.yml para en e de otimizado",
-        "nl": "sync-wiki.yml voor en en de geoptimaliseerd",
-        "fr": "sync-wiki.yml pour en et de optimisé",
-        "it": "sync-wiki.yml per en e de ottimizzato",
-        "es": "sync-wiki.yml para en y de optimizado",
-        "pl": "sync- wiki.yml dla en i de zoptymalizowane",
-        "uk": "sync-wiki.yml для en і de оптимізований",
-        "zh-cn": "en和de 优化的同步- wiki. yml"
       }
     },
     "titleLang": {
