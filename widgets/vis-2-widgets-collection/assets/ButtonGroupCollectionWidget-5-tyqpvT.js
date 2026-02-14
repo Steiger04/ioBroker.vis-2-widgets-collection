@@ -444,7 +444,7 @@ let __tla = Promise.all([
     };
   }
   function $t() {
-    const t = d.useContext(Q), { widget: e, theme: o } = t, u = e.data.oidObject, { data: g, states: f, activeIndex: m } = Z("oid"), { value: v, updateValue: $ } = dt("oid"), T = e.data.buttonGroupVariant, b = e.data.buttonGroupOrientation, C = u == null ? void 0 : u.type, h = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = b === "vertical", c = T === "outlined", s = e.data.buttonGroupColor ? B(e.data.buttonGroupColor, 0.2) : B(o.palette.text.primary, 0.12), x = d.useCallback((y) => {
+    const t = d.useContext(Q), { widget: e, theme: o } = t, u = e.data.oidObject, { data: g, states: f, activeIndex: m } = Z("oid"), { value: v, updateValue: $ } = dt("oid"), T = e.data.buttonGroupVariant, b = e.data.buttonGroupOrientation, C = u == null ? void 0 : u.type, h = C === "boolean" || C === "number" || C === "string" || C === "mixed", n = b === "vertical", c = T === "outlined", s = e.data.buttonGroupColor ? B(e.data.buttonGroupColor, 0.6) : B(o.palette.text.primary, 0.6), x = d.useCallback((y) => {
       $(y);
     }, [
       $

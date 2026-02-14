@@ -1,5 +1,5 @@
 import { j as v, C as z, a7 as zt, v as Ae, y as at, E as st, G as ht, S as Nt, z as Dt, M as Ft, w as D, c as Vt, a9 as Gt, I as ye, D as qe, ao as ut, H as $t, J as Je, N as Ut, __tla as __tla_0 } from "./useData-Dl8i4AuM.js";
-import { u as j, d as Xt, __tla as __tla_1 } from "./useValueState-B-rp1Txw.js";
+import { u as P, d as Xt, __tla as __tla_1 } from "./useValueState-B-rp1Txw.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { B as Kt, __tla as __tla_3 } from "./Button-n5MFprW1.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
@@ -356,30 +356,33 @@ let __tla = Promise.all([
   function qt({ onClick: e = () => {
   }, onLongPress: r = () => {
   }, ms: i = 300 } = {}) {
-    const t = d.useRef(null), n = d.useRef(null), o = d.useRef(false), l = d.useCallback(() => {
+    const t = d.useRef(null), n = d.useRef(null), o = d.useRef(false), l = d.useRef(null), c = d.useCallback(() => {
       n.current && (o.current = true, r(n.current)), t.current = null, n.current = null;
     }, [
       r
-    ]), c = d.useCallback((u) => {
-      "touches" in u && u.preventDefault(), n.current = u, o.current = false, t.current = setTimeout(l, i);
+    ]), s = d.useCallback((h) => {
+      l.current === null && (l.current = h.pointerId, n.current = h, o.current = false, t.current = setTimeout(c, i));
     }, [
-      l,
+      c,
       i
-    ]), s = d.useCallback((u) => {
-      const h = n.current, a = o.current;
-      t.current && (clearTimeout(t.current), t.current = null), !a && h && e(h), n.current = null, o.current = false;
+    ]), u = d.useCallback((h) => {
+      if (h.pointerId !== l.current) return;
+      const a = n.current, f = o.current;
+      t.current && (clearTimeout(t.current), t.current = null), !f && a && e(a), n.current = null, o.current = false, l.current = null;
     }, [
       e
     ]);
     return d.useMemo(() => ({
-      onMouseDown: c,
-      onMouseUp: s,
-      onMouseLeave: s,
-      onTouchStart: c,
-      onTouchEnd: s
+      onPointerDown: s,
+      onPointerUp: u,
+      onPointerLeave: u,
+      onPointerCancel: u,
+      style: {
+        touchAction: "manipulation"
+      }
     }), [
-      c,
-      s
+      s,
+      u
     ]);
   }
   function Jt(e) {
@@ -390,7 +393,7 @@ let __tla = Promise.all([
       var _a;
       const n = d.useContext(Ae);
       if (!n || !n.widget) throw new Error("withButtonModal must be used within a CollectionProvider");
-      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = j("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Jt(s) && s.colorLightButton, p = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", L = qt({
+      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Jt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
         onClick: () => h(!u),
         onLongPress: () => c(true),
         ms: f ? s.colorLightDelayLongPress ?? 500 : 500
@@ -398,7 +401,7 @@ let __tla = Promise.all([
       return f ? v.jsxs(v.Fragment, {
         children: [
           v.jsxs(st, {
-            isValidType: p,
+            isValidType: b,
             data: a,
             oidValue: u,
             children: [
@@ -408,14 +411,18 @@ let __tla = Promise.all([
               }),
               v.jsx(Kt, {
                 variant: "text",
-                ...L,
+                onPointerDown: x.onPointerDown,
+                onPointerUp: x.onPointerUp,
+                onPointerLeave: x.onPointerLeave,
+                onPointerCancel: x.onPointerCancel,
                 sx: {
                   color: a.iconColorActive || "inherit",
                   width: "100%",
                   height: "100%",
                   display: "flex",
                   justifyContent: "center",
-                  alignItems: "center"
+                  alignItems: "center",
+                  touchAction: "manipulation"
                 },
                 children: v.jsx(Nt, {
                   alt: "",
@@ -463,7 +470,7 @@ let __tla = Promise.all([
     var r = e.parentNode;
     r && r.removeChild(e);
   }
-  function x(e, r, i) {
+  function L(e, r, i) {
     var t, n, o, l, c = arguments;
     if (r = B({}, r), arguments.length > 3) for (i = [
       i
@@ -524,21 +531,21 @@ let __tla = Promise.all([
     var e, r, i, t, n, o, l, c;
     for (ne.sort(function(s, u) {
       return u.__v.__b - s.__v.__b;
-    }); e = ne.pop(); ) e.__d && (i = void 0, t = void 0, o = (n = (r = e).__v).__e, l = r.__P, c = r.u, r.u = false, l && (i = [], t = Re(l, n, B({}, n), r.__n, l.ownerSVGElement !== void 0, null, i, c, o ?? oe(n)), bt(i, n), t != o && vt(n)));
+    }); e = ne.pop(); ) e.__d && (i = void 0, t = void 0, o = (n = (r = e).__v).__e, l = r.__P, c = r.u, r.u = false, l && (i = [], t = Re(l, n, B({}, n), r.__n, l.ownerSVGElement !== void 0, null, i, c, o ?? oe(n)), pt(i, n), t != o && vt(n)));
   }
   function mt(e, r, i, t, n, o, l, c, s) {
-    var u, h, a, f, g, y, p, L = i && i.__k || Me, m = L.length;
+    var u, h, a, f, g, y, b, x = i && i.__k || Me, m = x.length;
     if (c == H && (c = o != null ? o[0] : m ? oe(i, 0) : null), u = 0, r.__k = Ie(r.__k, function(_) {
       if (_ != null) {
-        if (_.__p = r, _.__b = r.__b + 1, (a = L[u]) === null || a && _.key == a.key && _.type === a.type) L[u] = void 0;
+        if (_.__p = r, _.__b = r.__b + 1, (a = x[u]) === null || a && _.key == a.key && _.type === a.type) x[u] = void 0;
         else for (h = 0; h < m; h++) {
-          if ((a = L[h]) && _.key == a.key && _.type === a.type) {
-            L[h] = void 0;
+          if ((a = x[h]) && _.key == a.key && _.type === a.type) {
+            x[h] = void 0;
             break;
           }
           a = null;
         }
-        if (f = Re(e, _, a = a || H, t, n, o, l, null, c, s), (h = _.ref) && a.ref != h && (p || (p = [])).push(h, _.__c || f, _), f != null) {
+        if (f = Re(e, _, a = a || H, t, n, o, l, null, c, s), (h = _.ref) && a.ref != h && (b || (b = [])).push(h, _.__c || f, _), f != null) {
           if (y == null && (y = f), _.l != null) f = _.l, _.l = null;
           else if (o == a || f != c || f.parentNode == null) {
             e: if (c == null || c.parentNode !== e) e.appendChild(f);
@@ -553,8 +560,8 @@ let __tla = Promise.all([
       }
       return u++, _;
     }), r.__e = y, o != null && typeof r.type != "function") for (u = o.length; u--; ) o[u] != null && gt(o[u]);
-    for (u = m; u--; ) L[u] != null && _t(L[u], L[u]);
-    if (p) for (u = 0; u < p.length; u++) pt(p[u], p[++u], p[++u]);
+    for (u = m; u--; ) x[u] != null && _t(x[u], x[u]);
+    if (b) for (u = 0; u < b.length; u++) bt(b[u], b[++u], b[++u]);
   }
   function Ie(e, r, i) {
     if (i == null && (i = []), e == null || typeof e == "boolean") r && i.push(r(null));
@@ -583,21 +590,21 @@ let __tla = Promise.all([
     return this.t[e.type](S.event ? S.event(e) : e);
   }
   function Re(e, r, i, t, n, o, l, c, s, u) {
-    var h, a, f, g, y, p, L, m, _, w, b = r.type;
+    var h, a, f, g, y, b, x, m, _, w, p = r.type;
     if (r.constructor !== void 0) return null;
     (h = S.__b) && h(r);
     try {
-      e: if (typeof b == "function") {
-        if (m = r.props, _ = (h = b.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? L = (a = r.__c = i.__c).__p = a.__E : ("prototype" in b && b.prototype.render ? r.__c = a = new b(m, w) : (r.__c = a = new Q(m, w), a.constructor = b, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), b.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, b.getDerivedStateFromProps(m, a.__s)), f) b.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
+      e: if (typeof p == "function") {
+        if (m = r.props, _ = (h = p.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in p && p.prototype.render ? r.__c = a = new p(m, w) : (r.__c = a = new Q(m, w), a.constructor = p, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), p.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, p.getDerivedStateFromProps(m, a.__s)), f) p.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
         else {
-          if (b.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(m, w), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(m, a.__s, w) === false) {
+          if (p.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(m, w), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(m, a.__s, w) === false) {
             for (a.props = m, a.state = a.__s, a.__d = false, a.__v = r, r.__e = s != null ? s !== i.__e ? s : i.__e : null, r.__k = i.__k, h = 0; h < r.__k.length; h++) r.__k[h] && (r.__k[h].__p = r);
             break e;
           }
           a.componentWillUpdate != null && a.componentWillUpdate(m, a.__s, w);
         }
-        for (g = a.props, y = a.state, a.context = w, a.props = m, a.state = a.__s, (h = S.__r) && h(r), a.__d = false, a.__v = r, a.__P = e, h = a.render(a.props, a.state, a.context), r.__k = Ie(h != null && h.type == ce && h.key == null ? h.props.children : h), a.getChildContext != null && (t = B(B({}, t), a.getChildContext())), f || a.getSnapshotBeforeUpdate == null || (p = a.getSnapshotBeforeUpdate(g, y)), mt(e, r, i, t, n, o, l, s, u), a.base = r.__e; h = a.__h.pop(); ) a.__s && (a.state = a.__s), h.call(a);
-        f || g == null || a.componentDidUpdate == null || a.componentDidUpdate(g, y, p), L && (a.__E = a.__p = null);
+        for (g = a.props, y = a.state, a.context = w, a.props = m, a.state = a.__s, (h = S.__r) && h(r), a.__d = false, a.__v = r, a.__P = e, h = a.render(a.props, a.state, a.context), r.__k = Ie(h != null && h.type == ce && h.key == null ? h.props.children : h), a.getChildContext != null && (t = B(B({}, t), a.getChildContext())), f || a.getSnapshotBeforeUpdate == null || (b = a.getSnapshotBeforeUpdate(g, y)), mt(e, r, i, t, n, o, l, s, u), a.base = r.__e; h = a.__h.pop(); ) a.__s && (a.state = a.__s), h.call(a);
+        f || g == null || a.componentDidUpdate == null || a.componentDidUpdate(g, y, b), x && (a.__E = a.__p = null);
       } else r.__e = nr(i.__e, r, i, t, n, o, l, u);
       (h = S.diffed) && h(r);
     } catch (W) {
@@ -605,7 +612,7 @@ let __tla = Promise.all([
     }
     return r.__e;
   }
-  function bt(e, r) {
+  function pt(e, r) {
     for (var i; i = e.pop(); ) try {
       i.componentDidMount();
     } catch (t) {
@@ -627,7 +634,7 @@ let __tla = Promise.all([
     }
     return r.type === null ? f !== g && (o != null && (o[o.indexOf(e)] = null), e.data = g) : r !== i && (o != null && (o = Me.slice.call(e.childNodes)), h = (f = i.props || H).dangerouslySetInnerHTML, a = g.dangerouslySetInnerHTML, c || (a || h) && (a && h && a.__html == h.__html || (e.innerHTML = a && a.__html || "")), ir(e, g, f, n, c), r.__k = r.props.children, a || mt(e, r, i, t, r.type !== "foreignObject" && n, o, l, H, c), c || ("value" in g && g.value !== void 0 && g.value !== e.value && (e.value = g.value == null ? "" : g.value), "checked" in g && g.checked !== void 0 && g.checked !== e.checked && (e.checked = g.checked))), e;
   }
-  function pt(e, r, i) {
+  function bt(e, r, i) {
     try {
       typeof e == "function" ? e(r) : e.current = r;
     } catch (t) {
@@ -636,7 +643,7 @@ let __tla = Promise.all([
   }
   function _t(e, r, i) {
     var t, n, o;
-    if (S.unmount && S.unmount(e), (t = e.ref) && pt(t, null, r), i || typeof e.type == "function" || (i = (n = e.__e) != null), e.__e = e.l = null, (t = e.__c) != null) {
+    if (S.unmount && S.unmount(e), (t = e.ref) && bt(t, null, r), i || typeof e.type == "function" || (i = (n = e.__e) != null), e.__e = e.l = null, (t = e.__c) != null) {
       if (t.componentWillUnmount) try {
         t.componentWillUnmount();
       } catch (l) {
@@ -652,9 +659,9 @@ let __tla = Promise.all([
   }
   function lr(e, r, i) {
     var t, n, o;
-    S.__p && S.__p(e, r), n = (t = i === ft) ? null : r.__k, e = x(ce, null, [
+    S.__p && S.__p(e, r), n = (t = i === ft) ? null : r.__k, e = L(ce, null, [
       e
-    ]), o = [], Re(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Me.slice.call(r.childNodes), o, false, H, t), bt(o, e);
+    ]), o = [], Re(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Me.slice.call(r.childNodes), o, false, H, t), pt(o, e);
   }
   S = {}, Q.prototype.setState = function(e, r) {
     var i = this.__s !== this.state && this.__s || (this.__s = B({}, this.state));
@@ -692,7 +699,7 @@ let __tla = Promise.all([
       return e;
     }, M.apply(this, arguments);
   }
-  var sr = "[-\\+]?\\d+%?", hr = "[-\\+]?\\d*\\.\\d+%?", F = "(?:" + hr + ")|(?:" + sr + ")", yt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", xt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", ur = new RegExp("rgb" + yt), dr = new RegExp("rgba" + xt), fr = new RegExp("hsl" + yt), gr = new RegExp("hsla" + xt), ae = "^(?:#?|0x?)", V = "([0-9a-fA-F]{1})", G = "([0-9a-fA-F]{2})", vr = new RegExp(ae + V + V + V + "$"), mr = new RegExp(ae + V + V + V + V + "$"), br = new RegExp(ae + G + G + G + "$"), pr = new RegExp(ae + G + G + G + G + "$"), _r = 2e3, yr = 4e4, re = Math.log, X = Math.round, q = Math.floor;
+  var sr = "[-\\+]?\\d+%?", hr = "[-\\+]?\\d*\\.\\d+%?", F = "(?:" + hr + ")|(?:" + sr + ")", yt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", xt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", ur = new RegExp("rgb" + yt), dr = new RegExp("rgba" + xt), fr = new RegExp("hsl" + yt), gr = new RegExp("hsla" + xt), ae = "^(?:#?|0x?)", V = "([0-9a-fA-F]{1})", G = "([0-9a-fA-F]{2})", vr = new RegExp(ae + V + V + V + "$"), mr = new RegExp(ae + V + V + V + V + "$"), pr = new RegExp(ae + G + G + G + "$"), br = new RegExp(ae + G + G + G + G + "$"), _r = 2e3, yr = 4e4, re = Math.log, X = Math.round, q = Math.floor;
   function I(e, r, i) {
     return Math.min(Math.max(e, r), i);
   }
@@ -744,7 +751,7 @@ let __tla = Promise.all([
         h,
         u,
         u
-      ][f], p = [
+      ][f], b = [
         u,
         u,
         a,
@@ -755,7 +762,7 @@ let __tla = Promise.all([
       return {
         r: I(g * 255, 0, 255),
         g: I(y * 255, 0, 255),
-        b: I(p * 255, 0, 255)
+        b: I(b * 255, 0, 255)
       };
     }, e.rgbToHsv = function(t) {
       var n = t.r / 255, o = t.g / 255, l = t.b / 255, c = Math.max(n, o, l), s = Math.min(n, o, l), u = c - s, h = 0, a = c, f = c === 0 ? 0 : u / c;
@@ -1018,7 +1025,7 @@ let __tla = Promise.all([
         },
         set: function(t) {
           var n, o, l, c, s = 255;
-          if ((n = vr.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17) : (n = mr.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17, s = A(n[4]) * 17) : (n = br.exec(t)) ? (o = A(n[1]), l = A(n[2]), c = A(n[3])) : (n = pr.exec(t)) && (o = A(n[1]), l = A(n[2]), c = A(n[3]), s = A(n[4])), n) this.rgb = {
+          if ((n = vr.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17) : (n = mr.exec(t)) ? (o = A(n[1]) * 17, l = A(n[2]) * 17, c = A(n[3]) * 17, s = A(n[4]) * 17) : (n = pr.exec(t)) ? (o = A(n[1]), l = A(n[2]), c = A(n[3])) : (n = br.exec(t)) && (o = A(n[1]), l = A(n[2]), c = A(n[3]), s = A(n[4])), n) this.rgb = {
             r: o,
             g: l,
             b: c,
@@ -1071,7 +1078,7 @@ let __tla = Promise.all([
     minTemperature: 2200,
     maxTemperature: 11e3
   };
-  function je(e) {
+  function Pe(e) {
     var r, i = e.width, t = e.sliderSize, n = e.borderWidth, o = e.handleRadius, l = e.padding, c = e.sliderShape, s = e.layoutDirection === "horizontal";
     return t = (r = t) != null ? r : l * 2 + o * 2, c === "circle" ? {
       handleStart: e.padding + e.handleRadius,
@@ -1114,7 +1121,7 @@ let __tla = Promise.all([
     }
   }
   function wr(e, r, i) {
-    var t = je(e), n = t.handleRange, o = t.handleStart, l;
+    var t = Pe(e), n = t.handleRange, o = t.handleStart, l;
     e.layoutDirection === "horizontal" ? l = -1 * i + n + o : l = r - o, l = Math.max(Math.min(l, n), 0);
     var c = Math.round(100 / n * l);
     switch (e.sliderType) {
@@ -1134,7 +1141,7 @@ let __tla = Promise.all([
     }
   }
   function Sr(e, r) {
-    var i = je(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = Lr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
+    var i = Pe(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = Lr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
     return c && (h = -1 * h + o + l * 2), {
       x: c ? u : h,
       y: c ? h : u
@@ -1228,11 +1235,11 @@ let __tla = Promise.all([
           ]
         ];
       case "saturation":
-        var p = K.hsvToHsl({
+        var b = K.hsvToHsl({
           h: i.h,
           s: 0,
           v: i.v
-        }), L = K.hsvToHsl({
+        }), x = K.hsvToHsl({
           h: i.h,
           s: 100,
           v: i.v
@@ -1240,11 +1247,11 @@ let __tla = Promise.all([
         return [
           [
             0,
-            "hsl(" + p.h + "," + p.s + "%," + p.l + "%)"
+            "hsl(" + b.h + "," + b.s + "%," + b.l + "%)"
           ],
           [
             100,
-            "hsl(" + L.h + "," + L.s + "%," + L.l + "%)"
+            "hsl(" + x.h + "," + x.s + "%," + x.l + "%)"
           ]
         ];
       default:
@@ -1306,7 +1313,7 @@ let __tla = Promise.all([
       s: Math.round(100 / l * s)
     };
   }
-  function Te(e) {
+  function je(e) {
     var r = e.width, i = e.boxHeight, t = e.padding, n = e.handleRadius;
     return {
       width: r,
@@ -1315,14 +1322,14 @@ let __tla = Promise.all([
     };
   }
   function ot(e, r, i) {
-    var t = Te(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
+    var t = je(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
     return {
       s: Math.max(0, Math.min(h, 100)),
       v: Math.max(0, Math.min(100 - a, 100))
     };
   }
   function Ar(e, r) {
-    var i = Te(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
+    var i = je(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
     return {
       x: c + l.s / 100 * s,
       y: c + (u - l.v / 100 * u)
@@ -1366,7 +1373,7 @@ let __tla = Promise.all([
     }
     return null;
   }
-  function Pe(e) {
+  function Te(e) {
     return {
       boxSizing: "border-box",
       border: e.borderWidth + "px solid " + e.borderColor
@@ -1420,7 +1427,7 @@ let __tla = Promise.all([
         overflow: "visible",
         display: l ? "inline-block" : "block"
       };
-      return t.index > 0 && (s[l ? "marginLeft" : "marginTop"] = c), x(ce, null, t.children(this.uid, o, s));
+      return t.index > 0 && (s[l ? "marginLeft" : "marginTop"] = c), L(ce, null, t.children(this.uid, o, s));
     }, r.prototype.handleEvent = function(t) {
       var n = this, o = this.props.onInput, l = this.base.getBoundingClientRect();
       t.preventDefault();
@@ -1452,7 +1459,7 @@ let __tla = Promise.all([
   })(Q);
   function $(e) {
     var r = e.r, i = e.url, t = r, n = r;
-    return x("svg", {
+    return L("svg", {
       className: "IroHandle IroHandle--" + e.index + " " + (e.isActive ? "IroHandle--isActive" : ""),
       style: {
         "-webkit-tap-highlight-color": "rgba(0, 0, 0, 0);",
@@ -1465,16 +1472,16 @@ let __tla = Promise.all([
         position: "absolute",
         overflow: "visible"
       }
-    }, i && x("use", Object.assign({
+    }, i && L("use", Object.assign({
       xlinkHref: Ir(i)
-    }, e.props)), !i && x("circle", {
+    }, e.props)), !i && L("circle", {
       cx: t,
       cy: n,
       r,
       fill: "none",
       "stroke-width": 2,
       stroke: "#000"
-    }), !i && x("circle", {
+    }), !i && L("circle", {
       cx: t,
       cy: n,
       r: r - 2,
@@ -1495,15 +1502,15 @@ let __tla = Promise.all([
     }
   };
   function le(e) {
-    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = je(e), n = t.width, o = t.height, l = t.radius, c = Sr(e, i), s = Cr(e, i);
+    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = Pe(e), n = t.width, o = t.height, l = t.radius, c = Sr(e, i), s = Cr(e, i);
     function u(h, a, f) {
       var g = wr(e, h, a);
       e.parent.inputActive = true, i[e.sliderType] = g, e.onInput(f, e.id);
     }
-    return x(he, Object.assign({}, e, {
+    return L(he, Object.assign({}, e, {
       onInput: u
     }), function(h, a, f) {
-      return x("div", Object.assign({}, a, {
+      return L("div", Object.assign({}, a, {
         className: "IroSlider",
         style: Object.assign({}, {
           position: "relative",
@@ -1513,7 +1520,7 @@ let __tla = Promise.all([
           background: "conic-gradient(#ccc 25%, #fff 0 50%, #ccc 0 75%, #fff 0)",
           backgroundSize: "8px 8px"
         }, f)
-      }), x("div", {
+      }), L("div", {
         className: "IroSliderGradient",
         style: Object.assign({}, {
           position: "absolute",
@@ -1523,8 +1530,8 @@ let __tla = Promise.all([
           height: "100%",
           borderRadius: O(l),
           background: ke("linear", e.layoutDirection === "horizontal" ? "to top" : "to right", s)
-        }, Pe(e))
-      }), x($, {
+        }, Te(e))
+      }), L($, {
         isActive: true,
         index: i.index,
         r: e.handleRadius,
@@ -1536,50 +1543,50 @@ let __tla = Promise.all([
     });
   }
   le.defaultProps = Object.assign({}, xr);
-  function jr(e) {
-    var r = Te(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Mr(e, s), h = o.map(function(f) {
+  function Pr(e) {
+    var r = je(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Mr(e, s), h = o.map(function(f) {
       return Ar(e, f);
     });
     function a(f, g, y) {
       if (y === 0) {
-        var p = kt(e, f, g, h);
-        p !== null ? l.setActiveColor(p) : (l.inputActive = true, s.hsv = ot(e, f, g), e.onInput(y, e.id));
+        var b = kt(e, f, g, h);
+        b !== null ? l.setActiveColor(b) : (l.inputActive = true, s.hsv = ot(e, f, g), e.onInput(y, e.id));
       } else y === 1 && (l.inputActive = true, s.hsv = ot(e, f, g));
       e.onInput(y, e.id);
     }
-    return x(he, Object.assign({}, e, {
+    return L(he, Object.assign({}, e, {
       onInput: a
     }), function(f, g, y) {
-      return x("div", Object.assign({}, g, {
+      return L("div", Object.assign({}, g, {
         className: "IroBox",
         style: Object.assign({}, {
           width: O(i),
           height: O(t),
           position: "relative"
         }, y)
-      }), x("div", {
+      }), L("div", {
         className: "IroBox",
         style: Object.assign({}, {
           width: "100%",
           height: "100%",
           borderRadius: O(n)
-        }, Pe(e), {
+        }, Te(e), {
           background: ke("linear", "to bottom", u[1]) + "," + ke("linear", "to right", u[0])
         })
-      }), o.filter(function(p) {
-        return p !== s;
-      }).map(function(p) {
-        return x($, {
+      }), o.filter(function(b) {
+        return b !== s;
+      }).map(function(b) {
+        return L($, {
           isActive: false,
-          index: p.index,
-          fill: p.hslString,
+          index: b.index,
+          fill: b.hslString,
           r: e.handleRadius,
           url: e.handleSvg,
           props: e.handleProps,
-          x: h[p.index].x,
-          y: h[p.index].y
+          x: h[b.index].x,
+          y: h[b.index].y
         });
-      }), x($, {
+      }), L($, {
         isActive: true,
         index: s.index,
         fill: s.hslString,
@@ -1591,7 +1598,7 @@ let __tla = Promise.all([
       }));
     });
   }
-  var Tr = "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", Pr = "conic-gradient(red, magenta, blue, aqua, lime, yellow, red)";
+  var jr = "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", Tr = "conic-gradient(red, magenta, blue, aqua, lime, yellow, red)";
   function Ot(e) {
     var r = se(e), i = r.width, t = e.colors;
     e.borderWidth;
@@ -1614,40 +1621,40 @@ let __tla = Promise.all([
       } else f === 1 && (n.inputActive = true, o.hsv = nt(e, h, a));
       e.onInput(f, e.id);
     }
-    return x(he, Object.assign({}, e, {
+    return L(he, Object.assign({}, e, {
       onInput: u
     }), function(h, a, f) {
-      return x("div", Object.assign({}, a, {
+      return L("div", Object.assign({}, a, {
         className: "IroWheel",
         style: Object.assign({}, {
           width: O(i),
           height: O(i),
           position: "relative"
         }, f)
-      }), x("div", {
+      }), L("div", {
         className: "IroWheelHue",
         style: Object.assign({}, s, {
           transform: "rotateZ(" + (e.wheelAngle + 90) + "deg)",
-          background: e.wheelDirection === "clockwise" ? Tr : Pr
+          background: e.wheelDirection === "clockwise" ? jr : Tr
         })
-      }), x("div", {
+      }), L("div", {
         className: "IroWheelSaturation",
         style: Object.assign({}, s, {
           background: "radial-gradient(circle closest-side, #fff, transparent)"
         })
-      }), e.wheelLightness && x("div", {
+      }), e.wheelLightness && L("div", {
         className: "IroWheelLightness",
         style: Object.assign({}, s, {
           background: "#000",
           opacity: 1 - l.v / 100
         })
-      }), x("div", {
+      }), L("div", {
         className: "IroWheelBorder",
-        style: Object.assign({}, s, Pe(e))
+        style: Object.assign({}, s, Te(e))
       }), t.filter(function(g) {
         return g !== o;
       }).map(function(g) {
-        return x($, {
+        return L($, {
           isActive: false,
           index: g.index,
           fill: g.hslString,
@@ -1657,7 +1664,7 @@ let __tla = Promise.all([
           x: c[g.index].x,
           y: c[g.index].y
         });
-      }), x($, {
+      }), L($, {
         isActive: true,
         index: o.index,
         fill: o.hslString,
@@ -1672,7 +1679,7 @@ let __tla = Promise.all([
   function Br(e) {
     var r = function(i, t) {
       var n, o = document.createElement("div");
-      lr(x(e, Object.assign({}, {
+      lr(L(e, Object.assign({}, {
         ref: function(c) {
           return n = c;
         }
@@ -1793,7 +1800,7 @@ let __tla = Promise.all([
         options: {
           sliderType: "alpha"
         }
-      })), x("div", {
+      })), L("div", {
         class: "IroColorPicker",
         id: n.id,
         style: {
@@ -1801,7 +1808,7 @@ let __tla = Promise.all([
         }
       }, l.map(function(c, s) {
         var u = c.component, h = c.options;
-        return x(u, Object.assign({}, n, h, {
+        return L(u, Object.assign({}, n, h, {
           ref: void 0,
           onInput: o.emitInputEvent.bind(o),
           parent: o,
@@ -1820,15 +1827,15 @@ let __tla = Promise.all([
   var Hr = Br(Et), Oe;
   (function(e) {
     e.version = "5.5.2", e.Color = K, e.ColorPicker = Hr, (function(r) {
-      r.h = x, r.ComponentBase = he, r.Handle = $, r.Slider = le, r.Wheel = Ot, r.Box = jr;
+      r.h = L, r.ComponentBase = he, r.Handle = $, r.Slider = le, r.Wheel = Ot, r.Box = Pr;
     })(e.ui || (e.ui = {}));
   })(Oe || (Oe = {}));
-  var T = Oe;
+  var j = Oe;
   function Wr(e, r, i, t, n) {
     if (i === "cct") return [
       [
         {
-          component: T.ui.Slider,
+          component: j.ui.Slider,
           options: {
             sliderType: "kelvin",
             sliderShape: "circle",
@@ -1837,7 +1844,7 @@ let __tla = Promise.all([
           }
         },
         {
-          component: T.ui.Slider,
+          component: j.ui.Slider,
           options: {
             sliderType: "value"
           }
@@ -1848,11 +1855,11 @@ let __tla = Promise.all([
       case "wheel":
         return [
           {
-            component: T.ui.Wheel,
+            component: j.ui.Wheel,
             options: {}
           },
           {
-            component: T.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "value"
             }
@@ -1861,13 +1868,13 @@ let __tla = Promise.all([
       case "box":
         return [
           {
-            component: T.ui.Box,
+            component: j.ui.Box,
             options: {
               boxLightness: false
             }
           },
           {
-            component: T.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "hue"
             }
@@ -1876,19 +1883,19 @@ let __tla = Promise.all([
       case "slider":
         return [
           {
-            component: T.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "red"
             }
           },
           {
-            component: T.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "green"
             }
           },
           {
-            component: T.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "blue"
             }
@@ -1917,7 +1924,7 @@ let __tla = Promise.all([
     return Math.max(12, l);
   }
   function Nr(e, r, i, t, n, o) {
-    e.current && (r.current = T.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
+    e.current && (r.current = j.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
       n && n(l, o);
     }), r.current.on("input:change", (l, c) => {
       t && t(l, c);
@@ -1936,7 +1943,7 @@ let __tla = Promise.all([
     typeof e == "function" ? e(r) : e && "current" in e && (e.current = r);
   }
   const Ee = d.forwardRef(({ dimensions: e, colorLightUIComponent: r, colorLightSliderWidth: i, colorLightBorderWidth: t, colorLightBorderColor: n, colorWheelLightness: o, colorLightType: l, colorLightCtMin: c, colorLightCtMax: s, colorLightGamut: u, cctComponentNumber: h, onInputChange: a, onColorInit: f }, g) => {
-    const { theme: y } = d.useContext(Ae), p = d.useRef(null), L = d.useRef(null), m = d.useRef(f), _ = d.useRef(a);
+    const { theme: y } = d.useContext(Ae), b = d.useRef(null), x = d.useRef(null), m = d.useRef(f), _ = d.useRef(a);
     m.current = f, _.current = a;
     const w = d.useMemo(() => Wr(h, r, l, c, s), [
       h,
@@ -1944,7 +1951,7 @@ let __tla = Promise.all([
       l,
       c,
       s
-    ]), b = d.useMemo(() => zr(e, r, l), [
+    ]), p = d.useMemo(() => zr(e, r, l), [
       e,
       r,
       l
@@ -1954,7 +1961,7 @@ let __tla = Promise.all([
       i,
       l
     ]);
-    return d.useEffect(() => (Nr(p, L, {
+    return d.useEffect(() => (Nr(b, x, {
       color: "#ffffff",
       width: 0,
       margin: 12,
@@ -1963,21 +1970,21 @@ let __tla = Promise.all([
       padding: 6,
       handleRadius: 8,
       layoutDirection: "horizontal"
-    }, (U, P) => {
+    }, (U, T) => {
       var _a;
-      return (_a = _.current) == null ? void 0 : _a.call(_, U, P);
-    }, (U, P) => {
+      return (_a = _.current) == null ? void 0 : _a.call(_, U, T);
+    }, (U, T) => {
       var _a;
-      return (_a = m.current) == null ? void 0 : _a.call(m, U, P);
-    }, h), Gr(g, L.current), () => Dr(L)), [
+      return (_a = m.current) == null ? void 0 : _a.call(m, U, T);
+    }, h), Gr(g, x.current), () => Dr(x)), [
       g,
       h
     ]), d.useEffect(() => {
-      Fr(L.current, b);
+      Fr(x.current, p);
     }, [
-      b
+      p
     ]), d.useEffect(() => {
-      Vr(L.current, {
+      Vr(x.current, {
         layout: w,
         margin: W,
         wheelLightness: o,
@@ -1994,7 +2001,7 @@ let __tla = Promise.all([
       n,
       o
     ]), v.jsx(D, {
-      ref: p
+      ref: b
     });
   });
   Ee.displayName = "Light2Picker";
@@ -2217,11 +2224,11 @@ let __tla = Promise.all([
     g.current = t.data;
     const y = d.useRef(l);
     y.current = l;
-    const [p, L] = d.useState(false), m = d.useRef(false), _ = d.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", b = e && w ? "cct" : n.colorLightType, { value: W, updateValue: U } = j("colorLightSwitchOid"), { value: P, hasBackendChange: Be, updateValue: ue } = j("colorLightTemperatureOid"), { updateValue: Z, hasBackendChange: ee } = j("colorLightBrightnessOid"), { updateValue: de, hasBackendChange: He } = j("colorLightRgbHexOid"), { updateValue: fe, hasBackendChange: We } = j("colorLightRedOid"), { updateValue: ge, hasBackendChange: ze } = j("colorLightGreenOid"), { updateValue: ve, hasBackendChange: Ne } = j("colorLightBlueOid"), { updateValue: me, hasBackendChange: De } = j("colorLightHueOid"), { updateValue: be, hasBackendChange: Fe } = j("colorLightSaturationOid"), Rt = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ve = (C, k) => {
-      J(C, b, l, t.data, k);
+    const [b, x] = d.useState(false), m = d.useRef(false), _ = d.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", p = e && w ? "cct" : n.colorLightType, { value: W, updateValue: U } = P("colorLightSwitchOid"), { value: T, hasBackendChange: Be, updateValue: ue } = P("colorLightTemperatureOid"), { updateValue: Z, hasBackendChange: ee } = P("colorLightBrightnessOid"), { updateValue: de, hasBackendChange: He } = P("colorLightRgbHexOid"), { updateValue: fe, hasBackendChange: We } = P("colorLightRedOid"), { updateValue: ge, hasBackendChange: ze } = P("colorLightGreenOid"), { updateValue: ve, hasBackendChange: Ne } = P("colorLightBlueOid"), { updateValue: me, hasBackendChange: De } = P("colorLightHueOid"), { updateValue: pe, hasBackendChange: Fe } = P("colorLightSaturationOid"), Rt = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ve = (C, k) => {
+      J(C, p, l, t.data, k);
     }, Ge = d.useMemo(() => (C, k) => {
-      const pe = (k == null ? void 0 : k.maxValue) === 254, te = Math.round(C);
-      return pe ? Math.round(C / 100 * 254) : te;
+      const be = (k == null ? void 0 : k.maxValue) === 254, te = Math.round(C);
+      return be ? Math.round(C / 100 * 254) : te;
     }, []), $e = d.useMemo(() => ({
       cct: [
         {
@@ -2296,7 +2303,7 @@ let __tla = Promise.all([
         {
           colorProp: "saturation",
           oidField: "colorLightSaturationOid",
-          setter: be,
+          setter: pe,
           normalize: true,
           changeKey: "s"
         },
@@ -2318,7 +2325,7 @@ let __tla = Promise.all([
         {
           colorProp: "saturation",
           oidField: "colorLightSaturationOid",
-          setter: be,
+          setter: pe,
           normalize: true,
           changeKey: "s"
         },
@@ -2338,21 +2345,21 @@ let __tla = Promise.all([
       ge,
       ve,
       me,
-      be
-    ]), Ue = d.useMemo(() => (C, k, pe) => {
-      if (!(!b || _.current || m.current)) {
+      pe
+    ]), Ue = d.useMemo(() => (C, k, be) => {
+      if (!(!p || _.current || m.current)) {
         _.current = true;
         try {
-          const te = $e[b];
+          const te = $e[p];
           if (!te) return;
           te.forEach((_e) => {
-            const { colorProp: Ke, oidField: Tt, setter: Pt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
-            if (Ye !== void 0 && k !== Ye || !Kr(Ht, pe)) return;
-            const Wt = `${Tt}Object`, Qe = t.data[Wt];
+            const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
+            if (Ye !== void 0 && k !== Ye || !Kr(Ht, be)) return;
+            const Wt = `${jt}Object`, Qe = t.data[Wt];
             if (!Qe) return;
             let R = C[Ke];
-            Bt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Pt(R);
-          }), k === 1 && L((_e) => !_e);
+            Bt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Tt(R);
+          }), k === 1 && x((_e) => !_e);
         } finally {
           Promise.resolve().then(() => {
             _.current = false;
@@ -2360,16 +2367,16 @@ let __tla = Promise.all([
         }
       }
     }, [
-      b,
+      p,
       $e,
       t,
       Ge,
       _
-    ]), jt = d.useMemo(() => At(u, n.colorLightUIComponent, n.colorLightSliderWidth, b), [
+    ]), Pt = d.useMemo(() => At(u, n.colorLightUIComponent, n.colorLightSliderWidth, p), [
       u,
       n.colorLightUIComponent,
       n.colorLightSliderWidth,
-      b
+      p
     ]), Xe = d.useMemo(() => ({
       dimensions: u,
       colorLightGamut: n.colorLightGamut,
@@ -2378,7 +2385,7 @@ let __tla = Promise.all([
       colorLightSliderWidth: n.colorLightSliderWidth,
       colorLightBorderWidth: n.colorLightBorderWidth,
       colorLightBorderColor: n.colorLightBorderColor,
-      colorLightType: b,
+      colorLightType: p,
       colorLightCtMin: n.colorLightCtMin,
       colorLightCtMax: n.colorLightCtMax
     }), [
@@ -2391,12 +2398,12 @@ let __tla = Promise.all([
       n.colorLightBorderColor,
       n.colorLightCtMin,
       n.colorLightCtMax,
-      b
+      p
     ]);
     return d.useEffect(() => {
-      if (b !== "cct" || !h.current || !a.current) return;
+      if (p !== "cct" || !h.current || !a.current) return;
       const C = h.current.color, k = a.current.color;
-      if (p) {
+      if (b) {
         m.current = true;
         try {
           we(C, k);
@@ -2405,25 +2412,25 @@ let __tla = Promise.all([
         }
       }
     }, [
-      b,
-      p
+      p,
+      b
     ]), d.useEffect(() => {
-      if (b !== "cct" || !h.current || !a.current || !Be) return;
+      if (p !== "cct" || !h.current || !a.current || !Be) return;
       const C = h.current.color, k = a.current.color;
-      if (P != null) {
+      if (T != null) {
         m.current = true;
         try {
-          C.kelvin = Number(P), we(C, k);
+          C.kelvin = Number(T), we(C, k);
         } finally {
           m.current = false;
         }
       }
     }, [
-      b,
+      p,
       Be,
-      P
+      T
     ]), d.useEffect(() => {
-      if (!(!e || b !== "cct") && !(!ee || !a.current)) {
+      if (!(!e || p !== "cct") && !(!ee || !a.current)) {
         m.current = true;
         try {
           ct(a.current.color, g.current, y.current);
@@ -2433,23 +2440,23 @@ let __tla = Promise.all([
       }
     }, [
       e,
-      b,
+      p,
       ee
     ]), d.useEffect(() => {
       if (!(e || ![
         "rgb",
         "rgbcct"
-      ].includes(b || "")) && !(!He || !h.current)) {
+      ].includes(p || "")) && !(!He || !h.current)) {
         m.current = true;
         try {
-          J(h.current.color, b, l, t.data);
+          J(h.current.color, p, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      b,
+      p,
       He,
       l,
       t.data
@@ -2457,17 +2464,17 @@ let __tla = Promise.all([
       if (!(e || ![
         "r/g/b",
         "r/g/b/cct"
-      ].includes(b || "")) && !(!We && !ze && !Ne || !h.current)) {
+      ].includes(p || "")) && !(!We && !ze && !Ne || !h.current)) {
         m.current = true;
         try {
-          J(h.current.color, b, l, t.data);
+          J(h.current.color, p, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      b,
+      p,
       We,
       ze,
       Ne,
@@ -2477,17 +2484,17 @@ let __tla = Promise.all([
       if (!(e || ![
         "h/s/v",
         "h/s/v/cct"
-      ].includes(b || "")) && !(!De && !Fe && !ee || !h.current)) {
+      ].includes(p || "")) && !(!De && !Fe && !ee || !h.current)) {
         m.current = true;
         try {
-          J(h.current.color, b, l, t.data);
+          J(h.current.color, p, l, t.data);
         } finally {
           m.current = false;
         }
       }
     }, [
       e,
-      b,
+      p,
       De,
       Fe,
       ee,
@@ -2498,7 +2505,7 @@ let __tla = Promise.all([
       const C = h.current.color, k = a.current.color;
       m.current = true;
       try {
-        Mt(C, g.current, y.current), f.current === false && Number(P) !== Number(C.kelvin) && ue(Number(C.kelvin)), we(C, k);
+        Mt(C, g.current, y.current), f.current === false && Number(T) !== Number(C.kelvin) && ue(Number(C.kelvin)), we(C, k);
       } finally {
         m.current = false;
       }
@@ -2514,7 +2521,7 @@ let __tla = Promise.all([
       if (!(f.current !== true || e || !w || !h.current)) {
         m.current = true;
         try {
-          J(h.current.color, b, y.current, g.current);
+          J(h.current.color, p, y.current, g.current);
         } finally {
           m.current = false;
         }
@@ -2522,7 +2529,7 @@ let __tla = Promise.all([
     }, [
       e,
       w,
-      b
+      p
     ]), d.useEffect(() => {
       f.current = e;
     }, [
@@ -2620,9 +2627,9 @@ let __tla = Promise.all([
                 onInputChange: (C, k) => Ue(C, 1, k),
                 ...Xe
               }),
-              b === "cct" && v.jsx(D, {
+              p === "cct" && v.jsx(D, {
                 sx: {
-                  ml: `${jt}px`
+                  ml: `${Pt}px`
                 },
                 children: v.jsx(Ee, {
                   cctComponentNumber: 2,
