@@ -60,8 +60,8 @@ function ButtonGroupCollection(): React.JSX.Element {
     // Separator color used for inset box-shadow dividers (text variant)
     // and border color (outlined variant).
     const separatorColor = widget.data.buttonGroupColor
-        ? alpha(widget.data.buttonGroupColor, 0.2)
-        : alpha(theme.palette.text.primary, 0.12);
+        ? alpha(widget.data.buttonGroupColor, 0.6)
+        : alpha(theme.palette.text.primary, 0.6);
 
     const handleButtonClick = useCallback(
         (selectedValue: string | number | boolean) => {
