@@ -15,6 +15,8 @@ import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import SafeImg from '../components/SafeImg';
+import { useJsonTableAnalysis } from '../hooks/useJsonTableAnalysis';
+import { testJson } from '../hooks/useJsonTableAnalysis/testJson';
 
 import type { CheckboxCollectionContextProps } from '../types';
 
@@ -26,6 +28,12 @@ const defaultIconFalse =
 function CheckboxCollection(): React.JSX.Element {
     const context = useContext(CollectionContext) as CheckboxCollectionContextProps;
     const { widget, theme } = context;
+
+    const { columns, rows, meta } = useJsonTableAnalysis(JSON.parse(testJson));
+
+    console.log('CheckboxCollection - columns:', columns);
+    console.log('CheckboxCollection - rows:', rows);
+    console.log('CheckboxCollection - meta:', meta);
 
     const oidObject = widget.data.oidObject;
 
