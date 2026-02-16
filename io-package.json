@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.3.2",
+    "version": "2.3.3",
     "news": {
+      "2.3.3": {
+        "en": "ignoreCommonStates attribute added. Please read attribut tooltip (i)",
+        "de": "ignorierenCommonStates Attribut hinzugefügt. Bitte lesen Sie beitribut tooltip (i)",
+        "ru": "игнорировать добавленный атрибут CommonStates. Пожалуйста, прочитайте атрибут tooltip (i)",
+        "pt": "ignore o atributo CommonStates adicionado. Por favor leia a dica do atributo (i)",
+        "nl": "negeerCommonStates-attribuut toegevoegd. Lees attribuut tooltip (i)",
+        "fr": "ignore l'attribut CommonStates ajouté. S'il vous plaît lire tooltip attribubut (i)",
+        "it": "ignorareL'attributoCommonStates aggiunto. Si prega di leggere attribut tooltip (i)",
+        "es": "ignoreCommonStates atributo añadido. Por favor lea el atributo tooltip (i)",
+        "pl": "dodane atrybuty państw ignorujących. Proszę przeczytać atribut (i)",
+        "uk": "ігнорувати атрибутCommonStates додано. Будь ласка, прочитайте attribut tooltip (i)",
+        "zh-cn": "忽略添加的英联邦属性。 请读 Attribut 工具提示 (i)"
+      },
       "2.3.2": {
         "en": "Long press for ButtonGroupCollection widget fixed",
         "de": "Lange Presse für ButtonGroupCollection Widget fest",
@@ -80,19 +93,6 @@
         "pl": "GradientColor Błąd wyboru",
         "uk": "ГрадієнтКолор Підбирач зафіксувати помилки",
         "zh-cn": "渐变颜色 清除错误"
-      },
-      "2.1.0": {
-        "en": "Slder widget optimized\nRadioButtonGroup widget optimized\nRadioGroup widget optimized",
-        "de": "Slder Widget optimiert\nRadioButton Gruppen-Widget optimiert\nRadioGroup Widget optimiert",
-        "ru": "Slder Widget оптимизирован\nRadioButton Групповой виджет оптимизирован\nВиджет RadioGroup оптимизирован",
-        "pt": "Elemento Slder otimizado\nRadioButton Elemento de grupo otimizado\nElemento RadioGroup otimizado",
-        "nl": "Grootte-widget geoptimaliseerd\nRadioButton Groepswidget geoptimaliseerd\nRadioGroup-widget geoptimaliseerd",
-        "fr": "Widget Solder optimisé\nBouton radio Widget de groupe optimisé\nWidget RadioGroup optimisé",
-        "it": "Widget Slder ottimizzato\nRadioButton widget di gruppo ottimizzato\nWidget di RadioGroup ottimizzato",
-        "es": "Widget Slder optimizado\nRadioButton widget de grupo optimizado\nWidget de radioGroup optimizado",
-        "pl": "Widżet sldera zoptymalizowany\nRadioButton Widget grupy zoptymalizowany\nWidget RadioGroup zoptymalizowany",
-        "uk": "Slder віджет оптимізований\nРадіостанція Груповий віджет оптимізований\nРадіоГруповий віджет оптимізований",
-        "zh-cn": "焊德部件优化\n无线电按钮 组合部件优化\n优化了无线电组部件"
       }
     },
     "titleLang": {

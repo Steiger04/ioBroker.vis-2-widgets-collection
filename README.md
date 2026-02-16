@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.3.3 (2026-02-16)
 - (steiger04) ignoreCommonStates attribute added. Please read attribut tooltip (i)
 
 ### 2.3.2 (2026-02-14)
