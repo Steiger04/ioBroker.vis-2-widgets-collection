@@ -17,6 +17,8 @@
     "no_value": "Geen waarde",
     "oid": "Object-ID",
     "values_count": "Waarden tellen",
+    "ignore_common_states": "Common.states negeren",
+    "ignore_common_states_tooltip": "Aanbevolen wanneer common.states meer dan 20 items heeft. Een groot aantal states kan ervoor zorgen dat de vis-2 editor vastloopt.",
     "without_card": "Zonder grens",
     "base_elevation": "Knop hoogte",
     "outlined": "Geschetst",

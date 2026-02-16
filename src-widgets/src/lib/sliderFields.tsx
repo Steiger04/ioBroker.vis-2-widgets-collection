@@ -363,14 +363,16 @@ const sliderFields = (): ExtendedSliderField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: '!data.values_count',
+        hidden: (data: Record<string, any>) =>
+            !data.values_count && !Object.keys(data.oidObject?.commonStates || {}).length,
     } as const,
     {
         name: 'onlyStates',
         type: 'checkbox',
         label: 'only_states',
         default: false,
-        hidden: '!data.values_count',
+        hidden: (data: Record<string, any>) =>
+            !data.values_count && !Object.keys(data.oidObject?.commonStates || {}).length,
     } as const,
     {
         type: 'custom',

@@ -17,6 +17,8 @@
     "no_value": "Sin valor",
     "oid": "ID de objeto",
     "values_count": "Los valores cuentan",
+    "ignore_common_states": "Ignorar common.states",
+    "ignore_common_states_tooltip": "Recomendado cuando common.states tiene más de 20 entradas. Un gran número de estados puede hacer que el editor vis-2 se congele.",
     "without_card": "sin frontera",
     "base_elevation": "Elevación del botón",
     "outlined": "delineado",

@@ -101,6 +101,17 @@ export interface CommonObjectFieldsRxData {
     values_count: number;
 
     /**
+     * When true, hides value groups in the editor but still uses common.states
+     * internally for widget rendering.
+     *
+     * @remarks
+     * Recommended when common.states has more than 20 entries to prevent
+     * the vis-2 editor from freezing.
+     * @default true
+     */
+    ignoreCommonStates: boolean;
+
+    /**
      * Icon identifier for the object.
      * Can be Material Design Icon name or custom path.
      *

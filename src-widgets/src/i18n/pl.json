@@ -17,6 +17,8 @@
     "no_value": "Brak wartości",
     "oid": "Identyfikator obiektu",
     "values_count": "Wartości się liczą",
+    "ignore_common_states": "Ignoruj common.states",
+    "ignore_common_states_tooltip": "Zalecane, gdy common.states ma więcej niż 20 wpisów. Duża liczba stanów może spowodować zawieszenie edytora vis-2.",
     "without_card": "Bez granicy",
     "base_elevation": "Elewacja przycisku",
     "outlined": "Przedstawione",

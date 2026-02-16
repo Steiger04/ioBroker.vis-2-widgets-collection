@@ -1,7 +1,7 @@
-import { j as i, C as u, O as b, w as S, T as Q, A as E, S as T, z as V, v as Z, y as ee, Q as H, E as te, G as ae, s as ie, R as W, U as w, o as N, H as le, J as I, K as oe, N as re, __tla as __tla_0 } from "./useData-Dl8i4AuM.js";
-import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-B-rp1Txw.js";
+import { j as i, C as u, O as b, w as S, T as Q, A as E, S as T, z as V, v as Z, y as ee, Q as H, E as te, G as ae, s as ie, R as W, U as w, o as N, H as le, J as I, K as oe, N as re, __tla as __tla_0 } from "./useData-sVhMsuDG.js";
+import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-QOvNvh6i.js";
 import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as se, S as ce, __tla as __tla_3 } from "./Slider-UEEerAAl.js";
+import { a as se, S as ce, __tla as __tla_3 } from "./Slider-DgkvfXlS.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let G;
@@ -346,14 +346,20 @@ let __tla = Promise.all([
     {
       type: "custom",
       component: () => i.jsx(u, {}),
-      hidden: "!data.values_count"
+      hidden: (a) => {
+        var _a;
+        return !a.values_count && !Object.keys(((_a = a.oidObject) == null ? void 0 : _a.commonStates) || {}).length;
+      }
     },
     {
       name: "onlyStates",
       type: "checkbox",
       label: "only_states",
       default: false,
-      hidden: "!data.values_count"
+      hidden: (a) => {
+        var _a;
+        return !a.values_count && !Object.keys(((_a = a.oidObject) == null ? void 0 : _a.commonStates) || {}).length;
+      }
     },
     {
       type: "custom",
@@ -627,7 +633,7 @@ let __tla = Promise.all([
       }
     };
   }), xe = () => {
-    const a = c.useContext(Z), { widget: { data: { oidObject: t } }, widget: e, theme: l } = a, { data: p, states: v, minValue: y, maxValue: _, activeIndex: C, resolveStyleData: r } = ee("oid"), { value: s, updateValue: X, hasBackendChange: A } = ne("oid"), [g, $] = c.useState(typeof s == "number" ? s : void 0), k = c.useRef(null), [M, Y] = c.useState({
+    const a = c.useContext(Z), { widget: { data: { oidObject: t } }, widget: e, theme: l } = a, { data: p, states: v, minValue: y, maxValue: _, activeIndex: C, resolveStyleData: r } = ee("oid"), { value: s, updateValue: X, hasBackendChange: A } = ne("oid"), [g, O] = c.useState(typeof s == "number" ? s : void 0), k = c.useRef(null), [M, Y] = c.useState({
       x: 0,
       y: 0
     }), d = e.data.sliderOrientation === "horizontal", j = c.useMemo(() => d ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
@@ -650,7 +656,7 @@ let __tla = Promise.all([
       e.data.onlyStates,
       e.data.maxValue,
       _
-    ]), B = c.useMemo(() => {
+    ]), $ = c.useMemo(() => {
       const n = v.filter((o) => typeof o.value == "number").filter((o) => (f === null || o.value >= f) && (h === null || o.value <= h));
       if (e.data.onlyStates) return n.sort((o, m) => o.value - m.value);
       if (f !== null && !n.some((o) => o.value === f) && n.push({
@@ -663,7 +669,7 @@ let __tla = Promise.all([
         label: `${h}${(t == null ? void 0 : t.unit) || ""}`
       }), f !== null && h !== null) {
         const o = Number(e.data.markStep) || 1;
-        for (let m = f + o; m < h; m += o) n.some((O) => O.value === m) || n.push({
+        for (let m = f + o; m < h; m += o) n.some((B) => B.value === m) || n.push({
           ...r("", false),
           value: m,
           label: `${m}${(t == null ? void 0 : t.unit) || ""}`
@@ -680,19 +686,19 @@ let __tla = Promise.all([
       r
     ]), R = c.useMemo(() => {
       if (s === void 0) return null;
-      const x = B.findIndex((n) => String(n.value) === String(s));
+      const x = $.findIndex((n) => String(n.value) === String(s));
       return x !== -1 ? x : null;
     }, [
       s,
-      B
+      $
     ]);
     c.useEffect(() => {
-      g === void 0 && typeof s == "number" && $(s);
+      g === void 0 && typeof s == "number" && O(s);
     }, [
       s,
       g
     ]), c.useEffect(() => {
-      A && $(typeof s == "number" ? s : void 0);
+      A && O(typeof s == "number" ? s : void 0);
     }, [
       A,
       s
@@ -701,9 +707,9 @@ let __tla = Promise.all([
       if (!k.current) return;
       const x = k.current.querySelector(".MuiSlider-root"), n = k.current.querySelector(".MuiSlider-rail");
       if (x && n) {
-        const o = k.current.getBoundingClientRect(), m = n.getBoundingClientRect(), O = m.left - o.left + m.width / 2, q = m.top - o.top + m.height / 2, J = o.width / 2, K = o.height / 2;
+        const o = k.current.getBoundingClientRect(), m = n.getBoundingClientRect(), B = m.left - o.left + m.width / 2, q = m.top - o.top + m.height / 2, J = o.width / 2, K = o.height / 2;
         Y({
-          x: O - J,
+          x: B - J,
           y: q - K
         });
       }
@@ -792,12 +798,12 @@ let __tla = Promise.all([
                 orientation: e.data.sliderOrientation,
                 min: f ?? void 0,
                 max: h ?? void 0,
-                marks: B,
+                marks: $,
                 step: e.data.onlyStates ? null : e.data.step !== void 0 ? Number(e.data.step) : void 0,
                 size: e.data.sliderSize,
                 value: g,
                 onChange: (x, n) => {
-                  typeof n == "number" && ($(n), X(n));
+                  typeof n == "number" && (O(n), X(n));
                 },
                 sx: {
                   mb: e.data.marks && d ? "20px" : "0px",

@@ -17,6 +17,8 @@
     "no_value": "Немає значення",
     "oid": "ID об'єкта",
     "values_count": "Значення враховуються",
+    "ignore_common_states": "Ігнорувати common.states",
+    "ignore_common_states_tooltip": "Рекомендовано, коли common.states містить більше 20 записів. Велика кількість станів може призвести до зависання редактора vis-2.",
     "without_card": "Без кордону",
     "base_elevation": "Висота кнопки",
     "outlined": "Окреслено",

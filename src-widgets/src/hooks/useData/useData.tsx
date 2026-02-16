@@ -97,7 +97,12 @@ function useData(_oid: string): UseDataResult {
         const commonStatesEntries = Object.entries(commonStates);
 
         if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
-            for (let i = 1; i <= rxData.values_count; i++) {
+            // When ignoreCommonStates is active, values_count is 0 but data fields are still populated.
+            // Use commonStates length as the effective count to ensure proper state resolution.
+            const effectiveCount =
+                rxData.ignoreCommonStates !== false ? commonStatesEntries.length : rxData.values_count;
+
+            for (let i = 1; i <= effectiveCount; i++) {
                 const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
                 const _alias = rxData[`alias${i}`];
                 const _unit = oidObject?.unit;

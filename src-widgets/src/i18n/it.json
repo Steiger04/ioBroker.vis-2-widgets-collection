@@ -17,6 +17,8 @@
     "no_value": "Nessun valore",
     "oid": "Identificativo dell'oggetto",
     "values_count": "I valori contano",
+    "ignore_common_states": "Ignora common.states",
+    "ignore_common_states_tooltip": "Consigliato quando common.states ha più di 20 voci. Un gran numero di stati può causare il blocco dell'editor vis-2.",
     "without_card": "Senza confine",
     "base_elevation": "Elevazione del pulsante",
     "outlined": "Delineato",

@@ -17,6 +17,8 @@
     "no_value": "No value",
     "oid": "Object ID",
     "values_count": "Values count",
+    "ignore_common_states": "Ignore common.states",
+    "ignore_common_states_tooltip": "Recommended when common.states has more than 20 entries. A large number of states can cause the vis-2 editor to freeze.",
     "without_card": "Without border",
     "base_elevation": "Elevation",
     "outlined": "Outlined",

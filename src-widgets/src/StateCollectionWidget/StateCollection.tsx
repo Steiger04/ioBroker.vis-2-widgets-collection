@@ -20,7 +20,7 @@ function StateCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as StateCollectionContextProps;
     const { widget, theme } = context;
     const oidObject = widget.data.oidObject;
-    const { data, widgetStates } = useData('oid');
+    const { data, widgetStates, states } = useData('oid');
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const [open, setOpen] = useState(false);
 
@@ -33,24 +33,14 @@ function StateCollection(): React.ReactElement {
 
     const downHandler = (): void => {
         const value1 = widget.data.value1;
-        if (
-            onlyStates &&
-            Number(widget.data.values_count) === 2 &&
-            widget.data.statePushButton &&
-            value1 !== undefined
-        ) {
+        if (onlyStates && states.length === 2 && widget.data.statePushButton && value1 !== undefined) {
             setTimeout(() => setOidValueState(value1), 0);
         }
     };
 
     const upHandler = (): void => {
         const value2 = widget.data.value2;
-        if (
-            onlyStates &&
-            Number(widget.data.values_count) === 2 &&
-            widget.data.statePushButton &&
-            value2 !== undefined
-        ) {
+        if (onlyStates && states.length === 2 && widget.data.statePushButton && value2 !== undefined) {
             setTimeout(() => setOidValueState(value2), 0);
         }
     };
@@ -61,7 +51,7 @@ function StateCollection(): React.ReactElement {
             return;
         }
 
-        switch (Number(widget.data.values_count)) {
+        switch (states.length) {
             case 1:
                 if (widget.data.value1 !== undefined) {
                     setOidValueState(widget.data.value1);
@@ -81,7 +71,7 @@ function StateCollection(): React.ReactElement {
     }, [
         oidValue,
         onlyStates,
-        widget.data.values_count,
+        states.length,
         widget.data.statePushButton,
         widget.data.value1,
         widget.data.value2,

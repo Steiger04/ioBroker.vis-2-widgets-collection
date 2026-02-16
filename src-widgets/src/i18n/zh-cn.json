@@ -17,6 +17,8 @@
     "no_value": "没有价值",
     "oid": "对象ID",
     "values_count": "价值观很重要",
+    "ignore_common_states": "忽略 common.states",
+    "ignore_common_states_tooltip": "当 common.states 超过 20 个条目时建议启用。大量状态可能导致 vis-2 编辑器冻结。",
     "without_card": "无边框",
     "base_elevation": "按钮高度",
     "outlined": "概述",

@@ -80,7 +80,10 @@ const clearValueFields = (data: WidgetData, oid: string = 'oid'): void => {
         delete data.icon;
         delete data.write;
 
-        const count = typeof data.values_count === 'number' ? data.values_count : 0;
+        // Use the larger of values_count and commonStates length to ensure all fields are cleared
+        const storedCount = typeof data.values_count === 'number' ? data.values_count : 0;
+        const commonStatesCount = Object.keys(data.oidObject?.commonStates || {}).length;
+        const count = Math.max(storedCount, commonStatesCount);
 
         for (let i = 1; i <= count; i++) {
             keys.forEach(key => {
@@ -196,12 +199,18 @@ export const oidChangeHandlerAsync =
                     });
                 }
             } else if (oidType === 'boolean' && oid === 'oid') {
+                data[`${oid}Object`].commonStates = { true: 'TRUE', false: 'FALSE' };
                 data.values_count = 2;
                 data.value1 = true;
                 data.alias1 = 'TRUE';
                 data.value2 = false;
                 data.alias2 = 'FALSE';
             } else if (oid === 'oid') {
+                data.values_count = 0;
+            }
+
+            // When ignoreCommonStates is active, hide value groups in editor but keep data populated
+            if (oid === 'oid' && data.ignoreCommonStates !== false) {
                 data.values_count = 0;
             }
 
@@ -248,18 +257,51 @@ const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributes
             }
         },
     },
+
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data, _i) => data.oidObject?.type === 'boolean' || data.oidObject === undefined,
+        hidden: (data, _i) => data.oidObject === undefined,
+    },
+    {
+        name: 'ignoreCommonStates',
+        type: 'checkbox',
+        default: true,
+        label: 'ignore_common_states',
+        tooltip: 'ignore_common_states_tooltip',
+        hidden: (data, _i) => data.oidObject === undefined,
+        // eslint-disable-next-line @typescript-eslint/require-await
+        onChange: async (
+            _field: RxWidgetInfoAttributesField,
+            data: WidgetData,
+            changeData: (newData: WidgetData) => void,
+            _socket: LegacyConnection,
+        ): Promise<void> => {
+            if (data.ignoreCommonStates !== false) {
+                // Hide value groups: set values_count to 0
+                data.values_count = 0;
+            } else {
+                // Restore values_count from commonStates
+                const commonStates = data.oidObject?.commonStates;
+                if (commonStates) {
+                    data.values_count = Object.keys(commonStates).length;
+                } else if (data.oidObject?.type === 'boolean') {
+                    data.values_count = 2;
+                } else {
+                    data.values_count = 0;
+                }
+            }
+            setTimeout(() => changeData(data), 100);
+        },
     },
     {
         name: 'values_count',
         type: 'number',
         default: 0,
         label: 'values_count',
-        hidden: (data, _i) => data.oidObject?.type === 'boolean' || data.oidObject === undefined,
+        hidden: (data, _i) =>
+            data.oidObject?.type === 'boolean' || data.oidObject === undefined || data.ignoreCommonStates !== false,
     },
 ];
 
