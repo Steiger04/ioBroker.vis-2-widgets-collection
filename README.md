@@ -61,6 +61,9 @@
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+- (steiger04) ignoreCommonStates attribute added. Please read attribut tooltip (i)
+
 ### 2.3.2 (2026-02-14)
 - (steiger04) Long press for ButtonGroupCollection widget fixed
 
