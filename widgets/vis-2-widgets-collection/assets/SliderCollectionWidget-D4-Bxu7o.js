@@ -1,10 +1,10 @@
-import { j as i, C as u, N as b, v as S, T as Q, z as E, S as T, y as V, t as Z, x as ee, O as H, A as te, E as ae, s as ie, Q as W, R as w, o as N, G as le, H as I, J as oe, K as re, __tla as __tla_0 } from "./useData-BxQArd1-.js";
-import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-B97KqBJC.js";
+import { j as i, C as u, E as b, o as S, T as Q, v as H, S as T, t as V, n as Z, q as ee, F as R, w as te, x as ae, s as ie, H as W, J as w, i as G, G as le, y as I, z as oe, A as re, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-DSIqNOro.js";
 import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as se, S as ce, __tla as __tla_3 } from "./Slider-CSC-fon2.js";
+import { a as se, S as ce, __tla as __tla_3 } from "./Slider-CV4PB2I8.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let G;
+let N;
 let __tla = Promise.all([
   (() => {
     try {
@@ -555,10 +555,10 @@ let __tla = Promise.all([
               pr: t === "vertical" ? 1 : 0,
               pb: t === "vertical" ? 0 : 1,
               fontSize: r.valueSize,
-              background: E(r.textColor),
+              background: H(r.textColor),
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
-              color: E(r.textColor) ? "transparent" : r.textColor
+              color: H(r.textColor) ? "transparent" : r.textColor
             }
           }),
           i.jsx(S, {
@@ -596,10 +596,10 @@ let __tla = Promise.all([
           border: `${p}px solid ${v || a.palette.primary.main}`
         },
         "&:hover": {
-          boxShadow: `0px 0px 0px 8px ${N(l, 0.32)}`
+          boxShadow: `0px 0px 0px 8px ${G(l, 0.32)}`
         },
         "&:active": {
-          boxShadow: `0px 0px 0px 14px ${N(l, 0.32)}`
+          boxShadow: `0px 0px 0px 14px ${G(l, 0.32)}`
         }
       },
       "& .MuiSlider-track": {
@@ -648,7 +648,7 @@ let __tla = Promise.all([
       e.data.iconSmallMax,
       e.data.iconMin,
       e.data.iconSmallMin
-    ]), L = e.data.startIconColor || (H(j) ? l.palette.primary.main : void 0), F = e.data.endIconColor || (H(z) ? l.palette.primary.main : void 0), D = t == null ? void 0 : t.type, P = D === "number", f = c.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : y, [
+    ]), F = e.data.startIconColor || (R(j) ? l.palette.primary.main : void 0), L = e.data.endIconColor || (R(z) ? l.palette.primary.main : void 0), D = t == null ? void 0 : t.type, P = D === "number", f = c.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : y, [
       e.data.onlyStates,
       e.data.minValue,
       y
@@ -684,7 +684,7 @@ let __tla = Promise.all([
       h,
       t == null ? void 0 : t.unit,
       r
-    ]), R = c.useMemo(() => {
+    ]), E = c.useMemo(() => {
       if (s === void 0) return null;
       const x = $.findIndex((n) => String(n.value) === String(s));
       return x !== -1 ? x : null;
@@ -766,7 +766,7 @@ let __tla = Promise.all([
                 src: j,
                 style: {
                   width: d ? e.data.iconSizeStart || "24px" : e.data.iconSizeEnd || "24px",
-                  ...V(j, d ? L : F, true)
+                  ...V(j, d ? F : L, true)
                 }
               })
             }),
@@ -789,7 +789,7 @@ let __tla = Promise.all([
                     marks: e.data.marks,
                     sliderOrientation: e.data.sliderOrientation,
                     aliasActive: e.data.aliasActive,
-                    activeMarkIndex: R,
+                    activeMarkIndex: E,
                     defaultIconColor: l.palette.primary.main
                   }
                 },
@@ -838,7 +838,7 @@ let __tla = Promise.all([
                     left: d ? void 0 : e.data.markPosition
                   },
                   "& .MuiSlider-markLabelActive": {
-                    [`&[data-index='${R}']`]: {
+                    [`&[data-index='${E}']`]: {
                       "& div[data-font='active']": {
                         color: e.data.textColorActive ? `${e.data.textColorActive} !important` : void 0,
                         fontSize: typeof e.data.valueSizeActive == "number" ? `${W(e.data.valueSizeActive)} !important` : void 0
@@ -865,7 +865,7 @@ let __tla = Promise.all([
                 src: z,
                 style: {
                   width: d ? e.data.iconSizeEnd || "24px" : e.data.iconSizeStart || "24px",
-                  ...V(z, d ? F : L, true)
+                  ...V(z, d ? L : F, true)
                 }
               })
             })
@@ -874,7 +874,7 @@ let __tla = Promise.all([
       ]
     });
   };
-  G = class extends le {
+  N = class extends le {
     static getWidgetInfo() {
       return {
         id: "tplSliderCollectionWidget",
@@ -933,7 +933,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return G.getWidgetInfo();
+      return N.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -972,5 +972,5 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  G as default
+  N as default
 };

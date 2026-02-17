@@ -1,9 +1,9 @@
-import { a as V, g as I, a4 as J, u as L, j as l, s as P, d as D, i as z, e as F, n as K, m as N, o as B, a1 as X, C as Y, N as q, t as Q, x as Z, A as tt, E as et, v as j, z as A, S as ot, y as at, T as nt, R as it, a2 as M, G as rt, H as W, J as lt, K as st, __tla as __tla_0 } from "./useData-BxQArd1-.js";
-import { u as dt, d as ut, __tla as __tla_1 } from "./useValueState-B97KqBJC.js";
+import { a as V, g as I, K as q, u as L, j as l, s as P, d as D, M as z, e as F, B as J, m as N, i as B, N as K, C as X, E as Y, n as Q, q as Z, w as tt, x as et, o as j, v as A, S as ot, t as at, T as nt, J as it, O as M, G as rt, y as W, z as lt, A as st, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { u as dt, d as ut, __tla as __tla_1 } from "./useValueState-DSIqNOro.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let E;
+let H;
 let __tla = Promise.all([
   (() => {
     try {
@@ -30,7 +30,7 @@ let __tla = Promise.all([
   function pt(t) {
     return I("MuiToggleButton", t);
   }
-  const k = V("MuiToggleButton", [
+  const w = V("MuiToggleButton", [
     "root",
     "disabled",
     "selected",
@@ -41,7 +41,7 @@ let __tla = Promise.all([
     "sizeMedium",
     "sizeLarge",
     "fullWidth"
-  ]), U = d.createContext({}), H = d.createContext(void 0);
+  ]), U = d.createContext({}), E = d.createContext(void 0);
   function gt(t, e) {
     return e === void 0 || t === void 0 ? false : Array.isArray(e) ? e.includes(t) : t === e;
   }
@@ -57,7 +57,7 @@ let __tla = Promise.all([
       ]
     };
     return F(v, pt, e);
-  }, bt = P(K, {
+  }, bt = P(J, {
     name: "MuiToggleButton",
     slot: "Root",
     overridesResolver: (t, e) => {
@@ -73,7 +73,7 @@ let __tla = Promise.all([
     padding: 11,
     border: `1px solid ${(t.vars || t).palette.divider}`,
     color: (t.vars || t).palette.action.active,
-    [`&.${k.disabled}`]: {
+    [`&.${w.disabled}`]: {
       color: (t.vars || t).palette.action.disabled,
       border: `1px solid ${(t.vars || t).palette.action.disabledBackground}`
     },
@@ -90,7 +90,7 @@ let __tla = Promise.all([
           color: "standard"
         },
         style: {
-          [`&.${k.selected}`]: {
+          [`&.${w.selected}`]: {
             color: (t.vars || t).palette.text.primary,
             backgroundColor: t.vars ? `rgba(${t.vars.palette.text.primaryChannel} / ${t.vars.palette.action.selectedOpacity})` : B(t.palette.text.primary, t.palette.action.selectedOpacity),
             "&:hover": {
@@ -102,12 +102,12 @@ let __tla = Promise.all([
           }
         }
       },
-      ...Object.entries(t.palette).filter(X()).map(([e]) => ({
+      ...Object.entries(t.palette).filter(K()).map(([e]) => ({
         props: {
           color: e
         },
         style: {
-          [`&.${k.selected}`]: {
+          [`&.${w.selected}`]: {
             color: (t.vars || t).palette[e].main,
             backgroundColor: t.vars ? `rgba(${t.vars.palette[e].mainChannel} / ${t.vars.palette.action.selectedOpacity})` : B(t.palette[e].main, t.palette.action.selectedOpacity),
             "&:hover": {
@@ -147,20 +147,20 @@ let __tla = Promise.all([
       }
     ]
   }))), ft = d.forwardRef(function(e, o) {
-    const { value: u, ...g } = d.useContext(U), f = d.useContext(H), m = J({
+    const { value: u, ...g } = d.useContext(U), f = d.useContext(E), m = q({
       ...g,
       selected: gt(e.value, u)
     }, e), v = L({
       props: m,
       name: "MuiToggleButton"
-    }), { children: $, className: T, color: b = "standard", disabled: C = false, disableFocusRipple: h = false, fullWidth: n = false, onChange: c, onClick: s, selected: x, size: y = "medium", value: i, ...w } = v, S = {
+    }), { children: $, className: T, color: b = "standard", disabled: C = false, disableFocusRipple: h = false, fullWidth: n = false, onChange: c, onClick: s, selected: x, size: y = "medium", value: i, ...k } = v, S = {
       ...v,
       color: b,
       disabled: C,
       disableFocusRipple: h,
       fullWidth: n,
       size: y
-    }, G = vt(S), R = (r) => {
+    }, G = vt(S), O = (r) => {
       s && (s(r, i), r.defaultPrevented) || c && c(r, i);
     }, p = f || "";
     return l.jsx(bt, {
@@ -168,12 +168,12 @@ let __tla = Promise.all([
       disabled: C,
       focusRipple: !h,
       ref: o,
-      onClick: R,
+      onClick: O,
       onChange: c,
       value: i,
       ownerState: S,
       "aria-pressed": x,
-      ...w,
+      ...k,
       children: $
     });
   });
@@ -268,7 +268,7 @@ let __tla = Promise.all([
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0
           },
-          [`& .${a.lastButton}.${k.disabled},& .${a.middleButton}.${k.disabled}`]: {
+          [`& .${a.lastButton}.${w.disabled},& .${a.middleButton}.${w.disabled}`]: {
             borderTop: "1px solid transparent"
           }
         }
@@ -302,7 +302,7 @@ let __tla = Promise.all([
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0
           },
-          [`& .${a.lastButton}.${k.disabled},& .${a.middleButton}.${k.disabled}`]: {
+          [`& .${a.lastButton}.${w.disabled},& .${a.middleButton}.${w.disabled}`]: {
             borderLeft: "1px solid transparent"
           }
         }
@@ -320,9 +320,9 @@ let __tla = Promise.all([
       size: h
     }, x = yt(s), y = d.useCallback((p, r) => {
       if (!b) return;
-      const O = n && n.indexOf(r);
+      const R = n && n.indexOf(r);
       let _;
-      n && O >= 0 ? (_ = n.slice(), _.splice(O, 1)) : _ = n ? n.concat(r) : [
+      n && R >= 0 ? (_ = n.slice(), _.splice(R, 1)) : _ = n ? n.concat(r) : [
         r
       ], b(p, _);
     }, [
@@ -333,7 +333,7 @@ let __tla = Promise.all([
     }, [
       b,
       n
-    ]), w = d.useMemo(() => ({
+    ]), k = d.useMemo(() => ({
       className: x.grouped,
       onChange: $ ? i : y,
       value: n,
@@ -351,9 +351,9 @@ let __tla = Promise.all([
       T,
       m,
       v
-    ]), S = ct(g), G = S.length, R = (p) => {
-      const r = p === 0, O = p === G - 1;
-      return r && O ? "" : r ? x.firstButton : O ? x.lastButton : x.middleButton;
+    ]), S = ct(g), G = S.length, O = (p) => {
+      const r = p === 0, R = p === G - 1;
+      return r && R ? "" : r ? x.firstButton : R ? x.lastButton : x.middleButton;
     };
     return l.jsx(Ct, {
       role: "group",
@@ -362,9 +362,9 @@ let __tla = Promise.all([
       ownerState: s,
       ...c,
       children: l.jsx(U.Provider, {
-        value: w,
-        children: S.map((p, r) => l.jsx(H.Provider, {
-          value: R(r),
+        value: k,
+        children: S.map((p, r) => l.jsx(E.Provider, {
+          value: O(r),
           children: p
         }, r))
       })
@@ -372,7 +372,7 @@ let __tla = Promise.all([
   }), Bt = () => [
     {
       type: "custom",
-      component: () => l.jsx(Y, {})
+      component: () => l.jsx(X, {})
     },
     {
       name: "onlyIcon",
@@ -426,7 +426,7 @@ let __tla = Promise.all([
       fallbackFields: [
         "textColor"
       ],
-      component: (t, e, o, u) => l.jsx(q, {
+      component: (t, e, o, u) => l.jsx(Y, {
         field: t,
         data: e,
         onDataChange: o,
@@ -518,8 +518,8 @@ let __tla = Promise.all([
                 borderRadius: e.data.basePadding ? void 0 : 0
               }
             },
-            children: f.map(({ value: y, ...i }, w) => {
-              const S = m === w + 1, { hasGradient: G, hoverBackground: R, selectedBackground: p } = mt(i.background), r = A(i.textColor);
+            children: f.map(({ value: y, ...i }, k) => {
+              const S = m === k + 1, { hasGradient: G, hoverBackground: O, selectedBackground: p } = mt(i.background), r = A(i.textColor);
               return l.jsx(ft, {
                 value: String(y),
                 onClick: () => x(y),
@@ -535,7 +535,7 @@ let __tla = Promise.all([
                     background: i.background,
                     "&:hover": {
                       filter: G ? "opacity(80%)" : void 0,
-                      background: R
+                      background: O
                     },
                     "&.Mui-selected": {
                       background: p
@@ -602,14 +602,14 @@ let __tla = Promise.all([
                     })
                   ]
                 })
-              }, `${String(y)}-${w}`);
+              }, `${String(y)}-${k}`);
             })
           })
         })
       ]
     });
   }
-  E = class extends rt {
+  H = class extends rt {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -671,7 +671,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return E.getWidgetInfo();
+      return H.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -710,5 +710,5 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  E as default
+  H as default
 };

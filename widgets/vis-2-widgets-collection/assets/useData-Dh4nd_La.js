@@ -1,7 +1,7 @@
 import { v as h, a as ia, R as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { g as Za, c as fn } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as Ff } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let rB, bU, Q0, ve, fo, VU, C0, Ea, NU, A0, GU, _U, Fm, J0, zn, FU, Ca, xU, Zc, EU, Zn, gl, zp, kt, Le, _u, Bl, lB, HA, ed, wt, vs, ws, da, wU, yU, gd, pr, cl, gC, Ku, oo, nd, Im, Is, eB, Ct, ii, N0, Xh, nt, bm, am, DU, uh, PU, gr, Np, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, Ba, ul, a0, h0, Qt, lr, Re, vr, ln, Ls, ls, nn, Mu, Ua, ys, ks, td, ce, rd, pA, RA, Ss, OA, ai, mA, L, rt, Be, MA, Dh, sr, Ei, Qa, We, lA, Br, KA, Te, xm, $U, UU, Yt;
+let Ss, _U, Dh, ve, fo, zn, FU, Ea, xU, A0, Zc, da, Fm, mA, wt, vs, Ca, wU, J0, EU, Zn, yU, gd, pr, cl, Ba, GB, ze, HA, Mu, lo, gl, ai, kt, ul, Le, a0, rB, lB, ii, N0, Xh, nt, C0, Q0, DU, zp, _u, ed, uh, PU, gr, Np, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, h0, Qt, lr, Re, vr, ln, Ls, ws, ls, nn, Ua, ys, Bl, ks, gC, am, bm, hC, td, Ku, oo, nd, Im, Is, eB, Ct, ce, rd, pA, RA, rt, OA, Be, sr, L, Ei, Qa, MA, Br, Te, xm, $U, We, lA, UU, KA, Yt, bU, VU, NU, GU;
 let __tla = Promise.all([
   (() => {
     try {
@@ -3809,7 +3809,8 @@ try {
       `${A[8]}px ${A[9]}px ${A[10]}px ${A[11]}px rgba(0,0,0,${PB})`
     ].join(",");
   }
-  const _B = [
+  let _B, NB;
+  _B = [
     "none",
     LA(0, 2, 1, -1, 0, 1, 1, 0, 0, 1, 3, 0),
     LA(0, 3, 1, -2, 0, 2, 2, 0, 0, 1, 5, 0),
@@ -3835,12 +3836,14 @@ try {
     LA(0, 10, 14, -6, 0, 22, 35, 3, 0, 8, 42, 7),
     LA(0, 11, 14, -7, 0, 23, 36, 3, 0, 9, 44, 8),
     LA(0, 11, 15, -7, 0, 24, 38, 3, 0, 9, 46, 8)
-  ], NB = {
+  ];
+  NB = {
     easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
     easeOut: "cubic-bezier(0.0, 0, 0.2, 1)",
     easeIn: "cubic-bezier(0.4, 0, 1, 1)",
     sharp: "cubic-bezier(0.4, 0, 0.6, 1)"
-  }, GB = {
+  };
+  GB = {
     shortest: 150,
     shorter: 200,
     short: 250,
@@ -4553,9 +4556,16 @@ export default theme;`;
   const mn = Za(Is), xl = {
     disabled: false
   }, so = H.createContext(null);
-  var ph = function(e) {
+  let ph, Ir, Ft, Ut, Zt, ma;
+  ph = function(e) {
     return e.scrollTop;
-  }, Ir = "unmounted", Ft = "exited", Ut = "entering", Zt = "entered", ma = "exiting", ze = (function(A) {
+  };
+  Ir = "unmounted";
+  Ft = "exited";
+  Ut = "entering";
+  Zt = "entered";
+  ma = "exiting";
+  ze = (function(A) {
     od(e, A);
     function e(r, n) {
       var o;
@@ -4856,14 +4866,14 @@ export default theme;`;
   Ts.propTypes = {};
   Ts.defaultProps = vh;
   const id = (A) => A.scrollTop;
-  function lo(A, e) {
+  lo = function(A, e) {
     const { timeout: t, easing: r, style: n = {} } = A;
     return {
       duration: n.transitionDuration ?? (typeof t == "number" ? t : t[e.mode] || 0),
       easing: n.transitionTimingFunction ?? (typeof r == "object" ? r[e.mode] : r),
       delay: n.transitionDelay
     };
-  }
+  };
   function yh(A) {
     return OA("MuiPaper", A);
   }
@@ -10529,7 +10539,6 @@ export default theme;`;
       children: A
     });
   };
-  let hC;
   ve = ({ dividerText: A = "" }) => {
     const e = {
       position: "absolute",
@@ -20914,114 +20923,118 @@ export default theme;`;
   };
 });
 export {
-  rB as $,
-  bU as A,
-  Q0 as B,
+  Ss as $,
+  _U as A,
+  Dh as B,
   ve as C,
   fo as D,
-  VU as E,
-  C0 as F,
+  zn as E,
+  FU as F,
   Ea as G,
-  NU as H,
+  xU as H,
   A0 as I,
-  GU as J,
-  _U as K,
+  Zc as J,
+  da as K,
   Fm as L,
-  J0 as M,
-  zn as N,
-  FU as O,
+  mA as M,
+  wt as N,
+  vs as O,
   Ca as P,
-  xU as Q,
-  Zc as R,
+  wU as Q,
+  J0 as R,
   EU as S,
   Zn as T,
-  gl as U,
-  zp as V,
-  kt as W,
-  Le as X,
-  _u as Y,
-  Bl as Z,
-  lB as _,
+  yU as U,
+  gd as V,
+  pr as W,
+  cl as X,
+  Ba as Y,
+  GB as Z,
+  ze as _,
   __tla,
   HA as a,
-  ed as a0,
-  wt as a1,
-  vs as a2,
-  ws as a3,
-  da as a4,
-  wU as a5,
-  yU as a6,
-  gd as a7,
-  pr as a8,
-  cl as a9,
-  gC as aA,
-  Ku as aB,
-  oo as aC,
-  nd as aD,
-  Im as aE,
-  Is as aF,
-  eB as aG,
-  Ct as aH,
-  ii as aI,
-  N0 as aJ,
-  Xh as aK,
-  nt as aL,
-  bm as aM,
-  am as aN,
-  DU as aO,
-  uh as aP,
-  PU as aQ,
-  gr as aR,
-  Np as aS,
-  ms as aa,
-  Iu as ab,
-  tt as ac,
-  MU as ad,
-  gs as ae,
-  ZA as af,
-  KU as ag,
-  Bs as ah,
-  an as ai,
-  Ba as aj,
-  ul as ak,
-  a0 as al,
-  h0 as am,
-  Qt as an,
-  lr as ao,
-  Re as ap,
-  vr as aq,
-  ln as ar,
-  Ls as as,
-  ls as at,
-  nn as au,
-  Mu as av,
-  Ua as aw,
-  ys as ax,
-  ks as ay,
-  td as az,
+  Mu as a0,
+  lo as a1,
+  gl as a2,
+  ai as a3,
+  kt as a4,
+  ul as a5,
+  Le as a6,
+  a0 as a7,
+  rB as a8,
+  lB as a9,
+  ii as aA,
+  N0 as aB,
+  Xh as aC,
+  nt as aD,
+  C0 as aE,
+  Q0 as aF,
+  DU as aG,
+  zp as aH,
+  _u as aI,
+  ed as aJ,
+  uh as aK,
+  PU as aL,
+  gr as aM,
+  Np as aN,
+  ms as aO,
+  Iu as aP,
+  tt as aQ,
+  MU as aR,
+  gs as aS,
+  ZA as aT,
+  KU as aU,
+  Bs as aV,
+  an as aW,
+  h0 as aa,
+  Qt as ab,
+  lr as ac,
+  Re as ad,
+  vr as ae,
+  ln as af,
+  Ls as ag,
+  ws as ah,
+  ls as ai,
+  nn as aj,
+  Ua as ak,
+  ys as al,
+  Bl as am,
+  ks as an,
+  gC as ao,
+  am as ap,
+  bm as aq,
+  hC as ar,
+  td as as,
+  Ku as at,
+  oo as au,
+  nd as av,
+  Im as aw,
+  Is as ax,
+  eB as ay,
+  Ct as az,
   ce as b,
   rd as c,
   pA as d,
   RA as e,
-  Ss as f,
+  rt as f,
   OA as g,
-  ai as h,
-  mA as i,
+  Be as h,
+  sr as i,
   L as j,
-  rt as k,
-  Be as l,
+  Ei as k,
+  Qa as l,
   MA as m,
-  Dh as n,
-  sr as o,
-  Ei as p,
-  Qa as q,
+  Br as n,
+  Te as o,
+  xm as p,
+  $U as q,
   We as r,
   lA as s,
-  Br as t,
+  UU as t,
   KA as u,
-  Te as v,
-  xm as w,
-  $U as x,
-  UU as y,
-  Yt as z
+  Yt as v,
+  bU as w,
+  VU as x,
+  NU as y,
+  GU as z
 };

@@ -1,6 +1,6 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as j, u as M, b as k, s as u, d as _, j as p, i, e as O, m as d, o as m, a1 as D, a2 as I, a3 as N, __tla as __tla_1 } from "./useData-BxQArd1-.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-B7jK7VtH.js";
+import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, M as i, e as O, m as d, i as m, N, O as D, ah as I, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-CsNUGlgO.js";
 let H;
 let __tla = Promise.all([
   (() => {
@@ -23,7 +23,7 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function A(t) {
-    return j("MuiSwitch", t);
+    return M("MuiSwitch", t);
   }
   let o, E, F, X, L, V;
   o = P("MuiSwitch", [
@@ -182,7 +182,7 @@ let __tla = Promise.all([
       }
     },
     variants: [
-      ...Object.entries(t.palette).filter(D([
+      ...Object.entries(t.palette).filter(N([
         "light"
       ])).map(([a]) => ({
         props: {
@@ -198,7 +198,7 @@ let __tla = Promise.all([
               }
             },
             [`&.${o.disabled}`]: {
-              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? I(t.palette[a].main, 0.62) : N(t.palette[a].main, 0.55)}`
+              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? D(t.palette[a].main, 0.62) : I(t.palette[a].main, 0.55)}`
             }
           },
           [`&.${o.checked} + .${o.track}`]: {
@@ -238,7 +238,7 @@ let __tla = Promise.all([
     borderRadius: "50%"
   })));
   H = T.forwardRef(function(a, s) {
-    const l = M({
+    const l = j({
       props: a,
       name: "MuiSwitch"
     }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: b, slots: c = {}, slotProps: e = {}, ...y } = l, r = {

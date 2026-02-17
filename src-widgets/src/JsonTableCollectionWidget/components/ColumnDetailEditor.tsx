@@ -1,0 +1,887 @@
+/**
+ * Column detail editor panel for the JsonTable column editor modal.
+ *
+ * @module JsonTableCollectionWidget/components/ColumnDetailEditor
+ * @remarks
+ * Renders the right panel of the column editor modal with accordion sections
+ * for basic settings, formatting, conditional styling, and advanced options.
+ * Formatting sections are context-sensitive based on detected column type.
+ */
+
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Box,
+    Button,
+    Checkbox,
+    Chip,
+    FormControl,
+    FormControlLabel,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Slider,
+    Stack,
+    Switch,
+    TextField,
+    Tooltip,
+    Typography,
+} from '@mui/material';
+import {
+    Add as AddIcon,
+    Delete as DeleteIcon,
+    ExpandMore as ExpandMoreIcon,
+    FormatBold as FormatBoldIcon,
+    FormatItalic as FormatItalicIcon,
+    CheckCircleOutline as ValidIcon,
+    ErrorOutline as ErrorIcon,
+} from '@mui/icons-material';
+import { useCallback, useMemo, useState } from 'react';
+import type React from 'react';
+
+import Generic from '../../Generic';
+import { TYPE_COLORS, type ColumnConfigEntry, type ColumnStyleRule, type ColumnFormatConfig } from '../types';
+import {
+    formatNumberValue,
+    formatDateValue,
+    formatBooleanValue,
+    validateCondition,
+    DATE_FORMAT_OPTIONS,
+} from '../utils/formatters';
+import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
+
+/** Props for the ColumnDetailEditor component. */
+interface ColumnDetailEditorProps {
+    /** Current column configuration being edited */
+    column: ColumnConfigEntry;
+    /** Column metadata from analysis (type, stats, detected format, etc.) */
+    discoveredColumn?: JsonTableColumn;
+    /** Callback when column configuration changes */
+    onChange: (updated: ColumnConfigEntry) => void;
+}
+
+/**
+ * Renders the detail editor for a single column with accordion-based sections.
+ */
+function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetailEditorProps): React.JSX.Element {
+    // Track which accordion sections are expanded
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({
+        basic: true,
+        formatting: false,
+        styling: false,
+        advanced: false,
+    });
+
+    const handleAccordionChange = useCallback((section: string) => {
+        setExpanded(prev => ({ ...prev, [section]: !prev[section] }));
+    }, []);
+
+    // Detected type from analysis
+    const detectedType = discoveredColumn?.type || 'string';
+
+    // Update format config helper
+    const updateFormat = useCallback(
+        (patch: Partial<ColumnFormatConfig>) => {
+            onChange({
+                ...column,
+                format: { ...column.format, ...patch } as ColumnFormatConfig,
+            });
+        },
+        [column, onChange],
+    );
+
+    // Update a single style rule at a given index
+    const updateStyleRule = useCallback(
+        (index: number, patch: Partial<ColumnStyleRule>) => {
+            const updated = [...(column.cellStyle || [])];
+            updated[index] = { ...updated[index], ...patch };
+            onChange({ ...column, cellStyle: updated });
+        },
+        [column, onChange],
+    );
+
+    // Delete a style rule
+    const deleteStyleRule = useCallback(
+        (index: number) => {
+            const updated = [...(column.cellStyle || [])];
+            updated.splice(index, 1);
+            onChange({ ...column, cellStyle: updated });
+        },
+        [column, onChange],
+    );
+
+    // Add a new empty style rule
+    const addStyleRule = useCallback(() => {
+        const newRule: ColumnStyleRule = {
+            condition: '',
+            backgroundColor: '',
+            textColor: '',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+        };
+        onChange({ ...column, cellStyle: [...(column.cellStyle || []), newRule] });
+    }, [column, onChange]);
+
+    // Sample number value for preview (use discovered min/max if available)
+    const sampleNumber = useMemo(() => {
+        if (discoveredColumn?.min !== undefined && typeof discoveredColumn.min === 'number') {
+            return discoveredColumn.min + (((discoveredColumn.max as number) || 0) - discoveredColumn.min) * 0.75;
+        }
+        return 1234.567;
+    }, [discoveredColumn]);
+
+    // Total value count for percentage calculations
+    const totalValues = useMemo(() => {
+        if (!discoveredColumn) {
+            return 0;
+        }
+        return Object.values(discoveredColumn.typeCounts).reduce((sum, count) => sum + count, 0);
+    }, [discoveredColumn]);
+
+    return (
+        <Box
+            sx={{
+                height: '100%',
+                overflow: 'auto',
+                p: 2,
+            }}
+        >
+            {/* Column path header */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Chip
+                    label={detectedType}
+                    size="small"
+                    sx={{
+                        backgroundColor: TYPE_COLORS[detectedType] || TYPE_COLORS.string,
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                    }}
+                />
+                <Typography
+                    variant="subtitle2"
+                    sx={{
+                        fontFamily: 'monospace',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                    }}
+                    title={column.path}
+                >
+                    {column.path}
+                </Typography>
+            </Box>
+
+            <Stack spacing={1}>
+                {/* ── Section: Basic ─────────────────────────────────────── */}
+                <Accordion
+                    expanded={expanded.basic}
+                    onChange={() => handleAccordionChange('basic')}
+                    disableGutters
+                >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 'medium' }}
+                        >
+                            {Generic.t('json_table_section_basic')}
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Stack spacing={2}>
+                            <TextField
+                                label={Generic.t('json_table_header_label')}
+                                value={column.headerName}
+                                onChange={e => onChange({ ...column, headerName: e.target.value })}
+                                fullWidth
+                                size="small"
+                            />
+                            <TextField
+                                label={Generic.t('json_table_width')}
+                                type="number"
+                                value={column.width ?? ''}
+                                onChange={e =>
+                                    onChange({
+                                        ...column,
+                                        width: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                                    })
+                                }
+                                fullWidth
+                                size="small"
+                                placeholder={Generic.t('json_table_width_auto')}
+                                slotProps={{ htmlInput: { min: 30 } }}
+                            />
+                            <FormControl
+                                fullWidth
+                                size="small"
+                            >
+                                <InputLabel>{Generic.t('json_table_align')}</InputLabel>
+                                <Select
+                                    label={Generic.t('json_table_align')}
+                                    value={column.align || 'left'}
+                                    onChange={e =>
+                                        onChange({
+                                            ...column,
+                                            align: e.target.value as 'left' | 'center' | 'right',
+                                        })
+                                    }
+                                >
+                                    <MenuItem value="left">{Generic.t('json_table_align_left')}</MenuItem>
+                                    <MenuItem value="center">{Generic.t('json_table_align_center')}</MenuItem>
+                                    <MenuItem value="right">{Generic.t('json_table_align_right')}</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={column.visible}
+                                        onChange={e => onChange({ ...column, visible: e.target.checked })}
+                                    />
+                                }
+                                label={<Typography variant="body2">{Generic.t('json_table_visible')}</Typography>}
+                            />
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
+
+                {/* ── Section: Formatting ────────────────────────────────── */}
+                <Accordion
+                    expanded={expanded.formatting}
+                    onChange={() => handleAccordionChange('formatting')}
+                    disableGutters
+                >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 'medium' }}
+                        >
+                            {Generic.t('json_table_section_formatting')}
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Stack spacing={2}>
+                            {/* Number formatting */}
+                            {(detectedType === 'number' || column.format?.type === 'number') && (
+                                <>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ fontWeight: 'medium' }}
+                                    >
+                                        {Generic.t('json_table_number_format')}
+                                    </Typography>
+                                    <Box>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            gutterBottom
+                                        >
+                                            {Generic.t('json_table_number_decimals')}:{' '}
+                                            {column.format?.numberDecimals ?? 2}
+                                        </Typography>
+                                        <Slider
+                                            value={column.format?.numberDecimals ?? 2}
+                                            onChange={(_e, val) =>
+                                                updateFormat({ type: 'number', numberDecimals: val as number })
+                                            }
+                                            min={0}
+                                            max={10}
+                                            marks
+                                            step={1}
+                                            valueLabelDisplay="auto"
+                                            size="small"
+                                        />
+                                    </Box>
+                                    <TextField
+                                        label={Generic.t('json_table_number_prefix')}
+                                        value={column.format?.numberPrefix || ''}
+                                        onChange={e => updateFormat({ type: 'number', numberPrefix: e.target.value })}
+                                        size="small"
+                                        placeholder="$, €, £"
+                                    />
+                                    <TextField
+                                        label={Generic.t('json_table_number_suffix')}
+                                        value={column.format?.numberSuffix || ''}
+                                        onChange={e => updateFormat({ type: 'number', numberSuffix: e.target.value })}
+                                        size="small"
+                                        placeholder="%, kg, °C"
+                                    />
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={column.format?.numberThousandsSeparator || false}
+                                                onChange={e =>
+                                                    updateFormat({
+                                                        type: 'number',
+                                                        numberThousandsSeparator: e.target.checked,
+                                                    })
+                                                }
+                                                size="small"
+                                            />
+                                        }
+                                        label={
+                                            <Typography variant="body2">
+                                                {Generic.t('json_table_number_thousands')}
+                                            </Typography>
+                                        }
+                                    />
+                                    {/* Number preview */}
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{ p: 1.5, bgcolor: 'action.hover' }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                        >
+                                            {Generic.t('json_table_preview')}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{ mt: 0.5, fontFamily: 'monospace' }}
+                                        >
+                                            {sampleNumber} →{' '}
+                                            {formatNumberValue(sampleNumber, {
+                                                decimals: column.format?.numberDecimals,
+                                                prefix: column.format?.numberPrefix,
+                                                suffix: column.format?.numberSuffix,
+                                                thousands: column.format?.numberThousandsSeparator,
+                                            })}
+                                        </Typography>
+                                    </Paper>
+                                </>
+                            )}
+
+                            {/* Date formatting */}
+                            {(detectedType === 'date' || column.format?.type === 'date') && (
+                                <>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ fontWeight: 'medium' }}
+                                    >
+                                        {Generic.t('json_table_date_format')}
+                                    </Typography>
+                                    {discoveredColumn?.dateFormat && (
+                                        <TextField
+                                            label={Generic.t('json_table_date_input_format')}
+                                            value={discoveredColumn.dateFormat}
+                                            disabled
+                                            size="small"
+                                            helperText={Generic.t('json_table_date_detected_hint')}
+                                        />
+                                    )}
+                                    <FormControl
+                                        fullWidth
+                                        size="small"
+                                    >
+                                        <InputLabel>{Generic.t('json_table_date_output_format')}</InputLabel>
+                                        <Select
+                                            label={Generic.t('json_table_date_output_format')}
+                                            value={column.format?.dateFormat || 'yyyy-MM-dd'}
+                                            onChange={e =>
+                                                updateFormat({
+                                                    type: 'date',
+                                                    dateFormat: e.target.value,
+                                                    dateInputFormat: discoveredColumn?.dateFormat,
+                                                })
+                                            }
+                                        >
+                                            {DATE_FORMAT_OPTIONS.map(opt => (
+                                                <MenuItem
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                >
+                                                    {opt.label}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    {/* Date preview */}
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{ p: 1.5, bgcolor: 'action.hover' }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                        >
+                                            {Generic.t('json_table_preview')}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{ mt: 0.5, fontFamily: 'monospace' }}
+                                        >
+                                            {formatDateValue(new Date(), column.format?.dateFormat || 'yyyy-MM-dd')}
+                                        </Typography>
+                                    </Paper>
+                                </>
+                            )}
+
+                            {/* Boolean formatting */}
+                            {(detectedType === 'boolean' || column.format?.type === 'boolean') && (
+                                <>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ fontWeight: 'medium' }}
+                                    >
+                                        {Generic.t('json_table_boolean_format')}
+                                    </Typography>
+                                    <TextField
+                                        label={Generic.t('json_table_boolean_true')}
+                                        value={column.format?.booleanTrue || ''}
+                                        onChange={e => updateFormat({ type: 'boolean', booleanTrue: e.target.value })}
+                                        size="small"
+                                        placeholder="Yes, On, ✓, Active"
+                                    />
+                                    <TextField
+                                        label={Generic.t('json_table_boolean_false')}
+                                        value={column.format?.booleanFalse || ''}
+                                        onChange={e => updateFormat({ type: 'boolean', booleanFalse: e.target.value })}
+                                        size="small"
+                                        placeholder="No, Off, ✗, Inactive"
+                                    />
+                                    {/* Boolean preview */}
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{ p: 1.5, bgcolor: 'action.hover' }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                        >
+                                            {Generic.t('json_table_preview')}
+                                        </Typography>
+                                        <Stack
+                                            direction="row"
+                                            spacing={2}
+                                            sx={{ mt: 0.5 }}
+                                        >
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ fontFamily: 'monospace' }}
+                                            >
+                                                true →{' '}
+                                                {formatBooleanValue(
+                                                    true,
+                                                    column.format?.booleanTrue,
+                                                    column.format?.booleanFalse,
+                                                )}
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ fontFamily: 'monospace' }}
+                                            >
+                                                false →{' '}
+                                                {formatBooleanValue(
+                                                    false,
+                                                    column.format?.booleanTrue,
+                                                    column.format?.booleanFalse,
+                                                )}
+                                            </Typography>
+                                        </Stack>
+                                    </Paper>
+                                </>
+                            )}
+
+                            {/* No applicable format type */}
+                            {detectedType !== 'number' &&
+                                detectedType !== 'date' &&
+                                detectedType !== 'boolean' &&
+                                !column.format && (
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        {Generic.t('json_table_no_format_options')}
+                                    </Typography>
+                                )}
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
+
+                {/* ── Section: Conditional Styling ───────────────────────── */}
+                <Accordion
+                    expanded={expanded.styling}
+                    onChange={() => handleAccordionChange('styling')}
+                    disableGutters
+                >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 'medium' }}
+                            >
+                                {Generic.t('json_table_section_styling')}
+                            </Typography>
+                            {(column.cellStyle?.length ?? 0) > 0 && (
+                                <Chip
+                                    label={column.cellStyle!.length}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                            )}
+                        </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Stack spacing={1.5}>
+                            {(column.cellStyle || []).map((rule, idx) => {
+                                const conditionError = validateCondition(rule.condition);
+                                const hasCondition = rule.condition.trim() !== '';
+
+                                return (
+                                    <Paper
+                                        key={idx}
+                                        variant="outlined"
+                                        sx={{ p: 1.5 }}
+                                    >
+                                        <Stack spacing={1.5}>
+                                            {/* Rule header with delete button */}
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{ fontWeight: 'medium' }}
+                                                >
+                                                    {Generic.t('json_table_rule')} {idx + 1}
+                                                </Typography>
+                                                <Tooltip title={Generic.t('json_table_delete_rule')}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => deleteStyleRule(idx)}
+                                                        color="error"
+                                                    >
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+
+                                            {/* Condition input with validation indicator */}
+                                            <TextField
+                                                label={Generic.t('json_table_condition')}
+                                                value={rule.condition}
+                                                onChange={e => updateStyleRule(idx, { condition: e.target.value })}
+                                                size="small"
+                                                fullWidth
+                                                placeholder="value > 100"
+                                                error={hasCondition && conditionError !== null}
+                                                helperText={
+                                                    hasCondition && conditionError
+                                                        ? conditionError
+                                                        : Generic.t('json_table_condition_hint')
+                                                }
+                                                slotProps={{
+                                                    input: {
+                                                        endAdornment: hasCondition ? (
+                                                            conditionError ? (
+                                                                <Tooltip title={conditionError}>
+                                                                    <ErrorIcon
+                                                                        fontSize="small"
+                                                                        color="error"
+                                                                    />
+                                                                </Tooltip>
+                                                            ) : (
+                                                                <Tooltip
+                                                                    title={Generic.t('json_table_condition_valid')}
+                                                                >
+                                                                    <ValidIcon
+                                                                        fontSize="small"
+                                                                        color="success"
+                                                                    />
+                                                                </Tooltip>
+                                                            )
+                                                        ) : null,
+                                                    },
+                                                }}
+                                            />
+
+                                            {/* Color inputs in a row */}
+                                            <Stack
+                                                direction="row"
+                                                spacing={1}
+                                            >
+                                                <TextField
+                                                    label={Generic.t('json_table_bg_color')}
+                                                    value={rule.backgroundColor || ''}
+                                                    onChange={e =>
+                                                        updateStyleRule(idx, { backgroundColor: e.target.value })
+                                                    }
+                                                    size="small"
+                                                    fullWidth
+                                                    placeholder="#ffebee"
+                                                    slotProps={{
+                                                        input: {
+                                                            endAdornment: rule.backgroundColor ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        width: 20,
+                                                                        height: 20,
+                                                                        borderRadius: '4px',
+                                                                        backgroundColor: rule.backgroundColor,
+                                                                        border: 1,
+                                                                        borderColor: 'divider',
+                                                                        flexShrink: 0,
+                                                                    }}
+                                                                />
+                                                            ) : null,
+                                                        },
+                                                    }}
+                                                />
+                                                <TextField
+                                                    label={Generic.t('json_table_text_color')}
+                                                    value={rule.textColor || ''}
+                                                    onChange={e => updateStyleRule(idx, { textColor: e.target.value })}
+                                                    size="small"
+                                                    fullWidth
+                                                    placeholder="#c62828"
+                                                    slotProps={{
+                                                        input: {
+                                                            endAdornment: rule.textColor ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        width: 20,
+                                                                        height: 20,
+                                                                        borderRadius: '4px',
+                                                                        backgroundColor: rule.textColor,
+                                                                        border: 1,
+                                                                        borderColor: 'divider',
+                                                                        flexShrink: 0,
+                                                                    }}
+                                                                />
+                                                            ) : null,
+                                                        },
+                                                    }}
+                                                />
+                                            </Stack>
+
+                                            {/* Font style toggles */}
+                                            <Stack
+                                                direction="row"
+                                                spacing={1}
+                                            >
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={rule.fontWeight === 'bold'}
+                                                            onChange={e =>
+                                                                updateStyleRule(idx, {
+                                                                    fontWeight: e.target.checked ? 'bold' : 'normal',
+                                                                })
+                                                            }
+                                                            icon={<FormatBoldIcon />}
+                                                            checkedIcon={<FormatBoldIcon />}
+                                                            size="small"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Typography variant="caption">
+                                                            {Generic.t('json_table_bold')}
+                                                        </Typography>
+                                                    }
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={rule.fontStyle === 'italic'}
+                                                            onChange={e =>
+                                                                updateStyleRule(idx, {
+                                                                    fontStyle: e.target.checked ? 'italic' : 'normal',
+                                                                })
+                                                            }
+                                                            icon={<FormatItalicIcon />}
+                                                            checkedIcon={<FormatItalicIcon />}
+                                                            size="small"
+                                                        />
+                                                    }
+                                                    label={
+                                                        <Typography variant="caption">
+                                                            {Generic.t('json_table_italic')}
+                                                        </Typography>
+                                                    }
+                                                />
+                                            </Stack>
+
+                                            {/* Live preview swatch */}
+                                            {(rule.backgroundColor || rule.textColor) && (
+                                                <Paper
+                                                    variant="outlined"
+                                                    sx={{
+                                                        p: 1,
+                                                        backgroundColor: rule.backgroundColor || 'transparent',
+                                                        color: rule.textColor || 'inherit',
+                                                        fontWeight: rule.fontWeight || 'normal',
+                                                        fontStyle: rule.fontStyle || 'normal',
+                                                    }}
+                                                >
+                                                    <Typography variant="body2">
+                                                        {Generic.t('json_table_sample_value')}
+                                                    </Typography>
+                                                </Paper>
+                                            )}
+                                        </Stack>
+                                    </Paper>
+                                );
+                            })}
+
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={addStyleRule}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                            >
+                                {Generic.t('json_table_add_style_rule')}
+                            </Button>
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
+
+                {/* ── Section: Advanced ──────────────────────────────────── */}
+                <Accordion
+                    expanded={expanded.advanced}
+                    onChange={() => handleAccordionChange('advanced')}
+                    disableGutters
+                >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 'medium' }}
+                        >
+                            {Generic.t('json_table_section_advanced')}
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Stack spacing={2}>
+                            {/* Per-column feature overrides */}
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={column.sortable ?? true}
+                                        onChange={e => onChange({ ...column, sortable: e.target.checked })}
+                                        size="small"
+                                    />
+                                }
+                                label={<Typography variant="body2">{Generic.t('json_table_sortable')}</Typography>}
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={column.filterable ?? false}
+                                        onChange={e => onChange({ ...column, filterable: e.target.checked })}
+                                        size="small"
+                                    />
+                                }
+                                label={<Typography variant="body2">{Generic.t('json_table_filterable')}</Typography>}
+                            />
+
+                            {/* Column analysis metadata */}
+                            {discoveredColumn && (
+                                <Paper
+                                    variant="outlined"
+                                    sx={{ p: 1.5, bgcolor: 'action.hover' }}
+                                >
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ fontWeight: 'medium', display: 'block', mb: 1 }}
+                                    >
+                                        {Generic.t('json_table_analysis_info')}
+                                    </Typography>
+                                    <Stack spacing={0.5}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                            >
+                                                {Generic.t('json_table_type_label')}
+                                            </Typography>
+                                            <Chip
+                                                label={discoveredColumn.type}
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: TYPE_COLORS[discoveredColumn.type],
+                                                    color: '#fff',
+                                                    height: 18,
+                                                    fontSize: '0.65rem',
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                            >
+                                                {Generic.t('json_table_confidence')}
+                                            </Typography>
+                                            <Typography variant="caption">
+                                                {Math.round(discoveredColumn.confidence * 100)}%
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                            >
+                                                {Generic.t('json_table_nulls')}
+                                            </Typography>
+                                            <Typography variant="caption">
+                                                {discoveredColumn.nullCount}
+                                                {totalValues > 0 &&
+                                                    ` (${Math.round((discoveredColumn.nullCount / totalValues) * 100)}%)`}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                            >
+                                                {Generic.t('json_table_distinct')}
+                                            </Typography>
+                                            <Typography variant="caption">{discoveredColumn.distinctCount}</Typography>
+                                        </Box>
+                                        {discoveredColumn.min !== undefined && discoveredColumn.max !== undefined && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                >
+                                                    {Generic.t('json_table_range')}
+                                                </Typography>
+                                                <Typography variant="caption">
+                                                    {String(discoveredColumn.min)} – {String(discoveredColumn.max)}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                        {discoveredColumn.dateFormat && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                >
+                                                    {Generic.t('json_table_date_input_format')}
+                                                </Typography>
+                                                <Typography variant="caption">{discoveredColumn.dateFormat}</Typography>
+                                            </Box>
+                                        )}
+                                    </Stack>
+                                </Paper>
+                            )}
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
+            </Stack>
+        </Box>
+    );
+}
+
+export default ColumnDetailEditor;

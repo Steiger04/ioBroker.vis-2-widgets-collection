@@ -1,5 +1,5 @@
 import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as J, a as K, U as Q, a8 as V, b as C, s as F, j as b, i as X, e as Y, n as Z, r as ee, __tla as __tla_1 } from "./useData-BxQArd1-.js";
+import { g as J, a as K, a2 as Q, W as V, b as C, s as F, j as b, M as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -95,29 +95,29 @@ let __tla = Promise.all([
     zIndex: 1
   });
   ie = H.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: U = false, tabIndex: j, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [w, N] = Q({
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = Q({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
       state: "checked"
     }), a = V(), T = (e) => {
       m && m(e), a && a.onFocus && a.onFocus(e);
-    }, q = (e) => {
+    }, W = (e) => {
       g && g(e), a && a.onBlur && a.onBlur(e);
-    }, O = (e) => {
+    }, q = (e) => {
       if (e.nativeEvent.defaultPrevented) return;
       const o = e.target.checked;
       N(o), f && f(e, o);
     };
     let r = k;
     a && typeof r > "u" && (r = a.disabled);
-    const W = i === "checkbox" || i === "radio", p = {
+    const O = i === "checkbox" || i === "radio", p = {
       ...s,
-      checked: w,
+      checked: B,
       disabled: r,
       disableFocusRipple: h,
       edge: y
-    }, B = te(p), P = {
+    }, w = te(p), P = {
       slots: E,
       slotProps: {
         input: _,
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     }, [$, A] = C("root", {
       ref: l,
       elementType: se,
-      className: B.root,
+      className: w.root,
       shouldForwardComponentProp: true,
       externalForwardedProps: {
         ...P,
@@ -141,7 +141,7 @@ let __tla = Promise.all([
         },
         onBlur: (o) => {
           var _a;
-          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), q(o);
+          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), W(o);
         }
       }),
       ownerState: p,
@@ -155,12 +155,12 @@ let __tla = Promise.all([
     }), [D, G] = C("input", {
       ref: I,
       elementType: ae,
-      className: B.input,
+      className: w.input,
       externalForwardedProps: P,
       getSlotProps: (e) => ({
         onChange: (o) => {
           var _a;
-          (_a = e.onChange) == null ? void 0 : _a.call(e, o), O(o);
+          (_a = e.onChange) == null ? void 0 : _a.call(e, o), q(o);
         }
       }),
       ownerState: p,
@@ -169,11 +169,11 @@ let __tla = Promise.all([
         checked: n,
         defaultChecked: u,
         disabled: r,
-        id: W ? R : void 0,
+        id: O ? R : void 0,
         name: z,
         readOnly: v,
-        required: U,
-        tabIndex: j,
+        required: j,
+        tabIndex: U,
         type: i,
         ...i === "checkbox" && S === void 0 ? {} : {
           value: S
@@ -186,7 +186,7 @@ let __tla = Promise.all([
         b.jsx(D, {
           ...G
         }),
-        w ? c : x
+        B ? c : x
       ]
     });
   });

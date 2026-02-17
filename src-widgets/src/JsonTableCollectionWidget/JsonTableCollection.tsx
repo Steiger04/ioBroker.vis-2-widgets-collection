@@ -8,8 +8,8 @@
  */
 
 import { Box, Typography } from '@mui/material';
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
-import { useContext, useMemo } from 'react';
+import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
+import { useCallback, useContext, useMemo } from 'react';
 import type { FC } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
@@ -20,32 +20,11 @@ import { useJsonTableAnalysis } from '../hooks/useJsonTableAnalysis';
 import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 
+import { parseColumnConfig, type ColumnConfigEntry, type ColumnStyleRule } from './types';
+import { evaluateCondition, formatBooleanValue, formatDateValue, formatNumberValue } from './utils/formatters';
+
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
-
-/** Per-column configuration stored in widget data (JSON-stringified). */
-interface ColumnConfigEntry {
-    path: string;
-    visible: boolean;
-    headerName: string;
-    width?: number;
-    align?: 'left' | 'center' | 'right';
-}
-
-/**
- * Parse stored column config from widget data.
- */
-function parseColumnConfig(raw: string | undefined | null): ColumnConfigEntry[] {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? (parsed as ColumnConfigEntry[]) : [];
-    } catch {
-        return [];
-    }
-}
 
 /**
  * Parse a comma-separated string of numbers into a number array.
@@ -122,6 +101,81 @@ const JsonTableCollection: FC = () => {
         [widget.data.columnConfig],
     );
 
+    /**
+     * Render a cell value with optional formatting and conditional styling.
+     * Wraps the output in Typography for consistent rendering.
+     */
+    const createRenderCell = useCallback(
+        (cfg: ColumnConfigEntry) =>
+            (params: GridRenderCellParams): React.ReactNode => {
+                const rawValue = params.value;
+                let displayValue = rawValue != null ? String(rawValue) : '';
+
+                // Apply formatting based on config
+                if (cfg.format) {
+                    switch (cfg.format.type) {
+                        case 'number':
+                            if (
+                                typeof rawValue === 'number' ||
+                                (typeof rawValue === 'string' && !isNaN(Number(rawValue)))
+                            ) {
+                                displayValue = formatNumberValue(Number(rawValue), {
+                                    decimals: cfg.format.numberDecimals,
+                                    prefix: cfg.format.numberPrefix,
+                                    suffix: cfg.format.numberSuffix,
+                                    thousands: cfg.format.numberThousandsSeparator,
+                                });
+                            }
+                            break;
+                        case 'date':
+                            displayValue = formatDateValue(rawValue, cfg.format.dateFormat);
+                            break;
+                        case 'boolean':
+                            displayValue = formatBooleanValue(
+                                rawValue,
+                                cfg.format.booleanTrue,
+                                cfg.format.booleanFalse,
+                            );
+                            break;
+                    }
+                }
+
+                // Evaluate conditional styling rules (first match wins)
+                let cellSx: Record<string, unknown> = {};
+                if (cfg.cellStyle && cfg.cellStyle.length > 0) {
+                    for (const rule of cfg.cellStyle) {
+                        if (evaluateCondition(rule.condition, rawValue)) {
+                            cellSx = {
+                                ...(rule.backgroundColor && { backgroundColor: rule.backgroundColor }),
+                                ...(rule.textColor && { color: rule.textColor }),
+                                ...(rule.fontWeight && { fontWeight: rule.fontWeight }),
+                                ...(rule.fontStyle && { fontStyle: rule.fontStyle }),
+                            };
+                            break; // First match wins
+                        }
+                    }
+                }
+
+                return (
+                    <Typography
+                        variant="body2"
+                        component="span"
+                        noWrap
+                        title={displayValue}
+                        sx={{
+                            width: '100%',
+                            display: 'block',
+                            lineHeight: 'inherit',
+                            ...cellSx,
+                        }}
+                    >
+                        {displayValue}
+                    </Typography>
+                );
+            },
+        [],
+    );
+
     // Build DataGrid column definitions
     const gridColumns = useMemo<GridColDef[]>(() => {
         // If there is a column config, use its ordering and visibility
@@ -136,9 +190,15 @@ const JsonTableCollection: FC = () => {
                         width: cfg.width,
                         headerAlign: cfg.align || 'left',
                         align: cfg.align || 'left',
-                        sortable: widget.data.tableSorting !== false,
-                        filterable: widget.data.tableFiltering === true,
+                        sortable: cfg.sortable ?? widget.data.tableSorting !== false,
+                        filterable: cfg.filterable ?? widget.data.tableFiltering === true,
                     };
+
+                    // Apply renderCell if formatting or styling is configured
+                    if (cfg.format || (cfg.cellStyle && cfg.cellStyle.length > 0)) {
+                        col.renderCell = createRenderCell(cfg);
+                    }
+
                     return col;
                 });
         }
@@ -151,7 +211,7 @@ const JsonTableCollection: FC = () => {
             sortable: widget.data.tableSorting !== false,
             filterable: widget.data.tableFiltering === true,
         }));
-    }, [columnConfig, analysisColumns, widget.data.tableSorting, widget.data.tableFiltering]);
+    }, [columnConfig, analysisColumns, widget.data.tableSorting, widget.data.tableFiltering, createRenderCell]);
 
     // Build DataGrid rows with an auto-generated unique id
     const gridRows = useMemo(

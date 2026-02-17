@@ -1,7 +1,7 @@
-import { j as v, C as z, a5 as zt, t as Ae, x as at, A as st, E as ht, S as Nt, y as Dt, M as Ft, v as D, c as Vt, a6 as Gt, I as ye, D as qe, aj as ut, G as $t, H as Ze, K as Ut, __tla as __tla_0 } from "./useData-BxQArd1-.js";
-import { u as j, d as Xt, __tla as __tla_1 } from "./useValueState-B97KqBJC.js";
+import { j as v, C as z, Q as zt, n as Ae, q as at, w as st, x as ht, S as Nt, t as Dt, R as Ft, o as D, c as Vt, U as Gt, I as ye, D as qe, Y as ut, G as $t, y as Ze, A as Ut, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { u as P, d as Xt, __tla as __tla_1 } from "./useValueState-DSIqNOro.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { B as Kt, __tla as __tla_3 } from "./Button-eRDUYKJd.js";
+import { B as Kt, __tla as __tla_3 } from "./Button-DOw2ES1r.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let It;
@@ -393,7 +393,7 @@ let __tla = Promise.all([
       var _a;
       const n = d.useContext(Ae);
       if (!n || !n.widget) throw new Error("withButtonModal must be used within a CollectionProvider");
-      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = j("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
+      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
         onClick: () => h(!u),
         onLongPress: () => c(true),
         ms: f ? s.colorLightDelayLongPress ?? 500 : 500
@@ -1078,7 +1078,7 @@ let __tla = Promise.all([
     minTemperature: 2200,
     maxTemperature: 11e3
   };
-  function je(e) {
+  function Pe(e) {
     var r, i = e.width, t = e.sliderSize, n = e.borderWidth, o = e.handleRadius, l = e.padding, c = e.sliderShape, s = e.layoutDirection === "horizontal";
     return t = (r = t) != null ? r : l * 2 + o * 2, c === "circle" ? {
       handleStart: e.padding + e.handleRadius,
@@ -1121,7 +1121,7 @@ let __tla = Promise.all([
     }
   }
   function wr(e, r, i) {
-    var t = je(e), n = t.handleRange, o = t.handleStart, l;
+    var t = Pe(e), n = t.handleRange, o = t.handleStart, l;
     e.layoutDirection === "horizontal" ? l = -1 * i + n + o : l = r - o, l = Math.max(Math.min(l, n), 0);
     var c = Math.round(100 / n * l);
     switch (e.sliderType) {
@@ -1141,7 +1141,7 @@ let __tla = Promise.all([
     }
   }
   function Sr(e, r) {
-    var i = je(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = Lr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
+    var i = Pe(e), t = i.width, n = i.height, o = i.handleRange, l = i.handleStart, c = e.layoutDirection === "horizontal", s = Lr(e, r), u = c ? t / 2 : n / 2, h = l + s / 100 * o;
     return c && (h = -1 * h + o + l * 2), {
       x: c ? u : h,
       y: c ? h : u
@@ -1313,7 +1313,7 @@ let __tla = Promise.all([
       s: Math.round(100 / l * s)
     };
   }
-  function Pe(e) {
+  function je(e) {
     var r = e.width, i = e.boxHeight, t = e.padding, n = e.handleRadius;
     return {
       width: r,
@@ -1322,14 +1322,14 @@ let __tla = Promise.all([
     };
   }
   function ot(e, r, i) {
-    var t = Pe(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
+    var t = je(e), n = t.width, o = t.height, l = t.radius, c = l, s = n - l * 2, u = o - l * 2, h = (r - c) / s * 100, a = (i - c) / u * 100;
     return {
       s: Math.max(0, Math.min(h, 100)),
       v: Math.max(0, Math.min(100 - a, 100))
     };
   }
   function Ar(e, r) {
-    var i = Pe(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
+    var i = je(e), t = i.width, n = i.height, o = i.radius, l = r.hsv, c = o, s = t - o * 2, u = n - o * 2;
     return {
       x: c + l.s / 100 * s,
       y: c + (u - l.v / 100 * u)
@@ -1502,7 +1502,7 @@ let __tla = Promise.all([
     }
   };
   function le(e) {
-    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = je(e), n = t.width, o = t.height, l = t.radius, c = Sr(e, i), s = Cr(e, i);
+    var r = e.activeIndex, i = r !== void 0 && r < e.colors.length ? e.colors[r] : e.color, t = Pe(e), n = t.width, o = t.height, l = t.radius, c = Sr(e, i), s = Cr(e, i);
     function u(h, a, f) {
       var g = wr(e, h, a);
       e.parent.inputActive = true, i[e.sliderType] = g, e.onInput(f, e.id);
@@ -1543,8 +1543,8 @@ let __tla = Promise.all([
     });
   }
   le.defaultProps = Object.assign({}, xr);
-  function jr(e) {
-    var r = Pe(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Mr(e, s), h = o.map(function(f) {
+  function Pr(e) {
+    var r = je(e), i = r.width, t = r.height, n = r.radius, o = e.colors, l = e.parent, c = e.activeIndex, s = c !== void 0 && c < e.colors.length ? e.colors[c] : e.color, u = Mr(e, s), h = o.map(function(f) {
       return Ar(e, f);
     });
     function a(f, g, y) {
@@ -1598,7 +1598,7 @@ let __tla = Promise.all([
       }));
     });
   }
-  var Pr = "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", Tr = "conic-gradient(red, magenta, blue, aqua, lime, yellow, red)";
+  var jr = "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", Tr = "conic-gradient(red, magenta, blue, aqua, lime, yellow, red)";
   function Ot(e) {
     var r = se(e), i = r.width, t = e.colors;
     e.borderWidth;
@@ -1635,7 +1635,7 @@ let __tla = Promise.all([
         className: "IroWheelHue",
         style: Object.assign({}, s, {
           transform: "rotateZ(" + (e.wheelAngle + 90) + "deg)",
-          background: e.wheelDirection === "clockwise" ? Pr : Tr
+          background: e.wheelDirection === "clockwise" ? jr : Tr
         })
       }), L("div", {
         className: "IroWheelSaturation",
@@ -1827,15 +1827,15 @@ let __tla = Promise.all([
   var Hr = Br(Et), Oe;
   (function(e) {
     e.version = "5.5.2", e.Color = K, e.ColorPicker = Hr, (function(r) {
-      r.h = L, r.ComponentBase = he, r.Handle = $, r.Slider = le, r.Wheel = Ot, r.Box = jr;
+      r.h = L, r.ComponentBase = he, r.Handle = $, r.Slider = le, r.Wheel = Ot, r.Box = Pr;
     })(e.ui || (e.ui = {}));
   })(Oe || (Oe = {}));
-  var P = Oe;
+  var j = Oe;
   function Wr(e, r, i, t, n) {
     if (i === "cct") return [
       [
         {
-          component: P.ui.Slider,
+          component: j.ui.Slider,
           options: {
             sliderType: "kelvin",
             sliderShape: "circle",
@@ -1844,7 +1844,7 @@ let __tla = Promise.all([
           }
         },
         {
-          component: P.ui.Slider,
+          component: j.ui.Slider,
           options: {
             sliderType: "value"
           }
@@ -1855,11 +1855,11 @@ let __tla = Promise.all([
       case "wheel":
         return [
           {
-            component: P.ui.Wheel,
+            component: j.ui.Wheel,
             options: {}
           },
           {
-            component: P.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "value"
             }
@@ -1868,13 +1868,13 @@ let __tla = Promise.all([
       case "box":
         return [
           {
-            component: P.ui.Box,
+            component: j.ui.Box,
             options: {
               boxLightness: false
             }
           },
           {
-            component: P.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "hue"
             }
@@ -1883,19 +1883,19 @@ let __tla = Promise.all([
       case "slider":
         return [
           {
-            component: P.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "red"
             }
           },
           {
-            component: P.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "green"
             }
           },
           {
-            component: P.ui.Slider,
+            component: j.ui.Slider,
             options: {
               sliderType: "blue"
             }
@@ -1924,7 +1924,7 @@ let __tla = Promise.all([
     return Math.max(12, l);
   }
   function Nr(e, r, i, t, n, o) {
-    e.current && (r.current = P.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
+    e.current && (r.current = j.ColorPicker(e.current, i), r.current.on("color:init", (l) => {
       n && n(l, o);
     }), r.current.on("input:change", (l, c) => {
       t && t(l, c);
@@ -2224,7 +2224,7 @@ let __tla = Promise.all([
     g.current = t.data;
     const y = d.useRef(l);
     y.current = l;
-    const [b, x] = d.useState(false), m = d.useRef(false), _ = d.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", p = e && w ? "cct" : n.colorLightType, { value: W, updateValue: U } = j("colorLightSwitchOid"), { value: T, hasBackendChange: Be, updateValue: ue } = j("colorLightTemperatureOid"), { updateValue: J, hasBackendChange: ee } = j("colorLightBrightnessOid"), { updateValue: de, hasBackendChange: He } = j("colorLightRgbHexOid"), { updateValue: fe, hasBackendChange: We } = j("colorLightRedOid"), { updateValue: ge, hasBackendChange: ze } = j("colorLightGreenOid"), { updateValue: ve, hasBackendChange: Ne } = j("colorLightBlueOid"), { updateValue: me, hasBackendChange: De } = j("colorLightHueOid"), { updateValue: pe, hasBackendChange: Fe } = j("colorLightSaturationOid"), Rt = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ve = (C, k) => {
+    const [b, x] = d.useState(false), m = d.useRef(false), _ = d.useRef(false), w = n.colorLightType === "rgbcct" || n.colorLightType === "r/g/b/cct" || n.colorLightType === "h/s/v/cct", p = e && w ? "cct" : n.colorLightType, { value: W, updateValue: U } = P("colorLightSwitchOid"), { value: T, hasBackendChange: Be, updateValue: ue } = P("colorLightTemperatureOid"), { updateValue: J, hasBackendChange: ee } = P("colorLightBrightnessOid"), { updateValue: de, hasBackendChange: He } = P("colorLightRgbHexOid"), { updateValue: fe, hasBackendChange: We } = P("colorLightRedOid"), { updateValue: ge, hasBackendChange: ze } = P("colorLightGreenOid"), { updateValue: ve, hasBackendChange: Ne } = P("colorLightBlueOid"), { updateValue: me, hasBackendChange: De } = P("colorLightHueOid"), { updateValue: pe, hasBackendChange: Fe } = P("colorLightSaturationOid"), Rt = ((_a = t.data.colorLightSwitchOidObject) == null ? void 0 : _a.type) === "boolean", Ve = (C, k) => {
       Z(C, p, l, t.data, k);
     }, Ge = d.useMemo(() => (C, k) => {
       const be = (k == null ? void 0 : k.maxValue) === 254, te = Math.round(C);
@@ -2353,9 +2353,9 @@ let __tla = Promise.all([
           const te = $e[p];
           if (!te) return;
           te.forEach((_e) => {
-            const { colorProp: Ke, oidField: Pt, setter: Tt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
+            const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
             if (Ye !== void 0 && k !== Ye || !Kr(Ht, be)) return;
-            const Wt = `${Pt}Object`, Qe = t.data[Wt];
+            const Wt = `${jt}Object`, Qe = t.data[Wt];
             if (!Qe) return;
             let R = C[Ke];
             Bt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Tt(R);
@@ -2372,7 +2372,7 @@ let __tla = Promise.all([
       t,
       Ge,
       _
-    ]), jt = d.useMemo(() => At(u, n.colorLightUIComponent, n.colorLightSliderWidth, p), [
+    ]), Pt = d.useMemo(() => At(u, n.colorLightUIComponent, n.colorLightSliderWidth, p), [
       u,
       n.colorLightUIComponent,
       n.colorLightSliderWidth,
@@ -2629,7 +2629,7 @@ let __tla = Promise.all([
               }),
               p === "cct" && v.jsx(D, {
                 sx: {
-                  ml: `${jt}px`
+                  ml: `${Pt}px`
                 },
                 children: v.jsx(Ee, {
                   cctComponentNumber: 2,

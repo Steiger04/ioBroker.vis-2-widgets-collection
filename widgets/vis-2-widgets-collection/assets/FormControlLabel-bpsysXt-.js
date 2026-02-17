@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as U, u as A, a8 as E, aR as W, b as z, T as P, j as c, d as v, s as x, i as F, e as B, m as L, __tla as __tla_1 } from "./useData-BxQArd1-.js";
+import { a as D, g as U, u as A, W as E, aM as W, b as z, T as P, j as c, d as v, s as x, M as F, e as B, m as L, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: M = {}, value: V, ...$ } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -139,7 +139,7 @@ let __tla = Promise.all([
     ].forEach((i) => {
       typeof a.props[i] > "u" && typeof r[i] < "u" && (g[i] = r[i]);
     });
-    const w = W({
+    const j = W({
       props: r,
       muiFormControl: f,
       states: [
@@ -150,16 +150,16 @@ let __tla = Promise.all([
       disabled: C,
       labelPlacement: _,
       required: b,
-      error: w.error
-    }, u = I(n), M = {
+      error: j.error
+    }, u = I(n), w = {
       slots: q,
       slotProps: {
         ...m,
-        ...$
+        ...M
       }
     }, [N, h] = z("typography", {
       elementType: P,
-      externalForwardedProps: M,
+      externalForwardedProps: w,
       ownerState: n
     });
     let l = T;
@@ -172,7 +172,7 @@ let __tla = Promise.all([
       className: v(u.root, d),
       ownerState: n,
       ref: s,
-      ...j,
+      ...$,
       children: [
         y.cloneElement(a, g),
         b ? c.jsxs("div", {

@@ -1,7 +1,7 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, k as V, l as j, j as C, s as F, d as I, e as P, n as U, r as G, m as N, o as c, aQ as x, __tla as __tla_1 } from "./useData-BxQArd1-.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-COBicmTJ.js";
-let J, A;
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, aL as x, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-DZA6NAVK.js";
+let K, J;
 let __tla = Promise.all([
   (() => {
     try {
@@ -22,7 +22,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  A = function(e) {
+  J = function(e) {
     return k("MuiListItemIcon", e);
   };
   const M = O("MuiListItemIcon", [
@@ -163,11 +163,11 @@ let __tla = Promise.all([
       }
     ]
   })));
-  J = l.forwardRef(function(t, a) {
+  K = l.forwardRef(function(t, a) {
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: L, ..._ } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: L = "menuitem", tabIndex: v, className: S, ...B } = s, f = l.useContext(y), m = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -180,31 +180,31 @@ let __tla = Promise.all([
     }, [
       r
     ]);
-    const w = {
+    const _ = {
       ...s,
       dense: m.dense,
       divider: g,
       disableGutters: i
-    }, u = H(s), B = j(p, a);
+    }, u = H(s), w = j(p, a);
     let b;
     return s.disabled || (b = v !== void 0 ? v : -1), C.jsx(y.Provider, {
       value: m,
       children: C.jsx(z, {
-        ref: B,
-        role: S,
+        ref: w,
+        role: L,
         tabIndex: b,
         component: d,
         focusVisibleClassName: I(u.focusVisible, R),
-        className: I(u.root, L),
-        ..._,
-        ownerState: w,
+        className: I(u.root, S),
+        ...B,
+        ownerState: _,
         classes: u
       })
     });
   });
 });
 export {
-  J as M,
+  K as M,
   __tla,
-  A as g
+  J as g
 };

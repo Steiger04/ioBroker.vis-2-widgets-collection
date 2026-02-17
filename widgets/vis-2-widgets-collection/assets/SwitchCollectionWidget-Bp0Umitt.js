@@ -1,10 +1,10 @@
-import { j as l, C as d, N as c, s as C, y as u, t as x, x as w, A as y, E as k, v as h, G as v, H as p, J as _, K as j, __tla as __tla_0 } from "./useData-BxQArd1-.js";
-import { u as M, d as z, __tla as __tla_1 } from "./useValueState-B97KqBJC.js";
+import { j as l, C as d, E as c, s as C, t as u, n as w, q as x, w as y, x as k, o as h, G as v, y as p, z as _, A as j, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { u as M, d as z, __tla as __tla_1 } from "./useValueState-DSIqNOro.js";
 import { v as m, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as W, __tla as __tla_3 } from "./Switch-BCfjs6JK.js";
+import { S as W, __tla as __tla_3 } from "./Switch-Cveq0wsU.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_4 } from "./SwitchBase-B7jK7VtH.js";
+import { __tla as __tla_4 } from "./SwitchBase-CsNUGlgO.js";
 let g;
 let __tla = Promise.all([
   (() => {
@@ -174,7 +174,7 @@ let __tla = Promise.all([
   });
   function O() {
     var _a, _b, _c, _d;
-    const i = m.useRef(null), t = m.useContext(x), { widget: e, theme: o } = t, a = e.data.oidObject, { data: n } = w("oid"), { value: s, updateValue: b } = M("oid"), r = a == null ? void 0 : a.type, f = r === "boolean", S = () => {
+    const i = m.useRef(null), t = m.useContext(w), { widget: e, theme: o } = t, a = e.data.oidObject, { data: n } = x("oid"), { value: s, updateValue: b } = M("oid"), r = a == null ? void 0 : a.type, f = r === "boolean", S = () => {
       b(!s);
     };
     return l.jsxs(y, {

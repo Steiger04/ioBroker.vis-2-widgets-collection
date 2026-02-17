@@ -1,4 +1,4 @@
-import { j as rt, C as nt, t as H, x as it, __tla as __tla_0 } from "./useData-BxQArd1-.js";
+import { j as rt, C as nt, n as H, q as it, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
 import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 let Zt, te;
 let __tla = Promise.all([
@@ -757,7 +757,7 @@ let __tla = Promise.all([
     return r.prototype.schedule = function(t, n) {
       return this;
     }, r;
-  })(E), B = {
+  })(E), q = {
     setInterval: function(e, r) {
       for (var t = [], n = 2; n < arguments.length; n++) t[n - 2] = arguments[n];
       return setInterval.apply(void 0, j([
@@ -782,10 +782,10 @@ let __tla = Promise.all([
       var o = this.id, u = this.scheduler;
       return o != null && (this.id = this.recycleAsyncId(u, o, n)), this.pending = true, this.delay = n, this.id = (i = this.id) !== null && i !== void 0 ? i : this.requestAsyncId(u, this.id, n), this;
     }, r.prototype.requestAsyncId = function(t, n, i) {
-      return i === void 0 && (i = 0), B.setInterval(t.flush.bind(t, this), i);
+      return i === void 0 && (i = 0), q.setInterval(t.flush.bind(t, this), i);
     }, r.prototype.recycleAsyncId = function(t, n, i) {
       if (i === void 0 && (i = 0), i != null && this.delay === i && this.pending === false) return n;
-      n != null && B.clearInterval(n);
+      n != null && q.clearInterval(n);
     }, r.prototype.execute = function(t, n) {
       if (this.closed) return new Error("executing a cancelled action");
       this.pending = false;
@@ -806,7 +806,7 @@ let __tla = Promise.all([
         this.work = this.state = this.scheduler = null, this.pending = false, k(o, this), n != null && (this.id = this.recycleAsyncId(i, n, null)), this.delay = null, e.prototype.unsubscribe.call(this);
       }
     }, r;
-  })(_t), q = (function() {
+  })(_t), B = (function() {
     function e(r, t) {
       t === void 0 && (t = e.now), this.schedulerActionCtor = r, this.now = t;
     }
@@ -816,7 +816,7 @@ let __tla = Promise.all([
   })(), xt = (function(e) {
     _(r, e);
     function r(t, n) {
-      n === void 0 && (n = q.now);
+      n === void 0 && (n = B.now);
       var i = e.call(this, t, n) || this;
       return i.actions = [], i._active = false, i;
     }
@@ -836,7 +836,7 @@ let __tla = Promise.all([
         throw i;
       }
     }, r;
-  })(q), F = new xt(gt), It = F;
+  })(B), F = new xt(gt), It = F;
   function Et(e) {
     return e && p(e.schedule);
   }
@@ -1079,7 +1079,7 @@ let __tla = Promise.all([
   function Gt(e) {
     return e instanceof Date && !isNaN(e);
   }
-  function Bt(e, r, t) {
+  function qt(e, r, t) {
     e === void 0 && (e = 0), t === void 0 && (t = It);
     var n = -1;
     return r != null && (Et(r) ? t = r : n = r), new w(function(i) {
@@ -1091,7 +1091,7 @@ let __tla = Promise.all([
       }, o);
     });
   }
-  function qt(e, r) {
+  function Bt(e, r) {
     return r === void 0 && (r = F), X(function(t, n) {
       var i = null, o = null, u = null, a = function() {
         if (i) {
@@ -1141,7 +1141,7 @@ let __tla = Promise.all([
   }
   function Wt(e, r, t) {
     r === void 0 && (r = F);
-    var n = Bt(e, r);
+    var n = qt(e, r);
     return Ht(function() {
       return n;
     }, t);
@@ -1163,7 +1163,7 @@ let __tla = Promise.all([
       return u.current && u.current.unsubscribe(), u.current = l.pipe(r ? Wt(s, void 0, {
         leading: false,
         trailing: true
-      }) : qt(s)).subscribe((f) => {
+      }) : Bt(s)).subscribe((f) => {
         a.current(c, f);
       }), () => {
         u.current && (u.current.unsubscribe(), u.current = null);

@@ -88,9 +88,21 @@ export interface JsonTableFieldsRxData {
      * JSON-stringified column configuration.
      *
      * @remarks
-     * Stores per-column visibility, header label, width, and alignment as a JSON string.
-     * Edited via the custom {@link JsonTableColumnEditor} component.
-     * Structure: `Array<{ path: string; visible: boolean; headerName: string; width?: number; align?: string }>`
+     * Stores per-column configuration as a JSON string. Edited via the custom
+     * {@link JsonTableColumnEditor} modal dialog. Structure defined by
+     * `ColumnConfigEntry` from `JsonTableCollectionWidget/types.ts`.
+     *
+     * Each entry includes:
+     * - `path`: Dot-path column identifier
+     * - `visible`: Column visibility toggle
+     * - `headerName`: Display label for column header
+     * - `width`: Optional fixed width in px (flex if undefined)
+     * - `align`: Text alignment ('left' | 'center' | 'right')
+     * - `format`: Optional formatting config (number/date/boolean)
+     * - `cellStyle`: Optional conditional styling rules (first match wins)
+     * - `sortable`/`filterable`: Per-column feature overrides
+     *
+     * @see ColumnConfigEntry in JsonTableCollectionWidget/types.ts
      */
     columnConfig?: string;
 

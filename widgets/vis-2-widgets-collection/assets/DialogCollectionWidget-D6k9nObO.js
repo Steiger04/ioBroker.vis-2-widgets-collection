@@ -1,6 +1,6 @@
-import { j as t, a5 as W, C as c, N as M, M as O, v as x, A as k, T as _, z as f, D as y, o as b, I as A, t as H, x as V, y as R, E, s as z, S as F, n as P, G as L, H as $, K as N, __tla as __tla_0 } from "./useData-BxQArd1-.js";
-import { v as n, R as U, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as G, __tla as __tla_2 } from "./Close-uPjMsSg-.js";
+import { j as t, Q as W, C as c, E as M, R as O, o as x, w as k, T as _, v as f, D as y, i as b, I as A, n as H, q as R, t as V, x as E, s as F, S as z, B as P, G as L, y as $, A as U, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { v as n, R as G, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { C as N, __tla as __tla_2 } from "./Close-Ctq43X6h.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let j;
@@ -193,7 +193,7 @@ let __tla = Promise.all([
       },
       "aria-label": "delete",
       onClick: l,
-      children: t.jsx(G, {})
+      children: t.jsx(N, {})
     });
     return t.jsx(O, {
       onClose: l,
@@ -295,7 +295,7 @@ let __tla = Promise.all([
       })
     });
   }
-  const K = 1e4, q = 60, J = 1e3, Q = z(P)({
+  const q = 1e4, Q = 60, J = 1e3, K = F(P)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
@@ -317,13 +317,13 @@ let __tla = Promise.all([
   function te(r) {
     const l = String(r);
     if (!r || l === "" || l === "0") return 0;
-    if (l === "true") return K;
+    if (l === "true") return q;
     let e = parseInt(l, 10);
-    return e < q && (e *= 1e3), e || J;
+    return e < Q && (e *= 1e3), e || J;
   }
   function oe() {
     var _a, _b;
-    const [r, l] = n.useState(false), e = n.useRef(null), a = n.useContext(H), { widget: i, widget: { data: p }, getWidgetView: u, setValue: d } = a, { data: o, oidValue: g } = V("dialogId"), s = (_a = i.data.dialogIdObject) == null ? void 0 : _a._id, T = ((_b = i.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !i.data.oid || i.data.oid === "nothing_selected";
+    const [r, l] = n.useState(false), e = n.useRef(null), a = n.useContext(H), { widget: i, widget: { data: p }, getWidgetView: u, setValue: d } = a, { data: o, oidValue: g } = R("dialogId"), s = (_a = i.data.dialogIdObject) == null ? void 0 : _a._id, T = ((_b = i.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !i.data.oid || i.data.oid === "nothing_selected";
     n.useEffect(() => () => {
       e.current && clearTimeout(e.current);
     }, []);
@@ -379,7 +379,7 @@ let __tla = Promise.all([
       right: `calc(0px - ${o.iconXOffset})`,
       width: o.iconSizeOnly,
       height: o.iconSizeOnly,
-      ...R(o.icon, o.iconColor, o.forceColorMask ?? false)
+      ...V(o.icon, o.iconColor, o.forceColorMask ?? false)
     }), [
       o.iconYOffset,
       o.iconXOffset,
@@ -426,13 +426,13 @@ let __tla = Promise.all([
             }),
             t.jsx(x, {
               sx: ee,
-              children: t.jsxs(Q, {
+              children: t.jsxs(K, {
                 onClick: S,
                 sx: I,
                 children: [
                   v ? t.jsx(x, {
                     sx: Z,
-                    children: t.jsx(F, {
+                    children: t.jsx(z, {
                       alt: "",
                       src: o.icon,
                       style: w
@@ -453,7 +453,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  const le = U.memo(oe);
+  const le = G.memo(oe);
   j = class extends L {
     static getWidgetInfo() {
       return {
@@ -524,7 +524,7 @@ let __tla = Promise.all([
         getWidgetView: this.getWidgetView.bind(this),
         wrappedContent: this.wrappedCollectionContent
       };
-      return l.widget.data.noCard || l.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, N(this.wrapContent(t.jsx(le, {})), e);
+      return l.widget.data.noCard || l.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, U(this.wrapContent(t.jsx(le, {})), e);
     }
   };
 });
