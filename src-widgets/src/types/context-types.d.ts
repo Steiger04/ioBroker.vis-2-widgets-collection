@@ -777,6 +777,19 @@ export type DialogCollectionContextProps = CollectionContextProps<WidgetRegistry
 export type Light2CollectionContextProps = CollectionContextProps<WidgetRegistry['tplLight2CollectionWidget']>;
 
 /**
+ * React Context props for JSON Table Collection Widget.
+ *
+ * @remarks
+ * JSON Table widget displays dynamic tables from JSON state values:
+ * - Common fields (alias, style, visibility, etc.)
+ * - Common object fields (oid, writeDelay, etc.)
+ * - JSON Table-specific fields (density, pagination, sorting, styling, columnConfig)
+ *
+ * Total properties: ~100
+ */
+export type JsonTableCollectionContextProps = CollectionContextProps<WidgetRegistry['tplJsonTableCollectionWidget']>;
+
+/**
  * Union of all widget-specific context types.
  *
  * @remarks
@@ -802,7 +815,8 @@ export type AllCollectionContextProps =
     | SelectCollectionContextProps
     | GaugeCollectionContextProps
     | DialogCollectionContextProps
-    | Light2CollectionContextProps;
+    | Light2CollectionContextProps
+    | JsonTableCollectionContextProps;
 
 /**
  * Generate context type for a specific widget ID.

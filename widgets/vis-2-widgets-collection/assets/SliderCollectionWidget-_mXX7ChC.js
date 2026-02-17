@@ -1,7 +1,7 @@
-import { j as i, C as u, O as b, w as S, T as Q, A as E, S as T, z as V, v as Z, y as ee, Q as H, E as te, G as ae, s as ie, R as W, U as w, o as N, H as le, J as I, K as oe, N as re, __tla as __tla_0 } from "./useData-sVhMsuDG.js";
-import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-QOvNvh6i.js";
+import { j as i, C as u, N as b, v as S, T as Q, z as E, S as T, y as V, t as Z, x as ee, O as H, A as te, E as ae, s as ie, Q as W, R as w, o as N, G as le, H as I, J as oe, K as re, __tla as __tla_0 } from "./useData-BxQArd1-.js";
+import { u as ne, d as de, __tla as __tla_1 } from "./useValueState-B97KqBJC.js";
 import { v as c, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as se, S as ce, __tla as __tla_3 } from "./Slider-DgkvfXlS.js";
+import { a as se, S as ce, __tla as __tla_3 } from "./Slider-CSC-fon2.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let G;
@@ -703,14 +703,14 @@ let __tla = Promise.all([
       A,
       s
     ]);
-    const U = () => {
+    const q = () => {
       if (!k.current) return;
       const x = k.current.querySelector(".MuiSlider-root"), n = k.current.querySelector(".MuiSlider-rail");
       if (x && n) {
-        const o = k.current.getBoundingClientRect(), m = n.getBoundingClientRect(), B = m.left - o.left + m.width / 2, q = m.top - o.top + m.height / 2, J = o.width / 2, K = o.height / 2;
+        const o = k.current.getBoundingClientRect(), m = n.getBoundingClientRect(), B = m.left - o.left + m.width / 2, U = m.top - o.top + m.height / 2, J = o.width / 2, K = o.height / 2;
         Y({
           x: B - J,
-          y: q - K
+          y: U - K
         });
       }
     };
@@ -718,7 +718,7 @@ let __tla = Promise.all([
       if (!k.current) return;
       let x = null;
       const n = () => {
-        x && clearTimeout(x), x = setTimeout(U, 100);
+        x && clearTimeout(x), x = setTimeout(q, 100);
       }, o = new ResizeObserver(n);
       return o.observe(k.current), n(), () => {
         o.disconnect(), x && clearTimeout(x);

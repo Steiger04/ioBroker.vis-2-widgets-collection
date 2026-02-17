@@ -1,8 +1,9 @@
-import { j as M, C as A, v as Ze, z as Ta, w as Ke, S as wa, a9 as Sa, y as Ca, U as Ba, E as Na, G as Va, H as Wa, J as Je, K as Ma, N as Oa, __tla as __tla_0 } from "./useData-sVhMsuDG.js";
-import { v as R, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { j as M, C as A, y as ka, v as Ze, S as Ta, a6 as wa, t as Sa, x as Ca, R as Ba, A as Na, E as Va, G as Wa, H as Je, J as Ma, K as Oa, __tla as __tla_0 } from "./useData-BxQArd1-.js";
+import { v as G, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { u as ja, __tla as __tla_2 } from "./useOidValue-DIL65xb-.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let ea;
+let Qe;
 let __tla = Promise.all([
   (() => {
     try {
@@ -15,9 +16,15 @@ let __tla = Promise.all([
       return __tla_1;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_2;
+    } catch {
+    }
   })()
 ]).then(async () => {
-  const ja = () => [
+  const Aa = () => [
     {
       label: "",
       type: "custom",
@@ -1343,36 +1350,24 @@ let __tla = Promise.all([
       default: "normal",
       noTranslation: true
     }
-  ], Aa = (g) => {
-    const { getPropertyValue: x } = R.useContext(Ze), E = R.useMemo(() => x(g), [
-      g,
-      x
-    ]), [I, D] = R.useState(E);
-    return R.useEffect(() => {
-      E !== void 0 && D(E);
-    }, [
-      E
-    ]), R.useMemo(() => I, [
-      I
-    ]);
-  };
-  var Qe = {
+  ];
+  var Ke = {
     exports: {}
   };
   (function(g) {
-    (function(x) {
-      function E(a) {
+    (function(w) {
+      function I(a) {
         if (Array.isArray(a)) {
           for (var e = 0, t = Array(a.length); e < a.length; e++) t[e] = a[e];
           return t;
         }
         return Array.from(a);
       }
-      function I(a, e) {
+      function E(a, e) {
         if (!a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
         return !e || typeof e != "object" && typeof e != "function" ? a : e;
       }
-      function D(a, e) {
+      function F(a, e) {
         if (typeof e != "function" && e !== null) throw new TypeError("Super expression must either be null or a function, not " + typeof e);
         a.prototype = Object.create(e && e.prototype, {
           constructor: {
@@ -1383,7 +1378,7 @@ let __tla = Promise.all([
           }
         }), e && (Object.setPrototypeOf ? Object.setPrototypeOf(a, e) : a.__proto__ = e);
       }
-      function z(a, e) {
+      function D(a, e) {
         if (!(a instanceof e)) throw new TypeError("Cannot call a class as a function");
       }
       function Y(a, e) {
@@ -1394,26 +1389,26 @@ let __tla = Promise.all([
           "ms",
           "o"
         ], r = 0, o = t.length, n = a.charAt(0).toUpperCase() + a.substr(1); r < o; r++) {
-          var i = e[t[r] + n];
-          if (i !== void 0) return i;
+          var l = e[t[r] + n];
+          if (l !== void 0) return l;
         }
         return null;
       }
-      function ne(a, e, t, r, o, n, i) {
+      function ne(a, e, t, r, o, n, l) {
         if (typeof r != "function") throw new TypeError("Invalid animation rule:", r);
         var d = a - t, u = d / o, s = 0;
-        u > 1 && (u = 1), u !== 1 && (s = r(u), isFinite(s) && !isNaN(s) && (u = s)), e && e(u), d < o ? i.frame = qe(function(c) {
-          return ne(c, e, t, r, o, n, i);
-        }) : (n && n(), i.inProgress = false);
+        u > 1 && (u = 1), u !== 1 && (s = r(u), isFinite(s) && !isNaN(s) && (u = s)), e && e(u), d < o ? l.frame = qe(function(c) {
+          return ne(c, e, t, r, o, n, l);
+        }) : (n && n(), l.inProgress = false);
       }
-      function l() {
+      function i() {
         Array.prototype.constructor.apply(this, arguments);
       }
-      function F(a) {
+      function R(a) {
         if (!(a instanceof DOMException && a.result === 2152923147)) throw a;
       }
       function J(a, e) {
-        return e.replace(_a, function(t, r) {
+        return e.replace(ya, function(t, r) {
           var o = a[r];
           return o !== void 0 ? o : t;
         });
@@ -1429,16 +1424,16 @@ let __tla = Promise.all([
       function ve(a, e, t, r, o, n) {
         a.beginPath(), a.moveTo(e + n, t), a.lineTo(e + r - n, t), a.quadraticCurveTo(e + r, t, e + r, t + n), a.lineTo(e + r, t + o - n), a.quadraticCurveTo(e + r, t + o, e + r - n, t + o), a.lineTo(e + n, t + o), a.quadraticCurveTo(e, t + o, e, t + o - n), a.lineTo(e, t + n), a.quadraticCurveTo(e, t, e + n, t), a.closePath();
       }
-      function le(a, e) {
-        var t = e.valueDec, r = e.valueInt, o = 0, n = void 0, i = void 0, d = void 0;
+      function ie(a, e) {
+        var t = e.valueDec, r = e.valueInt, o = 0, n = void 0, l = void 0, d = void 0;
         if (a = parseFloat(a), d = a < 0, a = Math.abs(a), t > 0) {
-          for (i = a.toFixed(t).toString().split("."), n = r - i[0].length; o < n; ++o) i[0] = "0" + i[0];
-          i = (d ? "-" : "") + i[0] + "." + i[1];
+          for (l = a.toFixed(t).toString().split("."), n = r - l[0].length; o < n; ++o) l[0] = "0" + l[0];
+          l = (d ? "-" : "") + l[0] + "." + l[1];
         } else {
-          for (i = Math.round(a).toString(), n = r - i.length; o < n; ++o) i = "0" + i;
-          i = (d ? "-" : "") + i;
+          for (l = Math.round(a).toString(), n = r - l.length; o < n; ++o) l = "0" + l;
+          l = (d ? "-" : "") + l;
         }
-        return i;
+        return l;
       }
       function ye(a, e) {
         var t = void 0, r = false;
@@ -1448,7 +1443,7 @@ let __tla = Promise.all([
           e.majorTicksInt + e.majorTicksDec + 1 + (r ? 1 : 0) - t.length
         ].join("0") + t) : t;
       }
-      function ie(a) {
+      function le(a) {
         return a * Math.PI / 180;
       }
       function P(a, e) {
@@ -1458,8 +1453,8 @@ let __tla = Promise.all([
         };
       }
       function $(a, e, t, r) {
-        var o = !(arguments.length > 4 && arguments[4] !== void 0) || arguments[4], n = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : 0, i = a.createLinearGradient(o ? 0 : n, o ? n : 0, o ? 0 : r, o ? r : 0);
-        return i.addColorStop(0, e), i.addColorStop(1, t), i;
+        var o = !(arguments.length > 4 && arguments[4] !== void 0) || arguments[4], n = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : 0, l = a.createLinearGradient(o ? 0 : n, o ? n : 0, o ? 0 : r, o ? r : 0);
+        return l.addColorStop(0, e), l.addColorStop(1, t), l;
       }
       function Z(a, e) {
         if (arguments.length > 2 && arguments[2] !== void 0 && arguments[2]) return a.restore(), true;
@@ -1482,25 +1477,25 @@ let __tla = Promise.all([
       function ue(a, e, t, r, o, n) {
         if (e.valueBox) {
           X(a);
-          var i = e.valueDec ? 1 + e.valueDec : 0, d = "9".repeat(Math.max.apply(null, [
-            String(parseInt(t)).length + i
+          var l = e.valueDec ? 1 + e.valueDec : 0, d = "9".repeat(Math.max.apply(null, [
+            String(parseInt(t)).length + l
           ].concat(e.majorTicks.map(function(W) {
-            return String(parseInt(W, 10)).length + i;
-          })))), u = e.valueText || le(t, e), s = n / 200, c = n / 100, h = 0.4 * c, p = 1.2 * c;
+            return String(parseInt(W, 10)).length + l;
+          })))), u = e.valueText || ie(t, e), s = n / 200, c = n / 100, h = 0.4 * c, p = 1.2 * c;
           a.font = Q(e, "Value", s), ee(a, e, h, p);
-          var v = a.measureText(e.valueText ? u : "-" + le(Number(d), e)).width;
+          var v = a.measureText(e.valueText ? u : "-" + ie(Number(d), e)).width;
           X(a);
-          var y = parseFloat(e.fontValueSize) * s + h + p, V = c * parseFloat(e.valueBoxStroke), k = 2 * n - 2 * V, S = v + 10 * c, C = 1.1 * y + h + p, N = c * e.valueBoxBorderRadius, B = (parseFloat(e.valueBoxWidth) || 0) / 100 * k;
-          B > S && (S = B), S > k && (S = k);
-          var T = r - S / 2, b = o - C / 2, f = o - 5.75 * c;
-          if (a.beginPath(), N ? ve(a, T, b, S, C, N) : a.rect(T, b, S, C), V) {
-            var w = a.createRadialGradient(r, f, 10 * c, r, f, 20 * c);
-            w.addColorStop(0, e.colorValueBoxRect), w.addColorStop(1, e.colorValueBoxRectEnd), a.strokeStyle = w, a.lineWidth = V, a.stroke();
+          var y = parseFloat(e.fontValueSize) * s + h + p, V = c * parseFloat(e.valueBoxStroke), x = 2 * n - 2 * V, S = v + 10 * c, C = 1.1 * y + h + p, N = c * e.valueBoxBorderRadius, B = (parseFloat(e.valueBoxWidth) || 0) / 100 * x;
+          B > S && (S = B), S > x && (S = x);
+          var k = r - S / 2, b = o - C / 2, f = o - 5.75 * c;
+          if (a.beginPath(), N ? ve(a, k, b, S, C, N) : a.rect(k, b, S, C), V) {
+            var T = a.createRadialGradient(r, f, 10 * c, r, f, 20 * c);
+            T.addColorStop(0, e.colorValueBoxRect), T.addColorStop(1, e.colorValueBoxRectEnd), a.strokeStyle = T, a.lineWidth = V, a.stroke();
           }
-          e.colorValueBoxShadow && (a.shadowBlur = 1.2 * c, a.shadowColor = e.colorValueBoxShadow), e.colorValueBoxBackground && (a.fillStyle = e.colorValueBoxBackground, a.fill()), a.closePath(), a.restore(), ee(a, e, h, p), a.fillStyle = e.colorValueText, a.textAlign = "center", a.textBaseline = "alphabetic", a.fillText(u, T + S / 2, o + C / 2 - y / 3), a.restore();
+          e.colorValueBoxShadow && (a.shadowBlur = 1.2 * c, a.shadowColor = e.colorValueBoxShadow), e.colorValueBoxBackground && (a.fillStyle = e.colorValueBoxBackground, a.fill()), a.closePath(), a.restore(), ee(a, e, h, p), a.fillStyle = e.colorValueText, a.textAlign = "center", a.textBaseline = "alphabetic", a.fillText(u, k + S / 2, o + C / 2 - y / 3), a.restore();
         }
       }
-      function aa(a) {
+      function ea(a) {
         var e = a.value, t = a.minValue, r = a.maxValue, o = 0.01 * (r - t);
         return {
           normal: e < t ? t : e > r ? r : e,
@@ -1508,29 +1503,29 @@ let __tla = Promise.all([
         };
       }
       function _e(a, e, t, r, o) {
-        t.beginPath(), t.arc(0, 0, U(a), 0, 2 * ge, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
+        t.beginPath(), t.arc(0, 0, L(a), 0, 2 * ge, true), t.lineWidth = e, t.strokeStyle = o ? m.linearGradient(t, r, o, a) : r, t.stroke(), t.closePath();
       }
       function he(a, e) {
-        var t = L.pixelRatio;
+        var t = z.pixelRatio;
         return a.maxRadius || (a.maxRadius = a.max - e.borderShadowWidth - e.borderOuterWidth * t - e.borderMiddleWidth * t - e.borderInnerWidth * t + (e.borderOuterWidth ? 0.5 : 0) + (e.borderMiddleWidth ? 0.5 : 0) + (e.borderInnerWidth ? 0.5 : 0)), a.maxRadius;
       }
       function Ne(a, e) {
-        var t = L.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, n = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, i = n - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = he(a, e), u = void 0, s = false;
-        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), _e(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), _e(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), _e(i, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, U(d), 0, 2 * ge, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
+        var t = z.pixelRatio, r = e.borderShadowWidth * t, o = a.max - r - e.borderOuterWidth * t / 2, n = o - e.borderOuterWidth * t / 2 - e.borderMiddleWidth * t / 2 + 0.5, l = n - e.borderMiddleWidth * t / 2 - e.borderInnerWidth * t / 2 + 0.5, d = he(a, e), u = void 0, s = false;
+        a.save(), e.borderOuterWidth && (s = m.drawShadow(a, e, s), _e(o, e.borderOuterWidth * t, a, e.colorBorderOuter, e.colorBorderOuterEnd)), e.borderMiddleWidth && (s = m.drawShadow(a, e, s), _e(n, e.borderMiddleWidth * t, a, e.colorBorderMiddle, e.colorBorderMiddleEnd)), e.borderInnerWidth && (s = m.drawShadow(a, e, s), _e(l, e.borderInnerWidth * t, a, e.colorBorderInner, e.colorBorderInnerEnd)), m.drawShadow(a, e, s), a.beginPath(), a.arc(0, 0, L(d), 0, 2 * ge, true), e.colorPlateEnd ? (u = a.createRadialGradient(0, 0, d / 2, 0, 0, d), u.addColorStop(0, e.colorPlate), u.addColorStop(1, e.colorPlateEnd)) : u = e.colorPlate, a.fillStyle = u, a.fill(), a.closePath(), a.restore();
       }
       function Ve(a, e) {
         var t = a.max * (parseFloat(e.highlightsWidth) || 0) / 100;
         if (t) {
-          var r = U(me(a, e) - t / 2), o = 0, n = e.highlights.length, i = (e.maxValue - e.minValue) / e.ticksAngle;
+          var r = L(me(a, e) - t / 2), o = 0, n = e.highlights.length, l = (e.maxValue - e.minValue) / e.ticksAngle;
           for (a.save(); o < n; o++) {
             var d = e.highlights[o];
-            a.beginPath(), a.rotate(pe), a.arc(0, 0, r, m.radians(e.startAngle + (d.from - e.minValue) / i), m.radians(e.startAngle + (d.to - e.minValue) / i), false), a.strokeStyle = d.color, a.lineWidth = t, a.lineCap = e.highlightsLineCap, a.stroke(), a.closePath(), a.restore(), a.save();
+            a.beginPath(), a.rotate(pe), a.arc(0, 0, r, m.radians(e.startAngle + (d.from - e.minValue) / l), m.radians(e.startAngle + (d.to - e.minValue) / l), false), a.strokeStyle = d.color, a.lineWidth = t, a.lineCap = e.highlightsLineCap, a.stroke(), a.closePath(), a.restore(), a.save();
           }
         }
       }
       function We(a, e) {
-        var t = me(a, e), r = void 0, o = void 0, n = void 0, i = 0, d = 0, u = Math.abs(e.minorTicks) || 0, s = e.ticksAngle / (e.maxValue - e.minValue);
-        for (a.lineWidth = L.pixelRatio, a.strokeStyle = e.colorMinorTicks || e.colorStrokeTicks, a.save(), e.exactTicks ? (o = e.maxValue - e.minValue, r = u ? o / u : 0, d = (q.mod(e.majorTicks[0], u) || 0) * s) : r = u * (e.majorTicks.length - 1); i < r; ++i) (n = e.startAngle + d + i * (e.ticksAngle / r)) <= e.ticksAngle + e.startAngle && (a.rotate(m.radians(n)), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.075 * a.max), xe(a));
+        var t = me(a, e), r = void 0, o = void 0, n = void 0, l = 0, d = 0, u = Math.abs(e.minorTicks) || 0, s = e.ticksAngle / (e.maxValue - e.minValue);
+        for (a.lineWidth = z.pixelRatio, a.strokeStyle = e.colorMinorTicks || e.colorStrokeTicks, a.save(), e.exactTicks ? (o = e.maxValue - e.minValue, r = u ? o / u : 0, d = (q.mod(e.majorTicks[0], u) || 0) * s) : r = u * (e.majorTicks.length - 1); l < r; ++l) (n = e.startAngle + d + l * (e.ticksAngle / r)) <= e.ticksAngle + e.startAngle && (a.rotate(m.radians(n)), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.075 * a.max), xe(a));
       }
       function me(a, e) {
         var t = a.max / 100;
@@ -1538,8 +1533,8 @@ let __tla = Promise.all([
       }
       function Me(a, e) {
         m.prepareTicks(e);
-        var t = U(me(a, e)), r = void 0, o = void 0, n = e.majorTicks.length, i = L.pixelRatio;
-        for (a.lineWidth = 2 * i, a.save(), o = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(n).fill(e.colorStrokeTicks || e.colorMajorTicks), r = 0; r < n; ++r) a.strokeStyle = o[r], a.rotate(m.radians(Oe(e, e.exactTicks ? e.majorTicks[r] : r, n))), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.15 * a.max), xe(a);
+        var t = L(me(a, e)), r = void 0, o = void 0, n = e.majorTicks.length, l = z.pixelRatio;
+        for (a.lineWidth = 2 * l, a.save(), o = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(n).fill(e.colorStrokeTicks || e.colorMajorTicks), r = 0; r < n; ++r) a.strokeStyle = o[r], a.rotate(m.radians(Oe(e, e.exactTicks ? e.majorTicks[r] : r, n))), a.beginPath(), a.moveTo(0, t), a.lineTo(0, t - 0.15 * a.max), xe(a);
         e.strokeTicks && (a.strokeStyle = e.colorStrokeTicks || o[0], a.rotate(pe), a.beginPath(), a.arc(0, 0, t, m.radians(e.startAngle), m.radians(e.startAngle + e.ticksAngle), false), xe(a));
       }
       function Oe(a, e, t) {
@@ -1553,12 +1548,12 @@ let __tla = Promise.all([
         a.stroke(), a.restore(), a.closePath(), a.save();
       }
       function je(a, e) {
-        var t = me(a, e) - 0.15 * a.max, r = {}, o = 0, n = e.majorTicks.length, i = e.animationTarget !== "needle", d = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(n).fill(e.colorNumbers), u = i ? -(e.value - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle : 0;
-        for (i && (a.save(), a.rotate(-m.radians(u))), a.font = m.font(e, "Numbers", a.max / 200), a.lineWidth = 0, a.textAlign = "center", a.textBaseline = "middle"; o < n; ++o) {
+        var t = me(a, e) - 0.15 * a.max, r = {}, o = 0, n = e.majorTicks.length, l = e.animationTarget !== "needle", d = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(n).fill(e.colorNumbers), u = l ? -(e.value - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle : 0;
+        for (l && (a.save(), a.rotate(-m.radians(u))), a.font = m.font(e, "Numbers", a.max / 200), a.lineWidth = 0, a.textAlign = "center", a.textBaseline = "middle"; o < n; ++o) {
           var s = u + Oe(e, e.exactTicks ? e.majorTicks[o] : o, n), c = a.measureText(e.majorTicks[o]).width, h = e.fontNumbersSize, p = Math.sqrt(c * c + h * h) / 2, v = m.radialPoint(t - p - e.numbersMargin / 100 * a.max, m.radians(s));
           s === 360 && (s = 0), r[s] || (r[s] = true, a.fillStyle = d[o], a.fillText(e.majorTicks[o], v.x, v.y));
         }
-        i && a.restore();
+        l && a.restore();
       }
       function Ae(a, e) {
         e.title && (a.save(), a.font = m.font(e, "Title", a.max / 200), a.fillStyle = e.colorTitle, a.textAlign = "center", a.fillText(e.title, 0, -a.max / 4.25, 0.8 * a.max), a.restore());
@@ -1570,14 +1565,14 @@ let __tla = Promise.all([
         if (e.needle) {
           var t = e.ticksAngle < 360 ? m.normalizedValue(e).indented : e.value, r = p ? e.startAngle : e.startAngle + (t - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle;
           e.barStartPosition === "right" && (r = e.startAngle + e.ticksAngle - (t - e.minValue) / (e.maxValue - e.minValue) * e.ticksAngle);
-          var o = he(a, e), n = U(o / 100 * e.needleCircleSize), i = U(o / 100 * e.needleCircleSize * 0.75), d = U(o / 100 * e.needleEnd), u = U(e.needleStart ? o / 100 * e.needleStart : 0), s = o / 100 * e.needleWidth, c = o / 100 * e.needleWidth / 2, h = L.pixelRatio, p = e.animationTarget !== "needle";
-          a.save(), m.drawNeedleShadow(a, e), a.rotate(m.radians(r)), a.fillStyle = m.linearGradient(a, e.colorNeedle, e.colorNeedleEnd, d - u), e.needleType === "arrow" ? (a.beginPath(), a.moveTo(-c, -u), a.lineTo(-s, 0), a.lineTo(-1 * h, d), a.lineTo(h, d), a.lineTo(s, 0), a.lineTo(c, -u), a.closePath(), a.fill(), a.beginPath(), a.lineTo(-0.5 * h, d), a.lineTo(-1 * h, d), a.lineTo(-s, 0), a.lineTo(-c, -u), a.lineTo(c / 2 * h - 2 * h, -u), a.closePath(), a.fillStyle = e.colorNeedleShadowUp, a.fill()) : (a.beginPath(), a.moveTo(-c, d), a.lineTo(-c, u), a.lineTo(c, u), a.lineTo(c, d), a.closePath(), a.fill()), e.needleCircleSize && (a.restore(), m.drawNeedleShadow(a, e), e.needleCircleOuter && (a.beginPath(), a.arc(0, 0, n, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleOuter, e.colorNeedleCircleOuterEnd, n), a.fill(), a.closePath()), e.needleCircleInner && (a.beginPath(), a.arc(0, 0, i, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleInner, e.colorNeedleCircleInnerEnd, i), a.fill(), a.closePath()), a.restore());
+          var o = he(a, e), n = L(o / 100 * e.needleCircleSize), l = L(o / 100 * e.needleCircleSize * 0.75), d = L(o / 100 * e.needleEnd), u = L(e.needleStart ? o / 100 * e.needleStart : 0), s = o / 100 * e.needleWidth, c = o / 100 * e.needleWidth / 2, h = z.pixelRatio, p = e.animationTarget !== "needle";
+          a.save(), m.drawNeedleShadow(a, e), a.rotate(m.radians(r)), a.fillStyle = m.linearGradient(a, e.colorNeedle, e.colorNeedleEnd, d - u), e.needleType === "arrow" ? (a.beginPath(), a.moveTo(-c, -u), a.lineTo(-s, 0), a.lineTo(-1 * h, d), a.lineTo(h, d), a.lineTo(s, 0), a.lineTo(c, -u), a.closePath(), a.fill(), a.beginPath(), a.lineTo(-0.5 * h, d), a.lineTo(-1 * h, d), a.lineTo(-s, 0), a.lineTo(-c, -u), a.lineTo(c / 2 * h - 2 * h, -u), a.closePath(), a.fillStyle = e.colorNeedleShadowUp, a.fill()) : (a.beginPath(), a.moveTo(-c, d), a.lineTo(-c, u), a.lineTo(c, u), a.lineTo(c, d), a.closePath(), a.fill()), e.needleCircleSize && (a.restore(), m.drawNeedleShadow(a, e), e.needleCircleOuter && (a.beginPath(), a.arc(0, 0, n, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleOuter, e.colorNeedleCircleOuterEnd, n), a.fill(), a.closePath()), e.needleCircleInner && (a.beginPath(), a.arc(0, 0, l, 0, 2 * ge, true), a.fillStyle = m.linearGradient(a, e.colorNeedleCircleInner, e.colorNeedleCircleInnerEnd, l), a.fill(), a.closePath()), a.restore());
         }
       }
       function Ie(a, e, t) {
         m.drawValueBox(a, e, t, 0, a.max - 0.33 * a.max, a.max);
       }
-      function ta(a) {
+      function aa(a) {
         var e = a.startAngle, t = a.startAngle + a.ticksAngle, r = e, o = e + (m.normalizedValue(a).normal - a.minValue) / (a.maxValue - a.minValue) * a.ticksAngle;
         if (a.barStartPosition === "middle") {
           var n = 0.5 * (a.minValue + a.maxValue);
@@ -1589,9 +1584,9 @@ let __tla = Promise.all([
         };
       }
       function Re(a, e) {
-        var t = a.max / 100, r = he(a, e) - 5 * t, o = parseFloat(e.barStrokeWidth + "") || 0, n = (parseFloat(e.barWidth + "") || 0) * t, i = r - 2 * o - n, d = (r - i) / 2, u = i + d, s = o / u, c = e.startAngle, h = e.startAngle + e.ticksAngle;
+        var t = a.max / 100, r = he(a, e) - 5 * t, o = parseFloat(e.barStrokeWidth + "") || 0, n = (parseFloat(e.barWidth + "") || 0) * t, l = r - 2 * o - n, d = (r - l) / 2, u = l + d, s = o / u, c = e.startAngle, h = e.startAngle + e.ticksAngle;
         if (a.save(), a.rotate(pe), o && (a.beginPath(), a.arc(0, 0, u, m.radians(c) - s, m.radians(h) + s, false), a.strokeStyle = e.colorBarStroke, a.lineWidth = 2 * d, a.stroke(), a.closePath()), n && (a.beginPath(), a.arc(0, 0, u, m.radians(c), m.radians(h), false), a.strokeStyle = e.colorBar, a.lineWidth = n, a.stroke(), a.closePath(), e.barShadow && (a.beginPath(), a.arc(0, 0, r, m.radians(c), m.radians(h), false), a.clip(), a.beginPath(), a.strokeStyle = e.colorBar, a.lineWidth = 1, a.shadowBlur = e.barShadow, a.shadowColor = e.colorBarShadow, a.shadowOffsetX = 0, a.shadowOffsetY = 0, a.arc(0, 0, r, m.radians(e.startAngle), m.radians(e.startAngle + e.ticksAngle), false), a.stroke(), a.closePath(), a.restore(), a.rotate(pe)), e.barProgress)) {
-          var p = ta(e), v = p.startAngle, y = p.endAngle;
+          var p = aa(e), v = p.startAngle, y = p.endAngle;
           a.beginPath(), a.arc(0, 0, u, m.radians(v), m.radians(y), false), a.strokeStyle = e.colorBarProgress, a.lineWidth = n, a.stroke(), a.closePath();
         }
         a.restore();
@@ -1599,39 +1594,39 @@ let __tla = Promise.all([
       function De(a) {
         return a.options.animatedValue ? a.options.value : a.value;
       }
-      function ra(a, e, t, r, o, n, i, d) {
-        a.beginPath(), a.fillStyle = d ? m.linearGradient(a, i, d, o > n ? o : n, n > o, o > n ? t : r) : i, e > 0 ? m.roundRect(a, t, r, o, n, e) : a.rect(t, r, o, n), a.fill(), a.closePath();
+      function ta(a, e, t, r, o, n, l, d) {
+        a.beginPath(), a.fillStyle = d ? m.linearGradient(a, l, d, o > n ? o : n, n > o, o > n ? t : r) : l, e > 0 ? m.roundRect(a, t, r, o, n, e) : a.rect(t, r, o, n), a.fill(), a.closePath();
       }
-      function ke(a, e, t, r, o, n, i, d, u) {
-        a.beginPath(), a.lineWidth = e, a.strokeStyle = u ? m.linearGradient(a, d, u, i, true, o) : d, t > 0 ? m.roundRect(a, r, o, n, i, t) : a.rect(r, o, n, i), a.stroke(), a.closePath();
+      function ke(a, e, t, r, o, n, l, d, u) {
+        a.beginPath(), a.lineWidth = e, a.strokeStyle = u ? m.linearGradient(a, d, u, l, true, o) : d, t > 0 ? m.roundRect(a, r, o, n, l, t) : a.rect(r, o, n, l), a.stroke(), a.closePath();
       }
-      function oa(a, e, t, r, o, n) {
-        var i = L.pixelRatio;
+      function ra(a, e, t, r, o, n) {
+        var l = z.pixelRatio;
         a.save();
-        var d = e.borderRadius * i, u = o - e.borderShadowWidth - e.borderOuterWidth * i, s = u - e.borderOuterWidth * i - e.borderMiddleWidth * i, c = s - e.borderMiddleWidth * i - e.borderInnerWidth * i, h = c - e.borderInnerWidth * i, p = n - e.borderShadowWidth - e.borderOuterWidth * i, v = p - e.borderOuterWidth * i - e.borderMiddleWidth * i, y = v - e.borderMiddleWidth * i - e.borderInnerWidth * i, V = y - e.borderInnerWidth * i, k = t - (s - u) / 2, S = k - (c - s) / 2, C = S - (h - c) / 2, N = r - (v - p) / 2, B = N - (y - v) / 2, T = B - (V - y) / 2, b = 0, f = false;
-        return e.borderOuterWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderOuterWidth * i, d, t + e.borderOuterWidth * i / 2 - b, r + e.borderOuterWidth * i / 2 - b, u, p, e.colorBorderOuter, e.colorBorderOuterEnd), b += 0.5 * i), e.borderMiddleWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderMiddleWidth * i, d -= 1 + 2 * b, k + e.borderMiddleWidth * i / 2 - b, N + e.borderMiddleWidth * i / 2 - b, s + 2 * b, v + 2 * b, e.colorBorderMiddle, e.colorBorderMiddleEnd), b += 0.5 * i), e.borderInnerWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderInnerWidth * i, d -= 1 + 2 * b, S + e.borderInnerWidth * i / 2 - b, B + e.borderInnerWidth * i / 2 - b, c + 2 * b, y + 2 * b, e.colorBorderInner, e.colorBorderInnerEnd), b += 0.5 * i), m.drawShadow(a, e, f), ra(a, d, C, T, h + 2 * b, V + 2 * b, e.colorPlate, e.colorPlateEnd), a.restore(), [
+        var d = e.borderRadius * l, u = o - e.borderShadowWidth - e.borderOuterWidth * l, s = u - e.borderOuterWidth * l - e.borderMiddleWidth * l, c = s - e.borderMiddleWidth * l - e.borderInnerWidth * l, h = c - e.borderInnerWidth * l, p = n - e.borderShadowWidth - e.borderOuterWidth * l, v = p - e.borderOuterWidth * l - e.borderMiddleWidth * l, y = v - e.borderMiddleWidth * l - e.borderInnerWidth * l, V = y - e.borderInnerWidth * l, x = t - (s - u) / 2, S = x - (c - s) / 2, C = S - (h - c) / 2, N = r - (v - p) / 2, B = N - (y - v) / 2, k = B - (V - y) / 2, b = 0, f = false;
+        return e.borderOuterWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderOuterWidth * l, d, t + e.borderOuterWidth * l / 2 - b, r + e.borderOuterWidth * l / 2 - b, u, p, e.colorBorderOuter, e.colorBorderOuterEnd), b += 0.5 * l), e.borderMiddleWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderMiddleWidth * l, d -= 1 + 2 * b, x + e.borderMiddleWidth * l / 2 - b, N + e.borderMiddleWidth * l / 2 - b, s + 2 * b, v + 2 * b, e.colorBorderMiddle, e.colorBorderMiddleEnd), b += 0.5 * l), e.borderInnerWidth && (f = m.drawShadow(a, e, f), ke(a, e.borderInnerWidth * l, d -= 1 + 2 * b, S + e.borderInnerWidth * l / 2 - b, B + e.borderInnerWidth * l / 2 - b, c + 2 * b, y + 2 * b, e.colorBorderInner, e.colorBorderInnerEnd), b += 0.5 * l), m.drawShadow(a, e, f), ta(a, d, C, k, h + 2 * b, V + 2 * b, e.colorPlate, e.colorPlateEnd), a.restore(), [
           C,
-          T,
+          k,
           h,
           V
         ];
       }
-      function na(a, e, t, r, o, n) {
-        var i = L.pixelRatio, d = n >= o, u = d ? 0.85 * o : n, s = d ? n : o;
+      function oa(a, e, t, r, o, n) {
+        var l = z.pixelRatio, d = n >= o, u = d ? 0.85 * o : n, s = d ? n : o;
         t = d ? _(t + (o - u) / 2) : t;
         var c = !!e.title, h = !!e.units, p = !!e.valueBox, v = void 0, y = void 0, V = void 0;
         d ? (y = _(0.05 * s), v = _(0.075 * s), V = _(0.11 * s), c && (s -= v, r += v), h && (s -= y), p && (s -= V)) : (y = v = _(0.15 * u), c && (u -= v, r += v), h && (u -= y));
-        var k = 2 * e.barStrokeWidth, S = e.barBeginCircle ? _(u * e.barBeginCircle / 200 - k / 2) : 0, C = _(u * e.barWidth / 100 - k), N = _(s * e.barLength / 100 - k), B = _((s - N) / 2), T = _(t + (d ? u / 2 : B + S)), b = _(r + (d ? s - B - S + k / 2 : u / 2)), f = !d || e.hasLeft && e.hasRight ? 0 : (e.hasRight ? -1 : 1) * e.ticksWidth / 100 * u, w = d || e.hasLeft && e.hasRight ? 0 : (e.hasRight ? -1 : 1) * e.ticksWidth / 100 * u;
+        var x = 2 * e.barStrokeWidth, S = e.barBeginCircle ? _(u * e.barBeginCircle / 200 - x / 2) : 0, C = _(u * e.barWidth / 100 - x), N = _(s * e.barLength / 100 - x), B = _((s - N) / 2), k = _(t + (d ? u / 2 : B + S)), b = _(r + (d ? s - B - S + x / 2 : u / 2)), f = !d || e.hasLeft && e.hasRight ? 0 : (e.hasRight ? -1 : 1) * e.ticksWidth / 100 * u, T = d || e.hasLeft && e.hasRight ? 0 : (e.hasRight ? -1 : 1) * e.ticksWidth / 100 * u;
         return a.barDimensions = {
           isVertical: d,
           width: u,
           length: s,
           barWidth: C,
           barLength: N,
-          strokeWidth: k,
+          strokeWidth: x,
           barMargin: B,
           radius: S,
-          pixelRatio: i,
+          pixelRatio: l,
           barOffset: null,
           titleMargin: c ? v : 0,
           unitsMargin: h ? y : 0,
@@ -1639,30 +1634,30 @@ let __tla = Promise.all([
             return this.barLength - this.barOffset - this.strokeWidth;
           },
           X: t + f,
-          Y: r + w,
-          x0: T + f,
-          y0: b + w,
+          Y: r + T,
+          x0: k + f,
+          y0: b + T,
           baseX: t,
           baseY: r,
           ticksPadding: e.ticksPadding / 100
         }, a.barDimensions;
       }
-      function Fe(a, e, t, r, o, n, i) {
-        var d = na(a, e, r, o, n, i), u = d.isVertical, s = d.width, c = d.barWidth, h = d.barLength, p = d.strokeWidth, v = d.barMargin, y = d.radius, V = d.x0, k = d.y0, S = d.X, C = d.Y, N = h;
+      function Fe(a, e, t, r, o, n, l) {
+        var d = oa(a, e, r, o, n, l), u = d.isVertical, s = d.width, c = d.barWidth, h = d.barLength, p = d.strokeWidth, v = d.barMargin, y = d.radius, V = d.x0, x = d.y0, S = d.X, C = d.Y, N = h;
         if (a.save(), a.beginPath(), e.barBeginCircle) {
-          var B = m.radians(u ? 270 : 0), T = Math.asin(c / 2 / y), b = Math.cos(T), f = Math.sin(T), w = V + (u ? y * f : y * b - p / 2), W = u ? k - y * b : k + y * f, O = U(u ? W - k : w - V);
+          var B = m.radians(u ? 270 : 0), k = Math.asin(c / 2 / y), b = Math.cos(k), f = Math.sin(k), T = V + (u ? y * f : y * b - p / 2), W = u ? x - y * b : x + y * f, O = L(u ? W - x : T - V);
           a.barDimensions.barOffset = _(O + y);
-          var j = u ? _(V - y * f) : w, G = u ? W : _(k - y * f);
+          var j = u ? _(V - y * f) : T, U = u ? W : _(x - y * f);
           t === "progress" && (h = a.barDimensions.barOffset + (h - a.barDimensions.barOffset) * (m.normalizedValue(e).normal - e.minValue) / (e.maxValue - e.minValue));
-          var H = _(w + h - a.barDimensions.barOffset + p / 2), ce = _(W - h + a.barDimensions.barOffset - p / 2);
-          a.arc(V, k, y, B + T, B - T), u ? (a.moveTo(w, G), a.lineTo(w, ce), a.lineTo(j, ce), a.lineTo(j, G)) : (a.moveTo(w, G), a.lineTo(H, G), a.lineTo(H, W), a.lineTo(w, W));
+          var H = _(T + h - a.barDimensions.barOffset + p / 2), ce = _(W - h + a.barDimensions.barOffset - p / 2);
+          a.arc(V, x, y, B + k, B - k), u ? (a.moveTo(T, U), a.lineTo(T, ce), a.lineTo(j, ce), a.lineTo(j, U)) : (a.moveTo(T, U), a.lineTo(H, U), a.lineTo(H, W), a.lineTo(T, W));
         } else {
           var te = _(u ? S + (s - c) / 2 : S + v), Ye = _(u ? C + h + v : C + (s - c) / 2);
           t === "progress" && (h *= (e.value - e.minValue) / (e.maxValue - e.minValue)), u ? a.rect(te, Ye, c, -h) : a.rect(te, Ye, h, c);
         }
         t !== "progress" && e.barStrokeWidth && (a.lineWidth = p, a.strokeStyle = e.colorBarStroke, a.stroke()), t !== "progress" && e.colorBar ? (a.fillStyle = e.colorBarEnd ? m.linearGradient(a, e.colorBar, e.colorBarEnd, h, u, u ? C : S) : e.colorBar, a.fill()) : t === "progress" && e.colorBarProgress && (a.fillStyle = e.colorBarProgressEnd ? m.linearGradient(a, e.colorBarProgress, e.colorBarProgressEnd, N, u, u ? C : S) : e.colorBarProgress, a.fill()), a.closePath(), e.barBeginCircle && (a.barDimensions.radius += p), a.barDimensions.barWidth += p, a.barDimensions.barLength += p;
       }
-      function la(a, e, t, r, o, n) {
+      function na(a, e, t, r, o, n) {
         Fe(a, e, "", t, r, o, n);
       }
       function ze(a, e) {
@@ -1671,92 +1666,92 @@ let __tla = Promise.all([
       function ia(a, e, t, r, o, n) {
         e.barProgress && Fe(a, e, "progress", t, r, o, n);
       }
-      function ua(a, e) {
-        var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, i = t.barWidth, d = t.barOffset, u = t.barMargin, s = t.X, c = t.Y, h = t.ticksLength, p = t.ticksPadding, v = o * (parseFloat(e.highlightsWidth) || 0) / 100;
+      function la(a, e) {
+        var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, l = t.barWidth, d = t.barOffset, u = t.barMargin, s = t.X, c = t.Y, h = t.ticksLength, p = t.ticksPadding, v = o * (parseFloat(e.highlightsWidth) || 0) / 100;
         if (e.highlights && v) {
-          var y = e.tickSide !== "right", V = e.tickSide !== "left", k = 0, S = e.highlights.length, C = (o - i) / 2, N = e.maxValue - e.minValue, B = _(r ? s + C : s + u + d), T = v, b = r ? c + n - u - d : c + C, f = _((e.ticksWidth / 100 + p) * o) + (v - e.ticksWidth / 100 * o), w = _(i + p * o);
-          for (a.save(); k < S; k++) {
-            var W = e.highlights[k], O = h * U(e.minValue - W.from) / N, j = h * U((W.to - W.from) / N);
-            a.beginPath(), a.fillStyle = W.color, r ? (y && a.rect(B - f, b - O, T, -j), V && a.rect(B + w, b - O, T, -j)) : (y && a.rect(B + O, b - f, j, T), V && a.rect(B + O, b + w, j, T)), a.fill(), a.closePath();
+          var y = e.tickSide !== "right", V = e.tickSide !== "left", x = 0, S = e.highlights.length, C = (o - l) / 2, N = e.maxValue - e.minValue, B = _(r ? s + C : s + u + d), k = v, b = r ? c + n - u - d : c + C, f = _((e.ticksWidth / 100 + p) * o) + (v - e.ticksWidth / 100 * o), T = _(l + p * o);
+          for (a.save(); x < S; x++) {
+            var W = e.highlights[x], O = h * L(e.minValue - W.from) / N, j = h * L((W.to - W.from) / N);
+            a.beginPath(), a.fillStyle = W.color, r ? (y && a.rect(B - f, b - O, k, -j), V && a.rect(B + T, b - O, k, -j)) : (y && a.rect(B + O, b - f, j, k), V && a.rect(B + O, b + T, j, k)), a.fill(), a.closePath();
           }
         }
       }
       function be(a, e, t, r, o) {
         a.beginPath(), a.moveTo(e, t), a.lineTo(r, o), a.stroke(), a.closePath(), a.save();
       }
-      function Le(a, e, t, r, o, n, i, d, u) {
-        var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.barWidth, v = s.barOffset, y = s.barMargin, V = s.pixelRatio, k = s.width, S = s.X, C = s.Y, N = s.ticksLength, B = s.ticksPadding, T = (k - p) / 2, b = void 0, f = void 0, w = 0, W = t.length, O = void 0, j = u * k, G = T - B * k, H = T + p + j + B * k, ce = e instanceof Array ? e : new Array(t.length).fill(e);
+      function Le(a, e, t, r, o, n, l, d, u) {
+        var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.barWidth, v = s.barOffset, y = s.barMargin, V = s.pixelRatio, x = s.width, S = s.X, C = s.Y, N = s.ticksLength, B = s.ticksPadding, k = (x - p) / 2, b = void 0, f = void 0, T = 0, W = t.length, O = void 0, j = u * x, U = k - B * x, H = k + p + j + B * x, ce = e instanceof Array ? e : new Array(t.length).fill(e);
         a.lineWidth = d * V, a.save();
-        for (var te = N / (o - r); w < W; w++) O = t[w], a.strokeStyle = ce[w], c ? (f = C + h - y - v + (r - O) * te, n && (b = S + G, be(a, b, f, _(b - j), f)), i && (b = S + H, be(a, b, f, _(b - j), f))) : (b = S + y + v - (r - O) * te, n && (f = C + G, be(a, b, f, b, _(f - j))), i && (f = C + H, be(a, b, _(f), b, f - j)));
+        for (var te = N / (o - r); T < W; T++) O = t[T], a.strokeStyle = ce[T], c ? (f = C + h - y - v + (r - O) * te, n && (b = S + U, be(a, b, f, _(b - j), f)), l && (b = S + H, be(a, b, f, _(b - j), f))) : (b = S + y + v - (r - O) * te, n && (f = C + U, be(a, b, f, b, _(f - j))), l && (f = C + H, be(a, b, _(f), b, f - j)));
       }
-      function da(a, e) {
-        var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], i = 2, d = (e.maxValue - e.minValue) / (e.majorTicks.length - 1), u = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(e.majorTicks.length).fill(e.colorStrokeTicks || e.colorMajorTicks);
-        if (Le(a, u, e.exactTicks ? e.majorTicks : e.majorTicks.map(function(j, G) {
-          return e.minValue + d * G;
-        }), e.minValue, e.maxValue, o, n, i, e.ticksWidth / 100), e.strokeTicks) {
-          var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.width, v = s.barWidth, y = s.barMargin, V = s.barOffset, k = s.X, S = s.Y, C = s.ticksLength, N = s.pixelRatio, B = s.ticksPadding, T = (p - v) / 2 + v + B * p, b = (p - v) / 2 - B * p, f = void 0, w = void 0, W = void 0, O = void 0;
-          a.strokeStyle = e.colorStrokeTicks || u[0], i *= N, c ? (w = S + h - y - V + i / 2, O = w - C - i, o && (W = f = _(k + b), fe(a, f, w, W, O)), n && (W = f = _(k + T), fe(a, f, w, W, O))) : (f = k + y + V - i / 2, W = f + C + i, o && (O = w = _(S + b), fe(a, f, w, W, O)), n && (O = w = _(S + T), fe(a, f, w, W, O)));
+      function ua(a, e) {
+        var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], l = 2, d = (e.maxValue - e.minValue) / (e.majorTicks.length - 1), u = e.colorMajorTicks instanceof Array ? e.colorMajorTicks : new Array(e.majorTicks.length).fill(e.colorStrokeTicks || e.colorMajorTicks);
+        if (Le(a, u, e.exactTicks ? e.majorTicks : e.majorTicks.map(function(j, U) {
+          return e.minValue + d * U;
+        }), e.minValue, e.maxValue, o, n, l, e.ticksWidth / 100), e.strokeTicks) {
+          var s = a.barDimensions, c = s.isVertical, h = s.length, p = s.width, v = s.barWidth, y = s.barMargin, V = s.barOffset, x = s.X, S = s.Y, C = s.ticksLength, N = s.pixelRatio, B = s.ticksPadding, k = (p - v) / 2 + v + B * p, b = (p - v) / 2 - B * p, f = void 0, T = void 0, W = void 0, O = void 0;
+          a.strokeStyle = e.colorStrokeTicks || u[0], l *= N, c ? (T = S + h - y - V + l / 2, O = T - C - l, o && (W = f = _(x + b), fe(a, f, T, W, O)), n && (W = f = _(x + k), fe(a, f, T, W, O))) : (f = x + y + V - l / 2, W = f + C + l, o && (O = T = _(S + b), fe(a, f, T, W, O)), n && (O = T = _(S + k), fe(a, f, T, W, O)));
         }
       }
       function fe(a, e, t, r, o) {
         a.beginPath(), a.moveTo(e, t), a.lineTo(r, o), a.stroke(), a.closePath();
       }
+      function da(a, e) {
+        var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], l = [], d = e.minValue, u = Math.abs(e.minorTicks) || 0, s = u ? (e.maxValue - e.minValue) / (u * (e.majorTicks.length - 1)) : 0;
+        if (u) if (e.exactTicks) for (var c = q.mod(e.majorTicks[0], u) || 0; d < e.maxValue; d += u) c + d < e.maxValue && l.push(c + d);
+        else for (; d < e.maxValue; d += s) l.push(d);
+        Le(a, e.colorMinorTicks || e.colorStrokeTicks, l, e.minValue, e.maxValue, o, n, 1, e.ticksWidthMinor / 100);
+      }
       function sa(a, e) {
-        var t = m.prepareTicks(e), r = Ge(t, 2), o = r[0], n = r[1], i = [], d = e.minValue, u = Math.abs(e.minorTicks) || 0, s = u ? (e.maxValue - e.minValue) / (u * (e.majorTicks.length - 1)) : 0;
-        if (u) if (e.exactTicks) for (var c = q.mod(e.majorTicks[0], u) || 0; d < e.maxValue; d += u) c + d < e.maxValue && i.push(c + d);
-        else for (; d < e.maxValue; d += s) i.push(d);
-        Le(a, e.colorMinorTicks || e.colorStrokeTicks, i, e.minValue, e.maxValue, o, n, 1, e.ticksWidthMinor / 100);
+        var t = a.barDimensions, r = t.isVertical, o = t.length, n = t.width, l = t.barWidth, d = t.barMargin, u = t.barOffset, s = t.X, c = t.Y, h = t.ticksLength, p = t.ticksPadding, v = e.maxValue - e.minValue, y = v / (e.majorTicks.length - 1), V = e.exactTicks ? e.majorTicks : e.majorTicks.map(function(ce, te) {
+          return e.minValue + y * te;
+        }), x = V.length, S = e.numberSide !== "right", C = e.numberSide !== "left", N = e.fontNumbersSize * n / 200, B = 0, k = (e.ticksWidth / 100 + 2 * p) * n, b = (n - l) / 2 - k, f = (n - l) / 2 + l + k, T = void 0, W = void 0, O = void 0, j = void 0, U = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(x).fill(e.colorNumbers), H = e.numbersMargin / 100 * n;
+        for (a.font = m.font(e, "Numbers", n / 200), a.lineWidth = 0, a.textAlign = "center"; B < x; B++) a.fillStyle = U[B], j = e.majorTicks[B], O = e.exactTicks ? h * ((V[B] - e.minValue) / v) : B * h / (x - 1), r ? (W = c + o - d - u - O + N / 3, S && (a.textAlign = "right", a.fillText(j, s + b - H, W)), C && (a.textAlign = "left", a.fillText(j, s + f + H, W))) : (a.measureText(j).width, T = s + d + u + O, S && a.fillText(j, T, c + b - H), C && a.fillText(j, T, c + f + N + H));
       }
       function ga(a, e) {
-        var t = a.barDimensions, r = t.isVertical, o = t.length, n = t.width, i = t.barWidth, d = t.barMargin, u = t.barOffset, s = t.X, c = t.Y, h = t.ticksLength, p = t.ticksPadding, v = e.maxValue - e.minValue, y = v / (e.majorTicks.length - 1), V = e.exactTicks ? e.majorTicks : e.majorTicks.map(function(ce, te) {
-          return e.minValue + y * te;
-        }), k = V.length, S = e.numberSide !== "right", C = e.numberSide !== "left", N = e.fontNumbersSize * n / 200, B = 0, T = (e.ticksWidth / 100 + 2 * p) * n, b = (n - i) / 2 - T, f = (n - i) / 2 + i + T, w = void 0, W = void 0, O = void 0, j = void 0, G = e.colorNumbers instanceof Array ? e.colorNumbers : new Array(k).fill(e.colorNumbers), H = e.numbersMargin / 100 * n;
-        for (a.font = m.font(e, "Numbers", n / 200), a.lineWidth = 0, a.textAlign = "center"; B < k; B++) a.fillStyle = G[B], j = e.majorTicks[B], O = e.exactTicks ? h * ((V[B] - e.minValue) / v) : B * h / (k - 1), r ? (W = c + o - d - u - O + N / 3, S && (a.textAlign = "right", a.fillText(j, s + b - H, W)), C && (a.textAlign = "left", a.fillText(j, s + f + H, W))) : (a.measureText(j).width, w = s + d + u + O, S && a.fillText(j, w, c + b - H), C && a.fillText(j, w, c + f + N + H));
-      }
-      function ca(a, e) {
         if (e.title) {
-          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, i = t.baseX, d = t.baseY, u = t.titleMargin, s = e.fontTitleSize * o / 200, c = _(i + (r ? o : n) / 2), h = _(d + u / 2 - (r ? s : s / 2) - 0.025 * (r ? n : o));
+          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, l = t.baseX, d = t.baseY, u = t.titleMargin, s = e.fontTitleSize * o / 200, c = _(l + (r ? o : n) / 2), h = _(d + u / 2 - (r ? s : s / 2) - 0.025 * (r ? n : o));
           a.save(), a.textAlign = "center", a.fillStyle = e.colorTitle, a.font = m.font(e, "Title", o / 200), a.lineWidth = 0, a.fillText(e.title, c, h, r ? o : n);
         }
       }
-      function ha(a, e) {
+      function ca(a, e) {
         if (e.units) {
-          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, i = t.baseX, d = t.baseY, u = t.unitsMargin, s = e.fontUnitsSize * o / 200, c = _(i + (r ? o : n) / 2), h = _(d + (r ? n : o) + u / 2 - s / 2);
+          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, l = t.baseX, d = t.baseY, u = t.unitsMargin, s = e.fontUnitsSize * o / 200, c = _(l + (r ? o : n) / 2), h = _(d + (r ? n : o) + u / 2 - s / 2);
           a.save(), a.textAlign = "center", a.fillStyle = e.colorUnits, a.font = m.font(e, "Units", o / 200), a.lineWidth = 0, a.fillText(m.formatContext(e, e.units), c, h, r ? o : n);
         }
       }
-      function ma(a, e) {
+      function ha(a, e) {
         if (e.needle) {
-          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, i = t.barWidth, d = t.barOffset, u = t.barMargin, s = t.ticksLength, c = t.X, h = t.Y, p = t.ticksPadding, v = e.needleSide !== "right", y = e.needleSide !== "left", V = s * (m.normalizedValue(e).indented - e.minValue) / (e.maxValue - e.minValue), k = (e.ticksWidth / 100 + p) * o, S = i / 2 + k, C = S * (e.needleEnd / 100), N = void 0, B = void 0, T = void 0, b = void 0, f = e.needleType.toLowerCase() === "arrow" ? fa : ba, w = (o - i) / 2, W = S * (e.needleStart / 100), O = w - k - W, j = w + i + k + W;
-          a.save(), m.drawNeedleShadow(a, e), r ? (T = _(h + n - u - d - V), v && (N = _(c + O), B = N + C, f(a, e, N, T, B, T, C)), y && (N = _(c + j), B = N - C, f(a, e, N, T, B, T, C, true))) : (N = _(c + u + d + V), v && (T = _(h + O), b = T + C, f(a, e, N, T, N, b, C)), y && (T = _(h + j), b = T - C, f(a, e, N, T, N, b, C, true))), a.restore();
+          var t = a.barDimensions, r = t.isVertical, o = t.width, n = t.length, l = t.barWidth, d = t.barOffset, u = t.barMargin, s = t.ticksLength, c = t.X, h = t.Y, p = t.ticksPadding, v = e.needleSide !== "right", y = e.needleSide !== "left", V = s * (m.normalizedValue(e).indented - e.minValue) / (e.maxValue - e.minValue), x = (e.ticksWidth / 100 + p) * o, S = l / 2 + x, C = S * (e.needleEnd / 100), N = void 0, B = void 0, k = void 0, b = void 0, f = e.needleType.toLowerCase() === "arrow" ? ba : ma, T = (o - l) / 2, W = S * (e.needleStart / 100), O = T - x - W, j = T + l + x + W;
+          a.save(), m.drawNeedleShadow(a, e), r ? (k = _(h + n - u - d - V), v && (N = _(c + O), B = N + C, f(a, e, N, k, B, k, C)), y && (N = _(c + j), B = N - C, f(a, e, N, k, B, k, C, true))) : (N = _(c + u + d + V), v && (k = _(h + O), b = k + C, f(a, e, N, k, N, b, C)), y && (k = _(h + j), b = k - C, f(a, e, N, k, N, b, C, true))), a.restore();
         }
       }
       function Ue(a, e, t, r) {
         return e.colorNeedleEnd ? m.linearGradient(a, r ? e.colorNeedleEnd : e.colorNeedle, r ? e.colorNeedle : e.colorNeedleEnd, t, !a.barDimensions.isVertical) : e.colorNeedle;
       }
-      function ba(a, e, t, r, o, n, i, d) {
-        a.lineWidth = e.needleWidth, a.strokeStyle = Ue(a, e, i, d), a.beginPath(), a.moveTo(t, r), a.lineTo(o, n), a.stroke(), a.closePath();
+      function ma(a, e, t, r, o, n, l, d) {
+        a.lineWidth = e.needleWidth, a.strokeStyle = Ue(a, e, l, d), a.beginPath(), a.moveTo(t, r), a.lineTo(o, n), a.stroke(), a.closePath();
       }
-      function fa(a, e, t, r, o, n, i, d) {
-        var u = _(0.4 * i), s = i - u, c = t === o, h = e.needleWidth / 2;
-        a.fillStyle = Ue(a, e, i, d), a.beginPath(), c ? (r > n && (s *= -1), a.moveTo(t - h, r), a.lineTo(t + h, r), a.lineTo(t + h, r + s), a.lineTo(t, n), a.lineTo(t - h, r + s), a.lineTo(t - h, r)) : (t > o && (s *= -1), a.moveTo(t, r - h), a.lineTo(t, r + h), a.lineTo(t + s, r + h), a.lineTo(o, r), a.lineTo(t + s, r - h), a.lineTo(t, r - h)), a.fill(), a.closePath();
+      function ba(a, e, t, r, o, n, l, d) {
+        var u = _(0.4 * l), s = l - u, c = t === o, h = e.needleWidth / 2;
+        a.fillStyle = Ue(a, e, l, d), a.beginPath(), c ? (r > n && (s *= -1), a.moveTo(t - h, r), a.lineTo(t + h, r), a.lineTo(t + h, r + s), a.lineTo(t, n), a.lineTo(t - h, r + s), a.lineTo(t - h, r)) : (t > o && (s *= -1), a.moveTo(t, r - h), a.lineTo(t, r + h), a.lineTo(t + s, r + h), a.lineTo(o, r), a.lineTo(t + s, r - h), a.lineTo(t, r - h)), a.fill(), a.closePath();
       }
-      function pa(a, e, t, r, o, n, i) {
-        var d = (parseFloat(e.fontValueSize) || 0) * n / 200, u = (0.11 * i - d) / 2;
-        a.barDimensions.isVertical && m.drawValueBox(a, e, t, r + n / 2, o + i - d - u, n);
+      function fa(a, e, t, r, o, n, l) {
+        var d = (parseFloat(e.fontValueSize) || 0) * n / 200, u = (0.11 * l - d) / 2;
+        a.barDimensions.isVertical && m.drawValueBox(a, e, t, r + n / 2, o + l - d - u, n);
       }
       var Ge = /* @__PURE__ */ (function() {
         function a(e, t) {
-          var r = [], o = true, n = false, i = void 0;
+          var r = [], o = true, n = false, l = void 0;
           try {
             for (var d, u = e[Symbol.iterator](); !(o = (d = u.next()).done) && (r.push(d.value), !t || r.length !== t); o = true) ;
           } catch (s) {
-            n = true, i = s;
+            n = true, l = s;
           } finally {
             try {
               !o && u.return && u.return();
             } finally {
-              if (n) throw i;
+              if (n) throw l;
             }
           }
           return r;
@@ -1774,13 +1769,13 @@ let __tla = Promise.all([
           return n === null ? void 0 : a(n, t, r);
         }
         if ("value" in o) return o.value;
-        var i = o.get;
-        if (i !== void 0) return i.call(r);
-      }, va = function a(e, t, r, o) {
+        var l = o.get;
+        if (l !== void 0) return l.call(r);
+      }, pa = function a(e, t, r, o) {
         var n = Object.getOwnPropertyDescriptor(e, t);
         if (n === void 0) {
-          var i = Object.getPrototypeOf(e);
-          i !== null && a(i, t, r, o);
+          var l = Object.getPrototypeOf(e);
+          l !== null && a(l, t, r, o);
         } else if ("value" in n && n.writable) n.value = r;
         else {
           var d = n.set;
@@ -1806,8 +1801,8 @@ let __tla = Promise.all([
           if (a == null) throw new TypeError("Cannot convert first argument to object");
           for (var t = Object(a), r = 1; r < arguments.length; r++) {
             var o = arguments[r];
-            if (o != null) for (var n = Object.keys(Object(o)), i = 0, d = n.length; i < d; i++) {
-              var u = n[i], s = Object.getOwnPropertyDescriptor(o, u);
+            if (o != null) for (var n = Object.keys(Object(o)), l = 0, d = n.length; l < d; l++) {
+              var u = n[l], s = Object.getOwnPropertyDescriptor(o, u);
               s !== void 0 && s.enumerable && (t[u] = o[u]);
             }
           }
@@ -1830,20 +1825,20 @@ let __tla = Promise.all([
       }), Array.prototype.fill || Object.defineProperty(Array.prototype, "fill", {
         value: function(a) {
           if (this === null) throw new TypeError("this is null or not defined");
-          for (var e = Object(this), t = e.length >>> 0, r = arguments[1], o = r >> 0, n = o < 0 ? Math.max(t + o, 0) : Math.min(o, t), i = arguments[2], d = i === void 0 ? t : i >> 0, u = d < 0 ? Math.max(t + d, 0) : Math.min(d, t); n < u; ) e[n] = a, n++;
+          for (var e = Object(this), t = e.length >>> 0, r = arguments[1], o = r >> 0, n = o < 0 ? Math.max(t + o, 0) : Math.min(o, t), l = arguments[2], d = l === void 0 ? t : l >> 0, u = d < 0 ? Math.max(t + d, 0) : Math.min(d, t); n < u; ) e[n] = a, n++;
           return e;
         }
       }), typeof window > "u" && (window = typeof Be > "u" ? {} : Be);
-      var ya = (function() {
+      var va = (function() {
         function a() {
-          z(this, a), this._events = {}, this.addListener = this.on, this.removeListener = this.off;
+          D(this, a), this._events = {}, this.addListener = this.on, this.removeListener = this.off;
         }
         return ae(a, [
           {
             key: "emit",
             value: function(e) {
               if (this._events[e]) {
-                for (var t = 0, r = this._events[e].length, o = arguments.length, n = Array(o > 1 ? o - 1 : 0), i = 1; i < o; i++) n[i - 1] = arguments[i];
+                for (var t = 0, r = this._events[e].length, o = arguments.length, n = Array(o > 1 ? o - 1 : 0), l = 1; l < o; l++) n[l - 1] = arguments[l];
                 for (; t < r; t++) this._events[e][t] && this._events[e][t].apply(this, n);
               }
             }
@@ -1852,7 +1847,7 @@ let __tla = Promise.all([
             key: "once",
             value: function(e) {
               for (var t = arguments.length, r = Array(t > 1 ? t - 1 : 0), o = 1; o < t; o++) r[o - 1] = arguments[o];
-              for (var n = 0, i = r.length, d = this; n < i; n++) (function() {
+              for (var n = 0, l = r.length, d = this; n < l; n++) (function() {
                 var u = r[n], s = function c() {
                   d.off(e, c), u.apply(d, arguments);
                 };
@@ -1932,7 +1927,7 @@ let __tla = Promise.all([
           var e = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : "linear", t = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 250, r = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : function() {
           }, o = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : function() {
           };
-          if (z(this, a), this.duration = t, this.rule = e, this.draw = r, this.end = o, typeof this.draw != "function") throw new TypeError("Invalid animation draw callback:", r);
+          if (D(this, a), this.duration = t, this.rule = e, this.draw = r, this.end = o, typeof this.draw != "function") throw new TypeError("Invalid animation draw callback:", r);
           if (typeof this.end != "function") throw new TypeError("Invalid animation end callback:", o);
         }
         return ae(a, [
@@ -1965,7 +1960,7 @@ let __tla = Promise.all([
       we.rules = de;
       var oe = (function() {
         function a(e, t, r) {
-          z(this, a), this.options = e, this.element = t.toLowerCase(), this.type = a.toDashed(r), this.Type = x[r], this.mutationsObserved = false, this.isObservable = !!window.MutationObserver, window.GAUGES_NO_AUTO_INIT || a.domReady(this.traverse.bind(this));
+          D(this, a), this.options = e, this.element = t.toLowerCase(), this.type = a.toDashed(r), this.Type = w[r], this.mutationsObserved = false, this.isObservable = !!window.MutationObserver, window.GAUGES_NO_AUTO_INIT || a.domReady(this.traverse.bind(this));
         }
         return ae(a, [
           {
@@ -1994,7 +1989,7 @@ let __tla = Promise.all([
               for (var t = 0, r = e.length; t < r; t++) {
                 var o = e[t];
                 if (o.type === "attributes" && o.attributeName === "data-type" && this.isValidNode(o.target) && o.oldValue !== this.type) setTimeout(this.process.bind(this, o.target));
-                else if (o.addedNodes && o.addedNodes.length) for (var n = 0, i = o.addedNodes.length; n < i; n++) setTimeout(this.process.bind(this, o.addedNodes[n]));
+                else if (o.addedNodes && o.addedNodes.length) for (var n = 0, l = o.addedNodes.length; n < l; n++) setTimeout(this.process.bind(this, o.addedNodes[n]));
               }
             }
           },
@@ -2005,7 +2000,7 @@ let __tla = Promise.all([
               if (!this.isValidNode(e)) return null;
               var r = void 0, o = JSON.parse(JSON.stringify(this.options)), n = null;
               for (r in o) if (o.hasOwnProperty(r)) {
-                var i = a.toAttributeName(r), d = a.parse(e.getAttribute(i));
+                var l = a.toAttributeName(r), d = a.parse(e.getAttribute(l));
                 d != null && (o[r] = d);
               }
               return o.renderTo = e, n = new this.Type(o), n.draw && n.draw(), this.isObservable && (n.observer = new MutationObserver(function(u) {
@@ -2053,8 +2048,8 @@ let __tla = Promise.all([
           {
             key: "toCamelCase",
             value: function(e) {
-              for (var t = !(arguments.length > 1 && arguments[1] !== void 0) || arguments[1], r = e.split(/-/), o = 0, n = r.length, i = ""; o < n; o++) i += o || t ? r[o][0].toUpperCase() + r[o].substr(1).toLowerCase() : r[o].toLowerCase();
-              return i;
+              for (var t = !(arguments.length > 1 && arguments[1] !== void 0) || arguments[1], r = e.split(/-/), o = 0, n = r.length, l = ""; o < n; o++) l += o || t ? r[o][0].toUpperCase() + r[o].substr(1).toLowerCase() : r[o].toLowerCase();
+              return l;
             }
           },
           {
@@ -2071,9 +2066,9 @@ let __tla = Promise.all([
             }
           }
         ]), a;
-      })(), L = (function() {
+      })(), z = (function() {
         function a(e, t, r) {
-          z(this, a), a.collection.push(this), this.width = t || 0, this.height = r || 0, this.element = e, this.init();
+          D(this, a), a.collection.push(this), this.width = t || 0, this.height = r || 0, this.element = e, this.init();
         }
         return ae(a, [
           {
@@ -2118,7 +2113,7 @@ let __tla = Promise.all([
           }
         ]), a;
       })();
-      L.collection = [], window.matchMedia && window.matchMedia("screen and (min-resolution: 2dppx)").addListener(L.redraw);
+      z.collection = [], window.matchMedia && window.matchMedia("screen and (min-resolution: 2dppx)").addListener(z.redraw);
       var Se = {
         renderTo: null,
         width: 0,
@@ -2236,7 +2231,7 @@ let __tla = Promise.all([
         barProgress: true,
         barShadow: 0
       };
-      l.prototype = Object.create(Array.prototype), l.prototype.constructor = l, l.prototype.get = function(a) {
+      i.prototype = Object.create(Array.prototype), i.prototype.constructor = i, i.prototype.get = function(a) {
         if (typeof a == "string") for (var e = 0, t = this.length; e < t; e++) {
           var r = this[e].options.renderTo.tagName ? this[e].options.renderTo : document.getElementById(this[e].options.renderTo || "");
           if (r.getAttribute("id") === a) return this[e];
@@ -2244,25 +2239,25 @@ let __tla = Promise.all([
         else if (typeof a == "number") return this[a];
         return null;
       };
-      var Ce = "2.1.7", _ = Math.round, U = Math.abs, se = new l();
+      var Ce = "2.1.7", _ = Math.round, L = Math.abs, se = new i();
       se.version = Ce;
       var q = (function(a) {
         function e(t) {
-          z(this, e);
-          var r = I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this)), o = r.constructor.name;
+          D(this, e);
+          var r = E(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this)), o = r.constructor.name;
           if (o === "BaseGauge") throw new TypeError("Attempt to instantiate abstract class!");
-          if (se.push(r), t.listeners && Object.keys(t.listeners).forEach(function(i) {
-            (t.listeners[i] instanceof Array ? t.listeners[i] : [
-              t.listeners[i]
+          if (se.push(r), t.listeners && Object.keys(t.listeners).forEach(function(l) {
+            (t.listeners[l] instanceof Array ? t.listeners[l] : [
+              t.listeners[l]
             ]).forEach(function(d) {
-              r.on(i, d);
+              r.on(l, d);
             });
-          }), r.version = Ce, r.type = x[o] || e, r.initialized = false, t.minValue = parseFloat(t.minValue), t.maxValue = parseFloat(t.maxValue), t.value = parseFloat(t.value) || 0, t.borders || (t.borderInnerWidth = t.borderMiddleWidth = t.borderOuterWidth = 0), !t.renderTo) throw TypeError("Canvas element was not specified when creating the Gauge object!");
+          }), r.version = Ce, r.type = w[o] || e, r.initialized = false, t.minValue = parseFloat(t.minValue), t.maxValue = parseFloat(t.maxValue), t.value = parseFloat(t.value) || 0, t.borders || (t.borderInnerWidth = t.borderMiddleWidth = t.borderOuterWidth = 0), !t.renderTo) throw TypeError("Canvas element was not specified when creating the Gauge object!");
           var n = t.renderTo.tagName ? t.renderTo : document.getElementById(t.renderTo);
           if (!(n instanceof HTMLCanvasElement)) throw TypeError("Given gauge canvas element is invalid!");
-          return t.width = parseFloat(t.width) || 0, t.height = parseFloat(t.height) || 0, t.width && t.height || (t.width || (t.width = n.parentNode ? n.parentNode.offsetWidth : n.offsetWidth), t.height || (t.height = n.parentNode ? n.parentNode.offsetHeight : n.offsetHeight)), r.options = t || {}, r.options.animateOnInit && (r._value = r.options.value, r.options.value = r.options.minValue), r.canvas = new L(n, t.width, t.height), r.canvas.onRedraw = r.draw.bind(r), r.animation = new we(t.animationRule, t.animationDuration), r;
+          return t.width = parseFloat(t.width) || 0, t.height = parseFloat(t.height) || 0, t.width && t.height || (t.width || (t.width = n.parentNode ? n.parentNode.offsetWidth : n.offsetWidth), t.height || (t.height = n.parentNode ? n.parentNode.offsetHeight : n.offsetHeight)), r.options = t || {}, r.options.animateOnInit && (r._value = r.options.value, r.options.value = r.options.minValue), r.canvas = new z(n, t.width, t.height), r.canvas.onRedraw = r.draw.bind(r), r.animation = new we(t.animationRule, t.animationDuration), r;
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "update",
             value: function(t) {
@@ -2291,8 +2286,8 @@ let __tla = Promise.all([
               if (t !== o) if (this.options.animation) {
                 if (this.animation.frame && (this.options.value = this._value, this._value === t)) return this.animation.cancel(), void delete this._value;
                 this._value === void 0 && (this._value = t), this.emit("animationStart"), this.animation.animate(function(n) {
-                  var i = o + (t - o) * n;
-                  r.options.animatedValue && r.emit("value", i, r.value), r.options.value = i, r.draw(), r.emit("animate", n, r.options.value);
+                  var l = o + (t - o) * n;
+                  r.options.animatedValue && r.emit("value", l, r.value), r.options.value = l, r.draw(), r.emit("animate", n, r.options.value);
                 }, function() {
                   r._value !== void 0 && (r.emit("value", r._value, r.value), r.options.value = r._value, delete r._value), r.draw(), r.emit("animationEnd");
                 });
@@ -2318,9 +2313,9 @@ let __tla = Promise.all([
           {
             key: "fromElement",
             value: function(t) {
-              var r = oe.toCamelCase(t.getAttribute("data-type")), o = t.attributes, n = 0, i = o.length, d = {};
+              var r = oe.toCamelCase(t.getAttribute("data-type")), o = t.attributes, n = 0, l = o.length, d = {};
               if (r) {
-                for (/Gauge$/.test(r) || (r += "Gauge"); n < i; n++) d[oe.toCamelCase(o[n].name.replace(/^data-/, ""), false)] = oe.parse(o[n].value);
+                for (/Gauge$/.test(r) || (r += "Gauge"); n < l; n++) d[oe.toCamelCase(o[n].name.replace(/^data-/, ""), false)] = oe.parse(o[n].value);
                 new oe(d, t.tagName, r).process(t);
               }
             }
@@ -2345,22 +2340,22 @@ let __tla = Promise.all([
             }
           }
         ]), e;
-      })(ya);
-      x !== void 0 && (x.BaseGauge = q, x.gauges = (window.document || {}).gauges = se);
-      var _a = /{([_a-zA-Z]+[_a-zA-Z0-9]*)}/g, m = {
+      })(va);
+      w !== void 0 && (w.BaseGauge = q, w.gauges = (window.document || {}).gauges = se);
+      var ya = /{([_a-zA-Z]+[_a-zA-Z0-9]*)}/g, m = {
         roundRect: ve,
-        padValue: le,
+        padValue: ie,
         formatMajorTickNumber: ye,
-        radians: ie,
+        radians: le,
         radialPoint: P,
         linearGradient: $,
         drawNeedleShadow: K,
         drawValueBox: ue,
-        verifyError: F,
+        verifyError: R,
         prepareTicks: re,
         drawShadow: Z,
         font: Q,
-        normalizedValue: aa,
+        normalizedValue: ea,
         formatContext: J
       }, ge = Math.PI, pe = ge / 2, He = Object.assign({}, Se, {
         ticksAngle: 270,
@@ -2377,11 +2372,11 @@ let __tla = Promise.all([
         useMinPath: false,
         barWidth: 0,
         barStartPosition: "left"
-      }), xa = (function(a) {
+      }), _a = (function(a) {
         function e(t) {
-          return z(this, e), t = Object.assign({}, He, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
+          return D(this, e), t = Object.assign({}, He, t || {}), E(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2391,20 +2386,20 @@ let __tla = Promise.all([
                   -t.drawY,
                   t.drawWidth,
                   t.drawHeight
-                ], o = r[0], n = r[1], i = r[2], d = r[3], u = this.options;
+                ], o = r[0], n = r[1], l = r[2], d = r[3], u = this.options;
                 if (u.animationTarget === "needle") {
                   if (!t.elementClone.initialized) {
                     var s = t.contextClone;
-                    s.clearRect(o, n, i, d), s.save(), this.emit("beforePlate"), Ne(s, u), this.emit("beforeHighlights"), Ve(s, u), this.emit("beforeMinorTicks"), We(s, u), this.emit("beforeMajorTicks"), Me(s, u), this.emit("beforeNumbers"), je(s, u), this.emit("beforeTitle"), Ae(s, u), this.emit("beforeUnits"), Pe(s, u), t.elementClone.initialized = true;
+                    s.clearRect(o, n, l, d), s.save(), this.emit("beforePlate"), Ne(s, u), this.emit("beforeHighlights"), Ve(s, u), this.emit("beforeMinorTicks"), We(s, u), this.emit("beforeMajorTicks"), Me(s, u), this.emit("beforeNumbers"), je(s, u), this.emit("beforeTitle"), Ae(s, u), this.emit("beforeUnits"), Pe(s, u), t.elementClone.initialized = true;
                   }
-                  this.canvas.commit(), t.context.clearRect(o, n, i, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, i, d), t.context.save(), this.emit("beforeProgressBar"), Re(t.context, u), this.emit("beforeValueBox"), Ie(t.context, u, De(this)), this.emit("beforeNeedle"), Ee(t.context, u);
+                  this.canvas.commit(), t.context.clearRect(o, n, l, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, l, d), t.context.save(), this.emit("beforeProgressBar"), Re(t.context, u), this.emit("beforeValueBox"), Ie(t.context, u, De(this)), this.emit("beforeNeedle"), Ee(t.context, u);
                 } else {
                   var c = -m.radians((u.value - u.minValue) / (u.maxValue - u.minValue) * u.ticksAngle);
-                  if (t.context.clearRect(o, n, i, d), t.context.save(), this.emit("beforePlate"), Ne(t.context, u), t.context.rotate(c), this.emit("beforeHighlights"), Ve(t.context, u), this.emit("beforeMinorTicks"), We(t.context, u), this.emit("beforeMajorTicks"), Me(t.context, u), this.emit("beforeNumbers"), je(t.context, u), this.emit("beforeProgressBar"), Re(t.context, u), t.context.rotate(-c), t.context.save(), !t.elementClone.initialized) {
+                  if (t.context.clearRect(o, n, l, d), t.context.save(), this.emit("beforePlate"), Ne(t.context, u), t.context.rotate(c), this.emit("beforeHighlights"), Ve(t.context, u), this.emit("beforeMinorTicks"), We(t.context, u), this.emit("beforeMajorTicks"), Me(t.context, u), this.emit("beforeNumbers"), je(t.context, u), this.emit("beforeProgressBar"), Re(t.context, u), t.context.rotate(-c), t.context.save(), !t.elementClone.initialized) {
                     var h = t.contextClone;
-                    h.clearRect(o, n, i, d), h.save(), this.emit("beforeTitle"), Ae(h, u), this.emit("beforeUnits"), Pe(h, u), this.emit("beforeNeedle"), Ee(h, u), t.elementClone.initialized = true;
+                    h.clearRect(o, n, l, d), h.save(), this.emit("beforeTitle"), Ae(h, u), this.emit("beforeUnits"), Pe(h, u), this.emit("beforeNeedle"), Ee(h, u), t.elementClone.initialized = true;
                   }
-                  t.context.drawImage(t.elementClone, o, n, i, d);
+                  t.context.drawImage(t.elementClone, o, n, l, d);
                 }
                 this.emit("beforeValueBox"), Ie(t.context, u, De(this)), Te(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
               } catch (p) {
@@ -2416,7 +2411,7 @@ let __tla = Promise.all([
           {
             key: "value",
             set: function(t) {
-              t = q.ensureValue(t, this.options.minValue), this.options.animation && this.options.ticksAngle === 360 && this.options.useMinPath && (this._value = t, t = this.options.value + ((t - this.options.value) % 360 + 540) % 360 - 180), va(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", t, this);
+              t = q.ensureValue(t, this.options.minValue), this.options.animation && this.options.ticksAngle === 360 && this.options.useMinPath && (this._value = t, t = this.options.value + ((t - this.options.value) % 360 + 540) % 360 - 180), pa(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", t, this);
             },
             get: function() {
               return Te(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "value", this);
@@ -2431,7 +2426,7 @@ let __tla = Promise.all([
           }
         ]), e;
       })(q);
-      x !== void 0 && (x.RadialGauge = xa), q.initialize("RadialGauge", He);
+      w !== void 0 && (w.RadialGauge = _a), q.initialize("RadialGauge", He);
       var Xe = Object.assign({}, Se, {
         borderRadius: 0,
         barBeginCircle: 30,
@@ -2447,11 +2442,11 @@ let __tla = Promise.all([
         barLength: 85,
         fontTitleSize: 26,
         highlightsWidth: 10
-      }), ka = (function(a) {
+      }), xa = (function(a) {
         function e(t) {
-          return z(this, e), t = Object.assign({}, Xe, t || {}), I(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
+          return D(this, e), t = Object.assign({}, Xe, t || {}), E(this, (e.__proto__ || Object.getPrototypeOf(e)).call(this, e.configure(t)));
         }
-        return D(e, a), ae(e, [
+        return F(e, a), ae(e, [
           {
             key: "draw",
             value: function() {
@@ -2461,22 +2456,22 @@ let __tla = Promise.all([
                   -t.drawY,
                   t.drawWidth,
                   t.drawHeight
-                ], o = r[0], n = r[1], i = r[2], d = r[3], u = this.options;
+                ], o = r[0], n = r[1], l = r[2], d = r[3], u = this.options;
                 if (!t.elementClone.initialized) {
                   var s = t.contextClone;
-                  s.clearRect(o, n, i, d), s.save(), this.emit("beforePlate"), this.drawBox = oa(s, u, o, n, i, d), this.emit("beforeBar"), la.apply(void 0, [
+                  s.clearRect(o, n, l, d), s.save(), this.emit("beforePlate"), this.drawBox = ra(s, u, o, n, l, d), this.emit("beforeBar"), na.apply(void 0, [
                     s,
                     u
-                  ].concat(E(this.drawBox))), t.context.barDimensions = s.barDimensions, this.emit("beforeHighlights"), ua(s, u), this.emit("beforeMinorTicks"), sa(s, u), this.emit("beforeMajorTicks"), da(s, u), this.emit("beforeNumbers"), ga(s, u), this.emit("beforeTitle"), ca(s, u), this.emit("beforeUnits"), ha(s, u), t.elementClone.initialized = true;
+                  ].concat(I(this.drawBox))), t.context.barDimensions = s.barDimensions, this.emit("beforeHighlights"), la(s, u), this.emit("beforeMinorTicks"), da(s, u), this.emit("beforeMajorTicks"), ua(s, u), this.emit("beforeNumbers"), sa(s, u), this.emit("beforeTitle"), ga(s, u), this.emit("beforeUnits"), ca(s, u), t.elementClone.initialized = true;
                 }
-                this.canvas.commit(), t.context.clearRect(o, n, i, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, i, d), t.context.save(), this.emit("beforeProgressBar"), ia.apply(void 0, [
+                this.canvas.commit(), t.context.clearRect(o, n, l, d), t.context.save(), t.context.drawImage(t.elementClone, o, n, l, d), t.context.save(), this.emit("beforeProgressBar"), ia.apply(void 0, [
                   t.context,
                   u
-                ].concat(E(this.drawBox))), this.emit("beforeNeedle"), ma(t.context, u), this.emit("beforeValueBox"), pa.apply(void 0, [
+                ].concat(I(this.drawBox))), this.emit("beforeNeedle"), ha(t.context, u), this.emit("beforeValueBox"), fa.apply(void 0, [
                   t.context,
                   u,
                   u.animatedValue ? this.options.value : this.value
-                ].concat(E(this.drawBox))), Te(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
+                ].concat(I(this.drawBox))), Te(e.prototype.__proto__ || Object.getPrototypeOf(e.prototype), "draw", this).call(this);
               } catch (c) {
                 m.verifyError(c);
               }
@@ -2492,44 +2487,44 @@ let __tla = Promise.all([
           }
         ]), e;
       })(q);
-      x !== void 0 && (x.LinearGauge = ka), q.initialize("LinearGauge", Xe), Object.assign(x, {
-        Collection: l,
+      w !== void 0 && (w.LinearGauge = xa), q.initialize("LinearGauge", Xe), Object.assign(w, {
+        Collection: i,
         GenericOptions: Se,
         Animation: we,
         BaseGauge: q,
         drawings: m,
-        SmartCanvas: L,
+        SmartCanvas: z,
         DomObserver: oe,
         vendorize: Y
       });
     })(g.exports);
-  })(Qe);
-  var $e = Qe.exports;
+  })(Ke);
+  var $e = Ke.exports;
   const Pa = (g) => {
-    const x = R.useRef(null), E = R.useRef(null);
-    R.useEffect(() => {
-      if (x.current === null || x.current.options.gaugeType !== g.gaugeType) {
-        const z = Object.assign({}, g, {
-          renderTo: E.current
+    const w = G.useRef(null), I = G.useRef(null);
+    G.useEffect(() => {
+      if (w.current === null || w.current.options.gaugeType !== g.gaugeType) {
+        const D = Object.assign({}, g, {
+          renderTo: I.current
         });
         switch (g.gaugeType) {
           case "radial":
-            x.current !== null && x.current.destroy(), x.current = new $e.RadialGauge(z).draw();
+            w.current !== null && w.current.destroy(), w.current = new $e.RadialGauge(D).draw();
             break;
           case "linear":
-            x.current !== null && x.current.destroy(), x.current = new $e.LinearGauge(z).draw();
+            w.current !== null && w.current.destroy(), w.current = new $e.LinearGauge(D).draw();
             break;
         }
       }
     }, [
       g
-    ]), R.useEffect(() => {
-      x.current !== null && g.width && g.height && g.width > 30 && g.height > 30 && (x.current.value = g.value ?? 0, x.current.update(g));
+    ]), G.useEffect(() => {
+      w.current !== null && g.width && g.height && g.width > 30 && g.height > 30 && (w.current.value = g.value ?? 0, w.current.update(g));
     }, [
       g
     ]);
-    const I = g.gaugeSegment, D = Ta(I == null ? void 0 : I.state.icon, I == null ? void 0 : I.state.iconColor, (I == null ? void 0 : I.state.forceColorMask) ?? false);
-    return M.jsxs(Ke, {
+    const E = g.gaugeSegment, F = ka(E == null ? void 0 : E.state.icon, E == null ? void 0 : E.state.iconColor, (E == null ? void 0 : E.state.forceColorMask) ?? false);
+    return M.jsxs(Ze, {
       sx: {
         width: "100%",
         height: "100%",
@@ -2538,45 +2533,45 @@ let __tla = Promise.all([
         alignItems: "center"
       },
       children: [
-        M.jsx(wa, {
+        M.jsx(Ta, {
           alt: "",
-          src: I == null ? void 0 : I.state.icon,
+          src: E == null ? void 0 : E.state.icon,
           style: {
             position: "relative",
-            width: I == null ? void 0 : I.state.iconSizeOnly,
-            height: I == null ? void 0 : I.state.iconSizeOnly,
+            width: E == null ? void 0 : E.state.iconSizeOnly,
+            height: E == null ? void 0 : E.state.iconSizeOnly,
             boxSizing: "border-box",
             objectFit: g.gaugeWidgetData.gaugeIconFit,
-            top: `calc(0px - ${I == null ? void 0 : I.state.iconYOffset})`,
-            left: `calc(0px + ${I == null ? void 0 : I.state.iconXOffset})`,
-            ...D
+            top: `calc(0px - ${E == null ? void 0 : E.state.iconYOffset})`,
+            left: `calc(0px + ${E == null ? void 0 : E.state.iconXOffset})`,
+            ...F
           }
         }),
         M.jsx("canvas", {
           id: "my-canvas",
-          ref: E,
+          ref: I,
           style: {
             position: "absolute"
           }
         })
       ]
     });
-  }, Ea = (g, x, E) => g.find((D) => x >= D.from && (x < D.to || x === D.to && x === E)) || null;
+  }, Ea = (g, w, I) => g.find((F) => w >= F.from && (w < F.to || w === F.to && w === I)) || null;
   function Ia() {
     var _a, _b;
-    const g = R.useRef(null), [x, E] = R.useState(null), { width: I, height: D } = Sa(x), z = R.useContext(Ze), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: l } = z, { data: F, states: J } = Ca("oid"), re = Aa("oid"), le = (ne == null ? void 0 : ne.type) === "number", ye = R.useMemo(() => {
-      const K = Number(l.data.gaugeMinValue) || 0, Q = Number(l.data.gaugeMaxValue) || 100, X = [];
-      if (l.data.gaugeMajorTicks && +(l.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(l.data.gaugeMajorTicks); ee++) {
-        const ue = K + ((Q - K) / Number(l.data.gaugeMajorTicks) || 1) * ee;
+    const g = G.useRef(null), [w, I] = G.useState(null), { width: E, height: F } = wa(w), D = G.useContext(Sa), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: i } = D, { data: R, states: J } = Ca("oid"), re = ja("oid"), ie = (ne == null ? void 0 : ne.type) === "number", ye = G.useMemo(() => {
+      const K = Number(i.data.gaugeMinValue) || 0, Q = Number(i.data.gaugeMaxValue) || 100, X = [];
+      if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(i.data.gaugeMajorTicks); ee++) {
+        const ue = K + ((Q - K) / Number(i.data.gaugeMajorTicks) || 1) * ee;
         X.push(Math.round(ue * 100) / 100);
       }
       return X;
     }, [
-      l.data.gaugeMinValue,
-      l.data.gaugeMaxValue,
-      l.data.gaugeMajorTicks
-    ]), ie = R.useMemo(() => {
-      const K = Number(l.data.gaugeMaxValue) || 100, Q = J.map((X, ee) => {
+      i.data.gaugeMinValue,
+      i.data.gaugeMaxValue,
+      i.data.gaugeMajorTicks
+    ]), le = G.useMemo(() => {
+      const K = Number(i.data.gaugeMaxValue) || 100, Q = J.map((X, ee) => {
         var _a2;
         const ue = ((_a2 = J[ee + 1]) == null ? void 0 : _a2.value) || K;
         return {
@@ -2591,41 +2586,41 @@ let __tla = Promise.all([
       return J.length > 0 && Number(J[J.length - 1].value) < K && (Q[Q.length - 1].to = K), Q;
     }, [
       J,
-      l.data.gaugeMaxValue
-    ]), P = R.useMemo(() => Ea(ie, Number(re) || 0, Number(l.data.gaugeMaxValue) ? Number(l.data.gaugeMaxValue) : 100), [
-      ie,
+      i.data.gaugeMaxValue
+    ]), P = G.useMemo(() => Ea(le, Number(re) || 0, Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100), [
+      le,
       re,
-      l.data.gaugeMaxValue
+      i.data.gaugeMaxValue
     ]), $ = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
-    return R.useEffect(() => {
-      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = F.frameBackgroundColor || F.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = F.backgroundColor || F.background || null || ""));
+    return G.useEffect(() => {
+      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = R.frameBackgroundColor || R.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = R.backgroundColor || R.background || null || ""));
     }, [
       $,
       Z,
       Y,
       P,
-      l.data,
-      F.frameBackgroundColor,
-      F.frameBackground,
-      F.backgroundColor,
-      F.background
+      i.data,
+      R.frameBackgroundColor,
+      R.frameBackground,
+      R.backgroundColor,
+      R.background
     ]), M.jsxs(Na, {
       ref: g,
-      isValidType: le,
-      data: F,
+      isValidType: ie,
+      data: R,
       oidValue: re,
       children: [
         M.jsx(Va, {
           data: {
-            ...F,
+            ...R,
             icon: P == null ? void 0 : P.state.icon,
             iconColor: P == null ? void 0 : P.state.iconColor,
             forceColorMask: P == null ? void 0 : P.state.forceColorMask
           },
-          widget: l
+          widget: i
         }),
-        M.jsx(Ke, {
-          ref: E,
+        M.jsx(Ze, {
+          ref: I,
           sx: {
             width: "100%",
             height: "100%",
@@ -2634,127 +2629,127 @@ let __tla = Promise.all([
             alignItems: "center"
           },
           children: M.jsx(Pa, {
-            gaugeWidgetData: l.data,
+            gaugeWidgetData: i.data,
             gaugeSegment: P,
-            gaugeType: l.data.gaugeType,
-            width: (I || 0) - Number(l.data.gaugePadding || 0),
-            height: (D || 0) - Number(l.data.gaugePadding || 0),
-            minValue: Number(l.data.gaugeMinValue) ? Number(l.data.gaugeMinValue) : 0,
-            maxValue: Number(l.data.gaugeMaxValue) ? Number(l.data.gaugeMaxValue) : 100,
+            gaugeType: i.data.gaugeType,
+            width: (E || 0) - Number(i.data.gaugePadding || 0),
+            height: (F || 0) - Number(i.data.gaugePadding || 0),
+            minValue: Number(i.data.gaugeMinValue) ? Number(i.data.gaugeMinValue) : 0,
+            maxValue: Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100,
             value: Number(re) || 0,
             units: ne == null ? void 0 : ne.unit,
-            title: F.header,
-            exactTicks: l.data.gaugeExactTicks,
+            title: R.header,
+            exactTicks: i.data.gaugeExactTicks,
             majorTicks: ye,
-            minorTicks: typeof l.data.gaugeMinorTicks == "number" ? l.data.gaugeMinorTicks : Number(l.data.gaugeMinorTicks),
-            strokeTicks: l.data.gaugeStrokeTicks,
-            majorTicksInt: typeof l.data.gaugeMajorTicksInt == "number" ? l.data.gaugeMajorTicksInt : Number(l.data.gaugeMajorTicksInt),
-            majorTicksDec: typeof l.data.gaugeMajorTicksDec == "number" ? l.data.gaugeMajorTicksDec : Number(l.data.gaugeMajorTicksDec),
-            highlights: ie,
-            highlightsWidth: typeof l.data.gaugeHighlightsWidth == "number" ? l.data.gaugeHighlightsWidth : Number(l.data.gaugeHighlightsWidth),
-            numbersMargin: typeof l.data.gaugeNumbersMargin == "number" ? l.data.gaugeNumbersMargin : Number(l.data.gaugeNumbersMargin),
-            barWidth: typeof l.data.gaugeBarWidth == "number" && l.data.gaugeBarWidth <= 50 ? l.data.gaugeBarWidth : Number(l.data.gaugeBarWidth) <= 50 ? Number(l.data.gaugeBarWidth) : 50,
-            barStrokeWidth: typeof l.data.gaugeBarStrokeWidth == "number" ? l.data.gaugeBarStrokeWidth : Number(l.data.gaugeBarStrokeWidth),
-            barProgress: l.data.gaugeBarProgress,
-            barShadow: typeof l.data.gaugeBarShadow == "number" ? l.data.gaugeBarShadow : Number(l.data.gaugeBarShadow),
-            animation: l.data.gaugeAnimation,
-            animationDuration: typeof l.data.gaugeAnimationDuration == "number" ? l.data.gaugeAnimationDuration : Number(l.data.gaugeAnimationDuration),
-            animationRule: l.data.gaugeAnimationRule || "cycle",
-            animatedValue: l.data.gaugeAnimatedValue,
-            animateOnInit: l.data.gaugeAnimateOnInit,
-            colorPlate: l.data.gaugeColorPlate || "rgba(0,0,0,0)",
-            colorPlateEnd: l.data.gaugeColorPlateEnd || "rgba(0,0,0,0)",
-            colorMajorTicks: l.data.gaugeColorMajorTicks || "#444",
-            colorMinorTicks: l.data.gaugeColorMinorTicks || "#666",
-            colorStrokeTicks: l.data.gaugeColorStrokeTicks || "#444",
-            colorTitle: l.data.gaugeColorTitle || "#888",
-            colorUnits: l.data.gaugeColorUnits || "#888",
-            colorNumbers: l.data.gaugeColorNumbers || "#444",
-            colorNeedle: l.data.gaugeColorNeedle || "rgba(240,128,128,1)",
-            colorNeedleEnd: l.data.gaugeColorNeedleEnd || "rgba(255,160,122,.9)",
-            colorValueText: l.data.gaugeColorValueText || "#444",
-            colorValueTextShadow: l.data.gaugeColorValueTextShadow || "rgba(0,0,0,0.3)",
-            colorBorderShadow: l.data.gaugeColorBorderShadow || "rgba(0,0,0,0.5)",
-            colorBorderOuter: l.data.gaugeColorBorderOuter || "#ddd",
-            colorBorderOuterEnd: l.data.gaugeColorBorderOuterEnd || "#aaa",
-            colorBorderMiddle: l.data.gaugeColorBorderMiddle || "#eee",
-            colorBorderMiddleEnd: l.data.gaugeColorBorderMiddleEnd || "#f0f0f0",
-            colorBorderInner: l.data.gaugeColorBorderInner || "#fafafa",
-            colorBorderInnerEnd: l.data.gaugeColorBorderInnerEnd || "#ccc",
-            colorValueBoxRect: l.data.gaugeColorValueBoxRect || "#888",
-            colorValueBoxRectEnd: l.data.gaugeColorValueBoxRectEnd || "#666",
-            colorValueBoxBackground: l.data.gaugeColorValueBoxBackground || "#babab2",
-            colorValueBoxShadow: l.data.gaugeColorValueBoxShadow || "rgba(0,0,0,1)",
-            colorNeedleShadowUp: l.data.gaugeColorNeedleShadowUp || "rgba(2,255,255,0.2)",
-            colorNeedleShadowDown: l.data.gaugeColorNeedleShadowDown || "rgba(188,143,143,0.45)",
-            colorBarStroke: l.data.gaugeColorBarStroke || "#222",
-            colorBar: l.data.gaugeColorBar || "#ccc",
-            colorBarProgress: l.data.gaugeColorBarProgress || "#888",
-            highlightsLineCap: l.data.gaugeHighlightsLineCap || "butt",
-            needle: l.data.gaugeNeedle,
-            needleShadow: l.data.gaugeNeedleShadow,
-            needleType: l.data.gaugeNeedleType || "arrow",
-            needleStart: typeof l.data.gaugeNeedleStart == "number" ? l.data.gaugeNeedleStart : Number(l.data.gaugeNeedleStart),
-            needleEnd: typeof l.data.gaugeNeedleEnd == "number" ? l.data.gaugeNeedleEnd : Number(l.data.gaugeNeedleEnd),
-            needleWidth: typeof l.data.gaugeNeedleWidth == "number" ? l.data.gaugeNeedleWidth : Number(l.data.gaugeNeedleWidth),
-            borders: l.data.gaugeBorders,
-            borderOuterWidth: typeof l.data.gaugeBorderOuterWidth == "number" ? l.data.gaugeBorderOuterWidth : Number(l.data.gaugeBorderOuterWidth),
-            borderMiddleWidth: typeof l.data.gaugeBorderMiddleWidth == "number" ? l.data.gaugeBorderMiddleWidth : Number(l.data.gaugeBorderMiddleWidth),
-            borderInnerWidth: typeof l.data.gaugeBorderInnerWidth == "number" ? l.data.gaugeBorderInnerWidth : Number(l.data.gaugeBorderInnerWidth),
-            borderShadowWidth: typeof l.data.gaugeBorderShadowWidth == "number" ? l.data.gaugeBorderShadowWidth : Number(l.data.gaugeBorderShadowWidth),
-            valueBox: l.data.gaugeValueBox,
-            valueBoxStroke: typeof l.data.gaugeValueBoxStroke == "number" ? l.data.gaugeValueBoxStroke : Number(l.data.gaugeValueBoxStroke),
-            valueBoxWidth: typeof l.data.gaugeValueBoxWidth == "number" ? l.data.gaugeValueBoxWidth : Number(l.data.gaugeValueBoxWidth),
-            valueText: l.data.gaugeValueText || "",
-            valueTextShadow: l.data.gaugeValueTextShadow,
-            valueBoxBorderRadius: typeof l.data.gaugeValueBoxBorderRadius == "number" ? l.data.gaugeValueBoxBorderRadius : Number(l.data.gaugeValueBoxBorderRadius),
-            valueInt: typeof l.data.gaugeValueInt == "number" ? l.data.gaugeValueInt : Number(l.data.gaugeValueInt),
-            valueDec: typeof l.data.gaugeValueDec == "number" ? l.data.gaugeValueDec : Number(l.data.gaugeValueDec),
-            fontNumbers: l.data.gaugeFontNumbers || "Arial, Helvetica, sans-serif",
-            fontTitle: l.data.gaugeFontTitle || "Arial, Helvetica, sans-serif",
-            fontUnits: l.data.gaugeFontUnits || "Arial, Helvetica, sans-serif",
-            fontValue: l.data.gaugeFontValue || "Arial, Helvetica, sans-serif",
-            fontNumbersSize: typeof l.data.gaugeFontNumbersSize == "number" ? l.data.gaugeFontNumbersSize : Number(l.data.gaugeFontNumbersSize),
-            fontTitleSize: typeof l.data.gaugeFontTitleSize == "number" ? l.data.gaugeFontTitleSize : Number(l.data.gaugeFontTitleSize),
-            fontUnitsSize: typeof l.data.gaugeFontUnitsSize == "number" ? l.data.gaugeFontUnitsSize : Number(l.data.gaugeFontUnitsSize),
-            fontValueSize: typeof l.data.gaugeFontValueSize == "number" ? l.data.gaugeFontValueSize : Number(l.data.gaugeFontValueSize),
-            fontNumbersStyle: l.data.gaugeFontNumbersStyle || "normal",
-            fontTitleStyle: l.data.gaugeFontTitleStyle || "normal",
-            fontUnitsStyle: l.data.gaugeFontUnitsStyle || "normal",
-            fontValueStyle: l.data.gaugeFontValueStyle || "normal",
-            fontNumbersWeight: l.data.gaugeFontNumbersWeight || "normal",
-            fontTitleWeight: l.data.gaugeFontTitleWeight || "normal",
-            fontUnitsWeight: l.data.gaugeFontUnitsWeight || "normal",
-            fontValueWeight: l.data.gaugeFontValueWeight || "normal",
-            borderRadius: typeof l.data.gaugeBorderRadius == "number" ? l.data.gaugeBorderRadius : Number(l.data.gaugeBorderRadius),
-            barBeginCircle: typeof l.data.gaugeBarBeginCircle == "number" && l.data.gaugeBarBeginCircle < 12 ? 30 : Number(l.data.gaugeBarBeginCircle),
-            barLength: typeof l.data.gaugeBarLength == "number" ? l.data.gaugeBarLength : Number(l.data.gaugeBarLength),
-            colorBarEnd: l.data.gaugeColorBarEnd || "",
-            colorBarProgressEnd: l.data.gaugeColorBarProgressEnd || "",
-            tickSide: l.data.gaugeTickSide || "both",
-            needleSide: l.data.gaugeNeedleSide || "both",
-            numberSide: l.data.gaugeNumberSide || "both",
-            ticksWidth: typeof l.data.gaugeTicksWidth == "number" ? l.data.gaugeTicksWidth : Number(l.data.gaugeTicksWidth),
-            ticksWidthMinor: typeof l.data.gaugeTicksWidthMinor == "number" ? l.data.gaugeTicksWidthMinor : Number(l.data.gaugeTicksWidthMinor),
-            ticksPadding: typeof l.data.gaugeTicksPadding == "number" ? l.data.gaugeTicksPadding : Number(l.data.gaugeTicksPadding),
-            ticksAngle: typeof l.data.gaugeTicksAngle == "number" ? l.data.gaugeTicksAngle : Number(l.data.gaugeTicksAngle),
-            startAngle: typeof l.data.gaugeStartAngle == "number" ? l.data.gaugeStartAngle : Number(l.data.gaugeStartAngle),
-            colorNeedleCircleOuter: l.data.gaugeColorNeedleCircleOuter || "#f0f0f0",
-            colorNeedleCircleOuterEnd: l.data.gaugeColorNeedleCircleOuterEnd || "#ccc",
-            colorNeedleCircleInner: l.data.gaugeColorNeedleCircleInner || "#e8e8e8",
-            colorNeedleCircleInnerEnd: l.data.gaugeColorNeedleCircleInnerEnd || "#f5f5f5",
-            colorNeedleCircleShadowUp: l.data.gaugeColorNeedleCircleShadowUp || "rgba(2,255,255,0.2)",
-            needleCircleSize: typeof l.data.gaugeNeedleCircleSize == "number" ? l.data.gaugeNeedleCircleSize : Number(l.data.gaugeNeedleCircleSize),
-            needleCircleInner: l.data.gaugeNeedleCircleInner,
-            needleCircleOuter: l.data.gaugeNeedleCircleOuter,
-            animationTarget: l.data.gaugeAnimationTarget || "needle",
-            useMinPath: l.data.gaugeUseMinPath
+            minorTicks: typeof i.data.gaugeMinorTicks == "number" ? i.data.gaugeMinorTicks : Number(i.data.gaugeMinorTicks),
+            strokeTicks: i.data.gaugeStrokeTicks,
+            majorTicksInt: typeof i.data.gaugeMajorTicksInt == "number" ? i.data.gaugeMajorTicksInt : Number(i.data.gaugeMajorTicksInt),
+            majorTicksDec: typeof i.data.gaugeMajorTicksDec == "number" ? i.data.gaugeMajorTicksDec : Number(i.data.gaugeMajorTicksDec),
+            highlights: le,
+            highlightsWidth: typeof i.data.gaugeHighlightsWidth == "number" ? i.data.gaugeHighlightsWidth : Number(i.data.gaugeHighlightsWidth),
+            numbersMargin: typeof i.data.gaugeNumbersMargin == "number" ? i.data.gaugeNumbersMargin : Number(i.data.gaugeNumbersMargin),
+            barWidth: typeof i.data.gaugeBarWidth == "number" && i.data.gaugeBarWidth <= 50 ? i.data.gaugeBarWidth : Number(i.data.gaugeBarWidth) <= 50 ? Number(i.data.gaugeBarWidth) : 50,
+            barStrokeWidth: typeof i.data.gaugeBarStrokeWidth == "number" ? i.data.gaugeBarStrokeWidth : Number(i.data.gaugeBarStrokeWidth),
+            barProgress: i.data.gaugeBarProgress,
+            barShadow: typeof i.data.gaugeBarShadow == "number" ? i.data.gaugeBarShadow : Number(i.data.gaugeBarShadow),
+            animation: i.data.gaugeAnimation,
+            animationDuration: typeof i.data.gaugeAnimationDuration == "number" ? i.data.gaugeAnimationDuration : Number(i.data.gaugeAnimationDuration),
+            animationRule: i.data.gaugeAnimationRule || "cycle",
+            animatedValue: i.data.gaugeAnimatedValue,
+            animateOnInit: i.data.gaugeAnimateOnInit,
+            colorPlate: i.data.gaugeColorPlate || "rgba(0,0,0,0)",
+            colorPlateEnd: i.data.gaugeColorPlateEnd || "rgba(0,0,0,0)",
+            colorMajorTicks: i.data.gaugeColorMajorTicks || "#444",
+            colorMinorTicks: i.data.gaugeColorMinorTicks || "#666",
+            colorStrokeTicks: i.data.gaugeColorStrokeTicks || "#444",
+            colorTitle: i.data.gaugeColorTitle || "#888",
+            colorUnits: i.data.gaugeColorUnits || "#888",
+            colorNumbers: i.data.gaugeColorNumbers || "#444",
+            colorNeedle: i.data.gaugeColorNeedle || "rgba(240,128,128,1)",
+            colorNeedleEnd: i.data.gaugeColorNeedleEnd || "rgba(255,160,122,.9)",
+            colorValueText: i.data.gaugeColorValueText || "#444",
+            colorValueTextShadow: i.data.gaugeColorValueTextShadow || "rgba(0,0,0,0.3)",
+            colorBorderShadow: i.data.gaugeColorBorderShadow || "rgba(0,0,0,0.5)",
+            colorBorderOuter: i.data.gaugeColorBorderOuter || "#ddd",
+            colorBorderOuterEnd: i.data.gaugeColorBorderOuterEnd || "#aaa",
+            colorBorderMiddle: i.data.gaugeColorBorderMiddle || "#eee",
+            colorBorderMiddleEnd: i.data.gaugeColorBorderMiddleEnd || "#f0f0f0",
+            colorBorderInner: i.data.gaugeColorBorderInner || "#fafafa",
+            colorBorderInnerEnd: i.data.gaugeColorBorderInnerEnd || "#ccc",
+            colorValueBoxRect: i.data.gaugeColorValueBoxRect || "#888",
+            colorValueBoxRectEnd: i.data.gaugeColorValueBoxRectEnd || "#666",
+            colorValueBoxBackground: i.data.gaugeColorValueBoxBackground || "#babab2",
+            colorValueBoxShadow: i.data.gaugeColorValueBoxShadow || "rgba(0,0,0,1)",
+            colorNeedleShadowUp: i.data.gaugeColorNeedleShadowUp || "rgba(2,255,255,0.2)",
+            colorNeedleShadowDown: i.data.gaugeColorNeedleShadowDown || "rgba(188,143,143,0.45)",
+            colorBarStroke: i.data.gaugeColorBarStroke || "#222",
+            colorBar: i.data.gaugeColorBar || "#ccc",
+            colorBarProgress: i.data.gaugeColorBarProgress || "#888",
+            highlightsLineCap: i.data.gaugeHighlightsLineCap || "butt",
+            needle: i.data.gaugeNeedle,
+            needleShadow: i.data.gaugeNeedleShadow,
+            needleType: i.data.gaugeNeedleType || "arrow",
+            needleStart: typeof i.data.gaugeNeedleStart == "number" ? i.data.gaugeNeedleStart : Number(i.data.gaugeNeedleStart),
+            needleEnd: typeof i.data.gaugeNeedleEnd == "number" ? i.data.gaugeNeedleEnd : Number(i.data.gaugeNeedleEnd),
+            needleWidth: typeof i.data.gaugeNeedleWidth == "number" ? i.data.gaugeNeedleWidth : Number(i.data.gaugeNeedleWidth),
+            borders: i.data.gaugeBorders,
+            borderOuterWidth: typeof i.data.gaugeBorderOuterWidth == "number" ? i.data.gaugeBorderOuterWidth : Number(i.data.gaugeBorderOuterWidth),
+            borderMiddleWidth: typeof i.data.gaugeBorderMiddleWidth == "number" ? i.data.gaugeBorderMiddleWidth : Number(i.data.gaugeBorderMiddleWidth),
+            borderInnerWidth: typeof i.data.gaugeBorderInnerWidth == "number" ? i.data.gaugeBorderInnerWidth : Number(i.data.gaugeBorderInnerWidth),
+            borderShadowWidth: typeof i.data.gaugeBorderShadowWidth == "number" ? i.data.gaugeBorderShadowWidth : Number(i.data.gaugeBorderShadowWidth),
+            valueBox: i.data.gaugeValueBox,
+            valueBoxStroke: typeof i.data.gaugeValueBoxStroke == "number" ? i.data.gaugeValueBoxStroke : Number(i.data.gaugeValueBoxStroke),
+            valueBoxWidth: typeof i.data.gaugeValueBoxWidth == "number" ? i.data.gaugeValueBoxWidth : Number(i.data.gaugeValueBoxWidth),
+            valueText: i.data.gaugeValueText || "",
+            valueTextShadow: i.data.gaugeValueTextShadow,
+            valueBoxBorderRadius: typeof i.data.gaugeValueBoxBorderRadius == "number" ? i.data.gaugeValueBoxBorderRadius : Number(i.data.gaugeValueBoxBorderRadius),
+            valueInt: typeof i.data.gaugeValueInt == "number" ? i.data.gaugeValueInt : Number(i.data.gaugeValueInt),
+            valueDec: typeof i.data.gaugeValueDec == "number" ? i.data.gaugeValueDec : Number(i.data.gaugeValueDec),
+            fontNumbers: i.data.gaugeFontNumbers || "Arial, Helvetica, sans-serif",
+            fontTitle: i.data.gaugeFontTitle || "Arial, Helvetica, sans-serif",
+            fontUnits: i.data.gaugeFontUnits || "Arial, Helvetica, sans-serif",
+            fontValue: i.data.gaugeFontValue || "Arial, Helvetica, sans-serif",
+            fontNumbersSize: typeof i.data.gaugeFontNumbersSize == "number" ? i.data.gaugeFontNumbersSize : Number(i.data.gaugeFontNumbersSize),
+            fontTitleSize: typeof i.data.gaugeFontTitleSize == "number" ? i.data.gaugeFontTitleSize : Number(i.data.gaugeFontTitleSize),
+            fontUnitsSize: typeof i.data.gaugeFontUnitsSize == "number" ? i.data.gaugeFontUnitsSize : Number(i.data.gaugeFontUnitsSize),
+            fontValueSize: typeof i.data.gaugeFontValueSize == "number" ? i.data.gaugeFontValueSize : Number(i.data.gaugeFontValueSize),
+            fontNumbersStyle: i.data.gaugeFontNumbersStyle || "normal",
+            fontTitleStyle: i.data.gaugeFontTitleStyle || "normal",
+            fontUnitsStyle: i.data.gaugeFontUnitsStyle || "normal",
+            fontValueStyle: i.data.gaugeFontValueStyle || "normal",
+            fontNumbersWeight: i.data.gaugeFontNumbersWeight || "normal",
+            fontTitleWeight: i.data.gaugeFontTitleWeight || "normal",
+            fontUnitsWeight: i.data.gaugeFontUnitsWeight || "normal",
+            fontValueWeight: i.data.gaugeFontValueWeight || "normal",
+            borderRadius: typeof i.data.gaugeBorderRadius == "number" ? i.data.gaugeBorderRadius : Number(i.data.gaugeBorderRadius),
+            barBeginCircle: typeof i.data.gaugeBarBeginCircle == "number" && i.data.gaugeBarBeginCircle < 12 ? 30 : Number(i.data.gaugeBarBeginCircle),
+            barLength: typeof i.data.gaugeBarLength == "number" ? i.data.gaugeBarLength : Number(i.data.gaugeBarLength),
+            colorBarEnd: i.data.gaugeColorBarEnd || "",
+            colorBarProgressEnd: i.data.gaugeColorBarProgressEnd || "",
+            tickSide: i.data.gaugeTickSide || "both",
+            needleSide: i.data.gaugeNeedleSide || "both",
+            numberSide: i.data.gaugeNumberSide || "both",
+            ticksWidth: typeof i.data.gaugeTicksWidth == "number" ? i.data.gaugeTicksWidth : Number(i.data.gaugeTicksWidth),
+            ticksWidthMinor: typeof i.data.gaugeTicksWidthMinor == "number" ? i.data.gaugeTicksWidthMinor : Number(i.data.gaugeTicksWidthMinor),
+            ticksPadding: typeof i.data.gaugeTicksPadding == "number" ? i.data.gaugeTicksPadding : Number(i.data.gaugeTicksPadding),
+            ticksAngle: typeof i.data.gaugeTicksAngle == "number" ? i.data.gaugeTicksAngle : Number(i.data.gaugeTicksAngle),
+            startAngle: typeof i.data.gaugeStartAngle == "number" ? i.data.gaugeStartAngle : Number(i.data.gaugeStartAngle),
+            colorNeedleCircleOuter: i.data.gaugeColorNeedleCircleOuter || "#f0f0f0",
+            colorNeedleCircleOuterEnd: i.data.gaugeColorNeedleCircleOuterEnd || "#ccc",
+            colorNeedleCircleInner: i.data.gaugeColorNeedleCircleInner || "#e8e8e8",
+            colorNeedleCircleInnerEnd: i.data.gaugeColorNeedleCircleInnerEnd || "#f5f5f5",
+            colorNeedleCircleShadowUp: i.data.gaugeColorNeedleCircleShadowUp || "rgba(2,255,255,0.2)",
+            needleCircleSize: typeof i.data.gaugeNeedleCircleSize == "number" ? i.data.gaugeNeedleCircleSize : Number(i.data.gaugeNeedleCircleSize),
+            needleCircleInner: i.data.gaugeNeedleCircleInner,
+            needleCircleOuter: i.data.gaugeNeedleCircleOuter,
+            animationTarget: i.data.gaugeAnimationTarget || "needle",
+            useMinPath: i.data.gaugeUseMinPath
           })
         })
       ]
     });
   }
-  ea = class extends Wa {
+  Qe = class extends Wa {
     static getWidgetInfo() {
       return {
         id: "tplGaugeCollectionWidget",
@@ -2780,7 +2775,7 @@ let __tla = Promise.all([
               ...Ma([
                 "number"
               ]),
-              ...ja()
+              ...Aa()
             ]
           },
           {
@@ -2805,7 +2800,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return ea.getWidgetInfo();
+      return Qe.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -2814,17 +2809,17 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(x, E) {
+    onStateUpdated(w, I) {
     }
     componentDidMount() {
       super.componentDidMount(), this.propertiesUpdate();
     }
-    renderWidgetBody(x) {
-      super.renderWidgetBody(x);
-      const E = {
-        id: x.id,
-        refService: x.refService,
-        style: x.style,
+    renderWidgetBody(w) {
+      super.renderWidgetBody(w);
+      const I = {
+        id: w.id,
+        refService: w.refService,
+        style: w.style,
         widget: {
           data: this.state.rxData,
           style: this.state.rxStyle
@@ -2839,11 +2834,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return x.widget.data.noCard || x.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Oa(this.wrapContent(M.jsx(Ia, {})), E);
+      return w.widget.data.noCard || w.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, Oa(this.wrapContent(M.jsx(Ia, {})), I);
     }
   };
 });
 export {
   __tla,
-  ea as default
+  Qe as default
 };

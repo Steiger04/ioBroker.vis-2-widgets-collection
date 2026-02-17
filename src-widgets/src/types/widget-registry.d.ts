@@ -122,6 +122,12 @@ export interface WidgetFieldMappings {
      * Fields: base (30) + common (30) + commonObject (15) + light2 (24) + delay (2) = ~101 properties
      */
     tplLight2CollectionWidget: ['base', 'common', 'commonObject', 'light2', 'delay'];
+
+    /**
+     * JSON Table Widget - Dynamic table display from JSON state values
+     * Fields: base (30) + common (30) + commonObject (15) + jsonTable (~25) = ~100 properties
+     */
+    tplJsonTableCollectionWidget: ['base', 'common', 'commonObject', 'jsonTable'];
 }
 
 /**

@@ -13,6 +13,7 @@ import type { SelectFieldsRxData } from './select-fields';
 import type { RadioGroupFieldsRxData } from './radio-group-fields';
 import type { ButtonGroupFieldsRxData } from './button-group-fields';
 import type { Light2FieldsRxData } from './light2-fields';
+import type { JsonTableFieldsRxData } from './json-table-fields';
 
 /**
  * Registry of all available field definitions for vis-2 Collection widgets.
@@ -118,6 +119,9 @@ export interface FieldDefinitions {
 
     /** Light2-specific field types (RGB/HSV/CCT color control) */
     light2: Light2FieldsRxData;
+
+    /** JSON Table field types (DataGrid layout, pagination, styling) */
+    jsonTable: JsonTableFieldsRxData;
 }
 
 /**
@@ -154,3 +158,4 @@ export type * from './select-fields';
 export type * from './radio-group-fields';
 export type * from './button-group-fields';
 export type * from './light2-fields';
+export type * from './json-table-fields';
