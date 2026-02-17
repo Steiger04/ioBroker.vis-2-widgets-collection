@@ -165,10 +165,6 @@ function JsonTableColumnEditorModal({
                     };
                 });
 
-                // Only mark as changed if new columns were added
-                if (merged.length !== prev.length) {
-                    setHasChanges(true);
-                }
                 return merged;
             });
         } catch {
@@ -200,18 +196,12 @@ function JsonTableColumnEditorModal({
         onClose();
     }, [editedColumns, onSave, onClose]);
 
-    // Handle close with unsaved changes check
+    // Handle close — discard changes silently and close
     const handleClose = useCallback(
         (_event?: object, reason?: string) => {
             // Prevent close on backdrop click when there are unsaved changes
             if (reason === 'backdropClick' && hasChanges) {
                 return;
-            }
-            if (hasChanges) {
-                // Simple confirmation - could be replaced with a proper dialog
-                if (!window.confirm(Generic.t('json_table_unsaved_changes'))) {
-                    return;
-                }
             }
             onClose();
         },

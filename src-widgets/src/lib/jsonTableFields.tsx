@@ -9,6 +9,7 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/json-table-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
+import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnEditor';
 
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
@@ -156,13 +157,34 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
     },
     {
         name: 'tableHeaderBgColor',
-        type: 'color',
         label: 'json_table_header_bg_color',
+        default: '',
+        type: 'custom',
+        fallbackFields: [],
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
     {
         name: 'tableHeaderTextColor',
-        type: 'color',
         label: 'json_table_header_text_color',
+        default: '',
+        type: 'custom',
+        fallbackFields: [],
+        noGradient: true,
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
     {
         name: 'tableHeaderFontSize',
@@ -179,8 +201,18 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
     },
     {
         name: 'tableStripedColor',
-        type: 'color',
         label: 'json_table_striped_color',
+        default: '',
+        type: 'custom',
+        fallbackFields: [],
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
     {
         name: 'tableCellFontSize',

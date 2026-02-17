@@ -185,7 +185,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography
                             variant="subtitle2"
-                            sx={{ fontWeight: 'medium' }}
+                            sx={{ fontWeight: 500 }}
                         >
                             {Generic.t('json_table_section_basic')}
                         </Typography>
@@ -256,7 +256,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography
                             variant="subtitle2"
-                            sx={{ fontWeight: 'medium' }}
+                            sx={{ fontWeight: 500 }}
                         >
                             {Generic.t('json_table_section_formatting')}
                         </Typography>
@@ -269,7 +269,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <Typography
                                         variant="caption"
                                         color="text.secondary"
-                                        sx={{ fontWeight: 'medium' }}
+                                        sx={{ fontWeight: 500 }}
                                     >
                                         {Generic.t('json_table_number_format')}
                                     </Typography>
@@ -361,7 +361,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <Typography
                                         variant="caption"
                                         color="text.secondary"
-                                        sx={{ fontWeight: 'medium' }}
+                                        sx={{ fontWeight: 500 }}
                                     >
                                         {Generic.t('json_table_date_format')}
                                     </Typography>
@@ -427,7 +427,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <Typography
                                         variant="caption"
                                         color="text.secondary"
-                                        sx={{ fontWeight: 'medium' }}
+                                        sx={{ fontWeight: 500 }}
                                     >
                                         {Generic.t('json_table_boolean_format')}
                                     </Typography>
@@ -514,7 +514,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography
                                 variant="subtitle2"
-                                sx={{ fontWeight: 'medium' }}
+                                sx={{ fontWeight: 500 }}
                             >
                                 {Generic.t('json_table_section_styling')}
                             </Typography>
@@ -551,7 +551,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                             >
                                                 <Typography
                                                     variant="caption"
-                                                    sx={{ fontWeight: 'medium' }}
+                                                    sx={{ fontWeight: 500 }}
                                                 >
                                                     {Generic.t('json_table_rule')} {idx + 1}
                                                 </Typography>
@@ -755,7 +755,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography
                             variant="subtitle2"
-                            sx={{ fontWeight: 'medium' }}
+                            sx={{ fontWeight: 500 }}
                         >
                             {Generic.t('json_table_section_advanced')}
                         </Typography>
@@ -793,7 +793,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <Typography
                                         variant="caption"
                                         color="text.secondary"
-                                        sx={{ fontWeight: 'medium', display: 'block', mb: 1 }}
+                                        sx={{ fontWeight: 500, display: 'block', mb: 1 }}
                                     >
                                         {Generic.t('json_table_analysis_info')}
                                     </Typography>

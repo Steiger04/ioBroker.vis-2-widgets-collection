@@ -17,10 +17,76 @@ import commonObjectFields from '../lib/commonObjectFields';
 import jsonTableFields from '../lib/jsonTableFields';
 import JsonTableCollection from './JsonTableCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
+import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { JsonTableCollectionContextProps, WidgetRegistry } from '../types';
 
+/** All JSON-table-specific data field names that should be cleared on OID deletion. */
+const JSON_TABLE_DATA_FIELDS = [
+    'columnConfig',
+    'tableDensity',
+    'tableRowHeight',
+    'tableHeaderHeight',
+    'tableAutoSize',
+    'tablePagination',
+    'tablePageSize',
+    'tablePageSizeOptions',
+    'tableSorting',
+    'tableFiltering',
+    'tableQuickFilter',
+    'tableColumnMenu',
+    'tableHideFooter',
+    'tableRowSelection',
+    'tableShowCellBorders',
+    'tableShowRowBorders',
+    'tableHeaderBgColor',
+    'tableHeaderTextColor',
+    'tableHeaderFontSize',
+    'tableStripedColor',
+    'tableCellFontSize',
+    'tableMaxDepth',
+];
+
 class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableCollectionWidget']> {
+    /**
+     * Creates OID fields with a wrapped onChange that clears JSON-table-specific
+     * data when the OID is deleted.
+     */
+    private static createObjectFields(): RxWidgetInfoAttributesField[] {
+        const fields = commonObjectFields(['string']);
+        const oidField = fields.find(f => f.name === 'oid');
+
+        if (oidField) {
+            const oidFieldAny = oidField as Record<string, unknown>;
+            const originalOnChange = oidFieldAny.onChange as
+                | ((
+                      field: RxWidgetInfoAttributesField,
+                      data: WidgetData,
+                      changeData: (newData: WidgetData) => void,
+                      socket: LegacyConnection,
+                  ) => Promise<void>)
+                | undefined;
+            oidFieldAny.onChange = async (
+                field: RxWidgetInfoAttributesField,
+                data: WidgetData,
+                changeData: (newData: WidgetData) => void,
+                socket: LegacyConnection,
+            ): Promise<void> => {
+                if (!data.oid) {
+                    // Clear all JSON-table-specific fields when OID is removed
+                    for (const key of JSON_TABLE_DATA_FIELDS) {
+                        delete data[key];
+                    }
+                }
+                if (originalOnChange) {
+                    await originalOnChange(field, data, changeData, socket);
+                }
+            };
+        }
+
+        return fields;
+    }
+
     static getWidgetInfo(): RxWidgetInfo {
         return {
             id: 'tplJsonTableCollectionWidget',
@@ -37,7 +103,10 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
                 {
                     name: 'jsonTable',
                     label: 'group_json_table',
-                    fields: [...commonObjectFields(['string']), ...jsonTableFields()] as RxWidgetInfoAttributesField[],
+                    fields: [
+                        ...JsonTableCollectionWidget.createObjectFields(),
+                        ...jsonTableFields(),
+                    ] as RxWidgetInfoAttributesField[],
                 },
                 {
                     name: 'values',
