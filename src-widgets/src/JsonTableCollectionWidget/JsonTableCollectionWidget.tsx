@@ -35,7 +35,6 @@ const JSON_TABLE_DATA_FIELDS = [
     'tableFiltering',
     'tableQuickFilter',
     'tableColumnMenu',
-    'tableHideFooter',
     'tableRowSelection',
     'tableShowCellBorders',
     'tableShowRowBorders',
@@ -152,6 +151,12 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 
+        if (props.widget.data.noCard || props.widget.usedInWidget) {
+            this.wrappedCollectionContent = false;
+        } else {
+            this.wrappedCollectionContent = true;
+        }
+
         const collectionContext = {
             id: props.id,
             refService: props.refService,
@@ -171,12 +176,6 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
 
             wrappedContent: this.wrappedCollectionContent,
         } as JsonTableCollectionContextProps;
-
-        if (props.widget.data.noCard || props.widget.usedInWidget) {
-            this.wrappedCollectionContent = false;
-        } else {
-            this.wrappedCollectionContent = true;
-        }
 
         return withCollectionProvider(this.wrapContent(<JsonTableCollection />), collectionContext);
     }

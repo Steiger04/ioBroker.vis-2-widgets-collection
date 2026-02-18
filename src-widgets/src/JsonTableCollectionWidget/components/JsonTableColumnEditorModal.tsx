@@ -13,6 +13,7 @@
  */
 
 import {
+    Alert,
     Box,
     Button,
     Dialog,
@@ -20,6 +21,7 @@ import {
     DialogContent,
     DialogTitle,
     IconButton,
+    Snackbar,
     ThemeProvider,
     Typography,
 } from '@mui/material';
@@ -83,6 +85,8 @@ function JsonTableColumnEditorModal({
     const [discoveredColumns, setDiscoveredColumns] = useState<JsonTableColumn[]>([]);
     // Loading state for refresh operations
     const [loading, setLoading] = useState(false);
+    // Whether to show unsaved-changes warning snackbar
+    const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
     // Ref to track if initial discovery has been done for this open
     const initialDiscoveryDone = useRef(false);
@@ -90,10 +94,14 @@ function JsonTableColumnEditorModal({
     // Ref to hold the latest discoverColumns, so the effect doesn't need it as a dependency
     const discoverColumnsRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
+    // Ref to hold the latest editedColumns for use in discoverColumns without dependency issues
+    const editedColumnsRef = useRef<ColumnConfigEntry[]>(columns);
+
     // Reset state when dialog opens with fresh data
     useEffect(() => {
         if (open) {
             setEditedColumns(columns);
+            editedColumnsRef.current = columns;
             setHasChanges(false);
             setSelectedPath(columns.length > 0 ? columns[0].path : null);
             initialDiscoveryDone.current = false;
@@ -119,7 +127,7 @@ function JsonTableColumnEditorModal({
             }
 
             const state = await socket.getState(oid);
-            if (!state?.val) {
+            if (state?.val === null || state?.val === undefined) {
                 setLoading(false);
                 return;
             }
@@ -151,28 +159,38 @@ function JsonTableColumnEditorModal({
             setDiscoveredColumns(result.columns);
 
             // Merge with existing config: preserve user edits, add newly discovered columns
-            setEditedColumns(prev => {
-                const existingMap = new Map(prev.map(c => [c.path, c]));
-                const merged: ColumnConfigEntry[] = result.columns.map(col => {
-                    const existing = existingMap.get(col.path);
-                    if (existing) {
-                        return existing;
-                    }
-                    return {
-                        path: col.path,
-                        visible: true,
-                        headerName: col.path.split('.').pop() || col.path,
-                    };
-                });
-
-                return merged;
+            const existingMap = new Map(editedColumnsRef.current.map(c => [c.path, c]));
+            const merged: ColumnConfigEntry[] = result.columns.map(col => {
+                const existing = existingMap.get(col.path);
+                if (existing) {
+                    return existing;
+                }
+                return {
+                    path: col.path,
+                    visible: true,
+                    headerName: col.path.split('.').pop() || col.path,
+                };
             });
+
+            const hasNewColumns =
+                merged.length !== editedColumnsRef.current.length || merged.some(c => !existingMap.has(c.path));
+
+            setEditedColumns(merged);
+            editedColumnsRef.current = merged;
+            if (hasNewColumns) {
+                setHasChanges(true);
+            }
+
+            // Auto-select first column if none selected yet
+            if (!selectedPath && merged.length > 0) {
+                setSelectedPath(merged[0].path);
+            }
         } catch {
             // Silently handle errors during discovery
         } finally {
             setLoading(false);
         }
-    }, [data, socket]);
+    }, [data, socket, selectedPath]);
 
     // Keep ref in sync with the latest discoverColumns callback
     discoverColumnsRef.current = discoverColumns;
@@ -180,12 +198,14 @@ function JsonTableColumnEditorModal({
     // Update a column in the edited list
     const handleColumnChange = useCallback((updated: ColumnConfigEntry) => {
         setEditedColumns(prev => prev.map(c => (c.path === updated.path ? updated : c)));
+        editedColumnsRef.current = editedColumnsRef.current.map(c => (c.path === updated.path ? updated : c));
         setHasChanges(true);
     }, []);
 
     // Handle list-level changes (bulk visibility, etc.)
     const handleListChange = useCallback((updatedColumns: ColumnConfigEntry[]) => {
         setEditedColumns(updatedColumns);
+        editedColumnsRef.current = updatedColumns;
         setHasChanges(true);
     }, []);
 
@@ -201,6 +221,7 @@ function JsonTableColumnEditorModal({
         (_event?: object, reason?: string) => {
             // Prevent close on backdrop click when there are unsaved changes
             if (reason === 'backdropClick' && hasChanges) {
+                setShowUnsavedWarning(true);
                 return;
             }
             onClose();
@@ -320,6 +341,19 @@ function JsonTableColumnEditorModal({
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar
+                open={showUnsavedWarning}
+                autoHideDuration={3000}
+                onClose={() => setShowUnsavedWarning(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    severity="warning"
+                    onClose={() => setShowUnsavedWarning(false)}
+                >
+                    {Generic.t('json_table_unsaved_changes')}
+                </Alert>
+            </Snackbar>
         </ThemeProvider>
     );
 }

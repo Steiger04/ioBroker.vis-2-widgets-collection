@@ -8,8 +8,15 @@
  */
 
 import { Box, Typography } from '@mui/material';
-import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
-import { useCallback, useContext, useMemo } from 'react';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarQuickFilter,
+    type GridColDef,
+    type GridRenderCellParams,
+    type GridToolbarQuickFilterProps,
+} from '@mui/x-data-grid';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
@@ -50,14 +57,27 @@ function toSortableTime(value: unknown): number {
         return 0;
     }
     if (typeof value === 'number') {
-        // Detect seconds vs milliseconds (timestamps before year 5000 in ms are > 1e11)
-        return value > 1e11 ? value : value * 1000;
+        // Detect seconds vs milliseconds: epoch-ms >= 1e12, epoch-s >= 1e9 (consistent with typeDetector)
+        return value >= 1e12 ? value : value * 1000;
     }
     if (typeof value === 'string') {
         const d = new Date(value);
         return isNaN(d.getTime()) ? 0 : d.getTime();
     }
     return 0;
+}
+
+/**
+ * Quick-filter toolbar for the DataGrid.
+ * Defined at module level to keep a stable reference across renders.
+ * Accepts optional `quickFilterProps` forwarded via `slotProps.toolbar`.
+ */
+function QuickFilterToolbar(props: { quickFilterProps?: GridToolbarQuickFilterProps }): React.JSX.Element {
+    return (
+        <GridToolbarContainer>
+            <GridToolbarQuickFilter {...props.quickFilterProps} />
+        </GridToolbarContainer>
+    );
 }
 
 /**
@@ -273,6 +293,17 @@ const JsonTableCollection: FC = () => {
         defaultRenderCell,
     ]);
 
+    // Controlled pagination model — reacts immediately to tablePageSize changes
+    const configuredPageSize = Number(widget.data.tablePageSize) || 25;
+    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: configuredPageSize });
+
+    // Reset page to 0 and apply new page size when config changes
+    useEffect(() => {
+        setPaginationModel(prev =>
+            prev.pageSize === configuredPageSize ? prev : { page: 0, pageSize: configuredPageSize },
+        );
+    }, [configuredPageSize]);
+
     // Build DataGrid rows with an auto-generated unique id
     const gridRows = useMemo(
         () =>
@@ -335,13 +366,10 @@ const JsonTableCollection: FC = () => {
             };
         }
 
-        // Cell borders
-        if (widget.data.tableShowCellBorders) {
-            sx['& .MuiDataGrid-cell'] = {
-                ...(sx['& .MuiDataGrid-cell'] as Record<string, unknown>),
-                borderRight: '1px solid',
-                borderColor: 'divider',
-            };
+        // Row borders — DataGrid v7 uses borderTop via --DataGrid-rowBorderColor CSS variable.
+        // Setting it to transparent on the root hides all horizontal row separators.
+        if (widget.data.tableShowRowBorders === false) {
+            sx['--DataGrid-rowBorderColor'] = 'transparent';
         }
 
         return sx;
@@ -351,7 +379,7 @@ const JsonTableCollection: FC = () => {
         widget.data.tableHeaderFontSize,
         widget.data.tableCellFontSize,
         widget.data.tableStripedColor,
-        widget.data.tableShowCellBorders,
+        widget.data.tableShowRowBorders,
     ]);
 
     return (
@@ -374,29 +402,36 @@ const JsonTableCollection: FC = () => {
                     }}
                 >
                     <DataGrid
+                        key={`grid-${widget.data.tableAutoSize}`}
                         rows={gridRows}
                         columns={gridColumns}
                         density={widget.data.tableDensity || 'standard'}
-                        rowHeight={widget.data.tableRowHeight || undefined}
-                        columnHeaderHeight={widget.data.tableHeaderHeight || undefined}
+                        rowHeight={Number(widget.data.tableRowHeight) || undefined}
+                        columnHeaderHeight={Number(widget.data.tableHeaderHeight) || undefined}
                         pageSizeOptions={pageSizeOptions}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: widget.data.tablePageSize || 25,
-                                },
-                            },
-                        }}
-                        pagination={widget.data.tablePagination !== false || undefined}
+                        paginationModel={paginationModel}
+                        onPaginationModelChange={setPaginationModel}
+                        hideFooter={widget.data.tablePagination === false}
                         disableColumnSorting={widget.data.tableSorting === false}
                         disableColumnFilter={widget.data.tableFiltering !== true}
                         disableColumnMenu={widget.data.tableColumnMenu === false}
-                        hideFooter={widget.data.tableHideFooter === true}
                         checkboxSelection={widget.data.tableRowSelection === true}
                         disableRowSelectionOnClick
                         showCellVerticalBorder={widget.data.tableShowCellBorders === true}
                         showColumnVerticalBorder={widget.data.tableShowCellBorders === true}
                         autosizeOnMount={widget.data.tableAutoSize === true}
+                        slots={widget.data.tableQuickFilter === true ? { toolbar: QuickFilterToolbar } : {}}
+                        {...(widget.data.tableQuickFilter === true && {
+                            slotProps: {
+                                toolbar: {
+                                    quickFilterProps: {
+                                        debounceMs: 300,
+                                        variant: 'outlined' as const,
+                                        size: 'small' as const,
+                                    },
+                                },
+                            },
+                        })}
                         sx={dataGridSx}
                     />
                 </Box>

@@ -110,12 +110,6 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_column_menu',
         default: true,
     },
-    {
-        name: 'tableHideFooter',
-        type: 'checkbox',
-        label: 'json_table_hide_footer',
-        default: false,
-    },
 
     // ── Selection ───────────────────────────────────────────────────
     {
@@ -160,7 +154,6 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_header_bg_color',
         default: '',
         type: 'custom',
-        fallbackFields: [],
         component: (field, data, onDataChange, props) => (
             <CollectionGradientColorPicker
                 field={field}
@@ -175,11 +168,9 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_header_text_color',
         default: '',
         type: 'custom',
-        fallbackFields: [],
-        noGradient: true,
         component: (field, data, onDataChange, props) => (
             <CollectionGradientColorPicker
-                field={field}
+                field={{ ...field, noGradient: true } as any}
                 data={data}
                 onDataChange={onDataChange}
                 props={props}
@@ -204,7 +195,6 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_striped_color',
         default: '',
         type: 'custom',
-        fallbackFields: [],
         component: (field, data, onDataChange, props) => (
             <CollectionGradientColorPicker
                 field={field}

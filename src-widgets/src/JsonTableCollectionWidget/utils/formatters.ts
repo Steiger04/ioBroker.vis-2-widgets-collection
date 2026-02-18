@@ -112,7 +112,7 @@ export function formatDateValue(value: unknown, formatString?: string): string {
             date = new Date(value);
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
-            date = new Date(value > 1e11 ? value : value * 1000);
+            date = new Date(value >= 1e12 ? value : value * 1000);
         } else if (value instanceof Date) {
             date = value;
         } else {

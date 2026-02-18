@@ -47,9 +47,6 @@ export interface JsonTableFieldsRxData {
     /** Show column menu on header click. @default true */
     tableColumnMenu?: boolean;
 
-    /** Hide the footer row entirely. @default false */
-    tableHideFooter?: boolean;
-
     // ── Selection ───────────────────────────────────────────────────
 
     /** Enable row selection (checkbox column). @default false */
