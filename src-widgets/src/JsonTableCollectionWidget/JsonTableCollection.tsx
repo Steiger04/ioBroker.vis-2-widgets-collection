@@ -412,6 +412,13 @@ const JsonTableCollection: FC = () => {
             sx['--DataGrid-rowBorderColor'] = 'transparent';
         }
 
+        // Hide the column separator on the last header column.
+        // Note: :last-child won't work because DataGrid v7 appends a .MuiDataGrid-filler
+        // div after the last column header. Use the built-in --last class instead.
+        sx['& .MuiDataGrid-columnHeader--last .MuiDataGrid-columnSeparator'] = {
+            display: 'none',
+        };
+
         return sx;
     }, [
         widget.data.tableHeaderBgColor,
