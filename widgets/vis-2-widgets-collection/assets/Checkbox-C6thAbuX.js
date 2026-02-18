@@ -1,6 +1,6 @@
 import { v as m, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { c as v, j as a, a as B, g as M, u as w, b as O, aK as _, d as F, s as H, M as n, e as V, r as U, m as E, i as z, N as I, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
-import { S as N, __tla as __tla_2 } from "./SwitchBase-CsNUGlgO.js";
+import { c as v, j as a, a as B, g as M, u as O, b as w, aO as _, d as F, s as H, M as n, e as V, r as U, m as E, i as z, N as I, __tla as __tla_1 } from "./useData-D0DziYnO.js";
+import { S as N, __tla as __tla_2 } from "./SwitchBase-Dtx-wsaB.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -29,10 +29,10 @@ let __tla = Promise.all([
   }), "CheckBox"), D = v(a.jsx("path", {
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
-  function K(e) {
+  function W(e) {
     return M("MuiCheckbox", e);
   }
-  let h, W, q, A, G, J;
+  let h, q, A, G, J, K;
   h = B("MuiCheckbox", [
     "root",
     "checked",
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     "sizeSmall",
     "sizeMedium"
   ]);
-  W = (e) => {
+  q = (e) => {
     const { classes: o, indeterminate: t, color: s, size: c } = e, i = {
       root: [
         "root",
@@ -51,13 +51,13 @@ let __tla = Promise.all([
         `color${n(s)}`,
         `size${n(c)}`
       ]
-    }, l = V(i, K, o);
+    }, l = V(i, W, o);
     return {
       ...o,
       ...l
     };
   };
-  q = H(N, {
+  A = H(N, {
     shouldForwardProp: (e) => U(e) || e === "classes",
     name: "MuiCheckbox",
     slot: "Root",
@@ -122,22 +122,22 @@ let __tla = Promise.all([
       }
     ]
   })));
-  A = a.jsx(T, {});
-  G = a.jsx(L, {});
-  J = a.jsx(D, {});
+  G = a.jsx(T, {});
+  J = a.jsx(L, {});
+  K = a.jsx(D, {});
   Z = m.forwardRef(function(o, t) {
-    const s = w({
+    const s = O({
       props: o,
       name: "MuiCheckbox"
-    }), { checkedIcon: c = A, color: i = "primary", icon: l = G, indeterminate: r = false, indeterminateIcon: x = J, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
+    }), { checkedIcon: c = G, color: i = "primary", icon: l = J, indeterminate: r = false, indeterminateIcon: x = K, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
       ...s,
       disableRipple: C,
       color: i,
       indeterminate: r,
       size: p
-    }, y = W(d), u = k.input ?? P, [$, R] = O("root", {
+    }, y = q(d), u = k.input ?? P, [$, R] = w("root", {
       ref: t,
-      elementType: q,
+      elementType: A,
       className: F(y.root, g),
       shouldForwardComponentProp: true,
       externalForwardedProps: {

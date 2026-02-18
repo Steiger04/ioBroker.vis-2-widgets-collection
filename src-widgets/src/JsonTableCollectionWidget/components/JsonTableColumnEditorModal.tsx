@@ -158,19 +158,23 @@ function JsonTableColumnEditorModal({
             // Store discovered column metadata
             setDiscoveredColumns(result.columns);
 
-            // Merge with existing config: preserve user edits, add newly discovered columns
+            // Merge with existing config: preserve user's saved order, append newly discovered columns
             const existingMap = new Map(editedColumnsRef.current.map(c => [c.path, c]));
-            const merged: ColumnConfigEntry[] = result.columns.map(col => {
-                const existing = existingMap.get(col.path);
-                if (existing) {
-                    return existing;
-                }
-                return {
+            const discoveredSet = new Set(result.columns.map(c => c.path));
+
+            // Keep saved columns that still exist in the data (in their saved order)
+            const preserved = editedColumnsRef.current.filter(c => discoveredSet.has(c.path));
+
+            // Append any newly discovered columns not yet in the saved config
+            const newColumns: ColumnConfigEntry[] = result.columns
+                .filter(col => !existingMap.has(col.path))
+                .map(col => ({
                     path: col.path,
                     visible: true,
                     headerName: col.path.split('.').pop() || col.path,
-                };
-            });
+                }));
+
+            const merged = [...preserved, ...newColumns];
 
             const hasNewColumns =
                 merged.length !== editedColumnsRef.current.length || merged.some(c => !existingMap.has(c.path));

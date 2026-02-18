@@ -1,6 +1,6 @@
-import { aN as R, K as V, aO as _, aP as b, j as D, d as B, aQ as v, aR as u, aS as F, aT as M, aU as N, e as O, g as U, aV as E, aW as h, s as G, u as $, __tla as __tla_0 } from "./useData-Dh4nd_La.js";
+import { aR as R, K as V, aS as _, aT as b, j as D, d as B, aU as v, aV as u, aW as F, aX as M, aY as U, e as E, g as G, aZ as N, a_ as h, s as O, u as $, __tla as __tla_0 } from "./useData-D0DziYnO.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-let Z, W, A;
+let Q, W, A;
 let __tla = Promise.all([
   (() => {
     try {
@@ -28,30 +28,30 @@ let __tla = Promise.all([
       props: e
     });
   }
-  const L = E(), Q = A("div", {
+  const L = N(), X = A("div", {
     name: "MuiStack",
     slot: "Root",
     overridesResolver: (e, s) => s.root
   });
-  function q(e) {
+  function Y(e) {
     return K({
       props: e,
       name: "MuiStack",
       defaultTheme: L
     });
   }
-  function z(e, s) {
+  function Z(e, s) {
     const o = p.Children.toArray(e).filter(Boolean);
     return o.reduce((t, n, a) => (t.push(n), a < o.length - 1 && t.push(p.cloneElement(s, {
       key: `separator-${a}`
     })), t), []);
   }
-  const H = (e) => ({
+  const q = (e) => ({
     row: "Left",
     "row-reverse": "Right",
     column: "Top",
     "column-reverse": "Bottom"
-  })[e], I = ({ ownerState: e, theme: s }) => {
+  })[e], z = ({ ownerState: e, theme: s }) => {
     let o = {
       display: "flex",
       flexDirection: "column",
@@ -86,18 +86,18 @@ let __tla = Promise.all([
           margin: 0
         },
         "& > :not(style) ~ :not(style)": {
-          [`margin${H(c ? a[c] : e.direction)}`]: h(t, r)
+          [`margin${q(c ? a[c] : e.direction)}`]: h(t, r)
         }
       }));
     }
-    return o = N(s.breakpoints, o), o;
+    return o = U(s.breakpoints, o), o;
   };
-  function J(e = {}) {
-    const { createStyledComponent: s = Q, useThemeProps: o = q, componentName: t = "MuiStack" } = e, n = () => O({
+  function H(e = {}) {
+    const { createStyledComponent: s = X, useThemeProps: o = Y, componentName: t = "MuiStack" } = e, n = () => E({
       root: [
         "root"
       ]
-    }, (r) => U(t, r), {}), a = s(I);
+    }, (r) => G(t, r), {}), a = s(z);
     return p.forwardRef(function(r, c) {
       const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, T = {
         direction: k,
@@ -110,12 +110,12 @@ let __tla = Promise.all([
         ref: c,
         className: B(j.root, S),
         ...C,
-        children: y ? z(g, y) : g
+        children: y ? Z(g, y) : g
       });
     });
   }
-  Z = J({
-    createStyledComponent: G("div", {
+  Q = H({
+    createStyledComponent: O("div", {
       name: "MuiStack",
       slot: "Root",
       overridesResolver: (e, s) => s.root
@@ -127,7 +127,7 @@ let __tla = Promise.all([
   });
 });
 export {
-  Z as S,
+  Q as S,
   __tla,
   W as g,
   A as s

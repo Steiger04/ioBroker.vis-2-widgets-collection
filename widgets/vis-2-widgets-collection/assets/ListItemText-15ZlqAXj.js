@@ -1,7 +1,7 @@
 import { v as c, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as z, g as H, u as $, $ as xo, P as V, aE as G, a3 as ho, b as m, d as v, s as x, j as n, M as S, e as R, R as bo, aF as fo, m as q, T as k, L as vo, aG as K, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
-import { g as So, l as M, __tla as __tla_2 } from "./listItemTextClasses-DZA6NAVK.js";
-let Ao, Xo, Eo, Yo;
+import { a as E, g as H, u as $, $ as xo, P as V, aJ as O, a4 as ho, b as m, d as v, s as x, j as n, M as S, e as R, R as bo, aK as fo, m as q, T as k, L as vo, aL as J, __tla as __tla_1 } from "./useData-D0DziYnO.js";
+import { g as So, l as M, __tla as __tla_2 } from "./listItemTextClasses-B7Lc3IpC.js";
+let Ao, zo, Xo, Yo;
 let __tla = Promise.all([
   (() => {
     try {
@@ -25,8 +25,8 @@ let __tla = Promise.all([
   function Co(e) {
     return H("MuiDialog", e);
   }
-  let X, J, Po, ko, To, Do, wo;
-  X = z("MuiDialog", [
+  let z, G, Po, ko, To, Do, wo;
+  z = E("MuiDialog", [
     "root",
     "scrollPaper",
     "scrollBody",
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     "paperFullWidth",
     "paperFullScreen"
   ]);
-  J = c.createContext({});
+  G = c.createContext({});
   Po = x(fo, {
     name: "MuiDialog",
     slot: "Backdrop",
@@ -179,7 +179,7 @@ let __tla = Promise.all([
         },
         style: {
           maxWidth: e.breakpoints.unit === "px" ? Math.max(e.breakpoints.values.xs, 444) : `max(${e.breakpoints.values.xs}${e.breakpoints.unit}, 444px)`,
-          [`&.${X.paperScrollBody}`]: {
+          [`&.${z.paperScrollBody}`]: {
             [e.breakpoints.down(Math.max(e.breakpoints.values.xs, 444) + 64)]: {
               maxWidth: "calc(100% - 64px)"
             }
@@ -192,7 +192,7 @@ let __tla = Promise.all([
         },
         style: {
           maxWidth: `${e.breakpoints.values[o]}${e.breakpoints.unit}`,
-          [`&.${X.paperScrollBody}`]: {
+          [`&.${z.paperScrollBody}`]: {
             [e.breakpoints.down(e.breakpoints.values[o] + 64)]: {
               maxWidth: "calc(100% - 64px)"
             }
@@ -214,7 +214,7 @@ let __tla = Promise.all([
           height: "100%",
           maxHeight: "none",
           borderRadius: 0,
-          [`&.${X.paperScrollBody}`]: {
+          [`&.${z.paperScrollBody}`]: {
             margin: 0,
             maxWidth: "100%"
           }
@@ -229,7 +229,7 @@ let __tla = Promise.all([
     }), a = xo(), s = {
       enter: a.transitions.duration.enteringScreen,
       exit: a.transitions.duration.leavingScreen
-    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": d = true, BackdropComponent: C, BackdropProps: B, children: F, className: j, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: D = false, maxWidth: u = "sm", onBackdropClick: p, onClick: y, onClose: g, open: h, PaperComponent: N = V, PaperProps: w = {}, scroll: I = "paper", slots: W = {}, slotProps: U = {}, TransitionComponent: _ = G, transitionDuration: O = s, TransitionProps: Q, ...Z } = r, b = {
+    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": d = true, BackdropComponent: C, BackdropProps: B, children: j, className: F, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: D = false, maxWidth: u = "sm", onBackdropClick: p, onClick: y, onClose: g, open: h, PaperComponent: N = V, PaperProps: w = {}, scroll: I = "paper", slots: W = {}, slotProps: U = {}, TransitionComponent: _ = O, transitionDuration: K = s, TransitionProps: Q, ...Z } = r, b = {
       ...r,
       disableEscapeKeyDown: T,
       fullScreen: L,
@@ -240,10 +240,10 @@ let __tla = Promise.all([
       Y.current = f.target === f.currentTarget;
     }, eo = (f) => {
       y && y(f), Y.current && (Y.current = null, p && p(f), g && g(f, "backdropClick"));
-    }, E = ho(l), to = c.useMemo(() => ({
-      titleId: E
+    }, X = ho(l), to = c.useMemo(() => ({
+      titleId: X
     }), [
-      E
+      X
     ]), ro = {
       transition: _,
       ...W
@@ -260,7 +260,7 @@ let __tla = Promise.all([
       shouldForwardComponentProp: true,
       externalForwardedProps: P,
       ownerState: b,
-      className: v(A.root, j),
+      className: v(A.root, F),
       ref: t
     }), [no, lo] = m("backdrop", {
       elementType: Po,
@@ -279,13 +279,13 @@ let __tla = Promise.all([
       ownerState: b,
       className: v(A.container)
     }), [yo, go] = m("transition", {
-      elementType: G,
+      elementType: O,
       externalForwardedProps: P,
       ownerState: b,
       additionalProps: {
         appear: true,
         in: h,
-        timeout: O,
+        timeout: K,
         role: "presentation"
       }
     });
@@ -296,7 +296,7 @@ let __tla = Promise.all([
       },
       slotProps: {
         backdrop: {
-          transitionDuration: O,
+          transitionDuration: K,
           as: C,
           ...lo
         }
@@ -317,12 +317,12 @@ let __tla = Promise.all([
             elevation: 24,
             role: "dialog",
             "aria-describedby": i,
-            "aria-labelledby": E,
+            "aria-labelledby": X,
             "aria-modal": d,
             ...co,
-            children: n.jsx(J.Provider, {
+            children: n.jsx(G.Provider, {
               value: to,
-              children: F
+              children: j
             })
           })
         })
@@ -332,15 +332,15 @@ let __tla = Promise.all([
   function Wo(e) {
     return H("MuiDialogContent", e);
   }
-  z("MuiDialogContent", [
+  E("MuiDialogContent", [
     "root",
     "dividers"
   ]);
   function Mo(e) {
     return H("MuiDialogTitle", e);
   }
-  let $o, Ro, Bo, Fo, jo, Lo, No;
-  $o = z("MuiDialogTitle", [
+  let $o, Ro, Bo, jo, Fo, Lo, No;
+  $o = E("MuiDialogTitle", [
     "root"
   ]);
   Ro = (e) => {
@@ -401,7 +401,7 @@ let __tla = Promise.all([
       ...i
     });
   });
-  Fo = (e) => {
+  jo = (e) => {
     const { classes: o } = e;
     return R({
       root: [
@@ -409,7 +409,7 @@ let __tla = Promise.all([
       ]
     }, Mo, o);
   };
-  jo = x(k, {
+  Fo = x(k, {
     name: "MuiDialogTitle",
     slot: "Root",
     overridesResolver: (e, o) => o.root
@@ -417,12 +417,12 @@ let __tla = Promise.all([
     padding: "16px 24px",
     flex: "0 0 auto"
   });
-  Eo = c.forwardRef(function(o, t) {
+  Xo = c.forwardRef(function(o, t) {
     const r = $({
       props: o,
       name: "MuiDialogTitle"
-    }), { className: a, id: s, ...i } = r, l = r, d = Fo(l), { titleId: C = s } = c.useContext(J);
-    return n.jsx(jo, {
+    }), { className: a, id: s, ...i } = r, l = r, d = jo(l), { titleId: C = s } = c.useContext(G);
+    return n.jsx(Fo, {
       component: "h2",
       className: v(d.root, a),
       ownerState: l,
@@ -472,10 +472,10 @@ let __tla = Promise.all([
     minWidth: 0,
     marginTop: 4,
     marginBottom: 4,
-    [`.${K.root}:where(& .${M.primary})`]: {
+    [`.${J.root}:where(& .${M.primary})`]: {
       display: "block"
     },
-    [`.${K.root}:where(& .${M.secondary})`]: {
+    [`.${J.root}:where(& .${M.secondary})`]: {
       display: "block"
     },
     variants: [
@@ -494,11 +494,11 @@ let __tla = Promise.all([
       }
     ]
   });
-  Xo = c.forwardRef(function(o, t) {
+  zo = c.forwardRef(function(o, t) {
     const r = $({
       props: o,
       name: "MuiListItemText"
-    }), { children: a, className: s, disableTypography: i = false, inset: l = false, primary: d, primaryTypographyProps: C, secondary: B, secondaryTypographyProps: F, slots: j = {}, slotProps: T = {}, ...L } = r, { dense: D } = c.useContext(vo);
+    }), { children: a, className: s, disableTypography: i = false, inset: l = false, primary: d, primaryTypographyProps: C, secondary: B, secondaryTypographyProps: j, slots: F = {}, slotProps: T = {}, ...L } = r, { dense: D } = c.useContext(vo);
     let u = d ?? a, p = B;
     const y = {
       ...r,
@@ -508,10 +508,10 @@ let __tla = Promise.all([
       secondary: !!p,
       dense: D
     }, g = Lo(y), h = {
-      slots: j,
+      slots: F,
       slotProps: {
         primary: C,
-        secondary: F,
+        secondary: j,
         ...T
       }
     }, [N, w] = m("root", {
@@ -555,8 +555,8 @@ let __tla = Promise.all([
 });
 export {
   Ao as D,
-  Xo as L,
+  zo as L,
   __tla,
-  Eo as a,
+  Xo as a,
   Yo as b
 };

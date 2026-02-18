@@ -1,7 +1,7 @@
 import { v as h, a as ia, R as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { g as Za, c as fn } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as Ff } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let Ss, _U, Dh, ve, fo, zn, FU, Ea, xU, A0, Zc, da, Fm, mA, wt, vs, Ca, wU, J0, EU, Zn, yU, gd, pr, cl, Ba, GB, ze, HA, Mu, lo, gl, ai, kt, ul, Le, a0, rB, lB, ii, N0, Xh, nt, C0, Q0, DU, zp, _u, ed, uh, PU, gr, Np, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, h0, Qt, lr, Re, vr, ln, Ls, ws, ls, nn, Ua, ys, Bl, ks, gC, am, bm, hC, td, Ku, oo, nd, Im, Is, eB, Ct, ce, rd, pA, RA, rt, OA, Be, sr, L, Ei, Qa, MA, Br, Te, xm, $U, We, lA, UU, KA, Yt, bU, VU, NU, GU;
+let Ss, _U, Dh, ve, fo, zn, FU, Ea, xU, A0, Zc, da, Fm, mA, wt, vs, Ca, wU, J0, EU, Zn, yU, gd, pr, cl, Ba, GB, ze, HA, Mu, lo, gl, ws, ai, kt, ul, Le, a0, rB, Im, Is, eB, Ct, ii, N0, Ru, Xh, nt, C0, Q0, DU, zp, ed, uh, PU, gr, Np, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, lB, h0, Qt, lr, Re, vr, ln, Ls, ls, nn, _u, Yp, Ua, ys, Bl, ks, gC, cd, fU, am, bm, hC, td, Ku, oo, nd, ce, rd, pA, RA, rt, OA, Be, sr, L, Ei, Qa, MA, Br, Te, xm, $U, We, lA, UU, KA, Yt, bU, VU, NU, GU;
 let __tla = Promise.all([
   (() => {
     try {
@@ -2674,9 +2674,9 @@ let __tla = Promise.all([
       return A;
     }
   }
-  function Yp(A, e = 0.15) {
+  Yp = function(A, e = 0.15) {
     return fa(A) > 0.5 ? ws(A, e) : vs(A, e);
-  }
+  };
   function Bn(A, e, t) {
     try {
       return Yp(A, e);
@@ -2690,7 +2690,7 @@ let __tla = Promise.all([
     }, () => {
     });
   };
-  function Ru(A, e = 166) {
+  Ru = function(A, e = 166) {
     let t;
     function r(...n) {
       const o = () => {
@@ -2701,7 +2701,7 @@ let __tla = Promise.all([
     return r.clear = () => {
       clearTimeout(t);
     }, r;
-  }
+  };
   Ei = function(A, e) {
     var _a2, _b2, _c2;
     return h.isValidElement(A) && e.indexOf(A.type.muiName ?? ((_c2 = (_b2 = (_a2 = A.type) == null ? void 0 : _a2._payload) == null ? void 0 : _b2.value) == null ? void 0 : _c2.muiName)) !== -1;
@@ -8949,7 +8949,8 @@ export default theme;`;
   function vn(A) {
     return typeof A == "function" ? A() : A;
   }
-  const Tm = (A) => {
+  let Tm, Lm, ld;
+  Tm = (A) => {
     const { classes: e } = A;
     return RA({
       root: [
@@ -8959,11 +8960,13 @@ export default theme;`;
         "paper"
       ]
     }, Hm, e);
-  }, Lm = lA(J0, {
+  };
+  Lm = lA(J0, {
     name: "MuiPopover",
     slot: "Root",
     overridesResolver: (A, e) => e.root
-  })({}), ld = lA(Ca, {
+  })({});
+  ld = lA(Ca, {
     name: "MuiPopover",
     slot: "Paper",
     overridesResolver: (A, e) => e.paper
@@ -8976,7 +8979,8 @@ export default theme;`;
     maxWidth: "calc(100% - 32px)",
     maxHeight: "calc(100% - 32px)",
     outline: 0
-  }), cd = h.forwardRef(function(e, t) {
+  });
+  cd = h.forwardRef(function(e, t) {
     const r = KA({
       props: e,
       name: "MuiPopover"
@@ -19100,7 +19104,7 @@ export default theme;`;
       return A;
     }, So.apply(this, arguments);
   };
-  function fU(A) {
+  fU = function(A) {
     var e = A.idSuffix, t = A.value, r = t === void 0 ? "rgba(175, 51, 242, 1)" : t, n = A.onChange, o = A.hideControls, i = o === void 0 ? false : o, a = A.hideInputs, l = a === void 0 ? false : a, s = A.hideOpacity, c = s === void 0 ? false : s, d = A.hidePresets, u = d === void 0 ? false : d, f = A.hideHue, g = f === void 0 ? false : f, B = A.presets, Q = B === void 0 ? [] : B, m = A.hideEyeDrop, F = m === void 0 ? false : m, w = A.hideAdvancedSliders, v = w === void 0 ? false : w, U = A.hideColorGuide, C = U === void 0 ? false : U, S = A.hideInputType, x = S === void 0 ? false : S, I = A.hideColorTypeBtns, p = I === void 0 ? false : I, T = A.hideGradientType, P = T === void 0 ? false : T, K = A.hideGradientAngle, G = K === void 0 ? false : K, O = A.hideGradientStop, M = O === void 0 ? false : O, W = A.hideGradientControls, nA = W === void 0 ? false : W, D = A.locales, j = D === void 0 ? fw : D, AA = A.width, X = AA === void 0 ? 294 : AA, k = A.height, $ = k === void 0 ? 294 : k, V = A.style, Y = V === void 0 ? {} : V, dA = A.className, iA = A.disableDarkMode, tA = iA === void 0 ? false : iA, J = A.disableLightMode, oA = J === void 0 ? false : J, aA = A.hidePickerSquare, y = aA === void 0 ? false : aA, E = A.showHexAlpha, b = E === void 0 ? false : E, _ = A.config, z = _ === void 0 ? {} : _, N = FC(r), sA = typeof window > "u" || tA ? false : !!(window.matchMedia("(prefers-color-scheme: dark)").matches || oA), cA = ZF(sA, Y), fA = sA ? "-dark".concat(e ? "-".concat(e) : "") : e ? "-".concat(e) : "";
     return H.createElement("div", {
       className: dA,
@@ -19137,7 +19141,7 @@ export default theme;`;
       hidePickerSquare: y,
       locales: j
     })));
-  }
+  };
   function gU(A) {
     if (!A || typeof A != "string") return null;
     const e = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, t = A.match(e);
@@ -20956,62 +20960,66 @@ export {
   Mu as a0,
   lo as a1,
   gl as a2,
-  ai as a3,
-  kt as a4,
-  ul as a5,
-  Le as a6,
-  a0 as a7,
-  rB as a8,
-  lB as a9,
-  ii as aA,
-  N0 as aB,
-  Xh as aC,
-  nt as aD,
-  C0 as aE,
-  Q0 as aF,
-  DU as aG,
-  zp as aH,
-  _u as aI,
-  ed as aJ,
-  uh as aK,
-  PU as aL,
-  gr as aM,
-  Np as aN,
-  ms as aO,
-  Iu as aP,
-  tt as aQ,
-  MU as aR,
-  gs as aS,
-  ZA as aT,
-  KU as aU,
-  Bs as aV,
-  an as aW,
-  h0 as aa,
-  Qt as ab,
-  lr as ac,
-  Re as ad,
-  vr as ae,
-  ln as af,
-  Ls as ag,
-  ws as ah,
+  ws as a3,
+  ai as a4,
+  kt as a5,
+  ul as a6,
+  Le as a7,
+  a0 as a8,
+  rB as a9,
+  Im as aA,
+  Is as aB,
+  eB as aC,
+  Ct as aD,
+  ii as aE,
+  N0 as aF,
+  Ru as aG,
+  Xh as aH,
+  nt as aI,
+  C0 as aJ,
+  Q0 as aK,
+  DU as aL,
+  zp as aM,
+  ed as aN,
+  uh as aO,
+  PU as aP,
+  gr as aQ,
+  Np as aR,
+  ms as aS,
+  Iu as aT,
+  tt as aU,
+  MU as aV,
+  gs as aW,
+  ZA as aX,
+  KU as aY,
+  Bs as aZ,
+  an as a_,
+  lB as aa,
+  h0 as ab,
+  Qt as ac,
+  lr as ad,
+  Re as ae,
+  vr as af,
+  ln as ag,
+  Ls as ah,
   ls as ai,
   nn as aj,
-  Ua as ak,
-  ys as al,
-  Bl as am,
-  ks as an,
-  gC as ao,
-  am as ap,
-  bm as aq,
-  hC as ar,
-  td as as,
-  Ku as at,
-  oo as au,
-  nd as av,
-  Im as aw,
-  Is as ax,
-  eB as ay,
-  Ct as az,
+  _u as ak,
+  Yp as al,
+  Ua as am,
+  ys as an,
+  Bl as ao,
+  ks as ap,
+  gC as aq,
+  cd as ar,
+  fU as as,
+  am as at,
+  bm as au,
+  hC as av,
+  td as aw,
+  Ku as ax,
+  oo as ay,
+  nd as az,
   ce as b,
   rd as c,
   pA as d,

@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as U, u as A, W as E, aM as W, b as z, T as P, j as c, d as v, s as x, M as F, e as B, m as L, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
+import { a as D, g as U, u as A, W as E, aQ as W, b as z, T as P, j as c, d as v, s as x, M as F, e as B, m as L, __tla as __tla_1 } from "./useData-D0DziYnO.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -18,7 +18,7 @@ let __tla = Promise.all([
   function H(e) {
     return U("MuiFormControlLabel", e);
   }
-  let t, I, G, J;
+  let t, I, Q, G;
   t = D("MuiFormControlLabel", [
     "root",
     "labelPlacementStart",
@@ -50,7 +50,7 @@ let __tla = Promise.all([
     };
     return B(m, H, o);
   };
-  G = x("label", {
+  Q = x("label", {
     name: "MuiFormControlLabel",
     slot: "Root",
     overridesResolver: (e, o) => {
@@ -113,7 +113,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  J = x("span", {
+  G = x("span", {
     name: "MuiFormControlLabel",
     slot: "Asterisk",
     overridesResolver: (e, o) => o.asterisk
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: M = {}, value: V, ...$ } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: J, label: T, labelPlacement: _ = "end", name: K, onChange: O, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -139,7 +139,7 @@ let __tla = Promise.all([
     ].forEach((i) => {
       typeof a.props[i] > "u" && typeof r[i] < "u" && (g[i] = r[i]);
     });
-    const j = W({
+    const M = W({
       props: r,
       muiFormControl: f,
       states: [
@@ -150,12 +150,12 @@ let __tla = Promise.all([
       disabled: C,
       labelPlacement: _,
       required: b,
-      error: j.error
+      error: M.error
     }, u = I(n), w = {
       slots: q,
       slotProps: {
         ...m,
-        ...M
+        ...$
       }
     }, [N, h] = z("typography", {
       elementType: P,
@@ -168,17 +168,17 @@ let __tla = Promise.all([
       ...h,
       className: v(u.label, h == null ? void 0 : h.className),
       children: l
-    })), c.jsxs(G, {
+    })), c.jsxs(Q, {
       className: v(u.root, d),
       ownerState: n,
       ref: s,
-      ...$,
+      ...j,
       children: [
         y.cloneElement(a, g),
         b ? c.jsxs("div", {
           children: [
             l,
-            c.jsxs(J, {
+            c.jsxs(G, {
               ownerState: n,
               "aria-hidden": true,
               className: u.asterisk,

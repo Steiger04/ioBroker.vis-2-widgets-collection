@@ -182,36 +182,76 @@ const JsonTableCollection: FC = () => {
                 }
 
                 // Evaluate conditional styling rules (first match wins)
-                let cellSx: Record<string, unknown> = {};
+                // Split into background styles (on cell wrapper) and text styles (on Typography)
+                const bgSx: Record<string, unknown> = {};
+                const textSx: Record<string, unknown> = {};
                 if (cfg.cellStyle && cfg.cellStyle.length > 0) {
                     for (const rule of cfg.cellStyle) {
                         if (evaluateCondition(rule.condition, rawValue)) {
-                            cellSx = {
-                                ...(rule.backgroundColor && { backgroundColor: rule.backgroundColor }),
-                                ...(rule.textColor && { color: rule.textColor }),
-                                ...(rule.fontWeight && { fontWeight: rule.fontWeight }),
-                                ...(rule.fontStyle && { fontStyle: rule.fontStyle }),
-                            };
+                            // Background: use `background` for gradients, `backgroundColor` for solid colors
+                            if (rule.backgroundColor) {
+                                const bgGradient = gradientColor(rule.backgroundColor);
+                                if (bgGradient) {
+                                    bgSx.background = bgGradient;
+                                } else {
+                                    bgSx.backgroundColor = rule.backgroundColor;
+                                }
+                            }
+                            // Text: use backgroundClip text trick for gradients, plain color for solid
+                            if (rule.textColor) {
+                                const textGradient = gradientColor(rule.textColor);
+                                if (textGradient) {
+                                    textSx.background = textGradient;
+                                    textSx.backgroundClip = 'text';
+                                    textSx.WebkitBackgroundClip = 'text';
+                                    textSx.color = 'transparent';
+                                } else {
+                                    textSx.color = rule.textColor;
+                                }
+                            }
+                            if (rule.fontWeight) {
+                                textSx.fontWeight = rule.fontWeight;
+                            }
+                            if (rule.fontStyle) {
+                                textSx.fontStyle = rule.fontStyle;
+                            }
                             break; // First match wins
                         }
                     }
                 }
 
+                const hasBg = 'background' in bgSx || 'backgroundColor' in bgSx;
+
                 return (
-                    <Typography
-                        variant="body2"
-                        component="span"
-                        noWrap
-                        title={displayValue}
+                    <Box
                         sx={{
-                            width: '100%',
-                            display: 'block',
-                            lineHeight: 'inherit',
-                            ...cellSx,
+                            // Cell padding is 0 10px; expand Box to fill entire cell including padding area
+                            width: hasBg ? 'calc(100% + 20px)' : '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            ...(hasBg && {
+                                ml: '-10px',
+                                px: '10px',
+                            }),
+                            ...bgSx,
                         }}
                     >
-                        {displayValue}
-                    </Typography>
+                        <Typography
+                            variant="body2"
+                            component="span"
+                            noWrap
+                            title={displayValue}
+                            sx={{
+                                width: '100%',
+                                display: 'block',
+                                lineHeight: 'inherit',
+                                ...textSx,
+                            }}
+                        >
+                            {displayValue}
+                        </Typography>
+                    </Box>
                 );
             },
         [],

@@ -43,6 +43,8 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import ColorPickerField from '../../components/ColorPickerField';
+import { gradientColor } from '../../lib/helper/gradientColor';
 import { TYPE_COLORS, type ColumnConfigEntry, type ColumnStyleRule, type ColumnFormatConfig } from '../types';
 import {
     formatNumberValue,
@@ -609,58 +611,17 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                             <Stack
                                                 direction="row"
                                                 spacing={1}
+                                                alignItems="flex-start"
                                             >
-                                                <TextField
+                                                <ColorPickerField
                                                     label={Generic.t('json_table_bg_color')}
                                                     value={rule.backgroundColor || ''}
-                                                    onChange={e =>
-                                                        updateStyleRule(idx, { backgroundColor: e.target.value })
-                                                    }
-                                                    size="small"
-                                                    fullWidth
-                                                    placeholder="#ffebee"
-                                                    slotProps={{
-                                                        input: {
-                                                            endAdornment: rule.backgroundColor ? (
-                                                                <Box
-                                                                    sx={{
-                                                                        width: 20,
-                                                                        height: 20,
-                                                                        borderRadius: '4px',
-                                                                        backgroundColor: rule.backgroundColor,
-                                                                        border: 1,
-                                                                        borderColor: 'divider',
-                                                                        flexShrink: 0,
-                                                                    }}
-                                                                />
-                                                            ) : null,
-                                                        },
-                                                    }}
+                                                    onChange={c => updateStyleRule(idx, { backgroundColor: c })}
                                                 />
-                                                <TextField
+                                                <ColorPickerField
                                                     label={Generic.t('json_table_text_color')}
                                                     value={rule.textColor || ''}
-                                                    onChange={e => updateStyleRule(idx, { textColor: e.target.value })}
-                                                    size="small"
-                                                    fullWidth
-                                                    placeholder="#c62828"
-                                                    slotProps={{
-                                                        input: {
-                                                            endAdornment: rule.textColor ? (
-                                                                <Box
-                                                                    sx={{
-                                                                        width: 20,
-                                                                        height: 20,
-                                                                        borderRadius: '4px',
-                                                                        backgroundColor: rule.textColor,
-                                                                        border: 1,
-                                                                        borderColor: 'divider',
-                                                                        flexShrink: 0,
-                                                                    }}
-                                                                />
-                                                            ) : null,
-                                                        },
-                                                    }}
+                                                    onChange={c => updateStyleRule(idx, { textColor: c })}
                                                 />
                                             </Stack>
 
@@ -717,13 +678,30 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                     variant="outlined"
                                                     sx={{
                                                         p: 1,
-                                                        backgroundColor: rule.backgroundColor || 'transparent',
-                                                        color: rule.textColor || 'inherit',
+                                                        ...(rule.backgroundColor
+                                                            ? gradientColor(rule.backgroundColor)
+                                                                ? { background: gradientColor(rule.backgroundColor) }
+                                                                : { backgroundColor: rule.backgroundColor }
+                                                            : { backgroundColor: 'transparent' }),
                                                         fontWeight: rule.fontWeight || 'normal',
                                                         fontStyle: rule.fontStyle || 'normal',
                                                     }}
                                                 >
-                                                    <Typography variant="body2">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            ...(rule.textColor
+                                                                ? gradientColor(rule.textColor)
+                                                                    ? {
+                                                                          background: gradientColor(rule.textColor),
+                                                                          backgroundClip: 'text',
+                                                                          WebkitBackgroundClip: 'text',
+                                                                          color: 'transparent',
+                                                                      }
+                                                                    : { color: rule.textColor }
+                                                                : { color: 'inherit' }),
+                                                        }}
+                                                    >
                                                         {Generic.t('json_table_sample_value')}
                                                     </Typography>
                                                 </Paper>

@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a2 as nt, aH as de, h as st, f as lt, a4 as _e, a6 as Re, aI as Ue, am as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, a9 as dt, a8 as O, aJ as et, m as se, M as F, e as pt, N as Ye, O as Be, ah as Xe, i as qe, __tla as __tla_1 } from "./useData-Dh4nd_La.js";
+import { a2 as nt, aM as de, h as st, f as lt, a5 as _e, a7 as Re, ak as Ue, ao as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, aa as dt, a9 as O, aN as et, m as se, M as F, e as pt, N as Ye, O as Be, a3 as Xe, i as qe, __tla as __tla_1 } from "./useData-D0DziYnO.js";
 let Vt, zt;
 let __tla = Promise.all([
   (() => {
@@ -150,7 +150,7 @@ let __tla = Promise.all([
       var _a;
       const s = Number(r.currentTarget.getAttribute("data-index"));
       Ke(r.target) && re(s), Z(s), (_a = a == null ? void 0 : a.onFocus) == null ? void 0 : _a.call(a, r);
-    }, He = (a) => (r) => {
+    }, $e = (a) => (r) => {
       var _a;
       Ke(r.target) || re(-1), Z(-1), (_a = a == null ? void 0 : a.onBlur) == null ? void 0 : _a.call(a, r);
     }, he = (a, r) => {
@@ -175,7 +175,7 @@ let __tla = Promise.all([
         });
       }
       C(l), re(s), v && !Te(l, A) && v(a, l, s), q && q(a, le.current ?? l);
-    }, $e = (a) => (r) => {
+    }, He = (a) => (r) => {
       var _a;
       if ([
         "ArrowUp",
@@ -259,25 +259,25 @@ let __tla = Promise.all([
         g = m[ue];
       }
       g = de(g, u, f);
-      let $ = 0;
+      let H = 0;
       if (te) {
-        r ? $ = U.current : $ = Ge(b, g), p && (g = de(g, b[$ - 1] || -1 / 0, b[$ + 1] || 1 / 0));
+        r ? H = U.current : H = Ge(b, g), p && (g = de(g, b[H - 1] || -1 / 0, b[H + 1] || 1 / 0));
         const ue = g;
         g = Je({
           values: b,
           newValue: g,
-          index: $
-        }), p && r || ($ = g.indexOf(ue), U.current = $);
+          index: H
+        }), p && r || (H = g.indexOf(ue), U.current = H);
       }
       return {
         newValue: g,
-        activeIndex: $
+        activeIndex: H
       };
     }, K = _e((a) => {
       const r = Ce(a, N);
       if (!r) return;
       if (ee.current += 1, a.type === "mousemove" && a.buttons === 0) {
-        H(a);
+        $(a);
         return;
       }
       const { newValue: s, activeIndex: c } = W({
@@ -289,7 +289,7 @@ let __tla = Promise.all([
         activeIndex: c,
         setActive: Q
       }), C(s), !me && ee.current > bt && be(true), v && !Te(s, A) && v(a, s, c);
-    }), H = _e((a) => {
+    }), $ = _e((a) => {
       const r = Ce(a, N);
       if (be(false), !r) return;
       const { newValue: s } = W({
@@ -317,14 +317,14 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("touchmove", K, {
         passive: true
-      }), c.addEventListener("touchend", H, {
+      }), c.addEventListener("touchend", $, {
         passive: true
       });
     }), B = y.useCallback(() => {
       const a = Re(d.current);
-      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", H), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", H);
+      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", $), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", $);
     }, [
-      H,
+      $,
       K
     ]);
     y.useEffect(() => {
@@ -362,7 +362,7 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("mousemove", K, {
         passive: true
-      }), c.addEventListener("mouseup", H);
+      }), c.addEventListener("mouseup", $);
     }, ve = Me(te ? b[0] : u, u, f), x = Me(b[b.length - 1], u, f) - ve, ce = (a = {}) => {
       const r = Ue(a), s = {
         onMouseDown: Ve(r || {})
@@ -407,8 +407,8 @@ let __tla = Promise.all([
         const r = Ue(a), s = {
           onChange: ge(r || {}),
           onFocus: Ee(r || {}),
-          onBlur: He(r || {}),
-          onKeyDown: $e(r || {})
+          onBlur: $e(r || {}),
+          onKeyDown: He(r || {})
         }, c = {
           ...r,
           ...s
@@ -1116,12 +1116,12 @@ let __tla = Promise.all([
       track: b,
       valueLabelDisplay: m,
       valueLabelFormat: D
-    }, { axisProps: _, getRootProps: Ee, getHiddenInputProps: He, getThumbProps: he, open: $e, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: H, values: S, trackOffset: B, trackLeap: Ve, getThumbStyle: ve } = St({
+    }, { axisProps: _, getRootProps: Ee, getHiddenInputProps: $e, getThumbProps: he, open: He, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: $, values: S, trackOffset: B, trackLeap: Ve, getThumbStyle: ve } = St({
       ...d,
       rootRef: o
     });
-    d.marked = H.length > 0 && H.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
-    const x = Nt(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, $ = O({
+    d.marked = $.length > 0 && $.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
+    const x = Nt(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, H = O({
       elementType: ce,
       getSlotProps: Ee,
       externalSlotProps: r,
@@ -1187,12 +1187,12 @@ let __tla = Promise.all([
       className: x.markLabel
     }), ot = O({
       elementType: a,
-      getSlotProps: He,
+      getSlotProps: $e,
       externalSlotProps: g,
       ownerState: d
     });
     return T.jsxs(ce, {
-      ...$,
+      ...H,
       children: [
         T.jsx(ke, {
           ...ue
@@ -1200,7 +1200,7 @@ let __tla = Promise.all([
         T.jsx(ye, {
           ...rt
         }),
-        H.filter((h) => h.value >= V && h.value <= N).map((h, k) => {
+        $.filter((h) => h.value >= V && h.value <= N).map((h, k) => {
           const Fe = Me(h.value, V, N), Le = _[U].offset(Fe);
           let j;
           return b === false ? j = S.includes(h.value) : j = b === "normal" && (W ? h.value >= S[0] && h.value <= S[S.length - 1] : h.value <= S[0]) || b === "inverted" && (W ? h.value <= S[0] || h.value >= S[S.length - 1] : h.value >= S[0]), T.jsxs(y.Fragment, {
@@ -1242,7 +1242,7 @@ let __tla = Promise.all([
               valueLabelDisplay: m,
               value: typeof D == "function" ? D(A(h), k) : D,
               index: k,
-              open: $e === k || ge === k || m === "on",
+              open: He === k || ge === k || m === "on",
               disabled: z
             },
             ...at,
