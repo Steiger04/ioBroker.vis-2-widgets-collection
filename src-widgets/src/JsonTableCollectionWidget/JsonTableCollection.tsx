@@ -306,13 +306,12 @@ const JsonTableCollection: FC = () => {
             const isGradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
 
             sx['& .MuiDataGrid-columnHeaders'] = {
-                ...(headerBgColor && {
-                    background: isGradientBg || headerBgColor,
-                    backgroundColor: isGradientBg ? 'transparent' : undefined,
-                }),
+                ...(isGradientBg && { background: isGradientBg }),
+                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
             };
             sx['& .MuiDataGrid-columnHeader'] = {
-                ...(headerBgColor && { background: 'inherit' }),
+                ...(isGradientBg && { background: isGradientBg }),
+                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
                 ...(headerTextColor && { color: headerTextColor }),
                 ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
             };

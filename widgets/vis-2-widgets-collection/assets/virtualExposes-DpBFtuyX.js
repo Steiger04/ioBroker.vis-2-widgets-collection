@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-B2VfQA8d.js","./useData-Dh4nd_La.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-DSIqNOro.js","./Close-Ctq43X6h.js","./Slider-CV4PB2I8.js","./ListItemText-CPmYzEpD.js","./listItemTextClasses-DZA6NAVK.js","./Stack-D45nKyxi.js","./useHtmlValue-3ISCcM5X.js","./Button-DOw2ES1r.js","./SliderCollectionWidget-D4-Bxu7o.js","./ButtonGroupCollectionWidget-DNjPBhm0.js","./SwitchCollectionWidget-Bp0Umitt.js","./Switch-Cveq0wsU.js","./SwitchBase-CsNUGlgO.js","./CheckboxCollectionWidget-D2MmANV5.js","./FormControlLabel-bpsysXt-.js","./Checkbox-d0B1W55c.js","./DialogCollectionWidget-D6k9nObO.js","./SelectCollectionWidget-DBv81WS1.js","./MenuItem-x_yBPAof.js","./RadioGroupCollectionWidget-BIMAzQDc.js","./GaugeCollectionWidget-DzMsBH0D.js","./useOidValue-deN5pshO.js","./Light2CollectionWidget-B1570lRU.js","./JsonTableCollectionWidget-DElwjD9Y.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-B2VfQA8d.js","./useData-Dh4nd_La.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-DSIqNOro.js","./Close-Ctq43X6h.js","./Slider-CV4PB2I8.js","./ListItemText-CPmYzEpD.js","./listItemTextClasses-DZA6NAVK.js","./Stack-D45nKyxi.js","./useHtmlValue-3ISCcM5X.js","./Button-DOw2ES1r.js","./SliderCollectionWidget-D4-Bxu7o.js","./ButtonGroupCollectionWidget-DNjPBhm0.js","./SwitchCollectionWidget-Bp0Umitt.js","./Switch-Cveq0wsU.js","./SwitchBase-CsNUGlgO.js","./CheckboxCollectionWidget-D2MmANV5.js","./FormControlLabel-bpsysXt-.js","./Checkbox-d0B1W55c.js","./DialogCollectionWidget-D6k9nObO.js","./SelectCollectionWidget-DBv81WS1.js","./MenuItem-x_yBPAof.js","./RadioGroupCollectionWidget-BIMAzQDc.js","./GaugeCollectionWidget-DzMsBH0D.js","./useOidValue-deN5pshO.js","./Light2CollectionWidget-B1570lRU.js","./JsonTableCollectionWidget-CZH5ZLHD.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
@@ -104,7 +104,7 @@ let __tla = (async () => {
       }), e;
     },
     "./JsonTableCollectionWidget": async () => {
-      const t = await o(() => import("./JsonTableCollectionWidget-DElwjD9Y.js").then(async (m) => {
+      const t = await o(() => import("./JsonTableCollectionWidget-CZH5ZLHD.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([28,1,2,3,4,20,17,10,23,9,19,16,7,12,8,6,26]), import.meta.url), e = {};
@@ -114,7 +114,7 @@ let __tla = (async () => {
       }), e;
     },
     "./translations": async () => {
-      const t = await o(() => import("./translations-eRe4qnQE.js"), [], import.meta.url), e = {};
+      const t = await o(() => import("./translations-CgTs5q0j.js"), [], import.meta.url), e = {};
       return Object.assign(e, t), Object.defineProperty(e, "__esModule", {
         value: true,
         enumerable: false
