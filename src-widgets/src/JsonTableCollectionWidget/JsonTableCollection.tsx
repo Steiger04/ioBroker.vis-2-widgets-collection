@@ -13,9 +13,11 @@ import {
     GridToolbarContainer,
     GridToolbarQuickFilter,
     type GridColDef,
+    type GridLocaleText,
     type GridRenderCellParams,
     type GridToolbarQuickFilterProps,
 } from '@mui/x-data-grid';
+import { deDE, enUS, esES, frFR, itIT, nlNL, plPL, ptBR, ruRU, ukUA, zhCN } from '@mui/x-data-grid/locales';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 
@@ -46,6 +48,39 @@ function parsePageSizeOptions(raw: string | undefined): number[] {
         .map(s => parseInt(s.trim(), 10))
         .filter(n => !isNaN(n) && n > 0);
     return result.length > 0 ? result : [10, 25, 50, 100];
+}
+
+/** Shape of a MUI X DataGrid locale package. */
+type MuiDataGridLocale = {
+    components: {
+        MuiDataGrid: {
+            defaultProps: { localeText: Partial<GridLocaleText> };
+        };
+    };
+};
+
+/** Language-code → locale mapping for all languages supported by ioBroker. */
+const DATA_GRID_LOCALE_MAP: Partial<Record<ioBroker.Languages, MuiDataGridLocale>> = {
+    de: deDE,
+    en: enUS,
+    es: esES,
+    fr: frFR,
+    it: itIT,
+    nl: nlNL,
+    pl: plPL,
+    pt: ptBR,
+    ru: ruRU,
+    uk: ukUA,
+    'zh-cn': zhCN,
+};
+
+/**
+ * Maps an ioBroker language code to the corresponding MUI DataGrid localeText.
+ * Falls back to English for unsupported languages.
+ */
+function getDataGridLocaleText(language: ioBroker.Languages): Partial<GridLocaleText> {
+    const locale = DATA_GRID_LOCALE_MAP[language] ?? enUS;
+    return locale.components.MuiDataGrid.defaultProps.localeText;
 }
 
 /**
@@ -450,6 +485,7 @@ const JsonTableCollection: FC = () => {
                 >
                     <DataGrid
                         key={`grid-${widget.data.tableAutoSize}`}
+                        localeText={getDataGridLocaleText(Generic.getLanguage())}
                         rows={gridRows}
                         columns={gridColumns}
                         density={widget.data.tableDensity || 'standard'}
