@@ -26,7 +26,7 @@ import {
     Typography,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
@@ -79,8 +79,6 @@ function JsonTableColumnEditorModal({
     const [editedColumns, setEditedColumns] = useState<ColumnConfigEntry[]>(columns);
     // Selected column path for the detail editor
     const [selectedPath, setSelectedPath] = useState<string | null>(null);
-    // Whether any changes have been made since last save
-    const [hasChanges, setHasChanges] = useState(false);
     // Discovered column metadata from analysis
     const [discoveredColumns, setDiscoveredColumns] = useState<JsonTableColumn[]>([]);
     // Loading state for refresh operations
@@ -97,12 +95,22 @@ function JsonTableColumnEditorModal({
     // Ref to hold the latest editedColumns for use in discoverColumns without dependency issues
     const editedColumnsRef = useRef<ColumnConfigEntry[]>(columns);
 
+    // Serialized snapshot of the original columns prop for deep-equality comparison
+    const originalColumnsJson = useMemo(() => JSON.stringify(columns), [columns]);
+
+    // Declaratively compute whether there are unsaved changes by comparing
+    // the current edited state against the original columns prop (deep equality).
+    // This automatically resets hasChanges to false when the user reverts all edits.
+    const hasChanges = useMemo(
+        () => JSON.stringify(editedColumns) !== originalColumnsJson,
+        [editedColumns, originalColumnsJson],
+    );
+
     // Reset state when dialog opens with fresh data
     useEffect(() => {
         if (open) {
             setEditedColumns(columns);
             editedColumnsRef.current = columns;
-            setHasChanges(false);
             setSelectedPath(columns.length > 0 ? columns[0].path : null);
             initialDiscoveryDone.current = false;
         }
@@ -176,14 +184,8 @@ function JsonTableColumnEditorModal({
 
             const merged = [...preserved, ...newColumns];
 
-            const hasNewColumns =
-                merged.length !== editedColumnsRef.current.length || merged.some(c => !existingMap.has(c.path));
-
             setEditedColumns(merged);
             editedColumnsRef.current = merged;
-            if (hasNewColumns) {
-                setHasChanges(true);
-            }
 
             // Auto-select first column if none selected yet
             if (!selectedPath && merged.length > 0) {
@@ -203,20 +205,17 @@ function JsonTableColumnEditorModal({
     const handleColumnChange = useCallback((updated: ColumnConfigEntry) => {
         setEditedColumns(prev => prev.map(c => (c.path === updated.path ? updated : c)));
         editedColumnsRef.current = editedColumnsRef.current.map(c => (c.path === updated.path ? updated : c));
-        setHasChanges(true);
     }, []);
 
     // Handle list-level changes (bulk visibility, etc.)
     const handleListChange = useCallback((updatedColumns: ColumnConfigEntry[]) => {
         setEditedColumns(updatedColumns);
         editedColumnsRef.current = updatedColumns;
-        setHasChanges(true);
     }, []);
 
     // Save and close
     const handleSave = useCallback(() => {
         onSave(editedColumns);
-        setHasChanges(false);
         onClose();
     }, [editedColumns, onSave, onClose]);
 
