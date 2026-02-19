@@ -1,6 +1,6 @@
-import { j as M, C as A, t as ka, o as Ze, S as Ta, U as wa, n as Sa, q as Ca, J as Ba, w as Na, x as Va, G as Wa, y as Je, z as Ma, A as Oa, __tla as __tla_0 } from "./useData-D0DziYnO.js";
+import { j as M, C as A, t as ka, o as Ze, S as Ta, U as wa, n as Sa, q as Ca, J as Ba, w as Na, x as Va, G as Wa, y as Je, z as Ma, A as Oa, __tla as __tla_0 } from "./useData-CHGwo_iw.js";
 import { v as G, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { u as ja, __tla as __tla_2 } from "./useOidValue-BwjEN9zJ.js";
+import { u as ja, __tla as __tla_2 } from "./useOidValue-DPu-5fsu.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let Qe;

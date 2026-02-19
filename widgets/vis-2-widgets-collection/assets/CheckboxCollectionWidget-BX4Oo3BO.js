@@ -1,12 +1,12 @@
-import { j as o, C as n, n as C, q as I, w as v, x as w, o as s, T as S, v as c, S as d, t as r, G as f, y as x, z as M, A as k, __tla as __tla_0 } from "./useData-D0DziYnO.js";
-import { u as j, d as D, __tla as __tla_1 } from "./useValueState-BEg6mU0J.js";
+import { j as o, C as n, n as C, q as I, w as v, x as w, o as s, T as S, v as c, S as d, t as r, G as f, y as x, z as M, A as k, __tla as __tla_0 } from "./useData-CHGwo_iw.js";
+import { u as j, d as D, __tla as __tla_1 } from "./useValueState-D5pCspLg.js";
 import { v as A, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { u as L, __tla as __tla_3 } from "./useHtmlValue-3ISCcM5X.js";
-import { F as _, __tla as __tla_4 } from "./FormControlLabel-__xtL37Z.js";
-import { C as P, __tla as __tla_5 } from "./Checkbox-C6thAbuX.js";
+import { F as _, __tla as __tla_4 } from "./FormControlLabel-BZXmt7zV.js";
+import { C as P, __tla as __tla_5 } from "./Checkbox-B3nRZFSe.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_6 } from "./SwitchBase-Dtx-wsaB.js";
+import { __tla as __tla_6 } from "./SwitchBase-BXvDBV8a.js";
 let p;
 let __tla = Promise.all([
   (() => {

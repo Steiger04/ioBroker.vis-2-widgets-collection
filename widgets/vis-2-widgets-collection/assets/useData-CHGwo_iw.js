@@ -4551,7 +4551,7 @@ export default theme;`;
         requiredVersion: "*"
       }
     }
-  })), gh = await fh.then((A) => A());
+  })), gh = fh.then((A) => A());
   Is = gh;
   const mn = Za(Is), xl = {
     disabled: false

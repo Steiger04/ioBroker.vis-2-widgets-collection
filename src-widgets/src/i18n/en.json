@@ -15,6 +15,8 @@
     "group_switch": "Switch",
     "no_button": "No button",
     "no_value": "No value",
+    "cancel": "Cancel",
+    "save": "Save",
     "oid": "Object ID",
     "values_count": "Values count",
     "ignore_common_states": "Ignore common.states",
