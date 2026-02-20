@@ -40,6 +40,7 @@ import {
     ExpandMore as ExpandMoreIcon,
     FormatBold as FormatBoldIcon,
     FormatItalic as FormatItalicIcon,
+    RestartAlt as RestartAltIcon,
 } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
@@ -185,6 +186,44 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
         return Object.values(discoveredColumn.typeCounts).reduce((sum, count) => sum + count, 0);
     }, [discoveredColumn]);
 
+    // ── Reset helpers ────────────────────────────────────────────
+
+    const defaultHeaderName = useMemo(
+        () => column.path.split('.').pop() || column.path,
+        [column.path],
+    );
+
+    const isBasicDirty =
+        column.headerName !== defaultHeaderName ||
+        column.width !== undefined ||
+        (column.align !== undefined && column.align !== 'left') ||
+        column.visible !== true;
+
+    const resetBasic = useCallback(() => {
+        onChange({ ...column, headerName: defaultHeaderName, width: undefined, align: undefined, visible: true });
+    }, [column, onChange, defaultHeaderName]);
+
+    const isFormattingDirty = column.format !== undefined;
+
+    const resetFormatting = useCallback(() => {
+        const { format: _, ...rest } = column;
+        onChange(rest as ColumnConfigEntry);
+    }, [column, onChange]);
+
+    const isStylingDirty = (column.cellStyle?.length ?? 0) > 0 || column.cellStyleMode !== undefined;
+
+    const resetStyling = useCallback(() => {
+        const { cellStyle: _cs, cellStyleMode: _csm, ...rest } = column;
+        onChange(rest as ColumnConfigEntry);
+    }, [column, onChange]);
+
+    const isAdvancedDirty = column.sortable !== undefined || column.filterable !== undefined;
+
+    const resetAdvanced = useCallback(() => {
+        const { sortable: _s, filterable: _f, ...rest } = column;
+        onChange(rest as ColumnConfigEntry);
+    }, [column, onChange]);
+
     return (
         <Box
             sx={{
@@ -227,12 +266,23 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 500 }}
-                        >
-                            {Generic.t('json_table_section_basic')}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                                {Generic.t('json_table_section_basic')}
+                            </Typography>
+                            <Tooltip title={Generic.t('json_table_section_reset')}>
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        disabled={!isBasicDirty}
+                                        onClick={e => { e.stopPropagation(); resetBasic(); }}
+                                        aria-label={Generic.t('json_table_section_reset')}
+                                    >
+                                        <RestartAltIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Box>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>
@@ -298,12 +348,23 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 500 }}
-                        >
-                            {Generic.t('json_table_section_formatting')}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                                {Generic.t('json_table_section_formatting')}
+                            </Typography>
+                            <Tooltip title={Generic.t('json_table_section_reset')}>
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        disabled={!isFormattingDirty}
+                                        onClick={e => { e.stopPropagation(); resetFormatting(); }}
+                                        aria-label={Generic.t('json_table_section_reset')}
+                                    >
+                                        <RestartAltIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Box>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>
@@ -555,21 +616,32 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography
-                                variant="subtitle2"
-                                sx={{ fontWeight: 500 }}
-                            >
-                                {Generic.t('json_table_section_styling')}
-                            </Typography>
-                            {(column.cellStyle?.length ?? 0) > 0 && (
-                                <Chip
-                                    label={column.cellStyle!.length}
-                                    size="small"
-                                    color="primary"
-                                    sx={{ height: 20, fontSize: '0.7rem' }}
-                                />
-                            )}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                                    {Generic.t('json_table_section_styling')}
+                                </Typography>
+                                {(column.cellStyle?.length ?? 0) > 0 && (
+                                    <Chip
+                                        label={column.cellStyle!.length}
+                                        size="small"
+                                        color="primary"
+                                        sx={{ height: 20, fontSize: '0.7rem' }}
+                                    />
+                                )}
+                            </Box>
+                            <Tooltip title={Generic.t('json_table_section_reset')}>
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        disabled={!isStylingDirty}
+                                        onClick={e => { e.stopPropagation(); resetStyling(); }}
+                                        aria-label={Generic.t('json_table_section_reset')}
+                                    >
+                                        <RestartAltIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
                         </Box>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -661,16 +733,6 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                     >
                                                         {Generic.t('json_table_rule')} {idx + 1}
                                                     </Typography>
-                                                    {column.cellStyleMode === 'all-match' && (
-                                                        <Tooltip title={Generic.t('json_table_rule_priority_tooltip')}>
-                                                            <Chip
-                                                                label={`P${idx + 1}`}
-                                                                size="small"
-                                                                color="warning"
-                                                                sx={{ height: 16, fontSize: '0.65rem' }}
-                                                            />
-                                                        </Tooltip>
-                                                    )}
                                                 </Box>
                                                 <Box sx={{ display: 'flex', gap: 0.5 }}>
                                                     <Tooltip title={Generic.t('json_table_rule_move_up')}>
@@ -856,12 +918,23 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 500 }}
-                        >
-                            {Generic.t('json_table_section_advanced')}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                                {Generic.t('json_table_section_advanced')}
+                            </Typography>
+                            <Tooltip title={Generic.t('json_table_section_reset')}>
+                                <span>
+                                    <IconButton
+                                        size="small"
+                                        disabled={!isAdvancedDirty}
+                                        onClick={e => { e.stopPropagation(); resetAdvanced(); }}
+                                        aria-label={Generic.t('json_table_section_reset')}
+                                    >
+                                        <RestartAltIcon fontSize="small" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Box>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>

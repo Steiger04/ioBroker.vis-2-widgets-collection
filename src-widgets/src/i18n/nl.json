@@ -380,6 +380,7 @@
     "json_table_section_basic": "Basisinstellingen",
     "json_table_section_formatting": "Opmaak",
     "json_table_section_styling": "Voorwaardelijke opmaak",
+    "json_table_section_reset": "Herstellen naar standaard",
     "json_table_section_advanced": "Geavanceerd",
     "json_table_width_auto": "Auto",
     "json_table_align": "Uitlijning",

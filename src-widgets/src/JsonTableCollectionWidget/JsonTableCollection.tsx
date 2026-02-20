@@ -45,15 +45,20 @@ import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 /**
  * Parse a comma-separated string of numbers into a number array.
  */
+/** Maximum page size allowed by the MUI DataGrid MIT license. */
+const DATAGRID_MIT_MAX_PAGE_SIZE = 100;
+
 function parsePageSizeOptions(raw: string | undefined): number[] {
+    const defaults = [10, 25, 50, 100];
     if (!raw) {
-        return [10, 25, 50, 100];
+        return defaults;
     }
     const result = raw
         .split(',')
         .map(s => parseInt(s.trim(), 10))
-        .filter(n => !isNaN(n) && n > 0);
-    return result.length > 0 ? result : [10, 25, 50, 100];
+        .filter(n => !isNaN(n) && n > 0)
+        .map(n => Math.min(n, DATAGRID_MIT_MAX_PAGE_SIZE));
+    return result.length > 0 ? [...new Set(result)].sort((a, b) => a - b) : defaults;
 }
 
 /** Shape of a MUI X DataGrid locale package. */
@@ -499,7 +504,10 @@ const JsonTableCollection: FC = () => {
     ]);
 
     // Controlled pagination model — reacts immediately to tablePageSize changes
-    const configuredPageSize = useMemo(() => Number(widget.data.tablePageSize) || 25, [widget.data.tablePageSize]);
+    const configuredPageSize = useMemo(
+        () => Math.min(Number(widget.data.tablePageSize) || 25, DATAGRID_MIT_MAX_PAGE_SIZE),
+        [widget.data.tablePageSize],
+    );
     const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: configuredPageSize });
 
     // Reset page to 0 and apply new page size when config changes
@@ -517,6 +525,15 @@ const JsonTableCollection: FC = () => {
                 ...row,
             })),
         [rows],
+    );
+
+    // When pagination is disabled, show all rows (capped at 100 — MIT DataGrid limit)
+    const effectivePaginationModel = useMemo(
+        () =>
+            widget.data.tablePagination === false
+                ? { page: 0, pageSize: Math.min(Math.max(gridRows.length, 1), 100) }
+                : paginationModel,
+        [widget.data.tablePagination, gridRows.length, paginationModel],
     );
 
     // Page size options
@@ -635,12 +652,10 @@ const JsonTableCollection: FC = () => {
                         rowHeight={Number(widget.data.tableRowHeight) || undefined}
                         columnHeaderHeight={Number(widget.data.tableHeaderHeight) || undefined}
                         pageSizeOptions={pageSizeOptions}
-                        paginationModel={paginationModel}
-                        onPaginationModelChange={setPaginationModel}
-                        hideFooterPagination={widget.data.tablePagination === false}
-                        hideFooterSelectedRowCount={widget.data.tablePagination === false}
-                        disableColumnSorting={widget.data.tableSorting === false}
-                        disableColumnFilter={widget.data.tableFiltering !== true}
+                        paginationModel={effectivePaginationModel}
+                        onPaginationModelChange={widget.data.tablePagination !== false ? setPaginationModel : undefined}
+                        hideFooter={widget.data.tablePagination === false}
+                        sortingOrder={['asc', 'desc']}
                         disableColumnMenu={widget.data.tableColumnMenu === false}
                         checkboxSelection={widget.data.tableRowSelection === true}
                         disableRowSelectionOnClick

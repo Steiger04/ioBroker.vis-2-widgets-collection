@@ -380,6 +380,7 @@
     "json_table_section_basic": "Configuración básica",
     "json_table_section_formatting": "Formato",
     "json_table_section_styling": "Estilo condicional",
+    "json_table_section_reset": "Restablecer valores predeterminados",
     "json_table_section_advanced": "Avanzado",
     "json_table_width_auto": "Automático",
     "json_table_align": "Alineación",
