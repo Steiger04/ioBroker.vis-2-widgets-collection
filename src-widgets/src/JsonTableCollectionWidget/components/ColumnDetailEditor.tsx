@@ -27,6 +27,8 @@ import {
     Stack,
     Switch,
     TextField,
+    ToggleButton,
+    ToggleButtonGroup,
     Tooltip,
     Typography,
 } from '@mui/material';
@@ -572,6 +574,42 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={1.5}>
+                            {/* Evaluation mode toggle — shown when ≥1 rule */}
+                            {(column.cellStyle?.length ?? 0) >= 1 && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <ToggleButtonGroup
+                                        value={column.cellStyleMode ?? 'first-match'}
+                                        exclusive
+                                        size="small"
+                                        onChange={(_e, val: 'first-match' | 'all-match' | null) => {
+                                            if (val) onChange({ ...column, cellStyleMode: val });
+                                        }}
+                                        aria-label={Generic.t('json_table_cell_style_mode_label')}
+                                    >
+                                        <ToggleButton
+                                            value="first-match"
+                                            aria-label={Generic.t('json_table_cell_style_mode_first')}
+                                        >
+                                            {Generic.t('json_table_cell_style_mode_first')}
+                                        </ToggleButton>
+                                        <ToggleButton
+                                            value="all-match"
+                                            aria-label={Generic.t('json_table_cell_style_mode_all')}
+                                        >
+                                            {Generic.t('json_table_cell_style_mode_all')}
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                    >
+                                        {(column.cellStyleMode ?? 'first-match') === 'first-match'
+                                            ? Generic.t('json_table_cell_style_mode_hint_first')
+                                            : Generic.t('json_table_cell_style_mode_hint_all')}
+                                    </Typography>
+                                </Box>
+                            )}
+
                             {/* Empty state */}
                             {(column.cellStyle || []).length === 0 && (
                                 <Box
@@ -616,12 +654,24 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                     alignItems: 'center',
                                                 }}
                                             >
-                                                <Typography
-                                                    variant="caption"
-                                                    sx={{ fontWeight: 600, color: 'text.secondary' }}
-                                                >
-                                                    {Generic.t('json_table_rule')} {idx + 1}
-                                                </Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                    <Typography
+                                                        variant="caption"
+                                                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                                                    >
+                                                        {Generic.t('json_table_rule')} {idx + 1}
+                                                    </Typography>
+                                                    {column.cellStyleMode === 'all-match' && (
+                                                        <Tooltip title={Generic.t('json_table_rule_priority_tooltip')}>
+                                                            <Chip
+                                                                label={`P${idx + 1}`}
+                                                                size="small"
+                                                                color="warning"
+                                                                sx={{ height: 16, fontSize: '0.65rem' }}
+                                                            />
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
                                                 <Box sx={{ display: 'flex', gap: 0.5 }}>
                                                     <Tooltip title={Generic.t('json_table_rule_move_up')}>
                                                         <span>
@@ -780,7 +830,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     color="text.secondary"
                                     sx={{ px: 0.5 }}
                                 >
-                                    {Generic.t('json_table_rules_priority_hint')}
+                                    {(column.cellStyleMode ?? 'first-match') === 'first-match'
+                                        ? Generic.t('json_table_rules_priority_hint')
+                                        : Generic.t('json_table_rules_all_match_hint')}
                                 </Typography>
                             )}
 

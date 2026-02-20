@@ -288,15 +288,19 @@ const JsonTableCollection: FC = () => {
                     }
                 }
 
-                // Evaluate conditional styling rules (first match wins)
+                // Evaluate conditional styling rules
                 // Split into background styles (on cell wrapper) and text styles (on Typography)
+                // Mode: 'first-match' (default) stops after first match; 'all-match' applies all
+                // matching rules with first-defined-wins for conflicts.
+                const stopAfterFirst = !cfg.cellStyleMode || cfg.cellStyleMode === 'first-match';
                 const bgSx: Record<string, unknown> = {};
                 const textSx: Record<string, unknown> = {};
                 if (cfg.cellStyle && cfg.cellStyle.length > 0) {
                     for (const rule of cfg.cellStyle) {
                         if (rule.logic && evaluateLogic(rule.logic, rawValue)) {
-                            // Background: use `background` for gradients, `backgroundColor` for solid colors
-                            if (rule.backgroundColor) {
+                            // Background: use `background` for gradients, `backgroundColor` for solid
+                            // In all-match mode: only set if not already defined (first defined wins)
+                            if (rule.backgroundColor && !('background' in bgSx) && !('backgroundColor' in bgSx)) {
                                 const bgGradient = gradientColor(rule.backgroundColor);
                                 if (bgGradient) {
                                     bgSx.background = bgGradient;
@@ -304,8 +308,8 @@ const JsonTableCollection: FC = () => {
                                     bgSx.backgroundColor = rule.backgroundColor;
                                 }
                             }
-                            // Text: use backgroundClip text trick for gradients, plain color for solid
-                            if (rule.textColor) {
+                            // Text: only set if not already defined
+                            if (rule.textColor && !('color' in textSx) && !('background' in textSx)) {
                                 const textGradient = gradientColor(rule.textColor);
                                 if (textGradient) {
                                     textSx.background = textGradient;
@@ -316,13 +320,13 @@ const JsonTableCollection: FC = () => {
                                     textSx.color = rule.textColor;
                                 }
                             }
-                            if (rule.fontWeight) {
+                            if (rule.fontWeight && !textSx.fontWeight) {
                                 textSx.fontWeight = rule.fontWeight;
                             }
-                            if (rule.fontStyle) {
+                            if (rule.fontStyle && !textSx.fontStyle) {
                                 textSx.fontStyle = rule.fontStyle;
                             }
-                            break; // First match wins
+                            if (stopAfterFirst) break;
                         }
                     }
                 }

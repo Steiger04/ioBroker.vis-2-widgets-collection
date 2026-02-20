@@ -82,9 +82,9 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
     const emit = useCallback(
         (newState: BuilderState) => {
             setState(newState);
-            onChange(buildFromState(newState));
+            onChange(buildFromState(newState, columnType));
         },
-        [onChange],
+        [onChange, columnType],
     );
 
     // Update a single condition row
@@ -167,7 +167,8 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
             {/* Condition rows */}
             {state.conditions.map((cond, idx) => {
                 const needsOperand = !NO_OPERAND_OPERATORS.has(cond.operator);
-                const isNumber = ['gt', 'gte', 'lt', 'lte'].includes(cond.operator);
+                // Derive input type from column type: number→number, date→date, else text
+                const inputType = columnType === 'date' ? 'date' : columnType === 'number' ? 'number' : 'text';
 
                 return (
                     <Box
@@ -208,9 +209,9 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                                 value={cond.operand}
                                 onChange={e => updateCondition(idx, { operand: e.target.value })}
                                 size="small"
-                                type={isNumber ? 'number' : 'text'}
+                                type={inputType}
                                 sx={{ flex: 1 }}
-                                slotProps={isNumber ? { htmlInput: { step: 'any' } } : undefined}
+                                slotProps={inputType === 'number' ? { htmlInput: { step: 'any' } } : undefined}
                             />
                         )}
 

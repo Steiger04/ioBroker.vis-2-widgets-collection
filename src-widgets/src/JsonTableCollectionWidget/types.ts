@@ -106,8 +106,15 @@ export interface ColumnConfigEntry {
     format?: ColumnFormatConfig;
 
     // ── New: Conditional Styling ────────────────────────────────
-    /** Ordered list of conditional styling rules (first match wins) */
+    /** Ordered list of conditional styling rules */
     cellStyle?: ColumnStyleRule[];
+    /**
+     * Evaluation mode for conditional styling rules.
+     * 'first-match' (default): stops at first matching rule.
+     * 'all-match': applies all matching rules; for conflicting properties
+     *              the higher-priority rule (lower index) wins.
+     */
+    cellStyleMode?: 'first-match' | 'all-match';
 
     // ── New: Per-column overrides ───────────────────────────────
     /** Override global sorting setting for this column */

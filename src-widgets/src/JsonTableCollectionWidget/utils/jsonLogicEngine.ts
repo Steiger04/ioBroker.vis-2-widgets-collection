@@ -109,25 +109,29 @@ const VAR_VALUE = { var: 'value' };
 
 /**
  * Convert a single operator + operand into a json-logic rule object.
- * Numbers are coerced for numeric operators.
+ * For number columns: eq/neq/gt/gte/lt/lte use numeric operands.
+ * For date columns: gt/gte/lt/lte use string operands (ISO 8601 lexicographic comparison).
+ * For all other types: operands remain strings.
  */
-export function buildSingleRule(op: ConditionOperator, operand: string): JsonLogicRule {
+export function buildSingleRule(op: ConditionOperator, operand: string, columnType = 'string'): JsonLogicRule {
     const numericOperand = Number(operand);
+    const isNumberCol = columnType === 'number';
+    const isDateCol = columnType === 'date';
     const v = VAR_VALUE;
 
     switch (op) {
         case 'eq':
-            return { '==': [v, operand] };
+            return { '==': [v, isNumberCol ? numericOperand : operand] };
         case 'neq':
-            return { '!=': [v, operand] };
+            return { '!=': [v, isNumberCol ? numericOperand : operand] };
         case 'gt':
-            return { '>': [v, numericOperand] };
+            return { '>': [v, isDateCol ? operand : numericOperand] };
         case 'gte':
-            return { '>=': [v, numericOperand] };
+            return { '>=': [v, isDateCol ? operand : numericOperand] };
         case 'lt':
-            return { '<': [v, numericOperand] };
+            return { '<': [v, isDateCol ? operand : numericOperand] };
         case 'lte':
-            return { '<=': [v, numericOperand] };
+            return { '<=': [v, isDateCol ? operand : numericOperand] };
         case 'contains':
             return { contains: [v, operand] };
         case 'not_contains':
@@ -150,21 +154,22 @@ export function buildSingleRule(op: ConditionOperator, operand: string): JsonLog
 /**
  * Build a compound (AND/OR) or single rule from a BuilderState.
  * Returns undefined if conditions are incomplete (missing operand where required).
+ * @param columnType - Detected column type; affects operand type coercion and validation.
  */
 const NUMERIC_OPERATORS = new Set<ConditionOperator>(['gt', 'gte', 'lt', 'lte']);
 
-export function buildFromState(state: BuilderState): JsonLogicRule | undefined {
+export function buildFromState(state: BuilderState, columnType = 'string'): JsonLogicRule | undefined {
     const complete = state.conditions.filter(c => {
         if (NO_OPERAND_OPERATORS.has(c.operator)) return true;
         if (c.operand.trim() === '') return false;
-        // Exclude numeric operators with a non-numeric operand to prevent silent NaN comparisons
-        if (NUMERIC_OPERATORS.has(c.operator) && isNaN(Number(c.operand))) return false;
+        // For number columns: exclude numeric operators with non-numeric operands to prevent NaN comparisons
+        if (columnType === 'number' && NUMERIC_OPERATORS.has(c.operator) && isNaN(Number(c.operand))) return false;
         return true;
     });
 
     if (complete.length === 0) return undefined;
 
-    const rules = complete.map(c => buildSingleRule(c.operator, c.operand));
+    const rules = complete.map(c => buildSingleRule(c.operator, c.operand, columnType));
 
     if (rules.length === 1) return rules[0];
 
