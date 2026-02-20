@@ -12,6 +12,7 @@
  */
 
 import type { DateFormatId } from '../hooks/useJsonTableAnalysis/types';
+import type { JsonLogicRule } from './utils/jsonLogicEngine';
 
 // ── Column Format Configuration ─────────────────────────────────
 
@@ -56,19 +57,19 @@ export interface ColumnFormatConfig {
 /**
  * A single conditional styling rule applied to cell values.
  *
- * The `condition` is evaluated as a JavaScript expression where
- * `value` refers to the cell's raw value. First matching rule wins.
+ * The `logic` field is a json-logic-engine rule object evaluated against
+ * the cell's raw value via `{ value: rawValue }` context. First matching rule wins.
  *
  * @example
  * ```ts
- * { condition: 'value > 100', backgroundColor: '#ffebee', textColor: '#c62828', fontWeight: 'bold' }
+ * { logic: { ">": [{"var":"value"}, 100] }, backgroundColor: '#ffebee', textColor: '#c62828', fontWeight: 'bold' }
  * ```
  */
 export interface ColumnStyleRule {
     /** Stable identifier for React keying; generated on rule creation */
     id?: string;
-    /** JS expression evaluated with `value` in scope, e.g. "value > 100" */
-    condition: string;
+    /** json-logic-engine rule evaluated with `{ value: rawValue }` context */
+    logic?: JsonLogicRule;
     /** Cell background color (CSS color string) */
     backgroundColor?: string;
     /** Cell text color (CSS color string) */

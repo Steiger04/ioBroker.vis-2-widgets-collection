@@ -1,11 +1,11 @@
-import { j as n, Q as M, C, E as W, U as T, n as B, q as O, w as P, x as D, o as f, V as F, J as w, S as G, t as R, T as z, v as u, i as b, G as A, y as S, z as E, A as L, __tla as __tla_0 } from "./useData-D0DziYnO.js";
-import { u as y, d as N, __tla as __tla_1 } from "./useValueState-BEg6mU0J.js";
+import { j as n, M as V, C, E as W, O, n as T, q as B, w as P, x as D, o as f, Q as F, J as w, S as G, t as R, T as z, v as u, i as b, G as A, y as S, z as E, A as L, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
+import { u as y, d as N, __tla as __tla_1 } from "./useValueState-BkaH86VC.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { M as U, __tla as __tla_3 } from "./MenuItem-F9qpNB-q.js";
-import { S as H, __tla as __tla_4 } from "./Stack-ZrqVzFSE.js";
+import { M as H, __tla as __tla_3 } from "./MenuItem-D6pjWpu8.js";
+import { S as U, __tla as __tla_4 } from "./Stack-fTlLKXgB.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./listItemTextClasses-B7Lc3IpC.js";
+import { __tla as __tla_5 } from "./listItemTextClasses-4EZ_keuw.js";
 let k;
 let __tla = Promise.all([
   (() => {
@@ -56,7 +56,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: M([
+      onChange: V([
         "boolean",
         "number",
         "string",
@@ -106,7 +106,7 @@ let __tla = Promise.all([
     };
   }
   function J() {
-    const i = d.useRef(null), { width: e = 300 } = T(i == null ? void 0 : i.current), a = d.useContext(B), { widget: o } = a, p = o.data.cidObject, j = o.data.oidObject, { data: r, states: s } = O("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), _ = j == null ? void 0 : j.type, I = [
+    const i = d.useRef(null), { width: e = 300 } = O(i == null ? void 0 : i.current), a = d.useContext(T), { widget: o } = a, p = o.data.cidObject, j = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), _ = j == null ? void 0 : j.type, I = [
       "boolean",
       "number",
       "string",
@@ -118,7 +118,7 @@ let __tla = Promise.all([
     }, [
       s,
       c
-    ]), V = d.useCallback((t) => {
+    ]), M = d.useCallback((t) => {
       const l = Number(t.target.value);
       if (l < 0 || l >= s.length) return;
       const h = s[l];
@@ -153,7 +153,7 @@ let __tla = Promise.all([
             variant: "standard",
             disableUnderline: true,
             value: x !== -1 ? x : "",
-            onChange: V,
+            onChange: M,
             MenuProps: {
               slotProps: {
                 backdrop: {
@@ -192,10 +192,10 @@ let __tla = Promise.all([
                 color: w(o.data.arrowColor || r.textColor || r.iconColor)
               }
             },
-            children: s.map((t, l) => n.jsx(U, {
+            children: s.map((t, l) => n.jsx(H, {
               value: l,
               sx: q(t.background),
-              children: n.jsxs(H, {
+              children: n.jsxs(U, {
                 direction: "row",
                 spacing: t.icon ? 1 : 0,
                 sx: {

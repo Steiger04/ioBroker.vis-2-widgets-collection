@@ -33,7 +33,8 @@ import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 
 import { parseColumnConfig, type ColumnConfigEntry } from './types';
-import { evaluateCondition, formatBooleanValue, formatDateValue, formatNumberValue } from './utils/formatters';
+import { formatBooleanValue, formatDateValue, formatNumberValue } from './utils/formatters';
+import { evaluateLogic } from './utils/jsonLogicEngine';
 import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { JsonTableCollectionContextProps } from '../types';
@@ -201,7 +202,7 @@ const JsonTableCollection: FC = () => {
     const { data } = useData('oid');
     const oidValue = useOidValue('oid');
 
-    const oidType = oidObject?.type;
+    const oidType = oidObject?.type as string | undefined;
     const isValidType = oidType === 'string' || oidType === 'mixed' || oidType === 'json';
 
     // Parse JSON from state value
@@ -293,7 +294,7 @@ const JsonTableCollection: FC = () => {
                 const textSx: Record<string, unknown> = {};
                 if (cfg.cellStyle && cfg.cellStyle.length > 0) {
                     for (const rule of cfg.cellStyle) {
-                        if (evaluateCondition(rule.condition, rawValue)) {
+                        if (rule.logic && evaluateLogic(rule.logic, rawValue)) {
                             // Background: use `background` for gradients, `backgroundColor` for solid colors
                             if (rule.backgroundColor) {
                                 const bgGradient = gradientColor(rule.backgroundColor);

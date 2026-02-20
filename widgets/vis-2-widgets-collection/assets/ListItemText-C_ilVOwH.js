@@ -1,6 +1,6 @@
 import { v as c, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as E, g as H, u as $, $ as xo, P as V, aJ as O, a4 as ho, b as m, d as v, s as x, j as n, M as S, e as R, R as bo, aK as fo, m as q, T as k, L as vo, aL as J, __tla as __tla_1 } from "./useData-D0DziYnO.js";
-import { g as So, l as M, __tla as __tla_2 } from "./listItemTextClasses-B7Lc3IpC.js";
+import { a as E, g as H, u as $, _ as xo, P as J, aJ as O, a3 as ho, b as m, d as v, s as x, j as n, V as S, e as R, N as bo, aK as fo, m as q, T as k, L as vo, aL as V, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
+import { g as So, l as M, __tla as __tla_2 } from "./listItemTextClasses-4EZ_keuw.js";
 let Ao, zo, Xo, Yo;
 let __tla = Promise.all([
   (() => {
@@ -125,7 +125,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  wo = x(V, {
+  wo = x(J, {
     name: "MuiDialog",
     slot: "Paper",
     overridesResolver: (e, o) => {
@@ -229,7 +229,7 @@ let __tla = Promise.all([
     }), a = xo(), s = {
       enter: a.transitions.duration.enteringScreen,
       exit: a.transitions.duration.leavingScreen
-    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": d = true, BackdropComponent: C, BackdropProps: B, children: j, className: F, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: D = false, maxWidth: u = "sm", onBackdropClick: p, onClick: y, onClose: g, open: h, PaperComponent: N = V, PaperProps: w = {}, scroll: I = "paper", slots: W = {}, slotProps: U = {}, TransitionComponent: _ = O, transitionDuration: K = s, TransitionProps: Q, ...Z } = r, b = {
+    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": d = true, BackdropComponent: C, BackdropProps: B, children: j, className: F, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: D = false, maxWidth: u = "sm", onBackdropClick: p, onClick: y, onClose: g, open: h, PaperComponent: N = J, PaperProps: w = {}, scroll: I = "paper", slots: W = {}, slotProps: U = {}, TransitionComponent: _ = O, transitionDuration: K = s, TransitionProps: Q, ...Z } = r, b = {
       ...r,
       disableEscapeKeyDown: T,
       fullScreen: L,
@@ -472,10 +472,10 @@ let __tla = Promise.all([
     minWidth: 0,
     marginTop: 4,
     marginBottom: 4,
-    [`.${J.root}:where(& .${M.primary})`]: {
+    [`.${V.root}:where(& .${M.primary})`]: {
       display: "block"
     },
-    [`.${J.root}:where(& .${M.secondary})`]: {
+    [`.${V.root}:where(& .${M.secondary})`]: {
       display: "block"
     },
     variants: [

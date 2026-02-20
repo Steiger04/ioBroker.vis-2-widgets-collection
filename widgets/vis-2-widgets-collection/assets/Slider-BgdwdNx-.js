@@ -1,6 +1,6 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a2 as nt, aM as de, h as st, f as lt, a5 as _e, a7 as Re, ak as Ue, ao as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, aa as dt, a9 as O, aN as et, m as se, M as F, e as pt, N as Ye, O as Be, a3 as Xe, i as qe, __tla as __tla_1 } from "./useData-D0DziYnO.js";
-let Vt, zt;
+import { a1 as nt, aM as de, h as st, f as lt, a4 as _e, a6 as Re, aj as Ue, an as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, a9 as dt, a8 as O, aN as et, m as se, V as F, e as pt, W as Ye, K as Be, a2 as Xe, i as qe, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
+let Ht, zt;
 let __tla = Promise.all([
   (() => {
     try {
@@ -124,7 +124,7 @@ let __tla = Promise.all([
     return Ae === void 0 && (typeof CSS < "u" && typeof CSS.supports == "function" ? Ae = CSS.supports("touch-action", "none") : Ae = true), Ae;
   }
   function St(e) {
-    const { "aria-labelledby": t, defaultValue: o, disabled: n = false, disableSwap: p = false, isRtl: w = false, marks: E = false, max: f = 100, min: u = 0, name: L, onChange: M, onChangeCommitted: q, orientation: G = "horizontal", rootRef: ze, scale: pe = yt, step: z = 1, shiftStep: J = 10, tabIndex: fe, value: Ne } = e, N = y.useRef(void 0), [V, Q] = y.useState(-1), [We, Z] = y.useState(-1), [me, be] = y.useState(false), ee = y.useRef(0), le = y.useRef(null), [A, C] = nt({
+    const { "aria-labelledby": t, defaultValue: o, disabled: n = false, disableSwap: p = false, isRtl: w = false, marks: E = false, max: f = 100, min: u = 0, name: L, onChange: M, onChangeCommitted: q, orientation: G = "horizontal", rootRef: ze, scale: pe = yt, step: z = 1, shiftStep: J = 10, tabIndex: fe, value: Ne } = e, N = y.useRef(void 0), [H, Q] = y.useState(-1), [We, Z] = y.useState(-1), [me, be] = y.useState(false), ee = y.useRef(0), le = y.useRef(null), [A, C] = nt({
       controlled: Ne,
       default: o ?? u,
       name: "Slider"
@@ -150,7 +150,7 @@ let __tla = Promise.all([
       var _a;
       const s = Number(r.currentTarget.getAttribute("data-index"));
       Ke(r.target) && re(s), Z(s), (_a = a == null ? void 0 : a.onFocus) == null ? void 0 : _a.call(a, r);
-    }, $e = (a) => (r) => {
+    }, Ve = (a) => (r) => {
       var _a;
       Ke(r.target) || re(-1), Z(-1), (_a = a == null ? void 0 : a.onBlur) == null ? void 0 : _a.call(a, r);
     }, he = (a, r) => {
@@ -175,7 +175,7 @@ let __tla = Promise.all([
         });
       }
       C(l), re(s), v && !Te(l, A) && v(a, l, s), q && q(a, le.current ?? l);
-    }, He = (a) => (r) => {
+    }, $e = (a) => (r) => {
       var _a;
       if ([
         "ArrowUp",
@@ -241,7 +241,7 @@ let __tla = Promise.all([
       n && d.current.contains(document.activeElement) && ((_a = document.activeElement) == null ? void 0 : _a.blur());
     }, [
       n
-    ]), n && V !== -1 && Q(-1), n && D !== -1 && re(-1);
+    ]), n && H !== -1 && Q(-1), n && D !== -1 && re(-1);
     const ge = (a) => (r) => {
       var _a;
       (_a = a.onChange) == null ? void 0 : _a.call(a, r), he(r, r.target.valueAsNumber);
@@ -259,25 +259,25 @@ let __tla = Promise.all([
         g = m[ue];
       }
       g = de(g, u, f);
-      let H = 0;
+      let $ = 0;
       if (te) {
-        r ? H = U.current : H = Ge(b, g), p && (g = de(g, b[H - 1] || -1 / 0, b[H + 1] || 1 / 0));
+        r ? $ = U.current : $ = Ge(b, g), p && (g = de(g, b[$ - 1] || -1 / 0, b[$ + 1] || 1 / 0));
         const ue = g;
         g = Je({
           values: b,
           newValue: g,
-          index: H
-        }), p && r || (H = g.indexOf(ue), U.current = H);
+          index: $
+        }), p && r || ($ = g.indexOf(ue), U.current = $);
       }
       return {
         newValue: g,
-        activeIndex: H
+        activeIndex: $
       };
     }, K = _e((a) => {
       const r = Ce(a, N);
       if (!r) return;
       if (ee.current += 1, a.type === "mousemove" && a.buttons === 0) {
-        $(a);
+        V(a);
         return;
       }
       const { newValue: s, activeIndex: c } = W({
@@ -289,7 +289,7 @@ let __tla = Promise.all([
         activeIndex: c,
         setActive: Q
       }), C(s), !me && ee.current > bt && be(true), v && !Te(s, A) && v(a, s, c);
-    }), $ = _e((a) => {
+    }), V = _e((a) => {
       const r = Ce(a, N);
       if (be(false), !r) return;
       const { newValue: s } = W({
@@ -317,14 +317,14 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("touchmove", K, {
         passive: true
-      }), c.addEventListener("touchend", $, {
+      }), c.addEventListener("touchend", V, {
         passive: true
       });
     }), B = y.useCallback(() => {
       const a = Re(d.current);
-      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", $), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", $);
+      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", V), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", V);
     }, [
-      $,
+      V,
       K
     ]);
     y.useEffect(() => {
@@ -343,7 +343,7 @@ let __tla = Promise.all([
       n,
       B
     ]);
-    const Ve = (a) => (r) => {
+    const He = (a) => (r) => {
       var _a;
       if ((_a = a.onMouseDown) == null ? void 0 : _a.call(a, r), n || r.defaultPrevented || r.button !== 0) return;
       r.preventDefault();
@@ -362,10 +362,10 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("mousemove", K, {
         passive: true
-      }), c.addEventListener("mouseup", $);
+      }), c.addEventListener("mouseup", V);
     }, ve = Me(te ? b[0] : u, u, f), x = Me(b[b.length - 1], u, f) - ve, ce = (a = {}) => {
       const r = Ue(a), s = {
-        onMouseDown: Ve(r || {})
+        onMouseDown: He(r || {})
       }, c = {
         ...r,
         ...s
@@ -394,11 +394,11 @@ let __tla = Promise.all([
         ...s
       };
     }, xe = (a) => ({
-      pointerEvents: V !== -1 && V !== a ? "none" : void 0
+      pointerEvents: H !== -1 && H !== a ? "none" : void 0
     });
     let ae;
     return G === "vertical" && (ae = w ? "vertical-rl" : "vertical-lr"), {
-      active: V,
+      active: H,
       axis: Y,
       axisProps: kt,
       dragging: me,
@@ -407,8 +407,8 @@ let __tla = Promise.all([
         const r = Ue(a), s = {
           onChange: ge(r || {}),
           onFocus: Ee(r || {}),
-          onBlur: $e(r || {}),
-          onKeyDown: He(r || {})
+          onBlur: Ve(r || {}),
+          onKeyDown: $e(r || {})
         }, c = {
           ...r,
           ...s
@@ -1094,15 +1094,15 @@ let __tla = Promise.all([
     return pt(L, wt, E);
   };
   Et = ({ children: e }) => e;
-  Vt = y.forwardRef(function(t, o) {
+  Ht = y.forwardRef(function(t, o) {
     const n = ut({
       props: t,
       name: "MuiSlider"
-    }), p = dt(), { "aria-label": w, "aria-valuetext": E, "aria-labelledby": f, component: u = "span", components: L = {}, componentsProps: M = {}, color: q = "primary", classes: G, className: ze, disableSwap: pe = false, disabled: z = false, getAriaLabel: J, getAriaValueText: fe, marks: Ne = false, max: N = 100, min: V = 0, name: Q, onChange: We, onChangeCommitted: Z, orientation: me = "horizontal", shiftStep: be = 10, size: ee = "medium", step: le = 1, scale: A = Ze, slotProps: C, slots: v, tabIndex: te, track: b = "normal", value: ie, valueLabelDisplay: m = "off", valueLabelFormat: D = Ze, ...re } = n, d = {
+    }), p = dt(), { "aria-label": w, "aria-valuetext": E, "aria-labelledby": f, component: u = "span", components: L = {}, componentsProps: M = {}, color: q = "primary", classes: G, className: ze, disableSwap: pe = false, disabled: z = false, getAriaLabel: J, getAriaValueText: fe, marks: Ne = false, max: N = 100, min: H = 0, name: Q, onChange: We, onChangeCommitted: Z, orientation: me = "horizontal", shiftStep: be = 10, size: ee = "medium", step: le = 1, scale: A = Ze, slotProps: C, slots: v, tabIndex: te, track: b = "normal", value: ie, valueLabelDisplay: m = "off", valueLabelFormat: D = Ze, ...re } = n, d = {
       ...n,
       isRtl: p,
       max: N,
-      min: V,
+      min: H,
       classes: G,
       disabled: z,
       disableSwap: pe,
@@ -1116,12 +1116,12 @@ let __tla = Promise.all([
       track: b,
       valueLabelDisplay: m,
       valueLabelFormat: D
-    }, { axisProps: _, getRootProps: Ee, getHiddenInputProps: $e, getThumbProps: he, open: He, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: $, values: S, trackOffset: B, trackLeap: Ve, getThumbStyle: ve } = St({
+    }, { axisProps: _, getRootProps: Ee, getHiddenInputProps: Ve, getThumbProps: he, open: $e, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: V, values: S, trackOffset: B, trackLeap: He, getThumbStyle: ve } = St({
       ...d,
       rootRef: o
     });
-    d.marked = $.length > 0 && $.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
-    const x = Nt(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, H = O({
+    d.marked = V.length > 0 && V.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
+    const x = Nt(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, $ = O({
       elementType: ce,
       getSlotProps: Ee,
       externalSlotProps: r,
@@ -1150,7 +1150,7 @@ let __tla = Promise.all([
       additionalProps: {
         style: {
           ..._[U].offset(B),
-          ..._[U].leap(Ve)
+          ..._[U].leap(He)
         }
       },
       ownerState: {
@@ -1187,12 +1187,12 @@ let __tla = Promise.all([
       className: x.markLabel
     }), ot = O({
       elementType: a,
-      getSlotProps: $e,
+      getSlotProps: Ve,
       externalSlotProps: g,
       ownerState: d
     });
     return T.jsxs(ce, {
-      ...H,
+      ...$,
       children: [
         T.jsx(ke, {
           ...ue
@@ -1200,8 +1200,8 @@ let __tla = Promise.all([
         T.jsx(ye, {
           ...rt
         }),
-        $.filter((h) => h.value >= V && h.value <= N).map((h, k) => {
-          const Fe = Me(h.value, V, N), Le = _[U].offset(Fe);
+        V.filter((h) => h.value >= H && h.value <= N).map((h, k) => {
+          const Fe = Me(h.value, H, N), Le = _[U].offset(Fe);
           let j;
           return b === false ? j = S.includes(h.value) : j = b === "normal" && (W ? h.value >= S[0] && h.value <= S[S.length - 1] : h.value <= S[0]) || b === "inverted" && (W ? h.value <= S[0] || h.value >= S[S.length - 1] : h.value >= S[0]), T.jsxs(y.Fragment, {
             children: [
@@ -1235,14 +1235,14 @@ let __tla = Promise.all([
           }, k);
         }),
         S.map((h, k) => {
-          const Fe = Me(h, V, N), Le = _[U].offset(Fe), j = m === "off" ? Et : xe;
+          const Fe = Me(h, H, N), Le = _[U].offset(Fe), j = m === "off" ? Et : xe;
           return T.jsx(j, {
             ...!Ie(j) && {
               valueLabelFormat: D,
               valueLabelDisplay: m,
               value: typeof D == "function" ? D(A(h), k) : D,
               index: k,
-              open: He === k || ge === k || m === "on",
+              open: $e === k || ge === k || m === "on",
               disabled: z
             },
             ...at,
@@ -1272,7 +1272,7 @@ let __tla = Promise.all([
   });
 });
 export {
-  Vt as S,
+  Ht as S,
   __tla,
   zt as a
 };

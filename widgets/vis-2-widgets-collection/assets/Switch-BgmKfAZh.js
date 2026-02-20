@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, M as i, e as O, m as d, i as m, N, O as D, a3 as I, __tla as __tla_1 } from "./useData-D0DziYnO.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-Dtx-wsaB.js";
-let H;
+import { a as P, g as j, u as M, b as k, s as u, d as _, j as p, V as i, e as O, m as d, i as m, W as D, K as I, a2 as N, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-DIywY-d5.js";
+let G;
 let __tla = Promise.all([
   (() => {
     try {
@@ -23,9 +23,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function A(t) {
-    return M("MuiSwitch", t);
+    return j("MuiSwitch", t);
   }
-  let o, E, F, X, L, V;
+  let o, E, F, V, W, X;
   o = P("MuiSwitch", [
     "root",
     "edgeStart",
@@ -133,7 +133,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  X = u(U, {
+  V = u(U, {
     name: "MuiSwitch",
     slot: "SwitchBase",
     overridesResolver: (t, a) => {
@@ -182,7 +182,7 @@ let __tla = Promise.all([
       }
     },
     variants: [
-      ...Object.entries(t.palette).filter(N([
+      ...Object.entries(t.palette).filter(D([
         "light"
       ])).map(([a]) => ({
         props: {
@@ -198,7 +198,7 @@ let __tla = Promise.all([
               }
             },
             [`&.${o.disabled}`]: {
-              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? D(t.palette[a].main, 0.62) : I(t.palette[a].main, 0.55)}`
+              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? I(t.palette[a].main, 0.62) : N(t.palette[a].main, 0.55)}`
             }
           },
           [`&.${o.checked} + .${o.track}`]: {
@@ -208,7 +208,7 @@ let __tla = Promise.all([
       }))
     ]
   })));
-  L = u("span", {
+  W = u("span", {
     name: "MuiSwitch",
     slot: "Track",
     overridesResolver: (t, a) => a.track
@@ -226,7 +226,7 @@ let __tla = Promise.all([
     backgroundColor: t.vars ? t.vars.palette.common.onBackground : `${t.palette.mode === "light" ? t.palette.common.black : t.palette.common.white}`,
     opacity: t.vars ? t.vars.opacity.switchTrack : `${t.palette.mode === "light" ? 0.38 : 0.3}`
   })));
-  V = u("span", {
+  X = u("span", {
     name: "MuiSwitch",
     slot: "Thumb",
     overridesResolver: (t, a) => a.thumb
@@ -237,8 +237,8 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  H = T.forwardRef(function(a, s) {
-    const l = j({
+  G = T.forwardRef(function(a, s) {
+    const l = M({
       props: a,
       name: "MuiSwitch"
     }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: b, slots: c = {}, slotProps: e = {}, ...y } = l, r = {
@@ -259,21 +259,21 @@ let __tla = Promise.all([
       }
     }), [C, B] = k("thumb", {
       className: n.thumb,
-      elementType: V,
+      elementType: X,
       externalForwardedProps: S,
       ownerState: r
     }), $ = p.jsx(C, {
       ...B
     }), [z, R] = k("track", {
       className: n.track,
-      elementType: L,
+      elementType: W,
       externalForwardedProps: S,
       ownerState: r
     });
     return p.jsxs(f, {
       ...x,
       children: [
-        p.jsx(X, {
+        p.jsx(V, {
           type: "checkbox",
           icon: $,
           checkedIcon: $,
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  H as S,
+  G as S,
   __tla
 };

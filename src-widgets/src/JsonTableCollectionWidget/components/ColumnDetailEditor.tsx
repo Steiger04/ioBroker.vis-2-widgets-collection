@@ -32,12 +32,12 @@ import {
 } from '@mui/material';
 import {
     Add as AddIcon,
+    ArrowDownward as ArrowDownwardIcon,
+    ArrowUpward as ArrowUpwardIcon,
     Delete as DeleteIcon,
     ExpandMore as ExpandMoreIcon,
     FormatBold as FormatBoldIcon,
     FormatItalic as FormatItalicIcon,
-    CheckCircleOutline as ValidIcon,
-    ErrorOutline as ErrorIcon,
 } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
@@ -46,13 +46,9 @@ import Generic from '../../Generic';
 import ColorPickerField from '../../components/ColorPickerField';
 import { gradientColor } from '../../lib/helper/gradientColor';
 import { TYPE_COLORS, type ColumnConfigEntry, type ColumnStyleRule, type ColumnFormatConfig } from '../types';
-import {
-    formatNumberValue,
-    formatDateValue,
-    formatBooleanValue,
-    validateCondition,
-    DATE_FORMAT_OPTIONS,
-} from '../utils/formatters';
+import { formatNumberValue, formatDateValue, formatBooleanValue, DATE_FORMAT_OPTIONS } from '../utils/formatters';
+import ConditionRuleBuilder from './ConditionRuleBuilder';
+import type { JsonLogicRule } from '../utils/jsonLogicEngine';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 
 /** Props for the ColumnDetailEditor component. */
@@ -139,7 +135,6 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     const addStyleRule = useCallback(() => {
         const newRule: ColumnStyleRule = {
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            condition: '',
             backgroundColor: '',
             textColor: '',
             fontWeight: 'normal',
@@ -147,6 +142,29 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
         };
         onChange({ ...column, cellStyle: [...(column.cellStyle || []), newRule] });
     }, [column, onChange]);
+
+    // Move a rule up in the priority order
+    const moveRuleUp = useCallback(
+        (idx: number) => {
+            if (idx === 0) return;
+            const updated = [...(column.cellStyle || [])];
+            [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+            onChange({ ...column, cellStyle: updated });
+        },
+        [column, onChange],
+    );
+
+    // Move a rule down in the priority order
+    const moveRuleDown = useCallback(
+        (idx: number) => {
+            const rules = column.cellStyle || [];
+            if (idx >= rules.length - 1) return;
+            const updated = [...rules];
+            [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+            onChange({ ...column, cellStyle: updated });
+        },
+        [column, onChange],
+    );
 
     // Sample number value for preview (use discovered min/max if available)
     const sampleNumber = useMemo(() => {
@@ -553,9 +571,31 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={1.5}>
+                            {/* Empty state */}
+                            {(column.cellStyle || []).length === 0 && (
+                                <Box
+                                    sx={{
+                                        textAlign: 'center',
+                                        py: 2,
+                                        px: 1,
+                                        color: 'text.secondary',
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ fontWeight: 500, mb: 0.5 }}
+                                    >
+                                        {Generic.t('json_table_no_style_rules')}
+                                    </Typography>
+                                    <Typography variant="caption">
+                                        {Generic.t('json_table_no_style_rules_hint')}
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            {/* Rule cards */}
                             {(column.cellStyle || []).map((rule, idx) => {
-                                const conditionError = validateCondition(rule.condition);
-                                const hasCondition = rule.condition.trim() !== '';
+                                const ruleCount = (column.cellStyle || []).length;
                                 // Pre-compute gradient results to avoid repeated calls in JSX
                                 const bgGradient = rule.backgroundColor ? gradientColor(rule.backgroundColor) : undefined;
                                 const textGradient = rule.textColor ? gradientColor(rule.textColor) : undefined;
@@ -567,7 +607,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                         sx={{ p: 1.5 }}
                                     >
                                         <Stack spacing={1.5}>
-                                            {/* Rule header with delete button */}
+                                            {/* Rule header: label + reorder + delete */}
                                             <Box
                                                 sx={{
                                                     display: 'flex',
@@ -577,58 +617,56 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                             >
                                                 <Typography
                                                     variant="caption"
-                                                    sx={{ fontWeight: 500 }}
+                                                    sx={{ fontWeight: 600, color: 'text.secondary' }}
                                                 >
                                                     {Generic.t('json_table_rule')} {idx + 1}
                                                 </Typography>
-                                                <Tooltip title={Generic.t('json_table_delete_rule')}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => deleteStyleRule(idx)}
-                                                        color="error"
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
+                                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                    <Tooltip title={Generic.t('json_table_rule_move_up')}>
+                                                        <span>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => moveRuleUp(idx)}
+                                                                disabled={idx === 0}
+                                                                aria-label={Generic.t('json_table_rule_move_up')}
+                                                            >
+                                                                <ArrowUpwardIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </span>
+                                                    </Tooltip>
+                                                    <Tooltip title={Generic.t('json_table_rule_move_down')}>
+                                                        <span>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => moveRuleDown(idx)}
+                                                                disabled={idx >= ruleCount - 1}
+                                                                aria-label={Generic.t('json_table_rule_move_down')}
+                                                            >
+                                                                <ArrowDownwardIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </span>
+                                                    </Tooltip>
+                                                    <Tooltip title={Generic.t('json_table_delete_rule')}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => deleteStyleRule(idx)}
+                                                            color="error"
+                                                            aria-label={Generic.t('json_table_delete_rule')}
+                                                        >
+                                                            <DeleteIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
                                             </Box>
 
-                                            {/* Condition input with validation indicator */}
-                                            <TextField
-                                                label={Generic.t('json_table_condition')}
-                                                value={rule.condition}
-                                                onChange={e => updateStyleRule(idx, { condition: e.target.value })}
-                                                size="small"
-                                                fullWidth
-                                                placeholder="value > 100"
-                                                error={hasCondition && conditionError !== null}
-                                                helperText={
-                                                    hasCondition && conditionError
-                                                        ? conditionError
-                                                        : Generic.t('json_table_condition_hint')
+                                            {/* Visual condition builder */}
+                                            <ConditionRuleBuilder
+                                                key={rule.id ?? idx}
+                                                logic={rule.logic}
+                                                columnType={detectedType}
+                                                onChange={(newLogic: JsonLogicRule | undefined) =>
+                                                    updateStyleRule(idx, { logic: newLogic })
                                                 }
-                                                slotProps={{
-                                                    input: {
-                                                        endAdornment: hasCondition ? (
-                                                            conditionError ? (
-                                                                <Tooltip title={conditionError}>
-                                                                    <ErrorIcon
-                                                                        fontSize="small"
-                                                                        color="error"
-                                                                    />
-                                                                </Tooltip>
-                                                            ) : (
-                                                                <Tooltip
-                                                                    title={Generic.t('json_table_condition_valid')}
-                                                                >
-                                                                    <ValidIcon
-                                                                        fontSize="small"
-                                                                        color="success"
-                                                                    />
-                                                                </Tooltip>
-                                                            )
-                                                        ) : null,
-                                                    },
-                                                }}
                                             />
 
                                             {/* Color inputs in a row */}
@@ -649,7 +687,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                 />
                                             </Stack>
 
-                                            {/* Font style toggles — unchecked icon is dimmed, checked icon uses primary color */}
+                                            {/* Font style toggles */}
                                             <Stack
                                                 direction="row"
                                                 spacing={1}
@@ -696,8 +734,8 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                 />
                                             </Stack>
 
-                                            {/* Live preview swatch — uses pre-computed gradient variables */}
-                                            {(rule.backgroundColor || rule.textColor) && (
+                                            {/* Live preview swatch */}
+                                            {(rule.backgroundColor || rule.textColor || rule.fontWeight === 'bold' || rule.fontStyle === 'italic') && (
                                                 <Paper
                                                     variant="outlined"
                                                     sx={{
@@ -706,7 +744,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                             ? bgGradient
                                                                 ? { background: bgGradient }
                                                                 : { backgroundColor: rule.backgroundColor }
-                                                            : { backgroundColor: 'transparent' }),
+                                                            : {}),
                                                         fontWeight: rule.fontWeight || 'normal',
                                                         fontStyle: rule.fontStyle || 'normal',
                                                     }}

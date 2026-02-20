@@ -1,5 +1,5 @@
-import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as J, a as K, a2 as Q, W as V, b as C, s as F, j as b, M as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./useData-D0DziYnO.js";
+import { v as G, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { g as H, a as J, a1 as K, R as Q, b as C, s as F, j as b, V as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -16,9 +16,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function oe(t) {
-    return J("PrivateSwitchBase", t);
+    return H("PrivateSwitchBase", t);
   }
-  K("PrivateSwitchBase", [
+  J("PrivateSwitchBase", [
     "root",
     "checked",
     "disabled",
@@ -94,24 +94,24 @@ let __tla = Promise.all([
     padding: 0,
     zIndex: 1
   });
-  ie = H.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = Q({
+  ie = G.forwardRef(function(s, l) {
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = K({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
       state: "checked"
-    }), a = V(), T = (e) => {
+    }), a = Q(), T = (e) => {
       m && m(e), a && a.onFocus && a.onFocus(e);
-    }, W = (e) => {
-      g && g(e), a && a.onBlur && a.onBlur(e);
     }, q = (e) => {
+      g && g(e), a && a.onBlur && a.onBlur(e);
+    }, O = (e) => {
       if (e.nativeEvent.defaultPrevented) return;
       const o = e.target.checked;
       N(o), f && f(e, o);
     };
     let r = k;
     a && typeof r > "u" && (r = a.disabled);
-    const O = i === "checkbox" || i === "radio", p = {
+    const V = i === "checkbox" || i === "radio", p = {
       ...s,
       checked: B,
       disabled: r,
@@ -123,7 +123,7 @@ let __tla = Promise.all([
         input: _,
         ...L
       }
-    }, [$, A] = C("root", {
+    }, [W, $] = C("root", {
       ref: l,
       elementType: se,
       className: w.root,
@@ -141,7 +141,7 @@ let __tla = Promise.all([
         },
         onBlur: (o) => {
           var _a;
-          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), W(o);
+          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), q(o);
         }
       }),
       ownerState: p,
@@ -152,7 +152,7 @@ let __tla = Promise.all([
         role: void 0,
         tabIndex: null
       }
-    }), [D, G] = C("input", {
+    }), [A, D] = C("input", {
       ref: I,
       elementType: ae,
       className: w.input,
@@ -160,7 +160,7 @@ let __tla = Promise.all([
       getSlotProps: (e) => ({
         onChange: (o) => {
           var _a;
-          (_a = e.onChange) == null ? void 0 : _a.call(e, o), q(o);
+          (_a = e.onChange) == null ? void 0 : _a.call(e, o), O(o);
         }
       }),
       ownerState: p,
@@ -169,7 +169,7 @@ let __tla = Promise.all([
         checked: n,
         defaultChecked: u,
         disabled: r,
-        id: O ? R : void 0,
+        id: V ? R : void 0,
         name: z,
         readOnly: v,
         required: j,
@@ -180,11 +180,11 @@ let __tla = Promise.all([
         }
       }
     });
-    return b.jsxs($, {
-      ...A,
+    return b.jsxs(W, {
+      ...$,
       children: [
-        b.jsx(D, {
-          ...G
+        b.jsx(A, {
+          ...D
         }),
         B ? c : x
       ]
