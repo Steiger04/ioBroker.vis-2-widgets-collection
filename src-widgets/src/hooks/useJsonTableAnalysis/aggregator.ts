@@ -117,9 +117,17 @@ function toComparableDateString(value: unknown, dateFormat?: DateFormatId): stri
  * @param paths - Ordered column paths
  * @param rows - Flattened rows (each row has every path)
  * @param maxDistinct - Maximum distinct values to track per column (default: 100)
+ * @param dateConfidenceThreshold - Minimum ratio of date values among non-null values
+ *   required to classify a column as 'date'. Columns below this threshold are classified
+ *   as 'string' instead. (default: 0.8)
  * @returns Array of JsonTableColumn with full statistics
  */
-export function aggregateColumns(paths: string[], rows: FlatRow[], maxDistinct: number = 100): JsonTableColumn[] {
+export function aggregateColumns(
+    paths: string[],
+    rows: FlatRow[],
+    maxDistinct: number = 100,
+    dateConfidenceThreshold: number = 0.8,
+): JsonTableColumn[] {
     const totalRows = rows.length;
 
     // Initialize accumulators
@@ -193,12 +201,24 @@ export function aggregateColumns(paths: string[], rows: FlatRow[], maxDistinct: 
     // Build final column descriptors
     return paths.map(path => {
         const acc = accumulators.get(path)!;
-        const primaryType = resolvePrimaryType(acc.typeCounts);
+        let primaryType = resolvePrimaryType(acc.typeCounts);
+
+        // Apply dateConfidenceThreshold: if the ratio of date values among non-null values
+        // is below the threshold, classify the column as 'string' instead of 'date'.
+        if (primaryType === 'date' && acc.nonNullCount > 0) {
+            const dateCount = acc.typeCounts.date || 0;
+            const dateRatio = dateCount / acc.nonNullCount;
+            if (dateRatio < dateConfidenceThreshold) {
+                primaryType = 'string';
+            }
+        }
+
         const dateFormat = primaryType === 'date' ? resolveDateFormat(acc.dateFormatCounts) : undefined;
 
-        // Confidence: ratio of primary-type values to total non-null values
+        // Confidence: ratio of primary-type values among non-null values.
+        // Using nonNullCount avoids artificially lowering confidence due to sparse columns.
         const primaryCount = primaryType === 'date' ? acc.typeCounts.date || 0 : acc.typeCounts[primaryType] || 0;
-        const confidence = totalRows > 0 ? Math.round((primaryCount / totalRows) * 100) / 100 : 0;
+        const confidence = acc.nonNullCount > 0 ? Math.round((primaryCount / acc.nonNullCount) * 100) / 100 : 0;
 
         const column: JsonTableColumn = {
             path,

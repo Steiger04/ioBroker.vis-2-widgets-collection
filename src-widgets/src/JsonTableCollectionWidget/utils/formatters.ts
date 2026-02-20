@@ -196,6 +196,12 @@ export function evaluateCondition(condition: string, value: unknown): boolean {
     }
 
     try {
+        // Security note: `new Function` executes arbitrary JavaScript.
+        // This is acceptable here because:
+        // 1. Conditions are authored only at widget configuration time by trusted admins.
+        // 2. ioBroker's vis-2 editor is already a privileged environment.
+        // 3. The expression runs in strict mode with only `value` in scope.
+        // If untrusted user input ever reaches this path, replace with a safe expression parser.
         const fn = new Function('value', `'use strict'; return (${condition});`);
         return Boolean(fn(value));
     } catch {

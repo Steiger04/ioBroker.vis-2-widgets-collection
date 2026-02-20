@@ -52,7 +52,7 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
      * data when the OID is deleted.
      */
     private static createObjectFields(): RxWidgetInfoAttributesField[] {
-        const fields = commonObjectFields(['string']);
+        const fields = commonObjectFields(['string', 'mixed', 'json']);
         const oidField = fields.find(f => f.name === 'oid');
 
         if (oidField) {
@@ -143,10 +143,6 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
 
     // eslint-disable-next-line class-methods-use-this
     onStateUpdated(_id: string, _state: ioBroker.State | null | undefined): void {}
-
-    componentDidMount(): void {
-        super.componentDidMount();
-    }
 
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);

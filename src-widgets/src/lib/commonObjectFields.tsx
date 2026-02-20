@@ -15,7 +15,7 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 /** Supported value type hints used by `oidChangeHandlerAsync()`. */
-type AllowedType = 'boolean' | 'number' | 'string' | 'mixed';
+type AllowedType = 'boolean' | 'number' | 'string' | 'mixed' | 'json';
 
 const getObjectIconAsync = async (socket: LegacyConnection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');

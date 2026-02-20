@@ -7,9 +7,12 @@
  * analyzes it with `useJsonTableAnalysis`, and renders a MUI X DataGrid (MIT).
  */
 
-import { Box, Typography } from '@mui/material';
+import { Box, MenuItem, Typography } from '@mui/material';
+import type { MenuItemProps } from '@mui/material';
+import type { TablePaginationProps } from '@mui/material/TablePagination';
 import {
     DataGrid,
+    GridPagination,
     GridToolbarContainer,
     GridToolbarQuickFilter,
     type GridColDef,
@@ -116,6 +119,74 @@ function QuickFilterToolbar(props: { quickFilterProps?: GridToolbarQuickFilterPr
 }
 
 /**
+ * Custom MenuItem that wraps content in Typography for consistent styling.
+ */
+function TypographyMenuItem(props: MenuItemProps): React.JSX.Element {
+    const { children, ...other } = props;
+    return (
+        <MenuItem {...other}>
+            <Typography
+                variant="body2"
+                component="span"
+            >
+                {children}
+            </Typography>
+        </MenuItem>
+    );
+}
+
+/**
+ * Custom pagination component that wraps labels in Typography for consistent styling.
+ */
+function TypographyPagination(props: Partial<TablePaginationProps>): React.JSX.Element {
+    return (
+        <GridPagination
+            {...props}
+            labelRowsPerPage={
+                <Typography
+                    variant="body2"
+                    component="span"
+                >
+                    {props.labelRowsPerPage}
+                </Typography>
+            }
+            labelDisplayedRows={paginationInfo => (
+                <Typography
+                    variant="body2"
+                    component="span"
+                >
+                    {typeof props.labelDisplayedRows === 'function'
+                        ? props.labelDisplayedRows(paginationInfo)
+                        : `${paginationInfo.from}\u2013${paginationInfo.to} / ${paginationInfo.count}`}
+                </Typography>
+            )}
+            slots={{
+                menuItem: TypographyMenuItem,
+            }}
+            slotProps={{
+                ...props.slotProps,
+                select: {
+                    ...((props.slotProps as Record<string, unknown>)?.select as Record<string, unknown>),
+                    renderValue: (value: unknown) => (
+                        <Typography
+                            variant="body2"
+                            component="span"
+                        >
+                            {String(value)}
+                        </Typography>
+                    ),
+                    sx: {
+                        '& .MuiSelect-icon': {
+                            color: 'inherit',
+                        },
+                    },
+                },
+            }}
+        />
+    );
+}
+
+/**
  * Renders a data grid from JSON state values.
  */
 const JsonTableCollection: FC = () => {
@@ -131,7 +202,7 @@ const JsonTableCollection: FC = () => {
     const oidValue = useOidValue('oid');
 
     const oidType = oidObject?.type;
-    const isValidType = oidType === 'string' || oidType === 'mixed';
+    const isValidType = oidType === 'string' || oidType === 'mixed' || oidType === 'json';
 
     // Parse JSON from state value
     const jsonData = useMemo<unknown[]>(() => {
@@ -315,6 +386,29 @@ const JsonTableCollection: FC = () => {
         );
     }, []);
 
+    /**
+     * Default renderHeader that wraps column header names in Typography
+     * for consistent theme-aware text rendering across all headers.
+     */
+    const defaultRenderHeader = useCallback((params: { colDef: GridColDef }): React.ReactNode => {
+        return (
+            <Typography
+                variant="body2"
+                component="span"
+                fontWeight="medium"
+                noWrap
+                title={params.colDef.headerName || params.colDef.field}
+                sx={{
+                    width: '100%',
+                    display: 'block',
+                    lineHeight: 'inherit',
+                }}
+            >
+                {params.colDef.headerName || params.colDef.field}
+            </Typography>
+        );
+    }, []);
+
     // Build DataGrid column definitions
     const gridColumns = useMemo<GridColDef[]>(() => {
         // If there is a column config, use its ordering and visibility
@@ -331,6 +425,7 @@ const JsonTableCollection: FC = () => {
                         align: cfg.align || 'left',
                         sortable: cfg.sortable ?? widget.data.tableSorting !== false,
                         filterable: cfg.filterable ?? widget.data.tableFiltering === true,
+                        renderHeader: defaultRenderHeader,
                     };
 
                     // Apply renderCell: use formatted version if formatting/styling is configured,
@@ -358,6 +453,7 @@ const JsonTableCollection: FC = () => {
             sortable: widget.data.tableSorting !== false,
             filterable: widget.data.tableFiltering === true,
             renderCell: defaultRenderCell,
+            renderHeader: defaultRenderHeader,
         }));
     }, [
         columnConfig,
@@ -366,10 +462,11 @@ const JsonTableCollection: FC = () => {
         widget.data.tableFiltering,
         createRenderCell,
         defaultRenderCell,
+        defaultRenderHeader,
     ]);
 
     // Controlled pagination model — reacts immediately to tablePageSize changes
-    const configuredPageSize = Number(widget.data.tablePageSize) || 25;
+    const configuredPageSize = useMemo(() => Number(widget.data.tablePageSize) || 25, [widget.data.tablePageSize]);
     const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: configuredPageSize });
 
     // Reset page to 0 and apply new page size when config changes
@@ -420,6 +517,19 @@ const JsonTableCollection: FC = () => {
                 ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
                 ...(headerTextColor && { color: headerTextColor }),
                 ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
+            };
+            // Apply background to filler elements to prevent gaps at the right edge.
+            // MuiDataGrid-filler is the flex-growing spacer after the last column header.
+            // MuiDataGrid-scrollbarFiller--header is the fixed scrollbar-width cell that
+            // appears when a vertical scrollbar is present. Both must be styled because
+            // DataGrid v7 assigns no background to these elements by default.
+            sx['& .MuiDataGrid-filler'] = {
+                ...(isGradientBg && { background: isGradientBg }),
+                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
+            };
+            sx['& .MuiDataGrid-scrollbarFiller--header'] = {
+                ...(isGradientBg && { background: isGradientBg }),
+                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
             };
         }
 
@@ -503,7 +613,10 @@ const JsonTableCollection: FC = () => {
                         showCellVerticalBorder={widget.data.tableShowCellBorders === true}
                         showColumnVerticalBorder={widget.data.tableShowCellBorders === true}
                         autosizeOnMount={widget.data.tableAutoSize === true}
-                        slots={widget.data.tableQuickFilter === true ? { toolbar: QuickFilterToolbar } : {}}
+                        slots={{
+                            ...(widget.data.tableQuickFilter === true && { toolbar: QuickFilterToolbar }),
+                            pagination: TypographyPagination,
+                        }}
                         {...(widget.data.tableQuickFilter === true && {
                             slotProps: {
                                 toolbar: {

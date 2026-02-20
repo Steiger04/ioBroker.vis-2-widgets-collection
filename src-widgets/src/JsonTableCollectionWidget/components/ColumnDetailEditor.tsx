@@ -84,12 +84,32 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     // Detected type from analysis
     const detectedType = discoveredColumn?.type || 'string';
 
-    // Update format config helper
+    // Update format config helper.
+    // When the format `type` changes, clears the previous type's properties to avoid
+    // stale config (e.g. switching date→number should not retain dateFormat).
     const updateFormat = useCallback(
         (patch: Partial<ColumnFormatConfig>) => {
+            const base: Partial<ColumnFormatConfig> = { ...column.format };
+
+            if (patch.type && patch.type !== column.format?.type) {
+                const oldType = column.format?.type;
+                if (oldType === 'number') {
+                    delete base.numberDecimals;
+                    delete base.numberPrefix;
+                    delete base.numberSuffix;
+                    delete base.numberThousandsSeparator;
+                } else if (oldType === 'date') {
+                    delete base.dateFormat;
+                    delete base.dateInputFormat;
+                } else if (oldType === 'boolean') {
+                    delete base.booleanTrue;
+                    delete base.booleanFalse;
+                }
+            }
+
             onChange({
                 ...column,
-                format: { ...column.format, ...patch } as ColumnFormatConfig,
+                format: { ...base, ...patch } as ColumnFormatConfig,
             });
         },
         [column, onChange],
@@ -115,9 +135,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
         [column, onChange],
     );
 
-    // Add a new empty style rule
+    // Add a new empty style rule with a stable id for React keying
     const addStyleRule = useCallback(() => {
         const newRule: ColumnStyleRule = {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             condition: '',
             backgroundColor: '',
             textColor: '',
@@ -535,10 +556,13 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                             {(column.cellStyle || []).map((rule, idx) => {
                                 const conditionError = validateCondition(rule.condition);
                                 const hasCondition = rule.condition.trim() !== '';
+                                // Pre-compute gradient results to avoid repeated calls in JSX
+                                const bgGradient = rule.backgroundColor ? gradientColor(rule.backgroundColor) : undefined;
+                                const textGradient = rule.textColor ? gradientColor(rule.textColor) : undefined;
 
                                 return (
                                     <Paper
-                                        key={idx}
+                                        key={rule.id ?? idx}
                                         variant="outlined"
                                         sx={{ p: 1.5 }}
                                     >
@@ -625,7 +649,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                 />
                                             </Stack>
 
-                                            {/* Font style toggles */}
+                                            {/* Font style toggles — unchecked icon is dimmed, checked icon uses primary color */}
                                             <Stack
                                                 direction="row"
                                                 spacing={1}
@@ -639,8 +663,8 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                                     fontWeight: e.target.checked ? 'bold' : 'normal',
                                                                 })
                                                             }
-                                                            icon={<FormatBoldIcon />}
-                                                            checkedIcon={<FormatBoldIcon />}
+                                                            icon={<FormatBoldIcon sx={{ opacity: 0.3 }} />}
+                                                            checkedIcon={<FormatBoldIcon color="primary" />}
                                                             size="small"
                                                         />
                                                     }
@@ -659,8 +683,8 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                                     fontStyle: e.target.checked ? 'italic' : 'normal',
                                                                 })
                                                             }
-                                                            icon={<FormatItalicIcon />}
-                                                            checkedIcon={<FormatItalicIcon />}
+                                                            icon={<FormatItalicIcon sx={{ opacity: 0.3 }} />}
+                                                            checkedIcon={<FormatItalicIcon color="primary" />}
                                                             size="small"
                                                         />
                                                     }
@@ -672,15 +696,15 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                 />
                                             </Stack>
 
-                                            {/* Live preview swatch */}
+                                            {/* Live preview swatch — uses pre-computed gradient variables */}
                                             {(rule.backgroundColor || rule.textColor) && (
                                                 <Paper
                                                     variant="outlined"
                                                     sx={{
                                                         p: 1,
                                                         ...(rule.backgroundColor
-                                                            ? gradientColor(rule.backgroundColor)
-                                                                ? { background: gradientColor(rule.backgroundColor) }
+                                                            ? bgGradient
+                                                                ? { background: bgGradient }
                                                                 : { backgroundColor: rule.backgroundColor }
                                                             : { backgroundColor: 'transparent' }),
                                                         fontWeight: rule.fontWeight || 'normal',
@@ -691,9 +715,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                                         variant="body2"
                                                         sx={{
                                                             ...(rule.textColor
-                                                                ? gradientColor(rule.textColor)
+                                                                ? textGradient
                                                                     ? {
-                                                                          background: gradientColor(rule.textColor),
+                                                                          background: textGradient,
                                                                           backgroundClip: 'text',
                                                                           WebkitBackgroundClip: 'text',
                                                                           color: 'transparent',

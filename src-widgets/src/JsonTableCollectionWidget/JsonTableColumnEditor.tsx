@@ -12,7 +12,7 @@
  * `(field, data, onDataChange, props) => JSX.Element`
  */
 
-import { Box, Button, ThemeProvider, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
@@ -69,44 +69,42 @@ function JsonTableColumnEditor(
     );
 
     return (
-        <ThemeProvider theme={theme}>
-            <Box sx={{ mt: 1, width: '100%' }}>
-                {/* Open modal button */}
-                <Button
-                    variant="outlined"
-                    startIcon={<SettingsIcon />}
-                    onClick={() => setModalOpen(true)}
-                    fullWidth
-                    sx={{ textTransform: 'none' }}
+        <Box sx={{ mt: 1, width: '100%' }}>
+            {/* Open modal button */}
+            <Button
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+                onClick={() => setModalOpen(true)}
+                fullWidth
+                sx={{ textTransform: 'none' }}
+            >
+                {Generic.t('json_table_configure_columns')}
+            </Button>
+
+            {/* Summary below button */}
+            {totalCount > 0 && (
+                <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 0.5, display: 'block' }}
                 >
-                    {Generic.t('json_table_configure_columns')}
-                </Button>
+                    {visibleCount} / {totalCount} {Generic.t('json_table_columns_visible')}
+                    {hasFormatting && ` · ${Generic.t('json_table_has_formatting')}`}
+                    {hasStyling && ` · ${Generic.t('json_table_has_styling')}`}
+                </Typography>
+            )}
 
-                {/* Summary below button */}
-                {totalCount > 0 && (
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ mt: 0.5, display: 'block' }}
-                    >
-                        {visibleCount} / {totalCount} {Generic.t('json_table_columns_visible')}
-                        {hasFormatting && ` · ${Generic.t('json_table_has_formatting')}`}
-                        {hasStyling && ` · ${Generic.t('json_table_has_styling')}`}
-                    </Typography>
-                )}
-
-                {/* Column editor modal */}
-                <JsonTableColumnEditorModal
-                    open={modalOpen}
-                    onClose={() => setModalOpen(false)}
-                    columns={columns}
-                    onSave={handleSave}
-                    theme={theme}
-                    data={data}
-                    socket={props.context.socket}
-                />
-            </Box>
-        </ThemeProvider>
+            {/* Column editor modal — provides its own ThemeProvider */}
+            <JsonTableColumnEditorModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                columns={columns}
+                onSave={handleSave}
+                theme={theme}
+                data={data}
+                socket={props.context.socket}
+            />
+        </Box>
     );
 }
 

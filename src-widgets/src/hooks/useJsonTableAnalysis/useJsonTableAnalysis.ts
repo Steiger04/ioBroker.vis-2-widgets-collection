@@ -59,7 +59,7 @@ export function analyzeJsonTable(data: unknown[], options?: JsonTableAnalysisOpt
     const flatResult = flattenAll(data, opts.maxDepth);
 
     // Step 2: Aggregate column statistics
-    const columns = aggregateColumns(flatResult.paths, flatResult.rows, opts.maxDistinct);
+    const columns = aggregateColumns(flatResult.paths, flatResult.rows, opts.maxDistinct, opts.dateConfidenceThreshold);
 
     // Step 3: Compute meta
     const totalCells = flatResult.paths.length * flatResult.rows.length;

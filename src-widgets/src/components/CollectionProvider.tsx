@@ -61,6 +61,17 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
                             },
                         },
                     },
+                    /* MuiDataGrid: {
+                        styleOverrides: {
+                            root: {
+                                // Default header background - applies when tableHeaderBgColor is not set
+                                '& .MuiDataGrid-columnHeader': {
+                                    // backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5', // Custom default
+                                    backgroundColor: 'transparent', // Use transparent to allow widget background color to show through
+                                },
+                            },
+                        },
+                    }, */
                 },
             }),
         );

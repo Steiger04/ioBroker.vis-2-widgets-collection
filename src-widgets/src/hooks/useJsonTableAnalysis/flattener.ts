@@ -178,9 +178,9 @@ function sortPaths(paths: string[]): string[] {
                 continue;
             }
 
-            // String comparison
+            // String comparison — locale-independent for consistent ordering across environments
             if (sA !== sB) {
-                return sA.localeCompare(sB);
+                return sA < sB ? -1 : 1;
             }
         }
 

@@ -85,18 +85,24 @@ function ColumnList({
         );
     }, [columns, searchText]);
 
-    const visibleCount = columns.filter(c => c.visible).length;
+    const visibleCount = useMemo(() => columns.filter(c => c.visible).length, [columns]);
 
     // Toggle visibility for a single column (stop event propagation to prevent card selection)
-    const handleToggleVisibility = (e: React.MouseEvent, path: string): void => {
-        e.stopPropagation();
-        onChange(columns.map(c => (c.path === path ? { ...c, visible: !c.visible } : c)));
-    };
+    const handleToggleVisibility = useCallback(
+        (e: React.MouseEvent, path: string): void => {
+            e.stopPropagation();
+            onChange(columns.map(c => (c.path === path ? { ...c, visible: !c.visible } : c)));
+        },
+        [columns, onChange],
+    );
 
     // Bulk toggle all columns
-    const handleToggleAll = (visible: boolean): void => {
-        onChange(columns.map(c => ({ ...c, visible })));
-    };
+    const handleToggleAll = useCallback(
+        (visible: boolean): void => {
+            onChange(columns.map(c => ({ ...c, visible })));
+        },
+        [columns, onChange],
+    );
 
     // --- Drag & Drop handlers ---
     const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, path: string): void => {
@@ -164,7 +170,7 @@ function ColumnList({
     }, []);
 
     // Reset all columns to default settings (keep paths, clear all customizations)
-    const handleResetAll = (): void => {
+    const handleResetAll = useCallback((): void => {
         onChange(
             columns.map(c => ({
                 path: c.path,
@@ -172,7 +178,7 @@ function ColumnList({
                 headerName: c.path.split('.').pop() || c.path,
             })),
         );
-    };
+    }, [columns, onChange]);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

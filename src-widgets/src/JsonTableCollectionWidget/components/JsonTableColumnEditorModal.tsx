@@ -124,19 +124,21 @@ function JsonTableColumnEditorModal({
         }
     }, [open]);
 
-    // Discover columns by analyzing the OID state value
+    // Discover columns by analyzing the OID state value.
+    // `selectedPath` is intentionally omitted from deps: the functional setter form
+    // of setSelectedPath is used for auto-selection, avoiding unnecessary re-creations.
+    // `setLoading(false)` is only called in the finally block — early returns inside
+    // the try block do NOT need explicit setLoading(false) calls.
     const discoverColumns = useCallback(async () => {
         setLoading(true);
         try {
             const oid = data.oid as string | undefined;
             if (!oid) {
-                setLoading(false);
                 return;
             }
 
             const state = await socket.getState(oid);
             if (state?.val === null || state?.val === undefined) {
-                setLoading(false);
                 return;
             }
 
@@ -148,7 +150,6 @@ function JsonTableColumnEditorModal({
                     const parsed = JSON.parse(rawVal);
                     jsonData = Array.isArray(parsed) ? parsed : [parsed];
                 } catch {
-                    setLoading(false);
                     return;
                 }
             } else if (Array.isArray(rawVal)) {
@@ -156,7 +157,6 @@ function JsonTableColumnEditorModal({
             } else if (typeof rawVal === 'object' && rawVal !== null) {
                 jsonData = [rawVal];
             } else {
-                setLoading(false);
                 return;
             }
 
@@ -187,16 +187,15 @@ function JsonTableColumnEditorModal({
             setEditedColumns(merged);
             editedColumnsRef.current = merged;
 
-            // Auto-select first column if none selected yet
-            if (!selectedPath && merged.length > 0) {
-                setSelectedPath(merged[0].path);
-            }
+            // Auto-select first column if none is selected yet.
+            // Functional setter avoids capturing selectedPath in the dependency array.
+            setSelectedPath(prev => (prev === null && merged.length > 0 ? merged[0].path : prev));
         } catch {
             // Silently handle errors during discovery
         } finally {
             setLoading(false);
         }
-    }, [data, socket, selectedPath]);
+    }, [data, socket]);
 
     // Keep ref in sync with the latest discoverColumns callback
     discoverColumnsRef.current = discoverColumns;
@@ -232,9 +231,15 @@ function JsonTableColumnEditorModal({
         [hasChanges, onClose],
     );
 
-    // Currently selected column for the detail editor
-    const selectedColumn = selectedPath ? editedColumns.find(c => c.path === selectedPath) : null;
-    const selectedDiscovered = selectedPath ? discoveredColumns.find(c => c.path === selectedPath) : undefined;
+    // Currently selected column for the detail editor (memoized to avoid recomputation on every render)
+    const selectedColumn = useMemo(
+        () => (selectedPath ? editedColumns.find(c => c.path === selectedPath) : null),
+        [selectedPath, editedColumns],
+    );
+    const selectedDiscovered = useMemo(
+        () => (selectedPath ? discoveredColumns.find(c => c.path === selectedPath) : undefined),
+        [selectedPath, discoveredColumns],
+    );
 
     return (
         <ThemeProvider theme={theme}>

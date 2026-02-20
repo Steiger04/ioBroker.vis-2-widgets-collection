@@ -170,7 +170,7 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         type: 'custom',
         component: (field, data, onDataChange, props) => (
             <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true } as any}
+                field={{ ...field, noGradient: true }}
                 data={data}
                 onDataChange={onDataChange}
                 props={props}

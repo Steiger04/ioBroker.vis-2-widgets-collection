@@ -65,6 +65,8 @@ export interface ColumnFormatConfig {
  * ```
  */
 export interface ColumnStyleRule {
+    /** Stable identifier for React keying; generated on rule creation */
+    id?: string;
     /** JS expression evaluated with `value` in scope, e.g. "value > 100" */
     condition: string;
     /** Cell background color (CSS color string) */
