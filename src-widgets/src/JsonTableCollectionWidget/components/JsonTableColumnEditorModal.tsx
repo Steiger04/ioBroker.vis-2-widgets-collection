@@ -197,19 +197,24 @@ function JsonTableColumnEditorModal({
         }
     }, [data, socket]);
 
-    // Keep ref in sync with the latest discoverColumns callback
-    discoverColumnsRef.current = discoverColumns;
+    // Keep ref in sync with the latest discoverColumns callback (must be an effect, not a render side-effect)
+    useEffect(() => {
+        discoverColumnsRef.current = discoverColumns;
+    }, [discoverColumns]);
+
+    // Keep editedColumnsRef in sync with editedColumns state for use in async callbacks
+    useEffect(() => {
+        editedColumnsRef.current = editedColumns;
+    }, [editedColumns]);
 
     // Update a column in the edited list
     const handleColumnChange = useCallback((updated: ColumnConfigEntry) => {
         setEditedColumns(prev => prev.map(c => (c.path === updated.path ? updated : c)));
-        editedColumnsRef.current = editedColumnsRef.current.map(c => (c.path === updated.path ? updated : c));
     }, []);
 
     // Handle list-level changes (bulk visibility, etc.)
     const handleListChange = useCallback((updatedColumns: ColumnConfigEntry[]) => {
         setEditedColumns(updatedColumns);
-        editedColumnsRef.current = updatedColumns;
     }, []);
 
     // Save and close

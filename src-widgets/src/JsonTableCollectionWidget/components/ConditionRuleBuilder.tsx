@@ -111,7 +111,10 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
         const defaultOp = availableOperators[0] ?? 'eq';
         emit({
             ...state,
-            conditions: [...state.conditions, { operator: defaultOp, operand: '' }],
+            conditions: [
+                ...state.conditions,
+                { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, operator: defaultOp, operand: '' },
+            ],
         });
     }, [state, emit, availableOperators]);
 
@@ -166,7 +169,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
 
                 return (
                     <Box
-                        key={idx}
+                        key={cond.id ?? idx}
                         sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}
                     >
                         {/* Operator select */}

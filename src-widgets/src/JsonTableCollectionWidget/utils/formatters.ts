@@ -80,7 +80,7 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
     { label: 'MM/DD/YYYY HH:mm', value: 'MM/dd/yyyy HH:mm' },
     { label: 'HH:mm:ss', value: 'HH:mm:ss' },
     { label: 'HH:mm', value: 'HH:mm' },
-    { label: 'ISO-8601', value: "yyyy-MM-dd'T'HH:mm:ss.SSSxxx" },
+    { label: 'ISO-8601 (UTC)', value: "yyyy-MM-dd'T'HH:mm:ss.SSSxxx" },
 ];
 
 /**
@@ -126,7 +126,9 @@ export function formatDateValue(value: unknown, formatString?: string): string {
 
         const fmt = formatString || 'yyyy-MM-dd';
 
-        // Manual token replacement (avoids date-fns dependency)
+        // Manual token replacement (avoids date-fns dependency).
+        // NOTE: All tokens use the browser's local timezone (getFullYear/getMonth/etc.).
+        // For UTC output use the 'ISO-8601 (UTC)' format option which calls toISOString().
         const pad = (n: number, len = 2): string => String(n).padStart(len, '0');
         const tokens: Record<string, string> = {
             yyyy: String(date.getFullYear()),

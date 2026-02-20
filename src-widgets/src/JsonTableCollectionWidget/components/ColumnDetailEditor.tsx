@@ -169,7 +169,8 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     // Sample number value for preview (use discovered min/max if available)
     const sampleNumber = useMemo(() => {
         if (discoveredColumn?.min !== undefined && typeof discoveredColumn.min === 'number') {
-            return discoveredColumn.min + (((discoveredColumn.max as number) || 0) - discoveredColumn.min) * 0.75;
+            const maxVal = typeof discoveredColumn.max === 'number' ? discoveredColumn.max : 0;
+            return discoveredColumn.min + (maxVal - discoveredColumn.min) * 0.75;
         }
         return 1234.567;
     }, [discoveredColumn]);

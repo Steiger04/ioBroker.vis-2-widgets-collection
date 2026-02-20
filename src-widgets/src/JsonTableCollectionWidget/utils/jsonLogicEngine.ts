@@ -63,9 +63,16 @@ export type ConditionOperator =
 
 /** A single condition row in the visual builder. */
 export interface SimpleCondition {
+    /** Stable ID for React keying — generated on creation, preserved through parse/build cycles. */
+    id?: string;
     operator: ConditionOperator;
     /** Always stored as string; converted to correct type on build */
     operand: string;
+}
+
+/** Generate a short random ID suitable for React keys. */
+function genId(): string {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 /** Internal state of the condition builder. */
@@ -144,10 +151,15 @@ export function buildSingleRule(op: ConditionOperator, operand: string): JsonLog
  * Build a compound (AND/OR) or single rule from a BuilderState.
  * Returns undefined if conditions are incomplete (missing operand where required).
  */
+const NUMERIC_OPERATORS = new Set<ConditionOperator>(['gt', 'gte', 'lt', 'lte']);
+
 export function buildFromState(state: BuilderState): JsonLogicRule | undefined {
     const complete = state.conditions.filter(c => {
         if (NO_OPERAND_OPERATORS.has(c.operator)) return true;
-        return c.operand.trim() !== '';
+        if (c.operand.trim() === '') return false;
+        // Exclude numeric operators with a non-numeric operand to prevent silent NaN comparisons
+        if (NUMERIC_OPERATORS.has(c.operator) && isNaN(Number(c.operand))) return false;
+        return true;
     });
 
     if (complete.length === 0) return undefined;
@@ -266,14 +278,17 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
  */
 export function parseBuilderState(logic: JsonLogicRule | undefined): BuilderState {
     if (!logic) {
-        return { mode: 'and', conditions: [{ operator: 'eq', operand: '' }] };
+        return { mode: 'and', conditions: [{ id: genId(), operator: 'eq', operand: '' }] };
     }
 
     // Compound AND
     if ('and' in logic) {
         const items = logic.and as JsonLogicRule[];
         if (Array.isArray(items)) {
-            const conditions = items.map(r => parseSingleRule(r)).filter((c): c is SimpleCondition => c !== null);
+            const conditions = items
+                .map(r => parseSingleRule(r))
+                .filter((c): c is SimpleCondition => c !== null)
+                .map(c => ({ id: genId(), ...c }));
             if (conditions.length > 0) return { mode: 'and', conditions };
         }
     }
@@ -282,7 +297,10 @@ export function parseBuilderState(logic: JsonLogicRule | undefined): BuilderStat
     if ('or' in logic) {
         const items = logic.or as JsonLogicRule[];
         if (Array.isArray(items)) {
-            const conditions = items.map(r => parseSingleRule(r)).filter((c): c is SimpleCondition => c !== null);
+            const conditions = items
+                .map(r => parseSingleRule(r))
+                .filter((c): c is SimpleCondition => c !== null)
+                .map(c => ({ id: genId(), ...c }));
             if (conditions.length > 0) return { mode: 'or', conditions };
         }
     }
@@ -290,13 +308,16 @@ export function parseBuilderState(logic: JsonLogicRule | undefined): BuilderStat
     // Single condition
     const single = parseSingleRule(logic);
     if (single) {
-        return { mode: 'and', conditions: [single] };
+        return { mode: 'and', conditions: [{ id: genId(), ...single }] };
     }
 
-    return { mode: 'and', conditions: [{ operator: 'eq', operand: '' }] };
+    return { mode: 'and', conditions: [{ id: genId(), operator: 'eq', operand: '' }] };
 }
 
 // ── Evaluation ──────────────────────────────────────────────────
+
+/** Maximum number of compiled rules to keep in the cache (FIFO eviction). */
+const FN_CACHE_MAX_SIZE = 200;
 
 /** Cache of compiled rule functions keyed by JSON-stringified rule. */
 const fnCache = new Map<string, (data: unknown) => unknown>();
@@ -315,6 +336,10 @@ export function evaluateLogic(rule: JsonLogicRule, value: unknown): boolean {
         let fn = fnCache.get(key);
         if (!fn) {
             fn = engine.build(rule) as (data: unknown) => unknown;
+            // Evict the oldest entry when the cache is full (FIFO)
+            if (fnCache.size >= FN_CACHE_MAX_SIZE) {
+                fnCache.delete(fnCache.keys().next().value as string);
+            }
             fnCache.set(key, fn);
         }
         return Boolean(fn({ value }));

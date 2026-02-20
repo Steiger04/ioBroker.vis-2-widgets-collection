@@ -76,6 +76,10 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
                     for (const key of JSON_TABLE_DATA_FIELDS) {
                         delete data[key];
                     }
+                    // Persist the cleared data when there is no originalOnChange to do it
+                    if (!originalOnChange) {
+                        changeData(data);
+                    }
                 }
                 if (originalOnChange) {
                     await originalOnChange(field, data, changeData, socket);

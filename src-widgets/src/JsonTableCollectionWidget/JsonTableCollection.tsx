@@ -605,7 +605,8 @@ const JsonTableCollection: FC = () => {
                         pageSizeOptions={pageSizeOptions}
                         paginationModel={paginationModel}
                         onPaginationModelChange={setPaginationModel}
-                        hideFooter={widget.data.tablePagination === false}
+                        hideFooterPagination={widget.data.tablePagination === false}
+                        hideFooterSelectedRowCount={widget.data.tablePagination === false}
                         disableColumnSorting={widget.data.tableSorting === false}
                         disableColumnFilter={widget.data.tableFiltering !== true}
                         disableColumnMenu={widget.data.tableColumnMenu === false}
