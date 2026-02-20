@@ -33,8 +33,10 @@ import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 
 import { parseColumnConfig, type ColumnConfigEntry } from './types';
-import { formatBooleanValue, formatDateValue, formatNumberValue } from './utils/formatters';
+import { formatBooleanValue, formatDateValue, formatNumberValue, normalizeToIsoDate } from './utils/formatters';
 import { evaluateLogic } from './utils/jsonLogicEngine';
+
+import type { DateFormatId } from '../hooks/useJsonTableAnalysis/types';
 import { gradientColor } from '../lib/helper/gradientColor';
 
 import type { JsonTableCollectionContextProps } from '../types';
@@ -90,8 +92,9 @@ function getDataGridLocaleText(language: ioBroker.Languages): Partial<GridLocale
 /**
  * Parse a raw date-like value into epoch milliseconds for sorting.
  * Returns 0 for unparseable values so they sort to the beginning.
+ * @param inputFormat - Detected input format for correct parsing of European/US strings.
  */
-function toSortableTime(value: unknown): number {
+function toSortableTime(value: unknown, inputFormat?: DateFormatId): number {
     if (value === null || value === undefined) {
         return 0;
     }
@@ -100,8 +103,9 @@ function toSortableTime(value: unknown): number {
         return value >= 1e12 ? value : value * 1000;
     }
     if (typeof value === 'string') {
-        const d = new Date(value);
-        return isNaN(d.getTime()) ? 0 : d.getTime();
+        const iso = normalizeToIsoDate(value, inputFormat);
+        if (!iso) return 0;
+        return new Date(iso).getTime();
     }
     return 0;
 }
@@ -276,7 +280,7 @@ const JsonTableCollection: FC = () => {
                             }
                             break;
                         case 'date':
-                            displayValue = formatDateValue(rawValue, cfg.format.dateFormat);
+                            displayValue = formatDateValue(rawValue, cfg.format.dateFormat, cfg.format.dateInputFormat);
                             break;
                         case 'boolean':
                             displayValue = formatBooleanValue(
@@ -293,11 +297,17 @@ const JsonTableCollection: FC = () => {
                 // Mode: 'first-match' (default) stops after first match; 'all-match' applies all
                 // matching rules with first-defined-wins for conflicts.
                 const stopAfterFirst = !cfg.cellStyleMode || cfg.cellStyleMode === 'first-match';
+                // Normalize date values to ISO YYYY-MM-DD before rule evaluation so that
+                // rules built with the date-picker (ISO output) match raw DE/US/epoch values.
+                const evalValue =
+                    cfg.format?.type === 'date'
+                        ? normalizeToIsoDate(rawValue, cfg.format.dateInputFormat)
+                        : rawValue;
                 const bgSx: Record<string, unknown> = {};
                 const textSx: Record<string, unknown> = {};
                 if (cfg.cellStyle && cfg.cellStyle.length > 0) {
                     for (const rule of cfg.cellStyle) {
-                        if (rule.logic && evaluateLogic(rule.logic, rawValue)) {
+                        if (rule.logic && evaluateLogic(rule.logic, evalValue)) {
                             // Background: use `background` for gradients, `backgroundColor` for solid
                             // In all-match mode: only set if not already defined (first defined wins)
                             if (rule.backgroundColor && !('background' in bgSx) && !('backgroundColor' in bgSx)) {
@@ -416,6 +426,12 @@ const JsonTableCollection: FC = () => {
 
     // Build DataGrid column definitions
     const gridColumns = useMemo<GridColDef[]>(() => {
+        // Build a lookup map from analysis results for date format fallback.
+        // Used when cfg.format.dateInputFormat is not persisted (e.g. no explicit format config).
+        const analysisDateFormats = new Map<string, DateFormatId | undefined>(
+            analysisColumns.map(c => [c.path, c.dateFormat]),
+        );
+
         // If there is a column config, use its ordering and visibility
         if (columnConfig.length > 0) {
             return columnConfig
@@ -441,25 +457,37 @@ const JsonTableCollection: FC = () => {
                         col.renderCell = defaultRenderCell;
                     }
 
-                    // Add date sort comparator for correct chronological sorting
+                    // Add date sort comparator for correct chronological sorting.
+                    // Prefer persisted dateInputFormat; fall back to analysis-detected format.
                     if (cfg.format?.type === 'date') {
-                        col.sortComparator = (v1: unknown, v2: unknown) => toSortableTime(v1) - toSortableTime(v2);
+                        const inputFmt = cfg.format.dateInputFormat ?? analysisDateFormats.get(cfg.path);
+                        col.sortComparator = (v1: unknown, v2: unknown) =>
+                            toSortableTime(v1, inputFmt) - toSortableTime(v2, inputFmt);
                     }
 
                     return col;
                 });
         }
 
-        // Fallback: show all discovered columns with default Typography renderCell
-        return analysisColumns.map(col => ({
-            field: col.path,
-            headerName: col.path.split('.').pop() || col.path,
-            flex: 1,
-            sortable: widget.data.tableSorting !== false,
-            filterable: widget.data.tableFiltering === true,
-            renderCell: defaultRenderCell,
-            renderHeader: defaultRenderHeader,
-        }));
+        // Fallback: show all discovered columns with default Typography renderCell.
+        // Add sort comparator for detected date columns so they sort chronologically.
+        return analysisColumns.map(col => {
+            const gridCol: GridColDef = {
+                field: col.path,
+                headerName: col.path.split('.').pop() || col.path,
+                flex: 1,
+                sortable: widget.data.tableSorting !== false,
+                filterable: widget.data.tableFiltering === true,
+                renderCell: defaultRenderCell,
+                renderHeader: defaultRenderHeader,
+            };
+            if (col.type === 'date' && col.dateFormat) {
+                const fmt = col.dateFormat;
+                gridCol.sortComparator = (v1: unknown, v2: unknown) =>
+                    toSortableTime(v1, fmt) - toSortableTime(v2, fmt);
+            }
+            return gridCol;
+        });
     }, [
         columnConfig,
         analysisColumns,

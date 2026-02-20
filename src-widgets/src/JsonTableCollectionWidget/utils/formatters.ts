@@ -8,6 +8,8 @@
  * designed to be safe: they never throw and return sensible fallbacks.
  */
 
+import type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
+
 /**
  * Safely convert an unknown value to a display string.
  * Handles objects (JSON.stringify), null/undefined (empty), and primitives.
@@ -84,6 +86,49 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
 ];
 
 /**
+ * Normalize any supported date value to a YYYY-MM-DD ISO date string.
+ * Uses inputFormat for deterministic parsing of European/US formats.
+ * Falls back to the Date constructor for ISO-8601 and unknown formats.
+ *
+ * @param value - Raw date value (string, number, or Date).
+ * @param inputFormat - Detected input format from column analysis (optional).
+ * @returns YYYY-MM-DD string, or '' for unparseable values.
+ */
+export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): string {
+    if (value === null || value === undefined) return '';
+
+    // Numbers: epoch-ms (≥1e12) or epoch-s
+    if (typeof value === 'number') {
+        const d = new Date(value >= 1e12 ? value : value * 1000);
+        return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+    }
+
+    if (value instanceof Date) {
+        return isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+    }
+
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    // European: dd.MM.yyyy[...] — only when explicitly detected to avoid day/month ambiguity
+    if (inputFormat?.startsWith('dd.MM.yyyy')) {
+        const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+        return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+    }
+
+    // US: MM/dd/yyyy[...] — only when explicitly detected
+    if (inputFormat?.startsWith('MM/dd/yyyy')) {
+        const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        return m ? `${m[3]}-${m[1]}-${m[2]}` : '';
+    }
+
+    // ISO-8601 / YYYY-MM-DD / unknown — Date constructor handles these reliably
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+}
+
+/**
  * Simple date formatting without external dependencies.
  *
  * Supports common format tokens:
@@ -97,9 +142,10 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
  *
  * @param value - Raw value (string, number, or Date).
  * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
+ * @param inputFormat - Detected input format for correct string parsing (optional).
  * @returns Formatted date string or original value as string on error.
  */
-export function formatDateValue(value: unknown, formatString?: string): string {
+export function formatDateValue(value: unknown, formatString?: string, inputFormat?: DateFormatId): string {
     if (value === null || value === undefined || value === '') {
         return '';
     }
@@ -108,8 +154,10 @@ export function formatDateValue(value: unknown, formatString?: string): string {
         let date: Date;
 
         if (typeof value === 'string') {
-            // Try ISO-8601 parsing first
-            date = new Date(value);
+            // Use normalizeToIsoDate for correct parsing of all supported formats
+            const iso = normalizeToIsoDate(value, inputFormat);
+            if (!iso) return toDisplayString(value);
+            date = new Date(iso);
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
             date = new Date(value >= 1e12 ? value : value * 1000);
