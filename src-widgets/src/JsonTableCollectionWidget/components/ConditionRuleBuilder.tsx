@@ -157,7 +157,9 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                         variant="caption"
                         color="text.secondary"
                     >
-                        {Generic.t('json_table_condition_mode_hint')}
+                        {state.mode === 'and'
+                            ? Generic.t('json_table_condition_mode_hint_and')
+                            : Generic.t('json_table_condition_mode_hint_or')}
                     </Typography>
                 </Box>
             )}

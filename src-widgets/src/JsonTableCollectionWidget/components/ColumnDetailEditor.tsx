@@ -774,6 +774,16 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                 );
                             })}
 
+                            {(column.cellStyle?.length ?? 0) >= 2 && (
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ px: 0.5 }}
+                                >
+                                    {Generic.t('json_table_rules_priority_hint')}
+                                </Typography>
+                            )}
+
                             <Button
                                 startIcon={<AddIcon />}
                                 onClick={addStyleRule}
