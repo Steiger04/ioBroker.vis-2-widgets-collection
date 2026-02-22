@@ -95,7 +95,9 @@ export const DATE_FORMAT_OPTIONS: { label: string; value: string }[] = [
  * @returns YYYY-MM-DD string, or '' for unparseable values.
  */
 export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): string {
-    if (value === null || value === undefined) return '';
+    if (value === null || value === undefined) {
+        return '';
+    }
 
     // Numbers: epoch-ms (≥1e12) or epoch-s
     if (typeof value === 'number') {
@@ -107,9 +109,13 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
         return isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
     }
 
-    if (typeof value !== 'string') return '';
+    if (typeof value !== 'string') {
+        return '';
+    }
     const trimmed = value.trim();
-    if (!trimmed) return '';
+    if (!trimmed) {
+        return '';
+    }
 
     // European: dd.MM.yyyy[...] — only when explicitly detected to avoid day/month ambiguity
     if (inputFormat?.startsWith('dd.MM.yyyy')) {
@@ -156,7 +162,9 @@ export function formatDateValue(value: unknown, formatString?: string, inputForm
         if (typeof value === 'string') {
             // Use normalizeToIsoDate for correct parsing of all supported formats
             const iso = normalizeToIsoDate(value, inputFormat);
-            if (!iso) return toDisplayString(value);
+            if (!iso) {
+                return toDisplayString(value);
+            }
             date = new Date(iso);
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
@@ -221,4 +229,3 @@ export function formatBooleanValue(value: unknown, trueLabel = 'true', falseLabe
     }
     return toDisplayString(value);
 }
-

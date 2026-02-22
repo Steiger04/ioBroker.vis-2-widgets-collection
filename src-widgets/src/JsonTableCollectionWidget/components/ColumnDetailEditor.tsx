@@ -149,7 +149,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     // Move a rule up in the priority order
     const moveRuleUp = useCallback(
         (idx: number) => {
-            if (idx === 0) return;
+            if (idx === 0) {
+                return;
+            }
             const updated = [...(column.cellStyle || [])];
             [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
             onChange({ ...column, cellStyle: updated });
@@ -161,7 +163,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     const moveRuleDown = useCallback(
         (idx: number) => {
             const rules = column.cellStyle || [];
-            if (idx >= rules.length - 1) return;
+            if (idx >= rules.length - 1) {
+                return;
+            }
             const updated = [...rules];
             [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
             onChange({ ...column, cellStyle: updated });
@@ -188,10 +192,7 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
 
     // ── Reset helpers ────────────────────────────────────────────
 
-    const defaultHeaderName = useMemo(
-        () => column.path.split('.').pop() || column.path,
-        [column.path],
-    );
+    const defaultHeaderName = useMemo(() => column.path.split('.').pop() || column.path, [column.path]);
 
     const isBasicDirty =
         column.headerName !== defaultHeaderName ||
@@ -266,8 +267,19 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                mr: 1,
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 500 }}
+                            >
                                 {Generic.t('json_table_section_basic')}
                             </Typography>
                             <Tooltip title={Generic.t('json_table_section_reset')}>
@@ -275,7 +287,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <IconButton
                                         size="small"
                                         disabled={!isBasicDirty}
-                                        onClick={e => { e.stopPropagation(); resetBasic(); }}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            resetBasic();
+                                        }}
                                         aria-label={Generic.t('json_table_section_reset')}
                                     >
                                         <RestartAltIcon fontSize="small" />
@@ -348,8 +363,19 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                mr: 1,
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 500 }}
+                            >
                                 {Generic.t('json_table_section_formatting')}
                             </Typography>
                             <Tooltip title={Generic.t('json_table_section_reset')}>
@@ -357,7 +383,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <IconButton
                                         size="small"
                                         disabled={!isFormattingDirty}
-                                        onClick={e => { e.stopPropagation(); resetFormatting(); }}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            resetFormatting();
+                                        }}
                                         aria-label={Generic.t('json_table_section_reset')}
                                     >
                                         <RestartAltIcon fontSize="small" />
@@ -616,9 +645,20 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                mr: 1,
+                            }}
+                        >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ fontWeight: 500 }}
+                                >
                                     {Generic.t('json_table_section_styling')}
                                 </Typography>
                                 {(column.cellStyle?.length ?? 0) > 0 && (
@@ -635,7 +675,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <IconButton
                                         size="small"
                                         disabled={!isStylingDirty}
-                                        onClick={e => { e.stopPropagation(); resetStyling(); }}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            resetStyling();
+                                        }}
                                         aria-label={Generic.t('json_table_section_reset')}
                                     >
                                         <RestartAltIcon fontSize="small" />
@@ -654,7 +697,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                         exclusive
                                         size="small"
                                         onChange={(_e, val: 'first-match' | 'all-match' | null) => {
-                                            if (val) onChange({ ...column, cellStyleMode: val });
+                                            if (val) {
+                                                onChange({ ...column, cellStyleMode: val });
+                                            }
                                         }}
                                         aria-label={Generic.t('json_table_cell_style_mode_label')}
                                     >
@@ -708,7 +753,9 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                             {(column.cellStyle || []).map((rule, idx) => {
                                 const ruleCount = (column.cellStyle || []).length;
                                 // Pre-compute gradient results to avoid repeated calls in JSX
-                                const bgGradient = rule.backgroundColor ? gradientColor(rule.backgroundColor) : undefined;
+                                const bgGradient = rule.backgroundColor
+                                    ? gradientColor(rule.backgroundColor)
+                                    : undefined;
                                 const textGradient = rule.textColor ? gradientColor(rule.textColor) : undefined;
 
                                 return (
@@ -848,7 +895,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                             </Stack>
 
                                             {/* Live preview swatch */}
-                                            {(rule.backgroundColor || rule.textColor || rule.fontWeight === 'bold' || rule.fontStyle === 'italic') && (
+                                            {(rule.backgroundColor ||
+                                                rule.textColor ||
+                                                rule.fontWeight === 'bold' ||
+                                                rule.fontStyle === 'italic') && (
                                                 <Paper
                                                     variant="outlined"
                                                     sx={{
@@ -918,8 +968,19 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     disableGutters
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mr: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                mr: 1,
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 500 }}
+                            >
                                 {Generic.t('json_table_section_advanced')}
                             </Typography>
                             <Tooltip title={Generic.t('json_table_section_reset')}>
@@ -927,7 +988,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     <IconButton
                                         size="small"
                                         disabled={!isAdvancedDirty}
-                                        onClick={e => { e.stopPropagation(); resetAdvanced(); }}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            resetAdvanced();
+                                        }}
                                         aria-label={Generic.t('json_table_section_reset')}
                                     >
                                         <RestartAltIcon fontSize="small" />

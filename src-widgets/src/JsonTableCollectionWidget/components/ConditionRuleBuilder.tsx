@@ -121,7 +121,9 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
     // Switch AND/OR mode
     const setMode = useCallback(
         (_: React.MouseEvent, value: 'and' | 'or' | null) => {
-            if (value !== null) emit({ ...state, mode: value });
+            if (value !== null) {
+                emit({ ...state, mode: value });
+            }
         },
         [state, emit],
     );
@@ -241,9 +243,7 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
                 sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
                 aria-label={Generic.t('json_table_condition_add')}
             >
-                {isCompound
-                    ? Generic.t('json_table_condition_add')
-                    : Generic.t('json_table_condition_add_first')}
+                {isCompound ? Generic.t('json_table_condition_add') : Generic.t('json_table_condition_add_first')}
             </Button>
         </Stack>
     );

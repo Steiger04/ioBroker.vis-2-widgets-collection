@@ -191,15 +191,17 @@ const JsonTableCollection: FC = () => {
     // ── Cell content builder ──────────────────────────────────────────────────
 
     const buildCellContent = useCallback((rawValue: unknown, cfg: ColumnConfigEntry): CellContent => {
-        let displayValue = rawValue != null ? String(rawValue) : '';
+        let displayValue =
+            rawValue != null
+                ? typeof rawValue === 'object'
+                    ? JSON.stringify(rawValue)
+                    : String(rawValue as string | number | boolean | bigint)
+                : '';
 
         if (cfg.format) {
             switch (cfg.format.type) {
                 case 'number':
-                    if (
-                        typeof rawValue === 'number' ||
-                        (typeof rawValue === 'string' && !isNaN(Number(rawValue)))
-                    ) {
+                    if (typeof rawValue === 'number' || (typeof rawValue === 'string' && !isNaN(Number(rawValue)))) {
                         displayValue = formatNumberValue(Number(rawValue), {
                             decimals: cfg.format.numberDecimals,
                             prefix: cfg.format.numberPrefix,
@@ -263,10 +265,7 @@ const JsonTableCollection: FC = () => {
 
     // ── Grid rows ─────────────────────────────────────────────────────────────
 
-    const gridRows = useMemo(
-        () => rows.map((row, index) => ({ __id: index, ...row })),
-        [rows],
-    );
+    const gridRows = useMemo(() => rows.map((row, index) => ({ __id: index, ...row })), [rows]);
 
     // ── TanStack column definitions ───────────────────────────────────────────
 
@@ -278,28 +277,28 @@ const JsonTableCollection: FC = () => {
         const selectionCol: ColumnDef<FlatRow> | null =
             widget.data.tableRowSelection === true
                 ? {
-                    id: '__select__',
-                    enableSorting: false,
-                    enableColumnFilter: false,
-                    header: ({ table }) => (
-                        <Checkbox
-                            size="small"
-                            indeterminate={table.getIsSomePageRowsSelected()}
-                            checked={table.getIsAllPageRowsSelected()}
-                            onChange={table.getToggleAllPageRowsSelectedHandler()}
-                            aria-label="Select all rows"
-                        />
-                    ),
-                    cell: ({ row }) => (
-                        <Checkbox
-                            size="small"
-                            checked={row.getIsSelected()}
-                            onChange={row.getToggleSelectedHandler()}
-                            aria-label="Select row"
-                        />
-                    ),
-                    meta: { align: 'center', width: 48 },
-                }
+                      id: '__select__',
+                      enableSorting: false,
+                      enableColumnFilter: false,
+                      header: ({ table }) => (
+                          <Checkbox
+                              size="small"
+                              indeterminate={table.getIsSomePageRowsSelected()}
+                              checked={table.getIsAllPageRowsSelected()}
+                              onChange={table.getToggleAllPageRowsSelectedHandler()}
+                              aria-label="Select all rows"
+                          />
+                      ),
+                      cell: ({ row }) => (
+                          <Checkbox
+                              size="small"
+                              checked={row.getIsSelected()}
+                              onChange={row.getToggleSelectedHandler()}
+                              aria-label="Select row"
+                          />
+                      ),
+                      meta: { align: 'center', width: 48 },
+                  }
                 : null;
 
         let dataCols: ColumnDef<FlatRow>[];
@@ -311,7 +310,11 @@ const JsonTableCollection: FC = () => {
                     const inputFmt = cfg.format?.dateInputFormat ?? analysisDateFormats.get(cfg.path);
                     const isDate = cfg.format?.type === 'date';
 
-                    const customDateSortingFn: SortingFn<FlatRow> = (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string) =>
+                    const customDateSortingFn: SortingFn<FlatRow> = (
+                        rowA: Row<FlatRow>,
+                        rowB: Row<FlatRow>,
+                        columnId: string,
+                    ) =>
                         toSortableTime(rowA.getValue(columnId), inputFmt) -
                         toSortableTime(rowB.getValue(columnId), inputFmt);
 
@@ -353,9 +356,11 @@ const JsonTableCollection: FC = () => {
                 const isDate = col.type === 'date' && col.dateFormat;
                 const fmt = col.dateFormat;
 
-                const customDateSortingFn: SortingFn<FlatRow> = (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string) =>
-                    toSortableTime(rowA.getValue(columnId), fmt) -
-                    toSortableTime(rowB.getValue(columnId), fmt);
+                const customDateSortingFn: SortingFn<FlatRow> = (
+                    rowA: Row<FlatRow>,
+                    rowB: Row<FlatRow>,
+                    columnId: string,
+                ) => toSortableTime(rowA.getValue(columnId), fmt) - toSortableTime(rowB.getValue(columnId), fmt);
 
                 const colDef: ColumnDef<FlatRow> = {
                     id: col.path,
@@ -366,7 +371,12 @@ const JsonTableCollection: FC = () => {
                     ...(isDate && { sortingFn: customDateSortingFn }),
                     cell: ({ getValue }) => {
                         const rawValue = getValue();
-                        const displayValue = rawValue != null ? String(rawValue) : '';
+                        const displayValue =
+                            rawValue != null
+                                ? typeof rawValue === 'object'
+                                    ? JSON.stringify(rawValue)
+                                    : String(rawValue as string | number | boolean | bigint)
+                                : '';
                         return (
                             <Typography
                                 variant="body2"
@@ -402,10 +412,7 @@ const JsonTableCollection: FC = () => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
-    const configuredPageSize = useMemo(
-        () => Number(widget.data.tablePageSize) || 25,
-        [widget.data.tablePageSize],
-    );
+    const configuredPageSize = useMemo(() => Number(widget.data.tablePageSize) || 25, [widget.data.tablePageSize]);
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: configuredPageSize });
 
     useEffect(() => {
@@ -508,13 +515,16 @@ const JsonTableCollection: FC = () => {
         };
     }, [effectiveHeaderHeight, headerBgColor, headerTextColor, headerFontSize]);
 
-    const cellBaseSx = useMemo(() => ({
-        ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
-        overflow: 'hidden',
-        height: effectiveRowHeight,
-        maxHeight: effectiveRowHeight,
-        padding: '0 8px',
-    }), [widget.data.tableCellFontSize, effectiveRowHeight]);
+    const cellBaseSx = useMemo(
+        () => ({
+            ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
+            overflow: 'hidden',
+            height: effectiveRowHeight,
+            maxHeight: effectiveRowHeight,
+            padding: '0 8px',
+        }),
+        [widget.data.tableCellFontSize, effectiveRowHeight],
+    );
 
     const stripedColor = widget.data.tableStripedColor;
     const isGradientStriped = stripedColor ? gradientColor(stripedColor) : null;
@@ -605,7 +615,10 @@ const JsonTableCollection: FC = () => {
                         </Box>
                     )}
 
-                    <TableContainer ref={tableContainerRef} sx={{ flex: 1, overflow: 'auto' }}>
+                    <TableContainer
+                        ref={tableContainerRef}
+                        sx={{ flex: 1, overflow: 'auto' }}
+                    >
                         <Table
                             size={density === 'compact' ? 'small' : 'medium'}
                             sx={tableSx}
@@ -737,21 +750,15 @@ const JsonTableCollection: FC = () => {
                                                         fullWidth
                                                         value={filterVal}
                                                         onChange={e =>
-                                                            header.column.setFilterValue(
-                                                                e.target.value || undefined,
-                                                            )
+                                                            header.column.setFilterValue(e.target.value || undefined)
                                                         }
-                                                        placeholder={Generic.t(
-                                                            'json_table_filter_placeholder',
-                                                        )}
+                                                        placeholder={Generic.t('json_table_filter_placeholder')}
                                                         slotProps={{
                                                             input: {
                                                                 endAdornment: filterVal ? (
                                                                     <InputAdornment position="end">
                                                                         <Tooltip
-                                                                            title={Generic.t(
-                                                                                'json_table_filter_clear',
-                                                                            )}
+                                                                            title={Generic.t('json_table_filter_clear')}
                                                                         >
                                                                             <IconButton
                                                                                 size="small"
@@ -805,16 +812,12 @@ const JsonTableCollection: FC = () => {
                                                         const isSelectCell = cell.column.id === '__select__';
                                                         const cellBgSx =
                                                             !isSelectCell && cell.column.columnDef.meta?.getCellSx
-                                                                ? cell.column.columnDef.meta.getCellSx(
-                                                                      cell.getValue(),
-                                                                  )
+                                                                ? cell.column.columnDef.meta.getCellSx(cell.getValue())
                                                                 : {};
                                                         return (
                                                             <TableCell
                                                                 key={cell.id}
-                                                                align={
-                                                                    cell.column.columnDef.meta?.align || 'left'
-                                                                }
+                                                                align={cell.column.columnDef.meta?.align || 'left'}
                                                                 padding={isSelectCell ? 'checkbox' : 'normal'}
                                                                 sx={{ ...cellBaseSx, ...cellBgSx }}
                                                             >
@@ -859,10 +862,7 @@ const JsonTableCollection: FC = () => {
                                                         padding={isSelectCell ? 'checkbox' : 'normal'}
                                                         sx={{ ...cellBaseSx, ...cellBgSx }}
                                                     >
-                                                        {flexRender(
-                                                            cell.column.columnDef.cell,
-                                                            cell.getContext(),
-                                                        )}
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </TableCell>
                                                 );
                                             })}
@@ -880,19 +880,23 @@ const JsonTableCollection: FC = () => {
                             page={pagination.pageIndex}
                             rowsPerPage={pagination.pageSize}
                             rowsPerPageOptions={pageSizeOptions}
-                            onPageChange={(_e, newPage) =>
-                                setPagination(prev => ({ ...prev, pageIndex: newPage }))
-                            }
+                            onPageChange={(_e, newPage) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
                             onRowsPerPageChange={e =>
                                 setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })
                             }
                             labelRowsPerPage={
-                                <Typography variant="body2" component="span">
+                                <Typography
+                                    variant="body2"
+                                    component="span"
+                                >
                                     {Generic.t('json_table_rows_per_page')}
                                 </Typography>
                             }
                             labelDisplayedRows={({ from, to, count }) => (
-                                <Typography variant="body2" component="span">
+                                <Typography
+                                    variant="body2"
+                                    component="span"
+                                >
                                     {`${from}\u2013${to} / ${count}`}
                                 </Typography>
                             )}
@@ -912,7 +916,10 @@ const JsonTableCollection: FC = () => {
                                 closeColumnMenu();
                             }}
                         >
-                            <ArrowUpwardIcon fontSize="small" sx={{ mr: 1 }} />
+                            <ArrowUpwardIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                            />
                             <Typography variant="body2">{Generic.t('json_table_sort_asc')}</Typography>
                         </MenuItem>
                         <MenuItem
@@ -923,7 +930,10 @@ const JsonTableCollection: FC = () => {
                                 closeColumnMenu();
                             }}
                         >
-                            <ArrowDownwardIcon fontSize="small" sx={{ mr: 1 }} />
+                            <ArrowDownwardIcon
+                                fontSize="small"
+                                sx={{ mr: 1 }}
+                            />
                             <Typography variant="body2">{Generic.t('json_table_sort_desc')}</Typography>
                         </MenuItem>
                         {activeColumnSorted && (
@@ -945,10 +955,11 @@ const JsonTableCollection: FC = () => {
                                         closeColumnMenu();
                                     }}
                                 >
-                                    <ClearIcon fontSize="small" sx={{ mr: 1 }} />
-                                    <Typography variant="body2">
-                                        {Generic.t('json_table_filter_clear')}
-                                    </Typography>
+                                    <ClearIcon
+                                        fontSize="small"
+                                        sx={{ mr: 1 }}
+                                    />
+                                    <Typography variant="body2">{Generic.t('json_table_filter_clear')}</Typography>
                                 </MenuItem>
                             )}
                     </Menu>

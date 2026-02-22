@@ -14,27 +14,34 @@
 
 import { LogicEngine } from 'json-logic-engine';
 
+// ── Helpers ─────────────────────────────────────────────────────
+
+/** Safely convert any unknown value to string without triggering no-base-to-string. */
+function toStr(v: unknown): string {
+    if (v == null) {
+        return '';
+    }
+    if (typeof v === 'object') {
+        return JSON.stringify(v);
+    }
+    return String(v as string | number | boolean | bigint);
+}
+
 // ── Engine Singleton ────────────────────────────────────────────
 
 const engine = new LogicEngine();
 
-engine.addMethod(
-    'contains',
-    ([str, sub]: [unknown, unknown]) => String(str ?? '').includes(String(sub ?? '')),
-    { deterministic: true },
-);
+engine.addMethod('contains', ([str, sub]: [unknown, unknown]) => toStr(str).includes(toStr(sub)), {
+    deterministic: true,
+});
 
-engine.addMethod(
-    'startsWith',
-    ([str, pre]: [unknown, unknown]) => String(str ?? '').startsWith(String(pre ?? '')),
-    { deterministic: true },
-);
+engine.addMethod('startsWith', ([str, pre]: [unknown, unknown]) => toStr(str).startsWith(toStr(pre)), {
+    deterministic: true,
+});
 
-engine.addMethod(
-    'endsWith',
-    ([str, suf]: [unknown, unknown]) => String(str ?? '').endsWith(String(suf ?? '')),
-    { deterministic: true },
-);
+engine.addMethod('endsWith', ([str, suf]: [unknown, unknown]) => toStr(str).endsWith(toStr(suf)), {
+    deterministic: true,
+});
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -154,24 +161,35 @@ export function buildSingleRule(op: ConditionOperator, operand: string, columnTy
 /**
  * Build a compound (AND/OR) or single rule from a BuilderState.
  * Returns undefined if conditions are incomplete (missing operand where required).
+ *
  * @param columnType - Detected column type; affects operand type coercion and validation.
  */
 const NUMERIC_OPERATORS = new Set<ConditionOperator>(['gt', 'gte', 'lt', 'lte']);
 
 export function buildFromState(state: BuilderState, columnType = 'string'): JsonLogicRule | undefined {
     const complete = state.conditions.filter(c => {
-        if (NO_OPERAND_OPERATORS.has(c.operator)) return true;
-        if (c.operand.trim() === '') return false;
+        if (NO_OPERAND_OPERATORS.has(c.operator)) {
+            return true;
+        }
+        if (c.operand.trim() === '') {
+            return false;
+        }
         // For number columns: exclude numeric operators with non-numeric operands to prevent NaN comparisons
-        if (columnType === 'number' && NUMERIC_OPERATORS.has(c.operator) && isNaN(Number(c.operand))) return false;
+        if (columnType === 'number' && NUMERIC_OPERATORS.has(c.operator) && isNaN(Number(c.operand))) {
+            return false;
+        }
         return true;
     });
 
-    if (complete.length === 0) return undefined;
+    if (complete.length === 0) {
+        return undefined;
+    }
 
     const rules = complete.map(c => buildSingleRule(c.operator, c.operand, columnType));
 
-    if (rules.length === 1) return rules[0];
+    if (rules.length === 1) {
+        return rules[0];
+    }
 
     return { [state.mode]: rules };
 }
@@ -197,7 +215,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
         if (jsonOp in rule) {
             const args = rule[jsonOp] as unknown[];
             if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-                return { operator: condOp, operand: String(args[1] ?? '') };
+                return { operator: condOp, operand: toStr(args[1]) };
             }
         }
     }
@@ -206,9 +224,13 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
     if ('==' in rule) {
         const args = rule['=='] as unknown[];
         if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-            if (args[1] === true) return { operator: 'is_true', operand: '' };
-            if (args[1] === false) return { operator: 'is_false', operand: '' };
-            return { operator: 'eq', operand: String(args[1] ?? '') };
+            if (args[1] === true) {
+                return { operator: 'is_true', operand: '' };
+            }
+            if (args[1] === false) {
+                return { operator: 'is_false', operand: '' };
+            }
+            return { operator: 'eq', operand: toStr(args[1]) };
         }
     }
 
@@ -216,7 +238,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
     if ('!=' in rule) {
         const args = rule['!='] as unknown[];
         if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-            return { operator: 'neq', operand: String(args[1] ?? '') };
+            return { operator: 'neq', operand: toStr(args[1]) };
         }
     }
 
@@ -224,7 +246,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
     if ('contains' in rule) {
         const args = rule.contains as unknown[];
         if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-            return { operator: 'contains', operand: String(args[1] ?? '') };
+            return { operator: 'contains', operand: toStr(args[1]) };
         }
     }
 
@@ -232,7 +254,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
     if ('startsWith' in rule) {
         const args = rule.startsWith as unknown[];
         if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-            return { operator: 'starts_with', operand: String(args[1] ?? '') };
+            return { operator: 'starts_with', operand: toStr(args[1]) };
         }
     }
 
@@ -240,7 +262,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
     if ('endsWith' in rule) {
         const args = rule.endsWith as unknown[];
         if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-            return { operator: 'ends_with', operand: String(args[1] ?? '') };
+            return { operator: 'ends_with', operand: toStr(args[1]) };
         }
     }
 
@@ -260,7 +282,7 @@ export function parseSingleRule(rule: JsonLogicRule): SimpleCondition | null {
             if (typeof first === 'object' && first !== null && 'contains' in first) {
                 const args = first.contains as unknown[];
                 if (Array.isArray(args) && args.length === 2 && isVarValue(args[0])) {
-                    return { operator: 'not_contains', operand: String(args[1] ?? '') };
+                    return { operator: 'not_contains', operand: toStr(args[1]) };
                 }
             }
         }
@@ -294,7 +316,9 @@ export function parseBuilderState(logic: JsonLogicRule | undefined): BuilderStat
                 .map(r => parseSingleRule(r))
                 .filter((c): c is SimpleCondition => c !== null)
                 .map(c => ({ id: genId(), ...c }));
-            if (conditions.length > 0) return { mode: 'and', conditions };
+            if (conditions.length > 0) {
+                return { mode: 'and', conditions };
+            }
         }
     }
 
@@ -306,7 +330,9 @@ export function parseBuilderState(logic: JsonLogicRule | undefined): BuilderStat
                 .map(r => parseSingleRule(r))
                 .filter((c): c is SimpleCondition => c !== null)
                 .map(c => ({ id: genId(), ...c }));
-            if (conditions.length > 0) return { mode: 'or', conditions };
+            if (conditions.length > 0) {
+                return { mode: 'or', conditions };
+            }
         }
     }
 
