@@ -452,5 +452,12 @@
     "json_table_nulls": "Valores nulos",
     "json_table_distinct": "Valores distintos",
     "json_table_range": "Rango",
-    "json_table_reset_all": "Restablecer todas las columnas a valores predeterminados"
+    "json_table_reset_all": "Restablecer todas las columnas a valores predeterminados",
+    "json_table_sort_asc": "Ordenar ascendente",
+    "json_table_sort_desc": "Ordenar descendente",
+    "json_table_sort_clear": "Borrar orden",
+    "json_table_rows_per_page": "Filas por p\u00e1gina:",
+    "json_table_search_placeholder": "Buscar\u2026",
+    "json_table_filter_placeholder": "Filtrar...",
+    "json_table_filter_clear": "Borrar filtro"
 }

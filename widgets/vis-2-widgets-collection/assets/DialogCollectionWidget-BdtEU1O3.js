@@ -1,6 +1,6 @@
-import { j as t, M as W, C as c, E as M, N as O, o as x, w as k, T as _, v as f, D as y, i as b, I as A, n as H, q as V, t as R, x as E, s as F, S as z, B as P, G as L, y as $, A as N, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
+import { j as t, N as W, C as c, F as O, O as M, o as x, x as k, T as _, w as f, D as y, i as b, I as A, n as H, q as V, v as R, y as E, s as F, S as z, B as P, G as L, z as $, E as N, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
 import { v as n, R as U, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as G, __tla as __tla_2 } from "./Close-Qb4-Ap6j.js";
+import { C as G, __tla as __tla_2 } from "./Close-BaVCh89c.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let j;
@@ -112,7 +112,7 @@ let __tla = Promise.all([
         ""
       ],
       noGradient: false,
-      component: (r, l, e, a) => t.jsx(M, {
+      component: (r, l, e, a) => t.jsx(O, {
         field: r,
         data: l,
         onDataChange: e,
@@ -195,7 +195,7 @@ let __tla = Promise.all([
       onClick: l,
       children: t.jsx(G, {})
     });
-    return t.jsx(O, {
+    return t.jsx(M, {
       onClose: l,
       open: r,
       sx: {

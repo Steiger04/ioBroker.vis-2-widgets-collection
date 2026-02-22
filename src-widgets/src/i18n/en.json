@@ -452,5 +452,12 @@
     "json_table_nulls": "Null values",
     "json_table_distinct": "Distinct values",
     "json_table_range": "Range",
-    "json_table_reset_all": "Reset all columns to defaults"
+    "json_table_reset_all": "Reset all columns to defaults",
+    "json_table_sort_asc": "Sort ascending",
+    "json_table_sort_desc": "Sort descending",
+    "json_table_sort_clear": "Clear sort",
+    "json_table_rows_per_page": "Rows per page:",
+    "json_table_search_placeholder": "Search\u2026",
+    "json_table_filter_placeholder": "Filter...",
+    "json_table_filter_clear": "Clear filter"
 }

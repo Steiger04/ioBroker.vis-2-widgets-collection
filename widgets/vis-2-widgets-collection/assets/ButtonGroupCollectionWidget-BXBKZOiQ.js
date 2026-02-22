@@ -1,7 +1,7 @@
-import { j as o, C as W, E as D, n as F, q as M, i as S, w as z, x as P, o as c, v as B, S as $, t as A, T as L, J as R, K as _, G as H, y as p, z as E, A as N, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
-import { u as U, d as q, __tla as __tla_1 } from "./useValueState-BkaH86VC.js";
+import { j as o, C as W, F, n as M, q as D, i as S, x as z, y as P, o as c, w as B, S as $, v as A, T as L, K as R, M as _, G as H, z as p, A as E, E as N, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
+import { u as U, d as q, __tla as __tla_1 } from "./useValueState-C03BVuGP.js";
 import { v as w, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { T as J, a as K, __tla as __tla_3 } from "./ToggleButtonGroup-BR0figS4.js";
+import { T as K, a as X, __tla as __tla_3 } from "./ToggleButtonGroup-Du_vpcqa.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let j;
@@ -31,7 +31,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const X = () => [
+  const Y = () => [
     {
       type: "custom",
       component: () => o.jsx(W, {})
@@ -88,7 +88,7 @@ let __tla = Promise.all([
       fallbackFields: [
         "textColor"
       ],
-      component: (n, t, i, u) => o.jsx(D, {
+      component: (n, t, i, u) => o.jsx(F, {
         field: n,
         data: t,
         onDataChange: i,
@@ -96,7 +96,7 @@ let __tla = Promise.all([
       })
     }
   ];
-  function Y(n) {
+  function J(n) {
     const t = B(n), i = R(n);
     return {
       hasGradient: !!t,
@@ -106,7 +106,7 @@ let __tla = Promise.all([
     };
   }
   function Q() {
-    const n = w.useContext(F), { widget: t, theme: i } = n, u = t.data.oidObject, { data: g, states: h, activeIndex: G } = M("oid"), { value: x, updateValue: b } = U("oid"), k = t.data.buttonGroupVariant, m = t.data.buttonGroupOrientation, d = u == null ? void 0 : u.type, v = d === "boolean" || d === "number" || d === "string" || d === "mixed", a = m === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? S(t.data.buttonGroupColor, 0.6) : S(i.palette.text.primary, 0.6), T = w.useCallback((s) => {
+    const n = w.useContext(M), { widget: t, theme: i } = n, u = t.data.oidObject, { data: g, states: h, activeIndex: G } = D("oid"), { value: x, updateValue: b } = U("oid"), k = t.data.buttonGroupVariant, m = t.data.buttonGroupOrientation, d = u == null ? void 0 : u.type, v = d === "boolean" || d === "number" || d === "string" || d === "mixed", a = m === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? S(t.data.buttonGroupColor, 0.6) : S(i.palette.text.primary, 0.6), T = w.useCallback((s) => {
       b(s);
     }, [
       b
@@ -127,7 +127,7 @@ let __tla = Promise.all([
             height: "100%",
             display: "flex"
           },
-          children: o.jsx(J, {
+          children: o.jsx(K, {
             exclusive: true,
             value: String(x),
             disabled: !v,
@@ -181,8 +181,8 @@ let __tla = Promise.all([
               }
             },
             children: h.map(({ value: s, ...e }, f) => {
-              const I = G === f + 1, { hasGradient: y, hoverBackground: V, selectedBackground: O } = Y(e.background), C = B(e.textColor);
-              return o.jsx(K, {
+              const I = G === f + 1, { hasGradient: y, hoverBackground: V, selectedBackground: O } = J(e.background), C = B(e.textColor);
+              return o.jsx(X, {
                 value: String(s),
                 onClick: () => T(s),
                 sx: {
@@ -298,7 +298,7 @@ let __tla = Promise.all([
                 "mixed"
               ]),
               ...q(),
-              ...X()
+              ...Y()
             ]
           },
           {

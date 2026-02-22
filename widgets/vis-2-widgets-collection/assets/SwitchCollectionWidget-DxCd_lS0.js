@@ -1,10 +1,10 @@
-import { j as l, C as d, E as c, s as C, t as u, n as w, q as x, w as y, x as k, o as h, G as v, y as p, z as _, A as j, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
-import { u as M, d as z, __tla as __tla_1 } from "./useValueState-BkaH86VC.js";
+import { j as l, C as d, F as c, s as C, v as u, n as x, q as w, x as y, y as k, o as h, G as v, z as p, A as _, E as j, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
+import { u as M, d as z, __tla as __tla_1 } from "./useValueState-C03BVuGP.js";
 import { v as m, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as W, __tla as __tla_3 } from "./Switch-BgmKfAZh.js";
+import { S as F, __tla as __tla_3 } from "./Switch-sFS5B12S.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_4 } from "./SwitchBase-DIywY-d5.js";
+import { __tla as __tla_4 } from "./SwitchBase-Bo6-_dj-.js";
 let g;
 let __tla = Promise.all([
   (() => {
@@ -38,7 +38,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const F = () => [
+  const W = () => [
     {
       type: "custom",
       component: () => l.jsx(d, {})
@@ -104,7 +104,7 @@ let __tla = Promise.all([
         props: o
       })
     }
-  ], I = C(W)(({ width: i, maxheight: t, data: e, widget: o, theme: a }) => {
+  ], I = C(F)(({ width: i, maxheight: t, data: e, widget: o, theme: a }) => {
     const n = o.data.thumbSize ?? 62;
     return {
       width: "100%",
@@ -174,7 +174,7 @@ let __tla = Promise.all([
   });
   function O() {
     var _a, _b, _c, _d;
-    const i = m.useRef(null), t = m.useContext(w), { widget: e, theme: o } = t, a = e.data.oidObject, { data: n } = x("oid"), { value: s, updateValue: b } = M("oid"), r = a == null ? void 0 : a.type, f = r === "boolean", S = () => {
+    const i = m.useRef(null), t = m.useContext(x), { widget: e, theme: o } = t, a = e.data.oidObject, { data: n } = w("oid"), { value: s, updateValue: b } = M("oid"), r = a == null ? void 0 : a.type, f = r === "boolean", S = () => {
       b(!s);
     };
     return l.jsxs(y, {
@@ -245,7 +245,7 @@ let __tla = Promise.all([
                 "boolean"
               ]),
               ...z(),
-              ...F()
+              ...W()
             ]
           },
           {

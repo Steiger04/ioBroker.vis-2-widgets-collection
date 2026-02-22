@@ -452,5 +452,12 @@
     "json_table_nulls": "Valeurs nulles",
     "json_table_distinct": "Valeurs distinctes",
     "json_table_range": "Plage",
-    "json_table_reset_all": "Réinitialiser toutes les colonnes aux valeurs par défaut"
+    "json_table_reset_all": "Réinitialiser toutes les colonnes aux valeurs par défaut",
+    "json_table_sort_asc": "Trier par ordre croissant",
+    "json_table_sort_desc": "Trier par ordre d\u00e9croissant",
+    "json_table_sort_clear": "Effacer le tri",
+    "json_table_rows_per_page": "Lignes par page\u00a0:",
+    "json_table_search_placeholder": "Rechercher\u2026",
+    "json_table_filter_placeholder": "Filtrer...",
+    "json_table_filter_clear": "Effacer le filtre"
 }

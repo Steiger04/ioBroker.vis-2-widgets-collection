@@ -4,24 +4,52 @@
  * @module widgets/JsonTableCollection
  * @remarks
  * Functional component that reads a JSON string from the OID state value,
- * analyzes it with `useJsonTableAnalysis`, and renders a MUI X DataGrid (MIT).
+ * analyzes it with `useJsonTableAnalysis`, and renders a TanStack Table v8 (headless)
+ * backed by MUI Table components.
  */
 
-import { Box, MenuItem, Typography } from '@mui/material';
-import type { MenuItemProps } from '@mui/material';
-import type { TablePaginationProps } from '@mui/material/TablePagination';
 import {
-    DataGrid,
-    GridPagination,
-    GridToolbarContainer,
-    GridToolbarQuickFilter,
-    type GridColDef,
-    type GridLocaleText,
-    type GridRenderCellParams,
-    type GridToolbarQuickFilterProps,
-} from '@mui/x-data-grid';
-import { deDE, enUS, esES, frFR, itIT, nlNL, plPL, ptBR, ruRU, ukUA, zhCN } from '@mui/x-data-grid/locales';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+    Box,
+    Checkbox,
+    InputAdornment,
+    Menu,
+    MenuItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
+    TableSortLabel,
+    TextField,
+    Tooltip,
+    Typography,
+    IconButton,
+} from '@mui/material';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ClearIcon from '@mui/icons-material/Clear';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+    useReactTable,
+    getCoreRowModel,
+    getSortedRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    flexRender,
+    type ColumnDef,
+    type SortingState,
+    type ColumnFiltersState,
+    type PaginationState,
+    type RowSelectionState,
+    type SortingFn,
+    type Row,
+    type Column,
+} from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useCallback, useContext, useMemo, useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 
 import CollectionBase from '../components/CollectionBase';
@@ -42,11 +70,27 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
-/**
- * Parse a comma-separated string of numbers into a number array.
- */
-/** Maximum page size allowed by the MUI DataGrid MIT license. */
-const DATAGRID_MIT_MAX_PAGE_SIZE = 100;
+// ── TanStack Table module augmentation ──────────────────────────────────────
+
+declare module '@tanstack/react-table' {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface ColumnMeta<TData, TValue> {
+        align?: 'left' | 'center' | 'right';
+        width?: number;
+        getCellSx?: (rawValue: unknown) => Record<string, unknown>;
+    }
+}
+
+// ── FlatRow type ────────────────────────────────────────────────────────────
+
+type FlatRow = Record<string, unknown>;
+
+// ── Density row height mapping ───────────────────────────────────────────────
+
+const DENSITY_ROW_HEIGHT: Record<string, number> = { compact: 36, standard: 52, comfortable: 68 };
+const DENSITY_HEADER_HEIGHT: Record<string, number> = { compact: 36, standard: 56, comfortable: 68 };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parsePageSizeOptions(raw: string | undefined): number[] {
     const defaults = [10, 25, 50, 100];
@@ -56,149 +100,37 @@ function parsePageSizeOptions(raw: string | undefined): number[] {
     const result = raw
         .split(',')
         .map(s => parseInt(s.trim(), 10))
-        .filter(n => !isNaN(n) && n > 0)
-        .map(n => Math.min(n, DATAGRID_MIT_MAX_PAGE_SIZE));
+        .filter(n => !isNaN(n) && n > 0);
     return result.length > 0 ? [...new Set(result)].sort((a, b) => a - b) : defaults;
 }
 
-/** Shape of a MUI X DataGrid locale package. */
-type MuiDataGridLocale = {
-    components: {
-        MuiDataGrid: {
-            defaultProps: { localeText: Partial<GridLocaleText> };
-        };
-    };
-};
-
-/** Language-code → locale mapping for all languages supported by ioBroker. */
-const DATA_GRID_LOCALE_MAP: Partial<Record<ioBroker.Languages, MuiDataGridLocale>> = {
-    de: deDE,
-    en: enUS,
-    es: esES,
-    fr: frFR,
-    it: itIT,
-    nl: nlNL,
-    pl: plPL,
-    pt: ptBR,
-    ru: ruRU,
-    uk: ukUA,
-    'zh-cn': zhCN,
-};
-
-/**
- * Maps an ioBroker language code to the corresponding MUI DataGrid localeText.
- * Falls back to English for unsupported languages.
- */
-function getDataGridLocaleText(language: ioBroker.Languages): Partial<GridLocaleText> {
-    const locale = DATA_GRID_LOCALE_MAP[language] ?? enUS;
-    return locale.components.MuiDataGrid.defaultProps.localeText;
-}
-
-/**
- * Parse a raw date-like value into epoch milliseconds for sorting.
- * Returns 0 for unparseable values so they sort to the beginning.
- * @param inputFormat - Detected input format for correct parsing of European/US strings.
- */
 function toSortableTime(value: unknown, inputFormat?: DateFormatId): number {
     if (value === null || value === undefined) {
         return 0;
     }
     if (typeof value === 'number') {
-        // Detect seconds vs milliseconds: epoch-ms >= 1e12, epoch-s >= 1e9 (consistent with typeDetector)
         return value >= 1e12 ? value : value * 1000;
     }
     if (typeof value === 'string') {
         const iso = normalizeToIsoDate(value, inputFormat);
-        if (!iso) return 0;
+        if (!iso) {
+            return 0;
+        }
         return new Date(iso).getTime();
     }
     return 0;
 }
 
-/**
- * Quick-filter toolbar for the DataGrid.
- * Defined at module level to keep a stable reference across renders.
- * Accepts optional `quickFilterProps` forwarded via `slotProps.toolbar`.
- */
-function QuickFilterToolbar(props: { quickFilterProps?: GridToolbarQuickFilterProps }): React.JSX.Element {
-    return (
-        <GridToolbarContainer>
-            <GridToolbarQuickFilter {...props.quickFilterProps} />
-        </GridToolbarContainer>
-    );
+// ── Cell content builder return type ────────────────────────────────────────
+
+interface CellContent {
+    displayValue: string;
+    textSx: Record<string, unknown>;
+    bgSx: Record<string, unknown>;
 }
 
-/**
- * Custom MenuItem that wraps content in Typography for consistent styling.
- */
-function TypographyMenuItem(props: MenuItemProps): React.JSX.Element {
-    const { children, ...other } = props;
-    return (
-        <MenuItem {...other}>
-            <Typography
-                variant="body2"
-                component="span"
-            >
-                {children}
-            </Typography>
-        </MenuItem>
-    );
-}
+// ── Main component ────────────────────────────────────────────────────────────
 
-/**
- * Custom pagination component that wraps labels in Typography for consistent styling.
- */
-function TypographyPagination(props: Partial<TablePaginationProps>): React.JSX.Element {
-    return (
-        <GridPagination
-            {...props}
-            labelRowsPerPage={
-                <Typography
-                    variant="body2"
-                    component="span"
-                >
-                    {props.labelRowsPerPage}
-                </Typography>
-            }
-            labelDisplayedRows={paginationInfo => (
-                <Typography
-                    variant="body2"
-                    component="span"
-                >
-                    {typeof props.labelDisplayedRows === 'function'
-                        ? props.labelDisplayedRows(paginationInfo)
-                        : `${paginationInfo.from}\u2013${paginationInfo.to} / ${paginationInfo.count}`}
-                </Typography>
-            )}
-            slots={{
-                menuItem: TypographyMenuItem,
-            }}
-            slotProps={{
-                ...props.slotProps,
-                select: {
-                    ...((props.slotProps as Record<string, unknown>)?.select as Record<string, unknown>),
-                    renderValue: (value: unknown) => (
-                        <Typography
-                            variant="body2"
-                            component="span"
-                        >
-                            {String(value)}
-                        </Typography>
-                    ),
-                    sx: {
-                        '& .MuiSelect-icon': {
-                            color: 'inherit',
-                        },
-                    },
-                },
-            }}
-        />
-    );
-}
-
-/**
- * Renders a data grid from JSON state values.
- */
 const JsonTableCollection: FC = () => {
     const context = useContext(CollectionContext) as JsonTableCollectionContextProps;
     const {
@@ -219,7 +151,6 @@ const JsonTableCollection: FC = () => {
         if (oidValue === undefined || oidValue === null) {
             return [];
         }
-
         let raw: unknown;
         if (typeof oidValue === 'string') {
             try {
@@ -230,7 +161,6 @@ const JsonTableCollection: FC = () => {
         } else {
             raw = oidValue;
         }
-
         if (Array.isArray(raw)) {
             return raw;
         }
@@ -240,389 +170,398 @@ const JsonTableCollection: FC = () => {
         return [];
     }, [oidValue]);
 
-    // Analysis options from widget config
     const analysisOptions = useMemo<JsonTableAnalysisOptions>(
-        () => ({
-            maxDepth: widget.data.tableMaxDepth || 10,
-        }),
+        () => ({ maxDepth: widget.data.tableMaxDepth || 10 }),
         [widget.data.tableMaxDepth],
     );
 
-    // Analyze JSON structure
     const { columns: analysisColumns, rows } = useJsonTableAnalysis(jsonData, analysisOptions);
 
-    // Column config from widget data
     const columnConfig = useMemo(
         () => parseColumnConfig(widget.data.columnConfig as string),
         [widget.data.columnConfig],
     );
 
-    /**
-     * Render a cell value with optional formatting and conditional styling.
-     * Wraps the output in Typography for consistent theme-aware rendering.
-     */
-    const createRenderCell = useCallback(
-        (cfg: ColumnConfigEntry) =>
-            // eslint-disable-next-line react/display-name
-            (params: GridRenderCellParams): React.ReactNode => {
-                const rawValue = params.value;
-                let displayValue = rawValue != null ? String(rawValue) : '';
+    // ── Row height / header height ────────────────────────────────────────────
 
-                // Apply formatting based on config
-                if (cfg.format) {
-                    switch (cfg.format.type) {
-                        case 'number':
-                            if (
-                                typeof rawValue === 'number' ||
-                                (typeof rawValue === 'string' && !isNaN(Number(rawValue)))
-                            ) {
-                                displayValue = formatNumberValue(Number(rawValue), {
-                                    decimals: cfg.format.numberDecimals,
-                                    prefix: cfg.format.numberPrefix,
-                                    suffix: cfg.format.numberSuffix,
-                                    thousands: cfg.format.numberThousandsSeparator,
-                                });
-                            }
-                            break;
-                        case 'date':
-                            displayValue = formatDateValue(rawValue, cfg.format.dateFormat, cfg.format.dateInputFormat);
-                            break;
-                        case 'boolean':
-                            displayValue = formatBooleanValue(
-                                rawValue,
-                                cfg.format.booleanTrue,
-                                cfg.format.booleanFalse,
-                            );
-                            break;
+    const density = widget.data.tableDensity || 'standard';
+    const effectiveRowHeight = Number(widget.data.tableRowHeight) || DENSITY_ROW_HEIGHT[density] || 52;
+    const effectiveHeaderHeight = Number(widget.data.tableHeaderHeight) || DENSITY_HEADER_HEIGHT[density] || 56;
+
+    // ── Cell content builder ──────────────────────────────────────────────────
+
+    const buildCellContent = useCallback((rawValue: unknown, cfg: ColumnConfigEntry): CellContent => {
+        let displayValue = rawValue != null ? String(rawValue) : '';
+
+        if (cfg.format) {
+            switch (cfg.format.type) {
+                case 'number':
+                    if (
+                        typeof rawValue === 'number' ||
+                        (typeof rawValue === 'string' && !isNaN(Number(rawValue)))
+                    ) {
+                        displayValue = formatNumberValue(Number(rawValue), {
+                            decimals: cfg.format.numberDecimals,
+                            prefix: cfg.format.numberPrefix,
+                            suffix: cfg.format.numberSuffix,
+                            thousands: cfg.format.numberThousandsSeparator,
+                        });
                     }
-                }
+                    break;
+                case 'date':
+                    displayValue = formatDateValue(rawValue, cfg.format.dateFormat, cfg.format.dateInputFormat);
+                    break;
+                case 'boolean':
+                    displayValue = formatBooleanValue(rawValue, cfg.format.booleanTrue, cfg.format.booleanFalse);
+                    break;
+            }
+        }
 
-                // Evaluate conditional styling rules
-                // Split into background styles (on cell wrapper) and text styles (on Typography)
-                // Mode: 'first-match' (default) stops after first match; 'all-match' applies all
-                // matching rules with first-defined-wins for conflicts.
-                const stopAfterFirst = !cfg.cellStyleMode || cfg.cellStyleMode === 'first-match';
-                // Normalize date values to ISO YYYY-MM-DD before rule evaluation so that
-                // rules built with the date-picker (ISO output) match raw DE/US/epoch values.
-                const evalValue =
-                    cfg.format?.type === 'date'
-                        ? normalizeToIsoDate(rawValue, cfg.format.dateInputFormat)
-                        : rawValue;
-                const bgSx: Record<string, unknown> = {};
-                const textSx: Record<string, unknown> = {};
-                if (cfg.cellStyle && cfg.cellStyle.length > 0) {
-                    for (const rule of cfg.cellStyle) {
-                        if (rule.logic && evaluateLogic(rule.logic, evalValue)) {
-                            // Background: use `background` for gradients, `backgroundColor` for solid
-                            // In all-match mode: only set if not already defined (first defined wins)
-                            if (rule.backgroundColor && !('background' in bgSx) && !('backgroundColor' in bgSx)) {
-                                const bgGradient = gradientColor(rule.backgroundColor);
-                                if (bgGradient) {
-                                    bgSx.background = bgGradient;
-                                } else {
-                                    bgSx.backgroundColor = rule.backgroundColor;
-                                }
-                            }
-                            // Text: only set if not already defined
-                            if (rule.textColor && !('color' in textSx) && !('background' in textSx)) {
-                                const textGradient = gradientColor(rule.textColor);
-                                if (textGradient) {
-                                    textSx.background = textGradient;
-                                    textSx.backgroundClip = 'text';
-                                    textSx.WebkitBackgroundClip = 'text';
-                                    textSx.color = 'transparent';
-                                } else {
-                                    textSx.color = rule.textColor;
-                                }
-                            }
-                            if (rule.fontWeight && !textSx.fontWeight) {
-                                textSx.fontWeight = rule.fontWeight;
-                            }
-                            if (rule.fontStyle && !textSx.fontStyle) {
-                                textSx.fontStyle = rule.fontStyle;
-                            }
-                            if (stopAfterFirst) break;
+        const stopAfterFirst = !cfg.cellStyleMode || cfg.cellStyleMode === 'first-match';
+        const evalValue =
+            cfg.format?.type === 'date' ? normalizeToIsoDate(rawValue, cfg.format.dateInputFormat) : rawValue;
+        const bgSx: Record<string, unknown> = {};
+        const textSx: Record<string, unknown> = {};
+
+        if (cfg.cellStyle && cfg.cellStyle.length > 0) {
+            for (const rule of cfg.cellStyle) {
+                if (rule.logic && evaluateLogic(rule.logic, evalValue)) {
+                    if (rule.backgroundColor && !('background' in bgSx) && !('backgroundColor' in bgSx)) {
+                        const bgGradient = gradientColor(rule.backgroundColor);
+                        if (bgGradient) {
+                            bgSx.background = bgGradient;
+                        } else {
+                            bgSx.backgroundColor = rule.backgroundColor;
                         }
                     }
+                    if (rule.textColor && !('color' in textSx) && !('background' in textSx)) {
+                        const textGradient = gradientColor(rule.textColor);
+                        if (textGradient) {
+                            textSx.background = textGradient;
+                            textSx.backgroundClip = 'text';
+                            textSx.WebkitBackgroundClip = 'text';
+                            textSx.color = 'transparent';
+                        } else {
+                            textSx.color = rule.textColor;
+                        }
+                    }
+                    if (rule.fontWeight && !textSx.fontWeight) {
+                        textSx.fontWeight = rule.fontWeight;
+                    }
+                    if (rule.fontStyle && !textSx.fontStyle) {
+                        textSx.fontStyle = rule.fontStyle;
+                    }
+                    if (stopAfterFirst) {
+                        break;
+                    }
                 }
+            }
+        }
 
-                const hasBg = 'background' in bgSx || 'backgroundColor' in bgSx;
+        return { displayValue, textSx, bgSx };
+    }, []);
 
-                return (
-                    <Box
-                        sx={{
-                            // Cell padding is 0 10px; expand Box to fill entire cell including padding area
-                            width: hasBg ? 'calc(100% + 20px)' : '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            ...(hasBg && {
-                                ml: '-10px',
-                                px: '10px',
-                            }),
-                            ...bgSx,
-                        }}
-                    >
-                        <Typography
-                            variant="body2"
-                            component="span"
-                            noWrap
-                            title={displayValue}
-                            sx={{
-                                width: '100%',
-                                display: 'block',
-                                lineHeight: 'inherit',
-                                ...textSx,
-                            }}
-                        >
-                            {displayValue}
-                        </Typography>
-                    </Box>
-                );
-            },
-        [],
+    // ── Grid rows ─────────────────────────────────────────────────────────────
+
+    const gridRows = useMemo(
+        () => rows.map((row, index) => ({ __id: index, ...row })),
+        [rows],
     );
 
-    /**
-     * Default renderCell that wraps values in Typography for theme propagation
-     * (font-family, font-size, etc. from CollectionProvider theme overrides).
-     */
-    const defaultRenderCell = useCallback((params: GridRenderCellParams): React.ReactNode => {
-        const displayValue = params.value != null ? String(params.value) : '';
-        return (
-            <Typography
-                variant="body2"
-                component="span"
-                noWrap
-                title={displayValue}
-                sx={{
-                    width: '100%',
-                    display: 'block',
-                    lineHeight: 'inherit',
-                }}
-            >
-                {displayValue}
-            </Typography>
-        );
-    }, []);
+    // ── TanStack column definitions ───────────────────────────────────────────
 
-    /**
-     * Default renderHeader that wraps column header names in Typography
-     * for consistent theme-aware text rendering across all headers.
-     */
-    const defaultRenderHeader = useCallback((params: { colDef: GridColDef }): React.ReactNode => {
-        return (
-            <Typography
-                variant="body2"
-                component="span"
-                fontWeight="medium"
-                noWrap
-                title={params.colDef.headerName || params.colDef.field}
-                sx={{
-                    width: '100%',
-                    display: 'block',
-                    lineHeight: 'inherit',
-                }}
-            >
-                {params.colDef.headerName || params.colDef.field}
-            </Typography>
-        );
-    }, []);
-
-    // Build DataGrid column definitions
-    const gridColumns = useMemo<GridColDef[]>(() => {
-        // Build a lookup map from analysis results for date format fallback.
-        // Used when cfg.format.dateInputFormat is not persisted (e.g. no explicit format config).
+    const columns = useMemo<ColumnDef<FlatRow>[]>(() => {
         const analysisDateFormats = new Map<string, DateFormatId | undefined>(
             analysisColumns.map(c => [c.path, c.dateFormat]),
         );
 
-        // If there is a column config, use its ordering and visibility
+        const selectionCol: ColumnDef<FlatRow> | null =
+            widget.data.tableRowSelection === true
+                ? {
+                    id: '__select__',
+                    enableSorting: false,
+                    enableColumnFilter: false,
+                    header: ({ table }) => (
+                        <Checkbox
+                            size="small"
+                            indeterminate={table.getIsSomePageRowsSelected()}
+                            checked={table.getIsAllPageRowsSelected()}
+                            onChange={table.getToggleAllPageRowsSelectedHandler()}
+                            aria-label="Select all rows"
+                        />
+                    ),
+                    cell: ({ row }) => (
+                        <Checkbox
+                            size="small"
+                            checked={row.getIsSelected()}
+                            onChange={row.getToggleSelectedHandler()}
+                            aria-label="Select row"
+                        />
+                    ),
+                    meta: { align: 'center', width: 48 },
+                }
+                : null;
+
+        let dataCols: ColumnDef<FlatRow>[];
+
         if (columnConfig.length > 0) {
-            return columnConfig
+            dataCols = columnConfig
                 .filter(cfg => cfg.visible)
                 .map(cfg => {
-                    const col: GridColDef = {
-                        field: cfg.path,
-                        headerName: cfg.headerName || cfg.path,
-                        flex: cfg.width ? 0 : 1,
-                        width: cfg.width,
-                        headerAlign: cfg.align || 'left',
-                        align: cfg.align || 'left',
-                        sortable: cfg.sortable ?? widget.data.tableSorting !== false,
-                        filterable: cfg.filterable ?? widget.data.tableFiltering === true,
-                        renderHeader: defaultRenderHeader,
+                    const inputFmt = cfg.format?.dateInputFormat ?? analysisDateFormats.get(cfg.path);
+                    const isDate = cfg.format?.type === 'date';
+
+                    const customDateSortingFn: SortingFn<FlatRow> = (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string) =>
+                        toSortableTime(rowA.getValue(columnId), inputFmt) -
+                        toSortableTime(rowB.getValue(columnId), inputFmt);
+
+                    const col: ColumnDef<FlatRow> = {
+                        id: cfg.path,
+                        accessorFn: (row: FlatRow) => row[cfg.path],
+                        header: cfg.headerName || cfg.path,
+                        enableSorting: cfg.sortable ?? widget.data.tableSorting !== false,
+                        enableColumnFilter: cfg.filterable ?? widget.data.tableFiltering === true,
+                        ...(isDate && { sortingFn: customDateSortingFn }),
+                        cell: ({ getValue }) => {
+                            const rawValue = getValue();
+                            const { displayValue, textSx } = buildCellContent(rawValue, cfg);
+                            return (
+                                <Typography
+                                    variant="body2"
+                                    component="span"
+                                    noWrap
+                                    title={displayValue}
+                                    sx={{ width: '100%', display: 'block', lineHeight: 'inherit', ...textSx }}
+                                >
+                                    {displayValue}
+                                </Typography>
+                            );
+                        },
+                        meta: {
+                            align: cfg.align || 'left',
+                            width: cfg.width,
+                            getCellSx: (rawValue: unknown) => {
+                                const { bgSx } = buildCellContent(rawValue, cfg);
+                                return bgSx;
+                            },
+                        },
                     };
-
-                    // Apply renderCell: use formatted version if formatting/styling is configured,
-                    // otherwise use default Typography wrapper for theme propagation
-                    if (cfg.format || (cfg.cellStyle && cfg.cellStyle.length > 0)) {
-                        col.renderCell = createRenderCell(cfg);
-                    } else {
-                        col.renderCell = defaultRenderCell;
-                    }
-
-                    // Add date sort comparator for correct chronological sorting.
-                    // Prefer persisted dateInputFormat; fall back to analysis-detected format.
-                    if (cfg.format?.type === 'date') {
-                        const inputFmt = cfg.format.dateInputFormat ?? analysisDateFormats.get(cfg.path);
-                        col.sortComparator = (v1: unknown, v2: unknown) =>
-                            toSortableTime(v1, inputFmt) - toSortableTime(v2, inputFmt);
-                    }
-
                     return col;
                 });
+        } else {
+            dataCols = analysisColumns.map(col => {
+                const isDate = col.type === 'date' && col.dateFormat;
+                const fmt = col.dateFormat;
+
+                const customDateSortingFn: SortingFn<FlatRow> = (rowA: Row<FlatRow>, rowB: Row<FlatRow>, columnId: string) =>
+                    toSortableTime(rowA.getValue(columnId), fmt) -
+                    toSortableTime(rowB.getValue(columnId), fmt);
+
+                const colDef: ColumnDef<FlatRow> = {
+                    id: col.path,
+                    accessorFn: (row: FlatRow) => row[col.path],
+                    header: col.path.split('.').pop() || col.path,
+                    enableSorting: widget.data.tableSorting !== false,
+                    enableColumnFilter: widget.data.tableFiltering === true,
+                    ...(isDate && { sortingFn: customDateSortingFn }),
+                    cell: ({ getValue }) => {
+                        const rawValue = getValue();
+                        const displayValue = rawValue != null ? String(rawValue) : '';
+                        return (
+                            <Typography
+                                variant="body2"
+                                component="span"
+                                noWrap
+                                title={displayValue}
+                                sx={{ width: '100%', display: 'block', lineHeight: 'inherit' }}
+                            >
+                                {displayValue}
+                            </Typography>
+                        );
+                    },
+                    meta: { align: 'left' },
+                };
+                return colDef;
+            });
         }
 
-        // Fallback: show all discovered columns with default Typography renderCell.
-        // Add sort comparator for detected date columns so they sort chronologically.
-        return analysisColumns.map(col => {
-            const gridCol: GridColDef = {
-                field: col.path,
-                headerName: col.path.split('.').pop() || col.path,
-                flex: 1,
-                sortable: widget.data.tableSorting !== false,
-                filterable: widget.data.tableFiltering === true,
-                renderCell: defaultRenderCell,
-                renderHeader: defaultRenderHeader,
-            };
-            if (col.type === 'date' && col.dateFormat) {
-                const fmt = col.dateFormat;
-                gridCol.sortComparator = (v1: unknown, v2: unknown) =>
-                    toSortableTime(v1, fmt) - toSortableTime(v2, fmt);
-            }
-            return gridCol;
-        });
+        return selectionCol ? [selectionCol, ...dataCols] : dataCols;
     }, [
         columnConfig,
         analysisColumns,
         widget.data.tableSorting,
         widget.data.tableFiltering,
-        createRenderCell,
-        defaultRenderCell,
-        defaultRenderHeader,
+        widget.data.tableRowSelection,
+        buildCellContent,
     ]);
 
-    // Controlled pagination model — reacts immediately to tablePageSize changes
+    // ── Table state ───────────────────────────────────────────────────────────
+
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
     const configuredPageSize = useMemo(
-        () => Math.min(Number(widget.data.tablePageSize) || 25, DATAGRID_MIT_MAX_PAGE_SIZE),
+        () => Number(widget.data.tablePageSize) || 25,
         [widget.data.tablePageSize],
     );
-    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: configuredPageSize });
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: configuredPageSize });
 
-    // Reset page to 0 and apply new page size when config changes
     useEffect(() => {
-        setPaginationModel(prev =>
-            prev.pageSize === configuredPageSize ? prev : { page: 0, pageSize: configuredPageSize },
+        setPagination(prev =>
+            prev.pageSize === configuredPageSize ? prev : { pageIndex: 0, pageSize: configuredPageSize },
         );
     }, [configuredPageSize]);
 
-    // Build DataGrid rows with an auto-generated unique id
-    const gridRows = useMemo(
-        () =>
-            rows.map((row, index) => ({
-                id: index,
-                ...row,
-            })),
-        [rows],
-    );
-
-    // When pagination is disabled, show all rows (capped at 100 — MIT DataGrid limit)
-    const effectivePaginationModel = useMemo(
+    const effectivePagination = useMemo<PaginationState>(
         () =>
             widget.data.tablePagination === false
-                ? { page: 0, pageSize: Math.min(Math.max(gridRows.length, 1), 100) }
-                : paginationModel,
-        [widget.data.tablePagination, gridRows.length, paginationModel],
+                ? { pageIndex: 0, pageSize: Math.max(gridRows.length, 1) }
+                : pagination,
+        [widget.data.tablePagination, gridRows.length, pagination],
     );
 
-    // Page size options
     const pageSizeOptions = useMemo(
         () => parsePageSizeOptions(widget.data.tablePageSizeOptions as string),
         [widget.data.tablePageSizeOptions],
     );
 
-    // Custom styling from widget data, with gradient support for background colors
-    const dataGridSx = useMemo(() => {
+    // ── useReactTable ─────────────────────────────────────────────────────────
+
+    const table = useReactTable<FlatRow>({
+        data: gridRows,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        enableMultiSort: false,
+        globalFilterFn: 'includesString',
+        state: {
+            sorting,
+            columnFilters,
+            globalFilter,
+            pagination: effectivePagination,
+            rowSelection,
+        },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: widget.data.tablePagination !== false ? setPagination : undefined,
+        onRowSelectionChange: setRowSelection,
+        enableRowSelection: widget.data.tableRowSelection === true,
+        enableSorting: widget.data.tableSorting !== false,
+        enableColumnFilters: widget.data.tableFiltering === true,
+        enableGlobalFilter: widget.data.tableQuickFilter === true,
+    });
+
+    // ── Column menu state ─────────────────────────────────────────────────────
+
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+    const activeColumnRef = useRef<Column<FlatRow> | null>(null);
+
+    const openColumnMenu = useCallback((col: Column<FlatRow>, el: HTMLElement) => {
+        activeColumnRef.current = col;
+        setMenuAnchor(el);
+    }, []);
+
+    const closeColumnMenu = useCallback(() => {
+        setMenuAnchor(null);
+    }, []);
+
+    // ── sx memos ──────────────────────────────────────────────────────────────
+
+    const tableSx = useMemo(() => {
         const sx: Record<string, unknown> = {
-            border: 0,
+            tableLayout: widget.data.tableAutoSize === false ? 'fixed' : 'auto',
             width: '100%',
-            height: '100%',
         };
-
-        const headerBgColor = widget.data.tableHeaderBgColor;
-        const headerTextColor = widget.data.tableHeaderTextColor;
-        const headerFontSize = widget.data.tableHeaderFontSize;
-
-        // Header styling: target both container and individual cells for reliable rendering
-        if (headerBgColor || headerTextColor || headerFontSize) {
-            const isGradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
-
-            sx['& .MuiDataGrid-columnHeaders'] = {
-                ...(isGradientBg && { background: isGradientBg }),
-                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
-            };
-            sx['& .MuiDataGrid-columnHeader'] = {
-                ...(isGradientBg && { background: isGradientBg }),
-                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
-                ...(headerTextColor && { color: headerTextColor }),
-                ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
-            };
-            // Apply background to filler elements to prevent gaps at the right edge.
-            // MuiDataGrid-filler is the flex-growing spacer after the last column header.
-            // MuiDataGrid-scrollbarFiller--header is the fixed scrollbar-width cell that
-            // appears when a vertical scrollbar is present. Both must be styled because
-            // DataGrid v7 assigns no background to these elements by default.
-            sx['& .MuiDataGrid-filler'] = {
-                ...(isGradientBg && { background: isGradientBg }),
-                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
-            };
-            sx['& .MuiDataGrid-scrollbarFiller--header'] = {
-                ...(isGradientBg && { background: isGradientBg }),
-                ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
-            };
-        }
-
-        // Cell styling
-        if (widget.data.tableCellFontSize) {
-            sx['& .MuiDataGrid-cell'] = {
-                fontSize: `${widget.data.tableCellFontSize}px`,
-            };
-        }
-
-        // Striped rows with gradient support
-        if (widget.data.tableStripedColor) {
-            const stripedColor = widget.data.tableStripedColor;
-            const isGradientStriped = gradientColor(stripedColor);
-
-            sx['& .MuiDataGrid-row:nth-of-type(even)'] = {
-                background: isGradientStriped || stripedColor,
-                backgroundColor: isGradientStriped ? 'transparent' : stripedColor,
-            };
-        }
-
-        // Row borders — DataGrid v7 uses borderTop via --DataGrid-rowBorderColor CSS variable.
-        // Setting it to transparent on the root hides all horizontal row separators.
         if (widget.data.tableShowRowBorders === false) {
-            sx['--DataGrid-rowBorderColor'] = 'transparent';
+            sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
         }
-
-        // Hide the column separator on the last header column.
-        // Note: :last-child won't work because DataGrid v7 appends a .MuiDataGrid-filler
-        // div after the last column header. Use the built-in --last class instead.
-        sx['& .MuiDataGrid-columnHeader--last .MuiDataGrid-columnSeparator'] = {
-            display: 'none',
-        };
-
+        if (widget.data.tableShowCellBorders === true) {
+            sx['& .MuiTableCell-root'] = {
+                ...(sx['& .MuiTableCell-root'] as Record<string, unknown>),
+                borderRight: '1px solid',
+                borderRightColor: 'divider',
+            };
+        }
         return sx;
-    }, [
-        widget.data.tableHeaderBgColor,
-        widget.data.tableHeaderTextColor,
-        widget.data.tableHeaderFontSize,
-        widget.data.tableCellFontSize,
-        widget.data.tableStripedColor,
-        widget.data.tableShowRowBorders,
-    ]);
+    }, [widget.data.tableShowRowBorders, widget.data.tableShowCellBorders, widget.data.tableAutoSize]);
+
+    const headerBgColor = widget.data.tableHeaderBgColor;
+    const headerTextColor = widget.data.tableHeaderTextColor;
+    const headerFontSize = widget.data.tableHeaderFontSize;
+
+    const headerCellSx = useMemo(() => {
+        const isGradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
+        return {
+            height: effectiveHeaderHeight,
+            whiteSpace: 'nowrap' as const,
+            ...(isGradientBg && { background: isGradientBg }),
+            ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
+            ...(headerTextColor && { color: headerTextColor }),
+            ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
+        };
+    }, [effectiveHeaderHeight, headerBgColor, headerTextColor, headerFontSize]);
+
+    const cellBaseSx = useMemo(() => ({
+        ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
+        overflow: 'hidden',
+        height: effectiveRowHeight,
+        maxHeight: effectiveRowHeight,
+        padding: '0 8px',
+    }), [widget.data.tableCellFontSize, effectiveRowHeight]);
+
+    const stripedColor = widget.data.tableStripedColor;
+    const isGradientStriped = stripedColor ? gradientColor(stripedColor) : null;
+
+    const getRowSx = useCallback(
+        (rowIndex: number) => {
+            if (!stripedColor || rowIndex % 2 === 0) {
+                return undefined;
+            }
+            return {
+                background: isGradientStriped || stripedColor,
+                ...(isGradientStriped ? {} : { backgroundColor: stripedColor }),
+            };
+        },
+        [stripedColor, isGradientStriped],
+    );
+
+    // ── Active column sort/filter state for menu ──────────────────────────────
+
+    const activeColumnSorted = activeColumnRef.current
+        ? sorting.find(s => s.id === activeColumnRef.current?.id)
+        : undefined;
+
+    const activeColumnFilter = activeColumnRef.current
+        ? (columnFilters.find(f => f.id === activeColumnRef.current?.id)?.value as string | undefined)
+        : undefined;
+
+    // ── Row virtualization ────────────────────────────────────────────────────
+
+    const tableRows = table.getRowModel().rows;
+
+    const rowVirtualizer = useVirtualizer({
+        count: tableRows.length,
+        getScrollElement: () => tableContainerRef.current,
+        estimateSize: () => effectiveRowHeight,
+        overscan: 10,
+    });
+
+    const shouldVirtualize = widget.data.tablePagination === false && tableRows.length > 50;
+    const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
+    const paddingTop = virtualItems && virtualItems.length > 0 ? virtualItems[0].start : 0;
+    const paddingBottom =
+        virtualItems && virtualItems.length > 0
+            ? rowVirtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1].end ?? 0)
+            : 0;
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     return (
         <CollectionBase
@@ -634,51 +573,385 @@ const JsonTableCollection: FC = () => {
                 data={data}
                 widget={widget}
             />
-            {isValidType && gridColumns.length > 0 ? (
+            {isValidType && columns.length > 0 ? (
                 <Box
                     sx={{
                         width: '100%',
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
+                        overflow: 'hidden',
                     }}
                 >
-                    <DataGrid
-                        key={`grid-${widget.data.tableAutoSize}`}
-                        localeText={getDataGridLocaleText(Generic.getLanguage())}
-                        rows={gridRows}
-                        columns={gridColumns}
-                        density={widget.data.tableDensity || 'standard'}
-                        rowHeight={Number(widget.data.tableRowHeight) || undefined}
-                        columnHeaderHeight={Number(widget.data.tableHeaderHeight) || undefined}
-                        pageSizeOptions={pageSizeOptions}
-                        paginationModel={effectivePaginationModel}
-                        onPaginationModelChange={widget.data.tablePagination !== false ? setPaginationModel : undefined}
-                        hideFooter={widget.data.tablePagination === false}
-                        sortingOrder={['asc', 'desc']}
-                        disableColumnMenu={widget.data.tableColumnMenu === false}
-                        checkboxSelection={widget.data.tableRowSelection === true}
-                        disableRowSelectionOnClick
-                        showCellVerticalBorder={widget.data.tableShowCellBorders === true}
-                        showColumnVerticalBorder={widget.data.tableShowCellBorders === true}
-                        autosizeOnMount={widget.data.tableAutoSize === true}
-                        slots={{
-                            ...(widget.data.tableQuickFilter === true && { toolbar: QuickFilterToolbar }),
-                            pagination: TypographyPagination,
-                        }}
-                        {...(widget.data.tableQuickFilter === true && {
-                            slotProps: {
-                                toolbar: {
-                                    quickFilterProps: {
-                                        debounceMs: 300,
-                                        variant: 'outlined' as const,
-                                        size: 'small' as const,
+                    {widget.data.tableQuickFilter === true && (
+                        <Box sx={{ p: 1, flexShrink: 0 }}>
+                            <TextField
+                                size="small"
+                                variant="outlined"
+                                fullWidth
+                                value={globalFilter}
+                                onChange={e => setGlobalFilter(e.target.value)}
+                                placeholder={Generic.t('json_table_search_placeholder')}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
                                     },
-                                },
-                            },
-                        })}
-                        sx={dataGridSx}
-                    />
+                                }}
+                            />
+                        </Box>
+                    )}
+
+                    <TableContainer ref={tableContainerRef} sx={{ flex: 1, overflow: 'auto' }}>
+                        <Table
+                            size={density === 'compact' ? 'small' : 'medium'}
+                            sx={tableSx}
+                            stickyHeader
+                        >
+                            <TableHead>
+                                {table.getHeaderGroups().map(headerGroup => (
+                                    <TableRow
+                                        key={headerGroup.id}
+                                        sx={{ height: effectiveHeaderHeight }}
+                                    >
+                                        {headerGroup.headers.map(header => {
+                                            const canSort = header.column.getCanSort();
+                                            const isSorted = header.column.getIsSorted();
+                                            const meta = header.column.columnDef.meta;
+                                            const isSelectCol = header.column.id === '__select__';
+
+                                            return (
+                                                <TableCell
+                                                    key={header.id}
+                                                    align={meta?.align || 'left'}
+                                                    padding={isSelectCol ? 'checkbox' : 'normal'}
+                                                    sx={{
+                                                        ...headerCellSx,
+                                                        ...(meta?.width && { width: meta.width, minWidth: meta.width }),
+                                                        userSelect: 'none',
+                                                    }}
+                                                >
+                                                    {isSelectCol ? (
+                                                        flexRender(header.column.columnDef.header, header.getContext())
+                                                    ) : (
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent:
+                                                                    meta?.align === 'right'
+                                                                        ? 'flex-end'
+                                                                        : meta?.align === 'center'
+                                                                          ? 'center'
+                                                                          : 'space-between',
+                                                            }}
+                                                        >
+                                                            {canSort ? (
+                                                                <TableSortLabel
+                                                                    active={isSorted !== false}
+                                                                    direction={isSorted === 'desc' ? 'desc' : 'asc'}
+                                                                    onClick={header.column.getToggleSortingHandler()}
+                                                                >
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        component="span"
+                                                                        fontWeight="medium"
+                                                                        noWrap
+                                                                    >
+                                                                        {flexRender(
+                                                                            header.column.columnDef.header,
+                                                                            header.getContext(),
+                                                                        )}
+                                                                    </Typography>
+                                                                </TableSortLabel>
+                                                            ) : (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    component="span"
+                                                                    fontWeight="medium"
+                                                                    noWrap
+                                                                >
+                                                                    {flexRender(
+                                                                        header.column.columnDef.header,
+                                                                        header.getContext(),
+                                                                    )}
+                                                                </Typography>
+                                                            )}
+                                                            {widget.data.tableColumnMenu !== false && (
+                                                                <Tooltip title={Generic.t('json_table_column_menu')}>
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        aria-label={Generic.t('json_table_column_menu')}
+                                                                        onClick={e => {
+                                                                            e.stopPropagation();
+                                                                            openColumnMenu(
+                                                                                header.column,
+                                                                                e.currentTarget,
+                                                                            );
+                                                                        }}
+                                                                        sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                    >
+                                                                        <MoreVertIcon fontSize="inherit" />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            )}
+                                                        </Box>
+                                                    )}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))}
+                                {widget.data.tableFiltering === true && (
+                                    <TableRow>
+                                        {table.getHeaderGroups()[0]?.headers.map(header => {
+                                            if (header.column.id === '__select__') {
+                                                return (
+                                                    <TableCell
+                                                        key={header.id}
+                                                        padding="checkbox"
+                                                        sx={{ py: 0.5, px: 0.5 }}
+                                                    />
+                                                );
+                                            }
+                                            if (!header.column.getCanFilter()) {
+                                                return (
+                                                    <TableCell
+                                                        key={header.id}
+                                                        sx={{ py: 0.5, px: 0.5 }}
+                                                    />
+                                                );
+                                            }
+                                            const filterVal = (header.column.getFilterValue() ?? '') as string;
+                                            return (
+                                                <TableCell
+                                                    key={header.id}
+                                                    sx={{ py: 0.5, px: 0.5, verticalAlign: 'bottom' }}
+                                                >
+                                                    <TextField
+                                                        size="small"
+                                                        variant="standard"
+                                                        fullWidth
+                                                        value={filterVal}
+                                                        onChange={e =>
+                                                            header.column.setFilterValue(
+                                                                e.target.value || undefined,
+                                                            )
+                                                        }
+                                                        placeholder={Generic.t(
+                                                            'json_table_filter_placeholder',
+                                                        )}
+                                                        slotProps={{
+                                                            input: {
+                                                                endAdornment: filterVal ? (
+                                                                    <InputAdornment position="end">
+                                                                        <Tooltip
+                                                                            title={Generic.t(
+                                                                                'json_table_filter_clear',
+                                                                            )}
+                                                                        >
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                onClick={() =>
+                                                                                    header.column.setFilterValue(
+                                                                                        undefined,
+                                                                                    )
+                                                                                }
+                                                                                aria-label={Generic.t(
+                                                                                    'json_table_filter_clear',
+                                                                                )}
+                                                                            >
+                                                                                <ClearIcon fontSize="inherit" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </InputAdornment>
+                                                                ) : undefined,
+                                                            },
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                )}
+                            </TableHead>
+
+                            <TableBody>
+                                {virtualItems ? (
+                                    <>
+                                        {paddingTop > 0 && (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={columns.length}
+                                                    sx={{ height: paddingTop, p: 0, border: 'none' }}
+                                                />
+                                            </TableRow>
+                                        )}
+                                        {virtualItems.map(virtualRow => {
+                                            const row = tableRows[virtualRow.index];
+                                            const rowIndex = virtualRow.index;
+                                            return (
+                                                <TableRow
+                                                    key={row.id}
+                                                    sx={{
+                                                        height: effectiveRowHeight,
+                                                        ...getRowSx(rowIndex),
+                                                    }}
+                                                >
+                                                    {row.getVisibleCells().map(cell => {
+                                                        const isSelectCell = cell.column.id === '__select__';
+                                                        const cellBgSx =
+                                                            !isSelectCell && cell.column.columnDef.meta?.getCellSx
+                                                                ? cell.column.columnDef.meta.getCellSx(
+                                                                      cell.getValue(),
+                                                                  )
+                                                                : {};
+                                                        return (
+                                                            <TableCell
+                                                                key={cell.id}
+                                                                align={
+                                                                    cell.column.columnDef.meta?.align || 'left'
+                                                                }
+                                                                padding={isSelectCell ? 'checkbox' : 'normal'}
+                                                                sx={{ ...cellBaseSx, ...cellBgSx }}
+                                                            >
+                                                                {flexRender(
+                                                                    cell.column.columnDef.cell,
+                                                                    cell.getContext(),
+                                                                )}
+                                                            </TableCell>
+                                                        );
+                                                    })}
+                                                </TableRow>
+                                            );
+                                        })}
+                                        {paddingBottom > 0 && (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={columns.length}
+                                                    sx={{ height: paddingBottom, p: 0, border: 'none' }}
+                                                />
+                                            </TableRow>
+                                        )}
+                                    </>
+                                ) : (
+                                    tableRows.map((row, rowIndex) => (
+                                        <TableRow
+                                            key={row.id}
+                                            sx={{
+                                                height: effectiveRowHeight,
+                                                ...getRowSx(rowIndex),
+                                            }}
+                                        >
+                                            {row.getVisibleCells().map(cell => {
+                                                const isSelectCell = cell.column.id === '__select__';
+                                                const cellBgSx =
+                                                    !isSelectCell && cell.column.columnDef.meta?.getCellSx
+                                                        ? cell.column.columnDef.meta.getCellSx(cell.getValue())
+                                                        : {};
+                                                return (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        align={cell.column.columnDef.meta?.align || 'left'}
+                                                        padding={isSelectCell ? 'checkbox' : 'normal'}
+                                                        sx={{ ...cellBaseSx, ...cellBgSx }}
+                                                    >
+                                                        {flexRender(
+                                                            cell.column.columnDef.cell,
+                                                            cell.getContext(),
+                                                        )}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+
+                    {widget.data.tablePagination !== false && (
+                        <TablePagination
+                            component="div"
+                            count={table.getFilteredRowModel().rows.length}
+                            page={pagination.pageIndex}
+                            rowsPerPage={pagination.pageSize}
+                            rowsPerPageOptions={pageSizeOptions}
+                            onPageChange={(_e, newPage) =>
+                                setPagination(prev => ({ ...prev, pageIndex: newPage }))
+                            }
+                            onRowsPerPageChange={e =>
+                                setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })
+                            }
+                            labelRowsPerPage={
+                                <Typography variant="body2" component="span">
+                                    {Generic.t('json_table_rows_per_page')}
+                                </Typography>
+                            }
+                            labelDisplayedRows={({ from, to, count }) => (
+                                <Typography variant="body2" component="span">
+                                    {`${from}\u2013${to} / ${count}`}
+                                </Typography>
+                            )}
+                        />
+                    )}
+
+                    <Menu
+                        anchorEl={menuAnchor}
+                        open={Boolean(menuAnchor)}
+                        onClose={closeColumnMenu}
+                    >
+                        <MenuItem
+                            onClick={() => {
+                                if (activeColumnRef.current) {
+                                    setSorting([{ id: activeColumnRef.current.id, desc: false }]);
+                                }
+                                closeColumnMenu();
+                            }}
+                        >
+                            <ArrowUpwardIcon fontSize="small" sx={{ mr: 1 }} />
+                            <Typography variant="body2">{Generic.t('json_table_sort_asc')}</Typography>
+                        </MenuItem>
+                        <MenuItem
+                            onClick={() => {
+                                if (activeColumnRef.current) {
+                                    setSorting([{ id: activeColumnRef.current.id, desc: true }]);
+                                }
+                                closeColumnMenu();
+                            }}
+                        >
+                            <ArrowDownwardIcon fontSize="small" sx={{ mr: 1 }} />
+                            <Typography variant="body2">{Generic.t('json_table_sort_desc')}</Typography>
+                        </MenuItem>
+                        {activeColumnSorted && (
+                            <MenuItem
+                                onClick={() => {
+                                    setSorting([]);
+                                    closeColumnMenu();
+                                }}
+                            >
+                                <Typography variant="body2">{Generic.t('json_table_sort_clear')}</Typography>
+                            </MenuItem>
+                        )}
+                        {widget.data.tableFiltering === true &&
+                            activeColumnRef.current?.getCanFilter() === true &&
+                            activeColumnFilter && (
+                                <MenuItem
+                                    onClick={() => {
+                                        activeColumnRef.current?.setFilterValue(undefined);
+                                        closeColumnMenu();
+                                    }}
+                                >
+                                    <ClearIcon fontSize="small" sx={{ mr: 1 }} />
+                                    <Typography variant="body2">
+                                        {Generic.t('json_table_filter_clear')}
+                                    </Typography>
+                                </MenuItem>
+                            )}
+                    </Menu>
                 </Box>
             ) : (
                 <Box

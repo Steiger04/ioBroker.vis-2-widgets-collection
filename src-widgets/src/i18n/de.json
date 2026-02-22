@@ -452,5 +452,12 @@
     "json_table_nulls": "Null-Werte",
     "json_table_distinct": "Eindeutige Werte",
     "json_table_range": "Wertebereich",
-    "json_table_reset_all": "Alle Spalten auf Standardwerte zurücksetzen"
+    "json_table_reset_all": "Alle Spalten auf Standardwerte zurücksetzen",
+    "json_table_sort_asc": "Aufsteigend sortieren",
+    "json_table_sort_desc": "Absteigend sortieren",
+    "json_table_sort_clear": "Sortierung aufheben",
+    "json_table_rows_per_page": "Zeilen pro Seite:",
+    "json_table_search_placeholder": "Suchen\u2026",
+    "json_table_filter_placeholder": "Filtern...",
+    "json_table_filter_clear": "Filter l\u00f6schen"
 }

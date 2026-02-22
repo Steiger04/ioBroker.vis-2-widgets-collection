@@ -1,11 +1,11 @@
-import { j as n, M as V, C, E as W, O, n as T, q as B, w as P, x as D, o as f, Q as F, J as w, S as G, t as R, T as z, v as u, i as b, G as A, y as S, z as E, A as L, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
-import { u as y, d as N, __tla as __tla_1 } from "./useValueState-BkaH86VC.js";
+import { j as n, N as M, C, F as W, Q as T, n as B, q as F, x as O, y as P, o as f, R as D, K as w, S as R, v as G, T as N, w as u, i as b, G as z, z as S, A, E, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
+import { u as y, d as L, __tla as __tla_1 } from "./useValueState-C03BVuGP.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { M as H, __tla as __tla_3 } from "./MenuItem-D6pjWpu8.js";
-import { S as U, __tla as __tla_4 } from "./Stack-fTlLKXgB.js";
+import { M as H, __tla as __tla_3 } from "./MenuItem-CBPgh-ig.js";
+import { S as U, __tla as __tla_4 } from "./Stack-BXcGSMV_.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./listItemTextClasses-4EZ_keuw.js";
+import { __tla as __tla_5 } from "./listItemTextClasses-B9pgY4io.js";
 let k;
 let __tla = Promise.all([
   (() => {
@@ -56,7 +56,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: V([
+      onChange: M([
         "boolean",
         "number",
         "string",
@@ -105,8 +105,8 @@ let __tla = Promise.all([
       }
     };
   }
-  function J() {
-    const i = d.useRef(null), { width: e = 300 } = O(i == null ? void 0 : i.current), a = d.useContext(T), { widget: o } = a, p = o.data.cidObject, j = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), _ = j == null ? void 0 : j.type, I = [
+  function K() {
+    const i = d.useRef(null), { width: e = 300 } = T(i == null ? void 0 : i.current), a = d.useContext(B), { widget: o } = a, p = o.data.cidObject, j = o.data.oidObject, { data: r, states: s } = F("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), _ = j == null ? void 0 : j.type, I = [
       "boolean",
       "number",
       "string",
@@ -118,7 +118,7 @@ let __tla = Promise.all([
     }, [
       s,
       c
-    ]), M = d.useCallback((t) => {
+    ]), V = d.useCallback((t) => {
       const l = Number(t.target.value);
       if (l < 0 || l >= s.length) return;
       const h = s[l];
@@ -131,12 +131,12 @@ let __tla = Promise.all([
       m,
       g
     ]);
-    return n.jsxs(P, {
+    return n.jsxs(O, {
       isValidType: I,
       data: r,
       oidValue: c,
       children: [
-        n.jsx(D, {
+        n.jsx(P, {
           data: r,
           widget: o
         }),
@@ -149,11 +149,11 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: n.jsx(F, {
+          children: n.jsx(D, {
             variant: "standard",
             disableUnderline: true,
             value: x !== -1 ? x : "",
-            onChange: M,
+            onChange: V,
             MenuProps: {
               slotProps: {
                 backdrop: {
@@ -202,7 +202,7 @@ let __tla = Promise.all([
                   alignItems: "center"
                 },
                 children: [
-                  n.jsx(G, {
+                  n.jsx(R, {
                     alt: "",
                     src: t.icon,
                     style: {
@@ -210,10 +210,10 @@ let __tla = Promise.all([
                       top: `calc(0px - ${t.iconYOffset})`,
                       right: `calc(0px - ${t.iconXOffset})`,
                       height: t.iconSize,
-                      ...R(t.icon, t.iconColor, t.forceColorMask)
+                      ...G(t.icon, t.iconColor, t.forceColorMask)
                     }
                   }),
-                  n.jsx(z, {
+                  n.jsx(N, {
                     component: f,
                     variant: "subtitle2",
                     sx: {
@@ -243,7 +243,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  k = class extends A {
+  k = class extends z {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -265,13 +265,13 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...E([
+              ...A([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
-              ...N(),
+              ...L(),
               ...$()
             ]
           },
@@ -330,7 +330,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, L(this.wrapContent(n.jsx(J, {})), a);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, E(this.wrapContent(n.jsx(K, {})), a);
     }
   };
 });

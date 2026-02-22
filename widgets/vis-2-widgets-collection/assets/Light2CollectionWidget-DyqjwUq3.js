@@ -1,7 +1,7 @@
-import { j as v, C as z, M as zt, n as Ae, q as at, w as st, x as ht, S as Nt, t as Dt, N as Ft, o as D, c as Vt, O as Gt, I as ye, D as Qe, X as ut, G as $t, y as Ze, A as Ut, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
-import { u as P, d as Xt, __tla as __tla_1 } from "./useValueState-BkaH86VC.js";
+import { j as v, C as z, N as zt, n as Ae, q as at, x as st, y as ht, S as Nt, v as Dt, O as Ft, o as D, c as Vt, Q as Gt, I as ye, D as qe, Y as ut, G as $t, z as Ze, E as Ut, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
+import { u as P, d as Xt, __tla as __tla_1 } from "./useValueState-C03BVuGP.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { B as Kt, __tla as __tla_3 } from "./Button-C37w3Vw6.js";
+import { B as Kt, __tla as __tla_3 } from "./Button-B-tNf451.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let It;
@@ -69,7 +69,7 @@ let __tla = Promise.all([
         }
       }
     }
-  }, qt = () => [
+  }, Qt = () => [
     {
       type: "custom",
       component: () => v.jsx(z, {})
@@ -353,7 +353,7 @@ let __tla = Promise.all([
       ].includes(e.colorLightType || "")
     }
   ];
-  function Qt({ onClick: e = () => {
+  function qt({ onClick: e = () => {
   }, onLongPress: r = () => {
   }, ms: i = 300 } = {}) {
     const t = d.useRef(null), n = d.useRef(null), o = d.useRef(false), l = d.useRef(null), c = d.useCallback(() => {
@@ -393,7 +393,7 @@ let __tla = Promise.all([
       var _a;
       const n = d.useContext(Ae);
       if (!n || !n.widget) throw new Error("withButtonModal must be used within a CollectionProvider");
-      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = Qt({
+      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
         onClick: () => h(!u),
         onLongPress: () => c(true),
         ms: f ? s.colorLightDelayLongPress ?? 500 : 500
@@ -506,7 +506,7 @@ let __tla = Promise.all([
     }
     return e;
   }
-  function q(e, r) {
+  function Q(e, r) {
     this.props = e, this.context = r;
   }
   function oe(e, r) {
@@ -595,7 +595,7 @@ let __tla = Promise.all([
     (h = S.__b) && h(r);
     try {
       e: if (typeof p == "function") {
-        if (m = r.props, _ = (h = p.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in p && p.prototype.render ? r.__c = a = new p(m, w) : (r.__c = a = new q(m, w), a.constructor = p, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), p.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, p.getDerivedStateFromProps(m, a.__s)), f) p.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
+        if (m = r.props, _ = (h = p.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in p && p.prototype.render ? r.__c = a = new p(m, w) : (r.__c = a = new Q(m, w), a.constructor = p, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), p.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, p.getDerivedStateFromProps(m, a.__s)), f) p.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
         else {
           if (p.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(m, w), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(m, a.__s, w) === false) {
             for (a.props = m, a.state = a.__s, a.__d = false, a.__v = r, r.__e = s != null ? s !== i.__e ? s : i.__e : null, r.__k = i.__k, h = 0; h < r.__k.length; h++) r.__k[h] && (r.__k[h].__p = r);
@@ -663,12 +663,12 @@ let __tla = Promise.all([
       e
     ]), o = [], Re(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Me.slice.call(r.childNodes), o, false, H, t), pt(o, e);
   }
-  S = {}, q.prototype.setState = function(e, r) {
+  S = {}, Q.prototype.setState = function(e, r) {
     var i = this.__s !== this.state && this.__s || (this.__s = B({}, this.state));
     (typeof e != "function" || (e = e(i, this.props))) && B(i, e), e != null && this.__v && (this.u = false, r && this.__h.push(r), xe(this));
-  }, q.prototype.forceUpdate = function(e) {
+  }, Q.prototype.forceUpdate = function(e) {
     this.__v && (e && this.__h.push(e), this.u = true, xe(this));
-  }, q.prototype.render = ce, ne = [], dt = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Se = S.debounceRendering, S.__e = function(e, r, i) {
+  }, Q.prototype.render = ce, ne = [], dt = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Se = S.debounceRendering, S.__e = function(e, r, i) {
     for (var t; r = r.__p; ) if ((t = r.__c) && !t.__p) try {
       if (t.constructor && t.constructor.getDerivedStateFromError != null) t.setState(t.constructor.getDerivedStateFromError(e));
       else {
@@ -699,7 +699,7 @@ let __tla = Promise.all([
       return e;
     }, M.apply(this, arguments);
   }
-  var sr = "[-\\+]?\\d+%?", hr = "[-\\+]?\\d*\\.\\d+%?", F = "(?:" + hr + ")|(?:" + sr + ")", yt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", xt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", ur = new RegExp("rgb" + yt), dr = new RegExp("rgba" + xt), fr = new RegExp("hsl" + yt), gr = new RegExp("hsla" + xt), ae = "^(?:#?|0x?)", V = "([0-9a-fA-F]{1})", G = "([0-9a-fA-F]{2})", vr = new RegExp(ae + V + V + V + "$"), mr = new RegExp(ae + V + V + V + V + "$"), pr = new RegExp(ae + G + G + G + "$"), br = new RegExp(ae + G + G + G + G + "$"), _r = 2e3, yr = 4e4, re = Math.log, X = Math.round, Q = Math.floor;
+  var sr = "[-\\+]?\\d+%?", hr = "[-\\+]?\\d*\\.\\d+%?", F = "(?:" + hr + ")|(?:" + sr + ")", yt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", xt = "[\\s|\\(]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")[,|\\s]+(" + F + ")\\s*\\)?", ur = new RegExp("rgb" + yt), dr = new RegExp("rgba" + xt), fr = new RegExp("hsl" + yt), gr = new RegExp("hsla" + xt), ae = "^(?:#?|0x?)", V = "([0-9a-fA-F]{1})", G = "([0-9a-fA-F]{2})", vr = new RegExp(ae + V + V + V + "$"), mr = new RegExp(ae + V + V + V + V + "$"), pr = new RegExp(ae + G + G + G + "$"), br = new RegExp(ae + G + G + G + G + "$"), _r = 2e3, yr = 4e4, re = Math.log, X = Math.round, q = Math.floor;
   function I(e, r, i) {
     return Math.min(Math.max(e, r), i);
   }
@@ -737,7 +737,7 @@ let __tla = Promise.all([
     }, r.unbind = function() {
       this.onChange = void 0;
     }, e.hsvToRgb = function(t) {
-      var n = t.h / 60, o = t.s / 100, l = t.v / 100, c = Q(n), s = n - c, u = l * (1 - o), h = l * (1 - s * o), a = l * (1 - (1 - s) * o), f = c % 6, g = [
+      var n = t.h / 60, o = t.s / 100, l = t.v / 100, c = q(n), s = n - c, u = l * (1 - o), h = l * (1 - s * o), a = l * (1 - (1 - s) * o), f = c % 6, g = [
         l,
         h,
         u,
@@ -802,9 +802,9 @@ let __tla = Promise.all([
     }, e.kelvinToRgb = function(t) {
       var n = t / 100, o, l, c;
       return n < 66 ? (o = 255, l = -155.25485562709179 - 0.44596950469579133 * (l = n - 2) + 104.49216199393888 * re(l), c = n < 20 ? 0 : -254.76935184120902 + 0.8274096064007395 * (c = n - 10) + 115.67994401066147 * re(c)) : (o = 351.97690566805693 + 0.114206453784165 * (o = n - 55) - 40.25366309332127 * re(o), l = 325.4494125711974 + 0.07943456536662342 * (l = n - 50) - 28.0852963507957 * re(l), c = 255), {
-        r: I(Q(o), 0, 255),
-        g: I(Q(l), 0, 255),
-        b: I(Q(c), 0, 255)
+        r: I(q(o), 0, 255),
+        g: I(q(l), 0, 255),
+        b: I(q(c), 0, 255)
       };
     }, e.rgbToKelvin = function(t) {
       for (var n = t.r, o = t.b, l = 0.4, c = _r, s = yr, u; s - c > l; ) {
@@ -1038,7 +1038,7 @@ let __tla = Promise.all([
         key: "hex8String",
         get: function() {
           var t = this.rgba;
-          return "#" + N(t.r) + N(t.g) + N(t.b) + N(Q(t.a * 255));
+          return "#" + N(t.r) + N(t.g) + N(t.b) + N(q(t.a * 255));
         },
         set: function(t) {
           this.hexString = t;
@@ -1456,7 +1456,7 @@ let __tla = Promise.all([
           break;
       }
     }, r;
-  })(q);
+  })(Q);
   function $(e) {
     var r = e.r, i = e.url, t = r, n = r;
     return L("svg", {
@@ -1816,7 +1816,7 @@ let __tla = Promise.all([
         }));
       }));
     }, r;
-  })(q);
+  })(Q);
   Et.defaultProps = Object.assign({}, Rr, {
     colors: [],
     display: "block",
@@ -2128,11 +2128,11 @@ let __tla = Promise.all([
   const Kr = (e, r) => !e || !r ? true : !!r[e], Yr = (e) => e === "kelvin" ? 2e3 : e === "hexString" ? "#ffffff" : 0, we = (e, r) => {
     const i = r.value;
     r.hexString = e.hexString, r.value = i;
-  }, qr = (e) => v.jsx(ut, {
+  }, Qr = (e) => v.jsx(ut, {
     component: Ur,
     viewBox: "0 0 128 128",
     ...e
-  }), Qr = (e) => v.jsxs(ut, {
+  }), qr = (e) => v.jsxs(ut, {
     viewBox: "0 0 512 512",
     ...e,
     children: [
@@ -2355,10 +2355,10 @@ let __tla = Promise.all([
           te.forEach((_e) => {
             const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
             if (Ye !== void 0 && k !== Ye || !Kr(Ht, be)) return;
-            const Wt = `${jt}Object`, qe = t.data[Wt];
-            if (!qe) return;
+            const Wt = `${jt}Object`, Qe = t.data[Wt];
+            if (!Qe) return;
             let R = C[Ke];
-            Bt && typeof R == "number" ? R = Ge(R, qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Tt(R);
+            Bt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Tt(R);
           }), k === 1 && x((_e) => !_e);
         } finally {
           Promise.resolve().then(() => {
@@ -2570,14 +2570,14 @@ let __tla = Promise.all([
                 display: "inline-block"
               },
               children: [
-                v.jsx(Qe, {
+                v.jsx(qe, {
                   orientation: "horizontal",
                   flexItem: true,
                   variant: "fullWidth"
                 }),
                 v.jsx(ye, {
                   onClick: () => r(false),
-                  children: v.jsx(qr, {
+                  children: v.jsx(Qr, {
                     sx: {
                       width: "24px",
                       height: "24px"
@@ -2592,7 +2592,7 @@ let __tla = Promise.all([
               },
               children: v.jsx(ye, {
                 onClick: () => r(true),
-                children: v.jsx(Qr, {
+                children: v.jsx(qr, {
                   sx: {
                     width: "24px",
                     height: "24px"
@@ -2602,7 +2602,7 @@ let __tla = Promise.all([
             })
           ]
         }) : null,
-        v.jsx(Qe, {
+        v.jsx(qe, {
           orientation: "vertical",
           flexItem: true,
           variant: "middle"
@@ -2670,7 +2670,7 @@ let __tla = Promise.all([
             label: "group_light",
             fields: [
               ...Xt(),
-              ...qt()
+              ...Qt()
             ]
           },
           {

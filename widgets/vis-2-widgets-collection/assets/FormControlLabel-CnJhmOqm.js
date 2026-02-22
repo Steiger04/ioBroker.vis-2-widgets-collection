@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as U, u as A, R as E, aQ as W, b as z, T as P, j as c, d as v, s as x, V as F, e as B, m as L, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
+import { a as U, g as D, u as A, U as E, ay as W, b as z, T as P, j as c, d as v, s as x, W as F, e as B, m as L, __tla as __tla_1 } from "./useData-B9ZrPGFV.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -16,10 +16,10 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function H(e) {
-    return U("MuiFormControlLabel", e);
+    return D("MuiFormControlLabel", e);
   }
-  let t, I, Q, V;
-  t = D("MuiFormControlLabel", [
+  let t, I, G, J;
+  t = U("MuiFormControlLabel", [
     "root",
     "labelPlacementStart",
     "labelPlacementTop",
@@ -50,7 +50,7 @@ let __tla = Promise.all([
     };
     return B(m, H, o);
   };
-  Q = x("label", {
+  G = x("label", {
     name: "MuiFormControlLabel",
     slot: "Root",
     overridesResolver: (e, o) => {
@@ -113,7 +113,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  V = x("span", {
+  J = x("span", {
     name: "MuiFormControlLabel",
     slot: "Asterisk",
     overridesResolver: (e, o) => o.asterisk
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: G, label: T, labelPlacement: _ = "end", name: J, onChange: K, required: k, slots: q = {}, slotProps: $ = {}, value: O, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -168,7 +168,7 @@ let __tla = Promise.all([
       ...h,
       className: v(u.label, h == null ? void 0 : h.className),
       children: l
-    })), c.jsxs(Q, {
+    })), c.jsxs(G, {
       className: v(u.root, d),
       ownerState: n,
       ref: s,
@@ -178,7 +178,7 @@ let __tla = Promise.all([
         b ? c.jsxs("div", {
           children: [
             l,
-            c.jsxs(V, {
+            c.jsxs(J, {
               ownerState: n,
               "aria-hidden": true,
               className: u.asterisk,

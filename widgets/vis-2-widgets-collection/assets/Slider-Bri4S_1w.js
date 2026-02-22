@@ -1,6 +1,6 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a1 as nt, aM as de, h as st, f as lt, a4 as _e, a6 as Re, aj as Ue, an as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, a9 as dt, a8 as O, aN as et, m as se, V as F, e as pt, W as Ye, K as Be, a2 as Xe, i as qe, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
-let Ht, zt;
+import { a2 as nt, at as de, h as st, f as lt, a9 as _e, a4 as Re, ab as Ue, ag as Ke, l as Ie, a as it, g as ct, d as ne, j as T, s as B, u as ut, a7 as dt, a6 as O, au as et, m as se, W as F, e as pt, X as Ye, M as Xe, a3 as Be, i as qe, __tla as __tla_1 } from "./useData-B9ZrPGFV.js";
+let Vt, zt;
 let __tla = Promise.all([
   (() => {
     try {
@@ -38,9 +38,9 @@ let __tla = Promise.all([
   }
   function Ge(e, t) {
     const { index: o } = e.reduce((n, p, w) => {
-      const E = Math.abs(t - p);
-      return n === null || E < n.distance || E === n.distance ? {
-        distance: E,
+      const N = Math.abs(t - p);
+      return n === null || N < n.distance || N === n.distance ? {
+        distance: N,
         index: w
       } : n;
     }, null) ?? {};
@@ -124,8 +124,8 @@ let __tla = Promise.all([
     return Ae === void 0 && (typeof CSS < "u" && typeof CSS.supports == "function" ? Ae = CSS.supports("touch-action", "none") : Ae = true), Ae;
   }
   function St(e) {
-    const { "aria-labelledby": t, defaultValue: o, disabled: n = false, disableSwap: p = false, isRtl: w = false, marks: E = false, max: f = 100, min: u = 0, name: L, onChange: M, onChangeCommitted: q, orientation: G = "horizontal", rootRef: ze, scale: pe = yt, step: z = 1, shiftStep: J = 10, tabIndex: fe, value: Ne } = e, N = y.useRef(void 0), [H, Q] = y.useState(-1), [We, Z] = y.useState(-1), [me, be] = y.useState(false), ee = y.useRef(0), le = y.useRef(null), [A, C] = nt({
-      controlled: Ne,
+    const { "aria-labelledby": t, defaultValue: o, disabled: n = false, disableSwap: p = false, isRtl: w = false, marks: N = false, max: f = 100, min: u = 0, name: L, onChange: M, onChangeCommitted: q, orientation: G = "horizontal", rootRef: ze, scale: pe = yt, step: z = 1, shiftStep: J = 10, tabIndex: fe, value: Ee } = e, E = y.useRef(void 0), [V, Q] = y.useState(-1), [We, Z] = y.useState(-1), [me, be] = y.useState(false), ee = y.useRef(0), le = y.useRef(null), [A, C] = nt({
+      controlled: Ee,
       default: o ?? u,
       name: "Slider"
     }), v = M && ((a, r, s) => {
@@ -142,15 +142,15 @@ let __tla = Promise.all([
       A
     ];
     b = b.map((a) => a == null ? u : de(a, u, f));
-    const ie = E === true && z !== null ? [
+    const ie = N === true && z !== null ? [
       ...Array(Math.floor((f - u) / z) + 1)
     ].map((a, r) => ({
       value: u + z * r
-    })) : E || [], m = ie.map((a) => a.value), [D, re] = y.useState(-1), d = y.useRef(null), _ = st(ze, d), Ee = (a) => (r) => {
+    })) : N || [], m = ie.map((a) => a.value), [D, re] = y.useState(-1), d = y.useRef(null), _ = st(ze, d), Ne = (a) => (r) => {
       var _a;
       const s = Number(r.currentTarget.getAttribute("data-index"));
       Ke(r.target) && re(s), Z(s), (_a = a == null ? void 0 : a.onFocus) == null ? void 0 : _a.call(a, r);
-    }, Ve = (a) => (r) => {
+    }, $e = (a) => (r) => {
       var _a;
       Ke(r.target) || re(-1), Z(-1), (_a = a == null ? void 0 : a.onBlur) == null ? void 0 : _a.call(a, r);
     }, he = (a, r) => {
@@ -175,7 +175,7 @@ let __tla = Promise.all([
         });
       }
       C(l), re(s), v && !Te(l, A) && v(a, l, s), q && q(a, le.current ?? l);
-    }, $e = (a) => (r) => {
+    }, He = (a) => (r) => {
       var _a;
       if ([
         "ArrowUp",
@@ -241,7 +241,7 @@ let __tla = Promise.all([
       n && d.current.contains(document.activeElement) && ((_a = document.activeElement) == null ? void 0 : _a.blur());
     }, [
       n
-    ]), n && H !== -1 && Q(-1), n && D !== -1 && re(-1);
+    ]), n && V !== -1 && Q(-1), n && D !== -1 && re(-1);
     const ge = (a) => (r) => {
       var _a;
       (_a = a.onChange) == null ? void 0 : _a.call(a, r), he(r, r.target.valueAsNumber);
@@ -259,25 +259,25 @@ let __tla = Promise.all([
         g = m[ue];
       }
       g = de(g, u, f);
-      let $ = 0;
+      let H = 0;
       if (te) {
-        r ? $ = U.current : $ = Ge(b, g), p && (g = de(g, b[$ - 1] || -1 / 0, b[$ + 1] || 1 / 0));
+        r ? H = U.current : H = Ge(b, g), p && (g = de(g, b[H - 1] || -1 / 0, b[H + 1] || 1 / 0));
         const ue = g;
         g = Je({
           values: b,
           newValue: g,
-          index: $
-        }), p && r || ($ = g.indexOf(ue), U.current = $);
+          index: H
+        }), p && r || (H = g.indexOf(ue), U.current = H);
       }
       return {
         newValue: g,
-        activeIndex: $
+        activeIndex: H
       };
     }, K = _e((a) => {
-      const r = Ce(a, N);
+      const r = Ce(a, E);
       if (!r) return;
       if (ee.current += 1, a.type === "mousemove" && a.buttons === 0) {
-        V(a);
+        $(a);
         return;
       }
       const { newValue: s, activeIndex: c } = W({
@@ -289,20 +289,20 @@ let __tla = Promise.all([
         activeIndex: c,
         setActive: Q
       }), C(s), !me && ee.current > bt && be(true), v && !Te(s, A) && v(a, s, c);
-    }), V = _e((a) => {
-      const r = Ce(a, N);
+    }), $ = _e((a) => {
+      const r = Ce(a, E);
       if (be(false), !r) return;
       const { newValue: s } = W({
         finger: r,
         move: true
       });
-      Q(-1), a.type === "touchend" && Z(-1), q && q(a, le.current ?? s), N.current = void 0, B();
+      Q(-1), a.type === "touchend" && Z(-1), q && q(a, le.current ?? s), E.current = void 0, X();
     }), S = _e((a) => {
       if (n) return;
       Qe() || a.preventDefault();
       const r = a.changedTouches[0];
-      r != null && (N.current = r.identifier);
-      const s = Ce(a, N);
+      r != null && (E.current = r.identifier);
+      const s = Ce(a, E);
       if (s !== false) {
         const { newValue: i, activeIndex: l } = W({
           finger: s
@@ -317,14 +317,14 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("touchmove", K, {
         passive: true
-      }), c.addEventListener("touchend", V, {
+      }), c.addEventListener("touchend", $, {
         passive: true
       });
-    }), B = y.useCallback(() => {
+    }), X = y.useCallback(() => {
       const a = Re(d.current);
-      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", V), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", V);
+      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", $), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", $);
     }, [
-      V,
+      $,
       K
     ]);
     y.useEffect(() => {
@@ -332,22 +332,22 @@ let __tla = Promise.all([
       return a.addEventListener("touchstart", S, {
         passive: Qe()
       }), () => {
-        a.removeEventListener("touchstart", S), B();
+        a.removeEventListener("touchstart", S), X();
       };
     }, [
-      B,
+      X,
       S
     ]), y.useEffect(() => {
-      n && B();
+      n && X();
     }, [
       n,
-      B
+      X
     ]);
-    const He = (a) => (r) => {
+    const Ve = (a) => (r) => {
       var _a;
       if ((_a = a.onMouseDown) == null ? void 0 : _a.call(a, r), n || r.defaultPrevented || r.button !== 0) return;
       r.preventDefault();
-      const s = Ce(r, N);
+      const s = Ce(r, E);
       if (s !== false) {
         const { newValue: i, activeIndex: l } = W({
           finger: s
@@ -362,10 +362,10 @@ let __tla = Promise.all([
       const c = Re(d.current);
       c.addEventListener("mousemove", K, {
         passive: true
-      }), c.addEventListener("mouseup", V);
+      }), c.addEventListener("mouseup", $);
     }, ve = Me(te ? b[0] : u, u, f), x = Me(b[b.length - 1], u, f) - ve, ce = (a = {}) => {
       const r = Ue(a), s = {
-        onMouseDown: He(r || {})
+        onMouseDown: Ve(r || {})
       }, c = {
         ...r,
         ...s
@@ -394,11 +394,11 @@ let __tla = Promise.all([
         ...s
       };
     }, xe = (a) => ({
-      pointerEvents: H !== -1 && H !== a ? "none" : void 0
+      pointerEvents: V !== -1 && V !== a ? "none" : void 0
     });
     let ae;
     return G === "vertical" && (ae = w ? "vertical-rl" : "vertical-lr"), {
-      active: H,
+      active: V,
       axis: Y,
       axisProps: kt,
       dragging: me,
@@ -406,9 +406,9 @@ let __tla = Promise.all([
       getHiddenInputProps: (a = {}) => {
         const r = Ue(a), s = {
           onChange: ge(r || {}),
-          onFocus: Ee(r || {}),
-          onBlur: Ve(r || {}),
-          onKeyDown: $e(r || {})
+          onFocus: Ne(r || {}),
+          onBlur: $e(r || {}),
+          onKeyDown: He(r || {})
         }, c = {
           ...r,
           ...s
@@ -519,8 +519,8 @@ let __tla = Promise.all([
   function Ze(e) {
     return e;
   }
-  let Pt, Tt, At, Rt, It, Mt, Nt, Et;
-  Pt = X("span", {
+  let Pt, Tt, At, Rt, It, Mt, Et, Nt;
+  Pt = B("span", {
     name: "MuiSlider",
     slot: "Root",
     overridesResolver: (e, t) => {
@@ -629,7 +629,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Tt = X("span", {
+  Tt = B("span", {
     name: "MuiSlider",
     slot: "Rail",
     overridesResolver: (e, t) => t.rail
@@ -672,7 +672,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  At = X("span", {
+  At = B("span", {
     name: "MuiSlider",
     slot: "Track",
     overridesResolver: (e, t) => t.track
@@ -737,20 +737,20 @@ let __tla = Promise.all([
             backgroundColor: e.vars.palette.Slider[`${t}Track`],
             borderColor: e.vars.palette.Slider[`${t}Track`]
           } : {
-            backgroundColor: Be(e.palette[t].main, 0.62),
-            borderColor: Be(e.palette[t].main, 0.62),
+            backgroundColor: Xe(e.palette[t].main, 0.62),
+            borderColor: Xe(e.palette[t].main, 0.62),
             ...e.applyStyles("dark", {
-              backgroundColor: Xe(e.palette[t].main, 0.5)
+              backgroundColor: Be(e.palette[t].main, 0.5)
             }),
             ...e.applyStyles("dark", {
-              borderColor: Xe(e.palette[t].main, 0.5)
+              borderColor: Be(e.palette[t].main, 0.5)
             })
           }
         }
       }))
     ]
   })));
-  Rt = X("span", {
+  Rt = B("span", {
     name: "MuiSlider",
     slot: "Thumb",
     overridesResolver: (e, t) => {
@@ -859,7 +859,7 @@ let __tla = Promise.all([
       }))
     ]
   })));
-  It = X(Ct, {
+  It = B(Ct, {
     name: "MuiSlider",
     slot: "ValueLabel",
     overridesResolver: (e, t) => t.valueLabel
@@ -949,7 +949,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Mt = X("span", {
+  Mt = B("span", {
     name: "MuiSlider",
     slot: "Mark",
     shouldForwardProp: (e) => et(e) && e !== "markActive",
@@ -996,7 +996,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  zt = X("span", {
+  zt = B("span", {
     name: "MuiSlider",
     slot: "MarkLabel",
     shouldForwardProp: (e) => et(e) && e !== "markLabelActive",
@@ -1041,8 +1041,8 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Nt = (e) => {
-    const { disabled: t, dragging: o, marked: n, orientation: p, track: w, classes: E, color: f, size: u } = e, L = {
+  Et = (e) => {
+    const { disabled: t, dragging: o, marked: n, orientation: p, track: w, classes: N, color: f, size: u } = e, L = {
       root: [
         "root",
         t && "disabled",
@@ -1091,23 +1091,23 @@ let __tla = Promise.all([
         "focusVisible"
       ]
     };
-    return pt(L, wt, E);
+    return pt(L, wt, N);
   };
-  Et = ({ children: e }) => e;
-  Ht = y.forwardRef(function(t, o) {
+  Nt = ({ children: e }) => e;
+  Vt = y.forwardRef(function(t, o) {
     const n = ut({
       props: t,
       name: "MuiSlider"
-    }), p = dt(), { "aria-label": w, "aria-valuetext": E, "aria-labelledby": f, component: u = "span", components: L = {}, componentsProps: M = {}, color: q = "primary", classes: G, className: ze, disableSwap: pe = false, disabled: z = false, getAriaLabel: J, getAriaValueText: fe, marks: Ne = false, max: N = 100, min: H = 0, name: Q, onChange: We, onChangeCommitted: Z, orientation: me = "horizontal", shiftStep: be = 10, size: ee = "medium", step: le = 1, scale: A = Ze, slotProps: C, slots: v, tabIndex: te, track: b = "normal", value: ie, valueLabelDisplay: m = "off", valueLabelFormat: D = Ze, ...re } = n, d = {
+    }), p = dt(), { "aria-label": w, "aria-valuetext": N, "aria-labelledby": f, component: u = "span", components: L = {}, componentsProps: M = {}, color: q = "primary", classes: G, className: ze, disableSwap: pe = false, disabled: z = false, getAriaLabel: J, getAriaValueText: fe, marks: Ee = false, max: E = 100, min: V = 0, name: Q, onChange: We, onChangeCommitted: Z, orientation: me = "horizontal", shiftStep: be = 10, size: ee = "medium", step: le = 1, scale: A = Ze, slotProps: C, slots: v, tabIndex: te, track: b = "normal", value: ie, valueLabelDisplay: m = "off", valueLabelFormat: D = Ze, ...re } = n, d = {
       ...n,
       isRtl: p,
-      max: N,
-      min: H,
+      max: E,
+      min: V,
       classes: G,
       disabled: z,
       disableSwap: pe,
       orientation: me,
-      marks: Ne,
+      marks: Ee,
       color: q,
       size: ee,
       step: le,
@@ -1116,14 +1116,14 @@ let __tla = Promise.all([
       track: b,
       valueLabelDisplay: m,
       valueLabelFormat: D
-    }, { axisProps: _, getRootProps: Ee, getHiddenInputProps: Ve, getThumbProps: he, open: $e, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: V, values: S, trackOffset: B, trackLeap: He, getThumbStyle: ve } = St({
+    }, { axisProps: _, getRootProps: Ne, getHiddenInputProps: $e, getThumbProps: he, open: He, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: $, values: S, trackOffset: X, trackLeap: Ve, getThumbStyle: ve } = St({
       ...d,
       rootRef: o
     });
-    d.marked = V.length > 0 && V.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
-    const x = Nt(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, $ = O({
+    d.marked = $.length > 0 && $.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
+    const x = Et(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, Se = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, xe = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? Mt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? zt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? M.root, s = (C == null ? void 0 : C.rail) ?? M.rail, c = (C == null ? void 0 : C.track) ?? M.track, i = (C == null ? void 0 : C.thumb) ?? M.thumb, l = (C == null ? void 0 : C.valueLabel) ?? M.valueLabel, P = (C == null ? void 0 : C.mark) ?? M.mark, R = (C == null ? void 0 : C.markLabel) ?? M.markLabel, g = (C == null ? void 0 : C.input) ?? M.input, H = O({
       elementType: ce,
-      getSlotProps: Ee,
+      getSlotProps: Ne,
       externalSlotProps: r,
       externalForwardedProps: re,
       additionalProps: {
@@ -1149,8 +1149,8 @@ let __tla = Promise.all([
       externalSlotProps: c,
       additionalProps: {
         style: {
-          ..._[U].offset(B),
-          ..._[U].leap(He)
+          ..._[U].offset(X),
+          ..._[U].leap(Ve)
         }
       },
       ownerState: {
@@ -1187,12 +1187,12 @@ let __tla = Promise.all([
       className: x.markLabel
     }), ot = O({
       elementType: a,
-      getSlotProps: Ve,
+      getSlotProps: $e,
       externalSlotProps: g,
       ownerState: d
     });
     return T.jsxs(ce, {
-      ...$,
+      ...H,
       children: [
         T.jsx(ke, {
           ...ue
@@ -1200,8 +1200,8 @@ let __tla = Promise.all([
         T.jsx(ye, {
           ...rt
         }),
-        V.filter((h) => h.value >= H && h.value <= N).map((h, k) => {
-          const Fe = Me(h.value, H, N), Le = _[U].offset(Fe);
+        $.filter((h) => h.value >= V && h.value <= E).map((h, k) => {
+          const Fe = Me(h.value, V, E), Le = _[U].offset(Fe);
           let j;
           return b === false ? j = S.includes(h.value) : j = b === "normal" && (W ? h.value >= S[0] && h.value <= S[S.length - 1] : h.value <= S[0]) || b === "inverted" && (W ? h.value <= S[0] || h.value >= S[S.length - 1] : h.value >= S[0]), T.jsxs(y.Fragment, {
             children: [
@@ -1235,14 +1235,14 @@ let __tla = Promise.all([
           }, k);
         }),
         S.map((h, k) => {
-          const Fe = Me(h, H, N), Le = _[U].offset(Fe), j = m === "off" ? Et : xe;
+          const Fe = Me(h, V, E), Le = _[U].offset(Fe), j = m === "off" ? Nt : xe;
           return T.jsx(j, {
             ...!Ie(j) && {
               valueLabelFormat: D,
               valueLabelDisplay: m,
               value: typeof D == "function" ? D(A(h), k) : D,
               index: k,
-              open: $e === k || ge === k || m === "on",
+              open: He === k || ge === k || m === "on",
               disabled: z
             },
             ...at,
@@ -1260,7 +1260,7 @@ let __tla = Promise.all([
                 "aria-label": J ? J(k) : w,
                 "aria-valuenow": A(h),
                 "aria-labelledby": f,
-                "aria-valuetext": fe ? fe(A(h), k) : E,
+                "aria-valuetext": fe ? fe(A(h), k) : N,
                 value: S[k],
                 ...ot
               })
@@ -1272,7 +1272,7 @@ let __tla = Promise.all([
   });
 });
 export {
-  Ht as S,
+  Vt as S,
   __tla,
   zt as a
 };

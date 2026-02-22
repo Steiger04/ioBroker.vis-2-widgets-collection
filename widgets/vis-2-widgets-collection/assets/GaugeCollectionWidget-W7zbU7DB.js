@@ -1,6 +1,6 @@
-import { j as M, C as A, t as ka, o as Ze, S as Ta, O as wa, n as Sa, q as Ca, J as Ba, w as Na, x as Va, G as Wa, y as Je, z as Ma, A as Oa, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
+import { j as M, C as A, v as ka, o as Ze, S as Ta, Q as wa, n as Sa, q as Ca, K as Ba, x as Na, y as Va, G as Wa, z as $e, A as Ma, E as Oa, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
 import { v as G, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { u as ja, __tla as __tla_2 } from "./useOidValue-DRiZW1RP.js";
+import { u as ja, __tla as __tla_2 } from "./useOidValue-Dudms15G.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let Qe;
@@ -1407,7 +1407,7 @@ let __tla = Promise.all([
       function R(a) {
         if (!(a instanceof DOMException && a.result === 2152923147)) throw a;
       }
-      function J(a, e) {
+      function $(a, e) {
         return e.replace(ya, function(t, r) {
           var o = a[r];
           return o !== void 0 ? o : t;
@@ -1452,7 +1452,7 @@ let __tla = Promise.all([
           y: a * Math.cos(e)
         };
       }
-      function $(a, e, t, r) {
+      function J(a, e, t, r) {
         var o = !(arguments.length > 4 && arguments[4] !== void 0) || arguments[4], n = arguments.length > 5 && arguments[5] !== void 0 ? arguments[5] : 0, l = a.createLinearGradient(o ? 0 : n, o ? n : 0, o ? 0 : r, o ? r : 0);
         return l.addColorStop(0, e), l.addColorStop(1, t), l;
       }
@@ -2348,7 +2348,7 @@ let __tla = Promise.all([
         formatMajorTickNumber: ye,
         radians: le,
         radialPoint: P,
-        linearGradient: $,
+        linearGradient: J,
         drawNeedleShadow: K,
         drawValueBox: ue,
         verifyError: R,
@@ -2356,7 +2356,7 @@ let __tla = Promise.all([
         drawShadow: Z,
         font: Q,
         normalizedValue: ea,
-        formatContext: J
+        formatContext: $
       }, ge = Math.PI, pe = ge / 2, He = Object.assign({}, Se, {
         ticksAngle: 270,
         startAngle: 45,
@@ -2499,7 +2499,7 @@ let __tla = Promise.all([
       });
     })(g.exports);
   })(Ke);
-  var $e = Ke.exports;
+  var Je = Ke.exports;
   const Pa = (g) => {
     const w = G.useRef(null), I = G.useRef(null);
     G.useEffect(() => {
@@ -2509,10 +2509,10 @@ let __tla = Promise.all([
         });
         switch (g.gaugeType) {
           case "radial":
-            w.current !== null && w.current.destroy(), w.current = new $e.RadialGauge(D).draw();
+            w.current !== null && w.current.destroy(), w.current = new Je.RadialGauge(D).draw();
             break;
           case "linear":
-            w.current !== null && w.current.destroy(), w.current = new $e.LinearGauge(D).draw();
+            w.current !== null && w.current.destroy(), w.current = new Je.LinearGauge(D).draw();
             break;
         }
       }
@@ -2559,7 +2559,7 @@ let __tla = Promise.all([
   }, Ea = (g, w, I) => g.find((F) => w >= F.from && (w < F.to || w === F.to && w === I)) || null;
   function Ia() {
     var _a, _b;
-    const g = G.useRef(null), [w, I] = G.useState(null), { width: E, height: F } = wa(w), D = G.useContext(Sa), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: i } = D, { data: R, states: J } = Ca("oid"), re = ja("oid"), ie = (ne == null ? void 0 : ne.type) === "number", ye = G.useMemo(() => {
+    const g = G.useRef(null), [w, I] = G.useState(null), { width: E, height: F } = wa(w), D = G.useContext(Sa), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: i } = D, { data: R, states: $ } = Ca("oid"), re = ja("oid"), ie = (ne == null ? void 0 : ne.type) === "number", ye = G.useMemo(() => {
       const K = Number(i.data.gaugeMinValue) || 0, Q = Number(i.data.gaugeMaxValue) || 100, X = [];
       if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(i.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(i.data.gaugeMajorTicks) || 1) * ee;
@@ -2571,9 +2571,9 @@ let __tla = Promise.all([
       i.data.gaugeMaxValue,
       i.data.gaugeMajorTicks
     ]), le = G.useMemo(() => {
-      const K = Number(i.data.gaugeMaxValue) || 100, Q = J.map((X, ee) => {
+      const K = Number(i.data.gaugeMaxValue) || 100, Q = $.map((X, ee) => {
         var _a2;
-        const ue = ((_a2 = J[ee + 1]) == null ? void 0 : _a2.value) || K;
+        const ue = ((_a2 = $[ee + 1]) == null ? void 0 : _a2.value) || K;
         return {
           from: Number(X.value),
           to: Number(ue),
@@ -2583,19 +2583,19 @@ let __tla = Promise.all([
           }
         };
       });
-      return J.length > 0 && Number(J[J.length - 1].value) < K && (Q[Q.length - 1].to = K), Q;
+      return $.length > 0 && Number($[$.length - 1].value) < K && (Q[Q.length - 1].to = K), Q;
     }, [
-      J,
+      $,
       i.data.gaugeMaxValue
     ]), P = G.useMemo(() => Ea(le, Number(re) || 0, Number(i.data.gaugeMaxValue) ? Number(i.data.gaugeMaxValue) : 100), [
       le,
       re,
       i.data.gaugeMaxValue
-    ]), $ = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
+    ]), J = (_a = g.current) == null ? void 0 : _a.paper0, Z = (_b = g.current) == null ? void 0 : _b.paper1;
     return G.useEffect(() => {
-      $ && Z && (P ? ($.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", $.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : ($.style.borderColor = "", $.style.background = R.frameBackgroundColor || R.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = R.backgroundColor || R.background || null || ""));
+      J && Z && (P ? (J.style.borderColor = !Y && ((P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || null) || "", J.style.background = (P == null ? void 0 : P.state.frameBackgroundColorActive) || (P == null ? void 0 : P.state.frameBackgroundColor) || (P == null ? void 0 : P.state.frameBackgroundActive) || (P == null ? void 0 : P.state.frameBackground) || null || "", Z.style.borderColor = !Y && ((P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || null) || "", Z.style.background = (P == null ? void 0 : P.state.backgroundColorActive) || (P == null ? void 0 : P.state.backgroundColor) || (P == null ? void 0 : P.state.backgroundActive) || (P == null ? void 0 : P.state.background) || null || "") : (J.style.borderColor = "", J.style.background = R.frameBackgroundColor || R.frameBackground || null || "", Z.style.borderColor = "", Z.style.background = R.backgroundColor || R.background || null || ""));
     }, [
-      $,
+      J,
       Z,
       Y,
       P,
@@ -2762,7 +2762,7 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...Je({
+              ...$e({
                 groupName: "",
                 allFields: true
               })
@@ -2784,7 +2784,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...Je({
+              ...$e({
                 groupName: "",
                 allFields: false
               })

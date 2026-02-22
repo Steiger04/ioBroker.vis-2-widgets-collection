@@ -3,7 +3,7 @@
  *
  * @module widgets/JsonTableCollectionWidget
  * @remarks
- * Displays a MUI X DataGrid populated from a JSON-valued ioBroker state object.
+ * Displays a TanStack Table v8 (headless) populated from a JSON-valued ioBroker state object.
  * Columns are auto-discovered via `analyzeJsonTable()` and can be configured
  * through the {@link JsonTableColumnEditor} in the vis-2 property editor.
  */

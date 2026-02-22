@@ -1,7 +1,7 @@
 import { v as h, a as ia, R as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { g as Za, c as fn } from "./_commonjsHelpers-Cpj98o6Y.js";
 import { v as Ff } from "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let Mu, _U, Dh, ve, fo, zn, FU, Ea, xU, A0, Zc, vs, Fm, wU, J0, yU, Ca, gd, pr, EU, Zn, cl, mA, wt, Ba, GB, ze, Ss, HA, lo, gl, ws, ai, kt, ul, Le, a0, rB, lB, da, Is, eB, Ct, ii, N0, Ru, Xh, nt, C0, Q0, DU, zp, ed, uh, PU, gr, Np, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, h0, Qt, lr, Re, vr, ln, Ls, ls, nn, _u, Yp, Ua, ys, Bl, ks, gC, cd, fU, am, bm, hC, td, Ku, oo, nd, Im, ce, rd, pA, RA, rt, OA, Be, sr, L, Ei, Qa, MA, Br, Te, xm, $U, We, lA, UU, KA, Yt, bU, VU, NU, GU;
+let Ss, GU, Dh, ve, fo, _U, zn, Ea, FU, A0, xU, Zc, Fm, vs, wU, J0, Ca, yU, gd, EU, Zn, pr, cl, mA, wt, Ba, GB, ze, HA, Mu, lo, gl, ws, Le, a0, rB, lB, ln, kt, ms, Iu, tt, MU, gs, ZA, KU, Bs, an, Xh, Ls, _u, Yp, Ua, ai, ys, Bl, ks, gC, cd, fU, am, bm, hC, td, Is, _m, C0, Q0, zp, ed, da, uh, PU, gr, Np, ce, rd, pA, RA, rt, OA, Be, sr, L, Ei, Qa, MA, Br, Te, xm, $U, We, lA, DU, KA, UU, Yt, bU, VU, NU;
 let __tla = Promise.all([
   (() => {
     try {
@@ -100,7 +100,7 @@ let __tla = Promise.all([
     return e.forEach((r) => t.searchParams.append("args[]", r)), `Minified MUI error #${A}; visit ${t} for the full message.`;
   }
   const Ve = "$$material";
-  oo = function() {
+  function oo() {
     return oo = Object.assign ? Object.assign.bind() : function(A) {
       for (var e = 1; e < arguments.length; e++) {
         var t = arguments[e];
@@ -108,7 +108,7 @@ let __tla = Promise.all([
       }
       return A;
     }, oo.apply(null, arguments);
-  };
+  }
   function Lf(A) {
     if (A.sheet) return A.sheet;
     for (var e = 0; e < document.styleSheets.length; e++) if (document.styleSheets[e].ownerNode === A) return document.styleSheets[e];
@@ -1058,11 +1058,11 @@ let __tla = Promise.all([
       r.name
     ]), null;
   });
-  ls = function() {
+  function ls() {
     for (var A = arguments.length, e = new Array(A), t = 0; t < A; t++) e[t] = arguments[t];
     return tn(e);
-  };
-  nn = function() {
+  }
+  function nn() {
     var A = ls.apply(void 0, arguments), e = "animation-" + A.name;
     return {
       name: e,
@@ -1072,7 +1072,7 @@ let __tla = Promise.all([
         return "_EMO_" + this.name + "_" + this.styles + "_EMO_";
       }
     };
-  };
+  }
   var Sg = /^((children|dangerouslySetInnerHTML|key|ref|autoFocus|defaultValue|defaultChecked|innerHTML|suppressContentEditableWarning|suppressHydrationWarning|valueLink|abbr|accept|acceptCharset|accessKey|action|allow|allowUserMedia|allowPaymentRequest|allowFullScreen|allowTransparency|alt|async|autoComplete|autoPlay|capture|cellPadding|cellSpacing|challenge|charSet|checked|cite|classID|className|cols|colSpan|content|contentEditable|contextMenu|controls|controlsList|coords|crossOrigin|data|dateTime|decoding|default|defer|dir|disabled|disablePictureInPicture|disableRemotePlayback|download|draggable|encType|enterKeyHint|fetchpriority|fetchPriority|form|formAction|formEncType|formMethod|formNoValidate|formTarget|frameBorder|headers|height|hidden|high|href|hrefLang|htmlFor|httpEquiv|id|inputMode|integrity|is|keyParams|keyType|kind|label|lang|list|loading|loop|low|marginHeight|marginWidth|max|maxLength|media|mediaGroup|method|min|minLength|multiple|muted|name|nonce|noValidate|open|optimum|pattern|placeholder|playsInline|poster|preload|profile|radioGroup|readOnly|referrerPolicy|rel|required|reversed|role|rows|rowSpan|sandbox|scope|scoped|scrolling|seamless|selected|shape|size|sizes|slot|span|spellCheck|src|srcDoc|srcLang|srcSet|start|step|style|summary|tabIndex|target|title|translate|type|useMap|value|width|wmode|wrap|about|datatype|inlist|prefix|property|resource|typeof|vocab|autoCapitalize|autoCorrect|autoSave|color|incremental|fallback|inert|itemProp|itemScope|itemType|itemID|itemRef|on|option|results|security|unselectable|accentHeight|accumulate|additive|alignmentBaseline|allowReorder|alphabetic|amplitude|arabicForm|ascent|attributeName|attributeType|autoReverse|azimuth|baseFrequency|baselineShift|baseProfile|bbox|begin|bias|by|calcMode|capHeight|clip|clipPathUnits|clipPath|clipRule|colorInterpolation|colorInterpolationFilters|colorProfile|colorRendering|contentScriptType|contentStyleType|cursor|cx|cy|d|decelerate|descent|diffuseConstant|direction|display|divisor|dominantBaseline|dur|dx|dy|edgeMode|elevation|enableBackground|end|exponent|externalResourcesRequired|fill|fillOpacity|fillRule|filter|filterRes|filterUnits|floodColor|floodOpacity|focusable|fontFamily|fontSize|fontSizeAdjust|fontStretch|fontStyle|fontVariant|fontWeight|format|from|fr|fx|fy|g1|g2|glyphName|glyphOrientationHorizontal|glyphOrientationVertical|glyphRef|gradientTransform|gradientUnits|hanging|horizAdvX|horizOriginX|ideographic|imageRendering|in|in2|intercept|k|k1|k2|k3|k4|kernelMatrix|kernelUnitLength|kerning|keyPoints|keySplines|keyTimes|lengthAdjust|letterSpacing|lightingColor|limitingConeAngle|local|markerEnd|markerMid|markerStart|markerHeight|markerUnits|markerWidth|mask|maskContentUnits|maskUnits|mathematical|mode|numOctaves|offset|opacity|operator|order|orient|orientation|origin|overflow|overlinePosition|overlineThickness|panose1|paintOrder|pathLength|patternContentUnits|patternTransform|patternUnits|pointerEvents|points|pointsAtX|pointsAtY|pointsAtZ|preserveAlpha|preserveAspectRatio|primitiveUnits|r|radius|refX|refY|renderingIntent|repeatCount|repeatDur|requiredExtensions|requiredFeatures|restart|result|rotate|rx|ry|scale|seed|shapeRendering|slope|spacing|specularConstant|specularExponent|speed|spreadMethod|startOffset|stdDeviation|stemh|stemv|stitchTiles|stopColor|stopOpacity|strikethroughPosition|strikethroughThickness|string|stroke|strokeDasharray|strokeDashoffset|strokeLinecap|strokeLinejoin|strokeMiterlimit|strokeOpacity|strokeWidth|surfaceScale|systemLanguage|tableValues|targetX|targetY|textAnchor|textDecoration|textRendering|textLength|to|transform|u1|u2|underlinePosition|underlineThickness|unicode|unicodeBidi|unicodeRange|unitsPerEm|vAlphabetic|vHanging|vIdeographic|vMathematical|values|vectorEffect|version|vertAdvY|vertOriginX|vertOriginY|viewBox|viewTarget|visibility|widths|wordSpacing|writingMode|x|xHeight|x1|x2|xChannelSelector|xlinkActuate|xlinkArcrole|xlinkHref|xlinkRole|xlinkShow|xlinkTitle|xlinkType|xmlBase|xmlns|xmlnsXlink|xmlLang|xmlSpace|y|y1|y2|yChannelSelector|z|zoomAndPan|for|class|autofocus)|(([Dd][Aa][Tt][Aa]|[Aa][Rr][Ii][Aa]|x)-.*))$/, xg = cu(function(A) {
     return Sg.test(A) || A.charCodeAt(0) === 111 && A.charCodeAt(1) === 110 && A.charCodeAt(2) < 91;
   }), Ig = xg, Hg = function(e) {
@@ -2574,7 +2574,7 @@ let __tla = Promise.all([
     let t = A.match(e);
     return t && t[0].length === 1 && (t = t.map((r) => r + r)), t ? `rgb${t.length === 4 ? "a" : ""}(${t.map((r, n) => n < 3 ? parseInt(r, 16) : Math.round(parseInt(r, 16) / 255 * 1e3) / 1e3).join(", ")})` : "";
   }
-  Ct = function(A) {
+  function Ct(A) {
     if (A.type) return A;
     if (A.charAt(0) === "#") return Ct(jp(A));
     const e = A.indexOf("("), t = A.substring(0, e);
@@ -2600,7 +2600,7 @@ let __tla = Promise.all([
       values: r,
       colorSpace: n
     };
-  };
+  }
   const Xp = (A) => {
     const e = Ct(A);
     return e.values.slice(0, 3).map((t, r) => e.type.includes("hsl") && r !== 0 ? `${t}%` : t).join(" ");
@@ -2611,11 +2611,11 @@ let __tla = Promise.all([
       return A;
     }
   };
-  ii = function(A) {
+  function ii(A) {
     const { type: e, colorSpace: t } = A;
     let { values: r } = A;
     return e.includes("rgb") ? r = r.map((n, o) => o < 3 ? parseInt(n, 10) : n) : e.includes("hsl") && (r[1] = `${r[1]}%`, r[2] = `${r[2]}%`), e.includes("color") ? r = `${t} ${r.join(" ")}` : r = `${r.join(", ")}`, `${e}(${r})`;
-  };
+  }
   function Ou(A) {
     A = Ct(A);
     const { values: e } = A, t = e[0], r = e[1] / 100, n = e[2] / 100, o = r * Math.min(n, 1 - n), i = (s, c = (s + t / 30) % 12) => n - o * Math.max(Math.min(c - 3, 9 - c, 1), -1);
@@ -2690,7 +2690,7 @@ let __tla = Promise.all([
     }, () => {
     });
   };
-  Ru = function(A, e = 166) {
+  function Ru(A, e = 166) {
     let t;
     function r(...n) {
       const o = () => {
@@ -2701,7 +2701,7 @@ let __tla = Promise.all([
     return r.clear = () => {
       clearTimeout(t);
     }, r;
-  };
+  }
   Ei = function(A, e) {
     var _a2, _b2, _c2;
     return h.isValidElement(A) && e.indexOf(A.type.muiName ?? ((_c2 = (_b2 = (_a2 = A.type) == null ? void 0 : _a2._payload) == null ? void 0 : _b2.value) == null ? void 0 : _c2.muiName)) !== -1;
@@ -2709,12 +2709,12 @@ let __tla = Promise.all([
   Le = function(A) {
     return A && A.ownerDocument || document;
   };
-  nt = function(A) {
+  function nt(A) {
     return Le(A).defaultView || window;
-  };
-  ul = function(A, e) {
+  }
+  function ul(A, e) {
     typeof A == "function" ? A(e) : A && (A.current = e);
-  };
+  }
   let dl = 0;
   function Zp(A) {
     const [e, t] = h.useState(A), r = A || e;
@@ -2772,14 +2772,14 @@ let __tla = Promise.all([
     }, A);
   };
   const pl = {};
-  Ku = function(A, e) {
+  function Ku(A, e) {
     const t = h.useRef(pl);
     return t.current === pl && (t.current = A(e)), t;
-  };
+  }
   const AB = [];
-  eB = function(A) {
+  function eB(A) {
     h.useEffect(A, AB);
-  };
+  }
   ys = class {
     static create() {
       return new ys();
@@ -4526,7 +4526,7 @@ export default theme;`;
       }
     };
   };
-  nd = function(A, e) {
+  function nd(A, e) {
     if (A == null) return {};
     var t = {};
     for (var r in A) if ({}.hasOwnProperty.call(A, r)) {
@@ -4534,7 +4534,7 @@ export default theme;`;
       t[r] = A[r];
     }
     return t;
-  };
+  }
   function ha(A, e) {
     return ha = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t, r) {
       return t.__proto__ = r, t;
@@ -6231,7 +6231,7 @@ export default theme;`;
   function d0(A) {
     return OA("MuiInputBase", A);
   }
-  lr = HA("MuiInputBase", [
+  const lr = HA("MuiInputBase", [
     "root",
     "formControl",
     "focused",
@@ -6630,7 +6630,7 @@ export default theme;`;
   function g0(A) {
     return OA("MuiInput", A);
   }
-  vr = {
+  const vr = {
     ...lr,
     ...HA("MuiInput", [
       "root",
@@ -6641,7 +6641,7 @@ export default theme;`;
   function p0(A) {
     return OA("MuiOutlinedInput", A);
   }
-  Re = {
+  const Re = {
     ...lr,
     ...HA("MuiOutlinedInput", [
       "root",
@@ -6652,7 +6652,7 @@ export default theme;`;
   function B0(A) {
     return OA("MuiFilledInput", A);
   }
-  let m0;
+  let Qt, h0, m0;
   Qt = {
     ...lr,
     ...HA("MuiFilledInput", [
@@ -7102,7 +7102,7 @@ export default theme;`;
   function _0() {
     return true;
   }
-  N0 = function(A) {
+  function N0(A) {
     const { children: e, disableAutoFocus: t = false, disableEnforceFocus: r = false, disableRestoreFocus: n = false, getTabbable: o = P0, isEnabled: i = _0, open: a } = A, l = h.useRef(false), s = h.useRef(null), c = h.useRef(null), d = h.useRef(null), u = h.useRef(null), f = h.useRef(false), g = h.useRef(null), B = Be(ln(e), g), Q = h.useRef(null);
     h.useEffect(() => {
       !a || !g.current || (f.current = !t);
@@ -7181,7 +7181,7 @@ export default theme;`;
         })
       ]
     });
-  };
+  }
   function G0(A) {
     return typeof A == "function" ? A() : A;
   }
@@ -8860,7 +8860,7 @@ export default theme;`;
     }
     return false;
   }
-  Im = h.forwardRef(function(e, t) {
+  const Im = h.forwardRef(function(e, t) {
     const { actions: r, autoFocus: n = false, autoFocusItem: o = false, children: i, className: a, disabledItemsFocusable: l = false, disableListWrap: s = false, onKeyDown: c, variant: d = "selectedMenu", ...u } = e, f = h.useRef(null), g = h.useRef({
       keys: [],
       repeating: true,
@@ -9190,13 +9190,16 @@ export default theme;`;
     "paper",
     "list"
   ]);
-  const Om = {
+  let Om, Rm, Km, Mm, Dm, Pm;
+  Om = {
     vertical: "top",
     horizontal: "right"
-  }, Rm = {
+  };
+  Rm = {
     vertical: "top",
     horizontal: "left"
-  }, Km = (A) => {
+  };
+  Km = (A) => {
     const { classes: e } = A;
     return RA({
       root: [
@@ -9209,25 +9212,29 @@ export default theme;`;
         "list"
       ]
     }, km, e);
-  }, Mm = lA(cd, {
+  };
+  Mm = lA(cd, {
     shouldForwardProp: (A) => We(A) || A === "classes",
     name: "MuiMenu",
     slot: "Root",
     overridesResolver: (A, e) => e.root
-  })({}), Dm = lA(ld, {
+  })({});
+  Dm = lA(ld, {
     name: "MuiMenu",
     slot: "Paper",
     overridesResolver: (A, e) => e.paper
   })({
     maxHeight: "calc(100% - 96px)",
     WebkitOverflowScrolling: "touch"
-  }), Pm = lA(Im, {
+  });
+  Pm = lA(Im, {
     name: "MuiMenu",
     slot: "List",
     overridesResolver: (A, e) => e.list
   })({
     outline: 0
-  }), _m = h.forwardRef(function(e, t) {
+  });
+  _m = h.forwardRef(function(e, t) {
     const r = KA({
       props: e,
       name: "MuiMenu"
@@ -20927,99 +20934,82 @@ export default theme;`;
   };
 });
 export {
-  Mu as $,
-  _U as A,
+  Ss as $,
+  GU as A,
   Dh as B,
   ve as C,
   fo as D,
-  zn as E,
-  FU as F,
+  _U as E,
+  zn as F,
   Ea as G,
-  xU as H,
+  FU as H,
   A0 as I,
-  Zc as J,
-  vs as K,
+  xU as J,
+  Zc as K,
   Fm as L,
-  wU as M,
-  J0 as N,
-  yU as O,
+  vs as M,
+  wU as N,
+  J0 as O,
   Ca as P,
-  gd as Q,
-  pr as R,
+  yU as Q,
+  gd as R,
   EU as S,
   Zn as T,
-  cl as U,
-  mA as V,
-  wt as W,
-  Ba as X,
-  GB as Y,
-  ze as Z,
-  Ss as _,
+  pr as U,
+  cl as V,
+  mA as W,
+  wt as X,
+  Ba as Y,
+  GB as Z,
+  ze as _,
   __tla,
   HA as a,
-  lo as a0,
-  gl as a1,
-  ws as a2,
-  ai as a3,
-  kt as a4,
-  ul as a5,
-  Le as a6,
-  a0 as a7,
-  rB as a8,
-  lB as a9,
-  da as aA,
-  Is as aB,
-  eB as aC,
-  Ct as aD,
-  ii as aE,
-  N0 as aF,
-  Ru as aG,
-  Xh as aH,
-  nt as aI,
-  C0 as aJ,
-  Q0 as aK,
-  DU as aL,
-  zp as aM,
-  ed as aN,
-  uh as aO,
-  PU as aP,
-  gr as aQ,
-  Np as aR,
-  ms as aS,
-  Iu as aT,
-  tt as aU,
-  MU as aV,
-  gs as aW,
-  ZA as aX,
-  KU as aY,
-  Bs as aZ,
-  an as a_,
-  h0 as aa,
-  Qt as ab,
-  lr as ac,
-  Re as ad,
-  vr as ae,
-  ln as af,
-  Ls as ag,
-  ls as ah,
-  nn as ai,
-  _u as aj,
-  Yp as ak,
-  Ua as al,
-  ys as am,
-  Bl as an,
-  ks as ao,
-  gC as ap,
-  cd as aq,
-  fU as ar,
-  am as as,
-  bm as at,
-  hC as au,
-  td as av,
-  Ku as aw,
-  oo as ax,
-  nd as ay,
-  Im as az,
+  Mu as a0,
+  lo as a1,
+  gl as a2,
+  ws as a3,
+  Le as a4,
+  a0 as a5,
+  rB as a6,
+  lB as a7,
+  ln as a8,
+  kt as a9,
+  ms as aA,
+  Iu as aB,
+  tt as aC,
+  MU as aD,
+  gs as aE,
+  ZA as aF,
+  KU as aG,
+  Bs as aH,
+  an as aI,
+  Xh as aJ,
+  Ls as aa,
+  _u as ab,
+  Yp as ac,
+  Ua as ad,
+  ai as ae,
+  ys as af,
+  Bl as ag,
+  ks as ah,
+  gC as ai,
+  cd as aj,
+  fU as ak,
+  am as al,
+  bm as am,
+  hC as an,
+  td as ao,
+  Is as ap,
+  _m as aq,
+  C0 as ar,
+  Q0 as as,
+  zp as at,
+  ed as au,
+  da as av,
+  uh as aw,
+  PU as ax,
+  gr as ay,
+  Np as az,
   ce as b,
   rd as c,
   pA as d,
@@ -21038,11 +21028,11 @@ export {
   $U as q,
   We as r,
   lA as s,
-  UU as t,
+  DU as t,
   KA as u,
-  Yt as v,
-  bU as w,
-  VU as x,
-  NU as y,
-  GU as z
+  UU as v,
+  Yt as w,
+  bU as x,
+  VU as y,
+  NU as z
 };

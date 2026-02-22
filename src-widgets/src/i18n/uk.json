@@ -452,5 +452,12 @@
     "json_table_nulls": "Нульові значення",
     "json_table_distinct": "Унікальні значення",
     "json_table_range": "Діапазон",
-    "json_table_reset_all": "Скинути всі стовпці до значень за замовчуванням"
+    "json_table_reset_all": "\u0421\u043a\u0438\u043d\u0443\u0442\u0438 \u0432\u0441\u0456 \u0441\u0442\u043e\u0432\u043f\u0446\u0456 \u0434\u043e \u0437\u043d\u0430\u0447\u0435\u043d\u044c \u0437\u0430 \u0437\u0430\u043c\u043e\u0432\u0447\u0443\u0432\u0430\u043d\u043d\u044f\u043c",
+    "json_table_sort_asc": "\u0417\u0430 \u0437\u0440\u043e\u0441\u0442\u0430\u043d\u043d\u044f\u043c",
+    "json_table_sort_desc": "\u0417\u0430 \u0441\u043f\u0430\u0434\u0430\u043d\u043d\u044f\u043c",
+    "json_table_sort_clear": "\u0421\u043a\u0438\u043d\u0443\u0442\u0438 \u0441\u043e\u0440\u0442\u0443\u0432\u0430\u043d\u043d\u044f",
+    "json_table_rows_per_page": "\u0420\u044f\u0434\u043a\u0456\u0432 \u043d\u0430 \u0441\u0442\u043e\u0440\u0456\u043d\u0446\u0456:",
+    "json_table_search_placeholder": "\u041f\u043e\u0448\u0443\u043a\u2026",
+    "json_table_filter_placeholder": "\u0424\u0456\u043b\u044c\u0442\u0440...",
+    "json_table_filter_clear": "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u0438 \u0444\u0456\u043b\u044c\u0442\u0440"
 }

@@ -452,5 +452,12 @@
     "json_table_nulls": "Wartości null",
     "json_table_distinct": "Różne wartości",
     "json_table_range": "Zakres",
-    "json_table_reset_all": "Zresetuj wszystkie kolumny do wartości domyślnych"
+    "json_table_reset_all": "Zresetuj wszystkie kolumny do warto\u015bci domy\u015blnych",
+    "json_table_sort_asc": "Sortuj rosn\u0105co",
+    "json_table_sort_desc": "Sortuj malej\u0105co",
+    "json_table_sort_clear": "Wyczy\u015b\u0107 sortowanie",
+    "json_table_rows_per_page": "Wierszy na stronie:",
+    "json_table_search_placeholder": "Szukaj\u2026",
+    "json_table_filter_placeholder": "Filtruj...",
+    "json_table_filter_clear": "Wyczy\u015b\u0107 filtr"
 }

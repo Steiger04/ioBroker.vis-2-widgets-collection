@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as j, u as M, b as k, s as u, d as _, j as p, V as i, e as O, m as d, i as m, W as D, K as I, a2 as N, __tla as __tla_1 } from "./useData-CFNDeVWW.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-DIywY-d5.js";
-let G;
+import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, W as i, e as O, m as d, i as m, X as D, M as I, a3 as N, __tla as __tla_1 } from "./useData-B9ZrPGFV.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-Bo6-_dj-.js";
+let H;
 let __tla = Promise.all([
   (() => {
     try {
@@ -22,10 +22,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  function A(t) {
-    return j("MuiSwitch", t);
+  function X(t) {
+    return M("MuiSwitch", t);
   }
-  let o, E, F, V, W, X;
+  let o, A, E, F, W, L;
   o = P("MuiSwitch", [
     "root",
     "edgeStart",
@@ -41,7 +41,7 @@ let __tla = Promise.all([
     "thumb",
     "track"
   ]);
-  E = (t) => {
+  A = (t) => {
     const { classes: a, edge: s, size: l, color: h, checked: w, disabled: g } = t, v = {
       root: [
         "root",
@@ -63,13 +63,13 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = O(v, A, a);
+    }, b = O(v, X, a);
     return {
       ...a,
       ...b
     };
   };
-  F = u("span", {
+  E = u("span", {
     name: "MuiSwitch",
     slot: "Root",
     overridesResolver: (t, a) => {
@@ -133,7 +133,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  V = u(U, {
+  F = u(U, {
     name: "MuiSwitch",
     slot: "SwitchBase",
     overridesResolver: (t, a) => {
@@ -226,7 +226,7 @@ let __tla = Promise.all([
     backgroundColor: t.vars ? t.vars.palette.common.onBackground : `${t.palette.mode === "light" ? t.palette.common.black : t.palette.common.white}`,
     opacity: t.vars ? t.vars.opacity.switchTrack : `${t.palette.mode === "light" ? 0.38 : 0.3}`
   })));
-  X = u("span", {
+  L = u("span", {
     name: "MuiSwitch",
     slot: "Thumb",
     overridesResolver: (t, a) => a.thumb
@@ -237,8 +237,8 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  G = T.forwardRef(function(a, s) {
-    const l = M({
+  H = T.forwardRef(function(a, s) {
+    const l = j({
       props: a,
       name: "MuiSwitch"
     }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: b, slots: c = {}, slotProps: e = {}, ...y } = l, r = {
@@ -246,12 +246,12 @@ let __tla = Promise.all([
       color: w,
       edge: g,
       size: v
-    }, n = E(r), S = {
+    }, n = A(r), S = {
       slots: c,
       slotProps: e
     }, [f, x] = k("root", {
       className: _(n.root, h),
-      elementType: F,
+      elementType: E,
       externalForwardedProps: S,
       ownerState: r,
       additionalProps: {
@@ -259,7 +259,7 @@ let __tla = Promise.all([
       }
     }), [C, B] = k("thumb", {
       className: n.thumb,
-      elementType: X,
+      elementType: L,
       externalForwardedProps: S,
       ownerState: r
     }), $ = p.jsx(C, {
@@ -273,7 +273,7 @@ let __tla = Promise.all([
     return p.jsxs(f, {
       ...x,
       children: [
-        p.jsx(V, {
+        p.jsx(F, {
           type: "checkbox",
           icon: $,
           checkedIcon: $,
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  G as S,
+  H as S,
   __tla
 };

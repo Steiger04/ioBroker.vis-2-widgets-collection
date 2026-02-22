@@ -452,5 +452,12 @@
     "json_table_nulls": "空值",
     "json_table_distinct": "不同值",
     "json_table_range": "范围",
-    "json_table_reset_all": "将所有列重置为默认值"
+    "json_table_reset_all": "\u5c06\u6240\u6709\u5217\u91cd\u7f6e\u4e3a\u9ed8\u8ba4\u503c",
+    "json_table_sort_asc": "\u5347\u5e8f\u6392\u5e8f",
+    "json_table_sort_desc": "\u964d\u5e8f\u6392\u5e8f",
+    "json_table_sort_clear": "\u6e05\u9664\u6392\u5e8f",
+    "json_table_rows_per_page": "\u6bcf\u9875\u884c\u6570\uff1a",
+    "json_table_search_placeholder": "\u641c\u7d22\u2026",
+    "json_table_filter_placeholder": "\u7b5b\u9009...",
+    "json_table_filter_clear": "\u6e05\u9664\u7b5b\u9009"
 }

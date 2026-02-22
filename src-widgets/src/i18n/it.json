@@ -452,5 +452,12 @@
     "json_table_nulls": "Valori nulli",
     "json_table_distinct": "Valori distinti",
     "json_table_range": "Intervallo",
-    "json_table_reset_all": "Ripristina tutte le colonne ai valori predefiniti"
+    "json_table_reset_all": "Ripristina tutte le colonne ai valori predefiniti",
+    "json_table_sort_asc": "Ordina crescente",
+    "json_table_sort_desc": "Ordina decrescente",
+    "json_table_sort_clear": "Cancella ordinamento",
+    "json_table_rows_per_page": "Righe per pagina:",
+    "json_table_search_placeholder": "Cerca\u2026",
+    "json_table_filter_placeholder": "Filtrare...",
+    "json_table_filter_clear": "Cancella filtro"
 }

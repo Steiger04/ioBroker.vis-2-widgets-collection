@@ -4,7 +4,7 @@
  *
  * @remarks
  * The widget reads a JSON string from an ioBroker state, analyzes its structure
- * using `useJsonTableAnalysis`, and displays it in a MUI X DataGrid (MIT).
+ * using `useJsonTableAnalysis`, and displays it in a TanStack Table v8 (headless).
  * Column configuration is stored as a serialized JSON string in `columnConfig`.
  */
 export interface JsonTableFieldsRxData {

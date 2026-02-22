@@ -452,5 +452,12 @@
     "json_table_nulls": "Null-waarden",
     "json_table_distinct": "Unieke waarden",
     "json_table_range": "Bereik",
-    "json_table_reset_all": "Alle kolommen terugzetten naar standaardwaarden"
+    "json_table_reset_all": "Alle kolommen terugzetten naar standaardwaarden",
+    "json_table_sort_asc": "Oplopend sorteren",
+    "json_table_sort_desc": "Aflopend sorteren",
+    "json_table_sort_clear": "Sortering wissen",
+    "json_table_rows_per_page": "Rijen per pagina:",
+    "json_table_search_placeholder": "Zoeken\u2026",
+    "json_table_filter_placeholder": "Filteren...",
+    "json_table_filter_clear": "Filter wissen"
 }

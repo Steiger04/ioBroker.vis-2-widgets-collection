@@ -1,6 +1,6 @@
-import { aR as R, aA as V, aS as _, aT as b, j as D, d as B, aU as v, aV as u, aW as F, aX as M, aY as U, e as A, g as E, aZ as G, a_ as h, s as N, u as O, __tla as __tla_0 } from "./useData-CFNDeVWW.js";
+import { az as R, av as V, aA as _, aB as D, j as b, d as B, aC as g, aD as u, aE as F, aF as M, aG as E, e as G, g as A, aH as N, aI as h, s as O, u as U, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-let Q, W, $;
+let Z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -15,29 +15,29 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  $ = R();
-  W = function(e) {
+  const $ = R();
+  function z(e) {
     const { theme: s, name: o, props: t } = e;
     return !s || !s.components || !s.components[o] || !s.components[o].defaultProps ? t : V(s.components[o].defaultProps, t);
-  };
-  function L({ props: e, name: s, defaultTheme: o, themeId: t }) {
+  }
+  function H({ props: e, name: s, defaultTheme: o, themeId: t }) {
     let n = _(o);
-    return t && (n = n[t] || n), W({
+    return t && (n = n[t] || n), z({
       theme: n,
       name: s,
       props: e
     });
   }
-  const X = G(), Y = $("div", {
+  const I = N(), L = $("div", {
     name: "MuiStack",
     slot: "Root",
     overridesResolver: (e, s) => s.root
   });
-  function Z(e) {
-    return L({
+  function W(e) {
+    return H({
       props: e,
       name: "MuiStack",
-      defaultTheme: X
+      defaultTheme: I
     });
   }
   function q(e, s) {
@@ -46,16 +46,16 @@ let __tla = Promise.all([
       key: `separator-${a}`
     })), t), []);
   }
-  const z = (e) => ({
+  const J = (e) => ({
     row: "Left",
     "row-reverse": "Right",
     column: "Top",
     "column-reverse": "Bottom"
-  })[e], H = ({ ownerState: e, theme: s }) => {
+  })[e], K = ({ ownerState: e, theme: s }) => {
     let o = {
       display: "flex",
       flexDirection: "column",
-      ...v({
+      ...g({
         theme: s
       }, u({
         values: e.direction,
@@ -77,7 +77,7 @@ let __tla = Promise.all([
           const l = c > 0 ? a[i[c - 1]] : "column";
           a[r] = l;
         }
-      }), o = M(o, v({
+      }), o = M(o, g({
         theme: s
       }, m, (r, c) => e.useFlexGap ? {
         gap: h(t, r)
@@ -86,49 +86,47 @@ let __tla = Promise.all([
           margin: 0
         },
         "& > :not(style) ~ :not(style)": {
-          [`margin${z(c ? a[c] : e.direction)}`]: h(t, r)
+          [`margin${J(c ? a[c] : e.direction)}`]: h(t, r)
         }
       }));
     }
-    return o = U(s.breakpoints, o), o;
+    return o = E(s.breakpoints, o), o;
   };
-  function I(e = {}) {
-    const { createStyledComponent: s = Y, useThemeProps: o = Z, componentName: t = "MuiStack" } = e, n = () => A({
+  function Q(e = {}) {
+    const { createStyledComponent: s = L, useThemeProps: o = W, componentName: t = "MuiStack" } = e, n = () => G({
       root: [
         "root"
       ]
-    }, (r) => E(t, r), {}), a = s(H);
+    }, (r) => A(t, r), {}), a = s(K);
     return p.forwardRef(function(r, c) {
-      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, T = {
+      const i = o(r), f = D(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: v, className: S, useFlexGap: C = false, ...x } = f, j = {
         direction: k,
         spacing: P,
-        useFlexGap: x
-      }, j = n();
-      return D.jsx(a, {
+        useFlexGap: C
+      }, T = n();
+      return b.jsx(a, {
         as: l,
-        ownerState: T,
+        ownerState: j,
         ref: c,
-        className: B(j.root, S),
-        ...C,
-        children: y ? q(g, y) : g
+        className: B(T.root, S),
+        ...x,
+        children: y ? q(v, y) : v
       });
     });
   }
-  Q = I({
-    createStyledComponent: N("div", {
+  Z = Q({
+    createStyledComponent: O("div", {
       name: "MuiStack",
       slot: "Root",
       overridesResolver: (e, s) => s.root
     }),
-    useThemeProps: (e) => O({
+    useThemeProps: (e) => U({
       props: e,
       name: "MuiStack"
     })
   });
 });
 export {
-  Q as S,
-  __tla,
-  W as g,
-  $ as s
+  Z as S,
+  __tla
 };
