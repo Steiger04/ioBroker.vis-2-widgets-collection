@@ -40,6 +40,7 @@ import {
     getPaginationRowModel,
     flexRender,
     type ColumnDef,
+    type ColumnSizingState,
     type SortingState,
     type ColumnFiltersState,
     type PaginationState,
@@ -138,6 +139,7 @@ const JsonTableCollection: FC = () => {
             data: { oidObject },
         },
         widget,
+        id: widgetId,
     } = context;
 
     const { data } = useData('oid');
@@ -278,6 +280,8 @@ const JsonTableCollection: FC = () => {
             widget.data.tableRowSelection === true
                 ? {
                       id: '__select__',
+                      size: 48,
+                      enableResizing: false,
                       enableSorting: false,
                       enableColumnFilter: false,
                       header: ({ table }) => (
@@ -320,6 +324,7 @@ const JsonTableCollection: FC = () => {
 
                     const col: ColumnDef<FlatRow> = {
                         id: cfg.path,
+                        size: cfg.width ?? 150,
                         accessorFn: (row: FlatRow) => row[cfg.path],
                         header: cfg.headerName || cfg.path,
                         enableSorting: cfg.sortable ?? widget.data.tableSorting !== false,
@@ -364,6 +369,7 @@ const JsonTableCollection: FC = () => {
 
                 const colDef: ColumnDef<FlatRow> = {
                     id: col.path,
+                    size: 150,
                     accessorFn: (row: FlatRow) => row[col.path],
                     header: col.path.split('.').pop() || col.path,
                     enableSorting: widget.data.tableSorting !== false,
@@ -411,6 +417,37 @@ const JsonTableCollection: FC = () => {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+    const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(() => {
+        if (widget.data.tableAutoSize !== false) {
+            return {};
+        }
+        const storageKey = `jtc_col_sizes_${widgetId}`;
+        try {
+            const stored = localStorage.getItem(storageKey);
+            if (stored) {
+                return JSON.parse(stored) as ColumnSizingState;
+            }
+        } catch {
+            // ignore corrupt data
+        }
+        const init: ColumnSizingState = {};
+        columnConfig.forEach(cfg => {
+            if (cfg.width) {
+                init[cfg.path] = cfg.width;
+            }
+        });
+        if (widget.data.tableRowSelection === true) {
+            init.__select__ = 48;
+        }
+        return init;
+    });
+
+    useEffect(() => {
+        if (widget.data.tableAutoSize !== false) {
+            return;
+        }
+        localStorage.setItem(`jtc_col_sizes_${widgetId}`, JSON.stringify(columnSizing));
+    }, [columnSizing, widgetId, widget.data.tableAutoSize]);
 
     const configuredPageSize = useMemo(() => Number(widget.data.tablePageSize) || 25, [widget.data.tablePageSize]);
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: configuredPageSize });
@@ -445,18 +482,23 @@ const JsonTableCollection: FC = () => {
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: false,
         globalFilterFn: 'includesString',
+        columnResizeMode: 'onChange',
+        enableColumnResizing: widget.data.tableAutoSize === false,
+        defaultColumn: { minSize: 40, maxSize: 2000 },
         state: {
             sorting,
             columnFilters,
             globalFilter,
             pagination: effectivePagination,
             rowSelection,
+            columnSizing,
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: widget.data.tablePagination !== false ? setPagination : undefined,
         onRowSelectionChange: setRowSelection,
+        onColumnSizingChange: setColumnSizing,
         enableRowSelection: widget.data.tableRowSelection === true,
         enableSorting: widget.data.tableSorting !== false,
         enableColumnFilters: widget.data.tableFiltering === true,
@@ -628,13 +670,17 @@ const JsonTableCollection: FC = () => {
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <TableRow
                                         key={headerGroup.id}
-                                        sx={{ height: effectiveHeaderHeight }}
+                                        sx={{
+                                            height: effectiveHeaderHeight,
+                                            '&:hover .resize-handle': { opacity: 1 },
+                                        }}
                                     >
                                         {headerGroup.headers.map(header => {
                                             const canSort = header.column.getCanSort();
                                             const isSorted = header.column.getIsSorted();
                                             const meta = header.column.columnDef.meta;
                                             const isSelectCol = header.column.id === '__select__';
+                                            const isFixed = widget.data.tableAutoSize === false;
 
                                             return (
                                                 <TableCell
@@ -643,8 +689,11 @@ const JsonTableCollection: FC = () => {
                                                     padding={isSelectCol ? 'checkbox' : 'normal'}
                                                     sx={{
                                                         ...headerCellSx,
-                                                        ...(meta?.width && { width: meta.width, minWidth: meta.width }),
+                                                        position: 'relative',
+                                                        ...(isFixed && { width: header.column.getSize() }),
+                                                        minWidth: isSelectCol ? 48 : 40,
                                                         userSelect: 'none',
+                                                        overflow: 'hidden',
                                                     }}
                                                 >
                                                     {isSelectCol ? (
@@ -712,6 +761,34 @@ const JsonTableCollection: FC = () => {
                                                                 </Tooltip>
                                                             )}
                                                         </Box>
+                                                    )}
+                                                    {isFixed && header.column.getCanResize() && (
+                                                        <Box
+                                                            className="resize-handle"
+                                                            onMouseDown={header.getResizeHandler()}
+                                                            onTouchStart={header.getResizeHandler()}
+                                                            onClick={e => e.stopPropagation()}
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                right: 0,
+                                                                top: 0,
+                                                                height: '100%',
+                                                                width: '4px',
+                                                                cursor: 'col-resize',
+                                                                userSelect: 'none',
+                                                                touchAction: 'none',
+                                                                zIndex: 1,
+                                                                opacity: header.column.getIsResizing() ? 1 : 0,
+                                                                bgcolor: header.column.getIsResizing()
+                                                                    ? 'primary.main'
+                                                                    : 'divider',
+                                                                transition: 'opacity 0.15s',
+                                                                '&:hover': {
+                                                                    opacity: 1,
+                                                                    bgcolor: 'primary.light',
+                                                                },
+                                                            }}
+                                                        />
                                                     )}
                                                 </TableCell>
                                             );
