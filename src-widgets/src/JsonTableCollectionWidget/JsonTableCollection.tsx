@@ -585,6 +585,8 @@ const JsonTableCollection: FC = () => {
         return {
             height: effectiveHeaderHeight,
             whiteSpace: 'nowrap' as const,
+            // Fallback background for sticky header to prevent content showing through
+            ...(!isGradientBg && !headerBgColor && { backgroundColor: 'background.paper' }),
             ...(isGradientBg && { background: isGradientBg }),
             ...(!isGradientBg && headerBgColor && { backgroundColor: headerBgColor }),
             ...(headerTextColor && { color: headerTextColor }),
@@ -724,34 +726,50 @@ const JsonTableCollection: FC = () => {
                                                     padding={isSelectCol ? 'checkbox' : 'normal'}
                                                     sx={{
                                                         ...headerCellSx,
-                                                        position: 'relative',
                                                         ...(isFixed && { width: header.column.getSize() }),
                                                         minWidth: isSelectCol ? 48 : 40,
                                                         userSelect: 'none',
                                                         overflow: 'hidden',
                                                     }}
                                                 >
-                                                    {isSelectCol ? (
-                                                        flexRender(header.column.columnDef.header, header.getContext())
-                                                    ) : (
-                                                        <Box
-                                                            sx={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent:
-                                                                    meta?.align === 'right'
-                                                                        ? 'flex-end'
-                                                                        : meta?.align === 'center'
-                                                                          ? 'center'
-                                                                          : 'space-between',
-                                                            }}
-                                                        >
-                                                            {canSort ? (
-                                                                <TableSortLabel
-                                                                    active={isSorted !== false}
-                                                                    direction={isSorted === 'desc' ? 'desc' : 'asc'}
-                                                                    onClick={header.column.getToggleSortingHandler()}
-                                                                >
+                                                    <Box sx={{ position: 'relative', height: '100%' }}>
+                                                        {isSelectCol ? (
+                                                            flexRender(
+                                                                header.column.columnDef.header,
+                                                                header.getContext(),
+                                                            )
+                                                        ) : (
+                                                            <Box
+                                                                sx={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent:
+                                                                        meta?.align === 'right'
+                                                                            ? 'flex-end'
+                                                                            : meta?.align === 'center'
+                                                                              ? 'center'
+                                                                              : 'space-between',
+                                                                }}
+                                                            >
+                                                                {canSort ? (
+                                                                    <TableSortLabel
+                                                                        active={isSorted !== false}
+                                                                        direction={isSorted === 'desc' ? 'desc' : 'asc'}
+                                                                        onClick={header.column.getToggleSortingHandler()}
+                                                                    >
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            component="span"
+                                                                            fontWeight="medium"
+                                                                            noWrap
+                                                                        >
+                                                                            {flexRender(
+                                                                                header.column.columnDef.header,
+                                                                                header.getContext(),
+                                                                            )}
+                                                                        </Typography>
+                                                                    </TableSortLabel>
+                                                                ) : (
                                                                     <Typography
                                                                         variant="body2"
                                                                         component="span"
@@ -763,68 +781,60 @@ const JsonTableCollection: FC = () => {
                                                                             header.getContext(),
                                                                         )}
                                                                     </Typography>
-                                                                </TableSortLabel>
-                                                            ) : (
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    component="span"
-                                                                    fontWeight="medium"
-                                                                    noWrap
-                                                                >
-                                                                    {flexRender(
-                                                                        header.column.columnDef.header,
-                                                                        header.getContext(),
-                                                                    )}
-                                                                </Typography>
-                                                            )}
-                                                            {widget.data.tableColumnMenu !== false && (
-                                                                <Tooltip title={Generic.t('json_table_column_menu')}>
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        aria-label={Generic.t('json_table_column_menu')}
-                                                                        onClick={e => {
-                                                                            e.stopPropagation();
-                                                                            openColumnMenu(
-                                                                                header.column,
-                                                                                e.currentTarget,
-                                                                            );
-                                                                        }}
-                                                                        sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                )}
+                                                                {widget.data.tableColumnMenu !== false && (
+                                                                    <Tooltip
+                                                                        title={Generic.t('json_table_column_menu')}
                                                                     >
-                                                                        <MoreVertIcon fontSize="inherit" />
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            )}
-                                                        </Box>
-                                                    )}
-                                                    {isFixed && header.column.getCanResize() && (
-                                                        <Box
-                                                            className="resize-handle"
-                                                            onMouseDown={header.getResizeHandler()}
-                                                            onTouchStart={header.getResizeHandler()}
-                                                            onClick={e => e.stopPropagation()}
-                                                            sx={{
-                                                                position: 'absolute',
-                                                                right: 0,
-                                                                top: 0,
-                                                                height: '100%',
-                                                                width: '4px',
-                                                                cursor: 'col-resize',
-                                                                userSelect: 'none',
-                                                                touchAction: 'none',
-                                                                zIndex: 1,
-                                                                opacity: header.column.getIsResizing() ? 1 : 0,
-                                                                bgcolor: header.column.getIsResizing()
-                                                                    ? 'primary.main'
-                                                                    : 'divider',
-                                                                transition: 'opacity 0.15s',
-                                                                '&:hover': {
-                                                                    opacity: 1,
-                                                                    bgcolor: 'primary.light',
-                                                                },
-                                                            }}
-                                                        />
-                                                    )}
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            aria-label={Generic.t(
+                                                                                'json_table_column_menu',
+                                                                            )}
+                                                                            onClick={e => {
+                                                                                e.stopPropagation();
+                                                                                openColumnMenu(
+                                                                                    header.column,
+                                                                                    e.currentTarget,
+                                                                                );
+                                                                            }}
+                                                                            sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                        >
+                                                                            <MoreVertIcon fontSize="inherit" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </Box>
+                                                        )}
+                                                        {isFixed && header.column.getCanResize() && (
+                                                            <Box
+                                                                className="resize-handle"
+                                                                onMouseDown={header.getResizeHandler()}
+                                                                onTouchStart={header.getResizeHandler()}
+                                                                onClick={e => e.stopPropagation()}
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    right: 0,
+                                                                    top: 0,
+                                                                    height: '100%',
+                                                                    width: '4px',
+                                                                    cursor: 'col-resize',
+                                                                    userSelect: 'none',
+                                                                    touchAction: 'none',
+                                                                    zIndex: 1,
+                                                                    opacity: header.column.getIsResizing() ? 1 : 0,
+                                                                    bgcolor: header.column.getIsResizing()
+                                                                        ? 'primary.main'
+                                                                        : 'divider',
+                                                                    transition: 'opacity 0.15s',
+                                                                    '&:hover': {
+                                                                        opacity: 1,
+                                                                        bgcolor: 'primary.light',
+                                                                    },
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Box>
                                                 </TableCell>
                                             );
                                         })}
