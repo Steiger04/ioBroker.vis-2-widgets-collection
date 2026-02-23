@@ -16,71 +16,71 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ### UI-Komponenten-Auswahl
 
-| Feldname             | Typ      | Standard | Beschreibung                                      | Bedingung                                    |
-| -------------------- | -------- | -------- | ------------------------------------------------- | -------------------------------------------- |
-| colorLightUIComponent| select   | 'wheel'  | Farbwähler-UI (wheel, box, slider)                | Nur wenn colorLightType nicht 'none' oder 'cct'|
-| colorWheelLightness  | checkbox | false    | Helligkeitsregler im Farbrad anzeigen             | Nur wenn colorLightUIComponent='wheel'       |
+| Feldname              | Typ      | Standard | Beschreibung                          | Bedingung                                       |
+| --------------------- | -------- | -------- | ------------------------------------- | ----------------------------------------------- |
+| colorLightUIComponent | select   | 'wheel'  | Farbwähler-UI (wheel, box, slider)    | Nur wenn colorLightType nicht 'none' oder 'cct' |
+| colorWheelLightness   | checkbox | false    | Helligkeitsregler im Farbrad anzeigen | Nur wenn colorLightUIComponent='wheel'          |
 
 ### Farbtyp-Konfiguration
 
-| Feldname             | Typ    | Standard | Beschreibung                                      | Bedingung |
-| -------------------- | ------ | -------- | ------------------------------------------------- | --------- |
-| colorLightType       | select | 'none'   | Farbsteuerungstyp (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct) | - |
+| Feldname       | Typ    | Standard | Beschreibung                                                                   | Bedingung |
+| -------------- | ------ | -------- | ------------------------------------------------------------------------------ | --------- |
+| colorLightType | select | 'none'   | Farbsteuerungstyp (none, cct, rgb, rgbcct, r/g/b, r/g/b/cct, h/s/v, h/s/v/cct) | -         |
 
 ### Farbtemperatur (CCT)
 
-| Feldname                | Typ    | Standard | Beschreibung                           | Bedingung                                    |
-| ----------------------- | ------ | -------- | -------------------------------------- | -------------------------------------------- |
-| colorLightTemperatureOid| id     | -        | OID für Farbtemperatursteuerung        | Nur wenn colorLightType 'cct' enthält        |
-| colorLightCtMin         | number | 2000     | Minimale Farbtemperatur (500-10000K)   | Nur wenn colorLightTemperatureOid gesetzt    |
-| colorLightCtMax         | number | 6500     | Maximale Farbtemperatur (500-10000K)   | Nur wenn colorLightTemperatureOid gesetzt    |
+| Feldname                 | Typ    | Standard | Beschreibung                         | Bedingung                                 |
+| ------------------------ | ------ | -------- | ------------------------------------ | ----------------------------------------- |
+| colorLightTemperatureOid | id     | -        | OID für Farbtemperatursteuerung      | Nur wenn colorLightType 'cct' enthält     |
+| colorLightCtMin          | number | 2000     | Minimale Farbtemperatur (500-10000K) | Nur wenn colorLightTemperatureOid gesetzt |
+| colorLightCtMax          | number | 6500     | Maximale Farbtemperatur (500-10000K) | Nur wenn colorLightTemperatureOid gesetzt |
 
 ### RGB-Konfiguration
 
-| Feldname             | Typ | Standard | Beschreibung                           | Bedingung                                    |
-| -------------------- | --- | -------- | -------------------------------------- | -------------------------------------------- |
-| colorLightRgbHexOid  | id  | -        | OID für RGB-Hex-Wert (#RRGGBB)         | Nur wenn colorLightType 'rgb' oder 'rgbcct'  |
-| colorLightRedOid     | id  | -        | OID für Rot-Kanal (0-255)              | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
-| colorLightGreenOid   | id  | -        | OID für Grün-Kanal (0-255)             | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
-| colorLightBlueOid    | id  | -        | OID für Blau-Kanal (0-255)             | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct'|
+| Feldname            | Typ | Standard | Beschreibung                   | Bedingung                                        |
+| ------------------- | --- | -------- | ------------------------------ | ------------------------------------------------ |
+| colorLightRgbHexOid | id  | -        | OID für RGB-Hex-Wert (#RRGGBB) | Nur wenn colorLightType 'rgb' oder 'rgbcct'      |
+| colorLightRedOid    | id  | -        | OID für Rot-Kanal (0-255)      | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct' |
+| colorLightGreenOid  | id  | -        | OID für Grün-Kanal (0-255)     | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct' |
+| colorLightBlueOid   | id  | -        | OID für Blau-Kanal (0-255)     | Nur wenn colorLightType 'r/g/b' oder 'r/g/b/cct' |
 
 ### HSV-Konfiguration
 
-| Feldname                | Typ | Standard | Beschreibung                           | Bedingung                                    |
-| ----------------------- | --- | -------- | -------------------------------------- | -------------------------------------------- |
-| colorLightHueOid        | id  | -        | OID für Farbton (0-360)                | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'|
-| colorLightSaturationOid | id  | -        | OID für Sättigung (0-100)              | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'|
-| colorLightBrightnessOid | id     | -        | OID für Helligkeit/Wert (0-100)        | Nur wenn colorLightType 'cct', 'h/s/v' oder 'h/s/v/cct'|
+| Feldname                | Typ | Standard | Beschreibung                    | Bedingung                                               |
+| ----------------------- | --- | -------- | ------------------------------- | ------------------------------------------------------- |
+| colorLightHueOid        | id  | -        | OID für Farbton (0-360)         | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'        |
+| colorLightSaturationOid | id  | -        | OID für Sättigung (0-100)       | Nur wenn colorLightType 'h/s/v' oder 'h/s/v/cct'        |
+| colorLightBrightnessOid | id  | -        | OID für Helligkeit/Wert (0-100) | Nur wenn colorLightType 'cct', 'h/s/v' oder 'h/s/v/cct' |
 
 ### Button-Modus
 
-| Feldname                   | Typ      | Standard | Beschreibung                                      | Bedingung                    |
-| -------------------------- | -------- | -------- | ------------------------------------------------- | ---------------------------- |
-| colorLightButton           | checkbox | false    | Button-Modus aktivieren (Langer Druck öffnet Farbwähler)| -                     |
-| colorLightDelayLongPress   | number   | 500      | Verzögerung für langen Druck in Millisekunden (0-10000)| Nur wenn colorLightButton=true|
-| colorLightModalWidth       | number   | -        | Breite des Farbwähler-Modals (0-5000px)          | Nur wenn colorLightButton=true|
-| colorLightModalHeight      | number   | 300      | Höhe des Farbwähler-Modals (0-5000px)            | Nur wenn colorLightButton=true|
+| Feldname                 | Typ      | Standard | Beschreibung                                             | Bedingung                      |
+| ------------------------ | -------- | -------- | -------------------------------------------------------- | ------------------------------ |
+| colorLightButton         | checkbox | false    | Button-Modus aktivieren (Langer Druck öffnet Farbwähler) | -                              |
+| colorLightDelayLongPress | number   | 500      | Verzögerung für langen Druck in Millisekunden (0-10000)  | Nur wenn colorLightButton=true |
+| colorLightModalWidth     | number   | -        | Breite des Farbwähler-Modals (0-5000px)                  | Nur wenn colorLightButton=true |
+| colorLightModalHeight    | number   | 300      | Höhe des Farbwähler-Modals (0-5000px)                    | Nur wenn colorLightButton=true |
 
 ### Styling
 
-| Feldname                | Typ    | Standard | Beschreibung                           | Bedingung |
-| ----------------------- | ------ | -------- | -------------------------------------- | --------- |
-| colorLightSliderWidth   | slider | 1        | Breite der Farbregler (0-10)           | -         |
-| colorLightBorderWidth   | slider | 3        | Rahmenbreite (0-100)                   | -         |
-| colorLightBorderColor   | color  | -        | Rahmenfarbe                            | -         |
-| colorLightPadding       | number | 1        | Innenabstand (min: 0, Schritt: 0.5)    | -         |
+| Feldname              | Typ    | Standard | Beschreibung                        | Bedingung |
+| --------------------- | ------ | -------- | ----------------------------------- | --------- |
+| colorLightSliderWidth | slider | 1        | Breite der Farbregler (0-10)        | -         |
+| colorLightBorderWidth | slider | 3        | Rahmenbreite (0-100)                | -         |
+| colorLightBorderColor | color  | -        | Rahmenfarbe                         | -         |
+| colorLightPadding     | number | 1        | Innenabstand (min: 0, Schritt: 0.5) | -         |
 
 ### Schalter-OID
 
-| Feldname            | Typ | Standard | Beschreibung                        | Bedingung |
-| ------------------- | --- | -------- | ----------------------------------- | --------- |
+| Feldname            | Typ | Standard | Beschreibung                       | Bedingung |
+| ------------------- | --- | -------- | ---------------------------------- | --------- |
 | colorLightSwitchOid | id  | -        | OID für Ein/Aus-Schalter (boolean) | -         |
 
 ### Farbraum
 
-| Feldname        | Typ    | Standard | Beschreibung                                   | Bedingung |
-| --------------- | ------ | -------- | ---------------------------------------------- | --------- |
-| colorLightGamut | select | -        | Farbraum (default, A, B, C für Philips Hue)   | -         |
+| Feldname        | Typ    | Standard | Beschreibung                                | Bedingung |
+| --------------- | ------ | -------- | ------------------------------------------- | --------- |
+| colorLightGamut | select | -        | Farbraum (default, A, B, C für Philips Hue) | -         |
 
 ### Automatische Erkennung
 

@@ -25,17 +25,17 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 | Feldname      | Typ      | Standard | Beschreibung                 | Bedingung |
 | ------------- | -------- | -------- | ---------------------------- | --------- |
-| dialogWidth   | slider   | 100      | Breite des Dialogs (1-100)         | -         |
-| dialogHeight  | slider   | 100      | Höhe des Dialogs (1-100)           | -         |
+| dialogWidth   | slider   | 100      | Breite des Dialogs (1-100)   | -         |
+| dialogHeight  | slider   | 100      | Höhe des Dialogs (1-100)     | -         |
 | dialogInPixel | checkbox | false    | Größe in Pixel statt Prozent | -         |
 
 ### Dialog-Inhalt
 
-| Feldname                | Typ      | Standard | Beschreibung                | Bedingung          |
-| ----------------------- | -------- | -------- | --------------------------- | ------------------ |
-| dialogText              | html     | -        | Textinhalt des Dialogs      | -                  |
-| onlyIcon                | checkbox | false    | Nur Icon anzeigen           | Nur wenn onlyText=false   |
-| onlyText                | checkbox | false    | Nur Text anzeigen           | Nur wenn onlyIcon=false   |
+| Feldname   | Typ      | Standard | Beschreibung           | Bedingung               |
+| ---------- | -------- | -------- | ---------------------- | ----------------------- |
+| dialogText | html     | -        | Textinhalt des Dialogs | -                       |
+| onlyIcon   | checkbox | false    | Nur Icon anzeigen      | Nur wenn onlyText=false |
+| onlyText   | checkbox | false    | Nur Text anzeigen      | Nur wenn onlyIcon=false |
 
 ### Close-Button
 
@@ -47,15 +47,15 @@ Die Widget-spezifischen Einstellungen überschreiben die allgemeineren Einstellu
 
 ### Auto-Close
 
-| Feldname        | Typ    | Standard | Beschreibung                             | Bedingung |
-| --------------- | ------ | -------- | ---------------------------------------- | --------- |
+| Feldname        | Typ    | Standard | Beschreibung                                | Bedingung |
+| --------------- | ------ | -------- | ------------------------------------------- | --------- |
 | dialogAutoClose | slider | 0        | Automatisches Schließen nach x ms (0-30000) | -         |
 
 ### OID-Steuerung
 
-| Feldname  | Typ | Standard | Beschreibung                                                | Bedingung |
-| --------- | --- | -------- | ----------------------------------------------------------- | --------- |
-| dialogId  | id  | -        | OID zur Steuerung des Dialogs (true=öffnen, false=schließen) | -         |
+| Feldname | Typ | Standard | Beschreibung                                                 | Bedingung |
+| -------- | --- | -------- | ------------------------------------------------------------ | --------- |
+| dialogId | id  | -        | OID zur Steuerung des Dialogs (true=öffnen, false=schließen) | -         |
 
 ## View-Auswahl
 

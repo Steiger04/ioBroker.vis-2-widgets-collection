@@ -31,24 +31,24 @@ The widget-specific settings override the more general settings.
 
 ### Dialog Content
 
-| Field Name    | Type     | Default | Description                | Condition |
-| ------------- | -------- | ------- | -------------------------- | --------- |
-| dialogText    | html     | -       | Text content of the dialog | -         |
-| onlyIcon      | checkbox | false   | Show icon only             | Only when onlyText=false   |
-| onlyText      | checkbox | false   | Show text only             | Only when onlyIcon=false   |
+| Field Name | Type     | Default | Description                | Condition                |
+| ---------- | -------- | ------- | -------------------------- | ------------------------ |
+| dialogText | html     | -       | Text content of the dialog | -                        |
+| onlyIcon   | checkbox | false   | Show icon only             | Only when onlyText=false |
+| onlyText   | checkbox | false   | Show text only             | Only when onlyIcon=false |
 
 ### Close Button
 
-| Field Name              | Type     | Default | Description                    | Condition |
-| ----------------------- | -------- | ------- | ------------------------------ | --------- |
-| dialogCloseButtonTop    | checkbox | false   | Show close button at top       | -         |
-| dialogCloseButtonBottom | checkbox | false   | Show close button at bottom    | -         |
-| dialogCloseButtonColor  | color    | -       | Color of the close button      | -         |
+| Field Name              | Type     | Default | Description                 | Condition |
+| ----------------------- | -------- | ------- | --------------------------- | --------- |
+| dialogCloseButtonTop    | checkbox | false   | Show close button at top    | -         |
+| dialogCloseButtonBottom | checkbox | false   | Show close button at bottom | -         |
+| dialogCloseButtonColor  | color    | -       | Color of the close button   | -         |
 
 ### Auto-Close
 
-| Field Name      | Type   | Default | Description                          | Condition |
-| --------------- | ------ | ------- | ------------------------------------ | --------- |
+| Field Name      | Type   | Default | Description                                    | Condition |
+| --------------- | ------ | ------- | ---------------------------------------------- | --------- |
 | dialogAutoClose | slider | 0       | Automatic close after x milliseconds (0-30000) | -         |
 
 ### OID Control

@@ -40,10 +40,12 @@ cd src-widgets && npm run i18n
 ## Architecture
 
 ### Two-package structure
+
 - **Root** (`package.json`): build orchestration, linting, release scripts. `tasks.js` runs the build pipeline via `@iobroker/build-tools`.
 - **`src-widgets/`** (`package.json`): the actual widget code (React/TS/Vite). Build output goes to `src-widgets/build/`, then copied to `widgets/vis-2-widgets-collection/` for distribution.
 
 ### Module Federation
+
 `src-widgets/vite.config.ts` exposes each widget class as a separate federation entry point via `@module-federation/vite`. The shared MUI/React modules come from the vis-2 parent host — never bundle MUI directly.
 
 ### Widget class hierarchy
@@ -82,14 +84,17 @@ Return arrays of `RxWidgetInfoAttributesField` that compose `visAttrs` panels in
 ## MCP Server Usage
 
 ### MUI Documentation → `mui-mcp`
+
 - Call `useMuiDocs` to fetch MUI v6.5 package docs relevant to the question
 - Call `fetchDocs` for additional docs using ONLY URLs from the returned content
 - Repeat until all relevant docs are fetched
 
 ### Library / API Documentation → `context7`
+
 - Always use Context7 MCP for library/API documentation, code generation, setup or configuration steps — without waiting to be asked
 
 ### GitHub → `github-mcp-server`
+
 - Use for GitHub API interactions (issues, PRs, CI/CD)
 - Prefer `list_issues` for overview, check open PRs before proposing new ones
 - Analyze `workflow_runs` and logs for CI/CD failures
@@ -142,6 +147,7 @@ Located in `src-widgets/src/lib/helper/` and `src-widgets/src/hooks/`:
 ## Detailed Guidelines
 
 See `.claude/instructions/` for full reference:
+
 - [ui.instructions.md](.claude/instructions/ui.instructions.md) – complete MUI v6.5 UI/UX standards
 - [mui5.instructions.md](.claude/instructions/mui5.instructions.md) – MCP usage for MUI docs
 - [context7.instructions.md](.claude/instructions/context7.instructions.md) – MCP usage for library docs

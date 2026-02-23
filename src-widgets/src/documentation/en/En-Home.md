@@ -93,15 +93,15 @@ These settings are available for all widgets in the collection.
 
 ### Icon
 
-| Field Name           | Type           | Default | Description                                                                 |
-| -------------------- | -------------- | ------- | --------------------------------------------------------------------------- |
-| icon                 | image          | -       | Large icon (image)                                                          |
-| iconSmall            | icon64         | -       | Small icon (SVG)                                                            |
-| iconSize             | slider (1-500) | -       | Icon size in pixels                                                         |
-| iconColor            | color          | -       | Icon color                                                                  |
-| enableIconColorMask  | checkbox       | false   | Enable color mask for URL-based icons (allows applying iconColor to images)|
-| iconXOffset          | text           | 0px     | Horizontal offset                                                           |
-| iconYOffset          | text           | 0px     | Vertical offset                                                             |
+| Field Name          | Type           | Default | Description                                                                 |
+| ------------------- | -------------- | ------- | --------------------------------------------------------------------------- |
+| icon                | image          | -       | Large icon (image)                                                          |
+| iconSmall           | icon64         | -       | Small icon (SVG)                                                            |
+| iconSize            | slider (1-500) | -       | Icon size in pixels                                                         |
+| iconColor           | color          | -       | Icon color                                                                  |
+| enableIconColorMask | checkbox       | false   | Enable color mask for URL-based icons (allows applying iconColor to images) |
+| iconXOffset         | text           | 0px     | Horizontal offset                                                           |
+| iconYOffset         | text           | 0px     | Vertical offset                                                             |
 
 ### Header
 
@@ -150,15 +150,15 @@ These settings are available for all widgets in the collection.
 
 ### Background
 
-| Field Name | Type   | Default | Description                                                                  |
-| ---------- | ------ | ------- | ---------------------------------------------------------------------------- |
-| background | custom | -       | Background color or gradient (supports hex, RGB, RGBA, CSS gradients)       |
+| Field Name | Type   | Default | Description                                                           |
+| ---------- | ------ | ------- | --------------------------------------------------------------------- |
+| background | custom | -       | Background color or gradient (supports hex, RGB, RGBA, CSS gradients) |
 
 ### Frame Background
 
-| Field Name      | Type   | Default | Description                                                                      |
-| --------------- | ------ | ------- | -------------------------------------------------------------------------------- |
-| frameBackground | custom | -       | Frame background color or gradient (supports hex, RGB, RGBA, CSS gradients)     |
+| Field Name      | Type   | Default | Description                                                                 |
+| --------------- | ------ | ------- | --------------------------------------------------------------------------- |
+| frameBackground | custom | -       | Frame background color or gradient (supports hex, RGB, RGBA, CSS gradients) |
 
 ### Write Value
 

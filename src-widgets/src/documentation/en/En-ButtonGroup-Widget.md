@@ -14,13 +14,13 @@ The widget-specific settings override the more general settings.
 
 ## Widget-Specific Settings
 
-| Field Name             | Type     | Default       | Description                     | Condition         |
-| ---------------------- | -------- | ------------- | ------------------------------- | --------- |
-| onlyIcon               | checkbox | false         | Show icons only (no text)       | Only when onlyText=false |
-| onlyText               | checkbox | false         | Show text only (no icons)       | Only when onlyIcon=false |
-| buttonGroupVariant     | select   | 'text'        | Display variant (text, outlined)| -         |
-| buttonGroupOrientation | select   | 'horizontal'  | Orientation of the button group | -         |
-| buttonGroupColor       | color    | -             | Color scheme of the buttons     | -         |
+| Field Name             | Type     | Default      | Description                      | Condition                |
+| ---------------------- | -------- | ------------ | -------------------------------- | ------------------------ |
+| onlyIcon               | checkbox | false        | Show icons only (no text)        | Only when onlyText=false |
+| onlyText               | checkbox | false        | Show text only (no icons)        | Only when onlyIcon=false |
+| buttonGroupVariant     | select   | 'text'       | Display variant (text, outlined) | -                        |
+| buttonGroupOrientation | select   | 'horizontal' | Orientation of the button group  | -                        |
+| buttonGroupColor       | color    | -            | Color scheme of the buttons      | -                        |
 
 **Note:** In addition to the settings above, the **Write Value** settings (delay/interval) are available. These control how value changes are written to the OID. See [Common Settings - Write Value](En-Home.md#write-value) for details.
 

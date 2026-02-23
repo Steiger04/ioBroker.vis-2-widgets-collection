@@ -128,6 +128,7 @@ sequenceDiagram
 ### Gradient Support
 
 The following slider fields support CSS gradients in addition to solid colors:
+
 - `sliderColor`
 - `thumbColor`
 - `thumbBorderColor`

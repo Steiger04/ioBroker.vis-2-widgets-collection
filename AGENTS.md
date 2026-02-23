@@ -141,9 +141,9 @@ const DEFAULT_TIMEOUT = 5000;
 const WIDGET_TYPES = ['switch', 'slider', 'button'];
 
 // Files: PascalCase for components, camelCase for utilities
-StateCollectionWidget.tsx
-useValueState.ts
-cleanSx.ts
+StateCollectionWidget.tsx;
+useValueState.ts;
+cleanSx.ts;
 
 // Interfaces: PascalCase with descriptive suffixes
 interface WidgetDataProps {}
@@ -319,10 +319,7 @@ exposes: {
         "visWidgets": {
             "vis2CollectionWidget": {
                 "url": "vis-2-widgets-collection/customWidgets.js",
-                "components": [
-                    "StateCollectionWidget",
-                    "SliderCollectionWidget"
-                ]
+                "components": ["StateCollectionWidget", "SliderCollectionWidget"]
             }
         }
     }

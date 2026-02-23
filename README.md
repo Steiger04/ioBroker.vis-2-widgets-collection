@@ -61,27 +61,35 @@
 -->
 
 ## Changelog
+
 ### 2.3.3 (2026-02-16)
+
 - (steiger04) ignoreCommonStates attribute added. Please read attribut tooltip (i)
 
 ### 2.3.2 (2026-02-14)
+
 - (steiger04) Long press for ButtonGroupCollection widget fixed
 
 ### 2.3.1 (2026-02-13)
+
 - (steiger04) ButtonGroupCollection widget bug fixing
 
 ### 2.3.0 (2026-02-12)
+
 - (steiger04) Widget optimizations
 - (steiger04) Bug fixing
 - (steiger04) User documentation fixed (GitHub Wiki)
 
 ### 2.2.1 (2026-01-18)
+
 - (steiger04) Slider widget color for min / max icon optimized
 
 ### 2.2.0 (2026-01-18)
+
 - (steiger04) CollectionWidgets optimized and expanded
 
 ### 2.1.1 (2026-01-09)
+
 - (steiger04) GradientColorPicker bug fixed
 
 ### 2.1.0 (2026-01-09)

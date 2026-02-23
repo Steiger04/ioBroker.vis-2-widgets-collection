@@ -93,15 +93,15 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 
 ### Icon
 
-| Feldname             | Typ            | Standard | Beschreibung                                                                        |
-| -------------------- | -------------- | -------- | ----------------------------------------------------------------------------------- |
-| icon                 | image          | -        | Großes Icon (Bild)                                                                  |
-| iconSmall            | icon64         | -        | Kleines Icon (SVG)                                                                  |
-| iconSize             | slider (1-500) | -        | Icon-Größe in Pixel                                                                 |
-| iconColor            | color          | -        | Icon-Farbe                                                                          |
-| enableIconColorMask  | checkbox       | false    | Farbmaske für URL-basierte Icons aktivieren (ermöglicht iconColor auf Bilder anzuwenden)|
-| iconXOffset          | text           | 0px      | Horizontaler Versatz                                                                |
-| iconYOffset          | text           | 0px      | Vertikaler Versatz                                                                  |
+| Feldname            | Typ            | Standard | Beschreibung                                                                             |
+| ------------------- | -------------- | -------- | ---------------------------------------------------------------------------------------- |
+| icon                | image          | -        | Großes Icon (Bild)                                                                       |
+| iconSmall           | icon64         | -        | Kleines Icon (SVG)                                                                       |
+| iconSize            | slider (1-500) | -        | Icon-Größe in Pixel                                                                      |
+| iconColor           | color          | -        | Icon-Farbe                                                                               |
+| enableIconColorMask | checkbox       | false    | Farbmaske für URL-basierte Icons aktivieren (ermöglicht iconColor auf Bilder anzuwenden) |
+| iconXOffset         | text           | 0px      | Horizontaler Versatz                                                                     |
+| iconYOffset         | text           | 0px      | Vertikaler Versatz                                                                       |
 
 ### Header
 
@@ -150,15 +150,15 @@ Diese Einstellungen sind für alle Widgets der Collection verfügbar.
 
 ### Hintergrund
 
-| Feldname   | Typ    | Standard | Beschreibung                                                                    |
-| ---------- | ------ | -------- | ------------------------------------------------------------------------------- |
-| background | custom | -        | Hintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten)    |
+| Feldname   | Typ    | Standard | Beschreibung                                                                |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------- |
+| background | custom | -        | Hintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten) |
 
 ### Rahmenhintergrund
 
-| Feldname        | Typ    | Standard | Beschreibung                                                                    |
-| --------------- | ------ | -------- | ------------------------------------------------------------------------------- |
-| frameBackground | custom | -        | Rahmenhintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten)|
+| Feldname        | Typ    | Standard | Beschreibung                                                                      |
+| --------------- | ------ | -------- | --------------------------------------------------------------------------------- |
+| frameBackground | custom | -        | Rahmenhintergrundfarbe oder Gradient (unterstützt Hex, RGB, RGBA, CSS-Gradienten) |
 
 ### Wert schreiben
 
