@@ -163,18 +163,55 @@ export const TYPE_COLORS: Record<string, string> = {
     mixed: '#f44336',
 };
 
+// ── Helper: UTF-8 safe Base64 encoding/decoding ──────────────────
+
+/**
+ * Encode a UTF-8 string to Base64 safely.
+ * Handles non-ASCII characters (e.g., German umlauts, Chinese characters).
+ */
+export function utf8ToBase64(str: string): string {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+/**
+ * Decode a Base64 string to UTF-8 safely.
+ * Handles non-ASCII characters encoded with utf8ToBase64.
+ */
+export function base64ToUtf8(base64: string): string {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+}
+
 // ── Helper: parse persisted config ──────────────────────────────
+
+/** Prefix for Base64-encoded column config to avoid extractBinding warnings in vis-2 */
+const B64_PREFIX = 'b64:';
 
 /**
  * Parse stored column config JSON string from widget data.
  * Returns empty array for invalid/missing input (backward compatible).
+ *
+ * Supports Base64-encoded values (prefixed with 'b64:') to avoid vis-2's extractBinding
+ * regex matching curly braces in JSON arrays. Plain JSON strings are still supported
+ * for backward compatibility with existing configs.
  */
 export function parseColumnConfig(raw: string | undefined | null): ColumnConfigEntry[] {
     if (!raw) {
         return [];
     }
     try {
-        const parsed = JSON.parse(raw);
+        // Check for Base64-encoded value (avoids extractBinding warnings)
+        const jsonString = raw.startsWith(B64_PREFIX) ? base64ToUtf8(raw.slice(B64_PREFIX.length)) : raw;
+        const parsed = JSON.parse(jsonString);
         return Array.isArray(parsed) ? (parsed as ColumnConfigEntry[]) : [];
     } catch {
         return [];

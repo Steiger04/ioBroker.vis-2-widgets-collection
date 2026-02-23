@@ -19,7 +19,7 @@ import type React from 'react';
 
 import Generic from '../Generic';
 import JsonTableColumnEditorModal from './components/JsonTableColumnEditorModal';
-import { parseColumnConfig, type ColumnConfigEntry } from './types';
+import { parseColumnConfig, utf8ToBase64, type ColumnConfigEntry } from './types';
 
 import type {
     RxWidgetInfoAttributesField,
@@ -61,9 +61,13 @@ function JsonTableColumnEditor(
     const hasStyling = columns.some(c => c.cellStyle && c.cellStyle.length > 0);
 
     // Persist updated columns to widget data
+    // Use Base64 encoding to avoid vis-2's extractBinding regex matching curly braces
+    // UTF-8 safe encoding using TextEncoder to handle non-ASCII characters
     const handleSave = useCallback(
         (updatedColumns: ColumnConfigEntry[]) => {
-            onDataChange({ [fieldName]: JSON.stringify(updatedColumns) });
+            const jsonStr = JSON.stringify(updatedColumns);
+            const encoded = `b64:${utf8ToBase64(jsonStr)}`;
+            onDataChange({ [fieldName]: encoded });
         },
         [fieldName, onDataChange],
     );
