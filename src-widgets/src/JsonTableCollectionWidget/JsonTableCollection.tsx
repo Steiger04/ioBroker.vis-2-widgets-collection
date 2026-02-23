@@ -496,16 +496,6 @@ const JsonTableCollection: FC = () => {
         [widget.data.tablePageSizeOptions],
     );
 
-    // Wrap each option in Typography for consistent font styling in dropdown
-    const rowsPerPageOptionsWithLabels = useMemo(
-        () =>
-            pageSizeOptions.map(n => ({
-                value: n,
-                label: <Typography variant="body2">{n}</Typography>,
-            })) as unknown as Array<number | { value: number; label: string }>,
-        [pageSizeOptions],
-    );
-
     // ── useReactTable ─────────────────────────────────────────────────────────
 
     const table = useReactTable<FlatRow>({
@@ -1001,7 +991,7 @@ const JsonTableCollection: FC = () => {
                             count={table.getFilteredRowModel().rows.length}
                             page={pagination.pageIndex}
                             rowsPerPage={pagination.pageSize}
-                            rowsPerPageOptions={rowsPerPageOptionsWithLabels}
+                            rowsPerPageOptions={pageSizeOptions}
                             onPageChange={(_e, newPage) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
                             onRowsPerPageChange={e =>
                                 setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })
