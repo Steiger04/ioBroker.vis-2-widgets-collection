@@ -17,7 +17,7 @@ import type { JsonLogicRule } from './utils/jsonLogicEngine';
 // ── Column Format Configuration ─────────────────────────────────
 
 /** Supported format types for cell value rendering. */
-export type ColumnFormatType = 'number' | 'date' | 'boolean';
+export type ColumnFormatType = 'number' | 'date' | 'boolean' | 'string';
 
 /**
  * Formatting configuration for a single column.
@@ -50,6 +50,32 @@ export interface ColumnFormatConfig {
     booleanTrue?: string;
     /** Display label for false values. @default "false" */
     booleanFalse?: string;
+
+    // ── String formatting ───────────────────────────────────────
+    /** Case transformation applied to the string value. */
+    stringCase?: 'none' | 'upper' | 'lower' | 'title';
+    /** Prefix prepended to the displayed value. */
+    stringPrefix?: string;
+    /** Suffix appended to the displayed value. */
+    stringSuffix?: string;
+    /** Trim leading/trailing whitespace before other transformations. */
+    stringTrim?: boolean;
+    /** Truncate display value to this many characters (appends "…"). */
+    stringMaxLength?: number;
+    /** Regex pattern applied to extract a substring for display. */
+    stringRegex?: string;
+    /** Capture group index to use from regex match (0 = full match). @default 0 */
+    stringRegexGroup?: number;
+    /** Regex flags, e.g. "i" for case-insensitive. */
+    stringRegexFlags?: string;
+    /** Static font weight for the column. Overrideable by conditional cell rules. */
+    stringFontWeight?: 'normal' | 'bold';
+    /** Static font style for the column. Overrideable by conditional cell rules. */
+    stringFontStyle?: 'normal' | 'italic';
+    /** Static font size in px for the column. Overrideable by conditional cell rules. */
+    stringFontSize?: number;
+    /** Static text color (CSS color string) for the column. Overrideable by conditional cell rules. */
+    stringTextColor?: string;
 }
 
 // ── Conditional Cell Styling ────────────────────────────────────

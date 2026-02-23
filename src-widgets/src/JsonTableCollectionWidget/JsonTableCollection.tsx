@@ -62,7 +62,13 @@ import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 
 import { parseColumnConfig, type ColumnConfigEntry } from './types';
-import { formatBooleanValue, formatDateValue, formatNumberValue, normalizeToIsoDate } from './utils/formatters';
+import {
+    formatBooleanValue,
+    formatDateValue,
+    formatNumberValue,
+    formatStringValue,
+    normalizeToIsoDate,
+} from './utils/formatters';
 import { evaluateLogic } from './utils/jsonLogicEngine';
 
 import type { DateFormatId } from '../hooks/useJsonTableAnalysis/types';
@@ -218,6 +224,9 @@ const JsonTableCollection: FC = () => {
                 case 'boolean':
                     displayValue = formatBooleanValue(rawValue, cfg.format.booleanTrue, cfg.format.booleanFalse);
                     break;
+                case 'string':
+                    displayValue = formatStringValue(displayValue, cfg.format);
+                    break;
             }
         }
 
@@ -259,6 +268,22 @@ const JsonTableCollection: FC = () => {
                         break;
                     }
                 }
+            }
+        }
+
+        // Apply static string format visual styles as fallback (conditional rules take priority)
+        if (cfg.format?.type === 'string') {
+            if (cfg.format.stringFontWeight === 'bold' && !textSx.fontWeight) {
+                textSx.fontWeight = 'bold';
+            }
+            if (cfg.format.stringFontStyle === 'italic' && !textSx.fontStyle) {
+                textSx.fontStyle = 'italic';
+            }
+            if (cfg.format.stringFontSize && !textSx.fontSize) {
+                textSx.fontSize = `${cfg.format.stringFontSize}px`;
+            }
+            if (cfg.format.stringTextColor && !('color' in textSx) && !('background' in textSx)) {
+                textSx.color = cfg.format.stringTextColor;
             }
         }
 
@@ -469,6 +494,16 @@ const JsonTableCollection: FC = () => {
     const pageSizeOptions = useMemo(
         () => parsePageSizeOptions(widget.data.tablePageSizeOptions as string),
         [widget.data.tablePageSizeOptions],
+    );
+
+    // Wrap each option in Typography for consistent font styling in dropdown
+    const rowsPerPageOptionsWithLabels = useMemo(
+        () =>
+            pageSizeOptions.map(n => ({
+                value: n,
+                label: <Typography variant="body2">{n}</Typography>,
+            })) as unknown as Array<number | { value: number; label: string }>,
+        [pageSizeOptions],
     );
 
     // ── useReactTable ─────────────────────────────────────────────────────────
@@ -956,7 +991,7 @@ const JsonTableCollection: FC = () => {
                             count={table.getFilteredRowModel().rows.length}
                             page={pagination.pageIndex}
                             rowsPerPage={pagination.pageSize}
-                            rowsPerPageOptions={pageSizeOptions}
+                            rowsPerPageOptions={rowsPerPageOptionsWithLabels}
                             onPageChange={(_e, newPage) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
                             onRowsPerPageChange={e =>
                                 setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })

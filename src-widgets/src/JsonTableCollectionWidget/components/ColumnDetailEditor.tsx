@@ -16,6 +16,7 @@ import {
     Button,
     Checkbox,
     Chip,
+    Divider,
     FormControl,
     FormControlLabel,
     IconButton,
@@ -49,7 +50,13 @@ import Generic from '../../Generic';
 import ColorPickerField from '../../components/ColorPickerField';
 import { gradientColor } from '../../lib/helper/gradientColor';
 import { TYPE_COLORS, type ColumnConfigEntry, type ColumnStyleRule, type ColumnFormatConfig } from '../types';
-import { formatNumberValue, formatDateValue, formatBooleanValue, DATE_FORMAT_OPTIONS } from '../utils/formatters';
+import {
+    formatNumberValue,
+    formatDateValue,
+    formatBooleanValue,
+    formatStringValue,
+    DATE_FORMAT_OPTIONS,
+} from '../utils/formatters';
 import ConditionRuleBuilder from './ConditionRuleBuilder';
 import type { JsonLogicRule } from '../utils/jsonLogicEngine';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
@@ -103,6 +110,24 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                 } else if (oldType === 'boolean') {
                     delete base.booleanTrue;
                     delete base.booleanFalse;
+                } else if (oldType === 'string') {
+                    const stringKeys: (keyof ColumnFormatConfig)[] = [
+                        'stringCase',
+                        'stringPrefix',
+                        'stringSuffix',
+                        'stringTrim',
+                        'stringMaxLength',
+                        'stringRegex',
+                        'stringRegexGroup',
+                        'stringRegexFlags',
+                        'stringFontWeight',
+                        'stringFontStyle',
+                        'stringFontSize',
+                        'stringTextColor',
+                    ];
+                    stringKeys.forEach(k => {
+                        delete base[k];
+                    });
                 }
             }
 
@@ -622,10 +647,272 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                 </>
                             )}
 
+                            {/* String formatting */}
+                            {(detectedType === 'string' || column.format?.type === 'string') && (
+                                <>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ fontWeight: 500 }}
+                                    >
+                                        {Generic.t('json_table_string_format')}
+                                    </Typography>
+
+                                    {/* Case */}
+                                    <FormControl
+                                        size="small"
+                                        fullWidth
+                                    >
+                                        <InputLabel>{Generic.t('json_table_string_case')}</InputLabel>
+                                        <Select
+                                            label={Generic.t('json_table_string_case')}
+                                            value={column.format?.stringCase ?? 'none'}
+                                            onChange={e =>
+                                                updateFormat({
+                                                    type: 'string',
+                                                    stringCase: e.target.value as 'none' | 'upper' | 'lower' | 'title',
+                                                })
+                                            }
+                                        >
+                                            <MenuItem value="none">{Generic.t('json_table_string_case_none')}</MenuItem>
+                                            <MenuItem value="upper">
+                                                {Generic.t('json_table_string_case_upper')}
+                                            </MenuItem>
+                                            <MenuItem value="lower">
+                                                {Generic.t('json_table_string_case_lower')}
+                                            </MenuItem>
+                                            <MenuItem value="title">
+                                                {Generic.t('json_table_string_case_title')}
+                                            </MenuItem>
+                                        </Select>
+                                    </FormControl>
+
+                                    {/* Prefix / Suffix */}
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                    >
+                                        <TextField
+                                            label={Generic.t('json_table_string_prefix')}
+                                            value={column.format?.stringPrefix ?? ''}
+                                            onChange={e =>
+                                                updateFormat({
+                                                    type: 'string',
+                                                    stringPrefix: e.target.value || undefined,
+                                                })
+                                            }
+                                            size="small"
+                                            fullWidth
+                                        />
+                                        <TextField
+                                            label={Generic.t('json_table_string_suffix')}
+                                            value={column.format?.stringSuffix ?? ''}
+                                            onChange={e =>
+                                                updateFormat({
+                                                    type: 'string',
+                                                    stringSuffix: e.target.value || undefined,
+                                                })
+                                            }
+                                            size="small"
+                                            fullWidth
+                                        />
+                                    </Stack>
+
+                                    {/* Trim + Max length */}
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                size="small"
+                                                checked={!!column.format?.stringTrim}
+                                                onChange={e =>
+                                                    updateFormat({ type: 'string', stringTrim: e.target.checked })
+                                                }
+                                            />
+                                        }
+                                        label={Generic.t('json_table_string_trim')}
+                                    />
+                                    <TextField
+                                        label={Generic.t('json_table_string_max_length')}
+                                        type="number"
+                                        value={column.format?.stringMaxLength ?? ''}
+                                        onChange={e =>
+                                            updateFormat({
+                                                type: 'string',
+                                                stringMaxLength: e.target.value
+                                                    ? parseInt(e.target.value, 10)
+                                                    : undefined,
+                                            })
+                                        }
+                                        size="small"
+                                        fullWidth
+                                        slotProps={{ htmlInput: { min: 1 } }}
+                                    />
+
+                                    {/* Regex */}
+                                    <TextField
+                                        label={Generic.t('json_table_string_regex')}
+                                        value={column.format?.stringRegex ?? ''}
+                                        onChange={e =>
+                                            updateFormat({ type: 'string', stringRegex: e.target.value || undefined })
+                                        }
+                                        size="small"
+                                        fullWidth
+                                        placeholder="e.g. (\d+)"
+                                    />
+                                    {column.format?.stringRegex && (
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                        >
+                                            <TextField
+                                                label={Generic.t('json_table_string_regex_group')}
+                                                type="number"
+                                                value={column.format?.stringRegexGroup ?? 0}
+                                                onChange={e =>
+                                                    updateFormat({
+                                                        type: 'string',
+                                                        stringRegexGroup: parseInt(e.target.value, 10) || 0,
+                                                    })
+                                                }
+                                                size="small"
+                                                fullWidth
+                                                slotProps={{ htmlInput: { min: 0 } }}
+                                            />
+                                            <TextField
+                                                label={Generic.t('json_table_string_regex_flags')}
+                                                value={column.format?.stringRegexFlags ?? ''}
+                                                onChange={e =>
+                                                    updateFormat({
+                                                        type: 'string',
+                                                        stringRegexFlags: e.target.value || undefined,
+                                                    })
+                                                }
+                                                size="small"
+                                                fullWidth
+                                                placeholder="i, g, m …"
+                                            />
+                                        </Stack>
+                                    )}
+
+                                    {/* Static visual styling */}
+                                    <Divider />
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                        flexWrap="wrap"
+                                    >
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    size="small"
+                                                    checked={column.format?.stringFontWeight === 'bold'}
+                                                    onChange={e =>
+                                                        updateFormat({
+                                                            type: 'string',
+                                                            stringFontWeight: e.target.checked ? 'bold' : 'normal',
+                                                        })
+                                                    }
+                                                />
+                                            }
+                                            label={
+                                                <Typography
+                                                    variant="body2"
+                                                    fontWeight="bold"
+                                                >
+                                                    {Generic.t('json_table_string_font_weight')}
+                                                </Typography>
+                                            }
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    size="small"
+                                                    checked={column.format?.stringFontStyle === 'italic'}
+                                                    onChange={e =>
+                                                        updateFormat({
+                                                            type: 'string',
+                                                            stringFontStyle: e.target.checked ? 'italic' : 'normal',
+                                                        })
+                                                    }
+                                                />
+                                            }
+                                            label={
+                                                <Typography
+                                                    variant="body2"
+                                                    fontStyle="italic"
+                                                >
+                                                    {Generic.t('json_table_string_font_style')}
+                                                </Typography>
+                                            }
+                                        />
+                                    </Stack>
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                    >
+                                        <TextField
+                                            label={Generic.t('json_table_string_font_size')}
+                                            type="number"
+                                            value={column.format?.stringFontSize ?? ''}
+                                            onChange={e =>
+                                                updateFormat({
+                                                    type: 'string',
+                                                    stringFontSize: e.target.value
+                                                        ? parseInt(e.target.value, 10)
+                                                        : undefined,
+                                                })
+                                            }
+                                            size="small"
+                                            sx={{ flex: 1 }}
+                                            slotProps={{ htmlInput: { min: 8, max: 72 } }}
+                                            placeholder="px"
+                                        />
+                                        <ColorPickerField
+                                            label={Generic.t('json_table_string_text_color')}
+                                            value={column.format?.stringTextColor ?? ''}
+                                            onChange={v =>
+                                                updateFormat({ type: 'string', stringTextColor: v || undefined })
+                                            }
+                                        />
+                                    </Stack>
+
+                                    {/* Preview */}
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{ p: 1.5, bgcolor: 'action.hover' }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                        >
+                                            {Generic.t('json_table_preview')}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                mt: 0.5,
+                                                fontFamily: 'monospace',
+                                                fontWeight: column.format?.stringFontWeight,
+                                                fontStyle: column.format?.stringFontStyle,
+                                                ...(column.format?.stringFontSize && {
+                                                    fontSize: `${column.format.stringFontSize}px`,
+                                                }),
+                                                ...(column.format?.stringTextColor && {
+                                                    color: column.format.stringTextColor,
+                                                }),
+                                            }}
+                                        >
+                                            {formatStringValue('Hello World', column.format ?? { type: 'string' })}
+                                        </Typography>
+                                    </Paper>
+                                </>
+                            )}
+
                             {/* No applicable format type */}
                             {detectedType !== 'number' &&
                                 detectedType !== 'date' &&
                                 detectedType !== 'boolean' &&
+                                detectedType !== 'string' &&
                                 !column.format && (
                                     <Typography
                                         variant="body2"

@@ -8,6 +8,7 @@
  * designed to be safe: they never throw and return sensible fallbacks.
  */
 
+import type { ColumnFormatConfig } from '../types';
 import type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
 
 /**
@@ -228,4 +229,50 @@ export function formatBooleanValue(value: unknown, trueLabel = 'true', falseLabe
         return value ? trueLabel : falseLabel;
     }
     return toDisplayString(value);
+}
+
+/**
+ * Apply string-type formatting transformations to a string value.
+ *
+ * Order of operations:
+ * 1. Trim whitespace (if enabled)
+ * 2. Regex extraction (capture group or full match)
+ * 3. Case transformation
+ * 4. Max-length truncation (appends "…")
+ * 5. Prefix / suffix
+ *
+ * @param raw - The raw string value to format.
+ * @param format - String format configuration from ColumnFormatConfig.
+ * @returns Formatted string (never throws; returns raw on regex error).
+ */
+export function formatStringValue(raw: string, format: ColumnFormatConfig): string {
+    let result = format.stringTrim ? raw.trim() : raw;
+
+    if (format.stringRegex) {
+        try {
+            const re = new RegExp(format.stringRegex, format.stringRegexFlags ?? '');
+            const match = result.match(re);
+            if (match) {
+                result = match[format.stringRegexGroup ?? 0] ?? result;
+            }
+        } catch {
+            // invalid regex pattern — keep value unchanged
+        }
+    }
+
+    if (format.stringCase === 'upper') {
+        result = result.toUpperCase();
+    } else if (format.stringCase === 'lower') {
+        result = result.toLowerCase();
+    } else if (format.stringCase === 'title') {
+        result = result.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    if (format.stringMaxLength && result.length > format.stringMaxLength) {
+        result = `${result.slice(0, format.stringMaxLength)}…`;
+    }
+
+    const pre = format.stringPrefix ?? '';
+    const suf = format.stringSuffix ?? '';
+    return pre || suf ? `${pre}${result}${suf}` : result;
 }
