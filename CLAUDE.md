@@ -2,153 +2,112 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-ioBroker vis-2 widget collection built with **React**, **TypeScript**, and **Material-UI v6.5**.
-Widgets run inside the vis-2 Module Federation environment — MUI is **shared from the parent**, not a direct dependency.
-
-## Build & Development Commands
-
-All widget source lives in `src-widgets/`. Commands must be run from that directory unless noted.
+## Build Commands
 
 ```bash
-# Dev server (proxies to ioBroker at localhost:8082)
-cd src-widgets && npm run start        # Vite dev server on port 4173
-
-# Build widget bundle → src-widgets/build/
-cd src-widgets && npm run build        # tsc + vite build
-
-# Full pipeline (clean → npm install → build → copy to widgets/)
-npm run build                          # runs tasks.js orchestrator
-
-# Copy build output to widgets/ without rebuilding
-npm run copy-files
-
-# Linting & formatting (run from repo root)
-npm run lint
-npm run lintfix
-npm run format
-npm run formatfix
-
-# Tests (mocha, run from repo root)
-npm test
-
-# i18n key extraction
-cd src-widgets && npm run i18n
+npm run build          # Build widgets (cleans, npm install in src-widgets/, builds with Vite, copies to widgets/)
+npm run lint           # Run ESLint
+npm run lintfix        # Run ESLint with auto-fix
+npm run format         # Check Prettier formatting
+npm run formatfix      # Apply Prettier formatting
+npm run test           # Run tests with mocha
+npm run release-patch  # Release patch version
 ```
+
+## Development Server
+
+```bash
+cd src-widgets && npm run start   # Start Vite dev server on port 3000
+```
+
+The dev server proxies ioBroker backend requests to `localhost:8082`.
 
 ## Architecture
 
-### Two-package structure
+This is an ioBroker vis-2 widget collection adapter. Widgets are React components bundled via **Vite + Module Federation** and loaded dynamically by ioBroker.vis-2.
 
-- **Root** (`package.json`): build orchestration, linting, release scripts. `tasks.js` runs the build pipeline via `@iobroker/build-tools`.
-- **`src-widgets/`** (`package.json`): the actual widget code (React/TS/Vite). Build output goes to `src-widgets/build/`, then copied to `widgets/vis-2-widgets-collection/` for distribution.
-
-### Module Federation
-
-`src-widgets/vite.config.ts` exposes each widget class as a separate federation entry point via `@module-federation/vite`. The shared MUI/React modules come from the vis-2 parent host — never bundle MUI directly.
-
-### Widget class hierarchy
-
-Every widget follows this 4-layer pattern:
+### Directory Structure
 
 ```
-Generic (src/Generic.tsx)                    ← base class (extends window.visRxWidget)
-  └── *CollectionWidget.tsx                  ← vis-2 class: getWidgetInfo(), renderWidgetBody()
-        └── withCollectionProvider(...)      ← injects CollectionContext + MUI ThemeProvider
-              └── *Collection.tsx            ← React component: actual UI using useData()
+src-widgets/
+  src/
+    Generic.tsx              # Base class for all widgets (extends VisRxWidget)
+    <Widget>Name/
+      <Widget>Name.tsx       # Widget class (extends Generic)
+      <Widget>.tsx           # React component for rendering
+    components/              # Shared React components
+    hooks/                   # Custom React hooks
+    lib/                     # Field definitions (commonFields.tsx, etc.) and helpers
+    types/                   # TypeScript type definitions
+    i18n/                    # Translations (en.json, de.json, etc.)
+  vite.config.ts             # Module Federation configuration
+
+io-package.json              # Widget registration in common.visWidgets
+widgets/                     # Build output (copied from src-widgets/build/)
 ```
 
-1. **`Generic`** — provides `getPropertyValue()`, `setValue()`, `getI18nPrefix()`, `wrapContent()`.
-2. **`*CollectionWidget`** — defines `getWidgetInfo()` (widget ID, vis-2 property panels via `visAttrs`, preview image). Builds a typed `collectionContext` and calls `withCollectionProvider(this.wrapContent(<*Collection />), context)`.
-3. **`CollectionProvider`** — creates `CollectionContext`, merges vis-2 theme, applies font/text styles from widget style props.
-4. **`*Collection`** — reads all data via `useData(oid)` hook from context; renders MUI components.
+### Widget Registration
 
-### Type system
+Widgets are registered in `io-package.json` under `common.visWidgets.vis2CollectionWidget.components`. Each widget must also be exposed in `src-widgets/vite.config.ts` under `federation.exposes`.
 
-`src-widgets/src/types/` is the single source of truth:
+### Widget Pattern
 
-- `widget-registry.d.ts` — `WidgetRegistry` maps widget template IDs (e.g. `'tplSwitchCollectionWidget'`) to their composed field types. **Use `WidgetRegistry['tplXxx']` as the generic parameter to `Generic<>`** for full type safety on `rxData`.
-- `context-types.d.ts` — per-widget `*ContextProps` types and `AllCollectionContextProps` union.
-- `field-definitions/` — granular field type files (common, switch, slider, etc.).
-- `utility-types.ts` — runtime helpers: `getDynamicProperty()`, `getAllIndexedProperties()`, type guards.
+All widgets extend `Generic` base class and use `withCollectionProvider` HOC:
 
-### `useData(oid)` hook
+```typescript
+import Generic from '../Generic';
+import withCollectionProvider from '../components/withCollectionProvider';
 
-The central data hook used inside Collection components. Reads from `CollectionContext` and returns resolved styling, state values, active index, and typed accessors. All Collection components call this hook — don't access `CollectionContext` directly.
+class MyWidget extends Generic<RxDataTypes> {
+    static getWidgetInfo(): RxWidgetInfo {
+        return {
+            id: 'tplMyWidget',
+            visSet: 'vis-2-widgets-collection',
+            visName: 'MyWidget',
+            visAttrs: [...],  // Property editor fields
+        };
+    }
 
-### Field definition files (`src/lib/*Fields.tsx`)
+    renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element {
+        return <MyComponent {...props} />;
+    }
+}
 
-Return arrays of `RxWidgetInfoAttributesField` that compose `visAttrs` panels in the vis-2 editor. Widget classes spread these into their `visAttrs` config.
+export default withCollectionProvider<MyWidgetRxData, ContextProps>(MyWidget, MyComponent);
+```
 
-## MCP Server Usage
+### Key APIs from Generic Base Class
 
-### MUI Documentation → `mui-mcp`
+- `getPropertyValue(stateName)` - Get current value for a configured OID property
+- `setValue(id, value, ack)` - Write to an ioBroker state
+- `wrapContent(content)` - Common wrapper layout
+- `props.context.socket` - Socket.IO connection for state subscriptions
 
-- Call `useMuiDocs` to fetch MUI v6.5 package docs relevant to the question
-- Call `fetchDocs` for additional docs using ONLY URLs from the returned content
-- Repeat until all relevant docs are fetched
+### State Management
 
-### Library / API Documentation → `context7`
+- Subscribe in `componentDidMount()` via `this.props.context.socket.subscribeState()`
+- Unsubscribe is automatic via VisRxWidget
+- Always check `state !== null` before accessing `state.val`
 
-- Always use Context7 MCP for library/API documentation, code generation, setup or configuration steps — without waiting to be asked
+## Code Standards
 
-### GitHub → `github-mcp-server`
+- **All code comments and documentation must be in English**
+- Use TypeScript strict mode
+- MUI v6.5 is shared via Module Federation (not a direct dependency)
+- Use `useMuiDocs` MCP tool for MUI documentation queries
 
-- Use for GitHub API interactions (issues, PRs, CI/CD)
-- Prefer `list_issues` for overview, check open PRs before proposing new ones
-- Analyze `workflow_runs` and logs for CI/CD failures
+## Field Definitions
 
-## Key Constraints
+Widget property editor fields are defined in `src-widgets/src/lib/`:
+- `commonFields.tsx` - Common widget properties
+- `commonObjectFields.tsx` - OID and state type fields
+- `stateFields.tsx` - State-related fields
+- `delayFields.tsx` - Debounce/throttle fields
 
-- **MUI version:** `@mui/material@^6.5.0` — must match parent (no independent upgrades)
-- **No direct MUI dependency** in `src-widgets/package.json` — shared via Module Federation
-- **TypeScript strictly** — no `any` types
-- **No raw HTML elements** — use MUI components (`Box`, `Typography`, `Button`, etc.)
-- **No `makeStyles` / `withStyles`** — deprecated; use `sx` prop or `styled()`
-- **No inline `style` prop** — use `sx`
-- **No `Grid` v1** — use `Grid2`
+## Type System
 
-## Styling Rules
+Widget types are defined in `src-widgets/src/types/`. Use `WidgetRegistry` interface for type-safe widget data access.
 
-- **`sx` prop** for 90% of styling (theme-aware, type-safe)
-- **`styled()`** for complex reusable components with variants
-- Use theme tokens: `theme.spacing()`, `theme.palette.*`, `theme.typography.*`
-- Use `cleanSx()` utility for dynamic styles with possibly undefined values
-- Gradient support via `gradientColor()`, `extractColorFromValue()`, `getIconColorStyles()`
+## Testing
 
-## Accessibility (Mandatory)
-
-- Every interactive element needs `aria-label` or `aria-labelledby`
-- Every `IconButton` needs a wrapping `<Tooltip>`
-- Disabled buttons in Tooltips must be wrapped in `<span>`
-- Full keyboard navigation: Tab, Enter/Space, Escape, Arrow keys
-- Use semantic MUI components (never `<div onClick>`, always `<Button>`)
-
-## Performance
-
-- Use `React.memo` for frequently rendered components
-- Use `useMemo` for expensive calculations and derived data
-- Use `useCallback` for event handlers passed to children
-- Import icons individually: `import CloseIcon from '@mui/icons-material/Close'`
-
-## Project-Specific Utilities
-
-Located in `src-widgets/src/lib/helper/` and `src-widgets/src/hooks/`:
-
-- `cleanSx(obj)` – removes undefined values, converts kebab-case keys
-- `gradientColor(color)` – returns gradient string or undefined for solid colors
-- `extractColorFromValue(value)` – extracts first color from gradient string
-- `getIconColorStyles(icon, color, theme)` – CSS filter for Base64 icon coloring
-- `useValueState(oid)` – debounced ioBroker state management
-- `useLongPress({ onLongPress, onClick, delay })` – touch/mouse long press
-- `useSize(size, widget, isCircle)` – widget dimension calculation
-
-## Detailed Guidelines
-
-See `.claude/instructions/` for full reference:
-
-- [ui.instructions.md](.claude/instructions/ui.instructions.md) – complete MUI v6.5 UI/UX standards
-- [mui5.instructions.md](.claude/instructions/mui5.instructions.md) – MCP usage for MUI docs
-- [context7.instructions.md](.claude/instructions/context7.instructions.md) – MCP usage for library docs
-- [github.instructions.md](.claude/instructions/github.instructions.md) – GitHub MCP workflow
+Tests use `@iobroker/vis-2-widgets-testing` helper to start ioBroker, browser, and verify widgets render correctly.
