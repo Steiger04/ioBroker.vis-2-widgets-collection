@@ -89,6 +89,14 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: '10,25,50,100',
         tooltip: 'json_table_page_size_options_tooltip',
     },
+    {
+        name: 'tableVirtualizeThreshold',
+        type: 'number',
+        label: 'json_table_virtualize_threshold',
+        default: 50,
+        min: 0,
+        tooltip: 'json_table_virtualize_threshold_tooltip',
+    },
 
     // ── Features ────────────────────────────────────────────────────
     {
@@ -101,6 +109,13 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         type: 'checkbox',
         label: 'json_table_sorting',
         default: true,
+    },
+    {
+        name: 'tableSortingMulti',
+        type: 'checkbox',
+        label: 'json_table_sorting_multi',
+        default: false,
+        tooltip: 'json_table_sorting_multi_tooltip',
     },
     {
         name: 'tableFiltering',

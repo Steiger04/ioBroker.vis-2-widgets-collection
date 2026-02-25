@@ -25,7 +25,7 @@ import {
     Typography,
 } from '@mui/material';
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
@@ -75,6 +75,11 @@ interface ConditionRuleBuilderProps {
 
 function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuilderProps): React.JSX.Element {
     const [state, setState] = useState<BuilderState>(() => parseBuilderState(logic));
+
+    // Sync state when logic prop changes (e.g., switching between style rules)
+    useEffect(() => {
+        setState(parseBuilderState(logic));
+    }, [logic]);
 
     const availableOperators = OPERATORS_BY_TYPE[columnType] ?? DEFAULT_OPERATORS;
 

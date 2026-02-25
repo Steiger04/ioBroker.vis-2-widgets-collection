@@ -83,10 +83,9 @@ import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 declare module '@tanstack/react-table' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface ColumnMeta<TData, TValue> {
+    interface ColumnMeta<_TData, _TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
-        getCellSx?: (rawValue: unknown) => Record<string, unknown>;
     }
 }
 
@@ -361,26 +360,24 @@ const JsonTableCollection: FC = () => {
                         ...(isDate && { sortingFn: customDateSortingFn }),
                         cell: ({ getValue }) => {
                             const rawValue = getValue();
-                            const { displayValue, textSx } = buildCellContent(rawValue, cfg);
+                            const { displayValue, textSx, bgSx } = buildCellContent(rawValue, cfg);
                             return (
-                                <Typography
-                                    variant="body2"
-                                    component="span"
-                                    noWrap
-                                    title={displayValue}
-                                    sx={{ width: '100%', display: 'block', lineHeight: 'inherit', ...textSx }}
-                                >
-                                    {displayValue}
-                                </Typography>
+                                <Box sx={{ width: '100%', height: '100%', display: 'block', ...bgSx }}>
+                                    <Typography
+                                        variant="body2"
+                                        component="span"
+                                        noWrap
+                                        title={displayValue}
+                                        sx={{ width: '100%', display: 'block', lineHeight: 'inherit', ...textSx }}
+                                    >
+                                        {displayValue}
+                                    </Typography>
+                                </Box>
                             );
                         },
                         meta: {
                             align: cfg.align || 'left',
                             width: cfg.width,
-                            getCellSx: (rawValue: unknown) => {
-                                const { bgSx } = buildCellContent(rawValue, cfg);
-                                return bgSx;
-                            },
                         },
                     };
                     return col;
@@ -442,12 +439,15 @@ const JsonTableCollection: FC = () => {
 
     // ── Table state ───────────────────────────────────────────────────────────
 
+    // Einheitliche isAutoSize-Definition: true nur wenn explizit tableAutoSize === true
+    const isAutoSize = widget.data.tableAutoSize === true;
+
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(() => {
-        if (widget.data.tableAutoSize !== false) {
+        if (isAutoSize) {
             return {};
         }
         const storageKey = `jtc_col_sizes_${widgetId}`;
@@ -472,11 +472,32 @@ const JsonTableCollection: FC = () => {
     });
 
     useEffect(() => {
-        if (widget.data.tableAutoSize !== false) {
+        if (isAutoSize) {
             return;
         }
         localStorage.setItem(`jtc_col_sizes_${widgetId}`, JSON.stringify(columnSizing));
-    }, [columnSizing, widgetId, widget.data.tableAutoSize]);
+    }, [columnSizing, widgetId, isAutoSize]);
+
+    // Reset globalFilter when quick filter is disabled
+    useEffect(() => {
+        if (!widget.data.tableQuickFilter) {
+            setGlobalFilter('');
+        }
+    }, [widget.data.tableQuickFilter, setGlobalFilter]);
+
+    // Reset columnFilters when column filter is disabled
+    useEffect(() => {
+        if (!widget.data.tableFiltering) {
+            setColumnFilters([]);
+        }
+    }, [widget.data.tableFiltering, setColumnFilters]);
+
+    // Reset sorting when sorting is disabled
+    useEffect(() => {
+        if (!widget.data.tableSorting) {
+            setSorting([]);
+        }
+    }, [widget.data.tableSorting, setSorting]);
 
     const configuredPageSize = useMemo(() => Number(widget.data.tablePageSize) || 25, [widget.data.tablePageSize]);
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: configuredPageSize });
@@ -509,10 +530,10 @@ const JsonTableCollection: FC = () => {
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        enableMultiSort: false,
+        enableMultiSort: widget.data.tableSortingMulti ?? false,
         globalFilterFn: 'includesString',
         columnResizeMode: 'onChange',
-        enableColumnResizing: widget.data.tableAutoSize !== true,
+        enableColumnResizing: !isAutoSize,
         defaultColumn: { minSize: 40, maxSize: 2000 },
         state: {
             sorting,
@@ -544,18 +565,29 @@ const JsonTableCollection: FC = () => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const activeColumnRef = useRef<Column<FlatRow> | null>(null);
 
-    const openColumnMenu = useCallback((col: Column<FlatRow>, el: HTMLElement) => {
-        activeColumnRef.current = col;
-        setMenuAnchor(el);
-    }, []);
+    // State for active column sort/filter - computed when menu opens
+    const [activeColumnSorted, setActiveColumnSorted] = useState<SortingState[0] | undefined>(undefined);
+    const [activeColumnFilter, setActiveColumnFilter] = useState<string | undefined>(undefined);
+
+    const openColumnMenu = useCallback(
+        (col: Column<FlatRow>, el: HTMLElement) => {
+            activeColumnRef.current = col;
+            // Compute sort/filter values when menu opens, not on every render
+            const columnId = col.id;
+            const sorted = sorting.find(s => s.id === columnId);
+            const filterValue = columnFilters.find(f => f.id === columnId)?.value as string | undefined;
+            setActiveColumnSorted(sorted);
+            setActiveColumnFilter(filterValue);
+            setMenuAnchor(el);
+        },
+        [sorting, columnFilters],
+    );
 
     const closeColumnMenu = useCallback(() => {
         setMenuAnchor(null);
     }, []);
 
     // ── Auto-size column width measurement ───────────────────────────────────
-
-    const isAutoSize = widget.data.tableAutoSize !== false;
 
     useEffect(() => {
         if (!isAutoSize) {
@@ -568,11 +600,13 @@ const JsonTableCollection: FC = () => {
         }
 
         const observer = new ResizeObserver(() => {
-            const firstRow = bodyEl.querySelector('tr:first-child');
-            if (!firstRow) {
+            // Im virtualisierten Modus kann die erste <tr> eine Padding-Row sein.
+            // Daher selektieren wir die erste Daten-Row über das data-row-index Attribut.
+            const firstDataRow = bodyEl.querySelector('tr[data-row-index]');
+            if (!firstDataRow) {
                 return;
             }
-            const cells = firstRow.querySelectorAll('td');
+            const cells = firstDataRow.querySelectorAll('td');
             const headerGroup = table.getHeaderGroups()[0];
             if (!headerGroup || cells.length !== headerGroup.headers.length) {
                 return;
@@ -595,7 +629,7 @@ const JsonTableCollection: FC = () => {
 
     const tableSx = useMemo(() => {
         const sx: Record<string, unknown> = {
-            tableLayout: widget.data.tableAutoSize !== true ? 'fixed' : 'auto',
+            tableLayout: isAutoSize ? 'auto' : 'fixed',
             width: '100%',
         };
         if (widget.data.tableShowRowBorders === false) {
@@ -609,7 +643,7 @@ const JsonTableCollection: FC = () => {
             };
         }
         return sx;
-    }, [widget.data.tableShowRowBorders, widget.data.tableShowCellBorders, widget.data.tableAutoSize]);
+    }, [widget.data.tableShowRowBorders, widget.data.tableShowCellBorders, isAutoSize]);
 
     const headerBgColor = widget.data.tableHeaderBgColor;
     const headerTextColor = widget.data.tableHeaderTextColor;
@@ -695,16 +729,6 @@ const JsonTableCollection: FC = () => {
         [stripedColor, isGradientStriped],
     );
 
-    // ── Active column sort/filter state for menu ──────────────────────────────
-
-    const activeColumnSorted = activeColumnRef.current
-        ? sorting.find(s => s.id === activeColumnRef.current?.id)
-        : undefined;
-
-    const activeColumnFilter = activeColumnRef.current
-        ? (columnFilters.find(f => f.id === activeColumnRef.current?.id)?.value as string | undefined)
-        : undefined;
-
     // ── Row virtualization ────────────────────────────────────────────────────
 
     const tableRows = table.getRowModel().rows;
@@ -716,7 +740,8 @@ const JsonTableCollection: FC = () => {
         overscan: 10,
     });
 
-    const shouldVirtualize = widget.data.tablePagination === false && tableRows.length > 50;
+    const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
+    const shouldVirtualize = widget.data.tablePagination === false && tableRows.length > virtualizeThreshold;
     const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
     const paddingTop = virtualItems && virtualItems.length > 0 ? virtualItems[0].start : 0;
     const paddingBottom =
@@ -795,7 +820,7 @@ const JsonTableCollection: FC = () => {
                                             const isSorted = header.column.getIsSorted();
                                             const meta = header.column.columnDef.meta;
                                             const isSelectCol = header.column.id === '__select__';
-                                            const isFixed = widget.data.tableAutoSize !== true;
+                                            const isFixed = !isAutoSize;
 
                                             return (
                                                 <TableCell
@@ -1016,6 +1041,7 @@ const JsonTableCollection: FC = () => {
                                             return (
                                                 <TableRow
                                                     key={row.id}
+                                                    data-row-index={rowIndex}
                                                     sx={{
                                                         height: effectiveRowHeight,
                                                         ...getRowSx(rowIndex),
@@ -1023,16 +1049,12 @@ const JsonTableCollection: FC = () => {
                                                 >
                                                     {row.getVisibleCells().map(cell => {
                                                         const isSelectCell = cell.column.id === '__select__';
-                                                        const cellBgSx =
-                                                            !isSelectCell && cell.column.columnDef.meta?.getCellSx
-                                                                ? cell.column.columnDef.meta.getCellSx(cell.getValue())
-                                                                : {};
                                                         return (
                                                             <TableCell
                                                                 key={cell.id}
                                                                 align={cell.column.columnDef.meta?.align || 'left'}
                                                                 padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                                sx={{ ...cellBaseSx, ...cellBgSx }}
+                                                                sx={cellBaseSx}
                                                             >
                                                                 {flexRender(
                                                                     cell.column.columnDef.cell,
@@ -1057,6 +1079,7 @@ const JsonTableCollection: FC = () => {
                                     tableRows.map((row, rowIndex) => (
                                         <TableRow
                                             key={row.id}
+                                            data-row-index={rowIndex}
                                             sx={{
                                                 height: effectiveRowHeight,
                                                 ...getRowSx(rowIndex),
@@ -1064,16 +1087,12 @@ const JsonTableCollection: FC = () => {
                                         >
                                             {row.getVisibleCells().map(cell => {
                                                 const isSelectCell = cell.column.id === '__select__';
-                                                const cellBgSx =
-                                                    !isSelectCell && cell.column.columnDef.meta?.getCellSx
-                                                        ? cell.column.columnDef.meta.getCellSx(cell.getValue())
-                                                        : {};
                                                 return (
                                                     <TableCell
                                                         key={cell.id}
                                                         align={cell.column.columnDef.meta?.align || 'left'}
                                                         padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                        sx={{ ...cellBaseSx, ...cellBgSx }}
+                                                        sx={cellBaseSx}
                                                     >
                                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </TableCell>
@@ -1192,7 +1211,13 @@ const JsonTableCollection: FC = () => {
                         variant="body2"
                         color="text.secondary"
                     >
-                        {!isValidType ? Generic.t('json_table_invalid_type') : Generic.t('json_table_no_data')}
+                        {oidType === undefined
+                            ? Generic.t('json_table_no_oid')
+                            : !isValidType
+                              ? Generic.t('json_table_invalid_type')
+                              : columnConfig.length > 0 && columns.length === 0
+                                ? Generic.t('json_table_all_columns_hidden')
+                                : Generic.t('json_table_no_data')}
                     </Typography>
                 </Box>
             )}

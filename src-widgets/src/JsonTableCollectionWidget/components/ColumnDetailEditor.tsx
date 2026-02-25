@@ -422,6 +422,40 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>
+                            {/* Format Type Selector */}
+                            <FormControl
+                                fullWidth
+                                size="small"
+                            >
+                                <InputLabel>{Generic.t('json_table_format_type')}</InputLabel>
+                                <Select
+                                    value={column.format?.type || 'auto'}
+                                    label={Generic.t('json_table_format_type')}
+                                    onChange={e => {
+                                        const selectedType = e.target.value;
+                                        if (selectedType === 'auto') {
+                                            // Clear format type to use auto-detection
+                                            const { type, ...restFormat } = column.format || {};
+                                            onChange({
+                                                ...column,
+                                                format: Object.keys(restFormat).length > 0 ? restFormat : undefined,
+                                            });
+                                        } else {
+                                            updateFormat({ type: selectedType as ColumnFormatConfig['type'] });
+                                        }
+                                    }}
+                                >
+                                    <MenuItem value="auto">
+                                        {Generic.t('json_table_format_type_auto')}
+                                        {detectedType && ` (${detectedType})`}
+                                    </MenuItem>
+                                    <MenuItem value="string">{Generic.t('json_table_format_type_string')}</MenuItem>
+                                    <MenuItem value="number">{Generic.t('json_table_format_type_number')}</MenuItem>
+                                    <MenuItem value="date">{Generic.t('json_table_format_type_date')}</MenuItem>
+                                    <MenuItem value="boolean">{Generic.t('json_table_format_type_boolean')}</MenuItem>
+                                </Select>
+                            </FormControl>
+
                             {/* Number formatting */}
                             {(detectedType === 'number' || column.format?.type === 'number') && (
                                 <>

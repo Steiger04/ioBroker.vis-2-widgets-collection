@@ -153,7 +153,7 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
  * @param inputFormat - Detected input format for correct string parsing (optional).
  * @returns Formatted date string or original value as string on error.
  */
-export function formatDateValue(value: unknown, formatString?: string, inputFormat?: DateFormatId): string {
+export function formatDateValue(value: unknown, formatString?: string, _inputFormat?: DateFormatId): string {
     if (value === null || value === undefined || value === '') {
         return '';
     }
@@ -162,12 +162,20 @@ export function formatDateValue(value: unknown, formatString?: string, inputForm
         let date: Date;
 
         if (typeof value === 'string') {
-            // Use normalizeToIsoDate for correct parsing of all supported formats
-            const iso = normalizeToIsoDate(value, inputFormat);
-            if (!iso) {
-                return toDisplayString(value);
+            const trimmed = value.trim();
+
+            // For pure YYYY-MM-DD format (without time/timezone): parse directly to avoid UTC timezone trap.
+            // new Date("2024-12-01") interprets as UTC midnight, but getDate()/getMonth()
+            // use local timezone. In UTC-5, "2024-12-01" UTC midnight becomes Nov 30 locally!
+            // Solution: Use local time constructor new Date(year, month-1, day) instead.
+            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                const [year, month, day] = trimmed.split('-').map(Number);
+                date = new Date(year, month - 1, day); // Local time, not UTC
+            } else {
+                // Strings with time/timezone component: parse directly with Date constructor
+                // which preserves time and timezone information (e.g., ISO-8601 with time)
+                date = new Date(trimmed);
             }
-            date = new Date(iso);
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
             // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps

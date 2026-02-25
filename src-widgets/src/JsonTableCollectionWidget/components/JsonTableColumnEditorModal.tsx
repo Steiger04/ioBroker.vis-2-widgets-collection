@@ -85,6 +85,8 @@ function JsonTableColumnEditorModal({
     const [loading, setLoading] = useState(false);
     // Whether to show unsaved-changes warning snackbar
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+    // Error message from column discovery
+    const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
     // Ref to track if initial discovery has been done for this open
     const initialDiscoveryDone = useRef(false);
@@ -113,6 +115,7 @@ function JsonTableColumnEditorModal({
             editedColumnsRef.current = columns;
             setSelectedPath(columns.length > 0 ? columns[0].path : null);
             initialDiscoveryDone.current = false;
+            setDiscoveryError(null);
         }
     }, [open, columns]);
 
@@ -131,6 +134,7 @@ function JsonTableColumnEditorModal({
     // the try block do NOT need explicit setLoading(false) calls.
     const discoverColumns = useCallback(async () => {
         setLoading(true);
+        setDiscoveryError(null);
         try {
             const oid = data.oid as string | undefined;
             if (!oid) {
@@ -190,8 +194,10 @@ function JsonTableColumnEditorModal({
             // Auto-select first column if none is selected yet.
             // Functional setter avoids capturing selectedPath in the dependency array.
             setSelectedPath(prev => (prev === null && merged.length > 0 ? merged[0].path : prev));
-        } catch {
-            // Silently handle errors during discovery
+        } catch (error) {
+            // Handle errors during discovery and show alert to user
+            const message = error instanceof Error ? error.message : 'Failed to discover columns';
+            setDiscoveryError(message);
         } finally {
             setLoading(false);
         }
@@ -282,65 +288,78 @@ function JsonTableColumnEditorModal({
                 </DialogTitle>
                 <DialogContent
                     dividers
-                    sx={{ p: 0, display: 'flex', overflow: 'hidden' }}
+                    sx={{ p: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                 >
-                    {/* Left Panel - Column List (40%) */}
-                    <Box
-                        sx={{
-                            width: '40%',
-                            minWidth: 280,
-                            borderRight: 1,
-                            borderColor: 'divider',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                        }}
-                    >
-                        <ColumnList
-                            columns={editedColumns}
-                            discoveredColumns={discoveredColumns}
-                            selectedPath={selectedPath}
-                            onSelect={setSelectedPath}
-                            onChange={handleListChange}
-                            onRefresh={discoverColumns}
-                            loading={loading}
-                        />
-                    </Box>
-
-                    {/* Right Panel - Detail Editor (60%) */}
-                    <Box
-                        sx={{
-                            width: '60%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                        }}
-                    >
-                        {selectedColumn ? (
-                            <ColumnDetailEditor
-                                column={selectedColumn}
-                                discoveredColumn={selectedDiscovered}
-                                onChange={handleColumnChange}
+                    {/* Discovery Error Alert */}
+                    {discoveryError && (
+                        <Alert
+                            severity="error"
+                            onClose={() => setDiscoveryError(null)}
+                            sx={{ mx: 2, mt: 2 }}
+                        >
+                            {discoveryError}
+                        </Alert>
+                    )}
+                    {/* Main Content - Flex Row */}
+                    <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                        {/* Left Panel - Column List (40%) */}
+                        <Box
+                            sx={{
+                                width: '40%',
+                                minWidth: 280,
+                                borderRight: 1,
+                                borderColor: 'divider',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <ColumnList
+                                columns={editedColumns}
+                                discoveredColumns={discoveredColumns}
+                                selectedPath={selectedPath}
+                                onSelect={setSelectedPath}
+                                onChange={handleListChange}
+                                onRefresh={discoverColumns}
+                                loading={loading}
                             />
-                        ) : (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: '100%',
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
+                        </Box>
+
+                        {/* Right Panel - Detail Editor (60%) */}
+                        <Box
+                            sx={{
+                                width: '60%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {selectedColumn ? (
+                                <ColumnDetailEditor
+                                    column={selectedColumn}
+                                    discoveredColumn={selectedDiscovered}
+                                    onChange={handleColumnChange}
+                                />
+                            ) : (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '100%',
+                                    }}
                                 >
-                                    {editedColumns.length > 0
-                                        ? Generic.t('json_table_select_column')
-                                        : Generic.t('json_table_no_columns')}
-                                </Typography>
-                            </Box>
-                        )}
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        {editedColumns.length > 0
+                                            ? Generic.t('json_table_select_column')
+                                            : Generic.t('json_table_no_columns')}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ px: 2.5, py: 1.5 }}>
