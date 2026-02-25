@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "Переопределяет настройку плотности, если установлено",
     "json_table_header_height": "Высота заголовка (px)",
     "json_table_auto_size": "Автоматически подгонять столбцы",
+    "json_table_header_elevation": "Тень заголовка",
+    "json_table_header_elevation_tooltip": "Интенсивность тени заголовка (0=нет, 24=сильная)",
     "json_table_pagination": "Постраничная навигация",
     "json_table_pagination_enabled": "Включить постраничную навигацию",
     "json_table_page_size": "Размер страницы",

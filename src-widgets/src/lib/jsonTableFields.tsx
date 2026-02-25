@@ -52,6 +52,16 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_auto_size',
         default: false,
     },
+    {
+        name: 'tableHeaderElevation',
+        label: 'json_table_header_elevation',
+        type: 'slider',
+        min: 0,
+        max: 24,
+        step: 1,
+        default: 6,
+        tooltip: 'json_table_header_elevation_tooltip',
+    },
 
     // ── Pagination ──────────────────────────────────────────────────
     {

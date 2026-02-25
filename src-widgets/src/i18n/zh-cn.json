@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "如果设置，则覆盖密度设置",
     "json_table_header_height": "标题高度（像素）",
     "json_table_auto_size": "自动调整列宽",
+    "json_table_header_elevation": "标题阴影",
+    "json_table_header_elevation_tooltip": "标题阴影强度（0=无，24=强）",
     "json_table_pagination": "分页",
     "json_table_pagination_enabled": "启用分页",
     "json_table_page_size": "页面大小",

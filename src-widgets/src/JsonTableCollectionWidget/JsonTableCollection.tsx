@@ -511,7 +511,7 @@ const JsonTableCollection: FC = () => {
         enableMultiSort: false,
         globalFilterFn: 'includesString',
         columnResizeMode: 'onChange',
-        enableColumnResizing: widget.data.tableAutoSize === false,
+        enableColumnResizing: widget.data.tableAutoSize !== true,
         defaultColumn: { minSize: 40, maxSize: 2000 },
         state: {
             sorting,
@@ -594,7 +594,7 @@ const JsonTableCollection: FC = () => {
 
     const tableSx = useMemo(() => {
         const sx: Record<string, unknown> = {
-            tableLayout: widget.data.tableAutoSize === false ? 'fixed' : 'auto',
+            tableLayout: widget.data.tableAutoSize !== true ? 'fixed' : 'auto',
             width: '100%',
         };
         if (widget.data.tableShowRowBorders === false) {
@@ -624,16 +624,27 @@ const JsonTableCollection: FC = () => {
         [effectiveHeaderHeight, headerTextColor, headerFontSize],
     );
 
+    // Typography sx for header text - ensures color and fontSize are applied correctly
+    const headerTextSx = useMemo(
+        () => ({
+            ...(headerTextColor && { color: headerTextColor }),
+            ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
+        }),
+        [headerTextColor, headerFontSize],
+    );
+
     const noCard = widget.data.noCard === true;
 
-    // Header container styling - uses theme.shadows[6] for Paper elevation={6} consistency
+    // Header container styling - uses configurable elevation (default: 6)
     // backgroundColor fallback ensures header is not transparent
     const headerContainerSx = useMemo(() => {
+        const headerElevation = widget.data.tableHeaderElevation ?? 6;
+
         const base: Record<string, unknown> = noCard
             ? { backgroundColor: 'transparent', boxShadow: 'none' }
             : {
                   backgroundColor: 'background.paper',
-                  boxShadow: theme.shadows[6],
+                  boxShadow: headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
               };
 
         const gradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
@@ -644,7 +655,7 @@ const JsonTableCollection: FC = () => {
             return { ...base, backgroundColor: headerBgColor };
         }
         return base;
-    }, [noCard, headerBgColor, theme.shadows]);
+    }, [noCard, headerBgColor, theme.shadows, widget.data.tableHeaderElevation]);
 
     const getHeaderCellWidth = useCallback(
         (header: Header<FlatRow, unknown>): number | 'auto' => {
@@ -783,7 +794,7 @@ const JsonTableCollection: FC = () => {
                                             const isSorted = header.column.getIsSorted();
                                             const meta = header.column.columnDef.meta;
                                             const isSelectCol = header.column.id === '__select__';
-                                            const isFixed = widget.data.tableAutoSize === false;
+                                            const isFixed = widget.data.tableAutoSize !== true;
 
                                             return (
                                                 <TableCell
@@ -826,6 +837,7 @@ const JsonTableCollection: FC = () => {
                                                                         component="span"
                                                                         fontWeight="medium"
                                                                         noWrap
+                                                                        sx={headerTextSx}
                                                                     >
                                                                         {flexRender(
                                                                             header.column.columnDef.header,
@@ -839,6 +851,7 @@ const JsonTableCollection: FC = () => {
                                                                     component="span"
                                                                     fontWeight="medium"
                                                                     noWrap
+                                                                    sx={headerTextSx}
                                                                 >
                                                                     {flexRender(
                                                                         header.column.columnDef.header,

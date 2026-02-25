@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "Remplace le paramètre de densité si défini",
     "json_table_header_height": "Hauteur d'en-tête (px)",
     "json_table_auto_size": "Ajuster automatiquement les colonnes",
+    "json_table_header_elevation": "Ombre de l'en-tête",
+    "json_table_header_elevation_tooltip": "Intensité de l'ombre de l'en-tête du tableau (0=aucune, 24=forte)",
     "json_table_pagination": "Pagination",
     "json_table_pagination_enabled": "Activer la pagination",
     "json_table_page_size": "Taille de page",

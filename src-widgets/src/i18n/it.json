@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "Sovrascrive l'impostazione della densità se impostato",
     "json_table_header_height": "Altezza intestazione (px)",
     "json_table_auto_size": "Adatta automaticamente le colonne",
+    "json_table_header_elevation": "Ombra dell'intestazione",
+    "json_table_header_elevation_tooltip": "Intensità dell'ombra dell'intestazione della tabella (0=nessuna, 24=forte)",
     "json_table_pagination": "Impaginazione",
     "json_table_pagination_enabled": "Abilita impaginazione",
     "json_table_page_size": "Dimensione pagina",

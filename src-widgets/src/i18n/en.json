@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "Overrides density setting if set",
     "json_table_header_height": "Header height (px)",
     "json_table_auto_size": "Auto-size columns",
+    "json_table_header_elevation": "Header elevation",
+    "json_table_header_elevation_tooltip": "Shadow intensity of the table header (0=none, 24=strong)",
     "json_table_pagination": "Pagination",
     "json_table_pagination_enabled": "Enable pagination",
     "json_table_page_size": "Page size",

@@ -330,6 +330,8 @@
     "json_table_row_height_tooltip": "Перевизначає налаштування щільності, якщо встановлено",
     "json_table_header_height": "Висота заголовка (px)",
     "json_table_auto_size": "Автоматично підгоняти стовпці",
+    "json_table_header_elevation": "Тінь заголовка",
+    "json_table_header_elevation_tooltip": "Інтенсивність тіні заголовка (0=немає, 24=сильна)",
     "json_table_pagination": "Пагінація",
     "json_table_pagination_enabled": "Увімкнути пагінацію",
     "json_table_page_size": "Розмір сторінки",

@@ -28,6 +28,7 @@ const JSON_TABLE_DATA_FIELDS = [
     'tableRowHeight',
     'tableHeaderHeight',
     'tableAutoSize',
+    'tableHeaderElevation',
     'tablePagination',
     'tablePageSize',
     'tablePageSizeOptions',

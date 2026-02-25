@@ -22,6 +22,9 @@ export interface JsonTableFieldsRxData {
     /** Auto-size columns to fit content on first render. @default false */
     tableAutoSize?: boolean;
 
+    /** Header elevation/shadow intensity (0-24). @default 6 */
+    tableHeaderElevation?: number;
+
     // ── Pagination ──────────────────────────────────────────────────
 
     /** Enable pagination. @default true */
