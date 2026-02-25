@@ -363,13 +363,21 @@ const JsonTableCollection: FC = () => {
                             const rawValue = getValue();
                             const { displayValue, textSx, bgSx } = buildCellContent(rawValue, cfg);
                             return (
-                                <Box sx={{ width: '100%', height: '100%', display: 'block', ...bgSx }}>
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        ...bgSx,
+                                    }}
+                                >
                                     <Typography
                                         variant="body2"
                                         component="span"
                                         noWrap
                                         title={displayValue}
-                                        sx={{ width: '100%', display: 'block', lineHeight: 'inherit', ...textSx }}
+                                        sx={{ width: '100%', lineHeight: 'inherit', ...textSx }}
                                     >
                                         {displayValue}
                                     </Typography>
@@ -411,15 +419,17 @@ const JsonTableCollection: FC = () => {
                                     : String(rawValue as string | number | boolean | bigint)
                                 : '';
                         return (
-                            <Typography
-                                variant="body2"
-                                component="span"
-                                noWrap
-                                title={displayValue}
-                                sx={{ width: '100%', display: 'block', lineHeight: 'inherit' }}
-                            >
-                                {displayValue}
-                            </Typography>
+                            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+                                <Typography
+                                    variant="body2"
+                                    component="span"
+                                    noWrap
+                                    title={displayValue}
+                                    sx={{ width: '100%', lineHeight: 'inherit' }}
+                                >
+                                    {displayValue}
+                                </Typography>
+                            </Box>
                         );
                     },
                     meta: { align: 'left' },
@@ -714,6 +724,7 @@ const JsonTableCollection: FC = () => {
             height: effectiveRowHeight,
             maxHeight: effectiveRowHeight,
             padding: '0 8px',
+            verticalAlign: 'middle',
         }),
         [widget.data.tableCellFontSize, effectiveRowHeight],
     );
