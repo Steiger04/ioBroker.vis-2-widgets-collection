@@ -180,8 +180,12 @@ export function detectDateFromString(value: string): DateFormatId | null {
 
 /**
  * Check if a numeric value could be an epoch timestamp.
- * - Epoch seconds: >= 1e9 (Sep 2001) and < 1e12
- * - Epoch milliseconds: >= 1e12
+ * - Epoch milliseconds: >= 1e11 (approx. Mar 1973 in ms) — covers all practical ms timestamps
+ * - Epoch seconds: >= 1e9 (Sep 2001) and < 1e11
+ *
+ * Using 1e11 as the threshold ensures pre-2001 millisecond timestamps
+ * (e.g., 946684800000 for 2000-01-01) are correctly identified as milliseconds,
+ * not mistakenly multiplied by 1000 as seconds.
  *
  * Returns format identifier or null.
  */
@@ -190,10 +194,13 @@ export function detectDateFromNumber(value: number): DateFormatId | null {
         return null;
     }
 
-    if (value >= 1e12) {
+    // Milliseconds threshold: 1e11 = 100,000,000,000 (Sat Mar 03 1973 09:46:40 UTC)
+    // This safely covers all millisecond timestamps from 1973 onwards
+    if (value >= 1e11) {
         return 'epoch-ms';
     }
 
+    // Seconds threshold: 1e9 = 1,000,000,000 (Sat Sep 08 2001 21:46:40 UTC)
     if (value >= 1e9) {
         return 'epoch-s';
     }

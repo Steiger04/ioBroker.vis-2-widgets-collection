@@ -100,9 +100,10 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
         return '';
     }
 
-    // Numbers: epoch-ms (≥1e12) or epoch-s
+    // Numbers: epoch-ms (≥1e11) or epoch-s
+    // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
     if (typeof value === 'number') {
-        const d = new Date(value >= 1e12 ? value : value * 1000);
+        const d = new Date(value >= 1e11 ? value : value * 1000);
         return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
     }
 
@@ -169,7 +170,8 @@ export function formatDateValue(value: unknown, formatString?: string, inputForm
             date = new Date(iso);
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
-            date = new Date(value >= 1e12 ? value : value * 1000);
+            // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
+            date = new Date(value >= 1e11 ? value : value * 1000);
         } else if (value instanceof Date) {
             date = value;
         } else {

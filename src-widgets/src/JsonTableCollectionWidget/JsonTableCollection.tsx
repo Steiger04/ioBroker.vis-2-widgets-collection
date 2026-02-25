@@ -118,7 +118,8 @@ function toSortableTime(value: unknown, inputFormat?: DateFormatId): number {
         return 0;
     }
     if (typeof value === 'number') {
-        return value >= 1e12 ? value : value * 1000;
+        // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
+        return value >= 1e11 ? value : value * 1000;
     }
     if (typeof value === 'string') {
         const iso = normalizeToIsoDate(value, inputFormat);
