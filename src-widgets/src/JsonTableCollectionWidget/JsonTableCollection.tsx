@@ -1137,6 +1137,40 @@ const JsonTableCollection: FC = () => {
                                     {`${from}\u2013${to} / ${count}`}
                                 </Typography>
                             )}
+                            slots={{
+                                menuItem: function TypographyMenuItem(props: {
+                                    children?: React.ReactNode;
+                                    value?: unknown;
+                                    [key: string]: unknown;
+                                }) {
+                                    const { children, value, ...rest } = props;
+                                    return (
+                                        <MenuItem
+                                            {...rest}
+                                            value={value as string | number}
+                                        >
+                                            <Typography
+                                                variant="body2"
+                                                component="span"
+                                            >
+                                                {children}
+                                            </Typography>
+                                        </MenuItem>
+                                    );
+                                },
+                            }}
+                            slotProps={{
+                                select: {
+                                    renderValue: (value: unknown) => (
+                                        <Typography
+                                            variant="body2"
+                                            component="span"
+                                        >
+                                            {String(value)}
+                                        </Typography>
+                                    ),
+                                },
+                            }}
                         />
                     )}
 
