@@ -150,7 +150,7 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
  *
  * @param value - Raw value (string, number, or Date).
  * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
- * @param inputFormat - Detected input format for correct string parsing (optional).
+ * @param _inputFormat - Detected input format for correct string parsing (optional).
  * @returns Formatted date string or original value as string on error.
  */
 export function formatDateValue(value: unknown, formatString?: string, _inputFormat?: DateFormatId): string {
@@ -259,14 +259,18 @@ export function formatStringValue(raw: string, format: ColumnFormatConfig): stri
     let result = format.stringTrim ? raw.trim() : raw;
 
     if (format.stringRegex) {
-        try {
-            const re = new RegExp(format.stringRegex, format.stringRegexFlags ?? '');
-            const match = result.match(re);
-            if (match) {
-                result = match[format.stringRegexGroup ?? 0] ?? result;
+        // Limit regex pattern length to prevent ReDoS attacks
+        const MAX_REGEX_LENGTH = 200;
+        if (format.stringRegex.length <= MAX_REGEX_LENGTH) {
+            try {
+                const re = new RegExp(format.stringRegex, format.stringRegexFlags ?? '');
+                const match = result.match(re);
+                if (match) {
+                    result = match[format.stringRegexGroup ?? 0] ?? result;
+                }
+            } catch {
+                // invalid regex pattern — keep value unchanged
             }
-        } catch {
-            // invalid regex pattern — keep value unchanged
         }
     }
 

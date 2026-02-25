@@ -36,10 +36,16 @@ export interface JsonTableFieldsRxData {
     /** Options offered in page-size selector. @default '10,25,50,100' */
     tablePageSizeOptions?: string;
 
+    /** Row count threshold for virtualization when pagination is disabled. @default 50 */
+    tableVirtualizeThreshold?: number;
+
     // ── Features ────────────────────────────────────────────────────
 
     /** Enable column sorting. @default true */
     tableSorting?: boolean;
+
+    /** Enable multi-column sorting. @default false */
+    tableSortingMulti?: boolean;
 
     /** Enable column filter. @default false */
     tableFiltering?: boolean;

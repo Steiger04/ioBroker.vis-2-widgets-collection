@@ -80,10 +80,11 @@ import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
+// Extend ColumnMeta to include custom alignment property for table cells
 
 declare module '@tanstack/react-table' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface ColumnMeta<_TData, _TValue> {
+    interface ColumnMeta<TData, TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
     }
@@ -475,7 +476,11 @@ const JsonTableCollection: FC = () => {
         if (isAutoSize) {
             return;
         }
-        localStorage.setItem(`jtc_col_sizes_${widgetId}`, JSON.stringify(columnSizing));
+        try {
+            localStorage.setItem(`jtc_col_sizes_${widgetId}`, JSON.stringify(columnSizing));
+        } catch {
+            // localStorage not available or full - silently ignore
+        }
     }, [columnSizing, widgetId, isAutoSize]);
 
     // Reset globalFilter when quick filter is disabled

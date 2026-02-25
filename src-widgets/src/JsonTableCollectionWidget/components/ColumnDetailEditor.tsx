@@ -434,11 +434,10 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                                     onChange={e => {
                                         const selectedType = e.target.value;
                                         if (selectedType === 'auto') {
-                                            // Clear format type to use auto-detection
-                                            const { type, ...restFormat } = column.format || {};
+                                            // Clear format completely to use auto-detection
                                             onChange({
                                                 ...column,
-                                                format: Object.keys(restFormat).length > 0 ? restFormat : undefined,
+                                                format: undefined,
                                             });
                                         } else {
                                             updateFormat({ type: selectedType as ColumnFormatConfig['type'] });
