@@ -57,7 +57,7 @@ import { useJsonTableAnalysis } from '../hooks/useJsonTableAnalysis';
 import useOidValue from '../hooks/useOidValue';
 import Generic from '../Generic';
 
-import { parseColumnConfig } from './types';
+import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useTableSettings } from './hooks/useTableSettings';
 import { gradientColor } from '../lib/helper/gradientColor';
@@ -85,6 +85,33 @@ type FlatRow = Record<string, unknown>;
 
 const DENSITY_ROW_HEIGHT: Record<string, number> = { compact: 36, standard: 52, comfortable: 68 };
 const DENSITY_HEADER_HEIGHT: Record<string, number> = { compact: 36, standard: 56, comfortable: 68 };
+
+// ── TypographyMenuItem component for TablePagination ───────────────────────────
+
+/**
+ * Stable menu item component for TablePagination page size selector.
+ * Extracted to module scope to avoid creating new function references on each render.
+ */
+const TypographyMenuItem: FC<{
+    children?: React.ReactNode;
+    value?: unknown;
+    [key: string]: unknown;
+}> = props => {
+    const { children, value, ...rest } = props;
+    return (
+        <MenuItem
+            {...rest}
+            value={value as string | number}
+        >
+            <Typography
+                variant="body2"
+                component="span"
+            >
+                {children}
+            </Typography>
+        </MenuItem>
+    );
+};
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -220,6 +247,7 @@ const JsonTableCollection: FC = () => {
         tableAutoSize: isAutoSize,
         tableRowSelection: widget.data.tableRowSelection === true,
         tablePageSize: Number(widget.data.tablePageSize) || 25,
+        tablePageSizeOptions: widget.data.tablePageSizeOptions,
         tablePagination: widget.data.tablePagination !== false,
         tableFiltering: widget.data.tableFiltering === true,
         tableSorting: widget.data.tableSorting !== false,
@@ -306,8 +334,8 @@ const JsonTableCollection: FC = () => {
         }
 
         const observer = new ResizeObserver(() => {
-            // Im virtualisierten Modus kann die erste <tr> eine Padding-Row sein.
-            // Daher selektieren wir die erste Daten-Row über das data-row-index Attribut.
+            // In virtualized mode the first <tr> may be a padding row.
+            // Therefore we select the first data row via the data-row-index attribute.
             const firstDataRow = bodyEl.querySelector('tr[data-row-index]');
             if (!firstDataRow) {
                 return;
@@ -840,26 +868,7 @@ const JsonTableCollection: FC = () => {
                                 </Typography>
                             )}
                             slots={{
-                                menuItem: function TypographyMenuItem(props: {
-                                    children?: React.ReactNode;
-                                    value?: unknown;
-                                    [key: string]: unknown;
-                                }) {
-                                    const { children, value, ...rest } = props;
-                                    return (
-                                        <MenuItem
-                                            {...rest}
-                                            value={value as string | number}
-                                        >
-                                            <Typography
-                                                variant="body2"
-                                                component="span"
-                                            >
-                                                {children}
-                                            </Typography>
-                                        </MenuItem>
-                                    );
-                                },
+                                menuItem: TypographyMenuItem,
                             }}
                             slotProps={{
                                 select: {

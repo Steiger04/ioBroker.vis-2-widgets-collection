@@ -210,8 +210,8 @@ export function formatDateValue(value: unknown, formatString?: string, _inputFor
             SSS: pad(date.getMilliseconds(), 3),
         };
 
-        // Check for ISO format request
-        if (fmt.includes('xxx')) {
+        // Check for ISO format request (exact match for date-fns ISO-8601 UTC format)
+        if (fmt === "yyyy-MM-dd'T'HH:mm:ss.SSSxxx" || /xxx$/.test(fmt)) {
             return date.toISOString();
         }
 

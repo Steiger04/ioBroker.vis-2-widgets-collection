@@ -32,6 +32,8 @@ export interface UseTableSettingsOptions {
     tableRowSelection: boolean;
     /** Configured page size */
     tablePageSize: number;
+    /** Comma-separated string of page size options (e.g., "10,25,50,100") */
+    tablePageSizeOptions?: string;
     /** Whether pagination is enabled */
     tablePagination: boolean;
     /** Whether column filtering is enabled */
@@ -106,6 +108,7 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         tableAutoSize,
         tableRowSelection,
         tablePageSize,
+        tablePageSizeOptions,
         tablePagination,
         tableFiltering,
         tableSorting,
@@ -213,10 +216,7 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     // ── Page Size Options ─────────────────────────────────────────────────────
 
-    const pageSizeOptions = useMemo(
-        () => parsePageSizeOptions(undefined), // Uses defaults, can be extended with raw options
-        [],
-    );
+    const pageSizeOptions = useMemo(() => parsePageSizeOptions(tablePageSizeOptions), [tablePageSizeOptions]);
 
     // ── Return ─────────────────────────────────────────────────────────────────
 

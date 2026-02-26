@@ -19,7 +19,8 @@ import type React from 'react';
 
 import Generic from '../Generic';
 import JsonTableColumnEditorModal from './components/JsonTableColumnEditorModal';
-import { parseColumnConfig, utf8ToBase64, type ColumnConfigEntry } from './types';
+import { parseColumnConfig, utf8ToBase64 } from './utils/columnConfig';
+import type { ColumnConfigEntry } from './types';
 
 import type {
     RxWidgetInfoAttributesField,

@@ -33,7 +33,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { TYPE_COLORS, type ColumnConfigEntry } from '../types';
+import { TYPE_COLORS } from '../utils/columnConfig';
+import type { ColumnConfigEntry } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 
 /** Props for the ColumnList component. */

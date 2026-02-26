@@ -32,7 +32,8 @@ import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
-import { TYPE_COLORS, type ColumnConfigEntry, type ColumnStyleRule, type ColumnFormatConfig } from '../types';
+import { TYPE_COLORS } from '../utils/columnConfig';
+import type { ColumnConfigEntry, ColumnStyleRule, ColumnFormatConfig } from '../types';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 
 // Sub-editor imports

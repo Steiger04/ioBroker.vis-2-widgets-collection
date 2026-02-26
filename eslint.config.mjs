@@ -26,7 +26,6 @@ export default [
             'src-widgets/build/',
             'src-widgets/node_modules/',
             'src-widgets/public/',
-            'src-widgets/src/hooks/useJsonTableAnalysis/testJson.ts',
             'test/',
             'tmp/',
             'widgets/',
