@@ -504,6 +504,7 @@ const JsonTableCollection: FC = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
+                        p: Number(widget.data.jsonTablePadding) || 0,
                     }}
                 >
                     {widget.data.tableQuickFilter === true && (

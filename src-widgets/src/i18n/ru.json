@@ -332,6 +332,7 @@
     "json_table_auto_size": "Автоматически подгонять столбцы",
     "json_table_header_elevation": "Тень заголовка",
     "json_table_header_elevation_tooltip": "Интенсивность тени заголовка (0=нет, 24=сильная)",
+    "json_table_padding": "Отступы",
     "json_table_pagination": "Постраничная навигация",
     "json_table_pagination_enabled": "Включить постраничную навигацию",
     "json_table_page_size": "Размер страницы",

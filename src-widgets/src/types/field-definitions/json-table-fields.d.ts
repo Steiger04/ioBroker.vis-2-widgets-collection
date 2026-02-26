@@ -25,6 +25,13 @@ export interface JsonTableFieldsRxData {
     /** Header elevation/shadow intensity (0-24). @default 6 */
     tableHeaderElevation?: number;
 
+    /**
+     * Padding applied to table container spacing.
+     *
+     * @default 1
+     */
+    jsonTablePadding?: number;
+
     // ── Pagination ──────────────────────────────────────────────────
 
     /** Enable pagination. @default true */

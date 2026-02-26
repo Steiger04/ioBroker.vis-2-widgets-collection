@@ -332,6 +332,7 @@
     "json_table_auto_size": "Automatyczne dopasowanie kolumn",
     "json_table_header_elevation": "Cień nagłówka",
     "json_table_header_elevation_tooltip": "Intensywność cienia nagłówka (0=brak, 24=mocna)",
+    "json_table_padding": "Wypełnienie",
     "json_table_pagination": "Stronicowanie",
     "json_table_pagination_enabled": "Włącz stronicowanie",
     "json_table_page_size": "Rozmiar strony",

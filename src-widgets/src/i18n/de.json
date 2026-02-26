@@ -332,6 +332,7 @@
     "json_table_auto_size": "Spalten automatisch anpassen",
     "json_table_header_elevation": "Kopfzeilen-Schattierung",
     "json_table_header_elevation_tooltip": "Schattierungsstärke der Kopfzeile (0=keine, 24=stark)",
+    "json_table_padding": "Tabellen-Abstand",
     "json_table_pagination": "Seitenumbruch",
     "json_table_pagination_enabled": "Seitenumbruch aktivieren",
     "json_table_page_size": "Seitengröße",

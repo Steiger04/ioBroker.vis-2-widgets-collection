@@ -332,6 +332,7 @@
     "json_table_auto_size": "Kolommen automatisch aanpassen",
     "json_table_header_elevation": "Kopregelschaduw",
     "json_table_header_elevation_tooltip": "Schaduwintensiteit van de tabelkopregel (0=geen, 24=sterk)",
+    "json_table_padding": "Opvulling",
     "json_table_pagination": "Paginering",
     "json_table_pagination_enabled": "Paginering inschakelen",
     "json_table_page_size": "Paginagrootte",

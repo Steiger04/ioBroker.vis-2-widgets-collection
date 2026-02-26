@@ -62,6 +62,14 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: 6,
         tooltip: 'json_table_header_elevation_tooltip',
     },
+    {
+        name: 'jsonTablePadding',
+        type: 'number',
+        label: 'json_table_padding',
+        default: 1,
+        step: 0.5,
+        min: 0,
+    },
 
     // ── Pagination ──────────────────────────────────────────────────
     {

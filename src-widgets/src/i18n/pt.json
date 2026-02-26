@@ -332,6 +332,7 @@
     "json_table_auto_size": "Ajustar colunas automaticamente",
     "json_table_header_elevation": "Sombra do cabeçalho",
     "json_table_header_elevation_tooltip": "Intensidade da sombra do cabeçalho (0=nenhuma, 24=forte)",
+    "json_table_padding": "Preenchimento",
     "json_table_pagination": "Paginação",
     "json_table_pagination_enabled": "Ativar paginação",
     "json_table_page_size": "Tamanho da página",

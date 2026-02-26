@@ -332,6 +332,7 @@
     "json_table_auto_size": "自动调整列宽",
     "json_table_header_elevation": "标题阴影",
     "json_table_header_elevation_tooltip": "标题阴影强度（0=无，24=强）",
+    "json_table_padding": "内边距",
     "json_table_pagination": "分页",
     "json_table_pagination_enabled": "启用分页",
     "json_table_page_size": "页面大小",
