@@ -1,10 +1,10 @@
-import { j as l, C as d, F as c, s as C, v as u, n as x, q as w, x as y, y as k, o as h, G as v, z as p, A as _, E as j, __tla as __tla_0 } from "./useData-B9ZrPGFV.js";
-import { u as M, d as z, __tla as __tla_1 } from "./useValueState-C03BVuGP.js";
+import { j as l, C as d, F as c, s as C, v as u, n as x, q as w, x as y, y as k, o as h, G as v, z as p, A as _, E as j, __tla as __tla_0 } from "./useData-CoMv8b7s.js";
+import { u as M, d as z, __tla as __tla_1 } from "./useValueState-CqWHZ0NH.js";
 import { v as m, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as F, __tla as __tla_3 } from "./Switch-sFS5B12S.js";
+import { S as F, __tla as __tla_3 } from "./Switch-hq_W31Xv.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_4 } from "./SwitchBase-Bo6-_dj-.js";
+import { __tla as __tla_4 } from "./SwitchBase-Dz75iFvF.js";
 let g;
 let __tla = Promise.all([
   (() => {

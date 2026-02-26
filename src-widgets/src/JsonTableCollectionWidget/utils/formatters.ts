@@ -11,6 +11,9 @@
 import type { ColumnFormatConfig } from '../types';
 import type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
 
+// Re-export DateFormatId for convenience
+export type { DateFormatId } from '../../hooks/useJsonTableAnalysis/types';
+
 /**
  * Safely convert an unknown value to a display string.
  * Handles objects (JSON.stringify), null/undefined (empty), and primitives.

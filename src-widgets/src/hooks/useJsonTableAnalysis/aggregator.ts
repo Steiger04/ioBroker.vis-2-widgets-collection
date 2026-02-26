@@ -128,8 +128,6 @@ export function aggregateColumns(
     maxDistinct: number = 100,
     dateConfidenceThreshold: number = 0.8,
 ): JsonTableColumn[] {
-    const totalRows = rows.length;
-
     // Initialize accumulators
     const accumulators = new Map<string, ColumnAccumulator>();
     for (const path of paths) {

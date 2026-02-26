@@ -16,8 +16,10 @@ export default [
     {
         // specify files to exclude from linting here
         ignores: [
+            '.claude/',
             '.dev-server/',
             '.github/',
+            '.kilocode/',
             '.vscode/',
             'node_modules/',
             'src-widgets/.__mf__temp/',
