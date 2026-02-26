@@ -19,9 +19,12 @@ tmp
 #ignore .commitinfo created by ioBroker release script
 .commitinfo
 
+AGENTS.md
+
 # Claude Code
 .claude
 
 #kilocode
 .kilocode
 plans
+.kilocodemodes
