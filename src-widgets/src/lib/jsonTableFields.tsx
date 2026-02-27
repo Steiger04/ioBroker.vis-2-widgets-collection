@@ -170,10 +170,65 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: false,
     },
     {
+        name: 'verticalCellBorderWidth',
+        label: 'vertical_cell_border_width',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 1,
+        default: 1,
+        hidden: '!data.tableShowCellBorders',
+    },
+    {
+        name: 'verticalCellBorderColor',
+        label: 'vertical_cell_border_color',
+        default: '',
+        type: 'custom',
+        hidden: '!data.tableShowCellBorders',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider />,
+    },
+    {
         name: 'tableShowRowBorders',
         type: 'checkbox',
         label: 'json_table_show_row_borders',
         default: true,
+    },
+    {
+        name: 'horizontalCellBorderWidth',
+        label: 'horizontal_cell_border_width',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 1,
+        default: 1,
+        hidden: '!data.tableShowRowBorders',
+    },
+    {
+        name: 'horizontalCellBorderColor',
+        label: 'horizontal_cell_border_color',
+        default: '',
+        type: 'custom',
+        hidden: '!data.tableShowRowBorders',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
 
     // ── Header Styling ──────────────────────────────────────────────

@@ -73,8 +73,20 @@ export interface JsonTableFieldsRxData {
     /** Show vertical cell borders. @default false */
     tableShowCellBorders?: boolean;
 
+    /** Vertical cell border width in pixels (0-10). @default 1 */
+    verticalCellBorderWidth?: number;
+
+    /** Vertical cell border color (CSS color). */
+    verticalCellBorderColor?: string;
+
     /** Show horizontal row borders. @default true */
     tableShowRowBorders?: boolean;
+
+    /** Horizontal cell border width in pixels (0-10). @default 1 */
+    horizontalCellBorderWidth?: number;
+
+    /** Horizontal cell border color (CSS color). */
+    horizontalCellBorderColor?: string;
 
     // ── Header Styling ──────────────────────────────────────────────
 

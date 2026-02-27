@@ -61,6 +61,7 @@ import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useTableSettings } from './hooks/useTableSettings';
 import { gradientColor } from '../lib/helper/gradientColor';
+import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 
 import type { JsonTableCollectionContextProps } from '../types';
@@ -366,18 +367,40 @@ const JsonTableCollection: FC = () => {
             tableLayout: isAutoSize ? 'auto' : 'fixed',
             width: '100%',
         };
+
+        // Horizontal borders (row borders)
         if (widget.data.tableShowRowBorders === false) {
             sx['& .MuiTableCell-root'] = { borderBottom: 'none' };
-        }
-        if (widget.data.tableShowCellBorders === true) {
+        } else {
+            const hBorderWidth = widget.data.horizontalCellBorderWidth ?? 1;
+            const hBorderColorValue = extractColorFromValue(widget.data.horizontalCellBorderColor);
             sx['& .MuiTableCell-root'] = {
                 ...(sx['& .MuiTableCell-root'] as Record<string, unknown>),
-                borderRight: '1px solid',
-                borderRightColor: 'divider',
+                borderBottom: `${hBorderWidth}px solid`,
+                borderBottomColor: hBorderColorValue || 'divider',
+            };
+        }
+
+        // Vertical borders (cell borders)
+        if (widget.data.tableShowCellBorders === true) {
+            const vBorderWidth = widget.data.verticalCellBorderWidth ?? 1;
+            const vBorderColorValue = extractColorFromValue(widget.data.verticalCellBorderColor);
+            sx['& .MuiTableCell-root'] = {
+                ...(sx['& .MuiTableCell-root'] as Record<string, unknown>),
+                borderRight: `${vBorderWidth}px solid`,
+                borderRightColor: vBorderColorValue || 'divider',
             };
         }
         return sx;
-    }, [widget.data.tableShowRowBorders, widget.data.tableShowCellBorders, isAutoSize]);
+    }, [
+        widget.data.tableShowRowBorders,
+        widget.data.tableShowCellBorders,
+        widget.data.horizontalCellBorderWidth,
+        widget.data.horizontalCellBorderColor,
+        widget.data.verticalCellBorderWidth,
+        widget.data.verticalCellBorderColor,
+        isAutoSize,
+    ]);
 
     const headerBgColor = widget.data.tableHeaderBgColor;
     const headerTextColor = widget.data.tableHeaderTextColor;
