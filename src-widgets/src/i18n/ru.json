@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Фон заголовка",
     "json_table_header_text_color": "Цвет текста заголовка",
     "json_table_header_font_size": "Размер шрифта заголовка",
+    "json_table_header_border_width": "Толщина границы заголовка",
+    "json_table_header_border_color": "Цвет границы заголовка",
     "json_table_cell_style": "Стиль ячейки",
     "json_table_striped_color": "Цвет полосатой строки",
     "json_table_cell_font_size": "Размер шрифта ячейки",

@@ -271,6 +271,34 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_header_font_size',
         min: 8,
     },
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider />,
+    },
+    {
+        name: 'headerBorderWidth',
+        label: 'json_table_header_border_width',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 1,
+        default: 0,
+    },
+    {
+        name: 'headerBorderColor',
+        label: 'json_table_header_border_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
 
     // ── Cell Styling ────────────────────────────────────────────────
     {

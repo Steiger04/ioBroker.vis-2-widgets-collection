@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Tło nagłówka",
     "json_table_header_text_color": "Kolor tekstu nagłówka",
     "json_table_header_font_size": "Rozmiar czcionki nagłówka",
+    "json_table_header_border_width": "Szerokość ramki nagłówka",
+    "json_table_header_border_color": "Kolor ramki nagłówka",
     "json_table_cell_style": "Styl komórki",
     "json_table_striped_color": "Kolor przeżroczystego wiersza",
     "json_table_cell_font_size": "Rozmiar czcionki komórki",

@@ -99,6 +99,12 @@ export interface JsonTableFieldsRxData {
     /** Header font size in pixels. */
     tableHeaderFontSize?: number;
 
+    /** Header bottom border width in pixels (0-10). @default 0 */
+    headerBorderWidth?: number;
+
+    /** Header bottom border color (CSS color). */
+    headerBorderColor?: string;
+
     // ── Cell Styling ────────────────────────────────────────────────
 
     /** Alternate row background color for even rows (CSS color). */

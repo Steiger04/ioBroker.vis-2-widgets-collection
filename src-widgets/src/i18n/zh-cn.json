@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "标题背景",
     "json_table_header_text_color": "标题文本颜色",
     "json_table_header_font_size": "标题字体大小",
+    "json_table_header_border_width": "标题边框宽度",
+    "json_table_header_border_color": "标题边框颜色",
     "json_table_cell_style": "单元格样式",
     "json_table_striped_color": "条纹行颜色",
     "json_table_cell_font_size": "单元格字体大小",

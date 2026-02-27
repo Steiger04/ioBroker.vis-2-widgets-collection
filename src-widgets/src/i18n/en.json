@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Header background",
     "json_table_header_text_color": "Header text color",
     "json_table_header_font_size": "Header font size",
+    "json_table_header_border_width": "Header border width",
+    "json_table_header_border_color": "Header border color",
     "json_table_cell_style": "Cell Style",
     "json_table_striped_color": "Striped row color",
     "json_table_cell_font_size": "Cell font size",

@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Kopfzeilen-Hintergrund",
     "json_table_header_text_color": "Kopfzeilen-Textfarbe",
     "json_table_header_font_size": "Kopfzeilen-Schriftgröße",
+    "json_table_header_border_width": "Kopfzeilen-Rahmenbreite",
+    "json_table_header_border_color": "Kopfzeilen-Rahmenfarbe",
     "json_table_cell_style": "Zellen-Stil",
     "json_table_striped_color": "Gestreifte Zeilenfarbe",
     "json_table_cell_font_size": "Zellen-Schriftgröße",

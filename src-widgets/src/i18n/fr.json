@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Arrière-plan d'en-tête",
     "json_table_header_text_color": "Couleur du texte d'en-tête",
     "json_table_header_font_size": "Taille de police d'en-tête",
+    "json_table_header_border_width": "Largeur de bordure d'en-tête",
+    "json_table_header_border_color": "Couleur de bordure d'en-tête",
     "json_table_cell_style": "Style de cellule",
     "json_table_striped_color": "Couleur de ligne rayée",
     "json_table_cell_font_size": "Taille de police de cellule",

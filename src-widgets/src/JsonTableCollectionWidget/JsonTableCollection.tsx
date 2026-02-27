@@ -381,12 +381,13 @@ const JsonTableCollection: FC = () => {
             };
         }
 
-        // Vertical borders (cell borders)
+        // Vertical borders (cell borders) - exclude first and last cell borders
         if (widget.data.tableShowCellBorders === true) {
             const vBorderWidth = widget.data.verticalCellBorderWidth ?? 1;
             const vBorderColorValue = extractColorFromValue(widget.data.verticalCellBorderColor);
-            sx['& .MuiTableCell-root'] = {
-                ...(sx['& .MuiTableCell-root'] as Record<string, unknown>),
+            // Apply borderRight only to cells that are NOT the last in their row
+            // This hides the outer vertical borders (first left and last right)
+            sx['& .MuiTableCell-root:not(:last-child)'] = {
                 borderRight: `${vBorderWidth}px solid`,
                 borderRightColor: vBorderColorValue || 'divider',
             };
@@ -427,6 +428,10 @@ const JsonTableCollection: FC = () => {
 
     const noCard = widget.data.noCard === true;
 
+    // Header border styling
+    const headerBorderWidth = widget.data.headerBorderWidth ?? 0;
+    const headerBorderColorValue = extractColorFromValue(widget.data.headerBorderColor);
+
     // Header container styling - uses configurable elevation (default: 6)
     // backgroundColor fallback ensures header is not transparent
     const headerContainerSx = useMemo(() => {
@@ -439,6 +444,21 @@ const JsonTableCollection: FC = () => {
                   boxShadow: headerElevation > 0 ? theme.shadows[headerElevation] : 'none',
               };
 
+        // Add header bottom border as pseudo-element for sticky positioning
+        // Using ::after ensures the border stays visible when scrolling
+        if (headerBorderWidth > 0) {
+            base['&::after'] = {
+                content: '""',
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: `${headerBorderWidth}px`,
+                backgroundColor: headerBorderColorValue || theme.palette.divider,
+                pointerEvents: 'none',
+            };
+        }
+
         const gradientBg = headerBgColor ? gradientColor(headerBgColor) : null;
         if (gradientBg) {
             return { ...base, background: gradientBg };
@@ -447,7 +467,15 @@ const JsonTableCollection: FC = () => {
             return { ...base, backgroundColor: headerBgColor };
         }
         return base;
-    }, [noCard, headerBgColor, theme.shadows, widget.data.tableHeaderElevation]);
+    }, [
+        noCard,
+        headerBgColor,
+        theme.shadows,
+        theme.palette.divider,
+        widget.data.tableHeaderElevation,
+        headerBorderWidth,
+        headerBorderColorValue,
+    ]);
 
     const getHeaderCellWidth = useCallback(
         (header: Header<FlatRow, unknown>): number | 'auto' => {

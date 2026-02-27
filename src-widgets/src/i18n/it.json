@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Sfondo intestazione",
     "json_table_header_text_color": "Colore testo intestazione",
     "json_table_header_font_size": "Dimensione carattere intestazione",
+    "json_table_header_border_width": "Larghezza bordo intestazione",
+    "json_table_header_border_color": "Colore bordo intestazione",
     "json_table_cell_style": "Stile cella",
     "json_table_striped_color": "Colore riga striata",
     "json_table_cell_font_size": "Dimensione carattere cella",

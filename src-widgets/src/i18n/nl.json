@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Koptekstachtergrond",
     "json_table_header_text_color": "Kopteksttekstkleur",
     "json_table_header_font_size": "Koptekstlettergrootte",
+    "json_table_header_border_width": "Koptekstrandbreedte",
+    "json_table_header_border_color": "Koptekstrandkleur",
     "json_table_cell_style": "Celstijl",
     "json_table_striped_color": "Gestreepte rijkleur",
     "json_table_cell_font_size": "Cellettergrootte",

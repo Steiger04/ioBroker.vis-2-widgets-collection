@@ -360,6 +360,8 @@
     "json_table_header_bg_color": "Fundo do cabeçalho",
     "json_table_header_text_color": "Cor do texto do cabeçalho",
     "json_table_header_font_size": "Tamanho da fonte do cabeçalho",
+    "json_table_header_border_width": "Largura da borda do cabeçalho",
+    "json_table_header_border_color": "Cor da borda do cabeçalho",
     "json_table_cell_style": "Estilo da célula",
     "json_table_striped_color": "Cor da linha listrada",
     "json_table_cell_font_size": "Tamanho da fonte da célula",
