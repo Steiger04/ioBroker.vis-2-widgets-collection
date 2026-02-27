@@ -144,6 +144,61 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: true,
     },
 
+    // ── Table Border (Tabellenrahmen) ───────────────────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="group_table_border" />,
+    },
+    {
+        name: 'borderWidth',
+        label: 'table_border_width',
+        type: 'slider',
+        min: 0,
+        max: 20,
+        step: 1,
+        default: 0,
+    },
+    {
+        name: 'borderStyle',
+        label: 'table_border_style',
+        type: 'select',
+        options: [
+            { value: 'none', label: 'none' },
+            { value: 'dotted', label: 'dotted' },
+            { value: 'dashed', label: 'dashed' },
+            { value: 'solid', label: 'solid' },
+            { value: 'double', label: 'double' },
+            { value: 'groove', label: 'groove' },
+            { value: 'ridge', label: 'ridge' },
+            { value: 'inset', label: 'inset' },
+            { value: 'outset', label: 'outset' },
+            { value: 'hidden', label: 'hidden' },
+        ],
+        default: 'solid',
+        noTranslation: true,
+    },
+    {
+        name: 'borderColor',
+        label: 'table_border_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
+    {
+        name: 'borderRadius',
+        label: 'table_border_radius',
+        type: 'text',
+        default: '',
+    },
+
     // ── Selection ───────────────────────────────────────────────────
     {
         label: '',

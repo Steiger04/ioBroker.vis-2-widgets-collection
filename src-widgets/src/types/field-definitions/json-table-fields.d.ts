@@ -63,6 +63,30 @@ export interface JsonTableFieldsRxData {
     /** Show column menu on header click. @default true */
     tableColumnMenu?: boolean;
 
+    // ── Table Border (Tabellenrahmen) ───────────────────────────────
+
+    /** Table outer border width in pixels (0-20). @default 0 */
+    borderWidth?: number;
+
+    /** Table border style (CSS border-style). @default 'none' */
+    borderStyle?:
+        | 'none'
+        | 'dotted'
+        | 'dashed'
+        | 'solid'
+        | 'double'
+        | 'groove'
+        | 'ridge'
+        | 'inset'
+        | 'outset'
+        | 'hidden';
+
+    /** Table border color (CSS color). */
+    borderColor?: string;
+
+    /** Table border radius (CSS value like "4px" or "8px 8px 0 0"). */
+    borderRadius?: string;
+
     // ── Selection ───────────────────────────────────────────────────
 
     /** Enable row selection (checkbox column). @default false */

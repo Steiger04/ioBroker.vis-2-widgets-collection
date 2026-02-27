@@ -477,6 +477,40 @@ const JsonTableCollection: FC = () => {
         headerBorderColorValue,
     ]);
 
+    // Outer container styling (border and overflow:hidden to clip scrollbars)
+    const outerContainerSx = useMemo(() => {
+        const base: Record<string, unknown> = {
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+        };
+
+        const borderWidth = widget.data.borderWidth;
+        const borderStyle = widget.data.borderStyle || 'solid';
+        const borderColor = extractColorFromValue(widget.data.borderColor);
+        const borderRadius = widget.data.borderRadius;
+
+        if (borderWidth && borderWidth > 0) {
+            base.border = `${borderWidth}px ${borderStyle}`;
+            base.borderColor = borderColor || 'divider';
+        }
+        if (borderRadius) {
+            base.borderRadius = borderRadius;
+        }
+
+        return base;
+    }, [widget.data.borderWidth, widget.data.borderStyle, widget.data.borderColor, widget.data.borderRadius]);
+
+    // Inner table container styling (overflow:auto for scrollbars)
+    const tableContainerSx = useMemo(
+        () => ({
+            flex: 1,
+            overflow: 'auto',
+        }),
+        [],
+    );
+
     const getHeaderCellWidth = useCallback(
         (header: Header<FlatRow, unknown>): number | 'auto' => {
             if (!isAutoSize) {
@@ -580,71 +614,90 @@ const JsonTableCollection: FC = () => {
                         </Box>
                     )}
 
-                    {/* TanStack Table v8 best practice: Single table with sticky thead */}
-                    <TableContainer
-                        ref={tableContainerRef}
-                        sx={{ flex: 1, overflow: 'auto' }}
-                    >
-                        <Table
-                            size={density === 'compact' ? 'small' : 'medium'}
-                            sx={tableSx}
+                    {/* Outer container with border and overflow:hidden to clip scrollbars at rounded corners */}
+                    <Box sx={outerContainerSx}>
+                        {/* TanStack Table v8 best practice: Single table with sticky thead */}
+                        <TableContainer
+                            ref={tableContainerRef}
+                            sx={tableContainerSx}
                         >
-                            {/* Sticky TableHead - follows TanStack Table v8 best practices */}
-                            <TableHead
-                                sx={{
-                                    position: 'sticky',
-                                    top: 0,
-                                    zIndex: 2,
-                                    ...headerContainerSx,
-                                    '& .resize-handle': { opacity: 0 },
-                                    '&:hover .resize-handle': { opacity: 1 },
-                                }}
+                            <Table
+                                size={density === 'compact' ? 'small' : 'medium'}
+                                sx={tableSx}
                             >
-                                {table.getHeaderGroups().map(headerGroup => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map(header => {
-                                            const canSort = header.column.getCanSort();
-                                            const isSorted = header.column.getIsSorted();
-                                            const meta = header.column.columnDef.meta;
-                                            const isSelectCol = header.column.id === '__select__';
-                                            const isFixed = !isAutoSize;
+                                {/* Sticky TableHead - follows TanStack Table v8 best practices */}
+                                <TableHead
+                                    sx={{
+                                        position: 'sticky',
+                                        top: 0,
+                                        zIndex: 2,
+                                        ...headerContainerSx,
+                                        '& .resize-handle': { opacity: 0 },
+                                        '&:hover .resize-handle': { opacity: 1 },
+                                    }}
+                                >
+                                    {table.getHeaderGroups().map(headerGroup => (
+                                        <TableRow key={headerGroup.id}>
+                                            {headerGroup.headers.map(header => {
+                                                const canSort = header.column.getCanSort();
+                                                const isSorted = header.column.getIsSorted();
+                                                const meta = header.column.columnDef.meta;
+                                                const isSelectCol = header.column.id === '__select__';
+                                                const isFixed = !isAutoSize;
 
-                                            return (
-                                                <TableCell
-                                                    key={header.id}
-                                                    component="th"
-                                                    colSpan={header.colSpan}
-                                                    align={meta?.align || 'left'}
-                                                    padding={isSelectCol ? 'checkbox' : 'normal'}
-                                                    sx={{
-                                                        width: getHeaderCellWidth(header),
-                                                        minWidth: isSelectCol ? 48 : 40,
-                                                        position: 'relative',
-                                                        ...headerCellSx,
-                                                    }}
-                                                >
-                                                    {isSelectCol ? (
-                                                        flexRender(header.column.columnDef.header, header.getContext())
-                                                    ) : (
-                                                        <Box
-                                                            sx={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent:
-                                                                    meta?.align === 'right'
-                                                                        ? 'flex-end'
-                                                                        : meta?.align === 'center'
-                                                                          ? 'center'
-                                                                          : 'space-between',
-                                                                width: '100%',
-                                                            }}
-                                                        >
-                                                            {canSort ? (
-                                                                <TableSortLabel
-                                                                    active={isSorted !== false}
-                                                                    direction={isSorted === 'desc' ? 'desc' : 'asc'}
-                                                                    onClick={header.column.getToggleSortingHandler()}
-                                                                >
+                                                return (
+                                                    <TableCell
+                                                        key={header.id}
+                                                        component="th"
+                                                        colSpan={header.colSpan}
+                                                        align={meta?.align || 'left'}
+                                                        padding={isSelectCol ? 'checkbox' : 'normal'}
+                                                        sx={{
+                                                            width: getHeaderCellWidth(header),
+                                                            minWidth: isSelectCol ? 48 : 40,
+                                                            position: 'relative',
+                                                            ...headerCellSx,
+                                                        }}
+                                                    >
+                                                        {isSelectCol ? (
+                                                            flexRender(
+                                                                header.column.columnDef.header,
+                                                                header.getContext(),
+                                                            )
+                                                        ) : (
+                                                            <Box
+                                                                sx={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent:
+                                                                        meta?.align === 'right'
+                                                                            ? 'flex-end'
+                                                                            : meta?.align === 'center'
+                                                                              ? 'center'
+                                                                              : 'space-between',
+                                                                    width: '100%',
+                                                                }}
+                                                            >
+                                                                {canSort ? (
+                                                                    <TableSortLabel
+                                                                        active={isSorted !== false}
+                                                                        direction={isSorted === 'desc' ? 'desc' : 'asc'}
+                                                                        onClick={header.column.getToggleSortingHandler()}
+                                                                    >
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            component="span"
+                                                                            fontWeight="medium"
+                                                                            noWrap
+                                                                            sx={headerTextSx}
+                                                                        >
+                                                                            {flexRender(
+                                                                                header.column.columnDef.header,
+                                                                                header.getContext(),
+                                                                            )}
+                                                                        </Typography>
+                                                                    </TableSortLabel>
+                                                                ) : (
                                                                     <Typography
                                                                         variant="body2"
                                                                         component="span"
@@ -657,240 +710,235 @@ const JsonTableCollection: FC = () => {
                                                                             header.getContext(),
                                                                         )}
                                                                     </Typography>
-                                                                </TableSortLabel>
-                                                            ) : (
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    component="span"
-                                                                    fontWeight="medium"
-                                                                    noWrap
-                                                                    sx={headerTextSx}
-                                                                >
-                                                                    {flexRender(
-                                                                        header.column.columnDef.header,
-                                                                        header.getContext(),
-                                                                    )}
-                                                                </Typography>
-                                                            )}
-                                                            {widget.data.tableColumnMenu !== false && (
-                                                                <Tooltip title={Generic.t('json_table_column_menu')}>
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        aria-label={Generic.t('json_table_column_menu')}
-                                                                        onClick={e => {
-                                                                            e.stopPropagation();
-                                                                            openColumnMenu(
-                                                                                header.column,
-                                                                                e.currentTarget,
-                                                                            );
-                                                                        }}
-                                                                        sx={{ ml: 0.5, opacity: 0.6 }}
-                                                                    >
-                                                                        <MoreVertIcon fontSize="inherit" />
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            )}
-                                                        </Box>
-                                                    )}
-                                                    {isFixed && header.column.getCanResize() && (
-                                                        <Box
-                                                            className="resize-handle"
-                                                            onMouseDown={header.getResizeHandler()}
-                                                            onTouchStart={header.getResizeHandler()}
-                                                            onClick={e => e.stopPropagation()}
-                                                            sx={{
-                                                                position: 'absolute',
-                                                                right: 0,
-                                                                top: 0,
-                                                                height: '100%',
-                                                                width: '4px',
-                                                                cursor: 'col-resize',
-                                                                userSelect: 'none',
-                                                                touchAction: 'none',
-                                                                zIndex: 1,
-                                                                opacity: header.column.getIsResizing() ? 1 : 0,
-                                                                bgcolor: header.column.getIsResizing()
-                                                                    ? 'primary.main'
-                                                                    : 'divider',
-                                                                transition: 'opacity 0.15s',
-                                                                '&:hover': {
-                                                                    opacity: 1,
-                                                                    bgcolor: 'primary.light',
-                                                                },
-                                                            }}
-                                                        />
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
-                                {/* Filter row as part of thead - TanStack Table v8 best practice */}
-                                {widget.data.tableFiltering === true && (
-                                    <TableRow>
-                                        {table.getHeaderGroups()[0]?.headers.map(header => {
-                                            if (header.column.id === '__select__') {
-                                                return (
-                                                    <TableCell
-                                                        key={header.id}
-                                                        component="th"
-                                                        colSpan={header.colSpan}
-                                                        padding="checkbox"
-                                                        sx={{
-                                                            width: getHeaderCellWidth(header),
-                                                            py: 0.5,
-                                                            px: 0.5,
-                                                        }}
-                                                    />
-                                                );
-                                            }
-                                            if (!header.column.getCanFilter()) {
-                                                return (
-                                                    <TableCell
-                                                        key={header.id}
-                                                        component="th"
-                                                        colSpan={header.colSpan}
-                                                        sx={{
-                                                            width: getHeaderCellWidth(header),
-                                                            py: 0.5,
-                                                            px: 0.5,
-                                                        }}
-                                                    />
-                                                );
-                                            }
-                                            const filterVal = (header.column.getFilterValue() ?? '') as string;
-                                            return (
-                                                <TableCell
-                                                    key={header.id}
-                                                    component="th"
-                                                    colSpan={header.colSpan}
-                                                    sx={{
-                                                        width: getHeaderCellWidth(header),
-                                                        py: 0.5,
-                                                        px: 0.5,
-                                                    }}
-                                                >
-                                                    <TextField
-                                                        size="small"
-                                                        variant="standard"
-                                                        fullWidth
-                                                        value={filterVal}
-                                                        onChange={e =>
-                                                            header.column.setFilterValue(e.target.value || undefined)
-                                                        }
-                                                        placeholder={Generic.t('json_table_filter_placeholder')}
-                                                        slotProps={{
-                                                            input: {
-                                                                endAdornment: filterVal ? (
-                                                                    <InputAdornment position="end">
-                                                                        <Tooltip
-                                                                            title={Generic.t('json_table_filter_clear')}
-                                                                        >
-                                                                            <IconButton
-                                                                                size="small"
-                                                                                onClick={() =>
-                                                                                    header.column.setFilterValue(
-                                                                                        undefined,
-                                                                                    )
-                                                                                }
-                                                                                aria-label={Generic.t(
-                                                                                    'json_table_filter_clear',
-                                                                                )}
-                                                                            >
-                                                                                <ClearIcon fontSize="inherit" />
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    </InputAdornment>
-                                                                ) : undefined,
-                                                            },
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                )}
-                            </TableHead>
-                            <TableBody ref={tableBodyRef}>
-                                {virtualItems ? (
-                                    <>
-                                        {paddingTop > 0 && (
-                                            <TableRow>
-                                                <TableCell
-                                                    colSpan={columns.length}
-                                                    sx={{ height: paddingTop, p: 0, border: 'none' }}
-                                                />
-                                            </TableRow>
-                                        )}
-                                        {virtualItems.map(virtualRow => {
-                                            const row = tableRows[virtualRow.index];
-                                            const rowIndex = virtualRow.index;
-                                            return (
-                                                <TableRow
-                                                    key={row.id}
-                                                    data-row-index={rowIndex}
-                                                    sx={{
-                                                        height: effectiveRowHeight,
-                                                        ...getRowSx(rowIndex),
-                                                    }}
-                                                >
-                                                    {row.getVisibleCells().map(cell => {
-                                                        const isSelectCell = cell.column.id === '__select__';
-                                                        return (
-                                                            <TableCell
-                                                                key={cell.id}
-                                                                align={cell.column.columnDef.meta?.align || 'left'}
-                                                                padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                                sx={cellBaseSx}
-                                                            >
-                                                                {flexRender(
-                                                                    cell.column.columnDef.cell,
-                                                                    cell.getContext(),
                                                                 )}
-                                                            </TableCell>
-                                                        );
-                                                    })}
-                                                </TableRow>
-                                            );
-                                        })}
-                                        {paddingBottom > 0 && (
-                                            <TableRow>
-                                                <TableCell
-                                                    colSpan={columns.length}
-                                                    sx={{ height: paddingBottom, p: 0, border: 'none' }}
-                                                />
-                                            </TableRow>
-                                        )}
-                                    </>
-                                ) : (
-                                    tableRows.map((row, rowIndex) => (
-                                        <TableRow
-                                            key={row.id}
-                                            data-row-index={rowIndex}
-                                            sx={{
-                                                height: effectiveRowHeight,
-                                                ...getRowSx(rowIndex),
-                                            }}
-                                        >
-                                            {row.getVisibleCells().map(cell => {
-                                                const isSelectCell = cell.column.id === '__select__';
-                                                return (
-                                                    <TableCell
-                                                        key={cell.id}
-                                                        align={cell.column.columnDef.meta?.align || 'left'}
-                                                        padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                        sx={cellBaseSx}
-                                                    >
-                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                                {widget.data.tableColumnMenu !== false && (
+                                                                    <Tooltip
+                                                                        title={Generic.t('json_table_column_menu')}
+                                                                    >
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            aria-label={Generic.t(
+                                                                                'json_table_column_menu',
+                                                                            )}
+                                                                            onClick={e => {
+                                                                                e.stopPropagation();
+                                                                                openColumnMenu(
+                                                                                    header.column,
+                                                                                    e.currentTarget,
+                                                                                );
+                                                                            }}
+                                                                            sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                        >
+                                                                            <MoreVertIcon fontSize="inherit" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </Box>
+                                                        )}
+                                                        {isFixed && header.column.getCanResize() && (
+                                                            <Box
+                                                                className="resize-handle"
+                                                                onMouseDown={header.getResizeHandler()}
+                                                                onTouchStart={header.getResizeHandler()}
+                                                                onClick={e => e.stopPropagation()}
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    right: 0,
+                                                                    top: 0,
+                                                                    height: '100%',
+                                                                    width: '4px',
+                                                                    cursor: 'col-resize',
+                                                                    userSelect: 'none',
+                                                                    touchAction: 'none',
+                                                                    zIndex: 1,
+                                                                    opacity: header.column.getIsResizing() ? 1 : 0,
+                                                                    bgcolor: header.column.getIsResizing()
+                                                                        ? 'primary.main'
+                                                                        : 'divider',
+                                                                    transition: 'opacity 0.15s',
+                                                                    '&:hover': {
+                                                                        opacity: 1,
+                                                                        bgcolor: 'primary.light',
+                                                                    },
+                                                                }}
+                                                            />
+                                                        )}
                                                     </TableCell>
                                                 );
                                             })}
                                         </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                    ))}
+                                    {/* Filter row as part of thead - TanStack Table v8 best practice */}
+                                    {widget.data.tableFiltering === true && (
+                                        <TableRow>
+                                            {table.getHeaderGroups()[0]?.headers.map(header => {
+                                                if (header.column.id === '__select__') {
+                                                    return (
+                                                        <TableCell
+                                                            key={header.id}
+                                                            component="th"
+                                                            colSpan={header.colSpan}
+                                                            padding="checkbox"
+                                                            sx={{
+                                                                width: getHeaderCellWidth(header),
+                                                                py: 0.5,
+                                                                px: 0.5,
+                                                            }}
+                                                        />
+                                                    );
+                                                }
+                                                if (!header.column.getCanFilter()) {
+                                                    return (
+                                                        <TableCell
+                                                            key={header.id}
+                                                            component="th"
+                                                            colSpan={header.colSpan}
+                                                            sx={{
+                                                                width: getHeaderCellWidth(header),
+                                                                py: 0.5,
+                                                                px: 0.5,
+                                                            }}
+                                                        />
+                                                    );
+                                                }
+                                                const filterVal = (header.column.getFilterValue() ?? '') as string;
+                                                return (
+                                                    <TableCell
+                                                        key={header.id}
+                                                        component="th"
+                                                        colSpan={header.colSpan}
+                                                        sx={{
+                                                            width: getHeaderCellWidth(header),
+                                                            py: 0.5,
+                                                            px: 0.5,
+                                                        }}
+                                                    >
+                                                        <TextField
+                                                            size="small"
+                                                            variant="standard"
+                                                            fullWidth
+                                                            value={filterVal}
+                                                            onChange={e =>
+                                                                header.column.setFilterValue(
+                                                                    e.target.value || undefined,
+                                                                )
+                                                            }
+                                                            placeholder={Generic.t('json_table_filter_placeholder')}
+                                                            slotProps={{
+                                                                input: {
+                                                                    endAdornment: filterVal ? (
+                                                                        <InputAdornment position="end">
+                                                                            <Tooltip
+                                                                                title={Generic.t(
+                                                                                    'json_table_filter_clear',
+                                                                                )}
+                                                                            >
+                                                                                <IconButton
+                                                                                    size="small"
+                                                                                    onClick={() =>
+                                                                                        header.column.setFilterValue(
+                                                                                            undefined,
+                                                                                        )
+                                                                                    }
+                                                                                    aria-label={Generic.t(
+                                                                                        'json_table_filter_clear',
+                                                                                    )}
+                                                                                >
+                                                                                    <ClearIcon fontSize="inherit" />
+                                                                                </IconButton>
+                                                                            </Tooltip>
+                                                                        </InputAdornment>
+                                                                    ) : undefined,
+                                                                },
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    )}
+                                </TableHead>
+                                <TableBody ref={tableBodyRef}>
+                                    {virtualItems ? (
+                                        <>
+                                            {paddingTop > 0 && (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={columns.length}
+                                                        sx={{ height: paddingTop, p: 0, border: 'none' }}
+                                                    />
+                                                </TableRow>
+                                            )}
+                                            {virtualItems.map(virtualRow => {
+                                                const row = tableRows[virtualRow.index];
+                                                const rowIndex = virtualRow.index;
+                                                return (
+                                                    <TableRow
+                                                        key={row.id}
+                                                        data-row-index={rowIndex}
+                                                        sx={{
+                                                            height: effectiveRowHeight,
+                                                            ...getRowSx(rowIndex),
+                                                        }}
+                                                    >
+                                                        {row.getVisibleCells().map(cell => {
+                                                            const isSelectCell = cell.column.id === '__select__';
+                                                            return (
+                                                                <TableCell
+                                                                    key={cell.id}
+                                                                    align={cell.column.columnDef.meta?.align || 'left'}
+                                                                    padding={isSelectCell ? 'checkbox' : 'normal'}
+                                                                    sx={cellBaseSx}
+                                                                >
+                                                                    {flexRender(
+                                                                        cell.column.columnDef.cell,
+                                                                        cell.getContext(),
+                                                                    )}
+                                                                </TableCell>
+                                                            );
+                                                        })}
+                                                    </TableRow>
+                                                );
+                                            })}
+                                            {paddingBottom > 0 && (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={columns.length}
+                                                        sx={{ height: paddingBottom, p: 0, border: 'none' }}
+                                                    />
+                                                </TableRow>
+                                            )}
+                                        </>
+                                    ) : (
+                                        tableRows.map((row, rowIndex) => (
+                                            <TableRow
+                                                key={row.id}
+                                                data-row-index={rowIndex}
+                                                sx={{
+                                                    height: effectiveRowHeight,
+                                                    ...getRowSx(rowIndex),
+                                                }}
+                                            >
+                                                {row.getVisibleCells().map(cell => {
+                                                    const isSelectCell = cell.column.id === '__select__';
+                                                    return (
+                                                        <TableCell
+                                                            key={cell.id}
+                                                            align={cell.column.columnDef.meta?.align || 'left'}
+                                                            padding={isSelectCell ? 'checkbox' : 'normal'}
+                                                            sx={cellBaseSx}
+                                                        >
+                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                        </TableCell>
+                                                    );
+                                                })}
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
 
                     {widget.data.tablePagination !== false && (
                         <TablePagination
