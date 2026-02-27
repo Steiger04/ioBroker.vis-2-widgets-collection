@@ -343,6 +343,7 @@
     "json_table_range": "Диапазон",
     "json_table_refresh_columns": "Обновить столбцы из OID",
     "json_table_reset_all": "Сбросить все столбцы на значения по умолчанию",
+    "json_table_reset_confirm_message": "Вы уверены, что хотите сбросить все столбцы к значениям по умолчанию? Все форматирование и стили будут удалены.",
     "json_table_row_height": "Высота строки (px)",
     "json_table_row_height_tooltip": "Переопределяет настройку плотности, если установлено",
     "json_table_row_selection": "Выбор строки (флажок)",

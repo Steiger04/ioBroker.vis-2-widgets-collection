@@ -351,6 +351,7 @@
     "json_table_range": "Wertebereich",
     "json_table_refresh_columns": "Spalten von OID aktualisieren",
     "json_table_reset_all": "Alle Spalten auf Standardwerte zurücksetzen",
+    "json_table_reset_confirm_message": "Möchten Sie wirklich alle Spalten auf ihre Standardwerte zurücksetzen? Alle Formatierungen und Stile werden gelöscht.",
     "json_table_row_height": "Zeilenhöhe (px)",
     "json_table_row_height_tooltip": "Überschreibt die Dichte-Einstellung wenn gesetzt",
     "json_table_row_selection": "Zeilenauswahl (Checkbox)",

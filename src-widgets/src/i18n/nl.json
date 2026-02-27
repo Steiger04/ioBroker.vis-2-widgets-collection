@@ -343,6 +343,7 @@
     "json_table_range": "Bereik",
     "json_table_refresh_columns": "Kolommen vernieuwen vanaf OID",
     "json_table_reset_all": "Alle kolommen terugzetten naar standaardwaarden",
+    "json_table_reset_confirm_message": "Weet u zeker dat u alle kolommen naar hun standaardwaarden wilt terugzetten? Alle opmaak en stijlen worden verwijderd.",
     "json_table_row_height": "Rijhoogte (px)",
     "json_table_row_height_tooltip": "Overschrijft de dichtheidsinstelling indien ingesteld",
     "json_table_row_selection": "Rijselectie (checkbox)",

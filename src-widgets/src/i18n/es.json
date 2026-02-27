@@ -343,6 +343,7 @@
     "json_table_range": "Rango",
     "json_table_refresh_columns": "Actualizar columnas desde OID",
     "json_table_reset_all": "Restablecer todas las columnas a valores predeterminados",
+    "json_table_reset_confirm_message": "¿Está seguro de que desea restablecer todas las columnas a sus valores predeterminados? Se eliminarán todos los formatos y estilos.",
     "json_table_row_height": "Altura de fila (px)",
     "json_table_row_height_tooltip": "Sobrescribe la configuración de densidad si se establece",
     "json_table_row_selection": "Selección de fila (casilla)",

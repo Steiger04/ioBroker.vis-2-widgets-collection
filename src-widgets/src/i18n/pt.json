@@ -343,6 +343,7 @@
     "json_table_range": "Intervalo",
     "json_table_refresh_columns": "Atualizar colunas do OID",
     "json_table_reset_all": "Redefinir todas as colunas para valores padrão",
+    "json_table_reset_confirm_message": "Tem certeza de que deseja redefinir todas as colunas para seus valores padrão? Todas as formatações e estilos serão removidos.",
     "json_table_row_height": "Altura da linha (px)",
     "json_table_row_height_tooltip": "Substitui a configuração de densidade se definida",
     "json_table_row_selection": "Seleção de linha (caixa de seleção)",

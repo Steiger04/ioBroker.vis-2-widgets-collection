@@ -351,6 +351,7 @@
     "json_table_range": "Range",
     "json_table_refresh_columns": "Refresh columns from OID",
     "json_table_reset_all": "Reset all columns to defaults",
+    "json_table_reset_confirm_message": "Are you sure you want to reset all columns to their default values? All formatting and styles will be removed.",
     "json_table_row_height": "Row height (px)",
     "json_table_row_height_tooltip": "Overrides density setting if set",
     "json_table_row_selection": "Row selection (checkbox)",

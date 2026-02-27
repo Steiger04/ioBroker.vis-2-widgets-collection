@@ -14,12 +14,18 @@ import {
     Card,
     Checkbox,
     Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     IconButton,
     InputAdornment,
     TextField,
     Toolbar,
     Tooltip,
     Typography,
+    Button,
 } from '@mui/material';
 import {
     DragIndicator as DragIndicatorIcon,
@@ -70,7 +76,10 @@ function ColumnList({
     const [searchText, setSearchText] = useState('');
     const [draggedPath, setDraggedPath] = useState<string | null>(null);
     const [dropTargetPath, setDropTargetPath] = useState<string | null>(null);
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const dragCounter = useRef(0);
+    // Ref map for keyboard navigation (avoids direct DOM manipulation)
+    const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
 
     // Disable drag when search filter is active (reorder would be confusing on a subset)
     const isDragEnabled = !searchText;
@@ -88,13 +97,33 @@ function ColumnList({
 
     const visibleCount = useMemo(() => columns.filter(c => c.visible).length, [columns]);
 
+    // Toggle visibility without event (for keyboard navigation)
+    const toggleColumnVisibility = useCallback(
+        (path: string): void => {
+            onChange(columns.map(c => (c.path === path ? { ...c, visible: !c.visible } : c)));
+        },
+        [columns, onChange],
+    );
+
     // Toggle visibility for a single column (stop event propagation to prevent card selection)
     const handleToggleVisibility = useCallback(
         (e: React.MouseEvent, path: string): void => {
             e.stopPropagation();
-            onChange(columns.map(c => (c.path === path ? { ...c, visible: !c.visible } : c)));
+            toggleColumnVisibility(path);
         },
-        [columns, onChange],
+        [toggleColumnVisibility],
+    );
+
+    // Register/unregister card ref for keyboard navigation
+    const setCardRef = useCallback(
+        (path: string) => (el: HTMLElement | null) => {
+            if (el) {
+                cardRefs.current.set(path, el);
+            } else {
+                cardRefs.current.delete(path);
+            }
+        },
+        [],
     );
 
     // Bulk toggle all columns
@@ -179,7 +208,58 @@ function ColumnList({
                 headerName: c.path.split('.').pop() || c.path,
             })),
         );
+        setResetDialogOpen(false);
     }, [columns, onChange]);
+
+    // Open reset confirmation dialog
+    const handleOpenResetDialog = useCallback((): void => {
+        setResetDialogOpen(true);
+    }, []);
+
+    // Close reset confirmation dialog
+    const handleCloseResetDialog = useCallback((): void => {
+        setResetDialogOpen(false);
+    }, []);
+
+    // Keyboard navigation for column list
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent, col: ColumnConfigEntry, index: number) => {
+            switch (e.key) {
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    onSelect(col.path);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (index < filteredColumns.length - 1) {
+                        const nextPath = filteredColumns[index + 1].path;
+                        onSelect(nextPath);
+                        // Focus the next card using ref
+                        cardRefs.current.get(nextPath)?.focus();
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (index > 0) {
+                        const prevPath = filteredColumns[index - 1].path;
+                        onSelect(prevPath);
+                        // Focus the previous card using ref
+                        cardRefs.current.get(prevPath)?.focus();
+                    }
+                    break;
+                case 'v':
+                case 'V':
+                    // Toggle visibility with 'v' key
+                    e.preventDefault();
+                    toggleColumnVisibility(col.path);
+                    break;
+                default:
+                    break;
+            }
+        },
+        [filteredColumns, onSelect, toggleColumnVisibility],
+    );
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -206,6 +286,7 @@ function ColumnList({
                                     <SearchIcon fontSize="small" />
                                 </InputAdornment>
                             ),
+                            'aria-label': Generic.t('json_table_search_columns'),
                         },
                     }}
                     sx={{ flexGrow: 1, minWidth: 0 }}
@@ -216,6 +297,7 @@ function ColumnList({
                             size="small"
                             onClick={onRefresh}
                             disabled={loading}
+                            aria-label={Generic.t('json_table_refresh_columns')}
                         >
                             <RefreshIcon fontSize="small" />
                         </IconButton>
@@ -225,6 +307,7 @@ function ColumnList({
                     <IconButton
                         size="small"
                         onClick={() => handleToggleAll(true)}
+                        aria-label={Generic.t('json_table_show_all')}
                     >
                         <VisibilityIcon fontSize="small" />
                     </IconButton>
@@ -233,6 +316,7 @@ function ColumnList({
                     <IconButton
                         size="small"
                         onClick={() => handleToggleAll(false)}
+                        aria-label={Generic.t('json_table_hide_all')}
                     >
                         <VisibilityOffIcon fontSize="small" />
                     </IconButton>
@@ -240,7 +324,8 @@ function ColumnList({
                 <Tooltip title={Generic.t('json_table_reset_all')}>
                     <IconButton
                         size="small"
-                        onClick={handleResetAll}
+                        onClick={handleOpenResetDialog}
+                        aria-label={Generic.t('json_table_reset_all')}
                     >
                         <RestartAltIcon fontSize="small" />
                     </IconButton>
@@ -270,7 +355,7 @@ function ColumnList({
                         </Typography>
                     </Box>
                 ) : (
-                    filteredColumns.map(col => {
+                    filteredColumns.map((col, index) => {
                         const discovered = discoveredColumns.find(d => d.path === col.path);
                         const isSelected = selectedPath === col.path;
                         const detectedType = discovered?.type || 'string';
@@ -278,7 +363,10 @@ function ColumnList({
                         return (
                             <Card
                                 key={col.path}
+                                ref={setCardRef(col.path)}
+                                data-column-path={col.path}
                                 onClick={() => onSelect(col.path)}
+                                onKeyDown={e => handleKeyDown(e, col, index)}
                                 draggable={isDragEnabled}
                                 onDragStart={isDragEnabled ? e => handleDragStart(e, col.path) : undefined}
                                 onDragEnter={isDragEnabled ? e => handleDragEnter(e, col.path) : undefined}
@@ -287,6 +375,10 @@ function ColumnList({
                                 onDrop={isDragEnabled ? e => handleDrop(e, col.path) : undefined}
                                 onDragEnd={isDragEnabled ? handleDragEnd : undefined}
                                 variant="outlined"
+                                tabIndex={0}
+                                role="button"
+                                aria-selected={isSelected}
+                                aria-label={`${col.headerName || col.path}, ${detectedType}, ${col.visible ? Generic.t('json_table_visible') : Generic.t('json_table_hidden')}`}
                                 sx={{
                                     p: 1,
                                     cursor: isDragEnabled ? 'grab' : 'pointer',
@@ -300,6 +392,11 @@ function ColumnList({
                                     '&:hover': {
                                         backgroundColor: isSelected ? 'action.selected' : 'action.hover',
                                     },
+                                    '&:focus': {
+                                        outline: '2px solid',
+                                        outlineColor: 'primary.main',
+                                        outlineOffset: '2px',
+                                    },
                                     transition: 'all 0.15s ease-in-out',
                                 }}
                             >
@@ -308,6 +405,7 @@ function ColumnList({
                                         <DragIndicatorIcon
                                             fontSize="small"
                                             sx={{ color: 'text.disabled', cursor: 'grab', flexShrink: 0 }}
+                                            aria-hidden="true"
                                         />
                                     )}
                                     <Checkbox
@@ -315,6 +413,9 @@ function ColumnList({
                                         onClick={e => handleToggleVisibility(e, col.path)}
                                         size="small"
                                         sx={{ p: 0.5 }}
+                                        inputProps={{
+                                            'aria-label': `${Generic.t('json_table_visible')}: ${col.headerName || col.path}`,
+                                        }}
                                     />
                                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                                         <Typography
@@ -360,6 +461,7 @@ function ColumnList({
                                             minWidth: 48,
                                             flexShrink: 0,
                                         }}
+                                        aria-label={`${Generic.t('json_table_type')}: ${detectedType}`}
                                     />
                                 </Box>
                             </Card>
@@ -368,7 +470,7 @@ function ColumnList({
                 )}
             </Box>
 
-            {/* Footer summary */}
+            {/* Footer summary - live region for screen readers */}
             {columns.length > 0 && (
                 <Box
                     sx={{
@@ -381,11 +483,44 @@ function ColumnList({
                     <Typography
                         variant="caption"
                         color="text.secondary"
+                        aria-live="polite"
+                        aria-atomic="true"
                     >
                         {visibleCount} / {columns.length} {Generic.t('json_table_columns_visible')}
                     </Typography>
                 </Box>
             )}
+
+            {/* Reset confirmation dialog */}
+            <Dialog
+                open={resetDialogOpen}
+                onClose={handleCloseResetDialog}
+                aria-labelledby="reset-dialog-title"
+                aria-describedby="reset-dialog-description"
+            >
+                <DialogTitle id="reset-dialog-title">{Generic.t('json_table_reset_all')}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="reset-dialog-description">
+                        {Generic.t('json_table_reset_confirm_message')}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={handleCloseResetDialog}
+                        color="primary"
+                    >
+                        {Generic.t('cancel')}
+                    </Button>
+                    <Button
+                        onClick={handleResetAll}
+                        color="error"
+                        variant="contained"
+                        autoFocus
+                    >
+                        {Generic.t('json_table_reset_all')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

@@ -343,6 +343,7 @@
     "json_table_range": "Zakres",
     "json_table_refresh_columns": "Odśwież kolumny z OID",
     "json_table_reset_all": "Zresetuj wszystkie kolumny do wartości domyślnych",
+    "json_table_reset_confirm_message": "Czy na pewno chcesz zresetować wszystkie kolumny do ich wartości domyślnych? Wszystkie formatowania i style zostaną usunięte.",
     "json_table_row_height": "Wysokość wiersza (px)",
     "json_table_row_height_tooltip": "Nadpisuje ustawienie gęstości jeśli ustawione",
     "json_table_row_selection": "Wybór wiersza (pole wyboru)",

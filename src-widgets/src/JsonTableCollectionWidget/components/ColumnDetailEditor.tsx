@@ -84,31 +84,41 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
 
     const defaultHeaderName = useMemo(() => column.path.split('.').pop() || column.path, [column.path]);
 
-    const isBasicDirty =
-        column.headerName !== defaultHeaderName ||
-        column.width !== undefined ||
-        (column.align !== undefined && column.align !== 'left') ||
-        column.visible !== true;
+    // Memoize dirty checks to avoid recalculation on every render
+    const isBasicDirty = useMemo(
+        () =>
+            column.headerName !== defaultHeaderName ||
+            column.width !== undefined ||
+            (column.align !== undefined && column.align !== 'left') ||
+            column.visible !== true,
+        [column.headerName, column.width, column.align, column.visible, defaultHeaderName],
+    );
 
     const resetBasic = useCallback(() => {
         onChange({ ...column, headerName: defaultHeaderName, width: undefined, align: undefined, visible: true });
     }, [column, onChange, defaultHeaderName]);
 
-    const isFormattingDirty = column.format !== undefined;
+    const isFormattingDirty = useMemo(() => column.format !== undefined, [column.format]);
 
     const resetFormatting = useCallback(() => {
         const { format: _, ...rest } = column;
         onChange(rest as ColumnConfigEntry);
     }, [column, onChange]);
 
-    const isStylingDirty = (column.cellStyle?.length ?? 0) > 0 || column.cellStyleMode !== undefined;
+    const isStylingDirty = useMemo(
+        () => (column.cellStyle?.length ?? 0) > 0 || column.cellStyleMode !== undefined,
+        [column.cellStyle, column.cellStyleMode],
+    );
 
     const resetStyling = useCallback(() => {
         const { cellStyle: _cs, cellStyleMode: _csm, ...rest } = column;
         onChange(rest as ColumnConfigEntry);
     }, [column, onChange]);
 
-    const isAdvancedDirty = column.sortable !== undefined || column.filterable !== undefined;
+    const isAdvancedDirty = useMemo(
+        () => column.sortable !== undefined || column.filterable !== undefined,
+        [column.sortable, column.filterable],
+    );
 
     const resetAdvanced = useCallback(() => {
         const { sortable: _s, filterable: _f, ...rest } = column;

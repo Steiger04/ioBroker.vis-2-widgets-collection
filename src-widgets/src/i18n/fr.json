@@ -343,6 +343,7 @@
     "json_table_range": "Plage",
     "json_table_refresh_columns": "Actualiser les colonnes depuis l'OID",
     "json_table_reset_all": "Réinitialiser toutes les colonnes aux valeurs par défaut",
+    "json_table_reset_confirm_message": "Êtes-vous sûr de vouloir réinitialiser toutes les colonnes à leurs valeurs par défaut ? Tous les formats et styles seront supprimés.",
     "json_table_row_height": "Hauteur de ligne (px)",
     "json_table_row_height_tooltip": "Remplace le paramètre de densité si défini",
     "json_table_row_selection": "Sélection de ligne (case)",

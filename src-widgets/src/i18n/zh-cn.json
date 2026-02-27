@@ -343,6 +343,7 @@
     "json_table_range": "范围",
     "json_table_refresh_columns": "从 OID 刷新列",
     "json_table_reset_all": "将所有列重置为默认值",
+    "json_table_reset_confirm_message": "您确定要将所有列重置为默认值吗？所有格式和样式将被删除。",
     "json_table_row_height": "行高（像素）",
     "json_table_row_height_tooltip": "如果设置，则覆盖密度设置",
     "json_table_row_selection": "行选择（复选框）",

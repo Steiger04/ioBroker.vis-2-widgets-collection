@@ -252,6 +252,9 @@ function JsonTableColumnEditorModal({
         [selectedPath, discoveredColumns],
     );
 
+    // Memoize dialog title id for aria-labelledby
+    const dialogTitleId = useMemo(() => 'json-table-column-editor-title', []);
+
     return (
         <ThemeProvider theme={theme}>
             <Dialog
@@ -259,6 +262,7 @@ function JsonTableColumnEditorModal({
                 onClose={handleClose}
                 maxWidth="lg"
                 fullWidth
+                aria-labelledby={dialogTitleId}
                 slotProps={{
                     paper: {
                         sx: {
@@ -268,7 +272,10 @@ function JsonTableColumnEditorModal({
                     },
                 }}
             >
-                <DialogTitle sx={{ py: 1.5, px: 2.5 }}>
+                <DialogTitle
+                    sx={{ py: 1.5, px: 2.5 }}
+                    id={dialogTitleId}
+                >
                     <Box
                         sx={{
                             display: 'flex',
@@ -281,6 +288,7 @@ function JsonTableColumnEditorModal({
                             onClick={() => handleClose()}
                             size="small"
                             sx={{ color: 'text.secondary' }}
+                            aria-label={Generic.t('close')}
                         >
                             <CloseIcon />
                         </IconButton>

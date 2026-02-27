@@ -343,6 +343,7 @@
     "json_table_range": "Діапазон",
     "json_table_refresh_columns": "Оновити стовпці з OID",
     "json_table_reset_all": "Скинути всі стовпці до значень за замовчуванням",
+    "json_table_reset_confirm_message": "Ви впевнені, що хочете скинути всі стовпці до значень за замовчуванням? Усе форматування та стилі будуть видалені.",
     "json_table_row_height": "Висота рядка (px)",
     "json_table_row_height_tooltip": "Перевизначає налаштування щільності, якщо встановлено",
     "json_table_row_selection": "Вибір рядка (прапорець)",

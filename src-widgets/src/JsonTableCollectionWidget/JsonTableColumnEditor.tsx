@@ -73,25 +73,38 @@ function JsonTableColumnEditor(
         [fieldName, onDataChange],
     );
 
+    // Handle modal open with proper focus management
+    const handleOpenModal = useCallback(() => {
+        setModalOpen(true);
+    }, []);
+
+    // Handle modal close with proper state reset
+    const handleCloseModal = useCallback(() => {
+        setModalOpen(false);
+    }, []);
+
     return (
         <Box sx={{ mt: 1, width: '100%' }}>
             {/* Open modal button */}
             <Button
                 variant="outlined"
                 startIcon={<SettingsIcon />}
-                onClick={() => setModalOpen(true)}
+                onClick={handleOpenModal}
                 fullWidth
                 sx={{ textTransform: 'none' }}
+                aria-label={Generic.t('json_table_configure_columns')}
+                aria-haspopup="dialog"
             >
                 {Generic.t('json_table_configure_columns')}
             </Button>
 
-            {/* Summary below button */}
+            {/* Summary below button - live region for screen readers */}
             {totalCount > 0 && (
                 <Typography
                     variant="caption"
                     color="text.secondary"
                     sx={{ mt: 0.5, display: 'block' }}
+                    aria-live="polite"
                 >
                     {visibleCount} / {totalCount} {Generic.t('json_table_columns_visible')}
                     {hasFormatting && ` · ${Generic.t('json_table_has_formatting')}`}
@@ -102,7 +115,7 @@ function JsonTableColumnEditor(
             {/* Column editor modal — provides its own ThemeProvider */}
             <JsonTableColumnEditorModal
                 open={modalOpen}
-                onClose={() => setModalOpen(false)}
+                onClose={handleCloseModal}
                 columns={columns}
                 onSave={handleSave}
                 theme={theme}
