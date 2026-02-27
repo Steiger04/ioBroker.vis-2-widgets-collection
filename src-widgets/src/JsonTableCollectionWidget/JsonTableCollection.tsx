@@ -533,20 +533,30 @@ const JsonTableCollection: FC = () => {
         [widget.data.tableCellFontSize, effectiveRowHeight],
     );
 
-    const stripedColor = widget.data.tableStripedColor;
-    const isGradientStriped = stripedColor ? gradientColor(stripedColor) : null;
+    const evenRowColorValue = widget.data.evenRowColor || null;
+    const oddRowColorValue = widget.data.oddRowColor || null;
+    const evenRowGradient = evenRowColorValue ? gradientColor(evenRowColorValue) : null;
+    const oddRowGradient = oddRowColorValue ? gradientColor(oddRowColorValue) : null;
 
     const getRowSx = useCallback(
         (rowIndex: number) => {
-            if (!stripedColor || rowIndex % 2 === 0) {
+            const isEven = rowIndex % 2 === 0;
+            const colorValue = isEven ? evenRowColorValue : oddRowColorValue;
+            const gradient = isEven ? evenRowGradient : oddRowGradient;
+
+            if (!colorValue) {
                 return undefined;
             }
+
+            if (gradient) {
+                return { background: gradient };
+            }
+
             return {
-                background: isGradientStriped || stripedColor,
-                ...(isGradientStriped ? {} : { backgroundColor: stripedColor }),
+                backgroundColor: colorValue,
             };
         },
-        [stripedColor, isGradientStriped],
+        [evenRowColorValue, oddRowColorValue, evenRowGradient, oddRowGradient],
     );
 
     // ── Row virtualization ────────────────────────────────────────────────────
@@ -557,7 +567,11 @@ const JsonTableCollection: FC = () => {
         count: tableRows.length,
         getScrollElement: () => tableContainerRef.current,
         estimateSize: () => effectiveRowHeight,
-        overscan: 10,
+        // Higher overscan prevents flickering during fast scrolling
+        // by rendering more rows outside the viewport
+        overscan: 25,
+        // Smooth scrolling behavior
+        scrollPaddingStart: effectiveRowHeight,
     });
 
     const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;

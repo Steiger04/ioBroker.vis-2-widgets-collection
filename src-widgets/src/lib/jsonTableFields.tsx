@@ -362,8 +362,22 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         component: () => <CollectionDivider dividerText="json_table_cell_style" />,
     },
     {
-        name: 'tableStripedColor',
-        label: 'json_table_striped_color',
+        name: 'evenRowColor',
+        label: 'json_table_even_row_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
+    {
+        name: 'oddRowColor',
+        label: 'json_table_odd_row_color',
         default: '',
         type: 'custom',
         component: (field, data, onDataChange, props) => (

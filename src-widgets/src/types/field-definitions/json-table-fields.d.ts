@@ -131,8 +131,11 @@ export interface JsonTableFieldsRxData {
 
     // ── Cell Styling ────────────────────────────────────────────────
 
-    /** Alternate row background color for even rows (CSS color). */
-    tableStripedColor?: string;
+    /** Background color for even rows (0, 2, 4, ...). */
+    evenRowColor?: string;
+
+    /** Background color for odd rows (1, 3, 5, ...). */
+    oddRowColor?: string;
 
     /** Cell font size in pixels. */
     tableCellFontSize?: number;
