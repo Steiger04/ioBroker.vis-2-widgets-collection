@@ -42,6 +42,8 @@ import DateFormatEditor from './editors/DateFormatEditor';
 import BooleanFormatEditor from './editors/BooleanFormatEditor';
 import StringFormatEditor from './editors/StringFormatEditor';
 import ConditionalStyleEditor from './editors/ConditionalStyleEditor';
+import StatusBanner from './StatusBanner';
+import EffectiveResultIndicator from './EffectiveResultIndicator';
 
 /** Props for the ColumnDetailEditor component. */
 interface ColumnDetailEditorProps {
@@ -51,12 +53,22 @@ interface ColumnDetailEditorProps {
     discoveredColumn?: JsonTableColumn;
     /** Callback when column configuration changes */
     onChange: (updated: ColumnConfigEntry) => void;
+    /** Whether global table sorting is enabled */
+    globalSorting?: boolean;
+    /** Whether global table filtering is enabled */
+    globalFiltering?: boolean;
 }
 
 /**
  * Renders the detail editor for a single column with accordion-based sections.
  */
-function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetailEditorProps): React.JSX.Element {
+function ColumnDetailEditor({
+    column,
+    discoveredColumn,
+    onChange,
+    globalSorting = true,
+    globalFiltering = false,
+}: ColumnDetailEditorProps): React.JSX.Element {
     // Track which accordion sections are expanded
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
         basic: true,
@@ -116,13 +128,15 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
     }, [column, onChange]);
 
     const isAdvancedDirty = useMemo(
-        () => column.sortable !== undefined || column.filterable !== undefined,
+        () =>
+            (column.sortable !== undefined && column.sortable !== 'auto') ||
+            (column.filterable !== undefined && column.filterable !== 'auto'),
         [column.sortable, column.filterable],
     );
 
     const resetAdvanced = useCallback(() => {
         const { sortable: _s, filterable: _f, ...rest } = column;
-        onChange(rest as ColumnConfigEntry);
+        onChange({ ...rest, sortable: 'auto', filterable: 'auto' } as ColumnConfigEntry);
     }, [column, onChange]);
 
     // ── Format update helper ──────────────────────────────────────
@@ -551,27 +565,93 @@ function ColumnDetailEditor({ column, discoveredColumn, onChange }: ColumnDetail
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack spacing={2}>
-                            {/* Per-column feature overrides */}
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={column.sortable ?? true}
-                                        onChange={e => onChange({ ...column, sortable: e.target.checked })}
-                                        size="small"
-                                    />
-                                }
-                                label={<Typography variant="body2">{Generic.t('json_table_sortable')}</Typography>}
+                            {/* Global status banner */}
+                            <StatusBanner
+                                globalSorting={globalSorting}
+                                globalFiltering={globalFiltering}
                             />
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={column.filterable ?? false}
-                                        onChange={e => onChange({ ...column, filterable: e.target.checked })}
-                                        size="small"
-                                    />
-                                }
-                                label={<Typography variant="body2">{Generic.t('json_table_filterable')}</Typography>}
-                            />
+
+                            {/* Per-column feature overrides with effective result indicators */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <FormControl
+                                    size="small"
+                                    sx={{ minWidth: 120 }}
+                                >
+                                    <InputLabel>{Generic.t('json_table_sortable')}</InputLabel>
+                                    <Select
+                                        value={
+                                            column.sortable === true ? 'on' : column.sortable === false ? 'off' : 'auto'
+                                        }
+                                        label={Generic.t('json_table_sortable')}
+                                        onChange={e =>
+                                            onChange({
+                                                ...column,
+                                                sortable:
+                                                    e.target.value === 'on'
+                                                        ? true
+                                                        : e.target.value === 'off'
+                                                          ? false
+                                                          : 'auto',
+                                            })
+                                        }
+                                    >
+                                        <MenuItem value="auto">
+                                            <em>{Generic.t('json_table_option_auto')}</em>
+                                        </MenuItem>
+                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
+                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <EffectiveResultIndicator
+                                    globalEnabled={globalSorting}
+                                    columnOverride={column.sortable}
+                                    featureLabel={Generic.t('json_table_sorting')}
+                                    detectedType={discoveredColumn?.type}
+                                    featureType="sortable"
+                                />
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <FormControl
+                                    size="small"
+                                    sx={{ minWidth: 120 }}
+                                >
+                                    <InputLabel>{Generic.t('json_table_filterable')}</InputLabel>
+                                    <Select
+                                        value={
+                                            column.filterable === true
+                                                ? 'on'
+                                                : column.filterable === false
+                                                  ? 'off'
+                                                  : 'auto'
+                                        }
+                                        label={Generic.t('json_table_filterable')}
+                                        onChange={e =>
+                                            onChange({
+                                                ...column,
+                                                filterable:
+                                                    e.target.value === 'on'
+                                                        ? true
+                                                        : e.target.value === 'off'
+                                                          ? false
+                                                          : 'auto',
+                                            })
+                                        }
+                                    >
+                                        <MenuItem value="auto">
+                                            <em>{Generic.t('json_table_option_auto')}</em>
+                                        </MenuItem>
+                                        <MenuItem value="on">{Generic.t('json_table_option_on')}</MenuItem>
+                                        <MenuItem value="off">{Generic.t('json_table_option_off')}</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <EffectiveResultIndicator
+                                    globalEnabled={globalFiltering}
+                                    columnOverride={column.filterable}
+                                    featureLabel={Generic.t('json_table_filtering')}
+                                    detectedType={discoveredColumn?.type}
+                                    featureType="filterable"
+                                />
+                            </Box>
 
                             {/* Column analysis metadata */}
                             {discoveredColumn && (

@@ -143,8 +143,18 @@ export interface ColumnConfigEntry {
     cellStyleMode?: 'first-match' | 'all-match';
 
     // ── New: Per-column overrides ───────────────────────────────
-    /** Override global sorting setting for this column */
-    sortable?: boolean;
-    /** Override global filtering setting for this column */
-    filterable?: boolean;
+    /**
+     * Override global sorting setting for this column.
+     * - `true`: Always sortable
+     * - `false`: Never sortable
+     * - `'auto'`: Use type-based smart defaults (default behavior)
+     */
+    sortable?: boolean | 'auto';
+    /**
+     * Override global filtering setting for this column.
+     * - `true`: Always filterable
+     * - `false`: Never filterable
+     * - `'auto'`: Use type-based smart defaults (default behavior)
+     */
+    filterable?: boolean | 'auto';
 }

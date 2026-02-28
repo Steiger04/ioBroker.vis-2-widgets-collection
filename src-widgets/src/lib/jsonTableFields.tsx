@@ -56,7 +56,7 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         name: 'tableFiltering',
         type: 'checkbox',
         label: 'json_table_filtering',
-        default: false,
+        default: true,
     },
     {
         name: 'tableQuickFilter',

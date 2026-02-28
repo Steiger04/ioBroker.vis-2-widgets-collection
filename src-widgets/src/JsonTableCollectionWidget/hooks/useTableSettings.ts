@@ -8,7 +8,7 @@
  * when features are disabled.
  */
 
-import { useState, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 import type {
     SortingState,
     ColumnFiltersState,
@@ -116,37 +116,88 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         gridRowsLength,
     } = options;
 
+    // ── Persistent State Refs ──────────────────────────────────────────────────
+
+    // Refs to preserve state when features are disabled (FIX-P2-2)
+    const preservedSortingRef = useRef<SortingState>([]);
+    const preservedColumnFiltersRef = useRef<ColumnFiltersState>([]);
+    const preservedGlobalFilterRef = useRef<string>('');
+
+    // Track previous feature states to detect transitions from disabled to enabled
+    const prevTableSortingRef = useRef(tableSorting);
+    const prevTableFilteringRef = useRef(tableFiltering);
+    const prevTableQuickFilterRef = useRef(tableQuickFilter);
+
     // ── Sorting State ────────────────────────────────────────────────────────
 
     const [sorting, setSorting] = useState<SortingState>([]);
 
-    // Reset sorting when sorting is disabled
+    // Persist sorting state and handle enable/disable transitions
+    // Note: Using callback form of setSorting to avoid circular dependency with sorting in deps
     useEffect(() => {
-        if (!tableSorting) {
-            setSorting([]);
+        if (tableSorting) {
+            // Feature enabled: restore from preserved ref if transitioning from disabled
+            if (!prevTableSortingRef.current && preservedSortingRef.current.length > 0) {
+                setSorting(preservedSortingRef.current);
+            }
+        } else {
+            // Feature disabled: save current state before resetting (using callback form)
+            setSorting(prev => {
+                if (prev.length > 0) {
+                    preservedSortingRef.current = prev;
+                }
+                return [];
+            });
         }
+        prevTableSortingRef.current = tableSorting;
     }, [tableSorting]);
 
     // ── Column Filters State ──────────────────────────────────────────────────
 
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-    // Reset columnFilters when column filter is disabled
+    // Persist column filters state and handle enable/disable transitions
+    // Note: Using callback form of setColumnFilters to avoid circular dependency
     useEffect(() => {
-        if (!tableFiltering) {
-            setColumnFilters([]);
+        if (tableFiltering) {
+            // Feature enabled: restore from preserved ref if transitioning from disabled
+            if (!prevTableFilteringRef.current && preservedColumnFiltersRef.current.length > 0) {
+                setColumnFilters(preservedColumnFiltersRef.current);
+            }
+        } else {
+            // Feature disabled: save current state before resetting (using callback form)
+            setColumnFilters(prev => {
+                if (prev.length > 0) {
+                    preservedColumnFiltersRef.current = prev;
+                }
+                return [];
+            });
         }
+        prevTableFilteringRef.current = tableFiltering;
     }, [tableFiltering]);
 
     // ── Global Filter State ───────────────────────────────────────────────────
 
     const [globalFilter, setGlobalFilter] = useState('');
 
-    // Reset globalFilter when quick filter is disabled
+    // Persist global filter state and handle enable/disable transitions
+    // Note: Using callback form of setGlobalFilter to avoid circular dependency
     useEffect(() => {
-        if (!tableQuickFilter) {
-            setGlobalFilter('');
+        if (tableQuickFilter) {
+            // Feature enabled: restore from preserved ref if transitioning from disabled
+            if (!prevTableQuickFilterRef.current && preservedGlobalFilterRef.current) {
+                setGlobalFilter(preservedGlobalFilterRef.current);
+            }
+        } else {
+            // Feature disabled: save current state before resetting (using callback form)
+            setGlobalFilter(prev => {
+                if (prev) {
+                    preservedGlobalFilterRef.current = prev;
+                }
+                return '';
+            });
         }
+        prevTableQuickFilterRef.current = tableQuickFilter;
     }, [tableQuickFilter]);
 
     // ── Row Selection State ───────────────────────────────────────────────────

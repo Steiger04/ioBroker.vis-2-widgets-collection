@@ -13,6 +13,90 @@ import type { ColumnConfigEntry } from '../types';
 
 import { normalizeToIsoDate } from './formatters';
 
+// ── Smart Defaults for Column Settings ─────────────────────────────────────────
+
+/**
+ * Type-based smart defaults for column sortable/filterable settings.
+ *
+ * @remarks
+ * Different data types have different capabilities for sorting and filtering:
+ * - string/number/date: Full sorting and filtering support
+ * - boolean: Filtering makes sense, sorting is usually not needed
+ * - array/object: Complex types cannot be meaningfully sorted or filtered
+ */
+export interface SmartDefaults {
+    sortable: boolean;
+    filterable: boolean;
+}
+
+/**
+ * Returns type-based smart defaults for sortable/filterable column settings.
+ *
+ * @param detectedType - The detected data type from JSON analysis
+ * @returns Smart default values for sortable and filterable
+ * @example
+ * getSmartDefaults('number')  // { sortable: true, filterable: true }
+ * getSmartDefaults('boolean') // { sortable: false, filterable: true }
+ * getSmartDefaults('array')   // { sortable: false, filterable: false }
+ */
+export function getSmartDefaults(detectedType: string): SmartDefaults {
+    switch (detectedType) {
+        case 'number':
+        case 'date':
+            return { sortable: true, filterable: true };
+        case 'string':
+            return { sortable: true, filterable: true };
+        case 'boolean':
+            // Boolean usually doesn't need sorting (only 2 values)
+            return { sortable: false, filterable: true };
+        case 'array':
+        case 'object':
+            // Complex types can't be sorted/filtered meaningfully
+            return { sortable: false, filterable: false };
+        default:
+            // Default to enabled for unknown types
+            return { sortable: true, filterable: true };
+    }
+}
+
+/**
+ * Resolves the effective sortable value for a column configuration.
+ *
+ * @param cfg - Column configuration entry
+ * @param detectedType - The detected data type from JSON analysis
+ * @param globalSorting - Global table sorting setting (undefined treated as true for backwards compatibility)
+ * @returns Effective sortable boolean value
+ */
+export function resolveSortable(cfg: ColumnConfigEntry, detectedType: string, globalSorting: boolean): boolean {
+    // If sortable is explicitly set (not 'auto'), use that value
+    if (cfg.sortable !== undefined && cfg.sortable !== 'auto') {
+        return cfg.sortable;
+    }
+    // For 'auto' or undefined, use smart defaults based on type
+    const smartDefaults = getSmartDefaults(detectedType);
+    // Use !== false for backwards compatibility (undefined defaults to enabled)
+    return smartDefaults.sortable && globalSorting !== false;
+}
+
+/**
+ * Resolves the effective filterable value for a column configuration.
+ *
+ * @param cfg - Column configuration entry
+ * @param detectedType - The detected data type from JSON analysis
+ * @param globalFiltering - Global table filtering setting (undefined treated as false)
+ * @returns Effective filterable boolean value
+ */
+export function resolveFilterable(cfg: ColumnConfigEntry, detectedType: string, globalFiltering: boolean): boolean {
+    // If filterable is explicitly set (not 'auto'), use that value
+    if (cfg.filterable !== undefined && cfg.filterable !== 'auto') {
+        return cfg.filterable;
+    }
+    // For 'auto' or undefined, use smart defaults based on type
+    const smartDefaults = getSmartDefaults(detectedType);
+    // Use explicit true check (filtering defaults to disabled unless explicitly enabled)
+    return smartDefaults.filterable && globalFiltering === true;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** Flat row type used by TanStack Table */
@@ -124,10 +208,11 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
         renderSelectionCell,
     } = options;
 
-    // Build map of analysis date formats for fallback
+    // Build map of analysis date formats and types for fallback
     const analysisDateFormats = new Map<string, DateFormatId | undefined>(
         analysisColumns.map(c => [c.path, c.dateFormat]),
     );
+    const analysisTypes = new Map<string, string>(analysisColumns.map(c => [c.path, c.type]));
 
     // ── Selection Column ──────────────────────────────────────────────────────
 
@@ -156,6 +241,7 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
             .map(cfg => {
                 const inputFmt = cfg.format?.dateInputFormat ?? analysisDateFormats.get(cfg.path);
                 const isDate = cfg.format?.type === 'date';
+                const detectedType = analysisTypes.get(cfg.path) || 'string';
 
                 const col: ColumnDef<FlatRow> = {
                     id: cfg.path,
@@ -163,8 +249,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     // FIX-P2-1: Add optional chaining and nullish coalescing for safe property access
                     accessorFn: (row: FlatRow) => row?.[cfg.path] ?? null,
                     header: cfg.headerName || cfg.path,
-                    enableSorting: cfg.sortable ?? widgetData.tableSorting !== false,
-                    enableColumnFilter: cfg.filterable ?? widgetData.tableFiltering === true,
+                    enableSorting: resolveSortable(cfg, detectedType, widgetData.tableSorting),
+                    enableColumnFilter: resolveFilterable(cfg, detectedType, widgetData.tableFiltering),
                     ...(isDate && { sortingFn: createDateSortingFn(inputFmt) }),
                     cell: ({ getValue }) => renderConfiguredCell(getValue(), cfg),
                     meta: {
@@ -175,18 +261,19 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 return col;
             });
     } else {
-        // Auto-detected columns mode
+        // Auto-detected columns mode - use smart defaults based on detected type
         dataCols = analysisColumns.map(col => {
             const isDate = col.type === 'date' && col.dateFormat;
             const fmt = col.dateFormat;
+            const smartDefaults = getSmartDefaults(col.type);
 
             const colDef: ColumnDef<FlatRow> = {
                 id: col.path,
                 size: 150,
                 accessorFn: (row: FlatRow) => row[col.path],
                 header: col.path.split('.').pop() || col.path,
-                enableSorting: widgetData.tableSorting !== false,
-                enableColumnFilter: widgetData.tableFiltering === true,
+                enableSorting: smartDefaults.sortable && widgetData.tableSorting,
+                enableColumnFilter: smartDefaults.filterable && widgetData.tableFiltering,
                 ...(isDate && { sortingFn: createDateSortingFn(fmt) }),
                 cell: ({ getValue }) => renderAutoDetectedCell(getValue()),
                 meta: { align: 'left' },

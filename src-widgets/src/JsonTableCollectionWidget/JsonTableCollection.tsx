@@ -13,7 +13,6 @@ import {
     Box,
     Checkbox,
     InputAdornment,
-    Menu,
     MenuItem,
     Table,
     TableBody,
@@ -29,11 +28,9 @@ import {
     IconButton,
     useTheme,
 } from '@mui/material';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ClearIcon from '@mui/icons-material/Clear';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import {
     useReactTable,
     getCoreRowModel,
@@ -61,6 +58,7 @@ import Generic from '../Generic';
 import { parseColumnConfig } from './utils/columnConfig';
 import { TableCellRenderer } from './components/TableCellRenderer';
 import { useTableSettings } from './hooks/useTableSettings';
+import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
@@ -1026,66 +1024,17 @@ const JsonTableCollection: FC = () => {
                         />
                     )}
 
-                    <Menu
+                    <ColumnMenu
                         anchorEl={menuAnchor}
                         open={Boolean(menuAnchor)}
                         onClose={closeColumnMenu}
-                    >
-                        <MenuItem
-                            onClick={() => {
-                                if (activeColumnRef.current) {
-                                    setSorting([{ id: activeColumnRef.current.id, desc: false }]);
-                                }
-                                closeColumnMenu();
-                            }}
-                        >
-                            <ArrowUpwardIcon
-                                fontSize="small"
-                                sx={{ mr: 1 }}
-                            />
-                            <Typography variant="body2">{Generic.t('json_table_sort_asc')}</Typography>
-                        </MenuItem>
-                        <MenuItem
-                            onClick={() => {
-                                if (activeColumnRef.current) {
-                                    setSorting([{ id: activeColumnRef.current.id, desc: true }]);
-                                }
-                                closeColumnMenu();
-                            }}
-                        >
-                            <ArrowDownwardIcon
-                                fontSize="small"
-                                sx={{ mr: 1 }}
-                            />
-                            <Typography variant="body2">{Generic.t('json_table_sort_desc')}</Typography>
-                        </MenuItem>
-                        {activeColumnSorted && (
-                            <MenuItem
-                                onClick={() => {
-                                    setSorting([]);
-                                    closeColumnMenu();
-                                }}
-                            >
-                                <Typography variant="body2">{Generic.t('json_table_sort_clear')}</Typography>
-                            </MenuItem>
-                        )}
-                        {widget.data.tableFiltering === true &&
-                            activeColumnRef.current?.getCanFilter() === true &&
-                            activeColumnFilter && (
-                                <MenuItem
-                                    onClick={() => {
-                                        activeColumnRef.current?.setFilterValue(undefined);
-                                        closeColumnMenu();
-                                    }}
-                                >
-                                    <ClearIcon
-                                        fontSize="small"
-                                        sx={{ mr: 1 }}
-                                    />
-                                    <Typography variant="body2">{Generic.t('json_table_filter_clear')}</Typography>
-                                </MenuItem>
-                            )}
-                    </Menu>
+                        activeColumn={activeColumnRef.current}
+                        isSorted={activeColumnSorted !== undefined}
+                        tableFiltering={widget.data.tableFiltering === true}
+                        activeColumnFilter={activeColumnFilter}
+                        onSetSorting={setSorting}
+                        onClearSorting={() => setSorting([])}
+                    />
                 </Box>
             ) : (
                 <Box
