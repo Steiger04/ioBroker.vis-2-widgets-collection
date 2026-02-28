@@ -64,7 +64,8 @@ function flattenValue(
     }
 
     // Object → recurse with dot-path
-    if (typeof value === 'object') {
+    // FIX-P1-1: Explicit null check before typeof 'object' to prevent edge cases
+    if (value !== null && typeof value === 'object') {
         // Circular reference guard
         if (seen.has(value)) {
             target[prefix] = '[Circular]';

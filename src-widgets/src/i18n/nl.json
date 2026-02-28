@@ -280,6 +280,7 @@
     "json_table_date_output_format": "Uitvoerformaat",
     "json_table_delete_rule": "Regel verwijderen",
     "json_table_density": "Dichtheid",
+    "json_table_depth_warning": "JSON-diepte ({{actual}}) overschrijdt geconfigureerd maximum ({{configured}}). Sommige geneste gegevens worden niet uitgevouwen.",
     "json_table_distinct": "Unieke waarden",
     "json_table_even_row_color": "Even rij kleur",
     "json_table_features": "Functies",

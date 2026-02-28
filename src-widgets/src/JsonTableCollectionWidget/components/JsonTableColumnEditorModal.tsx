@@ -164,8 +164,17 @@ function JsonTableColumnEditorModal({
                 return;
             }
 
-            const maxDepth = (data.tableMaxDepth as number) || 10;
-            const result = analyzeJsonTable(jsonData, { maxDepth });
+            // FIX-P2-5: Show warning when actual JSON depth exceeds configured maxDepth
+            const configuredMaxDepth = (data.tableMaxDepth as number) || 10;
+            const result = analyzeJsonTable(jsonData, { maxDepth: configuredMaxDepth });
+
+            // Warn if actual depth exceeds configured depth
+            if (result.meta.maxDepth > configuredMaxDepth) {
+                setDiscoveryError(
+                    `JSON depth (${result.meta.maxDepth}) exceeds configured max (${configuredMaxDepth}). ` +
+                        `Increase maxDepth to see all nested data.`,
+                );
+            }
 
             // Store discovered column metadata
             setDiscoveredColumns(result.columns);

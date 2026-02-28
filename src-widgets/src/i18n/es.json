@@ -280,6 +280,7 @@
     "json_table_date_output_format": "Formato de salida",
     "json_table_delete_rule": "Eliminar regla",
     "json_table_density": "Densidad",
+    "json_table_depth_warning": "La profundidad JSON ({{actual}}) excede el máximo configurado ({{configured}}). Algunos datos anidados no se expanden.",
     "json_table_distinct": "Valores distintos",
     "json_table_even_row_color": "Color de fila par",
     "json_table_features": "Características",

@@ -7,7 +7,7 @@
  * Used for both configured columns (with ColumnConfigEntry) and auto-detected columns.
  */
 
-import { Box, Typography } from '@mui/material';
+import { Box, Chip, Typography } from '@mui/material';
 import { useMemo } from 'react';
 
 import type { ColumnConfigEntry } from '../types';
@@ -30,6 +30,8 @@ interface CellContent {
     displayValue: string;
     textSx: Record<string, unknown>;
     bgSx: Record<string, unknown>;
+    /** FIX-P3: Flag indicating if the value was truncated (e.g., object/array shortened) */
+    isTruncated?: boolean;
 }
 
 /**
@@ -52,11 +54,17 @@ export interface TableCellRendererProps {
  * @returns CellContent with displayValue, textSx, and bgSx
  */
 export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): CellContent {
+    // FIX-P3: Track if value was truncated (object/array converted to string)
+    let isTruncated = false;
+
     // Default display value conversion
     let displayValue =
         rawValue != null
             ? typeof rawValue === 'object'
-                ? JSON.stringify(rawValue)
+                ? (() => {
+                      isTruncated = true;
+                      return JSON.stringify(rawValue);
+                  })()
                 : String(rawValue as string | number | boolean | bigint)
             : '';
 
@@ -79,8 +87,9 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
             case 'boolean':
                 displayValue = formatBooleanValue(rawValue, cfg.format.booleanTrue, cfg.format.booleanFalse);
                 break;
+            // FIX-P2-2: Ensure string type for formatStringValue to prevent runtime errors
             case 'string':
-                displayValue = formatStringValue(displayValue, cfg.format);
+                displayValue = formatStringValue(String(displayValue), cfg.format);
                 break;
         }
     }
@@ -147,7 +156,8 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
         }
     }
 
-    return { displayValue, textSx, bgSx };
+    // FIX-P3: Include isTruncated flag in return value
+    return { displayValue, textSx, bgSx, isTruncated };
 }
 
 // ── Component ───────────────────────────────────────────────────────
@@ -169,7 +179,8 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
  * ```
  */
 export function TableCellRenderer({ value, config }: TableCellRendererProps): React.JSX.Element {
-    const { displayValue, textSx, bgSx } = useMemo(() => buildCellContent(value, config), [value, config]);
+    // FIX-P3: Extract isTruncated flag from buildCellContent
+    const { displayValue, textSx, bgSx, isTruncated } = useMemo(() => buildCellContent(value, config), [value, config]);
 
     return (
         <Box
@@ -178,6 +189,7 @@ export function TableCellRenderer({ value, config }: TableCellRendererProps): Re
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
+                gap: 0.5,
                 ...bgSx,
             }}
         >
@@ -186,10 +198,23 @@ export function TableCellRenderer({ value, config }: TableCellRendererProps): Re
                 component="span"
                 noWrap
                 title={displayValue}
-                sx={{ width: '100%', lineHeight: 'inherit', ...textSx }}
+                sx={{ flex: 1, minWidth: 0, lineHeight: 'inherit', ...textSx }}
             >
                 {displayValue}
             </Typography>
+            {/* FIX-P3: Show truncated badge for object/array values */}
+            {isTruncated && (
+                <Chip
+                    label="JSON"
+                    size="small"
+                    sx={{
+                        height: 18,
+                        fontSize: '0.65rem',
+                        flexShrink: 0,
+                        opacity: 0.7,
+                    }}
+                />
+            )}
         </Box>
     );
 }

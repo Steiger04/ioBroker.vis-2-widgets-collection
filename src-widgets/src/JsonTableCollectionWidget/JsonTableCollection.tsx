@@ -9,6 +9,7 @@
  */
 
 import {
+    Alert,
     Box,
     Checkbox,
     InputAdornment,
@@ -162,7 +163,19 @@ const JsonTableCollection: FC = () => {
         [widget.data.tableMaxDepth],
     );
 
-    const { columns: analysisColumns, rows } = useJsonTableAnalysis(jsonData, analysisOptions);
+    const { columns: analysisColumns, rows, meta } = useJsonTableAnalysis(jsonData, analysisOptions);
+
+    // FIX-P2-4: Add depth warning when JSON depth exceeds configured maxDepth
+    const depthWarning = useMemo(() => {
+        const configuredMax = widget.data.tableMaxDepth || 10;
+        if (meta.maxDepth > configuredMax) {
+            return {
+                actual: meta.maxDepth,
+                configured: configuredMax,
+            };
+        }
+        return null;
+    }, [meta.maxDepth, widget.data.tableMaxDepth]);
 
     const columnConfig = useMemo(
         () => parseColumnConfig(widget.data.columnConfig as string),
@@ -577,11 +590,11 @@ const JsonTableCollection: FC = () => {
     const virtualizeThreshold = widget.data.tableVirtualizeThreshold ?? 50;
     const shouldVirtualize = widget.data.tablePagination === false && tableRows.length > virtualizeThreshold;
     const virtualItems = shouldVirtualize ? rowVirtualizer.getVirtualItems() : null;
-    const paddingTop = virtualItems && virtualItems.length > 0 ? virtualItems[0].start : 0;
-    const paddingBottom =
-        virtualItems && virtualItems.length > 0
-            ? rowVirtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1].end ?? 0)
-            : 0;
+    // FIX-P1-3: Use optional chaining for safe array access in virtualizer
+    const firstItem = virtualItems?.[0];
+    const lastItem = virtualItems?.[virtualItems.length - 1];
+    const paddingTop = firstItem?.start ?? 0;
+    const paddingBottom = lastItem ? rowVirtualizer.getTotalSize() - (lastItem.end ?? 0) : 0;
 
     // ── Render ────────────────────────────────────────────────────────────────
 
@@ -626,6 +639,20 @@ const JsonTableCollection: FC = () => {
                                 }}
                             />
                         </Box>
+                    )}
+
+                    {/* FIX-P2-4: Depth warning alert */}
+                    {depthWarning && (
+                        <Alert
+                            severity="warning"
+                            sx={{ m: 1 }}
+                        >
+                            <Typography variant="body2">
+                                {Generic.t('json_table_depth_warning')
+                                    .replace('{{actual}}', String(depthWarning.actual))
+                                    .replace('{{configured}}', String(depthWarning.configured))}
+                            </Typography>
+                        </Alert>
                     )}
 
                     {/* Outer container with border and overflow:hidden to clip scrollbars at rounded corners */}

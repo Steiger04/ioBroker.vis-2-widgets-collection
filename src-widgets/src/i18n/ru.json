@@ -280,6 +280,7 @@
     "json_table_date_output_format": "Выходной формат",
     "json_table_delete_rule": "Удалить правило",
     "json_table_density": "Плотность",
+    "json_table_depth_warning": "Глубина JSON ({{actual}}) превышает настроенный максимум ({{configured}}). Некоторые вложенные данные не развернуты.",
     "json_table_distinct": "Уникальные значения",
     "json_table_even_row_color": "Цвет четной строки",
     "json_table_features": "Функции",

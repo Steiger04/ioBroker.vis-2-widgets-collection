@@ -280,6 +280,7 @@
     "json_table_date_input_format": "Detected input format",
     "json_table_date_output_format": "Output format",
     "json_table_delete_rule": "Delete rule",
+    "json_table_depth_warning": "JSON depth ({{actual}}) exceeds configured max ({{configured}}). Some nested data is not expanded.",
     "json_table_density": "Density",
     "json_table_distinct": "Distinct values",
     "json_table_even_row_color": "Even row color",

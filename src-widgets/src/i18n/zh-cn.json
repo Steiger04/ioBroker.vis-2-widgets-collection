@@ -280,6 +280,7 @@
     "json_table_date_output_format": "输出格式",
     "json_table_delete_rule": "删除规则",
     "json_table_density": "密度",
+    "json_table_depth_warning": "JSON深度({{actual}})超过配置的最大值({{configured}})。部分嵌套数据未展开。",
     "json_table_distinct": "不同值",
     "json_table_even_row_color": "偶数行颜色",
     "json_table_features": "功能",

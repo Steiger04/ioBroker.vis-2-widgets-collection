@@ -160,7 +160,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 const col: ColumnDef<FlatRow> = {
                     id: cfg.path,
                     size: cfg.width ?? 150,
-                    accessorFn: (row: FlatRow) => row[cfg.path],
+                    // FIX-P2-1: Add optional chaining and nullish coalescing for safe property access
+                    accessorFn: (row: FlatRow) => row?.[cfg.path] ?? null,
                     header: cfg.headerName || cfg.path,
                     enableSorting: cfg.sortable ?? widgetData.tableSorting !== false,
                     enableColumnFilter: cfg.filterable ?? widgetData.tableFiltering === true,

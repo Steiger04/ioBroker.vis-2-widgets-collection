@@ -280,6 +280,7 @@
     "json_table_date_input_format": "Erkanntes Eingabeformat",
     "json_table_date_output_format": "Ausgabeformat",
     "json_table_delete_rule": "Regel löschen",
+    "json_table_depth_warning": "JSON-Tiefe ({{actual}}) überschreitet konfiguriertes Maximum ({{configured}}). Einige verschachtelte Daten werden nicht expandiert.",
     "json_table_density": "Dichte",
     "json_table_distinct": "Eindeutige Werte",
     "json_table_even_row_color": "Gerade Zeilen Farbe",

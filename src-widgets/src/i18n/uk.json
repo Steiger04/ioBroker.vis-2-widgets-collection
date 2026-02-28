@@ -280,6 +280,7 @@
     "json_table_date_output_format": "Вихідний формат",
     "json_table_delete_rule": "Видалити правило",
     "json_table_density": "Щільність",
+    "json_table_depth_warning": "Глибина JSON ({{actual}}) перевищує налаштований максимум ({{configured}}). Деякі вкладені дані не розгорнуті.",
     "json_table_distinct": "Унікальні значення",
     "json_table_even_row_color": "Колір парного рядка",
     "json_table_features": "Функції",

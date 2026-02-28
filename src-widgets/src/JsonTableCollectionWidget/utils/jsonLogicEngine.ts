@@ -367,9 +367,12 @@ export function evaluateLogic(rule: JsonLogicRule, value: unknown): boolean {
         let fn = fnCache.get(key);
         if (!fn) {
             fn = engine.build(rule) as (data: unknown) => unknown;
-            // Evict the oldest entry when the cache is full (FIFO)
+            // FIX-P2-3: Defensive check before cache eviction to prevent undefined deletion
             if (fnCache.size >= FN_CACHE_MAX_SIZE) {
-                fnCache.delete(fnCache.keys().next().value as string);
+                const oldestKey = fnCache.keys().next().value;
+                if (oldestKey) {
+                    fnCache.delete(oldestKey);
+                }
             }
             fnCache.set(key, fn);
         }

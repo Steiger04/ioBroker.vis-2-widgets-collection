@@ -137,7 +137,12 @@ export function aggregateColumns(
     // Single pass over all rows
     for (const row of rows) {
         for (const path of paths) {
-            const acc = accumulators.get(path)!;
+            // FIX-P1-2: Remove non-null assertion, add defensive check
+            const acc = accumulators.get(path);
+            if (!acc) {
+                console.warn(`[JsonTable] Missing accumulator for path: ${path}`);
+                continue;
+            }
             const value = row[path];
             const detection = detectType(value);
 
