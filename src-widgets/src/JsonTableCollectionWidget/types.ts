@@ -157,4 +157,18 @@ export interface ColumnConfigEntry {
      * - `'auto'`: Use type-based smart defaults (default behavior)
      */
     filterable?: boolean | 'auto';
+    /**
+     * Override global hiding setting for this column.
+     * - `true`: Can be hidden via column menu
+     * - `false`: Cannot be hidden
+     * - `'auto'`: Use global tableHiding setting (default behavior)
+     */
+    enableHiding?: boolean | 'auto';
+    /**
+     * Override global pinning setting for this column.
+     * - `true`: Can be pinned left/right
+     * - `false`: Cannot be pinned
+     * - `'auto'`: Use global tablePinning setting (default behavior)
+     */
+    enablePinning?: boolean | 'auto';
 }

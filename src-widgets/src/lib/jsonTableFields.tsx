@@ -70,6 +70,20 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         label: 'json_table_column_menu',
         default: true,
     },
+    {
+        name: 'tableHiding',
+        type: 'checkbox',
+        label: 'json_table_hiding',
+        default: true,
+        tooltip: 'json_table_hiding_tooltip',
+    },
+    {
+        name: 'tablePinning',
+        type: 'checkbox',
+        label: 'json_table_pinning',
+        default: false,
+        tooltip: 'json_table_pinning_tooltip',
+    },
 
     // ── Pagination ────────────────────────────────────────────────────
     {

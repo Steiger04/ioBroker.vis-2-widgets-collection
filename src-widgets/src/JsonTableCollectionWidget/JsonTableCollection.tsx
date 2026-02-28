@@ -42,6 +42,7 @@ import {
     type SortingState,
     type Column,
     type Header,
+    type FilterFn,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useContext, useMemo, useRef, useState, useEffect } from 'react';
@@ -62,18 +63,26 @@ import ColumnMenu from './components/ColumnMenu';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
+import { customFilterFns } from './utils/filterFunctions';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
 // Extend ColumnMeta to include custom alignment property for table cells
+// Extend FilterFns to include custom 'advanced' filter function
 
 declare module '@tanstack/react-table' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface ColumnMeta<TData, TValue> {
         align?: 'left' | 'center' | 'right';
         width?: number;
+        /** Detected column type for filter dialog (string, number, date, boolean) */
+        columnType?: string;
+    }
+
+    interface FilterFns {
+        advanced: FilterFn<unknown>;
     }
 }
 
@@ -200,6 +209,8 @@ const JsonTableCollection: FC = () => {
                 tableSorting: widget.data.tableSorting !== false,
                 tableFiltering: widget.data.tableFiltering === true,
                 tableRowSelection: widget.data.tableRowSelection === true,
+                tableHiding: widget.data.tableHiding !== false,
+                tablePinning: widget.data.tablePinning === true,
             },
             renderConfiguredCell: (value, config) => (
                 <TableCellRenderer
@@ -232,6 +243,8 @@ const JsonTableCollection: FC = () => {
         widget.data.tableSorting,
         widget.data.tableFiltering,
         widget.data.tableRowSelection,
+        widget.data.tableHiding,
+        widget.data.tablePinning,
     ]);
 
     // ── Table state via custom hook ─────────────────────────────────────────────
@@ -246,13 +259,18 @@ const JsonTableCollection: FC = () => {
         columnSizing,
         pagination,
         effectivePagination,
+        columnVisibility,
+        columnPinning,
         setSorting,
         setColumnFilters,
         setGlobalFilter,
         setRowSelection,
         setColumnSizing,
         setPagination,
+        setColumnVisibility,
+        setColumnPinning,
         pageSizeOptions,
+        showAllColumns,
     } = useTableSettings({
         widgetId,
         columnConfig,
@@ -278,9 +296,10 @@ const JsonTableCollection: FC = () => {
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: widget.data.tableSortingMulti ?? false,
         globalFilterFn: 'includesString',
+        filterFns: customFilterFns,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
-        defaultColumn: { minSize: 40, maxSize: 2000 },
+        defaultColumn: { minSize: 40, maxSize: 2000, filterFn: 'advanced' },
         state: {
             sorting,
             columnFilters,
@@ -288,6 +307,8 @@ const JsonTableCollection: FC = () => {
             pagination: effectivePagination,
             rowSelection,
             columnSizing,
+            columnVisibility,
+            columnPinning,
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -295,6 +316,8 @@ const JsonTableCollection: FC = () => {
         onPaginationChange: widget.data.tablePagination !== false ? setPagination : undefined,
         onRowSelectionChange: setRowSelection,
         onColumnSizingChange: setColumnSizing,
+        onColumnVisibilityChange: setColumnVisibility,
+        onColumnPinningChange: setColumnPinning,
         enableRowSelection: widget.data.tableRowSelection === true,
         enableSorting: widget.data.tableSorting !== false,
         enableColumnFilters: widget.data.tableFiltering === true,
@@ -750,28 +773,31 @@ const JsonTableCollection: FC = () => {
                                                                         )}
                                                                     </Typography>
                                                                 )}
-                                                                {widget.data.tableColumnMenu !== false && (
-                                                                    <Tooltip
-                                                                        title={Generic.t('json_table_column_menu')}
-                                                                    >
-                                                                        <IconButton
-                                                                            size="small"
-                                                                            aria-label={Generic.t(
-                                                                                'json_table_column_menu',
-                                                                            )}
-                                                                            onClick={e => {
-                                                                                e.stopPropagation();
-                                                                                openColumnMenu(
-                                                                                    header.column,
-                                                                                    e.currentTarget,
-                                                                                );
-                                                                            }}
-                                                                            sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                {widget.data.tableColumnMenu !== false &&
+                                                                    (header.column.getCanSort() ||
+                                                                        (widget.data.tableFiltering === true &&
+                                                                            header.column.getCanFilter())) && (
+                                                                        <Tooltip
+                                                                            title={Generic.t('json_table_column_menu')}
                                                                         >
-                                                                            <MoreVertIcon fontSize="inherit" />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                )}
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                aria-label={Generic.t(
+                                                                                    'json_table_column_menu',
+                                                                                )}
+                                                                                onClick={e => {
+                                                                                    e.stopPropagation();
+                                                                                    openColumnMenu(
+                                                                                        header.column,
+                                                                                        e.currentTarget,
+                                                                                    );
+                                                                                }}
+                                                                                sx={{ ml: 0.5, opacity: 0.6 }}
+                                                                            >
+                                                                                <MoreVertIcon fontSize="inherit" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    )}
                                                             </Box>
                                                         )}
                                                         {isFixed && header.column.getCanResize() && (
@@ -1034,6 +1060,8 @@ const JsonTableCollection: FC = () => {
                         activeColumnFilter={activeColumnFilter}
                         onSetSorting={setSorting}
                         onClearSorting={(columnId: string) => setSorting(old => old.filter(s => s.id !== columnId))}
+                        onShowAllColumns={showAllColumns}
+                        hasHiddenColumns={Object.keys(columnVisibility).some(k => columnVisibility[k] === false)}
                     />
                 </Box>
             ) : (

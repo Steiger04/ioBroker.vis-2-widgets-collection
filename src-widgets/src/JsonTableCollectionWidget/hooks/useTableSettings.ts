@@ -8,13 +8,15 @@
  * when features are disabled.
  */
 
-import { useState, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, type Dispatch, type SetStateAction } from 'react';
 import type {
     SortingState,
     ColumnFiltersState,
     ColumnSizingState,
     PaginationState,
     RowSelectionState,
+    VisibilityState,
+    ColumnPinningState,
 } from '@tanstack/react-table';
 
 import type { ColumnConfigEntry } from '../types';
@@ -55,6 +57,8 @@ export interface UseTableSettingsReturn {
     columnSizing: ColumnSizingState;
     pagination: PaginationState;
     effectivePagination: PaginationState;
+    columnVisibility: VisibilityState;
+    columnPinning: ColumnPinningState;
 
     // Setters
     setSorting: Dispatch<SetStateAction<SortingState>>;
@@ -63,10 +67,13 @@ export interface UseTableSettingsReturn {
     setRowSelection: Dispatch<SetStateAction<RowSelectionState>>;
     setColumnSizing: Dispatch<SetStateAction<ColumnSizingState>>;
     setPagination: Dispatch<SetStateAction<PaginationState>>;
+    setColumnVisibility: Dispatch<SetStateAction<VisibilityState>>;
+    setColumnPinning: Dispatch<SetStateAction<ColumnPinningState>>;
 
     // Helpers
     pageSizeOptions: number[];
     parsePageSizeOptions: (raw: string | undefined) => number[];
+    showAllColumns: () => void;
 }
 
 // ── Helper Functions ──────────────────────────────────────────────────────────
@@ -269,6 +276,20 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     const pageSizeOptions = useMemo(() => parsePageSizeOptions(tablePageSizeOptions), [tablePageSizeOptions]);
 
+    // ── Column Visibility State ──────────────────────────────────────────────
+
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+    // ── Column Pinning State ──────────────────────────────────────────────────
+
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: [], right: [] });
+
+    // ── Helper: Show All Columns ──────────────────────────────────────────────
+
+    const showAllColumns = useCallback(() => {
+        setColumnVisibility({});
+    }, []);
+
     // ── Return ─────────────────────────────────────────────────────────────────
 
     return {
@@ -280,6 +301,8 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         columnSizing,
         pagination,
         effectivePagination,
+        columnVisibility,
+        columnPinning,
 
         // Setters
         setSorting,
@@ -288,9 +311,12 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         setRowSelection,
         setColumnSizing,
         setPagination,
+        setColumnVisibility,
+        setColumnPinning,
 
         // Helpers
         pageSizeOptions,
         parsePageSizeOptions,
+        showAllColumns,
     };
 }

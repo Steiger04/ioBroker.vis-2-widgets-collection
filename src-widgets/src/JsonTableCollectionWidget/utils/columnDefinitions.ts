@@ -27,6 +27,8 @@ import { normalizeToIsoDate } from './formatters';
 export interface SmartDefaults {
     sortable: boolean;
     filterable: boolean;
+    hiding: boolean;
+    pinning: boolean;
 }
 
 /**
@@ -43,19 +45,19 @@ export function getSmartDefaults(detectedType: string): SmartDefaults {
     switch (detectedType) {
         case 'number':
         case 'date':
-            return { sortable: true, filterable: true };
+            return { sortable: true, filterable: true, hiding: true, pinning: true };
         case 'string':
-            return { sortable: true, filterable: true };
+            return { sortable: true, filterable: true, hiding: true, pinning: true };
         case 'boolean':
             // Boolean usually doesn't need sorting (only 2 values)
-            return { sortable: false, filterable: true };
+            return { sortable: false, filterable: true, hiding: true, pinning: true };
         case 'array':
         case 'object':
             // Complex types can't be sorted/filtered meaningfully
-            return { sortable: false, filterable: false };
+            return { sortable: false, filterable: false, hiding: true, pinning: true };
         default:
             // Default to enabled for unknown types
-            return { sortable: true, filterable: true };
+            return { sortable: true, filterable: true, hiding: true, pinning: true };
     }
 }
 
@@ -97,6 +99,44 @@ export function resolveFilterable(cfg: ColumnConfigEntry, detectedType: string, 
     return smartDefaults.filterable && globalFiltering === true;
 }
 
+/**
+ * Resolves the effective hiding value for a column configuration.
+ *
+ * @param cfg - Column configuration entry
+ * @param detectedType - The detected data type from JSON analysis
+ * @param globalHiding - Global table hiding setting (undefined treated as true for backwards compatibility)
+ * @returns Effective hiding boolean value
+ */
+export function resolveHiding(cfg: ColumnConfigEntry, detectedType: string, globalHiding: boolean): boolean {
+    // If enableHiding is explicitly set (not 'auto'), use that value
+    if (cfg.enableHiding !== undefined && cfg.enableHiding !== 'auto') {
+        return cfg.enableHiding;
+    }
+    // For 'auto' or undefined, use smart defaults based on type
+    const smartDefaults = getSmartDefaults(detectedType);
+    // Use !== false for backwards compatibility (undefined defaults to enabled)
+    return smartDefaults.hiding && globalHiding !== false;
+}
+
+/**
+ * Resolves the effective pinning value for a column configuration.
+ *
+ * @param cfg - Column configuration entry
+ * @param detectedType - The detected data type from JSON analysis
+ * @param globalPinning - Global table pinning setting (undefined treated as false)
+ * @returns Effective pinning boolean value
+ */
+export function resolvePinning(cfg: ColumnConfigEntry, detectedType: string, globalPinning: boolean): boolean {
+    // If enablePinning is explicitly set (not 'auto'), use that value
+    if (cfg.enablePinning !== undefined && cfg.enablePinning !== 'auto') {
+        return cfg.enablePinning;
+    }
+    // For 'auto' or undefined, use smart defaults based on type
+    const smartDefaults = getSmartDefaults(detectedType);
+    // Use explicit true check (pinning defaults to disabled unless explicitly enabled)
+    return smartDefaults.pinning && globalPinning === true;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** Flat row type used by TanStack Table */
@@ -113,6 +153,8 @@ export interface BuildColumnDefsOptions {
         tableSorting: boolean;
         tableFiltering: boolean;
         tableRowSelection: boolean;
+        tableHiding: boolean;
+        tablePinning: boolean;
     };
     /** Cell renderer component for configured columns */
     renderConfiguredCell: (value: unknown, config: ColumnConfigEntry) => React.ReactNode;
@@ -224,6 +266,8 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                   enableResizing: false,
                   enableSorting: false,
                   enableColumnFilter: false,
+                  enableHiding: false,
+                  enablePinning: false,
                   header: ({ table }) => renderSelectionHeader(table),
                   cell: ({ row }) => renderSelectionCell(row),
                   meta: { align: 'center', width: 48 },
@@ -251,11 +295,14 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     header: cfg.headerName || cfg.path,
                     enableSorting: resolveSortable(cfg, detectedType, widgetData.tableSorting),
                     enableColumnFilter: resolveFilterable(cfg, detectedType, widgetData.tableFiltering),
+                    enableHiding: resolveHiding(cfg, detectedType, widgetData.tableHiding),
+                    enablePinning: resolvePinning(cfg, detectedType, widgetData.tablePinning),
                     ...(isDate && { sortingFn: createDateSortingFn(inputFmt) }),
                     cell: ({ getValue }) => renderConfiguredCell(getValue(), cfg),
                     meta: {
                         align: cfg.align || 'left',
                         width: cfg.width,
+                        columnType: detectedType,
                     },
                 };
                 return col;
@@ -274,9 +321,11 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 header: col.path.split('.').pop() || col.path,
                 enableSorting: smartDefaults.sortable && widgetData.tableSorting,
                 enableColumnFilter: smartDefaults.filterable && widgetData.tableFiltering,
+                enableHiding: smartDefaults.hiding && widgetData.tableHiding,
+                enablePinning: smartDefaults.pinning && widgetData.tablePinning,
                 ...(isDate && { sortingFn: createDateSortingFn(fmt) }),
                 cell: ({ getValue }) => renderAutoDetectedCell(getValue()),
-                meta: { align: 'left' },
+                meta: { align: 'left', columnType: col.type },
             };
             return colDef;
         });
