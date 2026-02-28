@@ -1,4 +1,4 @@
-import { g as me, a as ye, u as ve, Z as Ti, _ as Di, $ as _n, a0 as Wt, h as qt, j as c, s as Y, d as ie, e as be, a1 as Qo, m as pe, a2 as Ur, b as se, P as it, B as Yn, c as ue, I as _e, W, a3 as vo, M as bo, X as Pt, a4 as cn, a5 as Oi, f as Zo, a6 as Ei, a7 as No, i as Fe, a8 as qr, a9 as mn, T as F, r as Ni, U as Li, aa as Vi, ab as er, ac as Hi, ad as Yr, ae as xo, af as Bi, ag as tr, ah as Wi, R as Yt, o as q, ai as $e, G as x, aj as yn, ak as vn, al as Gi, am as Ui, D as qi, w as It, an as Yi, ao as Ji, C as Xe, F as Ct, ap as Ki, n as Xi, q as Qi, K as In, x as Zi, y as es, aq as ts, A as ns, z as nr, E as os, __tla as __tla_0 } from "./useData-CoMv8b7s.js";
+import { g as me, a as ye, u as ve, Z as Di, _ as Ti, $ as _n, a0 as Wt, h as qt, j as c, s as Y, d as ie, e as be, a1 as Qo, m as pe, a2 as Ur, b as se, P as it, B as Yn, c as ue, I as _e, W, a3 as vo, M as bo, X as Pt, a4 as cn, a5 as Ei, f as Zo, a6 as Oi, a7 as No, i as Fe, a8 as qr, a9 as mn, T as F, r as Ni, U as Li, aa as Vi, ab as er, ac as Hi, ad as Yr, ae as xo, af as Bi, ag as tr, ah as Wi, R as Yt, o as q, ai as $e, G as x, aj as yn, ak as vn, al as Gi, am as Ui, D as qi, w as It, an as Yi, ao as Ji, C as Xe, F as Ct, ap as Ki, n as Xi, q as Qi, K as In, x as Zi, y as es, aq as ts, A as ns, z as nr, E as os, __tla as __tla_0 } from "./useData-CoMv8b7s.js";
 import { v as y, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { C as bn, __tla as __tla_2 } from "./Checkbox-CjPg9dWs.js";
 import { D as Jr, a as Kr, b as Xr, __tla as __tla_3 } from "./DialogTitle-CJWtNrVp.js";
@@ -7,7 +7,7 @@ import { S as rs, __tla as __tla_5 } from "./Slider-DgHpn0IP.js";
 import { F as ht, __tla as __tla_6 } from "./FormControlLabel-BAm8tbJK.js";
 import { S as Ft, __tla as __tla_7 } from "./Switch-hq_W31Xv.js";
 import { M as je, __tla as __tla_8 } from "./MenuItem-CzBojcp8.js";
-import { S as Te, __tla as __tla_9 } from "./Stack-CzOOYs5P.js";
+import { S as De, __tla as __tla_9 } from "./Stack-CzOOYs5P.js";
 import { T as Qr, a as Jn, __tla as __tla_10 } from "./ToggleButtonGroup-DG2CiFmV.js";
 import { C as Zr, __tla as __tla_11 } from "./Close-CQt1dGJP.js";
 import { u as is, __tla as __tla_12 } from "./useOidValue-DFyPWDrl.js";
@@ -15,7 +15,7 @@ import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 import { __tla as __tla_13 } from "./SwitchBase-Dz75iFvF.js";
 import { __tla as __tla_14 } from "./listItemTextClasses-CJ06hn_z.js";
-let Eo;
+let Oo;
 let __tla = Promise.all([
   (() => {
     try {
@@ -233,11 +233,11 @@ let __tla = Promise.all([
     const o = ve({
       props: t,
       name: "MuiCollapse"
-    }), { addEndListener: r, children: i, className: s, collapsedSize: l = "0px", component: a, easing: d, in: u, onEnter: p, onEntered: g, onEntering: f, onExit: h, onExited: m, onExiting: v, orientation: b = "vertical", style: C, timeout: S = Ti.standard, TransitionComponent: w = Di, ..._ } = o, R = {
+    }), { addEndListener: r, children: i, className: s, collapsedSize: l = "0px", component: a, easing: d, in: u, onEnter: p, onEntered: g, onEntering: f, onExit: h, onExited: m, onExiting: v, orientation: b = "vertical", style: C, timeout: S = Di.standard, TransitionComponent: w = Ti, ..._ } = o, R = {
       ...o,
       orientation: b,
       collapsedSize: l
-    }, P = ls(R), T = _n(), D = Wt(), $ = y.useRef(null), A = y.useRef(), G = typeof l == "number" ? `${l}px` : l, z = b === "horizontal", J = z ? "width" : "height", K = y.useRef(null), E = qt(n, K), k = (N) => (L) => {
+    }, P = ls(R), D = _n(), T = Wt(), $ = y.useRef(null), A = y.useRef(), G = typeof l == "number" ? `${l}px` : l, z = b === "horizontal", J = z ? "width" : "height", K = y.useRef(null), O = qt(n, K), k = (N) => (L) => {
       if (N) {
         const re = K.current;
         L === void 0 ? N(re) : N(re, L);
@@ -247,7 +247,7 @@ let __tla = Promise.all([
     }), X = k((N, L) => {
       const re = j();
       $.current && z && ($.current.style.position = "");
-      const { duration: Me, easing: De } = Qo({
+      const { duration: Me, easing: Te } = Qo({
         style: C,
         timeout: S,
         easing: d
@@ -255,10 +255,10 @@ let __tla = Promise.all([
         mode: "enter"
       });
       if (S === "auto") {
-        const ze = T.transitions.getAutoHeightDuration(re);
+        const ze = D.transitions.getAutoHeightDuration(re);
         N.style.transitionDuration = `${ze}ms`, A.current = ze;
       } else N.style.transitionDuration = typeof Me == "string" ? Me : `${Me}ms`;
-      N.style[J] = `${re}px`, N.style.transitionTimingFunction = De, f && f(N, L);
+      N.style[J] = `${re}px`, N.style.transitionTimingFunction = Te, f && f(N, L);
     }), U = k((N, L) => {
       N.style[J] = "auto", g && g(N, L);
     }), le = k((N) => {
@@ -272,12 +272,12 @@ let __tla = Promise.all([
         mode: "exit"
       });
       if (S === "auto") {
-        const De = T.transitions.getAutoHeightDuration(L);
-        N.style.transitionDuration = `${De}ms`, A.current = De;
+        const Te = D.transitions.getAutoHeightDuration(L);
+        N.style.transitionDuration = `${Te}ms`, A.current = Te;
       } else N.style.transitionDuration = typeof re == "string" ? re : `${re}ms`;
       N.style[J] = G, N.style.transitionTimingFunction = Me, v && v(N);
     }), ae = (N) => {
-      S === "auto" && D.start(A.current || 0, N), r && r(K.current, N);
+      S === "auto" && T.start(A.current || 0, N), r && r(K.current, N);
     };
     return c.jsx(w, {
       in: u,
@@ -301,7 +301,7 @@ let __tla = Promise.all([
           [z ? "minWidth" : "minHeight"]: G,
           ...C
         },
-        ref: E,
+        ref: O,
         ownerState: {
           ...R,
           state: N
@@ -485,14 +485,14 @@ let __tla = Promise.all([
       disabled: l,
       disableGutters: a,
       expanded: b
-    }, T = ps(P), D = {
+    }, D = ps(P), T = {
       transition: h,
       ...g
     }, $ = {
       transition: m,
       ...f
     }, A = {
-      slots: D,
+      slots: T,
       slotProps: $
     }, [G, z] = se("root", {
       elementType: fs,
@@ -500,7 +500,7 @@ let __tla = Promise.all([
         ...A,
         ...v
       },
-      className: ie(T.root, i),
+      className: ie(D.root, i),
       shouldForwardComponentProp: true,
       ownerState: P,
       ref: n,
@@ -510,9 +510,9 @@ let __tla = Promise.all([
     }), [J, K] = se("heading", {
       elementType: gs,
       externalForwardedProps: A,
-      className: T.heading,
+      className: D.heading,
       ownerState: P
-    }), [E, k] = se("transition", {
+    }), [O, k] = se("transition", {
       elementType: wo,
       externalForwardedProps: A,
       ownerState: P
@@ -527,7 +527,7 @@ let __tla = Promise.all([
             children: w
           })
         }),
-        c.jsx(E, {
+        c.jsx(O, {
           in: b,
           timeout: "auto",
           ...k,
@@ -535,7 +535,7 @@ let __tla = Promise.all([
             "aria-labelledby": w.props.id,
             id: w.props["aria-controls"],
             role: "region",
-            className: T.region,
+            className: D.region,
             children: _
           })
         })
@@ -682,7 +682,7 @@ let __tla = Promise.all([
     [`&.${Gt.expanded}`]: {
       transform: "rotate(180deg)"
     }
-  }))), Tn = y.forwardRef(function(t, n) {
+  }))), Dn = y.forwardRef(function(t, n) {
     const o = ve({
       props: t,
       name: "MuiAccordionSummary"
@@ -725,7 +725,7 @@ let __tla = Promise.all([
       elementType: ws,
       externalForwardedProps: S,
       ownerState: b
-    }), [T, D] = se("expandIconWrapper", {
+    }), [D, T] = se("expandIconWrapper", {
       className: C.expandIconWrapper,
       elementType: Cs,
       externalForwardedProps: S,
@@ -738,8 +738,8 @@ let __tla = Promise.all([
           ...P,
           children: r
         }),
-        s && c.jsx(T, {
-          ...D,
+        s && c.jsx(D, {
+          ...T,
           children: s
         })
       ]
@@ -935,7 +935,7 @@ let __tla = Promise.all([
         ...u,
         ...v
       }
-    }, [P, T] = se("root", {
+    }, [P, D] = se("root", {
       ref: n,
       shouldForwardComponentProp: true,
       className: ie(_.root, s),
@@ -949,7 +949,7 @@ let __tla = Promise.all([
         role: h,
         elevation: 0
       }
-    }), [D, $] = se("icon", {
+    }), [T, $] = se("icon", {
       className: _.icon,
       elementType: Is,
       externalForwardedProps: R,
@@ -964,7 +964,7 @@ let __tla = Promise.all([
       elementType: zs,
       externalForwardedProps: R,
       ownerState: w
-    }), [K, E] = se("closeButton", {
+    }), [K, O] = se("closeButton", {
       elementType: _e,
       externalForwardedProps: R,
       ownerState: w
@@ -974,9 +974,9 @@ let __tla = Promise.all([
       ownerState: w
     });
     return c.jsxs(P, {
-      ...T,
+      ...D,
       children: [
-        p !== false ? c.jsx(D, {
+        p !== false ? c.jsx(T, {
           ...$,
           children: p || g[m] || rr[m]
         }) : null,
@@ -996,7 +996,7 @@ let __tla = Promise.all([
             title: l,
             color: "inherit",
             onClick: f,
-            ...E,
+            ...O,
             children: c.jsx(k, {
               fontSize: "small",
               ...j
@@ -1011,7 +1011,7 @@ let __tla = Promise.all([
     et,
     tt,
     He
-  ], Jt = "start", xn = "end", ks = "clippingParents", ti = "viewport", Zt = "popper", Ts = "reference", ir = Sn.reduce(function(e, t) {
+  ], Jt = "start", xn = "end", ks = "clippingParents", ti = "viewport", Zt = "popper", Ds = "reference", ir = Sn.reduce(function(e, t) {
     return e.concat([
       t + "-" + Jt,
       t + "-" + xn
@@ -1024,10 +1024,10 @@ let __tla = Promise.all([
       t + "-" + Jt,
       t + "-" + xn
     ]);
-  }, []), Ds = "beforeRead", Os = "read", Es = "afterRead", Ns = "beforeMain", Ls = "main", Vs = "afterMain", Hs = "beforeWrite", Bs = "write", Ws = "afterWrite", Gs = [
-    Ds,
-    Os,
+  }, []), Ts = "beforeRead", Es = "read", Os = "afterRead", Ns = "beforeMain", Ls = "main", Vs = "afterMain", Hs = "beforeWrite", Bs = "write", Ws = "afterWrite", Gs = [
+    Ts,
     Es,
+    Os,
     Ns,
     Ls,
     Vs,
@@ -1046,7 +1046,7 @@ let __tla = Promise.all([
     }
     return e;
   }
-  function Tt(e) {
+  function Dt(e) {
     var t = Ge(e).Element;
     return e instanceof t || e instanceof Element;
   }
@@ -1120,7 +1120,7 @@ let __tla = Promise.all([
     t === void 0 && (t = false), n === void 0 && (n = false);
     var o = e.getBoundingClientRect(), r = 1, i = 1;
     t && Ze(e) && (r = e.offsetWidth > 0 && Kt(o.width) / e.offsetWidth || 1, i = e.offsetHeight > 0 && Kt(o.height) / e.offsetHeight || 1);
-    var s = Tt(e) ? Ge(e) : window, l = s.visualViewport, a = !oi() && n, d = (o.left + (a && l ? l.offsetLeft : 0)) / r, u = (o.top + (a && l ? l.offsetTop : 0)) / i, p = o.width / r, g = o.height / i;
+    var s = Dt(e) ? Ge(e) : window, l = s.visualViewport, a = !oi() && n, d = (o.left + (a && l ? l.offsetLeft : 0)) / r, u = (o.top + (a && l ? l.offsetTop : 0)) / i, p = o.width / r, g = o.height / i;
     return {
       width: p,
       height: g,
@@ -1164,7 +1164,7 @@ let __tla = Promise.all([
     ].indexOf(at(e)) >= 0;
   }
   function Rt(e) {
-    return ((Tt(e) ? e.ownerDocument : e.document) || window.document).documentElement;
+    return ((Dt(e) ? e.ownerDocument : e.document) || window.document).documentElement;
   }
   function to(e) {
     return at(e) === "html" ? e : e.assignedSlot || e.parentNode || (Vo(e) ? e.host : null) || Rt(e);
@@ -1236,8 +1236,8 @@ let __tla = Promise.all([
       tt
     ].indexOf(l) >= 0, u = d ? "height" : "width";
     if (!(!i || !s)) {
-      var p = Qs(r.padding, n), g = Ho(i), f = a === "y" ? Ve : He, h = a === "y" ? et : tt, m = n.rects.reference[u] + n.rects.reference[a] - s[a] - n.rects.popper[u], v = s[a] - n.rects.reference[a], b = jn(i), C = b ? a === "y" ? b.clientHeight || 0 : b.clientWidth || 0 : 0, S = m / 2 - v / 2, w = p[f], _ = C - g[u] - p[h], R = C / 2 - g[u] / 2 + S, P = un(w, R, _), T = a;
-      n.modifiersData[o] = (t = {}, t[T] = P, t.centerOffset = P - R, t);
+      var p = Qs(r.padding, n), g = Ho(i), f = a === "y" ? Ve : He, h = a === "y" ? et : tt, m = n.rects.reference[u] + n.rects.reference[a] - s[a] - n.rects.popper[u], v = s[a] - n.rects.reference[a], b = jn(i), C = b ? a === "y" ? b.clientHeight || 0 : b.clientWidth || 0 : 0, S = m / 2 - v / 2, w = p[f], _ = C - g[u] - p[h], R = C / 2 - g[u] / 2 + S, P = un(w, R, _), D = a;
+      n.modifiersData[o] = (t = {}, t[D] = P, t.centerOffset = P - R, t);
     }
   }
   function el(e) {
@@ -1284,15 +1284,15 @@ let __tla = Promise.all([
     f = v.x, m = v.y;
     var b = s.hasOwnProperty("x"), C = s.hasOwnProperty("y"), S = He, w = Ve, _ = window;
     if (d) {
-      var R = jn(n), P = "clientHeight", T = "clientWidth";
-      if (R === Ge(n) && (R = Rt(n), mt(R).position !== "static" && l === "absolute" && (P = "scrollHeight", T = "scrollWidth")), R = R, r === Ve || (r === He || r === tt) && i === xn) {
+      var R = jn(n), P = "clientHeight", D = "clientWidth";
+      if (R === Ge(n) && (R = Rt(n), mt(R).position !== "static" && l === "absolute" && (P = "scrollHeight", D = "scrollWidth")), R = R, r === Ve || (r === He || r === tt) && i === xn) {
         w = et;
-        var D = p && R === _ && _.visualViewport ? _.visualViewport.height : R[P];
-        m -= D - o.height, m *= a ? 1 : -1;
+        var T = p && R === _ && _.visualViewport ? _.visualViewport.height : R[P];
+        m -= T - o.height, m *= a ? 1 : -1;
       }
       if (r === He || (r === Ve || r === et) && i === xn) {
         S = tt;
-        var $ = p && R === _ && _.visualViewport ? _.visualViewport.width : R[T];
+        var $ = p && R === _ && _.visualViewport ? _.visualViewport.width : R[D];
         f -= $ - o.width, f *= a ? 1 : -1;
       }
     }
@@ -1341,17 +1341,17 @@ let __tla = Promise.all([
     fn: rl,
     data: {}
   };
-  var Dn = {
+  var Tn = {
     passive: true
   };
   function sl(e) {
     var t = e.state, n = e.instance, o = e.options, r = o.scroll, i = r === void 0 ? true : r, s = o.resize, l = s === void 0 ? true : s, a = Ge(t.elements.popper), d = [].concat(t.scrollParents.reference, t.scrollParents.popper);
     return i && d.forEach(function(u) {
-      u.addEventListener("scroll", n.update, Dn);
-    }), l && a.addEventListener("resize", n.update, Dn), function() {
+      u.addEventListener("scroll", n.update, Tn);
+    }), l && a.addEventListener("resize", n.update, Tn), function() {
       i && d.forEach(function(u) {
-        u.removeEventListener("scroll", n.update, Dn);
-      }), l && a.removeEventListener("resize", n.update, Dn);
+        u.removeEventListener("scroll", n.update, Tn);
+      }), l && a.removeEventListener("resize", n.update, Tn);
     };
   }
   const ll = {
@@ -1448,15 +1448,15 @@ let __tla = Promise.all([
     return n.top = n.top + e.clientTop, n.left = n.left + e.clientLeft, n.bottom = n.top + e.clientHeight, n.right = n.left + e.clientWidth, n.width = e.clientWidth, n.height = e.clientHeight, n.x = n.left, n.y = n.top, n;
   }
   function cr(e, t, n) {
-    return t === ti ? So(ul(e, n)) : Tt(t) ? pl(t, n) : So(dl(Rt(e)));
+    return t === ti ? So(ul(e, n)) : Dt(t) ? pl(t, n) : So(dl(Rt(e)));
   }
   function fl(e) {
     var t = dn(to(e)), n = [
       "absolute",
       "fixed"
     ].indexOf(mt(e).position) >= 0, o = n && Ze(e) ? jn(e) : e;
-    return Tt(o) ? t.filter(function(r) {
-      return Tt(r) && ri(r, o) && at(r) !== "body";
+    return Dt(o) ? t.filter(function(r) {
+      return Dt(r) && ri(r, o) && at(r) !== "body";
     }) : [];
   }
   function gl(e, t, n, o) {
@@ -1517,15 +1517,15 @@ let __tla = Promise.all([
   }
   function wn(e, t) {
     t === void 0 && (t = {});
-    var n = t, o = n.placement, r = o === void 0 ? e.placement : o, i = n.strategy, s = i === void 0 ? e.strategy : i, l = n.boundary, a = l === void 0 ? ks : l, d = n.rootBoundary, u = d === void 0 ? ti : d, p = n.elementContext, g = p === void 0 ? Zt : p, f = n.altBoundary, h = f === void 0 ? false : f, m = n.padding, v = m === void 0 ? 0 : m, b = si(typeof v != "number" ? v : li(v, Sn)), C = g === Zt ? Ts : Zt, S = e.rects.popper, w = e.elements[h ? C : g], _ = gl(Tt(w) ? w : w.contextElement || Rt(e.elements.popper), a, u, s), R = Xt(e.elements.reference), P = ci({
+    var n = t, o = n.placement, r = o === void 0 ? e.placement : o, i = n.strategy, s = i === void 0 ? e.strategy : i, l = n.boundary, a = l === void 0 ? ks : l, d = n.rootBoundary, u = d === void 0 ? ti : d, p = n.elementContext, g = p === void 0 ? Zt : p, f = n.altBoundary, h = f === void 0 ? false : f, m = n.padding, v = m === void 0 ? 0 : m, b = si(typeof v != "number" ? v : li(v, Sn)), C = g === Zt ? Ds : Zt, S = e.rects.popper, w = e.elements[h ? C : g], _ = gl(Dt(w) ? w : w.contextElement || Rt(e.elements.popper), a, u, s), R = Xt(e.elements.reference), P = ci({
       reference: R,
       element: S,
       placement: r
-    }), T = So(Object.assign({}, S, P)), D = g === Zt ? T : R, $ = {
-      top: _.top - D.top + b.top,
-      bottom: D.bottom - _.bottom + b.bottom,
-      left: _.left - D.left + b.left,
-      right: D.right - _.right + b.right
+    }), D = So(Object.assign({}, S, P)), T = g === Zt ? D : R, $ = {
+      top: _.top - T.top + b.top,
+      bottom: T.bottom - _.bottom + b.bottom,
+      left: _.left - T.left + b.left,
+      right: T.right - _.right + b.right
     }, A = e.modifiersData.offset;
     if (g === Zt && A) {
       var G = A[r];
@@ -1587,11 +1587,11 @@ let __tla = Promise.all([
           flipVariations: h,
           allowedAutoPlacements: m
         }) : ae);
-      }, []), _ = t.rects.reference, R = t.rects.popper, P = /* @__PURE__ */ new Map(), T = true, D = w[0], $ = 0; $ < w.length; $++) {
+      }, []), _ = t.rects.reference, R = t.rects.popper, P = /* @__PURE__ */ new Map(), D = true, T = w[0], $ = 0; $ < w.length; $++) {
         var A = w[$], G = lt(A), z = Qt(A) === Jt, J = [
           Ve,
           et
-        ].indexOf(G) >= 0, K = J ? "width" : "height", E = wn(t, {
+        ].indexOf(G) >= 0, K = J ? "width" : "height", O = wn(t, {
           placement: A,
           boundary: u,
           rootBoundary: p,
@@ -1600,27 +1600,27 @@ let __tla = Promise.all([
         }), k = J ? z ? tt : He : z ? et : Ve;
         _[K] > R[K] && (k = Gn(k));
         var j = Gn(k), I = [];
-        if (i && I.push(E[G] <= 0), l && I.push(E[k] <= 0, E[j] <= 0), I.every(function(he) {
+        if (i && I.push(O[G] <= 0), l && I.push(O[k] <= 0, O[j] <= 0), I.every(function(he) {
           return he;
         })) {
-          D = A, T = false;
+          T = A, D = false;
           break;
         }
         P.set(A, I);
       }
-      if (T) for (var X = h ? 3 : 1, U = function(ae) {
+      if (D) for (var X = h ? 3 : 1, U = function(ae) {
         var N = w.find(function(L) {
           var re = P.get(L);
           if (re) return re.slice(0, ae).every(function(Me) {
             return Me;
           });
         });
-        if (N) return D = N, "break";
+        if (N) return T = N, "break";
       }, le = X; le > 0; le--) {
         var ee = U(le);
         if (ee === "break") break;
       }
-      t.placement !== D && (t.modifiersData[o]._skip = true, t.placement = D, t.reset = true);
+      t.placement !== T && (t.modifiersData[o]._skip = true, t.placement = T, t.reset = true);
     }
   }
   const vl = {
@@ -1741,31 +1741,31 @@ let __tla = Promise.all([
       rootBoundary: d,
       padding: p,
       altBoundary: u
-    }), b = lt(t.placement), C = Qt(t.placement), S = !C, w = Bo(b), _ = Rl(w), R = t.modifiersData.popperOffsets, P = t.rects.reference, T = t.rects.popper, D = typeof m == "function" ? m(Object.assign({}, t.rects, {
+    }), b = lt(t.placement), C = Qt(t.placement), S = !C, w = Bo(b), _ = Rl(w), R = t.modifiersData.popperOffsets, P = t.rects.reference, D = t.rects.popper, T = typeof m == "function" ? m(Object.assign({}, t.rects, {
       placement: t.placement
-    })) : m, $ = typeof D == "number" ? {
-      mainAxis: D,
-      altAxis: D
+    })) : m, $ = typeof T == "number" ? {
+      mainAxis: T,
+      altAxis: T
     } : Object.assign({
       mainAxis: 0,
       altAxis: 0
-    }, D), A = t.modifiersData.offset ? t.modifiersData.offset[t.placement] : null, G = {
+    }, T), A = t.modifiersData.offset ? t.modifiersData.offset[t.placement] : null, G = {
       x: 0,
       y: 0
     };
     if (R) {
       if (i) {
-        var z, J = w === "y" ? Ve : He, K = w === "y" ? et : tt, E = w === "y" ? "height" : "width", k = R[w], j = k + v[J], I = k - v[K], X = f ? -T[E] / 2 : 0, U = C === Jt ? P[E] : T[E], le = C === Jt ? -T[E] : -P[E], ee = t.elements.arrow, he = f && ee ? Ho(ee) : {
+        var z, J = w === "y" ? Ve : He, K = w === "y" ? et : tt, O = w === "y" ? "height" : "width", k = R[w], j = k + v[J], I = k - v[K], X = f ? -D[O] / 2 : 0, U = C === Jt ? P[O] : D[O], le = C === Jt ? -D[O] : -P[O], ee = t.elements.arrow, he = f && ee ? Ho(ee) : {
           width: 0,
           height: 0
-        }, ae = t.modifiersData["arrow#persistent"] ? t.modifiersData["arrow#persistent"].padding : ii(), N = ae[J], L = ae[K], re = un(0, P[E], he[E]), Me = S ? P[E] / 2 - X - re - N - $.mainAxis : U - re - N - $.mainAxis, De = S ? -P[E] / 2 + X + re + L + $.mainAxis : le + re + L + $.mainAxis, ze = t.elements.arrow && jn(t.elements.arrow), de = ze ? w === "y" ? ze.clientTop || 0 : ze.clientLeft || 0 : 0, Ce = (z = A == null ? void 0 : A[w]) != null ? z : 0, Se = k + Me - Ce - de, qe = k + De - Ce, Ye = un(f ? Kn(j, Se) : j, k, f ? zt(I, qe) : I);
+        }, ae = t.modifiersData["arrow#persistent"] ? t.modifiersData["arrow#persistent"].padding : ii(), N = ae[J], L = ae[K], re = un(0, P[O], he[O]), Me = S ? P[O] / 2 - X - re - N - $.mainAxis : U - re - N - $.mainAxis, Te = S ? -P[O] / 2 + X + re + L + $.mainAxis : le + re + L + $.mainAxis, ze = t.elements.arrow && jn(t.elements.arrow), de = ze ? w === "y" ? ze.clientTop || 0 : ze.clientLeft || 0 : 0, Ce = (z = A == null ? void 0 : A[w]) != null ? z : 0, Se = k + Me - Ce - de, qe = k + Te - Ce, Ye = un(f ? Kn(j, Se) : j, k, f ? zt(I, qe) : I);
         R[w] = Ye, G[w] = Ye - k;
       }
       if (l) {
-        var Oe, yt = w === "x" ? Ve : He, vt = w === "x" ? et : tt, Be = R[_], nt = _ === "y" ? "height" : "width", bt = Be + v[yt], Mt = Be - v[vt], $t = [
+        var Ee, yt = w === "x" ? Ve : He, vt = w === "x" ? et : tt, Be = R[_], nt = _ === "y" ? "height" : "width", bt = Be + v[yt], Mt = Be - v[vt], $t = [
           Ve,
           He
-        ].indexOf(b) !== -1, Ot = (Oe = A == null ? void 0 : A[_]) != null ? Oe : 0, ct = $t ? bt : Be - P[nt] - T[nt] - Ot + $.altAxis, ut = $t ? Be + P[nt] + T[nt] - Ot - $.altAxis : Mt, dt = f && $t ? Xs(ct, Be, ut) : un(f ? ct : bt, Be, f ? ut : Mt);
+        ].indexOf(b) !== -1, Et = (Ee = A == null ? void 0 : A[_]) != null ? Ee : 0, ct = $t ? bt : Be - P[nt] - D[nt] - Et + $.altAxis, ut = $t ? Be + P[nt] + D[nt] - Et - $.altAxis : Mt, dt = f && $t ? Xs(ct, Be, ut) : un(f ? ct : bt, Be, f ? ut : Mt);
         R[_] = dt, G[_] = dt - Be;
       }
       t.modifiersData[o] = G;
@@ -1836,7 +1836,7 @@ let __tla = Promise.all([
       }));
     }, []);
   }
-  function Tl(e) {
+  function Dl(e) {
     var t;
     return function() {
       return t || (t = new Promise(function(n) {
@@ -1846,7 +1846,7 @@ let __tla = Promise.all([
       })), t;
     };
   }
-  function Dl(e) {
+  function Tl(e) {
     var t = e.reduce(function(n, o) {
       var r = n[o.name];
       return n[o.name] = r ? Object.assign({}, r, o, {
@@ -1869,7 +1869,7 @@ let __tla = Promise.all([
       return !(o && typeof o.getBoundingClientRect == "function");
     });
   }
-  function Ol(e) {
+  function El(e) {
     e === void 0 && (e = {});
     var t = e, n = t.defaultModifiers, o = n === void 0 ? [] : n, r = t.defaultOptions, i = r === void 0 ? pr : r;
     return function(l, a, d) {
@@ -1890,10 +1890,10 @@ let __tla = Promise.all([
         setOptions: function(b) {
           var C = typeof b == "function" ? b(u.options) : b;
           m(), u.options = Object.assign({}, i, u.options, C), u.scrollParents = {
-            reference: Tt(l) ? dn(l) : l.contextElement ? dn(l.contextElement) : [],
+            reference: Dt(l) ? dn(l) : l.contextElement ? dn(l.contextElement) : [],
             popper: dn(a)
           };
-          var S = kl(Dl([].concat(o, u.options.modifiers)));
+          var S = kl(Tl([].concat(o, u.options.modifiers)));
           return u.orderedModifiers = S.filter(function(w) {
             return w.enabled;
           }), h(), f.update();
@@ -1913,18 +1913,18 @@ let __tla = Promise.all([
                   u.reset = false, w = -1;
                   continue;
                 }
-                var _ = u.orderedModifiers[w], R = _.fn, P = _.options, T = P === void 0 ? {} : P, D = _.name;
+                var _ = u.orderedModifiers[w], R = _.fn, P = _.options, D = P === void 0 ? {} : P, T = _.name;
                 typeof R == "function" && (u = R({
                   state: u,
-                  options: T,
-                  name: D,
+                  options: D,
+                  name: T,
                   instance: f
                 }) || u);
               }
             }
           }
         },
-        update: Tl(function() {
+        update: Dl(function() {
           return new Promise(function(v) {
             f.forceUpdate(), v(u);
           });
@@ -1960,7 +1960,7 @@ let __tla = Promise.all([
       return f;
     };
   }
-  var El = [
+  var Ol = [
     ll,
     jl,
     il,
@@ -1970,8 +1970,8 @@ let __tla = Promise.all([
     $l,
     tl,
     xl
-  ], Nl = Ol({
-    defaultModifiers: El
+  ], Nl = El({
+    defaultModifiers: Ol
   });
   function Ll(e) {
     return me("MuiPopper", e);
@@ -2014,7 +2014,7 @@ let __tla = Promise.all([
     }, [
       w
     ]), y.useImperativeHandle(p, () => S.current, []);
-    const R = Vl(d, i), [P, T] = y.useState(R), [D, $] = y.useState(jo(o));
+    const R = Vl(d, i), [P, D] = y.useState(R), [T, $] = y.useState(jo(o));
     y.useEffect(() => {
       S.current && S.current.forceUpdate();
     }), y.useEffect(() => {
@@ -2022,11 +2022,11 @@ let __tla = Promise.all([
     }, [
       o
     ]), Zo(() => {
-      if (!D || !a) return;
+      if (!T || !a) return;
       const K = (j) => {
-        T(j.placement);
+        D(j.placement);
       };
-      let E = [
+      let O = [
         {
           name: "preventOverflow",
           options: {
@@ -2048,17 +2048,17 @@ let __tla = Promise.all([
           }
         }
       ];
-      l != null && (E = E.concat(l)), u && u.modifiers != null && (E = E.concat(u.modifiers));
-      const k = Nl(D, b.current, {
+      l != null && (O = O.concat(l)), u && u.modifiers != null && (O = O.concat(u.modifiers));
+      const k = Nl(T, b.current, {
         placement: R,
         ...u,
-        modifiers: E
+        modifiers: O
       });
       return _.current(k), () => {
         k.destroy(), _.current(null);
       };
     }, [
-      D,
+      T,
       s,
       l,
       a,
@@ -2069,7 +2069,7 @@ let __tla = Promise.all([
       placement: P
     };
     h !== null && (A.TransitionProps = h);
-    const G = Bl(t), z = f.root ?? "div", J = Ei({
+    const G = Bl(t), z = f.root ?? "div", J = Oi({
       elementType: z,
       externalSlotProps: g.root,
       externalForwardedProps: v,
@@ -2097,12 +2097,12 @@ let __tla = Promise.all([
       const $ = jo(o);
       P = $ && Hl($) ? cn($).body : cn(null).body;
     }
-    const T = !u && a && (!m || S) ? "none" : void 0, D = m ? {
+    const D = !u && a && (!m || S) ? "none" : void 0, T = m ? {
       in: u,
       onEnter: _,
       onExited: R
     } : void 0;
-    return c.jsx(Oi, {
+    return c.jsx(Ei, {
       disablePortal: l,
       container: P,
       children: c.jsx(Gl, {
@@ -2122,10 +2122,10 @@ let __tla = Promise.all([
           position: "fixed",
           top: 0,
           left: 0,
-          display: T,
+          display: D,
           ...h
         },
-        TransitionProps: D,
+        TransitionProps: T,
         children: r
       })
     });
@@ -2580,9 +2580,9 @@ let __tla = Promise.all([
     const o = ve({
       props: t,
       name: "MuiChip"
-    }), { avatar: r, className: i, clickable: s, color: l = "default", component: a, deleteIcon: d, disabled: u = false, icon: p, label: g, onClick: f, onDelete: h, onKeyDown: m, onKeyUp: v, size: b = "medium", variant: C = "filled", tabIndex: S, skipFocusWhenDisabled: w = false, ..._ } = o, R = y.useRef(null), P = qt(R, n), T = (I) => {
+    }), { avatar: r, className: i, clickable: s, color: l = "default", component: a, deleteIcon: d, disabled: u = false, icon: p, label: g, onClick: f, onDelete: h, onKeyDown: m, onKeyUp: v, size: b = "medium", variant: C = "filled", tabIndex: S, skipFocusWhenDisabled: w = false, ..._ } = o, R = y.useRef(null), P = qt(R, n), D = (I) => {
       I.stopPropagation(), h && h(I);
-    }, D = (I) => {
+    }, T = (I) => {
       I.currentTarget === I.target && gr(I) && I.preventDefault(), m && m(I);
     }, $ = (I) => {
       I.currentTarget === I.target && h && gr(I) && h(I), v && v(I);
@@ -2603,13 +2603,13 @@ let __tla = Promise.all([
         disableRipple: true
       }
     } : {};
-    let E = null;
-    h && (E = d && y.isValidElement(d) ? y.cloneElement(d, {
+    let O = null;
+    h && (O = d && y.isValidElement(d) ? y.cloneElement(d, {
       className: ie(d.props.className, J.deleteIcon),
-      onClick: T
+      onClick: D
     }) : c.jsx(Yl, {
       className: ie(J.deleteIcon),
-      onClick: T
+      onClick: D
     }));
     let k = null;
     r && y.isValidElement(r) && (k = y.cloneElement(r, {
@@ -2623,7 +2623,7 @@ let __tla = Promise.all([
       className: ie(J.root, i),
       disabled: A && u ? true : void 0,
       onClick: f,
-      onKeyDown: D,
+      onKeyDown: T,
       onKeyUp: $,
       ref: P,
       tabIndex: w && u ? -1 : S,
@@ -2637,7 +2637,7 @@ let __tla = Promise.all([
           ownerState: z,
           children: g
         }),
-        E
+        O
       ]
     });
   });
@@ -3207,7 +3207,7 @@ let __tla = Promise.all([
     }, { action: s, anchorOrigin: { vertical: l, horizontal: a } = {
       vertical: "bottom",
       horizontal: "left"
-    }, autoHideDuration: d = null, children: u, className: p, ClickAwayListenerProps: g, ContentProps: f, disableWindowBlurListener: h = false, message: m, onBlur: v, onClose: b, onFocus: C, onMouseEnter: S, onMouseLeave: w, open: _, resumeHideDuration: R, slots: P = {}, slotProps: T = {}, TransitionComponent: D, transitionDuration: $ = i, TransitionProps: { onEnter: A, onExited: G, ...z } = {}, ...J } = o, K = {
+    }, autoHideDuration: d = null, children: u, className: p, ClickAwayListenerProps: g, ContentProps: f, disableWindowBlurListener: h = false, message: m, onBlur: v, onClose: b, onFocus: C, onMouseEnter: S, onMouseLeave: w, open: _, resumeHideDuration: R, slots: P = {}, slotProps: D = {}, TransitionComponent: T, transitionDuration: $ = i, TransitionProps: { onEnter: A, onExited: G, ...z } = {}, ...J } = o, K = {
       ...o,
       anchorOrigin: {
         vertical: l,
@@ -3215,9 +3215,9 @@ let __tla = Promise.all([
       },
       autoHideDuration: d,
       disableWindowBlurListener: h,
-      TransitionComponent: D,
+      TransitionComponent: T,
       transitionDuration: $
-    }, E = Ra(K), { getRootProps: k, onClickAway: j } = va({
+    }, O = Ra(K), { getRootProps: k, onClickAway: j } = va({
       ...K
     }), [I, X] = y.useState(true), U = (Ce) => {
       X(true), G && G(Ce);
@@ -3225,19 +3225,19 @@ let __tla = Promise.all([
       X(false), A && A(Ce, Se);
     }, ee = {
       slots: {
-        transition: D,
+        transition: T,
         ...P
       },
       slotProps: {
         content: f,
         clickAwayListener: g,
         transition: z,
-        ...T
+        ...D
       }
     }, [he, ae] = se("root", {
       ref: n,
       className: [
-        E.root,
+        O.root,
         p
       ],
       elementType: Ma,
@@ -3257,7 +3257,7 @@ let __tla = Promise.all([
         }
       }),
       ownerState: K
-    }), [Me, De] = se("content", {
+    }), [Me, Te] = se("content", {
       elementType: Sa,
       shouldForwardComponentProp: true,
       externalForwardedProps: ee,
@@ -3297,7 +3297,7 @@ let __tla = Promise.all([
         children: c.jsx(ze, {
           ...de,
           children: u || c.jsx(Me, {
-            ...De
+            ...Te
           })
         })
       })
@@ -3575,13 +3575,13 @@ let __tla = Promise.all([
       transform: "rotate(45deg)"
     }
   })));
-  let On = false;
+  let En = false;
   const vr = new Bi();
   let en = {
     x: 0,
     y: 0
   };
-  function En(e, t) {
+  function On(e, t) {
     return (n, ...o) => {
       t && t(n, ...o), e(n, ...o);
     };
@@ -3590,15 +3590,15 @@ let __tla = Promise.all([
     const o = ve({
       props: t,
       name: "MuiTooltip"
-    }), { arrow: r = false, children: i, classes: s, components: l = {}, componentsProps: a = {}, describeChild: d = false, disableFocusListener: u = false, disableHoverListener: p = false, disableInteractive: g = false, disableTouchListener: f = false, enterDelay: h = 100, enterNextDelay: m = 0, enterTouchDelay: v = 700, followCursor: b = false, id: C, leaveDelay: S = 0, leaveTouchDelay: w = 1500, onClose: _, onOpen: R, open: P, placement: T = "bottom", PopperComponent: D, PopperProps: $ = {}, slotProps: A = {}, slots: G = {}, title: z, TransitionComponent: J, TransitionProps: K, ...E } = o, k = y.isValidElement(i) ? i : c.jsx("span", {
+    }), { arrow: r = false, children: i, classes: s, components: l = {}, componentsProps: a = {}, describeChild: d = false, disableFocusListener: u = false, disableHoverListener: p = false, disableInteractive: g = false, disableTouchListener: f = false, enterDelay: h = 100, enterNextDelay: m = 0, enterTouchDelay: v = 700, followCursor: b = false, id: C, leaveDelay: S = 0, leaveTouchDelay: w = 1500, onClose: _, onOpen: R, open: P, placement: D = "bottom", PopperComponent: T, PopperProps: $ = {}, slotProps: A = {}, slots: G = {}, title: z, TransitionComponent: J, TransitionProps: K, ...O } = o, k = y.isValidElement(i) ? i : c.jsx("span", {
       children: i
-    }), j = _n(), I = No(), [X, U] = y.useState(), [le, ee] = y.useState(null), he = y.useRef(false), ae = g || b, N = Wt(), L = Wt(), re = Wt(), Me = Wt(), [De, ze] = Ur({
+    }), j = _n(), I = No(), [X, U] = y.useState(), [le, ee] = y.useState(null), he = y.useRef(false), ae = g || b, N = Wt(), L = Wt(), re = Wt(), Me = Wt(), [Te, ze] = Ur({
       controlled: P,
       default: false,
       name: "Tooltip",
       state: "open"
     });
-    let de = De;
+    let de = Te;
     const Ce = xo(C), Se = y.useRef(), qe = mn(() => {
       Se.current !== void 0 && (document.body.style.WebkitUserSelect = Se.current, Se.current = void 0), Me.clear();
     });
@@ -3606,20 +3606,20 @@ let __tla = Promise.all([
       qe
     ]);
     const Ye = (V) => {
-      vr.clear(), On = true, ze(true), R && !de && R(V);
-    }, Oe = mn((V) => {
+      vr.clear(), En = true, ze(true), R && !de && R(V);
+    }, Ee = mn((V) => {
       vr.start(800 + S, () => {
-        On = false;
+        En = false;
       }), ze(false), _ && de && _(V), N.start(j.transitions.duration.shortest, () => {
         he.current = false;
       });
     }), yt = (V) => {
-      he.current && V.type !== "touchstart" || (X && X.removeAttribute("title"), L.clear(), re.clear(), h || On && m ? L.start(On ? m : h, () => {
+      he.current && V.type !== "touchstart" || (X && X.removeAttribute("title"), L.clear(), re.clear(), h || En && m ? L.start(En ? m : h, () => {
         Ye(V);
       }) : Ye(V));
     }, vt = (V) => {
       L.clear(), re.start(S, () => {
-        Oe(V);
+        Ee(V);
       });
     }, [, Be] = y.useState(false), nt = (V) => {
       tr(V.target) || (Be(false), vt(V));
@@ -3633,21 +3633,21 @@ let __tla = Promise.all([
       Mt(V), re.clear(), N.clear(), qe(), Se.current = document.body.style.WebkitUserSelect, document.body.style.WebkitUserSelect = "none", Me.start(v, () => {
         document.body.style.WebkitUserSelect = Se.current, yt(V);
       });
-    }, Ot = (V) => {
+    }, Et = (V) => {
       k.props.onTouchEnd && k.props.onTouchEnd(V), qe(), re.start(w, () => {
-        Oe(V);
+        Ee(V);
       });
     };
     y.useEffect(() => {
       if (!de) return;
       function V(Ke) {
-        Ke.key === "Escape" && Oe(Ke);
+        Ke.key === "Escape" && Ee(Ke);
       }
       return document.addEventListener("keydown", V), () => {
         document.removeEventListener("keydown", V);
       };
     }, [
-      Oe,
+      Ee,
       de
     ]);
     const ct = qt(qr(k), U, n);
@@ -3658,27 +3658,27 @@ let __tla = Promise.all([
         x: V.clientX,
         y: V.clientY
       }, ut.current && ut.current.update();
-    }, st = {}, Et = typeof z == "string";
-    d ? (st.title = !de && Et && !p ? z : null, st["aria-describedby"] = de ? Ce : null) : (st["aria-label"] = Et ? z : null, st["aria-labelledby"] = de && !Et ? Ce : null);
-    const Ee = {
+    }, st = {}, Ot = typeof z == "string";
+    d ? (st.title = !de && Ot && !p ? z : null, st["aria-describedby"] = de ? Ce : null) : (st["aria-label"] = Ot ? z : null, st["aria-labelledby"] = de && !Ot ? Ce : null);
+    const Oe = {
       ...st,
-      ...E,
+      ...O,
       ...k.props,
-      className: ie(E.className, k.props.className),
+      className: ie(O.className, k.props.className),
       onTouchStart: Mt,
       ref: ct,
       ...b ? {
         onMouseMove: dt
       } : {}
     }, xt = {};
-    f || (Ee.onTouchStart = $t, Ee.onTouchEnd = Ot), p || (Ee.onMouseOver = En(yt, Ee.onMouseOver), Ee.onMouseLeave = En(vt, Ee.onMouseLeave), ae || (xt.onMouseOver = yt, xt.onMouseLeave = vt)), u || (Ee.onFocus = En(bt, Ee.onFocus), Ee.onBlur = En(nt, Ee.onBlur), ae || (xt.onFocus = bt, xt.onBlur = nt));
+    f || (Oe.onTouchStart = $t, Oe.onTouchEnd = Et), p || (Oe.onMouseOver = On(yt, Oe.onMouseOver), Oe.onMouseLeave = On(vt, Oe.onMouseLeave), ae || (xt.onMouseOver = yt, xt.onMouseLeave = vt)), u || (Oe.onFocus = On(bt, Oe.onFocus), Oe.onBlur = On(nt, Oe.onBlur), ae || (xt.onFocus = bt, xt.onBlur = nt));
     const Je = {
       ...o,
       isRtl: I,
       arrow: r,
       disableInteractive: ae,
-      placement: T,
-      PopperComponentProp: D,
+      placement: D,
+      PopperComponentProp: T,
       touch: he.current
     }, wt = typeof A.popper == "function" ? A.popper(Je) : A.popper, io = y.useMemo(() => {
       var _a2, _b;
@@ -3730,7 +3730,7 @@ let __tla = Promise.all([
       elementType: Yr,
       externalForwardedProps: Nt,
       ownerState: Je
-    }), [O, Z] = se("tooltip", {
+    }), [E, Z] = se("tooltip", {
       elementType: za,
       className: Mn.tooltip,
       externalForwardedProps: Nt,
@@ -3744,10 +3744,10 @@ let __tla = Promise.all([
     });
     return c.jsxs(y.Fragment, {
       children: [
-        y.cloneElement(k, Ee),
+        y.cloneElement(k, Oe),
         c.jsx($n, {
-          as: D ?? ui,
-          placement: T,
+          as: T ?? ui,
+          placement: D,
           anchorEl: b ? {
             getBoundingClientRect: () => ({
               top: en.y,
@@ -3769,7 +3769,7 @@ let __tla = Promise.all([
             timeout: j.transitions.duration.shorter,
             ...V,
             ...M,
-            children: c.jsxs(O, {
+            children: c.jsxs(E, {
               ...Z,
               children: [
                 z,
@@ -3783,22 +3783,22 @@ let __tla = Promise.all([
       ]
     });
   }), pi = y.createContext();
-  function Ta(e) {
+  function Da(e) {
     return me("MuiTable", e);
   }
   ye("MuiTable", [
     "root",
     "stickyHeader"
   ]);
-  const Da = (e) => {
+  const Ta = (e) => {
     const { classes: t, stickyHeader: n } = e;
     return be({
       root: [
         "root",
         n && "stickyHeader"
       ]
-    }, Ta, t);
-  }, Oa = Y("table", {
+    }, Da, t);
+  }, Ea = Y("table", {
     name: "MuiTable",
     slot: "Root",
     overridesResolver: (e, t) => {
@@ -3828,7 +3828,7 @@ let __tla = Promise.all([
         }
       }
     ]
-  }))), br = "table", Ea = y.forwardRef(function(t, n) {
+  }))), br = "table", Oa = y.forwardRef(function(t, n) {
     const o = ve({
       props: t,
       name: "MuiTable"
@@ -3838,7 +3838,7 @@ let __tla = Promise.all([
       padding: s,
       size: l,
       stickyHeader: a
-    }, p = Da(u), g = y.useMemo(() => ({
+    }, p = Ta(u), g = y.useMemo(() => ({
       padding: s,
       size: l,
       stickyHeader: a
@@ -3849,7 +3849,7 @@ let __tla = Promise.all([
     ]);
     return c.jsx(pi.Provider, {
       value: g,
-      children: c.jsx(Oa, {
+      children: c.jsx(Ea, {
         as: i,
         role: i === br ? null : "table",
         ref: n,
@@ -4252,7 +4252,7 @@ let __tla = Promise.all([
       a(U, d + 1);
     }, w = (U) => {
       a(U, Math.max(0, Math.ceil(r / u) - 1));
-    }, _ = f.firstButton ?? _e, R = f.lastButton ?? _e, P = f.nextButton ?? _e, T = f.previousButton ?? _e, D = f.firstButtonIcon ?? ma, $ = f.lastButtonIcon ?? ya, A = f.nextButtonIcon ?? lc, G = f.previousButtonIcon ?? sc, z = v ? R : _, J = v ? P : T, K = v ? T : P, E = v ? _ : R, k = v ? h.lastButton : h.firstButton, j = v ? h.nextButton : h.previousButton, I = v ? h.previousButton : h.nextButton, X = v ? h.firstButton : h.lastButton;
+    }, _ = f.firstButton ?? _e, R = f.lastButton ?? _e, P = f.nextButton ?? _e, D = f.previousButton ?? _e, T = f.firstButtonIcon ?? ma, $ = f.lastButtonIcon ?? ya, A = f.nextButtonIcon ?? lc, G = f.previousButtonIcon ?? sc, z = v ? R : _, J = v ? P : D, K = v ? D : P, O = v ? _ : R, k = v ? h.lastButton : h.firstButton, j = v ? h.nextButton : h.previousButton, I = v ? h.previousButton : h.nextButton, X = v ? h.firstButton : h.lastButton;
     return c.jsxs("div", {
       ref: n,
       ...m,
@@ -4265,7 +4265,7 @@ let __tla = Promise.all([
           ...k,
           children: v ? c.jsx($, {
             ...h.lastButtonIcon
-          }) : c.jsx(D, {
+          }) : c.jsx(T, {
             ...h.firstButtonIcon
           })
         }),
@@ -4295,13 +4295,13 @@ let __tla = Promise.all([
             ...h.nextButtonIcon
           })
         }),
-        g && c.jsx(E, {
+        g && c.jsx(O, {
           onClick: w,
           disabled: i || d >= Math.ceil(r / u) - 1,
           "aria-label": s("last", d),
           title: s("last", d),
           ...X,
-          children: v ? c.jsx(D, {
+          children: v ? c.jsx(T, {
             ...h.firstButtonIcon
           }) : c.jsx($, {
             ...h.lastButtonIcon
@@ -4454,10 +4454,10 @@ let __tla = Promise.all([
       25,
       50,
       100
-    ], SelectProps: S = {}, showFirstButton: w = false, showLastButton: _ = false, slotProps: R = {}, slots: P = {}, ...T } = o, D = o, $ = bc(D), A = (R == null ? void 0 : R.select) ?? S, G = A.native ? "option" : hc;
+    ], SelectProps: S = {}, showFirstButton: w = false, showLastButton: _ = false, slotProps: R = {}, slots: P = {}, ...D } = o, T = o, $ = bc(T), A = (R == null ? void 0 : R.select) ?? S, G = A.native ? "option" : hc;
     let z;
     (l === ot || l === "td") && (z = s || 1e3);
-    const J = xo(A.id), K = xo(A.labelId), E = () => a === -1 ? (v + 1) * b : b === -1 ? a : Math.min(a, (v + 1) * b), k = {
+    const J = xo(A.id), K = xo(A.labelId), O = () => a === -1 ? (v + 1) * b : b === -1 ? a : Math.min(a, (v + 1) * b), k = {
       slots: P,
       slotProps: R
     }, [j, I] = se("root", {
@@ -4467,9 +4467,9 @@ let __tla = Promise.all([
       externalForwardedProps: {
         ...k,
         component: l,
-        ...T
+        ...D
       },
-      ownerState: D,
+      ownerState: T,
       additionalProps: {
         colSpan: z
       }
@@ -4477,17 +4477,17 @@ let __tla = Promise.all([
       className: $.toolbar,
       elementType: dc,
       externalForwardedProps: k,
-      ownerState: D
+      ownerState: T
     }), [le, ee] = se("spacer", {
       className: $.spacer,
       elementType: pc,
       externalForwardedProps: k,
-      ownerState: D
+      ownerState: T
     }), [he, ae] = se("selectLabel", {
       className: $.selectLabel,
       elementType: fc,
       externalForwardedProps: k,
-      ownerState: D,
+      ownerState: T,
       additionalProps: {
         id: K
       }
@@ -4495,17 +4495,17 @@ let __tla = Promise.all([
       className: $.select,
       elementType: gc,
       externalForwardedProps: k,
-      ownerState: D
+      ownerState: T
     }), [re, Me] = se("menuItem", {
       className: $.menuItem,
       elementType: G,
       externalForwardedProps: k,
-      ownerState: D
-    }), [De, ze] = se("displayedRows", {
+      ownerState: T
+    }), [Te, ze] = se("displayedRows", {
       className: $.displayedRows,
       elementType: mc,
       externalForwardedProps: k,
-      ownerState: D
+      ownerState: T
     });
     return c.jsx(j, {
       ...I,
@@ -4543,11 +4543,11 @@ let __tla = Promise.all([
               value: de.value ? de.value : de
             }, de.label ? de.label : de))
           }),
-          c.jsx(De, {
+          c.jsx(Te, {
             ...ze,
             children: p({
               from: a === 0 ? 0 : v * b + 1,
-              to: E(),
+              to: O(),
               count: a === -1 ? -1 : a,
               page: v
             })
@@ -4801,7 +4801,7 @@ let __tla = Promise.all([
     d: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6"
   }), "Settings"), kc = ue(c.jsx("path", {
     d: "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5m0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"
-  }), "Visibility"), Tc = ue(c.jsx("path", {
+  }), "Visibility"), Dc = ue(c.jsx("path", {
     d: "M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7M2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2m4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3z"
   }), "VisibilityOff"), gn = {
     string: "#2196f3",
@@ -4813,13 +4813,13 @@ let __tla = Promise.all([
     array: "#00bcd4",
     mixed: "#f44336"
   }, Mr = "b64:";
-  function Dc(e) {
+  function Tc(e) {
     const t = new TextEncoder().encode(e);
     let n = "";
     for (let o = 0; o < t.length; o++) n += String.fromCharCode(t[o]);
     return btoa(n);
   }
-  function Oc(e) {
+  function Ec(e) {
     const t = atob(e), n = new Uint8Array(t.length);
     for (let o = 0; o < t.length; o++) n[o] = t.charCodeAt(o);
     return new TextDecoder().decode(n);
@@ -4827,13 +4827,13 @@ let __tla = Promise.all([
   function vi(e) {
     if (!e) return [];
     try {
-      const t = e.startsWith(Mr) ? Oc(e.slice(Mr.length)) : e, n = JSON.parse(t);
+      const t = e.startsWith(Mr) ? Ec(e.slice(Mr.length)) : e, n = JSON.parse(t);
       return Array.isArray(n) ? n : [];
     } catch {
       return [];
     }
   }
-  function Ec({ columns: e, discoveredColumns: t, selectedPath: n, onSelect: o, onChange: r, onRefresh: i, loading: s }) {
+  function Oc({ columns: e, discoveredColumns: t, selectedPath: n, onSelect: o, onChange: r, onRefresh: i, loading: s }) {
     const [l, a] = y.useState(""), [d, u] = y.useState(null), [p, g] = y.useState(null), [f, h] = y.useState(false), m = y.useRef(0), v = y.useRef(/* @__PURE__ */ new Map()), b = !l, C = y.useMemo(() => {
       if (!l) return e;
       const j = l.toLowerCase();
@@ -4865,9 +4865,9 @@ let __tla = Promise.all([
     }, [
       e,
       r
-    ]), T = y.useCallback((j, I) => {
+    ]), D = y.useCallback((j, I) => {
       j.dataTransfer.effectAllowed = "move", j.dataTransfer.setData("text/plain", I), u(I);
-    }, []), D = y.useCallback((j, I) => {
+    }, []), T = y.useCallback((j, I) => {
       j.preventDefault(), m.current += 1, I !== d && g(I);
     }, [
       d
@@ -4901,7 +4901,7 @@ let __tla = Promise.all([
       r
     ]), K = y.useCallback(() => {
       h(true);
-    }, []), E = y.useCallback(() => {
+    }, []), O = y.useCallback(() => {
       h(false);
     }, []), k = y.useCallback((j, I, X) => {
       var _a2, _b;
@@ -5001,7 +5001,7 @@ let __tla = Promise.all([
                 size: "small",
                 onClick: () => P(false),
                 "aria-label": x.t("json_table_hide_all"),
-                children: c.jsx(Tc, {
+                children: c.jsx(Dc, {
                   fontSize: "small"
                 })
               })
@@ -5048,8 +5048,8 @@ let __tla = Promise.all([
               onClick: () => o(j.path),
               onKeyDown: (ee) => k(ee, j, I),
               draggable: b,
-              onDragStart: b ? (ee) => T(ee, j.path) : void 0,
-              onDragEnter: b ? (ee) => D(ee, j.path) : void 0,
+              onDragStart: b ? (ee) => D(ee, j.path) : void 0,
+              onDragEnter: b ? (ee) => T(ee, j.path) : void 0,
               onDragLeave: b ? $ : void 0,
               onDragOver: b ? A : void 0,
               onDrop: b ? (ee) => G(ee, j.path) : void 0,
@@ -5182,7 +5182,7 @@ let __tla = Promise.all([
         }),
         c.jsxs(Jr, {
           open: f,
-          onClose: E,
+          onClose: O,
           "aria-labelledby": "reset-dialog-title",
           "aria-describedby": "reset-dialog-description",
           children: [
@@ -5199,7 +5199,7 @@ let __tla = Promise.all([
             c.jsxs(di, {
               children: [
                 c.jsx(kt, {
-                  onClick: E,
+                  onClick: O,
                   color: "primary",
                   children: x.t("cancel")
                 }),
@@ -5557,7 +5557,7 @@ let __tla = Promise.all([
               color: "text.secondary",
               children: x.t("json_table_preview")
             }),
-            c.jsxs(Te, {
+            c.jsxs(De, {
               direction: "row",
               spacing: 2,
               sx: {
@@ -5751,7 +5751,7 @@ let __tla = Promise.all([
             })
           ]
         }),
-        c.jsxs(Te, {
+        c.jsxs(De, {
           direction: "row",
           spacing: 1,
           children: [
@@ -5815,7 +5815,7 @@ let __tla = Promise.all([
           fullWidth: true,
           placeholder: "e.g. (\\d+)"
         }),
-        e.stringRegex && c.jsxs(Te, {
+        e.stringRegex && c.jsxs(De, {
           direction: "row",
           spacing: 1,
           children: [
@@ -5849,7 +5849,7 @@ let __tla = Promise.all([
           ]
         }),
         c.jsx(qi, {}),
-        c.jsxs(Te, {
+        c.jsxs(De, {
           direction: "row",
           spacing: 1,
           flexWrap: "wrap",
@@ -5886,7 +5886,7 @@ let __tla = Promise.all([
             })
           ]
         }),
-        c.jsxs(Te, {
+        c.jsxs(De, {
           direction: "row",
           spacing: 1,
           children: [
@@ -6035,8 +6035,8 @@ let __tla = Promise.all([
     map: Jc,
     reduce: Kc
   }, oe = /* @__PURE__ */ Symbol.for("json_logic_sync"), ke = /* @__PURE__ */ Symbol.for("json_logic_compiled"), Qe = /* @__PURE__ */ Symbol.for("json_logic_original"), $r = /* @__PURE__ */ Symbol.for("json_logic_unfound");
-  function Dt(e) {
-    return typeof e == "function" ? e[oe] === true : Array.isArray(e) ? e.every(Dt) : !(e && e.asyncMethod && !e.method);
+  function Tt(e) {
+    return typeof e == "function" ? e[oe] === true : Array.isArray(e) ? e.every(Tt) : !(e && e.asyncMethod && !e.method);
   }
   function _i(e, t = true) {
     return e[oe] = t, e;
@@ -6058,7 +6058,7 @@ let __tla = Promise.all([
   function Qc(e, ...t) {
     let n = "";
     const o = this;
-    for (let r = 0; r < e.length; r++) n += e[r], r < t.length && (typeof t[r] == "function" ? (this.methods.push(t[r]), Dt(t[r]) || (o.asyncDetected = true), n += (Dt(t[r]) ? "" : " await ") + "methods[" + (o.methods.length - 1) + "]") : t[r] && typeof t[r][ke] < "u" ? n += t[r][ke] : n += ge(t[r], o));
+    for (let r = 0; r < e.length; r++) n += e[r], r < t.length && (typeof t[r] == "function" ? (this.methods.push(t[r]), Tt(t[r]) || (o.asyncDetected = true), n += (Tt(t[r]) ? "" : " await ") + "methods[" + (o.methods.length - 1) + "]") : t[r] && typeof t[r][ke] < "u" ? n += t[r][ke] : n += ge(t[r], o));
     return {
       [ke]: n
     };
@@ -6090,7 +6090,7 @@ let __tla = Promise.all([
       const n = Object.keys(e);
       if (n.length === 0) return true;
       const o = n[0], r = e[o];
-      return Dt(t.methods[o]) ? t.methods[o].lazy ? !!(typeof t.methods[o][oe] == "function" && t.methods[o][oe](e, {
+      return Tt(t.methods[o]) ? t.methods[o].lazy ? !!(typeof t.methods[o][oe] == "function" && t.methods[o][oe](e, {
         engine: t
       })) : Po(r, t) : false;
     }
@@ -6136,7 +6136,7 @@ let __tla = Promise.all([
         ", context, above, engine"
       ];
       if (typeof s.methods[p] == "function") {
-        a = !Dt(s.methods[p]);
+        a = !Tt(s.methods[p]);
         const m = h[Ar(s.methods[p]) - 1] || h[2];
         return d(`engine.methods["${p}"](${f}(` + ge(g, t) + ")" + m + ")");
       } else {
@@ -6800,7 +6800,7 @@ let __tla = Promise.all([
         };
         r = Zn(r, s);
         const l = r.aboveDetected ? "[null, context, above]" : "null", a = t.engine.options.maxDepth === 1 / 0 ? "" : "assertAllowedDepth";
-        return t.methods.push(r), n && (!Dt(r) || o.includes("await")) ? (t.asyncDetected = true, typeof i < "u" ? `await asyncIterators.reduce(${o} || [], (a,b) => methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l}), ${i}, ${t.engine.options.maxDepth})` : `await asyncIterators.reduce(${o} || [], (a,b) => methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l}), undefined, ${t.engine.options.maxDepth})`) : typeof i < "u" ? `(${o} || []).reduce((a,b) => ${a}(methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l})), ${a}(${i}))` : `(${o} || []).reduce((a,b) => ${a}(methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l})))`;
+        return t.methods.push(r), n && (!Tt(r) || o.includes("await")) ? (t.asyncDetected = true, typeof i < "u" ? `await asyncIterators.reduce(${o} || [], (a,b) => methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l}), ${i}, ${t.engine.options.maxDepth})` : `await asyncIterators.reduce(${o} || [], (a,b) => methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l}), undefined, ${t.engine.options.maxDepth})`) : typeof i < "u" ? `(${o} || []).reduce((a,b) => ${a}(methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l})), ${a}(${i}))` : `(${o} || []).reduce((a,b) => ${a}(methods[${t.methods.length - 1}]({ accumulator: a, current: b }, ${l})))`;
       },
       method: (e, t, n, o) => {
         if (!Array.isArray(e)) throw ne;
@@ -7074,7 +7074,7 @@ let __tla = Promise.all([
           iteratorCompile: true,
           extraArguments: "index, above"
         }, a = Zn(s, l), d = a.aboveDetected ? o.compile`[{ iterator: z, index: x }, context, above]` : o.compile`null`, u = t ? o.compile`engine.truthy` : o.compile``;
-        return r && !Dt(a) ? (o.asyncDetected = true, o.compile`await asyncIterators[${e}](${i} || [], async (i, x, z) => ${u}(${a}(i, x, ${d})))`) : o.compile`(${i} || [])[${e}]((i, x, z) => ${u}(${a}(i, x, ${d})))`;
+        return r && !Tt(a) ? (o.asyncDetected = true, o.compile`await asyncIterators[${e}](${i} || [], async (i, x, z) => ${u}(${a}(i, x, ${d})))`) : o.compile`(${i} || [])[${e}]((i, x, z) => ${u}(${a}(i, x, ${d})))`;
       },
       lazy: true
     };
@@ -7821,7 +7821,55 @@ let __tla = Promise.all([
     is_true: "json_table_op_is_true",
     is_false: "json_table_op_is_false"
   };
-  function vu({ logic: e, columnType: t, onChange: n }) {
+  function vu({ label: e, value: t, onChange: n, inputType: o }) {
+    const [r, i] = y.useState(t);
+    y.useEffect(() => {
+      i(t);
+    }, [
+      t
+    ]);
+    const s = y.useCallback(() => {
+      r !== t && n(r);
+    }, [
+      r,
+      t,
+      n
+    ]);
+    return c.jsx($e, {
+      label: e,
+      value: r,
+      onChange: (l) => i(l.target.value),
+      onBlur: s,
+      size: "small",
+      type: o,
+      sx: {
+        flex: 1,
+        ...o === "date" && {
+          '& input[type="date"]::-webkit-calendar-picker-indicator': {
+            filter: "invert(0.5)",
+            cursor: "pointer",
+            opacity: 0.7,
+            "&:hover": {
+              opacity: 1
+            }
+          }
+        }
+      },
+      InputLabelProps: o === "date" || o === "number" ? {
+        shrink: true
+      } : void 0,
+      slotProps: o === "number" ? {
+        htmlInput: {
+          step: "any"
+        }
+      } : o === "date" ? {
+        htmlInput: {
+          placeholder: "YYYY-MM-DD"
+        }
+      } : void 0
+    });
+  }
+  function bu({ logic: e, columnType: t, onChange: n }) {
     const [o, r] = y.useState(() => Ir(e));
     y.useEffect(() => {
       r(Ir(e));
@@ -7880,7 +7928,7 @@ let __tla = Promise.all([
       o,
       s
     ]), p = o.conditions.length > 1;
-    return c.jsxs(Te, {
+    return c.jsxs(De, {
       spacing: 1,
       children: [
         p && c.jsxs(q, {
@@ -7952,22 +8000,13 @@ let __tla = Promise.all([
                   })
                 ]
               }),
-              h && c.jsx($e, {
+              h && c.jsx(vu, {
                 label: x.t("json_table_condition_value"),
-                value: g.operand,
+                value: g.operand ?? "",
                 onChange: (v) => l(f, {
-                  operand: v.target.value
+                  operand: v
                 }),
-                size: "small",
-                type: m,
-                sx: {
-                  flex: 1
-                },
-                slotProps: m === "number" ? {
-                  htmlInput: {
-                    step: "any"
-                  }
-                } : void 0
+                inputType: m
               }),
               p && c.jsx(Le, {
                 title: x.t("json_table_condition_remove"),
@@ -8001,7 +8040,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  function bu({ cellStyle: e, cellStyleMode: t, columnType: n, onStyleChange: o, onModeChange: r }) {
+  function xu({ cellStyle: e, cellStyleMode: t, columnType: n, onStyleChange: o, onModeChange: r }) {
     const i = y.useCallback((u, p) => {
       const g = [
         ...e || []
@@ -8062,7 +8101,7 @@ let __tla = Promise.all([
       e,
       o
     ]);
-    return c.jsxs(Te, {
+    return c.jsxs(De, {
       spacing: 1.5,
       children: [
         ((e == null ? void 0 : e.length) ?? 0) >= 1 && c.jsxs(q, {
@@ -8129,7 +8168,7 @@ let __tla = Promise.all([
             sx: {
               p: 1.5
             },
-            children: c.jsxs(Te, {
+            children: c.jsxs(De, {
               spacing: 1.5,
               children: [
                 c.jsxs(q, {
@@ -8208,14 +8247,14 @@ let __tla = Promise.all([
                     })
                   ]
                 }),
-                c.jsx(vu, {
+                c.jsx(bu, {
                   logic: u.logic,
                   columnType: n,
                   onChange: (m) => i(p, {
                     logic: m
                   })
                 }, u.id ?? p),
-                c.jsxs(Te, {
+                c.jsxs(De, {
                   direction: "row",
                   spacing: 1,
                   alignItems: "flex-start",
@@ -8236,7 +8275,7 @@ let __tla = Promise.all([
                     })
                   ]
                 }),
-                c.jsxs(Te, {
+                c.jsxs(De, {
                   direction: "row",
                   spacing: 1,
                   children: [
@@ -8336,7 +8375,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  function xu({ column: e, discoveredColumn: t, onChange: n }) {
+  function wu({ column: e, discoveredColumn: t, onChange: n }) {
     var _a2, _b, _c2, _d2, _e2, _f;
     const [o, r] = y.useState({
       basic: true,
@@ -8419,8 +8458,8 @@ let __tla = Promise.all([
           "stringFontStyle",
           "stringFontSize",
           "stringTextColor"
-        ].forEach((T) => {
-          delete _[T];
+        ].forEach((D) => {
+          delete _[D];
         });
       }
       n({
@@ -8488,7 +8527,7 @@ let __tla = Promise.all([
             })
           ]
         }),
-        c.jsxs(Te, {
+        c.jsxs(De, {
           spacing: 1,
           children: [
             c.jsxs(zn, {
@@ -8496,7 +8535,7 @@ let __tla = Promise.all([
               onChange: () => i("basic"),
               disableGutters: true,
               children: [
-                c.jsx(Tn, {
+                c.jsx(Dn, {
                   expandIcon: c.jsx(Nn, {}),
                   children: c.jsxs(q, {
                     sx: {
@@ -8534,7 +8573,7 @@ let __tla = Promise.all([
                   })
                 }),
                 c.jsx(kn, {
-                  children: c.jsxs(Te, {
+                  children: c.jsxs(De, {
                     spacing: 2,
                     children: [
                       c.jsx($e, {
@@ -8618,7 +8657,7 @@ let __tla = Promise.all([
               onChange: () => i("formatting"),
               disableGutters: true,
               children: [
-                c.jsx(Tn, {
+                c.jsx(Dn, {
                   expandIcon: c.jsx(Nn, {}),
                   children: c.jsxs(q, {
                     sx: {
@@ -8656,7 +8695,7 @@ let __tla = Promise.all([
                   })
                 }),
                 c.jsx(kn, {
-                  children: c.jsxs(Te, {
+                  children: c.jsxs(De, {
                     spacing: 2,
                     children: [
                       c.jsxs(yn, {
@@ -8747,7 +8786,7 @@ let __tla = Promise.all([
               onChange: () => i("styling"),
               disableGutters: true,
               children: [
-                c.jsx(Tn, {
+                c.jsx(Dn, {
                   expandIcon: c.jsx(Nn, {}),
                   children: c.jsxs(q, {
                     sx: {
@@ -8803,7 +8842,7 @@ let __tla = Promise.all([
                   })
                 }),
                 c.jsx(kn, {
-                  children: c.jsx(bu, {
+                  children: c.jsx(xu, {
                     cellStyle: e.cellStyle || [],
                     cellStyleMode: e.cellStyleMode ?? "first-match",
                     columnType: s,
@@ -8818,7 +8857,7 @@ let __tla = Promise.all([
               onChange: () => i("advanced"),
               disableGutters: true,
               children: [
-                c.jsx(Tn, {
+                c.jsx(Dn, {
                   expandIcon: c.jsx(Nn, {}),
                   children: c.jsxs(q, {
                     sx: {
@@ -8856,7 +8895,7 @@ let __tla = Promise.all([
                   })
                 }),
                 c.jsx(kn, {
-                  children: c.jsxs(Te, {
+                  children: c.jsxs(De, {
                     spacing: 2,
                     children: [
                       c.jsx(ht, {
@@ -8904,7 +8943,7 @@ let __tla = Promise.all([
                             },
                             children: x.t("json_table_analysis_info")
                           }),
-                          c.jsxs(Te, {
+                          c.jsxs(De, {
                             spacing: 0.5,
                             children: [
                               c.jsxs(q, {
@@ -9039,7 +9078,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  const wu = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/, Cu = /^\d{4}-\d{2}-\d{2}$/, _u = /^(\d{2})\.(\d{2})\.(\d{4})$/, Su = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/, ju = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/, Ru = /^(\d{2})\/(\d{2})\/(\d{4})$/, Mu = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/, $u = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/;
+  const Cu = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/, _u = /^\d{4}-\d{2}-\d{2}$/, Su = /^(\d{2})\.(\d{2})\.(\d{4})$/, ju = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/, Ru = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/, Mu = /^(\d{2})\/(\d{2})\/(\d{4})$/, $u = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/, Au = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/;
   function Ln(e, t) {
     return t >= 1 && t <= 12 && e >= 1 && e <= 31;
   }
@@ -9049,13 +9088,13 @@ let __tla = Promise.all([
   function Vn(e, t, n) {
     return e >= 0 && e <= 23 && t >= 0 && t <= 59 && (n === void 0 || n >= 0 && n <= 59);
   }
-  const Au = [
+  const Pu = [
     {
-      regex: wu,
+      regex: Cu,
       format: "ISO-8601"
     },
     {
-      regex: Cu,
+      regex: _u,
       format: "YYYY-MM-DD",
       validate: (e) => {
         const t = parseInt(e[0].slice(5, 7), 10), n = parseInt(e[0].slice(8, 10), 10);
@@ -9063,7 +9102,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: ju,
+      regex: Ru,
       format: "dd.MM.yyyy HH:mm:ss",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10), o = parseInt(e[4], 10), r = parseInt(e[5], 10), i = parseInt(e[6], 10);
@@ -9071,7 +9110,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: Su,
+      regex: ju,
       format: "dd.MM.yyyy HH:mm",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10), o = parseInt(e[4], 10), r = parseInt(e[5], 10);
@@ -9079,7 +9118,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: _u,
+      regex: Su,
       format: "dd.MM.yyyy",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10);
@@ -9087,7 +9126,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: $u,
+      regex: Au,
       format: "MM/dd/yyyy HH:mm:ss",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10), o = parseInt(e[4], 10), r = parseInt(e[5], 10), i = parseInt(e[6], 10);
@@ -9095,7 +9134,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: Mu,
+      regex: $u,
       format: "MM/dd/yyyy HH:mm",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10), o = parseInt(e[4], 10), r = parseInt(e[5], 10);
@@ -9103,7 +9142,7 @@ let __tla = Promise.all([
       }
     },
     {
-      regex: Ru,
+      regex: Mu,
       format: "MM/dd/yyyy",
       validate: (e) => {
         const t = parseInt(e[1], 10), n = parseInt(e[2], 10);
@@ -9111,10 +9150,10 @@ let __tla = Promise.all([
       }
     }
   ];
-  function Pu(e) {
+  function Iu(e) {
     const t = e.trim();
     if (!t) return null;
-    for (const n of Au) {
+    for (const n of Pu) {
       const o = t.match(n.regex);
       if (o) {
         if (n.validate && !n.validate(o)) continue;
@@ -9123,10 +9162,10 @@ let __tla = Promise.all([
     }
     return null;
   }
-  function Iu(e) {
+  function Fu(e) {
     return !Number.isFinite(e) || e < 0 ? null : e >= 1e11 ? "epoch-ms" : e >= 1e9 ? "epoch-s" : null;
   }
-  function Fu(e) {
+  function zu(e) {
     if (e == null) return {
       type: "null"
     };
@@ -9134,7 +9173,7 @@ let __tla = Promise.all([
       type: "boolean"
     };
     if (typeof e == "number") {
-      const t = Iu(e);
+      const t = Fu(e);
       return t ? {
         type: "date",
         dateFormat: t
@@ -9143,7 +9182,7 @@ let __tla = Promise.all([
       };
     }
     if (typeof e == "string") {
-      const t = Pu(e);
+      const t = Iu(e);
       return t ? {
         type: "date",
         dateFormat: t
@@ -9159,11 +9198,11 @@ let __tla = Promise.all([
       type: "string"
     };
   }
-  function zu(e) {
+  function ku(e) {
     const t = Object.keys(e).filter((n) => n !== "null");
     return t.length === 0 ? "null" : t.length === 1 ? t[0] : t.length === 2 && t.includes("date") && t.includes("string") ? "date" : "mixed";
   }
-  function ku(e) {
+  function Du(e) {
     let t, n = 0;
     for (const [o, r] of Object.entries(e)) r > n && (t = o, n = r);
     return t;
@@ -9187,7 +9226,7 @@ let __tla = Promise.all([
   function Fr(e, t) {
     e[t] = (e[t] || 0) + 1;
   }
-  function Du(e, t) {
+  function Eu(e, t) {
     if (e == null) return null;
     if (typeof e == "number") return t === "epoch-ms" ? new Date(e).toISOString() : t === "epoch-s" ? new Date(e * 1e3).toISOString() : null;
     if (typeof e != "string") return null;
@@ -9218,7 +9257,7 @@ let __tla = Promise.all([
         console.warn(`[JsonTable] Missing accumulator for path: ${s}`);
         continue;
       }
-      const a = i[s], d = Fu(a);
+      const a = i[s], d = zu(a);
       if (Fr(l.typeCounts, d.type), d.type === "null") {
         l.nullCount++;
         continue;
@@ -9228,15 +9267,15 @@ let __tla = Promise.all([
         (l.strLenMin === void 0 || u < l.strLenMin) && (l.strLenMin = u), (l.strLenMax === void 0 || u > l.strLenMax) && (l.strLenMax = u);
       }
       if (d.dateFormat) {
-        const u = Du(a, d.dateFormat);
+        const u = Eu(a, d.dateFormat);
         u !== null && ((l.dateMin === void 0 || u < l.dateMin) && (l.dateMin = u), (l.dateMax === void 0 || u > l.dateMax) && (l.dateMax = u));
       }
     }
     return e.map((i) => {
       const s = r.get(i);
-      let l = zu(s.typeCounts);
+      let l = ku(s.typeCounts);
       l === "date" && s.nonNullCount > 0 && (s.typeCounts.date || 0) / s.nonNullCount < o && (l = "string");
-      const a = l === "date" ? ku(s.dateFormatCounts) : void 0, d = l === "date" ? s.typeCounts.date || 0 : s.typeCounts[l] || 0, u = s.nonNullCount > 0 ? Math.round(d / s.nonNullCount * 100) / 100 : 0, p = {
+      const a = l === "date" ? Du(s.dateFormatCounts) : void 0, d = l === "date" ? s.typeCounts.date || 0 : s.typeCounts[l] || 0, u = s.nonNullCount > 0 ? Math.round(d / s.nonNullCount * 100) / 100 : 0, p = {
         path: i,
         type: l,
         nullable: s.nullCount > 0,
@@ -9290,7 +9329,7 @@ let __tla = Promise.all([
     }
     n[t] = e, o.add(t);
   }
-  function Eu(e, t = 10) {
+  function Nu(e, t = 10) {
     const n = /* @__PURE__ */ new Set(), o = {
       maxDepth: 0,
       maxArrayIndex: 0
@@ -9301,7 +9340,7 @@ let __tla = Promise.all([
       else eo(s, "_value", l, n, a, 0, t, o);
       r.push(l);
     }
-    const i = Nu([
+    const i = Lu([
       ...n
     ]);
     for (const s of r) for (const l of i) l in s || (s[l] = null);
@@ -9312,7 +9351,7 @@ let __tla = Promise.all([
       maxArrayIndex: o.maxArrayIndex
     };
   }
-  function Nu(e) {
+  function Lu(e) {
     return e.sort((t, n) => {
       const o = zr(t), r = zr(n), i = Math.min(o.length, r.length);
       for (let s = 0; s < i; s++) {
@@ -9341,14 +9380,14 @@ let __tla = Promise.all([
     const t = /^\[(\d+)\]$/.exec(e);
     return t ? parseInt(t[1], 10) : null;
   }
-  const Lu = {
+  const Vu = {
     maxDepth: 10,
     maxDistinct: 100,
     dateConfidenceThreshold: 0.8
   };
   function Si(e, t) {
     const n = performance.now(), o = {
-      ...Lu,
+      ...Vu,
       ...t
     };
     if (!e || e.length === 0) return {
@@ -9367,7 +9406,7 @@ let __tla = Promise.all([
         analysisTimeMs: 0
       }
     };
-    const r = Eu(e, o.maxDepth), i = Ou(r.paths, r.rows, o.maxDistinct, o.dateConfidenceThreshold), s = r.paths.length * r.rows.length, l = i.reduce((u, p) => u + p.nullCount, 0), a = s > 0 ? Math.round(l / s * 1e3) / 10 : 0, d = Math.round((performance.now() - n) * 100) / 100;
+    const r = Nu(e, o.maxDepth), i = Ou(r.paths, r.rows, o.maxDistinct, o.dateConfidenceThreshold), s = r.paths.length * r.rows.length, l = i.reduce((u, p) => u + p.nullCount, 0), a = s > 0 ? Math.round(l / s * 1e3) / 10 : 0, d = Math.round((performance.now() - n) * 100) / 100;
     return {
       columns: i,
       rows: r.rows,
@@ -9385,7 +9424,7 @@ let __tla = Promise.all([
       }
     };
   }
-  function Vu(e, t) {
+  function Hu(e, t) {
     return y.useMemo(() => Si(e, t), [
       e,
       t == null ? void 0 : t.maxDepth,
@@ -9393,7 +9432,7 @@ let __tla = Promise.all([
       t == null ? void 0 : t.dateConfidenceThreshold
     ]);
   }
-  function Hu({ open: e, onClose: t, columns: n, onSave: o, theme: r, data: i, socket: s }) {
+  function Bu({ open: e, onClose: t, columns: n, onSave: o, theme: r, data: i, socket: s }) {
     const [l, a] = y.useState(n), [d, u] = y.useState(null), [p, g] = y.useState([]), [f, h] = y.useState(false), [m, v] = y.useState(false), [b, C] = y.useState(null), S = y.useRef(false), w = y.useRef(() => Promise.resolve()), _ = y.useRef(n), R = y.useMemo(() => JSON.stringify(n), [
       n
     ]), P = y.useMemo(() => JSON.stringify(l) !== R, [
@@ -9410,12 +9449,12 @@ let __tla = Promise.all([
     }, [
       e
     ]);
-    const T = y.useCallback(async () => {
+    const D = y.useCallback(async () => {
       h(true), C(null);
       try {
-        const E = i.oid;
-        if (!E) return;
-        const k = await s.getState(E);
+        const O = i.oid;
+        if (!O) return;
+        const k = await s.getState(O);
         if ((k == null ? void 0 : k.val) === null || (k == null ? void 0 : k.val) === void 0) return;
         let j;
         const I = k.val;
@@ -9448,8 +9487,8 @@ let __tla = Promise.all([
           ...ae
         ];
         a(N), _.current = N, u((L) => L === null && N.length > 0 ? N[0].path : L);
-      } catch (E) {
-        const k = E instanceof Error ? E.message : "Failed to discover columns";
+      } catch (O) {
+        const k = O instanceof Error ? O.message : "Failed to discover columns";
         C(k);
       } finally {
         h(false);
@@ -9459,25 +9498,25 @@ let __tla = Promise.all([
       s
     ]);
     y.useEffect(() => {
-      w.current = T;
+      w.current = D;
     }, [
-      T
+      D
     ]), y.useEffect(() => {
       _.current = l;
     }, [
       l
     ]);
-    const D = y.useCallback((E) => {
-      a((k) => k.map((j) => j.path === E.path ? E : j));
-    }, []), $ = y.useCallback((E) => {
-      a(E);
+    const T = y.useCallback((O) => {
+      a((k) => k.map((j) => j.path === O.path ? O : j));
+    }, []), $ = y.useCallback((O) => {
+      a(O);
     }, []), A = y.useCallback(() => {
       o(l), t();
     }, [
       l,
       o,
       t
-    ]), G = y.useCallback((E, k) => {
+    ]), G = y.useCallback((O, k) => {
       if (k === "backdropClick" && P) {
         v(true);
         return;
@@ -9486,10 +9525,10 @@ let __tla = Promise.all([
     }, [
       P,
       t
-    ]), z = y.useMemo(() => d ? l.find((E) => E.path === d) : null, [
+    ]), z = y.useMemo(() => d ? l.find((O) => O.path === d) : null, [
       d,
       l
-    ]), J = y.useMemo(() => d ? p.find((E) => E.path === d) : void 0, [
+    ]), J = y.useMemo(() => d ? p.find((O) => O.path === d) : void 0, [
       d,
       p
     ]), K = y.useMemo(() => "json-table-column-editor-title", []);
@@ -9575,13 +9614,13 @@ let __tla = Promise.all([
                         flexDirection: "column",
                         overflow: "hidden"
                       },
-                      children: c.jsx(Ec, {
+                      children: c.jsx(Oc, {
                         columns: l,
                         discoveredColumns: p,
                         selectedPath: d,
                         onSelect: u,
                         onChange: $,
-                        onRefresh: T,
+                        onRefresh: D,
                         loading: f
                       })
                     }),
@@ -9592,10 +9631,10 @@ let __tla = Promise.all([
                         flexDirection: "column",
                         overflow: "hidden"
                       },
-                      children: z ? c.jsx(xu, {
+                      children: z ? c.jsx(wu, {
                         column: z,
                         discoveredColumn: J,
-                        onChange: D
+                        onChange: T
                       }) : c.jsx(q, {
                         sx: {
                           display: "flex",
@@ -9651,12 +9690,12 @@ let __tla = Promise.all([
       ]
     });
   }
-  function Bu(e, t, n, o) {
+  function Wu(e, t, n, o) {
     const r = e.name || "columnConfig", i = o.context.theme, [s, l] = y.useState(false), a = y.useMemo(() => vi(t[r]), [
       t,
       r
     ]), d = a.filter((v) => v.visible).length, u = a.length, p = a.some((v) => v.format), g = a.some((v) => v.cellStyle && v.cellStyle.length > 0), f = y.useCallback((v) => {
-      const b = JSON.stringify(v), C = `b64:${Dc(b)}`;
+      const b = JSON.stringify(v), C = `b64:${Tc(b)}`;
       n({
         [r]: C
       });
@@ -9688,7 +9727,7 @@ let __tla = Promise.all([
         }),
         u > 0 && c.jsxs(F, {
           variant: "caption",
-          color: "text.secondary",
+          color: "primary.main",
           sx: {
             mt: 0.5,
             display: "block"
@@ -9704,7 +9743,7 @@ let __tla = Promise.all([
             g && ` \xB7 ${x.t("json_table_has_styling")}`
           ]
         }),
-        c.jsx(Hu, {
+        c.jsx(Bu, {
           open: s,
           onClose: m,
           columns: a,
@@ -9716,7 +9755,122 @@ let __tla = Promise.all([
       ]
     });
   }
-  const Wu = () => [
+  const Gu = () => [
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {
+        dividerText: "json_table_column_config"
+      })
+    },
+    {
+      name: "columnConfig",
+      label: "json_table_column_config_label",
+      type: "custom",
+      component: Wu
+    },
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {
+        dividerText: "json_table_features"
+      })
+    },
+    {
+      name: "tableSorting",
+      type: "checkbox",
+      label: "json_table_sorting",
+      default: true
+    },
+    {
+      name: "tableSortingMulti",
+      type: "checkbox",
+      label: "json_table_sorting_multi",
+      default: false,
+      tooltip: "json_table_sorting_multi_tooltip"
+    },
+    {
+      name: "tableFiltering",
+      type: "checkbox",
+      label: "json_table_filtering",
+      default: false
+    },
+    {
+      name: "tableQuickFilter",
+      type: "checkbox",
+      label: "json_table_quick_filter",
+      default: false
+    },
+    {
+      name: "tableColumnMenu",
+      type: "checkbox",
+      label: "json_table_column_menu",
+      default: true
+    },
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {
+        dividerText: "json_table_pagination"
+      })
+    },
+    {
+      name: "tablePagination",
+      type: "checkbox",
+      label: "json_table_pagination_enabled",
+      default: true
+    },
+    {
+      name: "tablePageSize",
+      type: "number",
+      label: "json_table_page_size",
+      default: 25,
+      min: 1
+    },
+    {
+      name: "tablePageSizeOptions",
+      type: "text",
+      label: "json_table_page_size_options",
+      default: "10,25,50,100",
+      tooltip: "json_table_page_size_options_tooltip"
+    },
+    {
+      name: "tableVirtualizeThreshold",
+      type: "number",
+      label: "json_table_virtualize_threshold",
+      default: 50,
+      min: 0,
+      tooltip: "json_table_virtualize_threshold_tooltip"
+    },
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {
+        dividerText: "json_table_selection"
+      })
+    },
+    {
+      name: "tableRowSelection",
+      type: "checkbox",
+      label: "json_table_row_selection",
+      default: false
+    },
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {
+        dividerText: "json_table_analysis"
+      })
+    },
+    {
+      name: "tableMaxDepth",
+      type: "number",
+      label: "json_table_max_depth",
+      default: 10,
+      min: 1,
+      max: 50,
+      tooltip: "json_table_max_depth_tooltip"
+    },
     {
       label: "",
       type: "custom",
@@ -9781,79 +9935,6 @@ let __tla = Promise.all([
       default: 1,
       step: 0.5,
       min: 0
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {
-        dividerText: "json_table_pagination"
-      })
-    },
-    {
-      name: "tablePagination",
-      type: "checkbox",
-      label: "json_table_pagination_enabled",
-      default: true
-    },
-    {
-      name: "tablePageSize",
-      type: "number",
-      label: "json_table_page_size",
-      default: 25,
-      min: 1
-    },
-    {
-      name: "tablePageSizeOptions",
-      type: "text",
-      label: "json_table_page_size_options",
-      default: "10,25,50,100",
-      tooltip: "json_table_page_size_options_tooltip"
-    },
-    {
-      name: "tableVirtualizeThreshold",
-      type: "number",
-      label: "json_table_virtualize_threshold",
-      default: 50,
-      min: 0,
-      tooltip: "json_table_virtualize_threshold_tooltip"
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {
-        dividerText: "json_table_features"
-      })
-    },
-    {
-      name: "tableSorting",
-      type: "checkbox",
-      label: "json_table_sorting",
-      default: true
-    },
-    {
-      name: "tableSortingMulti",
-      type: "checkbox",
-      label: "json_table_sorting_multi",
-      default: false,
-      tooltip: "json_table_sorting_multi_tooltip"
-    },
-    {
-      name: "tableFiltering",
-      type: "checkbox",
-      label: "json_table_filtering",
-      default: false
-    },
-    {
-      name: "tableQuickFilter",
-      type: "checkbox",
-      label: "json_table_quick_filter",
-      default: false
-    },
-    {
-      name: "tableColumnMenu",
-      type: "checkbox",
-      label: "json_table_column_menu",
-      default: true
     },
     {
       label: "",
@@ -9945,14 +10026,70 @@ let __tla = Promise.all([
       label: "",
       type: "custom",
       component: () => c.jsx(Xe, {
-        dividerText: "json_table_selection"
+        dividerText: "json_table_header_style"
       })
     },
     {
-      name: "tableRowSelection",
-      type: "checkbox",
-      label: "json_table_row_selection",
-      default: false
+      name: "tableHeaderBgColor",
+      label: "json_table_header_bg_color",
+      default: "",
+      type: "custom",
+      component: (e, t, n, o) => c.jsx(Ct, {
+        field: e,
+        data: t,
+        onDataChange: n,
+        props: o
+      })
+    },
+    {
+      name: "tableHeaderTextColor",
+      label: "json_table_header_text_color",
+      default: "",
+      type: "custom",
+      component: (e, t, n, o) => c.jsx(Ct, {
+        field: {
+          ...e,
+          noGradient: true
+        },
+        data: t,
+        onDataChange: n,
+        props: o
+      })
+    },
+    {
+      name: "tableHeaderFontSize",
+      type: "number",
+      label: "json_table_header_font_size",
+      min: 8
+    },
+    {
+      label: "",
+      type: "custom",
+      component: () => c.jsx(Xe, {})
+    },
+    {
+      name: "headerBorderWidth",
+      label: "json_table_header_border_width",
+      type: "slider",
+      min: 0,
+      max: 10,
+      step: 1,
+      default: 0
+    },
+    {
+      name: "headerBorderColor",
+      label: "json_table_header_border_color",
+      default: "",
+      type: "custom",
+      component: (e, t, n, o) => c.jsx(Ct, {
+        field: {
+          ...e,
+          noGradient: true
+        },
+        data: t,
+        onDataChange: n,
+        props: o
+      })
     },
     {
       label: "",
@@ -10034,75 +10171,6 @@ let __tla = Promise.all([
       label: "",
       type: "custom",
       component: () => c.jsx(Xe, {
-        dividerText: "json_table_header_style"
-      })
-    },
-    {
-      name: "tableHeaderBgColor",
-      label: "json_table_header_bg_color",
-      default: "",
-      type: "custom",
-      component: (e, t, n, o) => c.jsx(Ct, {
-        field: e,
-        data: t,
-        onDataChange: n,
-        props: o
-      })
-    },
-    {
-      name: "tableHeaderTextColor",
-      label: "json_table_header_text_color",
-      default: "",
-      type: "custom",
-      component: (e, t, n, o) => c.jsx(Ct, {
-        field: {
-          ...e,
-          noGradient: true
-        },
-        data: t,
-        onDataChange: n,
-        props: o
-      })
-    },
-    {
-      name: "tableHeaderFontSize",
-      type: "number",
-      label: "json_table_header_font_size",
-      min: 8
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {})
-    },
-    {
-      name: "headerBorderWidth",
-      label: "json_table_header_border_width",
-      type: "slider",
-      min: 0,
-      max: 10,
-      step: 1,
-      default: 0
-    },
-    {
-      name: "headerBorderColor",
-      label: "json_table_header_border_color",
-      default: "",
-      type: "custom",
-      component: (e, t, n, o) => c.jsx(Ct, {
-        field: {
-          ...e,
-          noGradient: true
-        },
-        data: t,
-        onDataChange: n,
-        props: o
-      })
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {
         dividerText: "json_table_cell_style"
       })
     },
@@ -10135,35 +10203,6 @@ let __tla = Promise.all([
       type: "number",
       label: "json_table_cell_font_size",
       min: 8
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {
-        dividerText: "json_table_analysis"
-      })
-    },
-    {
-      name: "tableMaxDepth",
-      type: "number",
-      label: "json_table_max_depth",
-      default: 10,
-      min: 1,
-      max: 50,
-      tooltip: "json_table_max_depth_tooltip"
-    },
-    {
-      label: "",
-      type: "custom",
-      component: () => c.jsx(Xe, {
-        dividerText: "json_table_column_config"
-      })
-    },
-    {
-      name: "columnConfig",
-      label: "json_table_column_config_label",
-      type: "custom",
-      component: Bu
     }
   ];
   function St(e, t) {
@@ -10180,10 +10219,10 @@ let __tla = Promise.all([
   function ro(e) {
     return e instanceof Function;
   }
-  function Gu(e) {
+  function Uu(e) {
     return Array.isArray(e) && e.every((t) => typeof t == "number");
   }
-  function Uu(e, t) {
+  function qu(e, t) {
     const n = [], o = (r) => {
       r.forEach((i) => {
         n.push(i);
@@ -10225,7 +10264,7 @@ let __tla = Promise.all([
       onChange: o
     };
   }
-  function qu(e, t, n, o) {
+  function Yu(e, t, n, o) {
     const r = () => {
       var s;
       return (s = i.getValue()) != null ? s : e.options.renderFallbackValue;
@@ -10253,7 +10292,7 @@ let __tla = Promise.all([
       s.createCell == null || s.createCell(i, n, t, e);
     }, {}), i;
   }
-  function Yu(e, t, n, o) {
+  function Ju(e, t, n, o) {
     var r, i;
     const l = {
       ...e._getDefaultColumnDef(),
@@ -10301,7 +10340,7 @@ let __tla = Promise.all([
     return p;
   }
   const Pe = "debugHeaders";
-  function Tr(e, t, n) {
+  function Dr(e, t, n) {
     var o;
     let i = {
       id: (o = n.id) != null ? o : t.id,
@@ -10330,7 +10369,7 @@ let __tla = Promise.all([
       s.createHeader == null || s.createHeader(i, e);
     }), i;
   }
-  const Ju = {
+  const Ku = {
     createTable: (e) => {
       e.getHeaderGroups = H(() => [
         e.getAllColumns(),
@@ -10446,7 +10485,7 @@ let __tla = Promise.all([
         let S, w = false;
         if (C && v.column.parent ? S = v.column.parent : (S = v.column, w = true), b && (b == null ? void 0 : b.column) === S) b.subHeaders.push(v);
         else {
-          const _ = Tr(n, S, {
+          const _ = Dr(n, S, {
             id: [
               o,
               f,
@@ -10462,7 +10501,7 @@ let __tla = Promise.all([
         }
         h.headers.push(v), v.headerGroup = h;
       }), a.push(h), f > 0 && d(m, f - 1);
-    }, u = t.map((g, f) => Tr(n, g, {
+    }, u = t.map((g, f) => Dr(n, g, {
       depth: s,
       index: f
     }));
@@ -10509,7 +10548,7 @@ let __tla = Promise.all([
         return (d = l.getValue(a)) != null ? d : e.options.renderFallbackValue;
       },
       subRows: [],
-      getLeafRows: () => Uu(l.subRows, (a) => a.subRows),
+      getLeafRows: () => qu(l.subRows, (a) => a.subRows),
       getParentRow: () => l.parentId ? e.getRow(l.parentId, true) : void 0,
       getParentRows: () => {
         let a = [], d = l;
@@ -10522,7 +10561,7 @@ let __tla = Promise.all([
       },
       getAllCells: H(() => [
         e.getAllLeafColumns()
-      ], (a) => a.map((d) => qu(e, l, d, d.id)), B(e.options, "debugRows")),
+      ], (a) => a.map((d) => Yu(e, l, d, d.id)), B(e.options, "debugRows")),
       _getAllCellsByColumnId: H(() => [
         l.getAllCells()
       ], (a) => a.reduce((d, u) => (d[u.column.id] = u, d), {}), B(e.options, "debugRows"))
@@ -10532,7 +10571,7 @@ let __tla = Promise.all([
       d == null || d.createRow == null || d.createRow(l, e);
     }
     return l;
-  }, Ku = {
+  }, Xu = {
     createColumn: (e, t) => {
       e._getFacetedRowModel = t.options.getFacetedRowModel && t.options.getFacetedRowModel(t, e.id), e.getFacetedRowModel = () => e._getFacetedRowModel ? e._getFacetedRowModel() : t.getPreFilteredRowModel(), e._getFacetedUniqueValues = t.options.getFacetedUniqueValues && t.options.getFacetedUniqueValues(t, e.id), e.getFacetedUniqueValues = () => e._getFacetedUniqueValues ? e._getFacetedUniqueValues() : /* @__PURE__ */ new Map(), e._getFacetedMinMaxValues = t.options.getFacetedMinMaxValues && t.options.getFacetedMinMaxValues(t, e.id), e.getFacetedMinMaxValues = () => {
         if (e._getFacetedMinMaxValues) return e._getFacetedMinMaxValues();
@@ -10604,7 +10643,7 @@ let __tla = Promise.all([
   function rt(e) {
     return e == null || e === "";
   }
-  const Xu = {
+  const Qu = {
     getDefaultColumnDef: () => ({
       filterFn: "auto"
     }),
@@ -10636,7 +10675,7 @@ let __tla = Promise.all([
       }, e.setFilterValue = (n) => {
         t.setColumnFilters((o) => {
           const r = e.getFilterFn(), i = o == null ? void 0 : o.find((u) => u.id === e.id), s = St(n, i ? i.value : void 0);
-          if (Dr(r, s, e)) {
+          if (Tr(r, s, e)) {
             var l;
             return (l = o == null ? void 0 : o.filter((u) => u.id !== e.id)) != null ? l : [];
           }
@@ -10668,7 +10707,7 @@ let __tla = Promise.all([
             const l = n.find((a) => a.id === s.id);
             if (l) {
               const a = l.getFilterFn();
-              if (Dr(a, s.value, l)) return false;
+              if (Tr(a, s.value, l)) return false;
             }
             return true;
           });
@@ -10680,25 +10719,25 @@ let __tla = Promise.all([
       }, e.getPreFilteredRowModel = () => e.getCoreRowModel(), e.getFilteredRowModel = () => (!e._getFilteredRowModel && e.options.getFilteredRowModel && (e._getFilteredRowModel = e.options.getFilteredRowModel(e)), e.options.manualFiltering || !e._getFilteredRowModel ? e.getPreFilteredRowModel() : e._getFilteredRowModel());
     }
   };
-  function Dr(e, t, n) {
+  function Tr(e, t, n) {
     return (e && e.autoRemove ? e.autoRemove(t, n) : false) || typeof t > "u" || typeof t == "string" && !t;
   }
-  const Qu = (e, t, n) => n.reduce((o, r) => {
+  const Zu = (e, t, n) => n.reduce((o, r) => {
     const i = r.getValue(e);
     return o + (typeof i == "number" ? i : 0);
-  }, 0), Zu = (e, t, n) => {
+  }, 0), ed = (e, t, n) => {
     let o;
     return n.forEach((r) => {
       const i = r.getValue(e);
       i != null && (o > i || o === void 0 && i >= i) && (o = i);
     }), o;
-  }, ed = (e, t, n) => {
+  }, td = (e, t, n) => {
     let o;
     return n.forEach((r) => {
       const i = r.getValue(e);
       i != null && (o < i || o === void 0 && i >= i) && (o = i);
     }), o;
-  }, td = (e, t, n) => {
+  }, nd = (e, t, n) => {
     let o, r;
     return n.forEach((i) => {
       const s = i.getValue(e);
@@ -10707,30 +10746,30 @@ let __tla = Promise.all([
       o,
       r
     ];
-  }, nd = (e, t) => {
+  }, od = (e, t) => {
     let n = 0, o = 0;
     if (t.forEach((r) => {
       let i = r.getValue(e);
       i != null && (i = +i) >= i && (++n, o += i);
     }), n) return o / n;
-  }, od = (e, t) => {
+  }, rd = (e, t) => {
     if (!t.length) return;
     const n = t.map((i) => i.getValue(e));
-    if (!Gu(n)) return;
+    if (!Uu(n)) return;
     if (n.length === 1) return n[0];
     const o = Math.floor(n.length / 2), r = n.sort((i, s) => i - s);
     return n.length % 2 !== 0 ? r[o] : (r[o - 1] + r[o]) / 2;
-  }, rd = (e, t) => Array.from(new Set(t.map((n) => n.getValue(e))).values()), id = (e, t) => new Set(t.map((n) => n.getValue(e))).size, sd = (e, t) => t.length, uo = {
-    sum: Qu,
-    min: Zu,
-    max: ed,
-    extent: td,
-    mean: nd,
-    median: od,
-    unique: rd,
-    uniqueCount: id,
-    count: sd
-  }, ld = {
+  }, id = (e, t) => Array.from(new Set(t.map((n) => n.getValue(e))).values()), sd = (e, t) => new Set(t.map((n) => n.getValue(e))).size, ld = (e, t) => t.length, uo = {
+    sum: Zu,
+    min: ed,
+    max: td,
+    extent: nd,
+    mean: od,
+    median: rd,
+    unique: id,
+    uniqueCount: sd,
+    count: ld
+  }, ad = {
     getDefaultColumnDef: () => ({
       aggregatedCell: (e) => {
         var t, n;
@@ -10796,7 +10835,7 @@ let __tla = Promise.all([
       };
     }
   };
-  function ad(e, t, n) {
+  function cd(e, t, n) {
     if (!(t != null && t.length) || !n) return e;
     const o = e.filter((i) => !t.includes(i.id));
     return n === "remove" ? o : [
@@ -10804,7 +10843,7 @@ let __tla = Promise.all([
       ...o
     ];
   }
-  const cd = {
+  const ud = {
     getInitialState: (e) => ({
       columnOrder: [],
       ...e
@@ -10850,13 +10889,13 @@ let __tla = Promise.all([
             ...l
           ];
         }
-        return ad(i, n, o);
+        return cd(i, n, o);
       }, B(e.options, "debugTable"));
     }
   }, po = () => ({
     left: [],
     right: []
-  }), ud = {
+  }), dd = {
     getInitialState: (e) => ({
       columnPinning: po(),
       ...e
@@ -10962,7 +11001,7 @@ let __tla = Promise.all([
       }, B(e.options, "debugColumns"));
     }
   };
-  function dd(e) {
+  function pd(e) {
     return e || (typeof document < "u" ? document : null);
   }
   const Bn = {
@@ -10976,7 +11015,7 @@ let __tla = Promise.all([
     deltaPercentage: null,
     isResizingColumn: false,
     columnSizingStart: []
-  }), pd = {
+  }), fd = {
     getDefaultColumnDef: () => Bn,
     getInitialState: (e) => ({
       columnSizing: {},
@@ -11044,14 +11083,14 @@ let __tla = Promise.all([
           ], a = go(i) ? Math.round(i.touches[0].clientX) : i.clientX, d = {}, u = (b, C) => {
             typeof C == "number" && (t.setColumnSizingInfo((S) => {
               var w, _;
-              const R = t.options.columnResizeDirection === "rtl" ? -1 : 1, P = (C - ((w = S == null ? void 0 : S.startOffset) != null ? w : 0)) * R, T = Math.max(P / ((_ = S == null ? void 0 : S.startSize) != null ? _ : 0), -0.999999);
-              return S.columnSizingStart.forEach((D) => {
-                let [$, A] = D;
-                d[$] = Math.round(Math.max(A + A * T, 0) * 100) / 100;
+              const R = t.options.columnResizeDirection === "rtl" ? -1 : 1, P = (C - ((w = S == null ? void 0 : S.startOffset) != null ? w : 0)) * R, D = Math.max(P / ((_ = S == null ? void 0 : S.startSize) != null ? _ : 0), -0.999999);
+              return S.columnSizingStart.forEach((T) => {
+                let [$, A] = T;
+                d[$] = Math.round(Math.max(A + A * D, 0) * 100) / 100;
               }), {
                 ...S,
                 deltaOffset: P,
-                deltaPercentage: T
+                deltaPercentage: D
               };
             }), (t.options.columnResizeMode === "onChange" || b === "end") && t.setColumnSizing((S) => ({
               ...S,
@@ -11067,7 +11106,7 @@ let __tla = Promise.all([
               deltaPercentage: null,
               columnSizingStart: []
             }));
-          }, f = dd(n), h = {
+          }, f = pd(n), h = {
             moveHandler: (b) => p(b.clientX),
             upHandler: (b) => {
               f == null ? void 0 : f.removeEventListener("mousemove", h.moveHandler), f == null ? void 0 : f.removeEventListener("mouseup", h.upHandler), g(b.clientX);
@@ -11078,7 +11117,7 @@ let __tla = Promise.all([
               var C;
               f == null ? void 0 : f.removeEventListener("touchmove", m.moveHandler), f == null ? void 0 : f.removeEventListener("touchend", m.upHandler), b.cancelable && (b.preventDefault(), b.stopPropagation()), g((C = b.touches[0]) == null ? void 0 : C.clientX);
             }
-          }, v = fd() ? {
+          }, v = gd() ? {
             passive: false
           } : false;
           go(i) ? (f == null ? void 0 : f.addEventListener("touchmove", m.moveHandler, v), f == null ? void 0 : f.addEventListener("touchend", m.upHandler, v)) : (f == null ? void 0 : f.addEventListener("mousemove", h.moveHandler, v), f == null ? void 0 : f.addEventListener("mouseup", h.upHandler, v)), t.setColumnSizingInfo((b) => ({
@@ -11116,7 +11155,7 @@ let __tla = Promise.all([
     }
   };
   let Wn = null;
-  function fd() {
+  function gd() {
     if (typeof Wn == "boolean") return Wn;
     let e = false;
     try {
@@ -11135,7 +11174,7 @@ let __tla = Promise.all([
   function go(e) {
     return e.type === "touchstart";
   }
-  const gd = {
+  const hd = {
     getInitialState: (e) => ({
       columnVisibility: {},
       ...e
@@ -11197,13 +11236,13 @@ let __tla = Promise.all([
   function hn(e, t) {
     return t ? t === "center" ? e.getCenterVisibleLeafColumns() : t === "left" ? e.getLeftVisibleLeafColumns() : e.getRightVisibleLeafColumns() : e.getVisibleLeafColumns();
   }
-  const hd = {
+  const md = {
     createTable: (e) => {
       e._getGlobalFacetedRowModel = e.options.getFacetedRowModel && e.options.getFacetedRowModel(e, "__global__"), e.getGlobalFacetedRowModel = () => e.options.manualFiltering || !e._getGlobalFacetedRowModel ? e.getPreFilteredRowModel() : e._getGlobalFacetedRowModel(), e._getGlobalFacetedUniqueValues = e.options.getFacetedUniqueValues && e.options.getFacetedUniqueValues(e, "__global__"), e.getGlobalFacetedUniqueValues = () => e._getGlobalFacetedUniqueValues ? e._getGlobalFacetedUniqueValues() : /* @__PURE__ */ new Map(), e._getGlobalFacetedMinMaxValues = e.options.getFacetedMinMaxValues && e.options.getFacetedMinMaxValues(e, "__global__"), e.getGlobalFacetedMinMaxValues = () => {
         if (e._getGlobalFacetedMinMaxValues) return e._getGlobalFacetedMinMaxValues();
       };
     }
-  }, md = {
+  }, yd = {
     getInitialState: (e) => ({
       globalFilter: void 0,
       ...e
@@ -11234,7 +11273,7 @@ let __tla = Promise.all([
         e.setGlobalFilter(t ? void 0 : e.initialState.globalFilter);
       };
     }
-  }, yd = {
+  }, vd = {
     getInitialState: (e) => ({
       expanded: {},
       ...e
@@ -11319,7 +11358,7 @@ let __tla = Promise.all([
   }, zo = 0, ko = 10, ho = () => ({
     pageIndex: zo,
     pageSize: ko
-  }), vd = {
+  }), bd = {
     getInitialState: (e) => ({
       ...e,
       pagination: {
@@ -11404,7 +11443,7 @@ let __tla = Promise.all([
   }, mo = () => ({
     top: [],
     bottom: []
-  }), bd = {
+  }), xd = {
     getInitialState: (e) => ({
       rowPinning: mo(),
       ...e
@@ -11511,7 +11550,7 @@ let __tla = Promise.all([
         return t.filter((i) => !r.has(i.id));
       }, B(e.options, "debugRows"));
     }
-  }, xd = {
+  }, wd = {
     getInitialState: (e) => ({
       rowSelection: {},
       ...e
@@ -11543,7 +11582,7 @@ let __tla = Promise.all([
           ...n
         };
         return e.getRowModel().rows.forEach((i) => {
-          To(r, i.id, o, true, e);
+          Do(r, i.id, o, true, e);
         }), r;
       }), e.getPreSelectedRowModel = () => e.getCoreRowModel(), e.getSelectedRowModel = H(() => [
         e.getState().rowSelection,
@@ -11596,17 +11635,17 @@ let __tla = Promise.all([
           const l = {
             ...i
           };
-          return To(l, e.id, n, (s = o == null ? void 0 : o.selectChildren) != null ? s : true, t), l;
+          return Do(l, e.id, n, (s = o == null ? void 0 : o.selectChildren) != null ? s : true, t), l;
         });
       }, e.getIsSelected = () => {
         const { rowSelection: n } = t.getState();
         return Jo(e, n);
       }, e.getIsSomeSelected = () => {
         const { rowSelection: n } = t.getState();
-        return Do(e, n) === "some";
+        return To(e, n) === "some";
       }, e.getIsAllSubRowsSelected = () => {
         const { rowSelection: n } = t.getState();
-        return Do(e, n) === "all";
+        return To(e, n) === "all";
       }, e.getCanSelect = () => {
         var n;
         return typeof t.options.enableRowSelection == "function" ? t.options.enableRowSelection(e) : (n = t.options.enableRowSelection) != null ? n : true;
@@ -11624,10 +11663,10 @@ let __tla = Promise.all([
         };
       };
     }
-  }, To = (e, t, n, o, r) => {
+  }, Do = (e, t, n, o, r) => {
     var i;
     const s = r.getRow(t, true);
-    n ? (s.getCanMultiSelect() || Object.keys(e).forEach((l) => delete e[l]), s.getCanSelect() && (e[t] = true)) : delete e[t], o && (i = s.subRows) != null && i.length && s.getCanSelectSubRows() && s.subRows.forEach((l) => To(e, l.id, n, o, r));
+    n ? (s.getCanMultiSelect() || Object.keys(e).forEach((l) => delete e[l]), s.getCanSelect() && (e[t] = true)) : delete e[t], o && (i = s.subRows) != null && i.length && s.getCanSelectSubRows() && s.subRows.forEach((l) => Do(e, l.id, n, o, r));
   };
   function yo(e, t) {
     const n = e.getState().rowSelection, o = [], r = {}, i = function(s, l) {
@@ -11650,21 +11689,21 @@ let __tla = Promise.all([
     var n;
     return (n = t[e.id]) != null ? n : false;
   }
-  function Do(e, t, n) {
+  function To(e, t, n) {
     var o;
     if (!((o = e.subRows) != null && o.length)) return false;
     let r = true, i = false;
     return e.subRows.forEach((s) => {
       if (!(i && !r) && (s.getCanSelect() && (Jo(s, t) ? i = true : r = false), s.subRows && s.subRows.length)) {
-        const l = Do(s, t);
+        const l = To(s, t);
         l === "all" ? i = true : (l === "some" && (i = true), r = false);
       }
     }), r ? "all" : i ? "some" : false;
   }
-  const Oo = /([0-9]+)/gm, wd = (e, t, n) => zi(jt(e.getValue(n)).toLowerCase(), jt(t.getValue(n)).toLowerCase()), Cd = (e, t, n) => zi(jt(e.getValue(n)), jt(t.getValue(n))), _d = (e, t, n) => Ko(jt(e.getValue(n)).toLowerCase(), jt(t.getValue(n)).toLowerCase()), Sd = (e, t, n) => Ko(jt(e.getValue(n)), jt(t.getValue(n))), jd = (e, t, n) => {
+  const Eo = /([0-9]+)/gm, Cd = (e, t, n) => zi(jt(e.getValue(n)).toLowerCase(), jt(t.getValue(n)).toLowerCase()), _d = (e, t, n) => zi(jt(e.getValue(n)), jt(t.getValue(n))), Sd = (e, t, n) => Ko(jt(e.getValue(n)).toLowerCase(), jt(t.getValue(n)).toLowerCase()), jd = (e, t, n) => Ko(jt(e.getValue(n)), jt(t.getValue(n))), Rd = (e, t, n) => {
     const o = e.getValue(n), r = t.getValue(n);
     return o > r ? 1 : o < r ? -1 : 0;
-  }, Rd = (e, t, n) => Ko(e.getValue(n), t.getValue(n));
+  }, Md = (e, t, n) => Ko(e.getValue(n), t.getValue(n));
   function Ko(e, t) {
     return e === t ? 0 : e > t ? 1 : -1;
   }
@@ -11672,7 +11711,7 @@ let __tla = Promise.all([
     return typeof e == "number" ? isNaN(e) || e === 1 / 0 || e === -1 / 0 ? "" : String(e) : typeof e == "string" ? e : "";
   }
   function zi(e, t) {
-    const n = e.split(Oo).filter(Boolean), o = t.split(Oo).filter(Boolean);
+    const n = e.split(Eo).filter(Boolean), o = t.split(Eo).filter(Boolean);
     for (; n.length && o.length; ) {
       const r = n.shift(), i = o.shift(), s = parseInt(r, 10), l = parseInt(i, 10), a = [
         s,
@@ -11690,13 +11729,13 @@ let __tla = Promise.all([
     return n.length - o.length;
   }
   const sn = {
-    alphanumeric: wd,
-    alphanumericCaseSensitive: Cd,
-    text: _d,
-    textCaseSensitive: Sd,
-    datetime: jd,
-    basic: Rd
-  }, Md = {
+    alphanumeric: Cd,
+    alphanumericCaseSensitive: _d,
+    text: Sd,
+    textCaseSensitive: jd,
+    datetime: Rd,
+    basic: Md
+  }, $d = {
     getInitialState: (e) => ({
       sorting: [],
       ...e
@@ -11716,7 +11755,7 @@ let __tla = Promise.all([
         for (const r of n) {
           const i = r == null ? void 0 : r.getValue(e.id);
           if (Object.prototype.toString.call(i) === "[object Date]") return sn.datetime;
-          if (typeof i == "string" && (o = true, i.split(Oo).length > 1)) return sn.alphanumeric;
+          if (typeof i == "string" && (o = true, i.split(Eo).length > 1)) return sn.alphanumeric;
         }
         return o ? sn.text : sn.basic;
       }, e.getAutoSortDir = () => {
@@ -11786,27 +11825,27 @@ let __tla = Promise.all([
         e.setSorting(t ? [] : (n = (o = e.initialState) == null ? void 0 : o.sorting) != null ? n : []);
       }, e.getPreSortedRowModel = () => e.getGroupedRowModel(), e.getSortedRowModel = () => (!e._getSortedRowModel && e.options.getSortedRowModel && (e._getSortedRowModel = e.options.getSortedRowModel(e)), e.options.manualSorting || !e._getSortedRowModel ? e.getPreSortedRowModel() : e._getSortedRowModel());
     }
-  }, $d = [
-    Ju,
-    gd,
-    cd,
-    ud,
+  }, Ad = [
     Ku,
-    Xu,
     hd,
+    ud,
+    dd,
+    Xu,
+    Qu,
     md,
-    Md,
-    ld,
     yd,
+    $d,
+    ad,
     vd,
     bd,
     xd,
-    pd
+    wd,
+    fd
   ];
-  function Ad(e) {
+  function Pd(e) {
     var t, n;
     const o = [
-      ...$d,
+      ...Ad,
       ...(t = e._features) != null ? t : []
     ];
     let r = {
@@ -11889,7 +11928,7 @@ let __tla = Promise.all([
       ], (g) => {
         const f = function(h, m, v) {
           return v === void 0 && (v = 0), h.map((b) => {
-            const C = Yu(r, b, v, m), S = b;
+            const C = Ju(r, b, v, m), S = b;
             return C.columns = S.columns ? f(S.columns, C, v + 1) : [], C;
           });
         };
@@ -11917,7 +11956,7 @@ let __tla = Promise.all([
     }
     return r;
   }
-  function Pd() {
+  function Id() {
     return (e) => H(() => [
       e.options.data
     ], (t) => {
@@ -11940,7 +11979,7 @@ let __tla = Promise.all([
       return n.rows = o(t), n;
     }, B(e.options, "debugTable", "getRowModel", () => e._autoResetPageIndex()));
   }
-  function Id(e) {
+  function Fd(e) {
     const t = [], n = (o) => {
       var r;
       t.push(o), (r = o.subRows) != null && r.length && o.getIsExpanded() && o.subRows.forEach(n);
@@ -11951,10 +11990,10 @@ let __tla = Promise.all([
       rowsById: e.rowsById
     };
   }
-  function Fd(e, t, n) {
-    return n.options.filterFromLeafRows ? zd(e, t, n) : kd(e, t, n);
-  }
   function zd(e, t, n) {
+    return n.options.filterFromLeafRows ? kd(e, t, n) : Dd(e, t, n);
+  }
+  function kd(e, t, n) {
     var o;
     const r = [], i = {}, s = (o = n.options.maxLeafRowFilterDepth) != null ? o : 100, l = function(a, d) {
       d === void 0 && (d = 0);
@@ -11982,7 +12021,7 @@ let __tla = Promise.all([
       rowsById: i
     };
   }
-  function kd(e, t, n) {
+  function Dd(e, t, n) {
     var o;
     const r = [], i = {}, s = (o = n.options.maxLeafRowFilterDepth) != null ? o : 100, l = function(a, d) {
       d === void 0 && (d = 0);
@@ -12065,10 +12104,10 @@ let __tla = Promise.all([
         for (let f = 0; f < s.length; f++) if (g.columnFilters[s[f]] === false) return false;
         return true;
       };
-      return Fd(t.rows, p, e);
+      return zd(t.rows, p, e);
     }, B(e.options, "debugTable", "getFilteredRowModel", () => e._autoResetPageIndex()));
   }
-  function Dd(e) {
+  function Ed(e) {
     return (t) => H(() => [
       t.getState().pagination,
       t.getPrePaginationRowModel(),
@@ -12084,7 +12123,7 @@ let __tla = Promise.all([
         rows: s,
         flatRows: l,
         rowsById: a
-      } : p = Id({
+      } : p = Fd({
         rows: s,
         flatRows: l,
         rowsById: a
@@ -12146,24 +12185,24 @@ let __tla = Promise.all([
     }, B(e.options, "debugTable", "getSortedRowModel", () => e._autoResetPageIndex()));
   }
   function ln(e, t) {
-    return e ? Ed(e) ? y.createElement(e, t) : e : null;
-  }
-  function Ed(e) {
-    return Nd(e) || typeof e == "function" || Ld(e);
+    return e ? Nd(e) ? y.createElement(e, t) : e : null;
   }
   function Nd(e) {
+    return Ld(e) || typeof e == "function" || Vd(e);
+  }
+  function Ld(e) {
     return typeof e == "function" && (() => {
       const t = Object.getPrototypeOf(e);
       return t.prototype && t.prototype.isReactComponent;
     })();
   }
-  function Ld(e) {
+  function Vd(e) {
     return typeof e == "object" && typeof e.$$typeof == "symbol" && [
       "react.memo",
       "react.forward_ref"
     ].includes(e.$$typeof.description);
   }
-  function Vd(e) {
+  function Hd(e) {
     const t = {
       state: {},
       onStateChange: () => {
@@ -12171,7 +12210,7 @@ let __tla = Promise.all([
       renderFallbackValue: null,
       ...e
     }, [n] = y.useState(() => ({
-      current: Ad(t)
+      current: Pd(t)
     })), [o, r] = y.useState(() => n.current.initialState);
     return n.current.setOptions((i) => ({
       ...i,
@@ -12211,26 +12250,26 @@ let __tla = Promise.all([
       o = l;
     }, s;
   }
-  function Or(e, t) {
+  function Er(e, t) {
     if (e === void 0) throw new Error("Unexpected undefined");
     return e;
   }
-  const Hd = (e, t) => Math.abs(e - t) < 1.01, Bd = (e, t, n) => {
+  const Bd = (e, t) => Math.abs(e - t) < 1.01, Wd = (e, t, n) => {
     let o;
     return function(...r) {
       e.clearTimeout(o), o = e.setTimeout(() => t.apply(this, r), n);
     };
-  }, Er = (e) => {
+  }, Or = (e) => {
     const { offsetWidth: t, offsetHeight: n } = e;
     return {
       width: t,
       height: n
     };
-  }, Wd = (e) => e, Gd = (e) => {
+  }, Gd = (e) => e, Ud = (e) => {
     const t = Math.max(e.startIndex - e.overscan, 0), n = Math.min(e.endIndex + e.overscan, e.count - 1), o = [];
     for (let r = t; r <= n; r++) o.push(r);
     return o;
-  }, Ud = (e, t) => {
+  }, qd = (e, t) => {
     const n = e.scrollElement;
     if (!n) return;
     const o = e.targetWindow;
@@ -12242,7 +12281,7 @@ let __tla = Promise.all([
         height: Math.round(a)
       });
     };
-    if (r(Er(n)), !o.ResizeObserver) return () => {
+    if (r(Or(n)), !o.ResizeObserver) return () => {
     };
     const i = new o.ResizeObserver((s) => {
       const l = () => {
@@ -12257,7 +12296,7 @@ let __tla = Promise.all([
             return;
           }
         }
-        r(Er(n));
+        r(Or(n));
       };
       e.options.useAnimationFrameWithResizeObserver ? requestAnimationFrame(l) : l();
     });
@@ -12268,14 +12307,14 @@ let __tla = Promise.all([
     };
   }, Nr = {
     passive: true
-  }, Lr = typeof window > "u" ? true : "onscrollend" in window, qd = (e, t) => {
+  }, Lr = typeof window > "u" ? true : "onscrollend" in window, Yd = (e, t) => {
     const n = e.scrollElement;
     if (!n) return;
     const o = e.targetWindow;
     if (!o) return;
     let r = 0;
     const i = e.options.useScrollendEvent && Lr ? () => {
-    } : Bd(o, () => {
+    } : Wd(o, () => {
       t(r, false);
     }, e.options.isScrollingResetDelay), s = (u) => () => {
       const { horizontal: p, isRtl: g } = e.options;
@@ -12286,13 +12325,13 @@ let __tla = Promise.all([
     return d && n.addEventListener("scrollend", a, Nr), () => {
       n.removeEventListener("scroll", l), d && n.removeEventListener("scrollend", a);
     };
-  }, Yd = (e, t, n) => {
+  }, Jd = (e, t, n) => {
     if (t == null ? void 0 : t.borderBoxSize) {
       const o = t.borderBoxSize[0];
       if (o) return Math.round(o[n.options.horizontal ? "inlineSize" : "blockSize"]);
     }
     return e[n.options.horizontal ? "offsetWidth" : "offsetHeight"];
-  }, Jd = (e, { adjustments: t = 0, behavior: n }, o) => {
+  }, Kd = (e, { adjustments: t = 0, behavior: n }, o) => {
     var r, i;
     const s = e + t;
     (i = (r = o.scrollElement) == null ? void 0 : r.scrollTo) == null || i.call(r, {
@@ -12300,7 +12339,7 @@ let __tla = Promise.all([
       behavior: n
     });
   };
-  class Kd {
+  class Xd {
     constructor(t) {
       this.unsubs = [], this.scrollElement = null, this.targetWindow = null, this.isScrolling = false, this.currentScrollToIndex = null, this.measurementsCache = [], this.itemSizeCache = /* @__PURE__ */ new Map(), this.laneAssignments = /* @__PURE__ */ new Map(), this.pendingMeasuredCacheIndexes = [], this.prevLanes = void 0, this.lanesChangedFlag = false, this.lanesSettling = false, this.scrollRect = null, this.scrollOffset = null, this.scrollDirection = null, this.scrollAdjustments = 0, this.elementsCache = /* @__PURE__ */ new Map(), this.observer = /* @__PURE__ */ (() => {
         let n = null;
@@ -12340,11 +12379,11 @@ let __tla = Promise.all([
           scrollPaddingStart: 0,
           scrollPaddingEnd: 0,
           horizontal: false,
-          getItemKey: Wd,
-          rangeExtractor: Gd,
+          getItemKey: Gd,
+          rangeExtractor: Ud,
           onChange: () => {
           },
-          measureElement: Yd,
+          measureElement: Jd,
           initialRect: {
             width: 0,
             height: 0
@@ -12472,7 +12511,7 @@ let __tla = Promise.all([
         this.getSize(),
         this.getScrollOffset(),
         this.options.lanes
-      ], (n, o, r, i) => this.range = n.length > 0 && o > 0 ? Xd({
+      ], (n, o, r, i) => this.range = n.length > 0 && o > 0 ? Qd({
         measurements: n,
         outerSize: o,
         scrollOffset: r,
@@ -12541,7 +12580,7 @@ let __tla = Promise.all([
         debug: () => this.options.debug
       }), this.getVirtualItemForOffset = (n) => {
         const o = this.getMeasurements();
-        if (o.length !== 0) return Or(o[ki(0, o.length - 1, (r) => Or(o[r]).start, n)]);
+        if (o.length !== 0) return Er(o[ki(0, o.length - 1, (r) => Er(o[r]).start, n)]);
       }, this.getMaxScrollOffset = () => {
         if (!this.scrollElement) return 0;
         if ("scrollHeight" in this.scrollElement) return this.options.horizontal ? this.scrollElement.scrollWidth - this.scrollElement.clientWidth : this.scrollElement.scrollHeight - this.scrollElement.clientHeight;
@@ -12602,7 +12641,7 @@ let __tla = Promise.all([
                 console.warn("Failed to get offset for index:", n);
                 return;
               }
-              Hd(m[0], h) || a(g);
+              Bd(m[0], h) || a(g);
             };
             this.isDynamicMode() ? this.targetWindow.requestAnimationFrame(f) : f();
           });
@@ -12650,7 +12689,7 @@ let __tla = Promise.all([
     }
     return e > 0 ? e - 1 : 0;
   };
-  function Xd({ measurements: e, outerSize: t, scrollOffset: n, lanes: o }) {
+  function Qd({ measurements: e, outerSize: t, scrollOffset: n, lanes: o }) {
     const r = e.length - 1, i = (a) => e[a].start;
     if (e.length <= o) return {
       startIndex: 0,
@@ -12677,25 +12716,25 @@ let __tla = Promise.all([
     };
   }
   const Vr = typeof document < "u" ? y.useLayoutEffect : y.useEffect;
-  function Qd({ useFlushSync: e = true, ...t }) {
+  function Zd({ useFlushSync: e = true, ...t }) {
     const n = y.useReducer(() => ({}), {})[1], o = {
       ...t,
       onChange: (i, s) => {
         var l;
         e && s ? Ki.flushSync(n) : n(), (l = t.onChange) == null || l.call(t, i, s);
       }
-    }, [r] = y.useState(() => new Kd(o));
+    }, [r] = y.useState(() => new Xd(o));
     return r.setOptions(o), Vr(() => r._didMount(), []), Vr(() => r._willUpdate()), r;
   }
-  function Zd(e) {
-    return Qd({
-      observeElementRect: Ud,
-      observeElementOffset: qd,
-      scrollToFn: Jd,
+  function ep(e) {
+    return Zd({
+      observeElementRect: qd,
+      observeElementOffset: Yd,
+      scrollToFn: Kd,
       ...e
     });
   }
-  function ep(e, t) {
+  function tp(e, t) {
     var _a2, _b;
     let n = false, o = e != null ? typeof e == "object" ? (n = true, JSON.stringify(e)) : String(e) : "";
     if (t == null ? void 0 : t.format) switch (t.format.type) {
@@ -12744,7 +12783,7 @@ let __tla = Promise.all([
     };
   }
   function Hr({ value: e, config: t }) {
-    const { displayValue: n, textSx: o, bgSx: r, isTruncated: i } = y.useMemo(() => ep(e, t), [
+    const { displayValue: n, textSx: o, bgSx: r, isTruncated: i } = y.useMemo(() => tp(e, t), [
       e,
       t
     ]);
@@ -12797,7 +12836,7 @@ let __tla = Promise.all([
       ...new Set(n)
     ].sort((o, r) => o - r) : t;
   }
-  function tp(e) {
+  function np(e) {
     const { widgetId: t, columnConfig: n, tableAutoSize: o, tableRowSelection: r, tablePageSize: i, tablePageSizeOptions: s, tablePagination: l, tableFiltering: a, tableSorting: d, tableQuickFilter: u, gridRowsLength: p } = e, [g, f] = y.useState([]);
     y.useEffect(() => {
       d || f([]);
@@ -12841,19 +12880,19 @@ let __tla = Promise.all([
     ]);
     const R = y.useMemo(() => Number(i) || 25, [
       i
-    ]), [P, T] = y.useState({
+    ]), [P, D] = y.useState({
       pageIndex: 0,
       pageSize: R
     });
     y.useEffect(() => {
-      T((A) => A.pageSize === R ? A : {
+      D((A) => A.pageSize === R ? A : {
         pageIndex: 0,
         pageSize: R
       });
     }, [
       R
     ]);
-    const D = y.useMemo(() => l === false ? {
+    const T = y.useMemo(() => l === false ? {
       pageIndex: 0,
       pageSize: Math.max(p, 1)
     } : P, [
@@ -12870,13 +12909,13 @@ let __tla = Promise.all([
       rowSelection: C,
       columnSizing: w,
       pagination: P,
-      effectivePagination: D,
+      effectivePagination: T,
       setSorting: f,
       setColumnFilters: m,
       setGlobalFilter: b,
       setRowSelection: S,
       setColumnSizing: _,
-      setPagination: T,
+      setPagination: D,
       pageSizeOptions: $,
       parsePageSizeOptions: Br
     };
@@ -12893,7 +12932,7 @@ let __tla = Promise.all([
   function Gr(e) {
     return (t, n, o) => Wr(t.getValue(o), e) - Wr(n.getValue(o), e);
   }
-  function np(e) {
+  function op(e) {
     const { columnConfig: t, analysisColumns: n, widgetData: o, renderConfiguredCell: r, renderAutoDetectedCell: i, renderSelectionHeader: s, renderSelectionCell: l } = e, a = new Map(n.map((p) => [
       p.path,
       p.dateFormat
@@ -12952,15 +12991,15 @@ let __tla = Promise.all([
       ...u
     ] : u;
   }
-  const op = {
+  const rp = {
     compact: 36,
     standard: 52,
     comfortable: 68
-  }, rp = {
+  }, ip = {
     compact: 36,
     standard: 56,
     comfortable: 68
-  }, ip = (e) => {
+  }, sp = (e) => {
     const { children: t, value: n, ...o } = e;
     return c.jsx(je, {
       ...o,
@@ -12971,7 +13010,7 @@ let __tla = Promise.all([
         children: t
       })
     });
-  }, sp = () => {
+  }, lp = () => {
     var _a2, _b;
     const e = y.useContext(Xi), { widget: { data: { oidObject: t } }, widget: n, id: o } = e, { data: r } = Qi("oid"), i = is("oid"), s = _n(), l = t == null ? void 0 : t.type, a = l === "string" || l === "mixed" || l === "json", d = y.useMemo(() => {
       if (i == null) return [];
@@ -12991,7 +13030,7 @@ let __tla = Promise.all([
       maxDepth: n.data.tableMaxDepth || 10
     }), [
       n.data.tableMaxDepth
-    ]), { columns: p, rows: g, meta: f } = Vu(d, u), h = y.useMemo(() => {
+    ]), { columns: p, rows: g, meta: f } = Hu(d, u), h = y.useMemo(() => {
       const M = n.data.tableMaxDepth || 10;
       return f.maxDepth > M ? {
         actual: f.maxDepth,
@@ -13002,12 +13041,12 @@ let __tla = Promise.all([
       n.data.tableMaxDepth
     ]), m = y.useMemo(() => vi(n.data.columnConfig), [
       n.data.columnConfig
-    ]), v = n.data.tableDensity || "standard", b = Number(n.data.tableRowHeight) || op[v] || 52, C = Number(n.data.tableHeaderHeight) || rp[v] || 56, S = y.useMemo(() => g.map((M, O) => ({
-      __id: O,
+    ]), v = n.data.tableDensity || "standard", b = Number(n.data.tableRowHeight) || rp[v] || 52, C = Number(n.data.tableHeaderHeight) || ip[v] || 56, S = y.useMemo(() => g.map((M, E) => ({
+      __id: E,
       ...M
     })), [
       g
-    ]), w = y.useMemo(() => np({
+    ]), w = y.useMemo(() => op({
       columnConfig: m,
       analysisColumns: p,
       widgetData: {
@@ -13015,9 +13054,9 @@ let __tla = Promise.all([
         tableFiltering: n.data.tableFiltering === true,
         tableRowSelection: n.data.tableRowSelection === true
       },
-      renderConfiguredCell: (M, O) => c.jsx(Hr, {
+      renderConfiguredCell: (M, E) => c.jsx(Hr, {
         value: M,
-        config: O
+        config: E
       }),
       renderAutoDetectedCell: (M) => c.jsx(Hr, {
         value: M
@@ -13041,7 +13080,7 @@ let __tla = Promise.all([
       n.data.tableSorting,
       n.data.tableFiltering,
       n.data.tableRowSelection
-    ]), _ = n.data.tableAutoSize === true, { sorting: R, columnFilters: P, globalFilter: T, rowSelection: D, columnSizing: $, pagination: A, effectivePagination: G, setSorting: z, setColumnFilters: J, setGlobalFilter: K, setRowSelection: E, setColumnSizing: k, setPagination: j, pageSizeOptions: I } = tp({
+    ]), _ = n.data.tableAutoSize === true, { sorting: R, columnFilters: P, globalFilter: D, rowSelection: T, columnSizing: $, pagination: A, effectivePagination: G, setSorting: z, setColumnFilters: J, setGlobalFilter: K, setRowSelection: O, setColumnSizing: k, setPagination: j, pageSizeOptions: I } = np({
       widgetId: o,
       columnConfig: m,
       tableAutoSize: _,
@@ -13053,13 +13092,13 @@ let __tla = Promise.all([
       tableSorting: n.data.tableSorting !== false,
       tableQuickFilter: n.data.tableQuickFilter === true,
       gridRowsLength: S.length
-    }), X = Vd({
+    }), X = Hd({
       data: S,
       columns: w,
-      getCoreRowModel: Pd(),
+      getCoreRowModel: Id(),
       getSortedRowModel: Od(),
       getFilteredRowModel: Td(),
-      getPaginationRowModel: Dd(),
+      getPaginationRowModel: Ed(),
       enableMultiSort: n.data.tableSortingMulti ?? false,
       globalFilterFn: "includesString",
       columnResizeMode: "onChange",
@@ -13071,26 +13110,26 @@ let __tla = Promise.all([
       state: {
         sorting: R,
         columnFilters: P,
-        globalFilter: T,
+        globalFilter: D,
         pagination: G,
-        rowSelection: D,
+        rowSelection: T,
         columnSizing: $
       },
       onSortingChange: z,
       onColumnFiltersChange: J,
       onGlobalFilterChange: K,
       onPaginationChange: n.data.tablePagination !== false ? j : void 0,
-      onRowSelectionChange: E,
+      onRowSelectionChange: O,
       onColumnSizingChange: k,
       enableRowSelection: n.data.tableRowSelection === true,
       enableSorting: n.data.tableSorting !== false,
       enableColumnFilters: n.data.tableFiltering === true,
       enableGlobalFilter: n.data.tableQuickFilter === true
-    }), U = y.useRef(null), le = y.useRef(null), [ee, he] = y.useState({}), [ae, N] = y.useState(null), L = y.useRef(null), [re, Me] = y.useState(void 0), [De, ze] = y.useState(void 0), de = y.useCallback((M, O) => {
+    }), U = y.useRef(null), le = y.useRef(null), [ee, he] = y.useState({}), [ae, N] = y.useState(null), L = y.useRef(null), [re, Me] = y.useState(void 0), [Te, ze] = y.useState(void 0), de = y.useCallback((M, E) => {
       var _a3;
       L.current = M;
       const Z = M.id, xe = R.find((V) => V.id === Z), Ae = (_a3 = P.find((V) => V.id === Z)) == null ? void 0 : _a3.value;
-      Me(xe), ze(Ae), N(O);
+      Me(xe), ze(Ae), N(E);
     }, [
       R,
       P
@@ -13101,7 +13140,7 @@ let __tla = Promise.all([
       if (!_) return;
       const M = le.current;
       if (!M) return;
-      const O = new ResizeObserver(() => {
+      const E = new ResizeObserver(() => {
         const Z = M.querySelector("tr[data-row-index]");
         if (!Z) return;
         const xe = Z.querySelectorAll("td"), Ae = X.getHeaderGroups()[0];
@@ -13112,7 +13151,7 @@ let __tla = Promise.all([
           Xo && (V[Ke.id] = Xo.getBoundingClientRect().width);
         }), he(V);
       });
-      return O.observe(M), () => O.disconnect();
+      return E.observe(M), () => E.disconnect();
     }, [
       _,
       X
@@ -13126,17 +13165,17 @@ let __tla = Promise.all([
         borderBottom: "none"
       };
       else {
-        const O = n.data.horizontalCellBorderWidth ?? 1, Z = In(n.data.horizontalCellBorderColor);
+        const E = n.data.horizontalCellBorderWidth ?? 1, Z = In(n.data.horizontalCellBorderColor);
         M["& .MuiTableCell-root"] = {
           ...M["& .MuiTableCell-root"],
-          borderBottom: `${O}px solid`,
+          borderBottom: `${E}px solid`,
           borderBottomColor: Z || "divider"
         };
       }
       if (n.data.tableShowCellBorders === true) {
-        const O = n.data.verticalCellBorderWidth ?? 1, Z = In(n.data.verticalCellBorderColor);
+        const E = n.data.verticalCellBorderWidth ?? 1, Z = In(n.data.verticalCellBorderColor);
         M["& .MuiTableCell-root:not(:last-child)"] = {
-          borderRight: `${O}px solid`,
+          borderRight: `${E}px solid`,
           borderRightColor: Z || "divider"
         };
       }
@@ -13149,38 +13188,38 @@ let __tla = Promise.all([
       n.data.verticalCellBorderWidth,
       n.data.verticalCellBorderColor,
       _
-    ]), qe = n.data.tableHeaderBgColor, Ye = n.data.tableHeaderTextColor, Oe = n.data.tableHeaderFontSize, yt = y.useMemo(() => ({
+    ]), qe = n.data.tableHeaderBgColor, Ye = n.data.tableHeaderTextColor, Ee = n.data.tableHeaderFontSize, yt = y.useMemo(() => ({
       height: C,
       whiteSpace: "nowrap",
       ...Ye && {
         color: Ye
       },
-      ...Oe && {
-        fontSize: `${Oe}px`
+      ...Ee && {
+        fontSize: `${Ee}px`
       }
     }), [
       C,
       Ye,
-      Oe
+      Ee
     ]), vt = y.useMemo(() => ({
       ...Ye && {
         color: Ye
       },
-      ...Oe && {
-        fontSize: `${Oe}px`
+      ...Ee && {
+        fontSize: `${Ee}px`
       }
     }), [
       Ye,
-      Oe
+      Ee
     ]), Be = n.data.noCard === true, nt = n.data.headerBorderWidth ?? 0, bt = In(n.data.headerBorderColor), Mt = y.useMemo(() => {
-      const M = n.data.tableHeaderElevation ?? 6, O = Be ? {
+      const M = n.data.tableHeaderElevation ?? 6, E = Be ? {
         backgroundColor: "transparent",
         boxShadow: "none"
       } : {
         backgroundColor: "background.paper",
         boxShadow: M > 0 ? s.shadows[M] : "none"
       };
-      nt > 0 && (O["&::after"] = {
+      nt > 0 && (E["&::after"] = {
         content: '""',
         position: "absolute",
         left: 0,
@@ -13192,12 +13231,12 @@ let __tla = Promise.all([
       });
       const Z = qe ? It(qe) : null;
       return Z ? {
-        ...O,
+        ...E,
         background: Z
       } : qe ? {
-        ...O,
+        ...E,
         backgroundColor: qe
-      } : O;
+      } : E;
     }, [
       Be,
       qe,
@@ -13212,14 +13251,14 @@ let __tla = Promise.all([
         overflow: "hidden",
         display: "flex",
         flexDirection: "column"
-      }, O = n.data.borderWidth, Z = n.data.borderStyle || "solid", xe = In(n.data.borderColor), Ae = n.data.borderRadius;
-      return O && O > 0 && (M.border = `${O}px ${Z}`, M.borderColor = xe || "divider"), Ae && (M.borderRadius = Ae), M;
+      }, E = n.data.borderWidth, Z = n.data.borderStyle || "solid", xe = In(n.data.borderColor), Ae = n.data.borderRadius;
+      return E && E > 0 && (M.border = `${E}px ${Z}`, M.borderColor = xe || "divider"), Ae && (M.borderRadius = Ae), M;
     }, [
       n.data.borderWidth,
       n.data.borderStyle,
       n.data.borderColor,
       n.data.borderRadius
-    ]), Ot = y.useMemo(() => ({
+    ]), Et = y.useMemo(() => ({
       flex: 1,
       overflow: "auto"
     }), []), ct = y.useCallback((M) => _ ? ee[M.id] ?? "auto" : M.getSize(), [
@@ -13237,8 +13276,8 @@ let __tla = Promise.all([
     }), [
       n.data.tableCellFontSize,
       b
-    ]), dt = n.data.evenRowColor || null, st = n.data.oddRowColor || null, Et = dt ? It(dt) : null, Ee = st ? It(st) : null, xt = y.useCallback((M) => {
-      const O = M % 2 === 0, Z = O ? dt : st, xe = O ? Et : Ee;
+    ]), dt = n.data.evenRowColor || null, st = n.data.oddRowColor || null, Ot = dt ? It(dt) : null, Oe = st ? It(st) : null, xt = y.useCallback((M) => {
+      const E = M % 2 === 0, Z = E ? dt : st, xe = E ? Ot : Oe;
       if (Z) return xe ? {
         background: xe
       } : {
@@ -13247,9 +13286,9 @@ let __tla = Promise.all([
     }, [
       dt,
       st,
-      Et,
-      Ee
-    ]), Je = X.getRowModel().rows, wt = Zd({
+      Ot,
+      Oe
+    ]), Je = X.getRowModel().rows, wt = ep({
       count: Je.length,
       getScrollElement: () => U.current,
       estimateSize: () => b,
@@ -13284,7 +13323,7 @@ let __tla = Promise.all([
                 size: "small",
                 variant: "outlined",
                 fullWidth: true,
-                value: T,
+                value: D,
                 onChange: (M) => K(M.target.value),
                 placeholder: x.t("json_table_search_placeholder"),
                 slotProps: {
@@ -13313,8 +13352,8 @@ let __tla = Promise.all([
               sx: $t,
               children: c.jsx(Xa, {
                 ref: U,
-                sx: Ot,
-                children: c.jsxs(Ea, {
+                sx: Et,
+                children: c.jsxs(Oa, {
                   size: v === "compact" ? "small" : "medium",
                   sx: Se,
                   children: [
@@ -13333,21 +13372,21 @@ let __tla = Promise.all([
                       },
                       children: [
                         X.getHeaderGroups().map((M) => c.jsx(Vt, {
-                          children: M.headers.map((O) => {
-                            const Z = O.column.getCanSort(), xe = O.column.getIsSorted(), Ae = O.column.columnDef.meta, V = O.column.id === "__select__", Ke = !_;
+                          children: M.headers.map((E) => {
+                            const Z = E.column.getCanSort(), xe = E.column.getIsSorted(), Ae = E.column.columnDef.meta, V = E.column.id === "__select__", Ke = !_;
                             return c.jsxs(ot, {
                               component: "th",
-                              colSpan: O.colSpan,
+                              colSpan: E.colSpan,
                               align: (Ae == null ? void 0 : Ae.align) || "left",
                               padding: V ? "checkbox" : "normal",
                               sx: {
-                                width: ct(O),
+                                width: ct(E),
                                 minWidth: V ? 48 : 40,
                                 position: "relative",
                                 ...yt
                               },
                               children: [
-                                V ? ln(O.column.columnDef.header, O.getContext()) : c.jsxs(q, {
+                                V ? ln(E.column.columnDef.header, E.getContext()) : c.jsxs(q, {
                                   sx: {
                                     display: "flex",
                                     alignItems: "center",
@@ -13358,14 +13397,14 @@ let __tla = Promise.all([
                                     Z ? c.jsx(Ac, {
                                       active: xe !== false,
                                       direction: xe === "desc" ? "desc" : "asc",
-                                      onClick: O.column.getToggleSortingHandler(),
+                                      onClick: E.column.getToggleSortingHandler(),
                                       children: c.jsx(F, {
                                         variant: "body2",
                                         component: "span",
                                         fontWeight: "medium",
                                         noWrap: true,
                                         sx: vt,
-                                        children: ln(O.column.columnDef.header, O.getContext())
+                                        children: ln(E.column.columnDef.header, E.getContext())
                                       })
                                     }) : c.jsx(F, {
                                       variant: "body2",
@@ -13373,7 +13412,7 @@ let __tla = Promise.all([
                                       fontWeight: "medium",
                                       noWrap: true,
                                       sx: vt,
-                                      children: ln(O.column.columnDef.header, O.getContext())
+                                      children: ln(E.column.columnDef.header, E.getContext())
                                     }),
                                     n.data.tableColumnMenu !== false && c.jsx(Le, {
                                       title: x.t("json_table_column_menu"),
@@ -13381,7 +13420,7 @@ let __tla = Promise.all([
                                         size: "small",
                                         "aria-label": x.t("json_table_column_menu"),
                                         onClick: (Lt) => {
-                                          Lt.stopPropagation(), de(O.column, Lt.currentTarget);
+                                          Lt.stopPropagation(), de(E.column, Lt.currentTarget);
                                         },
                                         sx: {
                                           ml: 0.5,
@@ -13394,10 +13433,10 @@ let __tla = Promise.all([
                                     })
                                   ]
                                 }),
-                                Ke && O.column.getCanResize() && c.jsx(q, {
+                                Ke && E.column.getCanResize() && c.jsx(q, {
                                   className: "resize-handle",
-                                  onMouseDown: O.getResizeHandler(),
-                                  onTouchStart: O.getResizeHandler(),
+                                  onMouseDown: E.getResizeHandler(),
+                                  onTouchStart: E.getResizeHandler(),
                                   onClick: (Lt) => Lt.stopPropagation(),
                                   sx: {
                                     position: "absolute",
@@ -13409,8 +13448,8 @@ let __tla = Promise.all([
                                     userSelect: "none",
                                     touchAction: "none",
                                     zIndex: 1,
-                                    opacity: O.column.getIsResizing() ? 1 : 0,
-                                    bgcolor: O.column.getIsResizing() ? "primary.main" : "divider",
+                                    opacity: E.column.getIsResizing() ? 1 : 0,
+                                    bgcolor: E.column.getIsResizing() ? "primary.main" : "divider",
                                     transition: "opacity 0.15s",
                                     "&:hover": {
                                       opacity: 1,
@@ -13419,7 +13458,7 @@ let __tla = Promise.all([
                                   }
                                 })
                               ]
-                            }, O.id);
+                            }, E.id);
                           })
                         }, M.id)),
                         n.data.tableFiltering === true && c.jsx(Vt, {
@@ -13443,7 +13482,7 @@ let __tla = Promise.all([
                                 px: 0.5
                               }
                             }, M.id);
-                            const O = M.column.getFilterValue() ?? "";
+                            const E = M.column.getFilterValue() ?? "";
                             return c.jsx(ot, {
                               component: "th",
                               colSpan: M.colSpan,
@@ -13456,12 +13495,12 @@ let __tla = Promise.all([
                                 size: "small",
                                 variant: "standard",
                                 fullWidth: true,
-                                value: O,
+                                value: E,
                                 onChange: (Z) => M.column.setFilterValue(Z.target.value || void 0),
                                 placeholder: x.t("json_table_filter_placeholder"),
                                 slotProps: {
                                   input: {
-                                    endAdornment: O ? c.jsx(Ro, {
+                                    endAdornment: E ? c.jsx(Ro, {
                                       position: "end",
                                       children: c.jsx(Le, {
                                         title: x.t("json_table_filter_clear"),
@@ -13498,14 +13537,14 @@ let __tla = Promise.all([
                             })
                           }),
                           At.map((M) => {
-                            const O = Je[M.index], Z = M.index;
+                            const E = Je[M.index], Z = M.index;
                             return c.jsx(Vt, {
                               "data-row-index": Z,
                               sx: {
                                 height: b,
                                 ...xt(Z)
                               },
-                              children: O.getVisibleCells().map((xe) => {
+                              children: E.getVisibleCells().map((xe) => {
                                 var _a3;
                                 const Ae = xe.column.id === "__select__";
                                 return c.jsx(ot, {
@@ -13515,7 +13554,7 @@ let __tla = Promise.all([
                                   children: ln(xe.column.columnDef.cell, xe.getContext())
                                 }, xe.id);
                               })
-                            }, O.id);
+                            }, E.id);
                           }),
                           Pn > 0 && c.jsx(Vt, {
                             children: c.jsx(ot, {
@@ -13528,11 +13567,11 @@ let __tla = Promise.all([
                             })
                           })
                         ]
-                      }) : Je.map((M, O) => c.jsx(Vt, {
-                        "data-row-index": O,
+                      }) : Je.map((M, E) => c.jsx(Vt, {
+                        "data-row-index": E,
                         sx: {
                           height: b,
-                          ...xt(O)
+                          ...xt(E)
                         },
                         children: M.getVisibleCells().map((Z) => {
                           var _a3;
@@ -13556,9 +13595,9 @@ let __tla = Promise.all([
               page: A.pageIndex,
               rowsPerPage: A.pageSize,
               rowsPerPageOptions: I,
-              onPageChange: (M, O) => j((Z) => ({
+              onPageChange: (M, E) => j((Z) => ({
                 ...Z,
-                pageIndex: O
+                pageIndex: E
               })),
               onRowsPerPageChange: (M) => j({
                 pageIndex: 0,
@@ -13569,13 +13608,13 @@ let __tla = Promise.all([
                 component: "span",
                 children: x.t("json_table_rows_per_page")
               }),
-              labelDisplayedRows: ({ from: M, to: O, count: Z }) => c.jsx(F, {
+              labelDisplayedRows: ({ from: M, to: E, count: Z }) => c.jsx(F, {
                 variant: "body2",
                 component: "span",
-                children: `${M}\u2013${O} / ${Z}`
+                children: `${M}\u2013${E} / ${Z}`
               }),
               slots: {
-                menuItem: ip
+                menuItem: sp
               },
               slotProps: {
                 select: {
@@ -13645,7 +13684,7 @@ let __tla = Promise.all([
                     children: x.t("json_table_sort_clear")
                   })
                 }),
-                n.data.tableFiltering === true && ((_b = L.current) == null ? void 0 : _b.getCanFilter()) === true && De && c.jsxs(je, {
+                n.data.tableFiltering === true && ((_b = L.current) == null ? void 0 : _b.getCanFilter()) === true && Te && c.jsxs(je, {
                   onClick: () => {
                     var _a3;
                     (_a3 = L.current) == null ? void 0 : _a3.setFilterValue(void 0), Ce();
@@ -13683,7 +13722,7 @@ let __tla = Promise.all([
         })
       ]
     });
-  }, lp = [
+  }, ap = [
     "columnConfig",
     "tableDensity",
     "tableRowHeight",
@@ -13707,7 +13746,7 @@ let __tla = Promise.all([
     "tableCellFontSize",
     "tableMaxDepth"
   ];
-  Eo = class extends x {
+  Oo = class extends x {
     static createObjectFields() {
       const t = ns([
         "string",
@@ -13718,7 +13757,7 @@ let __tla = Promise.all([
         const o = n, r = o.onChange;
         o.onChange = async (i, s, l, a) => {
           if (!s.oid) {
-            for (const d of lp) delete s[d];
+            for (const d of ap) delete s[d];
             r || l(s);
           }
           r && await r(i, s, l, a);
@@ -13745,8 +13784,8 @@ let __tla = Promise.all([
             name: "jsonTable",
             label: "group_json_table",
             fields: [
-              ...Eo.createObjectFields(),
-              ...Wu()
+              ...Oo.createObjectFields(),
+              ...Gu()
             ]
           },
           {
@@ -13771,7 +13810,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return Eo.getWidgetInfo();
+      return Oo.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -13801,11 +13840,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return os(this.wrapContent(c.jsx(sp, {})), n);
+      return os(this.wrapContent(c.jsx(lp, {})), n);
     }
   };
 });
 export {
   __tla,
-  Eo as default
+  Oo as default
 };
