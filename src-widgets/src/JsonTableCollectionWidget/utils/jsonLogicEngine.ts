@@ -164,7 +164,7 @@ export function buildSingleRule(op: ConditionOperator, operand: string, columnTy
  *
  * @param columnType - Detected column type; affects operand type coercion and validation.
  */
-const NUMERIC_OPERATORS = new Set<ConditionOperator>(['gt', 'gte', 'lt', 'lte']);
+const NUMERIC_OPERATORS = new Set<ConditionOperator>(['eq', 'neq', 'gt', 'gte', 'lt', 'lte']);
 
 export function buildFromState(state: BuilderState, columnType = 'string'): JsonLogicRule | undefined {
     const complete = state.conditions.filter(c => {

@@ -54,7 +54,7 @@ export interface JsonTableFieldsRxData {
     /** Enable multi-column sorting. @default false */
     tableSortingMulti?: boolean;
 
-    /** Enable column filter. @default false */
+    /** Enable column filter. @default true */
     tableFiltering?: boolean;
 
     /** Enable quick-search toolbar. @default false */
@@ -68,7 +68,7 @@ export interface JsonTableFieldsRxData {
     /** Table outer border width in pixels (0-20). @default 0 */
     borderWidth?: number;
 
-    /** Table border style (CSS border-style). @default 'none' */
+    /** Table border style (CSS border-style). @default 'solid' */
     borderStyle?:
         | 'none'
         | 'dotted'

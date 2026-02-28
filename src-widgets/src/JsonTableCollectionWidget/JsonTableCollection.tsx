@@ -1033,7 +1033,7 @@ const JsonTableCollection: FC = () => {
                         tableFiltering={widget.data.tableFiltering === true}
                         activeColumnFilter={activeColumnFilter}
                         onSetSorting={setSorting}
-                        onClearSorting={() => setSorting([])}
+                        onClearSorting={(columnId: string) => setSorting(old => old.filter(s => s.id !== columnId))}
                     />
                 </Box>
             ) : (

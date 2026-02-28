@@ -187,7 +187,10 @@ function ColumnList({
 
             // Remove source and insert before target
             const [moved] = reordered.splice(sourceIdx, 1);
-            reordered.splice(targetIdx, 0, moved);
+            // Adjust target index if source was before target (moving downward)
+            // After removing the source item, all indices after it shift down by 1
+            const adjustedTargetIdx = sourceIdx < targetIdx ? targetIdx - 1 : targetIdx;
+            reordered.splice(adjustedTargetIdx, 0, moved);
             onChange(reordered);
         },
         [columns, onChange],

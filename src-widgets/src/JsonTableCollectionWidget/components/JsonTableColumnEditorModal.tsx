@@ -85,7 +85,9 @@ function JsonTableColumnEditorModal({
     const [loading, setLoading] = useState(false);
     // Whether to show unsaved-changes warning snackbar
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-    // Error message from column discovery
+    // Warning message from column discovery (e.g., depth limit exceeded)
+    const [discoveryWarning, setDiscoveryWarning] = useState<string | null>(null);
+    // Error message from column discovery (genuine failures)
     const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
     // Ref to track if initial discovery has been done for this open
@@ -116,6 +118,7 @@ function JsonTableColumnEditorModal({
             setSelectedPath(columns.length > 0 ? columns[0].path : null);
             initialDiscoveryDone.current = false;
             setDiscoveryError(null);
+            setDiscoveryWarning(null);
         }
     }, [open, columns]);
 
@@ -135,6 +138,7 @@ function JsonTableColumnEditorModal({
     const discoverColumns = useCallback(async () => {
         setLoading(true);
         setDiscoveryError(null);
+        setDiscoveryWarning(null);
         try {
             const oid = data.oid as string | undefined;
             if (!oid) {
@@ -168,12 +172,12 @@ function JsonTableColumnEditorModal({
             const configuredMaxDepth = (data.tableMaxDepth as number) || 10;
             const result = analyzeJsonTable(jsonData, { maxDepth: configuredMaxDepth });
 
-            // Warn if actual depth exceeds configured depth
+            // Warn if actual depth exceeds configured depth (localized warning, not error)
             if (result.meta.maxDepth > configuredMaxDepth) {
-                setDiscoveryError(
-                    `JSON depth (${result.meta.maxDepth}) exceeds configured max (${configuredMaxDepth}). ` +
-                        `Increase maxDepth to see all nested data.`,
-                );
+                const warningMsg = Generic.t('json_table_depth_warning')
+                    .replace('{{actual}}', String(result.meta.maxDepth))
+                    .replace('{{configured}}', String(configuredMaxDepth));
+                setDiscoveryWarning(warningMsg);
             }
 
             // Store discovered column metadata
@@ -311,7 +315,17 @@ function JsonTableColumnEditorModal({
                     dividers
                     sx={{ p: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                 >
-                    {/* Discovery Error Alert */}
+                    {/* Discovery Warning Alert (e.g., depth limit exceeded) */}
+                    {discoveryWarning && (
+                        <Alert
+                            severity="warning"
+                            onClose={() => setDiscoveryWarning(null)}
+                            sx={{ mx: 2, mt: 2 }}
+                        >
+                            {discoveryWarning}
+                        </Alert>
+                    )}
+                    {/* Discovery Error Alert (genuine failures) */}
                     {discoveryError && (
                         <Alert
                             severity="error"

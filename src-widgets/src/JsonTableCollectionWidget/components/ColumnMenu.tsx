@@ -45,8 +45,8 @@ export interface ColumnMenuProps {
     activeColumnFilter: unknown;
     /** Callback to set sorting state */
     onSetSorting: (sorting: { id: string; desc: boolean }[]) => void;
-    /** Callback to clear sorting */
-    onClearSorting: () => void;
+    /** Callback to clear sorting for a specific column */
+    onClearSorting: (columnId: string) => void;
 }
 
 /**
@@ -93,7 +93,9 @@ function ColumnMenu({
     };
 
     const handleClearSort = (): void => {
-        onClearSorting();
+        if (activeColumn) {
+            onClearSorting(activeColumn.id);
+        }
         onClose();
     };
 
