@@ -60,6 +60,72 @@ const OP_LABEL_KEYS: Record<ConditionOperator, string> = {
     is_false: 'json_table_op_is_false',
 };
 
+// ── DateInputField Component ─────────────────────────────────────
+
+/**
+ * Wrapper for TextField with date/number type that uses local state
+ * to avoid browser auto-completion issues during input.
+ *
+ * HTML5 date inputs auto-complete partial years (e.g., "1" → "0001"),
+ * which prevents entering full years like "1990". This component
+ * only updates the parent on blur, allowing complete input.
+ */
+interface DateInputFieldProps {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    inputType: 'date' | 'number' | 'text';
+}
+
+function DateInputField({ label, value, onChange, inputType }: DateInputFieldProps): React.JSX.Element {
+    // Local state for date input to avoid auto-completion issues
+    const [localValue, setLocalValue] = useState(value);
+
+    // Sync local state when prop value changes (e.g., switching rules)
+    useEffect(() => {
+        setLocalValue(value);
+    }, [value]);
+
+    const handleBlur = useCallback(() => {
+        // Only propagate to parent on blur
+        if (localValue !== value) {
+            onChange(localValue);
+        }
+    }, [localValue, value, onChange]);
+
+    return (
+        <TextField
+            label={label}
+            value={localValue}
+            onChange={e => setLocalValue(e.target.value)}
+            onBlur={handleBlur}
+            size="small"
+            type={inputType}
+            sx={{
+                flex: 1,
+                // FIX: Make calendar icon more visible for date inputs
+                ...(inputType === 'date' && {
+                    '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                        filter: 'invert(0.5)',
+                        cursor: 'pointer',
+                        opacity: 0.7,
+                        '&:hover': { opacity: 1 },
+                    },
+                }),
+            }}
+            // FIX: Force label shrink for date/number inputs (MUI limitation)
+            InputLabelProps={inputType === 'date' || inputType === 'number' ? { shrink: true } : undefined}
+            slotProps={
+                inputType === 'number'
+                    ? { htmlInput: { step: 'any' } }
+                    : inputType === 'date'
+                      ? { htmlInput: { placeholder: 'YYYY-MM-DD' } }
+                      : undefined
+            }
+        />
+    );
+}
+
 // ── Props ───────────────────────────────────────────────────────
 
 interface ConditionRuleBuilderProps {
@@ -211,14 +277,11 @@ function ConditionRuleBuilder({ logic, columnType, onChange }: ConditionRuleBuil
 
                         {/* Operand input — hidden for operators that don't need a value */}
                         {needsOperand && (
-                            <TextField
+                            <DateInputField
                                 label={Generic.t('json_table_condition_value')}
-                                value={cond.operand}
-                                onChange={e => updateCondition(idx, { operand: e.target.value })}
-                                size="small"
-                                type={inputType}
-                                sx={{ flex: 1 }}
-                                slotProps={inputType === 'number' ? { htmlInput: { step: 'any' } } : undefined}
+                                value={cond.operand ?? ''}
+                                onChange={val => updateCondition(idx, { operand: val })}
+                                inputType={inputType}
                             />
                         )}
 
