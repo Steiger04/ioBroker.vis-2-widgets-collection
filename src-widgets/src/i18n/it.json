@@ -1,4 +1,4 @@
-{
+﻿{
     "alias": "Alias",
     "arrow": "Freccia",
     "arrow_color": "Colore freccia",
@@ -247,9 +247,9 @@
     "json_table_boolean_false": "Etichetta falso",
     "json_table_boolean_format": "Formato booleano",
     "json_table_boolean_true": "Etichetta vero",
-    "json_table_borders": "Bordi",
+    "json_table_borders": "Bordi verticali / orizzontali",
     "json_table_cell_font_size": "Dimensione carattere cella",
-    "json_table_cell_style": "Stile cella",
+    "json_table_cell_style": "Stile riga",
     "json_table_cell_style_mode_all": "Tutte le regole",
     "json_table_cell_style_mode_first": "Prima regola",
     "json_table_cell_style_mode_hint_all": "Vengono applicate tutte le regole corrispondenti",

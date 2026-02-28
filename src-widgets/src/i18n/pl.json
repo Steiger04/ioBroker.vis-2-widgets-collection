@@ -1,4 +1,4 @@
-{
+﻿{
     "alias": "Alias",
     "arrow": "Strzałka",
     "arrow_color": "Kolor strzałki",
@@ -247,9 +247,9 @@
     "json_table_boolean_false": "Etykieta fałsz",
     "json_table_boolean_format": "Format logiczny",
     "json_table_boolean_true": "Etykieta prawda",
-    "json_table_borders": "Ramki",
+    "json_table_borders": "Obramowania pionowe / poziome",
     "json_table_cell_font_size": "Rozmiar czcionki komórki",
-    "json_table_cell_style": "Styl komórki",
+    "json_table_cell_style": "Styl wiersza",
     "json_table_cell_style_mode_all": "Wszystkie reguły",
     "json_table_cell_style_mode_first": "Pierwsza reguła",
     "json_table_cell_style_mode_hint_all": "Stosowane są wszystkie pasujące reguły",

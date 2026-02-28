@@ -1,4 +1,4 @@
-{
+﻿{
     "alias": "Alias",
     "arrow": "Arrow",
     "arrow_color": "Arrow color",
@@ -248,9 +248,9 @@
     "json_table_boolean_false": "False label",
     "json_table_boolean_format": "Boolean Format",
     "json_table_boolean_true": "True label",
-    "json_table_borders": "Borders",
+    "json_table_borders": "Vertical / Horizontal Borders",
     "json_table_cell_font_size": "Cell font size",
-    "json_table_cell_style": "Cell Style",
+    "json_table_cell_style": "Row Style",
     "json_table_cell_style_mode_all": "All rules",
     "json_table_cell_style_mode_first": "First rule",
     "json_table_cell_style_mode_hint_all": "All matching rules are applied",

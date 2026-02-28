@@ -4,7 +4,8 @@
  * @module lib/jsonTableFields
  * @remarks
  * Produces field definitions for the JsonTableCollectionWidget property editor.
- * Sections: Layout, Pagination, Features, Selection, Borders, Header Style, Cell Style, Column Config.
+ * Sections: Column Config, Features, Pagination, Selection, Analysis (Technical)
+ *           Layout, Table Border, Header Style, Cell Borders, Cell Style (Layout)
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/json-table-fields`.
  */
@@ -15,7 +16,130 @@ import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnE
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
-    // ── Layout ──────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
+    // TECHNISCHE ASPEKTE (Daten, Logik, State)
+    // ═══════════════════════════════════════════════════════════════════
+
+    // ── Column Config (Custom Editor) - WICHTIGSTE! ───────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="json_table_column_config" />,
+    },
+    {
+        name: 'columnConfig',
+        label: 'json_table_column_config_label',
+        type: 'custom',
+        component: JsonTableColumnEditor,
+    },
+
+    // ── Features ──────────────────────────────────────────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="json_table_features" />,
+    },
+    {
+        name: 'tableSorting',
+        type: 'checkbox',
+        label: 'json_table_sorting',
+        default: true,
+    },
+    {
+        name: 'tableSortingMulti',
+        type: 'checkbox',
+        label: 'json_table_sorting_multi',
+        default: false,
+        tooltip: 'json_table_sorting_multi_tooltip',
+    },
+    {
+        name: 'tableFiltering',
+        type: 'checkbox',
+        label: 'json_table_filtering',
+        default: false,
+    },
+    {
+        name: 'tableQuickFilter',
+        type: 'checkbox',
+        label: 'json_table_quick_filter',
+        default: false,
+    },
+    {
+        name: 'tableColumnMenu',
+        type: 'checkbox',
+        label: 'json_table_column_menu',
+        default: true,
+    },
+
+    // ── Pagination ────────────────────────────────────────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="json_table_pagination" />,
+    },
+    {
+        name: 'tablePagination',
+        type: 'checkbox',
+        label: 'json_table_pagination_enabled',
+        default: true,
+    },
+    {
+        name: 'tablePageSize',
+        type: 'number',
+        label: 'json_table_page_size',
+        default: 25,
+        min: 1,
+    },
+    {
+        name: 'tablePageSizeOptions',
+        type: 'text',
+        label: 'json_table_page_size_options',
+        default: '10,25,50,100',
+        tooltip: 'json_table_page_size_options_tooltip',
+    },
+    {
+        name: 'tableVirtualizeThreshold',
+        type: 'number',
+        label: 'json_table_virtualize_threshold',
+        default: 50,
+        min: 0,
+        tooltip: 'json_table_virtualize_threshold_tooltip',
+    },
+
+    // ── Selection ─────────────────────────────────────────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="json_table_selection" />,
+    },
+    {
+        name: 'tableRowSelection',
+        type: 'checkbox',
+        label: 'json_table_row_selection',
+        default: false,
+    },
+
+    // ── Analysis Options ───────────────────────────────────────────────
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="json_table_analysis" />,
+    },
+    {
+        name: 'tableMaxDepth',
+        type: 'number',
+        label: 'json_table_max_depth',
+        default: 10,
+        min: 1,
+        max: 50,
+        tooltip: 'json_table_max_depth_tooltip',
+    },
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LAYOUT-THEMEN (Darstellung, Design) - von außen nach innen
+    // ═══════════════════════════════════════════════════════════════════
+
+    // ── Layout (Gesamte Tabelle) ──────────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -71,80 +195,7 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         min: 0,
     },
 
-    // ── Pagination ──────────────────────────────────────────────────
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_pagination" />,
-    },
-    {
-        name: 'tablePagination',
-        type: 'checkbox',
-        label: 'json_table_pagination_enabled',
-        default: true,
-    },
-    {
-        name: 'tablePageSize',
-        type: 'number',
-        label: 'json_table_page_size',
-        default: 25,
-        min: 1,
-    },
-    {
-        name: 'tablePageSizeOptions',
-        type: 'text',
-        label: 'json_table_page_size_options',
-        default: '10,25,50,100',
-        tooltip: 'json_table_page_size_options_tooltip',
-    },
-    {
-        name: 'tableVirtualizeThreshold',
-        type: 'number',
-        label: 'json_table_virtualize_threshold',
-        default: 50,
-        min: 0,
-        tooltip: 'json_table_virtualize_threshold_tooltip',
-    },
-
-    // ── Features ────────────────────────────────────────────────────
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_features" />,
-    },
-    {
-        name: 'tableSorting',
-        type: 'checkbox',
-        label: 'json_table_sorting',
-        default: true,
-    },
-    {
-        name: 'tableSortingMulti',
-        type: 'checkbox',
-        label: 'json_table_sorting_multi',
-        default: false,
-        tooltip: 'json_table_sorting_multi_tooltip',
-    },
-    {
-        name: 'tableFiltering',
-        type: 'checkbox',
-        label: 'json_table_filtering',
-        default: false,
-    },
-    {
-        name: 'tableQuickFilter',
-        type: 'checkbox',
-        label: 'json_table_quick_filter',
-        default: false,
-    },
-    {
-        name: 'tableColumnMenu',
-        type: 'checkbox',
-        label: 'json_table_column_menu',
-        default: true,
-    },
-
-    // ── Table Border (Tabellenrahmen) ───────────────────────────────
+    // ── Table Border (Äußerer Rahmen) ─────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -199,20 +250,76 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: '',
     },
 
-    // ── Selection ───────────────────────────────────────────────────
+    // ── Header Styling ────────────────────────────────────────────────
     {
         label: '',
         type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_selection" />,
+        component: () => <CollectionDivider dividerText="json_table_header_style" />,
     },
     {
-        name: 'tableRowSelection',
-        type: 'checkbox',
-        label: 'json_table_row_selection',
-        default: false,
+        name: 'tableHeaderBgColor',
+        label: 'json_table_header_bg_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={field}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
+    {
+        name: 'tableHeaderTextColor',
+        label: 'json_table_header_text_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
+    },
+    {
+        name: 'tableHeaderFontSize',
+        type: 'number',
+        label: 'json_table_header_font_size',
+        min: 8,
+    },
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider />,
+    },
+    {
+        name: 'headerBorderWidth',
+        label: 'json_table_header_border_width',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 1,
+        default: 0,
+    },
+    {
+        name: 'headerBorderColor',
+        label: 'json_table_header_border_color',
+        default: '',
+        type: 'custom',
+        component: (field, data, onDataChange, props) => (
+            <CollectionGradientColorPicker
+                field={{ ...field, noGradient: true }}
+                data={data}
+                onDataChange={onDataChange}
+                props={props}
+            />
+        ),
     },
 
-    // ── Border & Lines ──────────────────────────────────────────────
+    // ── Border & Lines (Zellgrenzen) ──────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -286,76 +393,7 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         ),
     },
 
-    // ── Header Styling ──────────────────────────────────────────────
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_header_style" />,
-    },
-    {
-        name: 'tableHeaderBgColor',
-        label: 'json_table_header_bg_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
-    {
-        name: 'tableHeaderTextColor',
-        label: 'json_table_header_text_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
-    {
-        name: 'tableHeaderFontSize',
-        type: 'number',
-        label: 'json_table_header_font_size',
-        min: 8,
-    },
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider />,
-    },
-    {
-        name: 'headerBorderWidth',
-        label: 'json_table_header_border_width',
-        type: 'slider',
-        min: 0,
-        max: 10,
-        step: 1,
-        default: 0,
-    },
-    {
-        name: 'headerBorderColor',
-        label: 'json_table_header_border_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
-
-    // ── Cell Styling ────────────────────────────────────────────────
+    // ── Cell Styling ──────────────────────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -394,35 +432,6 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         type: 'number',
         label: 'json_table_cell_font_size',
         min: 8,
-    },
-
-    // ── Analysis Options ────────────────────────────────────────────
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_analysis" />,
-    },
-    {
-        name: 'tableMaxDepth',
-        type: 'number',
-        label: 'json_table_max_depth',
-        default: 10,
-        min: 1,
-        max: 50,
-        tooltip: 'json_table_max_depth_tooltip',
-    },
-
-    // ── Column Config (Custom Editor) ───────────────────────────────
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider dividerText="json_table_column_config" />,
-    },
-    {
-        name: 'columnConfig',
-        label: 'json_table_column_config_label',
-        type: 'custom',
-        component: JsonTableColumnEditor,
     },
 ];
 

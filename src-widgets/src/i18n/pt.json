@@ -1,4 +1,4 @@
-{
+﻿{
     "alias": "Alias",
     "arrow": "Seta",
     "arrow_color": "Cor da seta",
@@ -247,9 +247,9 @@
     "json_table_boolean_false": "Rótulo falso",
     "json_table_boolean_format": "Formato booleano",
     "json_table_boolean_true": "Rótulo verdadeiro",
-    "json_table_borders": "Bordas",
+    "json_table_borders": "Bordas verticais / horizontais",
     "json_table_cell_font_size": "Tamanho da fonte da célula",
-    "json_table_cell_style": "Estilo da célula",
+    "json_table_cell_style": "Estilo de linha",
     "json_table_cell_style_mode_all": "Todas as regras",
     "json_table_cell_style_mode_first": "Primeira regra",
     "json_table_cell_style_mode_hint_all": "Todas as regras correspondentes são aplicadas",

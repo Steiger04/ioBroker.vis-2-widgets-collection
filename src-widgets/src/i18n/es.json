@@ -1,4 +1,4 @@
-{
+﻿{
     "alias": "Alias",
     "arrow": "Flecha",
     "arrow_color": "Color de flecha",
@@ -247,9 +247,9 @@
     "json_table_boolean_false": "Etiqueta falso",
     "json_table_boolean_format": "Formato booleano",
     "json_table_boolean_true": "Etiqueta verdadero",
-    "json_table_borders": "Bordes",
+    "json_table_borders": "Bordes verticales / horizontales",
     "json_table_cell_font_size": "Tamaño de fuente de celda",
-    "json_table_cell_style": "Estilo de celda",
+    "json_table_cell_style": "Estilo de fila",
     "json_table_cell_style_mode_all": "Todas las reglas",
     "json_table_cell_style_mode_first": "Primera regla",
     "json_table_cell_style_mode_hint_all": "Se aplican todas las reglas coincidentes",
