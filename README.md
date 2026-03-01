@@ -61,11 +61,9 @@
 -->
 
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 2.4.0 (2026-03-01)
 - (steiger04) JSON Table added
 - (steiger04) Bug fixing
-
 
 ### 2.3.3 (2026-02-16)
 

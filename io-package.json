@@ -1,173 +1,179 @@
 {
-    "common": {
-        "name": "vis-2-widgets-collection",
-        "version": "2.3.3",
-        "news": {
-            "2.3.3": {
-                "en": "ignoreCommonStates attribute added. Please read attribut tooltip (i)",
-                "de": "ignorierenCommonStates Attribut hinzugefügt. Bitte lesen Sie beitribut tooltip (i)",
-                "ru": "игнорировать добавленный атрибут CommonStates. Пожалуйста, прочитайте атрибут tooltip (i)",
-                "pt": "ignore o atributo CommonStates adicionado. Por favor leia a dica do atributo (i)",
-                "nl": "negeerCommonStates-attribuut toegevoegd. Lees attribuut tooltip (i)",
-                "fr": "ignore l'attribut CommonStates ajouté. S'il vous plaît lire tooltip attribubut (i)",
-                "it": "ignorareL'attributoCommonStates aggiunto. Si prega di leggere attribut tooltip (i)",
-                "es": "ignoreCommonStates atributo añadido. Por favor lea el atributo tooltip (i)",
-                "pl": "dodane atrybuty państw ignorujących. Proszę przeczytać atribut (i)",
-                "uk": "ігнорувати атрибутCommonStates додано. Будь ласка, прочитайте attribut tooltip (i)",
-                "zh-cn": "忽略添加的英联邦属性。 请读 Attribut 工具提示 (i)"
-            },
-            "2.3.2": {
-                "en": "Long press for ButtonGroupCollection widget fixed",
-                "de": "Lange Presse für ButtonGroupCollection Widget fest",
-                "ru": "Длинный пресс для установки виджета ButtonGroupCollection",
-                "pt": "Longa pressão para o elemento de compilação do ButtonGroup",
-                "nl": "Lange pers voor KnopgroepCollection-widget vast",
-                "fr": "Longue pression pour BoutonGroupCollection widget fixe",
-                "it": "Stampa lunga per PulsanteGroupCollection widget fisso",
-                "es": "Long press for ButtonGroupCollection widget fixed",
-                "pl": "Long press for ButtonGroupCollection widget stałe",
-                "uk": "Довгий прес для ButtonGroupCollection",
-                "zh-cn": "固定按钮组收集部件的长按键"
-            },
-            "2.3.1": {
-                "en": "ButtonGroupCollection Widget bug fixing",
-                "de": "ButtonGroupCollection Widget Bugfixierung",
-                "ru": "ButtonGroupКоллекция Устранение ошибок виджета",
-                "pt": "Grupo de botõesCollection Resolução de erros de elementos",
-                "nl": "Knoppengroepcollectie Widget bug fixing",
-                "fr": "BoutonGroupCollection Correction du bug Widget",
-                "it": "PulsanteGroupCollezione Correzione di bug Widget",
-                "es": "ButtonGroupCollection Widget bug fixing",
-                "pl": "ButtonGroupCollection Naprawianie błędów interfejsu",
-                "uk": "ButtonGroupВибір Виправлення помилок Widget",
-                "zh-cn": "按钮组合 部件错误修复"
-            },
-            "2.3.0": {
-                "en": "Widget optimizations\nBug fixing\nUser documentation fixed (GitHub Wiki)",
-                "de": "Widget Optimierungen\nFehlerbehebung\nBenutzerdokumentation behoben (GitHub Wiki)",
-                "ru": "Оптимизация виджетов\nИсправление клопов\nФиксированная пользовательская документация (GitHub Wiki)",
-                "pt": "Otimizações de elementos\nResolução de erros\nDocumentação do usuário corrigida (GitHub Wiki)",
-                "nl": "Widget optimalisaties\nBugfixing\nGebruikersdocumentatie gerepareerd (GitHub Wiki)",
-                "fr": "Optimisations Widget\nCorrection des bogues\nDocumentation utilisateur corrigée (Wiki GitHub)",
-                "it": "Ottimizzazione Widget\nCorrezione di bug\nDocumentazione dell'utente fisso (GitHub Wiki)",
-                "es": "Optimizaciones Widget\nCorrección de errores\nDocumentación de usuario fija (GitHub Wiki)",
-                "pl": "Optymalizacja widżetu\nNaprawianie błędów\nStała dokumentacja użytkownika (GitHub Wiki)",
-                "uk": "Оптимізація віджету\nВиправлення помилок\nДокументація користувача фіксована (GitHub Wiki)",
-                "zh-cn": "部件优化\n修复错误\n用户文档固定 (GitHub 维基)"
-            },
-            "2.2.1": {
-                "en": "Slider widget color for min / max icon optimized",
-                "de": "Slider Widget Farbe für min / max Icon optimiert",
-                "ru": "Цвет виджета слайдера для иконки min/max оптимизирован",
-                "pt": "Cor do widget deslizante para ícone min / max otimizado",
-                "nl": "Slider widget kleur voor min / max pictogram geoptimaliseerd",
-                "fr": "Couleur du widget slider pour l'icône min / max optimisée",
-                "it": "Slider widget colore per min / max icona ottimizzata",
-                "es": "Color de widget deslizante para min / icono max optimizado",
-                "pl": "Kolor widget suwak dla min / max ikona zoptymalizowana",
-                "uk": "Колір віджету Slider для min / макс оптимізований",
-                "zh-cn": "分钟/最大图标优化的滑动部件颜色"
-            },
-            "2.2.0": {
-                "en": "CollectionWidgets optimized and expanded",
-                "de": "CollectionWidgets optimiert und erweitert",
-                "ru": "CollectionWidgets оптимизирована и расширена",
-                "pt": "ColectionWidgets otimizado e expandido",
-                "nl": "CollectieWidgets geoptimaliseerd en uitgebreid",
-                "fr": "CollectionWidgets optimisé et élargi",
-                "it": "CollectionWidget ottimizzati e ampliati",
-                "es": "CollectionWidgets optimizados y ampliados",
-                "pl": "CollectionWidgets zoptymalizowane i rozszerzone",
-                "uk": "КолекціяОптимізоване та розширене",
-                "zh-cn": "优化和扩大收藏部件"
-            },
-            "2.1.1": {
-                "en": "GradientColorPicker bug fixed",
-                "de": "Gradientenfarbe Picker Bug behoben",
-                "ru": "Градиентный цвет Баг Пикера исправлен",
-                "pt": "GradientColor Erro de seleção corrigido",
-                "nl": "Kleur kleurverloop Pickerbug gerepareerd",
-                "fr": "Couleur du dégradé Correction d'un bug de sélection",
-                "it": "Colore gradiente Insetto di selezione fisso",
-                "es": "GradientColor Insecto de Picker fijo",
-                "pl": "GradientColor Błąd wyboru",
-                "uk": "ГрадієнтКолор Підбирач зафіксувати помилки",
-                "zh-cn": "渐变颜色 清除错误"
-            }
-        },
-        "titleLang": {
-            "en": "Vis 2 Widget collection",
-            "de": "Vis 2 Widgetsammlung",
-            "ru": "Коллекция Vis-Widget",
-            "pt": "Coleção Vis-Widget",
-            "nl": "Vis-Widget-collectie",
-            "fr": "Collection Vis-Widget",
-            "it": "Raccolta Vis-Widget",
-            "es": "Colección Vis-Widget",
-            "pl": "Kolekcja Vis-Widget",
-            "uk": "Колекція Vis-Widget",
-            "zh-cn": "Vis-Widget集合"
-        },
-        "desc": {
-            "en": "Vis 2 Widget collection for ioBroker",
-            "de": "Vis 2 Widgetsammlung für ioBroker",
-            "ru": "Коллекция Vis-Widget",
-            "pt": "Coleção Vis-Widget",
-            "nl": "Vis-Widget-collectie",
-            "fr": "Collection Vis-Widget",
-            "it": "Raccolta Vis-Widget",
-            "es": "Colección Vis-Widget",
-            "pl": "Kolekcja Vis-Widget",
-            "uk": "Колекція Vis-Widget",
-            "zh-cn": "Vis-Widget集合"
-        },
-        "authors": ["Steiger04 <steiger04@posteo.de>"],
-        "keywords": ["vis-2-widgets-collection"],
-        "platform": "Javascript/Node.js",
-        "icon": "vis-2-widgets-collection.png",
-        "extIcon": "https://raw.githubusercontent.com/Steiger04/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
-        "enabled": true,
-        "readme": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/blob/main/README.md",
-        "loglevel": "info",
-        "mode": "none",
-        "singleton": true,
-        "adminUI": {
-            "config": "none"
-        },
-        "nogit": true,
-        "onlyWWW": true,
-        "licenseInformation": {
-            "type": "free",
-            "license": "MIT"
-        },
-        "tier": 3,
-        "type": "visualization-widgets",
-        "connectionType": "cloud",
-        "dataSource": "poll",
-        "visWidgets": {
-            "vis2CollectionWidget": {
-                "i18n": "component",
-                "name": "vis2CollectionWidget",
-                "url": "vis-2-widgets-collection/customWidgets.js",
-                "bundlerType": "module",
-                "components": [
-                    "StateCollectionWidget",
-                    "SliderCollectionWidget",
-                    "ButtonGroupCollectionWidget",
-                    "SwitchCollectionWidget",
-                    "CheckboxCollectionWidget",
-                    "DialogCollectionWidget",
-                    "SelectCollectionWidget",
-                    "RadioGroupCollectionWidget",
-                    "GaugeCollectionWidget",
-                    "Light2CollectionWidget",
-                    "JsonTableCollectionWidget"
-                ]
-            }
-        },
-        "restartAdapters": ["vis-2"]
+  "common": {
+    "name": "vis-2-widgets-collection",
+    "version": "2.4.0",
+    "news": {
+      "2.4.0": {
+        "en": "JSON Table added\nBug fixing",
+        "de": "JSON Tabelle hinzugefügt\nFehlerbehebung",
+        "ru": "Джон Таблица добавлена\nИсправление клопов",
+        "pt": "JSON Tabela adicionada\nResolução de erros",
+        "nl": "JSON Tabel toegevoegd\nBugfixing",
+        "fr": "JSON Tableau ajouté\nCorrection des bogues",
+        "it": "JSON Tabella aggiunto\nCorrezione di bug",
+        "es": "JSON Cuadro añadido\nCorrección de errores",
+        "pl": "JSON Tabela dodana\nNaprawianie błędów",
+        "uk": "Сонце Таблиця додано\nВиправлення помилок",
+        "zh-cn": "贾森 添加的表格\n修复错误"
+      },
+      "2.3.3": {
+        "en": "ignoreCommonStates attribute added. Please read attribut tooltip (i)",
+        "de": "ignorierenCommonStates Attribut hinzugefügt. Bitte lesen Sie beitribut tooltip (i)",
+        "ru": "игнорировать добавленный атрибут CommonStates. Пожалуйста, прочитайте атрибут tooltip (i)",
+        "pt": "ignore o atributo CommonStates adicionado. Por favor leia a dica do atributo (i)",
+        "nl": "negeerCommonStates-attribuut toegevoegd. Lees attribuut tooltip (i)",
+        "fr": "ignore l'attribut CommonStates ajouté. S'il vous plaît lire tooltip attribubut (i)",
+        "it": "ignorareL'attributoCommonStates aggiunto. Si prega di leggere attribut tooltip (i)",
+        "es": "ignoreCommonStates atributo añadido. Por favor lea el atributo tooltip (i)",
+        "pl": "dodane atrybuty państw ignorujących. Proszę przeczytać atribut (i)",
+        "uk": "ігнорувати атрибутCommonStates додано. Будь ласка, прочитайте attribut tooltip (i)",
+        "zh-cn": "忽略添加的英联邦属性。 请读 Attribut 工具提示 (i)"
+      },
+      "2.3.2": {
+        "en": "Long press for ButtonGroupCollection widget fixed",
+        "de": "Lange Presse für ButtonGroupCollection Widget fest",
+        "ru": "Длинный пресс для установки виджета ButtonGroupCollection",
+        "pt": "Longa pressão para o elemento de compilação do ButtonGroup",
+        "nl": "Lange pers voor KnopgroepCollection-widget vast",
+        "fr": "Longue pression pour BoutonGroupCollection widget fixe",
+        "it": "Stampa lunga per PulsanteGroupCollection widget fisso",
+        "es": "Long press for ButtonGroupCollection widget fixed",
+        "pl": "Long press for ButtonGroupCollection widget stałe",
+        "uk": "Довгий прес для ButtonGroupCollection",
+        "zh-cn": "固定按钮组收集部件的长按键"
+      },
+      "2.3.1": {
+        "en": "ButtonGroupCollection Widget bug fixing",
+        "de": "ButtonGroupCollection Widget Bugfixierung",
+        "ru": "ButtonGroupКоллекция Устранение ошибок виджета",
+        "pt": "Grupo de botõesCollection Resolução de erros de elementos",
+        "nl": "Knoppengroepcollectie Widget bug fixing",
+        "fr": "BoutonGroupCollection Correction du bug Widget",
+        "it": "PulsanteGroupCollezione Correzione di bug Widget",
+        "es": "ButtonGroupCollection Widget bug fixing",
+        "pl": "ButtonGroupCollection Naprawianie błędów interfejsu",
+        "uk": "ButtonGroupВибір Виправлення помилок Widget",
+        "zh-cn": "按钮组合 部件错误修复"
+      },
+      "2.3.0": {
+        "en": "Widget optimizations\nBug fixing\nUser documentation fixed (GitHub Wiki)",
+        "de": "Widget Optimierungen\nFehlerbehebung\nBenutzerdokumentation behoben (GitHub Wiki)",
+        "ru": "Оптимизация виджетов\nИсправление клопов\nФиксированная пользовательская документация (GitHub Wiki)",
+        "pt": "Otimizações de elementos\nResolução de erros\nDocumentação do usuário corrigida (GitHub Wiki)",
+        "nl": "Widget optimalisaties\nBugfixing\nGebruikersdocumentatie gerepareerd (GitHub Wiki)",
+        "fr": "Optimisations Widget\nCorrection des bogues\nDocumentation utilisateur corrigée (Wiki GitHub)",
+        "it": "Ottimizzazione Widget\nCorrezione di bug\nDocumentazione dell'utente fisso (GitHub Wiki)",
+        "es": "Optimizaciones Widget\nCorrección de errores\nDocumentación de usuario fija (GitHub Wiki)",
+        "pl": "Optymalizacja widżetu\nNaprawianie błędów\nStała dokumentacja użytkownika (GitHub Wiki)",
+        "uk": "Оптимізація віджету\nВиправлення помилок\nДокументація користувача фіксована (GitHub Wiki)",
+        "zh-cn": "部件优化\n修复错误\n用户文档固定 (GitHub 维基)"
+      },
+      "2.2.1": {
+        "en": "Slider widget color for min / max icon optimized",
+        "de": "Slider Widget Farbe für min / max Icon optimiert",
+        "ru": "Цвет виджета слайдера для иконки min/max оптимизирован",
+        "pt": "Cor do widget deslizante para ícone min / max otimizado",
+        "nl": "Slider widget kleur voor min / max pictogram geoptimaliseerd",
+        "fr": "Couleur du widget slider pour l'icône min / max optimisée",
+        "it": "Slider widget colore per min / max icona ottimizzata",
+        "es": "Color de widget deslizante para min / icono max optimizado",
+        "pl": "Kolor widget suwak dla min / max ikona zoptymalizowana",
+        "uk": "Колір віджету Slider для min / макс оптимізований",
+        "zh-cn": "分钟/最大图标优化的滑动部件颜色"
+      },
+      "2.2.0": {
+        "en": "CollectionWidgets optimized and expanded",
+        "de": "CollectionWidgets optimiert und erweitert",
+        "ru": "CollectionWidgets оптимизирована и расширена",
+        "pt": "ColectionWidgets otimizado e expandido",
+        "nl": "CollectieWidgets geoptimaliseerd en uitgebreid",
+        "fr": "CollectionWidgets optimisé et élargi",
+        "it": "CollectionWidget ottimizzati e ampliati",
+        "es": "CollectionWidgets optimizados y ampliados",
+        "pl": "CollectionWidgets zoptymalizowane i rozszerzone",
+        "uk": "КолекціяОптимізоване та розширене",
+        "zh-cn": "优化和扩大收藏部件"
+      }
     },
-    "native": {},
-    "objects": [],
-    "instanceObjects": []
+    "titleLang": {
+      "en": "Vis 2 Widget collection",
+      "de": "Vis 2 Widgetsammlung",
+      "ru": "Коллекция Vis-Widget",
+      "pt": "Coleção Vis-Widget",
+      "nl": "Vis-Widget-collectie",
+      "fr": "Collection Vis-Widget",
+      "it": "Raccolta Vis-Widget",
+      "es": "Colección Vis-Widget",
+      "pl": "Kolekcja Vis-Widget",
+      "uk": "Колекція Vis-Widget",
+      "zh-cn": "Vis-Widget集合"
+    },
+    "desc": {
+      "en": "Vis 2 Widget collection for ioBroker",
+      "de": "Vis 2 Widgetsammlung für ioBroker",
+      "ru": "Коллекция Vis-Widget",
+      "pt": "Coleção Vis-Widget",
+      "nl": "Vis-Widget-collectie",
+      "fr": "Collection Vis-Widget",
+      "it": "Raccolta Vis-Widget",
+      "es": "Colección Vis-Widget",
+      "pl": "Kolekcja Vis-Widget",
+      "uk": "Колекція Vis-Widget",
+      "zh-cn": "Vis-Widget集合"
+    },
+    "authors": [
+      "Steiger04 <steiger04@posteo.de>"
+    ],
+    "keywords": [
+      "vis-2-widgets-collection"
+    ],
+    "platform": "Javascript/Node.js",
+    "icon": "vis-2-widgets-collection.png",
+    "extIcon": "https://raw.githubusercontent.com/Steiger04/ioBroker.vis-2-widgets-collection/main/admin/vis-2-widgets-collection.png",
+    "enabled": true,
+    "readme": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "none",
+    "singleton": true,
+    "adminUI": {
+      "config": "none"
+    },
+    "nogit": true,
+    "onlyWWW": true,
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "tier": 3,
+    "type": "visualization-widgets",
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "visWidgets": {
+      "vis2CollectionWidget": {
+        "i18n": "component",
+        "name": "vis2CollectionWidget",
+        "url": "vis-2-widgets-collection/customWidgets.js",
+        "bundlerType": "module",
+        "components": [
+          "StateCollectionWidget",
+          "SliderCollectionWidget",
+          "ButtonGroupCollectionWidget",
+          "SwitchCollectionWidget",
+          "CheckboxCollectionWidget",
+          "DialogCollectionWidget",
+          "SelectCollectionWidget",
+          "RadioGroupCollectionWidget",
+          "GaugeCollectionWidget",
+          "Light2CollectionWidget",
+          "JsonTableCollectionWidget"
+        ]
+      }
+    },
+    "restartAdapters": [
+      "vis-2"
+    ]
+  },
+  "native": {},
+  "objects": [],
+  "instanceObjects": []
 }
