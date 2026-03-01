@@ -832,7 +832,8 @@ const JsonTableCollection: FC = () => {
                                                                 {widget.data.tableColumnMenu !== false &&
                                                                     (header.column.getCanSort() ||
                                                                         (widget.data.tableFiltering === true &&
-                                                                            header.column.getCanFilter())) && (
+                                                                            header.column.getCanFilter()) ||
+                                                                        header.column.getCanHide()) && (
                                                                         <Tooltip
                                                                             title={Generic.t('json_table_column_menu')}
                                                                         >
