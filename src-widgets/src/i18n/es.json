@@ -292,6 +292,7 @@
     "json_table_filter_placeholder": "Filtrar...",
     "json_table_filterable": "Filtrable",
     "json_table_filtering": "Filtrado",
+    "json_table_filtering_tooltip": "El filtrado de columnas requiere que el menú de columnas esté habilitado",
     "json_table_has_formatting": "Formato",
     "json_table_has_styling": "Estilo",
     "json_table_header_bg_color": "Fondo de encabezado",

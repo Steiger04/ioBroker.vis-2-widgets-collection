@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "筛选...",
     "json_table_filterable": "可筛选",
     "json_table_filtering": "筛选",
+    "json_table_filtering_tooltip": "列筛选需要启用列菜单",
     "json_table_global_status": "全局功能状态",
     "json_table_has_formatting": "格式化",
     "json_table_has_styling": "样式",

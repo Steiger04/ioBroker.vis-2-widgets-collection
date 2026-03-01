@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "Filter...",
     "json_table_filterable": "Filterable",
     "json_table_filtering": "Filtering",
+    "json_table_filtering_tooltip": "Column filtering requires column menu to be enabled",
     "json_table_format_type": "Format Type",
     "json_table_global_status": "Global Feature Status",
     "json_table_inherited_tooltip": "{feature} inherits from global setting ({status})",

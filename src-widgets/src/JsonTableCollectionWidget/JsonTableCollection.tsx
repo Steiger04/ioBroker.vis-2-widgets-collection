@@ -30,7 +30,6 @@ import {
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
 import {
     useReactTable,
     getCoreRowModel,
@@ -67,7 +66,6 @@ import { customFilterFns } from './utils/filterFunctions';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
-import type { FilterConfig } from './components/FilterDialog';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
 // Extend ColumnMeta to include custom alignment property for table cells
@@ -90,67 +88,6 @@ declare module '@tanstack/react-table' {
 // ── FlatRow type ────────────────────────────────────────────────────────────
 
 type FlatRow = Record<string, unknown>;
-
-// ── Filter value helpers ────────────────────────────────────────────────────
-
-/**
- * Type guard to check if a filter value is a structured FilterConfig object.
- *
- * @param value - The filter value to check
- * @returns True if the value is a FilterConfig object with operator and value
- */
-function isFilterConfig(value: unknown): value is FilterConfig {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        'operator' in value &&
-        'value' in value &&
-        typeof (value as FilterConfig).operator === 'string'
-    );
-}
-
-/**
- * Gets a display-friendly string representation of a filter value.
- * For structured FilterConfig objects, returns a summary placeholder.
- * For primitive values, returns the value as-is.
- *
- * @param value - The filter value to format
- * @returns Object with display value and whether it's an advanced filter
- */
-function getFilterDisplayValue(value: unknown): { displayValue: string; isAdvanced: boolean } {
-    if (value === undefined || value === null) {
-        return { displayValue: '', isAdvanced: false };
-    }
-
-    if (isFilterConfig(value)) {
-        // Structured filter - return a summary placeholder
-        const operatorLabel = value.operator.replace(/([A-Z])/g, ' $1').trim();
-        const valuePreview =
-            String(value.value).length > 10 ? `${String(value.value).substring(0, 10)}...` : String(value.value);
-        return {
-            displayValue: `[${operatorLabel}: ${valuePreview}]`,
-            isAdvanced: true,
-        };
-    }
-
-    // Primitive value or object/array - handle safely
-    if (typeof value === 'object') {
-        // Non-FilterConfig objects and arrays - use JSON serialization
-        try {
-            return { displayValue: JSON.stringify(value), isAdvanced: false };
-        } catch {
-            return { displayValue: '[Object]', isAdvanced: false };
-        }
-    }
-
-    // Primitive values (string, number, boolean, symbol, bigint)
-    // At this point, value is guaranteed to be a primitive after the object check above
-    if (typeof value === 'string') {
-        return { displayValue: value, isAdvanced: false };
-    }
-    // For number, boolean, symbol, bigint - safe to stringify
-    return { displayValue: String(value as number | boolean | symbol | bigint), isAdvanced: false };
-}
 
 // ── Density row height mapping ───────────────────────────────────────────────
 
@@ -269,7 +206,7 @@ const JsonTableCollection: FC = () => {
             analysisColumns,
             widgetData: {
                 tableSorting: widget.data.tableSorting !== false,
-                tableFiltering: widget.data.tableFiltering === true,
+                tableFiltering: canUserAccessColumnFiltering,
                 tableRowSelection: widget.data.tableRowSelection === true,
                 tableHiding: widget.data.tableHiding !== false,
             },
@@ -302,7 +239,7 @@ const JsonTableCollection: FC = () => {
         columnConfig,
         analysisColumns,
         widget.data.tableSorting,
-        widget.data.tableFiltering,
+        canUserAccessColumnFiltering,
         widget.data.tableRowSelection,
         widget.data.tableHiding,
     ]);
@@ -310,6 +247,7 @@ const JsonTableCollection: FC = () => {
     // ── Table state via custom hook ─────────────────────────────────────────────
 
     const isAutoSize = widget.data.tableAutoSize === true;
+    const canUserAccessColumnFiltering = widget.data.tableFiltering === true && widget.data.tableColumnMenu !== false;
 
     const {
         sorting,
@@ -337,7 +275,7 @@ const JsonTableCollection: FC = () => {
         tablePageSize: Number(widget.data.tablePageSize) || 25,
         tablePageSizeOptions: widget.data.tablePageSizeOptions,
         tablePagination: widget.data.tablePagination !== false,
-        tableFiltering: widget.data.tableFiltering === true,
+        tableFiltering: canUserAccessColumnFiltering,
         tableSorting: widget.data.tableSorting !== false,
         tableQuickFilter: widget.data.tableQuickFilter === true,
         gridRowsLength: gridRows.length,
@@ -376,7 +314,7 @@ const JsonTableCollection: FC = () => {
         onColumnVisibilityChange: setColumnVisibility,
         enableRowSelection: widget.data.tableRowSelection === true,
         enableSorting: widget.data.tableSorting !== false,
-        enableColumnFilters: widget.data.tableFiltering === true,
+        enableColumnFilters: canUserAccessColumnFiltering,
         enableGlobalFilter: widget.data.tableQuickFilter === true,
     });
 
@@ -831,7 +769,7 @@ const JsonTableCollection: FC = () => {
                                                                 )}
                                                                 {widget.data.tableColumnMenu !== false &&
                                                                     (header.column.getCanSort() ||
-                                                                        (widget.data.tableFiltering === true &&
+                                                                        (canUserAccessColumnFiltering &&
                                                                             header.column.getCanFilter()) ||
                                                                         header.column.getCanHide()) && (
                                                                         <Tooltip
@@ -890,121 +828,6 @@ const JsonTableCollection: FC = () => {
                                             })}
                                         </TableRow>
                                     ))}
-                                    {/* Filter row as part of thead - TanStack Table v8 best practice */}
-                                    {widget.data.tableFiltering === true && (
-                                        <TableRow>
-                                            {table.getHeaderGroups()[0]?.headers.map(header => {
-                                                if (header.column.id === '__select__') {
-                                                    return (
-                                                        <TableCell
-                                                            key={header.id}
-                                                            component="th"
-                                                            colSpan={header.colSpan}
-                                                            padding="checkbox"
-                                                            sx={{
-                                                                width: getHeaderCellWidth(header),
-                                                                py: 0.5,
-                                                                px: 0.5,
-                                                            }}
-                                                        />
-                                                    );
-                                                }
-                                                if (!header.column.getCanFilter()) {
-                                                    return (
-                                                        <TableCell
-                                                            key={header.id}
-                                                            component="th"
-                                                            colSpan={header.colSpan}
-                                                            sx={{
-                                                                width: getHeaderCellWidth(header),
-                                                                py: 0.5,
-                                                                px: 0.5,
-                                                            }}
-                                                        />
-                                                    );
-                                                }
-                                                const rawFilterValue = header.column.getFilterValue();
-                                                const { displayValue, isAdvanced } =
-                                                    getFilterDisplayValue(rawFilterValue);
-                                                return (
-                                                    <TableCell
-                                                        key={header.id}
-                                                        component="th"
-                                                        colSpan={header.colSpan}
-                                                        sx={{
-                                                            width: getHeaderCellWidth(header),
-                                                            py: 0.5,
-                                                            px: 0.5,
-                                                        }}
-                                                    >
-                                                        <Tooltip
-                                                            title={
-                                                                isAdvanced
-                                                                    ? Generic.t('json_table_filter_advanced_active')
-                                                                    : ''
-                                                            }
-                                                            placement="top"
-                                                        >
-                                                            <TextField
-                                                                size="small"
-                                                                variant="standard"
-                                                                fullWidth
-                                                                value={displayValue}
-                                                                onChange={e => {
-                                                                    // Don't allow editing if advanced filter is active
-                                                                    // User must clear it first via the clear button
-                                                                    if (isAdvanced) {
-                                                                        return;
-                                                                    }
-                                                                    header.column.setFilterValue(
-                                                                        e.target.value || undefined,
-                                                                    );
-                                                                }}
-                                                                placeholder={Generic.t('json_table_filter_placeholder')}
-                                                                disabled={isAdvanced}
-                                                                slotProps={{
-                                                                    input: {
-                                                                        endAdornment:
-                                                                            rawFilterValue !== undefined &&
-                                                                            rawFilterValue !== null &&
-                                                                            rawFilterValue !== '' ? (
-                                                                                <InputAdornment position="end">
-                                                                                    <Tooltip
-                                                                                        title={
-                                                                                            isAdvanced
-                                                                                                ? Generic.t(
-                                                                                                      'json_table_filter_clear_advanced',
-                                                                                                  )
-                                                                                                : Generic.t(
-                                                                                                      'json_table_filter_clear',
-                                                                                                  )
-                                                                                        }
-                                                                                    >
-                                                                                        <IconButton
-                                                                                            size="small"
-                                                                                            onClick={() =>
-                                                                                                header.column.setFilterValue(
-                                                                                                    undefined,
-                                                                                                )
-                                                                                            }
-                                                                                            aria-label={Generic.t(
-                                                                                                'json_table_filter_clear',
-                                                                                            )}
-                                                                                        >
-                                                                                            <ClearIcon fontSize="inherit" />
-                                                                                        </IconButton>
-                                                                                    </Tooltip>
-                                                                                </InputAdornment>
-                                                                            ) : undefined,
-                                                                    },
-                                                                }}
-                                                            />
-                                                        </Tooltip>
-                                                    </TableCell>
-                                                );
-                                            })}
-                                        </TableRow>
-                                    )}
                                 </TableHead>
                                 <TableBody ref={tableBodyRef}>
                                     {virtualItems ? (
@@ -1143,7 +966,7 @@ const JsonTableCollection: FC = () => {
                         onClose={closeColumnMenu}
                         activeColumn={activeColumnRef.current}
                         isSorted={activeColumnSorted !== undefined}
-                        tableFiltering={widget.data.tableFiltering === true}
+                        tableFiltering={canUserAccessColumnFiltering}
                         activeColumnFilter={activeColumnFilter}
                         onSetSorting={setSorting}
                         onClearSorting={(columnId: string) => setSorting(old => old.filter(s => s.id !== columnId))}

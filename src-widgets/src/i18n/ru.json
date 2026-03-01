@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "Фильтр...",
     "json_table_filterable": "Фильтруемый",
     "json_table_filtering": "Фильтрация",
+    "json_table_filtering_tooltip": "Фильтрация столбцов требует включенного меню столбцов",
     "json_table_global_status": "Состояние глобальных функций",
     "json_table_has_formatting": "Форматирование",
     "json_table_has_styling": "Стилизация",

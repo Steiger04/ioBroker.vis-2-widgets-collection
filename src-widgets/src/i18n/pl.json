@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "Filtruj...",
     "json_table_filterable": "Możliwość filtrowania",
     "json_table_filtering": "Filtrowanie",
+    "json_table_filtering_tooltip": "Filtrowanie kolumn wymaga włączonego menu kolumn",
     "json_table_global_status": "Status funkcji globalnych",
     "json_table_has_formatting": "Formatowanie",
     "json_table_has_styling": "Stylizacja",

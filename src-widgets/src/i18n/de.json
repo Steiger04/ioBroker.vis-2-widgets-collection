@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "Filtern...",
     "json_table_filterable": "Filterbar",
     "json_table_filtering": "Filterung",
+    "json_table_filtering_tooltip": "Spaltenfilterung erfordert aktiviertes Spaltenmenü",
     "json_table_format_type": "Formattyp",
     "json_table_global_status": "Globale Funktionen",
     "json_table_inherited_tooltip": "{feature} übernimmt die globale Einstellung ({status})",

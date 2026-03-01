@@ -291,6 +291,7 @@
     "json_table_filter_placeholder": "Filteren...",
     "json_table_filterable": "Filterbaar",
     "json_table_filtering": "Filteren",
+    "json_table_filtering_tooltip": "Kolomfiltering vereist dat het kolommenu is ingeschakeld",
     "json_table_global_status": "Globale functiestatus",
     "json_table_has_formatting": "Opmaak",
     "json_table_has_styling": "Stijl",
