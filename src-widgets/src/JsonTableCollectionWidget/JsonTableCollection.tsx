@@ -200,6 +200,9 @@ const JsonTableCollection: FC = () => {
 
     // ── TanStack column definitions ───────────────────────────────────────────
 
+    // Feature flags (must be defined before useMemo that references them)
+    const canUserAccessColumnFiltering = widget.data.tableFiltering === true && widget.data.tableColumnMenu !== false;
+
     const columns = useMemo<ColumnDef<FlatRow>[]>(() => {
         return buildColumnDefs({
             columnConfig,
@@ -247,7 +250,6 @@ const JsonTableCollection: FC = () => {
     // ── Table state via custom hook ─────────────────────────────────────────────
 
     const isAutoSize = widget.data.tableAutoSize === true;
-    const canUserAccessColumnFiltering = widget.data.tableFiltering === true && widget.data.tableColumnMenu !== false;
 
     const {
         sorting,
