@@ -99,8 +99,13 @@ function useData(_oid: string): UseDataResult {
         if (oidType === 'number' || oidType === 'string' || oidType === 'boolean' || oidType === 'mixed') {
             // When ignoreCommonStates is active, values_count is 0 but data fields are still populated.
             // Use commonStates length as the effective count to ensure proper state resolution.
+            // Fallback to values_count if commonStates is empty (e.g., for boolean OIDs without commonStates).
             const effectiveCount =
-                rxData.ignoreCommonStates !== false ? commonStatesEntries.length : rxData.values_count;
+                rxData.ignoreCommonStates === false
+                    ? rxData.values_count
+                    : commonStatesEntries.length > 0
+                      ? commonStatesEntries.length
+                      : rxData.values_count;
 
             for (let i = 1; i <= effectiveCount; i++) {
                 const _value = getDataValue<string | number | boolean | undefined>('value', String(i));
