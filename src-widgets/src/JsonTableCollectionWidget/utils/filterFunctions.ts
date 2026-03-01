@@ -141,7 +141,7 @@ function looksLikeDate(value: unknown): boolean {
  * @param filterValue - The value to compare against
  * @returns Whether the cell value matches the filter criteria
  */
-function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValue: string | number): boolean {
+function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValue: string | number | boolean): boolean {
     // Handle null/undefined cell values
     if (cellValue === null || cellValue === undefined) {
         return operator === 'isEmpty';
@@ -159,6 +159,30 @@ function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValu
             return cellValue !== '';
         }
         return cellValue !== null && cellValue !== undefined;
+    }
+
+    // Handle boolean filter values
+    if (typeof filterValue === 'boolean') {
+        const cellBool =
+            typeof cellValue === 'boolean'
+                ? cellValue
+                : cellValue === 'true' || cellValue === 1
+                  ? true
+                  : cellValue === 'false' || cellValue === 0
+                    ? false
+                    : null;
+
+        if (cellBool !== null) {
+            switch (operator) {
+                case 'equals':
+                    return cellBool === filterValue;
+                case 'notEquals':
+                    return cellBool !== filterValue;
+                default:
+                    return true;
+            }
+        }
+        return false;
     }
 
     // Convert cell value to comparable format
