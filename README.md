@@ -62,6 +62,11 @@
 
 ## Changelog
 
+### __WORK IN PROGRESS__
+- (steiger04) JSON Table added
+- (steiger04) Bug fixing
+
+
 ### 2.3.3 (2026-02-16)
 
 - (steiger04) ignoreCommonStates attribute added. Please read attribut tooltip (i)
