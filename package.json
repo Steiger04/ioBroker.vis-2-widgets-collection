@@ -51,7 +51,11 @@
         "lint": "eslint",
         "lintfix": "eslint . --fix",
         "format": "prettier . --check",
-        "formatfix": "prettier . --write"
+        "formatfix": "prettier . --write",
+        "i18n:check": "node scripts/i18n-sync.js",
+        "i18n:fix": "node scripts/i18n-sync.js --fix",
+        "i18n:report": "node scripts/i18n-sync.js --report",
+        "i18n:sync": "node scripts/i18n-sync.js --fix"
     },
     "bugs": {
         "url": "https://github.com/Steiger04/ioBroker.vis-2-widgets-collection/issues"

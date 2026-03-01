@@ -22,6 +22,7 @@ export default [
             '.kilocode/',
             '.vscode/',
             'node_modules/',
+            'scripts/',
             'src-widgets/.__mf__temp/',
             'src-widgets/build/',
             'src-widgets/node_modules/',
