@@ -619,7 +619,8 @@ const JsonTableCollection: FC = () => {
         <CollectionBase
             isValidType={isValidType}
             data={data}
-            oidValue={oidValue}
+            // oidValue={oidValue}
+            oidValue=""
         >
             <CollectionBaseImage
                 data={data}
