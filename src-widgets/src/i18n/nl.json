@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Even rij kleur",
     "json_table_features": "Functies",
     "json_table_filter_clear": "Filter wissen",
+    "json_table_filter_advanced_active": "Geavanceerd filter actief. Wissen om te bewerken.",
+    "json_table_filter_clear_advanced": "Geavanceerd filter wissen",
     "json_table_filter_placeholder": "Filteren...",
     "json_table_filterable": "Filterbaar",
     "json_table_filtering": "Filteren",

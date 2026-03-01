@@ -67,6 +67,7 @@ import { customFilterFns } from './utils/filterFunctions';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
+import type { FilterConfig } from './components/FilterDialog';
 
 // ── TanStack Table module augmentation ──────────────────────────────────────
 // Extend ColumnMeta to include custom alignment property for table cells
@@ -89,6 +90,67 @@ declare module '@tanstack/react-table' {
 // ── FlatRow type ────────────────────────────────────────────────────────────
 
 type FlatRow = Record<string, unknown>;
+
+// ── Filter value helpers ────────────────────────────────────────────────────
+
+/**
+ * Type guard to check if a filter value is a structured FilterConfig object.
+ *
+ * @param value - The filter value to check
+ * @returns True if the value is a FilterConfig object with operator and value
+ */
+function isFilterConfig(value: unknown): value is FilterConfig {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        'operator' in value &&
+        'value' in value &&
+        typeof (value as FilterConfig).operator === 'string'
+    );
+}
+
+/**
+ * Gets a display-friendly string representation of a filter value.
+ * For structured FilterConfig objects, returns a summary placeholder.
+ * For primitive values, returns the value as-is.
+ *
+ * @param value - The filter value to format
+ * @returns Object with display value and whether it's an advanced filter
+ */
+function getFilterDisplayValue(value: unknown): { displayValue: string; isAdvanced: boolean } {
+    if (value === undefined || value === null) {
+        return { displayValue: '', isAdvanced: false };
+    }
+
+    if (isFilterConfig(value)) {
+        // Structured filter - return a summary placeholder
+        const operatorLabel = value.operator.replace(/([A-Z])/g, ' $1').trim();
+        const valuePreview =
+            String(value.value).length > 10 ? `${String(value.value).substring(0, 10)}...` : String(value.value);
+        return {
+            displayValue: `[${operatorLabel}: ${valuePreview}]`,
+            isAdvanced: true,
+        };
+    }
+
+    // Primitive value or object/array - handle safely
+    if (typeof value === 'object') {
+        // Non-FilterConfig objects and arrays - use JSON serialization
+        try {
+            return { displayValue: JSON.stringify(value), isAdvanced: false };
+        } catch {
+            return { displayValue: '[Object]', isAdvanced: false };
+        }
+    }
+
+    // Primitive values (string, number, boolean, symbol, bigint)
+    // At this point, value is guaranteed to be a primitive after the object check above
+    if (typeof value === 'string') {
+        return { displayValue: value, isAdvanced: false };
+    }
+    // For number, boolean, symbol, bigint - safe to stringify
+    return { displayValue: String(value as number | boolean | symbol | bigint), isAdvanced: false };
+}
 
 // ── Density row height mapping ───────────────────────────────────────────────
 
@@ -336,7 +398,7 @@ const JsonTableCollection: FC = () => {
 
     // State for active column sort/filter - computed when menu opens
     const [activeColumnSorted, setActiveColumnSorted] = useState<SortingState[0] | undefined>(undefined);
-    const [activeColumnFilter, setActiveColumnFilter] = useState<string | undefined>(undefined);
+    const [activeColumnFilter, setActiveColumnFilter] = useState<unknown>(undefined);
 
     const openColumnMenu = useCallback(
         (col: Column<FlatRow>, el: HTMLElement) => {
@@ -344,7 +406,7 @@ const JsonTableCollection: FC = () => {
             // Compute sort/filter values when menu opens, not on every render
             const columnId = col.id;
             const sorted = sorting.find(s => s.id === columnId);
-            const filterValue = columnFilters.find(f => f.id === columnId)?.value as string | undefined;
+            const filterValue = columnFilters.find(f => f.id === columnId)?.value;
             setActiveColumnSorted(sorted);
             setActiveColumnFilter(filterValue);
             setMenuAnchor(el);
@@ -555,6 +617,63 @@ const JsonTableCollection: FC = () => {
         [isAutoSize, headerWidths],
     );
 
+    // ── Column pinning styles helper ───────────────────────────────────────────
+
+    /**
+     * Computes sticky positioning styles for pinned columns.
+     * Returns styles for left/right pinned columns including position, offset, and z-index.
+     *
+     * @param column - The TanStack Table column to compute styles for
+     * @returns Object with sx styles for sticky positioning, or empty object if not pinned
+     */
+    const getPinnedColumnSx = useCallback(
+        (
+            column: Column<FlatRow>,
+        ): {
+            position?: 'sticky';
+            left?: number;
+            right?: number;
+            zIndex?: number;
+            backgroundColor?: string;
+        } => {
+            // Check if pinning is enabled and column is pinned
+            if (widget.data.tablePinning !== true) {
+                return {};
+            }
+
+            const isPinned = column.getIsPinned();
+            if (!isPinned) {
+                return {};
+            }
+
+            // Get the offset for pinned columns
+            // TanStack Table provides getStart/getAfter for computing offsets
+            const baseZIndex = 1; // Above non-pinned cells
+            const bgColor = theme.palette.background.paper;
+
+            if (isPinned === 'left') {
+                return {
+                    position: 'sticky',
+                    left: column.getStart('left'),
+                    zIndex: baseZIndex,
+                    backgroundColor: bgColor,
+                };
+            }
+
+            if (isPinned === 'right') {
+                return {
+                    position: 'sticky',
+                    right: column.getAfter('right'),
+                    zIndex: baseZIndex,
+                    backgroundColor: bgColor,
+                };
+            }
+
+            return {};
+        },
+        [widget.data.tablePinning, theme.palette.background.paper],
+    );
+
     const cellBaseSx = useMemo(
         () => ({
             ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
@@ -707,6 +826,10 @@ const JsonTableCollection: FC = () => {
                                                 const isSelectCol = header.column.id === '__select__';
                                                 const isFixed = !isAutoSize;
 
+                                                // Get pinned column styles for sticky positioning
+                                                const pinnedSx = getPinnedColumnSx(header.column);
+                                                const isPinned = header.column.getIsPinned();
+
                                                 return (
                                                     <TableCell
                                                         key={header.id}
@@ -717,8 +840,12 @@ const JsonTableCollection: FC = () => {
                                                         sx={{
                                                             width: getHeaderCellWidth(header),
                                                             minWidth: isSelectCol ? 48 : 40,
-                                                            position: 'relative',
+                                                            // Use sticky position for pinned columns, relative for others
+                                                            position: isPinned ? 'sticky' : 'relative',
+                                                            // Higher z-index for pinned header cells to stay above body cells
+                                                            zIndex: isPinned ? 2 : undefined,
                                                             ...headerCellSx,
+                                                            ...pinnedSx,
                                                         }}
                                                     >
                                                         {isSelectCol ? (
@@ -837,6 +964,9 @@ const JsonTableCollection: FC = () => {
                                     {widget.data.tableFiltering === true && (
                                         <TableRow>
                                             {table.getHeaderGroups()[0]?.headers.map(header => {
+                                                const pinnedSx = getPinnedColumnSx(header.column);
+                                                const isPinned = header.column.getIsPinned();
+
                                                 if (header.column.id === '__select__') {
                                                     return (
                                                         <TableCell
@@ -848,6 +978,9 @@ const JsonTableCollection: FC = () => {
                                                                 width: getHeaderCellWidth(header),
                                                                 py: 0.5,
                                                                 px: 0.5,
+                                                                position: isPinned ? 'sticky' : undefined,
+                                                                zIndex: isPinned ? 2 : undefined,
+                                                                ...pinnedSx,
                                                             }}
                                                         />
                                                     );
@@ -862,11 +995,16 @@ const JsonTableCollection: FC = () => {
                                                                 width: getHeaderCellWidth(header),
                                                                 py: 0.5,
                                                                 px: 0.5,
+                                                                position: isPinned ? 'sticky' : undefined,
+                                                                zIndex: isPinned ? 2 : undefined,
+                                                                ...pinnedSx,
                                                             }}
                                                         />
                                                     );
                                                 }
-                                                const filterVal = (header.column.getFilterValue() ?? '') as string;
+                                                const rawFilterValue = header.column.getFilterValue();
+                                                const { displayValue, isAdvanced } =
+                                                    getFilterDisplayValue(rawFilterValue);
                                                 return (
                                                     <TableCell
                                                         key={header.id}
@@ -876,47 +1014,74 @@ const JsonTableCollection: FC = () => {
                                                             width: getHeaderCellWidth(header),
                                                             py: 0.5,
                                                             px: 0.5,
+                                                            position: isPinned ? 'sticky' : undefined,
+                                                            zIndex: isPinned ? 2 : undefined,
+                                                            ...pinnedSx,
                                                         }}
                                                     >
-                                                        <TextField
-                                                            size="small"
-                                                            variant="standard"
-                                                            fullWidth
-                                                            value={filterVal}
-                                                            onChange={e =>
-                                                                header.column.setFilterValue(
-                                                                    e.target.value || undefined,
-                                                                )
+                                                        <Tooltip
+                                                            title={
+                                                                isAdvanced
+                                                                    ? Generic.t('json_table_filter_advanced_active')
+                                                                    : ''
                                                             }
-                                                            placeholder={Generic.t('json_table_filter_placeholder')}
-                                                            slotProps={{
-                                                                input: {
-                                                                    endAdornment: filterVal ? (
-                                                                        <InputAdornment position="end">
-                                                                            <Tooltip
-                                                                                title={Generic.t(
-                                                                                    'json_table_filter_clear',
-                                                                                )}
-                                                                            >
-                                                                                <IconButton
-                                                                                    size="small"
-                                                                                    onClick={() =>
-                                                                                        header.column.setFilterValue(
-                                                                                            undefined,
-                                                                                        )
-                                                                                    }
-                                                                                    aria-label={Generic.t(
-                                                                                        'json_table_filter_clear',
-                                                                                    )}
-                                                                                >
-                                                                                    <ClearIcon fontSize="inherit" />
-                                                                                </IconButton>
-                                                                            </Tooltip>
-                                                                        </InputAdornment>
-                                                                    ) : undefined,
-                                                                },
-                                                            }}
-                                                        />
+                                                            placement="top"
+                                                        >
+                                                            <TextField
+                                                                size="small"
+                                                                variant="standard"
+                                                                fullWidth
+                                                                value={displayValue}
+                                                                onChange={e => {
+                                                                    // Don't allow editing if advanced filter is active
+                                                                    // User must clear it first via the clear button
+                                                                    if (isAdvanced) {
+                                                                        return;
+                                                                    }
+                                                                    header.column.setFilterValue(
+                                                                        e.target.value || undefined,
+                                                                    );
+                                                                }}
+                                                                placeholder={Generic.t('json_table_filter_placeholder')}
+                                                                disabled={isAdvanced}
+                                                                slotProps={{
+                                                                    input: {
+                                                                        endAdornment:
+                                                                            rawFilterValue !== undefined &&
+                                                                            rawFilterValue !== null &&
+                                                                            rawFilterValue !== '' ? (
+                                                                                <InputAdornment position="end">
+                                                                                    <Tooltip
+                                                                                        title={
+                                                                                            isAdvanced
+                                                                                                ? Generic.t(
+                                                                                                      'json_table_filter_clear_advanced',
+                                                                                                  )
+                                                                                                : Generic.t(
+                                                                                                      'json_table_filter_clear',
+                                                                                                  )
+                                                                                        }
+                                                                                    >
+                                                                                        <IconButton
+                                                                                            size="small"
+                                                                                            onClick={() =>
+                                                                                                header.column.setFilterValue(
+                                                                                                    undefined,
+                                                                                                )
+                                                                                            }
+                                                                                            aria-label={Generic.t(
+                                                                                                'json_table_filter_clear',
+                                                                                            )}
+                                                                                        >
+                                                                                            <ClearIcon fontSize="inherit" />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
+                                                                                </InputAdornment>
+                                                                            ) : undefined,
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </Tooltip>
                                                     </TableCell>
                                                 );
                                             })}
@@ -948,12 +1113,16 @@ const JsonTableCollection: FC = () => {
                                                     >
                                                         {row.getVisibleCells().map(cell => {
                                                             const isSelectCell = cell.column.id === '__select__';
+                                                            const pinnedSx = getPinnedColumnSx(cell.column);
                                                             return (
                                                                 <TableCell
                                                                     key={cell.id}
                                                                     align={cell.column.columnDef.meta?.align || 'left'}
                                                                     padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                                    sx={cellBaseSx}
+                                                                    sx={{
+                                                                        ...cellBaseSx,
+                                                                        ...pinnedSx,
+                                                                    }}
                                                                 >
                                                                     {flexRender(
                                                                         cell.column.columnDef.cell,
@@ -986,12 +1155,16 @@ const JsonTableCollection: FC = () => {
                                             >
                                                 {row.getVisibleCells().map(cell => {
                                                     const isSelectCell = cell.column.id === '__select__';
+                                                    const pinnedSx = getPinnedColumnSx(cell.column);
                                                     return (
                                                         <TableCell
                                                             key={cell.id}
                                                             align={cell.column.columnDef.meta?.align || 'left'}
                                                             padding={isSelectCell ? 'checkbox' : 'normal'}
-                                                            sx={cellBaseSx}
+                                                            sx={{
+                                                                ...cellBaseSx,
+                                                                ...pinnedSx,
+                                                            }}
                                                         >
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </TableCell>

@@ -287,6 +287,8 @@
     "json_table_features": "Características",
     "json_table_global_status": "Estado de funciones globales",
     "json_table_filter_clear": "Borrar filtro",
+    "json_table_filter_advanced_active": "Filtro avanzado activo. Borrar para editar.",
+    "json_table_filter_clear_advanced": "Borrar filtro avanzado",
     "json_table_filter_placeholder": "Filtrar...",
     "json_table_filterable": "Filtrable",
     "json_table_filtering": "Filtrado",

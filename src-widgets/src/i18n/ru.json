@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Цвет четной строки",
     "json_table_features": "Функции",
     "json_table_filter_clear": "Очистить фильтр",
+    "json_table_filter_advanced_active": "Активен расширенный фильтр. Очистите для редактирования.",
+    "json_table_filter_clear_advanced": "Очистить расширенный фильтр",
     "json_table_filter_placeholder": "Фильтр...",
     "json_table_filterable": "Фильтруемый",
     "json_table_filtering": "Фильтрация",

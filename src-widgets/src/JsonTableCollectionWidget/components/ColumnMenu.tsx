@@ -110,7 +110,7 @@ function ColumnMenu({
     const canHide = activeColumn?.getCanHide?.() === true;
     const canPin = activeColumn?.getCanPin?.() === true;
     const isPinned = activeColumn?.getIsPinned?.() ?? false;
-    const hasFilter = activeColumnFilter !== undefined;
+    const hasFilter = activeColumnFilter !== undefined && activeColumnFilter !== null;
 
     const hasVisibleItems = canSort || canFilter || canHide || canPin;
 

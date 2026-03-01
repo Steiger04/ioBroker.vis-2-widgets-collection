@@ -38,6 +38,102 @@ function safeToString(value: unknown): string {
 }
 
 /**
+ * Normalizes a date value to a timestamp for comparison.
+ * Supports multiple input formats:
+ * - ISO-8601 strings (e.g., "2024-12-31", "2024-12-31T23:59:59Z")
+ * - European format dd.MM.yyyy (e.g., "31.12.2024")
+ * - US format MM/dd/yyyy (e.g., "12/31/2024")
+ * - Epoch timestamps in seconds or milliseconds
+ * - Date objects
+ *
+ * @param value - The value to normalize (string, number, or Date)
+ * @returns Timestamp in milliseconds, or null if parsing fails
+ */
+function normalizeToTimestamp(value: unknown): number | null {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    // Handle Date objects directly
+    if (value instanceof Date) {
+        const time = value.getTime();
+        return isNaN(time) ? null : time;
+    }
+
+    // Handle numbers (epoch timestamps)
+    if (typeof value === 'number') {
+        // Threshold 1e11 distinguishes seconds (< ~1973) from milliseconds (>= ~1973)
+        // Epoch seconds are typically < 1e11 until year 5138
+        // Epoch milliseconds are typically >= 1e11 for modern dates
+        const timestamp = value >= 1e11 ? value : value * 1000;
+        const date = new Date(timestamp);
+        return isNaN(date.getTime()) ? null : timestamp;
+    }
+
+    // Handle strings
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return null;
+        }
+
+        // Try European format dd.MM.yyyy first (must check before US format to avoid ambiguity)
+        const europeanMatch = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+        if (europeanMatch) {
+            const [, day, month, year, hour = '0', minute = '0', second = '0'] = europeanMatch;
+            const date = new Date(
+                parseInt(year, 10),
+                parseInt(month, 10) - 1,
+                parseInt(day, 10),
+                parseInt(hour, 10),
+                parseInt(minute, 10),
+                parseInt(second, 10),
+            );
+            return isNaN(date.getTime()) ? null : date.getTime();
+        }
+
+        // Try US format MM/dd/yyyy
+        const usMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+        if (usMatch) {
+            const [, month, day, year, hour = '0', minute = '0', second = '0'] = usMatch;
+            const date = new Date(
+                parseInt(year, 10),
+                parseInt(month, 10) - 1,
+                parseInt(day, 10),
+                parseInt(hour, 10),
+                parseInt(minute, 10),
+                parseInt(second, 10),
+            );
+            return isNaN(date.getTime()) ? null : date.getTime();
+        }
+
+        // Try pure numeric string as epoch
+        if (/^-?\d+$/.test(trimmed)) {
+            const numValue = parseInt(trimmed, 10);
+            const timestamp = numValue >= 1e11 ? numValue : numValue * 1000;
+            const date = new Date(timestamp);
+            return isNaN(date.getTime()) ? null : timestamp;
+        }
+
+        // Fallback: use Date constructor for ISO-8601 and other standard formats
+        const date = new Date(trimmed);
+        return isNaN(date.getTime()) ? null : date.getTime();
+    }
+
+    return null;
+}
+
+/**
+ * Checks if a value looks like a date (can be parsed as a valid date).
+ *
+ * @param value - The value to check
+ * @returns Whether the value can be interpreted as a date
+ */
+function looksLikeDate(value: unknown): boolean {
+    return normalizeToTimestamp(value) !== null;
+}
+
+/**
  * Performs the actual filter comparison based on operator and values.
  *
  * @param cellValue - The value from the table cell
@@ -73,6 +169,42 @@ function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValu
     const cellNum = Number(cellValue);
     const filterNum = Number(filterValue);
     const isNumericComparison = !isNaN(cellNum) && !isNaN(filterNum);
+
+    // Date-aware comparison: check if both values can be parsed as dates
+    // This enables proper chronological comparisons for date operators
+    const comparisonOperators: FilterOperator[] = [
+        'greaterThan',
+        'greaterThanOrEqual',
+        'lessThan',
+        'lessThanOrEqual',
+        'equals',
+        'notEquals',
+    ];
+
+    if (comparisonOperators.includes(operator)) {
+        const cellTimestamp = normalizeToTimestamp(cellValue);
+        const filterTimestamp = normalizeToTimestamp(filterValue);
+
+        // If both values are valid dates, use timestamp comparison
+        if (cellTimestamp !== null && filterTimestamp !== null) {
+            switch (operator) {
+                case 'equals':
+                    return cellTimestamp === filterTimestamp;
+                case 'notEquals':
+                    return cellTimestamp !== filterTimestamp;
+                case 'greaterThan':
+                    return cellTimestamp > filterTimestamp;
+                case 'greaterThanOrEqual':
+                    return cellTimestamp >= filterTimestamp;
+                case 'lessThan':
+                    return cellTimestamp < filterTimestamp;
+                case 'lessThanOrEqual':
+                    return cellTimestamp <= filterTimestamp;
+                default:
+                    break;
+            }
+        }
+    }
 
     switch (operator) {
         case 'contains':
@@ -215,3 +347,6 @@ export function isFilterConfig(value: unknown): value is FilterConfig {
         typeof (value as FilterConfig).operator === 'string'
     );
 }
+
+// Re-export normalizeToTimestamp for testing purposes
+export { normalizeToTimestamp, looksLikeDate };

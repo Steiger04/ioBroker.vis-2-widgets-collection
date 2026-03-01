@@ -43,9 +43,9 @@ const useOidValue = (oid: OidIdentifier): OidValue => {
     const [value, setValue] = useState<OidValue>(oidValue);
 
     useEffect(() => {
-        if (oidValue !== undefined) {
-            setValue(oidValue);
-        }
+        // Synchronize local state for ALL transitions, including undefined/null,
+        // to ensure stale values are promptly cleared when OID is unset or invalidated
+        setValue(oidValue);
     }, [oidValue]);
 
     return useMemo(() => value, [value]);

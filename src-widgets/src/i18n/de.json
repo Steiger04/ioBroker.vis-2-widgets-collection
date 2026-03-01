@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Gerade Zeilen Farbe",
     "json_table_features": "Funktionen",
     "json_table_filter_clear": "Filter löschen",
+    "json_table_filter_advanced_active": "Erweiterter Filter aktiv. Löschen zum Bearbeiten.",
+    "json_table_filter_clear_advanced": "Erweiterten Filter löschen",
     "json_table_filter_placeholder": "Filtern...",
     "json_table_filterable": "Filterbar",
     "json_table_filtering": "Filterung",

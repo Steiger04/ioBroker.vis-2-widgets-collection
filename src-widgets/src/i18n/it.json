@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Colore riga pari",
     "json_table_features": "Funzionalità",
     "json_table_filter_clear": "Cancella filtro",
+    "json_table_filter_advanced_active": "Filtro avanzato attivo. Cancella per modificare.",
+    "json_table_filter_clear_advanced": "Cancella filtro avanzato",
     "json_table_filter_placeholder": "Filtrare...",
     "json_table_filterable": "Filtrabile",
     "json_table_filtering": "Filtraggio",

@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Even row color",
     "json_table_features": "Features",
     "json_table_filter_clear": "Clear filter",
+    "json_table_filter_advanced_active": "Advanced filter active. Clear to edit inline.",
+    "json_table_filter_clear_advanced": "Clear advanced filter",
     "json_table_filter_placeholder": "Filter...",
     "json_table_filterable": "Filterable",
     "json_table_filtering": "Filtering",

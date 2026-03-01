@@ -103,6 +103,23 @@ const BOOLEAN_OPERATORS: { value: FilterOperator; label: string }[] = [
 ];
 
 /**
+ * Gets the default operator for a column type.
+ *
+ * @param columnType - The column data type
+ * @returns The default filter operator for the type
+ */
+function getDefaultOperator(columnType: 'string' | 'number' | 'date' | 'boolean'): FilterOperator {
+    switch (columnType) {
+        case 'number':
+        case 'date':
+        case 'boolean':
+            return 'equals';
+        default:
+            return 'contains';
+    }
+}
+
+/**
  * Renders a dialog for configuring column filters.
  *
  * Features:
@@ -119,7 +136,7 @@ function FilterDialog({
     columnType,
 }: FilterDialogProps): React.JSX.Element {
     // Determine effective column type
-    const effectiveType = useMemo(() => {
+    const effectiveType = useMemo((): 'string' | 'number' | 'date' | 'boolean' => {
         if (columnType === 'number' || columnType === 'date' || columnType === 'boolean' || columnType === 'string') {
             return columnType;
         }
@@ -140,41 +157,58 @@ function FilterDialog({
         }
     }, [effectiveType]);
 
-    // Parse current filter value
+    // Parse current filter value with type-safe operator validation
     const parsedCurrentValue = useMemo((): FilterConfig => {
-        if (currentValue === undefined || currentValue === null) {
-            return { operator: 'contains', value: '' };
-        }
-        if (typeof currentValue === 'object' && currentValue !== null && 'operator' in currentValue) {
-            return currentValue as FilterConfig;
-        }
-        // Legacy: simple string/number value means "contains"
-        if (typeof currentValue === 'string' || typeof currentValue === 'number') {
-            return { operator: 'contains', value: currentValue };
-        }
-        // Fallback for other types (arrays, objects): stringify
-        return { operator: 'contains', value: JSON.stringify(currentValue) };
-    }, [currentValue]);
+        const defaultOperator = getDefaultOperator(effectiveType);
 
+        if (currentValue === undefined || currentValue === null) {
+            return { operator: defaultOperator, value: '' };
+        }
+
+        if (typeof currentValue === 'object' && currentValue !== null && 'operator' in currentValue) {
+            const config = currentValue as FilterConfig;
+            // Validate operator against allowed operators for this type
+            const isValidOperator = operators.some(op => op.value === config.operator);
+            if (isValidOperator) {
+                return config;
+            }
+            // Fallback to default operator if invalid, but keep the value
+            return { operator: defaultOperator, value: config.value };
+        }
+
+        // Legacy: simple string/number value means default operator for type
+        if (typeof currentValue === 'string' || typeof currentValue === 'number') {
+            return { operator: defaultOperator, value: currentValue };
+        }
+
+        // Fallback for other types (arrays, objects): stringify
+        return { operator: defaultOperator, value: JSON.stringify(currentValue) };
+    }, [currentValue, effectiveType, operators]);
+
+    // Store value as raw string during editing to preserve empty input state
     const [operator, setOperator] = useState<FilterOperator>(parsedCurrentValue.operator);
-    const [value, setValue] = useState<string | number>(parsedCurrentValue.value);
+    const [value, setValue] = useState<string>(String(parsedCurrentValue.value));
 
     // Reset state when dialog opens with new values
     useEffect(() => {
         setOperator(parsedCurrentValue.operator);
-        setValue(parsedCurrentValue.value);
+        setValue(String(parsedCurrentValue.value));
     }, [parsedCurrentValue, open]);
 
     // Check if operator needs a value input
     const needsValue = !['isEmpty', 'isNotEmpty'].includes(operator);
 
-    // Handle apply
+    // Handle apply - convert numeric values only here
     const handleApply = (): void => {
-        if (needsValue && value === '') {
-            // Empty value means no filter
+        const trimmedValue = value.trim();
+
+        if (needsValue && trimmedValue === '') {
+            // Empty or whitespace-only value means no filter
             onApply(undefined);
         } else {
-            onApply({ operator, value: effectiveType === 'number' ? Number(value) : value });
+            // Convert to number only for number type, keep as string otherwise
+            const finalValue = effectiveType === 'number' ? Number(trimmedValue) : trimmedValue;
+            onApply({ operator, value: finalValue });
         }
     };
 
@@ -218,9 +252,7 @@ function FilterDialog({
                         <TextField
                             label={Generic.t('json_table_filter_value')}
                             value={value}
-                            onChange={e =>
-                                setValue(effectiveType === 'number' ? Number(e.target.value) : e.target.value)
-                            }
+                            onChange={e => setValue(e.target.value)}
                             type={effectiveType === 'number' ? 'number' : 'text'}
                             fullWidth
                             autoFocus

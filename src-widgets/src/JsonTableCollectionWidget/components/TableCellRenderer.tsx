@@ -68,29 +68,34 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
                 : String(rawValue as string | number | boolean | bigint)
             : '';
 
-    // Apply formatting if config is present
+    // Apply formatting if config is present - wrapped in try-catch for resilience
     if (cfg?.format) {
-        switch (cfg.format.type) {
-            case 'number':
-                if (typeof rawValue === 'number' || (typeof rawValue === 'string' && !isNaN(Number(rawValue)))) {
-                    displayValue = formatNumberValue(Number(rawValue), {
-                        decimals: cfg.format.numberDecimals,
-                        prefix: cfg.format.numberPrefix,
-                        suffix: cfg.format.numberSuffix,
-                        thousands: cfg.format.numberThousandsSeparator,
-                    });
-                }
-                break;
-            case 'date':
-                displayValue = formatDateValue(rawValue, cfg.format.dateFormat, cfg.format.dateInputFormat);
-                break;
-            case 'boolean':
-                displayValue = formatBooleanValue(rawValue, cfg.format.booleanTrue, cfg.format.booleanFalse);
-                break;
-            // FIX-P2-2: Ensure string type for formatStringValue to prevent runtime errors
-            case 'string':
-                displayValue = formatStringValue(String(displayValue), cfg.format);
-                break;
+        try {
+            switch (cfg.format.type) {
+                case 'number':
+                    if (typeof rawValue === 'number' || (typeof rawValue === 'string' && !isNaN(Number(rawValue)))) {
+                        displayValue = formatNumberValue(Number(rawValue), {
+                            decimals: cfg.format.numberDecimals,
+                            prefix: cfg.format.numberPrefix,
+                            suffix: cfg.format.numberSuffix,
+                            thousands: cfg.format.numberThousandsSeparator,
+                        });
+                    }
+                    break;
+                case 'date':
+                    displayValue = formatDateValue(rawValue, cfg.format.dateFormat, cfg.format.dateInputFormat);
+                    break;
+                case 'boolean':
+                    displayValue = formatBooleanValue(rawValue, cfg.format.booleanTrue, cfg.format.booleanFalse);
+                    break;
+                // FIX-P2-2: Ensure string type for formatStringValue to prevent runtime errors
+                case 'string':
+                    displayValue = formatStringValue(String(displayValue), cfg.format);
+                    break;
+            }
+        } catch {
+            // If formatting fails, fall back to default display value
+            // This ensures the table doesn't crash due to formatting errors
         }
     }
 

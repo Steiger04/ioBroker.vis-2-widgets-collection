@@ -286,6 +286,8 @@
     "json_table_even_row_color": "偶数行颜色",
     "json_table_features": "功能",
     "json_table_filter_clear": "清除筛选",
+    "json_table_filter_advanced_active": "高级筛选已激活。清除以编辑。",
+    "json_table_filter_clear_advanced": "清除高级筛选",
     "json_table_filter_placeholder": "筛选...",
     "json_table_filterable": "可筛选",
     "json_table_filtering": "筛选",

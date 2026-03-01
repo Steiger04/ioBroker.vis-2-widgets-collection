@@ -33,9 +33,41 @@ function toDisplayString(value: unknown): string {
 
 // ── Number Formatting ───────────────────────────────────────────
 
+/** Minimum allowed decimal precision */
+const MIN_DECIMALS = 0;
+
+/** Maximum allowed decimal precision (JavaScript toFixed limit is 100, but 20 is practical) */
+const MAX_DECIMALS = 20;
+
+/** Default decimal precision when input is invalid */
+const DEFAULT_DECIMALS = 2;
+
+/**
+ * Sanitize decimal precision to a safe range.
+ *
+ * @param decimals - Input decimal precision (may be invalid/null/undefined)
+ * @returns Sanitized precision clamped to [0, 20] range with fallback to default
+ */
+function sanitizeDecimals(decimals: unknown): number {
+    // Handle null, undefined, NaN, or non-finite numbers
+    if (decimals === null || decimals === undefined) {
+        return DEFAULT_DECIMALS;
+    }
+
+    const num = Number(decimals);
+
+    // NaN or non-finite values fall back to default
+    if (!Number.isFinite(num)) {
+        return DEFAULT_DECIMALS;
+    }
+
+    // Clamp to valid range
+    return Math.max(MIN_DECIMALS, Math.min(MAX_DECIMALS, Math.floor(num)));
+}
+
 /** Options for formatting a numeric value. */
 export interface NumberFormatOptions {
-    /** Number of decimal places (0-10). @default 2 */
+    /** Number of decimal places (0-20, will be clamped if out of range). @default 2 */
     decimals?: number;
     /** Prefix prepended to formatted value, e.g. "$" */
     prefix?: string;
@@ -58,7 +90,10 @@ export interface NumberFormatOptions {
  * ```
  */
 export function formatNumberValue(value: number, options: NumberFormatOptions = {}): string {
-    const { decimals = 2, prefix = '', suffix = '', thousands = false } = options;
+    const { prefix = '', suffix = '', thousands = false } = options;
+
+    // Sanitize decimals to prevent toFixed() throwing RangeError
+    const decimals = sanitizeDecimals(options.decimals);
 
     let formatted = value.toFixed(decimals);
 

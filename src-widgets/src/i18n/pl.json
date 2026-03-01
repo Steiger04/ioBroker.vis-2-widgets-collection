@@ -286,6 +286,8 @@
     "json_table_even_row_color": "Kolor parzystego wiersza",
     "json_table_features": "Funkcje",
     "json_table_filter_clear": "Wyczyść filtr",
+    "json_table_filter_advanced_active": "Aktywny filtr zaawansowany. Wyczyść, aby edytować.",
+    "json_table_filter_clear_advanced": "Wyczyść filtr zaawansowany",
     "json_table_filter_placeholder": "Filtruj...",
     "json_table_filterable": "Możliwość filtrowania",
     "json_table_filtering": "Filtrowanie",
