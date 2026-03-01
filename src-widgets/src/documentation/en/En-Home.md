@@ -1,4 +1,4 @@
-﻿# ioBroker.vis-2 Widget Collection - User Guide
+# ioBroker.vis-2 Widget Collection - User Guide
 
 Welcome to the documentation for the Widget Collection for ioBroker.vis-2. This collection provides professional widgets for visualizing and controlling your smart home devices.
 
@@ -244,3 +244,4 @@ The Widget Collection includes the following widgets:
 - [Dialog Widget](En-Dialog-Widget.md) - Dialog for displaying views
 - [Gauge Widget](En-Gauge-Widget.md) - Gauge for displaying numeric values (Linear/Radial)
 - [Light Widget](En-Light-Widget.md) - Light control with color selection
+- [JSON Table Widget](En-JsonTable-Widget.md) - Table widget for JSON data with sorting, filtering, and pagination

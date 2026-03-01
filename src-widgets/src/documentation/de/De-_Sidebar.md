@@ -14,3 +14,4 @@
 - [Dialog Widget](De-Dialog-Widget.md)
 - [Gauge Widget](De-Gauge-Widget.md)
 - [Light Widget](De-Light-Widget.md)
+- [JSON Table Widget](De-JsonTable-Widget.md)

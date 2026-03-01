@@ -14,3 +14,4 @@
 - [Dialog Widget](En-Dialog-Widget.md)
 - [Gauge Widget](En-Gauge-Widget.md)
 - [Light Widget](En-Light-Widget.md)
+- [JSON Table Widget](En-JsonTable-Widget.md)
