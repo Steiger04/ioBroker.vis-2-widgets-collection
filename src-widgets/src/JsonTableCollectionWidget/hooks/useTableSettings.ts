@@ -16,7 +16,6 @@ import type {
     PaginationState,
     RowSelectionState,
     VisibilityState,
-    ColumnPinningState,
 } from '@tanstack/react-table';
 
 import type { ColumnConfigEntry } from '../types';
@@ -58,7 +57,6 @@ export interface UseTableSettingsReturn {
     pagination: PaginationState;
     effectivePagination: PaginationState;
     columnVisibility: VisibilityState;
-    columnPinning: ColumnPinningState;
 
     // Setters
     setSorting: Dispatch<SetStateAction<SortingState>>;
@@ -68,7 +66,6 @@ export interface UseTableSettingsReturn {
     setColumnSizing: Dispatch<SetStateAction<ColumnSizingState>>;
     setPagination: Dispatch<SetStateAction<PaginationState>>;
     setColumnVisibility: Dispatch<SetStateAction<VisibilityState>>;
-    setColumnPinning: Dispatch<SetStateAction<ColumnPinningState>>;
 
     // Helpers
     pageSizeOptions: number[];
@@ -280,10 +277,6 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-    // ── Column Pinning State ──────────────────────────────────────────────────
-
-    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: [], right: [] });
-
     // ── Helper: Show All Columns ──────────────────────────────────────────────
 
     const showAllColumns = useCallback(() => {
@@ -302,7 +295,6 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         pagination,
         effectivePagination,
         columnVisibility,
-        columnPinning,
 
         // Setters
         setSorting,
@@ -312,7 +304,6 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         setColumnSizing,
         setPagination,
         setColumnVisibility,
-        setColumnPinning,
 
         // Helpers
         pageSizeOptions,

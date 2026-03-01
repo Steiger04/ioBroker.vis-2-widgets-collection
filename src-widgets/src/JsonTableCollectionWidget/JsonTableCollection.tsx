@@ -272,7 +272,6 @@ const JsonTableCollection: FC = () => {
                 tableFiltering: widget.data.tableFiltering === true,
                 tableRowSelection: widget.data.tableRowSelection === true,
                 tableHiding: widget.data.tableHiding !== false,
-                tablePinning: widget.data.tablePinning === true,
             },
             renderConfiguredCell: (value, config) => (
                 <TableCellRenderer
@@ -306,7 +305,6 @@ const JsonTableCollection: FC = () => {
         widget.data.tableFiltering,
         widget.data.tableRowSelection,
         widget.data.tableHiding,
-        widget.data.tablePinning,
     ]);
 
     // ── Table state via custom hook ─────────────────────────────────────────────
@@ -322,7 +320,6 @@ const JsonTableCollection: FC = () => {
         pagination,
         effectivePagination,
         columnVisibility,
-        columnPinning,
         setSorting,
         setColumnFilters,
         setGlobalFilter,
@@ -330,7 +327,6 @@ const JsonTableCollection: FC = () => {
         setColumnSizing,
         setPagination,
         setColumnVisibility,
-        setColumnPinning,
         pageSizeOptions,
         showAllColumns,
     } = useTableSettings({
@@ -370,7 +366,6 @@ const JsonTableCollection: FC = () => {
             rowSelection,
             columnSizing,
             columnVisibility,
-            columnPinning,
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -379,7 +374,6 @@ const JsonTableCollection: FC = () => {
         onRowSelectionChange: setRowSelection,
         onColumnSizingChange: setColumnSizing,
         onColumnVisibilityChange: setColumnVisibility,
-        onColumnPinningChange: setColumnPinning,
         enableRowSelection: widget.data.tableRowSelection === true,
         enableSorting: widget.data.tableSorting !== false,
         enableColumnFilters: widget.data.tableFiltering === true,
@@ -617,63 +611,6 @@ const JsonTableCollection: FC = () => {
         [isAutoSize, headerWidths],
     );
 
-    // ── Column pinning styles helper ───────────────────────────────────────────
-
-    /**
-     * Computes sticky positioning styles for pinned columns.
-     * Returns styles for left/right pinned columns including position, offset, and z-index.
-     *
-     * @param column - The TanStack Table column to compute styles for
-     * @returns Object with sx styles for sticky positioning, or empty object if not pinned
-     */
-    const getPinnedColumnSx = useCallback(
-        (
-            column: Column<FlatRow>,
-        ): {
-            position?: 'sticky';
-            left?: number;
-            right?: number;
-            zIndex?: number;
-            backgroundColor?: string;
-        } => {
-            // Check if pinning is enabled and column is pinned
-            if (widget.data.tablePinning !== true) {
-                return {};
-            }
-
-            const isPinned = column.getIsPinned();
-            if (!isPinned) {
-                return {};
-            }
-
-            // Get the offset for pinned columns
-            // TanStack Table provides getStart/getAfter for computing offsets
-            const baseZIndex = 1; // Above non-pinned cells
-            const bgColor = theme.palette.background.paper;
-
-            if (isPinned === 'left') {
-                return {
-                    position: 'sticky',
-                    left: column.getStart('left'),
-                    zIndex: baseZIndex,
-                    backgroundColor: bgColor,
-                };
-            }
-
-            if (isPinned === 'right') {
-                return {
-                    position: 'sticky',
-                    right: column.getAfter('right'),
-                    zIndex: baseZIndex,
-                    backgroundColor: bgColor,
-                };
-            }
-
-            return {};
-        },
-        [widget.data.tablePinning, theme.palette.background.paper],
-    );
-
     const cellBaseSx = useMemo(
         () => ({
             ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
@@ -826,10 +763,6 @@ const JsonTableCollection: FC = () => {
                                                 const isSelectCol = header.column.id === '__select__';
                                                 const isFixed = !isAutoSize;
 
-                                                // Get pinned column styles for sticky positioning
-                                                const pinnedSx = getPinnedColumnSx(header.column);
-                                                const isPinned = header.column.getIsPinned();
-
                                                 return (
                                                     <TableCell
                                                         key={header.id}
@@ -840,12 +773,8 @@ const JsonTableCollection: FC = () => {
                                                         sx={{
                                                             width: getHeaderCellWidth(header),
                                                             minWidth: isSelectCol ? 48 : 40,
-                                                            // Use sticky position for pinned columns, relative for others
-                                                            position: isPinned ? 'sticky' : 'relative',
-                                                            // Higher z-index for pinned header cells to stay above body cells
-                                                            zIndex: isPinned ? 2 : undefined,
+                                                            position: 'relative',
                                                             ...headerCellSx,
-                                                            ...pinnedSx,
                                                         }}
                                                     >
                                                         {isSelectCol ? (
@@ -964,9 +893,6 @@ const JsonTableCollection: FC = () => {
                                     {widget.data.tableFiltering === true && (
                                         <TableRow>
                                             {table.getHeaderGroups()[0]?.headers.map(header => {
-                                                const pinnedSx = getPinnedColumnSx(header.column);
-                                                const isPinned = header.column.getIsPinned();
-
                                                 if (header.column.id === '__select__') {
                                                     return (
                                                         <TableCell
@@ -978,9 +904,6 @@ const JsonTableCollection: FC = () => {
                                                                 width: getHeaderCellWidth(header),
                                                                 py: 0.5,
                                                                 px: 0.5,
-                                                                position: isPinned ? 'sticky' : undefined,
-                                                                zIndex: isPinned ? 2 : undefined,
-                                                                ...pinnedSx,
                                                             }}
                                                         />
                                                     );
@@ -995,9 +918,6 @@ const JsonTableCollection: FC = () => {
                                                                 width: getHeaderCellWidth(header),
                                                                 py: 0.5,
                                                                 px: 0.5,
-                                                                position: isPinned ? 'sticky' : undefined,
-                                                                zIndex: isPinned ? 2 : undefined,
-                                                                ...pinnedSx,
                                                             }}
                                                         />
                                                     );
@@ -1014,9 +934,6 @@ const JsonTableCollection: FC = () => {
                                                             width: getHeaderCellWidth(header),
                                                             py: 0.5,
                                                             px: 0.5,
-                                                            position: isPinned ? 'sticky' : undefined,
-                                                            zIndex: isPinned ? 2 : undefined,
-                                                            ...pinnedSx,
                                                         }}
                                                     >
                                                         <Tooltip
@@ -1113,7 +1030,6 @@ const JsonTableCollection: FC = () => {
                                                     >
                                                         {row.getVisibleCells().map(cell => {
                                                             const isSelectCell = cell.column.id === '__select__';
-                                                            const pinnedSx = getPinnedColumnSx(cell.column);
                                                             return (
                                                                 <TableCell
                                                                     key={cell.id}
@@ -1121,7 +1037,6 @@ const JsonTableCollection: FC = () => {
                                                                     padding={isSelectCell ? 'checkbox' : 'normal'}
                                                                     sx={{
                                                                         ...cellBaseSx,
-                                                                        ...pinnedSx,
                                                                     }}
                                                                 >
                                                                     {flexRender(
@@ -1155,7 +1070,6 @@ const JsonTableCollection: FC = () => {
                                             >
                                                 {row.getVisibleCells().map(cell => {
                                                     const isSelectCell = cell.column.id === '__select__';
-                                                    const pinnedSx = getPinnedColumnSx(cell.column);
                                                     return (
                                                         <TableCell
                                                             key={cell.id}
@@ -1163,7 +1077,6 @@ const JsonTableCollection: FC = () => {
                                                             padding={isSelectCell ? 'checkbox' : 'normal'}
                                                             sx={{
                                                                 ...cellBaseSx,
-                                                                ...pinnedSx,
                                                             }}
                                                         >
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}

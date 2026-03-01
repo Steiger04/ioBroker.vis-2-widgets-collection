@@ -164,11 +164,4 @@ export interface ColumnConfigEntry {
      * - `'auto'`: Use global tableHiding setting (default behavior)
      */
     enableHiding?: boolean | 'auto';
-    /**
-     * Override global pinning setting for this column.
-     * - `true`: Can be pinned left/right
-     * - `false`: Cannot be pinned
-     * - `'auto'`: Use global tablePinning setting (default behavior)
-     */
-    enablePinning?: boolean | 'auto';
 }

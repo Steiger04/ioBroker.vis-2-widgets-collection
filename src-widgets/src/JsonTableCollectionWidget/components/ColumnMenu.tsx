@@ -1,10 +1,10 @@
 /**
- * Column header context menu for sorting, filtering, hiding, and pinning actions.
+ * Column header context menu for sorting, filtering, and hiding actions.
  *
  * @module JsonTableCollectionWidget/components/ColumnMenu
  * @remarks
  * Renders a context menu for column headers with conditional visibility
- * based on column capabilities (sortable, filterable, hideable, pinnable).
+ * based on column capabilities (sortable, filterable, hideable).
  * Only displays menu items that are actually available for the active column.
  * Includes a filter dialog for advanced filter configuration.
  */
@@ -15,9 +15,7 @@ import {
     ArrowDownward as ArrowDownwardIcon,
     Clear as ClearIcon,
     VisibilityOff as VisibilityOffIcon,
-    PushPin as PushPinIcon,
     FilterList as FilterListIcon,
-    PushPin,
 } from '@mui/icons-material';
 import type React from 'react';
 import { useState } from 'react';
@@ -43,12 +41,6 @@ export interface ColumnMenuProps {
         getCanFilter: () => boolean;
         /** Whether the column can be hidden */
         getCanHide?: () => boolean;
-        /** Whether the column can be pinned */
-        getCanPin?: () => boolean;
-        /** Get current pinning status: false | 'left' | 'right' */
-        getIsPinned?: () => false | 'left' | 'right';
-        /** Pin column to left or right, or false to unpin */
-        pin?: (position: 'left' | 'right' | false) => void;
         /** Set a filter value on the column */
         setFilterValue: (value: unknown) => void;
         /** Get the current filter value */
@@ -79,14 +71,13 @@ export interface ColumnMenuProps {
 }
 
 /**
- * Renders a context menu for column headers with sorting, filtering, hiding, and pinning actions.
+ * Renders a context menu for column headers with sorting, filtering, and hiding actions.
  *
  * Features:
  * - Conditionally renders menu items based on column capabilities
  * - Shows sort options only if column is sortable
  * - Shows filter options only if filtering is enabled and column is filterable
  * - Shows hide option only if column can be hidden
- * - Shows pin options only if column can be pinned
  * - Includes filter dialog for advanced filter configuration
  */
 function ColumnMenu({
@@ -108,11 +99,9 @@ function ColumnMenu({
     const canSort = activeColumn?.getCanSort?.() === true;
     const canFilter = tableFiltering && activeColumn?.getCanFilter?.() === true;
     const canHide = activeColumn?.getCanHide?.() === true;
-    const canPin = activeColumn?.getCanPin?.() === true;
-    const isPinned = activeColumn?.getIsPinned?.() ?? false;
     const hasFilter = activeColumnFilter !== undefined && activeColumnFilter !== null;
 
-    const hasVisibleItems = canSort || canFilter || canHide || canPin;
+    const hasVisibleItems = canSort || canFilter || canHide;
 
     if (!hasVisibleItems) {
         return null;
@@ -168,21 +157,6 @@ function ColumnMenu({
         onClose();
     };
 
-    const handlePinLeft = (): void => {
-        activeColumn?.pin?.('left');
-        onClose();
-    };
-
-    const handlePinRight = (): void => {
-        activeColumn?.pin?.('right');
-        onClose();
-    };
-
-    const handleUnpin = (): void => {
-        activeColumn?.pin?.(false);
-        onClose();
-    };
-
     return (
         <>
             <Menu
@@ -230,7 +204,7 @@ function ColumnMenu({
                         )}
                     </>
                 )}
-                {(canSort || canFilter) && (canHide || canPin) && <Divider />}
+                {(canSort || canFilter) && canHide && <Divider />}
                 {canHide && (
                     <MenuItem onClick={handleHideColumn}>
                         <ListItemIcon>
@@ -243,39 +217,6 @@ function ColumnMenu({
                     <MenuItem onClick={handleShowAllColumns}>
                         <Typography variant="body2">{Generic.t('json_table_show_all_columns')}</Typography>
                     </MenuItem>
-                )}
-                {canPin && (
-                    <>
-                        {isPinned ? (
-                            <MenuItem onClick={handleUnpin}>
-                                <ListItemIcon>
-                                    <PushPinIcon fontSize="small" />
-                                </ListItemIcon>
-                                <Typography variant="body2">{Generic.t('json_table_unpin')}</Typography>
-                            </MenuItem>
-                        ) : (
-                            <>
-                                <MenuItem onClick={handlePinLeft}>
-                                    <ListItemIcon>
-                                        <PushPin
-                                            fontSize="small"
-                                            sx={{ transform: 'rotate(-45deg)' }}
-                                        />
-                                    </ListItemIcon>
-                                    <Typography variant="body2">{Generic.t('json_table_pin_left')}</Typography>
-                                </MenuItem>
-                                <MenuItem onClick={handlePinRight}>
-                                    <ListItemIcon>
-                                        <PushPin
-                                            fontSize="small"
-                                            sx={{ transform: 'rotate(45deg)' }}
-                                        />
-                                    </ListItemIcon>
-                                    <Typography variant="body2">{Generic.t('json_table_pin_right')}</Typography>
-                                </MenuItem>
-                            </>
-                        )}
-                    </>
                 )}
             </Menu>
             {canFilter && activeColumn && filterDialogOpen && (

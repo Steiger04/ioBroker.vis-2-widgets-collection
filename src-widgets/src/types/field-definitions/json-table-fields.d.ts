@@ -66,9 +66,6 @@ export interface JsonTableFieldsRxData {
     /** Enable column hiding via column menu. @default true */
     tableHiding?: boolean;
 
-    /** Enable column pinning (freeze left/right). @default false */
-    tablePinning?: boolean;
-
     // ── Table Border (Tabellenrahmen) ───────────────────────────────
 
     /** Table outer border width in pixels (0-20). @default 0 */
