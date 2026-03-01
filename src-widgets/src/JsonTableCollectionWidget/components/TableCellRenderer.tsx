@@ -195,6 +195,7 @@ export function TableCellRenderer({ value, config }: TableCellRendererProps): Re
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
+                padding: '0 8px', // Padding here ensures background color covers the full cell area
                 ...bgSx,
             }}
         >

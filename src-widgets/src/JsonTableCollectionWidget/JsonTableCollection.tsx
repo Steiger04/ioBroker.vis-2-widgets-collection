@@ -557,7 +557,7 @@ const JsonTableCollection: FC = () => {
             overflow: 'hidden',
             height: effectiveRowHeight,
             maxHeight: effectiveRowHeight,
-            padding: '0 8px',
+            padding: 0, // Padding moved to TableCellRenderer for proper background color coverage
             verticalAlign: 'middle',
         }),
         [widget.data.tableCellFontSize, effectiveRowHeight],
