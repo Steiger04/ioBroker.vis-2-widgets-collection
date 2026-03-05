@@ -11,6 +11,7 @@ import CollectionBase from '../components/CollectionBase';
 import CollectionBaseImage from '../components/CollectionBaseImage';
 import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
+import useStyles from '../hooks/useStyles';
 import useElementDimensions from '../hooks/useElementDimensions';
 import useValueState from '../hooks/useValueState';
 import SafeImg from '../components/SafeImg';
@@ -20,6 +21,7 @@ import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
+import { cleanSx } from '../lib/helper/sxUtils';
 
 /** Computes background color styles for a menu item, handling both gradient and solid backgrounds. */
 function getMenuItemColorStyles(bgColor: string | null | undefined): Record<string, unknown> {
@@ -53,9 +55,11 @@ function SelectCollection(): React.ReactElement {
 
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget } = context;
+    const { borderStyles } = useStyles(widget.style);
     const cidObject = widget.data.cidObject;
     const oidObject = widget.data.oidObject;
     const { data, states } = useData('oid');
+
     const { value: oidValue, updateValue: setOidValueState } = useValueState('oid');
     const { updateValue: setCidValueState } = useValueState('cid');
 
@@ -122,6 +126,22 @@ function SelectCollection(): React.ReactElement {
                     value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
                     MenuProps={{
+                        PaperProps: {
+                            sx: {
+                                overflow: 'hidden',
+                                '& .MuiMenu-list': {
+                                    maxHeight: '100vh',
+                                    overflowY: 'auto',
+                                },
+                                ...(widget.data.noCard && {
+                                    '--Paper-overlay': 'none !important',
+                                    '--Paper-shadow': 'none !important',
+                                    boxShadow: 'none !important',
+                                }),
+                                background: data.frameBackground || (widget.data.noCard ? 'transparent' : undefined),
+                                ...cleanSx(borderStyles),
+                            },
+                        },
                         slotProps: {
                             backdrop: {
                                 style: { backgroundColor: 'transparent !important' },
@@ -129,27 +149,13 @@ function SelectCollection(): React.ReactElement {
                             root: {
                                 sx: {
                                     maxWidth: width,
-                                    mt: 0.3,
+                                    mt: 0.5,
 
                                     '& .MuiList-root': {
                                         py: 0,
                                     },
                                 },
                             },
-                            paper: widget.data.noCard
-                                ? {
-                                      sx: {
-                                          '--Paper-overlay': 'none !important',
-                                          '--Paper-shadow': 'none !important',
-                                          boxShadow: 'none !important',
-                                          background: data.frameBackground || 'transparent',
-                                      },
-                                  }
-                                : {
-                                      sx: {
-                                          background: data.frameBackground || undefined,
-                                      },
-                                  },
                         },
                     }}
                     sx={{
