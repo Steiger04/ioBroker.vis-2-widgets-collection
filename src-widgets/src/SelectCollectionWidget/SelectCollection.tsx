@@ -51,7 +51,7 @@ function getMenuItemColorStyles(bgColor: string | null | undefined): Record<stri
 
 function SelectCollection(): React.ReactElement {
     const contentRef = useRef<HTMLDivElement>(null);
-    const { width = 300 } = useElementDimensions(contentRef?.current);
+    const { width = 300 } = useElementDimensions(contentRef.current);
 
     const context = useContext(CollectionContext) as SelectCollectionContextProps;
     const { widget } = context;
@@ -168,65 +168,55 @@ function SelectCollection(): React.ReactElement {
                         },
                     }}
                 >
-                    {states.map((state, idx) => {
-                        return (
-                            <MenuItem
-                                key={String(state.value)}
-                                value={idx}
-                                sx={getMenuItemColorStyles(state.background)}
+                    {states.map((state, idx) => (
+                        <MenuItem
+                            key={String(state.value)}
+                            value={idx}
+                            sx={getMenuItemColorStyles(state.background)}
+                        >
+                            <Stack
+                                direction="row"
+                                spacing={state.icon ? 1 : 0}
+                                sx={{
+                                    alignItems: 'center',
+                                }}
                             >
-                                <Stack
-                                    direction="row"
-                                    spacing={state.icon ? 1 : 0}
-                                    sx={{
-                                        alignItems: 'center',
+                                <SafeImg
+                                    alt=""
+                                    src={state.icon}
+                                    style={{
+                                        position: 'relative',
+                                        top: `calc(0px - ${state.iconYOffset})`,
+                                        right: `calc(0px - ${state.iconXOffset})`,
+                                        height: state.iconSize,
+                                        ...getIconColorStyles(state.icon, state.iconColor, state.forceColorMask),
                                     }}
-                                >
-                                    <SafeImg
-                                        alt=""
-                                        src={state.icon}
-                                        style={{
-                                            position: 'relative',
-
-                                            top: `calc(0px - ${state.iconYOffset})`,
-                                            right: `calc(0px - ${state.iconXOffset})`,
-
-                                            height: state.iconSize,
-                                            ...getIconColorStyles(state.icon, state.iconColor, state.forceColorMask),
-                                        }}
-                                    />
-                                    <Typography
-                                        component={Box}
-                                        variant="subtitle2"
-                                        sx={{
-                                            whiteSpace: 'pre-wrap',
-                                            fontSize: state.valueSize,
-                                            textAlign: 'left',
-
-                                            background: gradientColor(state.textColor),
-                                            WebkitBackgroundClip: 'text',
-                                            backgroundClip: 'text',
-                                            color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
-
-                                            textTransform: 'none',
-
-                                            width: '100%',
-                                            height: '100%',
-
-                                            // px: 1,
-
-                                            flexGrow: 1,
-                                            alignContent: 'center',
-                                        }}
-                                        contentEditable="false"
-                                        dangerouslySetInnerHTML={{
-                                            __html: state.label ?? '',
-                                        }}
-                                    />
-                                </Stack>
-                            </MenuItem>
-                        );
-                    })}
+                                />
+                                <Typography
+                                    component={Box}
+                                    variant="subtitle2"
+                                    sx={{
+                                        whiteSpace: 'pre-wrap',
+                                        fontSize: state.valueSize,
+                                        textAlign: 'left',
+                                        background: gradientColor(state.textColor),
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: gradientColor(state.textColor) ? 'transparent' : state.textColor,
+                                        textTransform: 'none',
+                                        width: '100%',
+                                        height: '100%',
+                                        flexGrow: 1,
+                                        alignContent: 'center',
+                                    }}
+                                    contentEditable="false"
+                                    dangerouslySetInnerHTML={{
+                                        __html: state.label ?? '',
+                                    }}
+                                />
+                            </Stack>
+                        </MenuItem>
+                    ))}
                 </Select>
             </Box>
         </CollectionBase>
