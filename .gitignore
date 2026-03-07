@@ -21,11 +21,15 @@ tmp
 
 AGENTS.md
 
+.env
+
 # Claude Code
+.mcp.json
 .claude
 CLAUDE.md
 
 #kilocode
 .kilocode
 plans
+scripts
 .kilocodemodes
