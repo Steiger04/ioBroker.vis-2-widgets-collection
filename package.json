@@ -53,7 +53,13 @@
     "format": "prettier . --check",
     "formatfix": "prettier . --write",
     "i18n:check": "node scripts/i18n-sync.js",
+    "i18n:todos": "node scripts/i18n-sync.js --todos",
+    "i18n:todos:dry": "node scripts/i18n-sync.js --todos --dry-run",
     "i18n:fix": "node scripts/i18n-sync.js --fix",
+    "i18n:fix:dry": "node scripts/i18n-sync.js --fix --dry-run",
+    "i18n:fix:verbose": "node scripts/i18n-sync.js --fix --verbose",
+    "i18n:dedupe": "node scripts/i18n-sync.js --dedupe",
+    "i18n:dedupe:dry": "node scripts/i18n-sync.js --dedupe --dry-run",
     "i18n:report": "node scripts/i18n-sync.js --report",
     "i18n:sync": "node scripts/i18n-sync.js --fix"
   },
