@@ -1,7 +1,7 @@
 import { v as m, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { c as v, j as a, a as B, g as w, u as M, b as O, ay as _, d as F, s as H, W as n, e as V, r as U, m as E, i as z, X as I, __tla as __tla_1 } from "./useData-CmfZa3AT.js";
-import { S as L, __tla as __tla_2 } from "./SwitchBase-RTint6LI.js";
-let Z;
+import { c as v, j as a, a as B, g as w, u as M, b as O, aA as _, d as F, s as H, Y as n, e as V, r as U, m as E, i as z, Z as I, __tla as __tla_1 } from "./useData-B0iH0GQ1.js";
+import { S as L, __tla as __tla_2 } from "./SwitchBase-DurAKeKN.js";
+let X;
 let __tla = Promise.all([
   (() => {
     try {
@@ -26,13 +26,13 @@ let __tla = Promise.all([
     d: "M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
   }), "CheckBoxOutlineBlank"), T = v(a.jsx("path", {
     d: "M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-  }), "CheckBox"), W = v(a.jsx("path", {
+  }), "CheckBox"), A = v(a.jsx("path", {
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
   function D(e) {
     return w("MuiCheckbox", e);
   }
-  let h, X, q, A, G, J;
+  let h, W, Y, Z, q, G;
   h = B("MuiCheckbox", [
     "root",
     "checked",
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     "sizeSmall",
     "sizeMedium"
   ]);
-  X = (e) => {
+  W = (e) => {
     const { classes: o, indeterminate: t, color: s, size: c } = e, i = {
       root: [
         "root",
@@ -57,7 +57,7 @@ let __tla = Promise.all([
       ...l
     };
   };
-  q = H(L, {
+  Y = H(L, {
     shouldForwardProp: (e) => U(e) || e === "classes",
     name: "MuiCheckbox",
     slot: "Root",
@@ -122,22 +122,22 @@ let __tla = Promise.all([
       }
     ]
   })));
-  A = a.jsx(T, {});
-  G = a.jsx(N, {});
-  J = a.jsx(W, {});
-  Z = m.forwardRef(function(o, t) {
+  Z = a.jsx(T, {});
+  q = a.jsx(N, {});
+  G = a.jsx(A, {});
+  X = m.forwardRef(function(o, t) {
     const s = M({
       props: o,
       name: "MuiCheckbox"
-    }), { checkedIcon: c = A, color: i = "primary", icon: l = G, indeterminate: r = false, indeterminateIcon: x = J, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
+    }), { checkedIcon: c = Z, color: i = "primary", icon: l = q, indeterminate: r = false, indeterminateIcon: x = G, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
       ...s,
       disableRipple: C,
       color: i,
       indeterminate: r,
       size: p
-    }, y = X(d), u = k.input ?? P, [$, R] = O("root", {
+    }, y = W(d), u = k.input ?? P, [$, R] = O("root", {
       ref: t,
-      elementType: q,
+      elementType: Y,
       className: F(y.root, g),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
@@ -170,6 +170,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  Z as C,
+  X as C,
   __tla
 };

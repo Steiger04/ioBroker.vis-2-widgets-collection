@@ -1,12 +1,12 @@
-import { j as n, N as M, C, F as W, Q as T, n as B, q as F, x as O, y as P, o as f, R as D, K as w, S as R, v as G, T as N, w as u, i as b, G as z, z as S, A, E, __tla as __tla_0 } from "./useData-CmfZa3AT.js";
-import { u as y, d as L, __tla as __tla_1 } from "./useValueState-ClkqzFod.js";
+import { j as n, N as W, C, F as P, Q as T, n as F, R as O, q as B, x as D, y as R, o as f, U as G, K as w, V as N, S as z, v as A, T as E, w as u, i as b, G as H, z as S, A as L, E as U, __tla as __tla_0 } from "./useData-B0iH0GQ1.js";
+import { u as y, d as $, __tla as __tla_1 } from "./useValueState-C3aTOyBv.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { M as H, __tla as __tla_3 } from "./MenuItem-B7J5IVEW.js";
-import { S as U, __tla as __tla_4 } from "./Stack-CILRKVTU.js";
+import { M as Y, __tla as __tla_3 } from "./MenuItem-Bydf3SxN.js";
+import { S as q, __tla as __tla_4 } from "./Stack-B3LYfLLd.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./listItemTextClasses-B7h-lOg_.js";
-let k;
+import { __tla as __tla_5 } from "./listItemTextClasses-D9f94nOz.js";
+let j;
 let __tla = Promise.all([
   (() => {
     try {
@@ -45,7 +45,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const $ = () => [
+  const K = () => [
     {
       type: "custom",
       component: () => n.jsx(C, {
@@ -56,7 +56,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: M([
+      onChange: W([
         "boolean",
         "number",
         "string",
@@ -78,7 +78,7 @@ let __tla = Promise.all([
         ""
       ],
       noGradient: true,
-      component: (i, e, a, o) => n.jsx(W, {
+      component: (i, e, a, o) => n.jsx(P, {
         field: i,
         data: e,
         onDataChange: a,
@@ -86,7 +86,7 @@ let __tla = Promise.all([
       })
     }
   ];
-  function q(i) {
+  function Q(i) {
     const e = u(i), a = e ? w(i) : void 0, o = a ? b(a, 0.5) : i ? b(i, 0.5) : void 0;
     return {
       background: e,
@@ -105,13 +105,13 @@ let __tla = Promise.all([
       }
     };
   }
-  function K() {
-    const i = d.useRef(null), { width: e = 300 } = T(i == null ? void 0 : i.current), a = d.useContext(B), { widget: o } = a, p = o.data.cidObject, j = o.data.oidObject, { data: r, states: s } = F("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), _ = j == null ? void 0 : j.type, I = [
+  function X() {
+    const i = d.useRef(null), { width: e = 300 } = T(i.current), a = d.useContext(F), { widget: o } = a, { borderStyles: k } = O(o.style), p = o.data.cidObject, _ = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), I = _ == null ? void 0 : _.type, M = [
       "boolean",
       "number",
       "string",
       "mixed"
-    ].includes(_ || ""), x = d.useMemo(() => {
+    ].includes(I || ""), x = d.useMemo(() => {
       if (c == null) return -1;
       const t = String(c);
       return s.findIndex((l) => String(l.value) === t);
@@ -131,12 +131,12 @@ let __tla = Promise.all([
       m,
       g
     ]);
-    return n.jsxs(O, {
-      isValidType: I,
+    return n.jsxs(D, {
+      isValidType: M,
       data: r,
       oidValue: c,
       children: [
-        n.jsx(P, {
+        n.jsx(R, {
           data: r,
           widget: o
         }),
@@ -149,12 +149,28 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: n.jsx(D, {
+          children: n.jsx(G, {
             variant: "standard",
             disableUnderline: true,
             value: x !== -1 ? x : "",
             onChange: V,
             MenuProps: {
+              PaperProps: {
+                sx: {
+                  overflow: "hidden",
+                  "& .MuiMenu-list": {
+                    maxHeight: "100vh",
+                    overflowY: "auto"
+                  },
+                  ...o.data.noCard && {
+                    "--Paper-overlay": "none !important",
+                    "--Paper-shadow": "none !important",
+                    boxShadow: "none !important"
+                  },
+                  background: r.frameBackground || (o.data.noCard ? "transparent" : void 0),
+                  ...N(k)
+                }
+              },
               slotProps: {
                 backdrop: {
                   style: {
@@ -164,22 +180,10 @@ let __tla = Promise.all([
                 root: {
                   sx: {
                     maxWidth: e,
-                    mt: 0.3,
+                    mt: 0.5,
                     "& .MuiList-root": {
                       py: 0
                     }
-                  }
-                },
-                paper: o.data.noCard ? {
-                  sx: {
-                    "--Paper-overlay": "none !important",
-                    "--Paper-shadow": "none !important",
-                    boxShadow: "none !important",
-                    background: r.frameBackground || "transparent"
-                  }
-                } : {
-                  sx: {
-                    background: r.frameBackground || void 0
                   }
                 }
               }
@@ -192,17 +196,17 @@ let __tla = Promise.all([
                 color: w(o.data.arrowColor || r.textColor || r.iconColor)
               }
             },
-            children: s.map((t, l) => n.jsx(H, {
+            children: s.map((t, l) => n.jsx(Y, {
               value: l,
-              sx: q(t.background),
-              children: n.jsxs(U, {
+              sx: Q(t.background),
+              children: n.jsxs(q, {
                 direction: "row",
                 spacing: t.icon ? 1 : 0,
                 sx: {
                   alignItems: "center"
                 },
                 children: [
-                  n.jsx(R, {
+                  n.jsx(z, {
                     alt: "",
                     src: t.icon,
                     style: {
@@ -210,10 +214,10 @@ let __tla = Promise.all([
                       top: `calc(0px - ${t.iconYOffset})`,
                       right: `calc(0px - ${t.iconXOffset})`,
                       height: t.iconSize,
-                      ...G(t.icon, t.iconColor, t.forceColorMask)
+                      ...A(t.icon, t.iconColor, t.forceColorMask)
                     }
                   }),
-                  n.jsx(N, {
+                  n.jsx(E, {
                     component: f,
                     variant: "subtitle2",
                     sx: {
@@ -243,7 +247,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  k = class extends z {
+  j = class extends H {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -265,14 +269,14 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...A([
+              ...L([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
-              ...L(),
-              ...$()
+              ...$(),
+              ...K()
             ]
           },
           {
@@ -297,7 +301,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return k.getWidgetInfo();
+      return j.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -330,11 +334,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, E(this.wrapContent(n.jsx(K, {})), a);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, U(this.wrapContent(n.jsx(X, {})), a);
     }
   };
 });
 export {
   __tla,
-  k as default
+  j as default
 };

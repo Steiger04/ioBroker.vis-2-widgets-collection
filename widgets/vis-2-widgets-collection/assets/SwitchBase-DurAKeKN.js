@@ -1,5 +1,5 @@
-import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as J, a as K, a3 as Q, U as V, b as C, s as F, j as b, W as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./useData-CmfZa3AT.js";
+import { v as G, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { g as H, a as J, a5 as K, W as Q, b as C, s as F, j as b, Y as V, e as X, B as Z, r as ee, __tla as __tla_1 } from "./useData-B0iH0GQ1.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -16,9 +16,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function oe(t) {
-    return J("PrivateSwitchBase", t);
+    return H("PrivateSwitchBase", t);
   }
-  K("PrivateSwitchBase", [
+  J("PrivateSwitchBase", [
     "root",
     "checked",
     "disabled",
@@ -33,13 +33,13 @@ let __tla = Promise.all([
         "root",
         l && "checked",
         d && "disabled",
-        n && `edge${X(n)}`
+        n && `edge${V(n)}`
       ],
       input: [
         "input"
       ]
     };
-    return Y(c, oe, s);
+    return X(c, oe, s);
   };
   se = F(Z, {
     name: "MuiSwitchBase"
@@ -94,13 +94,13 @@ let __tla = Promise.all([
     padding: 0,
     zIndex: 1
   });
-  ie = H.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: U = false, tabIndex: j, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = Q({
+  ie = G.forwardRef(function(s, l) {
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = K({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
       state: "checked"
-    }), a = V(), T = (e) => {
+    }), a = Q(), T = (e) => {
       m && m(e), a && a.onFocus && a.onFocus(e);
     }, W = (e) => {
       g && g(e), a && a.onBlur && a.onBlur(e);
@@ -123,7 +123,7 @@ let __tla = Promise.all([
         input: _,
         ...L
       }
-    }, [$, A] = C("root", {
+    }, [Y, $] = C("root", {
       ref: l,
       elementType: se,
       className: w.root,
@@ -152,7 +152,7 @@ let __tla = Promise.all([
         role: void 0,
         tabIndex: null
       }
-    }), [D, G] = C("input", {
+    }), [A, D] = C("input", {
       ref: I,
       elementType: ae,
       className: w.input,
@@ -172,19 +172,19 @@ let __tla = Promise.all([
         id: O ? R : void 0,
         name: z,
         readOnly: v,
-        required: U,
-        tabIndex: j,
+        required: j,
+        tabIndex: U,
         type: i,
         ...i === "checkbox" && S === void 0 ? {} : {
           value: S
         }
       }
     });
-    return b.jsxs($, {
-      ...A,
+    return b.jsxs(Y, {
+      ...$,
       children: [
-        b.jsx(D, {
-          ...G
+        b.jsx(A, {
+          ...D
         }),
         B ? c : x
       ]

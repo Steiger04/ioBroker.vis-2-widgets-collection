@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, az as x, __tla as __tla_1 } from "./useData-CmfZa3AT.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-B7h-lOg_.js";
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, aB as x, __tla as __tla_1 } from "./useData-B0iH0GQ1.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-D9f94nOz.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -29,10 +29,10 @@ let __tla = Promise.all([
     "root",
     "alignItemsFlexStart"
   ]);
-  function z(e) {
+  function D(e) {
     return k("MuiMenuItem", e);
   }
-  let n, D, E, H;
+  let n, E, H, z;
   n = O("MuiMenuItem", [
     "root",
     "focusVisible",
@@ -42,7 +42,7 @@ let __tla = Promise.all([
     "gutters",
     "selected"
   ]);
-  D = (e, t) => {
+  E = (e, t) => {
     const { ownerState: a } = e;
     return [
       t.root,
@@ -51,7 +51,7 @@ let __tla = Promise.all([
       !a.disableGutters && t.gutters
     ];
   };
-  E = (e) => {
+  H = (e) => {
     const { disabled: t, dense: a, divider: s, disableGutters: r, selected: d, classes: o } = e, i = P({
       root: [
         "root",
@@ -61,17 +61,17 @@ let __tla = Promise.all([
         s && "divider",
         d && "selected"
       ]
-    }, z, o);
+    }, D, o);
     return {
       ...o,
       ...i
     };
   };
-  H = F(U, {
+  z = F(U, {
     shouldForwardProp: (e) => G(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
-    overridesResolver: D
+    overridesResolver: E
   })(N(({ theme: e }) => ({
     ...e.typography.body1,
     display: "flex",
@@ -167,7 +167,7 @@ let __tla = Promise.all([
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: B = "menuitem", tabIndex: v, className: S, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -185,17 +185,17 @@ let __tla = Promise.all([
       dense: m.dense,
       divider: g,
       disableGutters: i
-    }, u = E(s), w = j(p, a);
+    }, u = H(s), w = j(p, a);
     let b;
     return s.disabled || (b = v !== void 0 ? v : -1), C.jsx(y.Provider, {
       value: m,
-      children: C.jsx(H, {
+      children: C.jsx(z, {
         ref: w,
-        role: S,
+        role: B,
         tabIndex: b,
         component: d,
         focusVisibleClassName: I(u.focusVisible, R),
-        className: I(u.root, B),
+        className: I(u.root, S),
         ...L,
         ownerState: _,
         classes: u

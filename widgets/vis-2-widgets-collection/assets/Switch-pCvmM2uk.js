@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, W as i, e as O, m as d, i as m, X as D, M as I, a4 as N, __tla as __tla_1 } from "./useData-CmfZa3AT.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-RTint6LI.js";
-let H;
+import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, Y as i, e as O, m as d, i as m, Z as D, M as I, a6 as N, __tla as __tla_1 } from "./useData-B0iH0GQ1.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-DurAKeKN.js";
+let q;
 let __tla = Promise.all([
   (() => {
     try {
@@ -22,10 +22,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  function X(t) {
+  function A(t) {
     return M("MuiSwitch", t);
   }
-  let o, A, E, F, W, L;
+  let o, E, F, X, L, V;
   o = P("MuiSwitch", [
     "root",
     "edgeStart",
@@ -41,7 +41,7 @@ let __tla = Promise.all([
     "thumb",
     "track"
   ]);
-  A = (t) => {
+  E = (t) => {
     const { classes: a, edge: s, size: l, color: h, checked: w, disabled: g } = t, v = {
       root: [
         "root",
@@ -63,13 +63,13 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = O(v, X, a);
+    }, b = O(v, A, a);
     return {
       ...a,
       ...b
     };
   };
-  E = u("span", {
+  F = u("span", {
     name: "MuiSwitch",
     slot: "Root",
     overridesResolver: (t, a) => {
@@ -133,7 +133,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  F = u(U, {
+  X = u(U, {
     name: "MuiSwitch",
     slot: "SwitchBase",
     overridesResolver: (t, a) => {
@@ -208,7 +208,7 @@ let __tla = Promise.all([
       }))
     ]
   })));
-  W = u("span", {
+  L = u("span", {
     name: "MuiSwitch",
     slot: "Track",
     overridesResolver: (t, a) => a.track
@@ -226,7 +226,7 @@ let __tla = Promise.all([
     backgroundColor: t.vars ? t.vars.palette.common.onBackground : `${t.palette.mode === "light" ? t.palette.common.black : t.palette.common.white}`,
     opacity: t.vars ? t.vars.opacity.switchTrack : `${t.palette.mode === "light" ? 0.38 : 0.3}`
   })));
-  L = u("span", {
+  V = u("span", {
     name: "MuiSwitch",
     slot: "Thumb",
     overridesResolver: (t, a) => a.thumb
@@ -237,7 +237,7 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  H = T.forwardRef(function(a, s) {
+  q = T.forwardRef(function(a, s) {
     const l = j({
       props: a,
       name: "MuiSwitch"
@@ -246,12 +246,12 @@ let __tla = Promise.all([
       color: w,
       edge: g,
       size: v
-    }, n = A(r), S = {
+    }, n = E(r), S = {
       slots: c,
       slotProps: e
     }, [f, x] = k("root", {
       className: _(n.root, h),
-      elementType: E,
+      elementType: F,
       externalForwardedProps: S,
       ownerState: r,
       additionalProps: {
@@ -259,21 +259,21 @@ let __tla = Promise.all([
       }
     }), [C, B] = k("thumb", {
       className: n.thumb,
-      elementType: L,
+      elementType: V,
       externalForwardedProps: S,
       ownerState: r
     }), $ = p.jsx(C, {
       ...B
     }), [z, R] = k("track", {
       className: n.track,
-      elementType: W,
+      elementType: L,
       externalForwardedProps: S,
       ownerState: r
     });
     return p.jsxs(f, {
       ...x,
       children: [
-        p.jsx(F, {
+        p.jsx(X, {
           type: "checkbox",
           icon: $,
           checkedIcon: $,
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  H as S,
+  q as S,
   __tla
 };

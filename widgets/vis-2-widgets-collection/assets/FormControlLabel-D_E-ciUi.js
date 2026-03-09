@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as U, g as A, u as D, U as E, aA as W, b as z, T as P, j as c, d as v, s as x, W as F, e as B, m as L, __tla as __tla_1 } from "./useData-CmfZa3AT.js";
+import { a as D, g as U, u as A, W as E, aC as W, b as z, T as P, j as c, d as v, s as x, Y as F, e as B, m as L, __tla as __tla_1 } from "./useData-B0iH0GQ1.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -16,10 +16,10 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function H(e) {
-    return A("MuiFormControlLabel", e);
+    return U("MuiFormControlLabel", e);
   }
-  let t, I, G, J;
-  t = U("MuiFormControlLabel", [
+  let t, I, Y, G;
+  t = D("MuiFormControlLabel", [
     "root",
     "labelPlacementStart",
     "labelPlacementTop",
@@ -50,7 +50,7 @@ let __tla = Promise.all([
     };
     return B(m, H, o);
   };
-  G = x("label", {
+  Y = x("label", {
     name: "MuiFormControlLabel",
     slot: "Root",
     overridesResolver: (e, o) => {
@@ -113,7 +113,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  J = x("span", {
+  G = x("span", {
     name: "MuiFormControlLabel",
     slot: "Asterisk",
     overridesResolver: (e, o) => o.asterisk
@@ -123,10 +123,10 @@ let __tla = Promise.all([
     }
   })));
   Z = y.forwardRef(function(o, s) {
-    const r = D({
+    const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: T, labelPlacement: _ = "end", name: O, onChange: Q, required: k, slots: q = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: J, label: T, labelPlacement: _ = "end", name: K, onChange: O, required: k, slots: q = {}, slotProps: $ = {}, value: Q, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -168,7 +168,7 @@ let __tla = Promise.all([
       ...h,
       className: v(u.label, h == null ? void 0 : h.className),
       children: l
-    })), c.jsxs(G, {
+    })), c.jsxs(Y, {
       className: v(u.root, d),
       ownerState: n,
       ref: s,
@@ -178,7 +178,7 @@ let __tla = Promise.all([
         b ? c.jsxs("div", {
           children: [
             l,
-            c.jsxs(J, {
+            c.jsxs(G, {
               ownerState: n,
               "aria-hidden": true,
               className: u.asterisk,
