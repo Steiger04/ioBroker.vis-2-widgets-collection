@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "news": {
+      "2.4.1": {
+        "en": "Add HTML rendering support for table cells of Json Table\nBug fixing",
+        "de": "HTML-Rendering-Unterstützung für Tabellenzellen von Json Table hinzufügen\nFehlerbehebung",
+        "ru": "Добавить поддержку HTML-рендеринга для ячеек таблицы Json Table\nИсправление клопов",
+        "pt": "Adicionar suporte de renderização HTML para as células de tabela do Json Table\nResolução de erros",
+        "nl": "HTML-weergaveondersteuning voor tabelcellen van Json Table toevoegen\nBugfixing",
+        "fr": "Ajouter un support de rendu HTML pour les cellules de table de Json Table\nCorrection des bogues",
+        "it": "Aggiungi supporto di rendering HTML per le celle della tabella Json\nCorrezione di bug",
+        "es": "Add HTML rendering support for table cells of Json Table\nCorrección de errores",
+        "pl": "Dodaj obsługę renderowania HTML dla komórek tabeli Json Table\nNaprawianie błędów",
+        "uk": "Додавання HTML рендерингової підтримки для настільних клітин Json Table\nВиправлення помилок",
+        "zh-cn": "为 Json 表格的表格单元格添加 HTML 渲染支持\n修复错误"
+      },
       "2.4.0": {
         "en": "JSON Table added\nBug fixing",
         "de": "JSON Tabelle hinzugefügt\nFehlerbehebung",
@@ -80,19 +93,6 @@
         "pl": "Kolor widget suwak dla min / max ikona zoptymalizowana",
         "uk": "Колір віджету Slider для min / макс оптимізований",
         "zh-cn": "分钟/最大图标优化的滑动部件颜色"
-      },
-      "2.2.0": {
-        "en": "CollectionWidgets optimized and expanded",
-        "de": "CollectionWidgets optimiert und erweitert",
-        "ru": "CollectionWidgets оптимизирована и расширена",
-        "pt": "ColectionWidgets otimizado e expandido",
-        "nl": "CollectieWidgets geoptimaliseerd en uitgebreid",
-        "fr": "CollectionWidgets optimisé et élargi",
-        "it": "CollectionWidget ottimizzati e ampliati",
-        "es": "CollectionWidgets optimizados y ampliados",
-        "pl": "CollectionWidgets zoptymalizowane i rozszerzone",
-        "uk": "КолекціяОптимізоване та розширене",
-        "zh-cn": "优化和扩大收藏部件"
       }
     },
     "titleLang": {
