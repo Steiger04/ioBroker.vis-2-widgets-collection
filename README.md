@@ -61,6 +61,11 @@
 -->
 
 ## Changelog
+
+### __WORK IN PROGRESS__
+- (steiger04) Add HTML rendering support for table cells of Json Table
+- (steiger04) Bug fixing
+
 ### 2.4.0 (2026-03-01)
 - (steiger04) JSON Table added
 - (steiger04) Bug fixing

@@ -10693,12 +10693,6 @@ let __tla = Promise.all([
         onDataChange: n,
         props: o
       })
-    },
-    {
-      name: "tableCellFontSize",
-      type: "number",
-      label: "json_table_cell_font_size",
-      min: 8
     }
   ];
   function jt(e, t) {
@@ -13281,8 +13275,8 @@ let __tla = Promise.all([
       isTruncated: n
     };
   }
-  function rs({ value: e, config: t }) {
-    const { displayValue: n, textSx: o, bgSx: r, isTruncated: s } = m.useMemo(() => kp(e, t), [
+  function rs({ value: e, config: t, valueSize: n }) {
+    const { displayValue: o, textSx: r, bgSx: s, isTruncated: i } = m.useMemo(() => kp(e, t), [
       e,
       t
     ]);
@@ -13294,23 +13288,27 @@ let __tla = Promise.all([
         alignItems: "center",
         gap: 0.5,
         padding: "0 8px",
-        ...r
+        ...s
       },
       children: [
         c.jsx(T, {
           variant: "body2",
-          component: "span",
-          noWrap: true,
-          title: n,
+          component: L,
+          title: o,
           sx: {
             flex: 1,
             minWidth: 0,
             lineHeight: "inherit",
-            ...o
+            ...n && {
+              fontSize: n
+            },
+            ...r
           },
-          children: n
+          dangerouslySetInnerHTML: {
+            __html: o ?? ""
+          }
         }),
-        s && c.jsx(ft, {
+        i && c.jsx(ft, {
           label: "JSON",
           size: "small",
           sx: {
@@ -14154,10 +14152,12 @@ let __tla = Promise.all([
       },
       renderConfiguredCell: (D, A) => c.jsx(rs, {
         value: D,
-        config: A
+        config: A,
+        valueSize: r.valueSize
       }),
       renderAutoDetectedCell: (D) => c.jsx(rs, {
-        value: D
+        value: D,
+        valueSize: r.valueSize
       }),
       renderSelectionHeader: (D) => c.jsx(Cn, {
         size: "small",
@@ -14178,7 +14178,8 @@ let __tla = Promise.all([
       n.data.tableSorting,
       j,
       n.data.tableRowSelection,
-      n.data.tableHiding
+      n.data.tableHiding,
+      r.valueSize
     ]), w = n.data.tableAutoSize === true, { sorting: R, columnFilters: M, globalFilter: F, rowSelection: I, columnSizing: P, pagination: U, effectivePagination: k, columnVisibility: W, setSorting: Y, setColumnFilters: q, setGlobalFilter: E, setRowSelection: S, setColumnSizing: z, setPagination: O, setColumnVisibility: H, pageSizeOptions: Z, showAllColumns: Q } = Op({
       widgetId: o,
       columnConfig: y,
@@ -14293,6 +14294,7 @@ let __tla = Promise.all([
       w
     ]), Qe = n.data.tableHeaderBgColor, $e = n.data.tableHeaderTextColor, Ee = n.data.tableHeaderFontSize, At = m.useMemo(() => ({
       height: _,
+      padding: 0,
       whiteSpace: "nowrap",
       ...$e && {
         color: $e
@@ -14368,16 +14370,12 @@ let __tla = Promise.all([
       w,
       ae
     ]), ke = m.useMemo(() => ({
-      ...n.data.tableCellFontSize && {
-        fontSize: `${n.data.tableCellFontSize}px`
-      },
       overflow: "hidden",
       height: x,
       maxHeight: x,
       padding: 0,
       verticalAlign: "middle"
     }), [
-      n.data.tableCellFontSize,
       x
     ]), tt = n.data.evenRowColor || null, Ue = n.data.oddRowColor || null, _t = tt ? Et(tt) : null, Pn = Ue ? Et(Ue) : null, Bt = m.useCallback((D) => {
       const A = D % 2 === 0, K = A ? tt : Ue, Ce = A ? _t : Pn;
@@ -14724,7 +14722,6 @@ let __tla = Promise.all([
     "tableHeaderTextColor",
     "tableHeaderFontSize",
     "tableStripedColor",
-    "tableCellFontSize",
     "tableMaxDepth"
   ];
   Go = class extends b {
