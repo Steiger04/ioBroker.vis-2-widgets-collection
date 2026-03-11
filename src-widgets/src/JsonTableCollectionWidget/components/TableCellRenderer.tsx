@@ -204,8 +204,7 @@ export function TableCellRenderer({ value, config, valueSize }: TableCellRendere
         >
             <Typography
                 variant="body2"
-                component="span"
-                noWrap
+                component={Box}
                 title={displayValue}
                 sx={{
                     flex: 1,
@@ -214,9 +213,10 @@ export function TableCellRenderer({ value, config, valueSize }: TableCellRendere
                     ...(valueSize && { fontSize: valueSize }),
                     ...textSx,
                 }}
-            >
-                {displayValue}
-            </Typography>
+                dangerouslySetInnerHTML={{
+                    __html: displayValue ?? '',
+                }}
+            />
             {/* FIX-P3: Show truncated badge for object/array values */}
             {isTruncated && (
                 <Chip
