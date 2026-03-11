@@ -440,6 +440,7 @@ const JsonTableCollection: FC = () => {
     const headerCellSx = useMemo(
         () => ({
             height: effectiveHeaderHeight,
+            padding: 0,
             whiteSpace: 'nowrap' as const,
             ...(headerTextColor && { color: headerTextColor }),
             ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
