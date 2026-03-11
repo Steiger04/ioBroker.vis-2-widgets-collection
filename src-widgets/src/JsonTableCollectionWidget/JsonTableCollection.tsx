@@ -217,9 +217,15 @@ const JsonTableCollection: FC = () => {
                 <TableCellRenderer
                     value={value}
                     config={config}
+                    valueSize={data.valueSize}
                 />
             ),
-            renderAutoDetectedCell: value => <TableCellRenderer value={value} />,
+            renderAutoDetectedCell: value => (
+                <TableCellRenderer
+                    value={value}
+                    valueSize={data.valueSize}
+                />
+            ),
             renderSelectionHeader: table => (
                 <Checkbox
                     size="small"
@@ -245,6 +251,7 @@ const JsonTableCollection: FC = () => {
         canUserAccessColumnFiltering,
         widget.data.tableRowSelection,
         widget.data.tableHiding,
+        data.valueSize,
     ]);
 
     // ── Table state via custom hook ─────────────────────────────────────────────
@@ -554,14 +561,14 @@ const JsonTableCollection: FC = () => {
 
     const cellBaseSx = useMemo(
         () => ({
-            ...(widget.data.tableCellFontSize && { fontSize: `${widget.data.tableCellFontSize}px` }),
+            // fontSize removed - applied directly to Typography in TableCellRenderer
             overflow: 'hidden',
             height: effectiveRowHeight,
             maxHeight: effectiveRowHeight,
             padding: 0, // Padding moved to TableCellRenderer for proper background color coverage
             verticalAlign: 'middle',
         }),
-        [widget.data.tableCellFontSize, effectiveRowHeight],
+        [effectiveRowHeight],
     );
 
     const evenRowColorValue = widget.data.evenRowColor || null;

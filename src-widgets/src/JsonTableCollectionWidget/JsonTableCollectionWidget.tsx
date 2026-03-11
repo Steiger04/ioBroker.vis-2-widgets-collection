@@ -43,7 +43,6 @@ const JSON_TABLE_DATA_FIELDS = [
     'tableHeaderTextColor',
     'tableHeaderFontSize',
     'tableStripedColor',
-    'tableCellFontSize',
     'tableMaxDepth',
 ];
 

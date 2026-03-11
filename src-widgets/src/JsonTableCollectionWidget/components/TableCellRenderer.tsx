@@ -42,6 +42,8 @@ export interface TableCellRendererProps {
     value: unknown;
     /** Optional column configuration for formatting and styling */
     config?: ColumnConfigEntry;
+    /** Optional font size for the cell text (e.g., "12px", "1rem") */
+    valueSize?: string | null;
 }
 
 // ── Helper: Build cell content with formatting and styling ───────────
@@ -173,6 +175,7 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
  * @param props - Component props
  * @param props.value - Raw cell value
  * @param props.config - Optional column configuration
+ * @param props.valueSize - Optional font size for the cell text
  * @returns JSX element with formatted and styled cell content
  * @example
  * ```tsx
@@ -183,7 +186,7 @@ export function buildCellContent(rawValue: unknown, cfg?: ColumnConfigEntry): Ce
  * <TableCellRenderer value="simple text" />
  * ```
  */
-export function TableCellRenderer({ value, config }: TableCellRendererProps): React.JSX.Element {
+export function TableCellRenderer({ value, config, valueSize }: TableCellRendererProps): React.JSX.Element {
     // FIX-P3: Extract isTruncated flag from buildCellContent
     const { displayValue, textSx, bgSx, isTruncated } = useMemo(() => buildCellContent(value, config), [value, config]);
 
@@ -204,7 +207,13 @@ export function TableCellRenderer({ value, config }: TableCellRendererProps): Re
                 component="span"
                 noWrap
                 title={displayValue}
-                sx={{ flex: 1, minWidth: 0, lineHeight: 'inherit', ...textSx }}
+                sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    lineHeight: 'inherit',
+                    ...(valueSize && { fontSize: valueSize }),
+                    ...textSx,
+                }}
             >
                 {displayValue}
             </Typography>

@@ -140,9 +140,6 @@ export interface JsonTableFieldsRxData {
     /** Background color for odd rows (1, 3, 5, ...). */
     oddRowColor?: string;
 
-    /** Cell font size in pixels. */
-    tableCellFontSize?: number;
-
     // ── Column Configuration ────────────────────────────────────────
 
     /**

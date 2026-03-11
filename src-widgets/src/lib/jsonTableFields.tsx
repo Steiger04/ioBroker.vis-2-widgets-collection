@@ -435,12 +435,6 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
             />
         ),
     },
-    {
-        name: 'tableCellFontSize',
-        type: 'number',
-        label: 'json_table_cell_font_size',
-        min: 8,
-    },
 ];
 
 export default jsonTableFields;

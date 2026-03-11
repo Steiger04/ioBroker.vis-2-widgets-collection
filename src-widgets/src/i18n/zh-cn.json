@@ -250,7 +250,6 @@
     "json_table_boolean_format": "布尔格式",
     "json_table_boolean_true": "真值标签",
     "json_table_borders": "垂直/水平边框",
-    "json_table_cell_font_size": "单元格字体大小",
     "json_table_cell_style": "行样式",
     "json_table_cell_style_mode_all": "所有规则",
     "json_table_cell_style_mode_first": "首个规则",
