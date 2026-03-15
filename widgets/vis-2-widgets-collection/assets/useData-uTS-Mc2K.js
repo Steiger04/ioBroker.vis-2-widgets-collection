@@ -10516,6 +10516,9 @@ export default theme;`;
   Br = h.createContext({});
   function BC({ children: A, context: e }) {
     const t = e.theme, r = e.widget, { fontStyles: n, textStyles: o } = Ps(r.style || {}), i = h.useMemo(() => si(ZA(t, {
+      cssVariables: {
+        cssVarPrefix: "collection"
+      },
       components: {
         MuiTypography: {
           styleOverrides: {

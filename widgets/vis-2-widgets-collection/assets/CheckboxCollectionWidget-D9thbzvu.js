@@ -1,13 +1,13 @@
-import { j as o, C as n, n as C, q as I, x as v, y as w, o as s, T as S, w as c, S as d, v as r, G as f, z as x, A as M, E as k, __tla as __tla_0 } from "./useData-B0iH0GQ1.js";
-import { u as j, d as D, __tla as __tla_1 } from "./useValueState-C3aTOyBv.js";
-import { v as A, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { j as a, C as d, n as C, q as I, v, x as f, y as w, o as S, T as M, w as k, S as j, G as D, z as r, A, E as _, __tla as __tla_0 } from "./useData-uTS-Mc2K.js";
+import { u as W, d as T, __tla as __tla_1 } from "./useValueState-54rA2xg2.js";
+import { v as s, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { u as L, __tla as __tla_3 } from "./useHtmlValue-3ISCcM5X.js";
-import { F as _, __tla as __tla_4 } from "./FormControlLabel-D_E-ciUi.js";
-import { C as P, __tla as __tla_5 } from "./Checkbox-BQh4uDkD.js";
+import { F as N, __tla as __tla_4 } from "./FormControlLabel-BGTXlHS2.js";
+import { C as P, __tla as __tla_5 } from "./Checkbox-l_ycM_Z4.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_6 } from "./SwitchBase-DurAKeKN.js";
-let p;
+import { __tla as __tla_6 } from "./SwitchBase-DoVdnV6C.js";
+let u;
 let __tla = Promise.all([
   (() => {
     try {
@@ -52,10 +52,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const W = () => [
+  const V = () => [
     {
       type: "custom",
-      component: () => o.jsx(n, {
+      component: () => a.jsx(d, {
         dividerText: "label"
       })
     },
@@ -92,29 +92,66 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => o.jsx(n, {})
+      component: () => a.jsx(d, {})
     },
     {
       name: "onlyDisplay",
       type: "checkbox",
       label: "only_display",
-      disabled: (i) => !i.write,
+      disabled: (o) => !o.write,
       default: false,
-      hidden: (i) => !i.write
+      hidden: (o) => !o.write
     }
-  ], m = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==", h = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==";
-  function T() {
-    const i = A.useContext(C), { widget: t, theme: l } = i, b = t.data.oidObject, { data: e } = I("oid"), { value: a, updateValue: g } = j("oid"), u = (b == null ? void 0 : b.type) === "boolean", y = L(a, t, e);
-    return o.jsxs(v, {
-      isValidType: u,
+  ], h = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSAzSDVhMiAyIDAgMCAwLTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yem0tOSAxNGwtNS01bDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==", G = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xOSA1djE0SDVWNWgxNG0wLTJINWMtMS4xIDAtMiAuOS0yIDJ2MTRjMCAxLjEuOSAyIDIgMmgxNGMxLjEgMCAyLS45IDItMlY1YzAtMS4xLS45LTItMi0yeiIvPjwvc3ZnPg==";
+  function O(o) {
+    if (!o) return {
+      color: void 0
+    };
+    const t = k(o);
+    return t ? {
+      background: t,
+      WebkitBackgroundClip: "text",
+      backgroundClip: "text",
+      color: "transparent"
+    } : {
+      color: o
+    };
+  }
+  function x(o, t, i) {
+    const n = o ? h : G;
+    return a.jsx(j, {
+      alt: "",
+      src: t.icon || n,
+      style: i
+    });
+  }
+  function F() {
+    const o = s.useContext(C);
+    if (!o) throw new Error("CheckboxCollection must be used within a CollectionProvider");
+    const t = o, { widget: i, theme: n } = t, p = i.data.oidObject, { data: e } = I("oid"), { value: l, updateValue: m } = W("oid"), g = (p == null ? void 0 : p.type) === "boolean", b = L(l, i, e), c = s.useMemo(() => ({
+      objectFit: "contain",
+      width: `calc(100% * (${e.iconSize} / 24px))`,
+      height: `calc(100% * (${e.iconSize} / 24px))`,
+      ...v(e.icon || h, e.iconColor || n.palette.primary.main, e.forceColorMask)
+    }), [
+      e.iconSize,
+      e.icon,
+      e.iconColor,
+      e.forceColorMask,
+      n.palette.primary.main
+    ]), y = s.useMemo(() => O(e.textColor), [
+      e.textColor
+    ]);
+    return a.jsxs(f, {
+      isValidType: g,
       data: e,
-      oidValue: a,
+      oidValue: l,
       children: [
-        o.jsx(w, {
+        a.jsx(w, {
           data: e,
-          widget: t
+          widget: i
         }),
-        o.jsx(s, {
+        a.jsx(S, {
           sx: {
             width: "100%",
             height: "100%",
@@ -122,50 +159,21 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: a !== void 0 && o.jsx(_, {
-            labelPlacement: t.data.checkboxLabelPlacement,
+          children: l !== void 0 && a.jsx(N, {
+            labelPlacement: i.data.checkboxLabelPlacement,
             sx: {
               width: "100%",
               height: "100%",
               display: "flex",
-              "&.MuiFormControlLabel-labelPlacementStart": {
-                m: 0
-              },
-              "&.MuiFormControlLabel-labelPlacementEnd": {
-                m: 0
-              },
-              "&.MuiFormControlLabel-labelPlacementTop": {
-                m: 0
-              },
-              "&.MuiFormControlLabel-labelPlacementBottom": {
-                m: 0
-              }
+              m: 0
             },
-            control: o.jsx(P, {
-              disabled: t.data.onlyDisplay,
+            control: a.jsx(P, {
+              disabled: i.data.onlyDisplay,
               disableRipple: true,
-              checked: !!a,
-              onChange: () => g(!a),
-              checkedIcon: o.jsx(d, {
-                alt: "",
-                src: e.icon || m,
-                style: {
-                  objectFit: "contain",
-                  width: `calc(100% * (${e.iconSize} / 24px))`,
-                  height: `calc(100% * (${e.iconSize} / 24px))`,
-                  ...r(e.icon || m, e.iconColor || l.palette.primary.main, e.forceColorMask)
-                }
-              }),
-              icon: o.jsx(d, {
-                alt: "",
-                src: e.icon || h,
-                style: {
-                  objectFit: "contain",
-                  width: `calc(100% * (${e.iconSize} / 24px))`,
-                  height: `calc(100% * (${e.iconSize} / 24px))`,
-                  ...r(e.icon || h, e.iconColor || l.palette.primary.main, e.forceColorMask)
-                }
-              }),
+              checked: !!l,
+              onChange: () => m(!l),
+              checkedIcon: x(true, e, c),
+              icon: x(false, e, c),
               sx: {
                 left: e.iconXOffset,
                 bottom: e.iconYOffset,
@@ -180,17 +188,14 @@ let __tla = Promise.all([
                 }
               }
             }),
-            label: !t.data.withoutLabel && o.jsx(S, {
-              component: s,
+            label: !i.data.withoutLabel && a.jsx(M, {
+              component: "div",
               variant: "body2",
               sx: {
                 fontSize: e.valueSize,
                 textAlign: "center",
                 bgcolor: "transparent",
-                background: c(e.textColor),
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: c(e.textColor) ? "transparent" : e.textColor,
+                ...y,
                 textTransform: "none",
                 px: 1,
                 pl: 0,
@@ -211,7 +216,7 @@ let __tla = Promise.all([
                 }
               },
               dangerouslySetInnerHTML: {
-                __html: `<div style="text-align: left; display: inline-block; width: 100%;">${y || ""}</div>`
+                __html: `<div style="text-align: left; display: inline-block; width: 100%;">${b || ""}</div>`
               }
             })
           })
@@ -219,7 +224,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  p = class extends f {
+  u = class extends D {
     static getWidgetInfo() {
       return {
         id: "tplCheckboxCollectionWidget",
@@ -232,18 +237,18 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...x()
+              ...r()
             ]
           },
           {
             name: "checkbox",
             label: "group_checkbox",
             fields: [
-              ...M([
+              ...A([
                 "boolean"
               ]),
-              ...D(),
-              ...W()
+              ...T(),
+              ...V()
             ]
           },
           {
@@ -252,7 +257,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...x({
+              ...r({
                 groupName: "",
                 allFields: false
               })
@@ -268,7 +273,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return p.getWidgetInfo();
+      return u.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -276,14 +281,14 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(t, l) {
+    onStateUpdated(t, i) {
     }
     componentDidMount() {
       super.componentDidMount();
     }
     renderWidgetBody(t) {
       super.renderWidgetBody(t);
-      const l = {
+      const i = {
         id: t.id,
         refService: t.refService,
         style: t.style,
@@ -301,11 +306,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, k(this.wrapContent(o.jsx(T, {})), l);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, _(this.wrapContent(a.jsx(F, {})), i);
     }
   };
 });
 export {
   __tla,
-  p as default
+  u as default
 };

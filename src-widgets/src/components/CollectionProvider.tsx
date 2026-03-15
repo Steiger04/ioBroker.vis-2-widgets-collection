@@ -48,6 +48,7 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     const _theme = useMemo(() => {
         return createTheme(
             deepmerge(theme, {
+                cssVariables: { cssVarPrefix: 'collection' },
                 components: {
                     MuiTypography: {
                         styleOverrides: {

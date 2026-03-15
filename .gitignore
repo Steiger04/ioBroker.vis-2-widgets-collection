@@ -11,6 +11,7 @@ src-widgets/node_modules
 
 # /src-widgets/package-lock.json
 # /package-lock.json
+skills-lock.json
 
 tmp
 # widgets
@@ -27,6 +28,7 @@ AGENTS.md
 .mcp.json
 .claude
 CLAUDE.md
+.agents
 
 #kilocode
 .kilocode
