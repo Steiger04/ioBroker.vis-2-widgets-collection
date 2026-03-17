@@ -159,3 +159,8 @@ export type * from './radio-group-fields';
 export type * from './button-group-fields';
 export type * from './light2-fields';
 export type * from './json-table-fields';
+
+/**
+ * Re-export ExtendedField type for custom field definitions.
+ */
+export type * from './extended-field';

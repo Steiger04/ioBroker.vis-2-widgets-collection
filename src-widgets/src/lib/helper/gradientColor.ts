@@ -1,13 +1,27 @@
 /**
  * Checks if a color value is a CSS gradient (linear or radial).
  *
- * @param value - Color string to validate
- * @returns true if gradient, false if solid color, null if invalid/empty
+ * @module lib/helper/gradientColor
+ * @remarks
+ * Re-exports isGradientColor from colorValidation for backward compatibility.
+ * The implementation is now centralized in colorValidation.ts.
  * @example
- * isGradientColor('linear-gradient(red, blue)') // true
- * isGradientColor('radial-gradient(circle, red, blue)') // true
- * isGradientColor('#ff0000') // false
- * isGradientColor(null) // null
+ * isGradientColor('linear-gradient(red, blue)') // returns the value
+ * isGradientColor('#ff0000') // returns null
+ */
+
+import { isGradientColor as isGradientColorImpl } from './colorValidation';
+
+/**
+ * Checks if a color value is a CSS gradient (linear or radial).
+ *
+ * @param value - Color string to validate
+ * @returns The value if it's a gradient, null if solid color or invalid
+ * @example
+ * gradientColor('linear-gradient(red, blue)') // 'linear-gradient(red, blue)'
+ * gradientColor('radial-gradient(circle, red, blue)') // 'radial-gradient(circle, red, blue)'
+ * gradientColor('#ff0000') // null
+ * gradientColor(null) // null
  */
 export function gradientColor(value: string | null | undefined): string | null {
     // Return null for null/undefined values
@@ -26,11 +40,8 @@ export function gradientColor(value: string | null | undefined): string | null {
         return null;
     }
 
-    // Test for linear-gradient() or radial-gradient() CSS functions
-    const gradientRegex = /^(linear-gradient|radial-gradient)\(/i;
-    const isGradient = gradientRegex.test(trimmedValue);
-
-    if (isGradient) {
+    // Use centralized gradient detection
+    if (isGradientColorImpl(value)) {
         return value;
     }
 

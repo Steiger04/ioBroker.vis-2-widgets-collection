@@ -10,19 +10,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/common-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
+import { createColorField } from './fieldFactories';
 import { isUrlIcon } from './helper/isUrlIcon';
 
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
-
-/**
- * Extended field type with custom properties for collection widgets.
- */
-type ExtendedCommonField = RxWidgetInfoAttributesField & {
-    /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
-    fallbackFields?: string[];
-    noGradient?: boolean;
-};
 
 /**
  * Options controlling how the shared field list is generated.
@@ -42,7 +34,7 @@ type Settings = {
 const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField[] => {
     const { groupName = '', allFields = true } = settings || {};
 
-    const fields: ExtendedCommonField[] = [
+    const fields: (RxWidgetInfoAttributesField | ExtendedField)[] = [
         {
             label: '',
             type: 'custom',
@@ -67,7 +59,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 1,
             max: 500,
-            // default: 100,
             step: 1,
             hidden: 'data.noIcon',
         },
@@ -93,49 +84,30 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
                         !data.iconColor &&
                         !data.enableIconColorMask &&
                         !data[`iconColor${index}`] &&
-                        !isUrlIcon(iconField) &&
-                        !isUrlIcon(iconSmallField);
+                        !isUrlIcon(iconField as string) &&
+                        !isUrlIcon(iconSmallField as string);
                 }
 
                 return _hidden;
             },
         },
-        {
+        // Icon color field with noGradient flag
+        createColorField({
             name: `iconColor${groupName}`,
             label: 'icon_color',
-            default: '',
-            type: 'custom', // important
             fallbackFields: [''],
             noGradient: true,
-            component: (
-                // important
-                field, // field properties: {name, label, type, set, singleName, component,...}
-                data, // widget data
-                onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-            ) => (
-                <CollectionGradientColorPicker
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        },
+        }),
         {
             name: `iconXOffset${groupName}`,
             label: 'icon_x_offset',
             type: 'text',
-            // default: '0px',
             hidden: 'data.noIcon',
         },
         {
             name: `iconYOffset${groupName}`,
             label: 'icon_y_offset',
             type: 'text',
-            // default: '0px',
             hidden: 'data.noIcon',
         },
         {
@@ -170,7 +142,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            // default: 100,
             step: 1,
             hidden: 'data.noHeader',
         },
@@ -190,7 +161,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'value',
             type: 'text',
             default: '',
-            hidden: (data, _i) => data.oidObject?.type === 'boolean' || data.name === 'valueActive',
+            hidden: (data, _i) =>
+                (data.oidObject as { type?: string })?.type === 'boolean' || data.name === 'valueActive',
         },
         {
             name: `valueSize${groupName}`,
@@ -198,7 +170,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            // default: 100,
             step: 1,
         },
         {
@@ -226,7 +197,6 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'slider',
             min: 0,
             max: 500,
-            // default: 100,
             step: 1,
             hidden: 'data.noFooter',
         },
@@ -247,29 +217,12 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'checkbox',
             default: false,
         },
-        {
+        // Text color field
+        createColorField({
             name: `textColor${groupName}`,
             label: 'text_color',
-            default: '',
-            type: 'custom', // important
             fallbackFields: [''],
-            component: (
-                // important
-                field, // field properties: {name, label, type, set, singleName, component,...}
-                data, // widget data
-                onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-            ) => (
-                <CollectionGradientColorPicker
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        },
+        }),
         {
             label: '',
             name: 'allFieldsDivider',
@@ -343,58 +296,23 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider dividerText="background" />,
         },
-
-        {
+        // Background color field (no fallback)
+        createColorField({
             name: `background${groupName}`,
             label: 'background',
-            default: '',
-            type: 'custom', // important
             fallbackFields: [],
-            component: (
-                // important
-                field, // field properties: {name, label, type, set, singleName, component,...}
-                data, // widget data
-                onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-            ) => (
-                <CollectionGradientColorPicker
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        },
+        }),
         {
             label: '',
             type: 'custom',
             component: () => <CollectionDivider dividerText="frame_background" />,
         },
-        {
+        // Frame background color field (no fallback)
+        createColorField({
             name: `frameBackground${groupName}`,
             label: 'frame_background',
-            default: '',
-            type: 'custom', // important
             fallbackFields: [],
-            component: (
-                // important
-                field, // field properties: {name, label, type, set, singleName, component,...}
-                data, // widget data
-                onDataChange, // function to call, when data changed
-                props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-                // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-                // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-            ) => (
-                <CollectionGradientColorPicker
-                    field={field}
-                    data={data}
-                    onDataChange={onDataChange}
-                    props={props}
-                />
-            ),
-        },
+        }),
     ];
 
     if (allFields) {

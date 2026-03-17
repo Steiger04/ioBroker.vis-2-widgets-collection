@@ -16,6 +16,7 @@ export default [
     {
         // specify files to exclude from linting here
         ignores: [
+            '.agents/',
             '.claude/',
             '.dev-server/',
             '.github/',

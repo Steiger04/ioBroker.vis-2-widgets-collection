@@ -10,12 +10,12 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/json-table-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 import JsonTableColumnEditor from '../JsonTableCollectionWidget/JsonTableColumnEditor';
-
+import { createColorField } from './fieldFactories';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
+const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // ═══════════════════════════════════════════════════════════════════
     // TECHNISCHE ASPEKTE (Daten, Logik, State)
     // ═══════════════════════════════════════════════════════════════════
@@ -237,20 +237,8 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: 'solid',
         noTranslation: true,
     },
-    {
-        name: 'borderColor',
-        label: 'table_border_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    // Border color with noGradient
+    createColorField({ name: 'borderColor', label: 'table_border_color', noGradient: true }),
     {
         name: 'borderRadius',
         label: 'table_border_radius',
@@ -264,34 +252,10 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="json_table_header_style" />,
     },
-    {
-        name: 'tableHeaderBgColor',
-        label: 'json_table_header_bg_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
-    {
-        name: 'tableHeaderTextColor',
-        label: 'json_table_header_text_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    // Header background (supports gradients)
+    createColorField({ name: 'tableHeaderBgColor', label: 'json_table_header_bg_color' }),
+    // Header text color (noGradient for text)
+    createColorField({ name: 'tableHeaderTextColor', label: 'json_table_header_text_color', noGradient: true }),
     {
         name: 'tableHeaderFontSize',
         type: 'number',
@@ -312,20 +276,8 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         step: 1,
         default: 0,
     },
-    {
-        name: 'headerBorderColor',
-        label: 'json_table_header_border_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    // Header border color (noGradient for borders)
+    createColorField({ name: 'headerBorderColor', label: 'json_table_header_border_color', noGradient: true }),
 
     // ── Border & Lines (Zellgrenzen) ──────────────────────────────────
     {
@@ -349,21 +301,13 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: 1,
         hidden: '!data.tableShowCellBorders',
     },
-    {
+    // Vertical cell border color (noGradient, hidden condition)
+    createColorField({
         name: 'verticalCellBorderColor',
         label: 'vertical_cell_border_color',
-        default: '',
-        type: 'custom',
+        noGradient: true,
         hidden: '!data.tableShowCellBorders',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    }),
     {
         label: '',
         type: 'custom',
@@ -385,21 +329,13 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         default: 1,
         hidden: '!data.tableShowRowBorders',
     },
-    {
+    // Horizontal cell border color (noGradient, hidden condition)
+    createColorField({
         name: 'horizontalCellBorderColor',
         label: 'horizontal_cell_border_color',
-        default: '',
-        type: 'custom',
+        noGradient: true,
         hidden: '!data.tableShowRowBorders',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={{ ...field, noGradient: true }}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    }),
 
     // ── Cell Styling ──────────────────────────────────────────────────
     {
@@ -407,34 +343,9 @@ const jsonTableFields = (): RxWidgetInfoAttributesField[] => [
         type: 'custom',
         component: () => <CollectionDivider dividerText="json_table_cell_style" />,
     },
-    {
-        name: 'evenRowColor',
-        label: 'json_table_even_row_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
-    {
-        name: 'oddRowColor',
-        label: 'json_table_odd_row_color',
-        default: '',
-        type: 'custom',
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    // Row colors (support gradients for backgrounds)
+    createColorField({ name: 'evenRowColor', label: 'json_table_even_row_color' }),
+    createColorField({ name: 'oddRowColor', label: 'json_table_odd_row_color' }),
 ];
 
 export default jsonTableFields;

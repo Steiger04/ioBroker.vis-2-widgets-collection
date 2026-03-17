@@ -7,21 +7,12 @@
  *
  * Types: import from `vis-2-widgets-collection/types/field-definitions/slider-fields`.
  */
-import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 import CollectionDivider from '../components/CollectionDivider';
-import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
+import { createColorField, createSliderColorField } from './fieldFactories';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
+import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
-/**
- * Extended field definition that supports additional custom properties like fallbackFields.
- * This extends the base RxWidgetInfoAttributesField to allow custom field extensions
- * without violating TypeScript excess property checks.
- */
-type ExtendedSliderField = RxWidgetInfoAttributesField & {
-    fallbackFields?: string[];
-    noGradient?: boolean;
-};
-
-const sliderFields = (): ExtendedSliderField[] => [
+const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -73,28 +64,8 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '-5px',
         hidden: "data.valueLabelDisplay === 'off'",
     } as const,
-    {
-        name: 'sliderColor',
-        label: 'slider_color',
-        default: '',
-        type: 'custom', // important
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    // Color fields using factory function
+    createColorField({ name: 'sliderColor', label: 'slider_color' }),
     {
         name: 'sliderPadding',
         label: 'slider_padding',
@@ -121,29 +92,8 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 20,
         min: 0,
     } as const,
-    {
-        name: 'thumbColor',
-        label: 'thumb_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    // Color fields with sliderColor fallback using convenience function
+    createSliderColorField('thumbColor', 'thumb_color'),
     {
         name: 'thumbBorderWidth',
         label: 'thumb_border_width',
@@ -152,29 +102,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
         max: 100,
     } as const,
-    {
-        name: 'thumbBorderColor',
-        label: 'thumb_border_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('thumbBorderColor', 'thumb_border_color'),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="track" />,
@@ -186,29 +114,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 4,
         min: 0,
     } as const,
-    {
-        name: 'trackBackgroundColor',
-        label: 'track_background_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('trackBackgroundColor', 'track_background_color'),
     {
         name: 'trackBorderWidth',
         label: 'track_border_width',
@@ -217,29 +123,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
         max: 100,
     } as const,
-    {
-        name: 'trackBorderColor',
-        label: 'track_border_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('trackBorderColor', 'track_border_color'),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="rail" />,
@@ -251,29 +135,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 4,
         min: 0,
     } as const,
-    {
-        name: 'railBackgroundColor',
-        label: 'rail_background_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('railBackgroundColor', 'rail_background_color'),
     {
         name: 'railBorderWidth',
         label: 'rail_border_width',
@@ -282,21 +144,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         min: 0,
         max: 100,
     } as const,
-    {
-        name: 'railBorderColor',
-        label: 'rail_border_color',
-        default: '',
-        type: 'custom',
-        fallbackFields: ['sliderColor'],
-        component: (field, data, onDataChange, props) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('railBorderColor', 'rail_border_color'),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="mark" />,
@@ -315,29 +163,7 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: 2,
         min: 0,
     } as const,
-    {
-        name: 'markBackgroundColor',
-        label: 'mark_background_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('markBackgroundColor', 'mark_background_color'),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="values" />,
@@ -363,16 +189,16 @@ const sliderFields = (): ExtendedSliderField[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
-        hidden: (data: Record<string, any>) =>
-            !data.values_count && !Object.keys(data.oidObject?.commonStates || {}).length,
+        hidden: (data: Record<string, unknown>) =>
+            !data.values_count && !Object.keys((data.oidObject as Record<string, unknown>)?.commonStates || {}).length,
     } as const,
     {
         name: 'onlyStates',
         type: 'checkbox',
         label: 'only_states',
         default: false,
-        hidden: (data: Record<string, any>) =>
-            !data.values_count && !Object.keys(data.oidObject?.commonStates || {}).length,
+        hidden: (data: Record<string, unknown>) =>
+            !data.values_count && !Object.keys((data.oidObject as Record<string, unknown>)?.commonStates || {}).length,
     } as const,
     {
         type: 'custom',
@@ -383,7 +209,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         type: 'checkbox',
         label: 'marks',
         default: false,
-        // hidden: "data.onlyStates",
     } as const,
     {
         type: 'custom',
@@ -409,36 +234,13 @@ const sliderFields = (): ExtendedSliderField[] => [
         component: () => <CollectionDivider />,
         hidden: '!data.marks',
     } as const,
-    {
-        name: 'markerTextColor',
-        label: 'marker_text_color',
-        default: '',
-        type: 'custom', // important
-        fallbackFields: ['sliderColor'],
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+    createSliderColorField('markerTextColor', 'marker_text_color'),
     {
         name: 'markerTextSize',
         label: 'marker_text_size',
         type: 'slider',
         min: 0,
         max: 500,
-        // default: 80,
         step: 1,
         hidden: '!data.marks',
     } as const,
@@ -459,7 +261,6 @@ const sliderFields = (): ExtendedSliderField[] => [
         type: 'slider',
         min: 1,
         max: 500,
-        // default: 0,
         step: 1,
         hidden: '!data.marks',
     } as const,
@@ -487,32 +288,11 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '24px',
         hidden: '!data.iconMin && !data.iconSmallMin',
     } as const,
-
-    {
-        name: 'startIconColor',
-        label: 'icon_color',
-        default: '',
-        type: 'custom', // important
-        hidden: '!data.iconMin && !data.iconSmallMin',
-        fallbackFields: ['sliderColor'],
+    // Icon color with noGradient flag (only solid colors allowed)
+    createSliderColorField('startIconColor', 'icon_color', {
         noGradient: true,
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+        hidden: '!data.iconMin && !data.iconSmallMin',
+    }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="icon" />,
@@ -536,32 +316,11 @@ const sliderFields = (): ExtendedSliderField[] => [
         default: '24px',
         hidden: '!data.iconMax && !data.iconSmallMax',
     } as const,
-
-    {
-        name: 'endIconColor',
-        label: 'icon_color',
-        default: '',
-        type: 'custom', // important
-        hidden: '!data.iconMax && !data.iconSmallMax',
-        fallbackFields: ['sliderColor'],
+    // Icon color with noGradient flag (only solid colors allowed)
+    createSliderColorField('endIconColor', 'icon_color', {
         noGradient: true,
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    } as const,
+        hidden: '!data.iconMax && !data.iconSmallMax',
+    }),
 ];
 
 export default sliderFields;

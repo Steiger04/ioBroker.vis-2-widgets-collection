@@ -1,4 +1,21 @@
 /**
+ * Extracts a usable color from a color value or gradient.
+ *
+ * @module lib/helper/extractColorFromValue
+ * @remarks
+ * For normal colors (Hex, RGB, RGBA), the value is returned unchanged.
+ * For gradients (linear-gradient, radial-gradient), the color at 50% position
+ * is calculated through linear interpolation between adjacent color stops.
+ *
+ * This is useful for extracting a representative color from gradients to use
+ * in contexts that only support solid colors (e.g., icon colors, text colors).
+ *
+ * Uses centralized COLOR_PATTERNS from colorValidation.ts for consistency.
+ */
+
+import { COLOR_PATTERNS } from './colorValidation';
+
+/**
  * Color stop interface for gradient parsing
  */
 interface ColorStop {
@@ -26,18 +43,13 @@ interface RGBColor {
  *
  * @param hex - Hex color string with leading #
  * @returns RGB color object or null if invalid format
- * @example
- * hexToRGB('#ff0000') // → { r: 255, g: 0, b: 0, a: 1 }
- * hexToRGB('#f00') // → { r: 255, g: 0, b: 0, a: 1 }
- * hexToRGB('#ff0000cc') // → { r: 255, g: 0, b: 0, a: 0.8 }
  */
 function hexToRGB(hex: string): RGBColor | null {
     if (!hex || typeof hex !== 'string') {
         return null;
     }
 
-    const hexRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
-    const match = hex.match(hexRegex);
+    const match = hex.match(COLOR_PATTERNS.HEX);
 
     if (!match) {
         return null;
@@ -76,26 +88,28 @@ function hexToRGB(hex: string): RGBColor | null {
  *
  * @param rgb - RGB or RGBA string
  * @returns RGB color object or null if invalid format
- * @example
- * rgbToRGB('rgb(255, 0, 0)') // → { r: 255, g: 0, b: 0, a: 1 }
- * rgbToRGB('rgba(255, 0, 0, 0.5)') // → { r: 255, g: 0, b: 0, a: 0.5 }
  */
 function rgbToRGB(rgb: string): RGBColor | null {
     if (!rgb || typeof rgb !== 'string') {
         return null;
     }
 
-    const rgbRegex = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/i;
-    const match = rgb.match(rgbRegex);
+    const match = rgb.match(COLOR_PATTERNS.RGB);
 
     if (!match) {
         return null;
     }
 
-    const r = parseInt(match[1], 10);
-    const g = parseInt(match[2], 10);
-    const b = parseInt(match[3], 10);
-    const a = match[4] !== undefined ? parseFloat(match[4]) : 1.0;
+    // Extract values from the match
+    const components = rgb.match(/\d+\.?\d*/g);
+    if (!components || components.length < 3) {
+        return null;
+    }
+
+    const r = parseInt(components[0], 10);
+    const g = parseInt(components[1], 10);
+    const b = parseInt(components[2], 10);
+    const a = components[3] !== undefined ? parseFloat(components[3]) : 1.0;
 
     // Validate ranges
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 1) {
@@ -113,10 +127,6 @@ function rgbToRGB(rgb: string): RGBColor | null {
  *
  * @param color - Color string in any supported format
  * @returns RGB color object or null if invalid format
- * @example
- * parseColorToRGB('#ff0000') // → { r: 255, g: 0, b: 0, a: 1 }
- * parseColorToRGB('rgb(255, 0, 0)') // → { r: 255, g: 0, b: 0, a: 1 }
- * parseColorToRGB('rgba(255, 0, 0, 0.5)') // → { r: 255, g: 0, b: 0, a: 0.5 }
  */
 function parseColorToRGB(color: string): RGBColor | null {
     if (!color || typeof color !== 'string') {
@@ -147,21 +157,6 @@ function parseColorToRGB(color: string): RGBColor | null {
  *
  * @param gradient - Gradient string (linear-gradient or radial-gradient)
  * @returns Array of color stops sorted by position, or null if invalid
- * @example
- * parseGradientColorStops('linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)')
- * // → [
- * //   { color: '#ff0000', position: 0 },
- * //   { color: '#00ff00', position: 50 },
- * //   { color: '#0000ff', position: 100 }
- * // ]
- * @example
- * // Missing positions are calculated automatically
- * parseGradientColorStops('linear-gradient(#ff0000, #00ff00, #0000ff)')
- * // → [
- * //   { color: '#ff0000', position: 0 },
- * //   { color: '#00ff00', position: 50 },
- * //   { color: '#0000ff', position: 100 }
- * // ]
  */
 function parseGradientColorStops(gradient: string): ColorStop[] | null {
     if (!gradient || typeof gradient !== 'string') {
@@ -205,19 +200,6 @@ function parseGradientColorStops(gradient: string): ColorStop[] | null {
  *
  * @param colorStops - Array of color stops sorted by position
  * @returns Interpolated color as rgba() string, or null if invalid
- * @example
- * // Exact stop at 50%
- * interpolateColorAt50([
- *   { color: '#ff0000', position: 0 },
- *   { color: '#00ff00', position: 50 },
- *   { color: '#0000ff', position: 100 }
- * ]) // → 'rgba(0, 255, 0, 1)'
- * @example
- * // Interpolation between stops
- * interpolateColorAt50([
- *   { color: '#ff0000', position: 0 },
- *   { color: '#0000ff', position: 100 }
- * ]) // → 'rgba(127, 0, 127, 1)'
  */
 function interpolateColorAt50(colorStops: ColorStop[]): string | null {
     if (!colorStops || colorStops.length < 2) {
@@ -316,24 +298,13 @@ function interpolateColorAt50(colorStops: ColorStop[]): string | null {
  * // Normal colors (returned unchanged)
  * extractColorFromValue('#ff0000') // → '#ff0000'
  * extractColorFromValue('rgba(255, 0, 0, 0.5)') // → 'rgba(255, 0, 0, 0.5)'
- * extractColorFromValue('rgb(255, 0, 0)') // → 'rgb(255, 0, 0)'
  * @example
  * // Linear gradient with explicit stops
  * extractColorFromValue('linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)')
  * // → 'rgba(0, 255, 0, 1)' (exact color at 50%)
  * @example
- * // Radial gradient with interpolation
- * extractColorFromValue('radial-gradient(circle, #ff0000 0%, #0000ff 100%)')
- * // → 'rgba(127, 0, 127, 1)' (interpolated between red and blue at 50%)
- * @example
- * // Gradient with implicit positions
- * extractColorFromValue('linear-gradient(to right, #ff0000, #00ff00, #0000ff)')
- * // → 'rgba(0, 255, 0, 1)' (middle color at 50%)
- * @example
  * // Invalid inputs
  * extractColorFromValue(null) // → null
- * extractColorFromValue(undefined) // → null
- * extractColorFromValue('') // → null
  * extractColorFromValue('invalid-color') // → null
  */
 export function extractColorFromValue(value: string | null | undefined): string | null {
@@ -353,9 +324,8 @@ export function extractColorFromValue(value: string | null | undefined): string 
         return null;
     }
 
-    // Check if value is a gradient
-    const gradientRegex = /^(linear-gradient|radial-gradient)\(/i;
-    const isGradient = gradientRegex.test(trimmedValue);
+    // Check if value is a gradient using centralized pattern
+    const isGradient = COLOR_PATTERNS.GRADIENT_PREFIX.test(trimmedValue);
 
     // For solid colors, validate and return unchanged
     if (!isGradient) {

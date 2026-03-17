@@ -9,17 +9,11 @@
  * Types: import from `vis-2-widgets-collection/types/field-definitions/radio-group-fields`.
  */
 import CollectionDivider from '../components/CollectionDivider';
-
+import { createColorField } from './fieldFactories';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 
-type ExtendedRadioGroupField = RxWidgetInfoAttributesField & {
-    /** Optional array of field names to use as fallback values (used by CollectionGradientColorPicker) */
-    fallbackFields?: string[];
-    noGradient?: boolean;
-};
-
-const radioGroupFields = (): ExtendedRadioGroupField[] => [
+const radioGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         type: 'custom',
         component: () => <CollectionDivider />,
@@ -60,30 +54,13 @@ const radioGroupFields = (): ExtendedRadioGroupField[] => [
         type: 'custom',
         component: () => <CollectionDivider />,
     },
-    {
+    // Radio group unchecked icon color (no fallback, noGradient for icons)
+    createColorField({
         name: 'radioGroupUncheckedIconColor',
         label: 'radio_group_unchecked_icon_color',
-        default: '',
-        type: 'custom', // important
         fallbackFields: [],
         noGradient: true,
-        component: (
-            // important
-            field, // field properties: {name, label, type, set, singleName, component,...}
-            data, // widget data
-            onDataChange, // function to call, when data changed
-            props, // additional properties : {socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID}
-            // widgetID: widget ID or widgets IDs. If selecteld more than one widget, it is array of IDs
-            // project object: {VIEWS..., [view]: {widgets: {[widgetID]: {tpl, data, style}}, settings, parentId, rerender, filterList, activeWidgets}, ___settings: {}}
-        ) => (
-            <CollectionGradientColorPicker
-                field={field}
-                data={data}
-                onDataChange={onDataChange}
-                props={props}
-            />
-        ),
-    },
+    }),
     {
         type: 'custom',
         component: () => <CollectionDivider />,

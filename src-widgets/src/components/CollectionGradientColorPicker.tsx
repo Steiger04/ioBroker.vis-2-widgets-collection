@@ -1,5 +1,5 @@
 /**
- * Gradient color picker field component for the vis-2 widget editor.
+ * Color picker field component for the vis-2 widget editor.
  *
  * @module components/CollectionGradientColorPicker
  * @remarks
@@ -23,72 +23,15 @@
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
-import type {
-    RxWidgetInfoAttributesField,
-    RxWidgetInfoCustomComponentProperties,
-    WidgetData,
-    VisTheme,
-} from '@iobroker/types-vis-2';
-
-/**
- * Validates color input string and returns normalized value.
- *
- * Validation rules:
- * - Empty or whitespace-only strings are considered valid and normalized to ''
- * - Hex colors must match #RGB, #RRGGBB, or #RRGGBBAA format (case-insensitive)
- * - RGB/RGBA must have valid syntax with numeric components
- * - Gradients must start with linear-gradient or radial-gradient
- * - All valid inputs are trimmed and returned as normalizedValue
- *
- * @param value - Input string to validate.
- * @returns Validation result with isValid flag and normalized value.
- */
-function validateColorInput(value: string): { isValid: boolean; normalizedValue: string } {
-    if (!value || value.trim() === '') {
-        return { isValid: true, normalizedValue: '' };
-    }
-
-    const trimmedValue: string = value.trim();
-
-    // Hex color validation: #RGB, #RRGGBB, #RRGGBBAA
-    const hexRegex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
-    if (hexRegex.test(trimmedValue)) {
-        return { isValid: true, normalizedValue: trimmedValue };
-    }
-
-    // RGB/RGBA validation: rgb(r, g, b) or rgba(r, g, b, a)
-    const rgbRegex = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/i;
-    if (rgbRegex.test(trimmedValue)) {
-        return { isValid: true, normalizedValue: trimmedValue };
-    }
-
-    // Gradient validation: linear-gradient(...) or radial-gradient(...)
-    const gradientRegex = /^(linear-gradient|radial-gradient)\(.*\)$/i;
-    if (gradientRegex.test(trimmedValue)) {
-        return { isValid: true, normalizedValue: trimmedValue };
-    }
-
-    return { isValid: false, normalizedValue: trimmedValue };
-}
-
-/**
- * Extended field definition with optional fallbackFields array and noGradient flag.
- *
- * @typedef ExtendedField
- * @type {RxWidgetInfoAttributesField & { fallbackFields?: string[]; noGradient?: boolean }}
- * @property {string[]} [fallbackFields] - Optional array of field names to use as fallbacks during initialization.
- * @property {boolean} [noGradient] - When true, extracts solid color at 50% position from gradients before saving.
- *                                     User can still input/view gradients in UI, but only solid colors are persisted.
- */
-type ExtendedField = RxWidgetInfoAttributesField & {
-    fallbackFields?: string[];
-    noGradient?: boolean;
-};
+import { validateColorInput } from '../lib/helper/colorValidation';
+import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
+import type { ExtendedField } from '../types/field-definitions/extended-field';
+import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from '@iobroker/types-vis-2';
 
 /**
  * Props for CollectionGradientColorPicker component.
@@ -104,6 +47,36 @@ interface CollectionGradientColorPickerProps {
     data: WidgetData;
     onDataChange: (patch: WidgetData) => void;
     props: RxWidgetInfoCustomComponentProperties;
+}
+
+/**
+ * Resolves the initial color from fallback fields or theme.
+ *
+ * @param field - Field definition with optional fallbackFields
+ * @param data - Current widget data
+ * @param primaryColor - Theme primary color to use as final fallback
+ * @returns The resolved initial color or null if no valid fallback found
+ */
+function resolveInitialColor(field: ExtendedField, data: WidgetData, primaryColor: string): string | null {
+    // 1. Check fallbackFields (if defined)
+    if (field.fallbackFields && Array.isArray(field.fallbackFields) && field.fallbackFields.length > 0) {
+        for (const fallbackFieldName of field.fallbackFields) {
+            const fallbackValue = data[fallbackFieldName];
+            if (fallbackValue && typeof fallbackValue === 'string') {
+                const validation = validateColorInput(fallbackValue);
+                if (validation.isValid && validation.normalizedValue.trim() !== '') {
+                    return validation.normalizedValue;
+                }
+            }
+        }
+    }
+
+    // 2. Fallback to theme.palette.primary.main (only if fallbackFields is undefined or non-empty)
+    if (!field.fallbackFields || field.fallbackFields.length > 0) {
+        return primaryColor;
+    }
+
+    return null;
 }
 
 /**
@@ -131,183 +104,181 @@ function CollectionGradientColorPicker({
     props,
 }: CollectionGradientColorPickerProps): React.JSX.Element {
     const fieldName: string = field.name!;
-    const [cachedValue, setCachedValue] = useState<string>(data[fieldName] || '');
+    const fieldValue = data[fieldName];
+    const [cachedValue, setCachedValue] = useState<string>(fieldValue || '');
     const [error, setError] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const popoverActionRef = useRef<{ updatePosition: () => void }>(null);
-    // State for the ColorPicker container element (callback-ref pattern)
-    const [colorPickerContainer, setColorPickerContainer] = useState<HTMLDivElement | null>(null);
     const hasInitializedRef = useRef<boolean>(false);
 
     // Track the last prop value to detect external changes only
-    const lastPropValueRef: React.MutableRefObject<string | null | undefined> = useRef<string | null | undefined>(
-        data[fieldName],
-    );
+    const lastPropValueRef = useRef<string | null | undefined>(fieldValue);
+
+    // Debounce timer for picker-originated onDataChange calls
+    const pickerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const theme: VisTheme = props.context.theme;
+    const primaryColor = theme.palette.primary.main;
 
-    const handleChange = (newValue: string | null | undefined): void => {
-        // Step 1: Handle null/undefined - treat as empty and clear error
-        if (newValue === null || newValue === undefined) {
-            setCachedValue('');
+    // Dynamic popover placement + content resize tracking
+    const { anchorOrigin, transformOrigin, maxHeight, setContentRef, popoverActionRef } = usePopoverPositioning(
+        anchorEl,
+        Boolean(anchorEl),
+    );
+
+    // Clean up debounce timer on unmount
+    useEffect(() => {
+        return (): void => {
+            if (pickerDebounceRef.current !== null) {
+                clearTimeout(pickerDebounceRef.current);
+            }
+        };
+    }, []);
+
+    /**
+     * Handles color value changes with validation.
+     * Uses guard clauses for cleaner control flow.
+     *
+     * @param newValue - The new color value
+     * @param debounce - If true, debounce onDataChange (used for picker drag events)
+     */
+    const handleChange = useCallback(
+        (newValue: string | null | undefined, debounce = false): void => {
+            // Cancel any pending debounced update
+            if (pickerDebounceRef.current !== null) {
+                clearTimeout(pickerDebounceRef.current);
+                pickerDebounceRef.current = null;
+            }
+
+            // Guard 1: Handle null/undefined - treat as empty and clear error
+            if (newValue === null || newValue === undefined) {
+                setCachedValue('');
+                setError(false);
+                lastPropValueRef.current = null;
+                onDataChange({ [fieldName]: null });
+                hasInitializedRef.current = false;
+                return;
+            }
+
+            // Guard 2: Type check - reject non-string inputs with error state
+            if (typeof newValue !== 'string') {
+                setError(true);
+                return;
+            }
+
+            // Guard 3: Handle empty string (after trimming) - clear value and error
+            const trimmedValue = newValue.trim();
+            if (trimmedValue === '') {
+                setCachedValue('');
+                setError(false);
+                lastPropValueRef.current = null;
+                onDataChange({ [fieldName]: null });
+                hasInitializedRef.current = false;
+                return;
+            }
+
+            // Validate non-empty string values
+            const validation = validateColorInput(newValue);
+
+            // Always update cachedValue to reflect user input (even if invalid)
+            setCachedValue(newValue);
+
+            // Guard 4: Handle invalid input - set error but do NOT call onDataChange
+            if (!validation.isValid) {
+                setError(true);
+                return;
+            }
+
+            // Valid input - clear error
             setError(false);
-            onDataChange({ [fieldName]: null });
-            hasInitializedRef.current = false;
-            return;
-        }
 
-        // Step 2: Type check - reject non-string inputs with error state
-        if (typeof newValue !== 'string') {
-            setError(true);
-            // Do NOT call onDataChange for invalid type
-            return;
-        }
-
-        // Step 3: Handle empty string (after trimming) - clear value and error
-        const trimmedValue: string = newValue.trim();
-        if (trimmedValue === '') {
-            setCachedValue('');
-            setError(false);
-            onDataChange({ [fieldName]: null });
-            hasInitializedRef.current = false;
-            return;
-        }
-
-        // Step 4: Validate non-empty string values
-        const validation: { isValid: boolean; normalizedValue: string } = validateColorInput(newValue);
-
-        // Always update cachedValue to reflect user input (even if invalid)
-        setCachedValue(newValue);
-
-        // Step 5: Handle validation result
-        if (validation.isValid) {
-            // Check if noGradient flag is enabled
+            // Resolve the final value to persist
+            let finalValue: string | null;
             if (field.noGradient === true) {
-                // Extract solid color from gradient (or pass through solid colors unchanged)
                 const extractedColor = extractColorFromValue(validation.normalizedValue);
-
                 if (extractedColor === null) {
-                    // Extraction failed: show error and prevent saving
                     setError(true);
-                    // Note: cachedValue already updated with original input for user correction
                     return;
                 }
-
-                // Extraction succeeded: save extracted color (cachedValue keeps original input for display)
-                setError(false);
-                // Update lastPropValueRef to extracted color BEFORE onDataChange to prevent sync effect from overwriting cachedValue
-                lastPropValueRef.current = extractedColor;
-                onDataChange({ [fieldName]: extractedColor });
+                finalValue = extractedColor;
             } else {
-                // noGradient disabled: save original normalized value
-                setError(false);
-                onDataChange({ [fieldName]: validation.normalizedValue || null });
+                finalValue = validation.normalizedValue || null;
             }
-        } else {
-            // Invalid input: set error but do NOT call onDataChange
-            // This prevents saving invalid data while preserving user input for correction
-            setError(true);
-        }
-    };
 
-    const handlePickerChange = (gradient: string): void => handleChange(gradient);
-    const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>): void => handleChange(event.target.value);
-    const handleClear = (): void => handleChange(null);
+            // Update lastPropValueRef BEFORE onDataChange to prevent
+            // the sync effect from overwriting cachedValue during rapid updates
+            lastPropValueRef.current = finalValue;
+
+            if (debounce) {
+                // Debounce picker-originated changes to ensure the final drag
+                // value is always persisted (trailing edge fires after drag ends)
+                pickerDebounceRef.current = setTimeout(() => {
+                    pickerDebounceRef.current = null;
+                    onDataChange({ [fieldName]: finalValue });
+                }, 150);
+            } else {
+                onDataChange({ [fieldName]: finalValue });
+            }
+        },
+        [fieldName, field.noGradient, onDataChange],
+    );
+
+    const handlePickerChange = useCallback((gradient: string): void => handleChange(gradient, true), [handleChange]);
+
+    const handleTextChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>): void => handleChange(event.target.value),
+        [handleChange],
+    );
+
+    const handleClear = useCallback((): void => handleChange(null), [handleChange]);
 
     const open = Boolean(anchorEl);
 
     // Synchronize with external prop changes (e.g., undo/redo, preset loading)
-    // Only react to actual prop changes, not user input changes
     useEffect(() => {
-        const propValue: string | null | undefined = data[fieldName];
-
         // Only update if the prop value has actually changed from the outside
-        // (not as a result of user input via onDataChange)
-        if (propValue !== lastPropValueRef.current) {
-            lastPropValueRef.current = propValue;
+        if (fieldValue !== lastPropValueRef.current) {
+            lastPropValueRef.current = fieldValue;
 
-            const normalizedPropValue: string = propValue || '';
+            const normalizedPropValue = fieldValue || '';
             setCachedValue(normalizedPropValue);
-            setError(false); // Clear error on external update
+            setError(false);
 
             // Reset initialization flag on external changes
             if (!normalizedPropValue || normalizedPropValue.trim() === '') {
                 hasInitializedRef.current = false;
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data[fieldName]]);
+    }, [fieldValue]);
 
+    // Initialize fallback color on first popover open
     useEffect(() => {
-        // Wait until the Popover is open AND the container element exists
-        if (!open || !colorPickerContainer) {
-            return;
-        }
-
-        const resizeObserver = new ResizeObserver(() => {
-            popoverActionRef.current?.updatePosition();
-        });
-
-        resizeObserver.observe(colorPickerContainer);
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [open, colorPickerContainer]);
-
-    useEffect(() => {
-        // Initialize only on first popover open
+        // Guard: Initialize only on first popover open
         if (!open || hasInitializedRef.current) {
             return;
         }
 
-        // Check if field already has a value
-        const currentValue = data[fieldName];
-        if (currentValue && currentValue.trim() !== '') {
+        // Guard: Check if field already has a value
+        if (fieldValue && fieldValue.trim() !== '') {
             hasInitializedRef.current = true;
             return;
         }
 
-        // Fallback chain: fallbackFields > theme.palette.primary.main
-        let initialColor: string | null = null;
-
-        // 1. Check fallbackFields (if defined)
-        if (field.fallbackFields && Array.isArray(field.fallbackFields) && field.fallbackFields.length > 0) {
-            for (const fallbackFieldName of field.fallbackFields) {
-                const fallbackValue = data[fallbackFieldName];
-                if (fallbackValue && typeof fallbackValue === 'string') {
-                    const validation = validateColorInput(fallbackValue);
-                    if (validation.isValid && validation.normalizedValue.trim() !== '') {
-                        initialColor = validation.normalizedValue;
-                        break; // Use first valid fallback
-                    }
-                }
-            }
-        }
-
-        // 2. Fallback to theme.palette.primary.main
-        if (!initialColor && (!field.fallbackFields || field.fallbackFields.length > 0)) {
-            initialColor = theme.palette.primary.main;
-        }
+        // Resolve initial color from fallback chain
+        const initialColor = resolveInitialColor(field, data, primaryColor);
 
         // Validate and set initial color (only if a value was found)
         if (initialColor) {
             const validation = validateColorInput(initialColor);
             if (validation.isValid) {
-                // Apply noGradient extraction if enabled
                 if (field.noGradient === true) {
                     const extractedColor = extractColorFromValue(validation.normalizedValue);
                     if (extractedColor !== null) {
-                        // Save extracted color, display original
                         setCachedValue(initialColor);
                         setError(false);
-                        // Update lastPropValueRef to extracted color BEFORE onDataChange to prevent sync effect from overwriting cachedValue
                         lastPropValueRef.current = extractedColor;
                         onDataChange({ [fieldName]: extractedColor });
                     }
-                    // If extraction fails, skip initialization (no error, no save)
                 } else {
-                    // noGradient disabled: use original value
                     setCachedValue(initialColor);
                     setError(false);
                     onDataChange({ [fieldName]: initialColor });
@@ -315,7 +286,7 @@ function CollectionGradientColorPicker({
             }
         }
         hasInitializedRef.current = true;
-    }, [open, data, fieldName, field.fallbackFields, field.noGradient, theme.palette.primary.main, onDataChange]);
+    }, [open, data, fieldName, field, fieldValue, primaryColor, onDataChange]);
 
     return (
         <>
@@ -336,7 +307,6 @@ function CollectionGradientColorPicker({
                                     textOverflow: 'ellipsis',
                                     paddingBottom: '2px',
                                     fontSize: '80%',
-                                    // color: theme.palette.text.primary,
                                 } as React.CSSProperties,
                             },
                         }}
@@ -346,19 +316,14 @@ function CollectionGradientColorPicker({
                             onClick={handleClear}
                             title={Generic.t('clear_color')}
                             size="large"
-                            sx={{
-                                mt: -1,
-                                mr: -1.5,
-                            }}
+                            sx={{ mt: -1, mr: -1.5 }}
                         >
                             <DeleteIcon />
                         </IconButton>
                     )}
 
                     <Box
-                        onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
-                            setAnchorEl(e.currentTarget);
-                        }}
+                        onClick={(e: React.MouseEvent<HTMLDivElement>): void => setAnchorEl(e.currentTarget)}
                         title={Generic.t('choose_color')}
                         sx={{
                             mt: cachedValue ? '4px' : '-2px',
@@ -374,7 +339,6 @@ function CollectionGradientColorPicker({
                             cursor: 'pointer',
                             verticalAlign: 'middle',
                             boxSizing: 'border-box',
-                            // Show error border in red when validation fails
                             border: error
                                 ? `1px solid ${theme.palette.error.main}`
                                 : cachedValue
@@ -388,7 +352,6 @@ function CollectionGradientColorPicker({
                                 width: cachedValue ? '36px' : '38px',
                                 height: cachedValue ? '14px' : '18px',
                                 borderRadius: '2px',
-                                // Only show color preview if valid, otherwise show striped error pattern
                                 background: error
                                     ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)'
                                     : cachedValue
@@ -401,7 +364,6 @@ function CollectionGradientColorPicker({
 
                 <Popover
                     action={popoverActionRef}
-                    aria-hidden={!open}
                     slotProps={{
                         paper: {
                             elevation: 0,
@@ -409,39 +371,30 @@ function CollectionGradientColorPicker({
                                 p: '9px',
                                 borderRadius: '6px',
                                 backgroundColor: 'rgb(32,32,32)',
-                                maxHeight: 'calc(100vh - 100px)',
-                                overflow: 'auto',
+                                boxSizing: 'border-box',
+                                maxHeight,
+                                overflowX: 'hidden',
+                                overflowY: 'auto',
                             },
                         },
                     }}
                     open={open}
                     anchorEl={anchorEl}
                     onClose={(): void => setAnchorEl(null)}
-                    transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center',
-                    }}
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
+                    transformOrigin={transformOrigin}
+                    anchorOrigin={anchorOrigin}
                 >
                     <Box
-                        ref={setColorPickerContainer}
-                        sx={{
-                            borderRadius: '6px',
-                        }}
+                        ref={setContentRef}
+                        sx={{ borderRadius: '6px' }}
                     >
                         <ColorPicker
                             value={cachedValue || theme.palette.primary.main}
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs
-                            hideEyeDrop // Pinpette is not supported in iframes due to browser security restrictions, so we hide it to avoid confusion
-                            // hideAdvancedSliders
-                            // hideColorGuide
+                            hideEyeDrop
                             hideInputType
-                            // hideColorTypeBtns
                         />
                     </Box>
                 </Popover>
