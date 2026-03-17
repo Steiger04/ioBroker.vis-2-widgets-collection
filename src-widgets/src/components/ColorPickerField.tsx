@@ -10,7 +10,7 @@
 
 import ClearIcon from '@mui/icons-material/Clear';
 import { Box, IconButton, Popover, Typography, useTheme } from '@mui/material';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
@@ -38,6 +38,12 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
     const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
+    // Local cached value for immediate UI feedback during picker drag
+    const [cachedValue, setCachedValue] = useState<string>(value);
+
+    // Debounce timer for picker-originated onChange calls
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Dynamic popover placement + content resize tracking
     const { anchorOrigin, transformOrigin, maxHeight, setContentRef, popoverActionRef } = usePopoverPositioning(
         anchorEl,
@@ -45,6 +51,37 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
     );
 
     const open = Boolean(anchorEl);
+
+    // Sync cachedValue when the external value prop changes
+    useEffect(() => {
+        setCachedValue(value);
+    }, [value]);
+
+    // Clean up debounce timer on unmount
+    useEffect(() => {
+        return (): void => {
+            if (debounceRef.current !== null) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, []);
+
+    // Debounced handler for picker drag events
+    const handlePickerChange = useCallback(
+        (color: string): void => {
+            setCachedValue(color);
+
+            if (debounceRef.current !== null) {
+                clearTimeout(debounceRef.current);
+            }
+
+            debounceRef.current = setTimeout(() => {
+                debounceRef.current = null;
+                onChange(color);
+            }, 150);
+        },
+        [onChange],
+    );
 
     return (
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -75,18 +112,23 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
                         height: 22,
                         borderRadius: '4px',
                         flexShrink: 0,
-                        background: value || 'transparent',
-                        border: value
+                        background: cachedValue || 'transparent',
+                        border: cachedValue
                             ? `1px solid ${theme.palette.divider}`
                             : `1px dashed ${theme.palette.text.disabled}`,
                     }}
                 />
 
-                {value && (
+                {cachedValue && (
                     <IconButton
                         size="small"
                         onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
+                            if (debounceRef.current !== null) {
+                                clearTimeout(debounceRef.current);
+                                debounceRef.current = null;
+                            }
+                            setCachedValue('');
                             onChange('');
                         }}
                         sx={{ p: 0.25, ml: -0.5 }}
@@ -123,8 +165,8 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
                     sx={{ borderRadius: '6px' }}
                 >
                     <ColorPicker
-                        value={value || '#ffffff'}
-                        onChange={onChange}
+                        value={cachedValue || '#ffffff'}
+                        onChange={handlePickerChange}
                         hidePresets
                         hideInputs
                         hideEyeDrop
