@@ -11,7 +11,8 @@ import type { ColumnDef, SortingFn, Row } from '@tanstack/react-table';
 import type { DateFormatId, JsonTableColumn } from '../../hooks/useJsonTableAnalysis/types';
 import type { ColumnConfigEntry } from '../types';
 
-import { normalizeToIsoDate } from './formatters';
+import { toDateMs } from './formatters';
+import { createDateFilterFn } from './filterFunctions';
 
 // ── Smart Defaults for Column Settings ─────────────────────────────────────────
 
@@ -157,7 +158,11 @@ export interface BuildColumnDefsOptions {
 /**
  * Converts a date value to a sortable timestamp (milliseconds since epoch).
  *
- * @param value - The value to convert (number, string, or null/undefined)
+ * Delegates to the canonical {@link toDateMs} normalizer so that sorting, filtering
+ * and the quick filter all agree on the same instant, with full precision (the previous
+ * string path collapsed values to a UTC day, which broke within-day ordering).
+ *
+ * @param value - The value to convert (number, string, Date, or null/undefined)
  * @param inputFormat - Optional date format identifier for string parsing
  * @returns Timestamp in milliseconds, or 0 for invalid/null values
  * @example
@@ -167,21 +172,7 @@ export interface BuildColumnDefsOptions {
  * toSortableTime('01.01.2024', 'dd.MM.yyyy')  // German date format
  */
 export function toSortableTime(value: unknown, inputFormat?: DateFormatId): number {
-    if (value === null || value === undefined) {
-        return 0;
-    }
-    if (typeof value === 'number') {
-        // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
-        return value >= 1e11 ? value : value * 1000;
-    }
-    if (typeof value === 'string') {
-        const iso = normalizeToIsoDate(value, inputFormat);
-        if (!iso) {
-            return 0;
-        }
-        return new Date(iso).getTime();
-    }
-    return 0;
+    return toDateMs(value, inputFormat) ?? 0;
 }
 
 // ── Helper: createDateSortingFn ────────────────────────────────────────────────
@@ -262,8 +253,11 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
             .filter(cfg => cfg.visible)
             .map(cfg => {
                 const inputFmt = cfg.format?.dateInputFormat ?? analysisDateFormats.get(cfg.path);
-                const isDate = cfg.format?.type === 'date';
                 const detectedType = analysisTypes.get(cfg.path) || 'string';
+                // Unify "is this a date column?" for sort, filter AND the filter dialog (meta.columnType).
+                // Previously sort used cfg.format.type while the filter dialog used the auto-detected type,
+                // so manually configuring a string column as date gave date sort but string filter operators.
+                const isDateColumn = cfg.format?.type === 'date' || detectedType === 'date';
 
                 const col: ColumnDef<FlatRow> = {
                     id: cfg.path,
@@ -274,12 +268,15 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     enableSorting: resolveSortable(cfg, detectedType, widgetData.tableSorting),
                     enableColumnFilter: resolveFilterable(cfg, detectedType, widgetData.tableFiltering),
                     enableHiding: resolveHiding(cfg, detectedType, widgetData.tableHiding),
-                    ...(isDate && { sortingFn: createDateSortingFn(inputFmt) }),
+                    ...(isDateColumn && {
+                        sortingFn: createDateSortingFn(inputFmt),
+                        filterFn: createDateFilterFn(inputFmt),
+                    }),
                     cell: ({ getValue }) => renderConfiguredCell(getValue(), cfg),
                     meta: {
                         align: cfg.align || 'left',
                         width: cfg.width,
-                        columnType: detectedType,
+                        columnType: isDateColumn ? 'date' : detectedType,
                     },
                 };
                 return col;
@@ -299,7 +296,10 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                 enableSorting: smartDefaults.sortable && widgetData.tableSorting,
                 enableColumnFilter: smartDefaults.filterable && widgetData.tableFiltering,
                 enableHiding: smartDefaults.hiding && widgetData.tableHiding,
-                ...(isDate && { sortingFn: createDateSortingFn(fmt) }),
+                ...(isDate && {
+                    sortingFn: createDateSortingFn(fmt),
+                    filterFn: createDateFilterFn(fmt),
+                }),
                 cell: ({ getValue }) => renderAutoDetectedCell(getValue()),
                 meta: { align: 'left', columnType: col.type },
             };

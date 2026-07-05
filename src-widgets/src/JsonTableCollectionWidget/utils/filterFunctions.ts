@@ -11,6 +11,7 @@
 import type { FilterFn, Row } from '@tanstack/react-table';
 
 import type { FilterConfig, FilterOperator } from '../components/FilterDialog';
+import { toDateMs, type DateFormatId } from './formatters';
 
 /** Type for flat row data used in the table */
 type FlatRow = Record<string, unknown>;
@@ -131,6 +132,18 @@ function normalizeToTimestamp(value: unknown): number | null {
  */
 function looksLikeDate(value: unknown): boolean {
     return normalizeToTimestamp(value) !== null;
+}
+
+/**
+ * Truncates a timestamp to the start of its LOCAL calendar day (local midnight).
+ *
+ * Used so date-column comparisons match the LOCAL day the user sees in the default
+ * (non-ISO) display, instead of comparing against UTC midnight or a full timestamp.
+ */
+function startOfLocalDay(ms: number): number {
+    const d = new Date(ms);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
 }
 
 /**
@@ -280,6 +293,95 @@ function evaluateFilter(cellValue: unknown, operator: FilterOperator, filterValu
         default:
             return true;
     }
+}
+
+/**
+ * Date-aware filter comparison at LOCAL-DAY granularity.
+ *
+ * Both the cell value and the filter value are normalized to a full-precision timestamp
+ * via {@link toDateMs} (honoring `inputFormat`) and then truncated to the start of their
+ * LOCAL day. This makes `equals` match every value on the same LOCAL day (regardless of
+ * its time component) and keeps range operators consistent with the LOCAL display.
+ *
+ * @param cellValue - Raw cell value
+ * @param operator - Filter operator
+ * @param filterValue - Filter value (string from the date picker, number, etc.)
+ * @param inputFormat - Detected column input format for unambiguous parsing
+ * @returns Whether the cell matches the filter criteria
+ */
+function evaluateDateFilter(
+    cellValue: unknown,
+    operator: FilterOperator,
+    filterValue: string | number | boolean,
+    inputFormat?: DateFormatId,
+): boolean {
+    // isEmpty / isNotEmpty operate on raw presence, not on date parsing
+    if (operator === 'isEmpty') {
+        if (typeof cellValue === 'string') {
+            return cellValue === '';
+        }
+        return cellValue === null || cellValue === undefined;
+    }
+    if (operator === 'isNotEmpty') {
+        if (typeof cellValue === 'string') {
+            return cellValue !== '';
+        }
+        return cellValue !== null && cellValue !== undefined;
+    }
+
+    const cellMs = toDateMs(cellValue, inputFormat);
+    const filterMs = toDateMs(filterValue, inputFormat);
+
+    // Unparseable cell or filter value cannot satisfy any comparison operator
+    if (cellMs === null || filterMs === null) {
+        return false;
+    }
+
+    const cellDay = startOfLocalDay(cellMs);
+    const filterDay = startOfLocalDay(filterMs);
+
+    switch (operator) {
+        case 'equals':
+            return cellDay === filterDay;
+        case 'notEquals':
+            return cellDay !== filterDay;
+        case 'greaterThan': // "after"
+            return cellDay > filterDay;
+        case 'greaterThanOrEqual': // "on or after"
+            return cellDay >= filterDay;
+        case 'lessThan': // "before"
+            return cellDay < filterDay;
+        case 'lessThanOrEqual': // "on or before"
+            return cellDay <= filterDay;
+        default:
+            return true;
+    }
+}
+
+/**
+ * Creates a custom, date-aware filter function for date columns.
+ *
+ * Compares at LOCAL-DAY granularity so that `equals` matches every value on the same
+ * calendar day the user sees. Attached only to date columns in `buildColumnDefs`.
+ *
+ * @param inputFormat - Detected input format for parsing string cell values
+ * @returns A TanStack Table compatible filter function expecting a FilterConfig
+ */
+export function createDateFilterFn(inputFormat?: DateFormatId): FilterFn<FlatRow> {
+    return (row: Row<FlatRow>, columnId: string, filterValue: unknown): boolean => {
+        if (filterValue === undefined || filterValue === null) {
+            return true;
+        }
+        if (typeof filterValue === 'object' && filterValue !== null && 'operator' in filterValue) {
+            const config = filterValue as FilterConfig;
+            return evaluateDateFilter(row.getValue(columnId), config.operator, config.value, inputFormat);
+        }
+        // Legacy: a plain string/number value means "equals this day"
+        if (typeof filterValue === 'string' || typeof filterValue === 'number') {
+            return evaluateDateFilter(row.getValue(columnId), 'equals', filterValue, inputFormat);
+        }
+        return true;
+    };
 }
 
 /**

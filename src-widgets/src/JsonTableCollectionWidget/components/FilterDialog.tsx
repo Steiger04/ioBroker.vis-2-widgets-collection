@@ -147,11 +147,16 @@ function formatDateForInput(value: unknown): string {
         return value;
     }
 
-    // Try to parse and format
+    // Try to parse and format. Use LOCAL getters (not toISOString) so the picker shows the
+    // same calendar day the user sees in the default LOCAL display, avoiding an off-by-one
+    // around UTC midnight for non-UTC timezones.
     try {
         const date = new Date(value as string | number);
         if (!isNaN(date.getTime())) {
-            return date.toISOString().split('T')[0];
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
     } catch {
         // Ignore parsing errors

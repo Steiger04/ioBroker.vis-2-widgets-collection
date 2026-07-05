@@ -175,6 +175,104 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
 }
 
 /**
+ * Canonical full-precision timestamp normalization used by BOTH sorting and filtering.
+ *
+ * This is the single source of truth for "what instant does this cell value represent?".
+ * It keeps the full time component (unlike {@link normalizeToIsoDate}, which collapses to
+ * a day) and uses LOCAL timezone for date-only / European / US inputs so that sort and
+ * filter agree with the default (non-ISO) LOCAL display the user sees; ISO-8601 strings
+ * with an explicit timezone are honored as-is via the Date constructor. The `1e11` epoch
+ * threshold (seconds vs milliseconds) matches detectDateFromNumber, normalizeToTimestamp,
+ * and toSortableTime so all paths agree on the same instant.
+ *
+ * @param value - Raw date value (string, number, or Date).
+ * @param inputFormat - Detected input format for unambiguous European/US parsing.
+ * @returns Timestamp in ms since epoch, or `null` for null/empty/unparseable values.
+ */
+export function toDateMs(value: unknown, inputFormat?: DateFormatId): number | null {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    if (value instanceof Date) {
+        const t = value.getTime();
+        return isNaN(t) ? null : t;
+    }
+
+    if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+            return null;
+        }
+        const ms = value >= 1e11 ? value : value * 1000;
+        return isNaN(new Date(ms).getTime()) ? null : ms;
+    }
+
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    try {
+        // European: dd.MM.yyyy[ HH:mm[:ss]] — local time
+        if (inputFormat?.startsWith('dd.MM.yyyy')) {
+            const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+            if (m) {
+                const d = new Date(
+                    parseInt(m[3], 10),
+                    parseInt(m[2], 10) - 1,
+                    parseInt(m[1], 10),
+                    parseInt(m[4] ?? '0', 10),
+                    parseInt(m[5] ?? '0', 10),
+                    parseInt(m[6] ?? '0', 10),
+                );
+                return isNaN(d.getTime()) ? null : d.getTime();
+            }
+        }
+
+        // US: MM/dd/yyyy[ HH:mm[:ss]] — local time
+        if (inputFormat?.startsWith('MM/dd/yyyy')) {
+            const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+            if (m) {
+                const d = new Date(
+                    parseInt(m[3], 10),
+                    parseInt(m[1], 10) - 1,
+                    parseInt(m[2], 10),
+                    parseInt(m[4] ?? '0', 10),
+                    parseInt(m[5] ?? '0', 10),
+                    parseInt(m[6] ?? '0', 10),
+                );
+                return isNaN(d.getTime()) ? null : d.getTime();
+            }
+        }
+
+        // Pure YYYY-MM-DD (no time/zone): parse as LOCAL midnight to avoid the UTC trap
+        // and stay consistent with the LOCAL display (see formatDateValue).
+        const ymd = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (ymd) {
+            const d = new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+            return isNaN(d.getTime()) ? null : d.getTime();
+        }
+
+        // Pure numeric string → epoch (1e11 threshold)
+        if (/^-?\d+$/.test(trimmed)) {
+            const n = parseInt(trimmed, 10);
+            const ms = n >= 1e11 ? n : n * 1000;
+            return isNaN(new Date(ms).getTime()) ? null : ms;
+        }
+
+        // ISO-8601 with time/zone and other standard formats — let the engine parse
+        const d = new Date(trimmed);
+        return isNaN(d.getTime()) ? null : d.getTime();
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Simple date formatting without external dependencies.
  *
  * Supports common format tokens:
@@ -185,6 +283,15 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
  * - mm: 2-digit minutes
  * - ss: 2-digit seconds
  * - SSS: 3-digit milliseconds
+ *
+ * Display timezone vs. sort/filter normalization: this function formats in the browser's
+ * LOCAL timezone for non-ISO outputs (getDate/getMonth/…) and in UTC for the `ISO-8601 (UTC)`
+ * option (`toISOString()`). This display choice is the user's explicit decision and is
+ * independent of sort and filter normalization: sorting, the date-picker filter, and the
+ * quick filter all normalize via {@link toDateMs} at LOCAL-day granularity, so they match the
+ * default LOCAL display. Users who select `ISO-8601 (UTC)` may therefore see a displayed UTC
+ * day that differs from the LOCAL day used by `equals` near timezone boundaries — this is
+ * expected and unavoidable without forcing a single timezone.
  *
  * @param value - Raw value (string, number, or Date).
  * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
