@@ -4,7 +4,8 @@
  * @module widgets/JsonTableCollectionWidget/hooks/useTableSettings
  * @remarks
  * Encapsulates all table state management (sorting, filtering, pagination, etc.)
- * including localStorage persistence for column sizing and automatic resets
+ * with localStorage persistence of the view state (sorting, filters, pagination,
+ * column visibility and sizing) so it survives reloads, plus automatic resets
  * when features are disabled.
  */
 
@@ -19,6 +20,7 @@ import type {
 } from '@tanstack/react-table';
 
 import type { ColumnConfigEntry } from '../types';
+import { usePersistentState } from './usePersistentState';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -134,7 +136,7 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     // ── Sorting State ────────────────────────────────────────────────────────
 
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [sorting, setSorting] = usePersistentState<SortingState>(`jtc_sorting_${widgetId}`, [], tableSorting);
 
     // Persist sorting state and handle enable/disable transitions
     // Note: Using callback form of setSorting to avoid circular dependency with sorting in deps
@@ -154,11 +156,15 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
             });
         }
         prevTableSortingRef.current = tableSorting;
-    }, [tableSorting]);
+    }, [tableSorting, setSorting]);
 
     // ── Column Filters State ──────────────────────────────────────────────────
 
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnFilters, setColumnFilters] = usePersistentState<ColumnFiltersState>(
+        `jtc_filters_${widgetId}`,
+        [],
+        tableFiltering,
+    );
 
     // Persist column filters state and handle enable/disable transitions
     // Note: Using callback form of setColumnFilters to avoid circular dependency
@@ -178,11 +184,15 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
             });
         }
         prevTableFilteringRef.current = tableFiltering;
-    }, [tableFiltering]);
+    }, [tableFiltering, setColumnFilters]);
 
     // ── Global Filter State ───────────────────────────────────────────────────
 
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [globalFilter, setGlobalFilter] = usePersistentState<string>(
+        `jtc_global_filter_${widgetId}`,
+        '',
+        tableQuickFilter,
+    );
 
     // Persist global filter state and handle enable/disable transitions
     // Note: Using callback form of setGlobalFilter to avoid circular dependency
@@ -202,7 +212,7 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
             });
         }
         prevTableQuickFilterRef.current = tableQuickFilter;
-    }, [tableQuickFilter]);
+    }, [tableQuickFilter, setGlobalFilter]);
 
     // ── Row Selection State ───────────────────────────────────────────────────
 
@@ -210,48 +220,28 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     // ── Column Sizing State ───────────────────────────────────────────────────
 
-    const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(() => {
-        if (tableAutoSize) {
-            return {};
-        }
-        const storageKey = `jtc_col_sizes_${widgetId}`;
-        try {
-            const stored = localStorage.getItem(storageKey);
-            if (stored) {
-                return JSON.parse(stored) as ColumnSizingState;
+    const [columnSizing, setColumnSizing] = usePersistentState<ColumnSizingState>(
+        `jtc_col_sizes_${widgetId}`,
+        () => {
+            const init: ColumnSizingState = {};
+            columnConfig.forEach(cfg => {
+                if (cfg.width) {
+                    init[cfg.path] = cfg.width;
+                }
+            });
+            if (tableRowSelection === true) {
+                init.__select__ = 48;
             }
-        } catch {
-            // ignore corrupt data
-        }
-        const init: ColumnSizingState = {};
-        columnConfig.forEach(cfg => {
-            if (cfg.width) {
-                init[cfg.path] = cfg.width;
-            }
-        });
-        if (tableRowSelection === true) {
-            init.__select__ = 48;
-        }
-        return init;
-    });
-
-    // Sync columnSizing to localStorage
-    useEffect(() => {
-        if (tableAutoSize) {
-            return;
-        }
-        try {
-            localStorage.setItem(`jtc_col_sizes_${widgetId}`, JSON.stringify(columnSizing));
-        } catch {
-            // localStorage not available or full - silently ignore
-        }
-    }, [columnSizing, widgetId, tableAutoSize]);
+            return init;
+        },
+        !tableAutoSize,
+    );
 
     // ── Pagination State ──────────────────────────────────────────────────────
 
     const configuredPageSize = useMemo(() => Number(tablePageSize) || 25, [tablePageSize]);
 
-    const [pagination, setPagination] = useState<PaginationState>({
+    const [pagination, setPagination] = usePersistentState<PaginationState>(`jtc_pagination_${widgetId}`, {
         pageIndex: 0,
         pageSize: configuredPageSize,
     });
@@ -261,7 +251,7 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
         setPagination(prev =>
             prev.pageSize === configuredPageSize ? prev : { pageIndex: 0, pageSize: configuredPageSize },
         );
-    }, [configuredPageSize]);
+    }, [configuredPageSize, setPagination]);
 
     // Calculate effective pagination (all rows when pagination disabled)
     const effectivePagination = useMemo<PaginationState>(
@@ -275,13 +265,16 @@ export function useTableSettings(options: UseTableSettingsOptions): UseTableSett
 
     // ── Column Visibility State ──────────────────────────────────────────────
 
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [columnVisibility, setColumnVisibility] = usePersistentState<VisibilityState>(
+        `jtc_visibility_${widgetId}`,
+        {},
+    );
 
     // ── Helper: Show All Columns ──────────────────────────────────────────────
 
     const showAllColumns = useCallback(() => {
         setColumnVisibility({});
-    }, []);
+    }, [setColumnVisibility]);
 
     // ── Return ─────────────────────────────────────────────────────────────────
 
