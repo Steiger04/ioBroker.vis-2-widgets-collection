@@ -1,10 +1,10 @@
-import { j as o, C as W, F, n as M, q as D, i as S, x as z, y as P, o as c, w as B, S as $, v as A, T as L, K as R, M as _, G as H, z as p, A as E, E as N, __tla as __tla_0 } from "./useData-uTS-Mc2K.js";
-import { u as U, d as q, __tla as __tla_1 } from "./useValueState-54rA2xg2.js";
-import { v as w, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { T as K, a as X, __tla as __tla_3 } from "./ToggleButtonGroup-4zL0_a7U.js";
+import { j as o, F as W, C as F, n as M, q as D, i as C, x as z, y as $, o as c, w, S as P, v as A, T as L, M as R, N as S, G as H, z as u, A as N, E, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
+import { u as U, d as q, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
+import { v as _, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { T as X, a as Y, __tla as __tla_3 } from "./ToggleButtonGroup-D5rbOtOJ.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let j;
+let B;
 let __tla = Promise.all([
   (() => {
     try {
@@ -31,10 +31,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const Y = () => [
+  const J = () => [
     {
       type: "custom",
-      component: () => o.jsx(W, {})
+      component: () => o.jsx(F, {})
     },
     {
       name: "onlyIcon",
@@ -80,45 +80,37 @@ let __tla = Promise.all([
       ],
       default: "horizontal"
     },
-    {
+    W({
       name: "buttonGroupColor",
       label: "button_group_color",
-      default: "",
-      type: "custom",
       fallbackFields: [
         "textColor"
-      ],
-      component: (n, t, i, u) => o.jsx(F, {
-        field: n,
-        data: t,
-        onDataChange: i,
-        props: u
-      })
-    }
+      ]
+    })
   ];
-  function J(n) {
-    const t = B(n), i = R(n);
+  function K(i) {
+    const t = w(i), a = R(i);
     return {
       hasGradient: !!t,
-      hasColor: i,
-      hoverBackground: t ? void 0 : i && n ? _(n, 0.5) : void 0,
-      selectedBackground: t ? void 0 : i && n ? _(n, 0.3) : void 0
+      hasColor: a,
+      hoverBackground: t ? void 0 : a && i ? S(i, 0.5) : void 0,
+      selectedBackground: t ? void 0 : a && i ? S(i, 0.3) : void 0
     };
   }
   function Q() {
-    const n = w.useContext(M), { widget: t, theme: i } = n, u = t.data.oidObject, { data: g, states: h, activeIndex: G } = D("oid"), { value: x, updateValue: b } = U("oid"), k = t.data.buttonGroupVariant, m = t.data.buttonGroupOrientation, d = u == null ? void 0 : u.type, v = d === "boolean" || d === "number" || d === "string" || d === "mixed", a = m === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? S(t.data.buttonGroupColor, 0.6) : S(i.palette.text.primary, 0.6), T = w.useCallback((s) => {
-      b(s);
+    const i = _.useContext(M), { widget: t, theme: a } = i, j = t.data.oidObject, { data: p, states: g, activeIndex: G } = D("oid"), { value: h, updateValue: x } = U("oid"), k = t.data.buttonGroupVariant, b = t.data.buttonGroupOrientation, d = j == null ? void 0 : j.type, m = d === "boolean" || d === "number" || d === "string" || d === "mixed", n = b === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? C(t.data.buttonGroupColor, 0.6) : C(a.palette.text.primary, 0.6), T = _.useCallback((s) => {
+      x(s);
     }, [
-      b
+      x
     ]);
     return o.jsxs(z, {
       bgActive: false,
-      isValidType: v,
-      data: g,
-      oidValue: x,
+      isValidType: m,
+      data: p,
+      oidValue: h,
       children: [
-        o.jsx(P, {
-          data: g,
+        o.jsx($, {
+          data: p,
           widget: t
         }),
         o.jsx(c, {
@@ -127,24 +119,24 @@ let __tla = Promise.all([
             height: "100%",
             display: "flex"
           },
-          children: o.jsx(K, {
+          children: o.jsx(X, {
             exclusive: true,
-            value: String(x),
-            disabled: !v,
+            value: String(h),
+            disabled: !m,
             fullWidth: true,
-            orientation: m,
+            orientation: b,
             sx: {
               display: "flex",
-              flexDirection: a ? "column" : "row",
+              flexDirection: n ? "column" : "row",
               justifyContent: "space-between",
               alignItems: "center",
-              height: a ? "100%" : "auto",
-              maxHeight: a ? "100%" : "none",
-              ...a && {
+              height: n ? "100%" : "auto",
+              maxHeight: n ? "100%" : "none",
+              ...n && {
                 "& .MuiToggleButton-root": {
                   flex: "1 1 0",
                   minHeight: 0,
-                  maxHeight: `calc(100% / ${h.length})`
+                  maxHeight: `calc(100% / ${g.length})`
                 }
               },
               "& .MuiToggleButtonGroup-firstButton": {
@@ -159,9 +151,9 @@ let __tla = Promise.all([
               "& .MuiToggleButtonGroup-middleButton": {
                 ...!r && {
                   border: "none",
-                  marginLeft: a ? void 0 : 0,
-                  marginTop: a ? 0 : void 0,
-                  boxShadow: a ? `inset 0 1px 0 0 ${l}` : `inset 1px 0 0 0 ${l}`
+                  marginLeft: n ? void 0 : 0,
+                  marginTop: n ? 0 : void 0,
+                  boxShadow: n ? `inset 0 1px 0 0 ${l}` : `inset 1px 0 0 0 ${l}`
                 },
                 ...r && {
                   borderColor: l
@@ -170,9 +162,9 @@ let __tla = Promise.all([
               "& .MuiToggleButtonGroup-lastButton": {
                 ...!r && {
                   border: "none",
-                  marginLeft: a ? void 0 : 0,
-                  marginTop: a ? 0 : void 0,
-                  boxShadow: a ? `inset 0 1px 0 0 ${l}` : `inset 1px 0 0 0 ${l}`
+                  marginLeft: n ? void 0 : 0,
+                  marginTop: n ? 0 : void 0,
+                  boxShadow: n ? `inset 0 1px 0 0 ${l}` : `inset 1px 0 0 0 ${l}`
                 },
                 ...r && {
                   borderColor: l
@@ -180,9 +172,9 @@ let __tla = Promise.all([
                 borderRadius: t.data.basePadding ? void 0 : 0
               }
             },
-            children: h.map(({ value: s, ...e }, f) => {
-              const I = G === f + 1, { hasGradient: y, hoverBackground: V, selectedBackground: O } = J(e.background), C = B(e.textColor);
-              return o.jsx(X, {
+            children: g.map(({ value: s, ...e }, v) => {
+              const I = G === v + 1, { hasGradient: f, hoverBackground: V, selectedBackground: O } = K(e.background), y = w(e.textColor);
+              return o.jsx(Y, {
                 value: String(s),
                 onClick: () => T(s),
                 sx: {
@@ -193,10 +185,10 @@ let __tla = Promise.all([
                   justifyContent: "center",
                   alignItems: "center",
                   "&.MuiToggleButton-root": {
-                    filter: I && y ? "opacity(80%)" : void 0,
+                    filter: I && f ? "opacity(80%)" : void 0,
                     background: e.background,
                     "&:hover": {
-                      filter: y ? "opacity(80%)" : void 0,
+                      filter: f ? "opacity(80%)" : void 0,
                       background: V
                     },
                     "&.Mui-selected": {
@@ -224,7 +216,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: o.jsx($, {
+                      children: o.jsx(P, {
                         src: e.icon,
                         style: {
                           position: "relative",
@@ -255,23 +247,23 @@ let __tla = Promise.all([
                         sx: {
                           textTransform: "none",
                           fontSize: e.valueSize,
-                          background: C,
+                          background: y,
                           WebkitBackgroundClip: "text",
                           backgroundClip: "text",
-                          color: C ? "transparent" : e.textColor
+                          color: y ? "transparent" : e.textColor
                         }
                       })
                     })
                   ]
                 })
-              }, `${String(s)}-${f}`);
+              }, `${String(s)}-${v}`);
             })
           })
         })
       ]
     });
   }
-  j = class extends H {
+  B = class extends H {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -284,28 +276,28 @@ let __tla = Promise.all([
           {
             name: "common",
             fields: [
-              ...p()
+              ...u()
             ]
           },
           {
             name: "buttonGroup",
             label: "button_group",
             fields: [
-              ...E([
+              ...N([
                 "string",
                 "number",
                 "boolean",
                 "mixed"
               ]),
               ...q(),
-              ...Y()
+              ...J()
             ]
           },
           {
             name: "active",
             label: "group_active",
             fields: [
-              ...p({
+              ...u({
                 groupName: "Active",
                 allFields: false
               })
@@ -317,7 +309,7 @@ let __tla = Promise.all([
             indexFrom: 1,
             indexTo: "values_count",
             fields: [
-              ...p({
+              ...u({
                 groupName: "",
                 allFields: false
               })
@@ -333,7 +325,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return j.getWidgetInfo();
+      return B.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -341,14 +333,14 @@ let __tla = Promise.all([
     }
     onRxStyleChanged() {
     }
-    onStateUpdated(t, i) {
+    onStateUpdated(t, a) {
     }
     componentDidMount() {
       super.componentDidMount();
     }
     renderWidgetBody(t) {
       super.renderWidgetBody(t);
-      const i = {
+      const a = {
         id: t.id,
         refService: t.refService,
         style: t.style,
@@ -366,11 +358,11 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, N(this.wrapContent(o.jsx(Q, {})), i);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, E(this.wrapContent(o.jsx(Q, {})), a);
     }
   };
 });
 export {
   __tla,
-  j as default
+  B as default
 };

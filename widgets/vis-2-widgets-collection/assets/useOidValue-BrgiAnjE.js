@@ -1,5 +1,5 @@
 import { v as e, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { n as u, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
+import { n as u, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
 let c;
 let __tla = Promise.all([
   (() => {

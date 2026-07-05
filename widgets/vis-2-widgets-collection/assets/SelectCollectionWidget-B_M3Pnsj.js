@@ -1,11 +1,11 @@
-import { j as n, N as W, C, F as P, Q as T, n as F, R as O, q as B, x as D, y as R, o as f, U as G, K as w, V as N, S as z, v as A, T as E, w as u, i as b, G as H, z as S, A as L, E as U, __tla as __tla_0 } from "./useData-uTS-Mc2K.js";
-import { u as y, d as $, __tla as __tla_1 } from "./useValueState-54rA2xg2.js";
+import { j as n, O as W, F, C, R as O, n as P, U as T, q as B, x as D, y as R, o as f, V as z, M as w, W as A, S as E, v as G, T as H, w as u, i as b, G as L, z as S, A as N, E as U, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
+import { u as y, d as $, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
 import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { M as Y, __tla as __tla_3 } from "./MenuItem-BF7PzAn0.js";
-import { S as q, __tla as __tla_4 } from "./Stack-BtRA5vwz.js";
+import { M as Y, __tla as __tla_3 } from "./MenuItem-D9BFEqur.js";
+import { S as q, __tla as __tla_4 } from "./Stack-BcRoWIAv.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./listItemTextClasses-uYmSz2pD.js";
+import { __tla as __tla_5 } from "./listItemTextClasses-N7uw7-qo.js";
 let j;
 let __tla = Promise.all([
   (() => {
@@ -45,7 +45,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  const K = () => [
+  const X = () => [
     {
       type: "custom",
       component: () => n.jsx(C, {
@@ -69,24 +69,16 @@ let __tla = Promise.all([
         dividerText: "arrow"
       })
     },
-    {
+    F({
       name: "arrowColor",
       label: "arrow_color",
-      default: "",
-      type: "custom",
       fallbackFields: [
         ""
       ],
-      noGradient: true,
-      component: (i, e, a, o) => n.jsx(P, {
-        field: i,
-        data: e,
-        onDataChange: a,
-        props: o
-      })
-    }
+      noGradient: true
+    })
   ];
-  function Q(i) {
+  function J(i) {
     const e = u(i), a = e ? w(i) : void 0, o = a ? b(a, 0.5) : i ? b(i, 0.5) : void 0;
     return {
       background: e,
@@ -105,13 +97,13 @@ let __tla = Promise.all([
       }
     };
   }
-  function X() {
-    const i = d.useRef(null), { width: e = 300 } = T(i.current), a = d.useContext(F), { widget: o } = a, { borderStyles: k } = O(o.style), p = o.data.cidObject, _ = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), I = _ == null ? void 0 : _.type, M = [
+  function K() {
+    const i = d.useRef(null), { width: e = 300 } = O(i.current), a = d.useContext(P), { widget: o } = a, { borderStyles: k } = T(o.style), p = o.data.cidObject, _ = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), M = _ == null ? void 0 : _.type, I = [
       "boolean",
       "number",
       "string",
       "mixed"
-    ].includes(I || ""), x = d.useMemo(() => {
+    ].includes(M || ""), x = d.useMemo(() => {
       if (c == null) return -1;
       const t = String(c);
       return s.findIndex((l) => String(l.value) === t);
@@ -132,7 +124,7 @@ let __tla = Promise.all([
       g
     ]);
     return n.jsxs(D, {
-      isValidType: M,
+      isValidType: I,
       data: r,
       oidValue: c,
       children: [
@@ -149,7 +141,7 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: n.jsx(G, {
+          children: n.jsx(z, {
             variant: "standard",
             disableUnderline: true,
             value: x !== -1 ? x : "",
@@ -168,7 +160,7 @@ let __tla = Promise.all([
                     boxShadow: "none !important"
                   },
                   background: r.frameBackground || (o.data.noCard ? "transparent" : void 0),
-                  ...N(k)
+                  ...A(k)
                 }
               },
               slotProps: {
@@ -198,7 +190,7 @@ let __tla = Promise.all([
             },
             children: s.map((t, l) => n.jsx(Y, {
               value: l,
-              sx: Q(t.background),
+              sx: J(t.background),
               children: n.jsxs(q, {
                 direction: "row",
                 spacing: t.icon ? 1 : 0,
@@ -206,7 +198,7 @@ let __tla = Promise.all([
                   alignItems: "center"
                 },
                 children: [
-                  n.jsx(z, {
+                  n.jsx(E, {
                     alt: "",
                     src: t.icon,
                     style: {
@@ -214,10 +206,10 @@ let __tla = Promise.all([
                       top: `calc(0px - ${t.iconYOffset})`,
                       right: `calc(0px - ${t.iconXOffset})`,
                       height: t.iconSize,
-                      ...A(t.icon, t.iconColor, t.forceColorMask)
+                      ...G(t.icon, t.iconColor, t.forceColorMask)
                     }
                   }),
-                  n.jsx(E, {
+                  n.jsx(H, {
                     component: f,
                     variant: "subtitle2",
                     sx: {
@@ -247,7 +239,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  j = class extends H {
+  j = class extends L {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -269,14 +261,14 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...L([
+              ...N([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
               ...$(),
-              ...K()
+              ...X()
             ]
           },
           {
@@ -334,7 +326,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, U(this.wrapContent(n.jsx(X, {})), a);
+      return e.widget.data.noCard || e.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, U(this.wrapContent(n.jsx(K, {})), a);
     }
   };
 });

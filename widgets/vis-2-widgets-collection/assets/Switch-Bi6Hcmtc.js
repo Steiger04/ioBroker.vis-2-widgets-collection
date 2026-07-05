@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as M, u as j, b as k, s as u, d as _, j as p, Y as i, e as O, m as d, i as m, Z as D, M as I, a6 as N, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-DoVdnV6C.js";
-let q;
+import { a as P, g as _, u as j, b as k, s as u, d as M, j as p, Z as i, e as N, m as d, i as m, _ as O, N as D, a7 as I, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-I9oA3vkp.js";
+let G;
 let __tla = Promise.all([
   (() => {
     try {
@@ -23,7 +23,7 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function A(t) {
-    return M("MuiSwitch", t);
+    return _("MuiSwitch", t);
   }
   let o, E, F, X, L, V;
   o = P("MuiSwitch", [
@@ -63,7 +63,7 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = O(v, A, a);
+    }, b = N(v, A, a);
     return {
       ...a,
       ...b
@@ -182,7 +182,7 @@ let __tla = Promise.all([
       }
     },
     variants: [
-      ...Object.entries(t.palette).filter(D([
+      ...Object.entries(t.palette).filter(O([
         "light"
       ])).map(([a]) => ({
         props: {
@@ -198,7 +198,7 @@ let __tla = Promise.all([
               }
             },
             [`&.${o.disabled}`]: {
-              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? I(t.palette[a].main, 0.62) : N(t.palette[a].main, 0.55)}`
+              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? D(t.palette[a].main, 0.62) : I(t.palette[a].main, 0.55)}`
             }
           },
           [`&.${o.checked} + .${o.track}`]: {
@@ -237,7 +237,7 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  q = T.forwardRef(function(a, s) {
+  G = T.forwardRef(function(a, s) {
     const l = j({
       props: a,
       name: "MuiSwitch"
@@ -250,7 +250,7 @@ let __tla = Promise.all([
       slots: c,
       slotProps: e
     }, [f, x] = k("root", {
-      className: _(n.root, h),
+      className: M(n.root, h),
       elementType: F,
       externalForwardedProps: S,
       ownerState: r,
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  q as S,
+  G as S,
   __tla
 };

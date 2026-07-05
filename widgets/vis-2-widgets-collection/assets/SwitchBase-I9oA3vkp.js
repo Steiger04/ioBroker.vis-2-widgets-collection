@@ -1,5 +1,5 @@
-import { v as G, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as H, a as J, a5 as K, W as Q, b as C, s as F, j as b, Y as V, e as X, B as Z, r as ee, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
+import { v as D, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { g as G, a as H, a6 as J, X as K, b as C, s as F, j as b, Z as Q, e as V, B as Y, r as ee, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -16,9 +16,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function oe(t) {
-    return H("PrivateSwitchBase", t);
+    return G("PrivateSwitchBase", t);
   }
-  J("PrivateSwitchBase", [
+  H("PrivateSwitchBase", [
     "root",
     "checked",
     "disabled",
@@ -33,15 +33,15 @@ let __tla = Promise.all([
         "root",
         l && "checked",
         d && "disabled",
-        n && `edge${V(n)}`
+        n && `edge${Q(n)}`
       ],
       input: [
         "input"
       ]
     };
-    return X(c, oe, s);
+    return V(c, oe, s);
   };
-  se = F(Z, {
+  se = F(Y, {
     name: "MuiSwitchBase"
   })({
     padding: 9,
@@ -94,24 +94,24 @@ let __tla = Promise.all([
     padding: 0,
     zIndex: 1
   });
-  ie = G.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = K({
+  ie = D.forwardRef(function(s, l) {
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...M } = s, [B, N] = J({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
       state: "checked"
-    }), a = Q(), T = (e) => {
+    }), a = K(), T = (e) => {
       m && m(e), a && a.onFocus && a.onFocus(e);
-    }, W = (e) => {
-      g && g(e), a && a.onBlur && a.onBlur(e);
     }, q = (e) => {
+      g && g(e), a && a.onBlur && a.onBlur(e);
+    }, O = (e) => {
       if (e.nativeEvent.defaultPrevented) return;
       const o = e.target.checked;
       N(o), f && f(e, o);
     };
     let r = k;
     a && typeof r > "u" && (r = a.disabled);
-    const O = i === "checkbox" || i === "radio", p = {
+    const W = i === "checkbox" || i === "radio", p = {
       ...s,
       checked: B,
       disabled: r,
@@ -123,7 +123,7 @@ let __tla = Promise.all([
         input: _,
         ...L
       }
-    }, [Y, $] = C("root", {
+    }, [X, Z] = C("root", {
       ref: l,
       elementType: se,
       className: w.root,
@@ -141,7 +141,7 @@ let __tla = Promise.all([
         },
         onBlur: (o) => {
           var _a;
-          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), W(o);
+          (_a = e.onBlur) == null ? void 0 : _a.call(e, o), q(o);
         }
       }),
       ownerState: p,
@@ -152,7 +152,7 @@ let __tla = Promise.all([
         role: void 0,
         tabIndex: null
       }
-    }), [A, D] = C("input", {
+    }), [$, A] = C("input", {
       ref: I,
       elementType: ae,
       className: w.input,
@@ -160,7 +160,7 @@ let __tla = Promise.all([
       getSlotProps: (e) => ({
         onChange: (o) => {
           var _a;
-          (_a = e.onChange) == null ? void 0 : _a.call(e, o), q(o);
+          (_a = e.onChange) == null ? void 0 : _a.call(e, o), O(o);
         }
       }),
       ownerState: p,
@@ -169,7 +169,7 @@ let __tla = Promise.all([
         checked: n,
         defaultChecked: u,
         disabled: r,
-        id: O ? R : void 0,
+        id: W ? R : void 0,
         name: z,
         readOnly: v,
         required: j,
@@ -180,11 +180,11 @@ let __tla = Promise.all([
         }
       }
     });
-    return b.jsxs(Y, {
-      ...$,
+    return b.jsxs(X, {
+      ...Z,
       children: [
-        b.jsx(A, {
-          ...D
+        b.jsx($, {
+          ...A
         }),
         B ? c : x
       ]

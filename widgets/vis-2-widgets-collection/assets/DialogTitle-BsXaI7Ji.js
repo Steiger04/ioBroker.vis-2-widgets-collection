@@ -1,6 +1,6 @@
 import { v as p, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as k, g as w, u as P, a2 as go, P as N, av as j, ai as mo, b, d as h, s as g, j as n, Y as u, e as W, O as xo, aw as bo, m as U, T as ho, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
-let Fo, No, jo;
+import { a as k, g as P, u as w, a3 as go, P as N, ax as F, aj as mo, b, d as h, s as g, j as n, Z as u, e as W, Q as xo, ay as bo, m as U, T as ho, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+let jo, No, Fo;
 let __tla = Promise.all([
   (() => {
     try {
@@ -15,10 +15,10 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  function vo(e) {
-    return w("MuiDialog", e);
+  function fo(e) {
+    return P("MuiDialog", e);
   }
-  let D, _, fo, Co, yo, So, Do;
+  let D, _, vo, yo, Co, So, Do;
   D = k("MuiDialog", [
     "root",
     "scrollPaper",
@@ -37,14 +37,14 @@ let __tla = Promise.all([
     "paperFullScreen"
   ]);
   _ = p.createContext({});
-  fo = g(bo, {
+  vo = g(bo, {
     name: "MuiDialog",
     slot: "Backdrop",
     overrides: (e, o) => o.backdrop
   })({
     zIndex: -1
   });
-  Co = (e) => {
+  yo = (e) => {
     const { classes: o, scroll: t, maxWidth: a, fullWidth: r, fullScreen: s } = e, i = {
       root: [
         "root"
@@ -61,9 +61,9 @@ let __tla = Promise.all([
         s && "paperFullScreen"
       ]
     };
-    return W(i, vo, o);
+    return W(i, fo, o);
   };
-  yo = g(xo, {
+  Co = g(xo, {
     name: "MuiDialog",
     slot: "Root",
     overridesResolver: (e, o) => o.root
@@ -215,33 +215,33 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Fo = p.forwardRef(function(o, t) {
-    const a = P({
+  jo = p.forwardRef(function(o, t) {
+    const a = w({
       props: o,
       name: "MuiDialog"
     }), r = go(), s = {
       enter: r.transitions.duration.enteringScreen,
       exit: r.transitions.duration.leavingScreen
-    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": m = true, BackdropComponent: v, BackdropProps: A, children: I, className: Y, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: O = false, maxWidth: X = "sm", onBackdropClick: M, onClick: R, onClose: f, open: $, PaperComponent: z = N, PaperProps: B = {}, scroll: E = "paper", slots: H = {}, slotProps: K = {}, TransitionComponent: V = j, transitionDuration: F = s, TransitionProps: q, ...G } = a, c = {
+    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": m = true, BackdropComponent: f, BackdropProps: A, children: I, className: Y, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: X = false, maxWidth: z = "sm", onBackdropClick: M, onClick: R, onClose: v, open: $, PaperComponent: E = N, PaperProps: B = {}, scroll: H = "paper", slots: O = {}, slotProps: K = {}, TransitionComponent: Q = F, transitionDuration: j = s, TransitionProps: V, ...Z } = a, c = {
       ...a,
       disableEscapeKeyDown: T,
       fullScreen: L,
-      fullWidth: O,
-      maxWidth: X,
-      scroll: E
-    }, C = Co(c), y = p.useRef(), J = (d) => {
-      y.current = d.target === d.currentTarget;
-    }, Q = (d) => {
-      R && R(d), y.current && (y.current = null, M && M(d), f && f(d, "backdropClick"));
-    }, S = mo(l), Z = p.useMemo(() => ({
+      fullWidth: X,
+      maxWidth: z,
+      scroll: H
+    }, y = yo(c), C = p.useRef(), q = (d) => {
+      C.current = d.target === d.currentTarget;
+    }, G = (d) => {
+      R && R(d), C.current && (C.current = null, M && M(d), v && v(d, "backdropClick"));
+    }, S = mo(l), J = p.useMemo(() => ({
       titleId: S
     }), [
       S
     ]), oo = {
-      transition: V,
-      ...H
+      transition: Q,
+      ...O
     }, eo = {
-      transition: q,
+      transition: V,
       paper: B,
       backdrop: A,
       ...K
@@ -249,14 +249,14 @@ let __tla = Promise.all([
       slots: oo,
       slotProps: eo
     }, [to, ao] = b("root", {
-      elementType: yo,
+      elementType: Co,
       shouldForwardComponentProp: true,
       externalForwardedProps: x,
       ownerState: c,
-      className: h(C.root, Y),
+      className: h(y.root, Y),
       ref: t
     }), [ro, so] = b("backdrop", {
-      elementType: fo,
+      elementType: vo,
       shouldForwardComponentProp: true,
       externalForwardedProps: x,
       ownerState: c
@@ -265,20 +265,20 @@ let __tla = Promise.all([
       shouldForwardComponentProp: true,
       externalForwardedProps: x,
       ownerState: c,
-      className: h(C.paper, B.className)
+      className: h(y.paper, B.className)
     }), [no, po] = b("container", {
       elementType: So,
       externalForwardedProps: x,
       ownerState: c,
-      className: h(C.container)
+      className: h(y.container)
     }), [co, uo] = b("transition", {
-      elementType: j,
+      elementType: F,
       externalForwardedProps: x,
       ownerState: c,
       additionalProps: {
         appear: true,
         in: $,
-        timeout: F,
+        timeout: j,
         role: "presentation"
       }
     });
@@ -289,24 +289,24 @@ let __tla = Promise.all([
       },
       slotProps: {
         backdrop: {
-          transitionDuration: F,
-          as: v,
+          transitionDuration: j,
+          as: f,
           ...so
         }
       },
       disableEscapeKeyDown: T,
-      onClose: f,
+      onClose: v,
       open: $,
-      onClick: Q,
+      onClick: G,
       ...ao,
-      ...G,
+      ...Z,
       children: n.jsx(co, {
         ...uo,
         children: n.jsx(no, {
-          onMouseDown: J,
+          onMouseDown: q,
           ...po,
           children: n.jsx(io, {
-            as: z,
+            as: E,
             elevation: 24,
             role: "dialog",
             "aria-describedby": i,
@@ -314,7 +314,7 @@ let __tla = Promise.all([
             "aria-modal": m,
             ...lo,
             children: n.jsx(_.Provider, {
-              value: Z,
+              value: J,
               children: I
             })
           })
@@ -323,17 +323,17 @@ let __tla = Promise.all([
     });
   });
   function ko(e) {
-    return w("MuiDialogContent", e);
+    return P("MuiDialogContent", e);
   }
   k("MuiDialogContent", [
     "root",
     "dividers"
   ]);
-  function wo(e) {
-    return w("MuiDialogTitle", e);
+  function Po(e) {
+    return P("MuiDialogTitle", e);
   }
-  let Po, Wo, To, Mo, Ro;
-  Po = k("MuiDialogTitle", [
+  let wo, Wo, To, Mo, Ro;
+  wo = k("MuiDialogTitle", [
     "root"
   ]);
   Wo = (e) => {
@@ -372,15 +372,15 @@ let __tla = Promise.all([
       {
         props: ({ ownerState: o }) => !o.dividers,
         style: {
-          [`.${Po.root} + &`]: {
+          [`.${wo.root} + &`]: {
             paddingTop: 0
           }
         }
       }
     ]
   })));
-  jo = p.forwardRef(function(o, t) {
-    const a = P({
+  Fo = p.forwardRef(function(o, t) {
+    const a = w({
       props: o,
       name: "MuiDialogContent"
     }), { className: r, dividers: s = false, ...i } = a, l = {
@@ -400,7 +400,7 @@ let __tla = Promise.all([
       root: [
         "root"
       ]
-    }, wo, o);
+    }, Po, o);
   };
   Ro = g(ho, {
     name: "MuiDialogTitle",
@@ -411,24 +411,24 @@ let __tla = Promise.all([
     flex: "0 0 auto"
   });
   No = p.forwardRef(function(o, t) {
-    const a = P({
+    const a = w({
       props: o,
       name: "MuiDialogTitle"
-    }), { className: r, id: s, ...i } = a, l = a, m = Mo(l), { titleId: v = s } = p.useContext(_);
+    }), { className: r, id: s, ...i } = a, l = a, m = Mo(l), { titleId: f = s } = p.useContext(_);
     return n.jsx(Ro, {
       component: "h2",
       className: h(m.root, r),
       ownerState: l,
       ref: t,
       variant: "h6",
-      id: s ?? v,
+      id: s ?? f,
       ...i
     });
   });
 });
 export {
-  Fo as D,
+  jo as D,
   __tla,
   No as a,
-  jo as b
+  Fo as b
 };

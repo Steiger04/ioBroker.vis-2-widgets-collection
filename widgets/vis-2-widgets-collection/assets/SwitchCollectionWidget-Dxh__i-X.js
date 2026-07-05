@@ -1,10 +1,10 @@
-import { j as l, C as d, F as c, s as C, v as u, n as x, q as w, x as y, y as k, o as h, G as v, z as p, A as _, E as j, __tla as __tla_0 } from "./useData-uTS-Mc2K.js";
-import { u as M, d as z, __tla as __tla_1 } from "./useValueState-54rA2xg2.js";
+import { j as o, F as c, C as d, s as C, v as u, n as w, q as x, x as v, y as k, o as h, G as y, z as p, A as _, E as M, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
+import { u as j, d as z, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
 import { v as m, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as F, __tla as __tla_3 } from "./Switch-D6V0WLGj.js";
+import { S as F, __tla as __tla_3 } from "./Switch-Bi6Hcmtc.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_4 } from "./SwitchBase-DoVdnV6C.js";
+import { __tla as __tla_4 } from "./SwitchBase-I9oA3vkp.js";
 let g;
 let __tla = Promise.all([
   (() => {
@@ -41,7 +41,7 @@ let __tla = Promise.all([
   const W = () => [
     {
       type: "custom",
-      component: () => l.jsx(d, {})
+      component: () => o.jsx(d, {})
     },
     {
       name: "thumbSize",
@@ -52,35 +52,19 @@ let __tla = Promise.all([
       default: 62,
       step: 1
     },
-    {
+    c({
       name: "thumbColorTrue",
       label: "thumb_color_true",
-      default: "",
-      type: "custom",
-      fallbackFields: [],
-      component: (i, t, e, o) => l.jsx(c, {
-        field: i,
-        data: t,
-        onDataChange: e,
-        props: o
-      })
-    },
-    {
+      fallbackFields: []
+    }),
+    c({
       name: "thumbColorFalse",
       label: "thumb_color_false",
-      default: "",
-      type: "custom",
-      fallbackFields: [],
-      component: (i, t, e, o) => l.jsx(c, {
-        field: i,
-        data: t,
-        onDataChange: e,
-        props: o
-      })
-    },
+      fallbackFields: []
+    }),
     {
       type: "custom",
-      component: () => l.jsx(d, {})
+      component: () => o.jsx(d, {})
     },
     {
       name: "trackSize",
@@ -91,21 +75,13 @@ let __tla = Promise.all([
       default: 10,
       step: 1
     },
-    {
+    c({
       name: "trackColor",
       label: "track_color",
-      default: "",
-      type: "custom",
-      fallbackFields: [],
-      component: (i, t, e, o) => l.jsx(c, {
-        field: i,
-        data: t,
-        onDataChange: e,
-        props: o
-      })
-    }
-  ], I = C(F)(({ width: i, maxheight: t, data: e, widget: o, theme: a }) => {
-    const n = o.data.thumbSize ?? 62;
+      fallbackFields: []
+    })
+  ], I = C(F)(({ width: l, maxheight: t, data: e, widget: a, theme: n }) => {
+    const i = a.data.thumbSize ?? 62;
     return {
       width: "100%",
       height: "100%",
@@ -119,42 +95,42 @@ let __tla = Promise.all([
         padding: 0,
         top: "50%",
         left: "0%",
-        transform: `translate(-50%, -50%) translateX(${(t || 0) >= n ? n / 2 - 4 : (t || 0) / 2 - 4}px)`,
+        transform: `translate(-50%, -50%) translateX(${(t || 0) >= i ? i / 2 - 4 : (t || 0) / 2 - 4}px)`,
         "& .MuiSwitch-input": {
           left: 0,
-          width: i || 0
+          width: l || 0
         },
         "&.Mui-checked": {
           top: "50%",
           left: "100%",
-          transform: `translate(-50%, -50%) translateX(${(t || 0) >= n ? -(n / 2 - 4) : -((t || 0) / 2 - 4)}px)`,
+          transform: `translate(-50%, -50%) translateX(${(t || 0) >= i ? -(i / 2 - 4) : -((t || 0) / 2 - 4)}px)`,
           "& .MuiSwitch-input": {
-            left: -(i || 0) + n,
-            width: i || 0
+            left: -(l || 0) + i,
+            width: l || 0
           },
           "& .MuiSwitch-thumb": {
-            background: o.data.thumbColorTrue || a.palette.primary.main
+            background: a.data.thumbColorTrue || n.palette.primary.main
           },
           "& .MuiSwitch-thumb:before": {
             top: `calc(${e.iconYOffset} * -1)`,
             left: e.iconXOffset,
             backgroundSize: e.iconSizeOnly,
             backgroundImage: `url('${e.icon}')`,
-            ...u(e.icon, e.iconColor || a.palette.primary.dark, e.forceColorMask)
+            ...u(e.icon, e.iconColor || n.palette.primary.dark, e.forceColorMask)
           },
           "& + .MuiSwitch-track": {
-            background: o.data.trackColor
+            background: a.data.trackColor
           }
         }
       },
       "& .MuiSwitch-track": {
-        background: o.data.trackColor
+        background: a.data.trackColor
       },
       "& .MuiSwitch-thumb": {
-        background: o.data.thumbColorFalse,
-        width: n,
+        background: a.data.thumbColorFalse,
+        width: i,
         maxWidth: t,
-        height: n,
+        height: i,
         maxHeight: t,
         "&::before": {
           content: "''",
@@ -167,33 +143,33 @@ let __tla = Promise.all([
           backgroundPosition: "center",
           backgroundSize: e.iconSizeOnly,
           backgroundImage: `url('${e.icon}')`,
-          ...u(e.icon, e.iconColor || a.palette.primary.main, e.forceColorMask)
+          ...u(e.icon, e.iconColor || n.palette.primary.main, e.forceColorMask)
         }
       }
     };
   });
   function O() {
     var _a, _b, _c, _d;
-    const i = m.useRef(null), t = m.useContext(x), { widget: e, theme: o } = t, a = e.data.oidObject, { data: n } = w("oid"), { value: s, updateValue: b } = M("oid"), r = a == null ? void 0 : a.type, f = r === "boolean", S = () => {
+    const l = m.useRef(null), t = m.useContext(w), { widget: e, theme: a } = t, n = e.data.oidObject, { data: i } = x("oid"), { value: s, updateValue: b } = j("oid"), r = n == null ? void 0 : n.type, f = r === "boolean", S = () => {
       b(!s);
     };
-    return l.jsxs(y, {
+    return o.jsxs(v, {
       isValidType: f,
-      data: n,
+      data: i,
       oidValue: s,
       children: [
-        l.jsx(k, {
-          data: n,
+        o.jsx(k, {
+          data: i,
           widget: e
         }),
-        l.jsx(h, {
+        o.jsx(h, {
           sx: {
             position: "relative",
             width: "100%",
             height: e.data.trackSize && `${e.data.trackSize}%` || "10%"
           },
-          children: l.jsx(h, {
-            ref: i,
+          children: o.jsx(h, {
+            ref: l,
             sx: {
               width: "100%",
               height: "100%",
@@ -202,17 +178,17 @@ let __tla = Promise.all([
               justifyContent: "center",
               alignItems: "center"
             },
-            children: s !== void 0 && e.data.thumbSize !== void 0 && l.jsx(I, {
+            children: s !== void 0 && e.data.thumbSize !== void 0 && o.jsx(I, {
               disabled: r !== "boolean",
-              width: (_a = i.current) == null ? void 0 : _a.clientWidth,
-              maxheight: (_d = (_c = (_b = i.current) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.parentElement) == null ? void 0 : _d.clientHeight,
-              data: n,
+              width: (_a = l.current) == null ? void 0 : _a.clientWidth,
+              maxheight: (_d = (_c = (_b = l.current) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.parentElement) == null ? void 0 : _d.clientHeight,
+              data: i,
               widget: e,
               checked: !!s,
               onChange: S,
               sx: {
                 "& .MuiTouchRipple-root": {
-                  color: n.iconColor || o.palette.primary.main
+                  color: i.iconColor || a.palette.primary.main
                 }
               }
             })
@@ -221,7 +197,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  g = class extends v {
+  g = class extends y {
     static getWidgetInfo() {
       return {
         id: "tplSwitchCollectionWidget",
@@ -303,7 +279,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, j(this.wrapContent(l.jsx(O, {})), e);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, M(this.wrapContent(o.jsx(O, {})), e);
     }
   };
 });

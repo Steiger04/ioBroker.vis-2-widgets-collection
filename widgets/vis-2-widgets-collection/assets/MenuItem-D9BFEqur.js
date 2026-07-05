@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, aB as x, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-uYmSz2pD.js";
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as D, m as G, i as c, aD as x, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-N7uw7-qo.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -29,7 +29,7 @@ let __tla = Promise.all([
     "root",
     "alignItemsFlexStart"
   ]);
-  function D(e) {
+  function N(e) {
     return k("MuiMenuItem", e);
   }
   let n, E, H, z;
@@ -61,18 +61,18 @@ let __tla = Promise.all([
         s && "divider",
         d && "selected"
       ]
-    }, D, o);
+    }, N, o);
     return {
       ...o,
       ...i
     };
   };
   z = F(U, {
-    shouldForwardProp: (e) => G(e) || e === "classes",
+    shouldForwardProp: (e) => D(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
     overridesResolver: E
-  })(N(({ theme: e }) => ({
+  })(G(({ theme: e }) => ({
     ...e.typography.body1,
     display: "flex",
     justifyContent: "flex-start",
@@ -167,7 +167,7 @@ let __tla = Promise.all([
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: B = "menuitem", tabIndex: v, className: S, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -191,11 +191,11 @@ let __tla = Promise.all([
       value: m,
       children: C.jsx(z, {
         ref: w,
-        role: B,
+        role: S,
         tabIndex: b,
         component: d,
         focusVisibleClassName: I(u.focusVisible, R),
-        className: I(u.root, S),
+        className: I(u.root, B),
         ...L,
         ownerState: _,
         classes: u

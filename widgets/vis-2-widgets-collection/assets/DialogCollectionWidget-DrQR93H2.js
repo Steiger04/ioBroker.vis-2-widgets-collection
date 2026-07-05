@@ -1,9 +1,9 @@
-import { j as t, N as W, C as c, F as O, O as M, o as x, x as k, T as _, w as f, D as y, i as b, I as A, n as H, q as V, v as R, y as E, s as F, S as z, B as P, G as L, z as $, E as N, __tla as __tla_0 } from "./useData-uTS-Mc2K.js";
-import { v as n, R as U, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as G, __tla as __tla_2 } from "./Close-D4DyvRZ7.js";
+import { j as t, O as W, F as O, C as d, Q as M, o as x, x as k, T as _, w as f, D as y, i as b, I as A, n as H, q as V, v as R, y as F, s as E, S as z, B as L, G as P, z as $, E as U, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
+import { v as n, R as N, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { C as G, __tla as __tla_2 } from "./Close-8R9h2z3B.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let j;
+let T;
 let __tla = Promise.all([
   (() => {
     try {
@@ -34,7 +34,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "dialogAutoClose",
@@ -47,7 +47,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "dialogId",
@@ -61,7 +61,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "dialogHeaderAsTitle",
@@ -72,7 +72,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "dialogWidth",
@@ -101,28 +101,19 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
-    {
+    O({
       name: "dialogBackgroundColor",
       label: "background_color",
-      default: "",
-      type: "custom",
       fallbackFields: [
         ""
-      ],
-      noGradient: false,
-      component: (r, l, e, a) => t.jsx(O, {
-        field: r,
-        data: l,
-        onDataChange: e,
-        props: a
-      })
-    },
+      ]
+    }),
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {
+      component: () => t.jsx(d, {
         dividerText: "dialog_button"
       })
     },
@@ -135,7 +126,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "dialogCloseButtonTop",
@@ -157,7 +148,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => t.jsx(c, {})
+      component: () => t.jsx(d, {})
     },
     {
       name: "onlyIcon",
@@ -174,22 +165,22 @@ let __tla = Promise.all([
       hidden: "data.onlyIcon"
     }
   ];
-  function Y({ open: r, handleClose: l, widget: e, data: a, getWidgetView: i }) {
+  function Y({ open: u, handleClose: l, widget: e, data: i, getWidgetView: a }) {
     var _a;
-    const p = n.useRef(null), [u, d] = n.useState(null), o = (_a = p.current) == null ? void 0 : _a.header;
+    const p = n.useRef(null), [c, r] = n.useState(null), o = (_a = p.current) == null ? void 0 : _a.header;
     n.useEffect(() => {
-      e.data.dialogHeaderAsTitle && o && u && (e.data.dialogHeaderAsTitle && (o.style.width = "0px", o.style.height = "0px"), u.innerHTML = a.header, u.style.height = "auto", u.style.width = "auto");
+      e.data.dialogHeaderAsTitle && o && c && (e.data.dialogHeaderAsTitle && (o.style.width = "0px", o.style.height = "0px"), c.innerHTML = i.header, c.style.height = "auto", c.style.width = "auto");
     }, [
       o,
-      u,
-      a.header,
+      c,
+      i.header,
       e.data.dialogHeaderAsTitle
     ]);
     const g = t.jsx(A, {
       sx: {
         alignSelf: "flex-end",
         filter: "brightness(1.5)",
-        color: (s) => e.data.dialogCloseButtonColor || a.frameBackgroundColor || s.palette.background.default
+        color: (s) => e.data.dialogCloseButtonColor || i.frameBackgroundColor || s.palette.background.default
       },
       "aria-label": "delete",
       onClick: l,
@@ -197,7 +188,7 @@ let __tla = Promise.all([
     });
     return t.jsx(M, {
       onClose: l,
-      open: r,
+      open: u,
       sx: {
         display: "flex",
         justifyContent: "center",
@@ -211,10 +202,10 @@ let __tla = Promise.all([
         },
         children: t.jsxs(k, {
           ref: p,
-          data: a,
+          data: i,
           sx: {
             flexDirection: "column",
-            background: a.backgroundColor || a.background
+            background: i.backgroundColor || i.background
           },
           children: [
             t.jsxs(x, {
@@ -235,16 +226,16 @@ let __tla = Promise.all([
                     width: "100%"
                   },
                   children: t.jsx(_, {
-                    ref: d,
+                    ref: r,
                     noWrap: true,
                     variant: "body2",
                     sx: {
-                      fontSize: a.headerSize,
+                      fontSize: i.headerSize,
                       px: e.data.dialogCloseButtonTop ? 4 : 0,
-                      background: f(a.textColor),
+                      background: f(i.textColor),
                       WebkitBackgroundClip: "text",
                       backgroundClip: "text",
-                      color: f(a.textColor) ? "transparent" : a.textColor
+                      color: f(i.textColor) ? "transparent" : i.textColor
                     }
                   })
                 }),
@@ -256,25 +247,25 @@ let __tla = Promise.all([
                 sx: {
                   width: "100%",
                   opacity: "0.5",
-                  background: (s) => a.frameBackgroundColor || s.palette.background.default
+                  background: (s) => i.frameBackgroundColor || s.palette.background.default
                 }
               })
             }),
             t.jsx(x, {
               sx: {
                 "::-webkit-scrollbar-track": {
-                  background: a.frameBackgroundColor && b(a.frameBackgroundColor, 0.5)
+                  background: i.frameBackgroundColor && b(i.frameBackgroundColor, 0.5)
                 },
                 "::-webkit-scrollbar-thumb": {
                   opacity: "0.5",
-                  background: a.frameBackgroundColor && b(a.frameBackgroundColor, 0.7)
+                  background: i.frameBackgroundColor && b(i.frameBackgroundColor, 0.7)
                 },
                 position: "relative",
                 overflow: "auto",
                 width: "100%",
                 height: "100%"
               },
-              children: i(e.data.view || "", {
+              children: a(e.data.view || "", {
                 style: {}
               })
             }),
@@ -284,7 +275,7 @@ let __tla = Promise.all([
                   sx: {
                     width: "100%",
                     opacity: "0.5",
-                    background: (s) => a.frameBackgroundColor || s.palette.background.default
+                    background: (s) => i.frameBackgroundColor || s.palette.background.default
                   }
                 }),
                 e.data.dialogCloseButtonBottom && g
@@ -295,7 +286,7 @@ let __tla = Promise.all([
       })
     });
   }
-  const q = 1e4, J = 60, K = 1e3, Q = F(P)({
+  const q = 1e4, Q = 60, J = 1e3, K = E(L)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
@@ -314,38 +305,38 @@ let __tla = Promise.all([
     height: "100%",
     display: "flex"
   };
-  function te(r) {
-    const l = String(r);
-    if (!r || l === "" || l === "0") return 0;
+  function te(u) {
+    const l = String(u);
+    if (!u || l === "" || l === "0") return 0;
     if (l === "true") return q;
     let e = parseInt(l, 10);
-    return e < J && (e *= 1e3), e || K;
+    return e < Q && (e *= 1e3), e || J;
   }
   function oe() {
     var _a, _b;
-    const [r, l] = n.useState(false), e = n.useRef(null), a = n.useContext(H), { widget: i, widget: { data: p }, getWidgetView: u, setValue: d } = a, { data: o, oidValue: g } = V("dialogId"), s = (_a = i.data.dialogIdObject) == null ? void 0 : _a._id, T = ((_b = i.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !i.data.oid || i.data.oid === "nothing_selected";
+    const [u, l] = n.useState(false), e = n.useRef(null), i = n.useContext(H), { widget: a, widget: { data: p }, getWidgetView: c, setValue: r } = i, { data: o, oidValue: g } = V("dialogId"), s = (_a = a.data.dialogIdObject) == null ? void 0 : _a._id, j = ((_b = a.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected";
     n.useEffect(() => () => {
       e.current && clearTimeout(e.current);
     }, []);
     const h = n.useCallback(() => {
       if (e.current) return;
-      const C = te(i.data.dialogAutoClose);
+      const C = te(a.data.dialogAutoClose);
       if (C === 0) {
         l(true);
         return;
       }
       e.current = setTimeout(() => {
-        e.current = null, s && d(s, false), l(false);
+        e.current = null, s && r(s, false), l(false);
       }, C), l(true);
     }, [
       s,
-      d,
-      i.data.dialogAutoClose
+      r,
+      a.data.dialogAutoClose
     ]), m = n.useCallback(() => {
-      e.current && (clearTimeout(e.current), e.current = null), s && d(s, false), l(false);
+      e.current && (clearTimeout(e.current), e.current = null), s && r(s, false), l(false);
     }, [
       s,
-      d
+      r
     ]);
     n.useEffect(() => {
       g != null && (g ? h() : m());
@@ -355,17 +346,17 @@ let __tla = Promise.all([
       m
     ]);
     const S = n.useCallback(() => {
-      s && d(s, true), h();
+      s && r(s, true), h();
     }, [
       s,
-      d,
+      r,
       h
-    ]), v = n.useMemo(() => i.data.onlyIcon || !i.data.onlyText && !i.data.onlyIcon, [
-      i.data.onlyIcon,
-      i.data.onlyText
-    ]), B = n.useMemo(() => i.data.onlyText || !i.data.onlyText && !i.data.onlyIcon, [
-      i.data.onlyText,
-      i.data.onlyIcon
+    ]), v = n.useMemo(() => a.data.onlyIcon || !a.data.onlyText && !a.data.onlyIcon, [
+      a.data.onlyIcon,
+      a.data.onlyText
+    ]), B = n.useMemo(() => a.data.onlyText || !a.data.onlyText && !a.data.onlyIcon, [
+      a.data.onlyText,
+      a.data.onlyIcon
     ]), I = n.useMemo(() => ({
       "& .MuiTouchRipple-root span": {
         color: o.iconColor
@@ -410,23 +401,23 @@ let __tla = Promise.all([
     return t.jsxs(t.Fragment, {
       children: [
         t.jsx(Y, {
-          open: r,
+          open: u,
           handleClose: m,
-          widget: i,
+          widget: a,
           data: o,
-          getWidgetView: u
+          getWidgetView: c
         }),
         t.jsxs(k, {
-          isValidType: T,
+          isValidType: j,
           data: o,
           children: [
-            t.jsx(E, {
+            t.jsx(F, {
               data: o,
-              widget: i
+              widget: a
             }),
             t.jsx(x, {
               sx: ee,
-              children: t.jsxs(Q, {
+              children: t.jsxs(K, {
                 onClick: S,
                 sx: I,
                 children: [
@@ -453,8 +444,8 @@ let __tla = Promise.all([
       ]
     });
   }
-  const le = U.memo(oe);
-  j = class extends L {
+  const le = N.memo(oe);
+  T = class extends P {
     static getWidgetInfo() {
       return {
         id: "tplDialogCollectionWidget",
@@ -490,7 +481,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return j.getWidgetInfo();
+      return T.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -524,11 +515,11 @@ let __tla = Promise.all([
         getWidgetView: this.getWidgetView.bind(this),
         wrappedContent: this.wrappedCollectionContent
       };
-      return l.widget.data.noCard || l.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, N(this.wrapContent(t.jsx(le, {})), e);
+      return l.widget.data.noCard || l.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, U(this.wrapContent(t.jsx(le, {})), e);
     }
   };
 });
 export {
   __tla,
-  j as default
+  T as default
 };

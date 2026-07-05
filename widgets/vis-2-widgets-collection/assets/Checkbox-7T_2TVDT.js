@@ -1,7 +1,7 @@
 import { v as m, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { c as v, j as a, a as B, g as w, u as M, b as O, aA as _, d as F, s as H, Y as n, e as V, r as U, m as E, i as z, Z as I, __tla as __tla_1 } from "./useData-uTS-Mc2K.js";
-import { S as L, __tla as __tla_2 } from "./SwitchBase-DoVdnV6C.js";
-let X;
+import { c as v, j as a, a as B, g as _, u as w, b as M, aC as O, d as F, s as H, Z as n, e as V, r as U, m as E, i as z, _ as I, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+import { S as L, __tla as __tla_2 } from "./SwitchBase-I9oA3vkp.js";
+let Y;
 let __tla = Promise.all([
   (() => {
     try {
@@ -26,13 +26,13 @@ let __tla = Promise.all([
     d: "M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
   }), "CheckBoxOutlineBlank"), T = v(a.jsx("path", {
     d: "M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-  }), "CheckBox"), A = v(a.jsx("path", {
+  }), "CheckBox"), D = v(a.jsx("path", {
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
-  function D(e) {
-    return w("MuiCheckbox", e);
+  function W(e) {
+    return _("MuiCheckbox", e);
   }
-  let h, W, Y, Z, q, G;
+  let h, Z, q, A, G, J;
   h = B("MuiCheckbox", [
     "root",
     "checked",
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     "sizeSmall",
     "sizeMedium"
   ]);
-  W = (e) => {
+  Z = (e) => {
     const { classes: o, indeterminate: t, color: s, size: c } = e, i = {
       root: [
         "root",
@@ -51,13 +51,13 @@ let __tla = Promise.all([
         `color${n(s)}`,
         `size${n(c)}`
       ]
-    }, l = V(i, D, o);
+    }, l = V(i, W, o);
     return {
       ...o,
       ...l
     };
   };
-  Y = H(L, {
+  q = H(L, {
     shouldForwardProp: (e) => U(e) || e === "classes",
     name: "MuiCheckbox",
     slot: "Root",
@@ -122,22 +122,22 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Z = a.jsx(T, {});
-  q = a.jsx(N, {});
-  G = a.jsx(A, {});
-  X = m.forwardRef(function(o, t) {
-    const s = M({
+  A = a.jsx(T, {});
+  G = a.jsx(N, {});
+  J = a.jsx(D, {});
+  Y = m.forwardRef(function(o, t) {
+    const s = w({
       props: o,
       name: "MuiCheckbox"
-    }), { checkedIcon: c = Z, color: i = "primary", icon: l = q, indeterminate: r = false, indeterminateIcon: x = G, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
+    }), { checkedIcon: c = A, color: i = "primary", icon: l = G, indeterminate: r = false, indeterminateIcon: C = J, inputProps: P, size: p = "medium", disableRipple: x = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? C : l, S = r ? C : c, d = {
       ...s,
-      disableRipple: C,
+      disableRipple: x,
       color: i,
       indeterminate: r,
       size: p
-    }, y = W(d), u = k.input ?? P, [$, R] = O("root", {
+    }, y = Z(d), u = k.input ?? P, [$, R] = M("root", {
       ref: t,
-      elementType: Y,
+      elementType: q,
       className: F(y.root, g),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
@@ -154,10 +154,10 @@ let __tla = Promise.all([
         checkedIcon: m.cloneElement(S, {
           fontSize: S.props.fontSize ?? p
         }),
-        disableRipple: C,
+        disableRipple: x,
         slots: f,
         slotProps: {
-          input: _(typeof u == "function" ? u(d) : u, {
+          input: O(typeof u == "function" ? u(d) : u, {
             "data-indeterminate": r
           })
         }
@@ -170,6 +170,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  X as C,
+  Y as C,
   __tla
 };
