@@ -23,27 +23,52 @@ import type { JsonTableCollectionContextProps, WidgetRegistry } from '../types';
 
 /** All JSON-table-specific data field names that should be cleared on OID deletion. */
 const JSON_TABLE_DATA_FIELDS = [
+    // Column config
     'columnConfig',
+    // Features
+    'tableSorting',
+    'tableSortingMulti',
+    'tableFiltering',
+    'tableQuickFilter',
+    'tableColumnMenu',
+    'tableHiding',
+    // Pagination
+    'tablePagination',
+    'tablePageSize',
+    'tablePageSizeOptions',
+    'tableVirtualizeThreshold',
+    // Selection
+    'tableRowSelection',
+    // Analysis
+    'tableMaxDepth',
+    // Layout
     'tableDensity',
     'tableRowHeight',
     'tableHeaderHeight',
     'tableAutoSize',
     'tableHeaderElevation',
-    'tablePagination',
-    'tablePageSize',
-    'tablePageSizeOptions',
-    'tableSorting',
-    'tableFiltering',
-    'tableQuickFilter',
-    'tableColumnMenu',
-    'tableRowSelection',
-    'tableShowCellBorders',
-    'tableShowRowBorders',
+    'jsonTablePadding',
+    // Outer border
+    'borderWidth',
+    'borderStyle',
+    'borderColor',
+    'borderRadius',
+    // Header style
     'tableHeaderBgColor',
     'tableHeaderTextColor',
     'tableHeaderFontSize',
-    'tableStripedColor',
-    'tableMaxDepth',
+    'headerBorderWidth',
+    'headerBorderColor',
+    // Cell borders
+    'tableShowCellBorders',
+    'verticalCellBorderWidth',
+    'verticalCellBorderColor',
+    'tableShowRowBorders',
+    'horizontalCellBorderWidth',
+    'horizontalCellBorderColor',
+    // Row colors
+    'evenRowColor',
+    'oddRowColor',
 ];
 
 class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableCollectionWidget']> {
