@@ -63,6 +63,8 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { customFilterFns } from './utils/filterFunctions';
+import { formatDateValue } from './utils/formatters';
+import type { DateFormatId } from './utils/formatters';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
@@ -254,6 +256,50 @@ const JsonTableCollection: FC = () => {
         data.valueSize,
     ]);
 
+    // ── Date-aware global (quick) filter ────────────────────────────────────────
+    // The quick filter is a substring search. For configured date columns it must match
+    // the FORMATTED display value (what the user sees), not the raw value, otherwise a
+    // visible "31.12.2024" would never match a raw ISO/epoch value.
+    const dateColumnFormats = useMemo(() => {
+        const map = new Map<string, { dateFormat?: string; dateInputFormat?: DateFormatId }>();
+        for (const cfg of columnConfig) {
+            if (cfg.format?.type === 'date') {
+                map.set(cfg.path, {
+                    dateFormat: cfg.format.dateFormat,
+                    dateInputFormat: cfg.format.dateInputFormat,
+                });
+            }
+        }
+        return map;
+    }, [columnConfig]);
+
+    const globalFilterFn = useCallback<FilterFn<FlatRow>>(
+        (row, columnId, filterValue: unknown): boolean => {
+            const term =
+                typeof filterValue === 'string'
+                    ? filterValue.toLowerCase()
+                    : String(filterValue ?? '').toLowerCase();
+            if (!term) {
+                return true;
+            }
+            const cellValue = row.getValue(columnId);
+            if (cellValue === null || cellValue === undefined) {
+                return false;
+            }
+            // For date columns, also match against the formatted display string.
+            const dateCfg = dateColumnFormats.get(columnId);
+            if (dateCfg) {
+                const formatted = formatDateValue(cellValue, dateCfg.dateFormat, dateCfg.dateInputFormat);
+                if (formatted.toLowerCase().includes(term)) {
+                    return true;
+                }
+            }
+            // Default: substring match on the raw value (previous includesString behavior).
+            return String(cellValue).toLowerCase().includes(term);
+        },
+        [dateColumnFormats],
+    );
+
     // ── Table state via custom hook ─────────────────────────────────────────────
 
     const isAutoSize = widget.data.tableAutoSize === true;
@@ -300,7 +346,7 @@ const JsonTableCollection: FC = () => {
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         enableMultiSort: widget.data.tableSortingMulti ?? false,
-        globalFilterFn: 'includesString',
+        globalFilterFn: globalFilterFn,
         filterFns: customFilterFns,
         columnResizeMode: 'onChange',
         enableColumnResizing: !isAutoSize,
