@@ -191,7 +191,7 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
  * @param _inputFormat - Detected input format for correct string parsing (optional).
  * @returns Formatted date string or original value as string on error.
  */
-export function formatDateValue(value: unknown, formatString?: string, _inputFormat?: DateFormatId): string {
+export function formatDateValue(value: unknown, formatString?: string, inputFormat?: DateFormatId): string {
     if (value === null || value === undefined || value === '') {
         return '';
     }
@@ -202,11 +202,20 @@ export function formatDateValue(value: unknown, formatString?: string, _inputFor
         if (typeof value === 'string') {
             const trimmed = value.trim();
 
-            // For pure YYYY-MM-DD format (without time/timezone): parse directly to avoid UTC timezone trap.
-            // new Date("2024-12-01") interprets as UTC midnight, but getDate()/getMonth()
-            // use local timezone. In UTC-5, "2024-12-01" UTC midnight becomes Nov 30 locally!
-            // Solution: Use local time constructor new Date(year, month-1, day) instead.
-            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            // Honor detected European/US input formats to avoid Invalid Date from
+            // new Date("31.12.2024"). Mirrors normalizeToIsoDate; preserves any trailing
+            // time component (e.g. " 23:59:59") for the HH:mm:ss output tokens.
+            if (inputFormat?.startsWith('dd.MM.yyyy')) {
+                const m = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})(.*)$/);
+                date = m ? new Date(`${m[3]}-${m[2]}-${m[1]}${m[4] ?? ''}`) : new Date(trimmed);
+            } else if (inputFormat?.startsWith('MM/dd/yyyy')) {
+                const m = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(.*)$/);
+                date = m ? new Date(`${m[3]}-${m[1]}-${m[2]}${m[4] ?? ''}`) : new Date(trimmed);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                // For pure YYYY-MM-DD format (without time/timezone): parse directly to avoid UTC timezone trap.
+                // new Date("2024-12-01") interprets as UTC midnight, but getDate()/getMonth()
+                // use local timezone. In UTC-5, "2024-12-01" UTC midnight becomes Nov 30 locally!
+                // Solution: Use local time constructor new Date(year, month-1, day) instead.
                 const [year, month, day] = trimmed.split('-').map(Number);
                 date = new Date(year, month - 1, day); // Local time, not UTC
             } else {
