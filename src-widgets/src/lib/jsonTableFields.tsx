@@ -17,10 +17,10 @@ import type { RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // ═══════════════════════════════════════════════════════════════════
-    // TECHNISCHE ASPEKTE (Daten, Logik, State)
+    // TECHNICAL ASPECTS (Data, Logic, State)
     // ═══════════════════════════════════════════════════════════════════
 
-    // ── Column Config (Custom Editor) - WICHTIGSTE! ───────────────────
+    // ── Column Config (Custom Editor) - MOST IMPORTANT! ───────────────
     {
         label: '',
         type: 'custom',
@@ -144,10 +144,10 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     },
 
     // ═══════════════════════════════════════════════════════════════════
-    // LAYOUT-THEMEN (Darstellung, Design) - von außen nach innen
+    // LAYOUT TOPICS (Presentation, Design) - outside in
     // ═══════════════════════════════════════════════════════════════════
 
-    // ── Layout (Gesamte Tabelle) ──────────────────────────────────────
+    // ── Layout (Entire Table) ─────────────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -203,7 +203,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
     },
 
-    // ── Table Border (Äußerer Rahmen) ─────────────────────────────────
+    // ── Table Border (Outer Frame) ────────────────────────────────────
     {
         label: '',
         type: 'custom',
@@ -279,7 +279,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     // Header border color (noGradient for borders)
     createColorField({ name: 'headerBorderColor', label: 'json_table_header_border_color', noGradient: true }),
 
-    // ── Border & Lines (Zellgrenzen) ──────────────────────────────────
+    // ── Border & Lines (Cell Boundaries) ──────────────────────────────
     {
         label: '',
         type: 'custom',

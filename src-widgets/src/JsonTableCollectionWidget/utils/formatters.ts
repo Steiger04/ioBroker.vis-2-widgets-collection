@@ -188,7 +188,7 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
  *
  * @param value - Raw value (string, number, or Date).
  * @param formatString - Format string with tokens. @default "yyyy-MM-dd"
- * @param _inputFormat - Detected input format for correct string parsing (optional).
+ * @param inputFormat - Detected input format for correct string parsing (optional).
  * @returns Formatted date string or original value as string on error.
  */
 export function formatDateValue(value: unknown, formatString?: string, inputFormat?: DateFormatId): string {

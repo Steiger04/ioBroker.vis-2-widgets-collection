@@ -159,20 +159,6 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
         return JsonTableCollectionWidget.getWidgetInfo();
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    propertiesUpdate(): void {
-        // Intentionally empty: JSON Table derives all state from OID value.
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    onRxDataChanged(): void {}
-
-    // eslint-disable-next-line class-methods-use-this
-    onRxStyleChanged(): void {}
-
-    // eslint-disable-next-line class-methods-use-this
-    onStateUpdated(_id: string, _state: ioBroker.State | null | undefined): void {}
-
     renderWidgetBody(props: RxRenderWidgetProps): React.JSX.Element | React.JSX.Element[] | null {
         super.renderWidgetBody(props);
 

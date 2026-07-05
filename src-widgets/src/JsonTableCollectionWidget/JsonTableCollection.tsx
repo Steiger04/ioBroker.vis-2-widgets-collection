@@ -196,7 +196,7 @@ const JsonTableCollection: FC = () => {
 
     // ── Grid rows ─────────────────────────────────────────────────────────────
 
-    const gridRows = useMemo(() => rows.map((row, index) => ({ __id: index, ...row })), [rows]);
+    const gridRows = rows;
 
     // ── TanStack column definitions ───────────────────────────────────────────
 
@@ -627,8 +627,6 @@ const JsonTableCollection: FC = () => {
         <CollectionBase
             isValidType={isValidType}
             data={data}
-            // oidValue={oidValue}
-            oidValue=""
         >
             <CollectionBaseImage
                 data={data}
