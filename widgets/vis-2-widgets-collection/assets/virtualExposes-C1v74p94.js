@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-CFnUb8nu.js","./useData-BGlxI0R0.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-B3VcZlK7.js","./Close-8R9h2z3B.js","./Slider-DrGlXwcl.js","./listItemTextClasses-N7uw7-qo.js","./DialogTitle-BsXaI7Ji.js","./Stack-BcRoWIAv.js","./useHtmlValue-3ISCcM5X.js","./Button-B5WjHJsX.js","./SliderCollectionWidget-Ckzgfk34.js","./ButtonGroupCollectionWidget-BhQYQ67A.js","./ToggleButtonGroup-D5rbOtOJ.js","./SwitchCollectionWidget-Dxh__i-X.js","./Switch-Bi6Hcmtc.js","./SwitchBase-I9oA3vkp.js","./CheckboxCollectionWidget-8mS_ONUj.js","./FormControlLabel-DP8WB_ta.js","./Checkbox-7T_2TVDT.js","./DialogCollectionWidget-DrQR93H2.js","./SelectCollectionWidget-B_M3Pnsj.js","./MenuItem-D9BFEqur.js","./RadioGroupCollectionWidget-Ck2sfcSd.js","./GaugeCollectionWidget-BtcMLvTL.js","./useOidValue-BrgiAnjE.js","./Light2CollectionWidget-ItjRgY4p.js","./JsonTableCollectionWidget-D8RiTE6d.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./StateCollectionWidget-CFnUb8nu.js","./useData-BGlxI0R0.js","./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./_commonjsHelpers-Cpj98o6Y.js","./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./useValueState-B3VcZlK7.js","./Close-8R9h2z3B.js","./Slider-DrGlXwcl.js","./listItemTextClasses-N7uw7-qo.js","./DialogTitle-BsXaI7Ji.js","./Stack-BcRoWIAv.js","./useHtmlValue-3ISCcM5X.js","./Button-B5WjHJsX.js","./SliderCollectionWidget-Ckzgfk34.js","./ButtonGroupCollectionWidget-BhQYQ67A.js","./ToggleButtonGroup-D5rbOtOJ.js","./SwitchCollectionWidget-Dxh__i-X.js","./Switch-Bi6Hcmtc.js","./SwitchBase-I9oA3vkp.js","./CheckboxCollectionWidget-8mS_ONUj.js","./FormControlLabel-DP8WB_ta.js","./Checkbox-7T_2TVDT.js","./DialogCollectionWidget-DrQR93H2.js","./SelectCollectionWidget-B_M3Pnsj.js","./MenuItem-D9BFEqur.js","./RadioGroupCollectionWidget-Ck2sfcSd.js","./GaugeCollectionWidget-BtcMLvTL.js","./useOidValue-BrgiAnjE.js","./Light2CollectionWidget-ItjRgY4p.js","./JsonTableCollectionWidget-CdFbeqe3.js"])))=>i.map(i=>d[i]);
 import { _ as o } from "./preload-helper-PPVm8Dsz.js";
 let i;
 let __tla = (async () => {
@@ -104,7 +104,7 @@ let __tla = (async () => {
       }), e;
     },
     "./JsonTableCollectionWidget": async () => {
-      const t = await o(() => import("./JsonTableCollectionWidget-D8RiTE6d.js").then(async (m) => {
+      const t = await o(() => import("./JsonTableCollectionWidget-CdFbeqe3.js").then(async (m) => {
         await m.__tla;
         return m;
       }), __vite__mapDeps([29,1,2,3,4,21,18,9,12,7,20,17,24,8,10,15,6,27]), import.meta.url), e = {};
