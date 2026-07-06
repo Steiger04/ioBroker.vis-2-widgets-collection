@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.4.1",
+    "version": "2.4.2",
     "news": {
+      "2.4.2": {
+        "en": "JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)\nColorPickerField: debouncing for picker drag events and refactor\nCheckboxCollection: refactor (helpers, memoization, type safety)",
+        "de": "JSON-Tabelle: Fehlerbehebungen und Verbesserungen (Datumsverarbeitung, Speicherung des Tabellenstatus, Refactoring)\nColorPickerField: Entprellung von Drag-Ereignissen im Auswahlfeld und Refactoring\nCheckboxCollection: Refactoring (Hilfsfunktionen, Memoization, Typsicherheit)",
+        "ru": "JSON Table: исправления ошибок и улучшения (обработка дат, сохранение состояния таблицы, рефакторинг)\nColorPickerField: подавление дребезга при перетаскивании элемента выбора цвета и рефакторинг.\nCheckboxCollection: рефакторинг (вспомогательные функции, мемоизация, типобезопасность)",
+        "pt": "Tabela JSON: correções de bugs e melhorias (manipulação de datas, persistência do estado da tabela, refatoração)\nColorPickerField: eliminação de ruído para eventos de arrastar e arrastar do seletor e refatoração\nCheckboxCollection: refatoração (funções auxiliares, memoização, segurança de tipos)",
+        "nl": "JSON-tabel: bugfixes en verbeteringen (datumverwerking, persistentie van tabelstatus, refactoring)\nColorPickerField: debounce-effect voor sleepgebeurtenissen in de picker en refactoring\nCheckboxCollection: refactoring (helpers, memoization, type safety)",
+        "fr": "Tableau JSON : corrections de bugs et améliorations (gestion des dates, persistance de l’état du tableau, refactorisation)\nColorPickerField : optimisation des événements de glisser-déposer et refactorisation\nCheckboxCollection : refactorisation (fonctions d’assistance, mémoïsation, sécurité des types)",
+        "it": "Tabella JSON: correzioni di bug e miglioramenti (gestione delle date, persistenza dello stato della tabella, refactoring)\nColorPickerField: debouncing per gli eventi di trascinamento del selettore e refactoring\nCheckboxCollection: refactoring (helper, memorizzazione, sicurezza dei tipi)",
+        "es": "Tabla JSON: corrección de errores y mejoras (gestión de fechas, persistencia del estado de la tabla, refactorización)\nColorPickerField: eliminación de rebotes para eventos de arrastre del selector y refactorización.\nColección de casillas de verificación: refactorización (funciones auxiliares, memorización, seguridad de tipos)",
+        "pl": "Tabela JSON: poprawki błędów i ulepszenia (obsługa dat, trwałość stanu tabeli, refaktoryzacja)\nColorPickerField: usuwanie odbić dla zdarzeń przeciągania selektora i refaktoryzacja\nCheckboxCollection: refaktoryzacja (funkcje pomocnicze, zapamiętywanie, bezpieczeństwo typu)",
+        "uk": "Таблиця JSON: виправлення помилок та покращення (обробка дати, збереження стану таблиці, рефакторинг)\nColorPickerField: виправлення помилок для подій перетягування засобу вибору та рефакторинг\nCheckboxCollection: рефакторинг (допоміжні функції, мемоізація, безпека типів)",
+        "zh-cn": "JSON 表格：错误修复和改进（日期处理、表格状态持久化、重构）\nColorPickerField：针对选择器拖动事件的防抖动和重构\nCheckboxCollection：重构（辅助函数、记忆化、类型安全）"
+      },
       "2.4.1": {
         "en": "Add HTML rendering support for table cells of Json Table\nBug fixing",
         "de": "HTML-Rendering-Unterstützung für Tabellenzellen von Json Table hinzufügen\nFehlerbehebung",
@@ -80,19 +93,6 @@
         "pl": "Optymalizacja widżetu\nNaprawianie błędów\nStała dokumentacja użytkownika (GitHub Wiki)",
         "uk": "Оптимізація віджету\nВиправлення помилок\nДокументація користувача фіксована (GitHub Wiki)",
         "zh-cn": "部件优化\n修复错误\n用户文档固定 (GitHub 维基)"
-      },
-      "2.2.1": {
-        "en": "Slider widget color for min / max icon optimized",
-        "de": "Slider Widget Farbe für min / max Icon optimiert",
-        "ru": "Цвет виджета слайдера для иконки min/max оптимизирован",
-        "pt": "Cor do widget deslizante para ícone min / max otimizado",
-        "nl": "Slider widget kleur voor min / max pictogram geoptimaliseerd",
-        "fr": "Couleur du widget slider pour l'icône min / max optimisée",
-        "it": "Slider widget colore per min / max icona ottimizzata",
-        "es": "Color de widget deslizante para min / icono max optimizado",
-        "pl": "Kolor widget suwak dla min / max ikona zoptymalizowana",
-        "uk": "Колір віджету Slider для min / макс оптимізований",
-        "zh-cn": "分钟/最大图标优化的滑动部件颜色"
       }
     },
     "titleLang": {

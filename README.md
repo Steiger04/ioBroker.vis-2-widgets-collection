@@ -61,8 +61,7 @@
 -->
 
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 2.4.2 (2026-07-06)
 - (steiger04) JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)
 - (steiger04) ColorPickerField: debouncing for picker drag events and refactor
 - (steiger04) CheckboxCollection: refactor (helpers, memoization, type safety)
