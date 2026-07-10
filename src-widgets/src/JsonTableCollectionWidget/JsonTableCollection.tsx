@@ -275,10 +275,14 @@ const JsonTableCollection: FC = () => {
 
     const globalFilterFn = useCallback<FilterFn<FlatRow>>(
         (row, columnId, filterValue: unknown): boolean => {
+            // String() is only called on primitives; objects would stringify to
+            // "[object Object]" and are treated as no term instead.
             const term =
                 typeof filterValue === 'string'
                     ? filterValue.toLowerCase()
-                    : String(filterValue ?? '').toLowerCase();
+                    : typeof filterValue === 'number' || typeof filterValue === 'boolean'
+                      ? String(filterValue).toLowerCase()
+                      : '';
             if (!term) {
                 return true;
             }
@@ -294,8 +298,16 @@ const JsonTableCollection: FC = () => {
                     return true;
                 }
             }
-            // Default: substring match on the raw value (previous includesString behavior).
-            return String(cellValue).toLowerCase().includes(term);
+            // Default: substring match on the raw value (previous includesString
+            // behavior). String() is restricted to primitives to avoid the
+            // "[object Object]" trap on object/array cells.
+            const cellStr =
+                typeof cellValue === 'string'
+                    ? cellValue
+                    : typeof cellValue === 'number' || typeof cellValue === 'boolean'
+                      ? String(cellValue)
+                      : '';
+            return cellStr.toLowerCase().includes(term);
         },
         [dateColumnFormats],
     );
