@@ -5,15 +5,19 @@
  * @remarks
  * This module provides:
  * - `CollectionContext`: the shared runtime context for all collection widgets
- * - a ThemeProvider wrapper that merges the vis theme with a dark-mode override
+ * - a `ThemeProvider` wrapper exposing the effective theme (host + collection
+ *   overrides + user theme). The shared theme-building/subscribe logic lives in
+ *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
  */
 
 import { createContext, useMemo } from 'react';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { deepmerge } from '@mui/utils';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+
 import useStyles from '../hooks/useStyles';
+import useCollectionTheme from '../hooks/useCollectionTheme';
 
 import type { AllCollectionContextProps } from '../types';
+import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';
 
 /**
@@ -42,46 +46,45 @@ interface CollectionProviderProps {
 function CollectionProvider({ children, context }: CollectionProviderProps): JSX.Element | JSX.Element[] | null {
     const theme = context.theme;
     const widget = context.widget;
+    const socket = context.socket;
 
     const { fontStyles, textStyles } = useStyles(widget.style || {});
 
-    const _theme = useMemo(() => {
-        return createTheme(
-            deepmerge(theme, {
-                cssVariables: { cssVarPrefix: 'collection' },
-                components: {
-                    MuiTypography: {
-                        styleOverrides: {
-                            root: {
-                                fontSize: '0.875rem', // Default to 14px
-                                // Merge fontStyles and textStyles into the root style overrides
-                                // This ensures CSS properties like textShadow are applied as styles, not props
-                                ...cleanSx(fontStyles),
-                                ...cleanSx(textStyles),
-                                color: textStyles?.color || theme.palette.primary.main,
-                            },
+    // Collection-specific overrides layered between the host theme and the user
+    // theme (see useCollectionTheme): default typography sizing plus widget
+    // font/text styles. Memoized so the merged theme only recomputes when these
+    // change — the user theme (highest priority) is read inside the hook.
+    const overrides = useMemo<ThemeOptions>(
+        () => ({
+            palette: {
+                text: {
+                    primary: textStyles?.color || theme.palette.primary.main,
+                },
+            },
+            components: {
+                MuiTypography: {
+                    styleOverrides: {
+                        root: {
+                            fontSize: '0.875rem', // Default to 14px
+                            // Merge fontStyles and textStyles into the root style overrides
+                            // so CSS properties like textShadow are applied as styles, not props
+                            ...cleanSx(fontStyles),
+                            ...cleanSx(textStyles),
                         },
                     },
-                    /* MuiDataGrid: {
-                        styleOverrides: {
-                            root: {
-                                // Default header background - applies when tableHeaderBgColor is not set
-                                '& .MuiDataGrid-columnHeader': {
-                                    // backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5', // Custom default
-                                    backgroundColor: 'transparent', // Use transparent to allow widget background color to show through
-                                },
-                            },
-                        },
-                    }, */
                 },
-            }),
-        );
-    }, [theme, fontStyles, textStyles]);
+            },
+        }),
+        [fontStyles, textStyles, theme.palette.primary.main],
+    );
+
+    // Effective theme: host → collection overrides → user theme (user wins).
+    const _theme = useCollectionTheme(socket, theme, overrides);
 
     return (
         <ThemeProvider theme={_theme}>
             <CssBaseline />
-            <CollectionContext.Provider value={context}>{children}</CollectionContext.Provider>
+            <CollectionContext.Provider value={{ ...context, theme: _theme }}>{children}</CollectionContext.Provider>
         </ThemeProvider>
     );
 }

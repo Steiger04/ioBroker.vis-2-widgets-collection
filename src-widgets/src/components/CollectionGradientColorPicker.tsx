@@ -30,6 +30,7 @@ import Generic from '../Generic';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { validateColorInput } from '../lib/helper/colorValidation';
 import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
+import useCollectionTheme from '../hooks/useCollectionTheme';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from '@iobroker/types-vis-2';
 
@@ -116,7 +117,9 @@ function CollectionGradientColorPicker({
     // Debounce timer for picker-originated onDataChange calls
     const pickerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const theme: VisTheme = props.context.theme;
+    // Effective theme: host + user theme (user primary wins). Editors live outside
+    // the runtime CollectionProvider subtree, so the merged theme is rebuilt here.
+    const theme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
     const primaryColor = theme.palette.primary.main;
 
     // Dynamic popover placement + content resize tracking
