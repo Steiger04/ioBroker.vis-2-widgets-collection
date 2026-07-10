@@ -53,8 +53,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         isSlider,
     } = params;
 
-    void _theme;
-
     /**
      * Normalizes empty strings to undefined to allow fallback continuation.
      */
