@@ -165,7 +165,8 @@
           "RadioGroupCollectionWidget",
           "GaugeCollectionWidget",
           "Light2CollectionWidget",
-          "JsonTableCollectionWidget"
+          "JsonTableCollectionWidget",
+          "ThemeConfigWizard"
         ]
       }
     },
@@ -175,5 +176,30 @@
   },
   "native": {},
   "objects": [],
-  "instanceObjects": []
+  "instanceObjects": [
+    {
+      "_id": "theme",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "MUI theme JSON",
+          "de": "MUI-Theme-JSON",
+          "ru": "JSON темы MUI",
+          "pt": "JSON do tema MUI",
+          "nl": "MUI-thema JSON",
+          "fr": "JSON du thème MUI",
+          "it": "JSON del tema MUI",
+          "es": "JSON del tema MUI",
+          "pl": "JSON motywu MUI",
+          "uk": "JSON теми MUI",
+          "zh-cn": "MUI 主题 JSON"
+        },
+        "type": "string",
+        "role": "json",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    }
+  ]
 }

@@ -27,6 +27,7 @@ const config = {
                 './GaugeCollectionWidget': './src/GaugeCollectionWidget/GaugeCollectionWidget',
                 './Light2CollectionWidget': './src/Light2CollectionWidget/Light2CollectionWidget',
                 './JsonTableCollectionWidget': './src/JsonTableCollectionWidget/JsonTableCollectionWidget',
+                './ThemeConfigWizard': './src/ThemeConfigWizard/ThemeConfigWizard',
                 './translations': './src/translations',
             },
             remotes: {},
