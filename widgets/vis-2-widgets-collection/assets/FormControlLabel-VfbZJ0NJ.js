@@ -1,6 +1,6 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as E, u as U, X as A, aE as W, b as z, T as P, j as c, d as v, s as x, Z as F, e as B, m as L, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
-let Y;
+import { a as D, g as U, u as A, q as E, as as W, b as z, T as P, j as c, d as v, s as x, w as F, e as B, m as L, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
+let Z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -16,9 +16,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function H(e) {
-    return E("MuiFormControlLabel", e);
+    return U("MuiFormControlLabel", e);
   }
-  let t, I, X, Z;
+  let t, I, G, J;
   t = D("MuiFormControlLabel", [
     "root",
     "labelPlacementStart",
@@ -50,7 +50,7 @@ let __tla = Promise.all([
     };
     return B(m, H, o);
   };
-  X = x("label", {
+  G = x("label", {
     name: "MuiFormControlLabel",
     slot: "Root",
     overridesResolver: (e, o) => {
@@ -113,7 +113,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Z = x("span", {
+  J = x("span", {
     name: "MuiFormControlLabel",
     slot: "Asterisk",
     overridesResolver: (e, o) => o.asterisk
@@ -122,11 +122,11 @@ let __tla = Promise.all([
       color: (e.vars || e).palette.error.main
     }
   })));
-  Y = y.forwardRef(function(o, s) {
-    const r = U({
+  Z = y.forwardRef(function(o, s) {
+    const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: G, label: T, labelPlacement: _ = "end", name: J, onChange: K, required: k, slots: q = {}, slotProps: $ = {}, value: O, ...j } = r, f = A(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = k ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: q, labelPlacement: T = "end", name: O, onChange: Q, required: _, slots: k = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = _ ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -148,11 +148,11 @@ let __tla = Promise.all([
     }), n = {
       ...r,
       disabled: C,
-      labelPlacement: _,
+      labelPlacement: T,
       required: b,
       error: w.error
     }, u = I(n), M = {
-      slots: q,
+      slots: k,
       slotProps: {
         ...m,
         ...$
@@ -162,13 +162,13 @@ let __tla = Promise.all([
       externalForwardedProps: M,
       ownerState: n
     });
-    let l = T;
+    let l = q;
     return l != null && l.type !== P && !S && (l = c.jsx(N, {
       component: "span",
       ...h,
       className: v(u.label, h == null ? void 0 : h.className),
       children: l
-    })), c.jsxs(X, {
+    })), c.jsxs(G, {
       className: v(u.root, d),
       ownerState: n,
       ref: s,
@@ -178,7 +178,7 @@ let __tla = Promise.all([
         b ? c.jsxs("div", {
           children: [
             l,
-            c.jsxs(Z, {
+            c.jsxs(J, {
               ownerState: n,
               "aria-hidden": true,
               className: u.asterisk,
@@ -194,6 +194,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  Y as F,
+  Z as F,
   __tla
 };

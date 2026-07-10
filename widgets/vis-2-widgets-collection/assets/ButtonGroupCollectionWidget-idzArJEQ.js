@@ -1,7 +1,8 @@
-import { j as o, F as W, C as F, n as M, q as D, i as C, x as z, y as $, o as c, w, S as P, v as A, T as L, M as R, N as S, G as H, z as u, A as N, E, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { u as U, d as q, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
-import { v as _, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { T as X, a as Y, __tla as __tla_3 } from "./ToggleButtonGroup-D5rbOtOJ.js";
+import { j as o, i as C, n as c, T as W, p as S, G as F, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { h as D, C as M, a as z, u as $, c as P, d as L, b as w, S as R, g as A, l as H, e as u, f as N, w as E, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { u as U, d as X, __tla as __tla_2 } from "./useValueState-CVlBjGB3.js";
+import { v as _, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { T as Y, a as q, __tla as __tla_4 } from "./ToggleButtonGroup--6oQuj-k.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let B;
@@ -29,12 +30,18 @@ let __tla = Promise.all([
       return __tla_3;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_4;
+    } catch {
+    }
   })()
 ]).then(async () => {
   const J = () => [
     {
       type: "custom",
-      component: () => o.jsx(F, {})
+      component: () => o.jsx(M, {})
     },
     {
       name: "onlyIcon",
@@ -80,7 +87,7 @@ let __tla = Promise.all([
       ],
       default: "horizontal"
     },
-    W({
+    D({
       name: "buttonGroupColor",
       label: "button_group_color",
       fallbackFields: [
@@ -89,7 +96,7 @@ let __tla = Promise.all([
     })
   ];
   function K(i) {
-    const t = w(i), a = R(i);
+    const t = w(i), a = H(i);
     return {
       hasGradient: !!t,
       hasColor: a,
@@ -98,18 +105,18 @@ let __tla = Promise.all([
     };
   }
   function Q() {
-    const i = _.useContext(M), { widget: t, theme: a } = i, j = t.data.oidObject, { data: p, states: g, activeIndex: G } = D("oid"), { value: h, updateValue: x } = U("oid"), k = t.data.buttonGroupVariant, b = t.data.buttonGroupOrientation, d = j == null ? void 0 : j.type, m = d === "boolean" || d === "number" || d === "string" || d === "mixed", n = b === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? C(t.data.buttonGroupColor, 0.6) : C(a.palette.text.primary, 0.6), T = _.useCallback((s) => {
+    const i = _.useContext(z), { widget: t, theme: a } = i, j = t.data.oidObject, { data: p, states: g, activeIndex: G } = $("oid"), { value: h, updateValue: x } = U("oid"), k = t.data.buttonGroupVariant, b = t.data.buttonGroupOrientation, d = j == null ? void 0 : j.type, m = d === "boolean" || d === "number" || d === "string" || d === "mixed", n = b === "vertical", r = k === "outlined", l = t.data.buttonGroupColor ? C(t.data.buttonGroupColor, 0.6) : C(a.palette.text.primary, 0.6), T = _.useCallback((s) => {
       x(s);
     }, [
       x
     ]);
-    return o.jsxs(z, {
+    return o.jsxs(P, {
       bgActive: false,
       isValidType: m,
       data: p,
       oidValue: h,
       children: [
-        o.jsx($, {
+        o.jsx(L, {
           data: p,
           widget: t
         }),
@@ -119,7 +126,7 @@ let __tla = Promise.all([
             height: "100%",
             display: "flex"
           },
-          children: o.jsx(X, {
+          children: o.jsx(Y, {
             exclusive: true,
             value: String(h),
             disabled: !m,
@@ -174,7 +181,7 @@ let __tla = Promise.all([
             },
             children: g.map(({ value: s, ...e }, v) => {
               const I = G === v + 1, { hasGradient: f, hoverBackground: V, selectedBackground: O } = K(e.background), y = w(e.textColor);
-              return o.jsx(Y, {
+              return o.jsx(q, {
                 value: String(s),
                 onClick: () => T(s),
                 sx: {
@@ -216,7 +223,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: o.jsx(P, {
+                      children: o.jsx(R, {
                         src: e.icon,
                         style: {
                           position: "relative",
@@ -237,7 +244,7 @@ let __tla = Promise.all([
                         justifyContent: "center",
                         alignItems: "center"
                       },
-                      children: o.jsx(L, {
+                      children: o.jsx(W, {
                         contentEditable: "false",
                         dangerouslySetInnerHTML: {
                           __html: e.label
@@ -263,7 +270,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  B = class extends H {
+  B = class extends F {
     static getWidgetInfo() {
       return {
         id: "tplButtonGroupCollectionWidget",
@@ -289,7 +296,7 @@ let __tla = Promise.all([
                 "boolean",
                 "mixed"
               ]),
-              ...q(),
+              ...X(),
               ...J()
             ]
           },

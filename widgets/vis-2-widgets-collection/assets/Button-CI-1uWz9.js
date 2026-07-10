@@ -1,5 +1,5 @@
 import { v as x, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as G, g as D, aB as H, u as A, aj as Z, j as e, s as y, d as m, Z as i, e as q, B as J, r as K, m as Q, i as v, _ as X, aP as Y, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+import { a as G, g as D, aq as H, u as q, X as A, j as e, s as y, d as m, w as i, e as X, B as J, r as K, m as Q, i as v, x as Y, ai as Z, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
 let co;
 let __tla = Promise.all([
   (() => {
@@ -114,7 +114,7 @@ let __tla = Promise.all([
       loadingWrapper: [
         "loadingWrapper"
       ]
-    }, z = q(S, oo, b);
+    }, z = X(S, oo, b);
     return {
       ...b,
       ...z
@@ -245,7 +245,7 @@ let __tla = Promise.all([
             backgroundColor: "var(--variant-textBg)"
           }
         },
-        ...Object.entries(o.palette).filter(X()).map(([n]) => ({
+        ...Object.entries(o.palette).filter(Y()).map(([n]) => ({
           props: {
             color: n
           },
@@ -603,10 +603,10 @@ let __tla = Promise.all([
     height: "1em"
   });
   co = x.forwardRef(function(a, t) {
-    const n = x.useContext(ao), p = x.useContext(to), c = H(n, a), u = A({
+    const n = x.useContext(ao), p = x.useContext(to), c = H(n, a), u = q({
       props: c,
       name: "MuiButton"
-    }), { children: f, color: b = "primary", component: S = "button", className: z, disabled: I = false, disableElevation: M = false, disableFocusRipple: B = false, endIcon: C, focusVisibleClassName: N, fullWidth: j = false, id: P, loading: s = null, loadingIndicator: k, loadingPosition: g = "center", size: O = "medium", startIcon: h, type: $, variant: _ = "text", ...T } = u, w = Z(P), R = k ?? e.jsx(Y, {
+    }), { children: f, color: b = "primary", component: S = "button", className: z, disabled: I = false, disableElevation: M = false, disableFocusRipple: C = false, endIcon: B, focusVisibleClassName: N, fullWidth: k = false, id: P, loading: s = null, loadingIndicator: j, loadingPosition: g = "center", size: O = "medium", startIcon: h, type: $, variant: T = "text", ..._ } = u, w = A(P), R = j ?? e.jsx(Z, {
       "aria-labelledby": w,
       color: "inherit",
       size: 16
@@ -616,14 +616,14 @@ let __tla = Promise.all([
       component: S,
       disabled: I,
       disableElevation: M,
-      disableFocusRipple: B,
-      fullWidth: j,
+      disableFocusRipple: C,
+      fullWidth: k,
       loading: s,
       loadingIndicator: R,
       loadingPosition: g,
       size: O,
       type: $,
-      variant: _
+      variant: T
     }, r = no(l), V = (h || s && g === "start") && e.jsx(ro, {
       className: r.startIcon,
       ownerState: l,
@@ -631,10 +631,10 @@ let __tla = Promise.all([
         className: r.loadingIconPlaceholder,
         ownerState: l
       })
-    }), F = (C || s && g === "end") && e.jsx(eo, {
+    }), F = (B || s && g === "end") && e.jsx(eo, {
       className: r.endIcon,
       ownerState: l,
-      children: C || e.jsx(E, {
+      children: B || e.jsx(E, {
         className: r.loadingIconPlaceholder,
         ownerState: l
       })
@@ -654,12 +654,12 @@ let __tla = Promise.all([
       className: m(n.className, r.root, z, U),
       component: S,
       disabled: I || s,
-      focusRipple: !B,
+      focusRipple: !C,
       focusVisibleClassName: m(r.focusVisible, N),
       ref: t,
       type: $,
       id: s ? w : P,
-      ...T,
+      ..._,
       classes: r,
       children: [
         V,

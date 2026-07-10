@@ -1,6 +1,7 @@
-import { j as M, C as A, v as ka, o as Ze, S as Ta, R as wa, n as Sa, q as Ca, M as Ba, x as Na, y as Va, G as Wa, z as $e, A as Ma, E as Oa, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { v as G, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { u as ja, __tla as __tla_2 } from "./useOidValue-BrgiAnjE.js";
+import { j as M, n as Ze, G as ka, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { C as A, g as Ta, S as wa, m as Sa, a as Ca, u as Ba, l as Na, c as Va, d as Wa, e as $e, f as Ma, w as Oa, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { v as G, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { u as ja, __tla as __tla_3 } from "./useOidValue-BkGta6b4.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let Qe;
@@ -20,6 +21,12 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_3;
     } catch {
     }
   })()
@@ -2523,7 +2530,7 @@ let __tla = Promise.all([
     }, [
       g
     ]);
-    const E = g.gaugeSegment, F = ka(E == null ? void 0 : E.state.icon, E == null ? void 0 : E.state.iconColor, (E == null ? void 0 : E.state.forceColorMask) ?? false);
+    const E = g.gaugeSegment, F = Ta(E == null ? void 0 : E.state.icon, E == null ? void 0 : E.state.iconColor, (E == null ? void 0 : E.state.forceColorMask) ?? false);
     return M.jsxs(Ze, {
       sx: {
         width: "100%",
@@ -2533,7 +2540,7 @@ let __tla = Promise.all([
         alignItems: "center"
       },
       children: [
-        M.jsx(Ta, {
+        M.jsx(wa, {
           alt: "",
           src: E == null ? void 0 : E.state.icon,
           style: {
@@ -2559,7 +2566,7 @@ let __tla = Promise.all([
   }, Ea = (g, w, I) => g.find((F) => w >= F.from && (w < F.to || w === F.to && w === I)) || null;
   function Ia() {
     var _a, _b;
-    const g = G.useRef(null), [w, I] = G.useState(null), { width: E, height: F } = wa(w), D = G.useContext(Sa), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: i } = D, { data: R, states: $ } = Ca("oid"), re = ja("oid"), ie = (ne == null ? void 0 : ne.type) === "number", ye = G.useMemo(() => {
+    const g = G.useRef(null), [w, I] = G.useState(null), { width: E, height: F } = Sa(w), D = G.useContext(Ca), { wrappedContent: Y, widget: { data: { oidObject: ne } }, widget: i } = D, { data: R, states: $ } = Ba("oid"), re = ja("oid"), ie = (ne == null ? void 0 : ne.type) === "number", ye = G.useMemo(() => {
       const K = Number(i.data.gaugeMinValue) || 0, Q = Number(i.data.gaugeMaxValue) || 100, X = [];
       if (i.data.gaugeMajorTicks && +(i.data.gaugeMajorTicks > 0)) for (let ee = 0; ee <= Number(i.data.gaugeMajorTicks); ee++) {
         const ue = K + ((Q - K) / Number(i.data.gaugeMajorTicks) || 1) * ee;
@@ -2577,7 +2584,7 @@ let __tla = Promise.all([
         return {
           from: Number(X.value),
           to: Number(ue),
-          color: Ba(X.textColor) || "transparent",
+          color: Na(X.textColor) || "transparent",
           state: {
             ...X
           }
@@ -2604,13 +2611,13 @@ let __tla = Promise.all([
       R.frameBackground,
       R.backgroundColor,
       R.background
-    ]), M.jsxs(Na, {
+    ]), M.jsxs(Va, {
       ref: g,
       isValidType: ie,
       data: R,
       oidValue: re,
       children: [
-        M.jsx(Va, {
+        M.jsx(Wa, {
           data: {
             ...R,
             icon: P == null ? void 0 : P.state.icon,
@@ -2749,7 +2756,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  Qe = class extends Wa {
+  Qe = class extends ka {
     static getWidgetInfo() {
       return {
         id: "tplGaugeCollectionWidget",

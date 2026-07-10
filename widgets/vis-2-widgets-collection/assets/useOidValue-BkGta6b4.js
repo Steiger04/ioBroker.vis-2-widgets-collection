@@ -1,5 +1,5 @@
 import { v as e, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { n as u, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
+import { a as u, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
 let c;
 let __tla = Promise.all([
   (() => {
@@ -16,16 +16,16 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   c = (o) => {
-    const { getPropertyValue: s } = e.useContext(u), t = e.useMemo(() => s(o), [
+    const { getPropertyValue: a } = e.useContext(u), t = e.useMemo(() => a(o), [
       o,
-      s
-    ]), [a, r] = e.useState(t);
+      a
+    ]), [s, r] = e.useState(t);
     return e.useEffect(() => {
       r(t);
     }, [
       t
-    ]), e.useMemo(() => a, [
-      a
+    ]), e.useMemo(() => s, [
+      s
     ]);
   };
 });

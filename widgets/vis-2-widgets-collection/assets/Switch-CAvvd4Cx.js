@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as _, u as j, b as k, s as u, d as M, j as p, Z as i, e as N, m as d, i as m, _ as O, N as D, a7 as I, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-I9oA3vkp.js";
-let G;
+import { a as P, g as _, u as j, b as k, s as u, d as M, j as p, w as i, e as O, m as d, i as m, x as D, p as I, _ as N, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-QNQDlZV8.js";
+let H;
 let __tla = Promise.all([
   (() => {
     try {
@@ -63,7 +63,7 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = N(v, A, a);
+    }, b = O(v, A, a);
     return {
       ...a,
       ...b
@@ -182,7 +182,7 @@ let __tla = Promise.all([
       }
     },
     variants: [
-      ...Object.entries(t.palette).filter(O([
+      ...Object.entries(t.palette).filter(D([
         "light"
       ])).map(([a]) => ({
         props: {
@@ -198,7 +198,7 @@ let __tla = Promise.all([
               }
             },
             [`&.${o.disabled}`]: {
-              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? D(t.palette[a].main, 0.62) : I(t.palette[a].main, 0.55)}`
+              color: t.vars ? t.vars.palette.Switch[`${a}DisabledColor`] : `${t.palette.mode === "light" ? I(t.palette[a].main, 0.62) : N(t.palette[a].main, 0.55)}`
             }
           },
           [`&.${o.checked} + .${o.track}`]: {
@@ -237,7 +237,7 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  G = T.forwardRef(function(a, s) {
+  H = T.forwardRef(function(a, s) {
     const l = j({
       props: a,
       name: "MuiSwitch"
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  G as S,
+  H as S,
   __tla
 };

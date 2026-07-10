@@ -1,11 +1,12 @@
-import { j as n, O as W, F, C, R as O, n as P, U as T, q as B, x as D, y as R, o as f, V as z, M as w, W as A, S as E, v as G, T as H, w as u, i as b, G as L, z as S, A as N, E as U, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { u as y, d as $, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
-import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { M as Y, __tla as __tla_3 } from "./MenuItem-D9BFEqur.js";
-import { S as q, __tla as __tla_4 } from "./Stack-BcRoWIAv.js";
+import { j as n, n as f, S as W, T as P, i as C, G as T, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { o as F, h as O, C as b, m as B, a as D, n as R, u as G, c as H, d as L, l as y, p as N, S as z, g as A, b as u, e as S, f as E, w as U, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { u as w, d as $, __tla as __tla_2 } from "./useValueState-CVlBjGB3.js";
+import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { M as Y, __tla as __tla_4 } from "./MenuItem-DHIkT0HX.js";
+import { S as X, __tla as __tla_5 } from "./Stack-DkmwyHUs.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./listItemTextClasses-N7uw7-qo.js";
+import { __tla as __tla_6 } from "./listItemTextClasses-NWuPmlTm.js";
 let j;
 let __tla = Promise.all([
   (() => {
@@ -43,12 +44,18 @@ let __tla = Promise.all([
       return __tla_5;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_6;
+    } catch {
+    }
   })()
 ]).then(async () => {
-  const X = () => [
+  const q = () => [
     {
       type: "custom",
-      component: () => n.jsx(C, {
+      component: () => n.jsx(b, {
         dividerText: "selection"
       })
     },
@@ -56,7 +63,7 @@ let __tla = Promise.all([
       name: "cid",
       type: "id",
       label: "cid",
-      onChange: W([
+      onChange: F([
         "boolean",
         "number",
         "string",
@@ -65,11 +72,11 @@ let __tla = Promise.all([
     },
     {
       type: "custom",
-      component: () => n.jsx(C, {
+      component: () => n.jsx(b, {
         dividerText: "arrow"
       })
     },
-    F({
+    O({
       name: "arrowColor",
       label: "arrow_color",
       fallbackFields: [
@@ -79,7 +86,7 @@ let __tla = Promise.all([
     })
   ];
   function J(i) {
-    const e = u(i), a = e ? w(i) : void 0, o = a ? b(a, 0.5) : i ? b(i, 0.5) : void 0;
+    const e = u(i), a = e ? y(i) : void 0, o = a ? C(a, 0.5) : i ? C(i, 0.5) : void 0;
     return {
       background: e,
       bgcolor: e ? "transparent" : i,
@@ -98,12 +105,12 @@ let __tla = Promise.all([
     };
   }
   function K() {
-    const i = d.useRef(null), { width: e = 300 } = O(i.current), a = d.useContext(P), { widget: o } = a, { borderStyles: k } = T(o.style), p = o.data.cidObject, _ = o.data.oidObject, { data: r, states: s } = B("oid"), { value: c, updateValue: g } = y("oid"), { updateValue: m } = y("cid"), M = _ == null ? void 0 : _.type, I = [
+    const i = d.useRef(null), { width: e = 300 } = B(i.current), a = d.useContext(D), { widget: o } = a, { borderStyles: k } = R(o.style), p = o.data.cidObject, _ = o.data.oidObject, { data: r, states: s } = G("oid"), { value: c, updateValue: g } = w("oid"), { updateValue: m } = w("cid"), I = _ == null ? void 0 : _.type, M = [
       "boolean",
       "number",
       "string",
       "mixed"
-    ].includes(M || ""), x = d.useMemo(() => {
+    ].includes(I || ""), h = d.useMemo(() => {
       if (c == null) return -1;
       const t = String(c);
       return s.findIndex((l) => String(l.value) === t);
@@ -113,9 +120,9 @@ let __tla = Promise.all([
     ]), V = d.useCallback((t) => {
       const l = Number(t.target.value);
       if (l < 0 || l >= s.length) return;
-      const h = s[l];
-      if ((h == null ? void 0 : h.value) === void 0) return;
-      const { value: v } = h;
+      const x = s[l];
+      if ((x == null ? void 0 : x.value) === void 0) return;
+      const { value: v } = x;
       p && m(v), g(v);
     }, [
       s,
@@ -123,12 +130,12 @@ let __tla = Promise.all([
       m,
       g
     ]);
-    return n.jsxs(D, {
-      isValidType: I,
+    return n.jsxs(H, {
+      isValidType: M,
       data: r,
       oidValue: c,
       children: [
-        n.jsx(R, {
+        n.jsx(L, {
           data: r,
           widget: o
         }),
@@ -141,10 +148,10 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: n.jsx(z, {
+          children: n.jsx(W, {
             variant: "standard",
             disableUnderline: true,
-            value: x !== -1 ? x : "",
+            value: h !== -1 ? h : "",
             onChange: V,
             MenuProps: {
               PaperProps: {
@@ -160,7 +167,7 @@ let __tla = Promise.all([
                     boxShadow: "none !important"
                   },
                   background: r.frameBackground || (o.data.noCard ? "transparent" : void 0),
-                  ...A(k)
+                  ...N(k)
                 }
               },
               slotProps: {
@@ -185,20 +192,20 @@ let __tla = Promise.all([
               height: "100%",
               maxWidth: `calc(${e}px - 10%)`,
               "& .MuiSelect-icon": {
-                color: w(o.data.arrowColor || r.textColor || r.iconColor)
+                color: y(o.data.arrowColor || r.textColor || r.iconColor)
               }
             },
             children: s.map((t, l) => n.jsx(Y, {
               value: l,
               sx: J(t.background),
-              children: n.jsxs(q, {
+              children: n.jsxs(X, {
                 direction: "row",
                 spacing: t.icon ? 1 : 0,
                 sx: {
                   alignItems: "center"
                 },
                 children: [
-                  n.jsx(E, {
+                  n.jsx(z, {
                     alt: "",
                     src: t.icon,
                     style: {
@@ -206,10 +213,10 @@ let __tla = Promise.all([
                       top: `calc(0px - ${t.iconYOffset})`,
                       right: `calc(0px - ${t.iconXOffset})`,
                       height: t.iconSize,
-                      ...G(t.icon, t.iconColor, t.forceColorMask)
+                      ...A(t.icon, t.iconColor, t.forceColorMask)
                     }
                   }),
-                  n.jsx(H, {
+                  n.jsx(P, {
                     component: f,
                     variant: "subtitle2",
                     sx: {
@@ -239,7 +246,7 @@ let __tla = Promise.all([
       ]
     });
   }
-  j = class extends L {
+  j = class extends T {
     static getWidgetInfo() {
       return {
         id: "tplSelectCollectionWidget",
@@ -261,14 +268,14 @@ let __tla = Promise.all([
             name: "select_collection",
             label: "group_select_collection",
             fields: [
-              ...N([
+              ...E([
                 "boolean",
                 "number",
                 "string",
                 "mixed"
               ]),
               ...$(),
-              ...X()
+              ...q()
             ]
           },
           {

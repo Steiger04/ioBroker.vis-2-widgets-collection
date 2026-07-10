@@ -1,6 +1,7 @@
-import { j as t, O as W, F as O, C as d, Q as M, o as x, x as k, T as _, w as f, D as y, i as b, I as A, n as H, q as V, v as R, y as F, s as E, S as z, B as L, G as P, z as $, E as U, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { v as n, R as N, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as G, __tla as __tla_2 } from "./Close-8R9h2z3B.js";
+import { j as t, M as W, n as p, T as k, i as y, I as M, s as O, B as A, G as H, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { o as V, h as R, C as d, c as _, b as f, D as b, a as F, u as E, g as z, d as L, S as P, e as $, w as U, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { v as n, R as N, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { C as G, __tla as __tla_3 } from "./Close-DFTQxPaF.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let T;
@@ -20,6 +21,12 @@ let __tla = Promise.all([
   (() => {
     try {
       return __tla_2;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_3;
     } catch {
     }
   })()
@@ -54,7 +61,7 @@ let __tla = Promise.all([
       type: "id",
       label: "oid",
       tooltip: "dialog_set_oid_tooltip",
-      onChange: W([
+      onChange: V([
         "boolean"
       ], "dialogId")
     },
@@ -103,7 +110,7 @@ let __tla = Promise.all([
       type: "custom",
       component: () => t.jsx(d, {})
     },
-    O({
+    R({
       name: "dialogBackgroundColor",
       label: "background_color",
       fallbackFields: [
@@ -167,7 +174,7 @@ let __tla = Promise.all([
   ];
   function Y({ open: u, handleClose: l, widget: e, data: i, getWidgetView: a }) {
     var _a;
-    const p = n.useRef(null), [c, r] = n.useState(null), o = (_a = p.current) == null ? void 0 : _a.header;
+    const x = n.useRef(null), [c, r] = n.useState(null), o = (_a = x.current) == null ? void 0 : _a.header;
     n.useEffect(() => {
       e.data.dialogHeaderAsTitle && o && c && (e.data.dialogHeaderAsTitle && (o.style.width = "0px", o.style.height = "0px"), c.innerHTML = i.header, c.style.height = "auto", c.style.width = "auto");
     }, [
@@ -176,7 +183,7 @@ let __tla = Promise.all([
       i.header,
       e.data.dialogHeaderAsTitle
     ]);
-    const g = t.jsx(A, {
+    const g = t.jsx(M, {
       sx: {
         alignSelf: "flex-end",
         filter: "brightness(1.5)",
@@ -186,7 +193,7 @@ let __tla = Promise.all([
       onClick: l,
       children: t.jsx(G, {})
     });
-    return t.jsx(M, {
+    return t.jsx(W, {
       onClose: l,
       open: u,
       sx: {
@@ -195,20 +202,20 @@ let __tla = Promise.all([
         alignItems: "center",
         background: e.data.dialogBackgroundColor || "inherit"
       },
-      children: t.jsx(x, {
+      children: t.jsx(p, {
         sx: {
           width: e.data.dialogInPixel ? `${e.data.dialogWidth}px` : `${e.data.dialogWidth}%`,
           height: e.data.dialogInPixel ? `${e.data.dialogHeight}px` : `${e.data.dialogHeight}%`
         },
-        children: t.jsxs(k, {
-          ref: p,
+        children: t.jsxs(_, {
+          ref: x,
           data: i,
           sx: {
             flexDirection: "column",
             background: i.backgroundColor || i.background
           },
           children: [
-            t.jsxs(x, {
+            t.jsxs(p, {
               sx: {
                 position: "relative",
                 width: "100%",
@@ -219,13 +226,13 @@ let __tla = Promise.all([
                 p: e.data.dialogCloseButtonTop || !e.data.dialogHeaderAsTitle ? 0 : 2
               },
               children: [
-                t.jsx(x, {
+                t.jsx(p, {
                   sx: {
                     position: "absolute",
                     left: 0,
                     width: "100%"
                   },
-                  children: t.jsx(_, {
+                  children: t.jsx(k, {
                     ref: r,
                     noWrap: true,
                     variant: "body2",
@@ -243,7 +250,7 @@ let __tla = Promise.all([
               ]
             }),
             t.jsx(t.Fragment, {
-              children: e.data.dialogCloseButtonTop && t.jsx(y, {
+              children: e.data.dialogCloseButtonTop && t.jsx(b, {
                 sx: {
                   width: "100%",
                   opacity: "0.5",
@@ -251,14 +258,14 @@ let __tla = Promise.all([
                 }
               })
             }),
-            t.jsx(x, {
+            t.jsx(p, {
               sx: {
                 "::-webkit-scrollbar-track": {
-                  background: i.frameBackgroundColor && b(i.frameBackgroundColor, 0.5)
+                  background: i.frameBackgroundColor && y(i.frameBackgroundColor, 0.5)
                 },
                 "::-webkit-scrollbar-thumb": {
                   opacity: "0.5",
-                  background: i.frameBackgroundColor && b(i.frameBackgroundColor, 0.7)
+                  background: i.frameBackgroundColor && y(i.frameBackgroundColor, 0.7)
                 },
                 position: "relative",
                 overflow: "auto",
@@ -271,7 +278,7 @@ let __tla = Promise.all([
             }),
             t.jsxs(t.Fragment, {
               children: [
-                e.data.dialogCloseButtonBottom && t.jsx(y, {
+                e.data.dialogCloseButtonBottom && t.jsx(b, {
                   sx: {
                     width: "100%",
                     opacity: "0.5",
@@ -286,7 +293,7 @@ let __tla = Promise.all([
       })
     });
   }
-  const q = 1e4, Q = 60, J = 1e3, K = E(L)({
+  const q = 1e4, J = 60, K = 1e3, Q = O(A)({
     width: "100% !important",
     height: "100% !important",
     display: "flex",
@@ -310,11 +317,11 @@ let __tla = Promise.all([
     if (!u || l === "" || l === "0") return 0;
     if (l === "true") return q;
     let e = parseInt(l, 10);
-    return e < Q && (e *= 1e3), e || J;
+    return e < J && (e *= 1e3), e || K;
   }
   function oe() {
     var _a, _b;
-    const [u, l] = n.useState(false), e = n.useRef(null), i = n.useContext(H), { widget: a, widget: { data: p }, getWidgetView: c, setValue: r } = i, { data: o, oidValue: g } = V("dialogId"), s = (_a = a.data.dialogIdObject) == null ? void 0 : _a._id, j = ((_b = a.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected";
+    const [u, l] = n.useState(false), e = n.useRef(null), i = n.useContext(F), { widget: a, widget: { data: x }, getWidgetView: c, setValue: r } = i, { data: o, oidValue: g } = E("dialogId"), s = (_a = a.data.dialogIdObject) == null ? void 0 : _a._id, j = ((_b = a.data.dialogIdObject) == null ? void 0 : _b.type) === "boolean" || !a.data.oid || a.data.oid === "nothing_selected";
     n.useEffect(() => () => {
       e.current && clearTimeout(e.current);
     }, []);
@@ -370,7 +377,7 @@ let __tla = Promise.all([
       right: `calc(0px - ${o.iconXOffset})`,
       width: o.iconSizeOnly,
       height: o.iconSizeOnly,
-      ...R(o.icon, o.iconColor, o.forceColorMask ?? false)
+      ...z(o.icon, o.iconColor, o.forceColorMask ?? false)
     }), [
       o.iconYOffset,
       o.iconXOffset,
@@ -407,33 +414,33 @@ let __tla = Promise.all([
           data: o,
           getWidgetView: c
         }),
-        t.jsxs(k, {
+        t.jsxs(_, {
           isValidType: j,
           data: o,
           children: [
-            t.jsx(F, {
+            t.jsx(L, {
               data: o,
               widget: a
             }),
-            t.jsx(x, {
+            t.jsx(p, {
               sx: ee,
-              children: t.jsxs(K, {
+              children: t.jsxs(Q, {
                 onClick: S,
                 sx: I,
                 children: [
-                  v ? t.jsx(x, {
+                  v ? t.jsx(p, {
                     sx: Z,
-                    children: t.jsx(z, {
+                    children: t.jsx(P, {
                       alt: "",
                       src: o.icon,
                       style: w
                     })
                   }) : null,
-                  B ? t.jsx(_, {
+                  B ? t.jsx(k, {
                     variant: "body2",
                     sx: D,
                     dangerouslySetInnerHTML: {
-                      __html: p.dialogText || ""
+                      __html: x.dialogText || ""
                     }
                   }) : null
                 ]
@@ -445,7 +452,7 @@ let __tla = Promise.all([
     });
   }
   const le = N.memo(oe);
-  T = class extends P {
+  T = class extends H {
     static getWidgetInfo() {
       return {
         id: "tplDialogCollectionWidget",

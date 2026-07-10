@@ -1,7 +1,8 @@
-import { j as v, C as z, O as zt, n as Ae, q as at, x as st, y as ht, S as Nt, v as Dt, Q as Ft, o as D, c as Vt, R as Gt, I as ye, D as qe, $ as ut, G as $t, z as Ze, E as Ut, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { u as P, d as Xt, __tla as __tla_1 } from "./useValueState-B3VcZlK7.js";
-import { v as d, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { B as Kt, __tla as __tla_3 } from "./Button-B5WjHJsX.js";
+import { j as v, M as zt, n as D, c as Nt, I as ye, y as at, G as Dt, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { C as z, o as Ft, a as Ae, u as st, c as ht, d as ut, S as Vt, g as Gt, m as $t, D as qe, e as Ze, w as Ut, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { u as P, d as Xt, __tla as __tla_2 } from "./useValueState-CVlBjGB3.js";
+import { v as d, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { B as Kt, __tla as __tla_4 } from "./Button-CI-1uWz9.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let It;
@@ -29,6 +30,12 @@ let __tla = Promise.all([
       return __tla_3;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_4;
+    } catch {
+    }
   })()
 ]).then(async () => {
   const Je = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMyAzaC0ydjEwaDJWM3ptNC44MyAyLjE3bC0xLjQyIDEuNDJBNi45MiA2LjkyIDAgMCAxIDE5IDEyYzAgMy44Ny0zLjEzIDctNyA3QTYuOTk1IDYuOTk1IDAgMCAxIDcuNTggNi41OEw2LjE3IDUuMTdBOC45MzIgOC45MzIgMCAwIDAgMyAxMmE5IDkgMCAwIDAgMTggMGMwLTIuNzQtMS4yMy01LjE4LTMuMTctNi44M3oiLz48L3N2Zz4=", et = {
@@ -44,7 +51,7 @@ let __tla = Promise.all([
     "level.color.temperature": "colorLightTemperatureOid",
     "level.color.luminance": "colorLightBrightnessOid",
     "level.color.white": "colorLightBrightnessOid"
-  }, Qt = async (e, r, i, t) => {
+  }, Yt = async (e, r, i, t) => {
     const n = e.name;
     if (n && r[n]) {
       const o = await t.getObject(r[n]);
@@ -58,7 +65,7 @@ let __tla = Promise.all([
             const h = u.common.role;
             if (h && et[h] && (!r[h] || r[h] === "nothing_selected") && n !== h) {
               const a = et[h];
-              s[a] = u._id, await zt([
+              s[a] = u._id, await Ft([
                 "boolean",
                 "number",
                 "string",
@@ -69,7 +76,7 @@ let __tla = Promise.all([
         }
       }
     }
-  }, Yt = () => [
+  }, Qt = () => [
     {
       type: "custom",
       component: () => v.jsx(z, {})
@@ -153,7 +160,7 @@ let __tla = Promise.all([
       name: "colorLightSwitchOid",
       type: "id",
       label: "color_light_switch_oid",
-      onChange: Qt
+      onChange: Yt
     },
     {
       type: "custom",
@@ -393,19 +400,19 @@ let __tla = Promise.all([
       var _a;
       const n = d.useContext(Ae);
       if (!n || !n.widget) throw new Error("withButtonModal must be used within a CollectionProvider");
-      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = at("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
+      const { widget: o } = n, [l, c] = d.useState(false), s = o.data, { value: u, updateValue: h } = P("colorLightSwitchOid"), { data: a } = st("colorLightSwitchOid"), f = Zt(s) && s.colorLightButton, b = ((_a = f ? s.colorLightSwitchOidObject : void 0) == null ? void 0 : _a.type) === "boolean", x = qt({
         onClick: () => h(!u),
         onLongPress: () => c(true),
         ms: f ? s.colorLightDelayLongPress ?? 500 : 500
       }), m = f ? (s.colorLightSliderWidth || 1) * 28 : 28, w = f && typeof s.colorLightModalWidth == "number" && s.colorLightModalWidth > 0 ? s.colorLightModalWidth : (f && s.colorLightModalHeight || 300) + 40 + 12 + m;
       return f ? v.jsxs(v.Fragment, {
         children: [
-          v.jsxs(st, {
+          v.jsxs(ht, {
             isValidType: b,
             data: a,
             oidValue: u,
             children: [
-              v.jsx(ht, {
+              v.jsx(ut, {
                 data: a,
                 widget: o
               }),
@@ -424,20 +431,20 @@ let __tla = Promise.all([
                   alignItems: "center",
                   touchAction: "manipulation"
                 },
-                children: v.jsx(Nt, {
+                children: v.jsx(Vt, {
                   alt: "",
                   src: a.iconActive || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
                   style: {
                     width: typeof a.iconSizeOnly == "number" && `calc(100% * ${a.iconSizeOnly} / 100)` || "100%",
                     height: typeof a.iconSizeOnly == "number" && `calc(100% * ${a.iconSizeOnly} / 100)` || "100%",
                     objectFit: "contain",
-                    ...Dt(a.iconActive || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", a.iconColorActive || a.iconColor)
+                    ...Gt(a.iconActive || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", a.iconColorActive || a.iconColor)
                   }
                 })
               })
             ]
           }),
-          v.jsx(Ft, {
+          v.jsx(zt, {
             open: l,
             onClose: () => c(false),
             children: v.jsx(D, {
@@ -506,7 +513,7 @@ let __tla = Promise.all([
     }
     return e;
   }
-  function Y(e, r) {
+  function Q(e, r) {
     this.props = e, this.context = r;
   }
   function oe(e, r) {
@@ -595,7 +602,7 @@ let __tla = Promise.all([
     (h = S.__b) && h(r);
     try {
       e: if (typeof p == "function") {
-        if (m = r.props, _ = (h = p.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in p && p.prototype.render ? r.__c = a = new p(m, w) : (r.__c = a = new Y(m, w), a.constructor = p, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), p.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, p.getDerivedStateFromProps(m, a.__s)), f) p.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
+        if (m = r.props, _ = (h = p.contextType) && t[h.__c], w = h ? _ ? _.props.value : h.__p : t, i.__c ? x = (a = r.__c = i.__c).__p = a.__E : ("prototype" in p && p.prototype.render ? r.__c = a = new p(m, w) : (r.__c = a = new Q(m, w), a.constructor = p, a.render = or), _ && _.sub(a), a.props = m, a.state || (a.state = {}), a.context = w, a.__n = t, f = a.__d = true, a.__h = []), a.__s == null && (a.__s = a.state), p.getDerivedStateFromProps != null && B(a.__s == a.state ? a.__s = B({}, a.__s) : a.__s, p.getDerivedStateFromProps(m, a.__s)), f) p.getDerivedStateFromProps == null && a.componentWillMount != null && a.componentWillMount(), a.componentDidMount != null && l.push(a);
         else {
           if (p.getDerivedStateFromProps == null && c == null && a.componentWillReceiveProps != null && a.componentWillReceiveProps(m, w), !c && a.shouldComponentUpdate != null && a.shouldComponentUpdate(m, a.__s, w) === false) {
             for (a.props = m, a.state = a.__s, a.__d = false, a.__v = r, r.__e = s != null ? s !== i.__e ? s : i.__e : null, r.__k = i.__k, h = 0; h < r.__k.length; h++) r.__k[h] && (r.__k[h].__p = r);
@@ -663,12 +670,12 @@ let __tla = Promise.all([
       e
     ]), o = [], Re(r, r.__k = e, n || H, H, r.ownerSVGElement !== void 0, n ? null : Me.slice.call(r.childNodes), o, false, H, t), pt(o, e);
   }
-  S = {}, Y.prototype.setState = function(e, r) {
+  S = {}, Q.prototype.setState = function(e, r) {
     var i = this.__s !== this.state && this.__s || (this.__s = B({}, this.state));
     (typeof e != "function" || (e = e(i, this.props))) && B(i, e), e != null && this.__v && (this.u = false, r && this.__h.push(r), xe(this));
-  }, Y.prototype.forceUpdate = function(e) {
+  }, Q.prototype.forceUpdate = function(e) {
     this.__v && (e && this.__h.push(e), this.u = true, xe(this));
-  }, Y.prototype.render = ce, ne = [], dt = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Se = S.debounceRendering, S.__e = function(e, r, i) {
+  }, Q.prototype.render = ce, ne = [], dt = typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, Se = S.debounceRendering, S.__e = function(e, r, i) {
     for (var t; r = r.__p; ) if ((t = r.__c) && !t.__p) try {
       if (t.constructor && t.constructor.getDerivedStateFromError != null) t.setState(t.constructor.getDerivedStateFromError(e));
       else {
@@ -1456,7 +1463,7 @@ let __tla = Promise.all([
           break;
       }
     }, r;
-  })(Y);
+  })(Q);
   function $(e) {
     var r = e.r, i = e.url, t = r, n = r;
     return L("svg", {
@@ -1816,7 +1823,7 @@ let __tla = Promise.all([
         }));
       }));
     }, r;
-  })(Y);
+  })(Q);
   Et.defaultProps = Object.assign({}, Rr, {
     colors: [],
     display: "block",
@@ -2005,7 +2012,7 @@ let __tla = Promise.all([
     });
   });
   Ee.displayName = "Light2Picker";
-  const $r = Vt(v.jsx("path", {
+  const $r = Nt(v.jsx("path", {
     d: "M13 3h-2v10h2zm4.83 2.17-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83"
   }), "PowerSettingsNew"), Ur = (e) => d.createElement("svg", {
     width: "800px",
@@ -2069,7 +2076,7 @@ let __tla = Promise.all([
   }), d.createElement("path", {
     d: "M95.08 38.05c-1.32-.94-5.49-1.49-6.91 1.81c-.85 1.98.28 4.35 1.75 4.36c1.67.01 1.26-2.67 2.37-3.21c1.67-.81 4.64-1.64 2.79-2.96z",
     fill: "#ffffff"
-  })), Q = (e, r, i) => {
+  })), Y = (e, r, i) => {
     const t = r[e];
     if (typeof t != "string" || !t.trim()) return;
     const n = i(e), o = Number(n);
@@ -2077,11 +2084,11 @@ let __tla = Promise.all([
   }, Xr = (e, r) => {
     if (e !== void 0) return Math.round(typeof r == "number" && r === 254 ? e / 254 * 100 : e);
   }, ie = (e, r, i, t) => {
-    const n = Q(e, r, i);
+    const n = Y(e, r, i);
     return Xr(n, t);
   };
   function Mt(e, r, i) {
-    const t = Q("colorLightTemperatureOid", r, i) ?? 2e3;
+    const t = Y("colorLightTemperatureOid", r, i) ?? 2e3;
     e.kelvin = t;
   }
   function ct(e, r, i) {
@@ -2110,7 +2117,7 @@ let __tla = Promise.all([
       case "r/g/b":
       case "r/g/b/cct": {
         if (t.colorLightRedOid && t.colorLightGreenOid && t.colorLightBlueOid) {
-          const o = Q("colorLightRedOid", t, i), l = Q("colorLightGreenOid", t, i), c = Q("colorLightBlueOid", t, i);
+          const o = Y("colorLightRedOid", t, i), l = Y("colorLightGreenOid", t, i), c = Y("colorLightBlueOid", t, i);
           e.red = o ?? 0, e.green = l ?? 0, e.blue = c ?? 0;
         }
         break;
@@ -2118,21 +2125,21 @@ let __tla = Promise.all([
       case "h/s/v":
       case "h/s/v/cct": {
         if (t.colorLightHueOid && t.colorLightSaturationOid && t.colorLightBrightnessOid) {
-          const o = Q("colorLightHueOid", t, i), l = ie("colorLightSaturationOid", t, i, (_b = t.colorLightSaturationOidObject) == null ? void 0 : _b.maxValue), c = ie("colorLightBrightnessOid", t, i, (_c = t.colorLightBrightnessOidObject) == null ? void 0 : _c.maxValue);
+          const o = Y("colorLightHueOid", t, i), l = ie("colorLightSaturationOid", t, i, (_b = t.colorLightSaturationOidObject) == null ? void 0 : _b.maxValue), c = ie("colorLightBrightnessOid", t, i, (_c = t.colorLightBrightnessOidObject) == null ? void 0 : _c.maxValue);
           o !== void 0 && (e.hue = o), l !== void 0 && (e.saturation = l), c !== void 0 && (e.value = c);
         }
         break;
       }
     }
   }
-  const Kr = (e, r) => !e || !r ? true : !!r[e], Qr = (e) => e === "kelvin" ? 2e3 : e === "hexString" ? "#ffffff" : 0, we = (e, r) => {
+  const Kr = (e, r) => !e || !r ? true : !!r[e], Yr = (e) => e === "kelvin" ? 2e3 : e === "hexString" ? "#ffffff" : 0, we = (e, r) => {
     const i = r.value;
     r.hexString = e.hexString, r.value = i;
-  }, Yr = (e) => v.jsx(ut, {
+  }, Qr = (e) => v.jsx(at, {
     component: Ur,
     viewBox: "0 0 128 128",
     ...e
-  }), qr = (e) => v.jsxs(ut, {
+  }), qr = (e) => v.jsxs(at, {
     viewBox: "0 0 512 512",
     ...e,
     children: [
@@ -2220,7 +2227,7 @@ let __tla = Promise.all([
   });
   function Zr() {
     var _a;
-    const [e, r] = d.useState(false), i = d.useContext(Ae), { widget: t, widget: { data: n }, values: o, getPropertyValue: l } = i, { data: c } = at(""), s = d.useRef(null), u = Gt(s.current, (n.colorLightSliderWidth || 1) * 28), h = d.useRef(null), a = d.useRef(null), f = d.useRef(e), g = d.useRef(t.data);
+    const [e, r] = d.useState(false), i = d.useContext(Ae), { widget: t, widget: { data: n }, values: o, getPropertyValue: l } = i, { data: c } = st(""), s = d.useRef(null), u = $t(s.current, (n.colorLightSliderWidth || 1) * 28), h = d.useRef(null), a = d.useRef(null), f = d.useRef(e), g = d.useRef(t.data);
     g.current = t.data;
     const y = d.useRef(l);
     y.current = l;
@@ -2353,12 +2360,12 @@ let __tla = Promise.all([
           const te = $e[p];
           if (!te) return;
           te.forEach((_e) => {
-            const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Bt, cctComponent: Qe, changeKey: Ht } = _e;
-            if (Qe !== void 0 && k !== Qe || !Kr(Ht, be)) return;
-            const Wt = `${jt}Object`, Ye = t.data[Wt];
-            if (!Ye) return;
+            const { colorProp: Ke, oidField: jt, setter: Tt, normalize: Bt, cctComponent: Ye, changeKey: Ht } = _e;
+            if (Ye !== void 0 && k !== Ye || !Kr(Ht, be)) return;
+            const Wt = `${jt}Object`, Qe = t.data[Wt];
+            if (!Qe) return;
             let R = C[Ke];
-            Bt && typeof R == "number" ? R = Ge(R, Ye) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Qr(Ke)), Tt(R);
+            Bt && typeof R == "number" ? R = Ge(R, Qe) : typeof R == "number" && (R = Math.round(R)), R == null && (R = Yr(Ke)), Tt(R);
           }), k === 1 && x((_e) => !_e);
         } finally {
           Promise.resolve().then(() => {
@@ -2534,11 +2541,11 @@ let __tla = Promise.all([
       f.current = e;
     }, [
       e
-    ]), v.jsxs(st, {
+    ]), v.jsxs(ht, {
       isValidType: Rt,
       data: c,
       children: [
-        v.jsx(ht, {
+        v.jsx(ut, {
           data: c,
           widget: t
         }),
@@ -2577,7 +2584,7 @@ let __tla = Promise.all([
                 }),
                 v.jsx(ye, {
                   onClick: () => r(false),
-                  children: v.jsx(Yr, {
+                  children: v.jsx(Qr, {
                     sx: {
                       width: "24px",
                       height: "24px"
@@ -2646,7 +2653,7 @@ let __tla = Promise.all([
     });
   }
   const Jr = Jt(Zr);
-  It = class extends $t {
+  It = class extends Dt {
     static getWidgetInfo() {
       return {
         id: "tplLight2CollectionWidget",
@@ -2670,7 +2677,7 @@ let __tla = Promise.all([
             label: "group_light",
             fields: [
               ...Xt(),
-              ...Yt()
+              ...Qt()
             ]
           },
           {

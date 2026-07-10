@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as D, m as G, i as c, aD as x, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-N7uw7-qo.js";
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, ar as x, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-NWuPmlTm.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -29,11 +29,11 @@ let __tla = Promise.all([
     "root",
     "alignItemsFlexStart"
   ]);
-  function N(e) {
+  function D(e) {
     return k("MuiMenuItem", e);
   }
-  let n, E, H, z;
-  n = O("MuiMenuItem", [
+  let r, E, H, z;
+  r = O("MuiMenuItem", [
     "root",
     "focusVisible",
     "dense",
@@ -52,27 +52,27 @@ let __tla = Promise.all([
     ];
   };
   H = (e) => {
-    const { disabled: t, dense: a, divider: s, disableGutters: r, selected: d, classes: o } = e, i = P({
+    const { disabled: t, dense: a, divider: s, disableGutters: n, selected: d, classes: o } = e, i = P({
       root: [
         "root",
         a && "dense",
         t && "disabled",
-        !r && "gutters",
+        !n && "gutters",
         s && "divider",
         d && "selected"
       ]
-    }, N, o);
+    }, D, o);
     return {
       ...o,
       ...i
     };
   };
   z = F(U, {
-    shouldForwardProp: (e) => D(e) || e === "classes",
+    shouldForwardProp: (e) => G(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
     overridesResolver: E
-  })(G(({ theme: e }) => ({
+  })(N(({ theme: e }) => ({
     ...e.typography.body1,
     display: "flex",
     justifyContent: "flex-start",
@@ -91,22 +91,22 @@ let __tla = Promise.all([
         backgroundColor: "transparent"
       }
     },
-    [`&.${n.selected}`]: {
+    [`&.${r.selected}`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : c(e.palette.primary.main, e.palette.action.selectedOpacity),
-      [`&.${n.focusVisible}`]: {
+      [`&.${r.focusVisible}`]: {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.focusOpacity}))` : c(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.focusOpacity)
       }
     },
-    [`&.${n.selected}:hover`]: {
+    [`&.${r.selected}:hover`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.hoverOpacity}))` : c(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.hoverOpacity),
       "@media (hover: none)": {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : c(e.palette.primary.main, e.palette.action.selectedOpacity)
       }
     },
-    [`&.${n.focusVisible}`]: {
+    [`&.${r.focusVisible}`]: {
       backgroundColor: (e.vars || e).palette.action.focus
     },
-    [`&.${n.disabled}`]: {
+    [`&.${r.disabled}`]: {
       opacity: (e.vars || e).palette.action.disabledOpacity
     },
     [`& + .${x.root}`]: {
@@ -167,7 +167,7 @@ let __tla = Promise.all([
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: n = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -176,9 +176,9 @@ let __tla = Promise.all([
       i
     ]), p = l.useRef(null);
     V(() => {
-      r && p.current && p.current.focus();
+      n && p.current && p.current.focus();
     }, [
-      r
+      n
     ]);
     const _ = {
       ...s,

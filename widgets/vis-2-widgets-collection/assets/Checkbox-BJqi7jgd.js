@@ -1,7 +1,7 @@
 import { v as m, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { c as v, j as a, a as B, g as _, u as w, b as M, aC as O, d as F, s as H, Z as n, e as V, r as U, m as E, i as z, _ as I, __tla as __tla_1 } from "./useData-BGlxI0R0.js";
-import { S as L, __tla as __tla_2 } from "./SwitchBase-I9oA3vkp.js";
-let Y;
+import { c as v, j as a, a as w, g as B, u as M, b as O, a6 as _, d as F, s as H, w as n, e as V, r as U, m as E, i as z, x as I, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
+import { S as L, __tla as __tla_2 } from "./SwitchBase-QNQDlZV8.js";
+let Z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -30,10 +30,10 @@ let __tla = Promise.all([
     d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"
   }), "IndeterminateCheckBox");
   function W(e) {
-    return _("MuiCheckbox", e);
+    return B("MuiCheckbox", e);
   }
-  let h, Z, q, A, G, J;
-  h = B("MuiCheckbox", [
+  let h, q, A, G, J, K;
+  h = w("MuiCheckbox", [
     "root",
     "checked",
     "disabled",
@@ -43,7 +43,7 @@ let __tla = Promise.all([
     "sizeSmall",
     "sizeMedium"
   ]);
-  Z = (e) => {
+  q = (e) => {
     const { classes: o, indeterminate: t, color: s, size: c } = e, i = {
       root: [
         "root",
@@ -57,7 +57,7 @@ let __tla = Promise.all([
       ...l
     };
   };
-  q = H(L, {
+  A = H(L, {
     shouldForwardProp: (e) => U(e) || e === "classes",
     name: "MuiCheckbox",
     slot: "Root",
@@ -122,22 +122,22 @@ let __tla = Promise.all([
       }
     ]
   })));
-  A = a.jsx(T, {});
-  G = a.jsx(N, {});
-  J = a.jsx(D, {});
-  Y = m.forwardRef(function(o, t) {
-    const s = w({
+  G = a.jsx(T, {});
+  J = a.jsx(N, {});
+  K = a.jsx(D, {});
+  Z = m.forwardRef(function(o, t) {
+    const s = M({
       props: o,
       name: "MuiCheckbox"
-    }), { checkedIcon: c = A, color: i = "primary", icon: l = G, indeterminate: r = false, indeterminateIcon: C = J, inputProps: P, size: p = "medium", disableRipple: x = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? C : l, S = r ? C : c, d = {
+    }), { checkedIcon: c = G, color: i = "primary", icon: l = J, indeterminate: r = false, indeterminateIcon: x = K, inputProps: P, size: p = "medium", disableRipple: C = false, className: g, slots: f = {}, slotProps: k = {}, ...j } = s, b = r ? x : l, S = r ? x : c, d = {
       ...s,
-      disableRipple: x,
+      disableRipple: C,
       color: i,
       indeterminate: r,
       size: p
-    }, y = Z(d), u = k.input ?? P, [$, R] = M("root", {
+    }, y = q(d), u = k.input ?? P, [$, R] = O("root", {
       ref: t,
-      elementType: q,
+      elementType: A,
       className: F(y.root, g),
       shouldForwardComponentProp: true,
       externalForwardedProps: {
@@ -154,10 +154,10 @@ let __tla = Promise.all([
         checkedIcon: m.cloneElement(S, {
           fontSize: S.props.fontSize ?? p
         }),
-        disableRipple: x,
+        disableRipple: C,
         slots: f,
         slotProps: {
-          input: O(typeof u == "function" ? u(d) : u, {
+          input: _(typeof u == "function" ? u(d) : u, {
             "data-indeterminate": r
           })
         }
@@ -170,6 +170,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  Y as C,
+  Z as C,
   __tla
 };

@@ -1,6 +1,7 @@
-import { j as rt, C as nt, n as H, q as it, __tla as __tla_0 } from "./useData-BGlxI0R0.js";
-import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-let Zt, te;
+import { j as rt, V as A, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { C as nt, a as H, u as it, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { v as m, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+let te, ee;
 let __tla = Promise.all([
   (() => {
     try {
@@ -13,9 +14,15 @@ let __tla = Promise.all([
       return __tla_1;
     } catch {
     }
+  })(),
+  (() => {
+    try {
+      return __tla_2;
+    } catch {
+    }
   })()
 ]).then(async () => {
-  Zt = () => [
+  te = () => [
     {
       label: "",
       type: "custom",
@@ -468,22 +475,22 @@ let __tla = Promise.all([
       if (t.next) try {
         t.next(r);
       } catch (n) {
-        A(n);
+        O(n);
       }
     }, e.prototype.error = function(r) {
       var t = this.partialObserver;
       if (t.error) try {
         t.error(r);
       } catch (n) {
-        A(n);
+        O(n);
       }
-      else A(r);
+      else O(r);
     }, e.prototype.complete = function() {
       var r = this.partialObserver;
       if (r.complete) try {
         r.complete();
       } catch (t) {
-        A(t);
+        O(t);
       }
     }, e;
   })(), V = (function(e) {
@@ -498,7 +505,7 @@ let __tla = Promise.all([
     }
     return r;
   })(D);
-  function A(e) {
+  function O(e) {
     Q(e);
   }
   function ft(e) {
@@ -757,7 +764,7 @@ let __tla = Promise.all([
     return r.prototype.schedule = function(t, n) {
       return this;
     }, r;
-  })(E), q = {
+  })(E), B = {
     setInterval: function(e, r) {
       for (var t = [], n = 2; n < arguments.length; n++) t[n - 2] = arguments[n];
       return setInterval.apply(void 0, j([
@@ -782,10 +789,10 @@ let __tla = Promise.all([
       var o = this.id, u = this.scheduler;
       return o != null && (this.id = this.recycleAsyncId(u, o, n)), this.pending = true, this.delay = n, this.id = (i = this.id) !== null && i !== void 0 ? i : this.requestAsyncId(u, this.id, n), this;
     }, r.prototype.requestAsyncId = function(t, n, i) {
-      return i === void 0 && (i = 0), q.setInterval(t.flush.bind(t, this), i);
+      return i === void 0 && (i = 0), B.setInterval(t.flush.bind(t, this), i);
     }, r.prototype.recycleAsyncId = function(t, n, i) {
       if (i === void 0 && (i = 0), i != null && this.delay === i && this.pending === false) return n;
-      n != null && q.clearInterval(n);
+      n != null && B.clearInterval(n);
     }, r.prototype.execute = function(t, n) {
       if (this.closed) return new Error("executing a cancelled action");
       this.pending = false;
@@ -806,7 +813,7 @@ let __tla = Promise.all([
         this.work = this.state = this.scheduler = null, this.pending = false, k(o, this), n != null && (this.id = this.recycleAsyncId(i, n, null)), this.delay = null, e.prototype.unsubscribe.call(this);
       }
     }, r;
-  })(_t), B = (function() {
+  })(_t), q = (function() {
     function e(r, t) {
       t === void 0 && (t = e.now), this.schedulerActionCtor = r, this.now = t;
     }
@@ -816,7 +823,7 @@ let __tla = Promise.all([
   })(), xt = (function(e) {
     _(r, e);
     function r(t, n) {
-      n === void 0 && (n = B.now);
+      n === void 0 && (n = q.now);
       var i = e.call(this, t, n) || this;
       return i.actions = [], i._active = false, i;
     }
@@ -836,7 +843,7 @@ let __tla = Promise.all([
         throw i;
       }
     }, r;
-  })(B), F = new xt(gt), It = F;
+  })(q), F = new xt(gt), It = F;
   function Et(e) {
     return e && p(e.schedule);
   }
@@ -1079,7 +1086,7 @@ let __tla = Promise.all([
   function Gt(e) {
     return e instanceof Date && !isNaN(e);
   }
-  function qt(e, r, t) {
+  function Bt(e, r, t) {
     e === void 0 && (e = 0), t === void 0 && (t = It);
     var n = -1;
     return r != null && (Et(r) ? t = r : n = r), new w(function(i) {
@@ -1091,7 +1098,7 @@ let __tla = Promise.all([
       }, o);
     });
   }
-  function Bt(e, r) {
+  function qt(e, r) {
     return r === void 0 && (r = F), X(function(t, n) {
       var i = null, o = null, u = null, a = function() {
         if (i) {
@@ -1141,7 +1148,7 @@ let __tla = Promise.all([
   }
   function Wt(e, r, t) {
     r === void 0 && (r = F);
-    var n = qt(e, r);
+    var n = Bt(e, r);
     return Ht(function() {
       return n;
     }, t);
@@ -1163,7 +1170,7 @@ let __tla = Promise.all([
       return u.current && u.current.unsubscribe(), u.current = l.pipe(r ? Wt(s, void 0, {
         leading: false,
         trailing: true
-      }) : Bt(s)).subscribe((f) => {
+      }) : qt(s)).subscribe((f) => {
         a.current(c, f);
       }), () => {
         u.current && (u.current.unsubscribe(), u.current = null);
@@ -1181,7 +1188,6 @@ let __tla = Promise.all([
       }
     } : null;
   }
-  const O = 1111111111111;
   function Jt(e, r) {
     switch (r) {
       case "string":
@@ -1202,14 +1208,14 @@ let __tla = Promise.all([
     const i = Number(e ?? 0), o = Number(r ?? 0);
     return Math.abs(i - o) >= 1;
   }
-  te = (e) => {
+  ee = (e) => {
     const { setState: r, widget: t, getPropertyValue: n, values: i } = m.useContext(H), { data: o } = it("oid"), u = t.data[`${e}Object`], a = n(e), c = m.useRef({
       lc: void 0,
       value: void 0
     }), s = m.useRef(0), l = Number(o.delay ?? t.data.delay) || 300, f = (u == null ? void 0 : u._id) ? i[`${u._id}.lc`] : void 0, v = (u == null ? void 0 : u._id) ? i[`${u._id}.val`] : void 0, h = m.useMemo(() => {
       if (!(u == null ? void 0 : u._id)) return false;
-      if (f === O) return c.current = {
-        lc: O,
+      if (f === A) return c.current = {
+        lc: A,
         value: v
       }, false;
       if (Date.now() < s.current) return c.current = {
@@ -1243,10 +1249,10 @@ let __tla = Promise.all([
         values: {
           ...et.values,
           [`${u._id}.val`]: I,
-          [`${u._id}.lc`]: O
+          [`${u._id}.lc`]: A
         }
       })), s.current = Date.now() + l + 1500, c.current = {
-        lc: O,
+        lc: A,
         value: I
       }, !b && y && y.next(I));
     }, [
@@ -1264,6 +1270,6 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  Zt as d,
-  te as u
+  te as d,
+  ee as u
 };
