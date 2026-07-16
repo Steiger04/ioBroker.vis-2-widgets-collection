@@ -59,6 +59,7 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
     const fontFamily = getNestedValue<string>(theme, 'typography.fontFamily');
     const fontWeightRegular = getNestedValue<number>(theme, 'typography.fontWeightRegular');
     const lineHeight = getNestedValue<number>(theme, 'typography.allVariants.lineHeight');
+    const borderRadius = getNestedValue<number>(theme, 'shape.borderRadius') ?? 4;
     const [isCustomFont, setIsCustomFont] = useState<boolean>(resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE);
     const fontSelectValue = isCustomFont ? CUSTOM_FONT_VALUE : resolveFontSelectValue(fontFamily);
 
@@ -123,7 +124,7 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
     return (
         <Accordion defaultExpanded={defaultExpanded ?? false}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{Generic.t('theme_wizard_section_typography')}</Typography>
+                <Typography>{Generic.t('theme_studio_section_schrift_form')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
                 <Stack spacing={2}>
@@ -337,6 +338,23 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
                             step={0.05}
                             valueLabelDisplay="auto"
                             onChange={(_event, value) => onChange('typography.allVariants.lineHeight', value)}
+                        />
+                    </Box>
+                    <Box>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            gutterBottom
+                        >
+                            {Generic.t('theme_wizard_layout_border_radius')}: {borderRadius}
+                        </Typography>
+                        <Slider
+                            value={borderRadius}
+                            min={0}
+                            max={32}
+                            step={0.5}
+                            valueLabelDisplay="auto"
+                            onChange={(_event, value) => onChange('shape.borderRadius', value)}
                         />
                     </Box>
                     <Box>

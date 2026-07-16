@@ -5,11 +5,13 @@
  * @remarks
  * This is not a droppable widget. It uses vis-2's public `customPalette`
  * extension point to render a button in the widget palette (edit mode only)
- * that opens {@link module:ThemeConfigWizard/ThemeWizardDialog}. There the
- * user pastes an MUI `ThemeOptions` JSON, which is validated and stored in the
+ * that opens {@link module:ThemeConfigWizard/ThemeStudioPanel}, a floating
+ * live-preview studio. The user edits an in-memory `UserTheme` (accent-driven,
+ * with presets); on save it is validated and stored in the
  * `vis-2-widgets-collection.0.theme` state. The {@link module:components/CollectionProvider}
- * subscribes to that state and merges it into `createTheme`, so the theme
- * applies to every widget in the collection.
+ * subscribes to that state (and the shared draft while the studio is open) and
+ * merges it into `createTheme`, so the theme applies to every widget in the
+ * collection.
  * @see https://github.com/ioBroker/ioBroker.vis-2-widgets-material (uses the same mechanism for its Wizard)
  */
 

@@ -26,19 +26,10 @@ import { deriveSecondary } from '../../lib/theme/derivePalette';
 import type { ThemeFormSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
 
-/** Color fields rendered as pickers, in display order. */
+/** Accent color slots rendered as pickers (the hero palette controls). */
 const COLOR_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
     { path: 'palette.primary.main', labelKey: 'theme_wizard_palette_primary' },
     { path: 'palette.secondary.main', labelKey: 'theme_wizard_palette_secondary' },
-    { path: 'palette.error.main', labelKey: 'theme_wizard_palette_error' },
-    { path: 'palette.warning.main', labelKey: 'theme_wizard_palette_warning' },
-    { path: 'palette.info.main', labelKey: 'theme_wizard_palette_info' },
-    { path: 'palette.success.main', labelKey: 'theme_wizard_palette_success' },
-    { path: 'palette.text.primary', labelKey: 'theme_wizard_palette_text_primary' },
-    { path: 'palette.text.secondary', labelKey: 'theme_wizard_palette_text_secondary' },
-    { path: 'palette.background.default', labelKey: 'theme_wizard_palette_background_default' },
-    { path: 'palette.background.paper', labelKey: 'theme_wizard_palette_background_paper' },
-    { path: 'palette.divider', labelKey: 'theme_wizard_palette_divider' },
 ];
 
 /** Palette section: color mode + color slots. */

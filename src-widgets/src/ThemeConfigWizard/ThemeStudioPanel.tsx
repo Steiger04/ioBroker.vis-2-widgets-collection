@@ -3,7 +3,7 @@
  *
  * @module ThemeConfigWizard/ThemeStudioPanel
  * @remarks
- * Replaces the old blind modal ({@link module:ThemeConfigWizard/ThemeWizardDialog}).
+ * Replaces the old blind modal dialog with a floating live-preview panel.
  * A non-modal `Paper` floats over the canvas; while open it mirrors its in-memory
  * draft into the {@link module:lib/theme/draftThemeStore} singleton, so every
  * collection widget on the canvas (each running
@@ -50,8 +50,7 @@ import type { UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import ThemePreviewBlock from './components/ThemePreviewBlock';
-import CssVariablesSection from './sections/CssVariablesSection';
-import LayoutSection from './sections/LayoutSection';
+import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
 import TypographySection from './sections/TypographySection';
 
@@ -325,11 +324,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                 theme={themeObj}
                                 onChange={handleChange}
                             />
-                            <LayoutSection
-                                theme={themeObj}
-                                onChange={handleChange}
-                            />
-                            <CssVariablesSection
+                            <ErweitertSection
                                 theme={themeObj}
                                 onChange={handleChange}
                             />
