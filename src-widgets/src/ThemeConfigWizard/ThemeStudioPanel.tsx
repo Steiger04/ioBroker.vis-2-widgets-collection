@@ -46,7 +46,7 @@ import useDraggable from '../hooks/useDraggable';
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { THEME_PRESETS } from '../lib/theme/presets';
-import type { UserTheme } from '../lib/theme/themeTypes';
+import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import ThemePreviewBlock from './components/ThemePreviewBlock';
@@ -68,6 +68,20 @@ interface ThemeStudioPanelProps {
 
 /** Panel width (px) — also used to compute the default top-right position. */
 const PANEL_WIDTH = 380;
+
+/** Maps validator issue codes to localized message keys. */
+const VALIDATION_CODE_KEYS: Record<string, string> = {
+    'invalid-color': 'theme_studio_valid_color',
+    'invalid-number': 'theme_studio_valid_number',
+    'number-out-of-range': 'theme_studio_valid_range',
+    'invalid-type': 'theme_studio_valid_type',
+    'unknown-key': 'theme_studio_valid_unknown',
+    'invalid-shape': 'theme_studio_valid_shape',
+};
+
+/** Formats a validation issue as a friendly localized message (falls back to the raw message). */
+const formatIssue = (issue: ThemeValidationIssue): string =>
+    issue.code && VALIDATION_CODE_KEYS[issue.code] ? Generic.t(VALIDATION_CODE_KEYS[issue.code]) : issue.message;
 
 /**
  * Floating panel component for editing the theme with live preview.
@@ -354,7 +368,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                             <li key={`${issue.path}-${index}`}>
                                                 <Typography variant="body2">
                                                     {issue.path ? `${issue.path}: ` : ''}
-                                                    {issue.message}
+                                                    {formatIssue(issue)}
                                                 </Typography>
                                             </li>
                                         ))}
@@ -376,7 +390,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                             <li key={`${issue.path}-${index}`}>
                                                 <Typography variant="body2">
                                                     {issue.path ? `${issue.path}: ` : ''}
-                                                    {issue.message}
+                                                    {formatIssue(issue)}
                                                 </Typography>
                                             </li>
                                         ))}

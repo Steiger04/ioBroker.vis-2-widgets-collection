@@ -57,8 +57,10 @@ export interface ThemeValidationIssue {
     path: string;
     /** `error` blocks saving / falls back to `{}`; `warning` is non-blocking. */
     severity: 'error' | 'warning';
-    /** Human-readable message (English). */
+    /** Human-readable message (English, used as a fallback). */
     message: string;
+    /** Machine-readable code for localized mapping in the UI (e.g. `invalid-color`). */
+    code?: string;
 }
 
 /**

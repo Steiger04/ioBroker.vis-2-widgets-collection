@@ -36,7 +36,7 @@ export function validateThemeOptions(value: unknown): ThemeValidationResult {
         return { isValid: true, theme: {}, issues };
     }
     if (!isPlainObject(value)) {
-        issues.push({ path: '', severity: 'error', message: 'Theme must be a plain object.' });
+        issues.push({ path: '', severity: 'error', code: 'invalid-shape', message: 'Theme must be a plain object.' });
         return { isValid: false, issues };
     }
     if (Object.keys(value).length === 0) {
@@ -82,7 +82,7 @@ function validateNode(value: unknown, schema: SchemaNode, path: string, issues: 
             break;
         case 'color':
             if (!isValidCssColor(value)) {
-                reportTypeError(path, 'color', value, issues);
+                reportTypeError(path, 'color', value, issues, 'invalid-color');
             }
             break;
         case 'literal':
@@ -137,10 +137,16 @@ function validateObjectValue(value: unknown, schema: ObjectSchema, path: string,
             issues.push({
                 path: childPath,
                 severity: 'warning',
+                code: 'unknown-key',
                 message: `Unknown theme option "${childPath}" — it may be ignored by MUI.`,
             });
         } else if (policy === 'error') {
-            issues.push({ path: childPath, severity: 'error', message: `Unknown theme option "${childPath}".` });
+            issues.push({
+                path: childPath,
+                severity: 'error',
+                code: 'unknown-key',
+                message: `Unknown theme option "${childPath}".`,
+            });
         }
         // 'ignore' → skip silently.
     }
@@ -159,14 +165,24 @@ type NumberSchema = Extract<SchemaNode, { kind: 'number' }>;
 /** Validates a `number` schema node, including optional bounds. */
 function validateNumberValue(value: unknown, schema: NumberSchema, path: string, issues: ThemeValidationIssue[]): void {
     if (typeof value !== 'number' || Number.isNaN(value)) {
-        reportTypeError(path, 'number', value, issues);
+        reportTypeError(path, 'number', value, issues, 'invalid-number');
         return;
     }
     if (schema.min !== undefined && value < schema.min) {
-        issues.push({ path, severity: 'error', message: `Value at "${path}" must be >= ${schema.min}.` });
+        issues.push({
+            path,
+            severity: 'error',
+            code: 'number-out-of-range',
+            message: `Value at "${path}" must be >= ${schema.min}.`,
+        });
     }
     if (schema.max !== undefined && value > schema.max) {
-        issues.push({ path, severity: 'error', message: `Value at "${path}" must be <= ${schema.max}.` });
+        issues.push({
+            path,
+            severity: 'error',
+            code: 'number-out-of-range',
+            message: `Value at "${path}" must be <= ${schema.max}.`,
+        });
     }
 }
 
@@ -243,11 +259,18 @@ function validateCssObjectValue(value: unknown, path: string, issues: ThemeValid
 }
 
 /** Pushes a "wrong type" error describing what was expected vs. received. */
-function reportTypeError(path: string, expected: string, value: unknown, issues: ThemeValidationIssue[]): void {
+function reportTypeError(
+    path: string,
+    expected: string,
+    value: unknown,
+    issues: ThemeValidationIssue[],
+    code = 'invalid-type',
+): void {
     const actual = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
     issues.push({
         path,
         severity: 'error',
+        code,
         message: `Value at "${path}" must be a ${expected} (got ${actual}).`,
     });
 }
