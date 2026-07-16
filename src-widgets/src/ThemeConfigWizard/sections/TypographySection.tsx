@@ -17,6 +17,7 @@ import {
     CircularProgress,
     FormControl,
     InputLabel,
+    Link,
     ListSubheader,
     MenuItem,
     Select,
@@ -191,12 +192,22 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
                         ) : null}
                     </Stack>
                     <Stack spacing={1}>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                        >
-                            {Generic.t('theme_wizard_typography_google_font')}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                {Generic.t('theme_wizard_typography_google_font')}
+                            </Typography>
+                            <Link
+                                href="https://fonts.google.com"
+                                target="_blank"
+                                rel="noreferrer"
+                                variant="caption"
+                            >
+                                {Generic.t('theme_studio_google_fonts_link')}
+                            </Link>
+                        </Box>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                             <TextField
                                 fullWidth

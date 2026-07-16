@@ -45,8 +45,9 @@ import Generic from '../Generic';
 import useDraggable from '../hooks/useDraggable';
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
+import { THEME_PRESETS } from '../lib/theme/presets';
 import type { UserTheme } from '../lib/theme/themeTypes';
-import { setNestedValue } from '../lib/theme/themeUtils';
+import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import ThemePreviewBlock from './components/ThemePreviewBlock';
 import CssVariablesSection from './sections/CssVariablesSection';
@@ -180,6 +181,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         setDirty(true);
     }, []);
 
+    const handleApplyPreset = useCallback((presetTheme: UserTheme): void => {
+        setThemeObj(presetTheme);
+        setDirty(true);
+    }, []);
+
     const handleSave = useCallback(async (): Promise<void> => {
         if (!validation.isValid || saving) {
             return;
@@ -267,6 +273,49 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                         </Box>
                     ) : (
                         <>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ display: 'block', mb: 0.75 }}
+                                >
+                                    {Generic.t('theme_studio_presets')}
+                                </Typography>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    flexWrap="wrap"
+                                    useFlexGap
+                                >
+                                    {THEME_PRESETS.map(preset => {
+                                        const main =
+                                            getNestedValue<string>(preset.theme, 'palette.primary.main') ?? '#888888';
+                                        return (
+                                            <Box
+                                                key={preset.id}
+                                                onClick={() => handleApplyPreset(preset.theme)}
+                                                sx={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.5,
+                                                    px: 1,
+                                                    py: 0.25,
+                                                    borderRadius: 16,
+                                                    border: 1,
+                                                    borderColor: 'divider',
+                                                    cursor: 'pointer',
+                                                    '&:hover': { bgcolor: 'action.hover' },
+                                                }}
+                                            >
+                                                <Box
+                                                    sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: main }}
+                                                />
+                                                <Typography variant="caption">{Generic.t(preset.labelKey)}</Typography>
+                                            </Box>
+                                        );
+                                    })}
+                                </Stack>
+                            </Box>
                             <ThemePreviewBlock theme={themeObj} />
                             <PaletteSection
                                 theme={themeObj}
