@@ -1,8 +1,8 @@
-import { j as a, n as g, T as Q, s as Z, i as F, G as ee, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
-import { h as te, i as h, C as m, b as H, S as T, g as V, a as ae, u as ie, j as N, c as oe, d as re, k as W, l as w, e as I, f as le, w as ne, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
-import { u as de, d as se, __tla as __tla_2 } from "./useValueState-CVlBjGB3.js";
+import { j as a, n as g, T as Q, s as Z, i as F, G as ee, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { h as te, i as h, C as m, b as H, S as T, g as V, a as ae, u as ie, j as N, c as oe, d as le, k as W, l as w, e as I, f as re, w as ne, __tla as __tla_1 } from "./useData-DFGCESxg.js";
+import { u as de, d as se, __tla as __tla_2 } from "./useValueState-xFsj3rw8.js";
 import { v as s, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as ce, S as me, __tla as __tla_4 } from "./Slider-ChiXGyym.js";
+import { a as ce, S as me, __tla as __tla_4 } from "./Slider-mVupvoPJ.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let X;
@@ -388,16 +388,16 @@ let __tla = Promise.all([
     })
   ], pe = ({ marks: i, sliderOrientation: t, aliasActive: e, activeMarkIndex: f, defaultIconColor: u, ...v }) => {
     var _a;
-    const [y, _] = s.useState(null), S = v["data-index"], r = (_a = v.ownerState.marks) == null ? void 0 : _a[S], d = f === S;
+    const [y, _] = s.useState(null), S = v["data-index"], l = (_a = v.ownerState.marks) == null ? void 0 : _a[S], d = f === S;
     return s.useEffect(() => {
-      y && (r == null ? void 0 : r.label) && (d && e ? y.innerHTML = e : y.innerHTML = r.label);
+      y && (l == null ? void 0 : l.label) && (d && e ? y.innerHTML = e : y.innerHTML = l.label);
     }, [
-      r == null ? void 0 : r.label,
+      l == null ? void 0 : l.label,
       y,
       d,
       e,
       S
-    ]), i && r ? a.jsx(ce, {
+    ]), i && l ? a.jsx(ce, {
       ...v,
       children: a.jsxs(g, {
         sx: {
@@ -415,29 +415,29 @@ let __tla = Promise.all([
               flexGrow: 1,
               pr: t === "vertical" ? 1 : 0,
               pb: t === "vertical" ? 0 : 1,
-              fontSize: r.valueSize,
-              background: H(r.textColor),
+              fontSize: l.valueSize,
+              background: H(l.textColor),
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
-              color: H(r.textColor) ? "transparent" : r.textColor
+              color: H(l.textColor) ? "transparent" : l.textColor
             }
           }),
           a.jsx(g, {
             "data-position": "active",
             sx: {
               position: "relative",
-              bottom: r.iconYOffset,
-              left: r.iconXOffset,
+              bottom: l.iconYOffset,
+              left: l.iconXOffset,
               flexGrow: 1
             },
             children: a.jsx(T, {
               "data-img": "active",
-              src: r.icon,
+              src: l.icon,
               alt: "",
               style: {
                 position: "relative",
-                width: r.iconSize,
-                ...V(r.icon, r.iconColor, r == null ? void 0 : r.forceColorMask)
+                width: l.iconSize,
+                ...V(l.icon, l.iconColor, l == null ? void 0 : l.forceColorMask)
               }
             })
           })
@@ -494,7 +494,7 @@ let __tla = Promise.all([
       }
     };
   }), be = () => {
-    const i = s.useContext(ae), { widget: { data: { oidObject: t } }, widget: e, theme: f } = i, { data: u, states: v, minValue: y, maxValue: _, activeIndex: S, resolveStyleData: r } = ie("oid"), { value: d, updateValue: Y, hasBackendChange: A } = de("oid"), [C, O] = s.useState(typeof d == "number" ? d : void 0), k = s.useRef(null), [M, G] = s.useState({
+    const i = s.useContext(ae), { widget: { data: { oidObject: t } }, widget: e, theme: f } = i, { data: u, states: v, minValue: y, maxValue: _, activeIndex: S, resolveStyleData: l } = ie("oid"), { value: d, updateValue: Y, hasBackendChange: A } = de("oid"), [C, O] = s.useState(typeof d == "number" ? d : void 0), k = s.useRef(null), [M, G] = s.useState({
       x: 0,
       y: 0
     }), n = e.data.sliderOrientation === "horizontal", z = s.useMemo(() => n ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
@@ -518,25 +518,25 @@ let __tla = Promise.all([
       e.data.maxValue,
       _
     ]), $ = s.useMemo(() => {
-      const l = v.filter((o) => typeof o.value == "number").filter((o) => (x === null || o.value >= x) && (b === null || o.value <= b));
-      if (e.data.onlyStates) return l.sort((o, c) => o.value - c.value);
-      if (x !== null && !l.some((o) => o.value === x) && l.push({
-        ...r("", false),
+      const r = v.filter((o) => typeof o.value == "number").filter((o) => (x === null || o.value >= x) && (b === null || o.value <= b));
+      if (e.data.onlyStates) return r.sort((o, c) => o.value - c.value);
+      if (x !== null && !r.some((o) => o.value === x) && r.push({
+        ...l("", false),
         value: x,
         label: `${x}${(t == null ? void 0 : t.unit) || ""}`
-      }), b !== null && !l.some((o) => o.value === b) && l.push({
-        ...r("", false),
+      }), b !== null && !r.some((o) => o.value === b) && r.push({
+        ...l("", false),
         value: b,
         label: `${b}${(t == null ? void 0 : t.unit) || ""}`
       }), x !== null && b !== null) {
         const o = Number(e.data.markStep) || 1;
-        for (let c = x + o; c < b; c += o) l.some((B) => B.value === c) || l.push({
-          ...r("", false),
+        for (let c = x + o; c < b; c += o) r.some((B) => B.value === c) || r.push({
+          ...l("", false),
           value: c,
           label: `${c}${(t == null ? void 0 : t.unit) || ""}`
         });
       }
-      return l.sort((o, c) => o.value - c.value);
+      return r.sort((o, c) => o.value - c.value);
     }, [
       v,
       e.data.onlyStates,
@@ -544,10 +544,10 @@ let __tla = Promise.all([
       x,
       b,
       t == null ? void 0 : t.unit,
-      r
+      l
     ]), E = s.useMemo(() => {
       if (d === void 0) return null;
-      const p = $.findIndex((l) => String(l.value) === String(d));
+      const p = $.findIndex((r) => String(r.value) === String(d));
       return p !== -1 ? p : null;
     }, [
       d,
@@ -566,9 +566,9 @@ let __tla = Promise.all([
     ]);
     const q = () => {
       if (!k.current) return;
-      const p = k.current.querySelector(".MuiSlider-root"), l = k.current.querySelector(".MuiSlider-rail");
-      if (p && l) {
-        const o = k.current.getBoundingClientRect(), c = l.getBoundingClientRect(), B = c.left - o.left + c.width / 2, U = c.top - o.top + c.height / 2, J = o.width / 2, K = o.height / 2;
+      const p = k.current.querySelector(".MuiSlider-root"), r = k.current.querySelector(".MuiSlider-rail");
+      if (p && r) {
+        const o = k.current.getBoundingClientRect(), c = r.getBoundingClientRect(), B = c.left - o.left + c.width / 2, U = c.top - o.top + c.height / 2, J = o.width / 2, K = o.height / 2;
         G({
           x: B - J,
           y: U - K
@@ -578,10 +578,10 @@ let __tla = Promise.all([
     return s.useEffect(() => {
       if (!k.current) return;
       let p = null;
-      const l = () => {
+      const r = () => {
         p && clearTimeout(p), p = setTimeout(q, 100);
-      }, o = new ResizeObserver(l);
-      return o.observe(k.current), l(), () => {
+      }, o = new ResizeObserver(r);
+      return o.observe(k.current), r(), () => {
         o.disconnect(), p && clearTimeout(p);
       };
     }, [
@@ -598,7 +598,7 @@ let __tla = Promise.all([
         p: Number(e.data.sliderPadding)
       },
       children: [
-        a.jsx(re, {
+        a.jsx(le, {
           data: u,
           widget: e
         }),
@@ -663,8 +663,8 @@ let __tla = Promise.all([
                 step: e.data.onlyStates ? null : e.data.step !== void 0 ? Number(e.data.step) : void 0,
                 size: e.data.sliderSize,
                 value: C,
-                onChange: (p, l) => {
-                  typeof l == "number" && (O(l), Y(l));
+                onChange: (p, r) => {
+                  typeof r == "number" && (O(r), Y(r));
                 },
                 sx: {
                   mb: e.data.marks && n ? "20px" : "0px",
@@ -686,14 +686,14 @@ let __tla = Promise.all([
                     filter: "brightness(2.5)"
                   },
                   "& .MuiSlider-valueLabel": {
-                    fontSize: W(e.data.valueSizeActive) || u.valueSizeActive || S && e.data.markerTextSize && W(e.data.markerTextSize) || u.valueSize || "1rem",
+                    fontSize: W(e.data.valueSizeActive) || u.valueSizeActive || S && e.data.markerTextSize && W(e.data.markerTextSize) || u.valueSize,
                     color: e.data.textColorActive || u.textColorActive || S && e.data.markerTextColor || u.textColor,
                     bgcolor: "transparent",
                     top: n ? e.data.labelPosition : void 0,
                     right: n ? void 0 : e.data.labelPosition
                   },
                   "& .MuiSlider-markLabel": {
-                    fontSize: u.valueSize || "1rem",
+                    fontSize: u.valueSize,
                     color: e.data.markerTextColor || u.textColor,
                     top: n ? e.data.markPosition : void 0,
                     left: n ? void 0 : e.data.markPosition
@@ -755,7 +755,7 @@ let __tla = Promise.all([
             name: "slider",
             label: "group_slider",
             fields: [
-              ...le([
+              ...re([
                 "number"
               ]),
               ...se(),

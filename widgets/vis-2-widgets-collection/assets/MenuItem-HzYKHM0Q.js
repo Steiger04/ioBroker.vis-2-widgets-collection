@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as P, B as U, r as G, m as N, i as c, ar as x, __tla as __tla_1 } from "./usePopoverPositioning-BZLitN7O.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-NWuPmlTm.js";
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as x, e as P, B as U, r as G, m as N, i as c, ax as I, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-DV-semt9.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -32,8 +32,8 @@ let __tla = Promise.all([
   function D(e) {
     return k("MuiMenuItem", e);
   }
-  let r, E, H, z;
-  r = O("MuiMenuItem", [
+  let n, E, H, z;
+  n = O("MuiMenuItem", [
     "root",
     "focusVisible",
     "dense",
@@ -52,12 +52,12 @@ let __tla = Promise.all([
     ];
   };
   H = (e) => {
-    const { disabled: t, dense: a, divider: s, disableGutters: n, selected: d, classes: o } = e, i = P({
+    const { disabled: t, dense: a, divider: s, disableGutters: r, selected: d, classes: o } = e, i = P({
       root: [
         "root",
         a && "dense",
         t && "disabled",
-        !n && "gutters",
+        !r && "gutters",
         s && "divider",
         d && "selected"
       ]
@@ -91,29 +91,29 @@ let __tla = Promise.all([
         backgroundColor: "transparent"
       }
     },
-    [`&.${r.selected}`]: {
+    [`&.${n.selected}`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : c(e.palette.primary.main, e.palette.action.selectedOpacity),
-      [`&.${r.focusVisible}`]: {
+      [`&.${n.focusVisible}`]: {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.focusOpacity}))` : c(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.focusOpacity)
       }
     },
-    [`&.${r.selected}:hover`]: {
+    [`&.${n.selected}:hover`]: {
       backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / calc(${e.vars.palette.action.selectedOpacity} + ${e.vars.palette.action.hoverOpacity}))` : c(e.palette.primary.main, e.palette.action.selectedOpacity + e.palette.action.hoverOpacity),
       "@media (hover: none)": {
         backgroundColor: e.vars ? `rgba(${e.vars.palette.primary.mainChannel} / ${e.vars.palette.action.selectedOpacity})` : c(e.palette.primary.main, e.palette.action.selectedOpacity)
       }
     },
-    [`&.${r.focusVisible}`]: {
+    [`&.${n.focusVisible}`]: {
       backgroundColor: (e.vars || e).palette.action.focus
     },
-    [`&.${r.disabled}`]: {
+    [`&.${n.disabled}`]: {
       opacity: (e.vars || e).palette.action.disabledOpacity
     },
-    [`& + .${x.root}`]: {
+    [`& + .${I.root}`]: {
       marginTop: e.spacing(1),
       marginBottom: e.spacing(1)
     },
-    [`& + .${x.inset}`]: {
+    [`& + .${I.inset}`]: {
       marginLeft: 52
     },
     [`& .${$.root}`]: {
@@ -167,7 +167,7 @@ let __tla = Promise.all([
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: n = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -176,9 +176,9 @@ let __tla = Promise.all([
       i
     ]), p = l.useRef(null);
     V(() => {
-      n && p.current && p.current.focus();
+      r && p.current && p.current.focus();
     }, [
-      n
+      r
     ]);
     const _ = {
       ...s,
@@ -194,8 +194,8 @@ let __tla = Promise.all([
         role: S,
         tabIndex: b,
         component: d,
-        focusVisibleClassName: I(u.focusVisible, R),
-        className: I(u.root, B),
+        focusVisibleClassName: x(u.focusVisible, R),
+        className: x(u.root, B),
         ...L,
         ownerState: _,
         classes: u

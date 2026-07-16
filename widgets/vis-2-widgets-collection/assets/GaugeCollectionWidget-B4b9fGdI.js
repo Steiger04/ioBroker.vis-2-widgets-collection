@@ -1,7 +1,7 @@
-import { j as M, n as Ze, G as ka, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
-import { C as A, g as Ta, S as wa, m as Sa, a as Ca, u as Ba, l as Na, c as Va, d as Wa, e as $e, f as Ma, w as Oa, __tla as __tla_1 } from "./useData-DNdZxCG9.js";
+import { j as M, n as Ze, G as ka, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { C as A, g as Ta, S as wa, m as Sa, a as Ca, u as Ba, l as Na, c as Va, d as Wa, e as $e, f as Ma, w as Oa, __tla as __tla_1 } from "./useData-DFGCESxg.js";
 import { v as G, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { u as ja, __tla as __tla_3 } from "./useOidValue-BkGta6b4.js";
+import { u as ja, __tla as __tla_3 } from "./useOidValue-3uKLz_2l.js";
 import { c as Be } from "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let Qe;

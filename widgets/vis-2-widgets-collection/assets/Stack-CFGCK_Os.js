@@ -1,6 +1,6 @@
-import { at as R, aq as V, au as _, av as b, j as B, d as D, aw as v, ax as u, ay as F, ac as M, az as A, e as E, g as G, aA as N, aB as h, s as O, u as U, __tla as __tla_0 } from "./usePopoverPositioning-BZLitN7O.js";
+import { az as R, aw as V, aA as _, aB as D, j as b, d as B, aC as v, aD as u, aE as F, ac as M, aF as E, e as G, g as A, aG as N, aH as h, s as O, u as U, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
 import { v as p, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-let Z, q;
+let Z, z;
 let __tla = Promise.all([
   (() => {
     try {
@@ -16,13 +16,13 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   const $ = R();
-  q = function(e) {
+  z = function(e) {
     const { theme: s, name: o, props: t } = e;
     return !s || !s.components || !s.components[o] || !s.components[o].defaultProps ? t : V(s.components[o].defaultProps, t);
   };
-  function z({ props: e, name: s, defaultTheme: o, themeId: t }) {
+  function H({ props: e, name: s, defaultTheme: o, themeId: t }) {
     let n = _(o);
-    return t && (n = n[t] || n), q({
+    return t && (n = n[t] || n), z({
       theme: n,
       name: s,
       props: e
@@ -33,8 +33,8 @@ let __tla = Promise.all([
     slot: "Root",
     overridesResolver: (e, s) => s.root
   });
-  function H(e) {
-    return z({
+  function q(e) {
+    return H({
       props: e,
       name: "MuiStack",
       defaultTheme: L
@@ -90,26 +90,26 @@ let __tla = Promise.all([
         }
       }));
     }
-    return o = A(s.breakpoints, o), o;
+    return o = E(s.breakpoints, o), o;
   };
   function Q(e = {}) {
-    const { createStyledComponent: s = W, useThemeProps: o = H, componentName: t = "MuiStack" } = e, n = () => E({
+    const { createStyledComponent: s = W, useThemeProps: o = q, componentName: t = "MuiStack" } = e, n = () => G({
       root: [
         "root"
       ]
-    }, (r) => G(t, r), {}), a = s(K);
+    }, (r) => A(t, r), {}), a = s(K);
     return p.forwardRef(function(r, c) {
-      const i = o(r), f = b(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: x = false, ...C } = f, j = {
+      const i = o(r), f = D(i), { component: l = "div", direction: k = "column", spacing: P = 0, divider: y, children: g, className: S, useFlexGap: C = false, ...x } = f, j = {
         direction: k,
         spacing: P,
-        useFlexGap: x
+        useFlexGap: C
       }, T = n();
-      return B.jsx(a, {
+      return b.jsx(a, {
         as: l,
         ownerState: j,
         ref: c,
-        className: D(T.root, S),
-        ...C,
+        className: B(T.root, S),
+        ...x,
         children: y ? I(g, y) : g
       });
     });
@@ -129,5 +129,5 @@ let __tla = Promise.all([
 export {
   Z as S,
   __tla,
-  q as g
+  z as g
 };
