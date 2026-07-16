@@ -48,6 +48,7 @@ import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import type { UserTheme } from '../lib/theme/themeTypes';
 import { setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import ThemePreviewBlock from './components/ThemePreviewBlock';
 import CssVariablesSection from './sections/CssVariablesSection';
 import LayoutSection from './sections/LayoutSection';
 import PaletteSection from './sections/PaletteSection';
@@ -266,6 +267,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                         </Box>
                     ) : (
                         <>
+                            <ThemePreviewBlock theme={themeObj} />
                             <PaletteSection
                                 theme={themeObj}
                                 onChange={handleChange}
