@@ -13,12 +13,15 @@
  * truth for the user-configured theme.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 import { THEME_STATE_ID } from '../lib/constants';
+import { clearDraftTheme } from '../lib/theme/draftThemeStore';
+import { withDerivedSecondary } from '../lib/theme/derivePalette';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import useDraftTheme from './useDraftTheme';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
@@ -144,11 +147,31 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         }
     }, [themeJson]);
 
-    // Inject @font-face rules for Google Fonts stored in the theme state.
-    // Idempotent — replaces the <style> content whenever the parsed theme changes.
+    // In-progress draft from the studio panel (null when the panel is closed).
+    // The draft wins over the persisted theme so canvas widgets preview edits
+    // live; when null, widgets fall back to the persisted theme.
+    const draft = useDraftTheme();
+    const userTheme = draft ?? parsedTheme;
+
+    // Inject @font-face rules for Google Fonts stored in the effective theme
+    // (the draft while editing, the persisted theme otherwise). Idempotent.
     useEffect(() => {
-        injectGoogleFontFaces(parsedTheme.googleFonts);
-    }, [parsedTheme.googleFonts]);
+        injectGoogleFontFaces(userTheme.googleFonts);
+    }, [userTheme.googleFonts]);
+
+    // Seamless save-handoff: once the persisted state echoes the draft the panel
+    // just saved, retire the draft so widgets read the persisted value. They are
+    // equal at that instant, so there is no visible change (no flicker). The
+    // `changed` guard avoids clearing the draft the moment the panel opens and
+    // first pushes a draft that happens to equal the persisted theme.
+    const prevParsedTheme = useRef(parsedTheme);
+    useEffect(() => {
+        const changed = prevParsedTheme.current !== parsedTheme;
+        prevParsedTheme.current = parsedTheme;
+        if (draft && changed && JSON.stringify(draft) === JSON.stringify(parsedTheme)) {
+            clearDraftTheme();
+        }
+    }, [draft, parsedTheme]);
 
     return useMemo(() => {
         // Strip the host's pre-generated typography variant objects so that
@@ -159,10 +182,11 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         // lets the host's variant objects override the user's base settings
         // (mui/material-ui#35939, #37043) — so family, size and weights never
         // reach the Typography variants. Chain: hostStripped → overrides →
-        // parsedTheme (user wins); @mui/utils `deepmerge` takes two sources.
+        // userTheme (draft ?? parsed, with derived secondary); user wins.
         const hostStripped = stripHostTypographyVariants(hostTheme);
-        return createTheme(deepmerge(deepmerge(hostStripped, overrides ?? {}), parsedTheme));
-    }, [hostTheme, overrides, parsedTheme]);
+        const userThemeWithDerived = withDerivedSecondary(userTheme);
+        return createTheme(deepmerge(deepmerge(hostStripped, overrides ?? {}), userThemeWithDerived));
+    }, [hostTheme, overrides, userTheme]);
 }
 
 export default useCollectionTheme;
