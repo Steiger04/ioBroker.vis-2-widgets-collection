@@ -338,7 +338,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: typeof fontStyles?.['font-size'] === 'string',
                     value: fontStyles?.['font-size'],
                 },
-            ]) ?? '0.875rem',
+            ]) ?? null,
 
         footerSize: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
@@ -358,7 +358,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: typeof fontStyles?.['font-size'] === 'string',
                     value: fontStyles?.['font-size'],
                 },
-            ]) ?? '0.875rem',
+            ]) ?? null,
 
         valueSize: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
@@ -378,7 +378,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: typeof fontStyles?.['font-size'] === 'string',
                     value: fontStyles?.['font-size'],
                 },
-            ]) ?? '0.875rem',
+            ]) ?? null,
 
         valueSizeActive: (ext: string | number, includeActive: boolean) =>
             includeActive

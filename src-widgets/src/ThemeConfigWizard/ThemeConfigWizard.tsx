@@ -25,7 +25,7 @@ class ThemeConfigWizard extends Generic<Record<string, any>> {
             visSetLabel: 'widgets_collection',
             visName: 'ThemeConfigWizard',
             visWidgetLabel: 'theme_config_wizard',
-            visOrder: 1000, // end of the collection group
+            visOrder: 0, // end of the collection group
             visAttrs: [], // no configuration fields — not a real droppable widget
             visPrev: '', // no preview — not a droppable widget (customPalette takes over)
             // Rendered by vis-2 instead of the normal palette widget entry (edit mode only).

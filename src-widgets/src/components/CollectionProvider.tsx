@@ -11,10 +11,14 @@
  */
 
 import { createContext, useMemo } from 'react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { ThemeProvider } from '@mui/material';
 
 import useStyles from '../hooks/useStyles';
 import useCollectionTheme from '../hooks/useCollectionTheme';
+
+// Side-effect: bundle the curated @font-face rules so bundled font families
+// selected in the theme wizard are available to runtime widgets.
+import '../lib/theme/fontCatalogue';
 
 import type { AllCollectionContextProps } from '../types';
 import type { ThemeOptions } from '@mui/material/styles';
@@ -51,9 +55,11 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     const { fontStyles, textStyles } = useStyles(widget.style || {});
 
     // Collection-specific overrides layered between the host theme and the user
-    // theme (see useCollectionTheme): default typography sizing plus widget
-    // font/text styles. Memoized so the merged theme only recomputes when these
-    // change — the user theme (highest priority) is read inside the hook.
+    // theme (see useCollectionTheme): widget-level font/text styles. Memoized so
+    // the merged theme only recomputes when these change — the user theme
+    // (highest priority) is read inside the hook. No hardcoded fontSize here:
+    // widget text sizes come from the theme's typography variants, regenerated
+    // from the user's `typography.fontSize` in useCollectionTheme.
     const overrides = useMemo<ThemeOptions>(
         () => ({
             palette: {
@@ -65,7 +71,6 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
                 MuiTypography: {
                     styleOverrides: {
                         root: {
-                            fontSize: '0.875rem', // Default to 14px
                             // Merge fontStyles and textStyles into the root style overrides
                             // so CSS properties like textShadow are applied as styles, not props
                             ...cleanSx(fontStyles),
@@ -81,9 +86,15 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     // Effective theme: host → collection overrides → user theme (user wins).
     const _theme = useCollectionTheme(socket, theme, overrides);
 
+    // No <CssBaseline />: vis-2 supplies global normalization (index.css body
+    // font + vis.css box-sizing), and MUI's CssBaseline spreads
+    // theme.typography.body1 — whose fontFamily the user's choice is forced onto
+    // (see useCollectionTheme) — onto the global <body>. That would leak the
+    // configured font into vis-2's palette and attributes panels. Omitting it
+    // keeps the user's font scoped to the widgets' Typography via the variant
+    // classes, while vis-2's own body font governs the editor UI.
     return (
         <ThemeProvider theme={_theme}>
-            <CssBaseline />
             <CollectionContext.Provider value={{ ...context, theme: _theme }}>{children}</CollectionContext.Provider>
         </ThemeProvider>
     );

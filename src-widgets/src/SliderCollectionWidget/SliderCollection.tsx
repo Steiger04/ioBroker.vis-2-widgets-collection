@@ -445,8 +445,7 @@ const SliderCollection: FC = () => {
                                             (activeIndex &&
                                                 widget.data.markerTextSize &&
                                                 formatSizeRem(widget.data.markerTextSize)) ||
-                                            data.valueSize ||
-                                            '1rem',
+                                            data.valueSize,
                                         color:
                                             widget.data.textColorActive ||
                                             data.textColorActive ||
@@ -457,7 +456,7 @@ const SliderCollection: FC = () => {
                                         right: !isHorizontal ? widget.data.labelPosition : undefined,
                                     },
                                     '& .MuiSlider-markLabel': {
-                                        fontSize: data.valueSize || '1rem',
+                                        fontSize: data.valueSize,
                                         color: widget.data.markerTextColor || data.textColor,
                                         top: isHorizontal ? widget.data.markPosition : undefined,
                                         left: !isHorizontal ? widget.data.markPosition : undefined,

@@ -302,6 +302,23 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
             },
         },
         components: componentsSchema,
+        // Non-MUI extension: Google Fonts loaded by name, stored as inlined
+        // woff2 data URIs (latin, weights 400/700). Keyed by family name.
+        googleFonts: {
+            kind: 'record',
+            optional: true,
+            values: {
+                kind: 'array',
+                items: {
+                    kind: 'object',
+                    allowUnknown: 'ignore',
+                    properties: {
+                        weight: { kind: 'number', optional: true },
+                        data: { kind: 'string' },
+                    },
+                },
+            },
+        },
         unstable_strictMode: { kind: 'boolean', optional: true },
         modularCssLayers: {
             kind: 'union',

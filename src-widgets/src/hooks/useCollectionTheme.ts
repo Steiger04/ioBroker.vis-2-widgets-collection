@@ -17,10 +17,61 @@ import { useEffect, useMemo, useState } from 'react';
 import { createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 import { THEME_STATE_ID } from '../lib/constants';
+import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
+
+/** Standard MUI typography variant keys that `createTypography` regenerates. */
+const TYPOGRAPHY_VARIANT_KEYS = [
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'subtitle1',
+    'subtitle2',
+    'body1',
+    'body2',
+    'button',
+    'caption',
+    'overline',
+    'inherit',
+] as const;
+
+/**
+ * Returns the host theme without its pre-generated typography variant objects.
+ *
+ * @remarks
+ * `createTypography` runs `deepmerge({ fontFamily, fontSize, …, ...variants },
+ * other)` where `other` holds the host's pre-generated variant objects (each
+ * carrying the host's fontFamily/fontSize/fontWeight). Composing the host theme
+ * with a user theme lets `other` override the freshly generated variants, so the
+ * user's `typography.fontFamily`/`fontSize`/`fontWeight*` never reach the
+ * Typography variants (mui/material-ui#35939, #37043). Stripping the host's
+ * variant objects forces `createTypography` to regenerate them from the merged
+ * base values; per-variant overrides the user supplied (merged in via
+ * `parsedTheme` after the host) still survive.
+ */
+function stripHostTypographyVariants(host: Theme): Theme {
+    const { typography } = host;
+    if (!typography) {
+        return host;
+    }
+    const stripped: Record<string, unknown> = { ...typography };
+    for (const key of TYPOGRAPHY_VARIANT_KEYS) {
+        delete stripped[key];
+    }
+    // Also drop `pxToRem`: createTypography reuses a pre-existing pxToRem
+    // verbatim, and the host's is baked with `coef = hostFontSize/14`, which
+    // would pin every regenerated variant to the host base size and ignore the
+    // user's typography.fontSize. Without this, body2 stays 0.875rem regardless
+    // of the configured fontSize.
+    delete stripped.pxToRem;
+    return { ...host, typography: stripped as unknown as Theme['typography'] };
+}
 
 /**
  * Builds the effective collection theme from the host theme, optional caller
@@ -93,15 +144,25 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         }
     }, [themeJson]);
 
-    return useMemo(
-        () =>
-            createTheme(
-                // Chain merges: hostTheme → overrides → parsedTheme (user wins).
-                // @mui/utils `deepmerge` takes only two sources, so it must be chained.
-                deepmerge(deepmerge(hostTheme, overrides ?? {}), parsedTheme),
-            ),
-        [hostTheme, overrides, parsedTheme],
-    );
+    // Inject @font-face rules for Google Fonts stored in the theme state.
+    // Idempotent — replaces the <style> content whenever the parsed theme changes.
+    useEffect(() => {
+        injectGoogleFontFaces(parsedTheme.googleFonts);
+    }, [parsedTheme.googleFonts]);
+
+    return useMemo(() => {
+        // Strip the host's pre-generated typography variant objects so that
+        // createTypography regenerates the variants from the merged base
+        // values (fontFamily, fontSize, htmlFontSize, fontWeight*,
+        // allVariants) plus any per-variant overrides the user supplied.
+        // Without this, `deepmerge(generated, other)` in createTypography
+        // lets the host's variant objects override the user's base settings
+        // (mui/material-ui#35939, #37043) — so family, size and weights never
+        // reach the Typography variants. Chain: hostStripped → overrides →
+        // parsedTheme (user wins); @mui/utils `deepmerge` takes two sources.
+        const hostStripped = stripHostTypographyVariants(hostTheme);
+        return createTheme(deepmerge(deepmerge(hostStripped, overrides ?? {}), parsedTheme));
+    }, [hostTheme, overrides, parsedTheme]);
 }
 
 export default useCollectionTheme;
