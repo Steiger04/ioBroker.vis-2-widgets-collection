@@ -5,8 +5,9 @@
  * @remarks
  * Rendered by vis-2 in place of a normal palette widget via the
  * `customPalette` field of the {@link module:ThemeConfigWizard} widget info.
- * Shows a button that opens {@link module:ThemeConfigWizard/ThemeWizardDialog},
- * passing through the socket connection received from the palette context.
+ * Shows a button that opens {@link module:ThemeConfigWizard/ThemeStudioPanel},
+ * the floating live-preview studio, passing through the socket connection
+ * received from the palette context.
  */
 
 import { useState } from 'react';
@@ -16,7 +17,7 @@ import type React from 'react';
 import type { CustomPaletteProperties } from '@iobroker/types-vis-2';
 
 import Generic from '../Generic';
-import ThemeWizardDialog from './ThemeWizardDialog';
+import ThemeStudioPanel from './ThemeStudioPanel';
 
 /**
  * Palette button component.
@@ -38,7 +39,7 @@ function ThemeWizardButton(props: CustomPaletteProperties): React.JSX.Element {
             >
                 {Generic.t('theme_wizard_button')}
             </Button>
-            <ThemeWizardDialog
+            <ThemeStudioPanel
                 open={open}
                 onClose={() => setOpen(false)}
                 socket={props.socket}
