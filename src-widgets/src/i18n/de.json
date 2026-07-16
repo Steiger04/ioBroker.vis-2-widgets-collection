@@ -527,6 +527,7 @@
     "theme_studio_preview_primary": "Primär",
     "theme_studio_preview_secondary": "Sekundär",
     "theme_studio_save_error": "Speichern fehlgeschlagen — Verbindung prüfen und erneut versuchen.",
+    "theme_studio_secondary_derived": "abgeleitet",
     "theme_wizard_button": "Theme konfigurieren",
     "theme_wizard_css_var_prefix": "CSS-Variablen-Präfix",
     "theme_wizard_css_variables_enable": "CSS-Variablen aktivieren",

@@ -22,6 +22,7 @@ import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
 import Generic from '../../Generic';
+import { deriveSecondary } from '../../lib/theme/derivePalette';
 import type { ThemeFormSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
 
@@ -44,6 +45,7 @@ const COLOR_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
 function PaletteSection({ theme, onChange, defaultExpanded }: ThemeFormSectionProps): React.JSX.Element {
     const mode = getNestedValue<string>(theme, 'palette.mode');
     const modeValue = mode === 'light' || mode === 'dark' ? mode : 'auto';
+    const primaryMain = getNestedValue<string>(theme, 'palette.primary.main') ?? '';
 
     const handleModeChange = (_event: React.MouseEvent<HTMLElement>, value: string | null): void => {
         onChange('palette.mode', value === 'light' || value === 'dark' ? value : undefined);
@@ -75,18 +77,29 @@ function PaletteSection({ theme, onChange, defaultExpanded }: ThemeFormSectionPr
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {COLOR_FIELDS.map(field => (
-                        <Box
-                            key={field.path}
-                            sx={{ flex: '1 1 220px' }}
-                        >
-                            <ColorPickerField
-                                label={Generic.t(field.labelKey)}
-                                value={getNestedValue<string>(theme, field.path) ?? ''}
-                                onChange={color => onChange(field.path, color || undefined)}
-                            />
-                        </Box>
-                    ))}
+                    {COLOR_FIELDS.map(field => {
+                        const stored = getNestedValue<string>(theme, field.path);
+                        // Secondary follows primary: show the derived color (labeled
+                        // "· abgeleitet") until the user sets it manually; clearing
+                        // the field reverts to the derived value.
+                        const isDerivedSecondary = field.path === 'palette.secondary.main' && !stored;
+                        const value = isDerivedSecondary && primaryMain ? deriveSecondary(primaryMain) : (stored ?? '');
+                        const label = isDerivedSecondary
+                            ? `${Generic.t(field.labelKey)} · ${Generic.t('theme_studio_secondary_derived')}`
+                            : Generic.t(field.labelKey);
+                        return (
+                            <Box
+                                key={field.path}
+                                sx={{ flex: '1 1 220px' }}
+                            >
+                                <ColorPickerField
+                                    label={label}
+                                    value={value}
+                                    onChange={color => onChange(field.path, color || undefined)}
+                                />
+                            </Box>
+                        );
+                    })}
                 </Box>
             </AccordionDetails>
         </Accordion>

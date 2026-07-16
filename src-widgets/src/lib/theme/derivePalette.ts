@@ -3,46 +3,84 @@
  *
  * @module lib/theme/derivePalette
  * @remarks
- * Pure helper shared by the studio panel preview AND the runtime hook
- * ({@link module:hooks/useCollectionTheme.useCollectionTheme}), so the "derived
- * secondary" is identical in the preview and at runtime. The derivation is an
- * analogous hue shift in HSL space — a small, predictable offset that stays in
- * key with the primary. It only applies while `palette.secondary.main` is NOT
- * explicitly set, so a manual override always wins.
+ * Pure helper shared by the studio panel (PaletteSection field + ThemePreviewBlock)
+ * AND the runtime hook ({@link module:hooks/useCollectionTheme.useCollectionTheme}),
+ * so the "derived secondary" is identical everywhere. The derivation is a **triadic**
+ * hue shift (+120°) that keeps the primary's saturation and lightness — clearly
+ * different (e.g. blue → magenta) while tracking every change to the primary. It
+ * only applies while `palette.secondary.main` is NOT explicitly set, so a manual
+ * override always wins.
+ *
+ * The parser accepts the formats a color picker commonly emits — hex (`#rgb`,
+ * `#rrggbb`, `#rrggbbaa`), `rgb()/rgba()`, `hsl()/hsla()` — so an unusual output
+ * format can't silently fall back to the default.
  */
 
 import type { UserTheme } from './themeTypes';
 import { getNestedValue, setNestedValue } from './themeUtils';
 
-/** Hue offset (degrees) added to the primary hue for the analogous secondary. */
-const HUE_OFFSET = 30;
-/** Floor for the derived saturation, so muted primaries still read as color. */
-const SATURATION_FLOOR = 45;
-/** Fixed lightness so the secondary sits as a sibling next to the primary. */
-const LIGHTNESS = 46;
+/** Triadic hue offset (degrees): blue → magenta, red → green, etc. */
+const HUE_OFFSET = 120;
+/** Floor for the derived saturation, so very muted primaries still read as color. */
+const SATURATION_FLOOR = 40;
 /** MUI's default secondary — safe fallback when the primary cannot be parsed. */
 const DEFAULT_SECONDARY = '#ba68c8';
 
+/** Clamps a number to the 0–255 byte range and rounds it. */
+function clampByte(value: number): number {
+    return Math.max(0, Math.min(255, Math.round(value)));
+}
+
 /**
- * Converts a hex color (`#rgb` / `#rrggbb`, with or without `#`) to HSL.
+ * Parses a CSS color string into an `[r, g, b]` triple (each 0–255).
  *
- * @returns `[H(0-360), S(0-100), L(0-100)]`, or `null` if the input is not hex.
+ * @returns The RGB triple, or `null` for empty/unparseable input.
  */
-function hexToHsl(hex: string): [number, number, number] | null {
-    const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
-    if (!match) {
+function parseColorToRgb(input: string): [number, number, number] | null {
+    if (typeof input !== 'string') {
         return null;
     }
-    let digits = match[1];
-    if (digits.length === 3) {
-        digits = digits
-            .split('')
-            .map(char => char + char)
-            .join('');
+    const s = input.trim();
+    if (!s) {
+        return null;
     }
-    const r = parseInt(digits.slice(0, 2), 16) / 255;
-    const g = parseInt(digits.slice(2, 4), 16) / 255;
-    const b = parseInt(digits.slice(4, 6), 16) / 255;
+
+    // Hex: #rgb, #rrggbb, #rrggbbaa (alpha ignored for palette colors).
+    let m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(s);
+    if (m) {
+        let digits = m[1];
+        if (digits.length === 3) {
+            digits = digits
+                .split('')
+                .map(char => char + char)
+                .join('');
+        }
+        if (digits.length === 8) {
+            digits = digits.slice(0, 6); // strip alpha
+        }
+        return [parseInt(digits.slice(0, 2), 16), parseInt(digits.slice(2, 4), 16), parseInt(digits.slice(4, 6), 16)];
+    }
+
+    // rgb() / rgba()
+    m = /^rgba?\(\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*[,\s]\s*([\d.]+)/i.exec(s);
+    if (m) {
+        return [clampByte(+m[1]), clampByte(+m[2]), clampByte(+m[3])];
+    }
+
+    // hsl() / hsla()
+    m = /^hsla?\(\s*([\d.]+)(?:deg)?\s*[,\s]\s*([\d.]+)%\s*[,\s]\s*([\d.]+)%/i.exec(s);
+    if (m) {
+        return hslToRgb(+m[1], +m[2], +m[3]);
+    }
+
+    return null;
+}
+
+/** Converts RGB (0–255) to HSL `[H(0-360), S(0-100), L(0-100)]`. */
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+    r /= 255;
+    g /= 255;
+    b /= 255;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const l = (max + min) / 2;
@@ -66,8 +104,8 @@ function hexToHsl(hex: string): [number, number, number] | null {
     return [h, s * 100, l * 100];
 }
 
-/** Converts HSL (`H 0-360, S/L 0-100`) to a `#rrggbb` hex string. */
-function hslToHex(h: number, s: number, l: number): string {
+/** Converts HSL (`H 0-360, S/L 0-100`) to an `[r, g, b]` triple (0–255). */
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
     const hue = ((h % 360) + 360) % 360;
     const sat = Math.max(0, Math.min(100, s)) / 100;
     const light = Math.max(0, Math.min(100, l)) / 100;
@@ -90,31 +128,34 @@ function hslToHex(h: number, s: number, l: number): string {
     } else {
         [r, g, b] = [c, 0, x];
     }
-    const toHex = (value: number): string =>
-        Math.round((value + m) * 255)
-            .toString(16)
-            .padStart(2, '0');
+    return [clampByte((r + m) * 255), clampByte((g + m) * 255), clampByte((b + m) * 255)];
+}
+
+/** Converts HSL (`H 0-360, S/L 0-100`) to a `#rrggbb` hex string. */
+function hslToHex(h: number, s: number, l: number): string {
+    const [r, g, b] = hslToRgb(h, s, l);
+    const toHex = (value: number): string => value.toString(16).padStart(2, '0');
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 /**
  * Derives a secondary palette color from a primary color.
  *
- * Accepts a CSS hex color. Non-hex inputs (named colors, `hsl()`, `transparent`,
- * invalid strings) fall back to {@link DEFAULT_SECONDARY} so the result is always
- * a usable color — derivation simply cannot run on an unparseable input.
+ * Accepts any common CSS color format (hex, rgb/rgba, hsl/hsla). Unparseable or
+ * empty input falls back to {@link DEFAULT_SECONDARY} so the result is always a
+ * usable color. Keeps the primary's saturation (floored) and lightness so the
+ * secondary tracks the primary's properties, with a triadic hue shift.
  *
- * @param primaryMain - The primary color, ideally a hex string.
- * @returns A hex color derived as an analogous sibling of the primary.
+ * @param primaryMain - The primary color.
+ * @returns A hex color derived as a triadic sibling of the primary.
  */
 export function deriveSecondary(primaryMain: string): string {
-    const hsl = hexToHsl(primaryMain);
-    if (!hsl) {
+    const rgb = parseColorToRgb(primaryMain);
+    if (!rgb) {
         return DEFAULT_SECONDARY;
     }
-    const [hue] = hsl;
-    const saturation = Math.max(hsl[1], SATURATION_FLOOR);
-    return hslToHex(hue + HUE_OFFSET, saturation, LIGHTNESS);
+    const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    return hslToHex(h + HUE_OFFSET, Math.max(s, SATURATION_FLOOR), l);
 }
 
 /**

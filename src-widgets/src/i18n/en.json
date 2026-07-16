@@ -527,6 +527,7 @@
     "theme_studio_preview_primary": "Primary",
     "theme_studio_preview_secondary": "Secondary",
     "theme_studio_save_error": "Saving failed — check the connection and try again.",
+    "theme_studio_secondary_derived": "derived",
     "theme_wizard_button": "Configure theme",
     "theme_wizard_css_var_prefix": "CSS variable prefix",
     "theme_wizard_css_variables_enable": "Enable CSS variables",
