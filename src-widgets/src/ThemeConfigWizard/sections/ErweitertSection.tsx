@@ -132,33 +132,46 @@ function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeF
                         </Box>
                     ))}
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ flexShrink: 0 }}
-                        >
-                            {Generic.t('theme_wizard_layout_direction')}
-                        </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ flexShrink: 0 }}
+                            >
+                                {Generic.t('theme_wizard_layout_direction')}
+                            </Typography>
+                            <HelpHint title={Generic.t('theme_studio_help_direction')} />
+                        </Box>
                         <ToggleButtonGroup
                             exclusive
                             size="small"
-                            value={direction === 'ltr' || direction === 'rtl' ? direction : null}
+                            value={direction === 'rtl' ? 'rtl' : 'ltr'}
                             onChange={handleDirectionChange}
                         >
                             <ToggleButton value="ltr">{Generic.t('theme_wizard_layout_direction_ltr')}</ToggleButton>
                             <ToggleButton value="rtl">{Generic.t('theme_wizard_layout_direction_rtl')}</ToggleButton>
                         </ToggleButtonGroup>
+                        {direction === undefined ? (
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                {Generic.t('theme_studio_default_value')}
+                            </Typography>
+                        ) : null}
                     </Box>
 
                     <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                        >
-                            {Generic.t('theme_wizard_layout_spacing')}: {spacing}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                {Generic.t('theme_wizard_layout_spacing')}: {spacing}
+                            </Typography>
+                            <HelpHint title={Generic.t('theme_studio_help_spacing')} />
+                        </Box>
                         <Slider
                             value={spacing}
                             min={0}
