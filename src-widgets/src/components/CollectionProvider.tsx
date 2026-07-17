@@ -11,7 +11,7 @@
  */
 
 import { createContext, useMemo } from 'react';
-import { ThemeProvider } from '@mui/material';
+import { GlobalStyles, ThemeProvider } from '@mui/material';
 
 import useStyles from '../hooks/useStyles';
 import useCollectionTheme from '../hooks/useCollectionTheme';
@@ -86,15 +86,23 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     // Effective theme: host → collection overrides → user theme (user wins).
     const _theme = useCollectionTheme(socket, theme, overrides);
 
-    // No <CssBaseline />: vis-2 supplies global normalization (index.css body
-    // font + vis.css box-sizing), and MUI's CssBaseline spreads
-    // theme.typography.body1 — whose fontFamily the user's choice is forced onto
-    // (see useCollectionTheme) — onto the global <body>. That would leak the
-    // configured font into vis-2's palette and attributes panels. Omitting it
-    // keeps the user's font scoped to the widgets' Typography via the variant
-    // classes, while vis-2's own body font governs the editor UI.
+    // No <CssBaseline />: MUI's CssBaseline also spreads theme.typography.body1
+    // — whose fontFamily the user's choice is forced onto (see
+    // useCollectionTheme) — onto the global <body>, leaking the configured font
+    // into vis-2's palette and attributes panels. But vis-2 itself sets NO global
+    // `box-sizing`, so dropping CssBaseline entirely reverted MUI components
+    // inside widgets to `content-box` and broke horizontal padding (the BASE-BOX-1
+    // container has width:100% + overflow:hidden + p; under content-box the
+    // horizontal padding overflows and gets clipped). Restore only the border-box
+    // reset, scoped to nothing extra — without the body-font leak.
     return (
         <ThemeProvider theme={_theme}>
+            <GlobalStyles
+                styles={{
+                    html: { boxSizing: 'border-box' },
+                    '*, *::before, *::after': { boxSizing: 'inherit' },
+                }}
+            />
             <CollectionContext.Provider value={{ ...context, theme: _theme }}>{children}</CollectionContext.Provider>
         </ThemeProvider>
     );
