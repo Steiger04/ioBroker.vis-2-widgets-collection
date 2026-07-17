@@ -130,7 +130,24 @@ export const FONT_CATALOGUE: ReadonlyArray<FontCatalogueEntry> = [
     { value: "'Noto Sans', system-ui, sans-serif", label: 'Noto Sans', group: 'bundled' },
     { value: "'Roboto Mono', ui-monospace, monospace", label: 'Roboto Mono', group: 'bundled' },
     { value: "'Roboto Slab', Georgia, serif", label: 'Roboto Slab', group: 'bundled' },
-    // Generic system stacks — no bundle cost; rendering depends on the device.
+    // Common named system fonts — render with the local face if installed, else
+    // the generic fallback. No bundle cost; availability depends on the device.
+    { value: "'Arial', sans-serif", label: 'Arial', group: 'system' },
+    { value: "'Helvetica Neue', Helvetica, Arial, sans-serif", label: 'Helvetica', group: 'system' },
+    { value: "'Segoe UI', sans-serif", label: 'Segoe UI', group: 'system' },
+    { value: "'Verdana', sans-serif", label: 'Verdana', group: 'system' },
+    { value: "'Tahoma', sans-serif", label: 'Tahoma', group: 'system' },
+    { value: "'Trebuchet MS', sans-serif", label: 'Trebuchet MS', group: 'system' },
+    { value: "'Calibri', sans-serif", label: 'Calibri', group: 'system' },
+    { value: "'Georgia', serif", label: 'Georgia', group: 'system' },
+    { value: "'Times New Roman', Times, serif", label: 'Times New Roman', group: 'system' },
+    { value: "'Palatino Linotype', Palatino, serif", label: 'Palatino', group: 'system' },
+    { value: "'Garamond', serif", label: 'Garamond', group: 'system' },
+    { value: "'Cambria', serif", label: 'Cambria', group: 'system' },
+    { value: "'Courier New', monospace", label: 'Courier New', group: 'system' },
+    { value: "'Consolas', monospace", label: 'Consolas', group: 'system' },
+    { value: "'Lucida Console', monospace", label: 'Lucida Console', group: 'system' },
+    // Generic stacks — no bundle cost; rendering depends on the device.
     { value: 'system-ui, sans-serif', label: 'System UI', group: 'system' },
     { value: 'sans-serif', label: 'Sans-serif', group: 'system' },
     { value: 'Georgia, "Times New Roman", serif', label: 'Serif', group: 'system' },

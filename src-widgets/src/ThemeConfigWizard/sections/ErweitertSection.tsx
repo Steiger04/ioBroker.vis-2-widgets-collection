@@ -30,6 +30,7 @@ import {
 import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
+import HelpHint from '../../components/HelpHint';
 import Generic from '../../Generic';
 import type { ThemeFormSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
@@ -176,7 +177,15 @@ function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeF
                                     onChange={handleCssToggle}
                                 />
                             }
-                            label={Generic.t('theme_wizard_css_variables_enable')}
+                            label={
+                                <Box
+                                    component="span"
+                                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                                >
+                                    {Generic.t('theme_wizard_css_variables_enable')}
+                                    <HelpHint title={Generic.t('theme_studio_help_css_vars')} />
+                                </Box>
+                            }
                         />
                         {cssEnabled ? (
                             <TextField

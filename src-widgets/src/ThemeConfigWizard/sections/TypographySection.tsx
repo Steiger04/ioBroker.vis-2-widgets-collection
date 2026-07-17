@@ -34,6 +34,7 @@ import { useEffect, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import HelpHint from '../../components/HelpHint';
 import {
     BUNDLED_FONTS,
     CUSTOM_FONT_VALUE,
@@ -304,28 +305,23 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
                         />
                     </Box>
                     <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                        >
-                            {Generic.t('theme_wizard_typography_weight_section')}
-                        </Typography>
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: 'block', mb: 1 }}
-                        >
-                            {Generic.t('theme_wizard_typography_weight_hint')}
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                {Generic.t('theme_wizard_typography_weight_section')}
+                            </Typography>
+                            <HelpHint title={Generic.t('theme_wizard_typography_weight_hint')} />
+                        </Box>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
                             {WEIGHT_FIELDS.map(field => {
                                 const weight = getNestedValue<number>(theme, field.path);
                                 return (
                                     <FormControl
                                         key={field.path}
                                         size="small"
-                                        sx={{ flex: '1 1 140px', minWidth: 140 }}
+                                        fullWidth
                                     >
                                         <InputLabel>{Generic.t(field.labelKey)}</InputLabel>
                                         <Select
