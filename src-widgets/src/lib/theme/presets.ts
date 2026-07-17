@@ -31,7 +31,9 @@ export interface ThemePreset {
  *
  * Deliberately not the generic AI-default looks (cream+terracotta / near-black+
  * acid-green / broadsheet): Graphit (dark, cool cyan), Sunset (dark, warm orange),
- * Daylight (light, clean blue), Salbei (light, sage), Mono (dark, graphite).
+ * Daylight (light, clean blue), Salbei (light, sage), Mono (dark, graphite),
+ * Smaragd (dark, emerald), Amethyst (dark, violet), Rubin (dark, red),
+ * Bernstein (dark, gold).
  */
 export const THEME_PRESETS: readonly ThemePreset[] = [
     {
@@ -91,6 +93,54 @@ export const THEME_PRESETS: readonly ThemePreset[] = [
                 primary: { main: '#a1a1aa' },
                 secondary: { main: '#d4d4d8' },
                 background: { default: '#18181b', paper: '#27272a' },
+            },
+        },
+    },
+    {
+        id: 'smaragd',
+        labelKey: 'theme_studio_preset_smaragd',
+        theme: {
+            palette: {
+                mode: 'dark',
+                primary: { main: '#34d399' },
+                secondary: { main: '#2dd4bf' },
+                background: { default: '#0d1410', paper: '#161f1a' },
+            },
+        },
+    },
+    {
+        id: 'amethyst',
+        labelKey: 'theme_studio_preset_amethyst',
+        theme: {
+            palette: {
+                mode: 'dark',
+                primary: { main: '#a78bfa' },
+                secondary: { main: '#f0abfc' },
+                background: { default: '#130e1a', paper: '#1d1626' },
+            },
+        },
+    },
+    {
+        id: 'rubin',
+        labelKey: 'theme_studio_preset_rubin',
+        theme: {
+            palette: {
+                mode: 'dark',
+                primary: { main: '#f87171' },
+                secondary: { main: '#fb7185' },
+                background: { default: '#190d0d', paper: '#241414' },
+            },
+        },
+    },
+    {
+        id: 'bernstein',
+        labelKey: 'theme_studio_preset_bernstein',
+        theme: {
+            palette: {
+                mode: 'dark',
+                primary: { main: '#fbbf24' },
+                secondary: { main: '#facc15' },
+                background: { default: '#18140a', paper: '#221c11' },
             },
         },
     },

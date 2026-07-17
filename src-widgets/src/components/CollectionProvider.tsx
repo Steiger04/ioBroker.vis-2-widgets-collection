@@ -62,11 +62,6 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
     // from the user's `typography.fontSize` in useCollectionTheme.
     const overrides = useMemo<ThemeOptions>(
         () => ({
-            palette: {
-                text: {
-                    primary: textStyles?.color || theme.palette.primary.main,
-                },
-            },
             components: {
                 MuiTypography: {
                     styleOverrides: {
@@ -80,7 +75,7 @@ function CollectionProvider({ children, context }: CollectionProviderProps): JSX
                 },
             },
         }),
-        [fontStyles, textStyles, theme.palette.primary.main],
+        [fontStyles, textStyles],
     );
 
     // Effective theme: host → collection overrides → user theme (user wins).

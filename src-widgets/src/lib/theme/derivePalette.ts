@@ -174,3 +174,27 @@ export function withDerivedSecondary(theme: UserTheme): UserTheme {
     }
     return setNestedValue(theme, 'palette.secondary.main', deriveSecondary(primaryMain));
 }
+
+/**
+ * Returns a copy of `theme` with `palette.text.primary` set to the primary color.
+ *
+ * @remarks
+ * Keeps the collection's text color consistent with the accent: by default body
+ * text renders in the primary color (matching how the widgets read primary as
+ * their default text color). No-op when `palette.text.primary` is already set
+ * (manual override wins) or when there is no primary to follow — in which case
+ * `fallbackPrimary` is used (the runtime passes the host primary, the studio
+ * panel passes the resolved MUI default primary). Shared by the runtime hook and
+ * the studio panel so the relationship is identical everywhere.
+ */
+export function withPrimaryAsText(theme: UserTheme, fallbackPrimary?: string): UserTheme {
+    const textPrimary = getNestedValue<string>(theme, 'palette.text.primary');
+    if (textPrimary) {
+        return theme;
+    }
+    const primaryMain = getNestedValue<string>(theme, 'palette.primary.main') ?? fallbackPrimary;
+    if (!primaryMain) {
+        return theme;
+    }
+    return setNestedValue(theme, 'palette.text.primary', primaryMain);
+}

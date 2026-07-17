@@ -18,9 +18,10 @@ import { createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 import { THEME_STATE_ID } from '../lib/constants';
 import { clearDraftTheme } from '../lib/theme/draftThemeStore';
-import { withDerivedSecondary } from '../lib/theme/derivePalette';
+import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import { getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
@@ -182,9 +183,13 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         // lets the host's variant objects override the user's base settings
         // (mui/material-ui#35939, #37043) — so family, size and weights never
         // reach the Typography variants. Chain: hostStripped → overrides →
-        // userTheme (draft ?? parsed, with derived secondary); user wins.
+        // userTheme (draft ?? parsed, with derived secondary + text follows
+        // primary); user wins.
         const hostStripped = stripHostTypographyVariants(hostTheme);
-        const userThemeWithDerived = withDerivedSecondary(userTheme);
+        // Text follows the effective primary (user override wins, else the host
+        // primary), so body text stays consistent with the chosen accent.
+        const hostPrimary = getNestedValue<string>(hostStripped, 'palette.primary.main');
+        const userThemeWithDerived = withPrimaryAsText(withDerivedSecondary(userTheme), hostPrimary);
         return createTheme(deepmerge(deepmerge(hostStripped, overrides ?? {}), userThemeWithDerived));
     }, [hostTheme, overrides, userTheme]);
 }

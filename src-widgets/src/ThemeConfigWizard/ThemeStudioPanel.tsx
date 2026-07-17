@@ -45,7 +45,7 @@ import type { Theme } from '@mui/material/styles';
 import Generic from '../Generic';
 import useDraggable from '../hooks/useDraggable';
 import { THEME_STATE_ID } from '../lib/constants';
-import { withDerivedSecondary } from '../lib/theme/derivePalette';
+import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { THEME_PRESETS } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
@@ -171,7 +171,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         const storedMode = getNestedValue<string>(themeObj, 'palette.mode');
         const mode: 'light' | 'dark' =
             storedMode === 'light' || storedMode === 'dark' ? storedMode : themeType === 'dark' ? 'dark' : 'light';
-        return createTheme(withDerivedSecondary({ ...themeObj, palette: { ...themeObj.palette, mode } }));
+        const draftWithMode = withDerivedSecondary({ ...themeObj, palette: { ...themeObj.palette, mode } });
+        // Text follows the effective primary (resolved here so the field shows it),
+        // unless the user explicitly set a text color.
+        const resolvedPrimary = createTheme(draftWithMode).palette.primary.main;
+        return createTheme(withPrimaryAsText(draftWithMode, resolvedPrimary));
     }, [themeObj, themeType]);
 
     // Escape closes (with the same discard handling as the close button).
