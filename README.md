@@ -61,6 +61,13 @@
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) Theme wizard with presets, live preview, custom fonts and widget sizing
+- (steiger04) Slider marker defaults and label styling fixed
+- (steiger04) Gauge min/max fallback fixed
+- (steiger04) JSON Table quick filtering fixed
+
 ### 2.4.2 (2026-07-06)
 - (steiger04) JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)
 - (steiger04) ColorPickerField: debouncing for picker drag events and refactor
