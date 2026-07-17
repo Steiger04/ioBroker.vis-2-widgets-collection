@@ -55,6 +55,22 @@ const findSegment = (highlights: Highlight[], value: number, maxValue: number): 
 };
 
 /**
+ * Resolves a numeric widget field, falling back to the given default when the field is unset (undefined, null,
+ * empty string or not a finite number).
+ *
+ * @remarks
+ * Used so an explicitly configured gauge min/max value always wins, while an untouched field falls back to the
+ * value auto-detected from the bound object (e.g. `common.min`/`common.max`), and finally to a hardcoded default.
+ */
+const resolveNumericOverride = (value: unknown, fallback: number): number => {
+    if (value === undefined || value === null || value === '') {
+        return fallback;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+/**
  * Renders a canvas-gauges based gauge and updates frame/background based on the active segment.
  */
 function GaugeCollection(): React.JSX.Element {
@@ -78,28 +94,37 @@ function GaugeCollection(): React.JSX.Element {
 
     const isValidType = oidType === 'number';
 
-    const majorTicks = useMemo(() => {
-        const minValue = Number(widget.data.gaugeMinValue) || 0;
-        const maxValue = Number(widget.data.gaugeMaxValue) || 100;
+    // Resolve effective min/max: an explicitly configured gaugeMinValue/gaugeMaxValue always wins, otherwise fall
+    // back to the min/max auto-detected from the bound object (widget.data.minValue/maxValue, set by
+    // oidChangeHandlerAsync from common.min/common.max), and finally to a hardcoded default.
+    const effectiveMinValue = useMemo(
+        () => resolveNumericOverride(widget.data.gaugeMinValue, widget.data.minValue ?? 0),
+        [widget.data.gaugeMinValue, widget.data.minValue],
+    );
+    const effectiveMaxValue = useMemo(
+        () => resolveNumericOverride(widget.data.gaugeMaxValue, widget.data.maxValue ?? 100),
+        [widget.data.gaugeMaxValue, widget.data.maxValue],
+    );
 
+    const majorTicks = useMemo(() => {
         const _majorTicks: number[] = [];
 
         if (widget.data.gaugeMajorTicks && Number(widget.data.gaugeMajorTicks > 0)) {
             for (let i = 0; i <= Number(widget.data.gaugeMajorTicks); i++) {
-                const value = minValue + ((maxValue - minValue) / Number(widget.data.gaugeMajorTicks) || 1) * i;
+                const value =
+                    effectiveMinValue +
+                    ((effectiveMaxValue - effectiveMinValue) / Number(widget.data.gaugeMajorTicks) || 1) * i;
                 // Two decimal places.
                 _majorTicks.push(Math.round(value * 100) / 100);
             }
         }
 
         return _majorTicks;
-    }, [widget.data.gaugeMinValue, widget.data.gaugeMaxValue, widget.data.gaugeMajorTicks]);
+    }, [effectiveMinValue, effectiveMaxValue, widget.data.gaugeMajorTicks]);
 
     const highlights = useMemo(() => {
-        const maxValue = Number(widget.data.gaugeMaxValue) || 100;
-
         const _highlights = states.map((state, index) => {
-            const nextValue = states[index + 1]?.value || maxValue;
+            const nextValue = states[index + 1]?.value || effectiveMaxValue;
 
             return {
                 from: Number(state.value),
@@ -110,21 +135,16 @@ function GaugeCollection(): React.JSX.Element {
         });
 
         // Set the last highlight to maxValue if the last state value is less than maxValue
-        if (states.length > 0 && Number(states[states.length - 1].value) < maxValue) {
-            _highlights[_highlights.length - 1].to = maxValue;
+        if (states.length > 0 && Number(states[states.length - 1].value) < effectiveMaxValue) {
+            _highlights[_highlights.length - 1].to = effectiveMaxValue;
         }
 
         return _highlights;
-    }, [states, widget.data.gaugeMaxValue]);
+    }, [states, effectiveMaxValue]);
 
     const segment = useMemo(
-        () =>
-            findSegment(
-                highlights,
-                Number(oidValue) || 0,
-                Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100,
-            ),
-        [highlights, oidValue, widget.data.gaugeMaxValue],
+        () => findSegment(highlights, Number(oidValue) || 0, effectiveMaxValue),
+        [highlights, oidValue, effectiveMaxValue],
     );
 
     const paper0 = baseRef.current?.paper0;
@@ -214,8 +234,8 @@ function GaugeCollection(): React.JSX.Element {
                     // Basic Options
                     width={(gaugeWidth || 0) - Number(widget.data.gaugePadding || 0)}
                     height={(gaugeHeight || 0) - Number(widget.data.gaugePadding || 0)}
-                    minValue={Number(widget.data.gaugeMinValue) ? Number(widget.data.gaugeMinValue) : 0}
-                    maxValue={Number(widget.data.gaugeMaxValue) ? Number(widget.data.gaugeMaxValue) : 100}
+                    minValue={effectiveMinValue}
+                    maxValue={effectiveMaxValue}
                     value={Number(oidValue) || 0}
                     units={oidObject?.unit}
                     title={data.header}

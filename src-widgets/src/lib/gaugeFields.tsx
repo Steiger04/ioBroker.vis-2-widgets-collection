@@ -33,14 +33,12 @@ const gaugeFields = (): RxWidgetInfoAttributesField[] => [
         name: 'gaugeMinValue',
         type: 'number',
         label: 'gauge_min_value',
-        default: 0,
         step: 1,
     },
     {
         name: 'gaugeMaxValue',
         type: 'number',
         label: 'gauge_max_value',
-        default: 100,
         step: 1,
     },
     {
