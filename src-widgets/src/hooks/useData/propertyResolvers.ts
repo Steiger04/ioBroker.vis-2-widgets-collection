@@ -371,6 +371,10 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `${formatSize(getDataValue<number>('valueSize', String(ext)))}`,
                 },
                 {
+                    condition: isSlider && typeof widgetResolver.markerTextSize === 'number',
+                    value: formatSize(widgetResolver.markerTextSize),
+                },
+                {
                     condition: typeof getDataValue<number>('valueSize', '') === 'number',
                     value: `${formatSize(getDataValue<number>('valueSize', ''))}`,
                 },

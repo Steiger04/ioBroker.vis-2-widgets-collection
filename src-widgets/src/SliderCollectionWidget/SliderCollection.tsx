@@ -444,9 +444,6 @@ const SliderCollection: FC = () => {
                                         fontSize:
                                             formatSizeRem(widget.data.valueSizeActive) ||
                                             data.valueSizeActive ||
-                                            (activeIndex &&
-                                                widget.data.markerTextSize &&
-                                                formatSizeRem(widget.data.markerTextSize)) ||
                                             data.valueSize,
                                         color:
                                             widget.data.textColorActive ||
