@@ -159,50 +159,55 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
             <AccordionDetails>
                 <Stack spacing={2}>
                     <Stack spacing={1}>
-                        <FormControl
-                            fullWidth
-                            size="small"
-                        >
-                            <InputLabel id="theme-font-family-label">
-                                {Generic.t('theme_wizard_typography_font_family')}
-                            </InputLabel>
-                            <Select
-                                labelId="theme-font-family-label"
-                                label={Generic.t('theme_wizard_typography_font_family')}
-                                value={fontSelectValue}
-                                onChange={handleFontFamilyChange}
-                                renderValue={renderFontValue}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <FormControl
+                                fullWidth
+                                size="small"
                             >
-                                <MenuItem value="">{Generic.t('theme_wizard_typography_font_family_default')}</MenuItem>
-                                <ListSubheader>
-                                    {Generic.t('theme_wizard_typography_font_family_group_bundled')}
-                                </ListSubheader>
-                                {BUNDLED_FONTS.map(font => (
-                                    <MenuItem
-                                        key={font.value}
-                                        value={font.value}
-                                        sx={{ fontFamily: font.value }}
-                                    >
-                                        {font.label}
+                                <InputLabel id="theme-font-family-label">
+                                    {Generic.t('theme_wizard_typography_font_family')}
+                                </InputLabel>
+                                <Select
+                                    labelId="theme-font-family-label"
+                                    label={Generic.t('theme_wizard_typography_font_family')}
+                                    value={fontSelectValue}
+                                    onChange={handleFontFamilyChange}
+                                    renderValue={renderFontValue}
+                                >
+                                    <MenuItem value="">
+                                        {Generic.t('theme_wizard_typography_font_family_default')}
                                     </MenuItem>
-                                ))}
-                                <ListSubheader>
-                                    {Generic.t('theme_wizard_typography_font_family_group_system')}
-                                </ListSubheader>
-                                {SYSTEM_FONTS.map(font => (
-                                    <MenuItem
-                                        key={font.value}
-                                        value={font.value}
-                                        sx={{ fontFamily: font.value }}
-                                    >
-                                        {font.label}
+                                    <ListSubheader>
+                                        {Generic.t('theme_wizard_typography_font_family_group_bundled')}
+                                    </ListSubheader>
+                                    {BUNDLED_FONTS.map(font => (
+                                        <MenuItem
+                                            key={font.value}
+                                            value={font.value}
+                                            sx={{ fontFamily: font.value }}
+                                        >
+                                            {font.label}
+                                        </MenuItem>
+                                    ))}
+                                    <ListSubheader>
+                                        {Generic.t('theme_wizard_typography_font_family_group_system')}
+                                    </ListSubheader>
+                                    {SYSTEM_FONTS.map(font => (
+                                        <MenuItem
+                                            key={font.value}
+                                            value={font.value}
+                                            sx={{ fontFamily: font.value }}
+                                        >
+                                            {font.label}
+                                        </MenuItem>
+                                    ))}
+                                    <MenuItem value={CUSTOM_FONT_VALUE}>
+                                        {Generic.t('theme_wizard_typography_font_family_custom')}
                                     </MenuItem>
-                                ))}
-                                <MenuItem value={CUSTOM_FONT_VALUE}>
-                                    {Generic.t('theme_wizard_typography_font_family_custom')}
-                                </MenuItem>
-                            </Select>
-                        </FormControl>
+                                </Select>
+                            </FormControl>
+                            <HelpHint title={Generic.t('theme_studio_help_fonts')} />
+                        </Box>
                         {isCustomFont ? (
                             <TextField
                                 fullWidth

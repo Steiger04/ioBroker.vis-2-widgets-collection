@@ -529,6 +529,7 @@
     "theme_studio_corner_bottom_left": "Unten links",
     "theme_studio_corners_link": "Ecken verknüpfen",
     "theme_studio_help_css_vars": "Erzeugt für jeden Theme-Wert eine CSS-Variable (z. B. --mui-palette-primary-main), die du im eigenen CSS nutzen kannst, plus echtes Hell/Dunkel über color-scheme. Nur nötig, wenn du Theme-Farben per CSS-Variable referenzieren willst.",
+    "theme_studio_help_fonts": "Schriftquellen — Gebündelt: mit der Sammlung ausgeliefert, immer verfügbar und überall gleich (auch offline). System: auf dem Anzeigegerät installiert; keine Bündelgröße, aber Darstellung je nach Gerät. Google: einmal geladen und eingebettet. Eigen: beliebiger CSS-Schriftname (z. B. eine lokal installierte Schrift außerhalb der Liste).",
     "theme_studio_save_error": "Speichern fehlgeschlagen — Verbindung prüfen und erneut versuchen.",
     "theme_studio_secondary_derived": "abgeleitet",
     "theme_studio_mode_follows": "folgt Host",

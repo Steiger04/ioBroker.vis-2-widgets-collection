@@ -529,6 +529,7 @@
     "theme_studio_corner_bottom_left": "Bottom left",
     "theme_studio_corners_link": "Link corners",
     "theme_studio_help_css_vars": "Generates a CSS variable for every theme value (e.g. --mui-palette-primary-main) you can use in your own CSS, plus real light/dark via color-scheme. Only needed if you want to reference theme colors as CSS variables.",
+    "theme_studio_help_fonts": "Font sources — Bundled: shipped with the collection, always available and consistent (even offline). System: installed on the viewing device; no bundle cost but rendering varies by device. Google: loaded once and embedded. Custom: any CSS font name (e.g. a locally installed font outside the list).",
     "theme_studio_save_error": "Saving failed — check the connection and try again.",
     "theme_studio_secondary_derived": "derived",
     "theme_studio_mode_follows": "follows host",
