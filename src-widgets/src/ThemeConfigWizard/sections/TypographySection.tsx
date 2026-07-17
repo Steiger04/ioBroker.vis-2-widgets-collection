@@ -6,6 +6,8 @@
 
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import LinkIcon from '@mui/icons-material/Link';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
 import {
     Accordion,
     AccordionDetails,
@@ -16,6 +18,7 @@ import {
     Chip,
     CircularProgress,
     FormControl,
+    IconButton,
     InputLabel,
     Link,
     ListSubheader,
@@ -53,14 +56,31 @@ const WEIGHT_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
     { path: 'typography.fontWeightBold', labelKey: 'theme_wizard_typography_weight_bold' },
 ];
 
+/** Corner-radius fields (border radius per corner), in display order. */
+const CORNER_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
+    { path: 'corners.topLeft', labelKey: 'theme_studio_corner_top_left' },
+    { path: 'corners.topRight', labelKey: 'theme_studio_corner_top_right' },
+    { path: 'corners.bottomRight', labelKey: 'theme_studio_corner_bottom_right' },
+    { path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
+];
+
 /** Typography section: font family, base sizes and weights. */
 function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectionProps): React.JSX.Element {
     const fontSize = getNestedValue<number>(theme, 'typography.fontSize') ?? 14;
     const fontFamily = getNestedValue<string>(theme, 'typography.fontFamily');
     const fontWeightRegular = getNestedValue<number>(theme, 'typography.fontWeightRegular');
     const lineHeight = getNestedValue<number>(theme, 'typography.allVariants.lineHeight');
-    const borderRadius = getNestedValue<number>(theme, 'shape.borderRadius') ?? 4;
     const [isCustomFont, setIsCustomFont] = useState<boolean>(resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE);
+    // Corner-radius "link" toggle: default on when the four radii are uniform.
+    const [linked, setLinked] = useState<boolean>(() => {
+        const cornerVals = [
+            getNestedValue<number>(theme, 'corners.topLeft') ?? 4,
+            getNestedValue<number>(theme, 'corners.topRight') ?? 4,
+            getNestedValue<number>(theme, 'corners.bottomRight') ?? 4,
+            getNestedValue<number>(theme, 'corners.bottomLeft') ?? 4,
+        ];
+        return cornerVals.every(v => v === cornerVals[0]);
+    });
     const fontSelectValue = isCustomFont ? CUSTOM_FONT_VALUE : resolveFontSelectValue(fontFamily);
 
     // Google Fonts loaded by name (stored as inlined woff2 in theme.googleFonts).
@@ -106,6 +126,16 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
         } else {
             setIsCustomFont(false);
             onChange('typography.fontFamily', selected);
+        }
+    };
+
+    // Sets one corner, or all four at once when the corners are linked.
+    const handleCornerChange = (path: string, value: number | number[]): void => {
+        const v = Array.isArray(value) ? value[0] : value;
+        if (linked) {
+            onChange('corners', { topLeft: v, topRight: v, bottomRight: v, bottomLeft: v });
+        } else {
+            onChange(path, v);
         }
     };
 
@@ -341,21 +371,46 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
                         />
                     </Box>
                     <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                        >
-                            {Generic.t('theme_wizard_layout_border_radius')}: {borderRadius}
-                        </Typography>
-                        <Slider
-                            value={borderRadius}
-                            min={0}
-                            max={32}
-                            step={0.5}
-                            valueLabelDisplay="auto"
-                            onChange={(_event, value) => onChange('shape.borderRadius', value)}
-                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                {Generic.t('theme_wizard_layout_border_radius')}
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                onClick={() => setLinked(l => !l)}
+                                title={Generic.t('theme_studio_corners_link')}
+                                color={linked ? 'primary' : 'default'}
+                            >
+                                {linked ? <LinkIcon fontSize="small" /> : <LinkOffIcon fontSize="small" />}
+                            </IconButton>
+                        </Box>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                            {CORNER_FIELDS.map(field => {
+                                const value = getNestedValue<number>(theme, field.path) ?? 4;
+                                return (
+                                    <Box key={field.path}>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                        >
+                                            {Generic.t(field.labelKey)}: {value}
+                                        </Typography>
+                                        <Slider
+                                            value={value}
+                                            min={0}
+                                            max={32}
+                                            step={0.5}
+                                            valueLabelDisplay="auto"
+                                            size="small"
+                                            onChange={(_event, val) => handleCornerChange(field.path, val)}
+                                        />
+                                    </Box>
+                                );
+                            })}
+                        </Box>
                     </Box>
                     <Box>
                         <Typography

@@ -319,6 +319,18 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
                 },
             },
         },
+        // Non-MUI extension: per-corner border radii (see CornerRadii).
+        corners: {
+            kind: 'object',
+            optional: true,
+            allowUnknown: 'ignore',
+            properties: {
+                topLeft: { kind: 'number', optional: true, min: 0, max: 64 },
+                topRight: { kind: 'number', optional: true, min: 0, max: 64 },
+                bottomRight: { kind: 'number', optional: true, min: 0, max: 64 },
+                bottomLeft: { kind: 'number', optional: true, min: 0, max: 64 },
+            },
+        },
         unstable_strictMode: { kind: 'boolean', optional: true },
         modularCssLayers: {
             kind: 'union',

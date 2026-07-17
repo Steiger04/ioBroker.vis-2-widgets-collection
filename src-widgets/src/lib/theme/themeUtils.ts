@@ -9,7 +9,7 @@
  * and any now-empty parent objects, so an empty form serializes to `{}`.
  */
 
-import type { UserTheme } from './themeTypes';
+import type { CornerRadii, UserTheme } from './themeTypes';
 
 /**
  * Checks whether a value is a plain object (not an array and not `null`).
@@ -39,6 +39,24 @@ export function getNestedValue<T>(obj: unknown, path: string): T | undefined {
         current = current[segment];
     }
     return current as T;
+}
+
+/**
+ * Builds a CSS 4-value `border-radius` string (`TL TR BR BL`) from corner radii.
+ *
+ * @returns The CSS string, or `undefined` when `corners` is unset (so no override
+ * is applied and MUI's `shape.borderRadius` governs). Missing individual radii
+ * default to `4`.
+ */
+export function buildCornerRadiusCss(corners: CornerRadii | undefined): string | undefined {
+    if (!corners) {
+        return undefined;
+    }
+    const tl = corners.topLeft ?? 4;
+    const tr = corners.topRight ?? 4;
+    const br = corners.bottomRight ?? 4;
+    const bl = corners.bottomLeft ?? 4;
+    return `${tl}px ${tr}px ${br}px ${bl}px`;
 }
 
 /**

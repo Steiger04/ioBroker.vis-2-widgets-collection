@@ -21,11 +21,12 @@ import { clearDraftTheme } from '../lib/theme/draftThemeStore';
 import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
-import { getNestedValue } from '../lib/theme/themeUtils';
+import { buildCornerRadiusCss, getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
+import type { CornerRadii } from '../lib/theme/themeTypes';
 
 /** Standard MUI typography variant keys that `createTypography` regenerates. */
 const TYPOGRAPHY_VARIANT_KEYS = [
@@ -190,7 +191,22 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         // primary), so body text stays consistent with the chosen accent.
         const hostPrimary = getNestedValue<string>(hostStripped, 'palette.primary.main');
         const userThemeWithDerived = withPrimaryAsText(withDerivedSecondary(userTheme), hostPrimary);
-        return createTheme(deepmerge(deepmerge(hostStripped, overrides ?? {}), userThemeWithDerived));
+        const merged = deepmerge(deepmerge(hostStripped, overrides ?? {}), userThemeWithDerived);
+        // Per-corner border radius on widget surfaces (MuiPaper/MuiCard). MUI's
+        // shape.borderRadius is single-valued, so inject a 4-value CSS string
+        // (and a representative single value for non-surface components).
+        const corners = getNestedValue<CornerRadii>(merged, 'corners');
+        const radiusCss = buildCornerRadiusCss(corners);
+        const withCorners = radiusCss
+            ? deepmerge(merged, {
+                  shape: { borderRadius: corners?.topLeft ?? 4 },
+                  components: {
+                      MuiPaper: { styleOverrides: { root: { borderRadius: radiusCss } } },
+                      MuiCard: { styleOverrides: { root: { borderRadius: radiusCss } } },
+                  },
+              })
+            : merged;
+        return createTheme(withCorners);
     }, [hostTheme, overrides, userTheme]);
 }
 

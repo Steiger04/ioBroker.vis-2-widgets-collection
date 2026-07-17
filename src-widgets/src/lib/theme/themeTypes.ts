@@ -37,6 +37,21 @@ export interface GoogleFontFace {
 export type GoogleFontsMap = Record<string, GoogleFontFace[]>;
 
 /**
+ * Per-corner border radii (px) for widget surfaces.
+ *
+ * @remarks
+ * Custom non-MUI extension: MUI's `shape.borderRadius` is single-valued, so the
+ * studio stores four radii here and the runtime injects them as a 4-value CSS
+ * `border-radius` on the surface components (MuiPaper, MuiCard).
+ */
+export interface CornerRadii {
+    topLeft?: number;
+    topRight?: number;
+    bottomRight?: number;
+    bottomLeft?: number;
+}
+
+/**
  * A user-supplied partial MUI theme, edited via the structured form.
  *
  * @remarks
@@ -47,6 +62,8 @@ export type GoogleFontsMap = Record<string, GoogleFontFace[]>;
 export type UserTheme = Partial<ThemeOptions> & {
     /** Google Fonts loaded by name, stored as inlined woff2 data URIs. */
     googleFonts?: GoogleFontsMap;
+    /** Per-corner border radii (custom extension; MUI's shape.borderRadius is single-valued). */
+    corners?: CornerRadii;
 };
 
 /**

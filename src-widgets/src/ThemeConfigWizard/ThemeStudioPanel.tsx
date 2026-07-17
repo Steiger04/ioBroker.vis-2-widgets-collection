@@ -51,7 +51,6 @@ import { THEME_PRESETS } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
-import ThemePreviewBlock from './components/ThemePreviewBlock';
 import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
 import TypographySection from './sections/TypographySection';
@@ -346,7 +345,6 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                     })}
                                 </Stack>
                             </Box>
-                            <ThemePreviewBlock theme={resolvedTheme} />
                             <PaletteSection
                                 theme={themeObj}
                                 onChange={handleChange}
