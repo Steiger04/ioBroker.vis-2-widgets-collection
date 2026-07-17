@@ -69,7 +69,6 @@ const CORNER_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
 function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectionProps): React.JSX.Element {
     const fontSize = getNestedValue<number>(theme, 'typography.fontSize') ?? 14;
     const fontFamily = getNestedValue<string>(theme, 'typography.fontFamily');
-    const fontWeightRegular = getNestedValue<number>(theme, 'typography.fontWeightRegular');
     const lineHeight = getNestedValue<number>(theme, 'typography.allVariants.lineHeight');
     const [isCustomFont, setIsCustomFont] = useState<boolean>(resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE);
     // Corner-radius "link" toggle: default on when the four radii are uniform.
@@ -406,27 +405,6 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
                                     </Box>
                                 );
                             })}
-                        </Box>
-                    </Box>
-                    <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                        >
-                            {Generic.t('theme_wizard_typography_preview')}
-                        </Typography>
-                        <Box sx={{ p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1 }}>
-                            <Typography
-                                sx={{
-                                    fontFamily: fontFamily || undefined,
-                                    fontSize: `${fontSize}px`,
-                                    fontWeight: fontWeightRegular ?? 400,
-                                    lineHeight: lineHeight ?? undefined,
-                                }}
-                            >
-                                {Generic.t('theme_wizard_typography_font_family_sample')}
-                            </Typography>
                         </Box>
                     </Box>
                 </Stack>

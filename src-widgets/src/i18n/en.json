@@ -595,7 +595,6 @@
     "theme_wizard_typography_google_font_hint": "e.g. Roboto, Lato, Open Sans",
     "theme_wizard_typography_google_font_load": "Load",
     "theme_wizard_typography_line_height": "Line height",
-    "theme_wizard_typography_preview": "Preview",
     "theme_wizard_typography_weight_bold": "Bold",
     "theme_wizard_typography_weight_hint": "Light = headings h1–h2, Regular = body text, Medium = buttons & subtitles, Bold = strong/emphasis.",
     "theme_wizard_typography_weight_light": "Light",
