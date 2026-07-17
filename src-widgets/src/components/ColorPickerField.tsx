@@ -3,9 +3,13 @@
  *
  * @module components/ColorPickerField
  * @remarks
- * Renders a label, a clickable color swatch, and an optional clear button.
- * Clicking the swatch opens a popover with `react-best-gradient-color-picker`.
- * Uses the shared usePopoverResizeObserver hook for popover positioning.
+ * Renders a label and a clickable color swatch in a two-column grid (label left,
+ * swatch right) so swatches align across stacked fields regardless of label
+ * length. Clicking the swatch opens a popover with `react-best-gradient-color-picker`.
+ * The swatch always shows the effective (resolved) color; the reset button
+ * appears only when an explicit override exists (resetting reverts to the
+ * resolved value). Uses the shared usePopoverPositioning hook for popover
+ * positioning.
  */
 
 import ClearIcon from '@mui/icons-material/Clear';
@@ -13,28 +17,32 @@ import { Box, IconButton, Popover, Typography, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
+import Generic from '../Generic';
 import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
 
 /** Props for {@link ColorPickerField}. */
 interface ColorPickerFieldProps {
-    /** Current color value (hex, rgb, rgba, gradient, or empty string). */
+    /** Effective color to display (explicit override or resolved default). */
     value: string;
-    /** Called with the new color string whenever the user picks or clears a color. */
+    /** Called with the new color string whenever the user picks or resets a color. */
     onChange: (color: string) => void;
-    /** Label displayed above the swatch. */
+    /** Label displayed left of the swatch. */
     label: string;
+    /** When true, an explicit override exists and the "reset to default" button is shown. */
+    overridden?: boolean;
 }
 
 /**
- * Minimal color picker field: label + swatch + popover.
+ * Minimal color picker field: label + swatch + popover, laid out as a grid row.
  *
  * @param props - Component props.
- * @param props.value - Current color value.
+ * @param props.value - Effective color value to display.
  * @param props.onChange - Callback when color changes.
- * @param props.label - Label displayed above the swatch.
+ * @param props.label - Label displayed left of the swatch.
+ * @param props.overridden - Whether an explicit override exists (shows reset button).
  * @returns Rendered field UI.
  */
-function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): React.JSX.Element {
+function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFieldProps): React.JSX.Element {
     const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -83,11 +91,24 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
         [onChange],
     );
 
+    const handleReset = useCallback(
+        (e: React.MouseEvent): void => {
+            e.stopPropagation();
+            if (debounceRef.current !== null) {
+                clearTimeout(debounceRef.current);
+                debounceRef.current = null;
+            }
+            onChange('');
+        },
+        [onChange],
+    );
+
     return (
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box>
             <Box
                 sx={{
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
                     alignItems: 'center',
                     gap: 1,
                     py: 0.5,
@@ -101,41 +122,34 @@ function ColorPickerField({ value, onChange, label }: ColorPickerFieldProps): Re
                 <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ flexShrink: 0, userSelect: 'none' }}
+                    sx={{ userSelect: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                     {label}
                 </Typography>
 
-                <Box
-                    sx={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '4px',
-                        flexShrink: 0,
-                        background: cachedValue || 'transparent',
-                        border: cachedValue
-                            ? `1px solid ${theme.palette.divider}`
-                            : `1px dashed ${theme.palette.text.disabled}`,
-                    }}
-                />
-
-                {cachedValue && (
-                    <IconButton
-                        size="small"
-                        onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            if (debounceRef.current !== null) {
-                                clearTimeout(debounceRef.current);
-                                debounceRef.current = null;
-                            }
-                            setCachedValue('');
-                            onChange('');
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box
+                        sx={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: '4px',
+                            background: cachedValue || 'transparent',
+                            border: cachedValue
+                                ? `1px solid ${theme.palette.divider}`
+                                : `1px dashed ${theme.palette.text.disabled}`,
                         }}
-                        sx={{ p: 0.25, ml: -0.5 }}
-                    >
-                        <ClearIcon fontSize="inherit" />
-                    </IconButton>
-                )}
+                    />
+                    {overridden ? (
+                        <IconButton
+                            size="small"
+                            onClick={handleReset}
+                            title={Generic.t('theme_studio_reset_color')}
+                            sx={{ p: 0.25 }}
+                        >
+                            <ClearIcon fontSize="inherit" />
+                        </IconButton>
+                    ) : null}
+                </Box>
             </Box>
 
             <Popover

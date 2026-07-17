@@ -40,10 +40,12 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type React from 'react';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Theme } from '@mui/material/styles';
 
 import Generic from '../Generic';
 import useDraggable from '../hooks/useDraggable';
 import { THEME_STATE_ID } from '../lib/constants';
+import { withDerivedSecondary } from '../lib/theme/derivePalette';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { THEME_PRESETS } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
@@ -160,6 +162,17 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
 
     // Re-validate on every change.
     const validation = useMemo(() => validateThemeOptions(themeObj), [themeObj]);
+
+    // Resolved theme for display: same shape the runtime builds, but with the
+    // color mode resolved against the vis-2 host when set to "Auto", so every
+    // color field shows the effective value (MUI's mode-aware defaults for
+    // anything not explicitly overridden).
+    const resolvedTheme = useMemo<Theme>(() => {
+        const storedMode = getNestedValue<string>(themeObj, 'palette.mode');
+        const mode: 'light' | 'dark' =
+            storedMode === 'light' || storedMode === 'dark' ? storedMode : themeType === 'dark' ? 'dark' : 'light';
+        return createTheme(withDerivedSecondary({ ...themeObj, palette: { ...themeObj.palette, mode } }));
+    }, [themeObj, themeType]);
 
     // Escape closes (with the same discard handling as the close button).
     const requestClose = useCallback((): void => {
@@ -329,10 +342,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                     })}
                                 </Stack>
                             </Box>
-                            <ThemePreviewBlock theme={themeObj} />
+                            <ThemePreviewBlock theme={resolvedTheme} />
                             <PaletteSection
                                 theme={themeObj}
                                 onChange={handleChange}
+                                resolved={resolvedTheme}
                             />
                             <TypographySection
                                 theme={themeObj}
@@ -341,6 +355,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                             <ErweitertSection
                                 theme={themeObj}
                                 onChange={handleChange}
+                                resolved={resolvedTheme}
                             />
 
                             {saveError ? (

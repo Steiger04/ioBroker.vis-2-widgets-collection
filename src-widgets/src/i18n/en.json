@@ -528,6 +528,8 @@
     "theme_studio_preview_secondary": "Secondary",
     "theme_studio_save_error": "Saving failed — check the connection and try again.",
     "theme_studio_secondary_derived": "derived",
+    "theme_studio_mode_follows": "follows host",
+    "theme_studio_reset_color": "Reset to default",
     "theme_studio_google_fonts_link": "Browse fonts",
     "theme_studio_preset_daylight": "Daylight",
     "theme_studio_preset_graphit": "Graphite",

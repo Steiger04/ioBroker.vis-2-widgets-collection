@@ -9,7 +9,7 @@
  * ({@link module:lib/theme/validateTheme}).
  */
 
-import type { ThemeOptions } from '@mui/material/styles';
+import type { Theme, ThemeOptions } from '@mui/material/styles';
 
 /**
  * One inlined woff2 face of a Google Font loaded by name in the wizard.
@@ -88,4 +88,10 @@ export interface ThemeFormSectionProps {
     onChange: (path: string, value: unknown) => void;
     /** Whether the section's accordion is expanded on first render. */
     defaultExpanded?: boolean;
+    /**
+     * Resolved MUI theme (mode resolved against the vis-2 host, derived secondary
+     * applied) used to display the effective color in each field. Color sections
+     * read the effective value from here when no explicit override is set.
+     */
+    resolved?: Theme;
 }

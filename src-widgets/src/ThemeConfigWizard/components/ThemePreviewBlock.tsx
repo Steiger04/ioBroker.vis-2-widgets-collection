@@ -1,39 +1,36 @@
 /**
- * Compact live preview of the draft theme, rendered inside the studio panel.
+ * Compact live preview of the effective theme, rendered inside the studio panel.
  *
  * @module ThemeConfigWizard/components/ThemePreviewBlock
  * @remarks
- * Builds a theme from the in-memory draft — applying {@link withDerivedSecondary}
- * exactly like the runtime hook — and renders a few representative widgets under
- * it. Because the collection's own widgets do not use the secondary color, this
- * preview is the only place the derived secondary is actually visible; it is what
- * makes "secondary follows primary" verifiable inside the configurator.
+ * Renders a few representative widgets under the resolved theme passed in from
+ * the studio panel — the same resolved theme the color fields display (mode
+ * resolved against the vis-2 host, derived secondary applied). Because the
+ * collection's own widgets do not use the secondary color, this preview is the
+ * primary place the derived secondary is actually visible; it is what makes
+ * "secondary follows primary" verifiable inside the configurator.
  */
 
-import { Button, Chip, Paper, Slider, Stack, ThemeProvider, Typography, createTheme } from '@mui/material';
-import { useMemo } from 'react';
+import { Button, Chip, Paper, Slider, Stack, ThemeProvider, Typography } from '@mui/material';
 import type React from 'react';
+import type { Theme } from '@mui/material/styles';
 
 import Generic from '../../Generic';
-import { withDerivedSecondary } from '../../lib/theme/derivePalette';
-import type { UserTheme } from '../../lib/theme/themeTypes';
 
 /** Props for {@link ThemePreviewBlock}. */
 interface ThemePreviewBlockProps {
-    /** The in-memory draft theme to preview (derived secondary applied here). */
-    theme: UserTheme;
+    /** The resolved MUI theme to preview (mode resolved, derived secondary applied). */
+    theme: Theme;
 }
 
 /**
- * Renders representative widgets under the draft theme so color/typography edits
- * are visible immediately — including the derived secondary on a secondary button.
+ * Renders representative widgets under the resolved theme so color/typography
+ * edits are visible immediately — including the derived secondary on a secondary
+ * button.
  */
 function ThemePreviewBlock({ theme }: ThemePreviewBlockProps): React.JSX.Element {
-    // Same derivation the runtime hook applies, so the preview matches the widgets.
-    const previewTheme = useMemo(() => createTheme(withDerivedSecondary(theme)), [theme]);
-
     return (
-        <ThemeProvider theme={previewTheme}>
+        <ThemeProvider theme={theme}>
             <Paper
                 variant="outlined"
                 sx={{ p: 1.5, mb: 2 }}

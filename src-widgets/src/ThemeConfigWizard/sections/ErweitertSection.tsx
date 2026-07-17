@@ -6,7 +6,10 @@
  * Consolidates the rarely-tuned controls so the main view stays focused on the
  * accent-driven core (Farben) and Schrift & Form. Holds the non-hero palette
  * slots — status / text / surface colors, grouped with plain labels — plus text
- * direction, spacing factor, and CSS variables. Collapsed by default.
+ * direction, spacing factor, and CSS variables. Each color field shows the
+ * effective (resolved) value (MUI's mode-aware default) until the user overrides
+ * it. Fields stack vertically within each group so swatches align
+ * (ColorPickerField uses a 1fr/auto grid). Collapsed by default.
  */
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -68,7 +71,7 @@ const COLOR_GROUPS: ReadonlyArray<ColorGroup> = [
 ];
 
 /** "Erweitert" section: grouped extra colors + direction + spacing + CSS vars. */
-function ErweitertSection({ theme, onChange, defaultExpanded }: ThemeFormSectionProps): React.JSX.Element {
+function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeFormSectionProps): React.JSX.Element {
     const spacing = getNestedValue<number>(theme, 'spacing') ?? 8;
     const direction = getNestedValue<string>(theme, 'direction');
     const cssVariables = getNestedValue<unknown>(theme, 'cssVariables');
@@ -104,23 +107,26 @@ function ErweitertSection({ theme, onChange, defaultExpanded }: ThemeFormSection
                             <Typography
                                 variant="caption"
                                 color="text.secondary"
-                                sx={{ display: 'block', mb: 1 }}
+                                sx={{ display: 'block', mb: 0.5 }}
                             >
                                 {Generic.t(group.labelKey)}
                             </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {group.fields.map(field => (
-                                    <Box
-                                        key={field.path}
-                                        sx={{ flex: '1 1 200px' }}
-                                    >
+                            <Box>
+                                {group.fields.map(field => {
+                                    const stored = getNestedValue<string>(theme, field.path);
+                                    const resolvedValue = resolved
+                                        ? (getNestedValue<string>(resolved, field.path) ?? '')
+                                        : '';
+                                    return (
                                         <ColorPickerField
+                                            key={field.path}
                                             label={Generic.t(field.labelKey)}
-                                            value={getNestedValue<string>(theme, field.path) ?? ''}
+                                            value={stored ?? resolvedValue}
+                                            overridden={stored !== undefined}
                                             onChange={color => onChange(field.path, color || undefined)}
                                         />
-                                    </Box>
-                                ))}
+                                    );
+                                })}
                             </Box>
                         </Box>
                     ))}
