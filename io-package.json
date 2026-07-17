@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.4.2",
+    "version": "2.5.0",
     "news": {
+      "2.5.0": {
+        "en": "Theme wizard with presets, live preview, custom fonts and widget sizing\nSlider marker defaults and label styling fixed\nGauge min/max fallback fixed\nJSON Table quick filtering fixed",
+        "de": "Designassistent mit Voreinstellungen, Live-Vorschau, benutzerdefinierten Schriftarten und Widget-Größenanpassung\nStandardeinstellungen für Schiebereglermarkierungen und Beschriftungsformatierung korrigiert\nFehlerhafte Rückstellung für minimale/maximale Messwerte behoben\nSchnelles Filtern von JSON-Tabellen behoben",
+        "ru": "Мастер настройки тем с предустановками, предварительным просмотром в реальном времени, пользовательскими шрифтами и регулировкой размеров виджетов.\nИсправлены настройки по умолчанию для маркеров ползунка и стили меток.\nИсправлено резервное значение минимального/максимального значения индикатора.\nИсправлена ошибка быстрой фильтрации JSON-таблиц.",
+        "pt": "Assistente de temas com predefinições, pré-visualização ao vivo, fontes personalizadas e redimensionamento de widgets.\nConfigurações padrão do marcador do controle deslizante e estilo do rótulo corrigidas\nCorreção de fallback mínimo/máximo do medidor\nCorreção do problema de filtragem rápida em tabelas JSON",
+        "nl": "Thema-wizard met voorinstellingen, live preview, aangepaste lettertypen en widgetgrootte.\nStandaardinstellingen voor schuifregelaarmarkeringen en labelstijl gecorrigeerd\nTerugval naar minimum/maximum meter gecorrigeerd\nSnel filteren van JSON-tabellen is nu opgelost",
+        "fr": "Assistant de thème avec préréglages, aperçu en direct, polices personnalisées et dimensionnement des widgets\nCorrection des paramètres par défaut des marqueurs de curseur et du style des étiquettes\nValeur de repli minimale/maximale de la jauge fixée\nLe filtrage rapide des tableaux JSON a été corrigé.",
+        "it": "Creazione guidata del tema con preset, anteprima in tempo reale, font personalizzati e ridimensionamento dei widget.\nImpostazioni predefinite del marcatore del cursore e stile dell'etichetta corretti\nCorretto il fallback minimo/massimo dell'indicatore\nCorretto il filtro rapido della tabella JSON",
+        "es": "Asistente de temas con preajustes, vista previa en tiempo real, fuentes personalizadas y ajuste del tamaño de los widgets.\nSe corrigieron los valores predeterminados del marcador deslizante y el estilo de la etiqueta.\nCalibre de reserva mínimo/máximo fijo\nSe ha corregido el filtrado rápido de tablas JSON.",
+        "pl": "Kreator motywów z ustawieniami wstępnymi, podglądem na żywo, niestandardowymi czcionkami i zmianą rozmiaru widżetu\nNaprawiono domyślne ustawienia znacznika suwaka i styl etykiety\nNaprawiono błąd min./maks. wskaźnika\nNaprawiono szybkie filtrowanie tabeli JSON",
+        "uk": "Майстер тем із пресетами, попереднім переглядом у реальному часі, користувацькими шрифтами та зміною розміру віджетів\nВиправлено налаштування маркера слайдера за замовчуванням та стиль підписів\nВиправлено резервне значення мін/макс датчика\nВиправлено швидку фільтрацію таблиць JSON",
+        "zh-cn": "主题向导，包含预设选项、实时预览、自定义字体和组件尺寸调整功能\n滑块标记默认值和标签样式已修复\n仪表最小值/最大值回退值已修复\nJSON 表格快速筛选已修复"
+      },
       "2.4.2": {
         "en": "JSON Table: bug fixes and improvements (date handling, table state persistence, refactor)\nColorPickerField: debouncing for picker drag events and refactor\nCheckboxCollection: refactor (helpers, memoization, type safety)",
         "de": "JSON-Tabelle: Fehlerbehebungen und Verbesserungen (Datumsverarbeitung, Speicherung des Tabellenstatus, Refactoring)\nColorPickerField: Entprellung von Drag-Ereignissen im Auswahlfeld und Refactoring\nCheckboxCollection: Refactoring (Hilfsfunktionen, Memoization, Typsicherheit)",
@@ -80,19 +93,6 @@
         "pl": "ButtonGroupCollection Naprawianie błędów interfejsu",
         "uk": "ButtonGroupВибір Виправлення помилок Widget",
         "zh-cn": "按钮组合 部件错误修复"
-      },
-      "2.3.0": {
-        "en": "Widget optimizations\nBug fixing\nUser documentation fixed (GitHub Wiki)",
-        "de": "Widget Optimierungen\nFehlerbehebung\nBenutzerdokumentation behoben (GitHub Wiki)",
-        "ru": "Оптимизация виджетов\nИсправление клопов\nФиксированная пользовательская документация (GitHub Wiki)",
-        "pt": "Otimizações de elementos\nResolução de erros\nDocumentação do usuário corrigida (GitHub Wiki)",
-        "nl": "Widget optimalisaties\nBugfixing\nGebruikersdocumentatie gerepareerd (GitHub Wiki)",
-        "fr": "Optimisations Widget\nCorrection des bogues\nDocumentation utilisateur corrigée (Wiki GitHub)",
-        "it": "Ottimizzazione Widget\nCorrezione di bug\nDocumentazione dell'utente fisso (GitHub Wiki)",
-        "es": "Optimizaciones Widget\nCorrección de errores\nDocumentación de usuario fija (GitHub Wiki)",
-        "pl": "Optymalizacja widżetu\nNaprawianie błędów\nStała dokumentacja użytkownika (GitHub Wiki)",
-        "uk": "Оптимізація віджету\nВиправлення помилок\nДокументація користувача фіксована (GitHub Wiki)",
-        "zh-cn": "部件优化\n修复错误\n用户文档固定 (GitHub 维基)"
       }
     },
     "titleLang": {

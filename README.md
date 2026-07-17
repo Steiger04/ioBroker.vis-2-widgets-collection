@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.5.0 (2026-07-17)
 
 - (steiger04) Theme wizard with presets, live preview, custom fonts and widget sizing
 - (steiger04) Slider marker defaults and label styling fixed
