@@ -26,18 +26,20 @@ import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?inlin
 import inter700 from '@fontsource/inter/files/inter-latin-700-normal.woff2?inline';
 import openSans400 from '@fontsource/open-sans/files/open-sans-latin-400-normal.woff2?inline';
 import openSans700 from '@fontsource/open-sans/files/open-sans-latin-700-normal.woff2?inline';
-import lato400 from '@fontsource/lato/files/lato-latin-400-normal.woff2?inline';
-import lato700 from '@fontsource/lato/files/lato-latin-700-normal.woff2?inline';
 import montserrat400 from '@fontsource/montserrat/files/montserrat-latin-400-normal.woff2?inline';
 import montserrat700 from '@fontsource/montserrat/files/montserrat-latin-700-normal.woff2?inline';
-import sourceSans3_400 from '@fontsource/source-sans-3/files/source-sans-3-latin-400-normal.woff2?inline';
-import sourceSans3_700 from '@fontsource/source-sans-3/files/source-sans-3-latin-700-normal.woff2?inline';
-import notoSans400 from '@fontsource/noto-sans/files/noto-sans-latin-400-normal.woff2?inline';
-import notoSans700 from '@fontsource/noto-sans/files/noto-sans-latin-700-normal.woff2?inline';
-import robotoMono400 from '@fontsource/roboto-mono/files/roboto-mono-latin-400-normal.woff2?inline';
-import robotoMono700 from '@fontsource/roboto-mono/files/roboto-mono-latin-700-normal.woff2?inline';
 import robotoSlab400 from '@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2?inline';
 import robotoSlab700 from '@fontsource/roboto-slab/files/roboto-slab-latin-700-normal.woff2?inline';
+import merriweather400 from '@fontsource/merriweather/files/merriweather-latin-400-normal.woff2?inline';
+import merriweather700 from '@fontsource/merriweather/files/merriweather-latin-700-normal.woff2?inline';
+import playfairDisplay400 from '@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2?inline';
+import playfairDisplay700 from '@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2?inline';
+import jetbrainsMono400 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?inline';
+import jetbrainsMono700 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2?inline';
+import oswald400 from '@fontsource/oswald/files/oswald-latin-400-normal.woff2?inline';
+import oswald700 from '@fontsource/oswald/files/oswald-latin-700-normal.woff2?inline';
+import nunito400 from '@fontsource/nunito/files/nunito-latin-400-normal.woff2?inline';
+import nunito700 from '@fontsource/nunito/files/nunito-latin-700-normal.woff2?inline';
 
 /** A bundled `@font-face` rule to inject (family + weight + inlined woff2). */
 interface BundledFontFace {
@@ -57,18 +59,20 @@ const BUNDLED_FONT_FACES: ReadonlyArray<BundledFontFace> = [
     { family: 'Inter', weight: 700, data: inter700 },
     { family: 'Open Sans', weight: 400, data: openSans400 },
     { family: 'Open Sans', weight: 700, data: openSans700 },
-    { family: 'Lato', weight: 400, data: lato400 },
-    { family: 'Lato', weight: 700, data: lato700 },
     { family: 'Montserrat', weight: 400, data: montserrat400 },
     { family: 'Montserrat', weight: 700, data: montserrat700 },
-    { family: 'Source Sans 3', weight: 400, data: sourceSans3_400 },
-    { family: 'Source Sans 3', weight: 700, data: sourceSans3_700 },
-    { family: 'Noto Sans', weight: 400, data: notoSans400 },
-    { family: 'Noto Sans', weight: 700, data: notoSans700 },
-    { family: 'Roboto Mono', weight: 400, data: robotoMono400 },
-    { family: 'Roboto Mono', weight: 700, data: robotoMono700 },
     { family: 'Roboto Slab', weight: 400, data: robotoSlab400 },
     { family: 'Roboto Slab', weight: 700, data: robotoSlab700 },
+    { family: 'Merriweather', weight: 400, data: merriweather400 },
+    { family: 'Merriweather', weight: 700, data: merriweather700 },
+    { family: 'Playfair Display', weight: 400, data: playfairDisplay400 },
+    { family: 'Playfair Display', weight: 700, data: playfairDisplay700 },
+    { family: 'JetBrains Mono', weight: 400, data: jetbrainsMono400 },
+    { family: 'JetBrains Mono', weight: 700, data: jetbrainsMono700 },
+    { family: 'Oswald', weight: 400, data: oswald400 },
+    { family: 'Oswald', weight: 700, data: oswald700 },
+    { family: 'Nunito', weight: 400, data: nunito400 },
+    { family: 'Nunito', weight: 700, data: nunito700 },
 ];
 
 let fontFacesInjected = false;
@@ -120,16 +124,19 @@ export interface FontCatalogueEntry {
  * browser can fall back if the named face is unavailable.
  */
 export const FONT_CATALOGUE: ReadonlyArray<FontCatalogueEntry> = [
-    // Bundled @fontsource families — render reliably, also offline.
-    { value: "'Roboto', system-ui, sans-serif", label: 'Roboto', group: 'bundled' },
+    // Bundled @fontsource families — render reliably, also offline. Ordered by
+    // use case: neutral/humanist sans, geometric sans, serif, display serif,
+    // slab, monospace, condensed, rounded, default sans.
     { value: "'Inter', system-ui, sans-serif", label: 'Inter', group: 'bundled' },
     { value: "'Open Sans', system-ui, sans-serif", label: 'Open Sans', group: 'bundled' },
-    { value: "'Lato', system-ui, sans-serif", label: 'Lato', group: 'bundled' },
     { value: "'Montserrat', system-ui, sans-serif", label: 'Montserrat', group: 'bundled' },
-    { value: "'Source Sans 3', system-ui, sans-serif", label: 'Source Sans 3', group: 'bundled' },
-    { value: "'Noto Sans', system-ui, sans-serif", label: 'Noto Sans', group: 'bundled' },
-    { value: "'Roboto Mono', ui-monospace, monospace", label: 'Roboto Mono', group: 'bundled' },
+    { value: "'Merriweather', Georgia, serif", label: 'Merriweather', group: 'bundled' },
+    { value: "'Playfair Display', Georgia, serif", label: 'Playfair Display', group: 'bundled' },
     { value: "'Roboto Slab', Georgia, serif", label: 'Roboto Slab', group: 'bundled' },
+    { value: "'JetBrains Mono', ui-monospace, monospace", label: 'JetBrains Mono', group: 'bundled' },
+    { value: "'Oswald', system-ui, sans-serif", label: 'Oswald', group: 'bundled' },
+    { value: "'Nunito', system-ui, sans-serif", label: 'Nunito', group: 'bundled' },
+    { value: "'Roboto', system-ui, sans-serif", label: 'Roboto', group: 'bundled' },
     // Common named system fonts — render with the local face if installed, else
     // the generic fallback. No bundle cost; availability depends on the device.
     { value: "'Arial', sans-serif", label: 'Arial', group: 'system' },
