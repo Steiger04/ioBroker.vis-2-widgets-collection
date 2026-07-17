@@ -1,13 +1,13 @@
-import { j as a, n as C, T as I, G as f, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
-import { C as d, a as v, u as w, g as S, c as M, d as k, b as j, S as D, e as r, f as A, w as _, __tla as __tla_1 } from "./useData-DFGCESxg.js";
-import { u as W, d as T, __tla as __tla_2 } from "./useValueState-xFsj3rw8.js";
+import { j as a, n as C, T as I, G as f, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { C as d, a as v, u as w, g as S, c as M, d as k, b as j, S as D, e as r, f as A, w as _, __tla as __tla_1 } from "./useData-Crq-Rx8l.js";
+import { u as W, d as T, __tla as __tla_2 } from "./useValueState-ZAcVaukB.js";
 import { v as s, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { u as L, __tla as __tla_4 } from "./useHtmlValue-3ISCcM5X.js";
-import { F as N, __tla as __tla_5 } from "./FormControlLabel-DKFOMWlA.js";
-import { C as P, __tla as __tla_6 } from "./Checkbox-CH6DP_-T.js";
+import { F as N, __tla as __tla_5 } from "./FormControlLabel-BExMnks8.js";
+import { C as P, __tla as __tla_6 } from "./Checkbox-GYk87g_3.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_7 } from "./SwitchBase-XpmSqOOG.js";
+import { __tla as __tla_7 } from "./SwitchBase-CWi7Or7W.js";
 let u;
 let __tla = Promise.all([
   (() => {

@@ -1,7 +1,7 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as _, u as j, b as k, s as u, d as M, j as p, w as i, e as O, m as d, i as m, x as D, p as I, _ as N, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-XpmSqOOG.js";
-let H;
+import { a as P, g as j, u as M, b as k, s as u, d as _, j as p, w as i, e as O, m as d, i as m, x as D, p as I, Q as N, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-CWi7Or7W.js";
+let G;
 let __tla = Promise.all([
   (() => {
     try {
@@ -23,9 +23,9 @@ let __tla = Promise.all([
   })()
 ]).then(async () => {
   function A(t) {
-    return _("MuiSwitch", t);
+    return j("MuiSwitch", t);
   }
-  let o, E, F, X, L, V;
+  let o, E, F, X, L, Q;
   o = P("MuiSwitch", [
     "root",
     "edgeStart",
@@ -226,7 +226,7 @@ let __tla = Promise.all([
     backgroundColor: t.vars ? t.vars.palette.common.onBackground : `${t.palette.mode === "light" ? t.palette.common.black : t.palette.common.white}`,
     opacity: t.vars ? t.vars.opacity.switchTrack : `${t.palette.mode === "light" ? 0.38 : 0.3}`
   })));
-  V = u("span", {
+  Q = u("span", {
     name: "MuiSwitch",
     slot: "Thumb",
     overridesResolver: (t, a) => a.thumb
@@ -237,8 +237,8 @@ let __tla = Promise.all([
     height: 20,
     borderRadius: "50%"
   })));
-  H = T.forwardRef(function(a, s) {
-    const l = j({
+  G = T.forwardRef(function(a, s) {
+    const l = M({
       props: a,
       name: "MuiSwitch"
     }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: b, slots: c = {}, slotProps: e = {}, ...y } = l, r = {
@@ -250,7 +250,7 @@ let __tla = Promise.all([
       slots: c,
       slotProps: e
     }, [f, x] = k("root", {
-      className: M(n.root, h),
+      className: _(n.root, h),
       elementType: F,
       externalForwardedProps: S,
       ownerState: r,
@@ -259,7 +259,7 @@ let __tla = Promise.all([
       }
     }), [C, B] = k("thumb", {
       className: n.thumb,
-      elementType: V,
+      elementType: Q,
       externalForwardedProps: S,
       ownerState: r
     }), $ = p.jsx(C, {
@@ -309,6 +309,6 @@ let __tla = Promise.all([
   });
 });
 export {
-  H as S,
+  G as S,
   __tla
 };

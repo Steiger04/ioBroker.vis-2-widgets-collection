@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as U, u as A, q as E, ay as W, b as z, T as P, j as c, d as v, s as x, w as F, e as B, m as L, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { a as D, g as U, u as A, q as E, aH as H, b as W, T as P, j as c, d as v, s as x, w as F, e as z, m as L, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -15,7 +15,7 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  function H(e) {
+  function B(e) {
     return U("MuiFormControlLabel", e);
   }
   let t, I, G, J;
@@ -48,7 +48,7 @@ let __tla = Promise.all([
         p && "error"
       ]
     };
-    return B(m, H, o);
+    return z(m, B, o);
   };
   G = x("label", {
     name: "MuiFormControlLabel",
@@ -139,7 +139,7 @@ let __tla = Promise.all([
     ].forEach((i) => {
       typeof a.props[i] > "u" && typeof r[i] < "u" && (g[i] = r[i]);
     });
-    const w = W({
+    const w = H({
       props: r,
       muiFormControl: f,
       states: [
@@ -157,7 +157,7 @@ let __tla = Promise.all([
         ...m,
         ...$
       }
-    }, [N, h] = z("typography", {
+    }, [N, h] = W("typography", {
       elementType: P,
       externalForwardedProps: M,
       ownerState: n

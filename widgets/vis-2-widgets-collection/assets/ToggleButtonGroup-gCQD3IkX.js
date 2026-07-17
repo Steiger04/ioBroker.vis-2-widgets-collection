@@ -1,5 +1,5 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as S, g as M, aw as D, u as N, j as k, s as P, d as _, w as W, e as j, B as E, m as U, i as f, x as F, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { a as w, g as M, aF as A, u as N, j as k, s as P, d as _, w as W, e as j, B as D, m as U, i as f, x as E, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
 let ot, et;
 let __tla = Promise.all([
   (() => {
@@ -21,7 +21,7 @@ let __tla = Promise.all([
   function q(t) {
     return M("MuiToggleButton", t);
   }
-  const v = S("MuiToggleButton", [
+  const v = w("MuiToggleButton", [
     "root",
     "disabled",
     "selected",
@@ -32,7 +32,7 @@ let __tla = Promise.all([
     "sizeMedium",
     "sizeLarge",
     "fullWidth"
-  ]), V = l.createContext({}), A = l.createContext(void 0);
+  ]), F = l.createContext({}), V = l.createContext(void 0);
   function I(t, e) {
     return e === void 0 || t === void 0 ? false : Array.isArray(e) ? e.includes(t) : t === e;
   }
@@ -50,7 +50,7 @@ let __tla = Promise.all([
     };
     return j(u, q, e);
   };
-  K = P(E, {
+  K = P(D, {
     name: "MuiToggleButton",
     slot: "Root",
     overridesResolver: (t, e) => {
@@ -95,7 +95,7 @@ let __tla = Promise.all([
           }
         }
       },
-      ...Object.entries(t.palette).filter(F()).map(([e]) => ({
+      ...Object.entries(t.palette).filter(E()).map(([e]) => ({
         props: {
           color: e
         },
@@ -141,7 +141,7 @@ let __tla = Promise.all([
     ]
   })));
   et = l.forwardRef(function(e, r) {
-    const { value: i, ...d } = l.useContext(V), g = l.useContext(A), B = D({
+    const { value: i, ...d } = l.useContext(F), g = l.useContext(V), B = A({
       ...d,
       selected: I(e.value, i)
     }, e), u = N({
@@ -154,15 +154,15 @@ let __tla = Promise.all([
       disableFocusRipple: $,
       fullWidth: s,
       size: z
-    }, w = J(T), L = (a) => {
+    }, L = J(T), S = (a) => {
       x && (x(a, b), a.defaultPrevented) || y && y(a, b);
     }, n = g || "";
     return k.jsx(K, {
-      className: _(d.className, w.root, C, n),
+      className: _(d.className, L.root, C, n),
       disabled: O,
       focusRipple: !$,
       ref: r,
-      onClick: L,
+      onClick: S,
       onChange: y,
       value: b,
       ownerState: T,
@@ -175,7 +175,7 @@ let __tla = Promise.all([
     return M("MuiToggleButtonGroup", t);
   }
   let o, X, Y;
-  o = S("MuiToggleButtonGroup", [
+  o = w("MuiToggleButtonGroup", [
     "root",
     "selected",
     "horizontal",
@@ -349,8 +349,8 @@ let __tla = Promise.all([
       C,
       B,
       u
-    ]), T = H(d), w = T.length, L = (n) => {
-      const a = n === 0, R = n === w - 1;
+    ]), T = H(d), L = T.length, S = (n) => {
+      const a = n === 0, R = n === L - 1;
       return a && R ? "" : a ? c.firstButton : R ? c.lastButton : c.middleButton;
     };
     return k.jsx(Y, {
@@ -359,10 +359,10 @@ let __tla = Promise.all([
       ref: r,
       ownerState: x,
       ...y,
-      children: k.jsx(V.Provider, {
+      children: k.jsx(F.Provider, {
         value: G,
-        children: T.map((n, a) => k.jsx(A.Provider, {
-          value: L(a),
+        children: T.map((n, a) => k.jsx(V.Provider, {
+          value: S(a),
           children: n
         }, a))
       })

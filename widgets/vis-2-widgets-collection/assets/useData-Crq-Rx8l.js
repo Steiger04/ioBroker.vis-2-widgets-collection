@@ -1,6 +1,6 @@
-import { u as ve, j as b, s as ce, d as he, e as Se, a7 as xe, m as se, i as Ce, a8 as R, a9 as ye, aa as ke, ab as ze, ac as oe, a3 as ue, n as w, T as Y, G as Q, c as $e, ad as Ae, a0 as _e, I as Oe, ae as je, af as Ie, P as ne, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { u as ve, j as h, s as se, d as Se, e as xe, a2 as Ce, m as ue, i as ye, a3 as ke, a4 as ze, a5 as R, a6 as $e, a7 as Ae, a8 as _e, a9 as ne, aa as Oe, ab as je, ac as K, ad as Te, ae as Ie, _ as de, af as we, n as w, T as Y, G as Z, c as Be, ag as Ee, X as Me, I as Fe, ah as Ve, ai as Pe, P as re, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
 import { v as m, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-let z, q, tt, W, D, Qe, gt, ft, mt, et, X, dt, Ze, nt, re, Ke, ee, qe, U, He, bt, ut;
+let z, q, ut, W, D, lt, kt, Ct, yt, st, X, xt, ct, ft, ie, it, te, nt, U, Le, zt, St;
 let __tla = Promise.all([
   (() => {
     try {
@@ -15,29 +15,29 @@ let __tla = Promise.all([
     }
   })()
 ]).then(async () => {
-  let Te, we, Be;
-  Te = (t) => {
-    const { absolute: e, children: o, classes: r, flexItem: s, light: i, orientation: a, textAlign: u, variant: d } = t;
-    return Se({
+  let He, Re, De;
+  He = (t) => {
+    const { absolute: e, children: o, classes: r, flexItem: s, light: i, orientation: l, textAlign: u, variant: f } = t;
+    return xe({
       root: [
         "root",
         e && "absolute",
-        d,
+        f,
         i && "light",
-        a === "vertical" && "vertical",
+        l === "vertical" && "vertical",
         s && "flexItem",
         o && "withChildren",
-        o && a === "vertical" && "withChildrenVertical",
-        u === "right" && a !== "vertical" && "textAlignRight",
-        u === "left" && a !== "vertical" && "textAlignLeft"
+        o && l === "vertical" && "withChildrenVertical",
+        u === "right" && l !== "vertical" && "textAlignRight",
+        u === "left" && l !== "vertical" && "textAlignLeft"
       ],
       wrapper: [
         "wrapper",
-        a === "vertical" && "wrapperVertical"
+        l === "vertical" && "wrapperVertical"
       ]
-    }, xe, r);
+    }, Ce, r);
   };
-  we = ce("div", {
+  Re = se("div", {
     name: "MuiDivider",
     slot: "Root",
     overridesResolver: (t, e) => {
@@ -55,7 +55,7 @@ let __tla = Promise.all([
         o.textAlign === "left" && o.orientation !== "vertical" && e.textAlignLeft
       ];
     }
-  })(se(({ theme: t }) => ({
+  })(ue(({ theme: t }) => ({
     margin: 0,
     flexShrink: 0,
     borderWidth: 0,
@@ -79,7 +79,7 @@ let __tla = Promise.all([
           light: true
         },
         style: {
-          borderColor: t.vars ? `rgba(${t.vars.palette.dividerChannel} / 0.08)` : Ce(t.palette.divider, 0.08)
+          borderColor: t.vars ? `rgba(${t.vars.palette.dividerChannel} / 0.08)` : ye(t.palette.divider, 0.08)
         }
       },
       {
@@ -188,7 +188,7 @@ let __tla = Promise.all([
       }
     ]
   })));
-  Be = ce("span", {
+  De = se("span", {
     name: "MuiDivider",
     slot: "Wrapper",
     overridesResolver: (t, e) => {
@@ -198,7 +198,7 @@ let __tla = Promise.all([
         o.orientation === "vertical" && e.wrapperVertical
       ];
     }
-  })(se(({ theme: t }) => ({
+  })(ue(({ theme: t }) => ({
     display: "inline-block",
     paddingLeft: `calc(${t.spacing(1)} * 1.2)`,
     paddingRight: `calc(${t.spacing(1)} * 1.2)`,
@@ -219,35 +219,35 @@ let __tla = Promise.all([
     const r = ve({
       props: e,
       name: "MuiDivider"
-    }), { absolute: s = false, children: i, className: a, orientation: u = "horizontal", component: d = i || u === "vertical" ? "div" : "hr", flexItem: n = false, light: p = false, role: v = d !== "hr" ? "separator" : void 0, textAlign: f = "center", variant: l = "fullWidth", ...c } = r, g = {
+    }), { absolute: s = false, children: i, className: l, orientation: u = "horizontal", component: f = i || u === "vertical" ? "div" : "hr", flexItem: n = false, light: b = false, role: g = f !== "hr" ? "separator" : void 0, textAlign: d = "center", variant: a = "fullWidth", ...c } = r, p = {
       ...r,
       absolute: s,
-      component: d,
+      component: f,
       flexItem: n,
-      light: p,
+      light: b,
       orientation: u,
-      role: v,
-      textAlign: f,
-      variant: l
-    }, $ = Te(g);
-    return b.jsx(we, {
-      as: d,
-      className: he($.root, a),
-      role: v,
+      role: g,
+      textAlign: d,
+      variant: a
+    }, $ = He(p);
+    return h.jsx(Re, {
+      as: f,
+      className: Se($.root, l),
+      role: g,
       ref: o,
-      ownerState: g,
-      "aria-orientation": v === "separator" && (d !== "hr" || u === "vertical") ? u : void 0,
+      ownerState: p,
+      "aria-orientation": g === "separator" && (f !== "hr" || u === "vertical") ? u : void 0,
       ...c,
-      children: i ? b.jsx(Be, {
+      children: i ? h.jsx(De, {
         className: $.wrapper,
-        ownerState: g,
+        ownerState: p,
         children: i
       }) : null
     });
   });
   q && (q.muiSkipListHighlight = true);
-  let Ee, Fe;
-  Ee = [
+  let Ne;
+  Ne = [
     "background",
     "background-color",
     "background-image",
@@ -275,7 +275,7 @@ let __tla = Promise.all([
     "box-sizing",
     "box-shadow"
   ];
-  ee = (t) => m.useMemo(() => {
+  te = (t) => m.useMemo(() => {
     if (!t) return {
       backgroundStyles: void 0,
       borderStyles: void 0,
@@ -284,9 +284,9 @@ let __tla = Promise.all([
       boxStyles: void 0
     };
     const e = {}, o = {}, r = {}, s = {}, i = {};
-    return Ee.forEach((a) => {
-      const u = t[a];
-      u !== void 0 && (a.includes("background") ? e[a] = u : a.includes("border") ? o[a] = u : a.includes("font") || a.includes("line-height") || a.includes("letter-spacing") || a.includes("word-spacing") ? s[a] = u : a.includes("text") || a.includes("color") ? r[a] = u : i[a] = u);
+    return Ne.forEach((l) => {
+      const u = t[l];
+      u !== void 0 && (l.includes("background") ? e[l] = u : l.includes("border") ? o[l] = u : l.includes("font") || l.includes("line-height") || l.includes("letter-spacing") || l.includes("word-spacing") ? s[l] = u : l.includes("text") || l.includes("color") ? r[l] = u : i[l] = u);
     }), {
       backgroundStyles: e,
       borderStyles: o,
@@ -297,7 +297,10 @@ let __tla = Promise.all([
   }, [
     t
   ]);
-  Fe = [
+  function We() {
+    return m.useSyncExternalStore(ke, ze);
+  }
+  const Ge = [
     "h1",
     "h2",
     "h3",
@@ -313,33 +316,33 @@ let __tla = Promise.all([
     "overline",
     "inherit"
   ];
-  function Me(t) {
+  function Xe(t) {
     const { typography: e } = t;
     if (!e) return t;
     const o = {
       ...e
     };
-    for (const r of Fe) delete o[r];
+    for (const r of Ge) delete o[r];
     return delete o.pxToRem, {
       ...t,
       typography: o
     };
   }
-  function de(t, e, o) {
+  function fe(t, e, o) {
     const [r, s] = m.useState("");
     m.useEffect(() => {
-      let a = true;
-      const u = (d, n) => {
-        a && s(typeof (n == null ? void 0 : n.val) == "string" ? n.val : "");
+      let n = true;
+      const b = (g, d) => {
+        n && s(typeof (d == null ? void 0 : d.val) == "string" ? d.val : "");
       };
-      return t.getState(R).then((d) => {
-        a && s(typeof (d == null ? void 0 : d.val) == "string" ? d.val : "");
-      }).catch((d) => console.error(`Cannot read theme state ${R}: ${d}`)), t.subscribeState(R, u).catch((d) => console.error(`Cannot subscribe theme state ${R}: ${d}`)), () => {
-        a = false;
+      return t.getState(R).then((g) => {
+        n && s(typeof (g == null ? void 0 : g.val) == "string" ? g.val : "");
+      }).catch((g) => console.error(`Cannot read theme state ${R}: ${g}`)), t.subscribeState(R, b).catch((g) => console.error(`Cannot subscribe theme state ${R}: ${g}`)), () => {
+        n = false;
         try {
-          t.unsubscribeState(R, u);
-        } catch (d) {
-          console.error(`Cannot unsubscribe theme state ${R}: ${d}`);
+          t.unsubscribeState(R, b);
+        } catch (g) {
+          console.error(`Cannot unsubscribe theme state ${R}: ${g}`);
         }
       };
     }, [
@@ -348,30 +351,58 @@ let __tla = Promise.all([
     const i = m.useMemo(() => {
       if (!r) return {};
       try {
-        const a = ye(JSON.parse(r));
-        return a.isValid ? a.theme ?? {} : {};
+        const n = $e(JSON.parse(r));
+        return n.isValid ? n.theme ?? {} : {};
       } catch {
         return {};
       }
     }, [
       r
-    ]);
-    return m.useEffect(() => {
-      ke(i.googleFonts);
+    ]), l = We(), u = l ?? i;
+    m.useEffect(() => {
+      Ae(u.googleFonts);
     }, [
-      i.googleFonts
+      u.googleFonts
+    ]);
+    const f = m.useRef(i);
+    return m.useEffect(() => {
+      const n = f.current !== i;
+      f.current = i, l && n && JSON.stringify(l) === JSON.stringify(i) && _e();
+    }, [
+      l,
+      i
     ]), m.useMemo(() => {
-      const a = Me(e);
-      return ze(oe(oe(a, o ?? {}), i));
+      const n = Xe(e), b = ne(n, "palette.primary.main"), g = Oe(je(u), b), d = K(K(n, o ?? {}), g), a = ne(d, "corners"), c = Te(a), p = c ? K(d, {
+        shape: {
+          borderRadius: (a == null ? void 0 : a.topLeft) ?? 4
+        },
+        components: {
+          MuiPaper: {
+            styleOverrides: {
+              root: {
+                borderRadius: c
+              }
+            }
+          },
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                borderRadius: c
+              }
+            }
+          }
+        }
+      }) : d;
+      return Ie(p);
     }, [
       e,
       o,
-      i
+      u
     ]);
   }
-  let L, fe;
+  let L, me;
   L = (t) => t.startsWith("&") || t.includes(" ") || t.startsWith("@") ? t : t.replace(/-([a-z])/g, (e, o) => o.toUpperCase());
-  fe = (t) => {
+  me = (t) => {
     const e = Object.fromEntries(Object.entries(t).map(([o, r]) => {
       if (Array.isArray(r)) {
         const s = r.filter((i) => i != null);
@@ -382,7 +413,7 @@ let __tla = Promise.all([
       }
       return typeof r == "object" && r !== null ? [
         L(o),
-        fe(r)
+        me(r)
       ] : [
         L(o),
         r
@@ -395,14 +426,14 @@ let __tla = Promise.all([
     const e = Object.fromEntries(Object.entries(t).map(([o, r]) => {
       const s = L(o);
       if (Array.isArray(r)) {
-        const i = r.filter((a) => a != null);
+        const i = r.filter((l) => l != null);
         return [
           s,
           i.length > 0 ? i : void 0
         ];
       }
       if (typeof r == "object" && r !== null) {
-        const i = fe(r);
+        const i = me(r);
         return [
           s,
           i
@@ -416,98 +447,104 @@ let __tla = Promise.all([
     return Object.keys(e).length > 0 ? e : {};
   };
   W = m.createContext({});
-  function Ve({ children: t, context: e }) {
-    const o = e.theme, r = e.widget, s = e.socket, { fontStyles: i, textStyles: a } = ee(r.style || {}), u = m.useMemo(() => ({
-      palette: {
-        text: {
-          primary: (a == null ? void 0 : a.color) || o.palette.primary.main
-        }
-      },
+  function Ye({ children: t, context: e }) {
+    const o = e.theme, r = e.widget, s = e.socket, { fontStyles: i, textStyles: l } = te(r.style || {}), u = m.useMemo(() => ({
       components: {
         MuiTypography: {
           styleOverrides: {
             root: {
               ...U(i),
-              ...U(a)
+              ...U(l)
             }
           }
         }
       }
     }), [
       i,
-      a,
-      o.palette.primary.main
-    ]), d = de(s, o, u);
-    return console.log("CollectionProvider: _theme", d), b.jsx(ue, {
-      theme: d,
-      children: b.jsx(W.Provider, {
-        value: {
-          ...e,
-          theme: d
-        },
-        children: t
-      })
+      l
+    ]), f = fe(s, o, u);
+    return h.jsxs(de, {
+      theme: f,
+      children: [
+        h.jsx(we, {
+          styles: {
+            html: {
+              boxSizing: "border-box"
+            },
+            "*, *::before, *::after": {
+              boxSizing: "inherit"
+            }
+          }
+        }),
+        h.jsx(W.Provider, {
+          value: {
+            ...e,
+            theme: f
+          },
+          children: t
+        })
+      ]
     });
   }
-  ut = function(t, e) {
-    return b.jsx(Ve, {
+  St = function(t, e) {
+    return h.jsx(Ye, {
       context: e,
       children: t
     });
   };
-  let M;
+  let F;
   z = ({ dividerText: t = "" }) => {
     const e = {
       position: "absolute",
       left: 0,
       width: "100%"
     };
-    return b.jsx(w, {
+    return h.jsx(w, {
       sx: {
         display: "inline-block",
         pt: 1.5,
         pb: t ? 2 : 1.5
       },
-      children: t ? b.jsx(q, {
+      children: t ? h.jsx(q, {
         sx: e,
-        children: b.jsx(Y, {
+        children: h.jsx(Y, {
           sx: {
             opacity: 0.7,
             color: "primary.main"
           },
           variant: "caption",
-          children: Q.t(t)
+          children: Z.t(t)
         })
-      }) : b.jsx(q, {
+      }) : h.jsx(q, {
         sx: e
       })
     });
   };
-  He = $e(b.jsx("path", {
+  Le = Be(h.jsx("path", {
     d: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
   }), "Delete");
-  M = {
+  F = {
     HEX: /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/,
     RGB: /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/i,
     GRADIENT: /^(linear-gradient|radial-gradient)\(.*\)$/i,
     GRADIENT_PREFIX: /^(linear-gradient|radial-gradient)\(/i
   };
-  function Z(t) {
+  function ee(t) {
     if (!t || t.trim() === "") return {
       isValid: true,
       normalizedValue: "",
       colorType: "empty"
     };
     const e = t.trim();
-    return M.HEX.test(e) ? {
+    return F.HEX.test(e) ? {
       isValid: true,
       normalizedValue: e,
       colorType: "hex"
-    } : M.RGB.test(e) ? {
+    } : F.RGB.test(e) ? {
       isValid: true,
       normalizedValue: e,
       colorType: "rgb"
-    } : M.GRADIENT.test(e) ? {
+    } : F.GRADIENT.test(e) ? {
       isValid: true,
       normalizedValue: e,
       colorType: "gradient"
@@ -517,124 +554,124 @@ let __tla = Promise.all([
       colorType: "invalid"
     };
   }
-  function Pe(t) {
+  function qe(t) {
     if (t == null || typeof t != "string") return false;
     const e = t.trim();
-    return e === "" ? false : M.GRADIENT_PREFIX.test(e);
+    return e === "" ? false : F.GRADIENT_PREFIX.test(e);
   }
-  function Re(t) {
+  function Ue(t) {
     if (!t || typeof t != "string") return null;
-    const e = t.match(M.HEX);
+    const e = t.match(F.HEX);
     if (!e) return null;
     let o = e[1];
     o.length === 3 && (o = o.split("").map((u) => u + u).join(""));
     const r = parseInt(o.substring(0, 2), 16), s = parseInt(o.substring(2, 4), 16), i = parseInt(o.substring(4, 6), 16);
-    let a = 1;
+    let l = 1;
     if (o.length === 8) {
       const u = parseInt(o.substring(6, 8), 16);
-      a = Math.round(u / 255 * 1e3) / 1e3;
+      l = Math.round(u / 255 * 1e3) / 1e3;
     }
     return {
       r,
       g: s,
       b: i,
-      a
+      a: l
     };
   }
-  function De(t) {
-    if (!t || typeof t != "string" || !t.match(M.RGB)) return null;
+  function Je(t) {
+    if (!t || typeof t != "string" || !t.match(F.RGB)) return null;
     const o = t.match(/\d+\.?\d*/g);
     if (!o || o.length < 3) return null;
-    const r = parseInt(o[0], 10), s = parseInt(o[1], 10), i = parseInt(o[2], 10), a = o[3] !== void 0 ? parseFloat(o[3]) : 1;
-    return r < 0 || r > 255 || s < 0 || s > 255 || i < 0 || i > 255 || a < 0 || a > 1 ? null : {
+    const r = parseInt(o[0], 10), s = parseInt(o[1], 10), i = parseInt(o[2], 10), l = o[3] !== void 0 ? parseFloat(o[3]) : 1;
+    return r < 0 || r > 255 || s < 0 || s > 255 || i < 0 || i > 255 || l < 0 || l > 1 ? null : {
       r,
       g: s,
       b: i,
-      a: Math.round(a * 1e3) / 1e3
+      a: Math.round(l * 1e3) / 1e3
     };
   }
   function N(t) {
     if (!t || typeof t != "string") return null;
     const e = t.trim();
-    return e.startsWith("#") ? Re(e) : e.toLowerCase().startsWith("rgb") ? De(e) : null;
+    return e.startsWith("#") ? Ue(e) : e.toLowerCase().startsWith("rgb") ? Je(e) : null;
   }
-  function Ne(t) {
+  function Ke(t) {
     if (!t || typeof t != "string") return null;
     const e = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s*(\d+(?:\.\d+)?%)?/gi, o = Array.from(t.matchAll(e));
     if (o.length < 2) return null;
     const r = o.map((s, i) => {
-      const a = s[1];
+      const l = s[1];
       let u;
       return s[2] ? u = parseFloat(s[2]) : u = i / (o.length - 1) * 100, {
-        color: a,
+        color: l,
         position: u
       };
     });
     return r.sort((s, i) => s.position - i.position), r;
   }
-  function We(t) {
+  function Qe(t) {
     if (!t || t.length < 2) return null;
-    const e = t.find((f) => f.position === 50);
+    const e = t.find((d) => d.position === 50);
     if (e) {
-      const f = N(e.color);
-      return f ? f.a === 1 ? `rgb(${f.r}, ${f.g}, ${f.b})` : `rgba(${f.r}, ${f.g}, ${f.b}, ${f.a})` : null;
+      const d = N(e.color);
+      return d ? d.a === 1 ? `rgb(${d.r}, ${d.g}, ${d.b})` : `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})` : null;
     }
     let o = null, r = null;
-    for (let f = 0; f < t.length; f++) if (t[f].position <= 50 && (o = t[f]), t[f].position > 50 && !r) {
-      r = t[f];
+    for (let d = 0; d < t.length; d++) if (t[d].position <= 50 && (o = t[d]), t[d].position > 50 && !r) {
+      r = t[d];
       break;
     }
     if (!r && o) {
-      const f = N(o.color);
-      return f ? f.a === 1 ? `rgb(${f.r}, ${f.g}, ${f.b})` : `rgba(${f.r}, ${f.g}, ${f.b}, ${f.a})` : null;
+      const d = N(o.color);
+      return d ? d.a === 1 ? `rgb(${d.r}, ${d.g}, ${d.b})` : `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})` : null;
     }
     if (!o && r) {
-      const f = N(r.color);
-      return f ? f.a === 1 ? `rgb(${f.r}, ${f.g}, ${f.b})` : `rgba(${f.r}, ${f.g}, ${f.b}, ${f.a})` : null;
+      const d = N(r.color);
+      return d ? d.a === 1 ? `rgb(${d.r}, ${d.g}, ${d.b})` : `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})` : null;
     }
     if (!o || !r) return null;
     const s = N(o.color), i = N(r.color);
     if (!s || !i) return null;
-    const a = r.position - o.position;
-    if (a === 0) {
-      const f = i;
-      return f.a === 1 ? `rgb(${f.r}, ${f.g}, ${f.b})` : `rgba(${f.r}, ${f.g}, ${f.b}, ${f.a})`;
+    const l = r.position - o.position;
+    if (l === 0) {
+      const d = i;
+      return d.a === 1 ? `rgb(${d.r}, ${d.g}, ${d.b})` : `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`;
     }
-    const u = (50 - o.position) / a, d = Math.round(s.r + (i.r - s.r) * u), n = Math.round(s.g + (i.g - s.g) * u), p = Math.round(s.b + (i.b - s.b) * u), v = Math.round((s.a + (i.a - s.a) * u) * 1e3) / 1e3;
-    return v === 1 ? `rgb(${d}, ${n}, ${p})` : `rgba(${d}, ${n}, ${p}, ${v})`;
+    const u = (50 - o.position) / l, f = Math.round(s.r + (i.r - s.r) * u), n = Math.round(s.g + (i.g - s.g) * u), b = Math.round(s.b + (i.b - s.b) * u), g = Math.round((s.a + (i.a - s.a) * u) * 1e3) / 1e3;
+    return g === 1 ? `rgb(${f}, ${n}, ${b})` : `rgba(${f}, ${n}, ${b}, ${g})`;
   }
-  re = function(t) {
+  ie = function(t) {
     if (t == null || typeof t != "string") return null;
     const e = t.trim();
     if (e === "") return null;
-    if (!M.GRADIENT_PREFIX.test(e)) return N(e) ? e : null;
+    if (!F.GRADIENT_PREFIX.test(e)) return N(e) ? e : null;
     try {
-      const r = Ne(e);
-      return r ? We(r) : null;
+      const r = Ke(e);
+      return r ? Qe(r) : null;
     } catch {
       return null;
     }
   };
-  function Ge(t, e, o) {
+  function Ze(t, e, o) {
     if (t.fallbackFields && Array.isArray(t.fallbackFields) && t.fallbackFields.length > 0) for (const r of t.fallbackFields) {
       const s = e[r];
       if (s && typeof s == "string") {
-        const i = Z(s);
+        const i = ee(s);
         if (i.isValid && i.normalizedValue.trim() !== "") return i.normalizedValue;
       }
     }
     return !t.fallbackFields || t.fallbackFields.length > 0 ? o : null;
   }
-  function Xe({ field: t, data: e, onDataChange: o, props: r }) {
-    const s = t.name, i = e[s], [a, u] = m.useState(i || ""), [d, n] = m.useState(false), [p, v] = m.useState(null), f = m.useRef(false), l = m.useRef(i), c = m.useRef(null), g = de(r.context.socket, r.context.theme), $ = g.palette.primary.main, { anchorOrigin: y, transformOrigin: B, maxHeight: V, setContentRef: F, popoverActionRef: H } = Ae(p, !!p);
+  function et({ field: t, data: e, onDataChange: o, props: r }) {
+    const s = t.name, i = e[s], [l, u] = m.useState(i || ""), [f, n] = m.useState(false), [b, g] = m.useState(null), d = m.useRef(false), a = m.useRef(i), c = m.useRef(null), p = fe(r.context.socket, r.context.theme), $ = p.palette.primary.main, { anchorOrigin: y, transformOrigin: B, maxHeight: V, setContentRef: M, popoverActionRef: P } = Ee(b, !!b);
     m.useEffect(() => () => {
       c.current !== null && clearTimeout(c.current);
     }, []);
-    const A = m.useCallback((S, P = false) => {
+    const A = m.useCallback((S, H = false) => {
       if (c.current !== null && (clearTimeout(c.current), c.current = null), S == null) {
-        u(""), n(false), l.current = null, o({
+        u(""), n(false), a.current = null, o({
           [s]: null
-        }), f.current = false;
+        }), d.current = false;
         return;
       }
       if (typeof S != "string") {
@@ -642,27 +679,27 @@ let __tla = Promise.all([
         return;
       }
       if (S.trim() === "") {
-        u(""), n(false), l.current = null, o({
+        u(""), n(false), a.current = null, o({
           [s]: null
-        }), f.current = false;
+        }), d.current = false;
         return;
       }
-      const T = Z(S);
-      if (u(S), !T.isValid) {
+      const I = ee(S);
+      if (u(S), !I.isValid) {
         n(true);
         return;
       }
       n(false);
       let C;
       if (t.noGradient === true) {
-        const j = re(T.normalizedValue);
+        const j = ie(I.normalizedValue);
         if (j === null) {
           n(true);
           return;
         }
         C = j;
-      } else C = T.normalizedValue || null;
-      l.current = C, P ? c.current = setTimeout(() => {
+      } else C = I.normalizedValue || null;
+      a.current = C, H ? c.current = setTimeout(() => {
         c.current = null, o({
           [s]: C
         });
@@ -679,47 +716,47 @@ let __tla = Promise.all([
       A
     ]), O = m.useCallback(() => A(null), [
       A
-    ]), I = !!p;
+    ]), T = !!b;
     return m.useEffect(() => {
-      if (i !== l.current) {
-        l.current = i;
+      if (i !== a.current) {
+        a.current = i;
         const S = i || "";
-        u(S), n(false), (!S || S.trim() === "") && (f.current = false);
+        u(S), n(false), (!S || S.trim() === "") && (d.current = false);
       }
     }, [
       i
     ]), m.useEffect(() => {
-      if (!I || f.current) return;
+      if (!T || d.current) return;
       if (i && i.trim() !== "") {
-        f.current = true;
+        d.current = true;
         return;
       }
-      const S = Ge(t, e, $);
+      const S = Ze(t, e, $);
       if (S) {
-        const P = Z(S);
-        if (P.isValid) if (t.noGradient === true) {
-          const E = re(P.normalizedValue);
-          E !== null && (u(S), n(false), l.current = E, o({
+        const H = ee(S);
+        if (H.isValid) if (t.noGradient === true) {
+          const E = ie(H.normalizedValue);
+          E !== null && (u(S), n(false), a.current = E, o({
             [s]: E
           }));
         } else u(S), n(false), o({
           [s]: S
         });
       }
-      f.current = true;
+      d.current = true;
     }, [
-      I,
+      T,
       e,
       s,
       t,
       i,
       $,
       o
-    ]), b.jsx(b.Fragment, {
-      children: b.jsxs(ue, {
-        theme: g,
+    ]), h.jsx(h.Fragment, {
+      children: h.jsxs(de, {
+        theme: p,
         children: [
-          b.jsxs(w, {
+          h.jsxs(w, {
             sx: {
               display: "flex",
               alignItems: "flex-start",
@@ -727,12 +764,12 @@ let __tla = Promise.all([
               mt: 1
             },
             children: [
-              b.jsx(_e, {
+              h.jsx(Me, {
                 variant: "standard",
                 fullWidth: true,
-                value: a,
-                error: d,
-                helperText: d ? "Invalid color format (use Hex, RGB, RGBA, or Gradient)" : "",
+                value: l,
+                error: f,
+                helperText: f ? "Invalid color format (use Hex, RGB, RGBA, or Gradient)" : "",
                 onChange: k,
                 slotProps: {
                   htmlInput: {
@@ -746,45 +783,45 @@ let __tla = Promise.all([
                   }
                 }
               }),
-              a && b.jsx(Oe, {
+              l && h.jsx(Fe, {
                 onClick: O,
-                title: Q.t("clear_color"),
+                title: Z.t("clear_color"),
                 size: "large",
                 sx: {
                   mt: -1,
                   mr: -1.5
                 },
-                children: b.jsx(He, {})
+                children: h.jsx(Le, {})
               }),
-              b.jsx(w, {
-                onClick: (S) => v(S.currentTarget),
-                title: Q.t("choose_color"),
+              h.jsx(w, {
+                onClick: (S) => g(S.currentTarget),
+                title: Z.t("choose_color"),
                 sx: {
-                  mt: a ? "4px" : "-2px",
+                  mt: l ? "4px" : "-2px",
                   px: "4px",
-                  py: a ? "4px" : "3px",
-                  backgroundColor: a ? g.name === "light" ? g.palette.common.white : "#121212" : "transparent",
+                  py: l ? "4px" : "3px",
+                  backgroundColor: l ? p.name === "light" ? p.palette.common.white : "#121212" : "transparent",
                   borderRadius: "1px",
                   display: "inline-block",
                   cursor: "pointer",
                   verticalAlign: "middle",
                   boxSizing: "border-box",
-                  border: d ? `1px solid ${g.palette.error.main}` : a ? `1px solid ${g.name === "light" ? g.palette.grey[400] : g.palette.common.black}` : `1px dashed ${g.name === "light" ? g.palette.grey[400] : g.palette.text.secondary}`,
-                  opacity: d ? 0.6 : 1
+                  border: f ? `1px solid ${p.palette.error.main}` : l ? `1px solid ${p.name === "light" ? p.palette.grey[400] : p.palette.common.black}` : `1px dashed ${p.name === "light" ? p.palette.grey[400] : p.palette.text.secondary}`,
+                  opacity: f ? 0.6 : 1
                 },
-                children: b.jsx(w, {
+                children: h.jsx(w, {
                   sx: {
-                    width: a ? "36px" : "38px",
-                    height: a ? "14px" : "18px",
+                    width: l ? "36px" : "38px",
+                    height: l ? "14px" : "18px",
                     borderRadius: "2px",
-                    background: d ? "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)" : a || "transparent"
+                    background: f ? "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)" : l || "transparent"
                   }
                 })
               })
             ]
           }),
-          b.jsx(je, {
-            action: H,
+          h.jsx(Ve, {
+            action: P,
             slotProps: {
               paper: {
                 elevation: 0,
@@ -799,18 +836,18 @@ let __tla = Promise.all([
                 }
               }
             },
-            open: I,
-            anchorEl: p,
-            onClose: () => v(null),
+            open: T,
+            anchorEl: b,
+            onClose: () => g(null),
             transformOrigin: B,
             anchorOrigin: y,
-            children: b.jsx(w, {
-              ref: F,
+            children: h.jsx(w, {
+              ref: M,
               sx: {
                 borderRadius: "6px"
               },
-              children: b.jsx(Ie, {
-                value: a || g.palette.primary.main,
+              children: h.jsx(Pe, {
+                value: l || p.palette.primary.main,
                 onChange: _,
                 hidePresets: true,
                 hideInputs: true,
@@ -824,21 +861,21 @@ let __tla = Promise.all([
     });
   }
   X = function(t) {
-    const { name: e, label: o, default: r = "", fallbackFields: s, noGradient: i, hidden: a } = t, u = {
+    const { name: e, label: o, default: r = "", fallbackFields: s, noGradient: i, hidden: l } = t, u = {
       name: e,
       label: o,
       default: r,
       type: "custom",
-      component: (d, n, p, v) => b.jsx(Xe, {
-        field: d,
+      component: (f, n, b, g) => h.jsx(et, {
+        field: f,
         data: n,
-        onDataChange: p,
-        props: v
+        onDataChange: b,
+        props: g
       })
     };
-    return s !== void 0 && (u.fallbackFields = s), i !== void 0 && (u.noGradient = i), a !== void 0 && (u.hidden = a), u;
+    return s !== void 0 && (u.fallbackFields = s), i !== void 0 && (u.noGradient = i), l !== void 0 && (u.hidden = l), u;
   };
-  dt = function(t, e, o) {
+  xt = function(t, e, o) {
     return X({
       name: t,
       label: e,
@@ -848,18 +885,18 @@ let __tla = Promise.all([
       ...o
     });
   };
-  let ie, Ye, J, Le, Ue, Je;
-  ie = (t) => {
+  let ae, tt, Q, ot, rt, at;
+  ae = (t) => {
     if (!t || typeof t != "string") return false;
     const e = t.trim();
     return e === "" || e.startsWith("data:") ? false : !!(e.startsWith("http://") || e.startsWith("https://") || e.startsWith("//") || e.startsWith("/") || e.startsWith("./") || e.startsWith("../") || (e.includes("/") || e.includes("\\")) && /\.[a-zA-Z0-9]+$/.test(e));
   };
-  ft = (t) => {
+  Ct = (t) => {
     const { groupName: e = "", allFields: o = true } = t || {}, r = [
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "icon"
         }),
         hidden: "data.noIcon"
@@ -891,10 +928,10 @@ let __tla = Promise.all([
         type: "checkbox",
         default: false,
         tooltip: "enable_icon_color_mask_tooltip",
-        hidden: (i, a) => {
+        hidden: (i, l) => {
           let u = true;
-          const d = a !== void 0 ? a : e, n = i[`icon${d}`], p = i[`iconSmall${d}`];
-          return (d === "" || d === "Active") && (u = false), a !== void 0 && (u = !i.iconColor && !i.enableIconColorMask && !i[`iconColor${a}`] && !ie(n) && !ie(p)), u;
+          const f = l !== void 0 ? l : e, n = i[`icon${f}`], b = i[`iconSmall${f}`];
+          return (f === "" || f === "Active") && (u = false), l !== void 0 && (u = !i.iconColor && !i.enableIconColorMask && !i[`iconColor${l}`] && !ae(n) && !ae(b)), u;
         }
       },
       X({
@@ -920,10 +957,10 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "header"
         }),
-        hidden: (i, a) => i.noHeader && !o
+        hidden: (i, l) => i.noHeader && !o
       },
       {
         name: `noHeader${e}`,
@@ -957,7 +994,7 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "value"
         })
       },
@@ -972,7 +1009,7 @@ let __tla = Promise.all([
         label: "value",
         type: "text",
         default: "",
-        hidden: (i, a) => {
+        hidden: (i, l) => {
           var _a;
           return ((_a = i.oidObject) == null ? void 0 : _a.type) === "boolean" || i.name === "valueActive";
         }
@@ -988,10 +1025,10 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "footer"
         }),
-        hidden: (i, a) => i.noFooter && !o
+        hidden: (i, l) => i.noFooter && !o
       },
       {
         name: `noFooter${e}`,
@@ -1018,7 +1055,7 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "characteristics"
         })
       },
@@ -1045,7 +1082,7 @@ let __tla = Promise.all([
         label: "",
         name: "allFieldsDivider",
         type: "custom",
-        component: () => b.jsx(z, {})
+        component: () => h.jsx(z, {})
       },
       {
         name: `outlined${e}`,
@@ -1063,7 +1100,7 @@ let __tla = Promise.all([
         label: "",
         name: "allFieldsDivider",
         type: "custom",
-        component: () => b.jsx(z, {})
+        component: () => h.jsx(z, {})
       },
       {
         name: `basePadding${e}`,
@@ -1087,7 +1124,7 @@ let __tla = Promise.all([
         label: "",
         name: "allFieldsDivider",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "geometry"
         })
       },
@@ -1114,7 +1151,7 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "background"
         })
       },
@@ -1126,7 +1163,7 @@ let __tla = Promise.all([
       {
         label: "",
         type: "custom",
-        component: () => b.jsx(z, {
+        component: () => h.jsx(z, {
           dividerText: "frame_background"
         })
       },
@@ -1141,7 +1178,7 @@ let __tla = Promise.all([
         `alias${e}`,
         `value${e}`
       ];
-      return r.filter((a) => !i.includes(a.name));
+      return r.filter((l) => !i.includes(l.name));
     }
     const s = [
       "allFieldsDivider",
@@ -1161,7 +1198,7 @@ let __tla = Promise.all([
     ];
     return r.filter((i) => !s.includes(i.name));
   };
-  Ye = async (t, e) => {
+  tt = async (t, e) => {
     var _a;
     const o = e._id.split(".");
     for (let r = o.length; r > 0; r--) try {
@@ -1172,7 +1209,7 @@ let __tla = Promise.all([
     }
     return null;
   };
-  J = (t, e = "oid") => {
+  Q = (t, e = "oid") => {
     var _a;
     Object.keys(t).forEach((r) => {
       r.startsWith(e) && r.endsWith("Object") && delete t[r];
@@ -1212,13 +1249,13 @@ let __tla = Promise.all([
     if (e === "oid") {
       delete t.icon, delete t.write;
       const r = typeof t.values_count == "number" ? t.values_count : 0, s = Object.keys(((_a = t.oidObject) == null ? void 0 : _a.commonStates) || {}).length, i = Math.max(r, s);
-      for (let a = 1; a <= i; a++) o.forEach((u) => {
-        delete t[`${u}${a}`];
+      for (let l = 1; l <= i; l++) o.forEach((u) => {
+        delete t[`${u}${l}`];
       });
       t.values_count = 0;
     }
   };
-  Le = (t, e) => {
+  ot = (t, e) => {
     switch (e) {
       case "boolean":
         return t === "true";
@@ -1232,62 +1269,62 @@ let __tla = Promise.all([
         return String(t);
     }
   };
-  qe = (t, e = "oid") => async (o, r, s, i) => {
+  nt = (t, e = "oid") => async (o, r, s, i) => {
     if (!r[e]) {
-      J(r, e), setTimeout(() => s(r), 100);
+      Q(r, e), setTimeout(() => s(r), 100);
       return;
     }
     try {
-      const a = await i.getObject(r[e]);
-      if (!a) {
-        J(r, e), setTimeout(() => s(r), 100);
+      const l = await i.getObject(r[e]);
+      if (!l) {
+        Q(r, e), setTimeout(() => s(r), 100);
         return;
       }
-      const u = a.common.type;
+      const u = l.common.type;
       if (!t.includes(u)) return;
-      const d = {
-        _id: a._id,
-        name: a.common.name || "",
+      const f = {
+        _id: l._id,
+        name: l.common.name || "",
         type: u,
-        icon: await Ye(i, a),
-        write: a.common.write,
-        onlyDisplay: !a.common.write,
-        unit: a.common.unit || "",
-        minValue: a.common.min || 0,
-        maxValue: a.common.max || 100
+        icon: await tt(i, l),
+        write: l.common.write,
+        onlyDisplay: !l.common.write,
+        unit: l.common.unit || "",
+        minValue: l.common.min || 0,
+        maxValue: l.common.max || 100
       };
-      if (r[`${e}Object`] = d, r.icon = d.icon, r.write = d.write, r.onlyDisplay = d.onlyDisplay, r.minValue = d.minValue, r.maxValue = d.maxValue, a.common.states) {
-        let n = a.common.states;
+      if (r[`${e}Object`] = f, r.icon = f.icon, r.write = f.write, r.onlyDisplay = f.onlyDisplay, r.minValue = f.minValue, r.maxValue = f.maxValue, l.common.states) {
+        let n = l.common.states;
         if (Array.isArray(n)) {
-          const p = {};
-          n.forEach((v) => {
-            p[v] = v;
-          }), n = p;
+          const b = {};
+          n.forEach((g) => {
+            b[g] = g;
+          }), n = b;
         }
-        r[`${e}Object`].commonStates = n, e === "oid" && (r.values_count = Object.keys(n).length, Object.entries(n).forEach(([p, v], f) => {
-          const l = f + 1;
-          r[`value${l}`] = Le(p, u), r[`alias${l}`] = String(v);
+        r[`${e}Object`].commonStates = n, e === "oid" && (r.values_count = Object.keys(n).length, Object.entries(n).forEach(([b, g], d) => {
+          const a = d + 1;
+          r[`value${a}`] = ot(b, u), r[`alias${a}`] = String(g);
         }));
       } else u === "boolean" && e === "oid" ? (r[`${e}Object`].commonStates = {
         true: "TRUE",
         false: "FALSE"
       }, r.values_count = 2, r.value1 = true, r.alias1 = "TRUE", r.value2 = false, r.alias2 = "FALSE") : e === "oid" && (r.values_count = 0);
       e === "oid" && r.ignoreCommonStates !== false && (r.values_count = 0), setTimeout(() => s(r), 100);
-    } catch (a) {
-      console.error(`Error handling OID change for ${r[e]}:`, a), J(r, e), setTimeout(() => s(r), 100);
+    } catch (l) {
+      console.error(`Error handling OID change for ${r[e]}:`, l), Q(r, e), setTimeout(() => s(r), 100);
     }
   };
-  mt = (t) => [
+  yt = (t) => [
     {
       name: "oid",
       type: "id",
       label: "oid",
-      onChange: qe(t)
+      onChange: nt(t)
     },
     {
       label: "",
       type: "custom",
-      component: () => b.jsx(z, {}),
+      component: () => h.jsx(z, {}),
       hidden: (e, o) => e.oidObject === void 0
     },
     {
@@ -1303,7 +1340,7 @@ let __tla = Promise.all([
     {
       label: "",
       type: "custom",
-      component: () => b.jsx(z, {}),
+      component: () => h.jsx(z, {}),
       hidden: (e, o) => e.oidObject === void 0
     },
     {
@@ -1334,18 +1371,18 @@ let __tla = Promise.all([
       }
     }
   ];
-  Ue = () => {
+  rt = () => {
     const { isSignalVisible: t, refService: e, widget: o } = m.useContext(W), r = m.useMemo(() => {
-      const i = [], a = Number(o.data["signals-count"]) || 0;
-      for (let u = 0; u < a; u++) t(u) && i.push(u);
+      const i = [], l = Number(o.data["signals-count"]) || 0;
+      for (let u = 0; u < l; u++) t(u) && i.push(u);
       return i;
     }, [
       o.data,
       t
     ]), s = m.useMemo(() => {
       const i = {};
-      return r.forEach((a) => {
-        i[a] = o.data[`signals-color-${a}`];
+      return r.forEach((l) => {
+        i[l] = o.data[`signals-color-${l}`];
       }), i;
     }, [
       o.data,
@@ -1353,13 +1390,13 @@ let __tla = Promise.all([
     ]);
     m.useEffect(() => {
       if (!(e == null ? void 0 : e.current)) return;
-      const a = e.current.children, u = [];
-      Array.from(a).forEach((d) => {
-        const n = d.children[0];
+      const l = e.current.children, u = [];
+      Array.from(l).forEach((f) => {
+        const n = f.children[0];
         n && n instanceof HTMLElement && n.className === "vis-signal-icon iconOwn" && u.push(n);
-      }), u.forEach((d, n) => {
-        const p = r[n], v = p !== void 0 ? s[p] : void 0;
-        v ? (d.style.color = v, d.style.filter = "drop-shadow(0px 10000px 0)", d.style.transform = "translateY(-10000px)") : (d.style.color = "", d.style.filter = "", d.style.transform = "");
+      }), u.forEach((f, n) => {
+        const b = r[n], g = b !== void 0 ? s[b] : void 0;
+        g ? (f.style.color = g, f.style.filter = "drop-shadow(0px 10000px 0)", f.style.transform = "translateY(-10000px)") : (f.style.color = "", f.style.filter = "", f.style.transform = "");
       });
     }, [
       r,
@@ -1367,18 +1404,18 @@ let __tla = Promise.all([
       e
     ]);
   };
-  Ke = (t, e = 28) => {
+  it = (t, e = 28) => {
     const [o, r] = m.useState({
       width: void 0,
       height: void 0,
       maxWidth: void 0
-    }), s = m.useCallback((a) => {
-      if (a.length === 0) return;
-      const u = a[0], { width: d, height: n } = u.contentRect, p = Math.round(d), v = Math.round(n), f = p <= v + e + 12 ? p - e - 12 : v;
+    }), s = m.useCallback((l) => {
+      if (l.length === 0) return;
+      const u = l[0], { width: f, height: n } = u.contentRect, b = Math.round(f), g = Math.round(n), d = b <= g + e + 12 ? b - e - 12 : g;
       r({
-        width: p,
-        height: v,
-        maxWidth: f
+        width: b,
+        height: g,
+        maxWidth: d
       });
     }, [
       e
@@ -1394,16 +1431,16 @@ let __tla = Promise.all([
         });
         return;
       }
-      const a = new ResizeObserver(s);
+      const l = new ResizeObserver(s);
       try {
-        a.observe(i);
+        l.observe(i);
       } catch (u) {
         console.warn("ResizeObserver failed to observe element:", u);
         return;
       }
       return () => {
         try {
-          a.disconnect();
+          l.disconnect();
         } catch (u) {
           console.warn("ResizeObserver cleanup failed:", u);
         }
@@ -1413,8 +1450,8 @@ let __tla = Promise.all([
       s
     ]), o;
   };
-  Je = (t) => {
-    const { widget: e } = m.useContext(W), [o, r] = m.useState("100%"), [s, i] = m.useState("100%"), { width: a, height: u } = Ke(t), d = m.useMemo(() => ({
+  at = (t) => {
+    const { widget: e } = m.useContext(W), [o, r] = m.useState("100%"), [s, i] = m.useState("100%"), { width: l, height: u } = it(t), f = m.useMemo(() => ({
       basePadding: e.data.basePadding || 0,
       isSquare: e.data.square || false,
       isCircle: e.data.circle || false
@@ -1422,51 +1459,51 @@ let __tla = Promise.all([
       e.data.basePadding,
       e.data.square,
       e.data.circle
-    ]), n = m.useMemo(() => d.basePadding * 16, [
-      d.basePadding
+    ]), n = m.useMemo(() => f.basePadding * 16, [
+      f.basePadding
     ]);
     return m.useEffect(() => {
-      if (!a || !u || a < 0 || u < 0) return;
-      if (!d.isSquare && !d.isCircle) {
+      if (!l || !u || l < 0 || u < 0) return;
+      if (!f.isSquare && !f.isCircle) {
         r("100%"), i("100%");
         return;
       }
-      if (!(a >= n && u >= n)) {
+      if (!(l >= n && u >= n)) {
         r("0px"), i("0px");
         return;
       }
-      const v = a - n, f = u - n, l = Math.min(v, f);
-      r(`${l}px`), i(`${l}px`);
+      const g = l - n, d = u - n, a = Math.min(g, d);
+      r(`${a}px`), i(`${a}px`);
     }, [
-      a,
+      l,
       u,
       n,
-      d.isSquare,
-      d.isCircle
+      f.isSquare,
+      f.isCircle
     ]), {
       width: o,
       height: s
     };
   };
   D = function(t) {
-    return t == null || typeof t != "string" || t.trim() === "" ? null : Pe(t) ? t : null;
+    return t == null || typeof t != "string" || t.trim() === "" ? null : qe(t) ? t : null;
   };
-  Qe = m.forwardRef(({ children: t, data: e, oidValue: o = null, isValidType: r = true, bgActive: s = true, sx: i = {} }, a) => {
-    const u = m.useRef(null), d = m.useRef(null), [n, p] = m.useState(null), v = m.useRef(null), f = m.useRef(null), l = m.useContext(W);
-    if (!l) throw new Error("CollectionBase must be used within CollectionProvider");
-    const { wrappedContent: c, widget: g } = l, { backgroundStyles: $, borderStyles: y } = ee(g.style), { width: B, height: V } = Je(n);
-    Ue();
-    const F = g.data.oidObject, H = F == null ? void 0 : F._id, A = m.useMemo(() => {
-      if (g.data.noFooter) return "";
-      const O = o || o === 0 || String(o) === "false" ? `${o}${(F == null ? void 0 : F.unit) ?? ""}` : "";
+  lt = m.forwardRef(({ children: t, data: e, oidValue: o = null, isValidType: r = true, bgActive: s = true, sx: i = {} }, l) => {
+    const u = m.useRef(null), f = m.useRef(null), [n, b] = m.useState(null), g = m.useRef(null), d = m.useRef(null), a = m.useContext(W);
+    if (!a) throw new Error("CollectionBase must be used within CollectionProvider");
+    const { wrappedContent: c, widget: p } = a, { backgroundStyles: $, borderStyles: y } = te(p.style), { width: B, height: V } = at(n);
+    rt();
+    const M = p.data.oidObject, P = M == null ? void 0 : M._id, A = m.useMemo(() => {
+      if (p.data.noFooter) return "";
+      const O = o || o === 0 || String(o) === "false" ? `${o}${(M == null ? void 0 : M.unit) ?? ""}` : "";
       return e.footer || e.alias || e.value || O || "";
     }, [
       e.footer,
       e.alias,
       e.value,
       o,
-      F == null ? void 0 : F.unit,
-      g.data.noFooter
+      M == null ? void 0 : M.unit,
+      p.data.noFooter
     ]), _ = m.useMemo(() => U({
       overflow: "hidden",
       width: "100%",
@@ -1493,7 +1530,7 @@ let __tla = Promise.all([
       alignItems: "center",
       background: s && c ? e.background : s ? e.background || "transparent" : c ? void 0 : "transparent",
       borderColor: c ? "" : e.background || (y == null ? void 0 : y["border-color"]),
-      borderRadius: g.data.circle || g.data.ellipse ? "50%" : void 0,
+      borderRadius: p.data.circle || p.data.ellipse ? "50%" : void 0,
       ...i
     }), [
       B,
@@ -1502,48 +1539,48 @@ let __tla = Promise.all([
       c,
       e.background,
       y,
-      g.data.circle,
-      g.data.ellipse,
+      p.data.circle,
+      p.data.ellipse,
       i
     ]);
     return m.useEffect(() => {
-      g.data.noHeader || !v.current || (v.current.innerHTML = e.header);
+      p.data.noHeader || !g.current || (g.current.innerHTML = e.header);
     }, [
       e.header,
-      g.data.noHeader
+      p.data.noHeader
     ]), m.useEffect(() => {
-      g.data.noFooter || !f.current || (f.current.innerHTML = String(A));
+      p.data.noFooter || !d.current || (d.current.innerHTML = String(A));
     }, [
       A,
-      g.data.noFooter
-    ]), m.useImperativeHandle(a, () => ({
+      p.data.noFooter
+    ]), m.useImperativeHandle(l, () => ({
       get paper0() {
         return (u == null ? void 0 : u.current) ?? null;
       },
       get paper1() {
-        return (d == null ? void 0 : d.current) ?? null;
+        return (f == null ? void 0 : f.current) ?? null;
       },
       get header() {
-        return (v == null ? void 0 : v.current) ?? null;
+        return (g == null ? void 0 : g.current) ?? null;
       }
-    })), b.jsxs(ne, {
+    })), h.jsxs(re, {
       ref: u,
       className: "BASE-PAPER-0",
-      square: g.data.squaredCorner,
-      variant: g.data.outlinedFrame ? "outlined" : "elevation",
+      square: p.data.squaredCorner,
+      variant: p.data.outlinedFrame ? "outlined" : "elevation",
       sx: _,
       children: [
-        !!r && b.jsxs(b.Fragment, {
+        !!r && h.jsxs(h.Fragment, {
           children: [
-            b.jsx(w, {
+            h.jsx(w, {
               sx: {
-                width: g.data.noHeader ? "0%" : "100%",
-                height: g.data.noHeader ? "0%" : "auto",
-                mt: (g.data.basePadding ?? 8) / 2,
-                mb: -(g.data.basePadding ?? 8) / 2
+                width: p.data.noHeader ? "0%" : "100%",
+                height: p.data.noHeader ? "0%" : "auto",
+                mt: (p.data.basePadding ?? 8) / 2,
+                mb: -(p.data.basePadding ?? 8) / 2
               },
-              children: b.jsx(Y, {
-                ref: v,
+              children: h.jsx(Y, {
+                ref: g,
                 noWrap: true,
                 variant: "body2",
                 sx: {
@@ -1555,37 +1592,37 @@ let __tla = Promise.all([
                 }
               })
             }),
-            b.jsx(w, {
+            h.jsx(w, {
               className: "BASE-BOX-1",
-              ref: p,
+              ref: b,
               sx: {
                 overflow: "hidden",
-                p: g.data.basePadding,
+                p: p.data.basePadding,
                 width: "100%",
                 height: "100%",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center"
               },
-              children: b.jsx(ne, {
-                ref: d,
+              children: h.jsx(re, {
+                ref: f,
                 className: "BASE-PAPER-1",
-                elevation: g.data.outlined ? 0 : Number(g.data.baseElevation) || 0,
-                square: !g.data.basePadding || g.data.squaredCorner,
-                variant: g.data.outlined ? "outlined" : "elevation",
+                elevation: p.data.outlined ? 0 : Number(p.data.baseElevation) || 0,
+                square: !p.data.basePadding || p.data.squaredCorner,
+                variant: p.data.outlined ? "outlined" : "elevation",
                 sx: k,
                 children: t
               })
             }),
-            b.jsx(w, {
+            h.jsx(w, {
               sx: {
-                width: g.data.noFooter ? "0%" : "100%",
-                height: g.data.noFooter ? "0%" : "auto",
-                mt: -(g.data.basePadding ?? 8) / 2,
-                mb: (g.data.basePadding ?? 8) / 2
+                width: p.data.noFooter ? "0%" : "100%",
+                height: p.data.noFooter ? "0%" : "auto",
+                mt: -(p.data.basePadding ?? 8) / 2,
+                mb: (p.data.basePadding ?? 8) / 2
               },
-              children: b.jsx(Y, {
-                ref: f,
+              children: h.jsx(Y, {
+                ref: d,
                 noWrap: true,
                 variant: "body2",
                 sx: {
@@ -1599,7 +1636,7 @@ let __tla = Promise.all([
             })
           ]
         }),
-        !r && b.jsx(w, {
+        !r && h.jsx(w, {
           sx: {
             width: "100%",
             height: "100%",
@@ -1607,44 +1644,44 @@ let __tla = Promise.all([
             justifyContent: "center",
             alignItems: "center"
           },
-          children: b.jsx(Y, {
+          children: h.jsx(Y, {
             variant: "body2",
             sx: {
               p: 1,
               width: "100%",
               textAlign: "center"
             },
-            children: H ? `${H} has an invalid type!` : "Please select a valid object ID"
+            children: P ? `${P} has an invalid type!` : "Please select a valid object ID"
           })
         })
       ]
     });
   });
-  Qe.displayName = "CollectionBase";
-  let ae;
-  Ze = (t) => !t || typeof t != "string" ? false : /^data:image\/(svg\+xml|png|jpe?g|gif);base64,/i.test(t);
-  et = (t, e, o) => !o && !Ze(t) ? {} : !e || e === "" ? {} : {
+  lt.displayName = "CollectionBase";
+  let le;
+  ct = (t) => !t || typeof t != "string" ? false : /^data:image\/(svg\+xml|png|jpe?g|gif);base64,/i.test(t);
+  st = (t, e, o) => !o && !ct(t) ? {} : !e || e === "" ? {} : {
     color: e,
     filter: "drop-shadow(0px 10000px 0)",
     transform: "translateY(-10000px)"
   };
-  ae = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-  tt = ({ src: t, style: e = {}, alt: o = "" }) => {
-    const r = t && t !== "undefined" && t !== null ? t : ae;
-    return b.jsx("img", {
+  le = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  ut = ({ src: t, style: e = {}, alt: o = "" }) => {
+    const r = t && t !== "undefined" && t !== null ? t : le;
+    return h.jsx("img", {
       src: r,
       alt: o,
       style: e,
       onError: (s) => {
         console.log("ERROR LOADING IMAGE, FALLING BACK TO TRANSPARENT PIXEL");
         const i = s.currentTarget;
-        i.onerror = null, i.src = ae;
+        i.onerror = null, i.src = le;
       }
     });
   };
-  gt = ({ data: t, widget: e }) => {
+  kt = ({ data: t, widget: e }) => {
     const r = m.useContext(W).theme, s = t.icon, i = t.iconColor || r.palette.primary.main;
-    return !e.data.noHeaderIcon && s ? b.jsx(tt, {
+    return !e.data.noHeaderIcon && s ? h.jsx(ut, {
       alt: "",
       src: s,
       style: {
@@ -1652,18 +1689,18 @@ let __tla = Promise.all([
         top: `calc(0px - ${t.iconYOffsetCm})`,
         right: `calc(0px - ${t.iconXOffsetCm})`,
         height: t.iconSizeCm,
-        ...et(s, i, !!t.forceColorMaskCm)
+        ...st(s, i, !!t.forceColorMaskCm)
       }
     }) : null;
   };
-  function ot(t, e) {
+  function dt(t, e) {
     return t[e];
   }
-  function le(t) {
+  function ce(t) {
     return typeof t == "object" && t !== null && "sliderOrientation" in t;
   }
-  nt = (t) => typeof t == "number" ? `calc(${t / 100}rem * 0.875)` : void 0;
-  function rt(t) {
+  ft = (t) => typeof t == "number" ? `calc(${t / 100}rem * 0.875)` : void 0;
+  function mt(t) {
     return {
       markerIconSize: t.markerIconSize,
       markerTextColor: t.markerTextColor,
@@ -1671,16 +1708,16 @@ let __tla = Promise.all([
       markerIconColor: t.markerIconColor
     };
   }
-  function it(t) {
+  function gt(t) {
     return {};
   }
-  function h(t) {
+  function v(t) {
     for (const e of t) if (e.condition !== false && e.value !== void 0 && e.value !== null && !(typeof e.value == "string" && e.value.trim() === "")) return e.value;
   }
-  function at(t) {
-    const { rxData: e, oidObject: o, oidName: r, theme: s, fontStyles: i, textStyles: a, backgroundStyles: u, formatSize: d, getDataValue: n, widgetResolver: p, isSlider: v } = t, f = (l) => l && String(l) !== "" ? String(l) : void 0;
+  function bt(t) {
+    const { rxData: e, oidObject: o, oidName: r, theme: s, fontStyles: i, textStyles: l, backgroundStyles: u, formatSize: f, getDataValue: n, widgetResolver: b, isSlider: g } = t, d = (a) => a && String(a) !== "" ? String(a) : void 0;
     return {
-      icon: (l, c) => h([
+      icon: (a, c) => v([
         {
           condition: !!e.noIcon,
           value: ""
@@ -1694,10 +1731,10 @@ let __tla = Promise.all([
           value: n("iconSmall", "Active")
         },
         {
-          value: n("icon", String(l))
+          value: n("icon", String(a))
         },
         {
-          value: n("iconSmall", String(l))
+          value: n("iconSmall", String(a))
         },
         {
           value: n("icon", "")
@@ -1706,19 +1743,19 @@ let __tla = Promise.all([
           value: n("iconSmall", "")
         }
       ]) ?? "",
-      iconActive: (l, c) => c ? h([
+      iconActive: (a, c) => c ? v([
         {
           condition: !!e.noIcon,
           value: ""
         },
         {
-          value: n("icon", String(l))
+          value: n("icon", String(a))
         },
         {
-          value: n("iconSmall", String(l))
+          value: n("iconSmall", String(a))
         }
       ]) ?? "" : "",
-      iconSizeCm: (l, c) => h([
+      iconSizeCm: (a, c) => v([
         {
           condition: n("iconSize", "") === 0,
           value: "0px"
@@ -1728,7 +1765,7 @@ let __tla = Promise.all([
           value: `calc(24px * ${n("iconSize", "")} / 100)`
         }
       ]) ?? "24px",
-      iconSize: (l, c) => h([
+      iconSize: (a, c) => v([
         {
           condition: c && n("iconSize", "Active") === 0,
           value: "0px"
@@ -1738,50 +1775,62 @@ let __tla = Promise.all([
           value: `calc(24px * ${n("iconSize", "Active")} / 100)`
         },
         {
-          condition: n("iconSize", String(l)) === 0,
+          condition: String(a) !== "" && n("iconSize", String(a)) === 0,
           value: "0px"
         },
         {
-          condition: !!n("iconSize", String(l)),
-          value: `calc(24px * ${n("iconSize", String(l))} / 100)`
+          condition: String(a) !== "" && !!n("iconSize", String(a)),
+          value: `calc(24px * ${n("iconSize", String(a))} / 100)`
+        },
+        {
+          condition: g && typeof b.markerIconSize == "number",
+          value: `calc(24px * ${b.markerIconSize} / 100)`
+        },
+        {
+          condition: n("iconSize", "") === 0,
+          value: "0px"
+        },
+        {
+          condition: !!n("iconSize", ""),
+          value: `calc(24px * ${n("iconSize", "")} / 100)`
         }
       ]) ?? "24px",
-      iconSizeActive: (l, c) => c ? h([
+      iconSizeActive: (a, c) => c ? v([
         {
-          condition: n("iconSize", String(l)) === 0,
+          condition: n("iconSize", String(a)) === 0,
           value: "0px"
         },
         {
-          condition: !!n("iconSize", String(l)),
-          value: `calc(24px * ${n("iconSize", String(l))} / 100)`
+          condition: !!n("iconSize", String(a)),
+          value: `calc(24px * ${n("iconSize", String(a))} / 100)`
         }
       ]) ?? "24px" : "24px",
-      iconSizeOnly: (l, c) => h([
+      iconSizeOnly: (a, c) => v([
         {
           condition: c && (!!n("iconSize", "Active") || n("iconSize", "Active") === 0),
           value: `${n("iconSize", "Active")}%`
         },
         {
-          condition: !!n("iconSize", String(l)) || n("iconSize", String(l)) === 0,
-          value: `${n("iconSize", String(l))}%`
+          condition: !!n("iconSize", String(a)) || n("iconSize", String(a)) === 0,
+          value: `${n("iconSize", String(a))}%`
         }
       ]) ?? "100%",
-      iconSizeActiveOnly: (l, c) => c ? h([
+      iconSizeActiveOnly: (a, c) => c ? v([
         {
-          value: n("iconSize", String(l))
+          value: n("iconSize", String(a))
         }
       ]) ?? void 0 : void 0,
-      iconWidth: (l, c) => h([
+      iconWidth: (a, c) => v([
         {
           condition: c,
           value: e.iconSizeActive
         },
         {
-          value: n("iconSize", String(l))
+          value: n("iconSize", String(a))
         },
         {
-          condition: v,
-          value: p.markerIconSize
+          condition: g,
+          value: b.markerIconSize
         },
         {
           value: e.iconSize
@@ -1790,17 +1839,17 @@ let __tla = Promise.all([
           value: 100
         }
       ]) ?? 100,
-      iconHeight: (l, c) => h([
+      iconHeight: (a, c) => v([
         {
           condition: c,
           value: e.iconSizeActive
         },
         {
-          value: n("iconSize", String(l))
+          value: n("iconSize", String(a))
         },
         {
-          condition: v,
-          value: p.markerIconSize
+          condition: g,
+          value: b.markerIconSize
         },
         {
           value: e.iconSize
@@ -1809,259 +1858,268 @@ let __tla = Promise.all([
           value: 100
         }
       ]) ?? 100,
-      forceColorMaskCm: (l, c) => h([
+      forceColorMaskCm: (a, c) => v([
         {
           value: n("enableIconColorMask", "")
         }
       ]) ?? false,
-      forceColorMask: (l, c) => h([
+      forceColorMask: (a, c) => v([
         {
           condition: c,
           value: n("enableIconColorMask", "Active")
         },
         {
-          value: n("enableIconColorMask", String(l))
+          value: n("enableIconColorMask", String(a))
         },
         {
-          condition: !!n("enableIconColorMask", String(l)),
+          condition: !!n("enableIconColorMask", String(a)),
           value: n("enableIconColorMask", "")
         }
       ]) ?? false,
-      forceColorMaskActive: (l, c) => c ? h([
+      forceColorMaskActive: (a, c) => c ? v([
         {
-          value: n("enableIconColorMask", String(l))
+          value: n("enableIconColorMask", String(a))
         }
       ]) ?? false : false,
-      iconColor: (l, c) => h([
+      iconColor: (a, c) => v([
         {
           condition: c,
           value: n("iconColor", "Active")
         },
         {
-          value: n("iconColor", String(l))
+          condition: String(a) !== "",
+          value: n("iconColor", String(a))
+        },
+        {
+          condition: g,
+          value: b.markerIconColor
         },
         {
           value: n("iconColor", "")
         }
       ]) ?? s.palette.primary.main,
-      iconColorActive: (l, c) => c ? h([
+      iconColorActive: (a, c) => c ? v([
         {
-          value: n("iconColor", String(l))
+          value: n("iconColor", String(a))
         }
       ]) ?? "" : "",
-      iconHover: (l, c) => h([
+      iconHover: (a, c) => v([
         {
           value: e.iconHover ? `${e.iconHover}%` : void 0
         }
       ]) ?? "",
-      iconHoverActive: (l, c) => c ? h([
+      iconHoverActive: (a, c) => c ? v([
         {
-          value: n("iconHover", String(l)) ? `${n("iconHover", String(l))}%` : void 0
+          value: n("iconHover", String(a)) ? `${n("iconHover", String(a))}%` : void 0
         }
       ]) ?? void 0 : void 0,
-      iconXOffsetCm: (l, c) => h([
+      iconXOffsetCm: (a, c) => v([
         {
           value: n("iconXOffset", "")
         }
       ]) ?? "0px",
-      iconYOffsetCm: (l, c) => h([
+      iconYOffsetCm: (a, c) => v([
         {
           value: n("iconYOffset", "")
         }
       ]) ?? "0px",
-      iconXOffset: (l, c) => h([
+      iconXOffset: (a, c) => v([
         {
           condition: c,
           value: n("iconXOffset", "Active")
         },
         {
-          value: n("iconXOffset", String(l))
+          value: n("iconXOffset", String(a))
         }
       ]) ?? "0px",
-      iconYOffset: (l, c) => h([
+      iconYOffset: (a, c) => v([
         {
           condition: c,
           value: n("iconYOffset", "Active")
         },
         {
-          value: n("iconYOffset", String(l))
+          value: n("iconYOffset", String(a))
         }
       ]) ?? "0px",
-      iconXOffsetActive: (l, c) => c ? h([
+      iconXOffsetActive: (a, c) => c ? v([
         {
-          condition: !n("iconXOffset", String(l)),
+          condition: !n("iconXOffset", String(a)),
           value: "0px"
         },
         {
-          value: n("iconXOffset", String(l))
+          value: n("iconXOffset", String(a))
         }
       ]) ?? "0px" : "0px",
-      iconYOffsetActive: (l, c) => c ? h([
+      iconYOffsetActive: (a, c) => c ? v([
         {
-          condition: !n("iconYOffset", String(l)),
+          condition: !n("iconYOffset", String(a)),
           value: "0px"
         },
         {
-          value: n("iconYOffset", String(l))
+          value: n("iconYOffset", String(a))
         }
       ]) ?? "0px" : "0px",
-      textColorActive: (l, c) => c ? h([
+      textColorActive: (a, c) => c ? v([
         {
-          value: n("textColor", String(l)),
-          condition: n("textColor", String(l)) !== ""
+          value: n("textColor", String(a)),
+          condition: n("textColor", String(a)) !== ""
         },
         {
-          condition: v,
-          value: p.markerTextColor && p.markerTextColor !== "" ? p.markerTextColor : void 0
+          condition: g,
+          value: b.markerTextColor && b.markerTextColor !== "" ? b.markerTextColor : void 0
         },
         {
           value: e.textColor && e.textColor !== "" ? e.textColor : void 0
         }
       ]) ?? void 0 : void 0,
-      textColorCm: (l, c) => h([
+      textColorCm: (a, c) => v([
         {
           condition: typeof n("textColor", "") == "string",
           value: n("textColor", "")
         },
         {
-          condition: typeof (a == null ? void 0 : a.color) == "string",
-          value: a == null ? void 0 : a.color
+          condition: typeof (l == null ? void 0 : l.color) == "string",
+          value: l == null ? void 0 : l.color
         }
       ]) ?? "",
-      textColor: (l, c) => h([
+      textColor: (a, c) => v([
         {
           condition: c && typeof n("textColor", "Active") == "string",
           value: n("textColor", "Active")
         },
         {
-          condition: typeof n("textColor", String(l)) == "string",
-          value: n("textColor", String(l))
+          condition: typeof n("textColor", String(a)) == "string",
+          value: n("textColor", String(a))
         },
         {
-          condition: v,
-          value: p.markerTextColor && p.markerTextColor !== "" ? p.markerTextColor : void 0
+          condition: g,
+          value: b.markerTextColor && b.markerTextColor !== "" ? b.markerTextColor : void 0
         },
         {
           condition: typeof n("textColor", "") == "string",
           value: n("textColor", "")
         },
         {
-          condition: typeof (a == null ? void 0 : a.color) == "string",
-          value: a == null ? void 0 : a.color
+          condition: typeof (l == null ? void 0 : l.color) == "string",
+          value: l == null ? void 0 : l.color
         }
       ]) ?? "",
-      fontSize: (l, c) => h([
+      fontSize: (a, c) => v([
         {
           condition: c && typeof e.valueSizeActive == "number",
-          value: d(e.valueSizeActive)
+          value: f(e.valueSizeActive)
         },
         {
-          value: typeof n("valueSize", String(l)) == "number" ? d(n("valueSize", String(l))) : void 0
+          value: typeof n("valueSize", String(a)) == "number" ? f(n("valueSize", String(a))) : void 0
         },
         {
-          condition: v && typeof p.markerTextSize == "number",
-          value: d(p.markerTextSize)
+          condition: g && typeof b.markerTextSize == "number",
+          value: f(b.markerTextSize)
         },
         {
-          value: typeof e.valueSize == "number" ? d(e.valueSize) : void 0
+          value: typeof e.valueSize == "number" ? f(e.valueSize) : void 0
         },
         {
           condition: typeof (i == null ? void 0 : i["font-size"]) == "string",
           value: i == null ? void 0 : i["font-size"]
         }
       ]) ?? null,
-      headerSize: (l, c) => h([
+      headerSize: (a, c) => v([
         {
           condition: c && typeof n("headerSize", "Active") == "number",
-          value: `${d(n("headerSize", "Active"))}`
+          value: `${f(n("headerSize", "Active"))}`
         },
         {
-          condition: typeof n("headerSize", String(l)) == "number",
-          value: `${d(n("headerSize", String(l)))}`
+          condition: typeof n("headerSize", String(a)) == "number",
+          value: `${f(n("headerSize", String(a)))}`
         },
         {
           condition: typeof n("headerSize", "") == "number",
-          value: `${d(n("headerSize", ""))}`
+          value: `${f(n("headerSize", ""))}`
         },
         {
           condition: typeof (i == null ? void 0 : i["font-size"]) == "string",
           value: i == null ? void 0 : i["font-size"]
         }
       ]) ?? null,
-      footerSize: (l, c) => h([
+      footerSize: (a, c) => v([
         {
           condition: c && typeof n("footerSize", "Active") == "number",
-          value: `${d(n("footerSize", "Active"))}`
+          value: `${f(n("footerSize", "Active"))}`
         },
         {
-          condition: typeof n("footerSize", String(l)) == "number",
-          value: `${d(n("footerSize", String(l)))}`
+          condition: typeof n("footerSize", String(a)) == "number",
+          value: `${f(n("footerSize", String(a)))}`
         },
         {
           condition: typeof n("footerSize", "") == "number",
-          value: `${d(n("footerSize", ""))}`
+          value: `${f(n("footerSize", ""))}`
         },
         {
           condition: typeof (i == null ? void 0 : i["font-size"]) == "string",
           value: i == null ? void 0 : i["font-size"]
         }
       ]) ?? null,
-      valueSize: (l, c) => h([
+      valueSize: (a, c) => v([
         {
           condition: c && typeof n("valueSize", "Active") == "number",
-          value: `${d(n("valueSize", "Active"))}`
+          value: `${f(n("valueSize", "Active"))}`
         },
         {
-          condition: typeof n("valueSize", String(l)) == "number",
-          value: `${d(n("valueSize", String(l)))}`
+          condition: typeof n("valueSize", String(a)) == "number",
+          value: `${f(n("valueSize", String(a)))}`
+        },
+        {
+          condition: g && typeof b.markerTextSize == "number",
+          value: f(b.markerTextSize)
         },
         {
           condition: typeof n("valueSize", "") == "number",
-          value: `${d(n("valueSize", ""))}`
+          value: `${f(n("valueSize", ""))}`
         },
         {
           condition: typeof (i == null ? void 0 : i["font-size"]) == "string",
           value: i == null ? void 0 : i["font-size"]
         }
       ]) ?? null,
-      valueSizeActive: (l, c) => c ? h([
+      valueSizeActive: (a, c) => c ? v([
         {
-          value: typeof n("valueSize", String(l)) == "number" ? d(n("valueSize", String(l))) : null
+          value: typeof n("valueSize", String(a)) == "number" ? f(n("valueSize", String(a))) : null
         }
       ]) ?? null : null,
-      header: (l, c) => String(h([
+      header: (a, c) => String(v([
         {
           condition: c,
-          value: f(n("header", "Active"))
+          value: d(n("header", "Active"))
         },
         {
-          value: f(n("header", String(l)))
+          value: d(n("header", String(a)))
         },
         {
-          value: f(n("header", ""))
+          value: d(n("header", ""))
         },
         {
-          value: f(r)
+          value: d(r)
         }
       ]) ?? "").replace(/(\r\n|\n|\r)/gm, ""),
-      footer: (l, c) => String(h([
+      footer: (a, c) => String(v([
         {
           condition: c,
-          value: f(n("footer", "Active"))
+          value: d(n("footer", "Active"))
         },
         {
-          value: f(n("footer", String(l)))
+          value: d(n("footer", String(a)))
         },
         {
-          value: f(n("footer", ""))
+          value: d(n("footer", ""))
         }
       ]) ?? "").replace(/(\r\n|\n|\r)/gm, ""),
-      alias: (l, c) => String(n("alias", String(l)) || "").replace(/(\r\n|\n|\r)/gm, ""),
-      value: (l, c) => {
-        const g = n("value", String(l));
-        return g != null ? `${g}${(o == null ? void 0 : o.unit) !== void 0 ? o.unit : ""}` : void 0;
+      alias: (a, c) => String(n("alias", String(a)) || "").replace(/(\r\n|\n|\r)/gm, ""),
+      value: (a, c) => {
+        const p = n("value", String(a));
+        return p != null ? `${p}${(o == null ? void 0 : o.unit) !== void 0 ? o.unit : ""}` : void 0;
       },
-      backgroundColor: (l, c) => h([
+      backgroundColor: (a, c) => v([
         {
           value: e.backgroundColor && e.backgroundColor !== "" ? e.backgroundColor : void 0
         },
@@ -2072,21 +2130,21 @@ let __tla = Promise.all([
           value: ""
         }
       ]) ?? "",
-      backgroundColorActive: (l, c) => c ? n("backgroundColor", String(l)) : void 0,
-      background: (l, c) => h([
+      backgroundColorActive: (a, c) => c ? n("backgroundColor", String(a)) : void 0,
+      background: (a, c) => v([
         {
           condition: c,
           value: n("background", "Active")
         },
         {
-          value: n("background", String(l))
+          value: n("background", String(a))
         },
         {
           value: n("background", "")
         }
       ]) ?? "",
-      backgroundActive: (l, c) => c ? n("background", String(l)) : void 0,
-      frameBackgroundColor: (l, c) => h([
+      backgroundActive: (a, c) => c ? n("background", String(a)) : void 0,
+      frameBackgroundColor: (a, c) => v([
         {
           value: e.frameBackgroundColor && e.frameBackgroundColor !== "" ? e.frameBackgroundColor : void 0
         },
@@ -2097,27 +2155,27 @@ let __tla = Promise.all([
           value: ""
         }
       ]) ?? "",
-      frameBackgroundColorActive: (l, c) => c ? n("frameBackgroundColor", String(l)) : void 0,
-      frameBackground: (l, c) => h([
+      frameBackgroundColorActive: (a, c) => c ? n("frameBackgroundColor", String(a)) : void 0,
+      frameBackground: (a, c) => v([
         {
           condition: c,
           value: n("frameBackground", "Active")
         },
         {
-          value: n("frameBackground", String(l))
+          value: n("frameBackground", String(a))
         },
         {
           value: n("frameBackground", "")
         }
       ]) ?? "",
-      frameBackgroundActive: (l, c) => c ? n("frameBackground", String(l)) : void 0,
-      markerIconSize: (l, c) => v ? p.markerIconSize : void 0,
-      markerTextColor: (l, c) => v ? p.markerTextColor : void 0,
-      markerTextSize: (l, c) => v ? p.markerTextSize : void 0,
-      markerIconColor: (l, c) => v ? p.markerIconColor : void 0
+      frameBackgroundActive: (a, c) => c ? n("frameBackground", String(a)) : void 0,
+      markerIconSize: (a, c) => g ? b.markerIconSize : void 0,
+      markerTextColor: (a, c) => g ? b.markerTextColor : void 0,
+      markerTextSize: (a, c) => g ? b.markerTextSize : void 0,
+      markerIconColor: (a, c) => g ? b.markerIconColor : void 0
     };
   }
-  function lt(t = "", e = false, o) {
+  function pt(t = "", e = false, o) {
     return {
       icon: o.icon(t, e),
       iconActive: o.iconActive(t, e),
@@ -2162,51 +2220,51 @@ let __tla = Promise.all([
       frameBackgroundActive: o.frameBackgroundActive(t, e)
     };
   }
-  bt = function(t) {
-    const { theme: e, widget: o, widget: { data: r }, getPropertyValue: s } = m.useContext(W), i = r[`${t}Object`], a = s(t), u = i == null ? void 0 : i.name, { fontStyles: d, textStyles: n, backgroundStyles: p } = ee(o.style), [v, f] = m.useState(), l = m.useCallback(nt, []), c = m.useCallback((_, k = "") => {
+  zt = function(t) {
+    const { theme: e, widget: o, widget: { data: r }, getPropertyValue: s } = m.useContext(W), i = r[`${t}Object`], l = s(t), u = i == null ? void 0 : i.name, { fontStyles: f, textStyles: n, backgroundStyles: b } = te(o.style), [g, d] = m.useState(), a = m.useCallback(ft, []), c = m.useCallback((_, k = "") => {
       const O = `${_}${k}`;
-      return ot(r, O);
+      return dt(r, O);
     }, [
       r
-    ]), g = m.useMemo(() => le(r) ? rt(r) : it(), [
+    ]), p = m.useMemo(() => ce(r) ? mt(r) : gt(), [
       r
-    ]), $ = m.useMemo(() => at({
+    ]), $ = m.useMemo(() => bt({
       rxData: r,
       oidObject: i,
       oidName: u,
       theme: e,
-      fontStyles: d,
+      fontStyles: f,
       textStyles: n,
-      backgroundStyles: p,
-      formatSize: l,
+      backgroundStyles: b,
+      formatSize: a,
       getDataValue: c,
-      widgetResolver: g,
-      isSlider: le(r)
+      widgetResolver: p,
+      isSlider: ce(r)
     }), [
       r,
       i,
       u,
       e,
-      d,
+      f,
       n,
-      p,
-      l,
+      b,
+      a,
       c,
-      g
-    ]), y = m.useCallback((_ = "", k = false) => lt(_, k, $), [
+      p
+    ]), y = m.useCallback((_ = "", k = false) => pt(_, k, $), [
       $
-    ]), { states: B, widgetStates: V, minValue: F, maxValue: H } = m.useMemo(() => {
+    ]), { states: B, widgetStates: V, minValue: M, maxValue: P } = m.useMemo(() => {
       const _ = {};
       let k = null, O = null;
-      const I = [], S = i == null ? void 0 : i.type, P = (i == null ? void 0 : i.commonStates) || {}, E = Object.entries(P);
+      const T = [], S = i == null ? void 0 : i.type, H = (i == null ? void 0 : i.commonStates) || {}, E = Object.entries(H);
       if (S === "number" || S === "string" || S === "boolean" || S === "mixed") {
-        const T = r.ignoreCommonStates === false ? r.values_count : E.length > 0 ? E.length : r.values_count;
-        for (let C = 1; C <= T; C++) {
-          const j = c("value", String(C)), K = r[`alias${C}`], me = i == null ? void 0 : i.unit;
+        const I = r.ignoreCommonStates === false ? r.values_count : E.length > 0 ? E.length : r.values_count;
+        for (let C = 1; C <= I; C++) {
+          const j = c("value", String(C)), J = r[`alias${C}`], ge = i == null ? void 0 : i.unit;
           if (j === void 0 || !/\S/.test(String(j))) continue;
-          const G = E.find(([pe]) => pe === String(j)), te = G ? S === "number" ? Number(G[0]) : String(G[0]) : S === "number" ? Number(j) : j, ge = String(a) === String(te), x = y(C, ge);
-          I.push({
-            value: te,
+          const G = E.find(([he]) => he === String(j)), oe = G ? S === "number" ? Number(G[0]) : String(G[0]) : S === "number" ? Number(j) : j, be = String(l) === String(oe), x = y(C, be);
+          T.push({
+            value: oe,
             label: x.alias || String(x.value),
             alias: x.alias,
             fontSize: x.valueSize,
@@ -2225,16 +2283,16 @@ let __tla = Promise.all([
             background: x.background,
             frameBackground: x.frameBackground
           });
-          const be = String(G ? G[0] : j);
-          _[be] = K && String(K).trim() !== "" ? K : `${j}${me}`;
+          const pe = String(G ? G[0] : j);
+          _[pe] = J && String(J).trim() !== "" ? J : `${j}${ge}`;
         }
       }
-      if (S === "number" && I.length) {
-        const T = I.map((C) => typeof C.value == "number" ? C.value : NaN).filter((C) => !isNaN(C));
-        T.length > 0 && (k = Math.min(...T), O = Math.max(...T));
+      if (S === "number" && T.length) {
+        const I = T.map((C) => typeof C.value == "number" ? C.value : NaN).filter((C) => !isNaN(C));
+        I.length > 0 && (k = Math.min(...I), O = Math.max(...I));
       }
       return {
-        states: I,
+        states: T,
         widgetStates: _,
         minValue: k,
         maxValue: O
@@ -2245,7 +2303,7 @@ let __tla = Promise.all([
       i == null ? void 0 : i.unit,
       r,
       c,
-      a,
+      l,
       y
     ]), A = m.useMemo(() => {
       switch (i == null ? void 0 : i.type) {
@@ -2253,26 +2311,26 @@ let __tla = Promise.all([
         case "boolean":
         case "number":
         case "string": {
-          const k = B.findIndex((O) => String(O.value) === String(a));
-          return k !== -1 ? (f(k + 1), y(k + 1, true)) : (f(void 0), y("", true));
+          const k = B.findIndex((O) => String(O.value) === String(l));
+          return k !== -1 ? (d(k + 1), y(k + 1, true)) : (d(void 0), y("", true));
         }
         default:
           return y("", true);
       }
     }, [
       i,
-      a,
+      l,
       B,
       y
     ]);
     return {
       widgetStates: V,
-      minValue: F,
-      maxValue: H,
+      minValue: M,
+      maxValue: P,
       data: A,
-      activeIndex: v,
-      setActiveIndex: f,
-      oidValue: a,
+      activeIndex: g,
+      setActiveIndex: d,
+      oidValue: l,
       states: B,
       resolveStyleData: y
     };
@@ -2281,25 +2339,25 @@ let __tla = Promise.all([
 export {
   z as C,
   q as D,
-  tt as S,
+  ut as S,
   __tla,
   W as a,
   D as b,
-  Qe as c,
-  gt as d,
-  ft as e,
-  mt as f,
-  et as g,
+  lt as c,
+  kt as d,
+  Ct as e,
+  yt as f,
+  st as g,
   X as h,
-  dt as i,
-  Ze as j,
-  nt as k,
-  re as l,
-  Ke as m,
-  ee as n,
-  qe as o,
+  xt as i,
+  ct as j,
+  ft as k,
+  ie as l,
+  it as m,
+  te as n,
+  nt as o,
   U as p,
-  He as q,
-  bt as u,
-  ut as w
+  Le as q,
+  zt as u,
+  St as w
 };

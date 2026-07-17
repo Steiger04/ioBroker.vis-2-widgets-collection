@@ -1,5 +1,5 @@
 import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as J, a as K, W as Q, q as V, b as C, s as F, j as b, w as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { g as J, a as K, ax as Q, q as V, b as C, s as F, j as b, w as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -104,14 +104,14 @@ let __tla = Promise.all([
       m && m(e), a && a.onFocus && a.onFocus(e);
     }, T = (e) => {
       g && g(e), a && a.onBlur && a.onBlur(e);
-    }, W = (e) => {
+    }, O = (e) => {
       if (e.nativeEvent.defaultPrevented) return;
       const o = e.target.checked;
       M(o), f && f(e, o);
     };
     let r = k;
     a && typeof r > "u" && (r = a.disabled);
-    const O = i === "checkbox" || i === "radio", p = {
+    const W = i === "checkbox" || i === "radio", p = {
       ...s,
       checked: w,
       disabled: r,
@@ -160,7 +160,7 @@ let __tla = Promise.all([
       getSlotProps: (e) => ({
         onChange: (o) => {
           var _a;
-          (_a = e.onChange) == null ? void 0 : _a.call(e, o), W(o);
+          (_a = e.onChange) == null ? void 0 : _a.call(e, o), O(o);
         }
       }),
       ownerState: p,
@@ -169,7 +169,7 @@ let __tla = Promise.all([
         checked: n,
         defaultChecked: u,
         disabled: r,
-        id: O ? R : void 0,
+        id: W ? R : void 0,
         name: z,
         readOnly: v,
         required: j,

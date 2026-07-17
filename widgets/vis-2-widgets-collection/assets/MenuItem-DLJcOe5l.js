@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as x, e as P, B as U, r as G, m as N, i as c, ax as I, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-DV-semt9.js";
+import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as G, B as P, r as U, m as N, i as c, aG as x, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-COCnrX4C.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -52,7 +52,7 @@ let __tla = Promise.all([
     ];
   };
   H = (e) => {
-    const { disabled: t, dense: a, divider: s, disableGutters: r, selected: d, classes: o } = e, i = P({
+    const { disabled: t, dense: a, divider: s, disableGutters: r, selected: d, classes: o } = e, i = G({
       root: [
         "root",
         a && "dense",
@@ -67,8 +67,8 @@ let __tla = Promise.all([
       ...i
     };
   };
-  z = F(U, {
-    shouldForwardProp: (e) => G(e) || e === "classes",
+  z = F(P, {
+    shouldForwardProp: (e) => U(e) || e === "classes",
     name: "MuiMenuItem",
     slot: "Root",
     overridesResolver: E
@@ -109,11 +109,11 @@ let __tla = Promise.all([
     [`&.${n.disabled}`]: {
       opacity: (e.vars || e).palette.action.disabledOpacity
     },
-    [`& + .${I.root}`]: {
+    [`& + .${x.root}`]: {
       marginTop: e.spacing(1),
       marginBottom: e.spacing(1)
     },
-    [`& + .${I.inset}`]: {
+    [`& + .${x.inset}`]: {
       marginLeft: 52
     },
     [`& .${$.root}`]: {
@@ -194,8 +194,8 @@ let __tla = Promise.all([
         role: S,
         tabIndex: b,
         component: d,
-        focusVisibleClassName: x(u.focusVisible, R),
-        className: x(u.root, B),
+        focusVisibleClassName: I(u.focusVisible, R),
+        className: I(u.root, B),
         ...L,
         ownerState: _,
         classes: u

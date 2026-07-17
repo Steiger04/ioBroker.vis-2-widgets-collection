@@ -1,11 +1,11 @@
-import { j as o, s as w, n as d, G as C, __tla as __tla_0 } from "./usePopoverPositioning-C05Nu8XW.js";
-import { h as r, C as u, g as h, a as x, u as k, c as v, d as y, e as p, f as _, w as M, __tla as __tla_1 } from "./useData-DFGCESxg.js";
-import { u as j, d as z, __tla as __tla_2 } from "./useValueState-xFsj3rw8.js";
+import { j as o, s as w, n as d, G as C, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { h as r, C as u, g as h, a as x, u as k, c as v, d as y, e as p, f as _, w as M, __tla as __tla_1 } from "./useData-Crq-Rx8l.js";
+import { u as j, d as z, __tla as __tla_2 } from "./useValueState-ZAcVaukB.js";
 import { v as m, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as F, __tla as __tla_4 } from "./Switch-C9bANsqc.js";
+import { S as F, __tla as __tla_4 } from "./Switch-DTaOi7A6.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./SwitchBase-XpmSqOOG.js";
+import { __tla as __tla_5 } from "./SwitchBase-CWi7Or7W.js";
 let g;
 let __tla = Promise.all([
   (() => {

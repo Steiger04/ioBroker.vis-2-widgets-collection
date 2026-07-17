@@ -1,6 +1,6 @@
 import { v as m, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { c as v, j as a, a as w, g as B, u as M, b as O, a6 as _, d as F, s as H, w as n, e as V, r as U, m as E, i as z, x as I, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
-import { S as L, __tla as __tla_2 } from "./SwitchBase-XpmSqOOG.js";
+import { c as v, j as a, a as w, g as B, u as M, b as O, a1 as _, d as F, s as H, w as n, e as V, r as U, m as E, i as z, x as I, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { S as L, __tla as __tla_2 } from "./SwitchBase-CWi7Or7W.js";
 let Z;
 let __tla = Promise.all([
   (() => {

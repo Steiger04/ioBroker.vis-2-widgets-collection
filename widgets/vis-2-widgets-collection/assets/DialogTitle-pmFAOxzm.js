@@ -1,5 +1,5 @@
 import { v as p, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as k, g as w, u as P, R as go, P as N, as as j, X as mo, b, d as h, s as g, j as n, w as u, e as W, M as xo, at as bo, m as U, T as ho, __tla as __tla_1 } from "./usePopoverPositioning-C05Nu8XW.js";
+import { a as k, g as w, u as P, N as go, P as N, aB as j, U as mo, b, d as h, s as g, j as n, w as u, e as W, M as xo, aC as bo, m as U, T as ho, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
 let Fo, No, jo;
 let __tla = Promise.all([
   (() => {
@@ -222,11 +222,11 @@ let __tla = Promise.all([
     }), a = go(), s = {
       enter: a.transitions.duration.enteringScreen,
       exit: a.transitions.duration.leavingScreen
-    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": m = true, BackdropComponent: f, BackdropProps: A, children: I, className: X, disableEscapeKeyDown: T = false, fullScreen: Y = false, fullWidth: L = false, maxWidth: z = "sm", onBackdropClick: M, onClick: R, onClose: v, open: $, PaperComponent: E = N, PaperProps: B = {}, scroll: H = "paper", slots: O = {}, slotProps: K = {}, TransitionComponent: V = j, transitionDuration: F = s, TransitionProps: q, ...G } = r, c = {
+    }, { "aria-describedby": i, "aria-labelledby": l, "aria-modal": m = true, BackdropComponent: f, BackdropProps: A, children: I, className: Y, disableEscapeKeyDown: T = false, fullScreen: L = false, fullWidth: X = false, maxWidth: z = "sm", onBackdropClick: M, onClick: R, onClose: v, open: $, PaperComponent: E = N, PaperProps: B = {}, scroll: H = "paper", slots: O = {}, slotProps: K = {}, TransitionComponent: V = j, transitionDuration: F = s, TransitionProps: q, ...G } = r, c = {
       ...r,
       disableEscapeKeyDown: T,
-      fullScreen: Y,
-      fullWidth: L,
+      fullScreen: L,
+      fullWidth: X,
       maxWidth: z,
       scroll: H
     }, C = Co(c), y = p.useRef(), J = (d) => {
@@ -253,7 +253,7 @@ let __tla = Promise.all([
       shouldForwardComponentProp: true,
       externalForwardedProps: x,
       ownerState: c,
-      className: h(C.root, X),
+      className: h(C.root, Y),
       ref: t
     }), [ao, so] = b("backdrop", {
       elementType: vo,
