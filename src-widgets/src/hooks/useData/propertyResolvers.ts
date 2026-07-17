@@ -100,10 +100,22 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: includeActive && Boolean(getDataValue<number | string>('iconSize', 'Active')),
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', 'Active')} / 100)`,
                 },
-                { condition: getDataValue<number | string>('iconSize', String(ext)) === 0, value: '0px' },
                 {
-                    condition: Boolean(getDataValue<number | string>('iconSize', String(ext))),
+                    condition: String(ext) !== '' && getDataValue<number | string>('iconSize', String(ext)) === 0,
+                    value: '0px',
+                },
+                {
+                    condition: String(ext) !== '' && Boolean(getDataValue<number | string>('iconSize', String(ext))),
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
+                },
+                {
+                    condition: isSlider && typeof widgetResolver.markerIconSize === 'number',
+                    value: `calc(24px * ${widgetResolver.markerIconSize} / 100)`,
+                },
+                { condition: getDataValue<number | string>('iconSize', '') === 0, value: '0px' },
+                {
+                    condition: Boolean(getDataValue<number | string>('iconSize', '')),
+                    value: `calc(24px * ${getDataValue<number | string>('iconSize', '')} / 100)`,
                 },
             ]) ?? '24px',
 
@@ -179,7 +191,8 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         iconColor: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
-                { value: getDataValue<string>('iconColor', String(ext)) },
+                { condition: String(ext) !== '', value: getDataValue<string>('iconColor', String(ext)) },
+                { condition: isSlider, value: widgetResolver.markerIconColor },
                 { value: getDataValue<string>('iconColor', '') },
             ]) ?? _theme.palette.primary.main,
 

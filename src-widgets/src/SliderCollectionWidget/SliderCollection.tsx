@@ -171,6 +171,24 @@ const SliderCollection: FC = () => {
     );
 
     const sliderMarks = useMemo(() => {
+        const defaultMarkStyle = resolveStyleData('', false);
+        const activeMarkStyle = resolveStyleData('', true);
+
+        const getGeneratedMarkStyle = (value: number): ReturnType<typeof resolveStyleData> => {
+            if (String(value) !== String(oidValue)) {
+                return defaultMarkStyle;
+            }
+
+            return {
+                ...defaultMarkStyle,
+                ...(widget.data.iconSizeActive !== undefined && { iconSize: activeMarkStyle.iconSize }),
+                ...(widget.data.iconColorActive && { iconColor: activeMarkStyle.iconColor }),
+                ...(widget.data.enableIconColorMaskActive !== undefined && {
+                    forceColorMask: activeMarkStyle.forceColorMask,
+                }),
+            };
+        };
+
         // Type guard to ensure we only work with numeric values
         const numericStates = states.filter(
             (state): state is typeof state & { value: number } => typeof state.value === 'number',
@@ -189,7 +207,7 @@ const SliderCollection: FC = () => {
         // Ensure minimum value is included
         if (sliderMinValue !== null && !marks.some(m => m.value === sliderMinValue)) {
             marks.push({
-                ...resolveStyleData('', false),
+                ...getGeneratedMarkStyle(sliderMinValue),
                 value: sliderMinValue,
                 label: `${sliderMinValue}${oidObject?.unit || ''}`,
             });
@@ -198,7 +216,7 @@ const SliderCollection: FC = () => {
         // Ensure maximum value is included
         if (sliderMaxValue !== null && !marks.some(m => m.value === sliderMaxValue)) {
             marks.push({
-                ...resolveStyleData('', false),
+                ...getGeneratedMarkStyle(sliderMaxValue),
                 value: sliderMaxValue,
                 label: `${sliderMaxValue}${oidObject?.unit || ''}`,
             });
@@ -209,7 +227,7 @@ const SliderCollection: FC = () => {
             const step = Number(widget.data.markStep) || 1;
             for (let i = sliderMinValue + step; i < sliderMaxValue; i += step) {
                 if (!marks.some(m => m.value === i)) {
-                    marks.push({ ...resolveStyleData('', false), value: i, label: `${i}${oidObject?.unit || ''}` });
+                    marks.push({ ...getGeneratedMarkStyle(i), value: i, label: `${i}${oidObject?.unit || ''}` });
                 }
             }
         }
@@ -222,7 +240,11 @@ const SliderCollection: FC = () => {
         sliderMinValue,
         sliderMaxValue,
         oidObject?.unit,
+        oidValue,
         resolveStyleData,
+        widget.data.enableIconColorMaskActive,
+        widget.data.iconColorActive,
+        widget.data.iconSizeActive,
     ]);
     // Derive the index of the mark corresponding to the current oidValue
     const sliderMarksIndex = useMemo(() => {
