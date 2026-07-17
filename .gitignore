@@ -34,4 +34,6 @@ CLAUDE.md
 .kilocode
 plans
 scripts
+!scripts/
+!scripts/i18n-sync.js
 .kilocodemodes
