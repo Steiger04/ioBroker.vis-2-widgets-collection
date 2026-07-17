@@ -133,6 +133,8 @@ const SliderCollection: FC = () => {
 
     const isHorizontal = widget.data.sliderOrientation === 'horizontal';
 
+    const markLabelFallbackColor = resolveStyleData('', false).textColor || theme.palette.text.primary;
+
     const startIcon = useMemo(
         () =>
             isHorizontal
@@ -450,14 +452,15 @@ const SliderCollection: FC = () => {
                                             widget.data.textColorActive ||
                                             data.textColorActive ||
                                             (activeIndex && widget.data.markerTextColor) ||
-                                            data.textColor,
+                                            data.textColor ||
+                                            theme.palette.text.primary,
                                         bgcolor: 'transparent',
                                         top: isHorizontal ? widget.data.labelPosition : undefined,
                                         right: !isHorizontal ? widget.data.labelPosition : undefined,
                                     },
                                     '& .MuiSlider-markLabel': {
                                         fontSize: data.valueSize,
-                                        color: widget.data.markerTextColor || data.textColor,
+                                        color: markLabelFallbackColor,
                                         top: isHorizontal ? widget.data.markPosition : undefined,
                                         left: !isHorizontal ? widget.data.markPosition : undefined,
                                     },
