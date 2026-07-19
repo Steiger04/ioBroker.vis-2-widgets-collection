@@ -1,8 +1,8 @@
-import { j as o, i as C, n as c, T as W, p as S, G as F, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
-import { h as D, C as M, a as z, u as $, c as P, d as L, b as w, S as R, g as A, l as H, e as u, f as N, w as E, __tla as __tla_1 } from "./useData-Crq-Rx8l.js";
-import { u as U, d as X, __tla as __tla_2 } from "./useValueState-ZAcVaukB.js";
+import { j as o, f as C, l as c, T as W, o as S, G as F, __tla as __tla_0 } from "./usePopoverPositioning-CofXyWxH.js";
+import { h as D, C as M, a as z, u as $, c as P, d as L, b as w, S as R, g as A, l as H, e as u, f as N, w as E, __tla as __tla_1 } from "./useData-BoTWPt4P.js";
+import { u as U, d as X, __tla as __tla_2 } from "./useValueState-BWd4R4y3.js";
 import { v as _, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { T as Y, a as q, __tla as __tla_4 } from "./ToggleButtonGroup-gCQD3IkX.js";
+import { T as Y, a as q, __tla as __tla_4 } from "./ToggleButtonGroup-CsvD-mXK.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let B;
@@ -179,8 +179,8 @@ let __tla = Promise.all([
                 borderRadius: t.data.basePadding ? void 0 : 0
               }
             },
-            children: g.map(({ value: s, ...e }, v) => {
-              const I = G === v + 1, { hasGradient: f, hoverBackground: V, selectedBackground: O } = K(e.background), y = w(e.textColor);
+            children: g.map(({ value: s, ...e }, f) => {
+              const I = G === f + 1, { hasGradient: v, hoverBackground: V, selectedBackground: O } = K(e.background), y = w(e.textColor);
               return o.jsx(q, {
                 value: String(s),
                 onClick: () => T(s),
@@ -192,10 +192,10 @@ let __tla = Promise.all([
                   justifyContent: "center",
                   alignItems: "center",
                   "&.MuiToggleButton-root": {
-                    filter: I && f ? "opacity(80%)" : void 0,
+                    filter: I && v ? "opacity(80%)" : void 0,
                     background: e.background,
                     "&:hover": {
-                      filter: f ? "opacity(80%)" : void 0,
+                      filter: v ? "opacity(80%)" : void 0,
                       background: V
                     },
                     "&.Mui-selected": {
@@ -263,7 +263,7 @@ let __tla = Promise.all([
                     })
                   ]
                 })
-              }, `${String(s)}-${v}`);
+              }, `${String(s)}-${f}`);
             })
           })
         })

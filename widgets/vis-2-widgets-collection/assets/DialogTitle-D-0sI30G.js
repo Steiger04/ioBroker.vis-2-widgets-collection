@@ -1,5 +1,5 @@
 import { v as p, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as k, g as w, u as P, N as go, P as N, aB as j, U as mo, b, d as h, s as g, j as n, w as u, e as W, M as xo, aC as bo, m as U, T as ho, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { a as D, g as w, u as P, N as go, P as N, aB as j, U as mo, k as b, d as h, s as g, j as n, w as u, e as W, M as xo, aC as bo, m as U, T as ho, __tla as __tla_1 } from "./usePopoverPositioning-CofXyWxH.js";
 let Fo, No, jo;
 let __tla = Promise.all([
   (() => {
@@ -18,8 +18,8 @@ let __tla = Promise.all([
   function fo(e) {
     return w("MuiDialog", e);
   }
-  let D, _, vo, Co, yo, So, Do;
-  D = k("MuiDialog", [
+  let k, _, vo, Co, yo, So, ko;
+  k = D("MuiDialog", [
     "root",
     "scrollPaper",
     "scrollBody",
@@ -118,7 +118,7 @@ let __tla = Promise.all([
       }
     ]
   });
-  Do = g(N, {
+  ko = g(N, {
     name: "MuiDialog",
     slot: "Paper",
     overridesResolver: (e, o) => {
@@ -172,7 +172,7 @@ let __tla = Promise.all([
         },
         style: {
           maxWidth: e.breakpoints.unit === "px" ? Math.max(e.breakpoints.values.xs, 444) : `max(${e.breakpoints.values.xs}${e.breakpoints.unit}, 444px)`,
-          [`&.${D.paperScrollBody}`]: {
+          [`&.${k.paperScrollBody}`]: {
             [e.breakpoints.down(Math.max(e.breakpoints.values.xs, 444) + 64)]: {
               maxWidth: "calc(100% - 64px)"
             }
@@ -185,7 +185,7 @@ let __tla = Promise.all([
         },
         style: {
           maxWidth: `${e.breakpoints.values[o]}${e.breakpoints.unit}`,
-          [`&.${D.paperScrollBody}`]: {
+          [`&.${k.paperScrollBody}`]: {
             [e.breakpoints.down(e.breakpoints.values[o] + 64)]: {
               maxWidth: "calc(100% - 64px)"
             }
@@ -207,7 +207,7 @@ let __tla = Promise.all([
           height: "100%",
           maxHeight: "none",
           borderRadius: 0,
-          [`&.${D.paperScrollBody}`]: {
+          [`&.${k.paperScrollBody}`]: {
             margin: 0,
             maxWidth: "100%"
           }
@@ -261,7 +261,7 @@ let __tla = Promise.all([
       externalForwardedProps: x,
       ownerState: c
     }), [io, lo] = b("paper", {
-      elementType: Do,
+      elementType: ko,
       shouldForwardComponentProp: true,
       externalForwardedProps: x,
       ownerState: c,
@@ -322,10 +322,10 @@ let __tla = Promise.all([
       })
     });
   });
-  function ko(e) {
+  function Do(e) {
     return w("MuiDialogContent", e);
   }
-  k("MuiDialogContent", [
+  D("MuiDialogContent", [
     "root",
     "dividers"
   ]);
@@ -333,7 +333,7 @@ let __tla = Promise.all([
     return w("MuiDialogTitle", e);
   }
   let Po, Wo, To, Mo, Ro;
-  Po = k("MuiDialogTitle", [
+  Po = D("MuiDialogTitle", [
     "root"
   ]);
   Wo = (e) => {
@@ -343,7 +343,7 @@ let __tla = Promise.all([
         "root",
         t && "dividers"
       ]
-    }, ko, o);
+    }, Do, o);
   };
   To = g("div", {
     name: "MuiDialogContent",

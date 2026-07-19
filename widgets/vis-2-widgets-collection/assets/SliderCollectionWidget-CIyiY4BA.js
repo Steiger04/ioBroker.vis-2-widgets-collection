@@ -1,8 +1,8 @@
-import { j as a, n as g, T as Z, s as ee, i as G, G as te, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
-import { h as ae, i as y, C as m, b as N, S as V, g as L, a as ie, u as oe, j as X, c as re, d as le, k as Y, l as B, e as T, f as ne, w as de, __tla as __tla_1 } from "./useData-Crq-Rx8l.js";
-import { u as se, d as ce, __tla as __tla_2 } from "./useValueState-ZAcVaukB.js";
+import { j as a, l as g, T as Z, s as ee, f as G, G as te, __tla as __tla_0 } from "./usePopoverPositioning-CofXyWxH.js";
+import { h as ae, i as y, C as m, b as N, S as V, g as L, a as ie, u as oe, j as X, c as le, d as re, k as Y, l as B, e as T, f as ne, w as de, __tla as __tla_1 } from "./useData-BoTWPt4P.js";
+import { u as se, d as ce, __tla as __tla_2 } from "./useValueState-BWd4R4y3.js";
 import { v as s, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as me, S as ue, __tla as __tla_4 } from "./Slider-EI4H9hCW.js";
+import { a as me, S as ue, __tla as __tla_4 } from "./Slider-enbrXPpK.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let q;
@@ -497,14 +497,14 @@ let __tla = Promise.all([
     const i = s.useContext(ie), { widget: { data: { oidObject: t } }, widget: e, theme: f } = i, { data: p, states: k, minValue: S, maxValue: j, activeIndex: _, resolveStyleData: o } = oe("oid"), { value: n, updateValue: U, hasBackendChange: D } = se("oid"), [M, I] = s.useState(typeof n == "number" ? n : void 0), C = s.useRef(null), [w, J] = s.useState({
       x: 0,
       y: 0
-    }), r = e.data.sliderOrientation === "horizontal", K = o("", false).textColor || f.palette.text.primary, O = s.useMemo(() => r ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
-      r,
+    }), l = e.data.sliderOrientation === "horizontal", K = o("", false).textColor || f.palette.text.primary, O = s.useMemo(() => l ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
+      l,
       e.data.iconMin,
       e.data.iconSmallMin,
       e.data.iconMax,
       e.data.iconSmallMax
-    ]), $ = s.useMemo(() => r ? e.data.iconMax || e.data.iconSmallMax : e.data.iconMin || e.data.iconSmallMin, [
-      r,
+    ]), $ = s.useMemo(() => l ? e.data.iconMax || e.data.iconSmallMax : e.data.iconMin || e.data.iconSmallMin, [
+      l,
       e.data.iconMax,
       e.data.iconSmallMax,
       e.data.iconMin,
@@ -518,7 +518,7 @@ let __tla = Promise.all([
       e.data.maxValue,
       j
     ]), W = s.useMemo(() => {
-      const c = o("", false), d = o("", true), h = (l) => String(l) !== String(n) ? c : {
+      const c = o("", false), d = o("", true), h = (r) => String(r) !== String(n) ? c : {
         ...c,
         ...e.data.iconSizeActive !== void 0 && {
           iconSize: d.iconSize
@@ -529,25 +529,25 @@ let __tla = Promise.all([
         ...e.data.enableIconColorMaskActive !== void 0 && {
           forceColorMask: d.forceColorMask
         }
-      }, v = k.filter((l) => typeof l.value == "number").filter((l) => (x === null || l.value >= x) && (b === null || l.value <= b));
-      if (e.data.onlyStates) return v.sort((l, u) => l.value - u.value);
-      if (x !== null && !v.some((l) => l.value === x) && v.push({
+      }, v = k.filter((r) => typeof r.value == "number").filter((r) => (x === null || r.value >= x) && (b === null || r.value <= b));
+      if (e.data.onlyStates) return v.sort((r, u) => r.value - u.value);
+      if (x !== null && !v.some((r) => r.value === x) && v.push({
         ...h(x),
         value: x,
         label: `${x}${(t == null ? void 0 : t.unit) || ""}`
-      }), b !== null && !v.some((l) => l.value === b) && v.push({
+      }), b !== null && !v.some((r) => r.value === b) && v.push({
         ...h(b),
         value: b,
         label: `${b}${(t == null ? void 0 : t.unit) || ""}`
       }), x !== null && b !== null) {
-        const l = Number(e.data.markStep) || 1;
-        for (let u = x + l; u < b; u += l) v.some((A) => A.value === u) || v.push({
+        const r = Number(e.data.markStep) || 1;
+        for (let u = x + r; u < b; u += r) v.some((A) => A.value === u) || v.push({
           ...h(u),
           value: u,
           label: `${u}${(t == null ? void 0 : t.unit) || ""}`
         });
       }
-      return v.sort((l, u) => l.value - u.value);
+      return v.sort((r, u) => r.value - u.value);
     }, [
       k,
       e.data.onlyStates,
@@ -583,10 +583,10 @@ let __tla = Promise.all([
       if (!C.current) return;
       const c = C.current.querySelector(".MuiSlider-root"), d = C.current.querySelector(".MuiSlider-rail");
       if (c && d) {
-        const h = C.current.getBoundingClientRect(), z = d.getBoundingClientRect(), v = z.left - h.left + z.width / 2, l = z.top - h.top + z.height / 2, u = h.width / 2, A = h.height / 2;
+        const h = C.current.getBoundingClientRect(), z = d.getBoundingClientRect(), v = z.left - h.left + z.width / 2, r = z.top - h.top + z.height / 2, u = h.width / 2, A = h.height / 2;
         J({
           x: v - u,
-          y: l - A
+          y: r - A
         });
       }
     };
@@ -605,7 +605,7 @@ let __tla = Promise.all([
       e.data.iconSizeStart,
       e.data.iconSizeEnd,
       M
-    ]), a.jsxs(re, {
+    ]), a.jsxs(le, {
       isValidType: E,
       data: p,
       oidValue: n,
@@ -613,7 +613,7 @@ let __tla = Promise.all([
         p: Number(e.data.sliderPadding)
       },
       children: [
-        a.jsx(le, {
+        a.jsx(re, {
           data: p,
           widget: e
         }),
@@ -622,7 +622,7 @@ let __tla = Promise.all([
           sx: {
             gap: Number(e.data.sliderGap) || 0,
             display: "flex",
-            flexDirection: r ? "row" : "column",
+            flexDirection: l ? "row" : "column",
             justifyContent: "center",
             alignItems: "center",
             width: "100%",
@@ -635,14 +635,14 @@ let __tla = Promise.all([
                 justifyContent: "center",
                 alignItems: "center",
                 flexShrink: 0,
-                transform: r ? `translateY(${w.y}px)` : `translateX(${w.x}px)`
+                transform: l ? `translateY(${w.y}px)` : `translateX(${w.x}px)`
               },
               children: a.jsx(V, {
                 alt: "",
                 src: O,
                 style: {
-                  width: r ? e.data.iconSizeStart || "24px" : e.data.iconSizeEnd || "24px",
-                  ...L(O, r ? P : F, true)
+                  width: l ? e.data.iconSizeStart || "24px" : e.data.iconSizeEnd || "24px",
+                  ...L(O, l ? P : F, true)
                 }
               })
             }),
@@ -652,8 +652,8 @@ let __tla = Promise.all([
                 flex: 1,
                 justifyContent: "center",
                 alignItems: "center",
-                minWidth: r ? "200px" : "auto",
-                minHeight: r ? "auto" : "200px"
+                minWidth: l ? "200px" : "auto",
+                minHeight: l ? "auto" : "200px"
               },
               children: typeof M == "number" && a.jsx(be, {
                 data: e.data,
@@ -682,8 +682,8 @@ let __tla = Promise.all([
                   typeof d == "number" && (I(d), U(d));
                 },
                 sx: {
-                  mb: e.data.marks && r ? "20px" : "0px",
-                  mr: e.data.marks && !r ? "44px" : "0px",
+                  mb: e.data.marks && l ? "20px" : "0px",
+                  mr: e.data.marks && !l ? "44px" : "0px",
                   "& .MuiSlider-thumb": {
                     color: e.data.sliderColor
                   },
@@ -704,14 +704,14 @@ let __tla = Promise.all([
                     fontSize: Y(e.data.valueSizeActive) || p.valueSizeActive || p.valueSize,
                     color: e.data.textColorActive || p.textColorActive || _ && e.data.markerTextColor || p.textColor || f.palette.text.primary,
                     bgcolor: "transparent",
-                    top: r ? e.data.labelPosition : void 0,
-                    right: r ? void 0 : e.data.labelPosition
+                    top: l ? e.data.labelPosition : void 0,
+                    right: l ? void 0 : e.data.labelPosition
                   },
                   "& .MuiSlider-markLabel": {
                     fontSize: p.valueSize,
                     color: K,
-                    top: r ? e.data.markPosition : void 0,
-                    left: r ? void 0 : e.data.markPosition
+                    top: l ? e.data.markPosition : void 0,
+                    left: l ? void 0 : e.data.markPosition
                   },
                   "& .MuiSlider-markLabelActive": {
                     [`&[data-index='${H}']`]: {
@@ -734,14 +734,14 @@ let __tla = Promise.all([
                 justifyContent: "center",
                 alignItems: "center",
                 flexShrink: 0,
-                transform: r ? `translateY(${w.y}px)` : `translateX(${w.x}px)`
+                transform: l ? `translateY(${w.y}px)` : `translateX(${w.x}px)`
               },
               children: a.jsx(V, {
                 alt: "",
                 src: $,
                 style: {
-                  width: r ? e.data.iconSizeEnd || "24px" : e.data.iconSizeStart || "24px",
-                  ...L($, r ? F : P, true)
+                  width: l ? e.data.iconSizeEnd || "24px" : e.data.iconSizeStart || "24px",
+                  ...L($, l ? F : P, true)
                 }
               })
             })

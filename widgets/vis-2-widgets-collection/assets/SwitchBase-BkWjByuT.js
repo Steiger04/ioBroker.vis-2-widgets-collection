@@ -1,5 +1,5 @@
 import { v as H, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { g as J, a as K, ax as Q, q as V, b as C, s as F, j as b, w as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { g as J, a as K, ax as Q, q as V, k as C, s as F, j as k, w as X, e as Y, B as Z, r as ee, __tla as __tla_1 } from "./usePopoverPositioning-CofXyWxH.js";
 let ie;
 let __tla = Promise.all([
   (() => {
@@ -95,7 +95,7 @@ let __tla = Promise.all([
     zIndex: 1
   });
   ie = H.forwardRef(function(s, l) {
-    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: k, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...q } = s, [w, M] = Q({
+    const { autoFocus: d, checked: n, checkedIcon: c, defaultChecked: u, disabled: b, disableFocusRipple: h = false, edge: y = false, icon: x, id: R, inputProps: _, inputRef: I, name: z, onBlur: g, onChange: f, onFocus: m, readOnly: v, required: j = false, tabIndex: U, type: i, value: S, slots: E = {}, slotProps: L = {}, ...q } = s, [w, M] = Q({
       controlled: n,
       default: !!u,
       name: "SwitchBase",
@@ -109,7 +109,7 @@ let __tla = Promise.all([
       const o = e.target.checked;
       M(o), f && f(e, o);
     };
-    let r = k;
+    let r = b;
     a && typeof r > "u" && (r = a.disabled);
     const W = i === "checkbox" || i === "radio", p = {
       ...s,
@@ -180,10 +180,10 @@ let __tla = Promise.all([
         }
       }
     });
-    return b.jsxs($, {
+    return k.jsxs($, {
       ...A,
       children: [
-        b.jsx(D, {
+        k.jsx(D, {
           ...G
         }),
         w ? c : x

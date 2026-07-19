@@ -1,11 +1,11 @@
-import { j as o, s as w, n as d, G as C, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
-import { h as r, C as u, g as h, a as x, u as k, c as v, d as y, e as p, f as _, w as M, __tla as __tla_1 } from "./useData-Crq-Rx8l.js";
-import { u as j, d as z, __tla as __tla_2 } from "./useValueState-ZAcVaukB.js";
+import { j as o, s as w, l as d, G as C, __tla as __tla_0 } from "./usePopoverPositioning-CofXyWxH.js";
+import { h as r, C as u, g as h, a as x, u as k, c as v, d as y, e as p, f as _, w as M, __tla as __tla_1 } from "./useData-BoTWPt4P.js";
+import { u as j, d as z, __tla as __tla_2 } from "./useValueState-BWd4R4y3.js";
 import { v as m, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { S as F, __tla as __tla_4 } from "./Switch-DTaOi7A6.js";
+import { S as F, __tla as __tla_4 } from "./Switch-B6zo6bBn.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_5 } from "./SwitchBase-CWi7Or7W.js";
+import { __tla as __tla_5 } from "./SwitchBase-BkWjByuT.js";
 let g;
 let __tla = Promise.all([
   (() => {
@@ -87,8 +87,8 @@ let __tla = Promise.all([
       label: "track_color",
       fallbackFields: []
     })
-  ], I = w(F)(({ width: a, maxheight: t, data: e, widget: l, theme: n }) => {
-    const i = l.data.thumbSize ?? 62;
+  ], I = w(F)(({ width: l, maxheight: t, data: e, widget: a, theme: n }) => {
+    const i = a.data.thumbSize ?? 62;
     return {
       width: "100%",
       height: "100%",
@@ -105,18 +105,18 @@ let __tla = Promise.all([
         transform: `translate(-50%, -50%) translateX(${(t || 0) >= i ? i / 2 - 4 : (t || 0) / 2 - 4}px)`,
         "& .MuiSwitch-input": {
           left: 0,
-          width: a || 0
+          width: l || 0
         },
         "&.Mui-checked": {
           top: "50%",
           left: "100%",
           transform: `translate(-50%, -50%) translateX(${(t || 0) >= i ? -(i / 2 - 4) : -((t || 0) / 2 - 4)}px)`,
           "& .MuiSwitch-input": {
-            left: -(a || 0) + i,
-            width: a || 0
+            left: -(l || 0) + i,
+            width: l || 0
           },
           "& .MuiSwitch-thumb": {
-            background: l.data.thumbColorTrue || n.palette.primary.main
+            background: a.data.thumbColorTrue || n.palette.primary.main
           },
           "& .MuiSwitch-thumb:before": {
             top: `calc(${e.iconYOffset} * -1)`,
@@ -126,15 +126,15 @@ let __tla = Promise.all([
             ...h(e.icon, e.iconColor || n.palette.primary.dark, e.forceColorMask)
           },
           "& + .MuiSwitch-track": {
-            background: l.data.trackColor
+            background: a.data.trackColor
           }
         }
       },
       "& .MuiSwitch-track": {
-        background: l.data.trackColor
+        background: a.data.trackColor
       },
       "& .MuiSwitch-thumb": {
-        background: l.data.thumbColorFalse,
+        background: a.data.thumbColorFalse,
         width: i,
         maxWidth: t,
         height: i,
@@ -157,7 +157,7 @@ let __tla = Promise.all([
   });
   function O() {
     var _a, _b, _c, _d;
-    const a = m.useRef(null), t = m.useContext(x), { widget: e, theme: l } = t, n = e.data.oidObject, { data: i } = k("oid"), { value: s, updateValue: b } = j("oid"), c = n == null ? void 0 : n.type, f = c === "boolean", S = () => {
+    const l = m.useRef(null), t = m.useContext(x), { widget: e, theme: a } = t, n = e.data.oidObject, { data: i } = k("oid"), { value: s, updateValue: b } = j("oid"), c = n == null ? void 0 : n.type, f = c === "boolean", S = () => {
       b(!s);
     };
     return o.jsxs(v, {
@@ -176,7 +176,7 @@ let __tla = Promise.all([
             height: e.data.trackSize && `${e.data.trackSize}%` || "10%"
           },
           children: o.jsx(d, {
-            ref: a,
+            ref: l,
             sx: {
               width: "100%",
               height: "100%",
@@ -187,15 +187,15 @@ let __tla = Promise.all([
             },
             children: s !== void 0 && e.data.thumbSize !== void 0 && o.jsx(I, {
               disabled: c !== "boolean",
-              width: (_a = a.current) == null ? void 0 : _a.clientWidth,
-              maxheight: (_d = (_c = (_b = a.current) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.parentElement) == null ? void 0 : _d.clientHeight,
+              width: (_a = l.current) == null ? void 0 : _a.clientWidth,
+              maxheight: (_d = (_c = (_b = l.current) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.parentElement) == null ? void 0 : _d.clientHeight,
               data: i,
               widget: e,
               checked: !!s,
               onChange: S,
               sx: {
                 "& .MuiTouchRipple-root": {
-                  color: i.iconColor || l.palette.primary.main
+                  color: i.iconColor || a.palette.primary.main
                 }
               }
             })

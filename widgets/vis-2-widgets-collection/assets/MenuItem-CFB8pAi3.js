@@ -1,6 +1,6 @@
 import { v as l, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as O, g as k, u as T, L as y, f as V, h as j, j as C, s as F, d as I, e as G, B as P, r as U, m as N, i as c, aG as x, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
-import { l as $, __tla as __tla_2 } from "./listItemTextClasses-COCnrX4C.js";
+import { a as O, g as k, u as T, L as y, b as V, c as j, j as C, s as F, d as I, e as G, B as P, r as U, m as N, f as c, aG as x, __tla as __tla_1 } from "./usePopoverPositioning-CofXyWxH.js";
+import { l as $, __tla as __tla_2 } from "./listItemTextClasses-X-Bzt_WG.js";
 let K, J;
 let __tla = Promise.all([
   (() => {
@@ -167,7 +167,7 @@ let __tla = Promise.all([
     const s = T({
       props: t,
       name: "MuiMenuItem"
-    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), m = l.useMemo(() => ({
+    }), { autoFocus: r = false, component: d = "li", dense: o = false, divider: g = false, disableGutters: i = false, focusVisibleClassName: R, role: S = "menuitem", tabIndex: v, className: B, ...L } = s, f = l.useContext(y), b = l.useMemo(() => ({
       dense: o || f.dense || false,
       disableGutters: i
     }), [
@@ -182,17 +182,17 @@ let __tla = Promise.all([
     ]);
     const _ = {
       ...s,
-      dense: m.dense,
+      dense: b.dense,
       divider: g,
       disableGutters: i
     }, u = H(s), w = j(p, a);
-    let b;
-    return s.disabled || (b = v !== void 0 ? v : -1), C.jsx(y.Provider, {
-      value: m,
+    let m;
+    return s.disabled || (m = v !== void 0 ? v : -1), C.jsx(y.Provider, {
+      value: b,
       children: C.jsx(z, {
         ref: w,
         role: S,
-        tabIndex: b,
+        tabIndex: m,
         component: d,
         focusVisibleClassName: I(u.focusVisible, R),
         className: I(u.root, B),

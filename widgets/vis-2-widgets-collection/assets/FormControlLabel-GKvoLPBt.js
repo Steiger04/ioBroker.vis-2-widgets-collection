@@ -1,5 +1,5 @@
 import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as D, g as U, u as A, q as E, aH as H, b as W, T as P, j as c, d as v, s as x, w as F, e as z, m as L, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { a as D, g as U, u as A, q as E, aH as H, k as W, T as P, j as c, d as v, s as x, w as F, e as z, m as L, __tla as __tla_1 } from "./usePopoverPositioning-CofXyWxH.js";
 let Z;
 let __tla = Promise.all([
   (() => {
@@ -126,7 +126,7 @@ let __tla = Promise.all([
     const r = A({
       props: o,
       name: "MuiFormControlLabel"
-    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: q, labelPlacement: T = "end", name: O, onChange: Q, required: _, slots: k = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = _ ?? a.props.required, g = {
+    }), { checked: p, className: d, componentsProps: m = {}, control: a, disabled: R, disableTypography: S, inputRef: K, label: k, labelPlacement: q = "end", name: O, onChange: Q, required: T, slots: _ = {}, slotProps: $ = {}, value: V, ...j } = r, f = E(), C = R ?? a.props.disabled ?? (f == null ? void 0 : f.disabled), b = T ?? a.props.required, g = {
       disabled: C,
       required: b
     };
@@ -148,11 +148,11 @@ let __tla = Promise.all([
     }), n = {
       ...r,
       disabled: C,
-      labelPlacement: T,
+      labelPlacement: q,
       required: b,
       error: w.error
     }, u = I(n), M = {
-      slots: k,
+      slots: _,
       slotProps: {
         ...m,
         ...$
@@ -162,7 +162,7 @@ let __tla = Promise.all([
       externalForwardedProps: M,
       ownerState: n
     });
-    let l = q;
+    let l = k;
     return l != null && l.type !== P && !S && (l = c.jsx(N, {
       component: "span",
       ...h,

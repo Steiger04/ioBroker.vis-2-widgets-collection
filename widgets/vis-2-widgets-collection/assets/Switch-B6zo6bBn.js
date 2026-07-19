@@ -1,6 +1,6 @@
 import { v as T, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { a as P, g as j, u as M, b as k, s as u, d as _, j as p, w as i, e as O, m as d, i as m, x as D, p as I, Q as N, __tla as __tla_1 } from "./usePopoverPositioning-BqDLZSOn.js";
-import { S as U, __tla as __tla_2 } from "./SwitchBase-CWi7Or7W.js";
+import { a as P, g as j, u as M, k, s as u, d as _, j as p, w as i, e as O, m as d, f as m, x as D, o as I, Q as N, __tla as __tla_1 } from "./usePopoverPositioning-CofXyWxH.js";
+import { S as U, __tla as __tla_2 } from "./SwitchBase-BkWjByuT.js";
 let G;
 let __tla = Promise.all([
   (() => {
@@ -63,10 +63,10 @@ let __tla = Promise.all([
       input: [
         "input"
       ]
-    }, b = O(v, A, a);
+    }, S = O(v, A, a);
     return {
       ...a,
-      ...b
+      ...S
     };
   };
   F = u("span", {
@@ -241,36 +241,36 @@ let __tla = Promise.all([
     const l = M({
       props: a,
       name: "MuiSwitch"
-    }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: b, slots: c = {}, slotProps: e = {}, ...y } = l, r = {
+    }), { className: h, color: w = "primary", edge: g = false, size: v = "medium", sx: S, slots: c = {}, slotProps: e = {}, ...f } = l, r = {
       ...l,
       color: w,
       edge: g,
       size: v
-    }, n = E(r), S = {
+    }, n = E(r), b = {
       slots: c,
       slotProps: e
-    }, [f, x] = k("root", {
+    }, [y, x] = k("root", {
       className: _(n.root, h),
       elementType: F,
-      externalForwardedProps: S,
+      externalForwardedProps: b,
       ownerState: r,
       additionalProps: {
-        sx: b
+        sx: S
       }
     }), [C, B] = k("thumb", {
       className: n.thumb,
       elementType: Q,
-      externalForwardedProps: S,
+      externalForwardedProps: b,
       ownerState: r
     }), $ = p.jsx(C, {
       ...B
     }), [z, R] = k("track", {
       className: n.track,
       elementType: L,
-      externalForwardedProps: S,
+      externalForwardedProps: b,
       ownerState: r
     });
-    return p.jsxs(f, {
+    return p.jsxs(y, {
       ...x,
       children: [
         p.jsx(X, {
@@ -279,7 +279,7 @@ let __tla = Promise.all([
           checkedIcon: $,
           ref: s,
           ownerState: r,
-          ...y,
+          ...f,
           classes: {
             ...n,
             root: n.switchBase

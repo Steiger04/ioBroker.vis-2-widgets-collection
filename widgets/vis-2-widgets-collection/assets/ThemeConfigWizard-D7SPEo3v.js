@@ -1,19 +1,19 @@
-import { g as ge, a as be, u as ve, j as e, s as je, d as we, w as Y, e as ke, m as Se, aj as $, i as N, N as De, T as v, x as Ee, ak as le, c as H, I as ee, a9 as j, G as r, n as d, X as Z, al as de, am as R, a7 as Te, Y as ce, Z as pe, S as he, an as Ke, ao as Me, ap as Q, aq as Ve, ar as Re, ae as J, a5 as A, a6 as ue, as as We, ab as Pe, aa as He, a8 as me, at as Oe, _ as $e, P as Ae, __tla as __tla_0 } from "./usePopoverPositioning-BqDLZSOn.js";
+import { g as ge, a as be, u as ve, j as e, s as je, d as we, w as Y, e as ke, m as Se, aj as $, f as N, N as De, T as v, x as Ee, ak as le, p as H, I as ee, a9 as j, G as r, l as d, X as Z, al as de, am as R, a7 as Te, Y as ce, Z as pe, S as he, an as Ke, ao as Me, ap as Q, aq as Ve, ar as Re, ae as J, a5 as A, a6 as ue, as as We, ab as Pe, aa as He, a8 as me, at as Oe, _ as $e, P as Ae, __tla as __tla_0 } from "./usePopoverPositioning-CofXyWxH.js";
 import { v as i, __tla as __tla_1 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
-import { C as Ne, __tla as __tla_2 } from "./Close-BceXwG1O.js";
-import { T as Ge, A as te, d as ae, E as re, e as se, c as Ce, f as G, C as Be, D as Ue, a as Ye, b as Xe, __tla as __tla_3 } from "./ColorPickerField-BcEAPXMG.js";
-import { S as K, __tla as __tla_4 } from "./Stack-zIRvtdYR.js";
-import { T as ze, a as W, __tla as __tla_5 } from "./ToggleButtonGroup-gCQD3IkX.js";
-import { S as B, __tla as __tla_6 } from "./Slider-EI4H9hCW.js";
-import { F as qe, __tla as __tla_7 } from "./FormControlLabel-BExMnks8.js";
-import { S as Je, __tla as __tla_8 } from "./Switch-DTaOi7A6.js";
-import { M, __tla as __tla_9 } from "./MenuItem-DLJcOe5l.js";
-import { B as T, __tla as __tla_10 } from "./Button-DAVD_7bX.js";
-import { D as Ze, a as Qe, b as et, __tla as __tla_11 } from "./DialogTitle-pmFAOxzm.js";
+import { C as Ne, __tla as __tla_2 } from "./Close-9YkifltS.js";
+import { T as Ge, A as te, d as ae, E as re, e as se, c as Ce, f as G, C as Be, D as Ue, a as Ye, b as Xe, __tla as __tla_3 } from "./ColorPickerField-QNYNVWML.js";
+import { S as K, __tla as __tla_4 } from "./Stack-BR9CtSSf.js";
+import { T as ze, a as W, __tla as __tla_5 } from "./ToggleButtonGroup-CsvD-mXK.js";
+import { S as B, __tla as __tla_6 } from "./Slider-enbrXPpK.js";
+import { F as qe, __tla as __tla_7 } from "./FormControlLabel-GKvoLPBt.js";
+import { S as Je, __tla as __tla_8 } from "./Switch-B6zo6bBn.js";
+import { M, __tla as __tla_9 } from "./MenuItem-CFB8pAi3.js";
+import { B as T, __tla as __tla_10 } from "./Button-B6dAQNhX.js";
+import { D as Ze, a as Qe, b as et, __tla as __tla_11 } from "./DialogTitle-D-0sI30G.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-import { __tla as __tla_12 } from "./SwitchBase-CWi7Or7W.js";
-import { __tla as __tla_13 } from "./listItemTextClasses-COCnrX4C.js";
+import { __tla as __tla_12 } from "./SwitchBase-BkWjByuT.js";
+import { __tla as __tla_13 } from "./listItemTextClasses-X-Bzt_WG.js";
 let Le;
 let __tla = Promise.all([
   (() => {
