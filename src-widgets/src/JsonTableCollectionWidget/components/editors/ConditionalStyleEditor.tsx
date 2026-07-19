@@ -268,12 +268,14 @@ function ConditionalStyleEditor({
                                 <ColorPickerField
                                     label={Generic.t('json_table_bg_color')}
                                     value={rule.backgroundColor || ''}
-                                    onChange={c => updateStyleRule(idx, { backgroundColor: c })}
+                                    overridden={!!rule.backgroundColor}
+                                    onChange={c => updateStyleRule(idx, { backgroundColor: c || undefined })}
                                 />
                                 <ColorPickerField
                                     label={Generic.t('json_table_text_color')}
                                     value={rule.textColor || ''}
-                                    onChange={c => updateStyleRule(idx, { textColor: c })}
+                                    overridden={!!rule.textColor}
+                                    onChange={c => updateStyleRule(idx, { textColor: c || undefined })}
                                 />
                             </Stack>
 

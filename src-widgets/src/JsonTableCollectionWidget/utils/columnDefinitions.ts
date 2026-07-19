@@ -48,6 +48,9 @@ export function getSmartDefaults(detectedType: string): SmartDefaults {
             return { sortable: true, filterable: true, hiding: true };
         case 'string':
             return { sortable: true, filterable: true, hiding: true };
+        case 'image':
+            // Image references are not meaningfully sortable/filterable.
+            return { sortable: false, filterable: false, hiding: true };
         case 'boolean':
             // Boolean usually doesn't need sorting (only 2 values)
             return { sortable: false, filterable: true, hiding: true };
@@ -272,7 +275,18 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                         sortingFn: createDateSortingFn(inputFmt),
                         filterFn: createDateFilterFn(inputFmt),
                     }),
-                    cell: ({ getValue }) => renderConfiguredCell(getValue(), cfg),
+                    cell: ({ getValue }) =>
+                        renderConfiguredCell(
+                            getValue(),
+                            // 'auto' (no format) on a detected image column → render as image,
+                            // consistent with auto-detected mode. Without this, configuring one
+                            // column (which switches the table to configured-columns mode) would
+                            // make sibling image columns fall back to text. Explicit 'string'
+                            // format is unaffected.
+                            !cfg.format && detectedType === 'image'
+                                ? { ...cfg, format: { type: 'image' as const } }
+                                : cfg,
+                        ),
                     meta: {
                         align: cfg.align || 'left',
                         width: cfg.width,
@@ -300,8 +314,21 @@ export function buildColumnDefs(options: BuildColumnDefsOptions): ColumnDef<Flat
                     sortingFn: createDateSortingFn(fmt),
                     filterFn: createDateFilterFn(fmt),
                 }),
-                cell: ({ getValue }) => renderAutoDetectedCell(getValue()),
-                meta: { align: 'left', columnType: col.type },
+                // Auto-detected image columns render as graphics immediately (default format),
+                // so icons/images show on first view without manual configuration.
+                cell: ({ getValue }) => {
+                    const value = getValue();
+                    if (col.type === 'image') {
+                        return renderConfiguredCell(value, {
+                            path: col.path,
+                            visible: true,
+                            headerName: col.path.split('.').pop() || col.path,
+                            format: { type: 'image' },
+                        });
+                    }
+                    return renderAutoDetectedCell(value);
+                },
+                meta: { align: col.type === 'image' ? 'center' : 'left', columnType: col.type },
             };
             return colDef;
         });

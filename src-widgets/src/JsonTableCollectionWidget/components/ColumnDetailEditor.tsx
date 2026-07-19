@@ -41,6 +41,7 @@ import NumberFormatEditor from './editors/NumberFormatEditor';
 import DateFormatEditor from './editors/DateFormatEditor';
 import BooleanFormatEditor from './editors/BooleanFormatEditor';
 import StringFormatEditor from './editors/StringFormatEditor';
+import ImageFormatEditor from './editors/ImageFormatEditor';
 import ConditionalStyleEditor from './editors/ConditionalStyleEditor';
 import StatusBanner from './StatusBanner';
 import EffectiveResultIndicator from './EffectiveResultIndicator';
@@ -181,6 +182,17 @@ function ColumnDetailEditor({
                     stringKeys.forEach(k => {
                         delete base[k];
                     });
+                } else if (oldType === 'image') {
+                    delete base.imageSize;
+                    delete base.imageObjectFit;
+                    delete base.imageVariant;
+                    delete base.imageBgColor;
+                    delete base.imageBorderColor;
+                    delete base.imageBorderWidth;
+                    delete base.imageTint;
+                    delete base.imageTooltip;
+                    delete base.imageShowBroken;
+                    delete base.imagePadding;
                 }
             }
 
@@ -410,6 +422,7 @@ function ColumnDetailEditor({
                                     <MenuItem value="number">{Generic.t('json_table_format_type_number')}</MenuItem>
                                     <MenuItem value="date">{Generic.t('json_table_format_type_date')}</MenuItem>
                                     <MenuItem value="boolean">{Generic.t('json_table_format_type_boolean')}</MenuItem>
+                                    <MenuItem value="image">{Generic.t('json_table_format_type_image')}</MenuItem>
                                 </Select>
                             </FormControl>
 
@@ -447,11 +460,20 @@ function ColumnDetailEditor({
                                 />
                             )}
 
+                            {/* Image / icon formatting */}
+                            {(detectedType === 'image' || column.format?.type === 'image') && (
+                                <ImageFormatEditor
+                                    format={column.format ?? { type: 'image' }}
+                                    onChange={updateFormat}
+                                />
+                            )}
+
                             {/* No applicable format type */}
                             {detectedType !== 'number' &&
                                 detectedType !== 'date' &&
                                 detectedType !== 'boolean' &&
                                 detectedType !== 'string' &&
+                                detectedType !== 'image' &&
                                 !column.format && (
                                     <Typography
                                         variant="body2"

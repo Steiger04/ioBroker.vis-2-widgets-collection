@@ -17,7 +17,21 @@ import type { JsonLogicRule } from './utils/jsonLogicEngine';
 // ── Column Format Configuration ─────────────────────────────────
 
 /** Supported format types for cell value rendering. */
-export type ColumnFormatType = 'number' | 'date' | 'boolean' | 'string';
+export type ColumnFormatType = 'number' | 'date' | 'boolean' | 'string' | 'image';
+
+/** How an image fills its render box (CSS `object-fit`). */
+export type ImageObjectFit = 'contain' | 'cover' | 'fill';
+
+/** Shape of the rendered avatar (MUI `Avatar` variant). */
+export type ImageVariant = 'circular' | 'rounded' | 'square';
+
+/** Per-side padding (px) around the avatar within the cell. */
+export interface ImagePadding {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+}
 
 /**
  * Formatting configuration for a single column.
@@ -76,6 +90,37 @@ export interface ColumnFormatConfig {
     stringFontSize?: number;
     /** Static text color (CSS color string) for the column. Overrideable by conditional cell rules. */
     stringTextColor?: string;
+
+    // ── Image / icon formatting ────────────────────────────────────
+    // When type === 'image', the cell value is the visual reference (URL,
+    // data:image/… URI, or UTF-8 glyph) and is rendered as a graphic.
+    /** Target render size in pixels (height; width follows aspect ratio via object-fit). @default 64 */
+    imageSize?: number;
+    /** How the graphic fills its size box. @default 'contain' */
+    imageObjectFit?: ImageObjectFit;
+    /** Shape of the rendered avatar. @default 'square' */
+    imageVariant?: ImageVariant;
+    /** Avatar background colour (CSS colour string). Transparent when unset. */
+    imageBgColor?: string;
+    /** Avatar border colour (CSS colour string). Border renders only with a width > 0. */
+    imageBorderColor?: string;
+    /** Avatar border width in pixels. Renders only when a border colour is set. */
+    imageBorderWidth?: number;
+    /**
+     * Colour tint applied to the graphic via a CSS mask (source alpha). Works for any
+     * image (SVG or raster) as well as UTF-8 glyphs; exact for monochrome icons. CSS
+     * colour string.
+     */
+    imageTint?: string;
+    /** Show the raw value as a hover tooltip (title attribute) on the graphic. @default true */
+    imageTooltip?: boolean;
+    /** Show a broken-image placeholder when a URL fails to load. @default true */
+    imageShowBroken?: boolean;
+    /**
+     * Per-side padding (px) around the avatar within the cell. When unset the legacy
+     * default (`0 8 0 8`) is used; once any side is set, all four sides apply (unset = 0).
+     */
+    imagePadding?: ImagePadding;
 }
 
 // ── Conditional Cell Styling ────────────────────────────────────

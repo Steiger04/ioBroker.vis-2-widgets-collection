@@ -120,6 +120,9 @@ function toComparableDateString(value: unknown, dateFormat?: DateFormatId): stri
  * @param dateConfidenceThreshold - Minimum ratio of date values among non-null values
  *   required to classify a column as 'date'. Columns below this threshold are classified
  *   as 'string' instead. (default: 0.8)
+ * @param imageConfidenceThreshold - Minimum ratio of image-reference values among
+ *   non-null values required to classify a column as 'image'. Columns below this
+ *   threshold are classified as 'string' instead. (default: 0.8)
  * @returns Array of JsonTableColumn with full statistics
  */
 export function aggregateColumns(
@@ -127,6 +130,7 @@ export function aggregateColumns(
     rows: FlatRow[],
     maxDistinct: number = 100,
     dateConfidenceThreshold: number = 0.8,
+    imageConfidenceThreshold: number = 0.8,
 ): JsonTableColumn[] {
     // Initialize accumulators
     const accumulators = new Map<string, ColumnAccumulator>();
@@ -212,6 +216,16 @@ export function aggregateColumns(
             const dateCount = acc.typeCounts.date || 0;
             const dateRatio = dateCount / acc.nonNullCount;
             if (dateRatio < dateConfidenceThreshold) {
+                primaryType = 'string';
+            }
+        }
+
+        // Apply imageConfidenceThreshold: if the ratio of image-reference values among
+        // non-null values is below the threshold, classify the column as 'string'.
+        if (primaryType === 'image' && acc.nonNullCount > 0) {
+            const imageCount = acc.typeCounts.image || 0;
+            const imageRatio = imageCount / acc.nonNullCount;
+            if (imageRatio < imageConfidenceThreshold) {
                 primaryType = 'string';
             }
         }

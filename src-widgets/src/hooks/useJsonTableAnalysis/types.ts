@@ -6,7 +6,7 @@
  */
 
 /** Detected value type for a column */
-export type DetectedType = 'string' | 'number' | 'boolean' | 'date' | 'null' | 'array' | 'object' | 'mixed';
+export type DetectedType = 'string' | 'number' | 'boolean' | 'date' | 'image' | 'null' | 'array' | 'object' | 'mixed';
 
 /** Recognized date format identifier */
 export type DateFormatId =
@@ -29,6 +29,12 @@ export interface JsonTableAnalysisOptions {
     maxDistinct?: number;
     /** Minimum confidence threshold for date detection (default: 0.8) */
     dateConfidenceThreshold?: number;
+    /**
+     * Minimum ratio of image-reference values among non-null values required to
+     * classify a column as 'image'. Columns below this threshold are classified
+     * as 'string'. (default: 0.8)
+     */
+    imageConfidenceThreshold?: number;
 }
 
 /** Column descriptor with schema info and statistics */

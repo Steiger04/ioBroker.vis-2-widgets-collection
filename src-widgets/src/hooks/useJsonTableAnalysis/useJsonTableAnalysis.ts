@@ -20,6 +20,7 @@ const DEFAULT_OPTIONS: Required<JsonTableAnalysisOptions> = {
     maxDepth: 10,
     maxDistinct: 100,
     dateConfidenceThreshold: 0.8,
+    imageConfidenceThreshold: 0.8,
 };
 
 /**
@@ -59,7 +60,13 @@ export function analyzeJsonTable(data: unknown[], options?: JsonTableAnalysisOpt
     const flatResult = flattenAll(data, opts.maxDepth);
 
     // Step 2: Aggregate column statistics
-    const columns = aggregateColumns(flatResult.paths, flatResult.rows, opts.maxDistinct, opts.dateConfidenceThreshold);
+    const columns = aggregateColumns(
+        flatResult.paths,
+        flatResult.rows,
+        opts.maxDistinct,
+        opts.dateConfidenceThreshold,
+        opts.imageConfidenceThreshold,
+    );
 
     // Step 3: Compute meta
     const totalCells = flatResult.paths.length * flatResult.rows.length;
@@ -102,6 +109,12 @@ export function useJsonTableAnalysis(data: unknown[], options?: JsonTableAnalysi
         () => analyzeJsonTable(data, options),
         // Re-analyze when data reference or options change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [data, options?.maxDepth, options?.maxDistinct, options?.dateConfidenceThreshold],
+        [
+            data,
+            options?.maxDepth,
+            options?.maxDistinct,
+            options?.dateConfidenceThreshold,
+            options?.imageConfidenceThreshold,
+        ],
     );
 }

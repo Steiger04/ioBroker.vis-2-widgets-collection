@@ -247,6 +247,7 @@ function StringFormatEditor({ format, onChange }: StringFormatEditorProps): Reac
                 <ColorPickerField
                     label={Generic.t('json_table_string_text_color')}
                     value={format.stringTextColor ?? ''}
+                    overridden={!!format.stringTextColor}
                     onChange={v => onChange({ type: 'string', stringTextColor: v || undefined })}
                 />
             </Stack>

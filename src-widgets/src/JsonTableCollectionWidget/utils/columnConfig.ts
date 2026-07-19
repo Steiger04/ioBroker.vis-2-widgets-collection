@@ -7,7 +7,7 @@
  * to avoid vis-2's extractBinding regex matching curly braces in JSON arrays.
  */
 
-import type { ColumnConfigEntry } from '../types';
+import type { ColumnConfigEntry, ImageObjectFit } from '../types';
 
 // ── Type badge colors ───────────────────────────────────────────
 
@@ -17,10 +17,22 @@ export const TYPE_COLORS: Record<string, string> = {
     number: '#4caf50',
     boolean: '#ff9800',
     date: '#9c27b0',
+    image: '#3f51b5',
     null: '#9e9e9e',
     object: '#795548',
     array: '#00bcd4',
     mixed: '#f44336',
+};
+
+// ── Image format defaults ───────────────────────────────────────
+
+/**
+ * Default render settings for image columns. Single source of truth shared by the
+ * cell renderer and the editor preview so both agree on unset values.
+ */
+export const IMAGE_FORMAT_DEFAULTS: { size: number; objectFit: ImageObjectFit } = {
+    size: 64,
+    objectFit: 'contain',
 };
 
 // ── Helper: UTF-8 safe Base64 encoding/decoding ──────────────────

@@ -12,6 +12,7 @@
  */
 
 import type { DateFormatId, DetectedType } from './types';
+import { isImageFileReference } from '../../lib/helper/isImageReference';
 
 /** Result of detecting a single value's type */
 export interface TypeDetectionResult {
@@ -208,6 +209,10 @@ export function detectDateFromNumber(value: number): DateFormatId | null {
     return null;
 }
 
+// --- Image reference detection ---
+// The strict predicate lives in `lib/helper/isImageReference` (shared with the
+// renderer's lenient predicates) and is imported above as `isImageFileReference`.
+
 /**
  * Detect the type of a single value.
  *
@@ -236,6 +241,9 @@ export function detectType(value: unknown): TypeDetectionResult {
         if (dateFormat) {
             return { type: 'date', dateFormat };
         }
+        if (isImageFileReference(value)) {
+            return { type: 'image' };
+        }
         return { type: 'string' };
     }
 
@@ -257,6 +265,7 @@ export function detectType(value: unknown): TypeDetectionResult {
  * - Ignore "null" when picking the primary type
  * - If only one non-null type exists → that type
  * - If "date" exists alongside "string" (and no other types) → "date" wins
+ * - If "image" exists alongside "string" (and no other types) → "image" wins
  * - Otherwise → "mixed"
  *
  * @param typeCounts - Map of type → count
@@ -276,6 +285,11 @@ export function resolvePrimaryType(typeCounts: Record<string, number>): Detected
     // Date + string is common (date is detected from string values)
     if (nonNullTypes.length === 2 && nonNullTypes.includes('date') && nonNullTypes.includes('string')) {
         return 'date';
+    }
+
+    // Image + string is common (some values may not be valid image references)
+    if (nonNullTypes.length === 2 && nonNullTypes.includes('image') && nonNullTypes.includes('string')) {
+        return 'image';
     }
 
     return 'mixed';
