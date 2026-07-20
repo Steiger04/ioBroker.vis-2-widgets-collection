@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.5.0",
+    "version": "2.5.1",
     "news": {
+      "2.5.1": {
+        "en": "JSON Table: image column type — render URLs, data-URIs and icon glyphs as avatar cells (auto-detected, XSS-safe)",
+        "de": "JSON-Tabelle: Spaltentyp „Bild“ – URLs, Data-URIs und Symbolglyphen als Avatarzellen darstellen (automatisch erkannt, XSS-sicher)",
+        "ru": "JSON Table: тип столбца image — отображение URL-адресов, data-URI и символов значков в виде ячеек аватара (автоматическое определение, XSS-безопасность)",
+        "pt": "Tabela JSON: tipo de coluna de imagem — renderiza URLs, data-URIs e ícones como células de avatar (detectadas automaticamente, seguras contra XSS)",
+        "nl": "JSON-tabel: kolomtype afbeelding — URL's, data-URI's en iconen weergeven als avatarcellen (automatisch gedetecteerd, XSS-veilig)",
+        "fr": "Tableau JSON : type de colonne image — affiche les URL, les URI de données et les glyphes d’icônes comme cellules d’avatar (détection automatique, protection XSS)",
+        "it": "Tabella JSON: tipo di colonna immagine — visualizza URL, URI di dati e glifi delle icone come celle avatar (rilevamento automatico, sicuro contro XSS)",
+        "es": "Tabla JSON: tipo de columna de imagen: renderiza URL, URI de datos y glifos de iconos como celdas de avatar (autodetectado, seguro contra XSS).",
+        "pl": "Tabela JSON: typ kolumny obrazu — renderuje adresy URL, identyfikatory URI danych i glify ikon jako komórki awatara (wykrywane automatycznie, bezpieczne pod kątem XSS)",
+        "uk": "Таблиця JSON: тип стовпця зображення — відображати URL-адреси, URI даних та гліфи значків як комірки аватара (автоматично визначено, безпечно для XSS)",
+        "zh-cn": "JSON 表格：图像列类型 — 将 URL、数据 URI 和图标字形渲染为头像单元格（自动检测，XSS 安全）"
+      },
       "2.5.0": {
         "en": "Theme wizard with presets, live preview, custom fonts and widget sizing\nSlider marker defaults and label styling fixed\nGauge min/max fallback fixed\nJSON Table quick filtering fixed",
         "de": "Designassistent mit Voreinstellungen, Live-Vorschau, benutzerdefinierten Schriftarten und Widget-Größenanpassung\nStandardeinstellungen für Schiebereglermarkierungen und Beschriftungsformatierung korrigiert\nFehlerhafte Rückstellung für minimale/maximale Messwerte behoben\nSchnelles Filtern von JSON-Tabellen behoben",
@@ -80,19 +93,6 @@
         "pl": "Long press for ButtonGroupCollection widget stałe",
         "uk": "Довгий прес для ButtonGroupCollection",
         "zh-cn": "固定按钮组收集部件的长按键"
-      },
-      "2.3.1": {
-        "en": "ButtonGroupCollection Widget bug fixing",
-        "de": "ButtonGroupCollection Widget Bugfixierung",
-        "ru": "ButtonGroupКоллекция Устранение ошибок виджета",
-        "pt": "Grupo de botõesCollection Resolução de erros de elementos",
-        "nl": "Knoppengroepcollectie Widget bug fixing",
-        "fr": "BoutonGroupCollection Correction du bug Widget",
-        "it": "PulsanteGroupCollezione Correzione di bug Widget",
-        "es": "ButtonGroupCollection Widget bug fixing",
-        "pl": "ButtonGroupCollection Naprawianie błędów interfejsu",
-        "uk": "ButtonGroupВибір Виправлення помилок Widget",
-        "zh-cn": "按钮组合 部件错误修复"
       }
     },
     "titleLang": {

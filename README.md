@@ -61,7 +61,7 @@
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 2.5.1 (2026-07-20)
 
 - (steiger04) JSON Table: image column type — render URLs, data-URIs and icon glyphs as avatar cells (auto-detected, XSS-safe)
 
