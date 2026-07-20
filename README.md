@@ -61,6 +61,10 @@
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+
+- (steiger04) JSON Table: image column type — render URLs, data-URIs and icon glyphs as avatar cells (auto-detected, XSS-safe)
+
 ### 2.5.0 (2026-07-17)
 
 - (steiger04) Theme wizard with presets, live preview, custom fonts and widget sizing
