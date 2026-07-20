@@ -9,7 +9,6 @@ documentation/
 ├── Home.md          # Main entry point with language selection
 ├── de/              # German documentation
 │   ├── De-Home.md
-│   ├── De-_Sidebar.md
 │   ├── De-State-Widget.md
 │   ├── De-Switch-Widget.md
 │   ├── De-Checkbox-Widget.md
@@ -19,10 +18,10 @@ documentation/
 │   ├── De-RadioGroup-Widget.md
 │   ├── De-Dialog-Widget.md
 │   ├── De-Gauge-Widget.md
-│   └── De-Light-Widget.md
+│   ├── De-Light-Widget.md
+│   └── De-JsonTable-Widget.md
 ├── en/              # English documentation
 │   ├── En-Home.md
-│   ├── En-_Sidebar.md
 │   ├── En-State-Widget.md
 │   ├── En-Switch-Widget.md
 │   ├── En-Checkbox-Widget.md
@@ -32,7 +31,8 @@ documentation/
 │   ├── En-RadioGroup-Widget.md
 │   ├── En-Dialog-Widget.md
 │   ├── En-Gauge-Widget.md
-│   └── En-Light-Widget.md
+│   ├── En-Light-Widget.md
+│   └── En-JsonTable-Widget.md
 └── img/             # Images shared by all languages
     ├── collection-state.png
     ├── collection-switch.png
@@ -61,8 +61,8 @@ The documentation follows a clear hierarchy from general to specific:
 
 The documentation is automatically synchronized to the GitHub Wiki via GitHub Actions:
 
-- **Trigger**: Pushes to `main` branch, tags, or changes in `src/documentation/**`
-- **Workflow**: `.github/workflows/sync-wiki.yml`
+- **Trigger**: Pushes to the `main` branch or version tags. The `sync-wiki` job in `.github/workflows/test-and-release.yml` calls this reusable workflow; it does **not** run on other branches (e.g. `dev`) or on pull requests. Doc changes made on `dev` therefore go live only after they are merged to `main`.
+- **Workflow**: `.github/workflows/sync-wiki.yml` (reusable, `workflow_call`), invoked by `.github/workflows/test-and-release.yml`
 - **Process**:
     1. Creates a temporary directory `/tmp/wiki-sync`
     2. Copies `Home.md` (language selection page)
@@ -95,7 +95,7 @@ The documentation is automatically synchronized to the GitHub Wiki via GitHub Ac
 
 - Use language prefixes: `De-State-Widget.md`, `En-ButtonGroup-Widget.md`
 - Keep consistent naming across languages
-- `De-_Sidebar.md` and `En-_Sidebar.md` are the wiki navigation sidebars for each language
+- GitHub Wiki uses a **single** root `_Sidebar.md` as the navigation sidebar on every page — it is not language-specific. The sidebar lists both the German and English widget pages (grouped by language), so all pages are reachable regardless of the current language.
 - Main `Home.md` has no prefix (serves as language selection page)
 
 ## Images
