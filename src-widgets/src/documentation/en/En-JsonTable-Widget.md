@@ -36,7 +36,7 @@ The column editor provides:
 - **Visibility toggle**: Show/hide individual columns
 - **Column settings**: Configure label, width, alignment, format
 - **Conditional styling**: Apply styles based on cell values
-- **Data type detection**: Automatic type recognition (string, number, boolean, date)
+- **Data type detection**: Automatic detection of the data type (`string`, `number`, `boolean`, `date`, `image`, `array`, `object`, `null`, `mixed`). The **detected type** is a hint and drives the default **format type** — but it may be chosen freely.
 
 ### Column Properties
 
@@ -51,27 +51,83 @@ Each column can be configured with:
 | maxWidth     | Maximum column width                                 |
 | align        | Text alignment (left, center, right)                 |
 | visible      | Show/hide column                                     |
-| sortable     | Enable sorting for this column                       |
-| filterable   | Enable filtering for this column                     |
+| sortable     | Sorting for this column — `true` / `false` / `'auto'` |
+| filterable   | Filtering for this column — `true` / `false` / `'auto'` |
+| enableHiding | Column can be hidden via the column menu — `true` / `false` / `'auto'` |
+
+> **Smart defaults (`'auto'`):** In `'auto'` mode (the default), sortability and filterability are derived from the **detected type**: `number`/`date` → sortable and filterable, `boolean` → filterable only, `image`/`array`/`object` → neither. `enableHiding: 'auto'` follows the global `tableHiding` setting.
 
 ### Column Formatting
 
-| Format Type  | Description                                          | Options                                              |
-| ------------ | ---------------------------------------------------- | ---------------------------------------------------- |
-| String       | Text display with optional truncation                | maxLength, ellipsis                                  |
-| Number       | Numeric formatting with locale support               | decimals, prefix, suffix, locale                     |
-| Boolean      | Boolean as icons, text, or custom values             | trueText/falseText, trueIcon/falseIcon               |
-| Date         | Date/time formatting with locale support             | format string, locale                                |
+Each column has exactly one active **format type** that determines how the raw value is rendered. It is pre-set from the detected type but can be chosen freely.
+
+| Format Type | Description                                          | Key Options                                           |
+| ----------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| String      | Text display, including HTML rendering               | case, prefix, suffix, trim, maxLength, regex, font style |
+| Number      | Numeric formatting with thousands separator          | decimals, prefix, suffix, thousandsSeparator         |
+| Boolean     | Boolean as text                                     | trueText, falseText                                  |
+| Date        | Date/time formatting                                 | format string (predefined), detected input format    |
+| Image       | Render the raw value as an image/icon graphic        | size, objectFit, variant, tint, padding, …           |
+
+See the subsections below for the format-type-specific options.
+
+### String Formatting
+
+| Property    | Description                                                            |
+| ----------- | --------------------------------------------------------------------- |
+| trim        | Remove leading/trailing whitespace (before all other steps)            |
+| regex       | Extract a regex sub-match (additional options: regexGroup, regexFlags) |
+| regexGroup  | Capture group to use (0 = full match)                                 |
+| case        | none / upper / lower / title                                          |
+| maxLength   | Truncate to N characters (appends "…")                                |
+| prefix/suffix | Prepend/append to the value                                          |
+| fontWeight/fontStyle/fontSize/textColor | Static font settings (overridable by conditional rules) |
+
+> **Note — HTML rendering:** String cells render HTML markup (e.g. `<b>`, `<br>`, `<span style="…">`). The values come from your own ioBroker state and are treated as trusted. If you bind third-party data, be aware of the XSS risk of unfiltered HTML.
+
+### Image Column (format type `image`)
+
+An **image column** renders every raw value as a graphic instead of text. The raw value is read as a **visual reference** — never as an icon *name* (`mdi-*`, `fa-*`); there is no name resolution. Supported:
+
+- **URL or file path** (image or SVG)
+- **`data:image/…` URI**
+- **UTF-8 character** (e.g. an emoji)
+
+**Icon vs image** is a value-level, runtime distinction — not a separate column type: an *icon* is a small monochrome glyph (SVG data URI or UTF-8 character), an *image* is a raster photo (png/jpg/webp/…). A configured colour **tint** applies to either via a CSS mask (the source's alpha channel) — exact for monochrome icons.
+
+| Property                 | Default   | Description                                                 |
+| ------------------------ | --------- | ----------------------------------------------------------- |
+| size                     | 64        | Render size in px (8–256)                                   |
+| objectFit                | contain   | contain / cover / fill (CSS `object-fit`)                   |
+| variant                  | square    | square / rounded / circular (avatar shape)                  |
+| bgColor                  | –         | Avatar background colour                                    |
+| borderColor / borderWidth | – / –    | Avatar border (only with a colour and width > 0)            |
+| tint                     | –         | Colour tint via CSS mask                                    |
+| tooltip                  | true      | Show raw value as a hover tooltip                           |
+| showBroken               | true      | Show a placeholder icon when a URL fails to load            |
+| padding (top/right/bottom/left) | 0 8 0 8 | Per-side inner padding in px (0–64)                  |
+
+**Auto-detection:** Columns whose values are URLs, data URIs, or glyphs are detected as type `image` and rendered as graphics immediately — without manual configuration.
+
+**Fallback:** If a value cannot be resolved to a graphic, it is rendered as text. An empty value shows an empty cell, a broken URL shows the placeholder. The graphic is rendered XSS-safe (never via `innerHTML`).
 
 ### Conditional Styling
 
 Apply dynamic styles based on cell values:
-- **Conditions**: Compare against fixed values or thresholds
-- **Styles**: Background color, text color, font weight, icon
-- **Multiple rules**: Priority-based rule application
+- **Conditions**: Compare against fixed values or thresholds (json-logic rules)
+- **Styles**: Background color, text color, font weight, font style
+- **Evaluation mode** (`cellStyleMode`):
+
+| Mode           | Description                                                                  |
+| -------------- | ---------------------------------------------------------------------------- |
+| `first-match` (default) | Stops at the first matching rule.                                   |
+| `all-match`    | All matching rules are applied; on conflicts the higher-priority rule (lower index) wins. |
+
 - **Visual preview**: See effective result immediately
 
 ## Features
+
+> **Persistence:** The current table view — sorting, active filters, and column visibility — is preserved across page reloads (stored locally per browser).
 
 ### Sorting
 
@@ -159,7 +215,8 @@ Apply dynamic styles based on cell values:
 | ------------------ | ------ | ------- | ------------------------------------- | --------- |
 | evenRowColor       | color  | -       | Background color for even rows        | -         |
 | oddRowColor        | color  | -       | Background color for odd rows         | -         |
-| tableCellFontSize  | number | -       | Cell font size (px)                   | -         |
+
+> Note: The per-column font size is set via the **String** format type (`fontSize`) or conditional styling; there is no separate table-level field for the cell font size.
 
 ## JSON Data Formats
 
@@ -195,6 +252,21 @@ Nested paths are flattened to `user.name`, `stats.logins`, etc.
 ```
 
 Arrays are displayed as comma-separated values or can be expanded.
+
+### Images & Icons
+
+Columns with image references are detected as type `image` and rendered as graphics automatically:
+
+```json
+[
+  {"name": "Lamp",   "icon": "💡"},
+  {"name": "Sensor", "icon": "🌡️"},
+  {"name": "Camera", "image": "https://example.com/cam1.png"},
+  {"name": "Logo",   "image": "data:image/svg+xml,%3Csvg …%3E"}
+]
+```
+
+URLs, `data:image/…` URIs, and UTF-8 characters are all recognised (see [Image Column](#image-column-format-type-image)).
 
 ## Use Cases
 

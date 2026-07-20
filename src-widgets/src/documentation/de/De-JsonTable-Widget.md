@@ -36,7 +36,7 @@ Der Spalten-Editor bietet:
 - **Sichtbarkeit umschalten**: Einzelspalten ein-/ausblenden
 - **Spalteneinstellungen**: Beschriftung, Breite, Ausrichtung, Format konfigurieren
 - **Bedingte Formatierung**: Stile basierend auf Zellenwerten anwenden
-- **Datentyperkennung**: Automatische Typerkennung (String, Zahl, Boolean, Datum)
+- **Datentyperkennung**: Automatische Erkennung des Datentyps (`string`, `number`, `boolean`, `date`, `image`, `array`, `object`, `null`, `mixed`). Der **erkannte Typ** (detected type) ist ein Hinweis und bestimmt die Voreinstellung des **Formattyps** — er kann aber frei davon abweichen.
 
 ### Spalteneigenschaften
 
@@ -51,27 +51,83 @@ Jede Spalte kann konfiguriert werden mit:
 | maxWidth     | Maximale Spaltenbreite                               |
 | align        | Textausrichtung (left, center, right)                |
 | visible      | Spalte ein-/ausblenden                               |
-| sortable     | Sortierung für diese Spalte aktivieren               |
-| filterable   | Filterung für diese Spalte aktivieren                |
+| sortable     | Sortierung für diese Spalte — `true` / `false` / `'auto'` |
+| filterable   | Filterung für diese Spalte — `true` / `false` / `'auto'` |
+| enableHiding | Spalte über das Spaltenmenü ausblendbar — `true` / `false` / `'auto'` |
+
+> **Smart-Defaults (`'auto'`):** Im Modus `'auto'` (Voreinstellung) werden Sortier- und Filterbarkeit anhand des **erkannten Typs** gesetzt: `number`/`date` → sortier- und filterbar, `boolean` → nur filterbar, `image`/`array`/`object` → weder noch. `enableHiding: 'auto'` übernimmt die globale `tableHiding`-Einstellung.
 
 ### Spaltenformatierung
 
-| Formattyp    | Beschreibung                                         | Optionen                                             |
-| ------------ | ---------------------------------------------------- | ---------------------------------------------------- |
-| String       | Textanzeige mit optionaler Kürzung                   | maxLength, ellipsis                                  |
-| Number       | Zahlenformatierung mit Locale-Unterstützung          | decimals, prefix, suffix, locale                     |
-| Boolean      | Boolean als Icons, Text oder eigene Werte            | trueText/falseText, trueIcon/falseIcon               |
-| Date         | Datum/Zeit-Formatierung mit Locale-Unterstützung     | Format-String, Locale                                |
+Jede Spalte hat genau einen aktiven **Formattyp** (format type), der bestimmt, wie der Rohwert gerendert wird. Er wird aus dem erkannten Typ vorbelegt, lässt sich aber frei wählen.
+
+| Formattyp | Beschreibung                                         | Wichtigste Optionen                                   |
+| --------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| String    | Textanzeige, inkl. HTML-Rendering                    | case, prefix, suffix, trim, maxLength, regex, Schriftstil |
+| Number    | Zahlenformatierung mit Tausendertrennung             | decimals, prefix, suffix, thousandsSeparator         |
+| Boolean   | Boolean als Text                                     | trueText, falseText                                  |
+| Date      | Datum/Zeit-Formatierung                              | Format-String (vordefiniert), erkanntes Eingabeformat |
+| Image     | Rohwert als Bild/Icon-Grafik rendern                 | size, objectFit, variant, tint, padding, …           |
+
+Details zu den formattypspezifischen Optionen finden sich in den folgenden Unterabschnitten.
+
+### String-Formatierung
+
+| Eigenschaft   | Beschreibung                                                       |
+| ------------- | ------------------------------------------------------------------ |
+| trim          | Leerzeichen am Anfang/Ende entfernen (vor allen anderen Schritten) |
+| regex         | Regex-Teiltreffer extrahieren (zusätzliche Optionen: regexGroup, regexFlags) |
+| regexGroup    | Zu verwendende Capture-Gruppe (0 = voller Treffer)                |
+| case          | none / upper / lower / title                                       |
+| maxLength     | auf N Zeichen kürzen (mit „…")                                     |
+| prefix/suffix | Prä-/Suffix an dem Wert                                            |
+| fontWeight/fontStyle/fontSize/textColor | Statische Schriftvorgabe (durch bedingte Regeln übersteuerbar) |
+
+> **Hinweis – HTML-Rendering:** String-Zellen rendern HTML-Markup (z. B. `<b>`, `<br>`, `<span style="…">`). Die Werte stammen aus dem eigenen ioBroker-State und gelten als vertrauenswürdig. Bindest du fremde Daten ein, beachte das XSS-Risiko ungefilterten HTMLs.
+
+### Bild-Spalte (Formattyp `image`)
+
+Eine **Bild-Spalte** rendert jeden Rohwert als Grafik statt als Text. Der Rohwert wird dabei als **visuelle Referenz** gelesen — niemals als Icon-*Name* (`mdi-*`, `fa-*`); es gibt keine Namensauflösung. Unterstützt werden:
+
+- **URL oder Dateipfad** (Bild oder SVG)
+- **`data:image/…`-URI**
+- **UTF-8-Zeichen** (z. B. ein Emoji)
+
+**Icon vs. Bild** ist eine Unterscheidung auf Wert-Ebene zur Laufzeit, kein eigener Spaltentyp: Ein *Icon* ist ein kleiner monochromer Glyph (SVG-Data-URI oder UTF-8-Zeichen), ein *Bild* ein Rasterfoto (png/jpg/webp/…). Ein konfigurierter Farb-**Tint** wirkt auf beide über eine CSS-Maske (Alpha-Kanal der Quelle) — exakt für monochrome Icons.
+
+| Eigenschaft              | Standard   | Beschreibung                                                |
+| ------------------------ | ---------- | ----------------------------------------------------------- |
+| size                     | 64         | Rendergröße in px (8–256)                                   |
+| objectFit                | contain    | contain / cover / fill (CSS `object-fit`)                   |
+| variant                  | square     | square / rounded / circular (Avatar-Form)                   |
+| bgColor                  | –          | Avatar-Hintergrundfarbe                                     |
+| borderColor / borderWidth | – / –     | Avatarrahmen (nur bei Farbe und Breite > 0)                 |
+| tint                     | –          | Farbton via CSS-Maske                                       |
+| tooltip                  | true       | Rohwert als Hover-Tooltip anzeigen                          |
+| showBroken               | true       | Platzhalter-Icon bei fehlgeschlagener URL                   |
+| padding (top/right/bottom/left) | 0 8 0 8 | Innenabstand pro Seite in px (0–64)                   |
+
+**Automatische Erkennung:** Spalten mit URL-, Data-URI- oder Glyph-Werten werden als erkannter Typ `image` erkannt und sofort als Grafik gerendert — ohne manuelle Konfiguration.
+
+**Fallback:** Lässt sich ein Wert nicht als Grafik auflösen, wird er als Text gerendert. Ein leerer Wert zeigt eine leere Zelle, eine defekte URL den Platzhalter. Die Grafik wird XSS-sicher gerendert (nie via `innerHTML`).
 
 ### Bedingte Formatierung
 
 Dynamische Stile basierend auf Zellenwerten anwenden:
-- **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten
-- **Stile**: Hintergrundfarbe, Textfarbe, Schriftstärke, Icon
-- **Mehrere Regeln**: Prioritätsbasierte Regelanwendung
+- **Bedingungen**: Vergleich mit festen Werten oder Schwellwerten (json-logic-Regeln)
+- **Stile**: Hintergrundfarbe, Textfarbe, Schriftstärke, Schriftstil
+- **Auswertungsmodus** (`cellStyleMode`):
+
+| Modus           | Beschreibung                                                                 |
+| --------------- | ---------------------------------------------------------------------------- |
+| `first-match` (Standard) | Stoppt bei der ersten treffenden Regel.                             |
+| `all-match`     | Alle treffenden Regeln werden angewendet; bei Konflikten gewinnt die Regel mit höherer Priorität (niedrigerer Index). |
+
 - **Visuelle Vorschau**: Effektives Ergebnis sofort sehen
 
 ## Funktionen
+
+> **Persistenz:** Die aktuelle Tabellenansicht — Sortierung, aktive Filter und Spaltensichtbarkeit — bleibt über Seiten-Reloads erhalten (pro Browser lokal gespeichert).
 
 ### Sortierung
 
@@ -159,7 +215,8 @@ Dynamische Stile basierend auf Zellenwerten anwenden:
 | ----------------- | ------ | -------- | ------------------------------------- | --------- |
 | evenRowColor      | color  | -        | Hintergrundfarbe für gerade Zeilen    | -         |
 | oddRowColor       | color  | -        | Hintergrundfarbe für ungerade Zeilen  | -         |
-| tableCellFontSize | number | -        | Zellenschriftgröße (px)               | -         |
+
+> Hinweis: Die pro-Spalte-Schriftgröße wird über den Formattyp **String** (`fontSize`) bzw. die bedingte Formatierung gesetzt; es gibt kein separates Tabellen-Feld für die Zellenschriftgröße.
 
 ## JSON-Datenformate
 
@@ -195,6 +252,21 @@ Verschachtelte Pfade werden zu `user.name`, `stats.logins` usw. flachgeklopft.
 ```
 
 Arrays werden als komma-getrennte Werte angezeigt oder können erweitert werden.
+
+### Bilder & Icons
+
+Spalten mit Bild-Referenzen werden als erkannter Typ `image` automatisch als Grafik gerendert:
+
+```json
+[
+  {"name": "Lampe",   "icon": "💡"},
+  {"name": "Sensor",  "icon": "🌡️"},
+  {"name": "Kamera",  "bild": "https://example.com/cam1.png"},
+  {"name": "Logo",    "bild": "data:image/svg+xml,%3Csvg …%3E"}
+]
+```
+
+URLs, `data:image/…`-URIs und UTF-8-Zeichen werden gleichermaßen erkannt (siehe [Bild-Spalte](#bild-spalte-formattyp-image)).
 
 ## Anwendungsfälle
 
