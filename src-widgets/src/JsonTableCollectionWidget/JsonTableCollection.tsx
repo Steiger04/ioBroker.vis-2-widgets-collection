@@ -63,8 +63,7 @@ import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { buildColumnDefs } from './utils/columnDefinitions';
 import { customFilterFns } from './utils/filterFunctions';
-import { formatDateValue } from './utils/formatters';
-import type { DateFormatId } from './utils/formatters';
+import { createDateAwareGlobalFilter } from './utils/quickFilter';
 
 import type { JsonTableCollectionContextProps } from '../types';
 import type { JsonTableAnalysisOptions } from '../hooks/useJsonTableAnalysis';
@@ -257,60 +256,9 @@ const JsonTableCollection: FC = () => {
     ]);
 
     // ── Date-aware global (quick) filter ────────────────────────────────────────
-    // The quick filter is a substring search. For configured date columns it must match
-    // the FORMATTED display value (what the user sees), not the raw value, otherwise a
-    // visible "31.12.2024" would never match a raw ISO/epoch value.
-    const dateColumnFormats = useMemo(() => {
-        const map = new Map<string, { dateFormat?: string; dateInputFormat?: DateFormatId }>();
-        for (const cfg of columnConfig) {
-            if (cfg.format?.type === 'date') {
-                map.set(cfg.path, {
-                    dateFormat: cfg.format.dateFormat,
-                    dateInputFormat: cfg.format.dateInputFormat,
-                });
-            }
-        }
-        return map;
-    }, [columnConfig]);
-
-    const globalFilterFn = useCallback<FilterFn<FlatRow>>(
-        (row, columnId, filterValue: unknown): boolean => {
-            // String() is only called on primitives; objects would stringify to
-            // "[object Object]" and are treated as no term instead.
-            const term =
-                typeof filterValue === 'string'
-                    ? filterValue.toLowerCase()
-                    : typeof filterValue === 'number' || typeof filterValue === 'boolean'
-                      ? String(filterValue).toLowerCase()
-                      : '';
-            if (!term) {
-                return true;
-            }
-            const cellValue = row.getValue(columnId);
-            if (cellValue === null || cellValue === undefined) {
-                return false;
-            }
-            // For date columns, also match against the formatted display string.
-            const dateCfg = dateColumnFormats.get(columnId);
-            if (dateCfg) {
-                const formatted = formatDateValue(cellValue, dateCfg.dateFormat, dateCfg.dateInputFormat);
-                if (formatted.toLowerCase().includes(term)) {
-                    return true;
-                }
-            }
-            // Default: substring match on the raw value (previous includesString
-            // behavior). String() is restricted to primitives to avoid the
-            // "[object Object]" trap on object/array cells.
-            const cellStr =
-                typeof cellValue === 'string'
-                    ? cellValue
-                    : typeof cellValue === 'number' || typeof cellValue === 'boolean'
-                      ? String(cellValue)
-                      : '';
-            return cellStr.toLowerCase().includes(term);
-        },
-        [dateColumnFormats],
-    );
+    // Built in utils/quickFilter.ts; date columns also match their formatted display
+    // value via the formatter registry so filter and display can never drift.
+    const globalFilterFn = useMemo(() => createDateAwareGlobalFilter(columnConfig), [columnConfig]);
 
     // ── Table state via custom hook ─────────────────────────────────────────────
 
