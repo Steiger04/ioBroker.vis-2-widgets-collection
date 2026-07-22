@@ -34,6 +34,35 @@ export interface ImagePadding {
 }
 
 /**
+ * Descriptor for rendering a cell value as a graphic (format type 'image').
+ *
+ * Produced by `buildImageContent` (shared by the cell renderer and the column
+ * editor's preview) and rendered by `ImageGraphic`.
+ */
+export interface CellImageContent {
+    /** The visual reference: URL, `data:image/…` URI, or UTF-8 glyph. */
+    src: string;
+    /** Target render size in pixels (clamped to the cell by maxWidth/maxHeight). */
+    size: number;
+    /** How the graphic fills its size box. */
+    objectFit: ImageObjectFit;
+    /** Shape of the rendered avatar (MUI Avatar variant). */
+    variant: ImageVariant;
+    /** Avatar background colour; undefined → transparent. */
+    bgColor?: string;
+    /** Avatar border colour; renders only with a width > 0. */
+    borderColor?: string;
+    /** Avatar border width in px; renders only with a colour set. */
+    borderWidth?: number;
+    /** Tint colour; applied via a CSS mask over the source's alpha channel. */
+    tint?: string;
+    /** Hover tooltip (raw value); undefined disables it. */
+    tooltip?: string;
+    /** Whether to show a placeholder when the graphic fails to load. */
+    showBroken: boolean;
+}
+
+/**
  * Formatting configuration for a single column.
  *
  * Only one format type is active per column. Sub-properties

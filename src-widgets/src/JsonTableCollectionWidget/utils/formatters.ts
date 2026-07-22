@@ -31,6 +31,18 @@ function toDisplayString(value: unknown): string {
     return `${value as number | boolean}`;
 }
 
+/**
+ * Convert a numeric epoch to milliseconds, treating values below 1e11 as seconds
+ * and values at or above 1e11 as milliseconds. Centralises the seconds/ms
+ * threshold shared by every date parsing path (normalizeToIsoDate, toDateMs,
+ * formatDateValue). The three date functions otherwise diverge deliberately —
+ * normalizeToIsoDate works in UTC day granularity while the others work locally,
+ * and they disagree on numeric strings — so only this threshold is shared.
+ */
+function epochToMs(n: number): number {
+    return n >= 1e11 ? n : n * 1000;
+}
+
 // ── Number Formatting ───────────────────────────────────────────
 
 /** Minimum allowed decimal precision */
@@ -141,7 +153,7 @@ export function normalizeToIsoDate(value: unknown, inputFormat?: DateFormatId): 
     // Numbers: epoch-ms (≥1e11) or epoch-s
     // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
     if (typeof value === 'number') {
-        const d = new Date(value >= 1e11 ? value : value * 1000);
+        const d = new Date(epochToMs(value));
         return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
     }
 
@@ -203,7 +215,7 @@ export function toDateMs(value: unknown, inputFormat?: DateFormatId): number | n
         if (!Number.isFinite(value)) {
             return null;
         }
-        const ms = value >= 1e11 ? value : value * 1000;
+        const ms = epochToMs(value);
         return isNaN(new Date(ms).getTime()) ? null : ms;
     }
 
@@ -260,7 +272,7 @@ export function toDateMs(value: unknown, inputFormat?: DateFormatId): number | n
         // Pure numeric string → epoch (1e11 threshold)
         if (/^-?\d+$/.test(trimmed)) {
             const n = parseInt(trimmed, 10);
-            const ms = n >= 1e11 ? n : n * 1000;
+            const ms = epochToMs(n);
             return isNaN(new Date(ms).getTime()) ? null : ms;
         }
 
@@ -333,7 +345,7 @@ export function formatDateValue(value: unknown, formatString?: string, inputForm
         } else if (typeof value === 'number') {
             // Epoch timestamp: detect seconds vs milliseconds
             // Using 1e11 threshold to correctly handle pre-2001 millisecond timestamps
-            date = new Date(value >= 1e11 ? value : value * 1000);
+            date = new Date(epochToMs(value));
         } else if (value instanceof Date) {
             date = value;
         } else {

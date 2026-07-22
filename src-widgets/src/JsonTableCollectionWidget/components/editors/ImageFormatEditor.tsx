@@ -27,9 +27,9 @@ import type React from 'react';
 
 import Generic from '../../../Generic';
 import ColorPickerField from '../../../components/ColorPickerField';
-import type { ColumnFormatConfig, ImageObjectFit, ImageVariant } from '../../types';
+import type { CellImageContent, ColumnFormatConfig, ImageObjectFit, ImageVariant } from '../../types';
 import { ImageGraphic } from '../TableCellRenderer';
-import type { CellImageContent } from '../TableCellRenderer';
+import { buildImageContent } from '../../utils/cellFormatters';
 import { IMAGE_FORMAT_DEFAULTS } from '../../utils/columnConfig';
 
 /**
@@ -54,18 +54,7 @@ export interface ImageFormatEditorProps {
  */
 function ImageFormatEditor({ format, onChange }: ImageFormatEditorProps): React.JSX.Element {
     // Preview descriptor built from the current settings; reuses the real renderer.
-    const previewDescriptor: CellImageContent = {
-        src: SAMPLE_SVG,
-        size: format.imageSize ?? IMAGE_FORMAT_DEFAULTS.size,
-        objectFit: format.imageObjectFit ?? IMAGE_FORMAT_DEFAULTS.objectFit,
-        variant: format.imageVariant ?? 'square',
-        bgColor: format.imageBgColor || undefined,
-        borderColor: format.imageBorderColor || undefined,
-        borderWidth: format.imageBorderWidth,
-        tint: format.imageTint || undefined,
-        tooltip: format.imageTooltip !== false ? SAMPLE_SVG : undefined,
-        showBroken: format.imageShowBroken !== false,
-    };
+    const previewDescriptor: CellImageContent = buildImageContent(SAMPLE_SVG, format);
 
     /** Update one side of the per-side avatar padding. */
     const setPadding = (side: 'top' | 'right' | 'bottom' | 'left', raw: string): void => {
