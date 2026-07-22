@@ -6,6 +6,7 @@ import { federation } from '@module-federation/vite';
 import { moduleFederationShared } from '@iobroker/types-vis-2/modulefederation.vis.config';
 import { readFileSync } from 'node:fs';
 import topLevelAwait from 'vite-plugin-top-level-await';
+import { buildExposes } from './src/widgetsRegistry';
 
 const pack = JSON.parse(readFileSync('./package.json').toString());
 
@@ -15,21 +16,7 @@ const config = {
             manifest: true,
             name: 'vis2CollectionWidget',
             filename: 'customWidgets.js',
-            exposes: {
-                './StateCollectionWidget': './src/StateCollectionWidget/StateCollectionWidget',
-                './SliderCollectionWidget': './src/SliderCollectionWidget/SliderCollectionWidget',
-                './ButtonGroupCollectionWidget': './src/ButtonGroupCollectionWidget/ButtonGroupCollectionWidget',
-                './SwitchCollectionWidget': './src/SwitchCollectionWidget/SwitchCollectionWidget',
-                './CheckboxCollectionWidget': './src/CheckboxCollectionWidget/CheckboxCollectionWidget',
-                './DialogCollectionWidget': './src/DialogCollectionWidget/DialogCollectionWidget',
-                './SelectCollectionWidget': './src/SelectCollectionWidget/SelectCollectionWidget',
-                './RadioGroupCollectionWidget': './src/RadioGroupCollectionWidget/RadioGroupCollectionWidget',
-                './GaugeCollectionWidget': './src/GaugeCollectionWidget/GaugeCollectionWidget',
-                './Light2CollectionWidget': './src/Light2CollectionWidget/Light2CollectionWidget',
-                './JsonTableCollectionWidget': './src/JsonTableCollectionWidget/JsonTableCollectionWidget',
-                './ThemeConfigWizard': './src/ThemeConfigWizard/ThemeConfigWizard',
-                './translations': './src/translations',
-            },
+            exposes: buildExposes(),
             remotes: {},
             shared: moduleFederationShared(pack),
         }),
