@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { CollectionContext } from '../../components/CollectionProvider';
 import useStyles from '../useStyles';
 import { getDynamicProperty, isSliderFieldsRxData } from '../../types/utility-types';
@@ -24,8 +24,6 @@ function useData(_oid: string): UseDataResult {
     const oidName = oidObject?.name;
 
     const { fontStyles, textStyles, backgroundStyles } = useStyles(widget.style);
-
-    const [activeIndex, setActiveIndex] = useState<number | undefined>();
 
     const formatSize = useCallback(formatSizeRem, []);
 
@@ -175,7 +173,11 @@ function useData(_oid: string): UseDataResult {
         return { states, widgetStates, minValue, maxValue };
     }, [oidObject?.type, oidObject?.commonStates, oidObject?.unit, rxData, getDataValue, oidValue, resolveStyleData]);
 
-    const data = useMemo(() => {
+    // `data` and `activeIndex` are both pure functions of the current OID value
+    // and resolved states, so they are derived together here — no setState side
+    // effect during render (the previous setActiveIndex-in-useMemo was a React
+    // anti-pattern and could leave activeIndex stale relative to `data`).
+    const { data, activeIndex } = useMemo(() => {
         const oidType = oidObject?.type;
 
         switch (oidType) {
@@ -183,20 +185,18 @@ function useData(_oid: string): UseDataResult {
             case 'boolean':
             case 'number':
             case 'string': {
-                const _activeIndex = states.findIndex(state => String(state.value) === String(oidValue));
+                const idx = states.findIndex(state => String(state.value) === String(oidValue));
 
-                if (_activeIndex !== -1) {
-                    setActiveIndex(_activeIndex + 1);
-                    // Apply state-specific styles with active properties
-                    return resolveStyleData(_activeIndex + 1, true);
+                if (idx !== -1) {
+                    // Apply state-specific styles with active properties.
+                    return { data: resolveStyleData(idx + 1, true), activeIndex: idx + 1 };
                 }
 
-                setActiveIndex(undefined);
-                // Default to base state properties with active properties included
-                return resolveStyleData('', true);
+                // Default to base state properties with active properties included.
+                return { data: resolveStyleData('', true), activeIndex: undefined };
             }
             default:
-                return resolveStyleData('', true);
+                return { data: resolveStyleData('', true), activeIndex: undefined };
         }
     }, [oidObject, oidValue, states, resolveStyleData]);
 
@@ -206,7 +206,6 @@ function useData(_oid: string): UseDataResult {
         maxValue,
         data,
         activeIndex,
-        setActiveIndex,
         oidValue,
         states,
         resolveStyleData,

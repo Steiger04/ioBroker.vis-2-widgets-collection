@@ -370,9 +370,6 @@ export interface UseDataResult {
     /** Currently active state index (1-based) or undefined */
     activeIndex: number | undefined;
 
-    /** Function to set the active state index */
-    setActiveIndex: (index: number | undefined) => void;
-
     /** Current OID value from ioBroker */
     oidValue: ioBroker.StateValue;
 
