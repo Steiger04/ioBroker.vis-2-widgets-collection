@@ -22,9 +22,12 @@ import type { PriorityOption } from './types';
  * **Edge cases**:
  * - Empty options array: returns undefined
  * - All conditions false: returns undefined
- * - All values undefined: returns undefined
- * - Empty string as value: returns empty string (not undefined)
- * - null as value: returns null (not undefined)
+ * - All values undefined/null/empty/whitespace: returns undefined
+ * - Empty strings, whitespace-only strings, and `null` are SKIPPED (treated as
+ *   absent), so a fallback chain continues past them — only `undefined` (and
+ *   `condition === false`) stops an option from being considered. Callers that
+ *   must force an empty value (e.g. `noIcon`) short-circuit before calling
+ *   resolvePriority, since `{ value: '' }` is skipped, never returned.
  *
  * @template T - Type of the value to resolve
  * @param options - Array of PriorityOption<T> in descending priority order
@@ -45,16 +48,6 @@ import type { PriorityOption } from './types';
  *   { condition: isActive, value: 'blue' },
  *   { condition: isHovered, value: 'lightblue' },
  *   { value: 'white' }, // Default
- * ]);
- * @example
- * // Empty string normalization for fallback continuation
- * import { normalizeString } from './utilities';
- *
- * const header = resolvePriority([
- *   { value: normalizeString(rxData.headerActive) }, // '' -> undefined
- *   { value: normalizeString(rxData.header) },
- *   { value: oidName },
- *   { value: '' }, // Explicit empty string as final fallback
  * ]);
  * @example
  * // Replacing traditional || chains

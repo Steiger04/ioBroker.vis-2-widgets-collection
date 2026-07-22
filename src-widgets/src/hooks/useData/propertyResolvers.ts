@@ -61,25 +61,35 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
 
     return {
         // Icon Properties
-        icon: (ext: string | number, includeActive: boolean) =>
-            resolvePriority([
-                { condition: !!rxData.noIcon, value: '' },
-                { condition: includeActive, value: getDataValue<string>('icon', 'Active') },
-                { condition: includeActive, value: getDataValue<string>('iconSmall', 'Active') },
-                { value: getDataValue<string>('icon', String(ext)) },
-                { value: getDataValue<string>('iconSmall', String(ext)) },
-                { value: getDataValue<string>('icon', '') },
-                { value: getDataValue<string>('iconSmall', '') },
-            ]) ?? '',
+        icon: (ext: string | number, includeActive: boolean) => {
+            // noIcon suppresses the icon entirely. Short-circuit before resolvePriority
+            // because resolvePriority skips '' — a `{ value: '' }` option never matches.
+            if (rxData.noIcon) {
+                return '';
+            }
+            return (
+                resolvePriority([
+                    { condition: includeActive, value: getDataValue<string>('icon', 'Active') },
+                    { condition: includeActive, value: getDataValue<string>('iconSmall', 'Active') },
+                    { value: getDataValue<string>('icon', String(ext)) },
+                    { value: getDataValue<string>('iconSmall', String(ext)) },
+                    { value: getDataValue<string>('icon', '') },
+                    { value: getDataValue<string>('iconSmall', '') },
+                ]) ?? ''
+            );
+        },
 
-        iconActive: (ext: string | number, includeActive: boolean) =>
-            includeActive
-                ? (resolvePriority([
-                      { condition: !!rxData.noIcon, value: '' },
-                      { value: getDataValue<string>('icon', String(ext)) },
-                      { value: getDataValue<string>('iconSmall', String(ext)) },
-                  ]) ?? '')
-                : '',
+        iconActive: (ext: string | number, includeActive: boolean) => {
+            if (!includeActive || rxData.noIcon) {
+                return '';
+            }
+            return (
+                resolvePriority([
+                    { value: getDataValue<string>('icon', String(ext)) },
+                    { value: getDataValue<string>('iconSmall', String(ext)) },
+                ]) ?? ''
+            );
+        },
 
         iconSizeCm: (_ext: string | number, _includeActive: boolean) =>
             resolvePriority([
@@ -446,7 +456,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: rxData.backgroundColor && rxData.backgroundColor !== '' ? rxData.backgroundColor : undefined,
                 },
                 { value: backgroundStyles?.['background-color'] },
-                { value: '' },
             ]) ?? '',
 
         backgroundColorActive: (ext: string | number, includeActive: boolean) =>
@@ -472,7 +481,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                             : undefined,
                 },
                 { value: backgroundStyles?.['background-color'] },
-                { value: '' },
             ]) ?? '',
 
         frameBackgroundColorActive: (ext: string | number, includeActive: boolean) =>
