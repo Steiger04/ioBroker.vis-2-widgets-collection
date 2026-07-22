@@ -25,7 +25,6 @@ interface CreatePropertyResolversParams {
     formatSize: (size: number | string | undefined) => string | undefined;
     getDataValue: <T>(key: string, ext: string) => T | undefined;
     widgetResolver: SliderProperties | Record<string, never>;
-    isSlider: boolean;
 }
 
 /**
@@ -50,7 +49,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         formatSize,
         getDataValue,
         widgetResolver,
-        isSlider,
     } = params;
 
     /**
@@ -119,7 +117,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `calc(24px * ${getDataValue<number | string>('iconSize', String(ext))} / 100)`,
                 },
                 {
-                    condition: isSlider && typeof widgetResolver.markerIconSize === 'number',
+                    condition: typeof widgetResolver.markerIconSize === 'number',
                     value: `calc(24px * ${widgetResolver.markerIconSize} / 100)`,
                 },
                 { condition: getDataValue<number | string>('iconSize', '') === 0, value: '0px' },
@@ -166,7 +164,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { value: getDataValue<number>('iconSize', String(ext)) },
-                { condition: isSlider, value: widgetResolver.markerIconSize },
+                { value: widgetResolver.markerIconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
             ]) ?? 100,
@@ -175,7 +173,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: rxData.iconSizeActive },
                 { value: getDataValue<number>('iconSize', String(ext)) },
-                { condition: isSlider, value: widgetResolver.markerIconSize },
+                { value: widgetResolver.markerIconSize },
                 { value: rxData.iconSize },
                 { value: 100 },
             ]) ?? 100,
@@ -202,7 +200,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('iconColor', 'Active') },
                 { condition: String(ext) !== '', value: getDataValue<string>('iconColor', String(ext)) },
-                { condition: isSlider, value: widgetResolver.markerIconColor },
+                { value: widgetResolver.markerIconColor },
                 { value: getDataValue<string>('iconColor', '') },
             ]) ?? _theme.palette.primary.main,
 
@@ -266,7 +264,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                           condition: getDataValue<string>('textColor', String(ext)) !== '',
                       },
                       {
-                          condition: isSlider,
                           value:
                               widgetResolver.markerTextColor && widgetResolver.markerTextColor !== ''
                                   ? widgetResolver.markerTextColor
@@ -301,7 +298,6 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: getDataValue<string>('textColor', String(ext)),
                 },
                 {
-                    condition: isSlider,
                     value:
                         widgetResolver.markerTextColor && widgetResolver.markerTextColor !== ''
                             ? widgetResolver.markerTextColor
@@ -331,7 +327,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                             : undefined,
                 },
                 {
-                    condition: isSlider && typeof widgetResolver.markerTextSize === 'number',
+                    condition: typeof widgetResolver.markerTextSize === 'number',
                     value: formatSize(widgetResolver.markerTextSize),
                 },
                 {
@@ -394,7 +390,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     value: `${formatSize(getDataValue<number>('valueSize', String(ext)))}`,
                 },
                 {
-                    condition: isSlider && typeof widgetResolver.markerTextSize === 'number',
+                    condition: typeof widgetResolver.markerTextSize === 'number',
                     value: formatSize(widgetResolver.markerTextSize),
                 },
                 {
@@ -498,16 +494,12 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
             includeActive ? getDataValue<string>('frameBackground', String(ext)) : undefined,
 
         // Slider Properties
-        markerIconSize: (_ext: string | number, _includeActive: boolean) =>
-            isSlider ? widgetResolver.markerIconSize : undefined,
+        markerIconSize: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerIconSize,
 
-        markerTextColor: (_ext: string | number, _includeActive: boolean) =>
-            isSlider ? widgetResolver.markerTextColor : undefined,
+        markerTextColor: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerTextColor,
 
-        markerTextSize: (_ext: string | number, _includeActive: boolean) =>
-            isSlider ? widgetResolver.markerTextSize : undefined,
+        markerTextSize: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerTextSize,
 
-        markerIconColor: (_ext: string | number, _includeActive: boolean) =>
-            isSlider ? widgetResolver.markerIconColor : undefined,
+        markerIconColor: (_ext: string | number, _includeActive: boolean) => widgetResolver.markerIconColor,
     };
 }

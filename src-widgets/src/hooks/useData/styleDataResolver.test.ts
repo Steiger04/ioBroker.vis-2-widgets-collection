@@ -12,14 +12,12 @@ import type { PropertyResolvers, SliderProperties } from './types';
 // as plain values — so we build a CreatePropertyResolversParams literal with
 // hand-rolled getDataValue/formatSize closures. No vi.mock needed.
 //
-// Purpose: lock current behavior so the planned F1 refactor (extract the isSlider
-// branches into a slider resolver; fold Gauge min/max into useData) cannot
-// silently change resolution order. Any intentional change updates these
-// expectations deliberately.
+// Purpose: F1 Stufe 2 removed the redundant isSlider flag (slider-ness is now
+// carried solely by `widgetResolver`). These tests prove the marker resolution is
+// unchanged for slider and non-slider widgets alike.
 
 interface ResolverOpts {
     rxData?: Record<string, any>;
-    isSlider?: boolean;
     widgetResolver?: SliderProperties | Record<string, never>;
     oidObject?: { unit?: string };
     oidName?: string;
@@ -44,7 +42,6 @@ function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
         formatSize: (n: number | string | undefined): string | undefined => (n == null ? undefined : `${n}%`),
         getDataValue,
         widgetResolver: opts.widgetResolver ?? {},
-        isSlider: opts.isSlider ?? false,
     });
 }
 
@@ -227,13 +224,13 @@ describe('isSlider — marker values slot into the fallback chain at the correct
 
     it('iconSize: marker beats base, but ext (iconSize1) beats marker', () => {
         // No base, no ext -> marker wins
-        const markerOnly = buildResolvers({ isSlider: true, widgetResolver: marker });
+        const markerOnly = buildResolvers({ widgetResolver: marker });
         expect(resolve(markerOnly).iconSize).toBe('calc(24px * 50 / 100)');
         // Base present -> marker still wins (inserted before base)
-        const withBase = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { iconSize: 200 } });
+        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconSize: 200 } });
         expect(resolve(withBase).iconSize).toBe('calc(24px * 50 / 100)');
         // Ext present -> ext wins (inserted before marker)
-        const withExt = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { iconSize1: 300 } });
+        const withExt = buildResolvers({ widgetResolver: marker, rxData: { iconSize1: 300 } });
         expect(resolve(withExt, '1').iconSize).toBe('calc(24px * 300 / 100)');
     });
 
@@ -241,36 +238,35 @@ describe('isSlider — marker values slot into the fallback chain at the correct
         // Note the contrast with iconSize above: here the ext-tier option reads
         // `iconSize` directly, so with ext="" it already sees rxData.iconSize and
         // shadows the marker (the marker sits one position later).
-        const r = buildResolvers({ isSlider: true, widgetResolver: marker });
+        const r = buildResolvers({ widgetResolver: marker });
         expect(resolve(r).iconWidth).toBe(50);
         expect(resolve(r).iconHeight).toBe(50);
         // rxData.iconSize set -> the ext="" tier reads it and wins over the marker
-        const withBase = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { iconSize: 200 } });
+        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconSize: 200 } });
         expect(resolve(withBase).iconWidth).toBe(200);
         // A real ext index with a value also wins over the marker
-        const withExt = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { iconSize1: 300 } });
+        const withExt = buildResolvers({ widgetResolver: marker, rxData: { iconSize1: 300 } });
         expect(resolve(withExt, '1').iconWidth).toBe(300);
         // ext index absent and base absent -> marker wins
-        const extAbsent = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { other: 1 } });
+        const extAbsent = buildResolvers({ widgetResolver: marker, rxData: { other: 1 } });
         expect(resolve(extAbsent, '1').iconWidth).toBe(50);
     });
 
     it('iconColor: marker beats base; theme is the last resort', () => {
-        const r = buildResolvers({ isSlider: true, widgetResolver: marker });
+        const r = buildResolvers({ widgetResolver: marker });
         expect(resolve(r).iconColor).toBe('#mcol');
-        const withBase = buildResolvers({ isSlider: true, widgetResolver: marker, rxData: { iconColor: '#base' } });
+        const withBase = buildResolvers({ widgetResolver: marker, rxData: { iconColor: '#base' } });
         expect(resolve(withBase).iconColor).toBe('#mcol');
         // Non-slider, no color anywhere -> theme primary
         expect(resolve(buildResolvers()).iconColor).toBe(THEME_PRIMARY);
     });
 
     it('textColor: marker is inserted only when non-empty', () => {
-        const r = buildResolvers({ isSlider: true, widgetResolver: marker });
+        const r = buildResolvers({ widgetResolver: marker });
         expect(resolve(r, '', true).textColor).toBe('#mtxt');
         expect(resolve(r).textColor).toBe('#mtxt');
         // Empty marker -> skipped, falls through
         const emptyMarker = buildResolvers({
-            isSlider: true,
             widgetResolver: { ...marker, markerTextColor: '' },
             textStyles: { color: '#tsColor' },
         });
@@ -279,7 +275,6 @@ describe('isSlider — marker values slot into the fallback chain at the correct
 
     it('valueSize: markerTextSize (via formatSize) beats base, before fontStyles', () => {
         const r = buildResolvers({
-            isSlider: true,
             widgetResolver: marker,
             fontStyles: { 'font-size': '13px' },
         });
@@ -298,7 +293,7 @@ describe('isSlider — marker resolvers expose raw marker values', () => {
     };
 
     it('returns undefined when not a slider', () => {
-        const r = buildResolvers({ widgetResolver: marker }); // isSlider defaults to false
+        const r = buildResolvers({ widgetResolver: {} }); // empty widgetResolver = non-slider
         expect(r.markerIconSize('', false)).toBeUndefined();
         expect(r.markerTextColor('', false)).toBeUndefined();
         expect(r.markerTextSize('', false)).toBeUndefined();
@@ -306,7 +301,7 @@ describe('isSlider — marker resolvers expose raw marker values', () => {
     });
 
     it('returns the raw marker values when isSlider', () => {
-        const r = buildResolvers({ isSlider: true, widgetResolver: marker });
+        const r = buildResolvers({ widgetResolver: marker });
         expect(r.markerIconSize('', false)).toBe(50);
         expect(r.markerTextColor('', false)).toBe('#mtxt');
         expect(r.markerTextSize('', false)).toBe(18);

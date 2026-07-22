@@ -60,7 +60,6 @@ function useData(_oid: string): UseDataResult {
                 formatSize,
                 getDataValue,
                 widgetResolver,
-                isSlider: isSliderFieldsRxData(rxData),
             }),
         [
             rxData,
