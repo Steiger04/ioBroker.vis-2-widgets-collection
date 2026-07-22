@@ -1,11 +1,20 @@
 /**
- * Factory functions for creating color field definitions.
+ * Factory functions and shared constants for building vis-2 field definitions.
  *
  * @module lib/fieldFactories
  * @remarks
- * Provides factory functions to create consistent color field definitions
- * for use with CollectionGradientColorPicker. Reduces boilerplate and
- * ensures type safety across all field definition files.
+ * Provides the deep building blocks used across every `*Fields.tsx` file:
+ * - color field factories (`createColorField`, `createColorFields`, `createSliderColorField`)
+ * - the hidden-predicate family (`hiddenUnless`, `hiddenIf`, `hiddenWhenFalsy`)
+ * - shared option constants (`fontWeightOptions`, `fontStyleOptions`, `sideOptions`)
+ * - `createDivider` for section dividers
+ *
+ * Per-type factories for number/select/checkbox fields are intentionally NOT
+ * provided: a factory that only injects the vis-2 field `type` and passes the
+ * keys through is a shallow rename (deleting it just moves the keys inline —
+ * complexity does not concentrate). Those fields stay as raw object literals
+ * with a `hidden` clause; the depth lives here, in the predicates, option
+ * constants, and dividers.
  * @example
  * // Single color field
  * const sliderColorField = createColorField({
@@ -28,6 +37,7 @@
  */
 
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
+import CollectionDivider from '../components/CollectionDivider';
 import type { ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import type React from 'react';
@@ -148,4 +158,121 @@ export function createSliderColorField(
         fallbackFields: ['sliderColor'],
         ...options,
     });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hidden-predicate family
+//
+// Deep module: the same predicate bodies (e.g. `data.gaugeType !== 'linear'`)
+// were inlined 30+ times in gaugeFields alone, and recur across every field
+// file. One named predicate per recurring shape replaces them all. Rare
+// compound conditions stay inline.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A vis-2 field `hidden` predicate over widget data. */
+export type HiddenPredicate = (data: Record<string, unknown>, index?: number) => boolean;
+
+/**
+ * Hides a field unless `data[field] === value` — i.e. the field is visible
+ * only when `field` holds `value`. Covers the dominant `data.x !== 'y'` pattern.
+ *
+ * @example hiddenUnless('gaugeType', 'linear')
+ */
+export const hiddenUnless =
+    (field: string, value: unknown): HiddenPredicate =>
+    data =>
+        data[field] !== value;
+
+/**
+ * Hides a field when `data[field] === value`.
+ *
+ * @example hiddenIf('oidObject', undefined)
+ */
+export const hiddenIf =
+    (field: string, value: unknown): HiddenPredicate =>
+    data =>
+        data[field] === value;
+
+/**
+ * Hides a field when `data[field]` is falsy (0, '', false, null, undefined).
+ *
+ * @example hiddenWhenFalsy('write')
+ */
+export const hiddenWhenFalsy =
+    (field: string): HiddenPredicate =>
+    data =>
+        !data[field];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared option constants
+//
+// Previously copy-pasted verbatim (font-weight ×4, font-style ×4, side ×3).
+// One definition each; select fields reference the constant.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const fontStyleOptions = [
+    { value: 'normal', label: 'normal' },
+    { value: 'italic', label: 'italic' },
+    { value: 'oblique', label: 'oblique' },
+];
+
+export const fontWeightOptions = [
+    { value: 'normal', label: 'normal' },
+    { value: 'bold', label: 'bold' },
+    { value: 'bolder', label: 'bolder' },
+    { value: 'lighter', label: 'lighter' },
+    { value: '100', label: '100' },
+    { value: '200', label: '200' },
+    { value: '300', label: '300' },
+    { value: '400', label: '400' },
+    { value: '500', label: '500' },
+    { value: '600', label: '600' },
+    { value: '700', label: '700' },
+    { value: '800', label: '800' },
+    { value: '900', label: '900' },
+];
+
+export const sideOptions = [
+    { value: 'both', label: 'both' },
+    { value: 'left', label: 'left' },
+    { value: 'right', label: 'right' },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Divider builder
+//
+// The 5-line `{ label:'', type:'custom', component: () => <CollectionDivider dividerText=…/> }`
+// block recurred 20+ times in gaugeFields and across all 14 field files.
+// `createDivider` hides that tedium behind one call.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Options for {@link createDivider}.
+ */
+export interface DividerOptions {
+    /** Predicate that hides the divider (e.g. `hiddenUnless('gaugeType', 'linear')`). */
+    hidden?: HiddenPredicate;
+}
+
+/**
+ * Builds a `CollectionDivider` section-divider field.
+ *
+ * @param dividerText - Translation key rendered as the divider label.
+ * @param options - Optional {@link DividerOptions}.
+ * @example createDivider('gauge_basic_options')
+ * @example createDivider('gauge_linear_borders_options', { hidden: hiddenUnless('gaugeType', 'linear') })
+ */
+export function createDivider(dividerText: string, options?: DividerOptions): ExtendedField {
+    const field: ExtendedField = {
+        label: '',
+        type: 'custom',
+        component: (): React.JSX.Element => <CollectionDivider dividerText={dividerText} />,
+    };
+
+    if (options?.hidden !== undefined) {
+        // Cast to bypass the readonly restriction, matching createColorField.
+        (field as Record<string, unknown>).hidden = options.hidden;
+    }
+
+    return field;
 }
