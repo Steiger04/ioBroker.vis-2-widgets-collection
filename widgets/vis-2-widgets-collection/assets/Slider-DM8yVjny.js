@@ -1,0 +1,1278 @@
+import { v as y, __tla as __tla_0 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
+import { ax as nt, aD as de, c as st, b as lt, D as _e, E as Re, J as Ue, ak as Ke, h as Ie, a as it, g as ct, d as ne, j as T, s as X, u as ut, R as dt, az as O, aE as et, m as se, x as F, e as pt, y as Ye, p as Be, Q as Xe, f as qe, __tla as __tla_1 } from "./usePopoverPositioning-CABAc1cn.js";
+let Vt, Mt;
+let __tla = Promise.all([
+  (() => {
+    try {
+      return __tla_0;
+    } catch {
+    }
+  })(),
+  (() => {
+    try {
+      return __tla_1;
+    } catch {
+    }
+  })()
+]).then(async () => {
+  const ft = {
+    border: 0,
+    clip: "rect(0 0 0 0)",
+    height: "1px",
+    margin: "-1px",
+    overflow: "hidden",
+    padding: 0,
+    position: "absolute",
+    whiteSpace: "nowrap",
+    width: "1px"
+  };
+  function mt(e, t, o = (n, p) => n === p) {
+    return e.length === t.length && e.every((n, p) => o(n, t[p]));
+  }
+  const bt = 2;
+  function oe(e, t, o, n, p) {
+    return o === 1 ? Math.min(e + t, p) : Math.max(e - t, n);
+  }
+  function tt(e, t) {
+    return e - t;
+  }
+  function Ge(e, t) {
+    const { index: o } = e.reduce((n, p, w) => {
+      const N = Math.abs(t - p);
+      return n === null || N < n.distance || N === n.distance ? {
+        distance: N,
+        index: w
+      } : n;
+    }, null) ?? {};
+    return o;
+  }
+  function Ce(e, t) {
+    if (t.current !== void 0 && e.changedTouches) {
+      const o = e;
+      for (let n = 0; n < o.changedTouches.length; n += 1) {
+        const p = o.changedTouches[n];
+        if (p.identifier === t.current) return {
+          x: p.clientX,
+          y: p.clientY
+        };
+      }
+      return false;
+    }
+    return {
+      x: e.clientX,
+      y: e.clientY
+    };
+  }
+  function ze(e, t, o) {
+    return (e - t) * 100 / (o - t);
+  }
+  function ht(e, t, o) {
+    return (o - t) * e + t;
+  }
+  function gt(e) {
+    if (Math.abs(e) < 1) {
+      const o = e.toExponential().split("e-"), n = o[0].split(".")[1];
+      return (n ? n.length : 0) + parseInt(o[1], 10);
+    }
+    const t = e.toString().split(".")[1];
+    return t ? t.length : 0;
+  }
+  function vt(e, t, o) {
+    const n = Math.round((e - o) / t) * t + o;
+    return Number(n.toFixed(gt(t)));
+  }
+  function Je({ values: e, newValue: t, index: o }) {
+    const n = e.slice();
+    return n[o] = t, n.sort(tt);
+  }
+  function Pe({ sliderRef: e, activeIndex: t, setActive: o }) {
+    var _a, _b, _c;
+    const n = Re(e.current);
+    (!((_a = e.current) == null ? void 0 : _a.contains(n.activeElement)) || Number((_b = n == null ? void 0 : n.activeElement) == null ? void 0 : _b.getAttribute("data-index")) !== t) && ((_c = e.current) == null ? void 0 : _c.querySelector(`[type="range"][data-index="${t}"]`).focus()), o && o(t);
+  }
+  function Te(e, t) {
+    return typeof e == "number" && typeof t == "number" ? e === t : typeof e == "object" && typeof t == "object" ? mt(e, t) : false;
+  }
+  const kt = {
+    horizontal: {
+      offset: (e) => ({
+        left: `${e}%`
+      }),
+      leap: (e) => ({
+        width: `${e}%`
+      })
+    },
+    "horizontal-reverse": {
+      offset: (e) => ({
+        right: `${e}%`
+      }),
+      leap: (e) => ({
+        width: `${e}%`
+      })
+    },
+    vertical: {
+      offset: (e) => ({
+        bottom: `${e}%`
+      }),
+      leap: (e) => ({
+        height: `${e}%`
+      })
+    }
+  }, yt = (e) => e;
+  let Ae;
+  function Qe() {
+    return Ae === void 0 && (typeof CSS < "u" && typeof CSS.supports == "function" ? Ae = CSS.supports("touch-action", "none") : Ae = true), Ae;
+  }
+  function xt(e) {
+    const { "aria-labelledby": t, defaultValue: o, disabled: n = false, disableSwap: p = false, isRtl: w = false, marks: N = false, max: f = 100, min: u = 0, name: L, onChange: z, onChangeCommitted: q, orientation: G = "horizontal", rootRef: Me, scale: pe = yt, step: M = 1, shiftStep: J = 10, tabIndex: fe, value: Ee } = e, E = y.useRef(void 0), [V, Q] = y.useState(-1), [We, Z] = y.useState(-1), [me, be] = y.useState(false), ee = y.useRef(0), le = y.useRef(null), [A, C] = nt({
+      controlled: Ee,
+      default: o ?? u,
+      name: "Slider"
+    }), v = z && ((a, r, s) => {
+      const c = a.nativeEvent || a, i = new c.constructor(c.type, c);
+      Object.defineProperty(i, "target", {
+        writable: true,
+        value: {
+          value: r,
+          name: L
+        }
+      }), le.current = r, z(i, r, s);
+    }), te = Array.isArray(A);
+    let b = te ? A.slice().sort(tt) : [
+      A
+    ];
+    b = b.map((a) => a == null ? u : de(a, u, f));
+    const ie = N === true && M !== null ? [
+      ...Array(Math.floor((f - u) / M) + 1)
+    ].map((a, r) => ({
+      value: u + M * r
+    })) : N || [], m = ie.map((a) => a.value), [j, re] = y.useState(-1), d = y.useRef(null), _ = st(Me, d), Ne = (a) => (r) => {
+      var _a;
+      const s = Number(r.currentTarget.getAttribute("data-index"));
+      Ke(r.target) && re(s), Z(s), (_a = a == null ? void 0 : a.onFocus) == null ? void 0 : _a.call(a, r);
+    }, $e = (a) => (r) => {
+      var _a;
+      Ke(r.target) || re(-1), Z(-1), (_a = a == null ? void 0 : a.onBlur) == null ? void 0 : _a.call(a, r);
+    }, he = (a, r) => {
+      const s = Number(a.currentTarget.getAttribute("data-index")), c = b[s], i = m.indexOf(c);
+      let l = r;
+      if (ie && M == null) {
+        const P = m[m.length - 1];
+        l >= P ? l = P : l <= m[0] ? l = m[0] : l = l < c ? m[i - 1] : m[i + 1];
+      }
+      if (l = de(l, u, f), te) {
+        p && (l = de(l, b[s - 1] || -1 / 0, b[s + 1] || 1 / 0));
+        const P = l;
+        l = Je({
+          values: b,
+          newValue: l,
+          index: s
+        });
+        let R = s;
+        p || (R = l.indexOf(P)), Pe({
+          sliderRef: d,
+          activeIndex: R
+        });
+      }
+      C(l), re(s), v && !Te(l, A) && v(a, l, s), q && q(a, le.current ?? l);
+    }, He = (a) => (r) => {
+      var _a;
+      if ([
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End"
+      ].includes(r.key)) {
+        r.preventDefault();
+        const s = Number(r.currentTarget.getAttribute("data-index")), c = b[s];
+        let i = null;
+        if (M != null) {
+          const l = r.shiftKey ? J : M;
+          switch (r.key) {
+            case "ArrowUp":
+              i = oe(c, l, 1, u, f);
+              break;
+            case "ArrowRight":
+              i = oe(c, l, w ? -1 : 1, u, f);
+              break;
+            case "ArrowDown":
+              i = oe(c, l, -1, u, f);
+              break;
+            case "ArrowLeft":
+              i = oe(c, l, w ? 1 : -1, u, f);
+              break;
+            case "PageUp":
+              i = oe(c, J, 1, u, f);
+              break;
+            case "PageDown":
+              i = oe(c, J, -1, u, f);
+              break;
+            case "Home":
+              i = u;
+              break;
+            case "End":
+              i = f;
+              break;
+          }
+        } else if (ie) {
+          const l = m[m.length - 1], P = m.indexOf(c), R = [
+            w ? "ArrowRight" : "ArrowLeft",
+            "ArrowDown",
+            "PageDown",
+            "Home"
+          ], g = [
+            w ? "ArrowLeft" : "ArrowRight",
+            "ArrowUp",
+            "PageUp",
+            "End"
+          ];
+          R.includes(r.key) ? P === 0 ? i = m[0] : i = m[P - 1] : g.includes(r.key) && (P === m.length - 1 ? i = l : i = m[P + 1]);
+        }
+        i != null && he(r, i);
+      }
+      (_a = a == null ? void 0 : a.onKeyDown) == null ? void 0 : _a.call(a, r);
+    };
+    lt(() => {
+      var _a;
+      n && d.current.contains(document.activeElement) && ((_a = document.activeElement) == null ? void 0 : _a.blur());
+    }, [
+      n
+    ]), n && V !== -1 && Q(-1), n && j !== -1 && re(-1);
+    const ge = (a) => (r) => {
+      var _a;
+      (_a = a.onChange) == null ? void 0 : _a.call(a, r), he(r, r.target.valueAsNumber);
+    }, U = y.useRef(void 0);
+    let Y = G;
+    w && G === "horizontal" && (Y += "-reverse");
+    const W = ({ finger: a, move: r = false }) => {
+      const { current: s } = d, { width: c, height: i, bottom: l, left: P } = s.getBoundingClientRect();
+      let R;
+      Y.startsWith("vertical") ? R = (l - a.y) / i : R = (a.x - P) / c, Y.includes("-reverse") && (R = 1 - R);
+      let g;
+      if (g = ht(R, u, f), M) g = vt(g, M, u);
+      else {
+        const ue = Ge(m, g);
+        g = m[ue];
+      }
+      g = de(g, u, f);
+      let H = 0;
+      if (te) {
+        r ? H = U.current : H = Ge(b, g), p && (g = de(g, b[H - 1] || -1 / 0, b[H + 1] || 1 / 0));
+        const ue = g;
+        g = Je({
+          values: b,
+          newValue: g,
+          index: H
+        }), p && r || (H = g.indexOf(ue), U.current = H);
+      }
+      return {
+        newValue: g,
+        activeIndex: H
+      };
+    }, K = _e((a) => {
+      const r = Ce(a, E);
+      if (!r) return;
+      if (ee.current += 1, a.type === "mousemove" && a.buttons === 0) {
+        $(a);
+        return;
+      }
+      const { newValue: s, activeIndex: c } = W({
+        finger: r,
+        move: true
+      });
+      Pe({
+        sliderRef: d,
+        activeIndex: c,
+        setActive: Q
+      }), C(s), !me && ee.current > bt && be(true), v && !Te(s, A) && v(a, s, c);
+    }), $ = _e((a) => {
+      const r = Ce(a, E);
+      if (be(false), !r) return;
+      const { newValue: s } = W({
+        finger: r,
+        move: true
+      });
+      Q(-1), a.type === "touchend" && Z(-1), q && q(a, le.current ?? s), E.current = void 0, B();
+    }), x = _e((a) => {
+      if (n) return;
+      Qe() || a.preventDefault();
+      const r = a.changedTouches[0];
+      r != null && (E.current = r.identifier);
+      const s = Ce(a, E);
+      if (s !== false) {
+        const { newValue: i, activeIndex: l } = W({
+          finger: s
+        });
+        Pe({
+          sliderRef: d,
+          activeIndex: l,
+          setActive: Q
+        }), C(i), v && !Te(i, A) && v(a, i, l);
+      }
+      ee.current = 0;
+      const c = Re(d.current);
+      c.addEventListener("touchmove", K, {
+        passive: true
+      }), c.addEventListener("touchend", $, {
+        passive: true
+      });
+    }), B = y.useCallback(() => {
+      const a = Re(d.current);
+      a.removeEventListener("mousemove", K), a.removeEventListener("mouseup", $), a.removeEventListener("touchmove", K), a.removeEventListener("touchend", $);
+    }, [
+      $,
+      K
+    ]);
+    y.useEffect(() => {
+      const { current: a } = d;
+      return a.addEventListener("touchstart", x, {
+        passive: Qe()
+      }), () => {
+        a.removeEventListener("touchstart", x), B();
+      };
+    }, [
+      B,
+      x
+    ]), y.useEffect(() => {
+      n && B();
+    }, [
+      n,
+      B
+    ]);
+    const Ve = (a) => (r) => {
+      var _a;
+      if ((_a = a.onMouseDown) == null ? void 0 : _a.call(a, r), n || r.defaultPrevented || r.button !== 0) return;
+      r.preventDefault();
+      const s = Ce(r, E);
+      if (s !== false) {
+        const { newValue: i, activeIndex: l } = W({
+          finger: s
+        });
+        Pe({
+          sliderRef: d,
+          activeIndex: l,
+          setActive: Q
+        }), C(i), v && !Te(i, A) && v(r, i, l);
+      }
+      ee.current = 0;
+      const c = Re(d.current);
+      c.addEventListener("mousemove", K, {
+        passive: true
+      }), c.addEventListener("mouseup", $);
+    }, ve = ze(te ? b[0] : u, u, f), S = ze(b[b.length - 1], u, f) - ve, ce = (a = {}) => {
+      const r = Ue(a), s = {
+        onMouseDown: Ve(r || {})
+      }, c = {
+        ...r,
+        ...s
+      };
+      return {
+        ...a,
+        ref: _,
+        ...c
+      };
+    }, ke = (a) => (r) => {
+      var _a;
+      (_a = a.onMouseOver) == null ? void 0 : _a.call(a, r);
+      const s = Number(r.currentTarget.getAttribute("data-index"));
+      Z(s);
+    }, ye = (a) => (r) => {
+      var _a;
+      (_a = a.onMouseLeave) == null ? void 0 : _a.call(a, r), Z(-1);
+    }, xe = (a = {}) => {
+      const r = Ue(a), s = {
+        onMouseOver: ke(r || {}),
+        onMouseLeave: ye(r || {})
+      };
+      return {
+        ...a,
+        ...r,
+        ...s
+      };
+    }, Se = (a) => ({
+      pointerEvents: V !== -1 && V !== a ? "none" : void 0
+    });
+    let ae;
+    return G === "vertical" && (ae = w ? "vertical-rl" : "vertical-lr"), {
+      active: V,
+      axis: Y,
+      axisProps: kt,
+      dragging: me,
+      focusedThumbIndex: j,
+      getHiddenInputProps: (a = {}) => {
+        const r = Ue(a), s = {
+          onChange: ge(r || {}),
+          onFocus: Ne(r || {}),
+          onBlur: $e(r || {}),
+          onKeyDown: He(r || {})
+        }, c = {
+          ...r,
+          ...s
+        };
+        return {
+          tabIndex: fe,
+          "aria-labelledby": t,
+          "aria-orientation": G,
+          "aria-valuemax": pe(f),
+          "aria-valuemin": pe(u),
+          name: L,
+          type: "range",
+          min: e.min,
+          max: e.max,
+          step: e.step === null && e.marks ? "any" : e.step ?? void 0,
+          disabled: n,
+          ...a,
+          ...c,
+          style: {
+            ...ft,
+            direction: w ? "rtl" : "ltr",
+            width: "100%",
+            height: "100%",
+            writingMode: ae
+          }
+        };
+      },
+      getRootProps: ce,
+      getThumbProps: xe,
+      marks: ie,
+      open: We,
+      range: te,
+      rootRef: _,
+      trackLeap: S,
+      trackOffset: ve,
+      values: b,
+      getThumbStyle: Se
+    };
+  }
+  const St = (e) => !e || !Ie(e);
+  function wt(e) {
+    return ct("MuiSlider", e);
+  }
+  const I = it("MuiSlider", [
+    "root",
+    "active",
+    "colorPrimary",
+    "colorSecondary",
+    "colorError",
+    "colorInfo",
+    "colorSuccess",
+    "colorWarning",
+    "disabled",
+    "dragging",
+    "focusVisible",
+    "mark",
+    "markActive",
+    "marked",
+    "markLabel",
+    "markLabelActive",
+    "rail",
+    "sizeSmall",
+    "thumb",
+    "thumbColorPrimary",
+    "thumbColorSecondary",
+    "thumbColorError",
+    "thumbColorSuccess",
+    "thumbColorInfo",
+    "thumbColorWarning",
+    "track",
+    "trackInverted",
+    "trackFalse",
+    "thumbSizeSmall",
+    "valueLabel",
+    "valueLabelOpen",
+    "valueLabelCircle",
+    "valueLabelLabel",
+    "vertical"
+  ]), Lt = (e) => {
+    const { open: t } = e;
+    return {
+      offset: ne(t && I.valueLabelOpen),
+      circle: I.valueLabelCircle,
+      label: I.valueLabelLabel
+    };
+  };
+  function Ct(e) {
+    const { children: t, className: o, value: n } = e, p = Lt(e);
+    return t ? y.cloneElement(t, {
+      className: ne(t.props.className)
+    }, T.jsxs(y.Fragment, {
+      children: [
+        t.props.children,
+        T.jsx("span", {
+          className: ne(p.offset, o),
+          "aria-hidden": true,
+          children: T.jsx("span", {
+            className: p.circle,
+            children: T.jsx("span", {
+              className: p.label,
+              children: n
+            })
+          })
+        })
+      ]
+    })) : null;
+  }
+  function Ze(e) {
+    return e;
+  }
+  let Pt, Tt, At, Rt, It, zt, Et, Nt;
+  Pt = X("span", {
+    name: "MuiSlider",
+    slot: "Root",
+    overridesResolver: (e, t) => {
+      const { ownerState: o } = e;
+      return [
+        t.root,
+        t[`color${F(o.color)}`],
+        o.size !== "medium" && t[`size${F(o.size)}`],
+        o.marked && t.marked,
+        o.orientation === "vertical" && t.vertical,
+        o.track === "inverted" && t.trackInverted,
+        o.track === false && t.trackFalse
+      ];
+    }
+  })(se(({ theme: e }) => ({
+    borderRadius: 12,
+    boxSizing: "content-box",
+    display: "inline-block",
+    position: "relative",
+    cursor: "pointer",
+    touchAction: "none",
+    WebkitTapHighlightColor: "transparent",
+    "@media print": {
+      colorAdjust: "exact"
+    },
+    [`&.${I.disabled}`]: {
+      pointerEvents: "none",
+      cursor: "default",
+      color: (e.vars || e).palette.grey[400]
+    },
+    [`&.${I.dragging}`]: {
+      [`& .${I.thumb}, & .${I.track}`]: {
+        transition: "none"
+      }
+    },
+    variants: [
+      ...Object.entries(e.palette).filter(Ye()).map(([t]) => ({
+        props: {
+          color: t
+        },
+        style: {
+          color: (e.vars || e).palette[t].main
+        }
+      })),
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          height: 4,
+          width: "100%",
+          padding: "13px 0",
+          "@media (pointer: coarse)": {
+            padding: "20px 0"
+          }
+        }
+      },
+      {
+        props: {
+          orientation: "horizontal",
+          size: "small"
+        },
+        style: {
+          height: 2
+        }
+      },
+      {
+        props: {
+          orientation: "horizontal",
+          marked: true
+        },
+        style: {
+          marginBottom: 20
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          height: "100%",
+          width: 4,
+          padding: "0 13px",
+          "@media (pointer: coarse)": {
+            padding: "0 20px"
+          }
+        }
+      },
+      {
+        props: {
+          orientation: "vertical",
+          size: "small"
+        },
+        style: {
+          width: 2
+        }
+      },
+      {
+        props: {
+          orientation: "vertical",
+          marked: true
+        },
+        style: {
+          marginRight: 44
+        }
+      }
+    ]
+  })));
+  Tt = X("span", {
+    name: "MuiSlider",
+    slot: "Rail",
+    overridesResolver: (e, t) => t.rail
+  })({
+    display: "block",
+    position: "absolute",
+    borderRadius: "inherit",
+    backgroundColor: "currentColor",
+    opacity: 0.38,
+    variants: [
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          width: "100%",
+          height: "inherit",
+          top: "50%",
+          transform: "translateY(-50%)"
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          height: "100%",
+          width: "inherit",
+          left: "50%",
+          transform: "translateX(-50%)"
+        }
+      },
+      {
+        props: {
+          track: "inverted"
+        },
+        style: {
+          opacity: 1
+        }
+      }
+    ]
+  });
+  At = X("span", {
+    name: "MuiSlider",
+    slot: "Track",
+    overridesResolver: (e, t) => t.track
+  })(se(({ theme: e }) => ({
+    display: "block",
+    position: "absolute",
+    borderRadius: "inherit",
+    border: "1px solid currentColor",
+    backgroundColor: "currentColor",
+    transition: e.transitions.create([
+      "left",
+      "width",
+      "bottom",
+      "height"
+    ], {
+      duration: e.transitions.duration.shortest
+    }),
+    variants: [
+      {
+        props: {
+          size: "small"
+        },
+        style: {
+          border: "none"
+        }
+      },
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          height: "inherit",
+          top: "50%",
+          transform: "translateY(-50%)"
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          width: "inherit",
+          left: "50%",
+          transform: "translateX(-50%)"
+        }
+      },
+      {
+        props: {
+          track: false
+        },
+        style: {
+          display: "none"
+        }
+      },
+      ...Object.entries(e.palette).filter(Ye()).map(([t]) => ({
+        props: {
+          color: t,
+          track: "inverted"
+        },
+        style: {
+          ...e.vars ? {
+            backgroundColor: e.vars.palette.Slider[`${t}Track`],
+            borderColor: e.vars.palette.Slider[`${t}Track`]
+          } : {
+            backgroundColor: Be(e.palette[t].main, 0.62),
+            borderColor: Be(e.palette[t].main, 0.62),
+            ...e.applyStyles("dark", {
+              backgroundColor: Xe(e.palette[t].main, 0.5)
+            }),
+            ...e.applyStyles("dark", {
+              borderColor: Xe(e.palette[t].main, 0.5)
+            })
+          }
+        }
+      }))
+    ]
+  })));
+  Rt = X("span", {
+    name: "MuiSlider",
+    slot: "Thumb",
+    overridesResolver: (e, t) => {
+      const { ownerState: o } = e;
+      return [
+        t.thumb,
+        t[`thumbColor${F(o.color)}`],
+        o.size !== "medium" && t[`thumbSize${F(o.size)}`]
+      ];
+    }
+  })(se(({ theme: e }) => ({
+    position: "absolute",
+    width: 20,
+    height: 20,
+    boxSizing: "border-box",
+    borderRadius: "50%",
+    outline: 0,
+    backgroundColor: "currentColor",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: e.transitions.create([
+      "box-shadow",
+      "left",
+      "bottom"
+    ], {
+      duration: e.transitions.duration.shortest
+    }),
+    "&::before": {
+      position: "absolute",
+      content: '""',
+      borderRadius: "inherit",
+      width: "100%",
+      height: "100%",
+      boxShadow: (e.vars || e).shadows[2]
+    },
+    "&::after": {
+      position: "absolute",
+      content: '""',
+      borderRadius: "50%",
+      width: 42,
+      height: 42,
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)"
+    },
+    [`&.${I.disabled}`]: {
+      "&:hover": {
+        boxShadow: "none"
+      }
+    },
+    variants: [
+      {
+        props: {
+          size: "small"
+        },
+        style: {
+          width: 12,
+          height: 12,
+          "&::before": {
+            boxShadow: "none"
+          }
+        }
+      },
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          top: "50%",
+          transform: "translate(-50%, -50%)"
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          left: "50%",
+          transform: "translate(-50%, 50%)"
+        }
+      },
+      ...Object.entries(e.palette).filter(Ye()).map(([t]) => ({
+        props: {
+          color: t
+        },
+        style: {
+          [`&:hover, &.${I.focusVisible}`]: {
+            ...e.vars ? {
+              boxShadow: `0px 0px 0px 8px rgba(${e.vars.palette[t].mainChannel} / 0.16)`
+            } : {
+              boxShadow: `0px 0px 0px 8px ${qe(e.palette[t].main, 0.16)}`
+            },
+            "@media (hover: none)": {
+              boxShadow: "none"
+            }
+          },
+          [`&.${I.active}`]: {
+            ...e.vars ? {
+              boxShadow: `0px 0px 0px 14px rgba(${e.vars.palette[t].mainChannel} / 0.16)`
+            } : {
+              boxShadow: `0px 0px 0px 14px ${qe(e.palette[t].main, 0.16)}`
+            }
+          }
+        }
+      }))
+    ]
+  })));
+  It = X(Ct, {
+    name: "MuiSlider",
+    slot: "ValueLabel",
+    overridesResolver: (e, t) => t.valueLabel
+  })(se(({ theme: e }) => ({
+    zIndex: 1,
+    whiteSpace: "nowrap",
+    ...e.typography.body2,
+    fontWeight: 500,
+    transition: e.transitions.create([
+      "transform"
+    ], {
+      duration: e.transitions.duration.shortest
+    }),
+    position: "absolute",
+    backgroundColor: (e.vars || e).palette.grey[600],
+    borderRadius: 2,
+    color: (e.vars || e).palette.common.white,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0.25rem 0.75rem",
+    variants: [
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          transform: "translateY(-100%) scale(0)",
+          top: "-10px",
+          transformOrigin: "bottom center",
+          "&::before": {
+            position: "absolute",
+            content: '""',
+            width: 8,
+            height: 8,
+            transform: "translate(-50%, 50%) rotate(45deg)",
+            backgroundColor: "inherit",
+            bottom: 0,
+            left: "50%"
+          },
+          [`&.${I.valueLabelOpen}`]: {
+            transform: "translateY(-100%) scale(1)"
+          }
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          transform: "translateY(-50%) scale(0)",
+          right: "30px",
+          top: "50%",
+          transformOrigin: "right center",
+          "&::before": {
+            position: "absolute",
+            content: '""',
+            width: 8,
+            height: 8,
+            transform: "translate(-50%, -50%) rotate(45deg)",
+            backgroundColor: "inherit",
+            right: -8,
+            top: "50%"
+          },
+          [`&.${I.valueLabelOpen}`]: {
+            transform: "translateY(-50%) scale(1)"
+          }
+        }
+      },
+      {
+        props: {
+          size: "small"
+        },
+        style: {
+          fontSize: e.typography.pxToRem(12),
+          padding: "0.25rem 0.5rem"
+        }
+      },
+      {
+        props: {
+          orientation: "vertical",
+          size: "small"
+        },
+        style: {
+          right: "20px"
+        }
+      }
+    ]
+  })));
+  zt = X("span", {
+    name: "MuiSlider",
+    slot: "Mark",
+    shouldForwardProp: (e) => et(e) && e !== "markActive",
+    overridesResolver: (e, t) => {
+      const { markActive: o } = e;
+      return [
+        t.mark,
+        o && t.markActive
+      ];
+    }
+  })(se(({ theme: e }) => ({
+    position: "absolute",
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: "currentColor",
+    variants: [
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          top: "50%",
+          transform: "translate(-1px, -50%)"
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          left: "50%",
+          transform: "translate(-50%, 1px)"
+        }
+      },
+      {
+        props: {
+          markActive: true
+        },
+        style: {
+          backgroundColor: (e.vars || e).palette.background.paper,
+          opacity: 0.8
+        }
+      }
+    ]
+  })));
+  Mt = X("span", {
+    name: "MuiSlider",
+    slot: "MarkLabel",
+    shouldForwardProp: (e) => et(e) && e !== "markLabelActive",
+    overridesResolver: (e, t) => t.markLabel
+  })(se(({ theme: e }) => ({
+    ...e.typography.body2,
+    color: (e.vars || e).palette.text.secondary,
+    position: "absolute",
+    whiteSpace: "nowrap",
+    variants: [
+      {
+        props: {
+          orientation: "horizontal"
+        },
+        style: {
+          top: 30,
+          transform: "translateX(-50%)",
+          "@media (pointer: coarse)": {
+            top: 40
+          }
+        }
+      },
+      {
+        props: {
+          orientation: "vertical"
+        },
+        style: {
+          left: 36,
+          transform: "translateY(50%)",
+          "@media (pointer: coarse)": {
+            left: 44
+          }
+        }
+      },
+      {
+        props: {
+          markLabelActive: true
+        },
+        style: {
+          color: (e.vars || e).palette.text.primary
+        }
+      }
+    ]
+  })));
+  Et = (e) => {
+    const { disabled: t, dragging: o, marked: n, orientation: p, track: w, classes: N, color: f, size: u } = e, L = {
+      root: [
+        "root",
+        t && "disabled",
+        o && "dragging",
+        n && "marked",
+        p === "vertical" && "vertical",
+        w === "inverted" && "trackInverted",
+        w === false && "trackFalse",
+        f && `color${F(f)}`,
+        u && `size${F(u)}`
+      ],
+      rail: [
+        "rail"
+      ],
+      track: [
+        "track"
+      ],
+      mark: [
+        "mark"
+      ],
+      markActive: [
+        "markActive"
+      ],
+      markLabel: [
+        "markLabel"
+      ],
+      markLabelActive: [
+        "markLabelActive"
+      ],
+      valueLabel: [
+        "valueLabel"
+      ],
+      thumb: [
+        "thumb",
+        t && "disabled",
+        u && `thumbSize${F(u)}`,
+        f && `thumbColor${F(f)}`
+      ],
+      active: [
+        "active"
+      ],
+      disabled: [
+        "disabled"
+      ],
+      focusVisible: [
+        "focusVisible"
+      ]
+    };
+    return pt(L, wt, N);
+  };
+  Nt = ({ children: e }) => e;
+  Vt = y.forwardRef(function(t, o) {
+    const n = ut({
+      props: t,
+      name: "MuiSlider"
+    }), p = dt(), { "aria-label": w, "aria-valuetext": N, "aria-labelledby": f, component: u = "span", components: L = {}, componentsProps: z = {}, color: q = "primary", classes: G, className: Me, disableSwap: pe = false, disabled: M = false, getAriaLabel: J, getAriaValueText: fe, marks: Ee = false, max: E = 100, min: V = 0, name: Q, onChange: We, onChangeCommitted: Z, orientation: me = "horizontal", shiftStep: be = 10, size: ee = "medium", step: le = 1, scale: A = Ze, slotProps: C, slots: v, tabIndex: te, track: b = "normal", value: ie, valueLabelDisplay: m = "off", valueLabelFormat: j = Ze, ...re } = n, d = {
+      ...n,
+      isRtl: p,
+      max: E,
+      min: V,
+      classes: G,
+      disabled: M,
+      disableSwap: pe,
+      orientation: me,
+      marks: Ee,
+      color: q,
+      size: ee,
+      step: le,
+      shiftStep: be,
+      scale: A,
+      track: b,
+      valueLabelDisplay: m,
+      valueLabelFormat: j
+    }, { axisProps: _, getRootProps: Ne, getHiddenInputProps: $e, getThumbProps: he, open: He, active: ge, axis: U, focusedThumbIndex: Y, range: W, dragging: K, marks: $, values: x, trackOffset: B, trackLeap: Ve, getThumbStyle: ve } = xt({
+      ...d,
+      rootRef: o
+    });
+    d.marked = $.length > 0 && $.some((h) => h.label), d.dragging = K, d.focusedThumbIndex = Y;
+    const S = Et(d), ce = (v == null ? void 0 : v.root) ?? L.Root ?? Pt, ke = (v == null ? void 0 : v.rail) ?? L.Rail ?? Tt, ye = (v == null ? void 0 : v.track) ?? L.Track ?? At, xe = (v == null ? void 0 : v.thumb) ?? L.Thumb ?? Rt, Se = (v == null ? void 0 : v.valueLabel) ?? L.ValueLabel ?? It, ae = (v == null ? void 0 : v.mark) ?? L.Mark ?? zt, we = (v == null ? void 0 : v.markLabel) ?? L.MarkLabel ?? Mt, a = (v == null ? void 0 : v.input) ?? L.Input ?? "input", r = (C == null ? void 0 : C.root) ?? z.root, s = (C == null ? void 0 : C.rail) ?? z.rail, c = (C == null ? void 0 : C.track) ?? z.track, i = (C == null ? void 0 : C.thumb) ?? z.thumb, l = (C == null ? void 0 : C.valueLabel) ?? z.valueLabel, P = (C == null ? void 0 : C.mark) ?? z.mark, R = (C == null ? void 0 : C.markLabel) ?? z.markLabel, g = (C == null ? void 0 : C.input) ?? z.input, H = O({
+      elementType: ce,
+      getSlotProps: Ne,
+      externalSlotProps: r,
+      externalForwardedProps: re,
+      additionalProps: {
+        ...St(ce) && {
+          as: u
+        }
+      },
+      ownerState: {
+        ...d,
+        ...r == null ? void 0 : r.ownerState
+      },
+      className: [
+        S.root,
+        Me
+      ]
+    }), ue = O({
+      elementType: ke,
+      externalSlotProps: s,
+      ownerState: d,
+      className: S.rail
+    }), rt = O({
+      elementType: ye,
+      externalSlotProps: c,
+      additionalProps: {
+        style: {
+          ..._[U].offset(B),
+          ..._[U].leap(Ve)
+        }
+      },
+      ownerState: {
+        ...d,
+        ...c == null ? void 0 : c.ownerState
+      },
+      className: S.track
+    }), De = O({
+      elementType: xe,
+      getSlotProps: he,
+      externalSlotProps: i,
+      ownerState: {
+        ...d,
+        ...i == null ? void 0 : i.ownerState
+      },
+      className: S.thumb
+    }), at = O({
+      elementType: Se,
+      externalSlotProps: l,
+      ownerState: {
+        ...d,
+        ...l == null ? void 0 : l.ownerState
+      },
+      className: S.valueLabel
+    }), je = O({
+      elementType: ae,
+      externalSlotProps: P,
+      ownerState: d,
+      className: S.mark
+    }), Oe = O({
+      elementType: we,
+      externalSlotProps: R,
+      ownerState: d,
+      className: S.markLabel
+    }), ot = O({
+      elementType: a,
+      getSlotProps: $e,
+      externalSlotProps: g,
+      ownerState: d
+    });
+    return T.jsxs(ce, {
+      ...H,
+      children: [
+        T.jsx(ke, {
+          ...ue
+        }),
+        T.jsx(ye, {
+          ...rt
+        }),
+        $.filter((h) => h.value >= V && h.value <= E).map((h, k) => {
+          const Fe = ze(h.value, V, E), Le = _[U].offset(Fe);
+          let D;
+          return b === false ? D = x.includes(h.value) : D = b === "normal" && (W ? h.value >= x[0] && h.value <= x[x.length - 1] : h.value <= x[0]) || b === "inverted" && (W ? h.value <= x[0] || h.value >= x[x.length - 1] : h.value >= x[0]), T.jsxs(y.Fragment, {
+            children: [
+              T.jsx(ae, {
+                "data-index": k,
+                ...je,
+                ...!Ie(ae) && {
+                  markActive: D
+                },
+                style: {
+                  ...Le,
+                  ...je.style
+                },
+                className: ne(je.className, D && S.markActive)
+              }),
+              h.label != null ? T.jsx(we, {
+                "aria-hidden": true,
+                "data-index": k,
+                ...Oe,
+                ...!Ie(we) && {
+                  markLabelActive: D
+                },
+                style: {
+                  ...Le,
+                  ...Oe.style
+                },
+                className: ne(S.markLabel, Oe.className, D && S.markLabelActive),
+                children: h.label
+              }) : null
+            ]
+          }, k);
+        }),
+        x.map((h, k) => {
+          const Fe = ze(h, V, E), Le = _[U].offset(Fe), D = m === "off" ? Nt : Se;
+          return T.jsx(D, {
+            ...!Ie(D) && {
+              valueLabelFormat: j,
+              valueLabelDisplay: m,
+              value: typeof j == "function" ? j(A(h), k) : j,
+              index: k,
+              open: He === k || ge === k || m === "on",
+              disabled: M
+            },
+            ...at,
+            children: T.jsx(xe, {
+              "data-index": k,
+              ...De,
+              className: ne(S.thumb, De.className, ge === k && S.active, Y === k && S.focusVisible),
+              style: {
+                ...Le,
+                ...ve(k),
+                ...De.style
+              },
+              children: T.jsx(a, {
+                "data-index": k,
+                "aria-label": J ? J(k) : w,
+                "aria-valuenow": A(h),
+                "aria-labelledby": f,
+                "aria-valuetext": fe ? fe(A(h), k) : N,
+                value: x[k],
+                ...ot
+              })
+            })
+          }, k);
+        })
+      ]
+    });
+  });
+});
+export {
+  Vt as S,
+  __tla,
+  Mt as a
+};
