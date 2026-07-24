@@ -31,7 +31,7 @@ class RadioGroupCollectionWidget extends Generic<WidgetRegistry['tplRadioGroupCo
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'RadioGroupCollectionWidget', // Name of widget
             visWidgetLabel: 'radio_group_collection_widget', // Label for widget
-            visOrder: 5,
+            visOrder: 6,
             visAttrs: [
                 {
                     name: 'common', // group name

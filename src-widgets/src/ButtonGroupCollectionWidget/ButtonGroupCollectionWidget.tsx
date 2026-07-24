@@ -24,7 +24,7 @@ class ButtonGroupCollectionWidget extends Generic<WidgetRegistry['tplButtonGroup
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'ButtonGroupCollectionWidget', // Name of widget
             visWidgetLabel: 'button_group_collection_widget', // Label for widget
-            visOrder: 6,
+            visOrder: 7,
             visAttrs: [
                 {
                     name: 'common', // group name

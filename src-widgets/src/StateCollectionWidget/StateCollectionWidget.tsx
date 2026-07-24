@@ -25,7 +25,7 @@ class StateCollectionWidget extends Generic<WidgetRegistry['tplStateCollectionWi
             visSetColor: '#0C0A43',
             visName: 'StateCollectionWidget',
             visWidgetLabel: 'state_collection_widget',
-            visOrder: 3,
+            visOrder: 4,
             visAttrs: [
                 {
                     name: 'common', // group name

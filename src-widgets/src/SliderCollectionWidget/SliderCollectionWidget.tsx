@@ -25,7 +25,7 @@ class SliderCollectionWidget extends Generic<WidgetRegistry['tplSliderCollection
             visSetLabel: 'widgets_collection',
             visName: 'SliderCollectionWidget',
             visWidgetLabel: 'slider_collection_widget',
-            visOrder: 4,
+            visOrder: 5,
             visAttrs: [
                 {
                     name: 'common', // group name

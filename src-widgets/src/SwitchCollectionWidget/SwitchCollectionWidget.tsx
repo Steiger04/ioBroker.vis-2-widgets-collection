@@ -24,7 +24,7 @@ class SwitchCollectionWidget extends Generic<WidgetRegistry['tplSwitchCollection
             visSetLabel: 'widgets_collection',
             visName: 'SwitchCollectionWidget',
             visWidgetLabel: 'switch_collection_widget',
-            visOrder: 2,
+            visOrder: 3,
             visAttrs: [
                 {
                     name: 'common',

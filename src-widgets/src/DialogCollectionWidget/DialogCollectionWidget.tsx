@@ -30,7 +30,7 @@ class DialogCollectionWidget extends Generic<WidgetRegistry['tplDialogCollection
             visSetLabel: 'widgets_collection', // Widget set translated label (should be defined only in one widget of a set)
             visName: 'DialogCollectionWidget', // Name of widget
             visWidgetLabel: 'dialog_collection_widget', // Label for widget
-            visOrder: 8,
+            visOrder: 9,
             visAttrs: [
                 {
                     name: 'common', // group name

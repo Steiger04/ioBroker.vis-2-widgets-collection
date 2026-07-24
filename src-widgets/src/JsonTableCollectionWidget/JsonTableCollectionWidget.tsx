@@ -122,7 +122,7 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
             visSetLabel: 'widgets_collection',
             visName: 'JsonTableCollectionWidget',
             visWidgetLabel: 'json_table_collection_widget',
-            visOrder: 11,
+            visOrder: 12,
             visAttrs: [
                 {
                     name: 'common',
