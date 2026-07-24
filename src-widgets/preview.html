@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>vis-2-widgets-collection preview generator</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                background: #ffffff;
+            }
+            /* The element the Playwright driver screenshots. Inline-block so it
+               shrinks to the scene's declared size rather than the viewport. */
+            #scene {
+                display: inline-block;
+            }
+        </style>
+        <script>
+            // Minimal stub so widget *class* modules (which declare
+            // `extends window.visRxWidget`) can be imported for reading their
+            // static getWidgetInfo() during `--new` scaffolding. Phase-1
+            // rendering only imports the body FC, so this is unused then.
+            window.visRxWidget = class VisRxWidgetStub {};
+        </script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script
+            type="module"
+            src="/src/preview/main.tsx"
+        ></script>
+    </body>
+</html>

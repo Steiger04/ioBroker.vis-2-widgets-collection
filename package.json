@@ -39,6 +39,7 @@
   "scripts": {
     "build": "node tasks",
     "copy-files": "node tasks --copy-files",
+    "gen-previews": "cd src-widgets && npm run gen-previews",
     "release": "release-script",
     "release-patch": "release-script patch --yes",
     "release-minor": "release-script minor --yes",

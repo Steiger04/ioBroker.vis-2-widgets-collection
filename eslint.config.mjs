@@ -25,6 +25,7 @@ export default [
             'node_modules/',
             'scripts/',
             'src-widgets/.__mf__temp/',
+            'src-widgets/scripts/',
             'src-widgets/build/',
             'src-widgets/node_modules/',
             'src-widgets/public/',
