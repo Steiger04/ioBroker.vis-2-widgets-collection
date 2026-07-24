@@ -69,8 +69,7 @@
 -->
 
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 2.6.0 (2026-07-24)
 
 - (steiger04) Input widget added (text/number input with inline editing)
 - (steiger04) noIcon option now correctly hides the widget icon

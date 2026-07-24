@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-collection",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "news": {
+      "2.6.0": {
+        "en": "Input widget added (text/number input with inline editing)\nnoIcon option now correctly hides the widget icon",
+        "de": "Input-Widget hinzugefügt (Text / Zahleneingabe mit Inline-Bearbeitung)\nnoIcon Option verbirgt jetzt korrekt das Widget-Symbol",
+        "ru": "Добавлен виджет ввода (текст/число ввода с встроенным редактированием)\nnoIcon теперь правильно скрывает значок виджета",
+        "pt": "Item de entrada adicionado (texto/número de entrada com edição em linha)\na opção noIcon agora oculta corretamente o ícone do widget",
+        "nl": "Invoer widget toegevoegd (tekst/nummer invoer met inline bewerken)\nnoIcon optie verbergt nu correct het widget pictogram",
+        "fr": "Widget d'entrée ajouté (entrée texte/numéro avec édition en ligne)\nl'option noIcon cache maintenant correctement l'icône du widget",
+        "it": "Widget di input aggiunto (input testo / numero con modifica in linea)\nopzione noIcon ora correttamente nasconde l'icona del widget",
+        "es": "Input widget añadido (text/number input with inline editing)\nnoIcon opción ahora correctamente esconde el icono widget",
+        "pl": "Dodany widżet wejścia (tekst / numer z edycją inline)\nopcja noIcon teraz poprawnie ukrywa ikonę widget",
+        "uk": "Вхідний віджет додано (текст/номер з вбудованим редагуванням)\nnoIcon тепер правильно приховує значок віджету",
+        "zh-cn": "添加输入部件( 文本/ 数字输入, 内含编辑)\nnoIcon 选项现在正确隐藏部件图标"
+      },
       "2.5.1": {
         "en": "JSON Table: image column type — render URLs, data-URIs and icon glyphs as avatar cells (auto-detected, XSS-safe)",
         "de": "JSON-Tabelle: Spaltentyp „Bild“ – URLs, Data-URIs und Symbolglyphen als Avatarzellen darstellen (automatisch erkannt, XSS-sicher)",
@@ -80,19 +93,6 @@
         "pl": "dodane atrybuty państw ignorujących. Proszę przeczytać atribut (i)",
         "uk": "ігнорувати атрибутCommonStates додано. Будь ласка, прочитайте attribut tooltip (i)",
         "zh-cn": "忽略添加的英联邦属性。 请读 Attribut 工具提示 (i)"
-      },
-      "2.3.2": {
-        "en": "Long press for ButtonGroupCollection widget fixed",
-        "de": "Lange Presse für ButtonGroupCollection Widget fest",
-        "ru": "Длинный пресс для установки виджета ButtonGroupCollection",
-        "pt": "Longa pressão para o elemento de compilação do ButtonGroup",
-        "nl": "Lange pers voor KnopgroepCollection-widget vast",
-        "fr": "Longue pression pour BoutonGroupCollection widget fixe",
-        "it": "Stampa lunga per PulsanteGroupCollection widget fisso",
-        "es": "Long press for ButtonGroupCollection widget fixed",
-        "pl": "Long press for ButtonGroupCollection widget stałe",
-        "uk": "Довгий прес для ButtonGroupCollection",
-        "zh-cn": "固定按钮组收集部件的长按键"
       }
     },
     "titleLang": {
