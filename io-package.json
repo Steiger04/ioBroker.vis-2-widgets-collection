@@ -157,6 +157,7 @@
         "components": [
           "StateCollectionWidget",
           "SliderCollectionWidget",
+          "InputCollectionWidget",
           "ButtonGroupCollectionWidget",
           "SwitchCollectionWidget",
           "CheckboxCollectionWidget",

@@ -790,6 +790,35 @@ export type Light2CollectionContextProps = CollectionContextProps<WidgetRegistry
 export type JsonTableCollectionContextProps = CollectionContextProps<WidgetRegistry['tplJsonTableCollectionWidget']>;
 
 /**
+ * React Context props for Input Collection Widget.
+ *
+ * @remarks
+ * Input widget provides free text/number entry with optional OK-button commit:
+ * - Common fields (alias, style, visibility, etc.)
+ * - Common object fields (oid, writeDelay, etc.)
+ * - Input-specific fields (showOkButton, step, min/max)
+ * - State fields (onlyDisplay, noValue, etc.)
+ * - Delay fields (delay, sampleInterval)
+ *
+ * Total properties: ~86
+ * @example
+ * ```typescript
+ * import React from 'react';
+ * import type { InputCollectionContextProps } from 'vis-2-widgets-collection/types';
+ *
+ * const InputContext = React.createContext<InputCollectionContextProps>(null!);
+ *
+ * function InputControl() {
+ *     const context = React.useContext(InputContext);
+ *     const { oid, showOkButton, step } = context.widget.data;
+ *
+ *     return <input value={String(context.values[oid!]?.val ?? '')} />;
+ * }
+ * ```
+ */
+export type InputCollectionContextProps = CollectionContextProps<WidgetRegistry['tplInputCollectionWidget']>;
+
+/**
  * Union of all widget-specific context types.
  *
  * @remarks
@@ -816,7 +845,8 @@ export type AllCollectionContextProps =
     | GaugeCollectionContextProps
     | DialogCollectionContextProps
     | Light2CollectionContextProps
-    | JsonTableCollectionContextProps;
+    | JsonTableCollectionContextProps
+    | InputCollectionContextProps;
 
 /**
  * Generate context type for a specific widget ID.

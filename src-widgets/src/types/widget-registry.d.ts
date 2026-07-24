@@ -128,6 +128,12 @@ export interface WidgetFieldMappings {
      * Fields: base (30) + common (30) + commonObject (15) + jsonTable (~25) = ~100 properties
      */
     tplJsonTableCollectionWidget: ['base', 'common', 'commonObject', 'jsonTable'];
+
+    /**
+     * Input Widget - Text/number input with optional OK-button commit
+     * Fields: base (30) + common (30) + commonObject (15) + input (4) + state (5) + delay (2) = ~86 properties
+     */
+    tplInputCollectionWidget: ['base', 'common', 'commonObject', 'input', 'state', 'delay'];
 }
 
 /**

@@ -110,6 +110,7 @@ export * from './field-definitions/dialog-fields';
 export * from './field-definitions/select-fields';
 export * from './field-definitions/radio-group-fields';
 export * from './field-definitions/light2-fields';
+export * from './field-definitions/input-fields';
 
 /**
  * Widget registry with auto-generated widget data types.
@@ -246,6 +247,7 @@ declare module 'vis-2-widgets-collection/types' {
     export * from './field-definitions/radio-group-fields';
     export * from './field-definitions/button-group-fields';
     export * from './field-definitions/light2-fields';
+    export * from './field-definitions/input-fields';
 
     // ✅ Phase 4 widget registry & context exports:
     export * from './widget-registry';

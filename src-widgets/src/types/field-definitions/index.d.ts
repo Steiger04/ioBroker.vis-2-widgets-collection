@@ -14,6 +14,7 @@ import type { RadioGroupFieldsRxData } from './radio-group-fields';
 import type { ButtonGroupFieldsRxData } from './button-group-fields';
 import type { Light2FieldsRxData } from './light2-fields';
 import type { JsonTableFieldsRxData } from './json-table-fields';
+import type { InputFieldsRxData } from './input-fields';
 
 /**
  * Registry of all available field definitions for vis-2 Collection widgets.
@@ -122,6 +123,9 @@ export interface FieldDefinitions {
 
     /** JSON Table field types (DataGrid layout, pagination, styling) */
     jsonTable: JsonTableFieldsRxData;
+
+    /** Input-specific field types (text/number input behavior, numeric range) */
+    input: InputFieldsRxData;
 }
 
 /**
@@ -159,6 +163,7 @@ export type * from './radio-group-fields';
 export type * from './button-group-fields';
 export type * from './light2-fields';
 export type * from './json-table-fields';
+export type * from './input-fields';
 
 /**
  * Re-export ExtendedField type for custom field definitions.

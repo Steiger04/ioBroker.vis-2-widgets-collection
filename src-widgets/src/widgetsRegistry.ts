@@ -19,6 +19,7 @@
 export const widgets = [
     'StateCollectionWidget',
     'SliderCollectionWidget',
+    'InputCollectionWidget',
     'ButtonGroupCollectionWidget',
     'SwitchCollectionWidget',
     'CheckboxCollectionWidget',
