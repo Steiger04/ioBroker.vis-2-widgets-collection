@@ -13,6 +13,7 @@ documentation/
 │   ├── De-Switch-Widget.md
 │   ├── De-Checkbox-Widget.md
 │   ├── De-Slider-Widget.md
+│   ├── De-Input-Widget.md
 │   ├── De-ButtonGroup-Widget.md
 │   ├── De-Select-Widget.md
 │   ├── De-RadioGroup-Widget.md
@@ -26,6 +27,7 @@ documentation/
 │   ├── En-Switch-Widget.md
 │   ├── En-Checkbox-Widget.md
 │   ├── En-Slider-Widget.md
+│   ├── En-Input-Widget.md
 │   ├── En-ButtonGroup-Widget.md
 │   ├── En-Select-Widget.md
 │   ├── En-RadioGroup-Widget.md

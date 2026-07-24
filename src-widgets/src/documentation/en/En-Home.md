@@ -162,7 +162,7 @@ These settings are available for all widgets in the collection.
 
 ### Write Value
 
-These settings control how value changes are written to the OID. They are only available for widgets that can write values (State, Switch, Slider, Select, RadioGroup, Checkbox, ButtonGroup, Light).
+These settings control how value changes are written to the OID. They are only available for widgets that can write values (State, Switch, Slider, Input, Select, RadioGroup, Checkbox, ButtonGroup, Light).
 
 | Field Name          | Type     | Default | Description                                                                              |
 | ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------- |
@@ -238,6 +238,7 @@ The Widget Collection includes the following widgets:
 - [Switch Widget](En-Switch-Widget.md) - Switch for boolean values
 - [Checkbox Widget](En-Checkbox-Widget.md) - Checkbox for boolean values
 - [Slider Widget](En-Slider-Widget.md) - Slider for numeric values
+- [Input Widget](En-Input-Widget.md) - Text/number input for string, number, and mixed
 - [ButtonGroup Widget](En-ButtonGroup-Widget.md) - Button group for various data types
 - [Select Widget](En-Select-Widget.md) - Dropdown selection for various data types
 - [RadioGroup Widget](En-RadioGroup-Widget.md) - Radio group for various data types
