@@ -25,6 +25,10 @@
 
 <img src="/img/collection-slider.png" height="150">
 
+### Input
+
+<img src="/img/collection-input.png" height="150">
+
 ### Switch
 
 <img src="/img/collection-switch.png" height="150">
@@ -53,6 +57,10 @@
 
 <img src="/img/collection-light.png" height="150">
 
+### JsonTable
+
+<img src="/img/collection-json-table.png" height="150">
+
 ---
 
 <!--
@@ -61,6 +69,12 @@
 -->
 
 ## Changelog
+
+### __WORK IN PROGRESS__
+
+- (steiger04) Input widget added (text/number input with inline editing)
+- (steiger04) noIcon option now correctly hides the widget icon
+
 ### 2.5.1 (2026-07-20)
 
 - (steiger04) JSON Table: image column type — render URLs, data-URIs and icon glyphs as avatar cells (auto-detected, XSS-safe)
