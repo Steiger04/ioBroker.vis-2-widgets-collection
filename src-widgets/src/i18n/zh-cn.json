@@ -27,6 +27,7 @@
     "cid": "控制ID",
     "circle": "圆形按钮",
     "clear_color": "清除颜色",
+    "color_inherit": "继承",
     "color_light_blue_oid": "蓝色",
     "color_light_border_color": "边框颜色",
     "color_light_border_width": "边框宽度",

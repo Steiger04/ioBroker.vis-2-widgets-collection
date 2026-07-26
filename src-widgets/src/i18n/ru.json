@@ -27,6 +27,7 @@
     "cid": "Идентификатор управления",
     "circle": "Кнопка круга",
     "clear_color": "Очистить цвет",
+    "color_inherit": "Наследуется",
     "color_light_blue_oid": "Синий",
     "color_light_border_color": "Цвет границы",
     "color_light_border_width": "Ширина границы",

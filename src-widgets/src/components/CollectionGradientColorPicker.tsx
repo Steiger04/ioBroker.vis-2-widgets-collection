@@ -3,31 +3,36 @@
  *
  * @module components/CollectionGradientColorPicker
  * @remarks
- * This component is used inside widget attribute editors to edit gradient/background fields.
- * Supports multiple color formats:
- * - Hex colors: #fff, #ffffff, #ffffffff (with alpha)
- * - RGB/RGBA: rgb(255, 255, 255), rgba(255, 255, 255, 0.5)
- * - Gradients: linear-gradient(...), radial-gradient(...)
+ * Edits gradient/background color fields. Supports Hex/RGB/RGBA and gradients
+ * (`linear-gradient` / `radial-gradient`).
  *
- * Fallback initialization:
- * - When opening the picker for the first time with an empty field, the component
- *   checks `field.fallbackFields` (optional string array) for valid color values.
- * - Uses the first valid fallback value found, or falls back to `theme.palette.primary.main`.
- * - Example: `fallbackFields: ['sliderColor']` → uses sliderColor if available.
- * - To disable all fallbacks (including theme.palette.primary.main), use an empty array: `fallbackFields: []`.
- * - If `fallbackFields` is undefined, the picker defaults to `theme.palette.primary.main`.
+ * Resolution model (ADR 0004):
+ * - The **swatch** shows the field's *effective* color via `resolveEffectiveColor`
+ *   (explicit override → fallbackFields → vis-2 style color → terminal default),
+ *   so it reflects theme/fallback changes immediately — even when the field is
+ *   empty ("inherit"). The text field still shows the *stored* value.
+ * - The field's value is only ever persisted on an **explicit** user choice
+ *   (pick / type / clear). The picker never "materializes" a resolved color into
+ *   data merely because the popover was opened — "empty" stays a first-class
+ *   "inherit" state.
+ * - The clear (×) button appears only when an explicit override exists; clearing
+ *   returns the field to "inherit".
  *
- * Validation is performed in real-time. Invalid inputs are marked with an error state
- * and do not trigger onDataChange callbacks. Empty values are treated as null.
+ * `noGradient` (field flag): solid color is extracted at 50% before saving, so
+ * only solid colors are persisted (the user may still view gradients).
+ *
+ * Validation is real-time; invalid input is marked with an error state and does
+ * not trigger `onDataChange`. Empty values are normalized to null.
  */
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Box, IconButton, Popover, TextField, ThemeProvider } from '@mui/material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import ColorPicker from 'react-best-gradient-color-picker';
 import Generic from '../Generic';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import { resolveEffectiveColor } from '../lib/helper/resolveEffectiveColor';
 import { validateColorInput } from '../lib/helper/colorValidation';
 import { usePopoverPositioning } from '../hooks/usePopoverPositioning';
 import useCollectionTheme from '../hooks/useCollectionTheme';
@@ -38,10 +43,10 @@ import type { RxWidgetInfoCustomComponentProperties, WidgetData, VisTheme } from
  * Props for CollectionGradientColorPicker component.
  *
  * @interface CollectionGradientColorPickerProps
- * @property {ExtendedField} field - Field definition with optional `fallbackFields` array.
+ * @property {ExtendedField} field - Field definition with optional `fallbackFields`, `terminal`, `inheritTextStyle`, `noGradient`.
  * @property {WidgetData} data - Current editor data map.
  * @property {(patch: WidgetData) => void} onDataChange - Callback invoked with partial updates.
- * @property {RxWidgetInfoCustomComponentProperties} props - Additional properties (e.g., socket, projectName, instance, adapterName, selectedView, selectedWidgets, project, widgetID).
+ * @property {RxWidgetInfoCustomComponentProperties} props - vis-2 editor context (socket, theme, views, selected widget, …).
  */
 interface CollectionGradientColorPickerProps {
     field: ExtendedField;
@@ -51,51 +56,31 @@ interface CollectionGradientColorPickerProps {
 }
 
 /**
- * Resolves the initial color from fallback fields or theme.
+ * Reads the vis-2 widget CSS `color` for the widget currently being edited.
  *
- * @param field - Field definition with optional fallbackFields
- * @param data - Current widget data
- * @param primaryColor - Theme primary color to use as final fallback
- * @returns The resolved initial color or null if no valid fallback found
+ * The editor custom-field props do not expose `widget` directly; the widget's
+ * style is reached through the project map
+ * (`context.views[selectedView].widgets[selectedWidget]`). Returns undefined when
+ * the path is unavailable — `resolveEffectiveColor` then simply skips the
+ * vis-2-style cascade level.
  */
-function resolveInitialColor(field: ExtendedField, data: WidgetData, primaryColor: string): string | null {
-    // 1. Check fallbackFields (if defined)
-    if (field.fallbackFields && Array.isArray(field.fallbackFields) && field.fallbackFields.length > 0) {
-        for (const fallbackFieldName of field.fallbackFields) {
-            const fallbackValue = data[fallbackFieldName];
-            if (fallbackValue && typeof fallbackValue === 'string') {
-                const validation = validateColorInput(fallbackValue);
-                if (validation.isValid && validation.normalizedValue.trim() !== '') {
-                    return validation.normalizedValue;
-                }
-            }
-        }
-    }
-
-    // 2. Fallback to theme.palette.primary.main (only if fallbackFields is undefined or non-empty)
-    if (!field.fallbackFields || field.fallbackFields.length > 0) {
-        return primaryColor;
-    }
-
-    return null;
+function readWidgetStyleColor(props: RxWidgetInfoCustomComponentProperties): { color?: string } | undefined {
+    const ctx = props.context as unknown as {
+        views?: Record<string, { widgets?: Record<string, { style?: { color?: string } }> }>;
+    };
+    const widgetId = props.selectedWidgets?.[0] ?? props.selectedWidget;
+    const style = widgetId ? ctx?.views?.[props.selectedView]?.widgets?.[widgetId as string]?.style : undefined;
+    return style;
 }
 
 /**
  * Renders a compact gradient picker with a popover editor.
  *
- * Component behavior:
- * - TextField allows manual color input with real-time validation
- * - Visual color preview box opens the gradient picker on click
- * - Delete button clears the current value (sets to null)
- * - Invalid inputs show error state but are NOT saved to parent data
- * - Valid inputs immediately trigger onDataChange callbacks
- * - Empty values are normalized to null for consistency
- *
  * @param props - Component props.
- * @param props.field - Field definition (expects `name` property).
+ * @param props.field - Field definition (name, fallbackFields, terminal, inheritTextStyle, noGradient).
  * @param props.data - Current editor data map.
  * @param props.onDataChange - Callback invoked with partial updates.
- * @param props.props - Additional properties (e.g., socket, context, theme).
+ * @param props.props - vis-2 editor context (socket, theme, views, selected widget, …).
  * @returns Rendered field UI.
  */
 function CollectionGradientColorPicker({
@@ -109,7 +94,6 @@ function CollectionGradientColorPicker({
     const [cachedValue, setCachedValue] = useState<string>(fieldValue || '');
     const [error, setError] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const hasInitializedRef = useRef<boolean>(false);
 
     // Track the last prop value to detect external changes only
     const lastPropValueRef = useRef<string | null | undefined>(fieldValue);
@@ -117,10 +101,29 @@ function CollectionGradientColorPicker({
     // Debounce timer for picker-originated onDataChange calls
     const pickerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Effective theme: host + user theme (user primary wins). Editors live outside
-    // the runtime CollectionProvider subtree, so the merged theme is rebuilt here.
-    const theme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
-    const primaryColor = theme.palette.primary.main;
+    // Editor chrome uses the vis-2 HOST theme. The attribute editor is a vis-2
+    // surface — its text, placeholder ("erbt"), borders and popover must follow
+    // vis-2, never the collection theme. What is configured here affects only the
+    // widget, not the editor itself.
+    const hostTheme = props.context.theme;
+
+    // The collection (merged) theme is used ONLY to compute the effective color
+    // shown in the swatch — that swatch is a preview of what the widget renders,
+    // and the widget runs under the collection theme.
+    const collectionTheme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
+
+    // vis-2 widget CSS `color` (for the inheritTextStyle cascade level)
+    const styleColor = useMemo(() => readWidgetStyleColor(props), [props]);
+
+    // Effective color shown in the swatch / used as the popover's starting color.
+    // Recomputed whenever data, theme, or the widget style changes.
+    const effectiveColor = useMemo(
+        () => resolveEffectiveColor(field, data, collectionTheme, styleColor),
+        [field, data, collectionTheme, styleColor],
+    );
+
+    // Explicit override exists ⇔ a non-empty value is stored for this field.
+    const overridden = typeof fieldValue === 'string' && fieldValue.trim() !== '';
 
     // Dynamic popover placement + content resize tracking
     const { anchorOrigin, transformOrigin, maxHeight, setContentRef, popoverActionRef } = usePopoverPositioning(
@@ -158,7 +161,6 @@ function CollectionGradientColorPicker({
                 setError(false);
                 lastPropValueRef.current = null;
                 onDataChange({ [fieldName]: null });
-                hasInitializedRef.current = false;
                 return;
             }
 
@@ -175,7 +177,6 @@ function CollectionGradientColorPicker({
                 setError(false);
                 lastPropValueRef.current = null;
                 onDataChange({ [fieldName]: null });
-                hasInitializedRef.current = false;
                 return;
             }
 
@@ -241,65 +242,21 @@ function CollectionGradientColorPicker({
         // Only update if the prop value has actually changed from the outside
         if (fieldValue !== lastPropValueRef.current) {
             lastPropValueRef.current = fieldValue;
-
-            const normalizedPropValue = fieldValue || '';
-            setCachedValue(normalizedPropValue);
+            setCachedValue(fieldValue || '');
             setError(false);
-
-            // Reset initialization flag on external changes
-            if (!normalizedPropValue || normalizedPropValue.trim() === '') {
-                hasInitializedRef.current = false;
-            }
         }
     }, [fieldValue]);
 
-    // Initialize fallback color on first popover open
-    useEffect(() => {
-        // Guard: Initialize only on first popover open
-        if (!open || hasInitializedRef.current) {
-            return;
-        }
-
-        // Guard: Check if field already has a value
-        if (fieldValue && fieldValue.trim() !== '') {
-            hasInitializedRef.current = true;
-            return;
-        }
-
-        // Resolve initial color from fallback chain
-        const initialColor = resolveInitialColor(field, data, primaryColor);
-
-        // Validate and set initial color (only if a value was found)
-        if (initialColor) {
-            const validation = validateColorInput(initialColor);
-            if (validation.isValid) {
-                if (field.noGradient === true) {
-                    const extractedColor = extractColorFromValue(validation.normalizedValue);
-                    if (extractedColor !== null) {
-                        setCachedValue(initialColor);
-                        setError(false);
-                        lastPropValueRef.current = extractedColor;
-                        onDataChange({ [fieldName]: extractedColor });
-                    }
-                } else {
-                    setCachedValue(initialColor);
-                    setError(false);
-                    onDataChange({ [fieldName]: initialColor });
-                }
-            }
-        }
-        hasInitializedRef.current = true;
-    }, [open, data, fieldName, field, fieldValue, primaryColor, onDataChange]);
-
     return (
         <>
-            <ThemeProvider theme={theme}>
+            <ThemeProvider theme={hostTheme}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
                     <TextField
                         variant="standard"
                         fullWidth
                         value={cachedValue}
                         error={error}
+                        placeholder={overridden ? '' : Generic.t('color_inherit')}
                         helperText={error ? 'Invalid color format (use Hex, RGB, RGBA, or Gradient)' : ''}
                         onChange={handleTextChange}
                         slotProps={{
@@ -314,7 +271,7 @@ function CollectionGradientColorPicker({
                             },
                         }}
                     />
-                    {cachedValue && (
+                    {overridden && (
                         <IconButton
                             onClick={handleClear}
                             title={Generic.t('clear_color')}
@@ -332,9 +289,9 @@ function CollectionGradientColorPicker({
                             mt: cachedValue ? '4px' : '-2px',
                             px: '4px',
                             py: cachedValue ? '4px' : '3px',
-                            backgroundColor: cachedValue
-                                ? theme.name === 'light'
-                                    ? theme.palette.common.white
+                            backgroundColor: effectiveColor
+                                ? hostTheme.name === 'light'
+                                    ? hostTheme.palette.common.white
                                     : '#121212'
                                 : 'transparent',
                             borderRadius: '1px',
@@ -343,23 +300,21 @@ function CollectionGradientColorPicker({
                             verticalAlign: 'middle',
                             boxSizing: 'border-box',
                             border: error
-                                ? `1px solid ${theme.palette.error.main}`
-                                : cachedValue
-                                  ? `1px solid ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.common.black}`
-                                  : `1px dashed ${theme.name === 'light' ? theme.palette.grey['400'] : theme.palette.text.secondary}`,
+                                ? `1px solid ${hostTheme.palette.error.main}`
+                                : effectiveColor
+                                  ? `1px solid ${hostTheme.name === 'light' ? hostTheme.palette.grey['400'] : hostTheme.palette.common.black}`
+                                  : `1px dashed ${hostTheme.name === 'light' ? hostTheme.palette.grey['400'] : hostTheme.palette.text.secondary}`,
                             opacity: error ? 0.6 : 1,
                         }}
                     >
                         <Box
                             sx={{
-                                width: cachedValue ? '36px' : '38px',
-                                height: cachedValue ? '14px' : '18px',
+                                width: effectiveColor ? '36px' : '38px',
+                                height: effectiveColor ? '14px' : '18px',
                                 borderRadius: '2px',
                                 background: error
                                     ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)'
-                                    : cachedValue
-                                      ? cachedValue
-                                      : 'transparent',
+                                    : effectiveColor,
                             }}
                         />
                     </Box>
@@ -392,7 +347,7 @@ function CollectionGradientColorPicker({
                         sx={{ borderRadius: '6px' }}
                     >
                         <ColorPicker
-                            value={cachedValue || theme.palette.primary.main}
+                            value={cachedValue || effectiveColor || collectionTheme.palette.primary.main}
                             onChange={handlePickerChange}
                             hidePresets
                             hideInputs

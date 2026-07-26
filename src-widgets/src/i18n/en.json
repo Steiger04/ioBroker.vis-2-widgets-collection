@@ -27,6 +27,7 @@
     "cid": "Control ID",
     "circle": "Circle",
     "clear_color": "Clear color",
+    "color_inherit": "Inherits",
     "color_light_blue_oid": "Blue",
     "color_light_border_color": "Border color",
     "color_light_border_width": "Border width",
