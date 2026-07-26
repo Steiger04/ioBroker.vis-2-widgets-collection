@@ -135,26 +135,23 @@ const SliderCollection: FC = () => {
 
     const markLabelFallbackColor = resolveStyleData('', false).textColor || theme.palette.text.primary;
 
-    const startIcon = useMemo(
-        () =>
-            isHorizontal
-                ? widget.data.iconMin || widget.data.iconSmallMin
-                : widget.data.iconMax || widget.data.iconSmallMax,
-        [isHorizontal, widget.data.iconMin, widget.data.iconSmallMin, widget.data.iconMax, widget.data.iconSmallMax],
-    );
+    // Source icons (orientation-independent).
+    const minIcon = widget.data.iconMin || widget.data.iconSmallMin;
+    const maxIcon = widget.data.iconMax || widget.data.iconSmallMax;
 
-    const endIcon = useMemo(
-        () =>
-            isHorizontal
-                ? widget.data.iconMax || widget.data.iconSmallMax
-                : widget.data.iconMin || widget.data.iconSmallMin,
-        [isHorizontal, widget.data.iconMax, widget.data.iconSmallMax, widget.data.iconMin, widget.data.iconSmallMin],
-    );
+    // Color follows the SOURCE icon, not the rendered position: startIconColor is
+    // the color of iconMin, endIconColor of iconMax — in BOTH orientations. The
+    // default-primary fallback is checked against the source icon, so a single
+    // configured icon keeps its color when orientation swaps its position.
+    const minIconColor = widget.data.startIconColor || (isBase64Icon(minIcon) ? theme.palette.primary.main : undefined);
+    const maxIconColor = widget.data.endIconColor || (isBase64Icon(maxIcon) ? theme.palette.primary.main : undefined);
 
-    const startIconColor =
-        widget.data.startIconColor || (isBase64Icon(startIcon) ? theme.palette.primary.main : undefined);
-
-    const endIconColor = widget.data.endIconColor || (isBase64Icon(endIcon) ? theme.palette.primary.main : undefined);
+    // Positions (and their colors) swap by orientation: start = min in horizontal,
+    // max in vertical. The color travels with its source icon.
+    const startIcon = isHorizontal ? minIcon : maxIcon;
+    const endIcon = isHorizontal ? maxIcon : minIcon;
+    const startIconColor = isHorizontal ? minIconColor : maxIconColor;
+    const endIconColor = isHorizontal ? maxIconColor : minIconColor;
 
     const oidType = oidObject?.type;
 
@@ -386,11 +383,7 @@ const SliderCollection: FC = () => {
                                     width: isHorizontal
                                         ? widget.data.iconSizeStart || '24px'
                                         : widget.data.iconSizeEnd || '24px',
-                                    ...getIconColorStyles(
-                                        startIcon,
-                                        isHorizontal ? startIconColor : endIconColor,
-                                        true,
-                                    ),
+                                    ...getIconColorStyles(startIcon, startIconColor, true),
                                 }}
                             />
                         </Box>
@@ -537,7 +530,7 @@ const SliderCollection: FC = () => {
                                     width: isHorizontal
                                         ? widget.data.iconSizeEnd || '24px'
                                         : widget.data.iconSizeStart || '24px',
-                                    ...getIconColorStyles(endIcon, isHorizontal ? endIconColor : startIconColor, true),
+                                    ...getIconColorStyles(endIcon, endIconColor, true),
                                 }}
                             />
                         </Box>
