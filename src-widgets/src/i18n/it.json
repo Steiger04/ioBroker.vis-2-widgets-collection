@@ -442,6 +442,8 @@
     "json_table_show_all": "Mostra tutto",
     "json_table_show_all_columns": "Mostra tutte le colonne",
     "json_table_show_cell_borders": "Bordi verticali delle celle",
+    "json_table_show_header": "Mostra intestazione",
+    "json_table_show_header_tooltip": "Nasconde la riga di intestazione delle colonne. L'ordinamento, il filtraggio, il menu della colonna e il ridimensionamento per singola colonna vengono rimossi quando è nascosta; il filtro rapido globale rimane.",
     "json_table_show_row_borders": "Bordi orizzontali delle righe",
     "json_table_sort_asc": "Ordina crescente",
     "json_table_sort_clear": "Cancella ordinamento",

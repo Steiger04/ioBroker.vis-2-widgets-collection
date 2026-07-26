@@ -442,6 +442,8 @@
     "json_table_show_all": "Tout afficher",
     "json_table_show_all_columns": "Afficher toutes les colonnes",
     "json_table_show_cell_borders": "Bordures verticales de cellule",
+    "json_table_show_header": "Afficher l'en-tête",
+    "json_table_show_header_tooltip": "Masque la ligne d'en-tête des colonnes. Le tri par colonne, le filtrage, le menu de colonne et le redimensionnement sont supprimés lorsque l'en-tête est masqué ; le filtre rapide global reste actif.",
     "json_table_show_row_borders": "Bordures horizontales de ligne",
     "json_table_sort_asc": "Trier par ordre croissant",
     "json_table_sort_clear": "Effacer le tri",

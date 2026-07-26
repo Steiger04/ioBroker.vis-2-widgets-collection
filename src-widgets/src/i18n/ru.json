@@ -442,6 +442,8 @@
     "json_table_show_all": "Показать все",
     "json_table_show_all_columns": "Показать все столбцы",
     "json_table_show_cell_borders": "Вертикальные границы ячеек",
+    "json_table_show_header": "Показать заголовок",
+    "json_table_show_header_tooltip": "Скрывает строку заголовков столбцов. Пока она скрыта, сортировка, фильтрация, меню и изменение размера для каждого столбца недоступны; глобальный быстрый фильтр остается активным.",
     "json_table_show_row_borders": "Горизонтальные границы строк",
     "json_table_sort_asc": "По возрастанию",
     "json_table_sort_clear": "Сбросить сортировку",

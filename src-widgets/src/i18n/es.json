@@ -442,6 +442,8 @@
     "json_table_show_all": "Mostrar todo",
     "json_table_show_all_columns": "Mostrar todas las columnas",
     "json_table_show_cell_borders": "Bordes verticales de celda",
+    "json_table_show_header": "Mostrar encabezado",
+    "json_table_show_header_tooltip": "Oculta la fila de encabezado de las columnas. La ordenación, el filtrado, el menú de columnas y el redimensionamiento por columna se eliminan mientras está oculta; el filtro rápido global se mantiene.",
     "json_table_show_row_borders": "Bordes horizontales de fila",
     "json_table_sort_asc": "Ordenar ascendente",
     "json_table_sort_clear": "Borrar orden",

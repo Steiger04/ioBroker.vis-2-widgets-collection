@@ -441,6 +441,8 @@
     "json_table_set_filter": "Filter setzen...",
     "json_table_show_all": "Alle anzeigen",
     "json_table_show_all_columns": "Alle Spalten anzeigen",
+    "json_table_show_header": "Kopfzeile anzeigen",
+    "json_table_show_header_tooltip": "Blendet die Kopfzeile aus. Spaltensortierung, Spaltenfilter, Spaltenmenü und Spaltenbreitenänderung entfallen dabei; der globale Schnellfilter bleibt erhalten.",
     "json_table_show_cell_borders": "Vertikale Zellrahmen",
     "json_table_show_row_borders": "Horizontale Zeilenrahmen",
     "json_table_sort_asc": "Aufsteigend sortieren",

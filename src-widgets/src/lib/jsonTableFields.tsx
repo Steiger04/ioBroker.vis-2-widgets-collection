@@ -44,6 +44,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_sorting',
         default: true,
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'tableSortingMulti',
@@ -51,6 +52,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_sorting_multi',
         default: false,
         tooltip: 'json_table_sorting_multi_tooltip',
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'tableFiltering',
@@ -58,6 +60,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_filtering',
         default: true,
         tooltip: 'json_table_filtering_tooltip',
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'tableQuickFilter',
@@ -70,6 +73,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         type: 'checkbox',
         label: 'json_table_column_menu',
         default: true,
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'tableHiding',
@@ -77,6 +81,7 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'json_table_hiding',
         default: true,
         tooltip: 'json_table_hiding_tooltip',
+        hidden: 'data.tableShowHeader === false',
     },
 
     // ── Pagination ────────────────────────────────────────────────────
@@ -173,16 +178,18 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         tooltip: 'json_table_row_height_tooltip',
     },
     {
+        name: 'tableShowHeader',
+        type: 'checkbox',
+        label: 'json_table_show_header',
+        default: true,
+        tooltip: 'json_table_show_header_tooltip',
+    },
+    {
         name: 'tableHeaderHeight',
         type: 'number',
         label: 'json_table_header_height',
         min: 20,
-    },
-    {
-        name: 'tableAutoSize',
-        type: 'checkbox',
-        label: 'json_table_auto_size',
-        default: false,
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'tableHeaderElevation',
@@ -193,6 +200,13 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         step: 1,
         default: 6,
         tooltip: 'json_table_header_elevation_tooltip',
+        hidden: 'data.tableShowHeader === false',
+    },
+    {
+        name: 'tableAutoSize',
+        type: 'checkbox',
+        label: 'json_table_auto_size',
+        default: false,
     },
     {
         name: 'jsonTablePadding',
@@ -251,21 +265,33 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: '',
         type: 'custom',
         component: () => <CollectionDivider dividerText="json_table_header_style" />,
+        hidden: 'data.tableShowHeader === false',
     },
     // Header background (supports gradients)
-    createColorField({ name: 'tableHeaderBgColor', label: 'json_table_header_bg_color' }),
+    createColorField({
+        name: 'tableHeaderBgColor',
+        label: 'json_table_header_bg_color',
+        hidden: 'data.tableShowHeader === false',
+    }),
     // Header text color (noGradient for text)
-    createColorField({ name: 'tableHeaderTextColor', label: 'json_table_header_text_color', noGradient: true }),
+    createColorField({
+        name: 'tableHeaderTextColor',
+        label: 'json_table_header_text_color',
+        noGradient: true,
+        hidden: 'data.tableShowHeader === false',
+    }),
     {
         name: 'tableHeaderFontSize',
         type: 'number',
         label: 'json_table_header_font_size',
         min: 8,
+        hidden: 'data.tableShowHeader === false',
     },
     {
         label: '',
         type: 'custom',
         component: () => <CollectionDivider />,
+        hidden: 'data.tableShowHeader === false',
     },
     {
         name: 'headerBorderWidth',
@@ -275,9 +301,15 @@ const jsonTableFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         max: 10,
         step: 1,
         default: 0,
+        hidden: 'data.tableShowHeader === false',
     },
     // Header border color (noGradient for borders)
-    createColorField({ name: 'headerBorderColor', label: 'json_table_header_border_color', noGradient: true }),
+    createColorField({
+        name: 'headerBorderColor',
+        label: 'json_table_header_border_color',
+        noGradient: true,
+        hidden: 'data.tableShowHeader === false',
+    }),
 
     // ── Border & Lines (Cell Boundaries) ──────────────────────────────
     {

@@ -8,6 +8,10 @@ The widget renders a JSON-valued ioBroker state as a table. Columns are auto-dis
 A field of the table — either user-configured (`columnConfig`) or auto-discovered from the JSON data.
 _Avoid_: Field, attribute (those mean vis-2 property-editor fields, not table columns)
 
+**Header**:
+The column-header row. Serves a dual role: (a) a styled row labelling each Column, and (b) the host of per-column interaction affordances (sorting, filtering, column menu, resize). Hiding the header removes both, not just the labels — only the global quick filter is unaffected.
+_Avoid_: Title row, top row
+
 **Raw value**:
 The unmodified cell value coming from the JSON data, before any formatting or rendering.
 _Avoid_: Cell value (ambiguous — could mean the rendered output)

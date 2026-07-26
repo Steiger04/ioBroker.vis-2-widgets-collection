@@ -442,6 +442,8 @@
     "json_table_show_all": "Pokaż wszystko",
     "json_table_show_all_columns": "Pokaż wszystkie kolumny",
     "json_table_show_cell_borders": "Pionowe ramki komórek",
+    "json_table_show_header": "Pokaż nagłówek",
+    "json_table_show_header_tooltip": "Ukrywa wiersz nagłówka kolumn. Sortowanie, filtrowanie, menu kolumn i zmiana rozmiaru poszczególnych kolumn są wyłączane w stanie ukrycia; globalny szybki filtr pozostaje aktywny.",
     "json_table_show_row_borders": "Poziome ramki wierszy",
     "json_table_sort_asc": "Sortuj rosnąco",
     "json_table_sort_clear": "Wyczyść sortowanie",

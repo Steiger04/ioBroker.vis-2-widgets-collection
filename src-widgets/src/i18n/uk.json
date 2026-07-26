@@ -442,6 +442,8 @@
     "json_table_show_all": "Показати все",
     "json_table_show_all_columns": "Показати всі стовпці",
     "json_table_show_cell_borders": "Вертикальні межі комірок",
+    "json_table_show_header": "Показати заголовок",
+    "json_table_show_header_tooltip": "Приховує рядок заголовків стовпців. Під час приховування вимикаються сортування, фільтрування, меню стовпців та зміна їх розміру; загальний швидкий фільтр залишається доступним.",
     "json_table_show_row_borders": "Горизонтальні межі рядків",
     "json_table_sort_asc": "За зростанням",
     "json_table_sort_clear": "Скинути сортування",

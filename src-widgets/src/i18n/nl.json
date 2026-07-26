@@ -442,6 +442,8 @@
     "json_table_show_all": "Alles tonen",
     "json_table_show_all_columns": "Alle kolommen tonen",
     "json_table_show_cell_borders": "Verticale celranden",
+    "json_table_show_header": "Koptekst weergeven",
+    "json_table_show_header_tooltip": "Verbergt de kolomkoprij. Sorteren, filteren, kolommenu en formaat wijzigen per kolom worden verwijderd wanneer verborgen; het globale snelfilter blijft behouden.",
     "json_table_show_row_borders": "Horizontale rijranden",
     "json_table_sort_asc": "Oplopend sorteren",
     "json_table_sort_clear": "Sortering wissen",

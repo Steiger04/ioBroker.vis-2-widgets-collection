@@ -16,6 +16,9 @@ export interface JsonTableFieldsRxData {
     /** Row height in pixels (overrides density). */
     tableRowHeight?: number;
 
+    /** Show the column header row. @default true */
+    tableShowHeader?: boolean;
+
     /** Column header height in pixels. */
     tableHeaderHeight?: number;
 

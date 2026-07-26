@@ -441,6 +441,8 @@
     "json_table_set_filter": "Set filter...",
     "json_table_show_all": "Show all",
     "json_table_show_all_columns": "Show all columns",
+    "json_table_show_header": "Show header",
+    "json_table_show_header_tooltip": "Hides the column header row. Per-column sorting, filtering, column menu and resize are removed while hidden; the global quick filter stays.",
     "json_table_show_cell_borders": "Vertical cell borders",
     "json_table_show_row_borders": "Horizontal row borders",
     "json_table_sort_asc": "Sort ascending",

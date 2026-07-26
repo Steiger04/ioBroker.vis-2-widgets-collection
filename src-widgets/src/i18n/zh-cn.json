@@ -442,6 +442,8 @@
     "json_table_show_all": "显示全部",
     "json_table_show_all_columns": "显示所有列",
     "json_table_show_cell_borders": "垂直单元格边框",
+    "json_table_show_header": "显示表头",
+    "json_table_show_header_tooltip": "隐藏列标题行。隐藏时，列排序、筛选、列菜单和调整列宽功能将被移除；全局快速筛选器保持可用。",
     "json_table_show_row_borders": "水平行边框",
     "json_table_sort_asc": "升序排序",
     "json_table_sort_clear": "清除排序",
