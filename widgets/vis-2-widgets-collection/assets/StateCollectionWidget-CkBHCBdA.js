@@ -1,7 +1,7 @@
-import { g as z, a as E, u as W, L, b as at, c as Q, j as a, s as N, d as A, e as _, B as nt, r as it, m as Z, f as G, i as rt, h as q, k as U, T as $, t as K, l as V, n as lt, I as dt, P as ct, G as pt, __tla as __tla_0 } from "./usePopoverPositioning-CABAc1cn.js";
-import { C as tt, D as ut, u as mt, g as gt, a as X, b as yt, c as xt, d as J, e as ft, w as vt, __tla as __tla_1 } from "./useData-CnVVm3xV.js";
-import { u as et, d as ht, __tla as __tla_2 } from "./useValueState-BG7PYSLA.js";
-import { s as bt, __tla as __tla_3 } from "./stateFields-Dq1EHf6B.js";
+import { g as z, a as E, u as W, L, b as at, c as Q, j as s, s as N, d as A, e as _, B as nt, r as it, m as Z, f as G, i as rt, h as q, k as U, T as $, t as K, l as V, n as lt, I as dt, P as ct, G as pt, __tla as __tla_0 } from "./usePopoverPositioning-CABAc1cn.js";
+import { C as tt, D as ut, u as mt, g as gt, a as X, b as yt, c as xt, d as J, e as ft, w as vt, __tla as __tla_1 } from "./useData-g6QRvmWh.js";
+import { u as et, d as ht, __tla as __tla_2 } from "./useValueState-ByNvdJvJ.js";
+import { s as bt, __tla as __tla_3 } from "./stateFields-d9qZsXaG.js";
 import { v as n, __tla as __tla_4 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { C as Ct, __tla as __tla_5 } from "./Close-COZIl_jH.js";
 import { S as St, __tla as __tla_6 } from "./Slider-DM8yVjny.js";
@@ -129,13 +129,13 @@ let __tla = Promise.all([
       !o.disableGutters && t.gutters
     ];
   }, Mt = (e) => {
-    const { alignItems: t, classes: o, dense: r, disabled: s, disableGutters: u, divider: i, selected: c } = e, v = _({
+    const { alignItems: t, classes: o, dense: r, disabled: a, disableGutters: u, divider: i, selected: c } = e, v = _({
       root: [
         "root",
         r && "dense",
         !u && "gutters",
         i && "divider",
-        s && "disabled",
+        a && "disabled",
         t === "flex-start" && "alignItemsFlexStart",
         c && "selected"
       ]
@@ -224,12 +224,12 @@ let __tla = Promise.all([
     const r = W({
       props: t,
       name: "MuiListItemButton"
-    }), { alignItems: s = "center", autoFocus: u = false, component: i = "div", children: c, dense: p = false, disableGutters: v = false, divider: C = false, focusVisibleClassName: w, selected: h = false, className: S, ...b } = r, P = n.useContext(L), m = n.useMemo(() => ({
+    }), { alignItems: a = "center", autoFocus: u = false, component: i = "div", children: c, dense: p = false, disableGutters: v = false, divider: C = false, focusVisibleClassName: w, selected: h = false, className: S, ...b } = r, P = n.useContext(L), m = n.useMemo(() => ({
       dense: p || P.dense || false,
-      alignItems: s,
+      alignItems: a,
       disableGutters: v
     }), [
-      s,
+      a,
       P.dense,
       p,
       v
@@ -241,15 +241,15 @@ let __tla = Promise.all([
     ]);
     const I = {
       ...r,
-      alignItems: s,
+      alignItems: a,
       dense: m.dense,
       disableGutters: v,
       divider: C,
       selected: h
     }, j = Mt(I), g = Q(x, o);
-    return a.jsx(L.Provider, {
+    return s.jsx(L.Provider, {
       value: m,
-      children: a.jsx(Ot, {
+      children: s.jsx(Ot, {
         ref: g,
         href: b.href || b.to,
         component: (b.href || b.to) && i === "div" ? "button" : i,
@@ -304,12 +304,12 @@ let __tla = Promise.all([
     const r = W({
       props: t,
       name: "MuiListItemSecondaryAction"
-    }), { className: s, ...u } = r, i = n.useContext(L), c = {
+    }), { className: a, ...u } = r, i = n.useContext(L), c = {
       ...r,
       disableGutters: i.disableGutters
     }, p = Dt(c);
-    return a.jsx(Gt, {
-      className: A(p.root, s),
+    return s.jsx(Gt, {
+      className: A(p.root, a),
       ownerState: c,
       ref: o,
       ...u
@@ -328,12 +328,12 @@ let __tla = Promise.all([
       o.hasSecondaryAction && t.secondaryAction
     ];
   }, Wt = (e) => {
-    const { alignItems: t, classes: o, dense: r, disableGutters: s, disablePadding: u, divider: i, hasSecondaryAction: c } = e;
+    const { alignItems: t, classes: o, dense: r, disableGutters: a, disablePadding: u, divider: i, hasSecondaryAction: c } = e;
     return _({
       root: [
         "root",
         r && "dense",
-        !s && "gutters",
+        !a && "gutters",
         !u && "padding",
         i && "divider",
         t === "flex-start" && "alignItemsFlexStart",
@@ -439,12 +439,12 @@ let __tla = Promise.all([
     const r = W({
       props: t,
       name: "MuiListItem"
-    }), { alignItems: s = "center", children: u, className: i, component: c, components: p = {}, componentsProps: v = {}, ContainerComponent: C = "li", ContainerProps: { className: w, ...h } = {}, dense: S = false, disableGutters: b = false, disablePadding: P = false, divider: m = false, secondaryAction: x, slotProps: I = {}, slots: j = {}, ...g } = r, l = n.useContext(L), d = n.useMemo(() => ({
+    }), { alignItems: a = "center", children: u, className: i, component: c, components: p = {}, componentsProps: v = {}, ContainerComponent: C = "li", ContainerProps: { className: w, ...h } = {}, dense: S = false, disableGutters: b = false, disablePadding: P = false, divider: m = false, secondaryAction: x, slotProps: I = {}, slots: j = {}, ...g } = r, l = n.useContext(L), d = n.useMemo(() => ({
       dense: S || l.dense || false,
-      alignItems: s,
+      alignItems: a,
       disableGutters: b
     }), [
-      s,
+      a,
       l.dense,
       S,
       b
@@ -452,7 +452,7 @@ let __tla = Promise.all([
       "ListItemSecondaryAction"
     ]), T = {
       ...r,
-      alignItems: s,
+      alignItems: a,
       dense: d.dense,
       disableGutters: b,
       disablePadding: P,
@@ -463,16 +463,16 @@ let __tla = Promise.all([
       ...g
     };
     let R = c || "li";
-    return k ? (R = !O.component && !c ? "div" : R, C === "li" && (R === "li" ? R = "div" : O.component === "li" && (O.component = "div")), a.jsx(L.Provider, {
+    return k ? (R = !O.component && !c ? "div" : R, C === "li" && (R === "li" ? R = "div" : O.component === "li" && (O.component = "div")), s.jsx(L.Provider, {
       value: d,
-      children: a.jsxs(Ut, {
+      children: s.jsxs(Ut, {
         as: C,
         className: A(H.container, w),
         ref: Y,
         ownerState: T,
         ...h,
         children: [
-          a.jsx(D, {
+          s.jsx(D, {
             ...M,
             ...!q(D) && {
               as: R,
@@ -487,9 +487,9 @@ let __tla = Promise.all([
           f.pop()
         ]
       })
-    })) : a.jsx(L.Provider, {
+    })) : s.jsx(L.Provider, {
       value: d,
-      children: a.jsxs(D, {
+      children: s.jsxs(D, {
         ...M,
         as: R,
         ref: Y,
@@ -502,20 +502,20 @@ let __tla = Promise.all([
         ...O,
         children: [
           f,
-          x && a.jsx(ot, {
+          x && s.jsx(ot, {
             children: x
           })
         ]
       })
     });
   }), Et = (e) => {
-    const { classes: t, inset: o, primary: r, secondary: s, dense: u } = e;
+    const { classes: t, inset: o, primary: r, secondary: a, dense: u } = e;
     return _({
       root: [
         "root",
         o && "inset",
         u && "dense",
-        r && s && "multiline"
+        r && a && "multiline"
       ],
       primary: [
         "primary"
@@ -572,8 +572,8 @@ let __tla = Promise.all([
     const r = W({
       props: t,
       name: "MuiListItemText"
-    }), { children: s, className: u, disableTypography: i = false, inset: c = false, primary: p, primaryTypographyProps: v, secondary: C, secondaryTypographyProps: w, slots: h = {}, slotProps: S = {}, ...b } = r, { dense: P } = n.useContext(L);
-    let m = p ?? s, x = C;
+    }), { children: a, className: u, disableTypography: i = false, inset: c = false, primary: p, primaryTypographyProps: v, secondary: C, secondaryTypographyProps: w, slots: h = {}, slotProps: S = {}, ...b } = r, { dense: P } = n.useContext(L);
+    let m = p ?? a, x = C;
     const I = {
       ...r,
       disableTypography: i,
@@ -608,17 +608,17 @@ let __tla = Promise.all([
       externalForwardedProps: g,
       ownerState: I
     });
-    return m != null && m.type !== $ && !i && (m = a.jsx(y, {
+    return m != null && m.type !== $ && !i && (m = s.jsx(y, {
       variant: P ? "body2" : "body1",
       component: (f == null ? void 0 : f.variant) ? void 0 : "span",
       ...f,
       children: m
-    })), x != null && x.type !== $ && !i && (x = a.jsx(k, {
+    })), x != null && x.type !== $ && !i && (x = s.jsx(k, {
       variant: "body2",
       color: "textSecondary",
       ...T,
       children: x
-    })), a.jsxs(l, {
+    })), s.jsxs(l, {
       ...d,
       children: [
         m,
@@ -626,7 +626,7 @@ let __tla = Promise.all([
       ]
     });
   }), qt = ({ widgetStates: e, data: t, open: o, closeHandler: r }) => {
-    const { widget: s, getPropertyValue: u } = n.useContext(tt), i = s.data.oidObject, c = s.data.onlyStates, [p, v] = n.useState(() => {
+    const { widget: a, getPropertyValue: u } = n.useContext(tt), i = a.data.oidObject, c = a.data.onlyStates, [p, v] = n.useState(() => {
       const l = u("oid");
       return typeof l == "number" ? l : 0;
     }), { updateValue: C } = et("oid"), w = n.useMemo(() => {
@@ -665,11 +665,11 @@ let __tla = Promise.all([
       h
     ]), x = n.useMemo(() => {
       const { oidType: l, commonStates: d, minValue: y, maxValue: f } = w;
-      return l === "number" && !c && y !== void 0 && f !== void 0 ? a.jsx(V, {
+      return l === "number" && !c && y !== void 0 && f !== void 0 ? s.jsx(V, {
         sx: {
           px: 3
         },
-        children: a.jsx(St, {
+        children: s.jsx(St, {
           sx: {
             pb: d ? 4 : 3
           },
@@ -696,12 +696,12 @@ let __tla = Promise.all([
       c,
       p,
       S
-    ]), I = n.useMemo(() => !e || !Object.keys(e).length ? null : a.jsx(lt, {
-      children: Object.entries(e).map(([l, d]) => a.jsx(zt, {
+    ]), I = n.useMemo(() => !e || !Object.keys(e).length ? null : s.jsx(lt, {
+      children: Object.entries(e).map(([l, d]) => s.jsx(zt, {
         disablePadding: true,
-        children: a.jsx($t, {
+        children: s.jsx($t, {
           onClick: m(l),
-          children: a.jsx(Yt, {
+          children: s.jsx(Yt, {
             primaryTypographyProps: {
               variant: "body2"
             },
@@ -718,7 +718,7 @@ let __tla = Promise.all([
     ]), g = n.useMemo(() => e && Object.keys(e).length > 0, [
       e
     ]);
-    return a.jsxs(jt, {
+    return s.jsxs(jt, {
       open: o,
       onClose: b,
       maxWidth: "xs",
@@ -730,7 +730,7 @@ let __tla = Promise.all([
         }
       },
       children: [
-        a.jsx(wt, {
+        s.jsx(wt, {
           sx: {
             m: 0,
             p: 2
@@ -738,7 +738,7 @@ let __tla = Promise.all([
           id: "customized-dialog-title",
           children: j
         }),
-        a.jsx(dt, {
+        s.jsx(dt, {
           "aria-label": "close",
           onClick: P,
           sx: (l) => ({
@@ -747,14 +747,14 @@ let __tla = Promise.all([
             top: 8,
             color: l.palette.grey[500]
           }),
-          children: a.jsx(Ct, {})
+          children: s.jsx(Ct, {})
         }),
-        a.jsx(Pt, {
+        s.jsx(Pt, {
           sx: {
             overflow: "unset"
           },
-          children: a.jsxs(kt, {
-            divider: g && a.jsx(ut, {}),
+          children: s.jsxs(kt, {
+            divider: g && s.jsx(ut, {}),
             spacing: 0,
             component: ct,
             children: [
@@ -767,7 +767,7 @@ let __tla = Promise.all([
     });
   };
   function Kt() {
-    const e = n.useContext(tt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: s, widgetStates: u, states: i } = mt("oid"), { value: c, updateValue: p } = et("oid"), [v, C] = n.useState(false), w = r == null ? void 0 : r.type, h = t.data.onlyStates, S = Lt(c, t, s), b = S != null ? String(S) : "", P = () => {
+    const e = n.useContext(tt), { widget: t, theme: o } = e, r = t.data.oidObject, { data: a, widgetStates: u, states: i } = mt("oid"), { value: c, updateValue: p } = et("oid"), [v, C] = n.useState(false), w = r == null ? void 0 : r.type, h = t.data.onlyStates, S = Lt(c, t, a), b = S != null ? String(S) : "", P = () => {
       const g = t.data.value1;
       h && i.length === 2 && t.data.statePushButton && g !== void 0 && setTimeout(() => p(g), 0);
     }, m = () => {
@@ -797,7 +797,7 @@ let __tla = Promise.all([
       t.data.value1,
       t.data.value2,
       p
-    ]), I = a.jsx(Tt, {
+    ]), I = s.jsx(Tt, {
       disabled: t.data.onlyDisplay,
       onClick: x,
       onMouseDown: P,
@@ -808,12 +808,12 @@ let __tla = Promise.all([
       sx: {
         width: "100%",
         height: "100%",
-        color: s.iconColor || s.textColor || "primary.main",
+        color: a.textColor || "inherit",
         "&:hover": {
           bgcolor: "transparent"
         }
       },
-      children: a.jsxs(V, {
+      children: s.jsxs(V, {
         sx: {
           width: "100%",
           height: "100%",
@@ -822,9 +822,9 @@ let __tla = Promise.all([
           alignItems: "center"
         },
         children: [
-          !t.data.noIcon && s.icon && (() => {
-            const g = s.icon, l = s.iconColor || o.palette.primary.main, d = s.forceColorMask, y = gt(g, l, d);
-            return a.jsx(V, {
+          !t.data.noIcon && a.icon && (() => {
+            const g = a.icon, l = a.iconColor || o.palette.primary.main, d = a.forceColorMask, y = gt(g, l, d);
+            return s.jsx(V, {
               sx: {
                 display: "flex",
                 justifyContent: "center",
@@ -833,7 +833,7 @@ let __tla = Promise.all([
                 width: "100%",
                 height: "100%"
               },
-              children: a.jsx(Rt, {
+              children: s.jsx(Rt, {
                 variant: "square",
                 src: g || void 0,
                 slotProps: {
@@ -846,15 +846,15 @@ let __tla = Promise.all([
                 },
                 sx: {
                   overflow: "visible",
-                  width: s.iconSizeOnly,
-                  height: s.iconSizeOnly,
-                  left: `calc(0px + ${s.iconXOffset})`,
-                  top: `calc(0px - ${s.iconYOffset})`
+                  width: a.iconSizeOnly,
+                  height: a.iconSizeOnly,
+                  left: `calc(0px + ${a.iconXOffset})`,
+                  top: `calc(0px - ${a.iconYOffset})`
                 }
               })
             });
           })(),
-          !t.data.noValue && a.jsx(V, {
+          !t.data.noValue && s.jsx(V, {
             sx: {
               display: "flex",
               justifyContent: "center",
@@ -863,17 +863,17 @@ let __tla = Promise.all([
               width: "100%",
               height: "100%"
             },
-            children: a.jsx($, {
+            children: s.jsx($, {
               component: V,
               variant: "body2",
               sx: {
-                fontSize: s.valueSize,
+                fontSize: a.valueSize,
                 textAlign: "center",
                 bgcolor: "transparent",
-                background: X(s.textColor),
+                background: X(a.textColor),
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",
-                color: X(s.textColor) ? "transparent" : s.textColor,
+                color: X(a.textColor) ? "transparent" : a.textColor,
                 textTransform: "none",
                 px: 1,
                 pl: 0,
@@ -906,9 +906,9 @@ let __tla = Promise.all([
       "string",
       "mixed"
     ].includes(w ?? "");
-    return a.jsxs(a.Fragment, {
+    return s.jsxs(s.Fragment, {
       children: [
-        v && a.jsx(qt, {
+        v && s.jsx(qt, {
           data: {
             sampleInterval: false,
             sampleIntervalValue: 200,
@@ -918,16 +918,16 @@ let __tla = Promise.all([
           open: v,
           closeHandler: () => C(false)
         }),
-        a.jsxs(yt, {
+        s.jsxs(yt, {
           isValidType: j,
-          data: s,
+          data: a,
           oidValue: c,
           children: [
-            a.jsx(xt, {
-              data: s,
+            s.jsx(xt, {
+              data: a,
               widget: t
             }),
-            a.jsx(V, {
+            s.jsx(V, {
               sx: {
                 width: "100%",
                 height: "100%",
@@ -1028,7 +1028,7 @@ let __tla = Promise.all([
         theme: this.props.context.theme,
         wrappedContent: this.wrappedCollectionContent
       };
-      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, vt(this.wrapContent(a.jsx(Kt, {})), o);
+      return t.widget.data.noCard || t.widget.usedInWidget ? this.wrappedCollectionContent = false : this.wrappedCollectionContent = true, vt(this.wrapContent(s.jsx(Kt, {})), o);
     }
   };
 });

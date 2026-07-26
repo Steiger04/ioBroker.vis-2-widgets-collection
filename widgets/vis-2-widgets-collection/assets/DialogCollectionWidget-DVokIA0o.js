@@ -1,5 +1,5 @@
 import { j as t, M as W, l as p, T as k, f as y, I as M, s as O, B as A, G as H, __tla as __tla_0 } from "./usePopoverPositioning-CABAc1cn.js";
-import { o as V, f as R, i as d, b as _, a as f, D as b, C as F, u as E, g as z, c as L, S as P, d as $, w as U, __tla as __tla_1 } from "./useData-CnVVm3xV.js";
+import { o as V, f as R, i as d, b as _, a as f, D as b, C as F, u as E, g as z, c as L, S as P, d as $, w as U, __tla as __tla_1 } from "./useData-g6QRvmWh.js";
 import { v as n, R as N, __tla as __tla_2 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { C as G, __tla as __tla_3 } from "./Close-COZIl_jH.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";

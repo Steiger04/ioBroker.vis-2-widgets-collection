@@ -1,11 +1,11 @@
-import { j as a, l as g, T as Z, s as ee, f as G, G as te, __tla as __tla_0 } from "./usePopoverPositioning-CABAc1cn.js";
-import { f as ae, h as y, i as m, a as N, S as V, g as L, C as ie, u as oe, j as X, b as le, c as re, k as Y, l as B, d as T, e as ne, w as de, __tla as __tla_1 } from "./useData-CnVVm3xV.js";
-import { u as se, d as ce, __tla as __tla_2 } from "./useValueState-BG7PYSLA.js";
+import { j as a, l as g, T as ee, s as te, f as G, G as ae, __tla as __tla_0 } from "./usePopoverPositioning-CABAc1cn.js";
+import { f as N, h as y, i as m, a as X, S as V, g as L, C as ie, u as oe, j as Y, b as le, c as re, k as q, l as B, d as T, e as ne, w as de, __tla as __tla_1 } from "./useData-g6QRvmWh.js";
+import { u as se, d as ce, __tla as __tla_2 } from "./useValueState-ByNvdJvJ.js";
 import { v as s, __tla as __tla_3 } from "./vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js";
 import { a as me, S as ue, __tla as __tla_4 } from "./Slider-DM8yVjny.js";
 import "./_commonjsHelpers-Cpj98o6Y.js";
 import "./vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
-let q;
+let U;
 let __tla = Promise.all([
   (() => {
     try {
@@ -111,9 +111,10 @@ let __tla = Promise.all([
       default: "-5px",
       hidden: "data.valueLabelDisplay === 'off'"
     },
-    ae({
+    N({
       name: "sliderColor",
-      label: "slider_color"
+      label: "slider_color",
+      terminal: "primary"
     }),
     {
       name: "sliderPadding",
@@ -152,7 +153,15 @@ let __tla = Promise.all([
       min: 0,
       max: 100
     },
-    y("thumbBorderColor", "thumb_border_color"),
+    N({
+      name: "thumbBorderColor",
+      label: "thumb_border_color",
+      fallbackFields: [
+        "thumbColor",
+        "sliderColor"
+      ],
+      terminal: "primary"
+    }),
     {
       type: "custom",
       component: () => a.jsx(m, {
@@ -407,7 +416,7 @@ let __tla = Promise.all([
           justifyContent: "center"
         },
         children: [
-          a.jsx(Z, {
+          a.jsx(ee, {
             "data-font": "active",
             ref: j,
             sx: {
@@ -416,10 +425,10 @@ let __tla = Promise.all([
               pr: t === "vertical" ? 1 : 0,
               pb: t === "vertical" ? 0 : 1,
               fontSize: o.valueSize,
-              background: N(o.textColor),
+              background: X(o.textColor),
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
-              color: N(o.textColor) ? "transparent" : o.textColor
+              color: X(o.textColor) ? "transparent" : o.textColor
             }
           }),
           a.jsx(g, {
@@ -444,7 +453,7 @@ let __tla = Promise.all([
         ]
       })
     }) : null;
-  }, be = ee(ue, {
+  }, be = te(ue, {
     shouldForwardProp: (i) => i !== "data"
   })(({ theme: i, data: t }) => {
     const f = B((t == null ? void 0 : t.thumbColor) || (t == null ? void 0 : t.sliderColor) || i.palette.primary.main) || i.palette.primary.main, p = (t == null ? void 0 : t.thumbBorderWidth) ?? 0, k = B((t == null ? void 0 : t.thumbBorderColor) || (t == null ? void 0 : t.thumbColor) || (t == null ? void 0 : t.sliderColor) || i.palette.primary.main);
@@ -494,10 +503,10 @@ let __tla = Promise.all([
       }
     };
   }), he = () => {
-    const i = s.useContext(ie), { widget: { data: { oidObject: t } }, widget: e, theme: f } = i, { data: p, states: k, minValue: S, maxValue: j, activeIndex: _, resolveStyleData: o } = oe("oid"), { value: n, updateValue: U, hasBackendChange: D } = se("oid"), [M, I] = s.useState(typeof n == "number" ? n : void 0), C = s.useRef(null), [w, J] = s.useState({
+    const i = s.useContext(ie), { widget: { data: { oidObject: t } }, widget: e, theme: f } = i, { data: p, states: k, minValue: S, maxValue: j, activeIndex: _, resolveStyleData: o } = oe("oid"), { value: n, updateValue: J, hasBackendChange: D } = se("oid"), [M, I] = s.useState(typeof n == "number" ? n : void 0), C = s.useRef(null), [w, K] = s.useState({
       x: 0,
       y: 0
-    }), l = e.data.sliderOrientation === "horizontal", K = o("", false).textColor || f.palette.text.primary, O = s.useMemo(() => l ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
+    }), l = e.data.sliderOrientation === "horizontal", Q = o("", false).textColor || f.palette.text.primary, O = s.useMemo(() => l ? e.data.iconMin || e.data.iconSmallMin : e.data.iconMax || e.data.iconSmallMax, [
       l,
       e.data.iconMin,
       e.data.iconSmallMin,
@@ -509,7 +518,7 @@ let __tla = Promise.all([
       e.data.iconSmallMax,
       e.data.iconMin,
       e.data.iconSmallMin
-    ]), P = e.data.startIconColor || (X(O) ? f.palette.primary.main : void 0), F = e.data.endIconColor || (X($) ? f.palette.primary.main : void 0), R = t == null ? void 0 : t.type, E = R === "number", x = s.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : S, [
+    ]), P = e.data.startIconColor || (Y(O) ? f.palette.primary.main : void 0), F = e.data.endIconColor || (Y($) ? f.palette.primary.main : void 0), R = t == null ? void 0 : t.type, E = R === "number", x = s.useMemo(() => !e.data.onlyStates && e.data.minValue !== void 0 ? Number(e.data.minValue) : S, [
       e.data.onlyStates,
       e.data.minValue,
       S
@@ -579,12 +588,12 @@ let __tla = Promise.all([
       D,
       n
     ]);
-    const Q = () => {
+    const Z = () => {
       if (!C.current) return;
       const c = C.current.querySelector(".MuiSlider-root"), d = C.current.querySelector(".MuiSlider-rail");
       if (c && d) {
         const h = C.current.getBoundingClientRect(), z = d.getBoundingClientRect(), v = z.left - h.left + z.width / 2, r = z.top - h.top + z.height / 2, u = h.width / 2, A = h.height / 2;
-        J({
+        K({
           x: v - u,
           y: r - A
         });
@@ -594,7 +603,7 @@ let __tla = Promise.all([
       if (!C.current) return;
       let c = null;
       const d = () => {
-        c && clearTimeout(c), c = setTimeout(Q, 100);
+        c && clearTimeout(c), c = setTimeout(Z, 100);
       }, h = new ResizeObserver(d);
       return h.observe(C.current), d(), () => {
         h.disconnect(), c && clearTimeout(c);
@@ -679,7 +688,7 @@ let __tla = Promise.all([
                 size: e.data.sliderSize,
                 value: M,
                 onChange: (c, d) => {
-                  typeof d == "number" && (I(d), U(d));
+                  typeof d == "number" && (I(d), J(d));
                 },
                 sx: {
                   mb: e.data.marks && l ? "20px" : "0px",
@@ -701,7 +710,7 @@ let __tla = Promise.all([
                     filter: "brightness(2.5)"
                   },
                   "& .MuiSlider-valueLabel": {
-                    fontSize: Y(e.data.valueSizeActive) || p.valueSizeActive || p.valueSize,
+                    fontSize: q(e.data.valueSizeActive) || p.valueSizeActive || p.valueSize,
                     color: e.data.textColorActive || p.textColorActive || _ && e.data.markerTextColor || p.textColor || f.palette.text.primary,
                     bgcolor: "transparent",
                     top: l ? e.data.labelPosition : void 0,
@@ -709,7 +718,7 @@ let __tla = Promise.all([
                   },
                   "& .MuiSlider-markLabel": {
                     fontSize: p.valueSize,
-                    color: K,
+                    color: Q,
                     top: l ? e.data.markPosition : void 0,
                     left: l ? void 0 : e.data.markPosition
                   },
@@ -717,7 +726,7 @@ let __tla = Promise.all([
                     [`&[data-index='${H}']`]: {
                       "& div[data-font='active']": {
                         color: e.data.textColorActive ? `${e.data.textColorActive} !important` : void 0,
-                        fontSize: typeof e.data.valueSizeActive == "number" ? `${Y(e.data.valueSizeActive)} !important` : void 0
+                        fontSize: typeof e.data.valueSizeActive == "number" ? `${q(e.data.valueSizeActive)} !important` : void 0
                       },
                       "& div[data-position='active']": {
                         left: e.data.iconXOffsetActive && e.data.iconXOffsetActive !== "0px" ? `${e.data.iconXOffsetActive} !important` : e.data.iconXOffsetActive === "" ? void 0 : "0px !important",
@@ -750,7 +759,7 @@ let __tla = Promise.all([
       ]
     });
   };
-  q = class extends te {
+  U = class extends ae {
     static getWidgetInfo() {
       return {
         id: "tplSliderCollectionWidget",
@@ -809,7 +818,7 @@ let __tla = Promise.all([
       };
     }
     getWidgetInfo() {
-      return q.getWidgetInfo();
+      return U.getWidgetInfo();
     }
     propertiesUpdate() {
     }
@@ -848,5 +857,5 @@ let __tla = Promise.all([
 });
 export {
   __tla,
-  q as default
+  U as default
 };
