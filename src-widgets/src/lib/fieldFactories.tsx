@@ -38,7 +38,7 @@
 
 import CollectionGradientColorPicker from '../components/CollectionGradientColorPicker';
 import CollectionDivider from '../components/CollectionDivider';
-import type { ExtendedField } from '../types/field-definitions/extended-field';
+import type { ColorTerminal, ExtendedField } from '../types/field-definitions/extended-field';
 import type { RxWidgetInfoCustomComponentProperties, WidgetData } from '@iobroker/types-vis-2';
 import type React from 'react';
 
@@ -56,6 +56,16 @@ export interface ColorFieldOptions {
     fallbackFields?: string[];
     /** When true, extracts solid color from gradients before saving */
     noGradient?: boolean;
+    /**
+     * Terminal default — the most general end of the resolution cascade.
+     * See `ExtendedField.terminal` and ADR 0004.
+     */
+    terminal?: ColorTerminal;
+    /**
+     * Whether the cascade consults the vis-2 widget CSS `color` before the
+     * terminal default. See `ExtendedField.inheritTextStyle` and ADR 0004.
+     */
+    inheritTextStyle?: boolean;
     /** Hidden condition (string expression or function) */
     hidden?: string | ((data: Record<string, unknown>, index?: number) => boolean);
 }
@@ -78,7 +88,16 @@ export interface ColorFieldOptions {
  * })
  */
 export function createColorField(options: ColorFieldOptions): ExtendedField {
-    const { name, label, default: defaultValue = '', fallbackFields, noGradient, hidden } = options;
+    const {
+        name,
+        label,
+        default: defaultValue = '',
+        fallbackFields,
+        noGradient,
+        terminal,
+        inheritTextStyle,
+        hidden,
+    } = options;
 
     // Build the base field object with all properties
     const field: ExtendedField = {
@@ -110,6 +129,14 @@ export function createColorField(options: ColorFieldOptions): ExtendedField {
         field.noGradient = noGradient;
     }
 
+    if (terminal !== undefined) {
+        field.terminal = terminal;
+    }
+
+    if (inheritTextStyle !== undefined) {
+        field.inheritTextStyle = inheritTextStyle;
+    }
+
     if (hidden !== undefined) {
         // Cast to any to bypass readonly restriction
         (field as Record<string, unknown>).hidden = hidden;
@@ -138,24 +165,26 @@ export function createColorFields(fields: ColorFieldOptions[]): ExtendedField[] 
  * Creates a color field with common slider fallback pattern.
  *
  * Convenience function for slider-related color fields that fallback to 'sliderColor'.
+ * Slider color fields default to terminal `'primary'` (see ADR 0004).
  *
  * @param name - Field name
  * @param label - Label translation key
- * @param options - Additional options (noGradient, hidden)
+ * @param options - Additional options (noGradient, hidden, terminal, inheritTextStyle)
  * @returns ExtendedField definition
  * @example
- * // Creates field with fallbackFields: ['sliderColor']
+ * // Creates field with fallbackFields: ['sliderColor'], terminal: 'primary'
  * createSliderColorField('thumbColor', 'thumb_color')
  */
 export function createSliderColorField(
     name: string,
     label: string,
-    options?: Pick<ColorFieldOptions, 'noGradient' | 'hidden'>,
+    options?: Pick<ColorFieldOptions, 'noGradient' | 'hidden' | 'terminal' | 'inheritTextStyle'>,
 ): ExtendedField {
     return createColorField({
         name,
         label,
         fallbackFields: ['sliderColor'],
+        terminal: 'primary',
         ...options,
     });
 }

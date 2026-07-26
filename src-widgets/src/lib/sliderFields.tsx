@@ -65,7 +65,7 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: "data.valueLabelDisplay === 'off'",
     } as const,
     // Color fields using factory function
-    createColorField({ name: 'sliderColor', label: 'slider_color' }),
+    createColorField({ name: 'sliderColor', label: 'slider_color', terminal: 'primary' }),
     {
         name: 'sliderPadding',
         label: 'slider_padding',
@@ -102,7 +102,13 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         min: 0,
         max: 100,
     } as const,
-    createSliderColorField('thumbBorderColor', 'thumb_border_color'),
+    // thumbBorderColor follows the runtime cascade thumbColor → sliderColor
+    createColorField({
+        name: 'thumbBorderColor',
+        label: 'thumb_border_color',
+        fallbackFields: ['thumbColor', 'sliderColor'],
+        terminal: 'primary',
+    }),
     {
         type: 'custom',
         component: () => <CollectionDivider dividerText="track" />,
@@ -288,9 +294,15 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: '24px',
         hidden: '!data.iconMin && !data.iconSmallMin',
     } as const,
-    // Icon color with noGradient flag (only solid colors allowed)
-    createSliderColorField('startIconColor', 'icon_color', {
+    // Start/end icon color: solid only, NO sliderColor fallback. The runtime
+    // colors these icons with theme primary (for base64 icons), so the contract
+    // must match (terminal 'primary') to keep picker swatch and widget in sync.
+    // See ADR 0004.
+    createColorField({
+        name: 'startIconColor',
+        label: 'icon_color',
         noGradient: true,
+        terminal: 'primary',
         hidden: '!data.iconMin && !data.iconSmallMin',
     }),
     {
@@ -316,9 +328,11 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: '24px',
         hidden: '!data.iconMax && !data.iconSmallMax',
     } as const,
-    // Icon color with noGradient flag (only solid colors allowed)
-    createSliderColorField('endIconColor', 'icon_color', {
+    createColorField({
+        name: 'endIconColor',
+        label: 'icon_color',
         noGradient: true,
+        terminal: 'primary',
         hidden: '!data.iconMax && !data.iconSmallMax',
     }),
 ];

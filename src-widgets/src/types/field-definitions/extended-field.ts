@@ -67,4 +67,32 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      * This is useful for properties that only support solid colors (e.g., icon colors).
      */
     noGradient?: boolean;
+
+    /**
+     * The terminal default — the most general end of the resolution cascade,
+     * used when neither an explicit value, nor a fallback, nor the vis-2 style
+     * provides a color. See ADR 0004 and `resolveEffectiveColor`.
+     *
+     * - `'primary'` → `theme.palette.primary.main`
+     * - `'text'` → `theme.palette.text.primary`
+     * - `'transparent'` → `''` (no fill / inherit)
+     *
+     * If undefined, `'transparent'` is assumed (preserves the legacy behavior of
+     * fields without an explicit terminal).
+     */
+    terminal?: ColorTerminal;
+
+    /**
+     * Whether the resolution cascade consults the vis-2 widget's CSS `color`
+     * (`textStyles.color`) before falling back to the terminal default.
+     *
+     * True for text-bearing fields (e.g. `textColor`); false for accent/fill
+     * fields (e.g. `iconColor`, `background`). See ADR 0004.
+     */
+    inheritTextStyle?: boolean;
 };
+
+/**
+ * Terminal default categories for color fields. See {@link ExtendedField.terminal}.
+ */
+export type ColorTerminal = 'primary' | 'text' | 'transparent';

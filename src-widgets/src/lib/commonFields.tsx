@@ -97,6 +97,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             label: 'icon_color',
             fallbackFields: [''],
             noGradient: true,
+            terminal: 'primary',
         }),
         {
             name: `iconXOffset${groupName}`,
@@ -222,6 +223,8 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `textColor${groupName}`,
             label: 'text_color',
             fallbackFields: [''],
+            terminal: 'text',
+            inheritTextStyle: true,
         }),
         {
             label: '',
@@ -301,6 +304,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `background${groupName}`,
             label: 'background',
             fallbackFields: [],
+            terminal: 'transparent',
         }),
         {
             label: '',
@@ -312,6 +316,7 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             name: `frameBackground${groupName}`,
             label: 'frame_background',
             fallbackFields: [],
+            terminal: 'transparent',
         }),
     ];
 
