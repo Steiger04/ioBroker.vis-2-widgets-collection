@@ -13,6 +13,7 @@ import type { WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { OidObject } from '../../types/utility-types';
 import type { PropertyResolvers, SliderProperties } from './types';
 import { resolvePriority } from './priorityResolver';
+import { terminalColor } from '../../lib/helper/resolveEffectiveColor';
 
 interface CreatePropertyResolversParams {
     rxData: Record<string, any>;
@@ -42,7 +43,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         rxData,
         oidObject,
         oidName,
-        theme: _theme,
+        theme,
         fontStyles,
         textStyles,
         backgroundStyles,
@@ -202,7 +203,7 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                 { condition: String(ext) !== '', value: getDataValue<string>('iconColor', String(ext)) },
                 { value: widgetResolver.markerIconColor },
                 { value: getDataValue<string>('iconColor', '') },
-            ]) ?? _theme.palette.primary.main,
+            ]) ?? terminalColor('primary', theme),
 
         iconColorActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? (resolvePriority([{ value: getDataValue<string>('iconColor', String(ext)) }]) ?? '') : '',
@@ -285,7 +286,9 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: typeof textStyles?.color === 'string',
                     value: textStyles?.color,
                 },
-            ]) ?? '',
+                // Terminal default must match the textColor field contract
+                // (terminal: 'text') — see commonFields.tsx / ADR 0004.
+            ]) ?? terminalColor('text', theme),
 
         textColor: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
@@ -311,7 +314,9 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
                     condition: typeof textStyles?.color === 'string',
                     value: textStyles?.color,
                 },
-            ]) ?? '',
+                // Terminal default must match the textColor field contract
+                // (terminal: 'text') — see commonFields.tsx / ADR 0004.
+            ]) ?? terminalColor('text', theme),
 
         // Size Properties
         fontSize: (ext: string | number, includeActive: boolean) =>

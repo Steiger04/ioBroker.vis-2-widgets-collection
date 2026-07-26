@@ -91,7 +91,10 @@ function StateCollection(): React.ReactElement {
                 width: '100%',
                 height: '100%',
 
-                color: data.iconColor || data.textColor || 'primary.main',
+                // Text color only — must NOT include iconColor (empty textColor used
+                // to inherit iconColor here, see ADR 0004 / Bug 3). textColor now
+                // resolves to a concrete terminal (theme text color) when unset.
+                color: data.textColor || 'inherit',
                 '&:hover': {
                     bgcolor: 'transparent',
                     /* filter:
