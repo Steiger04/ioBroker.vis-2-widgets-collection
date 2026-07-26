@@ -181,9 +181,8 @@ const InputCollection: FC = () => {
                             width: '100%',
                             height: '100%',
                             display: 'flex',
-                            alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 1,
+                            alignItems: 'center',
                             cursor: editable ? 'text' : 'default',
                         }}
                     >
@@ -191,9 +190,12 @@ const InputCollection: FC = () => {
                             <Box
                                 sx={{
                                     display: 'flex',
-                                    alignItems: 'center',
                                     justifyContent: 'center',
-                                    flexShrink: 0,
+                                    alignItems: 'center',
+                                    flexGrow: 1,
+
+                                    width: '100%',
+                                    height: '100%',
                                 }}
                             >
                                 <Avatar
@@ -209,47 +211,66 @@ const InputCollection: FC = () => {
                                     }}
                                     sx={{
                                         overflow: 'visible',
-                                        width: data.iconSize,
-                                        height: data.iconSize,
+
+                                        width: data.iconSizeOnly,
+                                        height: data.iconSizeOnly,
+
                                         left: `calc(0px + ${data.iconXOffset})`,
                                         top: `calc(0px - ${data.iconYOffset})`,
                                     }}
                                 />
                             </Box>
                         )}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                maxWidth: '100%',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {!widget.data.noValue && (
+                        {!widget.data.noValue && (
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    flexGrow: 1,
+
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                            >
                                 <Typography
-                                    component="span"
+                                    component={Box}
                                     variant="body2"
                                     sx={{
                                         fontSize: data.valueSize,
-                                        textAlign: 'center',
+                                        textAlign: 'center', // For HTML content with tags
                                         bgcolor: 'transparent',
+
                                         background: gradientColor(textColor),
                                         WebkitBackgroundClip: 'text',
                                         backgroundClip: 'text',
                                         color: gradientColor(textColor) ? 'transparent' : textColor,
+
                                         textTransform: 'none',
-                                        maxWidth: '100%',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
+                                        px: 1,
+                                        pl: 0,
+                                        pr: 1,
+                                        width: '100%',
+                                        height: '100%',
+                                        flexGrow: 1,
+                                        display: 'flex',
+                                        alignItems: 'center', // Vertical centering
+                                        justifyContent: 'center', // Horizontal centering of text block
+                                        overflowWrap: 'break-word', // Modern CSS property for word wrapping
+                                        wordBreak: 'break-word', // Additional protection for long words
+                                        whiteSpace: 'normal', // Allows line breaks
+                                        hyphens: 'auto', // Automatic hyphenation when supported
+                                        '& > div': {
+                                            textAlign: 'left', // Left-aligned lines for breaks in HTML
+                                            display: 'inline-block',
+                                        },
                                     }}
                                     dangerouslySetInnerHTML={{
-                                        __html: `<span style="text-align: center; display: inline-block;">${contentValue || ''}</span>`,
+                                        __html: `<div style="text-align: left; display: inline-block;">${contentValue || ''}</div>`,
                                     }}
                                 />
-                            )}
-                        </Box>
+                            </Box>
+                        )}
                     </Box>
                 )
             ) : null}
