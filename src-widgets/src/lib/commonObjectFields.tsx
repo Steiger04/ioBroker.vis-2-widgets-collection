@@ -222,87 +222,115 @@ export const oidChangeHandlerAsync =
         }
     };
 
-const commonObjectFields = (allowedTypes: AllowedType[]): RxWidgetInfoAttributesField[] => [
-    {
-        name: 'oid',
-        type: 'id',
-        label: 'oid',
-        onChange: oidChangeHandlerAsync(allowedTypes),
-    },
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider />,
-        hidden: (data, _i) => data.oidObject === undefined,
-    },
-    {
-        name: 'unit',
-        label: 'unit',
-        type: 'text',
-        default: '',
-        hidden: (data, _i) => data.oidObject === undefined,
-        // eslint-disable-next-line @typescript-eslint/require-await
-        onChange: async (
-            _field: RxWidgetInfoAttributesField,
-            data: WidgetData,
-            changeData: (newData: WidgetData) => void,
-            _socket: LegacyConnection,
-        ): Promise<void> => {
-            if (data.oidObject) {
-                // Update the unit in the object data
-                data.oidObject.unit = data.unit || '';
-                // setTimeout ensures the change is applied after the current event loop cycle
-                // This is important for UI consistency and proper state updates
-                setTimeout(() => changeData(data), 100);
-            }
-        },
-    },
+/** Options to toggle optional sections emitted by {@link commonObjectFields}. */
+interface CommonObjectFieldsOptions {
+    /** Include the unit override field (default: true). */
+    unit?: boolean;
+    /** Include the common.states value-group machinery — `ignoreCommonStates` + `values_count` (default: true). */
+    valueGroups?: boolean;
+}
 
-    {
-        label: '',
-        type: 'custom',
-        component: () => <CollectionDivider />,
-        hidden: (data, _i) => data.oidObject === undefined,
-    },
-    {
-        name: 'ignoreCommonStates',
-        type: 'checkbox',
-        default: true,
-        label: 'ignore_common_states',
-        tooltip: 'ignore_common_states_tooltip',
-        hidden: (data, _i) => data.oidObject === undefined,
-        // eslint-disable-next-line @typescript-eslint/require-await
-        onChange: async (
-            _field: RxWidgetInfoAttributesField,
-            data: WidgetData,
-            changeData: (newData: WidgetData) => void,
-            _socket: LegacyConnection,
-        ): Promise<void> => {
-            if (data.ignoreCommonStates !== false) {
-                // Hide value groups: set values_count to 0
-                data.values_count = 0;
-            } else {
-                // Restore values_count from commonStates
-                const commonStates = data.oidObject?.commonStates;
-                if (commonStates) {
-                    data.values_count = Object.keys(commonStates).length;
-                } else if (data.oidObject?.type === 'boolean') {
-                    data.values_count = 2;
-                } else {
-                    data.values_count = 0;
-                }
-            }
-            setTimeout(() => changeData(data), 100);
+const commonObjectFields = (
+    allowedTypes: AllowedType[],
+    { unit = true, valueGroups = true }: CommonObjectFieldsOptions = {},
+): RxWidgetInfoAttributesField[] => {
+    // The OID picker is always present; the unit and value-group sections are optional
+    // and each carries its own leading divider so toggling them leaves no orphan dividers.
+    const fields: RxWidgetInfoAttributesField[] = [
+        {
+            name: 'oid',
+            type: 'id',
+            label: 'oid',
+            onChange: oidChangeHandlerAsync(allowedTypes),
         },
-    },
-    {
-        name: 'values_count',
-        type: 'number',
-        default: 0,
-        label: 'values_count',
-        hidden: (data, _i) =>
-            data.oidObject?.type === 'boolean' || data.oidObject === undefined || data.ignoreCommonStates !== false,
-    },
-];
+    ];
+
+    if (unit) {
+        fields.push(
+            {
+                label: '',
+                type: 'custom',
+                component: () => <CollectionDivider />,
+                hidden: (data, _i) => data.oidObject === undefined,
+            },
+            {
+                name: 'unit',
+                label: 'unit',
+                type: 'text',
+                default: '',
+                hidden: (data, _i) => data.oidObject === undefined,
+                // eslint-disable-next-line @typescript-eslint/require-await
+                onChange: async (
+                    _field: RxWidgetInfoAttributesField,
+                    data: WidgetData,
+                    changeData: (newData: WidgetData) => void,
+                    _socket: LegacyConnection,
+                ): Promise<void> => {
+                    if (data.oidObject) {
+                        // Update the unit in the object data
+                        data.oidObject.unit = data.unit || '';
+                        // setTimeout ensures the change is applied after the current event loop cycle
+                        // This is important for UI consistency and proper state updates
+                        setTimeout(() => changeData(data), 100);
+                    }
+                },
+            },
+        );
+    }
+
+    if (valueGroups) {
+        fields.push(
+            {
+                label: '',
+                type: 'custom',
+                component: () => <CollectionDivider />,
+                hidden: (data, _i) => data.oidObject === undefined,
+            },
+            {
+                name: 'ignoreCommonStates',
+                type: 'checkbox',
+                default: true,
+                label: 'ignore_common_states',
+                tooltip: 'ignore_common_states_tooltip',
+                hidden: (data, _i) => data.oidObject === undefined,
+                // eslint-disable-next-line @typescript-eslint/require-await
+                onChange: async (
+                    _field: RxWidgetInfoAttributesField,
+                    data: WidgetData,
+                    changeData: (newData: WidgetData) => void,
+                    _socket: LegacyConnection,
+                ): Promise<void> => {
+                    if (data.ignoreCommonStates !== false) {
+                        // Hide value groups: set values_count to 0
+                        data.values_count = 0;
+                    } else {
+                        // Restore values_count from commonStates
+                        const commonStates = data.oidObject?.commonStates;
+                        if (commonStates) {
+                            data.values_count = Object.keys(commonStates).length;
+                        } else if (data.oidObject?.type === 'boolean') {
+                            data.values_count = 2;
+                        } else {
+                            data.values_count = 0;
+                        }
+                    }
+                    setTimeout(() => changeData(data), 100);
+                },
+            },
+            {
+                name: 'values_count',
+                type: 'number',
+                default: 0,
+                label: 'values_count',
+                hidden: (data, _i) =>
+                    data.oidObject?.type === 'boolean' ||
+                    data.oidObject === undefined ||
+                    data.ignoreCommonStates !== false,
+            },
+        );
+    }
+
+    return fields;
+};
 
 export default commonObjectFields;

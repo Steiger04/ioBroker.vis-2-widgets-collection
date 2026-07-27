@@ -77,7 +77,9 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
      * data when the OID is deleted.
      */
     private static createObjectFields(): RxWidgetInfoAttributesField[] {
-        const fields = commonObjectFields(['string', 'mixed', 'json']);
+        // JSON table renders columns from the JSON data (useJsonTableAnalysis), not from
+        // common.states value groups, and has no use for a unit override — drop both sections.
+        const fields = commonObjectFields(['string', 'mixed', 'json'], { unit: false, valueGroups: false });
         const oidField = fields.find(f => f.name === 'oid');
 
         if (oidField) {
@@ -135,13 +137,6 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
                         ...JsonTableCollectionWidget.createObjectFields(),
                         ...jsonTableFields(),
                     ] as RxWidgetInfoAttributesField[],
-                },
-                {
-                    name: 'values',
-                    label: 'values',
-                    indexFrom: 1,
-                    indexTo: 'values_count',
-                    fields: [...commonFields({ groupName: '', allFields: false })],
                 },
             ],
             visDefaultStyle: {
