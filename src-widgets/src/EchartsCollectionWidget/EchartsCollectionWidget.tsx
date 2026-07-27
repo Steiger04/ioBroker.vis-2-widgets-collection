@@ -42,11 +42,13 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
                     fields: [
                         // Indexed OID — becomes oid1..oidN at runtime, auto-subscribed by vis-2.
                         // Per-series rendering metadata (name/color/type/yAxisIndex) lives in the
-                        // base64 `seriesConfig` blob, edited via the modal editor (P3).
+                        // base64 `seriesConfig` blob. Hidden: the modal editor (P3) writes oidN
+                        // directly, so this field exists only as a subscription vehicle.
                         {
                             name: 'oid',
                             label: 'oid',
                             type: 'id',
+                            hidden: (): boolean => true,
                         },
                     ],
                 },
