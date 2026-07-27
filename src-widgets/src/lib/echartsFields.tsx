@@ -83,6 +83,12 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        name: 'titleText',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
+    {
         name: 'series_count',
         type: 'number',
         default: 0,

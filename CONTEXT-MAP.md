@@ -3,6 +3,7 @@
 ## Contexts
 
 - [JsonTable cell rendering](./CONTEXT.md) — how a JSON-valued state renders as table cells (columns, format types, visual references).
+- [Echarts chart widget](./docs/context/echarts.md) — how the echarts option is layered (G/U/theme/template, data-wins seam, chart-level presentation).
 - [Color & theme resolution](./docs/context/color-theme.md) — how a color attribute resolves to the effective color shown in the editor and rendered by the widget.
 
 ## Relationships

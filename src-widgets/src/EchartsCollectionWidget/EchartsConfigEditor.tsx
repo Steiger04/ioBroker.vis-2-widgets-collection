@@ -52,6 +52,7 @@ function EchartsConfigEditor(
                 data={data}
                 onDataChange={onDataChange}
                 theme={theme}
+                socket={props.context.socket}
             />
         </Box>
     );

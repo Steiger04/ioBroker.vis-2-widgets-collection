@@ -12,22 +12,33 @@
  * (P3) and written to these fields via `onDataChange`; the vis-2 attribute panel only shows
  * the "Edit chart configuration" trigger plus the common fields.
  */
+
+/**
+ * Shared value-union types for the echarts widget. Single source of truth — the editor state
+ * and option builder import these so a new value (e.g. a new aggregate) lands in one place.
+ */
+export type EchartsTemplate = 'line';
+export type EchartsMode = 'history' | 'live' | 'json';
+export type EchartsTimeRange = '24h' | '7d' | '30d';
+export type EchartsAggregate = 'average' | 'minmax' | 'min' | 'max' | 'total' | 'count' | 'onchange' | 'none';
+export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
+
 export interface EchartsFieldsRxData {
     // ── Template & data mode ────────────────────────────────────────
 
     /** Chart template. v1 ships only the line time-series template. @default 'line' */
-    template?: 'line';
+    template?: EchartsTemplate;
 
     /** Data source mode. @default 'history' */
-    mode?: 'history' | 'live' | 'json';
+    mode?: EchartsMode;
 
     // ── History-mode options (shared across all series) ─────────────
 
     /** Time range to fetch. @default '24h' */
-    timeRange?: '24h' | '7d' | '30d';
+    timeRange?: EchartsTimeRange;
 
     /** Aggregation for getHistory. @default 'average' */
-    aggregate?: 'average' | 'minmax' | 'min' | 'max' | 'total' | 'onchange' | 'none';
+    aggregate?: EchartsAggregate;
 
     /** Maximum number of points per series. @default 500 */
     count?: number;
@@ -39,7 +50,7 @@ export interface EchartsFieldsRxData {
     instance?: string;
 
     /** How null gaps in the fetched history are handled. @default 'keep' */
-    ignoreNull?: 'keep' | 'forward' | 'zero';
+    ignoreNull?: EchartsIgnoreNull;
 
     // ── JSON mode ───────────────────────────────────────────────────
 
@@ -51,6 +62,16 @@ export interface EchartsFieldsRxData {
      * a bare `[[ts, val], ...]` array (single series), or `{ data: [[ts, val], ...] }`.
      */
     jsonOid?: string;
+
+    /**
+     * Chart title text — may contain vis-2 `{oid.val}` bindings.
+     *
+     * @remarks
+     * vis-2 resolves the bindings into rxData, so the widget reads the live-resolved string
+     * and injects it as `title.text` (a data-wins force-back: U cannot override the title text).
+     * Title STYLING (`title.textStyle`) stays on the U side. Edited via the modal Data tab.
+     */
+    titleText?: string;
 
     // ── Multi-OID series (indexed, auto-subscribed) ─────────────────
 

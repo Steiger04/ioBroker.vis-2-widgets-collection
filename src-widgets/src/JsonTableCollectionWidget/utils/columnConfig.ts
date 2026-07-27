@@ -37,40 +37,10 @@ export const IMAGE_FORMAT_DEFAULTS: { size: number; objectFit: ImageObjectFit } 
 
 // ── Helper: UTF-8 safe Base64 encoding/decoding ──────────────────
 
-/** Prefix for Base64-encoded column config to avoid extractBinding warnings in vis-2 */
-const B64_PREFIX = 'b64:';
-
-/**
- * Encode a UTF-8 string to Base64 safely.
- * Handles non-ASCII characters (e.g., German umlauts, Chinese characters).
- *
- * @param str - The UTF-8 string to encode
- * @returns Base64 encoded string
- */
-export function utf8ToBase64(str: string): string {
-    const bytes = new TextEncoder().encode(str);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-}
-
-/**
- * Decode a Base64 string to UTF-8 safely.
- * Handles non-ASCII characters encoded with utf8ToBase64.
- *
- * @param base64 - The Base64 string to decode
- * @returns Decoded UTF-8 string
- */
-export function base64ToUtf8(base64: string): string {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return new TextDecoder().decode(bytes);
-}
+// The encoding helpers live in the shared `lib/encoding` module (single source, also used by
+// the Echarts widget). Re-exported here so existing JsonTable import sites keep working.
+export { utf8ToBase64, base64ToUtf8 } from '../../lib/encoding';
+import { decodeBlob } from '../../lib/encoding';
 
 // ── Helper: parse persisted config ──────────────────────────────
 
@@ -90,9 +60,8 @@ export function parseColumnConfig(raw: string | undefined | null): ColumnConfigE
         return [];
     }
     try {
-        // Check for Base64-encoded value (avoids extractBinding warnings)
-        const jsonString = raw.startsWith(B64_PREFIX) ? base64ToUtf8(raw.slice(B64_PREFIX.length)) : raw;
-        const parsed = JSON.parse(jsonString);
+        // decodeBlob strips the `b64:` prefix and decodes when present (avoids extractBinding).
+        const parsed = JSON.parse(decodeBlob(raw));
         return Array.isArray(parsed) ? (parsed as ColumnConfigEntry[]) : [];
     } catch {
         return [];

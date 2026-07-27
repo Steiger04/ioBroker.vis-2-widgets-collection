@@ -12,6 +12,7 @@ import { Box, Tab, Tabs } from '@mui/material';
 
 import Generic from '../../Generic';
 import { AdvancedJsonEditor, DataPanel, ModeSelect, SeriesList, TemplatePicker } from './fields';
+import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
 interface EchartsEditorTabsProps {
@@ -19,12 +20,15 @@ interface EchartsEditorTabsProps {
     set: SetEditor;
     userText: string;
     setUserText: (value: string) => void;
+    pickerCtx: OidPickerCtx;
 }
 
 const GAP = 2;
 
-const EchartsEditorTabs: FC<EchartsEditorTabsProps> = ({ state, set, userText, setUserText }) => {
-    const [tab, setTab] = useState(0);
+type TabKey = 'data' | 'series' | 'advanced';
+
+const EchartsEditorTabs: FC<EchartsEditorTabsProps> = ({ state, set, userText, setUserText, pickerCtx }) => {
+    const [tab, setTab] = useState<TabKey>('data');
     return (
         <Box>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: GAP, alignItems: 'flex-start', mb: 1 }}>
@@ -36,26 +40,36 @@ const EchartsEditorTabs: FC<EchartsEditorTabsProps> = ({ state, set, userText, s
             </Box>
             <Tabs
                 value={tab}
-                onChange={(_, v) => setTab(v)}
+                onChange={(_, v: TabKey) => setTab(v)}
             >
-                <Tab label={Generic.t('echarts_editor_data')} />
-                <Tab label={Generic.t('echarts_series')} />
-                <Tab label={Generic.t('echarts_editor_advanced')} />
+                <Tab
+                    label={Generic.t('echarts_editor_data')}
+                    value="data"
+                />
+                <Tab
+                    label={Generic.t('echarts_series')}
+                    value="series"
+                />
+                <Tab
+                    label={Generic.t('echarts_editor_advanced')}
+                    value="advanced"
+                />
             </Tabs>
             <Box sx={{ mt: GAP }}>
-                {tab === 0 && (
+                {tab === 'data' && (
                     <DataPanel
                         state={state}
                         set={set}
                     />
                 )}
-                {tab === 1 && (
+                {tab === 'series' && (
                     <SeriesList
                         state={state}
                         set={set}
+                        pickerCtx={pickerCtx}
                     />
                 )}
-                {tab === 2 && (
+                {tab === 'advanced' && (
                     <AdvancedJsonEditor
                         userText={userText}
                         setUserText={setUserText}

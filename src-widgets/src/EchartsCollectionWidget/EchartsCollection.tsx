@@ -168,10 +168,21 @@ function EchartsCollection(): React.ReactElement {
         return parseJsonState(raw);
     }, [mode, history.series, entries, meta, liveBuffers, jsonValue]);
 
-    const option = useMemo(
-        () => mergeOptionForEcharts(buildGeneratedOption(series, meta), LINE_TEMPLATE_DEFAULTS, overrides, themeBase),
-        [series, meta, overrides, themeBase],
-    );
+    const option = useMemo(() => {
+        const merged = mergeOptionForEcharts(
+            buildGeneratedOption(series, meta),
+            LINE_TEMPLATE_DEFAULTS,
+            overrides,
+            themeBase,
+        );
+        // titleText is a dedicated live-text field (may hold {oid.val} bindings that vis-2
+        // resolved into rxData). It wins over any U title.text — injected after the merge.
+        const titleText = typeof data.titleText === 'string' ? data.titleText.trim() : '';
+        if (titleText) {
+            merged.title = { ...((merged.title as Record<string, unknown> | undefined) ?? {}), text: titleText };
+        }
+        return merged;
+    }, [series, meta, overrides, themeBase, data.titleText]);
 
     const loading = mode === 'history' && history.loading;
     const error = mode === 'history' ? history.error : null;

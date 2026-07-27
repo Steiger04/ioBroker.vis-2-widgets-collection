@@ -9,7 +9,7 @@
  * footer. Wraps its content in a ThemeProvider so it renders correctly detached from the
  * widget tree (JsonTable modal precedent). Apply writes a single merged `onDataChange` patch.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ThemeProvider } from '@mui/material';
 
@@ -23,6 +23,7 @@ import {
     type EditorPatch,
     type EditorState,
 } from './editor/editorState';
+import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
 interface EchartsConfigEditorModalProps {
@@ -36,6 +37,8 @@ interface EchartsConfigEditorModalProps {
     onDataChange: (newData: WidgetData) => void;
     /** vis-2 theme for the modal's own ThemeProvider. */
     theme: VisTheme;
+    /** Socket, drilled to the OID picker (SelectID dialog). */
+    socket: LegacyConnection;
 }
 
 function EchartsConfigEditorModal({
@@ -44,6 +47,7 @@ function EchartsConfigEditorModal({
     data,
     onDataChange,
     theme,
+    socket,
 }: EchartsConfigEditorModalProps): React.JSX.Element {
     const [state, setState] = useState<EditorState>(DEFAULT_EDITOR_STATE);
     /** Series count at load time, so stale `oidN` are cleared on save. */
@@ -76,7 +80,7 @@ function EchartsConfigEditorModal({
         onClose();
     }, [state, onDataChange, onClose]);
 
-    const userText = useMemo(() => state.userText, [state.userText]);
+    const userText = state.userText;
 
     return (
         <ThemeProvider theme={theme}>
@@ -99,6 +103,7 @@ function EchartsConfigEditorModal({
                         set={set}
                         userText={userText}
                         setUserText={setUserText}
+                        pickerCtx={{ socket, theme, themeType: theme.palette.mode === 'dark' ? 'dark' : 'light' }}
                     />
                 </DialogContent>
                 <DialogActions>

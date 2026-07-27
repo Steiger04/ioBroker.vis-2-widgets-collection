@@ -12,12 +12,21 @@
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import type { SeriesMeta, ChartSeries } from '../optionBuilder';
+import type {
+    EchartsAggregate,
+    EchartsIgnoreNull,
+    EchartsMode,
+    EchartsTemplate,
+    EchartsTimeRange,
+} from '../../types/field-definitions/echarts-fields';
 
-export type ChartMode = 'history' | 'live' | 'json';
-export type ChartTemplate = 'line';
-export type TimeRange = '24h' | '7d' | '30d';
-export type Aggregate = 'average' | 'minmax' | 'min' | 'max' | 'total' | 'onchange' | 'none';
-export type IgnoreNull = 'keep' | 'forward' | 'zero';
+// Aliases of the single-source unions (echarts-fields.d.ts), kept under the shorter names
+// the editor UI historically uses.
+export type ChartMode = EchartsMode;
+export type ChartTemplate = EchartsTemplate;
+export type TimeRange = EchartsTimeRange;
+export type Aggregate = EchartsAggregate;
+export type IgnoreNull = EchartsIgnoreNull;
 
 /** A series as edited in the modal (metadata + its bound OID). */
 export interface EditorSeries extends SeriesMeta {
@@ -39,6 +48,11 @@ export interface EditorState {
     series: EditorSeries[];
     /** Decoded Advanced JSON text (the chartOverrides / U side). */
     userText: string;
+    /**
+     * Chart title text — may contain vis-2 `{oid.val}` bindings; vis-2 resolves them into
+     * rxData, so the body reads the live-resolved string and injects it as `title.text`.
+     */
+    titleText: string;
 }
 
 export type EditorPatch = Partial<EditorState>;
@@ -56,6 +70,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     jsonOid: '',
     series: [],
     userText: '',
+    titleText: '',
 };
 
 /** Parse a persisted blob (b64-prefixed JSON) into a value, or `undefined`. */
@@ -108,6 +123,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         jsonOid: typeof data.jsonOid === 'string' && data.jsonOid !== 'nothing_selected' ? data.jsonOid : '',
         series,
         userText,
+        titleText: typeof data.titleText === 'string' ? data.titleText : '',
     };
 };
 
@@ -128,6 +144,7 @@ export const saveEditorState = (state: EditorState, previousCount = state.series
         instance: state.instance,
         ignoreNull: state.ignoreNull,
         jsonOid: state.jsonOid,
+        titleText: state.titleText,
         series_count: state.series.length,
         // Per-series rendering metadata (oid stays out of the blob — vis-2 subscribes it).
         seriesConfig: encodeBlob(

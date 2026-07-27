@@ -30,6 +30,7 @@ import { buildEchartsTheme, echartsPalette } from '../echartsTheme';
 import { LINE_TEMPLATE_DEFAULTS, buildGeneratedOption, parseUserJson } from '../optionBuilder';
 import { mergeOptionForEcharts } from '../utils/mergeOption';
 import { buildPreviewSeries, type EditorSeries, type EditorState, type SetEditor } from './editorState';
+import OidPicker, { type OidPickerCtx } from './OidPicker';
 
 // ── tiny shared labels / inputs ───────────────────────────────────
 
@@ -208,6 +209,15 @@ export const DataPanel: FC<{ state: EditorState; set: SetEditor }> = ({ state, s
                     : Generic.t('echarts_editor_info_series')}
             </Typography>
         </Box>
+        <TextField
+            size="small"
+            fullWidth
+            label={Generic.t('echarts_editor_title_text')}
+            value={state.titleText}
+            onChange={e => set({ titleText: e.target.value })}
+            placeholder={'Living room: {0.0.temperature.val} °C'}
+            sx={{ mb: 1.5 }}
+        />
         {state.mode === 'history' && (
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                 <LabeledSelect
@@ -230,6 +240,7 @@ export const DataPanel: FC<{ state: EditorState; set: SetEditor }> = ({ state, s
                         ['min', 'min'],
                         ['max', 'max'],
                         ['total', 'total'],
+                        ['count', 'count'],
                         ['onchange', 'onchange'],
                         ['none', 'none'],
                     ]}
@@ -251,7 +262,11 @@ export const DataPanel: FC<{ state: EditorState; set: SetEditor }> = ({ state, s
 );
 
 /** Series list — the data sources (G-owned) + per-series styling. */
-export const SeriesList: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => {
+export const SeriesList: FC<{ state: EditorState; set: SetEditor; pickerCtx: OidPickerCtx }> = ({
+    state,
+    set,
+    pickerCtx,
+}) => {
     const theme = useTheme();
     const palette = useMemo(() => echartsPalette(theme), [theme]);
 
@@ -308,12 +323,10 @@ export const SeriesList: FC<{ state: EditorState; set: SetEditor }> = ({ state, 
                             onChange={e => update(i, { name: e.target.value })}
                             sx={{ width: 150 }}
                         />
-                        <TextField
-                            size="small"
-                            label="OID"
+                        <OidPicker
                             value={s.oid}
-                            onChange={e => update(i, { oid: e.target.value })}
-                            sx={{ width: 220 }}
+                            onChange={oid => update(i, { oid })}
+                            ctx={pickerCtx}
                         />
                         <TextField
                             select

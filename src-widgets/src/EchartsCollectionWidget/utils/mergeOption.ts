@@ -9,10 +9,11 @@
  *  - `generated` (G)    — data-driven option (owns `series`, `xAxis`/`yAxis` type+bounds, `legend.data`)
  *  - `userOverrides` (U)— user presentation overrides from the Advanced JSON tab
  *
- * `series` is the one truly protected data key: after the merge it is forced back to G, so a
- * user cannot inject or drop data points from the Advanced box (user-wins power mode is
- * deferred past v1). `xAxis`/`yAxis`/`legend` stay deep-merged — G contributes type/bounds and
- * series names, U contributes styling — exactly the hybrid described in decision 03.
+ * `series` and `legend.data` are the protected data keys: after the merge they are forced
+ * back to G, so a user cannot inject/drop data points or rename the legend from the Advanced
+ * box (user-wins power mode is deferred past v1). The rest of `legend` (position, show, …)
+ * and `xAxis`/`yAxis` stay deep-merged — G contributes type/bounds and series names, U
+ * contributes styling — exactly the hybrid described in decision 03.
  */
 import type { EChartsOption } from 'echarts';
 
@@ -66,9 +67,18 @@ export const mergeOptionForEcharts = (
         ),
         userOverrides,
     );
-    // Protect the data binding: the generated series always wins (v1 has no power mode).
+    // Protect the data binding: the generated `series` (data points) and `legend.data`
+    // (series names) always win — U must not be able to inject/drop data or rename the
+    // legend from the Advanced box (user-wins power mode is deferred past v1). The rest of
+    // `legend` (position, show, …) and the axes stay deep-merged: G owns type/bounds/names,
+    // U owns styling.
     if (generated.series !== undefined) {
         merged.series = generated.series;
+    }
+    const gLegend = generated.legend as Record<string, unknown> | undefined;
+    const mergedLegend = merged.legend as Record<string, unknown> | undefined;
+    if (gLegend?.data !== undefined && mergedLegend && !Array.isArray(mergedLegend)) {
+        mergedLegend.data = gLegend.data;
     }
     return merged as EChartsOption;
 };
