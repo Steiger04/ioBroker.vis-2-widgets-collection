@@ -134,6 +134,23 @@ export interface WidgetFieldMappings {
      * Fields: base (30) + common (30) + commonObject (15) + input (4) + state (5) + delay (2) = ~86 properties
      */
     tplInputCollectionWidget: ['base', 'common', 'commonObject', 'input', 'state', 'delay'];
+
+    /**
+     * Echarts Widget - Apache ECharts line-chart time-series (history / live / json modes)
+     *
+     * @remarks
+     * The collection's first multi-OID widget. Series OIDs live as indexed `oid1..oidN` fields
+     * inside the `echarts` group, plus the base64 `seriesConfig` / `chartOverrides` blobs.
+     *
+     * `commonObject` is included for type compatibility only: the shared hooks
+     * (useData, useValueState) and CollectionBase are typed against the AllCollectionContextProps
+     * union and assume every member carries the common-object fields (oidObject, unit,
+     * values_count, …). echarts never edits a single OID — those fields stay optional/undefined
+     * at runtime (no visAttrs entry renders them); the modal editor manages series OIDs via the
+     * indexed group.
+     * Fields: base (30) + common (30) + commonObject (15) + echarts (multi-OID series + modes) ≈ 90
+     */
+    tplEchartsCollectionWidget: ['base', 'common', 'commonObject', 'echarts'];
 }
 
 /**

@@ -167,6 +167,7 @@
           "GaugeCollectionWidget",
           "Light2CollectionWidget",
           "JsonTableCollectionWidget",
+          "EchartsCollectionWidget",
           "ThemeConfigWizard"
         ]
       }

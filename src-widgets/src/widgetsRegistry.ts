@@ -29,6 +29,7 @@ export const widgets = [
     'GaugeCollectionWidget',
     'Light2CollectionWidget',
     'JsonTableCollectionWidget',
+    'EchartsCollectionWidget',
     'ThemeConfigWizard',
 ] as const;
 

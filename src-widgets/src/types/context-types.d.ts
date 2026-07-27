@@ -819,6 +819,19 @@ export type JsonTableCollectionContextProps = CollectionContextProps<WidgetRegis
 export type InputCollectionContextProps = CollectionContextProps<WidgetRegistry['tplInputCollectionWidget']>;
 
 /**
+ * React Context props for Echarts Collection Widget.
+ *
+ * @remarks
+ * Echarts widget renders an Apache ECharts line-chart time-series from three data modes
+ * (history / live / json). It is the collection's first multi-OID widget: series OIDs live
+ * as indexed `oid1..oidN` fields, with per-series rendering metadata in a base64
+ * `seriesConfig` blob and user presentation overrides in a base64 `chartOverrides` blob.
+ *
+ * Total properties: ~75
+ */
+export type EchartsCollectionContextProps = CollectionContextProps<WidgetRegistry['tplEchartsCollectionWidget']>;
+
+/**
  * Union of all widget-specific context types.
  *
  * @remarks
@@ -846,7 +859,8 @@ export type AllCollectionContextProps =
     | DialogCollectionContextProps
     | Light2CollectionContextProps
     | JsonTableCollectionContextProps
-    | InputCollectionContextProps;
+    | InputCollectionContextProps
+    | EchartsCollectionContextProps;
 
 /**
  * Generate context type for a specific widget ID.
