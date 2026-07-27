@@ -9,9 +9,10 @@ import Generic from '../Generic';
 import withCollectionProvider from '../components/withCollectionProvider';
 
 import commonFields from '../lib/commonFields';
+import echartsFields from '../lib/echartsFields';
 import EchartsCollection from './EchartsCollection';
 
-import type { RxWidgetInfo, RxRenderWidgetProps } from '@iobroker/types-vis-2';
+import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField } from '@iobroker/types-vis-2';
 
 class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollectionWidget']> {
     static getWidgetInfo(): RxWidgetInfo {
@@ -29,9 +30,25 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
                     fields: [...commonFields()],
                 },
                 {
-                    name: 'chart', // group name (populated in P2)
+                    name: 'chart', // group name
                     label: 'group_echarts',
-                    fields: [],
+                    fields: [...echartsFields()] as RxWidgetInfoAttributesField[],
+                },
+                {
+                    name: 'series',
+                    label: 'echarts_series',
+                    indexFrom: 1,
+                    indexTo: 'series_count',
+                    fields: [
+                        // Indexed OID — becomes oid1..oidN at runtime, auto-subscribed by vis-2.
+                        // Per-series rendering metadata (name/color/type/yAxisIndex) lives in the
+                        // base64 `seriesConfig` blob, edited via the modal editor (P3).
+                        {
+                            name: 'oid',
+                            label: 'oid',
+                            type: 'id',
+                        },
+                    ],
                 },
             ],
             visDefaultStyle: {

@@ -27,7 +27,7 @@ export interface EchartsFieldsRxData {
     timeRange?: '24h' | '7d' | '30d';
 
     /** Aggregation for getHistory. @default 'average' */
-    aggregate?: 'average' | 'min' | 'max' | 'on' | 'none';
+    aggregate?: 'average' | 'minmax' | 'min' | 'max' | 'total' | 'onchange' | 'none';
 
     /** Maximum number of points per series. @default 500 */
     count?: number;
