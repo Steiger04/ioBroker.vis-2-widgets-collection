@@ -107,6 +107,8 @@
     "echarts_history_options": "History options",
     "echarts_ignore_null": "Null gaps",
     "echarts_instance": "History instance",
+    "echarts_instance_auto": "Auto",
+    "echarts_instance_missing": "No history adapter found — install history/sql/influxdb and enable it for the OID.",
     "echarts_instance_tooltip": "Optional; auto-detected when empty",
     "echarts_mode": "Mode",
     "echarts_mode_history": "History",

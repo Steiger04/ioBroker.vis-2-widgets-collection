@@ -60,6 +60,7 @@ const EchartsEditorTabs: FC<EchartsEditorTabsProps> = ({ state, set, userText, s
                     <DataPanel
                         state={state}
                         set={set}
+                        pickerCtx={pickerCtx}
                     />
                 )}
                 {tab === 'series' && (

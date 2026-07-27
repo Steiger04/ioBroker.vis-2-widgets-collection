@@ -11,9 +11,11 @@
  * The resolved series + per-series metadata become the generated option (G), merged with the
  * template defaults, the user overrides (U) and the MUI theme base through the data-wins seam
  * (map decision 03). `onStateUpdated` stays empty in the class — the body re-renders on every
- * `state.values` change, which is what drives both live mode and the early history refresh.
+ * `state.values` change, which drives live mode. History mode refreshes via the periodic
+ * `refreshMs` polling inside {@link useHistory} (the value-driven early refresh was removed:
+ * on chatty OIDs it cleared the fetch debounce before it could fire, leaving `loading` stuck).
  */
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -47,6 +49,13 @@ const RANGE_MS: Record<string, number> = {
 
 /** Maximum points retained per OID in the live rolling buffer. */
 const LIVE_MAX_POINTS = 300;
+
+/**
+ * Client-side guard around `socket.getHistory`. ioBroker does not reliably honor the
+ * `timeout` option, so without this a non-responding backend (or a misconfigured history
+ * adapter) leaves `loading` stuck true forever — the "eternal spinner" symptom.
+ */
+const HISTORY_FETCH_TIMEOUT_MS = 12_000;
 
 type ValuesMap = Record<string, ioBroker.StateValue | undefined>;
 
@@ -112,22 +121,32 @@ function EchartsCollection(): React.ReactElement {
         return out;
     }, [data, meta]);
 
-    // Bind the callback-based socket.getHistory into the promise the hook expects.
+    // context.socket is the raw LegacyConnection: getHistory(id, options) returns a Promise
+    // (NOT callback-based — a 3rd-arg callback is silently ignored) and has no internal
+    // timeout, so a non-responding server hangs the promise — and `loading` — forever. Race
+    // the real promise against a client-side timer.
     const getHistory = useCallback(
-        (id: string, options: ioBroker.GetHistoryOptions): Promise<{ ts: number; val: ioBroker.StateValue | null }[]> =>
-            new Promise((resolve, reject) => {
-                socket.getHistory(
-                    id,
-                    { ...options, timeout: 10000 },
-                    (err: Error | null, result?: ioBroker.GetHistoryResult) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve((result ?? []) as { ts: number; val: ioBroker.StateValue | null }[]);
-                        }
-                    },
+        (
+            id: string,
+            options: ioBroker.GetHistoryOptions,
+        ): Promise<{ ts: number; val: ioBroker.StateValue | null }[]> => {
+            const real = socket.getHistory(id, { ...options, timeout: 10000 }) as Promise<
+                { ts: number; val: ioBroker.StateValue | null }[]
+            >;
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            const timeout = new Promise<never>((_, reject) => {
+                timer = setTimeout(
+                    () => reject(new Error(`History fetch for "${id}" timed out`)),
+                    HISTORY_FETCH_TIMEOUT_MS,
                 );
-            }),
+            });
+            return Promise.race([real, timeout])
+                .catch(err => {
+                    console.error('[echarts] getHistory failed:', { id, options, error: err });
+                    throw err;
+                })
+                .finally(() => timer && clearTimeout(timer));
+        },
         [socket],
     );
 
@@ -141,15 +160,9 @@ function EchartsCollection(): React.ReactElement {
         enabled: mode === 'history' && entries.length > 0,
     });
 
-    // Early (debounced) history re-fetch when a subscribed value changes.
-    const liveSig = useMemo(() => entries.map(e => values[`${e.oid}.val`]).join(''), [entries, values]);
-    const refreshRef = useRef(history.refresh);
-    refreshRef.current = history.refresh;
-    useEffect(() => {
-        if (mode === 'history') {
-            refreshRef.current();
-        }
-    }, [liveSig, mode]);
+    // History mode refreshes via periodic `refreshMs` polling inside useHistory (map decision
+    // 02) — the value-driven early refresh was removed: on chatty OIDs it cleared the 200 ms
+    // fetch debounce before it could fire, leaving `loading` stuck.
 
     const liveBuffers = useLiveBuffer(entries, values as ValuesMap, mode === 'live');
 
@@ -185,7 +198,10 @@ function EchartsCollection(): React.ReactElement {
     }, [series, meta, overrides, themeBase, data.titleText]);
 
     const loading = mode === 'history' && history.loading;
-    const error = mode === 'history' ? history.error : null;
+    // Surface the first per-series failure too (e.g. a single OID that errored or timed out)
+    // so the user sees a real message instead of the misleading "configure series" placeholder.
+    const seriesError = mode === 'history' ? history.series.find(s => s.error)?.error : undefined;
+    const error = mode === 'history' ? (history.error ?? seriesError ?? null) : null;
     const hasData = series.some(s => s.data.length > 0);
 
     return (
@@ -217,7 +233,7 @@ function EchartsCollection(): React.ReactElement {
                 )}
                 {hasData ? (
                     <EChart option={option} />
-                ) : (
+                ) : error ? null : (
                     <Box
                         sx={{
                             width: '100%',

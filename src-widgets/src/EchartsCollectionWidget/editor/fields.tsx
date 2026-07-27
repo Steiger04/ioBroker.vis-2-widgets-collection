@@ -8,7 +8,7 @@
  * Labels go through `Generic.t` (the collection i18n prefix is auto-applied); the series
  * colour palette is derived from the MUI theme via {@link echartsPalette}.
  */
-import { useMemo, type FC } from 'react';
+import { useEffect, useMemo, useState, type FC } from 'react';
 import type React from 'react';
 import {
     Box,
@@ -191,75 +191,132 @@ export const ModeSelect: FC<{ state: EditorState; set: SetEditor }> = ({ state, 
 );
 
 /** OID binding story + the history-specific fields. */
-export const DataPanel: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
-    <Box>
-        <Box
-            sx={{
-                mb: 1.5,
-                p: 1,
-                bgcolor: 'action.hover',
-                borderLeft: 3,
-                borderColor: 'primary.main',
-                borderRadius: 0.5,
-            }}
-        >
-            <Typography variant="caption">
-                {state.mode === 'json'
-                    ? Generic.t('echarts_editor_info_json')
-                    : Generic.t('echarts_editor_info_series')}
-            </Typography>
-        </Box>
-        <TextField
-            size="small"
-            fullWidth
-            label={Generic.t('echarts_editor_title_text')}
-            value={state.titleText}
-            onChange={e => set({ titleText: e.target.value })}
-            placeholder={'Living room: {0.0.temperature.val} °C'}
-            sx={{ mb: 1.5 }}
-        />
-        {state.mode === 'history' && (
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                <LabeledSelect
-                    label={Generic.t('echarts_time_range')}
-                    value={state.timeRange}
-                    onChange={v => set({ timeRange: v as EditorState['timeRange'] })}
-                    options={[
-                        ['24h', '24h'],
-                        ['7d', '7d'],
-                        ['30d', '30d'],
-                    ]}
-                />
-                <LabeledSelect
-                    label={Generic.t('echarts_aggregate')}
-                    value={state.aggregate}
-                    onChange={v => set({ aggregate: v as EditorState['aggregate'] })}
-                    options={[
-                        ['average', 'average'],
-                        ['minmax', 'minmax'],
-                        ['min', 'min'],
-                        ['max', 'max'],
-                        ['total', 'total'],
-                        ['count', 'count'],
-                        ['onchange', 'onchange'],
-                        ['none', 'none'],
-                    ]}
-                />
-                <NumberField
-                    label={Generic.t('echarts_count')}
-                    value={state.count}
-                    onChange={v => set({ count: v })}
-                />
-                <NumberField
-                    label={Generic.t('echarts_refresh')}
-                    value={state.refreshMs}
-                    step={1000}
-                    onChange={v => set({ refreshMs: v })}
-                />
+export const DataPanel: FC<{ state: EditorState; set: SetEditor; pickerCtx: OidPickerCtx }> = ({
+    state,
+    set,
+    pickerCtx,
+}) => {
+    const [instances, setInstances] = useState<string[]>([]);
+    useEffect(() => {
+        let active = true;
+        // List adapters that can serve history (common.getHistory) — same filter vis-2 uses for
+        // its native 'history' field type. Lets the user pin a concrete instance, which is the
+        // standard fix when getHistory hangs without `instance` (server can't auto-route).
+        void pickerCtx.socket.getAdapterInstances('').then(all => {
+            if (!active) {
+                return;
+            }
+            const list = all
+                .filter(o => (o.common as { getHistory?: boolean } | undefined)?.getHistory)
+                .map(o => o._id.replace('system.adapter.', ''))
+                .sort((a, b) => a.localeCompare(b));
+            setInstances(list);
+            // If exactly one history adapter exists and none is set, default to it — leaving
+            // `instance` empty can hang getHistory when the server can't determine the adapter.
+            if (list.length === 1 && !state.instance) {
+                set({ instance: list[0] });
+            }
+        });
+        return () => {
+            active = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const instanceOptions: ReadonlyArray<[string, string]> = [
+        ['', Generic.t('echarts_instance_auto')],
+        ...instances.map(id => [id, id] as [string, string]),
+    ];
+
+    return (
+        <Box>
+            <Box
+                sx={{
+                    mb: 1.5,
+                    p: 1,
+                    bgcolor: 'action.hover',
+                    borderLeft: 3,
+                    borderColor: 'primary.main',
+                    borderRadius: 0.5,
+                }}
+            >
+                <Typography variant="caption">
+                    {state.mode === 'json'
+                        ? Generic.t('echarts_editor_info_json')
+                        : Generic.t('echarts_editor_info_series')}
+                </Typography>
             </Box>
-        )}
-    </Box>
-);
+            <TextField
+                size="small"
+                fullWidth
+                label={Generic.t('echarts_editor_title_text')}
+                value={state.titleText}
+                onChange={e => set({ titleText: e.target.value })}
+                placeholder={'Living room: {0.0.temperature.val} °C'}
+                sx={{ mb: 1.5 }}
+            />
+            {state.mode === 'history' && (
+                <>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                        <LabeledSelect
+                            label={Generic.t('echarts_time_range')}
+                            value={state.timeRange}
+                            onChange={v => set({ timeRange: v as EditorState['timeRange'] })}
+                            options={[
+                                ['24h', '24h'],
+                                ['7d', '7d'],
+                                ['30d', '30d'],
+                            ]}
+                        />
+                        <LabeledSelect
+                            label={Generic.t('echarts_aggregate')}
+                            value={state.aggregate}
+                            onChange={v => set({ aggregate: v as EditorState['aggregate'] })}
+                            options={[
+                                ['average', 'average'],
+                                ['minmax', 'minmax'],
+                                ['min', 'min'],
+                                ['max', 'max'],
+                                ['total', 'total'],
+                                ['count', 'count'],
+                                ['onchange', 'onchange'],
+                                ['none', 'none'],
+                            ]}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_count')}
+                            value={state.count}
+                            onChange={v => set({ count: v })}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_refresh')}
+                            value={state.refreshMs}
+                            step={1000}
+                            onChange={v => set({ refreshMs: v })}
+                        />
+                    </Box>
+                    <Box sx={{ mt: 1.5 }}>
+                        {instances.length > 0 ? (
+                            <LabeledSelect
+                                label={Generic.t('echarts_instance')}
+                                value={state.instance}
+                                onChange={v => set({ instance: v })}
+                                options={instanceOptions}
+                            />
+                        ) : (
+                            <Typography
+                                variant="caption"
+                                color="error"
+                            >
+                                {Generic.t('echarts_instance_missing')}
+                            </Typography>
+                        )}
+                    </Box>
+                </>
+            )}
+        </Box>
+    );
+};
 
 /** Series list — the data sources (G-owned) + per-series styling. */
 export const SeriesList: FC<{ state: EditorState; set: SetEditor; pickerCtx: OidPickerCtx }> = ({

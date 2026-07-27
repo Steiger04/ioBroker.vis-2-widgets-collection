@@ -53,5 +53,10 @@ export default function EChart({ option }: EChartProps): React.JSX.Element {
         chartRef.current?.setOption(option, { replaceMerge: ['series'] });
     }, [option]);
 
-    return <Box sx={{ width: '100%', height: '100%' }} />;
+    return (
+        <Box
+            ref={containerRef}
+            sx={{ width: '100%', height: '100%' }}
+        />
+    );
 }

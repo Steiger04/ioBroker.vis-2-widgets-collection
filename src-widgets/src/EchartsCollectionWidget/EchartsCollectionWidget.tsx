@@ -37,13 +37,19 @@ class EchartsCollectionWidget extends Generic<WidgetRegistry['tplEchartsCollecti
                 {
                     name: 'series',
                     label: 'echarts_series',
+                    // The whole iterable shell is hidden — series are managed solely by the
+                    // configurator modal. vis-2 still expands + subscribes oid1..oidN from this
+                    // declaration (parseAttributes copies group.hidden onto each indexed copy,
+                    // and runtime subscription is schema-driven, not editor-driven), so hiding
+                    // the group removes only the editor's "series [N]" accordions — not the data
+                    // binding. (Group `hidden` is typed as string|function, not boolean.)
+                    hidden: (): boolean => true,
                     indexFrom: 1,
                     indexTo: 'series_count',
                     fields: [
                         // Indexed OID — becomes oid1..oidN at runtime, auto-subscribed by vis-2.
                         // Per-series rendering metadata (name/color/type/yAxisIndex) lives in the
-                        // base64 `seriesConfig` blob. Hidden: the modal editor (P3) writes oidN
-                        // directly, so this field exists only as a subscription vehicle.
+                        // base64 `seriesConfig` blob. The modal editor writes oidN directly.
                         {
                             name: 'oid',
                             label: 'oid',
