@@ -9,7 +9,7 @@
 
 import type { PreviewScene } from '../types';
 
-const modules = import.meta.glob('./*.tsx', { eager: true }) as Record<string, { default: PreviewScene }>;
+const modules: Record<string, { default: PreviewScene }> = import.meta.glob('./*.tsx', { eager: true });
 
 export const scenes: Record<string, PreviewScene> = Object.fromEntries(
     Object.values(modules).map(mod => [mod.default.slug, mod.default]),
