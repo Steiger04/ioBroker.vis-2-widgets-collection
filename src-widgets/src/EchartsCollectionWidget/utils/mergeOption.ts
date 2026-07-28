@@ -1,19 +1,23 @@
 /**
- * echarts option merge utilities — the data-wins seam (map decision 03).
+ * echarts option merge utilities — the data-wins seam (ADR-0007, supersedes ADR-0005).
  *
  * @module EchartsCollectionWidget/utils/mergeOption
  * @remarks
- * Four layers merge into the final echarts option, lowest to highest presentation priority:
- *  - `themeBase`        — MUI-derived presentation (text/axis colours, font) from buildEchartsTheme
- *  - `templateDefaults` — presentation defaults for the template (tooltip trigger, grid, …)
- *  - `generated` (G)    — data-driven option (owns `series`, `xAxis`/`yAxis` type+bounds, `legend.data`)
- *  - `userOverrides` (U)— user presentation overrides from the Advanced JSON tab
+ * Three layers merge into the final echarts option. The GUI owns all presentation (ADR-0007),
+ * so the priority is `themeBase` → `userOverrides` (U) → `generated` (G): G wins every collision
+ * with U; U only supplements keys the GUI does not expose.
+ *  - `themeBase`        — MUI-derived presentation (text/axis colours, font) from buildEchartsTheme.
+ *  - `userOverrides` (U)— demoted supplemental presentation from the Advanced JSON tab (keys the
+ *                         GUI does not expose, e.g. `graphic`, exotic `animationEasing`).
+ *  - `generated` (G)    — data-driven option built by the family builder: the series DATA +
+ *                         series names + coordinate system + axis types, PLUS the GUI-authored
+ *                         presentation (per-series styling, chart-wide legend/tooltip/animation/
+ *                         dataZoom/thresholds/visualMap). Wins every collision with U.
  *
- * `series` and `legend.data` are the protected data keys: after the merge they are forced
- * back to G, so a user cannot inject/drop data points or rename the legend from the Advanced
- * box (user-wins power mode is deferred past v1). The rest of `legend` (position, show, …)
- * and `xAxis`/`yAxis` stay deep-merged — G contributes type/bounds and series names, U
- * contributes styling — exactly the hybrid described in decision 03.
+ * The data-binding keys are force-set after the merge: `series[].data` is written back per index
+ * (U may supplement per-series presentation keys it merges UNDER G, but the data points and any
+ * GUI-authored styling always come from G), and `legend.data` is forced back to G's series names.
+ * `title.text` is injected from the live `titleText` field by the body after this merge.
  */
 import type { EChartsOption } from 'echarts';
 
@@ -44,37 +48,45 @@ export const deepMerge = (
 };
 
 /**
- * Merges theme base, template presentation defaults and the generated data option (G),
- * layers the user overrides (U) on top, then forces the generated `series` back so the
- * data binding cannot be broken (data-wins, map decision 03).
+ * Merges the option layers so the GUI owns all presentation (ADR-0007): the theme base is the
+ * floor, the demoted Advanced JSON (U) supplements keys the GUI does not expose, and the
+ * generated option (G) wins every collision — so a stale U value can never silently override a
+ * GUI control. The data-binding keys are then force-set: `series[].data` is written back per
+ * index (U may supplement per-series presentation the GUI does not own, but cannot inject, drop,
+ * rebind, or restyle-over-GUI data) and `legend.data` is forced back to G's series names.
  *
- * @param generated       - G: data-driven option (series, axes, legend.data).
- * @param templateDefaults - Template presentation defaults (tooltip, grid, …).
- * @param userOverrides   - U: user presentation JSON from the Advanced tab.
- * @param themeBase       - MUI-derived presentation base from buildEchartsTheme.
+ * Layer order, lowest → highest priority: `themeBase` → `userOverrides` → `generated`.
+ *
+ * @param generated     - G: data-driven option + GUI-authored presentation (family builder output).
+ * @param userOverrides - U: supplemental presentation JSON from the Advanced tab.
+ * @param themeBase     - MUI-derived presentation base from buildEchartsTheme.
  * @returns The final merged echarts option.
  */
 export const mergeOptionForEcharts = (
     generated: EChartsOption,
-    templateDefaults: Record<string, unknown>,
     userOverrides: Record<string, unknown>,
     themeBase: EChartsOption,
 ): EChartsOption => {
+    // GUI wins: U supplements the floor, G is applied on top so every GUI-owned key wins its
+    // collisions with U (ADR-0007 "the GUI value wins").
     const merged = deepMerge(
-        deepMerge(
-            deepMerge(themeBase as Record<string, unknown>, templateDefaults),
-            generated as Record<string, unknown>,
-        ),
-        userOverrides,
+        deepMerge(themeBase as Record<string, unknown>, userOverrides),
+        generated as Record<string, unknown>,
     );
-    // Protect the data binding: the generated `series` (data points) and `legend.data`
-    // (series names) always win — U must not be able to inject/drop data or rename the
-    // legend from the Advanced box (user-wins power mode is deferred past v1). The rest of
-    // `legend` (position, show, …) and the axes stay deep-merged: G owns type/bounds/names,
-    // U owns styling.
-    if (generated.series !== undefined) {
-        merged.series = generated.series;
+
+    // Force-set the data-binding keys. `series[].data` is forced per index: U may contribute
+    // per-series presentation keys the GUI does not set (deep-merged UNDER G so G wins), but the
+    // data points always come from G — U can never inject, drop, rename, or rebind series.
+    const gSeries = generated.series as ReadonlyArray<Record<string, unknown>> | undefined;
+    const uSeries = (userOverrides.series as ReadonlyArray<Record<string, unknown>> | undefined) ?? [];
+    if (gSeries !== undefined) {
+        merged.series = gSeries.map((g, i) => {
+            const entry = uSeries[i] ? deepMerge(uSeries[i], g) : { ...g };
+            entry.data = g.data;
+            return entry;
+        });
     }
+
     const gLegend = generated.legend as Record<string, unknown> | undefined;
     const mergedLegend = merged.legend as Record<string, unknown> | undefined;
     if (gLegend?.data !== undefined && mergedLegend && !Array.isArray(mergedLegend)) {
