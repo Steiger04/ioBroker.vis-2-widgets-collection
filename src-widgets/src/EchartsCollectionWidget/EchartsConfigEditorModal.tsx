@@ -8,10 +8,28 @@
  * the data-wins merge, the Tabs body (Data | Series | Advanced), and a Reset / Cancel / Apply
  * footer. Wraps its content in a ThemeProvider so it renders correctly detached from the
  * widget tree (JsonTable modal precedent). Apply writes a single merged `onDataChange` patch.
+ *
+ * Honesty contract (mirrors `JsonTableColumnEditorModal`): Apply is disabled until the working
+ * copy diverges from the loaded snapshot (`hasChanges`, deep-equality); a backdrop click while
+ * dirty is intercepted with a warning Snackbar instead of silently discarding; Reset reverts to
+ * the loaded state and flips `hasChanges` back to false.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ThemeProvider } from '@mui/material';
+import {
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Snackbar,
+    ThemeProvider,
+    Typography,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
 import EchartsEditorTabs from './editor/EchartsEditorTabs';
@@ -52,6 +70,10 @@ function EchartsConfigEditorModal({
     const [state, setState] = useState<EditorState>(DEFAULT_EDITOR_STATE);
     /** Series count at load time, so stale `oidN` are cleared on save. */
     const loadedCountRef = useRef(0);
+    /** Serialized snapshot of the loaded state — the deep-equality baseline for `hasChanges`. */
+    const loadedSnapshotRef = useRef('');
+    /** Whether the unsaved-changes warning Snackbar is shown (backdrop click while dirty). */
+    const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
     // (Re)load the editor state from widget data each time the dialog opens.
     useEffect(() => {
@@ -60,8 +82,12 @@ function EchartsConfigEditorModal({
         }
         const loaded = loadEditorState(data as Record<string, unknown>);
         loadedCountRef.current = loaded.series.length;
+        loadedSnapshotRef.current = JSON.stringify(loaded);
         setState(loaded);
     }, [open, data]);
+
+    // Deep-equality vs the loaded snapshot; a full revert flips this back to false.
+    const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 
     const set = useCallback((patch: EditorPatch) => {
         setState(s => ({ ...s, ...patch }));
@@ -80,17 +106,48 @@ function EchartsConfigEditorModal({
         onClose();
     }, [state, onDataChange, onClose]);
 
+    // Intercept backdrop click when dirty — surface the warning, don't silently discard.
+    // Explicit close (X / Cancel / Escape) follows user intent and closes, mirroring JsonTable.
+    const handleClose = useCallback(
+        (_event?: object, reason?: string) => {
+            if (reason === 'backdropClick' && hasChanges) {
+                setShowUnsavedWarning(true);
+                return;
+            }
+            onClose();
+        },
+        [hasChanges, onClose],
+    );
+
+    const titleId = 'echarts-config-editor-title';
+
     const userText = state.userText;
 
     return (
         <ThemeProvider theme={theme}>
             <Dialog
                 open={open}
-                onClose={onClose}
+                onClose={handleClose}
                 maxWidth="lg"
                 fullWidth
+                aria-labelledby={titleId}
             >
-                <DialogTitle>{Generic.t('echarts_editor_title')}</DialogTitle>
+                <DialogTitle
+                    sx={{ py: 1.5, px: 2.5 }}
+                    id={titleId}
+                >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h6">{Generic.t('echarts_editor_title')}</Typography>
+                        <IconButton
+                            onClick={() => handleClose()}
+                            size="small"
+                            sx={{ color: 'text.secondary' }}
+                            aria-label={Generic.t('echarts_editor_close')}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                </DialogTitle>
                 <DialogContent dividers>
                     <Box sx={{ mb: 2 }}>
                         <PreviewBanner
@@ -106,17 +163,31 @@ function EchartsConfigEditorModal({
                         pickerCtx={{ socket, theme, themeType: theme.palette.mode === 'dark' ? 'dark' : 'light' }}
                     />
                 </DialogContent>
-                <DialogActions>
+                <DialogActions sx={{ px: 2.5, py: 1.5 }}>
                     <Button onClick={handleReset}>{Generic.t('echarts_editor_reset')}</Button>
-                    <Button onClick={onClose}>{Generic.t('echarts_editor_cancel')}</Button>
+                    <Button onClick={() => handleClose()}>{Generic.t('echarts_editor_cancel')}</Button>
                     <Button
                         variant="contained"
                         onClick={handleApply}
+                        disabled={!hasChanges}
                     >
                         {Generic.t('echarts_editor_apply')}
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar
+                open={showUnsavedWarning}
+                autoHideDuration={3000}
+                onClose={() => setShowUnsavedWarning(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    severity="warning"
+                    onClose={() => setShowUnsavedWarning(false)}
+                >
+                    {Generic.t('echarts_editor_unsaved_changes')}
+                </Alert>
+            </Snackbar>
         </ThemeProvider>
     );
 }

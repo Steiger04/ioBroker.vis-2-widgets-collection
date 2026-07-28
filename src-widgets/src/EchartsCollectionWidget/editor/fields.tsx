@@ -130,24 +130,24 @@ export const TemplatePicker: FC = () => (
             size="small"
             value="line"
         >
-            <ToggleButton value="line">Line</ToggleButton>
+            <ToggleButton value="line">{Generic.t('echarts_template_line')}</ToggleButton>
             <ToggleButton
                 value="bar"
                 disabled
             >
-                Bar
+                {Generic.t('echarts_template_bar')}
             </ToggleButton>
             <ToggleButton
                 value="pie"
                 disabled
             >
-                Pie
+                {Generic.t('echarts_template_pie')}
             </ToggleButton>
             <ToggleButton
                 value="gauge"
                 disabled
             >
-                Gauge
+                {Generic.t('echarts_template_gauge')}
             </ToggleButton>
         </ToggleButtonGroup>
         <Typography
@@ -393,8 +393,8 @@ export const SeriesList: FC<{ state: EditorState; set: SetEditor; pickerCtx: Oid
                             onChange={e => update(i, { type: e.target.value as EditorSeries['type'] })}
                             sx={{ width: 100 }}
                         >
-                            <MenuItem value="line">Line</MenuItem>
-                            <MenuItem value="bar">Bar</MenuItem>
+                            <MenuItem value="line">{Generic.t('echarts_template_line')}</MenuItem>
+                            <MenuItem value="bar">{Generic.t('echarts_template_bar')}</MenuItem>
                         </TextField>
                         <TextField
                             select
