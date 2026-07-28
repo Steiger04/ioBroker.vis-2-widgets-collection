@@ -37,25 +37,40 @@ export const echartsPalette = (theme: Theme): string[] => [
  * Builds the echarts presentation base from the MUI theme.
  *
  * @param theme - Current MUI theme (resolved by CollectionProvider).
+ * @param forceMode - Optional dark-mode override (`'light' | 'dark'`). When set and different
+ *   from `theme.palette.mode`, the text/axis/divider colours are swapped to a fixed light/dark
+ *   token set so the chart honours the user's dark-mode policy even if the host theme disagrees.
+ *   `'auto'`/`undefined` follows `theme.palette.mode` (the default, ADR-0007 dark-mode policy).
  * @returns An echarts option fragment merged under the generated data option.
  */
-export const buildEchartsTheme = (theme: Theme): EChartsOption => {
+export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): EChartsOption => {
     const p = theme.palette;
+    // Effective mode: the override wins when it is a concrete light/dark and differs from the host.
+    const effectiveMode = forceMode && forceMode !== 'auto' && forceMode !== p.mode ? forceMode : p.mode;
+    const dark = effectiveMode === 'dark';
+    // When the override flips the mode, the host palette no longer matches — use fixed tokens.
+    const textPrimary = dark ? '#e0e0e0' : 'rgba(0,0,0,0.87)';
+    const textSecondary = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
+    const divider = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)';
+    const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
+    const tp = overridden ? textPrimary : p.text.primary;
+    const ts = overridden ? textSecondary : p.text.secondary;
+    const dv = overridden ? divider : p.divider;
     return {
         color: echartsPalette(theme),
         backgroundColor: 'transparent',
-        textStyle: { color: p.text.primary, fontFamily: theme.typography.fontFamily },
-        title: { textStyle: { color: p.text.primary } },
-        legend: { textStyle: { color: p.text.secondary } },
+        textStyle: { color: tp, fontFamily: theme.typography.fontFamily },
+        title: { textStyle: { color: tp } },
+        legend: { textStyle: { color: ts } },
         xAxis: {
-            axisLine: { lineStyle: { color: p.divider } },
-            axisLabel: { color: p.text.secondary },
-            splitLine: { lineStyle: { color: p.divider } },
+            axisLine: { lineStyle: { color: dv } },
+            axisLabel: { color: ts },
+            splitLine: { lineStyle: { color: dv } },
         },
         yAxis: {
-            axisLine: { lineStyle: { color: p.divider } },
-            axisLabel: { color: p.text.secondary },
-            splitLine: { lineStyle: { color: p.divider } },
+            axisLine: { lineStyle: { color: dv } },
+            axisLabel: { color: ts },
+            splitLine: { lineStyle: { color: dv } },
         },
     };
 };

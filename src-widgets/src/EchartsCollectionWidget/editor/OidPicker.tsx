@@ -39,9 +39,16 @@ interface OidPickerProps {
     onChange: (oid: string) => void;
     /** Dialog context (socket + theme). */
     ctx: OidPickerCtx;
+    /**
+     * Restrict the browse dialog to history-enabled states (history/sql/influxdb). Only meaningful
+     * for history-mode series; gauge/radar/live/json bind any state with a current value.
+     *
+     * @default false
+     */
+    historyOnly?: boolean;
 }
 
-export default function OidPicker({ value, onChange, ctx }: OidPickerProps): React.JSX.Element {
+export default function OidPicker({ value, onChange, ctx, historyOnly = false }: OidPickerProps): React.JSX.Element {
     const [open, setOpen] = useState(false);
 
     return (
@@ -67,8 +74,9 @@ export default function OidPicker({ value, onChange, ctx }: OidPickerProps): Rea
                     themeType={ctx.themeType}
                     selected={value || ''}
                     title={Generic.t('oid')}
-                    // Only history-enabled states (history/sql/influxdb custom settings).
-                    customFilter={{ common: { custom: '_dataSources' } }}
+                    // History-enabled states only when explicitly requested (cartesian/pie history);
+                    // gauge/radar/live/json bind any state with a current value.
+                    {...(historyOnly ? { customFilter: { common: { custom: '_dataSources' } } } : {})}
                     onClose={() => setOpen(false)}
                     onOk={(selected): void => {
                         onChange(typeof selected === 'string' ? selected : (selected?.[0] ?? ''));

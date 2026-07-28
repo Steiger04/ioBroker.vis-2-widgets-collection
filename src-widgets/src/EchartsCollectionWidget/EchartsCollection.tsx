@@ -1,21 +1,21 @@
 /**
- * Echarts Collection widget body.
+ * Echarts Collection widget body (v2 multi-type, ADR-0007/0008).
  *
  * @module EchartsCollectionWidget/EchartsCollection
  * @remarks
- * Resolves chart series from the configured data mode and renders a themed line chart:
- *  - `history` — socket.getHistory per OID via {@link useHistory} (polling + early refresh)
- *  - `live`    — rolling buffer of subscribed values (`context.values`), no history fetch
- *  - `json`    — a single JSON-valued OID parsed via {@link parseJsonState}
+ * Resolves the chart per **family** and builds the generated option (G):
+ *  - `cartesian` / `pie` — share the time-series pipeline (`history` = socket.getHistory via
+ *    {@link useHistory}; `live` = rolling buffer of subscribed values; `json` = a JSON-valued
+ *    OID parsed via {@link parseJsonState}). Pie collapses each series to one slice in the builder.
+ *  - `gauge` — the single scalar OID (`oid1`) current value, drawn within the configured range.
+ *  - `radar` — the indicator OIDs (`oid1..oidN`) current values, one polygon.
  *
- * The resolved series + per-series metadata become the generated option (G), merged with the
- * template defaults, the user overrides (U) and the MUI theme base through the data-wins seam
- * (map decision 03). `onStateUpdated` stays empty in the class — the body re-renders on every
- * `state.values` change, which drives live mode. History mode refreshes via the periodic
- * `refreshMs` polling inside {@link useHistory} (the value-driven early refresh was removed:
- * on chatty OIDs it cleared the fetch debounce before it could fire, leaving `loading` stuck).
+ * The family G is merged with the theme base (palette overridden from the resolved series
+ * palette) and the demoted Advanced JSON (U), then `title.text` (live titleText) and
+ * `backgroundColor` (bgColor) are injected. The data-wins force-set (series + legend.data)
+ * lives in {@link mergeOptionForEcharts}.
  */
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -27,71 +27,33 @@ import type { EchartsCollectionContextProps } from '../types';
 import { decodeBlob } from '../lib/encoding';
 
 import EChart from './EChart';
-import { buildEchartsTheme } from './echartsTheme';
-import type { SeriesPoint } from './historyLogic';
+import { buildEchartsTheme, echartsPalette } from './echartsTheme';
+import { createHistoryFetcher } from './historyFetcher';
+import { buildGeneratedOption, familyOf, parseJsonState, parseSeriesConfig, parseUserJson } from './optionBuilder';
 import {
-    LINE_TEMPLATE_DEFAULTS,
-    buildGeneratedOption,
-    parseJsonState,
-    parseSeriesConfig,
-    parseUserJson,
-    type ChartSeries,
-} from './optionBuilder';
+    resolvePalette,
+    toPresentationConfig,
+    decodeChartConfig,
+    decodeMarkLines,
+    TITLE_PLACEMENT,
+} from './presentation';
 import { mergeOptionForEcharts } from './utils/mergeOption';
 import { useHistory } from './useHistory';
+import { useLiveBuffer } from './useLiveBuffer';
 
-/** Relative time range → milliseconds (map decision 02). */
+/** Relative time range → milliseconds (cartesian/pie history mode). */
 const RANGE_MS: Record<string, number> = {
     '24h': 86_400_000,
     '7d': 7 * 86_400_000,
     '30d': 30 * 86_400_000,
 };
 
-/** Maximum points retained per OID in the live rolling buffer. */
-const LIVE_MAX_POINTS = 300;
-
-/**
- * Client-side guard around `socket.getHistory`. ioBroker does not reliably honor the
- * `timeout` option, so without this a non-responding backend (or a misconfigured history
- * adapter) leaves `loading` stuck true forever — the "eternal spinner" symptom.
- */
-const HISTORY_FETCH_TIMEOUT_MS = 12_000;
-
 type ValuesMap = Record<string, ioBroker.StateValue | undefined>;
 
-/**
- * Rolling buffer of recent live values per OID. Appends a point whenever a subscribed value
- * changes (deduped), capped to {@link LIVE_MAX_POINTS}.
- */
-function useLiveBuffer(entries: { oid: string }[], values: ValuesMap, enabled: boolean): Record<string, SeriesPoint[]> {
-    const [buffers, setBuffers] = useState<Record<string, SeriesPoint[]>>({});
-    useEffect(() => {
-        if (!enabled) {
-            return;
-        }
-        const now = Date.now();
-        setBuffers(prev => {
-            let changed = false;
-            const next = { ...prev };
-            for (const e of entries) {
-                const raw = values[`${e.oid}.val`];
-                const num = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
-                const buf = next[e.oid] ?? [];
-                const last = buf[buf.length - 1];
-                if (!last || last[1] !== num) {
-                    const updated = [...buf, [now, num] as SeriesPoint];
-                    if (updated.length > LIVE_MAX_POINTS) {
-                        updated.shift();
-                    }
-                    next[e.oid] = updated;
-                    changed = true;
-                }
-            }
-            return changed ? next : prev;
-        });
-    }, [enabled, entries, values]);
-    return buffers;
-}
+/** Hard ceiling on fetched points per series — protects against absurd history volumes. */
+const MAX_HISTORY_POINTS = 5000;
+
+const toNum = (raw: unknown): number | null => (typeof raw === 'number' && Number.isFinite(raw) ? raw : null);
 
 function EchartsCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as EchartsCollectionContextProps;
@@ -100,15 +62,44 @@ function EchartsCollection(): React.ReactElement {
     const { data: styleData } = useData('oid');
     const jsonValue = useOidValue('jsonOid');
 
+    const chartType = data.chartType ?? 'line';
+    const family = familyOf(chartType);
     const mode = data.mode ?? 'history';
+
     const meta = useMemo(() => parseSeriesConfig(data.seriesConfig), [data.seriesConfig]);
+    const chartConfig = useMemo(() => decodeChartConfig(data.chartConfig), [data.chartConfig]);
+    const markLines = useMemo(() => decodeMarkLines(data.markLines), [data.markLines]);
     const overrides = useMemo(() => {
         const r = parseUserJson(decodeBlob(data.chartOverrides));
         return r.ok ? r.value : {};
     }, [data.chartOverrides]);
-    const themeBase = useMemo(() => buildEchartsTheme(theme), [theme]);
 
-    // Gather the indexed series OIDs (oid1..oidN), auto-subscribed by vis-2.
+    // Resolved series palette: theme default, a named preset, or a custom list.
+    const palette = useMemo(
+        () => resolvePalette(data.paletteSource, data.palettePreset, data.paletteCustom, echartsPalette(theme)),
+        [data.paletteSource, data.palettePreset, data.paletteCustom, theme],
+    );
+    const presentation = useMemo(
+        () =>
+            toPresentationConfig({
+                src: data as unknown as Record<string, unknown>,
+                palette,
+                family,
+                chartConfig,
+                markLines,
+            }),
+        [data, palette, family, chartConfig, markLines],
+    );
+
+    // Theme base, with its series `color` overridden by the resolved palette.
+    const themeBase = useMemo(() => {
+        const base = buildEchartsTheme(theme, data.darkMode);
+        base.color = palette;
+        return base;
+    }, [theme, palette, data.darkMode]);
+
+    // Gather the indexed series OIDs (oid1..oidN), auto-subscribed by vis-2. For cartesian/pie
+    // these are the series; for gauge it is the scalar (oid1); for radar the indicator OIDs.
     const entries = useMemo(() => {
         const count = typeof data.series_count === 'number' ? data.series_count : 0;
         const out: { oid: string; name?: string }[] = [];
@@ -121,88 +112,141 @@ function EchartsCollection(): React.ReactElement {
         return out;
     }, [data, meta]);
 
-    // context.socket is the raw LegacyConnection: getHistory(id, options) returns a Promise
-    // (NOT callback-based — a 3rd-arg callback is silently ignored) and has no internal
-    // timeout, so a non-responding server hangs the promise — and `loading` — forever. Race
-    // the real promise against a client-side timer.
-    const getHistory = useCallback(
-        (
-            id: string,
-            options: ioBroker.GetHistoryOptions,
-        ): Promise<{ ts: number; val: ioBroker.StateValue | null }[]> => {
-            const real = socket.getHistory(id, { ...options, timeout: 10000 }) as Promise<
-                { ts: number; val: ioBroker.StateValue | null }[]
-            >;
-            let timer: ReturnType<typeof setTimeout> | undefined;
-            const timeout = new Promise<never>((_, reject) => {
-                timer = setTimeout(
-                    () => reject(new Error(`History fetch for "${id}" timed out`)),
-                    HISTORY_FETCH_TIMEOUT_MS,
-                );
-            });
-            return Promise.race([real, timeout])
-                .catch(err => {
-                    console.error('[echarts] getHistory failed:', { id, options, error: err });
-                    throw err;
-                })
-                .finally(() => timer && clearTimeout(timer));
-        },
-        [socket],
-    );
+    const getHistory = useMemo(() => createHistoryFetcher(socket), [socket]);
 
     const history = useHistory(getHistory, entries, {
         rangeMs: RANGE_MS[data.timeRange ?? '24h'] ?? RANGE_MS['24h'],
         aggregate: data.aggregate,
-        count: data.count,
+        count: Math.min(data.count ?? 500, MAX_HISTORY_POINTS),
         instance: data.instance,
         refreshMs: data.refreshMs,
         ignoreNull: data.ignoreNull,
-        enabled: mode === 'history' && entries.length > 0,
+        enabled: (family === 'cartesian' || family === 'pie') && mode === 'history' && entries.length > 0,
     });
 
-    // History mode refreshes via periodic `refreshMs` polling inside useHistory (map decision
-    // 02) — the value-driven early refresh was removed: on chatty OIDs it cleared the 200 ms
-    // fetch debounce before it could fire, leaving `loading` stuck.
+    const liveBuffers = useLiveBuffer(
+        entries,
+        values as ValuesMap,
+        (family === 'cartesian' || family === 'pie') && mode === 'live',
+    );
 
-    const liveBuffers = useLiveBuffer(entries, values as ValuesMap, mode === 'live');
-
-    // Resolve the chart series according to the active mode.
-    const series: ChartSeries[] = useMemo(() => {
-        if (mode === 'history') {
-            return history.series.map(s => ({ name: s.name, data: s.data }));
+    // Debounced early refresh (map decision 02): re-fetch soon when a subscribed value changes in
+    // history mode, instead of waiting for the periodic refresh. Driven from the values map the
+    // widget already receives on every state update — no class ↔ body bridge needed.
+    const firstValuesRef = useRef(true);
+    useEffect(() => {
+        if (mode !== 'history' || (family !== 'cartesian' && family !== 'pie') || entries.length === 0) {
+            firstValuesRef.current = true;
+            return;
         }
-        if (mode === 'live') {
-            return entries.map((e, i) => ({
-                name: meta[i]?.name || e.oid,
-                data: liveBuffers[e.oid] ?? [],
-            }));
+        if (firstValuesRef.current) {
+            firstValuesRef.current = false;
+            return; // the mount fetch already covers the initial load
         }
-        const raw = jsonValue === null || jsonValue === undefined ? '' : String(jsonValue);
-        return parseJsonState(raw);
-    }, [mode, history.series, entries, meta, liveBuffers, jsonValue]);
+        const h = setTimeout(() => history.refresh(), 1500);
+        return (): void => clearTimeout(h);
+        // Fire only on value updates; gating conditions are read at fire-time.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [values]);
 
+    // Resolve the generated option per family.
     const option = useMemo(() => {
-        const merged = mergeOptionForEcharts(
-            buildGeneratedOption(series, meta),
-            LINE_TEMPLATE_DEFAULTS,
-            overrides,
-            themeBase,
-        );
-        // titleText is a dedicated live-text field (may hold {oid.val} bindings that vis-2
-        // resolved into rxData). It wins over any U title.text — injected after the merge.
+        let g;
+        if (family === 'gauge') {
+            const value = toNum((values as ValuesMap)[`${entries[0]?.oid}.val`]);
+            g = buildGeneratedOption({ family: 'gauge', value, meta, p: presentation });
+        } else if (family === 'radar') {
+            const count = typeof data.series_count === 'number' ? data.series_count : 0;
+            const vals: (number | null)[] = [];
+            for (let i = 0; i < count; i++) {
+                const oid = data[`oid${i + 1}`];
+                vals.push(oid ? toNum((values as ValuesMap)[`${oid}.val`]) : null);
+            }
+            g = buildGeneratedOption({ family: 'radar', values: vals, meta, p: presentation });
+        } else {
+            // cartesian / pie share the time-series pipeline.
+            let series;
+            if (mode === 'history') {
+                series = history.series.map(s => ({ name: s.name, data: s.data }));
+            } else if (mode === 'live') {
+                series = entries.map((e, i) => ({
+                    name: meta[i]?.name || e.oid,
+                    data: liveBuffers[e.oid] ?? [],
+                }));
+            } else {
+                const raw = jsonValue === null || jsonValue === undefined ? '' : String(jsonValue);
+                series = parseJsonState(raw);
+            }
+            g = buildGeneratedOption({
+                family: family === 'pie' ? 'pie' : 'cartesian',
+                series,
+                meta,
+                p: presentation,
+            });
+        }
+
+        const merged = mergeOptionForEcharts(g, overrides, themeBase);
+        // Live title text (may hold {oid.val} bindings vis-2 resolved) wins over any U title.text.
         const titleText = typeof data.titleText === 'string' ? data.titleText.trim() : '';
         if (titleText) {
-            merged.title = { ...((merged.title as Record<string, unknown> | undefined) ?? {}), text: titleText };
+            merged.title = {
+                ...((merged.title as Record<string, unknown> | undefined) ?? {}),
+                text: titleText,
+                ...TITLE_PLACEMENT[data.titlePos ?? 'topCenter'],
+            };
+        }
+        // Background colour (transparent default).
+        if (presentation.bgColor && presentation.bgColor !== 'transparent') {
+            merged.backgroundColor = presentation.bgColor;
         }
         return merged;
-    }, [series, meta, overrides, themeBase, data.titleText]);
+    }, [
+        family,
+        mode,
+        entries,
+        meta,
+        data,
+        values,
+        history.series,
+        liveBuffers,
+        jsonValue,
+        presentation,
+        overrides,
+        themeBase,
+    ]);
 
-    const loading = mode === 'history' && history.loading;
-    // Surface the first per-series failure too (e.g. a single OID that errored or timed out)
-    // so the user sees a real message instead of the misleading "configure series" placeholder.
-    const seriesError = mode === 'history' ? history.series.find(s => s.error)?.error : undefined;
-    const error = mode === 'history' ? (history.error ?? seriesError ?? null) : null;
-    const hasData = series.some(s => s.data.length > 0);
+    const loading = (family === 'cartesian' || family === 'pie') && mode === 'history' && history.loading;
+    const seriesError =
+        family !== 'gauge' && family !== 'radar' && mode === 'history'
+            ? history.series.find(s => s.error)?.error
+            : undefined;
+    const error =
+        mode === 'history' && family !== 'gauge' && family !== 'radar' ? (history.error ?? seriesError ?? null) : null;
+
+    // hasData differs by family.
+    const hasData = useMemo(() => {
+        if (family === 'gauge') {
+            return toNum((values as ValuesMap)[`${entries[0]?.oid}.val`]) !== null;
+        }
+        if (family === 'radar') {
+            return entries.some(e => toNum((values as ValuesMap)[`${e.oid}.val`]) !== null);
+        }
+        const series = (option.series as unknown[] | undefined) ?? [];
+        return series.some(
+            s =>
+                Array.isArray((s as Record<string, unknown>).data) &&
+                ((s as Record<string, unknown>).data as unknown[]).length > 0,
+        );
+    }, [family, entries, values, option.series]);
+
+    const placeholder =
+        family === 'gauge'
+            ? 'Select a value OID'
+            : family === 'radar'
+              ? 'Add indicator OIDs'
+              : mode === 'json'
+                ? 'Select a JSON OID'
+                : 'Configure series to see data';
 
     return (
         <CollectionBase
@@ -232,7 +276,10 @@ function EchartsCollection(): React.ReactElement {
                     </Typography>
                 )}
                 {hasData ? (
-                    <EChart option={option} />
+                    <EChart
+                        option={option}
+                        renderer={data.renderer}
+                    />
                 ) : error ? null : (
                     <Box
                         sx={{
@@ -247,7 +294,7 @@ function EchartsCollection(): React.ReactElement {
                             variant="body2"
                             color="text.secondary"
                         >
-                            {mode === 'json' ? 'Select a JSON OID' : 'Configure series to see data'}
+                            {placeholder}
                         </Typography>
                     </Box>
                 )}

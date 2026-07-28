@@ -108,6 +108,41 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: '',
         hidden: alwaysHidden,
     },
+
+    // ── Modal-owned presentation scalars (hidden; edited via the modal) ──────────
+    // Defaults mirror DEFAULT_EDITOR_STATE so a fresh widget renders sensibly before the modal
+    // is first opened. yMin/yMax are intentionally NOT declared: `undefined` = auto-axis.
+    { name: 'chartType', type: 'text', default: 'line', hidden: alwaysHidden },
+    { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
+    { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
+    { name: 'legendPos', type: 'text', default: 'top', hidden: alwaysHidden },
+    { name: 'tooltipTrigger', type: 'text', default: 'axis', hidden: alwaysHidden },
+    { name: 'tooltipTemplate', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'tooltipUnits', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'tooltipDecimals', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'animation', type: 'checkbox', default: true, hidden: alwaysHidden },
+    { name: 'animationDuration', type: 'number', default: 600, hidden: alwaysHidden },
+    { name: 'bgColor', type: 'text', default: 'transparent', hidden: alwaysHidden },
+    { name: 'renderer', type: 'text', default: 'canvas', hidden: alwaysHidden },
+    // Cartesian axes + zoom.
+    { name: 'yName', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'yLog', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'yFormat', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'xSplit', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'ySplit', type: 'checkbox', default: true, hidden: alwaysHidden },
+    { name: 'dataZoomSlider', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'dataZoomInside', type: 'checkbox', default: false, hidden: alwaysHidden },
+    // Palette + dark mode (ADR-0007).
+    { name: 'paletteSource', type: 'text', default: 'theme', hidden: alwaysHidden },
+    { name: 'palettePreset', type: 'text', default: 'tableau', hidden: alwaysHidden },
+    { name: 'paletteCustom', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'darkMode', type: 'text', default: 'auto', hidden: alwaysHidden },
+    // Cartesian extras: threshold blob + value→colour visual map.
+    { name: 'markLines', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'visualMapEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'visualMapMin', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'visualMapMax', type: 'number', default: 100, hidden: alwaysHidden },
+    { name: 'visualMapColors', type: 'text', default: '#1976d2;#4caf50;#ff9800;#f44336', hidden: alwaysHidden },
 ];
 
 export default echartsFields;

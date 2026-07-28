@@ -23,20 +23,27 @@ import './echartsRegistration';
 interface EChartProps {
     /** Fully-merged echarts option (theme + template defaults + G + U). */
     option: EChartsOption;
+    /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
+    renderer?: 'canvas' | 'svg';
 }
 
-export default function EChart({ option }: EChartProps): React.JSX.Element {
+export default function EChart({ option, renderer = 'canvas' }: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<ECharts | null>(null);
+    // Keep the latest option so a renderer-triggered re-init can seed the fresh instance without
+    // adding `option` to the init effect's deps (which would dispose/recreate on every data tick).
+    const optionRef = useRef(option);
+    optionRef.current = option;
 
-    // init (Canvas) + ResizeObserver → resize() + dispose on unmount.
+    // init + ResizeObserver → resize() + dispose on unmount OR renderer change.
     useEffect(() => {
         const el = containerRef.current;
         if (!el) {
             return;
         }
-        const chart = init(el, undefined, { renderer: 'canvas' });
+        const chart = init(el, undefined, { renderer });
         chartRef.current = chart;
+        chart.setOption(optionRef.current, { replaceMerge: ['series'] });
 
         const ro = new ResizeObserver(() => chart.resize());
         ro.observe(el);
@@ -46,7 +53,7 @@ export default function EChart({ option }: EChartProps): React.JSX.Element {
             chart.dispose();
             chartRef.current = null;
         };
-    }, []);
+    }, [renderer]);
 
     // setOption on every change — replaceMerge:['series'] handles series add/remove.
     useEffect(() => {

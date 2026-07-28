@@ -1,45 +1,64 @@
 /**
- * echarts option builders — the generated (G) side of the data-wins seam (map decision 03)
- * plus the parsers for the persisted config blobs and the JSON-state payload.
+ * echarts option orchestrator — the generated (G) side dispatcher + the persisted-config
+ * parsers (ADR-0007 GUI-owns-presentation seam, ADR-0008 type-family data model).
  *
  * @module EchartsCollectionWidget/optionBuilder
  * @remarks
- * G owns `series`, `xAxis`, `yAxis`, `legend.data`. It is built from the resolved chart
- * series (history / live / json) plus the per-series rendering metadata stored in the
- * `seriesConfig` blob. The user presentation overrides (`chartOverrides`) are validated by
- * {@link parseUserJson} and merged over G upstream (see mergeOptionForEcharts).
+ * G is built per **chart family** (cartesian / pie / gauge / radar). Each family builder
+ * authors both the data (series points, coordinate system, legend names) AND the GUI-owned
+ * presentation (per-series styling, chart-wide legend/tooltip/animation/dataZoom/thresholds)
+ * into one option fragment. The data-wins seam ({@link mergeOptionForEcharts}) then layers U
+ * (the demoted Advanced JSON) over G and forces only the data-binding keys back.
+ *
+ * The parsers live here (not in the family modules) because they are family-agnostic:
+ * `parseJsonState` (json-mode payload), `parseSeriesConfig` (per-series meta blob),
+ * `parseUserJson` (Advanced-JSON validator).
  */
 import type { EChartsOption } from 'echarts';
 
+import type {
+    EchartsChartFamily,
+    EchartsChartType,
+    EchartsSeriesMeta,
+} from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import type { SeriesPoint } from './historyLogic';
 
-/** Per-series rendering metadata (stored in the `seriesConfig` blob, keyed by index). */
-export interface SeriesMeta {
-    name?: string;
-    color?: string;
-    type?: 'line' | 'bar';
-    yAxisIndex?: 0 | 1;
-}
+import { buildCartesianOption } from './optionBuilders/cartesian';
+import { buildGaugeOption } from './optionBuilders/gauge';
+import { buildPieOption } from './optionBuilders/pie';
+import { buildRadarOption } from './optionBuilders/radar';
+import type { ChartSeries, GeneratedInput, PresentationConfig } from './optionBuilders/types';
 
-/** A resolved series the chart can render. */
-export interface ChartSeries {
-    name: string;
-    data: SeriesPoint[];
-}
+// Re-export the shared builder types so existing imports (`SeriesMeta`, `ChartSeries`) keep working.
+export type { ChartSeries, GeneratedInput, PresentationConfig };
+/** Alias kept for continuity with v1 imports. */
+export type SeriesMeta = EchartsSeriesMeta;
+export type { EchartsChartFamily, EchartsChartType } from '../types/field-definitions/echarts-fields';
 
-/** Template presentation defaults (U-side foundation) for the line template. */
-export const LINE_TEMPLATE_DEFAULTS: Record<string, unknown> = {
-    tooltip: { trigger: 'axis' },
-    grid: { left: 48, right: 18, top: 30, bottom: 28 },
-    legend: { top: 4 },
+/** Map a chart type to its coordinate-system family. */
+export const familyOf = (chartType: EchartsChartType | undefined): EchartsChartFamily => {
+    switch (chartType) {
+        case 'pie':
+            return 'pie';
+        case 'gauge':
+            return 'gauge';
+        case 'radar':
+            return 'radar';
+        case 'bar':
+        case 'area':
+        case 'line':
+        default:
+            return 'cartesian';
+    }
 };
 
 export type UserJsonResult = { ok: true; value: Record<string, unknown> } | { ok: false; error: string };
 
 /**
- * Validate the Advanced JSON (chartOverrides) — must be a JSON object of presentation keys.
- * An empty string is valid (no overrides).
+ * Validate the Advanced JSON (chartOverrides / U) — must be a JSON object of presentation keys.
+ * An empty string is valid (no overrides). Functions are not expressible in JSON, so this
+ * inherently rejects free-JS formatters (ADR-0007).
  */
 export const parseUserJson = (raw: string): UserJsonResult => {
     const trimmed = raw.trim();
@@ -58,13 +77,13 @@ export const parseUserJson = (raw: string): UserJsonResult => {
 };
 
 /** Decode + parse the `seriesConfig` blob into per-series metadata. Empty/invalid → `[]`. */
-export const parseSeriesConfig = (raw: string | undefined | null): SeriesMeta[] => {
+export const parseSeriesConfig = (raw: string | undefined | null): EchartsSeriesMeta[] => {
     if (!raw) {
         return [];
     }
     try {
         const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as SeriesMeta[]) : [];
+        return Array.isArray(parsed) ? (parsed as EchartsSeriesMeta[]) : [];
     } catch {
         return [];
     }
@@ -91,13 +110,7 @@ const normalizePoints = (data: unknown): SeriesPoint[] => {
 
 /**
  * Parse a JSON-state payload (json mode) into chart series.
- *
- * @remarks
- * Auto-detects the shape (map decision 04):
- *  - `{ series: [{ name?, data }] }` — multi-series
- *  - `{ data: [...] }`               — single series
- *  - `[...]` (bare array of points)  — single series
- * Points may be `[ts, val]` pairs or `{ ts|time|x, val|value|y }` objects.
+ * Auto-detects `{ series: [{ name?, data }] }`, `{ data: [...] }`, or a bare array.
  */
 export const parseJsonState = (raw: string | undefined | null): ChartSeries[] => {
     if (!raw) {
@@ -131,36 +144,21 @@ export const parseJsonState = (raw: string | undefined | null): ChartSeries[] =>
 };
 
 /**
- * G — the data-driven option owned by the widget (per seam 03).
+ * G — build the generated option by dispatching to the active family builder.
  *
- * Owns `series`, `xAxis`, `yAxis`, `legend.data`; per-series styling comes from the
- * `seriesConfig` metadata (name / colour / type / yAxisIndex).
- *
- * @param series - Resolved chart series (history / live / json).
- * @param meta - Per-series rendering metadata from the `seriesConfig` blob.
+ * @param input - Discriminated by family; carries the resolved data + meta + presentation.
+ * @returns The G fragment (data + GUI-owned presentation), pre-merge.
  */
-export const buildGeneratedOption = (series: readonly ChartSeries[], meta: readonly SeriesMeta[]): EChartsOption => {
-    const built = series.map((s, i) => {
-        const m = meta[i];
-        const name = m?.name || s.name || `Series ${i + 1}`;
-        const entry: Record<string, unknown> = {
-            name,
-            type: m?.type ?? 'line',
-            yAxisIndex: m?.yAxisIndex ?? 0,
-            smooth: true,
-            showSymbol: false,
-            data: s.data,
-        };
-        if (m?.color) {
-            entry.color = m.color;
-            entry.itemStyle = { color: m.color };
-        }
-        return { name, entry };
-    });
-    return {
-        legend: { data: built.map(x => x.name) },
-        xAxis: { type: 'time' },
-        yAxis: [{ type: 'value' }, { type: 'value' }],
-        series: built.map(x => x.entry) as unknown as EChartsOption['series'],
-    };
+export const buildGeneratedOption = (input: GeneratedInput): EChartsOption => {
+    switch (input.family) {
+        case 'pie':
+            return buildPieOption(input.series, input.meta, input.p);
+        case 'gauge':
+            return buildGaugeOption(input.value, input.meta, input.p);
+        case 'radar':
+            return buildRadarOption(input.values, input.meta, input.p);
+        case 'cartesian':
+        default:
+            return buildCartesianOption(input.series, input.meta, input.p);
+    }
 };

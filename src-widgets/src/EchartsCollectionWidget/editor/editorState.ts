@@ -1,42 +1,67 @@
 /**
- * Editor state + the rxData ↔ EditorState round-trip for the echarts configurator modal.
+ * Editor state + the rxData ↔ EditorState round-trip for the v2 echarts configurator
+ * (ADR-0007 GUI-owns-presentation, ADR-0008 type-family data model).
  *
  * @module EchartsCollectionWidget/editor/editorState
  * @remarks
- * The modal is the sole editor for every chart-specific field (map decision 06). On open it
- * reads the widget rxData (scalars + indexed `oid1..oidN` + the base64 `seriesConfig` /
- * `chartOverrides` blobs) into a single in-memory {@link EditorState}; on Apply it writes a
- * merged `onDataChange` patch back, splitting the series into indexed OIDs (auto-subscribed
- * by vis-2) and the two blobs.
+ * The modal is the sole editor for every chart-specific field. On open it reads the widget
+ * rxData (scalars + indexed `oid1..oidN` + the base64 `seriesConfig` / `chartConfig` /
+ * `chartOverrides` / `markLines` blobs) into one in-memory {@link EditorState}; on Apply it
+ * writes a merged `onDataChange` patch back.
+ *
+ * The indexed `oidN` field is the subscription vehicle (ADR-0006) and its *meaning* is
+ * family-dependent: cartesian/pie → the series OIDs; gauge → the single scalar OID (`oid1`);
+ * radar → the indicator OIDs. `series_count` follows: number of series (cartesian/pie), 1
+ * (gauge), or number of indicators (radar).
  */
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
-import type { SeriesMeta, ChartSeries } from '../optionBuilder';
+import { familyOf } from '../optionBuilder';
+import { decodeChartConfig, decodeMarkLines } from '../presentation';
+import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
+    EchartsChartType,
+    EchartsDarkMode,
+    EchartsGaugeConfig,
     EchartsIgnoreNull,
+    EchartsLegendPos,
+    EchartsMarkLine,
     EchartsMode,
-    EchartsTemplate,
+    EchartsPaletteSource,
+    EchartsPieConfig,
+    EchartsRadarConfig,
+    EchartsRenderer,
     EchartsTimeRange,
+    EchartsTitlePos,
+    EchartsTooltipTrigger,
 } from '../../types/field-definitions/echarts-fields';
 
-// Aliases of the single-source unions (echarts-fields.d.ts), kept under the shorter names
-// the editor UI historically uses.
+// Aliases of the single-source unions (echarts-fields.d.ts), under the short editor names.
 export type ChartMode = EchartsMode;
-export type ChartTemplate = EchartsTemplate;
 export type TimeRange = EchartsTimeRange;
 export type Aggregate = EchartsAggregate;
 export type IgnoreNull = EchartsIgnoreNull;
 
-/** A series as edited in the modal (metadata + its bound OID). */
+/** A series as edited in the modal (rendering metadata + its bound OID). */
 export interface EditorSeries extends SeriesMeta {
-    /** Indexed rxData OID (`oidN`); empty when unset. */
+    /** Indexed rxData OID (`oidN`); empty when unset. (Unused for radar polygons.) */
     oid: string;
+}
+
+/** Visual-map editor state (value→colour scale). */
+export interface EditorVisualMap {
+    enabled: boolean;
+    min: number;
+    max: number;
+    /** `;`/`,`-separated colour stops. */
+    colors: string;
 }
 
 /** In-memory state of the configurator modal. */
 export interface EditorState {
-    template: ChartTemplate;
+    // family & data mode
+    chartType: EchartsChartType;
     mode: ChartMode;
     timeRange: TimeRange;
     aggregate: Aggregate;
@@ -45,21 +70,50 @@ export interface EditorState {
     instance: string;
     ignoreNull: IgnoreNull;
     jsonOid: string;
+    // title
+    titleText: string;
+    titlePos: EchartsTitlePos;
+    // series (cartesian/pie full; gauge/radar = label+colour of the single polygon)
     series: EditorSeries[];
+    // family config
+    gauge: EchartsGaugeConfig;
+    radar: EchartsRadarConfig;
+    pie: EchartsPieConfig;
+    // chart-wide presentation
+    legendShow: boolean;
+    legendPos: EchartsLegendPos;
+    tooltipTrigger: EchartsTooltipTrigger;
+    tooltipTemplate: string;
+    tooltipUnits: string;
+    tooltipDecimals: number;
+    animation: boolean;
+    animationDuration: number;
+    bgColor: string;
+    yMin: string;
+    yMax: string;
+    yName: string;
+    yLog: boolean;
+    yFormat: string;
+    xSplit: boolean;
+    ySplit: boolean;
+    dataZoomSlider: boolean;
+    dataZoomInside: boolean;
+    paletteSource: EchartsPaletteSource;
+    palettePreset: string;
+    paletteCustom: string;
+    darkMode: EchartsDarkMode;
+    renderer: EchartsRenderer;
+    markLines: EchartsMarkLine[];
+    visualMap: EditorVisualMap;
     /** Decoded Advanced JSON text (the chartOverrides / U side). */
     userText: string;
-    /**
-     * Chart title text — may contain vis-2 `{oid.val}` bindings; vis-2 resolves them into
-     * rxData, so the body reads the live-resolved string and injects it as `title.text`.
-     */
-    titleText: string;
 }
 
 export type EditorPatch = Partial<EditorState>;
 export type SetEditor = (patch: EditorPatch) => void;
 
 export const DEFAULT_EDITOR_STATE: EditorState = {
-    template: 'line',
+    chartType: 'line',
     mode: 'history',
     timeRange: '24h',
     aggregate: 'average',
@@ -68,22 +122,43 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     instance: '',
     ignoreNull: 'keep',
     jsonOid: '',
-    series: [],
-    userText: '',
     titleText: '',
+    titlePos: 'topCenter',
+    series: [],
+    gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
+    radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [] },
+    pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' },
+    legendShow: true,
+    legendPos: 'top',
+    tooltipTrigger: 'axis',
+    tooltipTemplate: '',
+    tooltipUnits: '',
+    tooltipDecimals: 0,
+    animation: true,
+    animationDuration: 600,
+    bgColor: 'transparent',
+    yMin: '',
+    yMax: '',
+    yName: '',
+    yLog: false,
+    yFormat: '',
+    xSplit: false,
+    ySplit: true,
+    dataZoomSlider: false,
+    dataZoomInside: false,
+    paletteSource: 'theme',
+    palettePreset: 'tableau',
+    paletteCustom: '',
+    darkMode: 'auto',
+    renderer: 'canvas',
+    markLines: [],
+    visualMap: { enabled: false, min: 0, max: 100, colors: '#1976d2;#4caf50;#ff9800;#f44336' },
+    userText: '',
 };
 
-/** Parse a persisted blob (b64-prefixed JSON) into a value, or `undefined`. */
-const decodeJson = (raw: unknown): unknown => {
-    if (typeof raw !== 'string' || !raw) {
-        return undefined;
-    }
-    try {
-        return JSON.parse(decodeBlob(raw));
-    } catch {
-        return undefined;
-    }
-};
+const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
+const strOr = (v: unknown, dft = ''): string => (typeof v === 'string' ? v : dft);
+const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
 /**
  * Load the editor state from the widget rxData.
@@ -91,39 +166,104 @@ const decodeJson = (raw: unknown): unknown => {
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
  */
 export const loadEditorState = (data: Record<string, unknown>): EditorState => {
-    const seriesCount = typeof data.series_count === 'number' ? data.series_count : 0;
-    const metaRaw = decodeJson(data.seriesConfig);
-    const meta: SeriesMeta[] = Array.isArray(metaRaw) ? (metaRaw as SeriesMeta[]) : [];
+    const chartType = (data.chartType as EchartsChartType) ?? 'line';
+    const family = familyOf(chartType);
+    const seriesCount = numOr(data.series_count, 0);
 
-    const series: EditorSeries[] = [];
-    for (let i = 1; i <= seriesCount; i++) {
-        const oidRaw = data[`oid${i}`];
-        const oid = typeof oidRaw === 'string' && oidRaw !== 'nothing_selected' ? oidRaw : '';
-        const m = meta[i - 1] ?? {};
-        series.push({
-            oid,
-            name: m.name,
-            color: m.color,
-            type: m.type,
-            yAxisIndex: m.yAxisIndex,
-        });
+    // seriesConfig → per-index meta (name/colour/type/...)
+    let meta: SeriesMeta[] = [];
+    try {
+        const metaRaw = data.seriesConfig ? JSON.parse(decodeBlob(data.seriesConfig as string)) : [];
+        meta = Array.isArray(metaRaw) ? (metaRaw as SeriesMeta[]) : [];
+    } catch {
+        meta = [];
     }
 
-    const userText = typeof data.chartOverrides === 'string' ? decodeBlob(data.chartOverrides) : '';
+    const chartConfig = decodeChartConfig(data.chartConfig as string);
+    const oidAt = (i: number): string => {
+        const v = data[`oid${i + 1}`];
+        return typeof v === 'string' && v !== 'nothing_selected' ? v : '';
+    };
+
+    let series: EditorSeries[];
+    let radar: EchartsRadarConfig;
+    if (family === 'radar') {
+        // oidN = indicator OIDs; meta[0] = polygon label/colour.
+        const indicators = (chartConfig.radar?.indicators ?? []).map((ind, i) => ({
+            name: ind.name,
+            max: ind.max,
+            oid: ind.oid || oidAt(i),
+        }));
+        radar = { ...(chartConfig.radar ?? DEFAULT_EDITOR_STATE.radar), indicators };
+        series = [
+            {
+                oid: '',
+                name: meta[0]?.name ?? '',
+                color: meta[0]?.color,
+            },
+        ];
+    } else if (family === 'gauge') {
+        series = [{ oid: oidAt(0), name: meta[0]?.name, color: meta[0]?.color }];
+        radar = DEFAULT_EDITOR_STATE.radar;
+    } else {
+        // cartesian / pie: oidN = series OIDs, 1:1 with meta.
+        series = [];
+        for (let i = 0; i < seriesCount; i++) {
+            series.push({ oid: oidAt(i), ...(meta[i] ?? {}) });
+        }
+        radar = DEFAULT_EDITOR_STATE.radar;
+    }
+
+    const vm = {
+        enabled: boolOr(data.visualMapEnabled, false),
+        min: numOr(data.visualMapMin, 0),
+        max: numOr(data.visualMapMax, 100),
+        colors: strOr(data.visualMapColors, '#1976d2;#4caf50;#ff9800;#f44336'),
+    };
 
     return {
         ...DEFAULT_EDITOR_STATE,
+        chartType,
         mode: (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode,
         timeRange: (data.timeRange as TimeRange) ?? DEFAULT_EDITOR_STATE.timeRange,
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
-        count: typeof data.count === 'number' ? data.count : DEFAULT_EDITOR_STATE.count,
-        refreshMs: typeof data.refreshMs === 'number' ? data.refreshMs : DEFAULT_EDITOR_STATE.refreshMs,
-        instance: typeof data.instance === 'string' ? data.instance : '',
+        count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
+        refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
+        instance: strOr(data.instance, ''),
         ignoreNull: (data.ignoreNull as IgnoreNull) ?? DEFAULT_EDITOR_STATE.ignoreNull,
-        jsonOid: typeof data.jsonOid === 'string' && data.jsonOid !== 'nothing_selected' ? data.jsonOid : '',
+        jsonOid: strOr(data.jsonOid, '') === 'nothing_selected' ? '' : strOr(data.jsonOid, ''),
+        titleText: strOr(data.titleText, ''),
+        titlePos: (data.titlePos as EchartsTitlePos) ?? DEFAULT_EDITOR_STATE.titlePos,
         series,
-        userText,
-        titleText: typeof data.titleText === 'string' ? data.titleText : '',
+        gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
+        radar,
+        pie: chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie,
+        legendShow: boolOr(data.legendShow, true),
+        legendPos: (data.legendPos as EchartsLegendPos) ?? DEFAULT_EDITOR_STATE.legendPos,
+        tooltipTrigger: (data.tooltipTrigger as EchartsTooltipTrigger) ?? (family === 'cartesian' ? 'axis' : 'item'),
+        tooltipTemplate: strOr(data.tooltipTemplate, ''),
+        tooltipUnits: strOr(data.tooltipUnits, ''),
+        tooltipDecimals: numOr(data.tooltipDecimals, 0),
+        animation: boolOr(data.animation, true),
+        animationDuration: numOr(data.animationDuration, 600),
+        bgColor: strOr(data.bgColor, 'transparent'),
+        yMin: typeof data.yMin === 'number' ? String(data.yMin) : '',
+        yMax: typeof data.yMax === 'number' ? String(data.yMax) : '',
+        yName: strOr(data.yName, ''),
+        yLog: boolOr(data.yLog, false),
+        yFormat: strOr(data.yFormat, ''),
+        xSplit: boolOr(data.xSplit, false),
+        ySplit: boolOr(data.ySplit, true),
+        dataZoomSlider: boolOr(data.dataZoomSlider, false),
+        dataZoomInside: boolOr(data.dataZoomInside, false),
+        paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
+        palettePreset: strOr(data.palettePreset, 'tableau') || 'tableau',
+        paletteCustom: strOr(data.paletteCustom, ''),
+        darkMode: (data.darkMode as EchartsDarkMode) ?? DEFAULT_EDITOR_STATE.darkMode,
+        renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
+        markLines: decodeMarkLines(data.markLines as string),
+        visualMap: vm,
+        userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
     };
 };
 
@@ -131,11 +271,44 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
  * Build the merged `onDataChange` patch from the editor state.
  *
  * @param state - Current editor state.
- * @param previousCount - Previously loaded series count, so stale `oidN` beyond the new
- *   count are cleared (vis-2 unsubscribes empty OIDs).
+ * @param previousCount - Previously loaded series count, so stale `oidN` are cleared.
  */
-export const saveEditorState = (state: EditorState, previousCount = state.series.length): Record<string, unknown> => {
+export const saveEditorState = (state: EditorState, previousCount = 0): Record<string, unknown> => {
+    const family = familyOf(state.chartType);
+
+    // series_count + oidN source depend on family.
+    let seriesCount: number;
+    let oidList: string[];
+    let metaBlob: SeriesMeta[];
+    if (family === 'radar') {
+        seriesCount = state.radar.indicators.length;
+        oidList = state.radar.indicators.map(ind => ind.oid || '');
+        metaBlob = [
+            {
+                name: state.series[0]?.name,
+                color: state.series[0]?.color,
+            },
+        ];
+    } else if (family === 'gauge') {
+        seriesCount = 1;
+        oidList = [state.series[0]?.oid ?? ''];
+        metaBlob = [{ name: state.series[0]?.name, color: state.series[0]?.color }];
+    } else {
+        seriesCount = state.series.length;
+        oidList = state.series.map(s => s.oid || '');
+        metaBlob = state.series.map(({ oid: _oid, ...rest }) => rest);
+    }
+
+    const numOrEmpty = (s: string): number | '' => {
+        if (s === '' || s === undefined) {
+            return '';
+        }
+        const n = Number(s);
+        return Number.isFinite(n) ? n : '';
+    };
+
     const patch: Record<string, unknown> = {
+        chartType: state.chartType,
         mode: state.mode,
         timeRange: state.timeRange,
         aggregate: state.aggregate,
@@ -145,35 +318,59 @@ export const saveEditorState = (state: EditorState, previousCount = state.series
         ignoreNull: state.ignoreNull,
         jsonOid: state.jsonOid,
         titleText: state.titleText,
-        series_count: state.series.length,
-        // Per-series rendering metadata (oid stays out of the blob — vis-2 subscribes it).
-        seriesConfig: encodeBlob(
-            JSON.stringify(
-                state.series.map(({ name, color, type, yAxisIndex }) => ({ name, color, type, yAxisIndex })),
-            ),
+        titlePos: state.titlePos,
+        series_count: seriesCount,
+        legendShow: state.legendShow,
+        legendPos: state.legendPos,
+        tooltipTrigger: state.tooltipTrigger,
+        tooltipTemplate: state.tooltipTemplate,
+        tooltipUnits: state.tooltipUnits,
+        tooltipDecimals: state.tooltipDecimals,
+        animation: state.animation,
+        animationDuration: state.animationDuration,
+        bgColor: state.bgColor,
+        yMin: numOrEmpty(state.yMin),
+        yMax: numOrEmpty(state.yMax),
+        yName: state.yName,
+        yLog: state.yLog,
+        yFormat: state.yFormat,
+        xSplit: state.xSplit,
+        ySplit: state.ySplit,
+        dataZoomSlider: state.dataZoomSlider,
+        dataZoomInside: state.dataZoomInside,
+        paletteSource: state.paletteSource,
+        palettePreset: state.palettePreset,
+        paletteCustom: state.paletteCustom,
+        darkMode: state.darkMode,
+        renderer: state.renderer,
+        visualMapEnabled: state.visualMap.enabled,
+        visualMapMin: state.visualMap.min,
+        visualMapMax: state.visualMap.max,
+        visualMapColors: state.visualMap.colors,
+        // blobs
+        seriesConfig: encodeBlob(JSON.stringify(metaBlob)),
+        chartConfig: encodeBlob(
+            JSON.stringify({
+                gauge: state.gauge,
+                radar: state.radar,
+                pie: state.pie,
+            }),
         ),
         chartOverrides: encodeBlob(state.userText),
+        markLines: encodeBlob(JSON.stringify(state.markLines)),
     };
-    const max = Math.max(state.series.length, previousCount);
-    for (let i = 1; i <= max; i++) {
-        patch[`oid${i}`] = i <= state.series.length ? state.series[i - 1].oid || '' : '';
+    const max = Math.max(seriesCount, previousCount);
+    for (let i = 0; i < max; i++) {
+        patch[`oid${i + 1}`] = i < oidList.length ? oidList[i] : '';
     }
     return patch;
 };
 
-/**
- * Build deterministic synthetic series for the editor live preview (no live ioBroker in the
- * modal). Mirrors the proto's stable dummy data so the preview shows coloured lines.
- */
-export const buildPreviewSeries = (series: EditorSeries[], now: number): ChartSeries[] => {
-    const HOUR = 3_600_000;
-    return series.map((s, i) => ({
-        name: s.name || `Series ${i + 1}`,
-        data: Array.from({ length: 24 }, (_, k) => {
-            const ts = now - (23 - k) * HOUR;
-            const base = 18 + i * 6;
-            const val = base + Math.sin((k + i * 2) / 3) * 4 + k * 0.3;
-            return [ts, Number(val.toFixed(2))] as [number, number | null];
-        }),
-    }));
-};
+// Re-export the config types the editor UI imports.
+export type {
+    EchartsGaugeConfig,
+    EchartsRadarConfig,
+    EchartsPieConfig,
+    EchartsVisualMapConfig,
+    EchartsMarkLine,
+} from '../../types/field-definitions/echarts-fields';

@@ -1,18 +1,13 @@
 /**
- * Modal dialog for the echarts chart configuration.
+ * Split-layout modal dialog for the v2 echarts configurator (Q3 split layout, Q6 real preview).
  *
  * @module EchartsCollectionWidget/EchartsConfigEditorModal
  * @remarks
- * Opens as a MUI Dialog from the custom attribute button. Owns a working copy of the
- * {@link EditorState} (loaded from widget rxData on open), shows a live preview banner fed by
- * the data-wins merge, the Tabs body (Data | Series | Advanced), and a Reset / Cancel / Apply
- * footer. Wraps its content in a ThemeProvider so it renders correctly detached from the
- * widget tree (JsonTable modal precedent). Apply writes a single merged `onDataChange` patch.
- *
- * Honesty contract (mirrors `JsonTableColumnEditorModal`): Apply is disabled until the working
- * copy diverges from the loaded snapshot (`hasChanges`, deep-equality); a backdrop click while
- * dirty is intercepted with a warning Snackbar instead of silently discarding; Reset reverts to
- * the loaded state and flips `hasChanges` back to false.
+ * Left column: the config tabs (Data | Series | Darstellung | Axes&Zoom | Advanced). Right column:
+ * a persistent **real-data** preview fed by {@link ChartPreview} (the user's actual OIDs, live —
+ * not synthetic fixtures). The honesty contract is preserved: a working copy buffers edits, Apply
+ * is disabled until it diverges (`hasChanges`, deep-equality), a backdrop click while dirty is
+ * intercepted with a warning, Reset reverts. Wraps in a ThemeProvider for correct detached rendering.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -32,8 +27,8 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
+import ChartPreview from './editor/ChartPreview';
 import EchartsEditorTabs from './editor/EchartsEditorTabs';
-import { PreviewBanner } from './editor/fields';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -45,17 +40,11 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
 interface EchartsConfigEditorModalProps {
-    /** Whether the dialog is open. */
     open: boolean;
-    /** Callback when the dialog should close. */
     onClose: () => void;
-    /** Current widget data (read on open). */
     data: WidgetData;
-    /** Callback invoked with the partial data patch on Apply. */
     onDataChange: (newData: WidgetData) => void;
-    /** vis-2 theme for the modal's own ThemeProvider. */
     theme: VisTheme;
-    /** Socket, drilled to the OID picker (SelectID dialog). */
     socket: LegacyConnection;
 }
 
@@ -68,11 +57,8 @@ function EchartsConfigEditorModal({
     socket,
 }: EchartsConfigEditorModalProps): React.JSX.Element {
     const [state, setState] = useState<EditorState>(DEFAULT_EDITOR_STATE);
-    /** Series count at load time, so stale `oidN` are cleared on save. */
     const loadedCountRef = useRef(0);
-    /** Serialized snapshot of the loaded state — the deep-equality baseline for `hasChanges`. */
     const loadedSnapshotRef = useRef('');
-    /** Whether the unsaved-changes warning Snackbar is shown (backdrop click while dirty). */
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
     // (Re)load the editor state from widget data each time the dialog opens.
@@ -81,12 +67,13 @@ function EchartsConfigEditorModal({
             return;
         }
         const loaded = loadEditorState(data as Record<string, unknown>);
-        loadedCountRef.current = loaded.series.length;
+        // The number of indexed `oidN` fields to clear on save. For radar the indicators (not the
+        // single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
+        loadedCountRef.current = loaded.chartType === 'radar' ? loaded.radar.indicators.length : loaded.series.length;
         loadedSnapshotRef.current = JSON.stringify(loaded);
         setState(loaded);
     }, [open, data]);
 
-    // Deep-equality vs the loaded snapshot; a full revert flips this back to false.
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 
     const set = useCallback((patch: EditorPatch) => {
@@ -97,8 +84,7 @@ function EchartsConfigEditorModal({
     }, []);
 
     const handleReset = useCallback(() => {
-        const loaded = loadEditorState(data as Record<string, unknown>);
-        setState(loaded);
+        setState(loadEditorState(data as Record<string, unknown>));
     }, [data]);
 
     const handleApply = useCallback(() => {
@@ -107,7 +93,6 @@ function EchartsConfigEditorModal({
     }, [state, onDataChange, onClose]);
 
     // Intercept backdrop click when dirty — surface the warning, don't silently discard.
-    // Explicit close (X / Cancel / Escape) follows user intent and closes, mirroring JsonTable.
     const handleClose = useCallback(
         (_event?: object, reason?: string) => {
             if (reason === 'backdropClick' && hasChanges) {
@@ -120,8 +105,6 @@ function EchartsConfigEditorModal({
     );
 
     const titleId = 'echarts-config-editor-title';
-
-    const userText = state.userText;
 
     return (
         <ThemeProvider theme={theme}>
@@ -148,20 +131,61 @@ function EchartsConfigEditorModal({
                         </IconButton>
                     </Box>
                 </DialogTitle>
-                <DialogContent dividers>
-                    <Box sx={{ mb: 2 }}>
-                        <PreviewBanner
-                            state={state}
-                            userText={userText}
-                        />
+                <DialogContent
+                    dividers
+                    sx={{ p: 0 }}
+                >
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: 420 }}>
+                        {/* Left: config tabs */}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minWidth: 0,
+                                p: 2,
+                                borderRight: { md: 1 },
+                                borderColor: { md: 'divider' },
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <EchartsEditorTabs
+                                state={state}
+                                set={set}
+                                userText={state.userText}
+                                setUserText={setUserText}
+                                pickerCtx={{
+                                    socket,
+                                    theme,
+                                    themeType: theme.palette.mode === 'dark' ? 'dark' : 'light',
+                                }}
+                            />
+                        </Box>
+                        {/* Right: persistent real-data preview */}
+                        <Box
+                            sx={{
+                                width: { xs: '100%', md: 380 },
+                                flexShrink: 0,
+                                p: 2,
+                                bgcolor: 'action.hover',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ mb: 1 }}
+                            >
+                                {Generic.t('echarts_editor_preview')}
+                            </Typography>
+                            <Box sx={{ flex: 1, minHeight: 320 }}>
+                                <ChartPreview
+                                    state={state}
+                                    socket={socket}
+                                    theme={theme}
+                                />
+                            </Box>
+                        </Box>
                     </Box>
-                    <EchartsEditorTabs
-                        state={state}
-                        set={set}
-                        userText={userText}
-                        setUserText={setUserText}
-                        pickerCtx={{ socket, theme, themeType: theme.palette.mode === 'dark' ? 'dark' : 'light' }}
-                    />
                 </DialogContent>
                 <DialogActions sx={{ px: 2.5, py: 1.5 }}>
                     <Button onClick={handleReset}>{Generic.t('echarts_editor_reset')}</Button>
