@@ -57,8 +57,22 @@ const toNum = (raw: unknown): number | null => (typeof raw === 'number' && Numbe
 
 function EchartsCollection(): React.ReactElement {
     const context = useContext(CollectionContext) as EchartsCollectionContextProps;
-    const { widget, socket, values, theme } = context;
-    const data = widget.data;
+    const { widget, socket, theme } = context;
+
+    // Stabilize data + values by content, not reference. vis-2 hands out NEW content-identical
+    // refs on a pure editor move: getDerivedStateFromProps clones rxData on every style change
+    // (even though only top/left differ), and the applyBindings → onStateChanged → setState path
+    // re-clones values (rxStyle genuinely differs on a move, so the host's deep-equal guard still
+    // fires setState). Left raw, that referential churn invalidates the option useMemo →
+    // chart.setOption fires → the chart redraws on a mere move. Keying on serialized content
+    // keeps the ref stable when nothing changed (useHistory.ts convention); a real data/value
+    // change alters the key → new ref → the option recomputes → setOption redraws, as intended.
+    const dataKey = JSON.stringify(widget.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const data = useMemo(() => widget.data, [dataKey]);
+    const valuesKey = JSON.stringify(context.values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const values = useMemo(() => context.values, [valuesKey]);
     const { data: styleData } = useData('oid');
     const jsonValue = useOidValue('jsonOid');
 
@@ -74,10 +88,37 @@ function EchartsCollection(): React.ReactElement {
         return r.ok ? r.value : {};
     }, [data.chartOverrides]);
 
+    // Content signature of the chart-relevant theme fields. vis-2 rebuilds the MUI theme on a
+    // mere editor move (moving changes `widget.style` top/left → `useStyles` recomputes → the
+    // `overrides`-layered theme gets a new ref), so keying `palette`/`themeBase` on the `theme`
+    // REFERENCE would churn them on every move → `presentation` → `option` → a pointless chart
+    // redraw. The chart consumes only these primitive fields (palette colours + mode + text/
+    // divider colours + font family), all strings — safe to serialize. A move leaves them
+    // identical, so the signature is stable → `palette`/`themeBase` stay referentially stable →
+    // no redraw. A real theme change alters the signature → recomputes, as intended.
+    const themeSig = useMemo(() => {
+        const p = theme.palette;
+        return JSON.stringify({
+            mode: p.mode,
+            primary: p.primary.main,
+            secondary: p.secondary.main,
+            warning: p.warning.main,
+            success: p.success.main,
+            info: p.info.main,
+            error: p.error.main,
+            textPrimary: p.text.primary,
+            textSecondary: p.text.secondary,
+            divider: p.divider,
+            fontFamily: theme.typography.fontFamily,
+        });
+    }, [theme]);
+
     // Resolved series palette: theme default, a named preset, or a custom list.
+    // Keyed on `themeSig` (content), not the `theme` ref — see themeSig comment.
     const palette = useMemo(
         () => resolvePalette(data.paletteSource, data.palettePreset, data.paletteCustom, echartsPalette(theme)),
-        [data.paletteSource, data.palettePreset, data.paletteCustom, theme],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [data.paletteSource, data.palettePreset, data.paletteCustom, themeSig],
     );
     const presentation = useMemo(
         () =>
@@ -92,11 +133,13 @@ function EchartsCollection(): React.ReactElement {
     );
 
     // Theme base, with its series `color` overridden by the resolved palette.
+    // Keyed on `themeSig` (content), not the `theme` ref — see themeSig comment.
     const themeBase = useMemo(() => {
         const base = buildEchartsTheme(theme, data.darkMode);
         base.color = palette;
         return base;
-    }, [theme, palette, data.darkMode]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [themeSig, palette, data.darkMode]);
 
     // Gather the indexed series OIDs (oid1..oidN), auto-subscribed by vis-2. For cartesian/pie
     // these are the series; for gauge it is the scalar (oid1); for radar the indicator OIDs.
