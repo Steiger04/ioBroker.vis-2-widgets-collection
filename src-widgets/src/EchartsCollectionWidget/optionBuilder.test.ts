@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
 import { buildGeneratedOption, familyOf, parseJsonState, parseSeriesConfig, parseUserJson } from './optionBuilder';
+import type { EchartsChartType } from '../types/field-definitions/echarts-fields';
 import type { PresentationConfig } from './optionBuilders/types';
 
 /** Minimal cartesian presentation config for tests. */
@@ -162,11 +163,15 @@ describe('parseSeriesConfig', () => {
 });
 
 describe('familyOf', () => {
-    it('maps cartesian types to "cartesian"', () => {
-        expect(familyOf('line')).toBe('cartesian');
-        expect(familyOf('bar')).toBe('cartesian');
-        expect(familyOf('area')).toBe('cartesian');
+    it('maps the cartesian family to "cartesian"', () => {
+        expect(familyOf('cartesian')).toBe('cartesian');
         expect(familyOf(undefined)).toBe('cartesian');
+    });
+    it('tolerates legacy per-series chartType values without migration', () => {
+        // Legacy widgets may still store 'line'/'bar'/'area' in chartType (ADR-0008 addendum).
+        expect(familyOf('line' as EchartsChartType)).toBe('cartesian');
+        expect(familyOf('bar' as EchartsChartType)).toBe('cartesian');
+        expect(familyOf('area' as EchartsChartType)).toBe('cartesian');
     });
     it('maps the exotic types to their own family', () => {
         expect(familyOf('pie')).toBe('pie');

@@ -24,8 +24,17 @@
 /** Cartesian series sub-type (the per-series override within the cartesian family). */
 export type EchartsCartesianType = 'line' | 'bar' | 'area';
 
-/** The whole-chart family, chosen by the configurator's master type selector. */
-export type EchartsChartType = EchartsCartesianType | 'pie' | 'gauge' | 'radar';
+/**
+ * The whole-chart family, chosen by the configurator's master type selector (ADR-0008).
+ *
+ * @remarks
+ * The master selector is **family-only**: line/bar/area are NOT chosen at chart level — they are
+ * the cartesian per-series sub-type ({@link EchartsCartesianType} / `EchartsSeriesMeta.type`),
+ * edited per series in the Series tab. Legacy widgets may still store `'line'|'bar'|'area'` here;
+ * `familyOf` tolerates them (default → cartesian) **without** an auto-migration — they are
+ * normalised to `'cartesian'` only when the user re-saves after picking the family explicitly.
+ */
+export type EchartsChartType = 'cartesian' | 'pie' | 'gauge' | 'radar';
 
 /** Coordinate-system family derived from {@link EchartsChartType}. */
 export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
@@ -182,7 +191,7 @@ export interface EchartsVisualMapConfig {
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
-    /** Whole-chart family. Drives the data shape and which binding UI applies. @default 'line' */
+    /** Whole-chart family. Drives the data shape and which binding UI applies. @default 'cartesian' */
     chartType?: EchartsChartType;
 
     /** Data source mode. @default 'history' */

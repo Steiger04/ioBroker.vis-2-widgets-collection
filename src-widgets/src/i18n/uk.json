@@ -234,6 +234,7 @@
     "echarts_type": "Тип діаграми",
     "echarts_type_area": "Площинна",
     "echarts_type_bar": "Стовпчикова",
+    "echarts_type_cartesian": "Декартів",
     "echarts_type_gauge": "Датчик",
     "echarts_type_line": "Лінійна",
     "echarts_type_pie": "Кругова",

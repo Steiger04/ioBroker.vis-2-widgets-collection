@@ -112,8 +112,11 @@ export interface EditorState {
 export type EditorPatch = Partial<EditorState>;
 export type SetEditor = (patch: EditorPatch) => void;
 
+/** Default visualMap colour scale — a CSS gradient (the single gradient picker's native format). */
+const DEFAULT_VMAP_COLORS = 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)';
+
 export const DEFAULT_EDITOR_STATE: EditorState = {
-    chartType: 'line',
+    chartType: 'cartesian',
     mode: 'history',
     timeRange: '24h',
     aggregate: 'average',
@@ -152,7 +155,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     darkMode: 'auto',
     renderer: 'canvas',
     markLines: [],
-    visualMap: { enabled: false, min: 0, max: 100, colors: '#1976d2;#4caf50;#ff9800;#f44336' },
+    visualMap: { enabled: false, min: 0, max: 100, colors: DEFAULT_VMAP_COLORS },
     userText: '',
 };
 
@@ -166,7 +169,7 @@ const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? 
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
  */
 export const loadEditorState = (data: Record<string, unknown>): EditorState => {
-    const chartType = (data.chartType as EchartsChartType) ?? 'line';
+    const chartType = (data.chartType as EchartsChartType) ?? 'cartesian';
     const family = familyOf(chartType);
     const seriesCount = numOr(data.series_count, 0);
 
@@ -218,7 +221,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         enabled: boolOr(data.visualMapEnabled, false),
         min: numOr(data.visualMapMin, 0),
         max: numOr(data.visualMapMax, 100),
-        colors: strOr(data.visualMapColors, '#1976d2;#4caf50;#ff9800;#f44336'),
+        colors: strOr(data.visualMapColors, DEFAULT_VMAP_COLORS),
     };
 
     return {

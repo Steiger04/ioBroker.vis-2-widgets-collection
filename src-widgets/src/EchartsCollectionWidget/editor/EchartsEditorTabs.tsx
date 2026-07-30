@@ -11,6 +11,7 @@ import { useEffect, useState, type FC } from 'react';
 import { Box, Tab, Tabs, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
+import { familyOf } from '../optionBuilder';
 import { ChartTypePicker, FieldLabel, ModeSelect } from './controls';
 import AdvancedPanel from './panels/AdvancedPanel';
 import AppearancePanel from './panels/AppearancePanel';
@@ -32,8 +33,9 @@ const GAP = 2;
 
 type TabKey = 'data' | 'series' | 'appearance' | 'axes' | 'advanced';
 
-const isCartesian = (chartType: EditorState['chartType']): boolean =>
-    chartType === 'line' || chartType === 'bar' || chartType === 'area';
+// Cartesian is derived via familyOf so a legacy widget still storing 'line'/'bar'/'area'
+// (no auto-migration, ADR-0008 addendum) keeps its cartesian-only tabs.
+const isCartesian = (chartType: EditorState['chartType']): boolean => familyOf(chartType) === 'cartesian';
 
 const EchartsEditorTabs: FC<EchartsEditorTabsProps> = ({ state, set, userText, setUserText, pickerCtx }) => {
     const [tab, setTab] = useState<TabKey>('data');

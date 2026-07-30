@@ -122,7 +122,10 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                     <AccordionSummary expandIcon={<ExpandIcon />}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', pr: 1 }}>
                             <ReadOnlySwatch color={s.color ?? slot(i)} />
-                            <Typography noWrap>
+                            <Typography
+                                noWrap
+                                sx={{ flex: 1, minWidth: 0 }}
+                            >
                                 {s.name || `Series ${i + 1}`}{' '}
                                 <Typography
                                     component="span"
@@ -132,6 +135,18 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     {s.oid ? `· ${s.oid}` : ''}
                                 </Typography>
                             </Typography>
+                            {/* Delete on the summary so no expand is needed; stopPropagation keeps
+                                the click from toggling the accordion. */}
+                            <IconButton
+                                size="small"
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    remove(i);
+                                }}
+                                aria-label={Generic.t('echarts_editor_series_remove')}
+                            >
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
                         </Box>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -183,13 +198,6 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     ]}
                                 />
                             )}
-                            <IconButton
-                                size="small"
-                                onClick={() => remove(i)}
-                                aria-label={Generic.t('echarts_editor_series_remove')}
-                            >
-                                <DeleteIcon fontSize="small" />
-                            </IconButton>
                         </Box>
 
                         {/* Type-sensitive presentation knobs (cartesian only). */}

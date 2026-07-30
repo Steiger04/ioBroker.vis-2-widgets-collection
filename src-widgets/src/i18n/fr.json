@@ -234,6 +234,7 @@
     "echarts_type": "Type de graphique",
     "echarts_type_area": "Aire",
     "echarts_type_bar": "Barres",
+    "echarts_type_cartesian": "Cartésien",
     "echarts_type_gauge": "Jauge",
     "echarts_type_line": "Ligne",
     "echarts_type_pie": "Secteurs",

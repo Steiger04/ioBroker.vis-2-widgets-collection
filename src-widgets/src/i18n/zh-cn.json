@@ -234,6 +234,7 @@
     "echarts_type": "图表类型",
     "echarts_type_area": "面积图",
     "echarts_type_bar": "柱状图",
+    "echarts_type_cartesian": "笛卡尔",
     "echarts_type_gauge": "仪表盘",
     "echarts_type_line": "折线图",
     "echarts_type_pie": "饼图",

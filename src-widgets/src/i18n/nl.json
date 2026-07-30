@@ -234,6 +234,7 @@
     "echarts_type": "Grafiektype",
     "echarts_type_area": "Oppervlak",
     "echarts_type_bar": "Staaf",
+    "echarts_type_cartesian": "Cartesisch",
     "echarts_type_gauge": "Meter",
     "echarts_type_line": "Lijn",
     "echarts_type_pie": "Taart",

@@ -234,6 +234,7 @@
     "echarts_type": "Diagrammtyp",
     "echarts_type_area": "Fläche",
     "echarts_type_bar": "Balken",
+    "echarts_type_cartesian": "Kartesisch",
     "echarts_type_gauge": "Tacho",
     "echarts_type_line": "Linie",
     "echarts_type_pie": "Torte",

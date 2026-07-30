@@ -234,6 +234,7 @@
     "echarts_type": "Typ wykresu",
     "echarts_type_area": "Obszarowy",
     "echarts_type_bar": "Słupkowy",
+    "echarts_type_cartesian": "Kartezjański",
     "echarts_type_gauge": "Miernik",
     "echarts_type_line": "Liniowy",
     "echarts_type_pie": "Kołowy",

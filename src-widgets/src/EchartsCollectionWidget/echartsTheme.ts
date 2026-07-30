@@ -33,13 +33,21 @@ export const echartsPalette = (theme: Theme): string[] => [
     theme.palette.error.main,
 ];
 
+/** Canvas colour used when a dark-mode override flips the mode away from the host (ADR-0007 dark-mode). */
+const DARK_BG = '#1e1e1e';
+/** Canvas colour used when a light-mode override flips the mode away from the host. */
+const LIGHT_BG = '#ffffff';
+
 /**
  * Builds the echarts presentation base from the MUI theme.
  *
  * @param theme - Current MUI theme (resolved by CollectionProvider).
  * @param forceMode - Optional dark-mode override (`'light' | 'dark'`). When set and different
  *   from `theme.palette.mode`, the text/axis/divider colours are swapped to a fixed light/dark
- *   token set so the chart honours the user's dark-mode policy even if the host theme disagrees.
+ *   token set so the chart honours the user's dark-mode policy even if the host theme disagrees,
+ *   AND the canvas `backgroundColor` is set to a matching dark/light token so a forced-dark chart
+ *   is actually drawn dark (light text needs a dark canvas). A user-set `bgColor` still overrides
+ *   it — the body/preview forces it back after the merge.
  *   `'auto'`/`undefined` follows `theme.palette.mode` (the default, ADR-0007 dark-mode policy).
  * @returns An echarts option fragment merged under the generated data option.
  */
@@ -56,9 +64,14 @@ export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | '
     const tp = overridden ? textPrimary : p.text.primary;
     const ts = overridden ? textSecondary : p.text.secondary;
     const dv = overridden ? divider : p.divider;
+    // When the override flips the mode, paint a matching canvas so the chart reads as a coherent
+    // dark/light chart (light text needs a dark canvas and vice versa) — not just recoloured text on
+    // a transparent background. When following the host, stay transparent and inherit the host bg.
+    // A user-set bgColor (≠ 'transparent') still wins: the body/preview overrides this after merge.
+    const backgroundColor = overridden ? (dark ? DARK_BG : LIGHT_BG) : 'transparent';
     return {
         color: echartsPalette(theme),
-        backgroundColor: 'transparent',
+        backgroundColor,
         textStyle: { color: tp, fontFamily: theme.typography.fontFamily },
         title: { textStyle: { color: tp } },
         legend: { textStyle: { color: ts } },

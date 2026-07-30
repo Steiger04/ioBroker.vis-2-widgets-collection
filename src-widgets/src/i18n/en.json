@@ -234,6 +234,7 @@
     "echarts_type": "Chart type",
     "echarts_type_area": "Area",
     "echarts_type_bar": "Bar",
+    "echarts_type_cartesian": "Cartesian",
     "echarts_type_gauge": "Gauge",
     "echarts_type_line": "Line",
     "echarts_type_pie": "Pie",

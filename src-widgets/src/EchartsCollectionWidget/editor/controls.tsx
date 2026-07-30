@@ -12,6 +12,7 @@ import type React from 'react';
 import { Box, MenuItem, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
+import { familyOf } from '../optionBuilder';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -150,26 +151,30 @@ export const CheckField: FC<{ label: string; value: boolean; onChange: (v: boole
 
 // ── master selectors (top row) ────────────────────────────────────
 
-const CHART_TYPES: ReadonlyArray<[EchartsChartType, string]> = [
-    ['line', 'echarts_type_line'],
-    ['bar', 'echarts_type_bar'],
-    ['area', 'echarts_type_area'],
+// The master selector is a coordinate-system FAMILY switch (ADR-0008). line/bar/area are NOT
+// chart-level choices — within cartesian they are the per-series sub-type edited in the Series tab.
+const CHART_FAMILIES: ReadonlyArray<[EchartsChartType, string]> = [
+    ['cartesian', 'echarts_type_cartesian'],
     ['pie', 'echarts_type_pie'],
     ['gauge', 'echarts_type_gauge'],
     ['radar', 'echarts_type_radar'],
 ];
 
-/** The real family switch (line/bar/area/pie/gauge/radar). Replaces the v1 decorative picker. */
+/**
+ * The master selector — a family switch (cartesian / pie / gauge / radar). The value is normalised
+ * through `familyOf` so a legacy widget still storing `'line'|'bar'|'area'` highlights the
+ * cartesian button without rewriting the stored data (no auto-migration, ADR-0008 addendum).
+ */
 export const ChartTypePicker: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
     <Box>
         <FieldLabel>{Generic.t('echarts_type')}</FieldLabel>
         <ToggleButtonGroup
             exclusive
             size="small"
-            value={state.chartType}
+            value={familyOf(state.chartType)}
             onChange={(_, v: EchartsChartType | null) => v && set({ chartType: v })}
         >
-            {CHART_TYPES.map(([v, label]) => (
+            {CHART_FAMILIES.map(([v, label]) => (
                 <ToggleButton
                     key={v}
                     value={v}

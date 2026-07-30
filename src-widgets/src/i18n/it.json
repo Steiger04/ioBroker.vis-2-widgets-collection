@@ -234,6 +234,7 @@
     "echarts_type": "Tipo grafico",
     "echarts_type_area": "Area",
     "echarts_type_bar": "Barra",
+    "echarts_type_cartesian": "Cartesiano",
     "echarts_type_gauge": "Misuratore",
     "echarts_type_line": "Linea",
     "echarts_type_pie": "Torta",

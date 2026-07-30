@@ -234,6 +234,7 @@
     "echarts_type": "Тип диаграммы",
     "echarts_type_area": "С областями",
     "echarts_type_bar": "Столбчатая",
+    "echarts_type_cartesian": "Декартов",
     "echarts_type_gauge": "Индикатор",
     "echarts_type_line": "Линейная",
     "echarts_type_pie": "Круговая",
