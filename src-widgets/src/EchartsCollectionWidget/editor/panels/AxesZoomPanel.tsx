@@ -12,7 +12,7 @@ import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material
 
 import Generic from '../../../Generic';
 import { CheckField, FieldLabel, NumberField, SectionLabel, TextField2 } from '../controls';
-import ColorField, { ColorListField } from '../colorFields';
+import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
@@ -164,12 +164,15 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                     onChange={v => set({ visualMap: { ...state.visualMap, max: v } })}
                 />
             </Box>
+            {/* A value→colour scale is a gradient: one gradient picker (allowGradient) supplies
+                the whole scale; presentation parses it into the ordered colour array echarts needs. */}
             <Box sx={{ mt: 1, maxWidth: 260 }}>
                 <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
-                <ColorListField
+                <ColorField
                     value={state.visualMap.colors}
-                    onChange={v => set({ visualMap: { ...state.visualMap, colors: v } })}
+                    onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
                     ctx={pickerCtx}
+                    allowGradient
                 />
             </Box>
         </Box>

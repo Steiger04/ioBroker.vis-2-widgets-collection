@@ -3,8 +3,10 @@
  *
  * @module EchartsCollectionWidget/EChart
  * @remarks
- * Lifecycle: `init` (Canvas) → `setOption` (with `replaceMerge: ['series']` so series
- * add/remove is handled) → `resize` on container dimension change → `dispose` on unmount.
+ * Lifecycle: `init` (Canvas) → `setOption` (with `replaceMerge: ['series', 'dataZoom',
+ * 'visualMap']` so series add/remove AND disabling dataZoom/visualMap take effect — without
+ * `dataZoom`/`visualMap` in replaceMerge, echarts MERGES and keeps a stale component after the
+ * builder stops emitting it) → `resize` on container dimension change → `dispose` on unmount.
  *
  * The wrapper is presentation-merge-free: callers (the widget body and the editor preview)
  * pass the ALREADY fully-merged option — theme base + template defaults + generated data + user
@@ -43,7 +45,7 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         }
         const chart = init(el, undefined, { renderer });
         chartRef.current = chart;
-        chart.setOption(optionRef.current, { replaceMerge: ['series'] });
+        chart.setOption(optionRef.current, { replaceMerge: ['series', 'dataZoom', 'visualMap'] });
 
         const ro = new ResizeObserver(() => chart.resize());
         ro.observe(el);
@@ -55,9 +57,10 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         };
     }, [renderer]);
 
-    // setOption on every change — replaceMerge:['series'] handles series add/remove.
+    // setOption on every change — replaceMerge covers series add/remove and the conditional
+    // dataZoom/visualMap components (so disabling them removes them, not just stops updating).
     useEffect(() => {
-        chartRef.current?.setOption(option, { replaceMerge: ['series'] });
+        chartRef.current?.setOption(option, { replaceMerge: ['series', 'dataZoom', 'visualMap'] });
     }, [option]);
 
     return (

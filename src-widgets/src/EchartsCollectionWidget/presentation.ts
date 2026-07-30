@@ -20,6 +20,7 @@ import type {
     EchartsVisualMapConfig,
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
+import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import type { PresentationConfig } from './optionBuilders/types';
 
 /** Map the title-position union to the echarts `title.left/top` pair (all positions are top row). */
@@ -82,6 +83,19 @@ const parseCustomPalette = (raw: string | undefined): string[] =>
         .filter(Boolean);
 
 /**
+ * Parse a visualMap colour scale into the ordered colour array echarts `inRange.color` needs.
+ *
+ * A value→colour scale IS a gradient, so the preferred source is a single CSS gradient string
+ * (one gradient picker). The gradient is checked FIRST because it contains commas — the legacy
+ * `;`/`,`-separated list split must not run on a gradient string. A legacy `;`-separated list
+ * (older widgets) is still accepted as a fallback.
+ */
+const parseColorScale = (raw: string | undefined): string[] => {
+    const stops = extractGradientColors(raw);
+    return stops && stops.length ? stops : parseCustomPalette(raw);
+};
+
+/**
  * Resolve the active series palette from its source.
  *
  * @param source - 'theme' | 'preset' | 'custom'.
@@ -125,7 +139,7 @@ export const toPresentationConfig = (opts: {
               enabled: true,
               min: num(s.visualMapMin) ?? 0,
               max: num(s.visualMapMax) ?? 100,
-              colors: parseCustomPalette(s.visualMapColors as string | undefined),
+              colors: parseColorScale(s.visualMapColors as string | undefined),
           }
         : undefined;
 

@@ -351,3 +351,30 @@ export function extractColorFromValue(value: string | null | undefined): string 
         return null;
     }
 }
+
+/**
+ * Extracts the ordered colour stops from a CSS gradient string.
+ *
+ * Unlike {@link extractColorFromValue} (which interpolates ONE representative colour at 50%),
+ * this returns every stop colour in gradient order — for consumers that need the full stop list.
+ * echarts `visualMap.inRange.color` is exactly such a consumer: a value→colour scale IS a
+ * gradient, represented as an ordered colour array.
+ *
+ * @param value - Colour value (gradient or solid).
+ * @returns Ordered colour strings (hex/rgb/rgba) in gradient order, or `null` if `value` is not a
+ *   gradient.
+ * @example
+ * extractGradientColors('linear-gradient(90deg, #ff0000 0%, #0000ff 100%)') // → ['#ff0000', '#0000ff']
+ * extractGradientColors('#ff0000') // → null (solid colour, not a gradient)
+ */
+export function extractGradientColors(value: string | null | undefined): string[] | null {
+    if (value == null || typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    if (!trimmed || !COLOR_PATTERNS.GRADIENT_PREFIX.test(trimmed)) {
+        return null;
+    }
+    const stops = parseGradientColorStops(trimmed);
+    return stops && stops.length ? stops.map(stop => stop.color) : null;
+}
