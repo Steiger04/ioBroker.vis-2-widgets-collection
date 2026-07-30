@@ -37,13 +37,12 @@ export type SeriesMeta = EchartsSeriesMeta;
 export type { EchartsChartFamily, EchartsChartType } from '../types/field-definitions/echarts-fields';
 
 /**
- * Map a chart type to its coordinate-system family.
- *
- * `cartesian` and the `default` arm also cover legacy widgets that still store the per-series
- * sub-type (`'line'|'bar'|'area'`) in `chartType` — there is no auto-migration (ADR-0008
- * addendum), so those values fall through to the cartesian family here.
+ * Derive the coordinate-system family from the concrete {@link EchartsChartType} (ADR-0008
+ * addendum r3). line/bar/area → cartesian; pie/gauge/radar → themselves. The `default` arm also
+ * covers a legacy widget still storing the family-only value `'cartesian'` (no auto-migration),
+ * rendering it as the cartesian family (default line).
  */
-export const familyOf = (chartType: EchartsChartType | undefined): EchartsChartFamily => {
+export const familyOf = (chartType: EchartsChartType | 'cartesian' | undefined): EchartsChartFamily => {
     switch (chartType) {
         case 'pie':
             return 'pie';
@@ -51,7 +50,10 @@ export const familyOf = (chartType: EchartsChartType | undefined): EchartsChartF
             return 'gauge';
         case 'radar':
             return 'radar';
-        case 'cartesian':
+        case 'line':
+        case 'bar':
+        case 'area':
+        case 'cartesian': // legacy family-only value
         default:
             return 'cartesian';
     }

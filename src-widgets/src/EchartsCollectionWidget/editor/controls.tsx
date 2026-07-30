@@ -12,7 +12,6 @@ import type React from 'react';
 import { Box, MenuItem, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
-import { familyOf } from '../optionBuilder';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -151,19 +150,126 @@ export const CheckField: FC<{ label: string; value: boolean; onChange: (v: boole
 
 // ── master selectors (top row) ────────────────────────────────────
 
-// The master selector is a coordinate-system FAMILY switch (ADR-0008). line/bar/area are NOT
-// chart-level choices — within cartesian they are the per-series sub-type edited in the Series tab.
-const CHART_FAMILIES: ReadonlyArray<[EchartsChartType, string]> = [
-    ['cartesian', 'echarts_type_cartesian'],
-    ['pie', 'echarts_type_pie'],
-    ['gauge', 'echarts_type_gauge'],
-    ['radar', 'echarts_type_radar'],
+// The primary chart-type selector is a 2×3 icon grid of the six concrete chart types
+// (ADR-0008 addendum r3). It is the single, authoritative type choice: it sets the family (derived)
+// and the type every non-overridden series inherits. The glyphs are hand-drawn monochrome SVG at
+// currentColor so they theme with the editor and stay quiet (the one signature element).
+const Glyph: FC<{ children: React.ReactNode }> = ({ children }) => (
+    <svg
+        viewBox="0 0 24 24"
+        width={22}
+        height={22}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+    >
+        {children}
+    </svg>
+);
+const LineGlyph: FC = () => (
+    <Glyph>
+        <polyline points="3,17 9,11 13,14 21,6" />
+    </Glyph>
+);
+const BarGlyph: FC = () => (
+    <Glyph>
+        <line
+            x1="6"
+            y1="20"
+            x2="6"
+            y2="11"
+        />
+        <line
+            x1="12"
+            y1="20"
+            x2="12"
+            y2="5"
+        />
+        <line
+            x1="18"
+            y1="20"
+            x2="18"
+            y2="14"
+        />
+    </Glyph>
+);
+const AreaGlyph: FC = () => (
+    <Glyph>
+        <polygon
+            points="3,17 9,11 13,14 21,6 21,21 3,21"
+            fill="currentColor"
+            stroke="none"
+            opacity={0.25}
+        />
+        <polyline points="3,17 9,11 13,14 21,6" />
+    </Glyph>
+);
+const PieGlyph: FC = () => (
+    <Glyph>
+        <circle
+            cx="12"
+            cy="12"
+            r="8"
+        />
+        <line
+            x1="12"
+            y1="12"
+            x2="12"
+            y2="4"
+        />
+        <line
+            x1="12"
+            y1="12"
+            x2="18.5"
+            y2="15"
+        />
+    </Glyph>
+);
+const GaugeGlyph: FC = () => (
+    <Glyph>
+        <path d="M4 18 A8 8 0 0 1 20 18" />
+        <line
+            x1="12"
+            y1="18"
+            x2="15.5"
+            y2="11"
+        />
+    </Glyph>
+);
+const RadarGlyph: FC = () => (
+    <Glyph>
+        <polygon points="12,4 20.5,18 3.5,18" />
+        <line
+            x1="12"
+            y1="4"
+            x2="12"
+            y2="18"
+        />
+        <line
+            x1="3.5"
+            y1="18"
+            x2="20.5"
+            y2="18"
+        />
+    </Glyph>
+);
+
+const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon: React.ReactNode }> = [
+    { value: 'line', label: 'echarts_type_line', icon: <LineGlyph /> },
+    { value: 'bar', label: 'echarts_type_bar', icon: <BarGlyph /> },
+    { value: 'area', label: 'echarts_type_area', icon: <AreaGlyph /> },
+    { value: 'pie', label: 'echarts_type_pie', icon: <PieGlyph /> },
+    { value: 'gauge', label: 'echarts_type_gauge', icon: <GaugeGlyph /> },
+    { value: 'radar', label: 'echarts_type_radar', icon: <RadarGlyph /> },
 ];
 
 /**
- * The master selector — a family switch (cartesian / pie / gauge / radar). The value is normalised
- * through `familyOf` so a legacy widget still storing `'line'|'bar'|'area'` highlights the
- * cartesian button without rewriting the stored data (no auto-migration, ADR-0008 addendum).
+ * The primary selector — a 2×3 icon grid of the six chart types. The value is the concrete
+ * `chartType` (the editor normalises a legacy `'cartesian'` to a concrete type on load, so one of
+ * the six is always highlighted).
  */
 export const ChartTypePicker: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
     <Box>
@@ -171,15 +277,23 @@ export const ChartTypePicker: FC<{ state: EditorState; set: SetEditor }> = ({ st
         <ToggleButtonGroup
             exclusive
             size="small"
-            value={familyOf(state.chartType)}
+            value={state.chartType}
             onChange={(_, v: EchartsChartType | null) => v && set({ chartType: v })}
+            sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, width: '100%' }}
         >
-            {CHART_FAMILIES.map(([v, label]) => (
+            {CHART_TYPES.map(({ value, label, icon }) => (
                 <ToggleButton
-                    key={v}
-                    value={v}
+                    key={value}
+                    value={value}
+                    sx={{ flexDirection: 'column', gap: 0.25, py: 0.75, textTransform: 'none' }}
                 >
-                    {Generic.t(label)}
+                    {icon}
+                    <Typography
+                        component="span"
+                        variant="caption"
+                    >
+                        {Generic.t(label)}
+                    </Typography>
                 </ToggleButton>
             ))}
         </ToggleButtonGroup>

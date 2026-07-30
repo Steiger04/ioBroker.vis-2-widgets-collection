@@ -1,16 +1,15 @@
 /**
- * Appearance tab — type-independent chart-wide presentation (ADR-0007, Q5).
+ * Appearance tab — chart-wide presentation, grouped into sections (ADR-0007/0008 r3, Q3).
  *
  * @module EchartsCollectionWidget/editor/panels/AppearancePanel
  * @remarks
- * The chart-type-independent layer: title position, legend, tooltip (template + OID-bindings +
- * units/decimals), animation, background, the global palette (theme/preset/custom), and the
- * dark-mode policy. Pie-global knobs (donut radius / rose / label) live here too.
+ * The chart-type-independent look: Titel · Legende · Tooltip · (Pie-global) · Hintergrund &
+ * Animation · Palette · Farbskala (visualMap, cartesian only). visualMap moved here from the
+ * cartesian Axes/Zoom tab because it is a colour concern, not a coordinate-system one.
  *
- * Every colour input (background, palette stops) goes through the shared
+ * Every colour input (background, palette stops, visualMap scale) goes through the shared
  * `CollectionGradientColorPicker`. The palette section shows a live swatch preview of the resolved
- * palette + a single source dropdown (Theme / presets / Custom) — clearer than the old
- * source-then-preset pair, and the preview makes the "palette has an effect" fact visible.
+ * palette + a single source dropdown (Theme / presets / Custom).
  */
 import type { FC } from 'react';
 import { Box, useTheme } from '@mui/material';
@@ -40,6 +39,7 @@ const paletteChoice = (state: EditorState): string =>
 const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
     const theme = useTheme();
     const isPie = state.chartType === 'pie';
+    const isCartesian = !isPie && state.chartType !== 'gauge' && state.chartType !== 'radar';
     // Palette source options with localized labels (presets keep their proper-name label).
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
@@ -169,7 +169,7 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                 </>
             )}
 
-            {/* Animation + background */}
+            {/* Background & animation (output/render policy) */}
             <SectionLabel>{Generic.t('echarts_appearance_general')}</SectionLabel>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
                 <CheckField
@@ -189,6 +189,16 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                     options={[
                         ['canvas', Generic.t('echarts_renderer_canvas')],
                         ['svg', Generic.t('echarts_renderer_svg')],
+                    ]}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_dark_mode')}
+                    value={state.darkMode}
+                    onChange={v => set({ darkMode: v as EditorState['darkMode'] })}
+                    options={[
+                        ['auto', Generic.t('echarts_dark_auto')],
+                        ['light', Generic.t('echarts_dark_light')],
+                        ['dark', Generic.t('echarts_dark_dark')],
                     ]}
                 />
             </Box>
@@ -221,26 +231,16 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                     />
                 ))}
             </Box>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
                 <LabeledSelect
                     label={Generic.t('echarts_palette_source')}
                     value={paletteChoice(state)}
                     onChange={onPaletteChoice}
                     options={paletteOptions}
                 />
-                <LabeledSelect
-                    label={Generic.t('echarts_dark_mode')}
-                    value={state.darkMode}
-                    onChange={v => set({ darkMode: v as EditorState['darkMode'] })}
-                    options={[
-                        ['auto', Generic.t('echarts_dark_auto')],
-                        ['light', Generic.t('echarts_dark_light')],
-                        ['dark', Generic.t('echarts_dark_dark')],
-                    ]}
-                />
             </Box>
             {state.paletteSource === 'custom' && (
-                <Box sx={{ mt: 1.5, maxWidth: 260 }}>
+                <Box sx={{ mb: 2, maxWidth: 260 }}>
                     <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
                     <ColorListField
                         value={state.paletteCustom}
@@ -248,6 +248,43 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                         ctx={pickerCtx}
                     />
                 </Box>
+            )}
+
+            {/* Value→colour scale (cartesian only — it maps the value axis to a colour gradient). */}
+            {isCartesian && (
+                <>
+                    <SectionLabel hint={Generic.t('echarts_visualmap_hint')}>
+                        {Generic.t('echarts_visualmap')}
+                    </SectionLabel>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+                        <CheckField
+                            label={Generic.t('echarts_visualmap_enable')}
+                            value={state.visualMap.enabled}
+                            onChange={v => set({ visualMap: { ...state.visualMap, enabled: v } })}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_visualmap_min')}
+                            value={state.visualMap.min}
+                            onChange={v => set({ visualMap: { ...state.visualMap, min: v } })}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_visualmap_max')}
+                            value={state.visualMap.max}
+                            onChange={v => set({ visualMap: { ...state.visualMap, max: v } })}
+                        />
+                    </Box>
+                    {/* A value→colour scale is a gradient: one gradient picker (allowGradient) supplies
+                        the whole scale; presentation parses it into the ordered colour array echarts needs. */}
+                    <Box sx={{ maxWidth: 260 }}>
+                        <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
+                        <ColorField
+                            value={state.visualMap.colors}
+                            onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
+                            ctx={pickerCtx}
+                            allowGradient
+                        />
+                    </Box>
+                </>
             )}
         </Box>
     );

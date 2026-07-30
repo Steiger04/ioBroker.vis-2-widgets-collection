@@ -9,6 +9,7 @@
  * body and the editor preview because the field names match.
  */
 import type {
+    EchartsCartesianType,
     EchartsChartFamily,
     EchartsGaugeConfig,
     EchartsLegendPos,
@@ -143,6 +144,13 @@ export const toPresentationConfig = (opts: {
           }
         : undefined;
 
+    // The cartesian chart type is the default series type inherited by non-overridden series
+    // (ADR-0008 addendum r3: the top selector is authoritative; per-series type is opt-in).
+    const cartesianType: EchartsCartesianType =
+        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar' || s.chartType === 'area')
+            ? (s.chartType as EchartsCartesianType)
+            : 'line';
+
     return {
         legendShow: bool(s.legendShow, true),
         legendPos: (s.legendPos as EchartsLegendPos) ?? 'top',
@@ -153,6 +161,7 @@ export const toPresentationConfig = (opts: {
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
         bgColor: str(s.bgColor, 'transparent'),
+        cartesianType,
         yMin: num(s.yMin),
         yMax: num(s.yMax),
         yName: typeof s.yName === 'string' ? s.yName : '',

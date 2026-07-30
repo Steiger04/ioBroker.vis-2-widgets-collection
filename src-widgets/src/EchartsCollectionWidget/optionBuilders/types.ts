@@ -10,6 +10,7 @@
 import type { EChartsOption } from 'echarts';
 
 import type {
+    EchartsCartesianType,
     EchartsGaugeConfig,
     EchartsLegendPos,
     EchartsMarkLine,
@@ -42,6 +43,8 @@ export interface PresentationConfig {
     animationDuration: number;
     bgColor: string;
     // cartesian-only
+    /** Default cartesian series type (the chart type) inherited by any series without an explicit override. */
+    cartesianType: EchartsCartesianType;
     yMin?: number;
     yMax?: number;
     yName?: string;

@@ -62,7 +62,7 @@ function EchartsCollection(): React.ReactElement {
     const { data: styleData } = useData('oid');
     const jsonValue = useOidValue('jsonOid');
 
-    const chartType = data.chartType ?? 'cartesian';
+    const chartType = data.chartType ?? 'line';
     const family = familyOf(chartType);
     const mode = data.mode ?? 'history';
 

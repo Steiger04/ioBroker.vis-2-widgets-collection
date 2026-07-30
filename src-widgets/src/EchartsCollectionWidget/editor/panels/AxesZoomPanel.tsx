@@ -144,37 +144,6 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
             >
                 {Generic.t('echarts_threshold_add')}
             </Button>
-
-            {/* Value→colour visualMap */}
-            <SectionLabel hint={Generic.t('echarts_visualmap_hint')}>{Generic.t('echarts_visualmap')}</SectionLabel>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                <CheckField
-                    label={Generic.t('echarts_visualmap_enable')}
-                    value={state.visualMap.enabled}
-                    onChange={v => set({ visualMap: { ...state.visualMap, enabled: v } })}
-                />
-                <NumberField
-                    label={Generic.t('echarts_visualmap_min')}
-                    value={state.visualMap.min}
-                    onChange={v => set({ visualMap: { ...state.visualMap, min: v } })}
-                />
-                <NumberField
-                    label={Generic.t('echarts_visualmap_max')}
-                    value={state.visualMap.max}
-                    onChange={v => set({ visualMap: { ...state.visualMap, max: v } })}
-                />
-            </Box>
-            {/* A value→colour scale is a gradient: one gradient picker (allowGradient) supplies
-                the whole scale; presentation parses it into the ordered colour array echarts needs. */}
-            <Box sx={{ mt: 1, maxWidth: 260 }}>
-                <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
-                <ColorField
-                    value={state.visualMap.colors}
-                    onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
-                    ctx={pickerCtx}
-                    allowGradient
-                />
-            </Box>
         </Box>
     );
 };

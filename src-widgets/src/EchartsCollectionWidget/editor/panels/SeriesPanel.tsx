@@ -1,17 +1,23 @@
 /**
- * Series tab — per-series styling, family-aware (ADR-0007/0008, Q4).
+ * Series tab — OID binding + per-item styling for EVERY family (ADR-0007/0008 r3, Q2/Q4).
  *
  * @module EchartsCollectionWidget/editor/panels/SeriesPanel
  * @remarks
- * Cartesian series get the full knob set (type/width/style/area/stack/step/symbol/label/
- * connectNulls/bar-gap/corner-radius) with type-sensitive visibility — a knob appears only when
- * its series type uses it. Pie slices are name+colour only. Gauge/Radar show the single
- * polygon's label + colour (+ area for radar).
+ * The single home for "what data, and how each item looks", consistent across families:
+ *  - cartesian — a series list (Accordion): OID + name + colour + (type override ONLY at ≥2 series)
+ *    + the full type-sensitive knob set.
+ *  - pie — a slice list (one OID = one slice): name + colour.
+ *  - gauge — the dial: scalar OID + min/max/target/progress/unit + label + colour.
+ *  - radar — the indicator-OID list (the axes) + polygon shape/area + label/colour.
+ *
+ * The cartesian series TYPE is NOT set per-series for a single-series chart — the top chart-type
+ * selector owns it (a non-overridden series inherits `chartType`). Only at ≥2 series does a
+ * per-series type selector appear, as an explicit "mixed" override; setting it back to the chart
+ * type clears the override (back to inheriting).
  *
  * Series colour is edited via the shared `CollectionGradientColorPicker` (ColorField) with the
  * resolved palette slot as the fallback — so a series with no explicit colour inherits the
- * palette, and changing the palette source/preset visibly recolours it (the v2 "palette has no
- * effect" bug is fixed by NOT materialising a palette colour into each series on add).
+ * palette, and changing the palette source/preset visibly recolours it.
  */
 import type { FC } from 'react';
 import {
@@ -29,7 +35,7 @@ import { Add as AddIcon, DeleteOutline as DeleteIcon, ExpandMore as ExpandIcon }
 import Generic from '../../../Generic';
 import { echartsPalette } from '../../echartsTheme';
 import { resolvePalette } from '../../presentation';
-import { CheckField, FieldLabel, LabeledSelect, NumberField, TextField2 } from '../controls';
+import { CheckField, FieldLabel, LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
 import ColorField from '../colorFields';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
@@ -66,25 +72,96 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
     const isGauge = state.chartType === 'gauge';
     const isRadar = state.chartType === 'radar';
     const isCartesian = !isPie && !isGauge && !isRadar;
+    // The cartesian chart type is the default a non-overridden series inherits (ADR-0008 r3).
+    const defaultType = state.chartType;
 
     const series = state.series;
     const update = (i: number, patch: Partial<EditorSeries>): void =>
         set({ series: series.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
     const remove = (i: number): void => set({ series: series.filter((_, idx) => idx !== i) });
-    // No explicit colour on add → the series inherits its palette slot (palette changes take effect).
+    // No explicit colour/type on add → the series inherits its palette slot and the chart type.
     const add = (): void =>
         set({
-            series: [...series, { oid: '', name: `Series ${series.length + 1}`, type: 'line', yAxisIndex: 0 }],
+            series: [...series, { oid: '', name: `Series ${series.length + 1}`, yAxisIndex: 0 }],
         });
 
-    // Gauge/Radar: a single polygon/label — edit series[0] only (name + colour + radar area).
-    if (isGauge || isRadar) {
+    const setGauge = (patch: Partial<EditorState['gauge']>): void => set({ gauge: { ...state.gauge, ...patch } });
+    // ── radar indicator list helpers ──
+    const setIndicator = (i: number, patch: Partial<EditorState['radar']['indicators'][number]>): void => {
+        const indicators = state.radar.indicators.map((ind, idx) => (idx === i ? { ...ind, ...patch } : ind));
+        set({ radar: { ...state.radar, indicators } });
+    };
+    const addIndicator = (): void => {
+        const indicators = [
+            ...state.radar.indicators,
+            { name: `Ind ${state.radar.indicators.length + 1}`, max: 100, oid: '' },
+        ];
+        set({ radar: { ...state.radar, indicators } });
+    };
+    const removeIndicator = (i: number): void => {
+        set({ radar: { ...state.radar, indicators: state.radar.indicators.filter((_, idx) => idx !== i) } });
+    };
+
+    // ── gauge: scalar OID + range/target/unit + label/colour ──
+    if (isGauge) {
         const s0 = series[0] ?? { oid: '', name: '' };
         return (
             <Box>
-                <FieldLabel>{isGauge ? Generic.t('echarts_gauge_label') : Generic.t('echarts_radar_label')}</FieldLabel>
+                <FieldLabel>{Generic.t('echarts_gauge_label')}</FieldLabel>
                 <Box sx={{ display: 'grid', gap: 1.5 }}>
                     <Box>
+                        <FieldLabel>{Generic.t('echarts_data_value_oid')}</FieldLabel>
+                        <OidPicker
+                            value={s0.oid ?? ''}
+                            onChange={async oid => {
+                                set({ series: [{ ...(series[0] ?? { oid: '' }), oid }] as EditorSeries[] });
+                                // Auto-fill the unit from the OID's common.unit when none is set.
+                                if (oid && !state.gauge.unit) {
+                                    try {
+                                        const objs = (await pickerCtx.socket.getForeignObjects(oid)) as Record<
+                                            string,
+                                            { common?: { unit?: string } }
+                                        >;
+                                        const u = objs[oid]?.common?.unit;
+                                        if (u) {
+                                            setGauge({ unit: u });
+                                        }
+                                    } catch {
+                                        /* ignore — unit stays manual */
+                                    }
+                                }
+                            }}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                        <NumberField
+                            label={Generic.t('echarts_gauge_min')}
+                            value={state.gauge.min ?? 0}
+                            onChange={v => setGauge({ min: v })}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_gauge_max')}
+                            value={state.gauge.max ?? 100}
+                            onChange={v => setGauge({ max: v })}
+                        />
+                        <OptionalNumberField
+                            label={Generic.t('echarts_gauge_target')}
+                            value={state.gauge.target}
+                            onChange={v => setGauge({ target: v })}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_gauge_progress_width')}
+                            value={state.gauge.progressWidth ?? 14}
+                            onChange={v => setGauge({ progressWidth: v })}
+                        />
+                    </Box>
+                    <TextField2
+                        label={Generic.t('echarts_gauge_unit')}
+                        value={state.gauge.unit ?? ''}
+                        onChange={v => setGauge({ unit: v })}
+                    />
+                    <Box sx={{ maxWidth: 260 }}>
                         <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
                         <ColorField
                             value={s0.color}
@@ -98,18 +175,96 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                         value={s0.name ?? ''}
                         onChange={v => set({ series: [{ ...s0, name: v }] })}
                     />
-                    {isRadar && (
-                        <CheckField
-                            label={Generic.t('echarts_radar_area')}
-                            value={state.radar.area ?? true}
-                            onChange={v => set({ radar: { ...state.radar, area: v } })}
-                        />
-                    )}
                 </Box>
             </Box>
         );
     }
 
+    // ── radar: indicator-OID list + polygon shape/area + label/colour ──
+    if (isRadar) {
+        const s0 = series[0] ?? { name: '' };
+        return (
+            <Box>
+                <FieldLabel>{Generic.t('echarts_radar_label')}</FieldLabel>
+                <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                        <LabeledSelect
+                            label={Generic.t('echarts_radar_shape')}
+                            value={state.radar.shape ?? 'polygon'}
+                            onChange={v => set({ radar: { ...state.radar, shape: v as 'polygon' | 'circle' } })}
+                            options={[
+                                ['polygon', Generic.t('echarts_radar_polygon')],
+                                ['circle', Generic.t('echarts_radar_circle')],
+                            ]}
+                        />
+                        <NumberField
+                            label={Generic.t('echarts_radar_split')}
+                            value={state.radar.splitNumber ?? 5}
+                            onChange={v => set({ radar: { ...state.radar, splitNumber: v } })}
+                        />
+                    </Box>
+                    {state.radar.indicators.map((ind, i) => (
+                        <Box
+                            key={i}
+                            sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}
+                        >
+                            <TextField2
+                                label={Generic.t('echarts_radar_indicator_name')}
+                                value={ind.name}
+                                onChange={v => setIndicator(i, { name: v })}
+                            />
+                            <Box sx={{ width: 90 }}>
+                                <NumberField
+                                    label={Generic.t('echarts_radar_indicator_max')}
+                                    value={ind.max ?? 100}
+                                    onChange={v => setIndicator(i, { max: v })}
+                                />
+                            </Box>
+                            <OidPicker
+                                value={ind.oid}
+                                onChange={oid => setIndicator(i, { oid })}
+                                ctx={pickerCtx}
+                            />
+                            <IconButton
+                                size="small"
+                                onClick={() => removeIndicator(i)}
+                                aria-label={Generic.t('echarts_editor_series_remove')}
+                            >
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                        </Box>
+                    ))}
+                    <Button
+                        startIcon={<AddIcon />}
+                        onClick={addIndicator}
+                    >
+                        {Generic.t('echarts_radar_add_indicator')}
+                    </Button>
+                    <Box sx={{ maxWidth: 260 }}>
+                        <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
+                        <ColorField
+                            value={s0.color}
+                            fallback={slot(0)}
+                            onChange={v => set({ series: [{ ...s0, color: v ?? undefined }] })}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
+                    <TextField2
+                        label={Generic.t('echarts_editor_series_name')}
+                        value={s0.name ?? ''}
+                        onChange={v => set({ series: [{ ...s0, name: v }] })}
+                    />
+                    <CheckField
+                        label={Generic.t('echarts_radar_area')}
+                        value={state.radar.area ?? true}
+                        onChange={v => set({ radar: { ...state.radar, area: v } })}
+                    />
+                </Box>
+            </Box>
+        );
+    }
+
+    // ── cartesian / pie: series (slice) list ──
     return (
         <Box>
             {isCartesian && <FieldLabel>{Generic.t('echarts_editor_series_hint_cartesian')}</FieldLabel>}
@@ -175,11 +330,18 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     historyOnly={state.mode === 'history'}
                                 />
                             )}
-                            {!isPie && (
+                            {/* The per-series type override appears only for a multi-series cartesian
+                                chart (a single-series chart is typed by the top selector). Selecting
+                                the chart type clears the override → back to inheriting. */}
+                            {isCartesian && series.length >= 2 && (
                                 <LabeledSelect
                                     label={Generic.t('echarts_editor_series_type')}
-                                    value={s.type ?? 'line'}
-                                    onChange={v => update(i, { type: v as EditorSeries['type'] })}
+                                    value={s.type ?? defaultType}
+                                    onChange={v =>
+                                        update(i, {
+                                            type: v === defaultType ? undefined : (v as EditorSeries['type']),
+                                        })
+                                    }
                                     options={[
                                         ['line', Generic.t('echarts_type_line')],
                                         ['bar', Generic.t('echarts_type_bar')],
@@ -201,7 +363,7 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                         </Box>
 
                         {/* Type-sensitive presentation knobs (cartesian only). */}
-                        {!isPie && (s.type ?? 'line') !== 'bar' && (
+                        {!isPie && (s.type ?? defaultType) !== 'bar' && (
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
                                 <CheckField
                                     label={Generic.t('echarts_series_smooth')}
@@ -257,12 +419,12 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                 />
                                 <CheckField
                                     label={Generic.t('echarts_series_area')}
-                                    value={s.area ?? s.type === 'area'}
+                                    value={s.area ?? (s.type === 'area' || defaultType === 'area')}
                                     onChange={v => update(i, { area: v })}
                                 />
                             </Box>
                         )}
-                        {!isPie && (s.type ?? 'line') === 'bar' && (
+                        {!isPie && (s.type ?? defaultType) === 'bar' && (
                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                                 <NumberField
                                     label={Generic.t('echarts_series_bar_gap')}

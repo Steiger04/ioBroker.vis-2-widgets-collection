@@ -16,6 +16,7 @@
 import type { EChartsOption } from 'echarts';
 
 import type {
+    EchartsCartesianType,
     EchartsLegendPos,
     EchartsLineStyle,
     EchartsMarkLine,
@@ -61,8 +62,10 @@ const buildCartesianSeriesEntry = (
     m: EchartsSeriesMeta | undefined,
     fallbackColor: string,
     index: number,
+    defaultType: EchartsCartesianType,
 ): Record<string, unknown> => {
-    const type = m?.type ?? 'line';
+    // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
+    const type = m?.type ?? defaultType;
     const echartsType = type === 'bar' ? 'bar' : 'line';
     const color = m?.color ?? fallbackColor;
     const showArea = type === 'area' || m?.area === true;
@@ -141,7 +144,9 @@ export const buildCartesianOption = (
     meta: readonly EchartsSeriesMeta[],
     p: PresentationConfig,
 ): EChartsOption => {
-    const entries = series.map((s, i) => buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i));
+    const entries = series.map((s, i) =>
+        buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType),
+    );
     if (markLineOption(p.markLines) && entries.length > 0) {
         entries[0].markLine = markLineOption(p.markLines);
     }

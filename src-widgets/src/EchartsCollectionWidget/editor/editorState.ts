@@ -21,6 +21,7 @@ import { decodeChartConfig, decodeMarkLines } from '../presentation';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
+    EchartsCartesianType,
     EchartsChartType,
     EchartsDarkMode,
     EchartsGaugeConfig,
@@ -116,7 +117,7 @@ export type SetEditor = (patch: EditorPatch) => void;
 const DEFAULT_VMAP_COLORS = 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)';
 
 export const DEFAULT_EDITOR_STATE: EditorState = {
-    chartType: 'cartesian',
+    chartType: 'line',
     mode: 'history',
     timeRange: '24h',
     aggregate: 'average',
@@ -169,8 +170,7 @@ const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? 
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
  */
 export const loadEditorState = (data: Record<string, unknown>): EditorState => {
-    const chartType = (data.chartType as EchartsChartType) ?? 'cartesian';
-    const family = familyOf(chartType);
+    const chartTypeRaw = (data.chartType as EchartsChartType | 'cartesian' | undefined) ?? 'line';
     const seriesCount = numOr(data.series_count, 0);
 
     // seriesConfig → per-index meta (name/colour/type/...)
@@ -181,6 +181,12 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     } catch {
         meta = [];
     }
+
+    // Legacy r2 widgets stored the family-only value 'cartesian' in chartType; derive the concrete
+    // cartesian type from the first series (default line) so the top selector highlights correctly.
+    // In-memory only — the stored value is rewritten to a concrete type on explicit re-save.
+    const chartType: EchartsChartType = chartTypeRaw === 'cartesian' ? (meta[0]?.type ?? 'line') : chartTypeRaw;
+    const family = familyOf(chartType);
 
     const chartConfig = decodeChartConfig(data.chartConfig as string);
     const oidAt = (i: number): string => {
@@ -209,10 +215,16 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         series = [{ oid: oidAt(0), name: meta[0]?.name, color: meta[0]?.color }];
         radar = DEFAULT_EDITOR_STATE.radar;
     } else {
-        // cartesian / pie: oidN = series OIDs, 1:1 with meta.
+        // cartesian / pie: oidN = series OIDs, 1:1 with meta. For cartesian, normalise the type
+        // model (ADR-0008 r3): a series whose stored type equals the chart type becomes "inherit"
+        // (type undefined → follows the top selector); one that differs stays an explicit override.
+        const inheritType: EchartsCartesianType | undefined =
+            family === 'cartesian' ? (chartType as EchartsCartesianType) : undefined;
         series = [];
         for (let i = 0; i < seriesCount; i++) {
-            series.push({ oid: oidAt(i), ...(meta[i] ?? {}) });
+            const m = meta[i] ?? {};
+            const t = m.type;
+            series.push({ oid: oidAt(i), ...m, type: t && inheritType && t !== inheritType ? t : undefined });
         }
         radar = DEFAULT_EDITOR_STATE.radar;
     }

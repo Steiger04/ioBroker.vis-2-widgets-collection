@@ -18,6 +18,7 @@ const P: PresentationConfig = {
     animation: true,
     animationDuration: 600,
     bgColor: 'transparent',
+    cartesianType: 'line',
     xSplit: false,
     yLog: false,
     ySplit: true,
@@ -163,15 +164,16 @@ describe('parseSeriesConfig', () => {
 });
 
 describe('familyOf', () => {
-    it('maps the cartesian family to "cartesian"', () => {
-        expect(familyOf('cartesian')).toBe('cartesian');
+    it('maps the cartesian chart types to "cartesian"', () => {
+        expect(familyOf('line')).toBe('cartesian');
+        expect(familyOf('bar')).toBe('cartesian');
+        expect(familyOf('area')).toBe('cartesian');
         expect(familyOf(undefined)).toBe('cartesian');
     });
-    it('tolerates legacy per-series chartType values without migration', () => {
-        // Legacy widgets may still store 'line'/'bar'/'area' in chartType (ADR-0008 addendum).
-        expect(familyOf('line' as EchartsChartType)).toBe('cartesian');
-        expect(familyOf('bar' as EchartsChartType)).toBe('cartesian');
-        expect(familyOf('area' as EchartsChartType)).toBe('cartesian');
+    it('tolerates the legacy family-only "cartesian" value without migration', () => {
+        // r2 stored the family-only value 'cartesian'; r3 stores the concrete chart type again,
+        // but old data is still honoured (→ cartesian, rendered as line).
+        expect(familyOf('cartesian' as EchartsChartType)).toBe('cartesian');
     });
     it('maps the exotic types to their own family', () => {
         expect(familyOf('pie')).toBe('pie');

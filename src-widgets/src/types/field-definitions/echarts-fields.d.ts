@@ -25,16 +25,18 @@
 export type EchartsCartesianType = 'line' | 'bar' | 'area';
 
 /**
- * The whole-chart family, chosen by the configurator's master type selector (ADR-0008).
+ * The kind of chart the user is building — chosen once from the configurator's primary (top)
+ * selector (ADR-0008 addendum r3). This is the chart's user-facing identity AND the authoritative
+ * source of the rendered type: line/bar/area share the cartesian family (every non-overridden
+ * series inherits this type); pie/gauge/radar are single-family types. The {@link EchartsChartFamily}
+ * is *derived* from this via `familyOf`, never chosen separately.
  *
  * @remarks
- * The master selector is **family-only**: line/bar/area are NOT chosen at chart level — they are
- * the cartesian per-series sub-type ({@link EchartsCartesianType} / `EchartsSeriesMeta.type`),
- * edited per series in the Series tab. Legacy widgets may still store `'line'|'bar'|'area'` here;
- * `familyOf` tolerates them (default → cartesian) **without** an auto-migration — they are
- * normalised to `'cartesian'` only when the user re-saves after picking the family explicitly.
+ * Legacy widgets may still store the family-only value `'cartesian'`; `familyOf` tolerates it
+ * (→ cartesian, rendered as `'line'`) **without** an auto-migration — rewritten to a concrete type
+ * only when the user re-saves after picking the type explicitly.
  */
-export type EchartsChartType = 'cartesian' | 'pie' | 'gauge' | 'radar';
+export type EchartsChartType = 'line' | 'bar' | 'area' | 'pie' | 'gauge' | 'radar';
 
 /** Coordinate-system family derived from {@link EchartsChartType}. */
 export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
@@ -191,7 +193,7 @@ export interface EchartsVisualMapConfig {
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
-    /** Whole-chart family. Drives the data shape and which binding UI applies. @default 'cartesian' */
+    /** Kind of chart (line/bar/area/pie/gauge/radar). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
     chartType?: EchartsChartType;
 
     /** Data source mode. @default 'history' */
