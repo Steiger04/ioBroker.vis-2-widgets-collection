@@ -1,27 +1,33 @@
 /**
- * Cartesian family option builder (line / bar / area) — the G side, ADR-0007/0008.
+ * Cartesian family option builder (line / bar) — the G side, ADR-0007/0008 r4.
  *
  * @module EchartsCollectionWidget/optionBuilders/cartesian
  * @remarks
  * Owns the cartesian coordinate system: a time `xAxis`, a (optionally bounded, optionally
  * dual) `yAxis`, and one series entry per bound OID with the full per-series presentation
- * authored from `seriesConfig` (smooth / width / style / area / stack / step / symbol /
- * label / connectNulls / barGap / cornerRadius). Chart-wide presentation (legend, tooltip,
- * animation, dataZoom, markLine thresholds, visualMap) is authored here too. Returns the
- * full G fragment; the data-wins seam forces only `series[].data` back afterwards.
+ * authored from `seriesConfig` (smooth / width / style / area fill / stack / step / symbol /
+ * symbolSize / label / connectNulls / barGap / barCategoryGap / cornerRadius). Chart-wide
+ * presentation (legend, tooltip, animation, dataZoom, markLine thresholds, visualMap) is
+ * authored here too. Returns the full G fragment; the data-wins seam forces only
+ * `series[].data` back afterwards.
  *
- * `area` is a line series with an `areaStyle` (echarts has no standalone "area" chart), so
- * `type: 'area'` maps to echarts `type: 'line'` plus a fill.
+ * Area is NOT a cartesian type (ADR-0008 r4): echarts has no `type:'area'` — an area chart is
+ * a `type:'line'` series with an `areaStyle`. Area fill is therefore a per-series fill mode
+ * (`off` | `flat` | `gradient`), applied here. Legacy `type:'area'` and `area:true` are
+ * tolerated at runtime (→ line + flat fill); migration to the concrete model happens in the
+ * editor on re-save, never here.
  */
 import type { EChartsOption } from 'echarts';
 
 import type {
+    EchartsAreaFill,
     EchartsCartesianType,
     EchartsLegendPos,
     EchartsLineStyle,
     EchartsMarkLine,
     EchartsStep,
 } from '../../types/field-definitions/echarts-fields';
+import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
 
@@ -56,6 +62,29 @@ const legendPlacement = (pos: EchartsLegendPos): Record<string, unknown> => {
     };
 };
 
+/**
+ * Normalize a possibly-legacy area value into the {@link EchartsAreaFill} model (ADR-0008 r4).
+ * Legacy forms tolerated at runtime (no migration here — the editor rewrites on re-save):
+ *  - `area: true` (boolean) → `flat`
+ *  - per-series `type: 'area'` (with no explicit `area`) → `flat`
+ *  - `area: false` / undefined / off → `off`
+ */
+const normalizeAreaMode = (meta: EchartsSeriesMeta | undefined): EchartsAreaFill => {
+    // Read `area` loosely: legacy data may store a boolean `true` (not in the EchartsAreaFill union).
+    const raw = (meta as { area?: unknown } | undefined)?.area;
+    if (raw === 'flat' || raw === 'gradient') {
+        return raw;
+    }
+    if (raw === true) {
+        return 'flat'; // legacy boolean
+    }
+    // Legacy `type:'area'` (r4 removed it) implied a flat fill when no explicit area mode is set.
+    if ((meta as { type?: string } | undefined)?.type === 'area') {
+        return 'flat';
+    }
+    return 'off';
+};
+
 /** Build a single cartesian series entry from its data + per-series meta. */
 const buildCartesianSeriesEntry = (
     s: ChartSeries,
@@ -65,15 +94,17 @@ const buildCartesianSeriesEntry = (
     defaultType: EchartsCartesianType,
 ): Record<string, unknown> => {
     // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
-    const type = m?.type ?? defaultType;
-    const echartsType = type === 'bar' ? 'bar' : 'line';
+    // Legacy `type:'area'` (ADR-0008 r4 removed it) matches neither 'line' nor 'bar' → falls
+    // through to `defaultType`, which a legacy 'area' chart normalises to 'line' upstream.
+    const rawType = m?.type;
+    const type: EchartsCartesianType = rawType === 'bar' ? 'bar' : rawType === 'line' ? 'line' : defaultType;
     const color = m?.color ?? fallbackColor;
-    const showArea = type === 'area' || m?.area === true;
+    const areaMode = normalizeAreaMode(m);
     const name = m?.name || s.name || `Series ${index + 1}`;
 
     const entry: Record<string, unknown> = {
         name,
-        type: echartsType,
+        type,
         yAxisIndex: m?.yAxisIndex ?? 0,
         data: s.data,
         color,
@@ -87,8 +118,9 @@ const buildCartesianSeriesEntry = (
         entry.stack = m.stack;
     }
 
-    if (echartsType === 'line') {
-        entry.smooth = m?.smooth ?? true;
+    if (type === 'line') {
+        // D2: smooth defaults to false (matches ECharts 'Basic Line', not the smoothed example).
+        entry.smooth = m?.smooth ?? false;
         entry.showSymbol = m?.symbol ?? false;
         if (m?.symbolSize !== undefined) {
             entry.symbolSize = m.symbolSize;
@@ -102,13 +134,23 @@ const buildCartesianSeriesEntry = (
             width: m?.lineWidth ?? 2,
             type: LINE_STYLE_DASH[m?.lineStyle ?? 'solid'],
         };
-        if (showArea) {
-            entry.areaStyle = { opacity: m?.areaOpacity ?? 0.15 };
+        if (areaMode !== 'off') {
+            const opacity = m?.areaOpacity ?? (areaMode === 'gradient' ? 0.8 : 0.15);
+            if (areaMode === 'gradient') {
+                // D5: honour the CSS gradient angle/direction → echarts LinearGradient.
+                const grad = toEchartsLinearGradient(m?.areaGradient);
+                entry.areaStyle = grad ? { opacity, color: grad } : { opacity };
+            } else {
+                entry.areaStyle = { opacity };
+            }
         }
     } else {
-        // bar
+        // bar — D7: expose both echarts bar gaps (between-bar + between-category).
         if (m?.barGap !== undefined) {
-            entry.barCategoryGap = `${Math.round(m.barGap * 100)}%`;
+            entry.barGap = `${Math.round(m.barGap * 100)}%`;
+        }
+        if (m?.barCategoryGap !== undefined) {
+            entry.barCategoryGap = `${Math.round(m.barCategoryGap * 100)}%`;
         }
     }
     return entry;

@@ -21,6 +21,7 @@ import { decodeChartConfig, decodeMarkLines } from '../presentation';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
+    EchartsAreaFill,
     EchartsCartesianType,
     EchartsChartType,
     EchartsDarkMode,
@@ -74,6 +75,10 @@ export interface EditorState {
     // title
     titleText: string;
     titlePos: EchartsTitlePos;
+    /** Title horizontal pixel offset from the anchor (right-positive). ADR-0009. */
+    titleDx: number;
+    /** Title vertical pixel offset from the top edge (down-positive). ADR-0009. */
+    titleDy: number;
     // series (cartesian/pie full; gauge/radar = label+colour of the single polygon)
     series: EditorSeries[];
     // family config
@@ -128,6 +133,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     jsonOid: '',
     titleText: '',
     titlePos: 'topCenter',
+    titleDx: 0,
+    titleDy: 0,
     series: [],
     gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
     radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [] },
@@ -165,12 +172,32 @@ const strOr = (v: unknown, dft = ''): string => (typeof v === 'string' ? v : dft
 const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
 /**
+ * Normalize a possibly-legacy area value into the {@link EchartsAreaFill} model (ADR-0008 r4).
+ * Legacy forms (tolerated on load, rewritten on the next save):
+ *  - `area: true` (boolean) → `flat`
+ *  - per-series `type: 'area'` with no explicit `area` → `flat` (a legacy area series)
+ *  - `area: false` / undefined → `off`
+ */
+const normalizeArea = (raw: unknown, legacyAreaType: boolean): EchartsAreaFill => {
+    if (raw === 'flat' || raw === 'gradient') {
+        return raw;
+    }
+    if (raw === true || legacyAreaType) {
+        return 'flat';
+    }
+    return 'off';
+};
+
+/** True when a series stores the legacy removed `type: 'area'` (ADR-0008 r4) — → flat fill. */
+const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).type === 'area';
+
+/**
  * Load the editor state from the widget rxData.
  *
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
  */
 export const loadEditorState = (data: Record<string, unknown>): EditorState => {
-    const chartTypeRaw = (data.chartType as EchartsChartType | 'cartesian' | undefined) ?? 'line';
+    const chartTypeRaw = (data.chartType as EchartsChartType | 'cartesian' | 'area' | undefined) ?? 'line';
     const seriesCount = numOr(data.series_count, 0);
 
     // seriesConfig → per-index meta (name/colour/type/...)
@@ -182,10 +209,17 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         meta = [];
     }
 
-    // Legacy r2 widgets stored the family-only value 'cartesian' in chartType; derive the concrete
-    // cartesian type from the first series (default line) so the top selector highlights correctly.
-    // In-memory only — the stored value is rewritten to a concrete type on explicit re-save.
-    const chartType: EchartsChartType = chartTypeRaw === 'cartesian' ? (meta[0]?.type ?? 'line') : chartTypeRaw;
+    // Normalize legacy chartType values (ADR-0008 r4): the family-only 'cartesian' derives its
+    // concrete type from the first series (default line); the removed 'area' type maps to 'line'
+    // (area is a per-series fill mode now). In-memory only — rewritten to a concrete type on save.
+    const chartType: EchartsChartType =
+        chartTypeRaw === 'cartesian'
+            ? meta[0]?.type === 'bar'
+                ? 'bar'
+                : 'line'
+            : chartTypeRaw === 'area'
+              ? 'line'
+              : chartTypeRaw;
     const family = familyOf(chartType);
 
     const chartConfig = decodeChartConfig(data.chartConfig as string);
@@ -218,13 +252,19 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         // cartesian / pie: oidN = series OIDs, 1:1 with meta. For cartesian, normalise the type
         // model (ADR-0008 r3): a series whose stored type equals the chart type becomes "inherit"
         // (type undefined → follows the top selector); one that differs stays an explicit override.
+        // Legacy `type:'area'` (ADR-0008 r4 removed it) is treated as inherit (line) + flat area.
         const inheritType: EchartsCartesianType | undefined =
             family === 'cartesian' ? (chartType as EchartsCartesianType) : undefined;
         series = [];
         for (let i = 0; i < seriesCount; i++) {
             const m = meta[i] ?? {};
-            const t = m.type;
-            series.push({ oid: oidAt(i), ...m, type: t && inheritType && t !== inheritType ? t : undefined });
+            const t = m.type === 'line' || m.type === 'bar' ? m.type : undefined;
+            series.push({
+                oid: oidAt(i),
+                ...m,
+                type: t && inheritType && t !== inheritType ? t : undefined,
+                area: normalizeArea(m.area, isLegacyAreaType(m)),
+            });
         }
         radar = DEFAULT_EDITOR_STATE.radar;
     }
@@ -249,6 +289,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         jsonOid: strOr(data.jsonOid, '') === 'nothing_selected' ? '' : strOr(data.jsonOid, ''),
         titleText: strOr(data.titleText, ''),
         titlePos: (data.titlePos as EchartsTitlePos) ?? DEFAULT_EDITOR_STATE.titlePos,
+        titleDx: numOr(data.titleDx, DEFAULT_EDITOR_STATE.titleDx),
+        titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
         series,
         gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
         radar,
@@ -334,6 +376,8 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         jsonOid: state.jsonOid,
         titleText: state.titleText,
         titlePos: state.titlePos,
+        titleDx: state.titleDx,
+        titleDy: state.titleDy,
         series_count: seriesCount,
         legendShow: state.legendShow,
         legendPos: state.legendPos,

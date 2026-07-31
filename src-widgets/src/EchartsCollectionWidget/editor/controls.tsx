@@ -150,10 +150,11 @@ export const CheckField: FC<{ label: string; value: boolean; onChange: (v: boole
 
 // ── master selectors (top row) ────────────────────────────────────
 
-// The primary chart-type selector is a 2×3 icon grid of the six concrete chart types
-// (ADR-0008 addendum r3). It is the single, authoritative type choice: it sets the family (derived)
-// and the type every non-overridden series inherits. The glyphs are hand-drawn monochrome SVG at
-// currentColor so they theme with the editor and stay quiet (the one signature element).
+// The primary chart-type selector is a 5-icon grid of the concrete chart types (ADR-0008 r4:
+// 'area' removed — area is a per-series fill mode, not a chart type). It is the single,
+// authoritative type choice: it sets the family (derived) and the type every non-overridden
+// series inherits. The glyphs are hand-drawn monochrome SVG at currentColor so they theme with
+// the editor and stay quiet (the one signature element).
 const Glyph: FC<{ children: React.ReactNode }> = ({ children }) => (
     <svg
         viewBox="0 0 24 24"
@@ -194,17 +195,6 @@ const BarGlyph: FC = () => (
             x2="18"
             y2="14"
         />
-    </Glyph>
-);
-const AreaGlyph: FC = () => (
-    <Glyph>
-        <polygon
-            points="3,17 9,11 13,14 21,6 21,21 3,21"
-            fill="currentColor"
-            stroke="none"
-            opacity={0.25}
-        />
-        <polyline points="3,17 9,11 13,14 21,6" />
     </Glyph>
 );
 const PieGlyph: FC = () => (
@@ -260,16 +250,15 @@ const RadarGlyph: FC = () => (
 const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon: React.ReactNode }> = [
     { value: 'line', label: 'echarts_type_line', icon: <LineGlyph /> },
     { value: 'bar', label: 'echarts_type_bar', icon: <BarGlyph /> },
-    { value: 'area', label: 'echarts_type_area', icon: <AreaGlyph /> },
     { value: 'pie', label: 'echarts_type_pie', icon: <PieGlyph /> },
     { value: 'gauge', label: 'echarts_type_gauge', icon: <GaugeGlyph /> },
     { value: 'radar', label: 'echarts_type_radar', icon: <RadarGlyph /> },
 ];
 
 /**
- * The primary selector — a 2×3 icon grid of the six chart types. The value is the concrete
- * `chartType` (the editor normalises a legacy `'cartesian'` to a concrete type on load, so one of
- * the six is always highlighted).
+ * The primary selector — a grid of the five concrete chart types. The value is the concrete
+ * `chartType` (the editor normalises a legacy `'cartesian'` or `'area'` to a concrete type on
+ * load, so one of the five is always highlighted).
  */
 export const ChartTypePicker: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
     <Box>

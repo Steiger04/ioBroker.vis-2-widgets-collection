@@ -15,7 +15,7 @@
  * `backgroundColor` (bgColor) are injected. The data-wins force-set (series + legend.data)
  * lives in {@link mergeOptionForEcharts}.
  */
-import { useContext, useEffect, useMemo, useRef } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -35,7 +35,7 @@ import {
     toPresentationConfig,
     decodeChartConfig,
     decodeMarkLines,
-    TITLE_PLACEMENT,
+    buildTitlePlacement,
 } from './presentation';
 import { mergeOptionForEcharts } from './utils/mergeOption';
 import { useHistory } from './useHistory';
@@ -192,6 +192,18 @@ function EchartsCollection(): React.ReactElement {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [values]);
 
+    // Container width — fed by the EChart wrapper's ResizeObserver. Only the title recenter path
+    // (topCenter/topRight with dx ≠ 0, ADR-0009) reads it; gated update so height-only resizes
+    // don't trigger an option rebuild.
+    const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
+    const onResize = useMemo(
+        () =>
+            (w: number): void => {
+                setContainerWidth(prev => (prev === w ? prev : w));
+            },
+        [],
+    );
+
     // Resolve the generated option per family.
     const option = useMemo(() => {
         let g;
@@ -235,7 +247,12 @@ function EchartsCollection(): React.ReactElement {
             merged.title = {
                 ...((merged.title as Record<string, unknown> | undefined) ?? {}),
                 text: titleText,
-                ...TITLE_PLACEMENT[data.titlePos ?? 'topCenter'],
+                ...buildTitlePlacement({
+                    titlePos: data.titlePos ?? 'topCenter',
+                    dx: typeof data.titleDx === 'number' ? data.titleDx : 0,
+                    dy: typeof data.titleDy === 'number' ? data.titleDy : 0,
+                    containerWidth,
+                }),
             };
         }
         // Background colour (transparent default).
@@ -256,6 +273,7 @@ function EchartsCollection(): React.ReactElement {
         presentation,
         overrides,
         themeBase,
+        containerWidth,
     ]);
 
     const loading = (family === 'cartesian' || family === 'pie') && mode === 'history' && history.loading;
@@ -322,6 +340,7 @@ function EchartsCollection(): React.ReactElement {
                     <EChart
                         option={option}
                         renderer={data.renderer}
+                        onResize={onResize}
                     />
                 ) : error ? null : (
                     <Box

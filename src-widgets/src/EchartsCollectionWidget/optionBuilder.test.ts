@@ -167,13 +167,13 @@ describe('familyOf', () => {
     it('maps the cartesian chart types to "cartesian"', () => {
         expect(familyOf('line')).toBe('cartesian');
         expect(familyOf('bar')).toBe('cartesian');
-        expect(familyOf('area')).toBe('cartesian');
         expect(familyOf(undefined)).toBe('cartesian');
     });
-    it('tolerates the legacy family-only "cartesian" value without migration', () => {
-        // r2 stored the family-only value 'cartesian'; r3 stores the concrete chart type again,
-        // but old data is still honoured (→ cartesian, rendered as line).
+    it('tolerates the legacy family-only "cartesian" and removed "area" values without migration', () => {
+        // r2 stored the family-only value 'cartesian'; r3 stores the concrete chart type again;
+        // r4 removed 'area' as a type — both old values still render as the cartesian family (line).
         expect(familyOf('cartesian' as EchartsChartType)).toBe('cartesian');
+        expect(familyOf('area' as EchartsChartType)).toBe('cartesian');
     });
     it('maps the exotic types to their own family', () => {
         expect(familyOf('pie')).toBe('pie');
@@ -241,16 +241,67 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya).toHaveLength(2);
     });
 
-    it('maps area type to a line series with an areaStyle', () => {
+    it('tolerates legacy type:"area" as a line series with a flat areaStyle', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A', type: 'area' }],
+            meta: [{ name: 'A', type: 'area' as unknown as undefined }],
             p: P,
         });
         const first = (option.series as unknown[])[0] as Record<string, unknown>;
         expect(first.type).toBe('line');
+        expect(first.areaStyle).toEqual({ opacity: 0.15 });
+    });
+
+    it('renders a flat area fill at the configured opacity (ADR-0008 r4 area mode)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', type: 'line', area: 'flat', areaOpacity: 0.3 }],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as Record<string, unknown>;
+        expect(first.areaStyle).toEqual({ opacity: 0.3 });
+    });
+
+    it('renders a gradient area fill from a CSS gradient (honours the angle)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [
+                {
+                    name: 'A',
+                    type: 'line',
+                    area: 'gradient',
+                    areaGradient: 'linear-gradient(180deg, #8ec6ad 0%, #ffe 100%)',
+                },
+            ],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as { areaStyle?: { opacity: number; color: unknown } };
         expect(first.areaStyle).toBeDefined();
+        expect(first.areaStyle!.color).toMatchObject({
+            type: 'linear',
+            x: 0.5,
+            y: 0,
+            x2: 0.5,
+            y2: 1,
+            colorStops: [
+                { offset: 0, color: '#8ec6ad' },
+                { offset: 1, color: '#ffe' },
+            ],
+        });
+    });
+
+    it('defaults smooth to false (matches ECharts Basic Line, not the smoothed example)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', type: 'line' }],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as Record<string, unknown>;
+        expect(first.smooth).toBe(false);
     });
 
     it('emits a dataZoom slider+inside when both enabled', () => {

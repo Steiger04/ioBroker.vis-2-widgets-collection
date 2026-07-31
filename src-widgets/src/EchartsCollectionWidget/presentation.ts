@@ -24,11 +24,55 @@ import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import type { PresentationConfig } from './optionBuilders/types';
 
-/** Map the title-position union to the echarts `title.left/top` pair (all positions are top row). */
-export const TITLE_PLACEMENT: Record<EchartsTitlePos, { left: 'left' | 'center' | 'right'; top: 'top' }> = {
-    topLeft: { left: 'left', top: 'top' },
-    topCenter: { left: 'center', top: 'top' },
-    topRight: { left: 'right', top: 'top' },
+/**
+ * Build the echarts `title` placement (`left`/`top` + `textAlign`) from an anchor + pixel offset
+ * (ADR-0009). Anchor-relative: `topLeft` keeps the left edge, `topCenter` the text center, `topRight`
+ * the right edge as the anchor point; `dx` (px, right-positive) / `dy` (px, down-positive) add to it.
+ *
+ * All anchors use the `left` field uniformly, so anchor/offset switches never leave a stale `right`
+ * key across `setOption` merges. `textAlign` is set explicitly only on the numeric-offset paths (it
+ * defaults correctly for the named-anchor paths): `'center'`/`'right'` turn `left` into the
+ * text-center / right-edge anchor point (DeepWiki-verified).
+ *
+ * Measurement-free except `topCenter`/`topRight` with `dx !== 0`: those need the container width to
+ * stay self-recentering across resizes (matching the pre-existing responsive anchors). `topLeft + dx`
+ * is edge-based and resize-stable; every `dy` offset is edge-based (top edge, height-independent).
+ * `dx === 0` keeps the named anchor (`'left'`/`'center'`/`'right'`) — the original responsive path,
+ * no width needed. When width is unknown on the offset paths, the named anchor is the graceful
+ * fallback (no offset until the first resize fires).
+ */
+export const buildTitlePlacement = ({
+    titlePos,
+    dx,
+    dy,
+    containerWidth,
+}: {
+    titlePos: EchartsTitlePos;
+    dx: number;
+    dy: number;
+    containerWidth?: number;
+}): Record<string, unknown> => {
+    const hasDx = Number.isFinite(dx) && dx !== 0;
+    const hasDy = Number.isFinite(dy) && dy !== 0;
+    const top: number | 'top' = hasDy ? dy : 'top';
+
+    switch (titlePos) {
+        case 'topLeft':
+            // Left-edge anchor: `left: dx` is resize-stable (width-independent).
+            return hasDx ? { left: dx, top, textAlign: 'left' } : { left: 'left', top };
+        case 'topRight':
+            // Right-edge anchor via textAlign:'right' (makes `left` the right-edge point).
+            // Needs containerWidth to recenter on resize; fall back to the named anchor if unknown.
+            return hasDx && containerWidth
+                ? { left: containerWidth + dx, top, textAlign: 'right' }
+                : { left: 'right', top };
+        case 'topCenter':
+        default:
+            // Center anchor via textAlign:'center' (makes `left` the text-center point).
+            return hasDx && containerWidth
+                ? { left: containerWidth / 2 + dx, top, textAlign: 'center' }
+                : { left: 'center', top };
+    }
 };
 
 /** Named categorical palette presets (ADR-0007). The default `theme` palette comes from the caller. */
@@ -145,9 +189,10 @@ export const toPresentationConfig = (opts: {
         : undefined;
 
     // The cartesian chart type is the default series type inherited by non-overridden series
-    // (ADR-0008 addendum r3: the top selector is authoritative; per-series type is opt-in).
+    // (ADR-0008 r4: the top selector is authoritative; per-series type is opt-in). A legacy
+    // stored 'area' is not a cartesian type (area is a per-series fill mode) → falls back to 'line'.
     const cartesianType: EchartsCartesianType =
-        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar' || s.chartType === 'area')
+        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar')
             ? (s.chartType as EchartsCartesianType)
             : 'line';
 

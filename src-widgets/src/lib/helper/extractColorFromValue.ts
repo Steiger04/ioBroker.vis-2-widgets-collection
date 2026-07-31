@@ -378,3 +378,121 @@ export function extractGradientColors(value: string | null | undefined): string[
     const stops = parseGradientColorStops(trimmed);
     return stops && stops.length ? stops.map(stop => stop.color) : null;
 }
+
+// ─── echarts LinearGradient (area fill, ADR-0008 r4 line-family) ─────────────
+
+/** A colour stop in echarts `LinearGradient.colorStops` (offset 0–1). */
+export interface EchartsColorStop {
+    offset: number;
+    color: string;
+}
+
+/**
+ * A plain-object echarts linear gradient (`areaStyle.color` / `color`), accepted by echarts
+ * without needing `graphic.LinearGradient`.
+ */
+export interface EchartsLinearGradient {
+    type: 'linear';
+    x: number;
+    y: number;
+    x2: number;
+    y2: number;
+    colorStops: EchartsColorStop[];
+}
+
+/** Map a CSS `to <side>` keyword to a unit direction vector (screen coords, y points down). */
+const SIDE_VECTORS: Record<string, [number, number]> = {
+    top: [0, -1],
+    bottom: [0, 1],
+    left: [-1, 0],
+    right: [1, 0],
+};
+
+/**
+ * Parse a CSS gradient direction prefix (`to bottom` / `90deg` / empty) into a unit direction
+ * vector the gradient runs TOWARD. CSS angle convention: 0deg = to top, increasing clockwise;
+ * screen y is down, so direction = (sin θ, −cos θ). Empty → default `to bottom`.
+ */
+const parseCssGradientDirection = (prefix: string): [number, number] => {
+    const p = prefix.trim().toLowerCase();
+    if (!p) {
+        return [0, 1]; // CSS default gradient direction = to bottom
+    }
+    if (p.endsWith('deg')) {
+        const deg = parseFloat(p);
+        if (!Number.isFinite(deg)) {
+            return [0, 1];
+        }
+        const rad = (deg * Math.PI) / 180;
+        return [Math.sin(rad), -Math.cos(rad)];
+    }
+    if (p.startsWith('to ')) {
+        const sides = p.slice(3).split(/\s+/).filter(Boolean);
+        let dx = 0;
+        let dy = 0;
+        for (const s of sides) {
+            const v = SIDE_VECTORS[s];
+            if (v) {
+                dx += v[0];
+                dy += v[1];
+            }
+        }
+        if (dx === 0 && dy === 0) {
+            return [0, 1];
+        }
+        const len = Math.hypot(dx, dy);
+        return [dx / len, dy / len];
+    }
+    return [0, 1];
+};
+
+/**
+ * Parse a CSS `linear-gradient(...)` string into an echarts {@link EchartsLinearGradient} for use
+ * as `areaStyle.color` (ADR-0008 r4 line-family gradient area). Honours the CSS angle/direction
+ * (D5): e.g. `linear-gradient(180deg, …)` → top→bottom; `linear-gradient(90deg, …)` → left→right.
+ *
+ * The gradient line is centered in the [0,1] box along the parsed direction, so any angle renders
+ * correctly. Only `linear-gradient` is supported (radial → `null`, callers fall back to flat).
+ * Stops keep their CSS order; missing positions are distributed evenly (CSS semantics).
+ *
+ * @param value - CSS gradient string.
+ * @returns The echarts linear-gradient object, or `null` if `value` is not a linear gradient.
+ * @example
+ * toEchartsLinearGradient('linear-gradient(180deg, #8ec6ad 0%, #ffe 100%)')
+ * // → { type:'linear', x:0.5, y:0, x2:0.5, y2:1, colorStops:[{offset:0,color:'#8ec6ad'},{offset:1,color:'#ffe'}] }
+ */
+export function toEchartsLinearGradient(value: string | null | undefined): EchartsLinearGradient | null {
+    if (value == null || typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('linear-gradient(')) {
+        return null;
+    }
+    const open = trimmed.indexOf('(');
+    const close = trimmed.lastIndexOf(')');
+    if (open === -1 || close === -1 || close < open) {
+        return null;
+    }
+    const inner = trimmed.slice(open + 1, close);
+    // Direction prefix = everything before the first colour token (# or rgb()/rgba()).
+    const firstColor = inner.search(/#[0-9a-fA-F]|rgba?\(/i);
+    const dirPrefix = firstColor === -1 ? '' : inner.slice(0, firstColor).replace(/[,;]?\s*$/, '');
+    const stopsStr = firstColor === -1 ? inner : inner.slice(firstColor);
+    const [dx, dy] = parseCssGradientDirection(dirPrefix);
+    const stops = parseGradientColorStops(`linear-gradient(${stopsStr})`);
+    if (!stops || !stops.length) {
+        return null;
+    }
+    // Round to 6 decimals: sin/cos of non-cardinal angles leave FP noise (e.g. cos 90° ≈ 6e-17)
+    // that is invisible to the renderer but breaks exact-equality assertions / clean values.
+    const round6 = (n: number): number => Math.round(n * 1e6) / 1e6;
+    return {
+        type: 'linear',
+        x: round6(0.5 - dx / 2),
+        y: round6(0.5 - dy / 2),
+        x2: round6(0.5 + dx / 2),
+        y2: round6(0.5 + dy / 2),
+        colorStops: stops.map(s => ({ offset: s.position / 100, color: s.color })),
+    };
+}

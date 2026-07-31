@@ -35,6 +35,7 @@ import { Add as AddIcon, DeleteOutline as DeleteIcon, ExpandMore as ExpandIcon }
 import Generic from '../../../Generic';
 import { echartsPalette } from '../../echartsTheme';
 import { resolvePalette } from '../../presentation';
+import type { EchartsAreaFill } from '../../../types/field-definitions/echarts-fields';
 import { CheckField, FieldLabel, LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
 import ColorField from '../colorFields';
 import OidPicker from '../OidPicker';
@@ -345,7 +346,6 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     options={[
                                         ['line', Generic.t('echarts_type_line')],
                                         ['bar', Generic.t('echarts_type_bar')],
-                                        ['area', Generic.t('echarts_type_area')],
                                     ]}
                                 />
                             )}
@@ -364,10 +364,10 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
 
                         {/* Type-sensitive presentation knobs (cartesian only). */}
                         {!isPie && (s.type ?? defaultType) !== 'bar' && (
-                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5, mb: 1.5 }}>
                                 <CheckField
                                     label={Generic.t('echarts_series_smooth')}
-                                    value={s.smooth ?? true}
+                                    value={s.smooth ?? false}
                                     onChange={v => update(i, { smooth: v })}
                                 />
                                 <NumberField
@@ -397,16 +397,32 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                         ['end', Generic.t('echarts_step_end')],
                                     ]}
                                 />
-                                <TextField2
+                                {/* D4: stack via a group dropdown (not free text) — series sharing a
+                                    group stack. None = no stack. */}
+                                <LabeledSelect
                                     label={Generic.t('echarts_series_stack')}
                                     value={s.stack ?? ''}
                                     onChange={v => update(i, { stack: v })}
+                                    options={[
+                                        ['', Generic.t('echarts_stack_none')],
+                                        ['A', Generic.t('echarts_stack_group_a')],
+                                        ['B', Generic.t('echarts_stack_group_b')],
+                                        ['C', Generic.t('echarts_stack_group_c')],
+                                    ]}
                                 />
                                 <CheckField
                                     label={Generic.t('echarts_series_symbol')}
                                     value={s.symbol ?? false}
                                     onChange={v => update(i, { symbol: v })}
                                 />
+                                {/* D6: symbol size only meaningful when symbols are shown. */}
+                                {s.symbol && (
+                                    <NumberField
+                                        label={Generic.t('echarts_series_symbol_size')}
+                                        value={s.symbolSize ?? 6}
+                                        onChange={v => update(i, { symbolSize: v })}
+                                    />
+                                )}
                                 <CheckField
                                     label={Generic.t('echarts_series_label')}
                                     value={s.label ?? false}
@@ -417,15 +433,42 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     value={s.connectNulls ?? false}
                                     onChange={v => update(i, { connectNulls: v })}
                                 />
-                                <CheckField
+                                {/* D3: area is a per-series fill mode (ADR-0008 r4), not a type. */}
+                                <LabeledSelect
                                     label={Generic.t('echarts_series_area')}
-                                    value={s.area ?? (s.type === 'area' || defaultType === 'area')}
-                                    onChange={v => update(i, { area: v })}
+                                    value={s.area ?? 'off'}
+                                    onChange={v => update(i, { area: v as EchartsAreaFill })}
+                                    options={[
+                                        ['off', Generic.t('echarts_area_off')],
+                                        ['flat', Generic.t('echarts_area_flat')],
+                                        ['gradient', Generic.t('echarts_area_gradient')],
+                                    ]}
+                                />
+                                {(s.area ?? 'off') !== 'off' && (
+                                    <NumberField
+                                        label={Generic.t('echarts_series_area_opacity')}
+                                        value={s.areaOpacity ?? (s.area === 'gradient' ? 0.8 : 0.15)}
+                                        step={0.05}
+                                        onChange={v => update(i, { areaOpacity: v })}
+                                    />
+                                )}
+                            </Box>
+                        )}
+                        {/* D5: gradient area fill — one gradient picker supplies the area colour. */}
+                        {!isPie && (s.type ?? defaultType) !== 'bar' && s.area === 'gradient' && (
+                            <Box sx={{ mb: 1.5, maxWidth: 260 }}>
+                                <FieldLabel>{Generic.t('echarts_series_area_gradient')}</FieldLabel>
+                                <ColorField
+                                    value={s.areaGradient}
+                                    onChange={v => update(i, { areaGradient: v ?? undefined })}
+                                    ctx={pickerCtx}
+                                    allowGradient
                                 />
                             </Box>
                         )}
                         {!isPie && (s.type ?? defaultType) === 'bar' && (
-                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 1.5 }}>
+                                {/* D7: both echarts bar gaps — between-bar and between-category. */}
                                 <NumberField
                                     label={Generic.t('echarts_series_bar_gap')}
                                     value={s.barGap ?? 0}
@@ -433,19 +476,31 @@ const SeriesPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                                     onChange={v => update(i, { barGap: v })}
                                 />
                                 <NumberField
+                                    label={Generic.t('echarts_series_bar_category_gap')}
+                                    value={s.barCategoryGap ?? 0}
+                                    step={0.1}
+                                    onChange={v => update(i, { barCategoryGap: v })}
+                                />
+                                <NumberField
                                     label={Generic.t('echarts_series_corner_radius')}
                                     value={s.cornerRadius ?? 0}
                                     onChange={v => update(i, { cornerRadius: v })}
+                                />
+                                <LabeledSelect
+                                    label={Generic.t('echarts_series_stack')}
+                                    value={s.stack ?? ''}
+                                    onChange={v => update(i, { stack: v })}
+                                    options={[
+                                        ['', Generic.t('echarts_stack_none')],
+                                        ['A', Generic.t('echarts_stack_group_a')],
+                                        ['B', Generic.t('echarts_stack_group_b')],
+                                        ['C', Generic.t('echarts_stack_group_c')],
+                                    ]}
                                 />
                                 <CheckField
                                     label={Generic.t('echarts_series_label')}
                                     value={s.label ?? false}
                                     onChange={v => update(i, { label: v })}
-                                />
-                                <TextField2
-                                    label={Generic.t('echarts_series_stack')}
-                                    value={s.stack ?? ''}
-                                    onChange={v => update(i, { stack: v })}
                                 />
                             </Box>
                         )}

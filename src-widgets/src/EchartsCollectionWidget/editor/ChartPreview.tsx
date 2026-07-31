@@ -7,6 +7,7 @@
  * actual data, live — instead of synthetic fixtures. Shows a spinner while history is loading
  * and an honest empty state when no data is bound yet.
  */
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
@@ -25,7 +26,17 @@ interface ChartPreviewProps {
 }
 
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
-    const { option, loading, hasData } = usePreviewOption(state, socket, theme);
+    // Container width for the title recenter path (ADR-0009) — gated so height-only resizes don't
+    // trigger an option rebuild.
+    const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
+    const onResize = useMemo(
+        () =>
+            (w: number): void => {
+                setContainerWidth(prev => (prev === w ? prev : w));
+            },
+        [],
+    );
+    const { option, loading, hasData } = usePreviewOption(state, socket, theme, containerWidth);
 
     const placeholder =
         state.chartType === 'gauge'
@@ -58,6 +69,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
                     <EChart
                         option={option}
                         renderer={state.renderer}
+                        onResize={onResize}
                     />
                 ) : (
                     <Box

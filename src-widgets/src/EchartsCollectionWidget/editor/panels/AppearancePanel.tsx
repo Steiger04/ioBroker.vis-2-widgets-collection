@@ -67,7 +67,7 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
         <Box>
             {/* Title */}
             <SectionLabel>{Generic.t('echarts_appearance_title')}</SectionLabel>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5, mb: 2 }}>
                 <LabeledSelect
                     label={Generic.t('echarts_title_position')}
                     value={state.titlePos}
@@ -77,6 +77,16 @@ const AppearancePanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                         ['topCenter', Generic.t('echarts_pos_top_center')],
                         ['topRight', Generic.t('echarts_pos_top_right')],
                     ]}
+                />
+                <NumberField
+                    label={Generic.t('echarts_title_dx')}
+                    value={state.titleDx}
+                    onChange={v => set({ titleDx: v })}
+                />
+                <NumberField
+                    label={Generic.t('echarts_title_dy')}
+                    value={state.titleDy}
+                    onChange={v => set({ titleDy: v })}
                 />
             </Box>
 

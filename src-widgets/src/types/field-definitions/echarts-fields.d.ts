@@ -3,11 +3,15 @@
  *
  * @remarks
  * Configures an Apache ECharts (v6) widget with a **type-family data model** (ADR-0008):
- * cartesian line/bar/area and pie share the OID time-series pipeline (`[ts, val]`, pie
+ * cartesian line/bar and pie share the OID time-series pipeline (`[ts, val]`, pie
  * aggregating each OID to one slice); gauge binds a scalar OID + min/max/target; radar
  * binds a list of indicator OIDs. The option seam is **GUI-owns-presentation**: the GUI
  * authors all presentation (chart-wide + per-series) into the generated option G, and the
  * data-wins force-set protects only the data-binding keys (ADR-0007, supersedes ADR-0005).
+ *
+ * Area is NOT a chart type (ADR-0008 r4): echarts has no `type:'area'` — an area chart is a
+ * `type:'line'` series with an `areaStyle`. Area fill is therefore a per-series **fill mode**
+ * (`off` | `flat` | `gradient`), orthogonal to the line type.
  *
  * Scalar settings are edited through the modal editor and written to these fields via
  * `onDataChange`; per-series rendering metadata lives in the base64 `seriesConfig` blob,
@@ -21,22 +25,36 @@
 // Value unions — single source of truth (editor state + option builder import these)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Cartesian series sub-type (the per-series override within the cartesian family). */
-export type EchartsCartesianType = 'line' | 'bar' | 'area';
+/**
+ * Cartesian series sub-type (the per-series override within the cartesian family). `area` is NOT a
+ * type (ADR-0008 r4): an area chart is a `line` with an `areaStyle`, so area is a per-series fill
+ * mode ({@link EchartsAreaFill}), not a cartesian type.
+ */
+export type EchartsCartesianType = 'line' | 'bar';
 
 /**
  * The kind of chart the user is building — chosen once from the configurator's primary (top)
- * selector (ADR-0008 addendum r3). This is the chart's user-facing identity AND the authoritative
- * source of the rendered type: line/bar/area share the cartesian family (every non-overridden
- * series inherits this type); pie/gauge/radar are single-family types. The {@link EchartsChartFamily}
- * is *derived* from this via `familyOf`, never chosen separately.
+ * selector. This is the chart's user-facing identity AND the authoritative source of the rendered
+ * type: `line`/`bar` share the cartesian family (every non-overridden series inherits this type);
+ * `pie`/`gauge`/`radar` are single-family types. The {@link EchartsChartFamily} is *derived* from
+ * this via `familyOf`, never chosen separately.
  *
  * @remarks
- * Legacy widgets may still store the family-only value `'cartesian'`; `familyOf` tolerates it
- * (→ cartesian, rendered as `'line'`) **without** an auto-migration — rewritten to a concrete type
- * only when the user re-saves after picking the type explicitly.
+ * ADR-0008 r4 removed `'area'` from this union — echarts has no `type:'area'`; area is a per-series
+ * fill mode. Legacy widgets may still store `'area'` (or the family-only `'cartesian'`); `familyOf`
+ * tolerates both (→ cartesian) **without** an auto-migration — rewritten to a concrete type only
+ * when the user re-saves after picking the type explicitly.
  */
-export type EchartsChartType = 'line' | 'bar' | 'area' | 'pie' | 'gauge' | 'radar';
+export type EchartsChartType = 'line' | 'bar' | 'pie' | 'gauge' | 'radar';
+
+/**
+ * Per-series area fill mode for a cartesian line series (ADR-0008 r4).
+ * - `off` — line only, no fill (the `line` chart-type default).
+ * - `flat` — solid `areaStyle` at {@link EchartsSeriesMeta.areaOpacity}.
+ * - `gradient` — `areaStyle.color` as a vertical/horizontal linear gradient parsed from the CSS
+ *   gradient string in {@link EchartsSeriesMeta.areaGradient}.
+ */
+export type EchartsAreaFill = 'off' | 'flat' | 'gradient';
 
 /** Coordinate-system family derived from {@link EchartsChartType}. */
 export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
@@ -91,15 +109,25 @@ export interface EchartsSeriesMeta {
     type?: EchartsCartesianType;
     /** Dual-Y axis (0 = left, 1 = right). @default 0 */
     yAxisIndex?: 0 | 1;
-    /** Smooth line. @default true */
+    /** Smooth line. @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family) */
     smooth?: boolean;
     /** Line width. */
     lineWidth?: number;
     /** Line dash style. @default 'solid' */
     lineStyle?: EchartsLineStyle;
-    /** Area fill under the line / solid area series. @default false */
-    area?: boolean;
-    /** Area fill opacity (0–1) when {@link area} is on. @default 0.15 */
+    /**
+     * Area fill mode for a line series (ADR-0008 r4). `off` = no fill; `flat` = solid
+     * {@link areaOpacity} fill; `gradient` = linear gradient from {@link areaGradient}.
+     * Legacy boolean `true` is tolerated as `flat` (no auto-migration). @default 'off'
+     */
+    area?: EchartsAreaFill;
+    /**
+     * CSS `linear-gradient(...)` string supplying the area fill colours when
+     * {@link area} = `gradient`. The builder parses stops + direction into an echarts
+     * `LinearGradient` (`areaStyle.color`).
+     */
+    areaGradient?: string;
+    /** Area fill opacity (0–1) when {@link area} is `flat` or `gradient`. @default 0.15 (flat) / 0.8 (gradient) */
     areaOpacity?: number;
     /** Stack group; truthy string stacks series that share it. */
     stack?: string;
@@ -113,8 +141,10 @@ export interface EchartsSeriesMeta {
     connectNulls?: boolean;
     /** Show value labels. @default false */
     label?: boolean;
-    /** Bar category gap (0–1, echarts `barCategoryGap`). */
+    /** Gap between bars within one category (0–1, echarts `barGap`). @default 0 (echarts auto) */
     barGap?: number;
+    /** Gap between bar categories (0–1, echarts `barCategoryGap`). @default 0 (echarts auto) */
+    barCategoryGap?: number;
     /** Bar corner radius (px, echarts `itemStyle.borderRadius`). */
     cornerRadius?: number;
 }
@@ -193,7 +223,7 @@ export interface EchartsVisualMapConfig {
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
-    /** Kind of chart (line/bar/area/pie/gauge/radar). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
+    /** Kind of chart (line/bar/pie/gauge/radar — area is a per-series fill mode, not a type, ADR-0008 r4). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
     chartType?: EchartsChartType;
 
     /** Data source mode. @default 'history' */
@@ -229,6 +259,10 @@ export interface EchartsFieldsRxData {
     titleText?: string;
     /** Title placement. @default 'topCenter' */
     titlePos?: EchartsTitlePos;
+    /** Title horizontal pixel offset from the anchor (right-positive). ADR-0009. @default 0 */
+    titleDx?: number;
+    /** Title vertical pixel offset from the top edge (down-positive). ADR-0009. @default 0 */
+    titleDy?: number;
 
     // ── Multi-OID series (indexed, auto-subscribed) ─────────────────────────
 

@@ -23,7 +23,7 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import { buildEchartsTheme, echartsPalette } from '../echartsTheme';
 import { createHistoryFetcher } from '../historyFetcher';
 import { buildGeneratedOption, familyOf, parseJsonState, parseUserJson } from '../optionBuilder';
-import { resolvePalette, TITLE_PLACEMENT, toPresentationConfig } from '../presentation';
+import { resolvePalette, buildTitlePlacement, toPresentationConfig } from '../presentation';
 import { mergeOptionForEcharts } from '../utils/mergeOption';
 import { useHistory } from '../useHistory';
 import { useLiveBuffer } from '../useLiveBuffer';
@@ -62,8 +62,14 @@ export interface PreviewResult {
  * @param state - The editor working state.
  * @param socket - The LegacyConnection drilled into the editor.
  * @param theme - The MUI theme (for the theme base + palette).
+ * @param containerWidth - The preview container width (px), for the title recenter path (ADR-0009).
  */
-export function usePreviewOption(state: EditorState, socket: LegacyConnection, theme: Theme): PreviewResult {
+export function usePreviewOption(
+    state: EditorState,
+    socket: LegacyConnection,
+    theme: Theme,
+    containerWidth?: number,
+): PreviewResult {
     const family = familyOf(state.chartType);
     const mode = state.mode;
 
@@ -169,7 +175,12 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
             merged.title = {
                 ...((merged.title as Record<string, unknown> | undefined) ?? {}),
                 text: titleText,
-                ...TITLE_PLACEMENT[state.titlePos ?? 'topCenter'],
+                ...buildTitlePlacement({
+                    titlePos: state.titlePos ?? 'topCenter',
+                    dx: state.titleDx,
+                    dy: state.titleDy,
+                    containerWidth,
+                }),
             };
         }
         if (presentation.bgColor && presentation.bgColor !== 'transparent') {
@@ -208,6 +219,7 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         presentation,
         overrides,
         themeBase,
+        containerWidth,
     ]);
 
     return built;
