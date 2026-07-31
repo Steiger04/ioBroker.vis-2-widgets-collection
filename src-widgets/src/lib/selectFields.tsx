@@ -19,6 +19,14 @@ const selectFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider dividerText="selection" />,
     },
     {
+        name: 'onlyDisplay',
+        type: 'checkbox',
+        label: 'only_display',
+        disabled: (data, _i) => data.write === false,
+        default: false,
+        hidden: (data, _i) => data.write === false,
+    },
+    {
         name: 'cid',
         type: 'id',
         label: 'cid',

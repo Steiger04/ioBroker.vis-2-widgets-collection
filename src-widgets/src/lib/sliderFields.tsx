@@ -18,6 +18,14 @@ const sliderFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         component: () => <CollectionDivider />,
     } as const,
     {
+        name: 'onlyDisplay',
+        type: 'checkbox',
+        label: 'only_display',
+        disabled: (data, _i) => data.write === false,
+        default: false,
+        hidden: (data, _i) => data.write === false,
+    } as const,
+    {
         name: 'sliderSize',
         label: 'slider_size',
         type: 'select',

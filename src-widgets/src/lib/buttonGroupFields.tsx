@@ -19,6 +19,14 @@ const buttonGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] =>
         component: () => <CollectionDivider />,
     },
     {
+        name: 'onlyDisplay',
+        type: 'checkbox',
+        label: 'only_display',
+        disabled: (data, _i) => data.write === false,
+        default: false,
+        hidden: (data, _i) => data.write === false,
+    },
+    {
         name: 'onlyIcon',
         type: 'checkbox',
         label: 'only_icon',
