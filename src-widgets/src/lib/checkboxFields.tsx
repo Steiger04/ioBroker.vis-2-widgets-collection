@@ -44,9 +44,9 @@ const checkboxFields = (): RxWidgetInfoAttributesField[] => [
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: (data: WidgetData) => !data.write,
+        disabled: (data: WidgetData) => data.write === false,
         default: false,
-        hidden: (data: WidgetData) => !data.write,
+        hidden: (data: WidgetData) => data.write === false,
     },
 ];
 

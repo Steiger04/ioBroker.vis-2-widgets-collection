@@ -9,6 +9,7 @@ import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { StateCollectionContextProps } from '../types';
 
 /**
@@ -80,7 +81,7 @@ function StateCollection(): React.ReactElement {
 
     const StateButton = (
         <Button
-            disabled={widget.data.onlyDisplay}
+            disabled={isOidReadOnly(widget.data)}
             onClick={clickHandler}
             onMouseDown={downHandler}
             onMouseUp={upHandler}

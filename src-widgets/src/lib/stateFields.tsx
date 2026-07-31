@@ -74,9 +74,9 @@ const stateFields = (settings?: StateFieldsSettings): RxWidgetInfoAttributesFiel
             name: 'onlyDisplay',
             type: 'checkbox',
             label: 'only_display',
-            disabled: (data, _i) => !data.write,
+            disabled: (data, _i) => data.write === false,
             default: false,
-            hidden: (data, _i) => !data.write,
+            hidden: (data, _i) => data.write === false,
         },
         {
             name: 'noIcon',

@@ -196,6 +196,12 @@ const useValueState = (idName: string): UseValueStateReturn => {
                 return;
             }
 
+            // Never write to a read-only state, even if a widget forgets the UI guard
+            // (lenient: only an explicit common.write === false blocks).
+            if (oidObject?.write === false) {
+                return;
+            }
+
             const processedValue = convertToOidType(value, oidObject?.type);
 
             if (processedValue === undefined || processedValue === null) {

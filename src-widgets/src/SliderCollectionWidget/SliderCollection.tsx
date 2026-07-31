@@ -16,6 +16,7 @@ import { formatSizeRem } from '../lib/helper/formatSizeRem';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { isBase64Icon } from '../lib/helper/isBase64Icon';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
 import type { SliderCollectionContextProps } from '../types';
 import { type Mark } from '@mui/material/Slider/useSlider.types';
@@ -415,7 +416,7 @@ const SliderCollection: FC = () => {
                                         defaultIconColor: theme.palette.primary.main,
                                     } as SliderMarkLabelProps,
                                 }}
-                                disabled={oidType !== 'number'}
+                                disabled={oidType !== 'number' || isOidReadOnly(widget.data)}
                                 valueLabelDisplay={widget.data.valueLabelDisplay}
                                 orientation={widget.data.sliderOrientation}
                                 min={sliderMinValue ?? undefined}

@@ -18,6 +18,7 @@ import SafeImg from '../components/SafeImg';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { SelectCollectionContextProps } from '../types';
@@ -125,6 +126,7 @@ function SelectCollection(): React.ReactElement {
                     disableUnderline
                     value={valueIndex !== -1 ? valueIndex : ''}
                     onChange={changeHandler}
+                    disabled={isOidReadOnly(widget.data)}
                     MenuProps={{
                         PaperProps: {
                             sx: {

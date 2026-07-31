@@ -16,6 +16,7 @@ import useValueState from '../hooks/useValueState';
 import { extractColorFromValue } from '../lib/helper/extractColorFromValue';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
 import type { ButtonGroupCollectionContextProps } from '../types';
 
@@ -86,7 +87,7 @@ function ButtonGroupCollection(): React.JSX.Element {
                 <ToggleButtonGroup
                     exclusive
                     value={String(oidValue)}
-                    disabled={!isValidType}
+                    disabled={!isValidType || isOidReadOnly(widget.data)}
                     fullWidth
                     orientation={buttonGroupOrientation}
                     sx={{

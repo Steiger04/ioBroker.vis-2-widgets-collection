@@ -69,9 +69,9 @@ const radioGroupFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => 
         name: 'onlyDisplay',
         type: 'checkbox',
         label: 'only_display',
-        disabled: (data: WidgetData, _i) => !data.write,
+        disabled: (data: WidgetData, _i) => data.write === false,
         default: false,
-        hidden: (data: WidgetData, _i) => !data.write,
+        hidden: (data: WidgetData, _i) => data.write === false,
     },
 ];
 

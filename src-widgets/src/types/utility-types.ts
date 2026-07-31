@@ -53,6 +53,12 @@ export interface OidObject {
 
     /** Optional mapping of values to human-readable labels */
     commonStates?: Record<string, string>;
+
+    /** Raw `common.write` of the OID (`undefined` when absent — treated as writable). */
+    write?: boolean;
+
+    /** Whether the widget should display the value without allowing user writes. */
+    onlyDisplay?: boolean;
 }
 
 /**

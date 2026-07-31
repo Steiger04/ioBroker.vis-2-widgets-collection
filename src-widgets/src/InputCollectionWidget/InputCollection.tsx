@@ -14,6 +14,7 @@ import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 
 import type { InputCollectionContextProps } from '../types';
 
@@ -52,7 +53,7 @@ const InputCollection: FC = () => {
     const oidType = oidObject?.type;
     const isValidType = oidType !== undefined && VALID_TYPES.has(oidType);
     const isNumber = oidType === 'number';
-    const isReadOnly = Boolean(widget.data.onlyDisplay ?? !widget.data.write);
+    const isReadOnly = isOidReadOnly(widget.data);
     const showOkButton = Boolean(widget.data.showOkButton);
     const editable = !isReadOnly;
 

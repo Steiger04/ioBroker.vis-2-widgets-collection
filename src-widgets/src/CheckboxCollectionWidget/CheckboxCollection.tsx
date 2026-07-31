@@ -14,6 +14,7 @@ import useHtmlValue from '../hooks/useHtmlValue';
 import useValueState from '../hooks/useValueState';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import SafeImg from '../components/SafeImg';
 
 import type { CheckboxCollectionContextProps } from '../types';
@@ -125,7 +126,7 @@ function CheckboxCollection(): React.JSX.Element {
                         }}
                         control={
                             <Checkbox
-                                disabled={widget.data.onlyDisplay}
+                                disabled={isOidReadOnly(widget.data)}
                                 disableRipple
                                 checked={Boolean(oidValue)}
                                 onChange={() => setOidValueState(!oidValue)}

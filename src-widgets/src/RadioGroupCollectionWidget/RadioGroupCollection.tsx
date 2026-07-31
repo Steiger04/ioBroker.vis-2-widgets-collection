@@ -16,6 +16,7 @@ import useValueState from '../hooks/useValueState';
 import useElementDimensions from '../hooks/useElementDimensions';
 import { getIconColorStyles } from '../lib/helper/getIconColorStyles';
 import { gradientColor } from '../lib/helper/gradientColor';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { RadioGroupCollectionContextProps } from '../types';
 import SafeImg from '../components/SafeImg';
 
@@ -124,7 +125,7 @@ function RadioGroupCollection(): React.ReactElement {
                             }}
                             control={
                                 <Radio
-                                    disabled={widget.data.onlyDisplay}
+                                    disabled={isOidReadOnly(widget.data)}
                                     checkedIcon={
                                         state.icon ? (
                                             <Box

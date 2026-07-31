@@ -12,6 +12,7 @@ import { CollectionContext } from '../components/CollectionProvider';
 import useData from '../hooks/useData';
 import useValueState from '../hooks/useValueState';
 import MaterialUISwitch from './MaterialUISwitch';
+import isOidReadOnly from '../lib/helper/isOidReadOnly';
 import type { SwitchCollectionContextProps } from '../types';
 
 function SwitchCollection(): React.JSX.Element {
@@ -66,7 +67,7 @@ function SwitchCollection(): React.JSX.Element {
                 >
                     {oidValue !== undefined && widget.data.thumbSize !== undefined && (
                         <MaterialUISwitch
-                            disabled={oidType !== 'boolean'}
+                            disabled={oidType !== 'boolean' || isOidReadOnly(widget.data)}
                             width={ref.current?.clientWidth}
                             maxheight={ref.current?.parentElement?.parentElement?.clientHeight}
                             data={data}

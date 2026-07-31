@@ -159,7 +159,7 @@ export const oidChangeHandlerAsync =
                 type: oidType,
                 icon: await getObjectIconAsync(socket, object),
                 write: object.common.write,
-                onlyDisplay: !object.common.write,
+                onlyDisplay: object.common.write === false,
                 unit: object.common.unit || '',
                 minValue: object.common.min || 0,
                 maxValue: object.common.max || 100,
