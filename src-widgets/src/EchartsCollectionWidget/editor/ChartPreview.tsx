@@ -5,27 +5,31 @@
  * @remarks
  * Renders the right-hand side of the split modal. Fed by {@link usePreviewOption} — the user's
  * actual data, live — instead of synthetic fixtures. Shows a spinner while history is loading
- * and an honest empty state when no data is bound yet.
+ * and an honest empty state when no data is bound yet. The empty state is clickable (ADR-0010):
+ * it steers the rail to the section that would fill it (series, or data source for JSON mode).
  */
 import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import type React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 
 import Generic from '../../Generic';
 import EChart from '../EChart';
 import { usePreviewOption } from './usePreviewOption';
+import type { SectionKey } from './validation';
 import type { EditorState } from './editorState';
 
 interface ChartPreviewProps {
     state: EditorState;
     socket: LegacyConnection;
     theme: Theme;
+    /** Called when the user clicks the empty-state placeholder — with the section that fills it. */
+    onPlaceholderClick?: (key: SectionKey) => void;
 }
 
-const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
+const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
     // Container width for the title recenter path (ADR-0009) — gated so height-only resizes don't
     // trigger an option rebuild.
     const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
@@ -46,6 +50,31 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
               : state.mode === 'json'
                 ? Generic.t('echarts_preview_select_json_oid')
                 : Generic.t('echarts_preview_configure_series');
+
+    // The section whose fields would replace this placeholder with a real chart.
+    const targetSection: SectionKey =
+        state.mode === 'json' && state.chartType !== 'gauge' && state.chartType !== 'radar' ? 'dataSource' : 'series';
+
+    const emptyBody = (
+        <>
+            <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textAlign: 'center' }}
+            >
+                {loading ? Generic.t('echarts_preview_loading') : placeholder}
+            </Typography>
+            {!loading && onPlaceholderClick && (
+                <Typography
+                    variant="caption"
+                    color="primary"
+                    sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}
+                >
+                    {Generic.t('echarts_preview_open_series')}
+                </Typography>
+            )}
+        </>
+    );
 
     return (
         <Box
@@ -71,6 +100,24 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
                         renderer={state.renderer}
                         onResize={onResize}
                     />
+                ) : onPlaceholderClick && !loading ? (
+                    <ButtonBase
+                        onClick={() => onPlaceholderClick(targetSection)}
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            minHeight: 220,
+                            px: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 1,
+                            '&:hover': { bgcolor: 'action.hover' },
+                        }}
+                    >
+                        {emptyBody}
+                    </ButtonBase>
                 ) : (
                     <Box
                         sx={{
@@ -78,18 +125,13 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme }) => {
                             height: '100%',
                             minHeight: 220,
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
                             px: 2,
                         }}
                     >
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ textAlign: 'center' }}
-                        >
-                            {loading ? Generic.t('echarts_preview_loading') : placeholder}
-                        </Typography>
+                        {emptyBody}
                     </Box>
                 )}
             </Box>

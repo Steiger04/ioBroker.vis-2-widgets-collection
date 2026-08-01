@@ -1,26 +1,24 @@
 /**
- * Advanced tab — the demoted supplemental JSON escape hatch, with authoring help (ADR-0007, Q5).
+ * Behaviour & JSON section — output/render policy + the demoted JSON escape hatch (ADR-0010).
  *
- * @module EchartsCollectionWidget/editor/panels/AdvancedPanel
+ * @module EchartsCollectionWidget/editor/sections/BehaviorSection
  * @remarks
- * The Advanced JSON (U) is strictly supplemental: the GUI owns all presentation, so U is for
- * echarts keys the GUI does not expose (`graphic`, `axisPointer`, exotic animation easings, …).
- * The data-binding + presentation keys are managed (forced back / owned by the GUI).
- *
- * Two affordances beyond the raw textarea:
- *  - **Vorlagen** — one-click snippets that merge a supplemental key into U.
- *  - **Wirkung (Merge-Preview)** — parses U and shows which of its keys are *effective*
- *    (supplemental, survive the merge) vs *ignored* (GUI-managed — silently overridden). This is
- *    the honest merge preview: the user sees exactly what their JSON contributes.
+ * Animation / renderer / dark mode, then the Advanced JSON (U): strictly supplemental — the GUI
+ * owns all presentation (ADR-0007), so U is for echarts keys the GUI does not expose. Carries the
+ * v2 honesty affordances: the managed-keys box, one-click snippet templates, JSON validity, and
+ * the merge preview (which U keys are effective vs GUI-managed/ignored).
  */
 import type { FC } from 'react';
 import { Box, Button, Chip, TextField, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { parseUserJson } from '../../optionBuilder';
-import { SectionLabel } from '../controls';
+import { CheckField, LabeledSelect, NumberField, SectionLabel } from '../controls';
+import type { EditorState, SetEditor } from '../editorState';
 
-interface PanelProps {
+interface BehaviorSectionProps {
+    state: EditorState;
+    set: SetEditor;
     userText: string;
     setUserText: (value: string) => void;
 }
@@ -61,7 +59,7 @@ const SNIPPETS: ReadonlyArray<{ label: string; json: string }> = [
     },
 ];
 
-const AdvancedPanel: FC<PanelProps> = ({ userText, setUserText }) => {
+const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set, userText, setUserText }) => {
     const parsed = parseUserJson(userText);
     const managedSet = new Set<string>(MANAGED_KEYS);
     const uKeys = parsed.ok ? Object.keys(parsed.value) : [];
@@ -79,6 +77,38 @@ const AdvancedPanel: FC<PanelProps> = ({ userText, setUserText }) => {
 
     return (
         <Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+                <CheckField
+                    label={Generic.t('echarts_animation')}
+                    value={state.animation}
+                    onChange={v => set({ animation: v })}
+                />
+                <NumberField
+                    label={Generic.t('echarts_animation_duration')}
+                    value={state.animationDuration}
+                    onChange={v => set({ animationDuration: v })}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_renderer')}
+                    value={state.renderer}
+                    onChange={v => set({ renderer: v as EditorState['renderer'] })}
+                    options={[
+                        ['canvas', Generic.t('echarts_renderer_canvas')],
+                        ['svg', Generic.t('echarts_renderer_svg')],
+                    ]}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_dark_mode')}
+                    value={state.darkMode}
+                    onChange={v => set({ darkMode: v as EditorState['darkMode'] })}
+                    options={[
+                        ['auto', Generic.t('echarts_dark_auto')],
+                        ['light', Generic.t('echarts_dark_light')],
+                        ['dark', Generic.t('echarts_dark_dark')],
+                    ]}
+                />
+            </Box>
+
             <SectionLabel hint={Generic.t('echarts_editor_advanced_hint')}>
                 {Generic.t('echarts_editor_advanced')}
             </SectionLabel>
@@ -106,7 +136,6 @@ const AdvancedPanel: FC<PanelProps> = ({ userText, setUserText }) => {
                 </Typography>
             </Box>
 
-            {/* Snippet templates — one-click supplemental keys. */}
             <Typography
                 variant="caption"
                 color="text.secondary"
@@ -145,7 +174,6 @@ const AdvancedPanel: FC<PanelProps> = ({ userText, setUserText }) => {
                 {parsed.ok ? Generic.t('echarts_editor_valid_json') : `✗ ${parsed.error}`}
             </Typography>
 
-            {/* Merge preview — which of U's keys survive vs are GUI-managed (ignored). */}
             {parsed.ok && uKeys.length > 0 && (
                 <Box sx={{ mt: 1 }}>
                     <Typography
@@ -195,4 +223,4 @@ const AdvancedPanel: FC<PanelProps> = ({ userText, setUserText }) => {
     );
 };
 
-export default AdvancedPanel;
+export default BehaviorSection;

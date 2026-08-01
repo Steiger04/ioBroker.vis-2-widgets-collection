@@ -1,10 +1,11 @@
 /**
- * Axes & Zoom tab — cartesian-only value-axis + interaction config (ADR-0007, Q5).
+ * Axes & zoom section — cartesian-only value-axis + interaction config (ADR-0007, ADR-0010).
  *
- * @module EchartsCollectionWidget/editor/panels/AxesZoomPanel
+ * @module EchartsCollectionWidget/editor/sections/AxesZoomSection
  * @remarks
- * Shown only for cartesian families. Y-axis bounds/name + split lines, dataZoom (slider + inside),
- * threshold mark-lines (value/label/colour/dashed), and the continuous value→colour visualMap.
+ * Y-axis bounds/name/format + split lines + log scale, dataZoom (slider + inside), and the
+ * threshold mark-lines (value/label/colour/dashed). yMin/yMax carry field-level validation
+ * (min must be below max when both are set).
  */
 import type { FC } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
@@ -17,35 +18,43 @@ import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
 
-interface PanelProps {
+interface AxesZoomSectionProps {
     state: EditorState;
     set: SetEditor;
     pickerCtx: OidPickerCtx;
 }
 
-const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
+const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) => {
     const setMark = (i: number, patch: Partial<EchartsMarkLine>): void =>
         set({ markLines: state.markLines.map((m, idx) => (idx === i ? { ...m, ...patch } : m)) });
     const addMark = (): void =>
         set({ markLines: [...state.markLines, { value: 0, label: '', color: '#888', dashed: true }] });
     const removeMark = (i: number): void => set({ markLines: state.markLines.filter((_, idx) => idx !== i) });
 
+    const boundsInvalid =
+        state.yMin.trim() !== '' &&
+        state.yMax.trim() !== '' &&
+        Number.isFinite(Number(state.yMin)) &&
+        Number.isFinite(Number(state.yMax)) &&
+        Number(state.yMin) >= Number(state.yMax);
+
     return (
         <Box>
-            {/* Y axis */}
-            <SectionLabel>{Generic.t('echarts_axes_y')}</SectionLabel>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
                 <TextField2
                     label={Generic.t('echarts_y_min')}
                     value={state.yMin}
                     onChange={v => set({ yMin: v })}
                     placeholder="auto"
+                    error={boundsInvalid}
+                    helperText={boundsInvalid ? Generic.t('echarts_val_yminmax') : undefined}
                 />
                 <TextField2
                     label={Generic.t('echarts_y_max')}
                     value={state.yMax}
                     onChange={v => set({ yMax: v })}
                     placeholder="auto"
+                    error={boundsInvalid}
                 />
                 <TextField2
                     label={Generic.t('echarts_y_name')}
@@ -75,7 +84,6 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                 />
             </Box>
 
-            {/* Zoom */}
             <SectionLabel>{Generic.t('echarts_zoom')}</SectionLabel>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
                 <CheckField
@@ -90,7 +98,6 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
                 />
             </Box>
 
-            {/* Thresholds (markLine) */}
             <SectionLabel hint={Generic.t('echarts_thresholds_hint')}>{Generic.t('echarts_thresholds')}</SectionLabel>
             {state.markLines.map((m, i) => (
                 <Box
@@ -140,7 +147,6 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
             <Button
                 startIcon={<AddIcon />}
                 onClick={addMark}
-                sx={{ mb: 2 }}
             >
                 {Generic.t('echarts_threshold_add')}
             </Button>
@@ -148,4 +154,4 @@ const AxesZoomPanel: FC<PanelProps> = ({ state, set, pickerCtx }) => {
     );
 };
 
-export default AxesZoomPanel;
+export default AxesZoomSection;

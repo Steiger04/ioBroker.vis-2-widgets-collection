@@ -76,7 +76,9 @@ export const NumberField: FC<{
     value: number;
     onChange: (value: number) => void;
     step?: number;
-}> = ({ label, value, onChange, step = 1 }) => (
+    error?: boolean;
+    helperText?: string;
+}> = ({ label, value, onChange, step = 1, error, helperText }) => (
     <TextField
         size="small"
         type="number"
@@ -84,6 +86,8 @@ export const NumberField: FC<{
         value={value}
         inputProps={{ step }}
         onChange={e => onChange(Number(e.target.value) || 0)}
+        error={error}
+        helperText={helperText}
         fullWidth
     />
 );
@@ -122,13 +126,17 @@ export const TextField2: FC<{
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
-}> = ({ label, value, onChange, placeholder }) => (
+    error?: boolean;
+    helperText?: string;
+}> = ({ label, value, onChange, placeholder, error, helperText }) => (
     <TextField
         size="small"
         label={label}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
+        error={error}
+        helperText={helperText}
         fullWidth
     />
 );

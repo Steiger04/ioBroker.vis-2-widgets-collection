@@ -46,9 +46,17 @@ interface OidPickerProps {
      * @default false
      */
     historyOnly?: boolean;
+    /** Autofocus the text field (used for the skeleton card on first open). */
+    autoFocus?: boolean;
 }
 
-export default function OidPicker({ value, onChange, ctx, historyOnly = false }: OidPickerProps): React.JSX.Element {
+export default function OidPicker({
+    value,
+    onChange,
+    ctx,
+    historyOnly = false,
+    autoFocus,
+}: OidPickerProps): React.JSX.Element {
     const [open, setOpen] = useState(false);
 
     return (
@@ -58,6 +66,7 @@ export default function OidPicker({ value, onChange, ctx, historyOnly = false }:
                 label="OID"
                 value={value}
                 onChange={e => onChange(e.target.value)}
+                autoFocus={autoFocus}
                 sx={{ width: 200 }}
             />
             <IconButton

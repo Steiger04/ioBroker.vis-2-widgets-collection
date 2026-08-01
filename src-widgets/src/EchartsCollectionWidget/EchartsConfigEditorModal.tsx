@@ -1,13 +1,18 @@
 /**
- * Split-layout modal dialog for the v2 echarts configurator (Q3 split layout, Q6 real preview).
+ * Rail+preview modal for the v3 echarts configurator (ADR-0010; layout per Q3, preview per Q6).
  *
  * @module EchartsCollectionWidget/EchartsConfigEditorModal
  * @remarks
- * Left column: the config tabs (Data | Series | Darstellung | Axes&Zoom | Advanced). Right column:
- * a persistent **real-data** preview fed by {@link ChartPreview} (the user's actual OIDs, live —
- * not synthetic fixtures). The honesty contract is preserved: a working copy buffers edits, Apply
- * is disabled until it diverges (`hasChanges`, deep-equality), a backdrop click while dirty is
- * intercepted with a warning, Reset reverts. Wraps in a ThemeProvider for correct detached rendering.
+ * Left rail (~420px): pinned selectors + the collapsible section stack
+ * ({@link EchartsEditorSections}). Right stage: a persistent **real-data** preview fed by
+ * {@link ChartPreview} (the user's actual OIDs, live — not synthetic fixtures); its empty state is
+ * clickable and steers the rail to the section that would fill it.
+ *
+ * The honesty contract is preserved: a working copy buffers edits, Apply is disabled until it
+ * diverges (`hasChanges`, deep-equality), closing while dirty (backdrop click **or** Escape) is
+ * intercepted with a warning, Reset reverts. First-open onboarding injects the skeleton series
+ * card ahead of the snapshot, so Apply stays honestly disabled until the user really edits.
+ * Wraps in a ThemeProvider for correct detached rendering.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -28,7 +33,9 @@ import { Close as CloseIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
 import ChartPreview from './editor/ChartPreview';
-import EchartsEditorTabs from './editor/EchartsEditorTabs';
+import EchartsEditorSections, { type FocusSectionRequest } from './editor/EchartsEditorSections';
+import { familyOf } from './optionBuilder';
+import type { SectionKey } from './editor/validation';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -48,6 +55,34 @@ interface EchartsConfigEditorModalProps {
     socket: LegacyConnection;
 }
 
+/**
+ * First-open onboarding (ADR-0010): an empty config gets one skeleton entry — a cartesian/pie
+ * series card, or a radar indicator — so the user lands on a ready-to-fill form instead of a
+ * blank stack. Returns `[state, injected]`. Gauge always has its single scalar series already.
+ */
+const withSkeleton = (loaded: EditorState): [EditorState, boolean] => {
+    const family = familyOf(loaded.chartType);
+    if (family === 'radar') {
+        if (loaded.radar.indicators.length > 0) {
+            return [loaded, false];
+        }
+        return [
+            {
+                ...loaded,
+                radar: { ...loaded.radar, indicators: [{ name: 'Ind 1', max: 100, oid: '' }] },
+            },
+            true,
+        ];
+    }
+    if (family === 'cartesian' || family === 'pie') {
+        if (loaded.series.length > 0) {
+            return [loaded, false];
+        }
+        return [{ ...loaded, series: [{ oid: '', name: 'Series 1', yAxisIndex: 0 }] }, true];
+    }
+    return [loaded, false];
+};
+
 function EchartsConfigEditorModal({
     open,
     onClose,
@@ -60,18 +95,28 @@ function EchartsConfigEditorModal({
     const loadedCountRef = useRef(0);
     const loadedSnapshotRef = useRef('');
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+    // Skeleton onboarding: autofocus the injected card's OID (first open only, not on Reset).
+    const [autoFocusOid, setAutoFocusOid] = useState(false);
+    // Preview placeholder → rail steering (expand the section + scroll it into view).
+    const focusTokenRef = useRef(0);
+    const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
 
     // (Re)load the editor state from widget data each time the dialog opens.
     useEffect(() => {
         if (!open) {
             return;
         }
-        const loaded = loadEditorState(data as Record<string, unknown>);
+        // The skeleton goes in BEFORE the snapshot: it is part of the "loaded" baseline, so Apply
+        // stays disabled until the user edits for real (ADR-0010 onboarding honesty).
+        const [loaded, injected] = withSkeleton(loadEditorState(data as Record<string, unknown>));
         // The number of indexed `oidN` fields to clear on save. For radar the indicators (not the
         // single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
+        // Includes the skeleton so a deleted skeleton also clears its (possibly stale) oid slot.
         loadedCountRef.current = loaded.chartType === 'radar' ? loaded.radar.indicators.length : loaded.series.length;
         loadedSnapshotRef.current = JSON.stringify(loaded);
         setState(loaded);
+        setAutoFocusOid(injected);
+        setFocusSection(null);
     }, [open, data]);
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
@@ -84,7 +129,9 @@ function EchartsConfigEditorModal({
     }, []);
 
     const handleReset = useCallback(() => {
-        setState(loadEditorState(data as Record<string, unknown>));
+        // Reset restores the same baseline the snapshot captured — skeleton included.
+        const [loaded] = withSkeleton(loadEditorState(data as Record<string, unknown>));
+        setState(loaded);
     }, [data]);
 
     const handleApply = useCallback(() => {
@@ -92,10 +139,11 @@ function EchartsConfigEditorModal({
         onClose();
     }, [state, onDataChange, onClose]);
 
-    // Intercept backdrop click when dirty — surface the warning, don't silently discard.
+    // Intercept close when dirty — backdrop click AND Escape both surface the warning, never
+    // silently discard the working copy (the v2 Escape gap, fixed per ADR-0010).
     const handleClose = useCallback(
         (_event?: object, reason?: string) => {
-            if (reason === 'backdropClick' && hasChanges) {
+            if ((reason === 'backdropClick' || reason === 'escapeKeyDown') && hasChanges) {
                 setShowUnsavedWarning(true);
                 return;
             }
@@ -104,6 +152,11 @@ function EchartsConfigEditorModal({
         [hasChanges, onClose],
     );
 
+    const handlePlaceholderClick = useCallback((key: SectionKey) => {
+        focusTokenRef.current += 1;
+        setFocusSection({ key, token: focusTokenRef.current });
+    }, []);
+
     const titleId = 'echarts-config-editor-title';
 
     return (
@@ -111,7 +164,7 @@ function EchartsConfigEditorModal({
             <Dialog
                 open={open}
                 onClose={handleClose}
-                maxWidth="lg"
+                maxWidth="xl"
                 fullWidth
                 aria-labelledby={titleId}
             >
@@ -135,19 +188,26 @@ function EchartsConfigEditorModal({
                     dividers
                     sx={{ p: 0 }}
                 >
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: 420 }}>
-                        {/* Left: config tabs */}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: { xs: 'column', md: 'row' },
+                            minHeight: 420,
+                            height: { md: '72vh' },
+                        }}
+                    >
+                        {/* Left rail: pinned selectors + section stack */}
                         <Box
                             sx={{
-                                flex: 1,
-                                minWidth: 0,
+                                width: { xs: '100%', md: 420 },
+                                flexShrink: 0,
                                 p: 2,
                                 borderRight: { md: 1 },
                                 borderColor: { md: 'divider' },
                                 overflowY: 'auto',
                             }}
                         >
-                            <EchartsEditorTabs
+                            <EchartsEditorSections
                                 state={state}
                                 set={set}
                                 userText={state.userText}
@@ -157,13 +217,15 @@ function EchartsConfigEditorModal({
                                     theme,
                                     themeType: theme.palette.mode === 'dark' ? 'dark' : 'light',
                                 }}
+                                focusSection={focusSection}
+                                autoFocusFirstOid={autoFocusOid}
                             />
                         </Box>
-                        {/* Right: persistent real-data preview */}
+                        {/* Right stage: persistent real-data preview */}
                         <Box
                             sx={{
-                                width: { xs: '100%', md: 380 },
-                                flexShrink: 0,
+                                flex: 1,
+                                minWidth: 0,
                                 p: 2,
                                 bgcolor: 'action.hover',
                                 display: 'flex',
@@ -182,6 +244,7 @@ function EchartsConfigEditorModal({
                                     state={state}
                                     socket={socket}
                                     theme={theme}
+                                    onPlaceholderClick={handlePlaceholderClick}
                                 />
                             </Box>
                         </Box>
