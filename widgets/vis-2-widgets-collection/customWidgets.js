@@ -1,5 +1,5 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./assets/index-BEpFHtMA.js","./assets/_commonjsHelpers-Cpj98o6Y.js","./assets/index-UMzeul1g.js","./assets/vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js"])))=>i.map(i=>d[i]);
-import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-B6dK4tBY.js";
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./assets/index-LZfP0enQ.js","./assets/tinycolor-B_2EitDy.js","./assets/vis2CollectionWidget__loadShare__react__loadShare__-Cz8-6BjL.js","./assets/_commonjsHelpers-Cpj98o6Y.js","./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js","./assets/Visibility-DN1PL4ca.js","./assets/useThemeProps-aftgm_DM.js","./assets/MenuItem-YnFiF269.js","./assets/listItemTextClasses-1JwjlcRg.js","./assets/Close-xsT1rNIU.js","./assets/DialogTitle-C4oRTLxw.js","./assets/Clear-_5wzb3ZB.js","./assets/FormControlLabel-0hsVY4CY.js","./assets/Checkbox-C4L_D9JE.js","./assets/SwitchBase-BkcjAU-2.js","./assets/ExpandMore-DzuQPs3a.js","./assets/Button-CkZMtQvT.js","./assets/Add-TAwzFPAU.js","./assets/Delete-lESTXvkD.js","./assets/tslib.es6-F1e60Aum.js","./assets/ContentCopy-CuBHCkno.js","./assets/ListItemText-BYVJwaPu.js","./assets/Link-Dc9rTYYP.js","./assets/Switch-CDoCm9Od.js","./assets/Radio-DmGmsatX.js","./assets/index-BEpFHtMA.js","./assets/index-UMzeul1g.js"])))=>i.map(i=>d[i]);
+import exposesMap, { __tla as __tla_0 } from "./assets/virtualExposes-BjONCmnt.js";
 import { _ as __vitePreload } from "./assets/preload-helper-PPVm8Dsz.js";
 import { v as vis2CollectionWidget__mf_v__runtimeInit__mf_v__ } from "./assets/vis2CollectionWidget__mf_v__runtimeInit__mf_v__-Cugi9Gwb.js";
 let getExposes, init;
@@ -2597,12 +2597,41 @@ ${r.slice(0, 5).join(`
   runtimeCore.registerGlobalPlugins;
   var init_1 = init$1;
   const importMap = {
-    react: async () => await __vitePreload(() => import("./assets/index-BEpFHtMA.js").then((e) => e.i), __vite__mapDeps([0,1]), import.meta.url),
+    "@iobroker/adapter-react-v5": async () => await __vitePreload(() => import("./assets/index-LZfP0enQ.js").then(async (m) => {
+      await m.__tla;
+      return m;
+    }), __vite__mapDeps([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]), import.meta.url),
+    react: async () => await __vitePreload(() => import("./assets/index-BEpFHtMA.js").then((e) => e.i), __vite__mapDeps([25,3]), import.meta.url),
     "react-dom": async () => await __vitePreload(() => import("./assets/index-UMzeul1g.js").then(async (m) => {
       await m.__tla;
       return m;
-    }).then((e) => e.i), __vite__mapDeps([2,1,3,4]), import.meta.url)
+    }).then((e) => e.i), __vite__mapDeps([26,3,2,4]), import.meta.url)
   }, usedShared = {
+    "@iobroker/adapter-react-v5": {
+      name: "@iobroker/adapter-react-v5",
+      version: "8.0.16",
+      scope: [
+        "default"
+      ],
+      loaded: false,
+      from: "vis2CollectionWidget",
+      async get() {
+        usedShared["@iobroker/adapter-react-v5"].loaded = true;
+        const { "@iobroker/adapter-react-v5": t } = importMap, r = {
+          ...await t()
+        };
+        return Object.defineProperty(r, "__esModule", {
+          value: true,
+          enumerable: false
+        }), function() {
+          return r;
+        };
+      },
+      shareConfig: {
+        singleton: true,
+        requiredVersion: "*"
+      }
+    },
     react: {
       name: "react",
       version: "18.3.1",
