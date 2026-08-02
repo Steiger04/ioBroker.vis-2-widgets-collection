@@ -229,6 +229,7 @@ export const buildCartesianOption = (
         series: entries,
         animation: p.animation,
         ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+        ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
     };
 
     if (p.dataZoomSlider || p.dataZoomInside) {

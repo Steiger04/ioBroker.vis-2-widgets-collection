@@ -6,9 +6,16 @@
 import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../lib/encoding';
-import { buildGeneratedOption, familyOf, parseJsonState, parseSeriesConfig, parseUserJson } from './optionBuilder';
-import type { EchartsChartType } from '../types/field-definitions/echarts-fields';
-import type { PresentationConfig } from './optionBuilders/types';
+import {
+    buildGeneratedOption,
+    familyOf,
+    parseJsonSeriesStyle,
+    parseJsonState,
+    parseSeriesConfig,
+    parseUserJson,
+} from './optionBuilder';
+import type { ChartSeries, PresentationConfig } from './optionBuilders/types';
+import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
 /** Minimal cartesian presentation config for tests. */
 const P: PresentationConfig = {
@@ -68,15 +75,16 @@ describe('parseJsonState', () => {
                 ],
             }),
         );
-        expect(out).toHaveLength(2);
-        expect(out[0]).toEqual({
+        expect(out.series).toHaveLength(2);
+        expect(out.error).toBeUndefined();
+        expect(out.series[0]).toEqual({
             name: 'A',
             data: [
                 [1, 10],
                 [2, 20],
             ],
         });
-        expect(out[1]).toEqual({ name: 'B', data: [[1, 30]] });
+        expect(out.series[1]).toEqual({ name: 'B', data: [[1, 30]] });
     });
 
     it('parses { data: [...] } into a single series', () => {
@@ -88,7 +96,7 @@ describe('parseJsonState', () => {
                 ],
             }),
         );
-        expect(out).toEqual([
+        expect(out.series).toEqual([
             {
                 name: 'Series 1',
                 data: [
@@ -99,14 +107,14 @@ describe('parseJsonState', () => {
         ]);
     });
 
-    it('parses a bare array of points into a single series', () => {
+    it('parses a bare points array into a single series', () => {
         const out = parseJsonState(
             JSON.stringify([
                 [100, 1],
                 [200, 2],
             ]),
         );
-        expect(out).toEqual([
+        expect(out.series).toEqual([
             {
                 name: 'Series 1',
                 data: [
@@ -117,26 +125,105 @@ describe('parseJsonState', () => {
         ]);
     });
 
+    it('parses a bare array of series objects into multiple series (ADR-0011)', () => {
+        const out = parseJsonState(
+            JSON.stringify([
+                { name: 'PV', data: [[0, 1]] },
+                { name: 'Grid', data: [[0, 2]] },
+            ]),
+        );
+        expect(out.series).toHaveLength(2);
+        expect(out.series.map(s => s.name)).toEqual(['PV', 'Grid']);
+        expect(out.series[0].data).toEqual([[0, 1]]);
+    });
+
+    it('treats a bare array of point objects (no array `data`) as one series', () => {
+        const out = parseJsonState(
+            JSON.stringify([
+                { ts: 1, val: 9 },
+                { ts: 2, val: 8 },
+            ]),
+        );
+        expect(out.series).toHaveLength(1);
+        expect(out.series[0].data).toEqual([
+            [1, 9],
+            [2, 8],
+        ]);
+    });
+
     it('normalizes object points { ts, val } / { time, value } / { x, y }', () => {
         const a = parseJsonState(JSON.stringify([{ ts: 1, val: 9 }]));
         const b = parseJsonState(JSON.stringify([{ time: 2, value: 8 }]));
         const c = parseJsonState(JSON.stringify([{ x: 3, y: 7 }]));
-        expect(a[0].data).toEqual([[1, 9]]);
-        expect(b[0].data).toEqual([[2, 8]]);
-        expect(c[0].data).toEqual([[3, 7]]);
+        expect(a.series[0].data).toEqual([[1, 9]]);
+        expect(b.series[0].data).toEqual([[2, 8]]);
+        expect(c.series[0].data).toEqual([[3, 7]]);
     });
 
     it('defaults a missing series name to "Series N"', () => {
         const out = parseJsonState(JSON.stringify({ series: [{ data: [[0, 0]] }, { data: [] }] }));
-        expect(out[0].name).toBe('Series 1');
-        expect(out[1].name).toBe('Series 2');
+        expect(out.series[0].name).toBe('Series 1');
+        expect(out.series[1].name).toBe('Series 2');
     });
 
-    it('returns [] for empty / invalid JSON', () => {
-        expect(parseJsonState(undefined)).toEqual([]);
-        expect(parseJsonState('')).toEqual([]);
-        expect(parseJsonState('nope')).toEqual([]);
-        expect(parseJsonState('123')).toEqual([]);
+    it('returns empty series (no error) for empty / non-object / non-array JSON', () => {
+        expect(parseJsonState(undefined).series).toEqual([]);
+        expect(parseJsonState('').series).toEqual([]);
+        expect(parseJsonState('123').series).toEqual([]); // valid JSON primitive, not chart data
+        expect(parseJsonState(undefined).error).toBeUndefined();
+    });
+
+    it('surfaces a parse error for malformed JSON instead of a silent blank chart (ADR-0011)', () => {
+        const out = parseJsonState('{ not json');
+        expect(out.series).toEqual([]);
+        expect(out.error).toBeTruthy();
+    });
+});
+
+describe('parseJsonSeriesStyle', () => {
+    it('returns {} for empty input', () => {
+        expect(parseJsonSeriesStyle(undefined)).toEqual({});
+        expect(parseJsonSeriesStyle('')).toEqual({});
+    });
+
+    it('decodes a name-keyed overlay blob', () => {
+        const blob = encodeBlob(JSON.stringify({ PV: { color: '#f00', type: 'bar' } }));
+        expect(parseJsonSeriesStyle(blob)).toEqual({ PV: { color: '#f00', type: 'bar' } });
+    });
+
+    it('returns {} for an invalid blob', () => {
+        expect(parseJsonSeriesStyle('not-valid-base64-json')).toEqual({});
+    });
+});
+
+describe('JSON-mode name-keyed overlay (ADR-0011)', () => {
+    it('cartesian builder applies the per-name overlay (type override → mixed line/bar)', () => {
+        const series: ChartSeries[] = [
+            { name: 'PV', data: [[0, 1]] },
+            { name: 'Grid', data: [[0, 2]] },
+        ];
+        const meta: EchartsSeriesMeta[] = [
+            { color: '#f00', type: 'line' },
+            { color: '#0f0', type: 'bar' },
+        ];
+        const g = buildGeneratedOption({ family: 'cartesian', series, meta, p: P });
+        const built = g.series as { name: string; type: string; color: string }[];
+        expect(built[0].type).toBe('line');
+        expect(built[0].color).toBe('#f00');
+        expect(built[1].type).toBe('bar');
+        expect(built[1].color).toBe('#0f0');
+    });
+
+    it('pie builder applies the per-name slice colour', () => {
+        const series: ChartSeries[] = [
+            { name: 'PV', data: [[0, 10]] },
+            { name: 'Grid', data: [[0, 20]] },
+        ];
+        const meta: EchartsSeriesMeta[] = [{ color: '#f00' }, { color: '#0f0' }];
+        const g = buildGeneratedOption({ family: 'pie', series, meta, p: P });
+        const data = (g.series as unknown as { data: { name: string; itemStyle: { color: string } }[] }[])[0].data;
+        expect(data[0].itemStyle.color).toBe('#f00');
+        expect(data[1].itemStyle.color).toBe('#0f0');
     });
 });
 

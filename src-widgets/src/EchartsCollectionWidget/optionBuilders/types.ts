@@ -41,6 +41,8 @@ export interface PresentationConfig {
     tooltipDecimals?: number;
     animation: boolean;
     animationDuration: number;
+    /** echarts animation easing; emitted only when set (empty = echarts default). */
+    animationEasing?: string;
     bgColor: string;
     // cartesian-only
     /** Default cartesian series type (the chart type) inherited by any series without an explicit override. */

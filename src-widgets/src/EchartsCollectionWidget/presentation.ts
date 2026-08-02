@@ -205,6 +205,7 @@ export const toPresentationConfig = (opts: {
         tooltipDecimals: num(s.tooltipDecimals),
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
+        animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,
         bgColor: str(s.bgColor, 'transparent'),
         cartesianType,
         yMin: num(s.yMin),

@@ -29,7 +29,14 @@ import { decodeBlob } from '../lib/encoding';
 import EChart from './EChart';
 import { buildEchartsTheme, echartsPalette } from './echartsTheme';
 import { createHistoryFetcher } from './historyFetcher';
-import { buildGeneratedOption, familyOf, parseJsonState, parseSeriesConfig, parseUserJson } from './optionBuilder';
+import {
+    buildGeneratedOption,
+    familyOf,
+    parseJsonSeriesStyle,
+    parseJsonState,
+    parseSeriesConfig,
+    parseUserJson,
+} from './optionBuilder';
 import {
     resolvePalette,
     toPresentationConfig,
@@ -87,6 +94,19 @@ function EchartsCollection(): React.ReactElement {
         const r = parseUserJson(decodeBlob(data.chartOverrides));
         return r.ok ? r.value : {};
     }, [data.chartOverrides]);
+
+    // JSON mode: the name-keyed per-series style overlay (ADR-0011). Empty when absent — JSON
+    // series then render with defaults (palette slot, inherited type).
+    const jsonStyle = useMemo(() => parseJsonSeriesStyle(data.jsonSeriesStyle), [data.jsonSeriesStyle]);
+    // Parsed jsonOid payload (series data only). Computed once so the option builder and the error
+    // display read the same result, including its parse error (ADR-0011 — no silent blank chart).
+    const jsonParsed = useMemo(() => {
+        if (mode !== 'json' || (family !== 'cartesian' && family !== 'pie')) {
+            return parseJsonState(''); // json disabled for this family/mode → { series: [] }
+        }
+        const raw = jsonValue === null || jsonValue === undefined ? '' : String(jsonValue);
+        return parseJsonState(raw);
+    }, [mode, family, jsonValue]);
 
     // Content signature of the chart-relevant theme fields. vis-2 rebuilds the MUI theme on a
     // mere editor move (moving changes `widget.style` top/left → `useStyles` recomputes → the
@@ -229,13 +249,15 @@ function EchartsCollection(): React.ReactElement {
                     data: liveBuffers[e.oid] ?? [],
                 }));
             } else {
-                const raw = jsonValue === null || jsonValue === undefined ? '' : String(jsonValue);
-                series = parseJsonState(raw);
+                series = jsonParsed.series;
             }
+            // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
+            // positional seriesConfig (json has no per-series OIDs to key it by).
+            const jsonMeta = mode === 'json' ? series.map(s => jsonStyle[s.name] ?? {}) : undefined;
             g = buildGeneratedOption({
                 family: family === 'pie' ? 'pie' : 'cartesian',
                 series,
-                meta,
+                meta: jsonMeta ?? meta,
                 p: presentation,
             });
         }
@@ -269,7 +291,8 @@ function EchartsCollection(): React.ReactElement {
         values,
         history.series,
         liveBuffers,
-        jsonValue,
+        jsonParsed,
+        jsonStyle,
         presentation,
         overrides,
         themeBase,
@@ -282,7 +305,11 @@ function EchartsCollection(): React.ReactElement {
             ? history.series.find(s => s.error)?.error
             : undefined;
     const error =
-        mode === 'history' && family !== 'gauge' && family !== 'radar' ? (history.error ?? seriesError ?? null) : null;
+        mode === 'json' && family !== 'gauge' && family !== 'radar'
+            ? (jsonParsed.error ?? null)
+            : mode === 'history' && family !== 'gauge' && family !== 'radar'
+              ? (history.error ?? seriesError ?? null)
+              : null;
 
     // hasData differs by family.
     const hasData = useMemo(() => {

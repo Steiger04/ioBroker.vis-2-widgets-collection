@@ -76,6 +76,7 @@ export const buildGaugeOption = (
                 data: [{ value: value ?? '--', ...(name ? { name } : {}) }],
                 animation: p.animation,
                 ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
             },
         ],
     };

@@ -21,7 +21,8 @@ export type SectionKey =
     | 'axesZoom'
     | 'family'
     | 'colors'
-    | 'behavior';
+    | 'behavior'
+    | 'advancedJson';
 
 /** One validation finding: an i18n key plus optional `%s` interpolation args. */
 export interface ValidationIssue {

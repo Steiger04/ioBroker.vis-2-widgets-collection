@@ -16,7 +16,7 @@
  */
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
-import { familyOf } from '../optionBuilder';
+import { familyOf, parseJsonSeriesStyle } from '../optionBuilder';
 import { decodeChartConfig, decodeMarkLines } from '../presentation';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
@@ -94,6 +94,8 @@ export interface EditorState {
     tooltipDecimals: number;
     animation: boolean;
     animationDuration: number;
+    /** echarts animation easing (promoted from a JSON snippet, ADR-0011 D5). Empty = default. */
+    animationEasing: string;
     bgColor: string;
     yMin: string;
     yMax: string;
@@ -113,6 +115,12 @@ export interface EditorState {
     visualMap: EditorVisualMap;
     /** Decoded Advanced JSON text (the chartOverrides / U side). */
     userText: string;
+    /**
+     * JSON-mode per-series style overlay, keyed by the payload series name (ADR-0011). Only
+     * edited in json mode (the Series section renders one card per payload series); carried
+     * round-trip regardless so switching modes away and back preserves the user's style.
+     */
+    jsonSeriesStyle: Record<string, SeriesMeta>;
 }
 
 export type EditorPatch = Partial<EditorState>;
@@ -147,6 +155,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     tooltipDecimals: 0,
     animation: true,
     animationDuration: 600,
+    animationEasing: '',
     bgColor: 'transparent',
     yMin: '',
     yMax: '',
@@ -165,6 +174,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     markLines: [],
     visualMap: { enabled: false, min: 0, max: 100, colors: DEFAULT_VMAP_COLORS },
     userText: '',
+    jsonSeriesStyle: {},
 };
 
 const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
@@ -303,6 +313,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         tooltipDecimals: numOr(data.tooltipDecimals, 0),
         animation: boolOr(data.animation, true),
         animationDuration: numOr(data.animationDuration, 600),
+        animationEasing: strOr(data.animationEasing, ''),
         bgColor: strOr(data.bgColor, 'transparent'),
         yMin: typeof data.yMin === 'number' ? String(data.yMin) : '',
         yMax: typeof data.yMax === 'number' ? String(data.yMax) : '',
@@ -321,6 +332,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         markLines: decodeMarkLines(data.markLines as string),
         visualMap: vm,
         userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
+        jsonSeriesStyle: parseJsonSeriesStyle(data.jsonSeriesStyle as string),
     };
 };
 
@@ -387,6 +399,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         tooltipDecimals: state.tooltipDecimals,
         animation: state.animation,
         animationDuration: state.animationDuration,
+        animationEasing: state.animationEasing,
         bgColor: state.bgColor,
         yMin: numOrEmpty(state.yMin),
         yMax: numOrEmpty(state.yMax),
@@ -417,6 +430,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         ),
         chartOverrides: encodeBlob(state.userText),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
+        jsonSeriesStyle: encodeBlob(JSON.stringify(state.jsonSeriesStyle)),
     };
     const max = Math.max(seriesCount, previousCount);
     for (let i = 0; i < max; i++) {

@@ -105,6 +105,21 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                 />
             </Box>
 
+            {/* Dark-mode policy (moved from Behaviour — it is a theme/colour concern, and the
+                Colours summary already reported it, ADR-0011 companion / D5). */}
+            <Box sx={{ maxWidth: 260, mb: 2 }}>
+                <LabeledSelect
+                    label={Generic.t('echarts_dark_mode')}
+                    value={state.darkMode}
+                    onChange={v => set({ darkMode: v as EditorState['darkMode'] })}
+                    options={[
+                        ['auto', Generic.t('echarts_dark_auto')],
+                        ['light', Generic.t('echarts_dark_light')],
+                        ['dark', Generic.t('echarts_dark_dark')],
+                    ]}
+                />
+            </Box>
+
             {isCartesian && (
                 <>
                     <SectionLabel hint={Generic.t('echarts_visualmap_hint')}>

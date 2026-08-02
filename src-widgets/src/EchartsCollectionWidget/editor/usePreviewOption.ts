@@ -159,12 +159,14 @@ export function usePreviewOption(
                 }));
             } else {
                 const raw = values[state.jsonOid];
-                series = parseJsonState(raw === null || raw === undefined ? '' : String(raw));
+                series = parseJsonState(raw === null || raw === undefined ? '' : String(raw)).series;
             }
+            // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
+            // positional editor series (json has no per-series OIDs).
             g = buildGeneratedOption({
                 family: family === 'pie' ? 'pie' : 'cartesian',
                 series,
-                meta: state.series,
+                meta: mode === 'json' ? series.map(s => state.jsonSeriesStyle[s.name] ?? {}) : state.series,
                 p: presentation,
             });
         }

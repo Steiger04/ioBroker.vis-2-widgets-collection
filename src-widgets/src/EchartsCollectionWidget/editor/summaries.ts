@@ -8,7 +8,7 @@
  * and truncated with ellipsis. A section that cannot say anything useful collapsed does not
  * deserve to be a section.
  */
-import { familyOf } from '../optionBuilder';
+import { familyOf, parseUserJson } from '../optionBuilder';
 import type { EditorState } from './editorState';
 import type { SectionKey } from './validation';
 
@@ -91,6 +91,13 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
     out.behavior = state.animation
         ? `${state.renderer} · ${state.animationDuration}ms`
         : `${state.renderer} · ${t('echarts_sum_off')}`;
+
+    // advanced json (the U escape hatch — count of authored top-level keys)
+    const u = state.userText.trim() ? parseUserJson(state.userText) : null;
+    if (u?.ok) {
+        const n = Object.keys(u.value).length;
+        out.advancedJson = n > 0 ? `${n}` : '';
+    }
 
     return out;
 };

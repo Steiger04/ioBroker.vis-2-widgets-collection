@@ -112,39 +112,87 @@ const normalizePoints = (data: unknown): SeriesPoint[] => {
     });
 };
 
+/** Result of parsing a JSON-state payload: the resolved series (data only) and any parse error. */
+export type JsonStateResult = { series: ChartSeries[]; error?: string };
+
 /**
- * Parse a JSON-state payload (json mode) into chart series.
- * Auto-detects `{ series: [{ name?, data }] }`, `{ data: [...] }`, or a bare array.
+ * Parse a JSON-state payload (json mode) into chart series (data only — presentation comes from
+ * the name-keyed overlay in the builder, ADR-0011). Auto-detects four shapes:
+ *  - `{ series: [{ name?, data }] }` — multi-series (one entry per element).
+ *  - `{ data: [...] }` — a single series.
+ *  - bare points array `[[ts,val],...]` / `[{ts,val},...]` — a single series.
+ *  - bare array of series objects `[{name,data},...]` — multi-series (ADR-0011; the natural shape
+ *    that previously collapsed to one null-series).
+ *
+ * A malformed JSON string surfaces an `error` instead of a silent blank chart (ADR-0011).
  */
-export const parseJsonState = (raw: string | undefined | null): ChartSeries[] => {
+export const parseJsonState = (raw: string | undefined | null): JsonStateResult => {
     if (!raw) {
-        return [];
+        return { series: [] };
     }
     let v: unknown;
     try {
         v = JSON.parse(raw);
-    } catch {
-        return [];
+    } catch (e) {
+        return { series: [], error: (e as Error).message };
     }
     if (v && typeof v === 'object' && !Array.isArray(v)) {
         const o = v as Record<string, unknown>;
         if (Array.isArray(o.series)) {
-            return (o.series as unknown[]).map((s, i) => {
-                const so = (s ?? {}) as Record<string, unknown>;
-                return {
-                    name: typeof so.name === 'string' ? so.name : `Series ${i + 1}`,
-                    data: normalizePoints(so.data),
-                };
-            });
+            return {
+                series: (o.series as unknown[]).map((s, i) => {
+                    const so = (s ?? {}) as Record<string, unknown>;
+                    return {
+                        name: typeof so.name === 'string' ? so.name : `Series ${i + 1}`,
+                        data: normalizePoints(so.data),
+                    };
+                }),
+            };
         }
         if (Array.isArray(o.data)) {
-            return [{ name: 'Series 1', data: normalizePoints(o.data) }];
+            return { series: [{ name: 'Series 1', data: normalizePoints(o.data) }] };
         }
+        return { series: [] };
     }
     if (Array.isArray(v)) {
-        return [{ name: 'Series 1', data: normalizePoints(v) }];
+        // Bare array: a points list (one series) OR a list of series objects (multi-series).
+        // Distinguish by the first non-null element: a plain object with an array-valued `data`
+        // field is a series object, not a point.
+        const first = v.find(x => x !== null && x !== undefined);
+        const isArrayOfSeries =
+            first !== undefined &&
+            typeof first === 'object' &&
+            !Array.isArray(first) &&
+            Array.isArray((first as Record<string, unknown>).data);
+        if (isArrayOfSeries) {
+            return {
+                series: v.map((s, i) => {
+                    const so = (s ?? {}) as Record<string, unknown>;
+                    return {
+                        name: typeof so.name === 'string' ? so.name : `Series ${i + 1}`,
+                        data: normalizePoints(so.data),
+                    };
+                }),
+            };
+        }
+        return { series: [{ name: 'Series 1', data: normalizePoints(v) }] };
     }
-    return [];
+    return { series: [] };
+};
+
+/** Decode + parse the `jsonSeriesStyle` blob into the name-keyed overlay (ADR-0011). Empty/invalid → `{}`. */
+export const parseJsonSeriesStyle = (raw: string | undefined | null): Record<string, EchartsSeriesMeta> => {
+    if (!raw) {
+        return {};
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw));
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+            ? (parsed as Record<string, EchartsSeriesMeta>)
+            : {};
+    } catch {
+        return {};
+    }
 };
 
 /**

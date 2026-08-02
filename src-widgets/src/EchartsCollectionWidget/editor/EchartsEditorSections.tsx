@@ -16,6 +16,7 @@ import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
 import { ChartTypePicker, FieldLabel, ModeSelect } from './controls';
 import Section from './Section';
+import AdvancedJsonSection from './sections/AdvancedJsonSection';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
 import ColorsSection from './sections/ColorsSection';
@@ -45,19 +46,22 @@ interface EchartsEditorSectionsProps {
     focusSection?: FocusSectionRequest | null;
     /** Autofocus the first series' OID field (skeleton card on first open, ADR-0010). */
     autoFocusFirstOid?: boolean;
+    /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
+    jsonSeriesNames?: string[];
+    jsonError?: string;
 }
 
 /** The family-aware section inventory (ADR-0010). */
 const inventory = (chartType: EditorState['chartType']): SectionKey[] => {
     const family = familyOf(chartType);
     if (family === 'cartesian') {
-        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'axesZoom', 'colors', 'behavior'];
+        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'axesZoom', 'colors', 'behavior', 'advancedJson'];
     }
     if (family === 'pie') {
-        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior'];
+        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
     }
     // gauge / radar: no data source (always current value), no axes
-    return ['series', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior'];
+    return ['series', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
 };
 
 const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): string => {
@@ -86,6 +90,8 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
             return Generic.t('echarts_sec_colors');
         case 'behavior':
             return Generic.t('echarts_sec_behavior');
+        case 'advancedJson':
+            return Generic.t('echarts_sec_advanced_json');
     }
 };
 
@@ -97,6 +103,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     pickerCtx,
     focusSection,
     autoFocusFirstOid,
+    jsonSeriesNames,
+    jsonError,
 }) => {
     const family = familyOf(state.chartType);
     const modeRelevant = family === 'cartesian' || family === 'pie';
@@ -129,6 +137,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         pickerCtx={pickerCtx}
                         issues={issues.series}
                         autoFocusFirstOid={autoFocusFirstOid}
+                        jsonSeriesNames={jsonSeriesNames}
+                        jsonError={jsonError}
                     />
                 );
             case 'dataSource':
@@ -191,8 +201,14 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <BehaviorSection
                         state={state}
                         set={set}
+                    />
+                );
+            case 'advancedJson':
+                return (
+                    <AdvancedJsonSection
                         userText={userText}
                         setUserText={setUserText}
+                        set={set}
                     />
                 );
         }

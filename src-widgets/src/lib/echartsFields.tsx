@@ -123,12 +123,16 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
     { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
     { name: 'legendPos', type: 'text', default: 'top', hidden: alwaysHidden },
-    { name: 'tooltipTrigger', type: 'text', default: 'axis', hidden: alwaysHidden },
+    // tooltipTrigger: no field default — `undefined` lets the runtime default per family
+    // ('axis' for cartesian, 'item' otherwise) in presentation + loadEditorState, the single
+    // source of truth (ADR-0011 Tier 3 — avoids a fresh pie widget rendering axis-trigger).
+    { name: 'tooltipTrigger', type: 'text', hidden: alwaysHidden },
     { name: 'tooltipTemplate', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'tooltipUnits', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'tooltipDecimals', type: 'number', default: 0, hidden: alwaysHidden },
     { name: 'animation', type: 'checkbox', default: true, hidden: alwaysHidden },
     { name: 'animationDuration', type: 'number', default: 600, hidden: alwaysHidden },
+    { name: 'animationEasing', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'bgColor', type: 'text', default: 'transparent', hidden: alwaysHidden },
     { name: 'renderer', type: 'text', default: 'canvas', hidden: alwaysHidden },
     // Cartesian axes + zoom.
@@ -149,7 +153,12 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'visualMapEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'visualMapMin', type: 'number', default: 0, hidden: alwaysHidden },
     { name: 'visualMapMax', type: 'number', default: 100, hidden: alwaysHidden },
-    { name: 'visualMapColors', type: 'text', default: '#1976d2;#4caf50;#ff9800;#f44336', hidden: alwaysHidden },
+    {
+        name: 'visualMapColors',
+        type: 'text',
+        default: 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)',
+        hidden: alwaysHidden,
+    },
 ];
 
 export default echartsFields;

@@ -34,6 +34,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import Generic from '../Generic';
 import ChartPreview from './editor/ChartPreview';
 import EchartsEditorSections, { type FocusSectionRequest } from './editor/EchartsEditorSections';
+import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { familyOf } from './optionBuilder';
 import type { SectionKey } from './editor/validation';
 import {
@@ -100,6 +101,12 @@ function EchartsConfigEditorModal({
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
     const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
+
+    // JSON mode (ADR-0011): resolve the payload series names so the Series section can render one
+    // editable card per series (live — tracks the jsonOid value as it changes while the modal open).
+    const jsonFamily = familyOf(state.chartType);
+    const jsonEnabled = state.mode === 'json' && (jsonFamily === 'cartesian' || jsonFamily === 'pie');
+    const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
 
     // (Re)load the editor state from widget data each time the dialog opens.
     useEffect(() => {
@@ -219,6 +226,8 @@ function EchartsConfigEditorModal({
                                 }}
                                 focusSection={focusSection}
                                 autoFocusFirstOid={autoFocusOid}
+                                jsonSeriesNames={jsonPreview.names}
+                                jsonError={jsonPreview.error}
                             />
                         </Box>
                         {/* Right stage: persistent real-data preview */}

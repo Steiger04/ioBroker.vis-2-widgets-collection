@@ -77,6 +77,7 @@ export const buildPieOption = (
                 data,
                 animation: p.animation,
                 ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
             },
         ],
     };

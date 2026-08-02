@@ -149,6 +149,15 @@ export interface EchartsSeriesMeta {
     cornerRadius?: number;
 }
 
+/**
+ * JSON-mode per-series style overlay, keyed by the payload series NAME (ADR-0011).
+ * In json mode the payload owns series identity (count + data); this overlay holds the
+ * per-series presentation that re-attaches by name as the payload changes. Empty/missing →
+ * the builder applies defaults (palette slot, inherited type). Entry shape is the presentation
+ * subset of {@link EchartsSeriesMeta} (no OID — json mode has one `jsonOid`, not `oidN`).
+ */
+export type EchartsJsonSeriesStyle = Record<string, EchartsSeriesMeta>;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Family-specific structured config (stored in the base64 `chartConfig` blob)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,6 +288,12 @@ export interface EchartsFieldsRxData {
     chartConfig?: string;
     /** Base64 supplemental presentation overrides (the demoted U escape hatch). */
     chartOverrides?: string;
+    /**
+     * Base64 `Record<name, EchartsSeriesMeta>` — the JSON-mode per-series style overlay
+     * (ADR-0011). Only meaningful in json mode; carried round-trip regardless so switching
+     * modes away and back preserves the user's per-series style.
+     */
+    jsonSeriesStyle?: string;
 
     // ── Chart-wide presentation (cartesian-relevant items apply per family) ─
 
@@ -291,6 +306,8 @@ export interface EchartsFieldsRxData {
     tooltipDecimals?: number;
     animation?: boolean;
     animationDuration?: number;
+    /** echarts animation easing name (e.g. 'cubicOut'); empty/undefined = echarts default. GUI-owned (ADR-0011 D5). */
+    animationEasing?: string;
     /** Chart background colour (`'transparent'` or a CSS colour). @default 'transparent' */
     bgColor?: string;
 
