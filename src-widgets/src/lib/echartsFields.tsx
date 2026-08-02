@@ -77,8 +77,15 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        // OID-typed, NOT text: the runtime body reads the JSON-state value via
+        // useOidValue('jsonOid') → getPropertyValue → this.state.values['<oid>.val'],
+        // which vis-2 populates ONLY for id-type fields. A text field would store the
+        // OID string but never subscribe, so the value stays undefined at runtime → no
+        // chart (the editor preview still works because it subscribes directly via
+        // socket — a misleading asymmetry). See ADR-0006 addendum (all OID-valued
+        // echarts fields must be type:'id', even hidden/modal-owned).
         name: 'jsonOid',
-        type: 'text',
+        type: 'id',
         default: '',
         hidden: alwaysHidden,
     },
