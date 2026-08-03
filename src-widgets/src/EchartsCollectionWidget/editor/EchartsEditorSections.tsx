@@ -44,8 +44,6 @@ interface EchartsEditorSectionsProps {
     setUserText: (value: string) => void;
     pickerCtx: OidPickerCtx;
     focusSection?: FocusSectionRequest | null;
-    /** Autofocus the first series' OID field (skeleton card on first open, ADR-0010). */
-    autoFocusFirstOid?: boolean;
     /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
     jsonSeriesNames?: string[];
     jsonError?: string;
@@ -102,7 +100,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     setUserText,
     pickerCtx,
     focusSection,
-    autoFocusFirstOid,
     jsonSeriesNames,
     jsonError,
 }) => {
@@ -136,7 +133,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         set={set}
                         pickerCtx={pickerCtx}
                         issues={issues.series}
-                        autoFocusFirstOid={autoFocusFirstOid}
                         jsonSeriesNames={jsonSeriesNames}
                         jsonError={jsonError}
                     />
@@ -209,6 +205,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         userText={userText}
                         setUserText={setUserText}
                         set={set}
+                        chartType={state.chartType}
                     />
                 );
         }

@@ -10,6 +10,7 @@
 import type { EChartsOption } from 'echarts';
 
 import type {
+    EchartsAxisConfig,
     EchartsCartesianType,
     EchartsGaugeConfig,
     EchartsLegendPos,
@@ -47,13 +48,9 @@ export interface PresentationConfig {
     // cartesian-only
     /** Default cartesian series type (the chart type) inherited by any series without an explicit override. */
     cartesianType: EchartsCartesianType;
-    yMin?: number;
-    yMax?: number;
-    yName?: string;
-    yLog: boolean;
-    yFormat?: string;
+    /** Cartesian Y-axes (ADR-0012) — one entry per axis, each individually configured. */
+    yAxes: EchartsAxisConfig[];
     xSplit: boolean;
-    ySplit: boolean;
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
     markLines: EchartsMarkLine[];

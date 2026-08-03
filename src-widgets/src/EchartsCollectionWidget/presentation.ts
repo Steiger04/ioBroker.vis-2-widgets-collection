@@ -9,6 +9,7 @@
  * body and the editor preview because the field names match.
  */
 import type {
+    EchartsAxisConfig,
     EchartsCartesianType,
     EchartsChartFamily,
     EchartsGaugeConfig,
@@ -26,31 +27,27 @@ import type { PresentationConfig } from './optionBuilders/types';
 
 /**
  * Build the echarts `title` placement (`left`/`top` + `textAlign`) from an anchor + pixel offset
- * (ADR-0009). Anchor-relative: `topLeft` keeps the left edge, `topCenter` the text center, `topRight`
- * the right edge as the anchor point; `dx` (px, right-positive) / `dy` (px, down-positive) add to it.
+ * (ADR-0009, simplified). `dy` (px, down-positive) applies to every anchor (edge-based, top edge —
+ * measurement-free). `dx` (px, right-positive) applies ONLY to `topLeft` (the left-edge anchor is the
+ * one measurement-free horizontal offset); `topCenter`/`topRight` keep their responsive named anchor
+ * and ignore `dx`.
  *
- * All anchors use the `left` field uniformly, so anchor/offset switches never leave a stale `right`
- * key across `setOption` merges. `textAlign` is set explicitly only on the numeric-offset paths (it
- * defaults correctly for the named-anchor paths): `'center'`/`'right'` turn `left` into the
- * text-center / right-edge anchor point (DeepWiki-verified).
+ * Why the asymmetry (ADR-0009 addendum): a centered/right horizontal offset needed the container width
+ * to recenter across resizes — a resize→option-rebuild churn path. echarts has no native title offset
+ * (DeepWiki-verified), so the centered/right nudge had no simpler native form; dropping it removes the
+ * churn (a user who needs it falls back to a numeric `left` in the Advanced JSON).
  *
- * Measurement-free except `topCenter`/`topRight` with `dx !== 0`: those need the container width to
- * stay self-recentering across resizes (matching the pre-existing responsive anchors). `topLeft + dx`
- * is edge-based and resize-stable; every `dy` offset is edge-based (top edge, height-independent).
- * `dx === 0` keeps the named anchor (`'left'`/`'center'`/`'right'`) — the original responsive path,
- * no width needed. When width is unknown on the offset paths, the named anchor is the graceful
- * fallback (no offset until the first resize fires).
+ * All anchors use the `left` field uniformly (never `right`), so anchor switches never leave a stale
+ * `right` key across `setOption` merges (no `replaceMerge:['title']` needed).
  */
 export const buildTitlePlacement = ({
     titlePos,
     dx,
     dy,
-    containerWidth,
 }: {
     titlePos: EchartsTitlePos;
     dx: number;
     dy: number;
-    containerWidth?: number;
 }): Record<string, unknown> => {
     const hasDx = Number.isFinite(dx) && dx !== 0;
     const hasDy = Number.isFinite(dy) && dy !== 0;
@@ -58,20 +55,14 @@ export const buildTitlePlacement = ({
 
     switch (titlePos) {
         case 'topLeft':
-            // Left-edge anchor: `left: dx` is resize-stable (width-independent).
+            // Left-edge anchor: `left: dx` is resize-stable (width-independent). The ONLY anchor where
+            // a horizontal offset is measurement-free.
             return hasDx ? { left: dx, top, textAlign: 'left' } : { left: 'left', top };
         case 'topRight':
-            // Right-edge anchor via textAlign:'right' (makes `left` the right-edge point).
-            // Needs containerWidth to recenter on resize; fall back to the named anchor if unknown.
-            return hasDx && containerWidth
-                ? { left: containerWidth + dx, top, textAlign: 'right' }
-                : { left: 'right', top };
+            return { left: 'right', top };
         case 'topCenter':
         default:
-            // Center anchor via textAlign:'center' (makes `left` the text-center point).
-            return hasDx && containerWidth
-                ? { left: containerWidth / 2 + dx, top, textAlign: 'center' }
-                : { left: 'center', top };
+            return { left: 'center', top };
     }
 };
 
@@ -119,6 +110,33 @@ export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine
         return [];
     }
 };
+
+/** Decode the base64 `yAxes` blob into the per-axis config array (ADR-0012). Empty/invalid → `[]`. */
+export const decodeAxes = (raw: string | undefined | null): EchartsAxisConfig[] => {
+    if (!raw) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw));
+        return Array.isArray(parsed) ? (parsed as EchartsAxisConfig[]) : [];
+    } catch {
+        return [];
+    }
+};
+
+/**
+ * Synthesise a single axis (axis 0) from the legacy chart-level scalars (ADR-0012 migration). Used
+ * only when no `yAxes` blob is present, so a legacy widget renders unchanged without a rewrite.
+ */
+export const legacyAxis = (s: Record<string, unknown>): EchartsAxisConfig => ({
+    name: str(s.yName, ''),
+    min: num(s.yMin),
+    max: num(s.yMax),
+    log: bool(s.yLog, false),
+    format: typeof s.yFormat === 'string' && s.yFormat ? s.yFormat : undefined,
+    splitLine: bool(s.ySplit, true),
+    position: 'left',
+});
 
 /** Parse a `;`/`,`-separated colour list string into a palette array. */
 const parseCustomPalette = (raw: string | undefined): string[] =>
@@ -176,8 +194,10 @@ export const toPresentationConfig = (opts: {
     family: EchartsChartFamily;
     chartConfig?: { gauge?: EchartsGaugeConfig; radar?: EchartsRadarConfig; pie?: EchartsPieConfig };
     markLines?: EchartsMarkLine[];
+    /** Decoded per-axis config (ADR-0012). When empty, axis 0 is synthesised from legacy scalars. */
+    yAxes?: EchartsAxisConfig[];
 }): PresentationConfig => {
-    const { src: s, palette, chartConfig = {}, markLines = [] } = opts;
+    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn } = opts;
     const visualMapEnabled = bool(s.visualMapEnabled, false);
     const visualMap: EchartsVisualMapConfig | undefined = visualMapEnabled
         ? {
@@ -196,10 +216,19 @@ export const toPresentationConfig = (opts: {
             ? (s.chartType as EchartsCartesianType)
             : 'line';
 
+    // Y-axes: decoded blob, else a single axis synthesised from the legacy chart-level scalars
+    // (ADR-0012 migration — no silent rewrite; legacy widgets render unchanged).
+    const yAxes: EchartsAxisConfig[] = yAxesIn && yAxesIn.length ? yAxesIn : [legacyAxis(s)];
+
     return {
         legendShow: bool(s.legendShow, true),
         legendPos: (s.legendPos as EchartsLegendPos) ?? 'top',
-        tooltipTrigger: (s.tooltipTrigger as EchartsTooltipTrigger) ?? (opts.family === 'cartesian' ? 'axis' : 'item'),
+        tooltipTrigger:
+            // 'axis' is meaningless off-cartesian (ADR-0012 WS2): a non-cartesian that still stores
+            // it (e.g. switched from cartesian) coerces to 'item' at runtime.
+            (s.tooltipTrigger as EchartsTooltipTrigger) === 'axis' && opts.family !== 'cartesian'
+                ? 'item'
+                : ((s.tooltipTrigger as EchartsTooltipTrigger) ?? (opts.family === 'cartesian' ? 'axis' : 'item')),
         tooltipTemplate: typeof s.tooltipTemplate === 'string' ? s.tooltipTemplate : undefined,
         tooltipUnits: typeof s.tooltipUnits === 'string' ? s.tooltipUnits : undefined,
         tooltipDecimals: num(s.tooltipDecimals),
@@ -208,13 +237,8 @@ export const toPresentationConfig = (opts: {
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,
         bgColor: str(s.bgColor, 'transparent'),
         cartesianType,
-        yMin: num(s.yMin),
-        yMax: num(s.yMax),
-        yName: typeof s.yName === 'string' ? s.yName : '',
-        yLog: bool(s.yLog, false),
-        yFormat: typeof s.yFormat === 'string' && s.yFormat ? s.yFormat : undefined,
+        yAxes,
         xSplit: bool(s.xSplit, false),
-        ySplit: bool(s.ySplit, true),
         dataZoomSlider: bool(s.dataZoomSlider, false),
         dataZoomInside: bool(s.dataZoomInside, false),
         palette,

@@ -9,10 +9,14 @@
  * modal's working-state model: a synthetic single-field `data`/`onDataChange` pair, an optional
  * `fallback` color shown when no explicit value is set (so a series colour inherits its palette
  * slot and the swatch still resolves), and a minimal `props` carrying just the socket + theme.
+ *
+ * The picker renders its OWN clear (trash) button when a colour is set (ADR-0004) — that single
+ * affordance is the "remove colour / back to inherit" control. There is no second external trash:
+ * the ADR-0018 per-field trash duplicated the picker's and has been removed.
  */
 import type { FC } from 'react';
-import { Box, Button, IconButton } from '@mui/material';
-import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Box, Button } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 
 import CollectionGradientColorPicker from '../../components/CollectionGradientColorPicker';
 import Generic from '../../Generic';
@@ -70,7 +74,11 @@ interface ColorListFieldProps {
     ctx: OidPickerCtx;
 }
 
-/** Multi-stop colour list (palette stops / visualMap colour stops) — one ColorField per stop. */
+/**
+ * Multi-stop colour list (palette stops / visualMap colour stops) — one ColorField per stop. Removing a
+ * stop is done via the picker's own clear (clearing a stop's colour splices it; an empty-colour stop is
+ * meaningless in a list) — there is no separate per-stop remove button.
+ */
 const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx }) => {
     const colors = value
         .split(';')
@@ -90,25 +98,12 @@ const ColorListField: FC<ColorListFieldProps> = ({ value, onChange, ctx }) => {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             {colors.map((c, i) => (
-                <Box
+                <ColorField
                     key={i}
-                    sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                >
-                    <Box sx={{ flex: 1 }}>
-                        <ColorField
-                            value={c}
-                            onChange={v => set(i, v)}
-                            ctx={ctx}
-                        />
-                    </Box>
-                    <IconButton
-                        size="small"
-                        onClick={() => set(i, null)}
-                        aria-label={Generic.t('echarts_color_remove')}
-                    >
-                        <CloseIcon fontSize="small" />
-                    </IconButton>
-                </Box>
+                    value={c}
+                    onChange={v => set(i, v)}
+                    ctx={ctx}
+                />
             ))}
             <Button
                 startIcon={<AddIcon />}

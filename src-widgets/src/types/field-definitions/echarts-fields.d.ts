@@ -107,8 +107,8 @@ export interface EchartsSeriesMeta {
     color?: string;
     /** Cartesian sub-type. @default 'line' */
     type?: EchartsCartesianType;
-    /** Dual-Y axis (0 = left, 1 = right). @default 0 */
-    yAxisIndex?: 0 | 1;
+    /** Cartesian Y-axis index this series binds to (0-based; ADR-0012 multi-axis). @default 0 */
+    yAxisIndex?: number;
     /** Smooth line. @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family) */
     smooth?: boolean;
     /** Line width. */
@@ -147,6 +147,13 @@ export interface EchartsSeriesMeta {
     barCategoryGap?: number;
     /** Bar corner radius (px, echarts `itemStyle.borderRadius`). */
     cornerRadius?: number;
+    /**
+     * Per-series raw echarts JSON override (ADR-0015): parsed and deep-merged UNDER the GUI-authored
+     * entry (GUI wins on collision; the data points are force-set). The card-level escape hatch for
+     * series keys the GUI does not expose (markPoint, `label.formatter`, `emphasis`, …). Because it is
+     * folded into G by the builder, it wins over a chart-level U `series` entry on the same index.
+     */
+    raw?: string;
 }
 
 /**
@@ -201,6 +208,14 @@ export interface EchartsPieConfig {
     innerRadius?: number;
     rose?: EchartsPieRose;
     label?: EchartsPieLabel;
+    /**
+     * Whole-pie series raw echarts JSON override (ADR-0017): parsed and deep-merged UNDER the
+     * GUI-authored pie series (GUI wins on collision; data is force-set). The pie is one echarts
+     * series with N slices, so this targets series-level keys the GUI does not expose
+     * (`labelLine`, `emphasis`, `itemStyle.borderRadius`, `startAngle`, `selectedMode`, …).
+     * Per-slice presentation lives on the slice's `EchartsSeriesMeta.raw` instead.
+     */
+    raw?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -223,6 +238,50 @@ export interface EchartsVisualMapConfig {
     max?: number;
     /** Colour stops low→high. @default blue→green→yellow→red */
     colors?: string[];
+}
+
+/**
+ * Per-axis config for a cartesian Y-axis (ADR-0012). Stored as a base64 `yAxes` blob (an array of
+ * these). Axis 0 is the default (left, splitlines on); further axes render side-by-side via
+ * `position`/`offset`. A series binds to one via {@link EchartsSeriesMeta.yAxisIndex}.
+ *
+ * @remarks
+ * The editor exposes Core knobs (name/position/colour/min/max/log/format/splitLine) directly and
+ * the Advanced knobs (scale/splitNumber/minInterval/offset/alignTicks/axisTick/nameRotate)
+ * collapsibly; exotic options (boundaryGap/forced interval/axisPointer-linking) stay in the
+ * Advanced-JSON templates (ADR-0014).
+ */
+export interface EchartsAxisConfig {
+    /** Axis name (label). */
+    name?: string;
+    /** Minimum; undefined = auto. */
+    min?: number;
+    /** Maximum; undefined = auto. */
+    max?: number;
+    /** Logarithmic scale (type:'log'). @default false */
+    log?: boolean;
+    /** `axisLabel.formatter` string template ('{value} kW'). Empty = default formatting. */
+    format?: string;
+    /** Side of the grid. @default 'left' for axis 0, 'right' otherwise. */
+    position?: 'left' | 'right';
+    /** Px offset from the grid edge (stacks axes on the same side). @default 0 */
+    offset?: number;
+    /** Axis colour (axis line + label + name). Defaults to the first bound series' colour. */
+    color?: string;
+    /** Don't force the axis to include zero. @default false */
+    scale?: boolean;
+    /** Show split lines. @default true for axis 0, false otherwise. */
+    splitLine?: boolean;
+    /** Approximate number of segments (tick density). */
+    splitNumber?: number;
+    /** Minimum tick interval (e.g. 1 for integer ticks on count axes). */
+    minInterval?: number;
+    /** Align ticks across value axes (the #1 multi-axis legibility lever). @default true when ≥2 axes. */
+    alignTicks?: boolean;
+    /** Show axis ticks. */
+    axisTick?: boolean;
+    /** Rotate the axis name (deg, for tight multi-axis layouts). */
+    nameRotate?: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -294,6 +353,12 @@ export interface EchartsFieldsRxData {
      * modes away and back preserves the user's per-series style.
      */
     jsonSeriesStyle?: string;
+    /**
+     * Base64 `string[]` — JSON-mode deny-list of payload series names hidden from the chart
+     * (Problem-2 / ADR-0011 companion). The payload still owns the series; this only suppresses
+     * them (chart + legend + axis). Restorable in the editor.
+     */
+    jsonHidden?: string;
 
     // ── Chart-wide presentation (cartesian-relevant items apply per family) ─
 
@@ -311,16 +376,25 @@ export interface EchartsFieldsRxData {
     /** Chart background colour (`'transparent'` or a CSS colour). @default 'transparent' */
     bgColor?: string;
 
-    /** yAxis bounds (cartesian). `undefined` = auto. */
+    /**
+     * Base64 `[...EchartsAxisConfig]` — the cartesian Y-axes (ADR-0012). Empty/absent = a single
+     * auto axis; a legacy widget's `yMin`/`yMax`/`yName`/`yLog`/`yFormat`/`ySplit` are synthesised
+     * into `yAxes[0]` at load (no silent rewrite).
+     */
+    yAxes?: string;
+    /** @deprecated legacy cartesian axis-0 min (ADR-0012 → `yAxes`); tolerated at load only. */
     yMin?: number;
+    /** @deprecated legacy cartesian axis-0 max (ADR-0012 → `yAxes`); tolerated at load only. */
     yMax?: number;
+    /** @deprecated legacy cartesian axis-0 name (ADR-0012 → `yAxes`); tolerated at load only. */
     yName?: string;
-    /** Logarithmic Y axis (cartesian). @default false */
+    /** @deprecated legacy cartesian axis-0 log (ADR-0012 → `yAxes`); tolerated at load only. */
     yLog?: boolean;
-    /** Y-axis label format template (`{value} kW`, cartesian). Empty = default formatting. */
+    /** @deprecated legacy cartesian axis-0 format (ADR-0012 → `yAxes`); tolerated at load only. */
     yFormat?: string;
-    /** Show axis split lines. */
+    /** Show X-axis split lines (cartesian; X stays a single time-axis). */
     xSplit?: boolean;
+    /** @deprecated legacy cartesian axis-0 splitlines (ADR-0012 → `yAxes[0].splitLine`). */
     ySplit?: boolean;
 
     /** dataZoom (cartesian). */

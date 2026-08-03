@@ -14,8 +14,20 @@
  * An empty list renders an honest empty state with a first-item CTA. Validation issues surface as
  * a compact warning list on top (they are item-scoped, not field-scoped).
  */
-import { useEffect, useState, type FC, type ReactElement } from 'react';
-import { Alert, Box, Button, Collapse, IconButton, Typography, useTheme } from '@mui/material';
+import { useState, type FC, type ReactElement, type ReactNode } from 'react';
+import {
+    Alert,
+    Box,
+    Button,
+    Chip,
+    Collapse,
+    IconButton,
+    ListSubheader,
+    Menu,
+    MenuItem,
+    Typography,
+    useTheme,
+} from '@mui/material';
 import {
     Add as AddIcon,
     ContentCopy as DuplicateIcon,
@@ -23,6 +35,7 @@ import {
     ExpandMore as ExpandIcon,
     KeyboardArrowDown as DownIcon,
     KeyboardArrowUp as UpIcon,
+    Restore as RestoreIcon,
 } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
@@ -37,8 +50,18 @@ import { CheckField, FieldLabel, LabeledSelect, NumberField, TextField2 } from '
 import ColorField from '../colorFields';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
+import JsonEditor from '../JsonEditor';
+import {
+    injectTemplate,
+    SERIES_TEMPLATES,
+    TEMPLATE_CATEGORY_I18N,
+    TEMPLATE_CATEGORY_ORDER,
+    type SeriesTemplateSlot,
+} from '../seriesTemplates';
+import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
+import { axisLayout, axisPosition, isOneToOne } from '../axisLayout';
 
 interface SeriesSectionProps {
     state: EditorState;
@@ -46,8 +69,6 @@ interface SeriesSectionProps {
     pickerCtx: OidPickerCtx;
     /** Issues for this section (item-scoped: missing OID, radar max). */
     issues?: ValidationIssue[];
-    /** Autofocus the first series' OID field (skeleton card on first open, ADR-0010). */
-    autoFocusFirstOid?: boolean;
     /** JSON mode (ADR-0011): the payload series names, in payload order. Drives the card list. */
     jsonSeriesNames?: string[];
     /** JSON mode: parse error from the jsonOid payload (shown instead of a silent blank). */
@@ -69,8 +90,11 @@ const Swatch: FC<{ color: string }> = ({ color }) => (
     />
 );
 
-/** Dashed empty state with a first-item CTA (the deleted-all case; first open gets the skeleton). */
-const EmptyState: FC<{ text: string; cta: string; onAdd: () => void }> = ({ text, cta, onAdd }) => (
+/**
+ * Dashed empty state; the CTA is supplied as children (an OID-picker CTA for cartesian/pie, a plain
+ * button for radar indicators — ADR-0010 onboarding, skeleton removed per ADR-0013).
+ */
+const EmptyState: FC<{ text: string; children: ReactNode }> = ({ text, children }) => (
     <Box
         sx={{
             border: '1px dashed',
@@ -87,17 +111,62 @@ const EmptyState: FC<{ text: string; cta: string; onAdd: () => void }> = ({ text
         >
             {text}
         </Typography>
-        <Button
-            size="small"
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={onAdd}
-            sx={{ textTransform: 'none' }}
-        >
-            {cta}
-        </Button>
+        {children}
     </Box>
 );
+
+/**
+ * An "add series" affordance that opens the OID picker FIRST and creates the series only once an OID
+ * is chosen — no empty-OID card beforehand (the user's "keine Serie vor OID-Auswahl"). `variant='cta'`
+ * for the empty state, `'button'` for the inline "+" add. cartesian/pie only.
+ */
+const AddSeriesViaOid: FC<{
+    pickerCtx: OidPickerCtx;
+    historyOnly: boolean;
+    onPick: (oid: string) => void;
+    variant: 'cta' | 'button';
+    label: string;
+}> = ({ pickerCtx, historyOnly, onPick, variant, label }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <>
+            {variant === 'cta' ? (
+                <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={() => setOpen(true)}
+                    sx={{ textTransform: 'none' }}
+                >
+                    {label}
+                </Button>
+            ) : (
+                <Button
+                    startIcon={<AddIcon />}
+                    onClick={() => setOpen(true)}
+                    sx={{ mt: 0.5 }}
+                >
+                    {label}
+                </Button>
+            )}
+            {open && (
+                <SelectID
+                    socket={pickerCtx.socket as unknown as Connection}
+                    theme={pickerCtx.theme as unknown as IobTheme}
+                    themeType={pickerCtx.themeType}
+                    selected=""
+                    title={Generic.t('oid')}
+                    {...(historyOnly ? { customFilter: { common: { custom: '_dataSources' } } } : {})}
+                    onClose={() => setOpen(false)}
+                    onOk={sel => {
+                        onPick(typeof sel === 'string' ? sel : (sel?.[0] ?? ''));
+                        setOpen(false);
+                    }}
+                />
+            )}
+        </>
+    );
+};
 
 /** Item-scoped validation issues as a compact warning list on top of the section. */
 const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
@@ -124,6 +193,114 @@ const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
         ))}
     </Box>
 );
+
+/** Categorised template dropdown for a series card (ADR-0017): injects a GUI-uncovered preset. */
+const SeriesTemplateMenu: FC<{ slot: SeriesTemplateSlot; onInject: (json: string) => void }> = ({ slot, onInject }) => {
+    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+    const templates = SERIES_TEMPLATES[slot];
+    if (!templates?.length) {
+        return null;
+    }
+    return (
+        <Box sx={{ mt: 1 }}>
+            <Button
+                size="small"
+                variant="outlined"
+                onClick={e => setAnchor(e.currentTarget)}
+                sx={{ textTransform: 'none' }}
+            >
+                {Generic.t('echarts_stpl_insert')} ▾
+            </Button>
+            <Menu
+                anchorEl={anchor}
+                open={!!anchor}
+                onClose={() => setAnchor(null)}
+                slotProps={{ paper: { sx: { maxHeight: 360 } } }}
+            >
+                {TEMPLATE_CATEGORY_ORDER.flatMap(cat => {
+                    const items = templates.filter(t => t.category === cat);
+                    if (!items.length) {
+                        return [];
+                    }
+                    return [
+                        <ListSubheader key={`cat-${cat}`}>{Generic.t(TEMPLATE_CATEGORY_I18N[cat])}</ListSubheader>,
+                        ...items.map(t => (
+                            <MenuItem
+                                key={t.id}
+                                onClick={() => {
+                                    onInject(t.json);
+                                    setAnchor(null);
+                                }}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                {t.label}
+                            </MenuItem>
+                        )),
+                    ];
+                })}
+            </Menu>
+        </Box>
+    );
+};
+
+/**
+ * Collapsible per-series raw echarts JSON override (ADR-0015/0017): GUI knobs win, data is managed.
+ * When `slot` is set, a categorised template dropdown (ADR-0017) is shown above the editor.
+ */
+const SeriesRawOverride: FC<{
+    raw: string | undefined;
+    onChange: (value: string) => void;
+    slot?: SeriesTemplateSlot;
+}> = ({ raw, onChange, slot }) => {
+    const [open, setOpen] = useState(false);
+    const trimmed = (raw ?? '').trim();
+    let valid = true;
+    if (trimmed) {
+        try {
+            const v = JSON.parse(trimmed);
+            valid = !!v && typeof v === 'object' && !Array.isArray(v);
+        } catch {
+            valid = false;
+        }
+    }
+    return (
+        <Box sx={{ mt: 1 }}>
+            <Button
+                size="small"
+                onClick={() => setOpen(v => !v)}
+                sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 0 }}
+            >
+                {open ? '−' : '+'} {Generic.t('echarts_series_raw')}
+            </Button>
+            <Collapse in={open}>
+                {slot && (
+                    <SeriesTemplateMenu
+                        slot={slot}
+                        onInject={json => onChange(injectTemplate(raw, json))}
+                    />
+                )}
+                <JsonEditor
+                    value={raw ?? ''}
+                    onChange={onChange}
+                    minRows={3}
+                    placeholder={'{\n  "markPoint": { "data": [{ "type": "max" }] }\n}'}
+                />
+                <Typography
+                    variant="caption"
+                    sx={{ color: valid ? 'success.main' : 'error.main', display: 'block' }}
+                >
+                    {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_series_raw_invalid')}`}
+                </Typography>
+                <Typography
+                    variant="caption"
+                    color="text.secondary"
+                >
+                    {Generic.t('echarts_series_raw_hint')}
+                </Typography>
+            </Collapse>
+        </Box>
+    );
+};
 
 /**
  * The type-sensitive cartesian knob grid (line / area / bar) — shared by the cartesian series card
@@ -284,7 +461,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     set,
     pickerCtx,
     issues = [],
-    autoFocusFirstOid,
     jsonSeriesNames = [],
     jsonError,
 }) => {
@@ -303,9 +479,37 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const defaultType = state.chartType;
 
     const series = state.series;
+    const isCartesian = state.chartType === 'line' || state.chartType === 'bar';
     const update = (i: number, patch: Partial<EditorSeries>): void =>
         set({ series: series.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
-    const remove = (i: number): void => set({ series: series.filter((_, idx) => idx !== i) });
+    const remove = (i: number): void => {
+        const next = series.filter((_, idx) => idx !== i);
+        if (!isCartesian) {
+            set({ series: next });
+            return;
+        }
+        // Orphan-check (ADR-0018 robust): drop the deleted series' bound axis iff no surviving series
+        // remains on it. 1:1 (the dense auto-layout) → always orphans; a shared axis stays put.
+        const yi = series[i]?.yAxisIndex;
+        const orphaned = typeof yi === 'number' && !next.some(s => s.yAxisIndex === yi);
+        if (!orphaned) {
+            set({ series: next });
+            return;
+        }
+        // The bound axis is orphaned → remove it and re-index the survivors (yAxisIndex > yi shifts
+        // down). Dense 1:1 → also re-stagger (auto-layout); a manual layout → keep each surviving axis'
+        // custom position/offset (non-destructive, like the old re-stagger).
+        const dense = isOneToOne(series) && state.yAxes.length === series.length;
+        set({
+            series: next.map(s => ({
+                ...s,
+                yAxisIndex: typeof s.yAxisIndex === 'number' && s.yAxisIndex > yi ? s.yAxisIndex - 1 : s.yAxisIndex,
+            })),
+            yAxes: state.yAxes
+                .filter((_, idx) => idx !== yi)
+                .map((a, idx) => (dense ? { ...a, ...axisPosition(idx) } : a)),
+        });
+    };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
         if (j < 0 || j >= series.length) {
@@ -315,15 +519,42 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         [next[i], next[j]] = [next[j], next[i]];
         set({ series: next });
     };
-    // No explicit colour/type on add → the series inherits its palette slot and the chart type.
-    const add = (): void =>
-        set({ series: [...series, { oid: '', name: `Series ${series.length + 1}`, yAxisIndex: 0 }] });
+    // No series is created before an OID is chosen (the user's "keine Serie vor OID-Auswahl"): the
+    // add affordances open the OID picker, and a series is appended only on selection. No name is
+    // pre-filled (the builder falls back to "Series N" at render if left blank); colour/type inherit.
+    const addWithOid = (oid: string): void => {
+        if (!oid || oid === 'nothing_selected') {
+            return;
+        }
+        const idx = series.length;
+        const patch: Partial<EditorState> = {
+            series: [...series, { oid, name: '', yAxisIndex: isCartesian ? idx : 0 }],
+        };
+        // 1:1 auto-axis (ADR-0018): a new cartesian series gets its own axis (alternating side, 80 px stagger).
+        // Colour + name are NOT written — the axis inherits both from the bound series at runtime.
+        if (isCartesian && idx >= state.yAxes.length) {
+            patch.yAxes = [...state.yAxes, axisLayout(idx)];
+        }
+        set(patch);
+    };
     const duplicate = (i: number): void => {
-        const copy = {
+        const copy: EditorSeries = {
             ...series[i],
             name: `${series[i].name || `Series ${i + 1}`} (${Generic.t('echarts_editor_series_copy_suffix')})`,
         };
-        set({ series: [...series.slice(0, i + 1), copy, ...series.slice(i + 1)] });
+        const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];
+        if (isCartesian) {
+            // 1:1 auto-axis (ADR-0018): the copy gets its own fresh axis (appended) so it doesn't share.
+            // Colour + name inherit the copy at runtime — not written (ADR-0018).
+            const axIdx = state.yAxes.length;
+            copy.yAxisIndex = axIdx;
+            set({
+                series: next,
+                yAxes: [...state.yAxes, axisLayout(axIdx)],
+            });
+        } else {
+            set({ series: next });
+        }
     };
     // JSON mode: per-series presentation lives in the name-keyed overlay (ADR-0011), not state.series.
     // The payload owns series identity (count + data); the overlay re-attaches style by name.
@@ -334,16 +565,15 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 [name]: { ...state.jsonSeriesStyle[name], ...patch },
             },
         });
+    // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
+    // owns the series; hiding only suppresses it (chart + legend + axis) — restorable.
+    const hideJson = (name: string): void => set({ jsonHidden: [...state.jsonHidden, name] });
+    const showJson = (name: string): void => set({ jsonHidden: state.jsonHidden.filter(n => n !== name) });
 
-    // Expanded cards (cartesian only). The skeleton card starts expanded + OID-focused (ADR-0010).
-    const [expanded, setExpanded] = useState<Record<number, boolean>>(autoFocusFirstOid ? { 0: true } : {});
+    // Expanded cards (cartesian only). Cards start collapsed (ADR-0013 removed the auto-expanded
+    // skeleton); the user expands the card they edit.
+    const [expanded, setExpanded] = useState<Record<number, boolean>>({});
     const toggleCard = (i: number): void => setExpanded(e => ({ ...e, [i]: !e[i] }));
-    // The dialog mounts before its open-effect flips the flag — react to the late arrival too.
-    useEffect(() => {
-        if (autoFocusFirstOid) {
-            setExpanded(e => ({ ...e, 0: true }));
-        }
-    }, [autoFocusFirstOid]);
 
     // ── radar indicator list helpers ──
     const setIndicator = (i: number, patch: Partial<EditorState['radar']['indicators'][number]>): void => {
@@ -408,6 +638,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                         />
                     </Box>
                 </Box>
+                <SeriesRawOverride
+                    slot="gauge"
+                    raw={s0.raw}
+                    onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                />
             </Box>
         );
     }
@@ -420,11 +655,17 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 {issues.length > 0 && <IssueList issues={issues} />}
                 <Box sx={{ display: 'grid', gap: 1.5 }}>
                     {state.radar.indicators.length === 0 && (
-                        <EmptyState
-                            text={Generic.t('echarts_radar_empty')}
-                            cta={Generic.t('echarts_radar_add_first')}
-                            onAdd={addIndicator}
-                        />
+                        <EmptyState text={Generic.t('echarts_radar_empty')}>
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<AddIcon />}
+                                onClick={addIndicator}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                {Generic.t('echarts_radar_add_first')}
+                            </Button>
+                        </EmptyState>
                     )}
                     {state.radar.indicators.map((ind, i) => (
                         <Box
@@ -447,7 +688,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                 value={ind.oid}
                                 onChange={oid => setIndicator(i, { oid })}
                                 ctx={pickerCtx}
-                                autoFocus={autoFocusFirstOid && i === 0}
                             />
                             <IconButton
                                 size="small"
@@ -482,6 +722,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                         />
                     </Box>
                 </Box>
+                <SeriesRawOverride
+                    slot="radar"
+                    raw={s0.raw}
+                    onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                />
             </Box>
         );
     }
@@ -499,6 +744,10 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 </Typography>
             </Box>
         );
+        // jsonHidden deny-list (Problem-2): hidden payload series are filtered from the chart (builder)
+        // and listed below for restore. The trash on a card header hides a series.
+        const visibleNames = jsonSeriesNames.filter(n => !state.jsonHidden.includes(n));
+        const hiddenNames = jsonSeriesNames.filter(n => state.jsonHidden.includes(n));
         return (
             <Box>
                 {issues.length > 0 && <IssueList issues={issues} />}
@@ -523,7 +772,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     dashed(Generic.t('echarts_json_series_empty'))
                 ) : isPie ? (
                     // pie-json: slice rows (name + colour, no OID, no expand).
-                    jsonSeriesNames.map((name, i) => {
+                    visibleNames.map((name, i) => {
                         const m = state.jsonSeriesStyle[name] ?? {};
                         return (
                             <Box
@@ -556,12 +805,20 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                         ctx={pickerCtx}
                                     />
                                 </Box>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => hideJson(name)}
+                                    aria-label={Generic.t('echarts_editor_series_remove')}
+                                    sx={{ ml: 'auto' }}
+                                >
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
                             </Box>
                         );
                     })
                 ) : (
                     // cartesian-json: full cards (style editable; no add/delete — payload is king).
-                    jsonSeriesNames.map((name, i) => {
+                    visibleNames.map((name, i) => {
                         const m = state.jsonSeriesStyle[name] ?? {};
                         const open = !!expanded[i];
                         return (
@@ -622,6 +879,14 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                             </Typography>
                                         </Box>
                                     </Box>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => hideJson(name)}
+                                        aria-label={Generic.t('echarts_editor_series_remove')}
+                                        sx={{ p: 0.25 }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
                                 </Box>
                                 <Collapse in={open}>
                                     <Box sx={{ px: 1.5, pb: 1.5, pt: 0.5 }}>
@@ -664,12 +929,20 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                             />
                                             <LabeledSelect
                                                 label={Generic.t('echarts_editor_series_yaxis')}
-                                                value={String(m.yAxisIndex ?? 0)}
-                                                onChange={v => updateJson(name, { yAxisIndex: Number(v) as 0 | 1 })}
-                                                options={[
-                                                    ['0', Generic.t('echarts_editor_series_left')],
-                                                    ['1', Generic.t('echarts_editor_series_right')],
-                                                ]}
+                                                value={String(
+                                                    Math.min(
+                                                        Number(m.yAxisIndex ?? 0),
+                                                        Math.max(0, state.yAxes.length - 1),
+                                                    ),
+                                                )}
+                                                onChange={v => updateJson(name, { yAxisIndex: Number(v) })}
+                                                options={state.yAxes.map(ax => {
+                                                    const ai = state.yAxes.indexOf(ax);
+                                                    return [
+                                                        String(ai),
+                                                        ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1),
+                                                    ] as [string, string];
+                                                })}
                                             />
                                         </Box>
                                         <CartesianSeriesKnobs
@@ -678,84 +951,117 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                             onPatch={p => updateJson(name, p)}
                                             pickerCtx={pickerCtx}
                                         />
+                                        <SeriesRawOverride
+                                            slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}
+                                            raw={m.raw}
+                                            onChange={v => updateJson(name, { raw: v })}
+                                        />
                                     </Box>
                                 </Collapse>
                             </Box>
                         );
                     })
                 )}
+                {hiddenNames.length > 0 && (
+                    <Box sx={{ mt: 1.5, p: 1, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: 'block', mb: 0.5 }}
+                        >
+                            {Generic.t('echarts_json_hidden')}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {hiddenNames.map(name => (
+                                <Chip
+                                    key={name}
+                                    label={name}
+                                    size="small"
+                                    variant="outlined"
+                                    onDelete={() => showJson(name)}
+                                    deleteIcon={<RestoreIcon />}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
             </Box>
         );
     }
 
-    // ── pie: slice rows (name + OID + colour + delete, no expand) ──
+    // ── pie: slice rows (name + OID + colour + delete) + a whole-pie series raw ──
     if (isPie) {
         return (
             <Box>
                 {issues.length > 0 && <IssueList issues={issues} />}
+                <SeriesRawOverride
+                    slot="pie"
+                    raw={state.pie.raw}
+                    onChange={v => set({ pie: { ...state.pie, raw: v || undefined } })}
+                />
                 {series.length === 0 && (
-                    <EmptyState
-                        text={Generic.t('echarts_series_empty')}
-                        cta={Generic.t('echarts_series_add_first')}
-                        onAdd={add}
-                    />
+                    <EmptyState text={Generic.t('echarts_series_empty')}>
+                        <AddSeriesViaOid
+                            pickerCtx={pickerCtx}
+                            historyOnly={state.mode === 'history'}
+                            onPick={addWithOid}
+                            variant="cta"
+                            label={Generic.t('echarts_series_add_first')}
+                        />
+                    </EmptyState>
                 )}
                 {series.map((s, i) => (
                     <Box
                         key={i}
-                        sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 1,
-                            alignItems: 'center',
-                            mb: 1,
-                            p: 1,
-                            border: 1,
-                            borderColor: 'divider',
-                            borderRadius: 1.5,
-                        }}
+                        sx={{ mb: 1, p: 1, border: 1, borderColor: 'divider', borderRadius: 1.5 }}
                     >
-                        <Swatch color={s.color ?? slot(i)} />
-                        <Box sx={{ width: 150 }}>
-                            <TextField2
-                                label={Generic.t('echarts_editor_series_name')}
-                                value={s.name ?? ''}
-                                onChange={v => update(i, { name: v })}
-                            />
-                        </Box>
-                        <OidPicker
-                            value={s.oid}
-                            onChange={oid => update(i, { oid })}
-                            ctx={pickerCtx}
-                            historyOnly={state.mode === 'history'}
-                            autoFocus={autoFocusFirstOid && i === 0}
-                        />
-                        <Box sx={{ width: 170 }}>
-                            <ColorField
-                                value={s.color}
-                                fallback={slot(i)}
-                                onChange={v => update(i, { color: v ?? undefined })}
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                            <Swatch color={s.color ?? slot(i)} />
+                            <Box sx={{ width: 150 }}>
+                                <TextField2
+                                    label={Generic.t('echarts_editor_series_name')}
+                                    value={s.name ?? ''}
+                                    onChange={v => update(i, { name: v })}
+                                />
+                            </Box>
+                            <OidPicker
+                                value={s.oid}
+                                onChange={oid => update(i, { oid })}
                                 ctx={pickerCtx}
+                                historyOnly={state.mode === 'history'}
                             />
+                            <Box sx={{ width: 170 }}>
+                                <ColorField
+                                    value={s.color}
+                                    fallback={slot(i)}
+                                    onChange={v => update(i, { color: v ?? undefined })}
+                                    ctx={pickerCtx}
+                                />
+                            </Box>
+                            <IconButton
+                                size="small"
+                                onClick={() => remove(i)}
+                                aria-label={Generic.t('echarts_editor_series_remove')}
+                                sx={{ ml: 'auto' }}
+                            >
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
                         </Box>
-                        <IconButton
-                            size="small"
-                            onClick={() => remove(i)}
-                            aria-label={Generic.t('echarts_editor_series_remove')}
-                            sx={{ ml: 'auto' }}
-                        >
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        <SeriesRawOverride
+                            slot="pie-slice"
+                            raw={s.raw}
+                            onChange={v => update(i, { raw: v || undefined })}
+                        />
                     </Box>
                 ))}
                 {series.length > 0 && (
-                    <Button
-                        startIcon={<AddIcon />}
-                        onClick={add}
-                        sx={{ mt: 0.5 }}
-                    >
-                        {Generic.t('echarts_editor_series_add')}
-                    </Button>
+                    <AddSeriesViaOid
+                        pickerCtx={pickerCtx}
+                        historyOnly={state.mode === 'history'}
+                        onPick={addWithOid}
+                        variant="button"
+                        label={Generic.t('echarts_editor_series_add')}
+                    />
                 )}
             </Box>
         );
@@ -766,11 +1072,15 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         <Box>
             {issues.length > 0 && <IssueList issues={issues} />}
             {series.length === 0 && (
-                <EmptyState
-                    text={Generic.t('echarts_series_empty')}
-                    cta={Generic.t('echarts_series_add_first')}
-                    onAdd={add}
-                />
+                <EmptyState text={Generic.t('echarts_series_empty')}>
+                    <AddSeriesViaOid
+                        pickerCtx={pickerCtx}
+                        historyOnly={state.mode === 'history'}
+                        onPick={addWithOid}
+                        variant="cta"
+                        label={Generic.t('echarts_series_add_first')}
+                    />
+                </EmptyState>
             )}
             {series.map((s, i) => {
                 const open = !!expanded[i];
@@ -893,7 +1203,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                         onChange={oid => update(i, { oid })}
                                         ctx={pickerCtx}
                                         historyOnly={state.mode === 'history'}
-                                        autoFocus={autoFocusFirstOid && i === 0}
                                     />
                                     {series.length >= 2 && (
                                         <LabeledSelect
@@ -912,12 +1221,17 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                     )}
                                     <LabeledSelect
                                         label={Generic.t('echarts_editor_series_yaxis')}
-                                        value={String(s.yAxisIndex ?? 0)}
-                                        onChange={v => update(i, { yAxisIndex: Number(v) as 0 | 1 })}
-                                        options={[
-                                            ['0', Generic.t('echarts_editor_series_left')],
-                                            ['1', Generic.t('echarts_editor_series_right')],
-                                        ]}
+                                        value={String(
+                                            Math.min(Number(s.yAxisIndex ?? 0), Math.max(0, state.yAxes.length - 1)),
+                                        )}
+                                        onChange={v => update(i, { yAxisIndex: Number(v) })}
+                                        options={state.yAxes.map(
+                                            (ax, ai) =>
+                                                [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [
+                                                    string,
+                                                    string,
+                                                ],
+                                        )}
                                     />
                                 </Box>
 
@@ -927,19 +1241,24 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                                     onPatch={p => update(i, p)}
                                     pickerCtx={pickerCtx}
                                 />
+                                <SeriesRawOverride
+                                    slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}
+                                    raw={s.raw}
+                                    onChange={v => update(i, { raw: v })}
+                                />
                             </Box>
                         </Collapse>
                     </Box>
                 );
             })}
             {series.length > 0 && (
-                <Button
-                    startIcon={<AddIcon />}
-                    onClick={add}
-                    sx={{ mt: 0.5 }}
-                >
-                    {Generic.t('echarts_editor_series_add')}
-                </Button>
+                <AddSeriesViaOid
+                    pickerCtx={pickerCtx}
+                    historyOnly={state.mode === 'history'}
+                    onPick={addWithOid}
+                    variant="button"
+                    label={Generic.t('echarts_editor_series_add')}
+                />
             )}
         </Box>
     );

@@ -26,7 +26,13 @@ const TitleLegendSection: FC<TitleLegendSectionProps> = ({ state, set }) => (
             onChange={v => set({ titleText: v })}
             placeholder={'Living room: {0.0.temperature.val} °C'}
         />
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
+        <Box
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: state.titlePos === 'topLeft' ? '1fr 1fr 1fr' : '1fr 1fr',
+                gap: 1.5,
+            }}
+        >
             <LabeledSelect
                 label={Generic.t('echarts_title_position')}
                 value={state.titlePos}
@@ -37,11 +43,13 @@ const TitleLegendSection: FC<TitleLegendSectionProps> = ({ state, set }) => (
                     ['topRight', Generic.t('echarts_pos_top_right')],
                 ]}
             />
-            <NumberField
-                label={Generic.t('echarts_title_dx')}
-                value={state.titleDx}
-                onChange={v => set({ titleDx: v })}
-            />
+            {state.titlePos === 'topLeft' && (
+                <NumberField
+                    label={Generic.t('echarts_title_dx')}
+                    value={state.titleDx}
+                    onChange={v => set({ titleDx: v })}
+                />
+            )}
             <NumberField
                 label={Generic.t('echarts_title_dy')}
                 value={state.titleDy}

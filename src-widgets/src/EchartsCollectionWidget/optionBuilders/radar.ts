@@ -12,6 +12,7 @@ import type { EChartsOption } from 'echarts';
 
 import type { EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
+import { applyRawOverride } from '../utils/mergeOption';
 
 /**
  * Build the radar G option.
@@ -42,21 +43,28 @@ export const buildRadarOption = (
             splitNumber,
         },
         series: [
-            {
-                type: 'radar',
-                data: [
-                    {
-                        value: values.map(v => v ?? 0),
-                        name,
-                        lineStyle: { color },
-                        itemStyle: { color },
-                        ...(area ? { areaStyle: { color, opacity: 0.2 } } : {}),
-                    },
-                ],
-                animation: p.animation,
-                ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
-                ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
-            },
+            applyRawOverride(
+                {
+                    type: 'radar',
+                    // Per-polygon style lives at the SERIES level (ADR-0017): echarts radar inherits
+                    // series-level lineStyle/itemStyle/areaStyle to the data items, so this is
+                    // behaviour-preserving AND lets a per-series raw override reach the styling (it was
+                    // previously nested on data[0], unreachable from a series-level raw).
+                    lineStyle: { color },
+                    itemStyle: { color },
+                    ...(area ? { areaStyle: { color, opacity: 0.2 } } : {}),
+                    data: [
+                        {
+                            value: values.map(v => v ?? 0),
+                            name,
+                        },
+                    ],
+                    animation: p.animation,
+                    ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                    ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
+                },
+                meta[0]?.raw,
+            ),
         ],
     };
     return option as unknown as EChartsOption;

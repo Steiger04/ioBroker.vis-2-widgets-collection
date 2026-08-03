@@ -27,25 +27,15 @@ interface EChartProps {
     option: EChartsOption;
     /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
     renderer?: 'canvas' | 'svg';
-    /**
-     * Fired with the container width (px) on mount and every resize. Consumers that build a
-     * width-dependent option (e.g. the title recenter path, ADR-0009) feed it into their option
-     * memo so the chart re-positions on resize. The wrapper's own `ResizeObserver` is the single
-     * measurement source — no second observer needed.
-     */
-    onResize?: (width: number) => void;
 }
 
-export default function EChart({ option, renderer = 'canvas', onResize }: EChartProps): React.JSX.Element {
+export default function EChart({ option, renderer = 'canvas' }: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<ECharts | null>(null);
     // Keep the latest option so a renderer-triggered re-init can seed the fresh instance without
     // adding `option` to the init effect's deps (which would dispose/recreate on every data tick).
     const optionRef = useRef(option);
     optionRef.current = option;
-    // Keep the latest onResize without adding it to the init effect's deps (same reason as option).
-    const onResizeRef = useRef(onResize);
-    onResizeRef.current = onResize;
 
     // init + ResizeObserver → resize() + dispose on unmount OR renderer change.
     useEffect(() => {
@@ -57,12 +47,8 @@ export default function EChart({ option, renderer = 'canvas', onResize }: EChart
         chartRef.current = chart;
         chart.setOption(optionRef.current, { replaceMerge: ['series', 'dataZoom', 'visualMap'] });
 
-        const ro = new ResizeObserver(entries => {
+        const ro = new ResizeObserver(() => {
             chart.resize();
-            const w = entries[0]?.contentRect.width;
-            if (typeof w === 'number') {
-                onResizeRef.current?.(w);
-            }
         });
         ro.observe(el);
 

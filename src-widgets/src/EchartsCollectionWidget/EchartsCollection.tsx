@@ -15,7 +15,7 @@
  * `backgroundColor` (bgColor) are injected. The data-wins force-set (series + legend.data)
  * lives in {@link mergeOptionForEcharts}.
  */
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -32,6 +32,7 @@ import { createHistoryFetcher } from './historyFetcher';
 import {
     buildGeneratedOption,
     familyOf,
+    parseJsonHidden,
     parseJsonSeriesStyle,
     parseJsonState,
     parseSeriesConfig,
@@ -40,6 +41,7 @@ import {
 import {
     resolvePalette,
     toPresentationConfig,
+    decodeAxes,
     decodeChartConfig,
     decodeMarkLines,
     buildTitlePlacement,
@@ -98,6 +100,8 @@ function EchartsCollection(): React.ReactElement {
     // JSON mode: the name-keyed per-series style overlay (ADR-0011). Empty when absent — JSON
     // series then render with defaults (palette slot, inherited type).
     const jsonStyle = useMemo(() => parseJsonSeriesStyle(data.jsonSeriesStyle), [data.jsonSeriesStyle]);
+    // JSON-mode deny-list of hidden payload series names (Problem-2). Empty when absent.
+    const jsonHidden = useMemo(() => parseJsonHidden(data.jsonHidden), [data.jsonHidden]);
     // Parsed jsonOid payload (series data only). Computed once so the option builder and the error
     // display read the same result, including its parse error (ADR-0011 — no silent blank chart).
     const jsonParsed = useMemo(() => {
@@ -148,6 +152,7 @@ function EchartsCollection(): React.ReactElement {
                 family,
                 chartConfig,
                 markLines,
+                yAxes: decodeAxes(data.yAxes as string),
             }),
         [data, palette, family, chartConfig, markLines],
     );
@@ -212,18 +217,6 @@ function EchartsCollection(): React.ReactElement {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [values]);
 
-    // Container width — fed by the EChart wrapper's ResizeObserver. Only the title recenter path
-    // (topCenter/topRight with dx ≠ 0, ADR-0009) reads it; gated update so height-only resizes
-    // don't trigger an option rebuild.
-    const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
-    const onResize = useMemo(
-        () =>
-            (w: number): void => {
-                setContainerWidth(prev => (prev === w ? prev : w));
-            },
-        [],
-    );
-
     // Resolve the generated option per family.
     const option = useMemo(() => {
         let g;
@@ -249,7 +242,8 @@ function EchartsCollection(): React.ReactElement {
                     data: liveBuffers[e.oid] ?? [],
                 }));
             } else {
-                series = jsonParsed.series;
+                // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2).
+                series = jsonParsed.series.filter(s => !jsonHidden.includes(s.name));
             }
             // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
             // positional seriesConfig (json has no per-series OIDs to key it by).
@@ -273,7 +267,6 @@ function EchartsCollection(): React.ReactElement {
                     titlePos: data.titlePos ?? 'topCenter',
                     dx: typeof data.titleDx === 'number' ? data.titleDx : 0,
                     dy: typeof data.titleDy === 'number' ? data.titleDy : 0,
-                    containerWidth,
                 }),
             };
         }
@@ -293,10 +286,10 @@ function EchartsCollection(): React.ReactElement {
         liveBuffers,
         jsonParsed,
         jsonStyle,
+        jsonHidden,
         presentation,
         overrides,
         themeBase,
-        containerWidth,
     ]);
 
     const loading = (family === 'cartesian' || family === 'pie') && mode === 'history' && history.loading;
@@ -367,7 +360,6 @@ function EchartsCollection(): React.ReactElement {
                     <EChart
                         option={option}
                         renderer={data.renderer}
-                        onResize={onResize}
                     />
                 ) : error ? null : (
                     <Box

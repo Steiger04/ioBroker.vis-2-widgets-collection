@@ -33,8 +33,6 @@ export interface ValidationIssue {
 /** Validation findings grouped by the section they surface in. */
 export type SectionIssues = Partial<Record<SectionKey, ValidationIssue[]>>;
 
-const isFiniteNum = (s: string): boolean => s.trim() !== '' && Number.isFinite(Number(s));
-
 /**
  * Validate the working state.
  *
@@ -73,7 +71,7 @@ export const validateEditor = (state: EditorState): SectionIssues => {
     }
 
     if (family === 'cartesian') {
-        if (isFiniteNum(state.yMin) && isFiniteNum(state.yMax) && Number(state.yMin) >= Number(state.yMax)) {
+        if (state.yAxes.some(ax => typeof ax.min === 'number' && typeof ax.max === 'number' && ax.min >= ax.max)) {
             push('axesZoom', 'echarts_val_yminmax');
         }
         if (state.visualMap.enabled && state.visualMap.min >= state.visualMap.max) {

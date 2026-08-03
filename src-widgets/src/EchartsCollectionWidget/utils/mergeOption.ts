@@ -94,3 +94,29 @@ export const mergeOptionForEcharts = (
     }
     return merged as EChartsOption;
 };
+
+/**
+ * Apply a per-series raw echarts JSON override (ADR-0015): parse `raw`, deep-merge it UNDER the
+ * GUI-authored `entry` (the GUI wins every collision; the data points are force-set afterwards by
+ * the caller). Invalid or non-object JSON is silently ignored. Used by the cartesian/pie builders to
+ * fold the card-level escape hatch into G — so it wins over a chart-level U `series` entry (G > U).
+ */
+export const applyRawOverride = (
+    entry: Record<string, unknown>,
+    raw: string | undefined | null,
+): Record<string, unknown> => {
+    const trimmed = (raw ?? '').trim();
+    if (!trimmed) {
+        return entry;
+    }
+    let parsed: Record<string, unknown> = {};
+    try {
+        const v = JSON.parse(trimmed);
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+            parsed = v as Record<string, unknown>;
+        }
+    } catch {
+        /* invalid raw override — ignored (the validity is surfaced in the editor) */
+    }
+    return deepMerge(parsed, entry);
+};

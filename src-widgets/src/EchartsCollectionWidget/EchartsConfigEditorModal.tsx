@@ -10,9 +10,9 @@
  *
  * The honesty contract is preserved: a working copy buffers edits, Apply is disabled until it
  * diverges (`hasChanges`, deep-equality), closing while dirty (backdrop click **or** Escape) is
- * intercepted with a warning, Reset reverts. First-open onboarding injects the skeleton series
- * card ahead of the snapshot, so Apply stays honestly disabled until the user really edits.
- * Wraps in a ThemeProvider for correct detached rendering.
+ * intercepted with a warning, Reset reverts. First-open onboarding is the empty-state CTA
+ * (ADR-0013 reversed the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays
+ * honestly disabled until the user adds a real series. Wraps in a ThemeProvider for detached render.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -35,6 +35,7 @@ import Generic from '../Generic';
 import ChartPreview from './editor/ChartPreview';
 import EchartsEditorSections, { type FocusSectionRequest } from './editor/EchartsEditorSections';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
+import { axisLayout } from './editor/axisLayout';
 import { familyOf } from './optionBuilder';
 import type { SectionKey } from './editor/validation';
 import {
@@ -56,34 +57,6 @@ interface EchartsConfigEditorModalProps {
     socket: LegacyConnection;
 }
 
-/**
- * First-open onboarding (ADR-0010): an empty config gets one skeleton entry — a cartesian/pie
- * series card, or a radar indicator — so the user lands on a ready-to-fill form instead of a
- * blank stack. Returns `[state, injected]`. Gauge always has its single scalar series already.
- */
-const withSkeleton = (loaded: EditorState): [EditorState, boolean] => {
-    const family = familyOf(loaded.chartType);
-    if (family === 'radar') {
-        if (loaded.radar.indicators.length > 0) {
-            return [loaded, false];
-        }
-        return [
-            {
-                ...loaded,
-                radar: { ...loaded.radar, indicators: [{ name: 'Ind 1', max: 100, oid: '' }] },
-            },
-            true,
-        ];
-    }
-    if (family === 'cartesian' || family === 'pie') {
-        if (loaded.series.length > 0) {
-            return [loaded, false];
-        }
-        return [{ ...loaded, series: [{ oid: '', name: 'Series 1', yAxisIndex: 0 }] }, true];
-    }
-    return [loaded, false];
-};
-
 function EchartsConfigEditorModal({
     open,
     onClose,
@@ -96,8 +69,6 @@ function EchartsConfigEditorModal({
     const loadedCountRef = useRef(0);
     const loadedSnapshotRef = useRef('');
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-    // Skeleton onboarding: autofocus the injected card's OID (first open only, not on Reset).
-    const [autoFocusOid, setAutoFocusOid] = useState(false);
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
     const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
@@ -113,16 +84,15 @@ function EchartsConfigEditorModal({
         if (!open) {
             return;
         }
-        // The skeleton goes in BEFORE the snapshot: it is part of the "loaded" baseline, so Apply
-        // stays disabled until the user edits for real (ADR-0010 onboarding honesty).
-        const [loaded, injected] = withSkeleton(loadEditorState(data as Record<string, unknown>));
+        // First-open onboarding is the empty-state CTA, not an injected skeleton (ADR-0013 reversed
+        // the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays disabled until the
+        // user adds a real series/indicator.
+        const loaded = loadEditorState(data as Record<string, unknown>);
         // The number of indexed `oidN` fields to clear on save. For radar the indicators (not the
         // single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
-        // Includes the skeleton so a deleted skeleton also clears its (possibly stale) oid slot.
         loadedCountRef.current = loaded.chartType === 'radar' ? loaded.radar.indicators.length : loaded.series.length;
         loadedSnapshotRef.current = JSON.stringify(loaded);
         setState(loaded);
-        setAutoFocusOid(injected);
         setFocusSection(null);
     }, [open, data]);
 
@@ -135,10 +105,46 @@ function EchartsConfigEditorModal({
         setState(s => ({ ...s, userText: value }));
     }, []);
 
+    // JSON-mode 1:1 auto-axis (ADR-0018): for each cartesian payload series, ensure an axis exists and
+    // bind the series to it (one axis per series, alternating side + 80 px stagger). Colour + name are
+    // NOT written — each axis inherits both from its bound series at runtime. Bestehende Achsen-Konfigs
+    // werden dabei nicht berücksichtigt (nur neue Widgets).
+    // Only the visible JSON series drive the 1:1 auto-axis effect — a hidden series (jsonHidden
+    // deny-list, Problem-2) must not keep its axis. jsonNamesKey reflects the visible set so hiding
+    // a series re-runs the effect and drops the axis.
+    const visibleJsonNames = jsonPreview.names.filter(n => !state.jsonHidden.includes(n));
+    const jsonNamesKey = visibleJsonNames.join('\n');
+    useEffect(() => {
+        if (
+            state.mode !== 'json' ||
+            (state.chartType !== 'line' && state.chartType !== 'bar') ||
+            visibleJsonNames.length === 0
+        ) {
+            return;
+        }
+        const names = visibleJsonNames;
+        const jsonSeriesStyle = { ...state.jsonSeriesStyle };
+        const yAxes = names.map((name, i) => {
+            const m = jsonSeriesStyle[name] ?? {};
+            jsonSeriesStyle[name] = { ...m, yAxisIndex: i };
+            return axisLayout(i);
+        });
+        // Clear yAxisIndex on hidden payload series so axis colour/name inheritance (which looks up
+        // the overlay by yAxisIndex) never matches a stale hidden entry after a hide (Problem-2).
+        for (const key of Object.keys(jsonSeriesStyle)) {
+            if (!names.includes(key) && jsonSeriesStyle[key].yAxisIndex !== undefined) {
+                jsonSeriesStyle[key] = { ...jsonSeriesStyle[key], yAxisIndex: undefined };
+            }
+        }
+        set({ yAxes, jsonSeriesStyle });
+        // Keyed on the names content (not the array ref) + mode/type → re-syncs only on real change,
+        // so manual axis edits (state.yAxes) are preserved while names/mode/type are stable.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [jsonNamesKey, state.mode, state.chartType]);
+
     const handleReset = useCallback(() => {
-        // Reset restores the same baseline the snapshot captured — skeleton included.
-        const [loaded] = withSkeleton(loadEditorState(data as Record<string, unknown>));
-        setState(loaded);
+        // Reset restores the loaded baseline (no skeleton injection, ADR-0013).
+        setState(loadEditorState(data as Record<string, unknown>));
     }, [data]);
 
     const handleApply = useCallback(() => {
@@ -225,7 +231,6 @@ function EchartsConfigEditorModal({
                                     themeType: theme.palette.mode === 'dark' ? 'dark' : 'light',
                                 }}
                                 focusSection={focusSection}
-                                autoFocusFirstOid={autoFocusOid}
                                 jsonSeriesNames={jsonPreview.names}
                                 jsonError={jsonPreview.error}
                             />

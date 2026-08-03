@@ -61,9 +61,11 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
             : `${state.tooltipTrigger}${state.tooltipUnits ? ` · ${state.tooltipUnits}` : ''}`;
 
     // axes & zoom (cartesian only)
-    const yBounds = `${state.yMin.trim() || 'auto'}–${state.yMax.trim() || 'auto'}`;
+    const ax0 = state.yAxes[0];
+    const yBounds = ax0 ? `${ax0.min ?? 'auto'}–${ax0.max ?? 'auto'}` : 'auto–auto';
+    const axesN = state.yAxes.length > 1 ? ` · ${state.yAxes.length} axes` : '';
     const zoom = [state.dataZoomSlider ? 'slider' : '', state.dataZoomInside ? 'inside' : ''].filter(Boolean).join('+');
-    out.axesZoom = yBounds + (zoom ? ` · ${zoom}` : '');
+    out.axesZoom = yBounds + axesN + (zoom ? ` · ${zoom}` : '');
 
     // family options
     if (family === 'gauge') {

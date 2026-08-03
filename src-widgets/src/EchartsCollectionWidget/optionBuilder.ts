@@ -195,6 +195,19 @@ export const parseJsonSeriesStyle = (raw: string | undefined | null): Record<str
     }
 };
 
+/** Decode + parse the `jsonHidden` blob into the deny-list of hidden JSON series names. Empty/invalid → `[]`. */
+export const parseJsonHidden = (raw: string | undefined | null): string[] => {
+    if (!raw) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw));
+        return Array.isArray(parsed) ? parsed.filter((n): n is string => typeof n === 'string') : [];
+    } catch {
+        return [];
+    }
+};
+
 /**
  * G — build the generated option by dispatching to the active family builder.
  *

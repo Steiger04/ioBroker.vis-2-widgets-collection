@@ -41,15 +41,13 @@ const PREVIEW_MAX_POINTS = 200;
 
 const toNum = (raw: unknown): number | null => (typeof raw === 'number' && Number.isFinite(raw) ? raw : null);
 
-/** Flatten editor-state visualMap + string yMin/yMax into the scalar keys toPresentationConfig reads. */
+/** Flatten editor-state visualMap into the scalar keys toPresentationConfig reads (yAxes passed separately). */
 const editorSrc = (state: EditorState): Record<string, unknown> => ({
     ...(state as unknown as Record<string, unknown>),
     visualMapEnabled: state.visualMap.enabled,
     visualMapMin: state.visualMap.min,
     visualMapMax: state.visualMap.max,
     visualMapColors: state.visualMap.colors,
-    yMin: state.yMin === '' ? undefined : Number(state.yMin),
-    yMax: state.yMax === '' ? undefined : Number(state.yMax),
 });
 
 export interface PreviewResult {
@@ -62,14 +60,8 @@ export interface PreviewResult {
  * @param state - The editor working state.
  * @param socket - The LegacyConnection drilled into the editor.
  * @param theme - The MUI theme (for the theme base + palette).
- * @param containerWidth - The preview container width (px), for the title recenter path (ADR-0009).
  */
-export function usePreviewOption(
-    state: EditorState,
-    socket: LegacyConnection,
-    theme: Theme,
-    containerWidth?: number,
-): PreviewResult {
+export function usePreviewOption(state: EditorState, socket: LegacyConnection, theme: Theme): PreviewResult {
     const family = familyOf(state.chartType);
     const mode = state.mode;
 
@@ -85,6 +77,7 @@ export function usePreviewOption(
                 family,
                 chartConfig: { gauge: state.gauge, radar: state.radar, pie: state.pie },
                 markLines: state.markLines,
+                yAxes: state.yAxes,
             }),
         [state, palette, family],
     );
@@ -159,7 +152,10 @@ export function usePreviewOption(
                 }));
             } else {
                 const raw = values[state.jsonOid];
-                series = parseJsonState(raw === null || raw === undefined ? '' : String(raw)).series;
+                // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2).
+                series = parseJsonState(raw === null || raw === undefined ? '' : String(raw)).series.filter(
+                    s => !state.jsonHidden.includes(s.name),
+                );
             }
             // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
             // positional editor series (json has no per-series OIDs).
@@ -181,7 +177,6 @@ export function usePreviewOption(
                     titlePos: state.titlePos ?? 'topCenter',
                     dx: state.titleDx,
                     dy: state.titleDy,
-                    containerWidth,
                 }),
             };
         }
@@ -221,7 +216,6 @@ export function usePreviewOption(
         presentation,
         overrides,
         themeBase,
-        containerWidth,
     ]);
 
     return built;

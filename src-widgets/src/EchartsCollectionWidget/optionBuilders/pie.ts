@@ -13,6 +13,7 @@ import type { EChartsOption } from 'echarts';
 import type { EchartsPieAggregate } from '../../types/field-definitions/echarts-fields';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
+import { applyRawOverride } from '../utils/mergeOption';
 
 /** Collapse a `[ts, val]` series to one scalar per the aggregate mode. */
 const aggregate = (data: (readonly [number, number | null])[], mode: EchartsPieAggregate): number | null => {
@@ -57,11 +58,16 @@ export const buildPieOption = (
 
     const data = series.map((s, i) => {
         const m = meta[i];
-        return {
-            name: m?.name || s.name,
-            value: aggregate(s.data, mode),
-            itemStyle: { color: m?.color ?? p.palette[i % p.palette.length] },
-        };
+        // Per-slice raw override (ADR-0017): folded UNDER the GUI slice (GUI owns name/value/color);
+        // GUI-uncovered per-slice keys (borderRadius/borderColor, selected, label, emphasis) survive.
+        return applyRawOverride(
+            {
+                name: m?.name || s.name,
+                value: aggregate(s.data, mode),
+                itemStyle: { color: m?.color ?? p.palette[i % p.palette.length] },
+            },
+            m?.raw,
+        );
     });
     const names = data.map(d => d.name);
 
@@ -69,16 +75,19 @@ export const buildPieOption = (
         legend: { show: p.legendShow, data: names, bottom: 4 },
         tooltip: buildTooltip(p),
         series: [
-            {
-                type: 'pie',
-                radius: [`${Math.round(inner * 100)}%`, '70%'],
-                ...(rose !== 'none' ? { roseType: rose } : {}),
-                label: { show: labelShow, formatter: labelFormatter },
-                data,
-                animation: p.animation,
-                ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
-                ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
-            },
+            applyRawOverride(
+                {
+                    type: 'pie',
+                    radius: [`${Math.round(inner * 100)}%`, '70%'],
+                    ...(rose !== 'none' ? { roseType: rose } : {}),
+                    label: { show: labelShow, formatter: labelFormatter },
+                    data,
+                    animation: p.animation,
+                    ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                    ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
+                },
+                p.pie?.raw,
+            ),
         ],
     };
     return option as unknown as EChartsOption;

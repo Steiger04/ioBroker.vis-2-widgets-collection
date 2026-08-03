@@ -26,9 +26,8 @@ const P: PresentationConfig = {
     animationDuration: 600,
     bgColor: 'transparent',
     cartesianType: 'line',
+    yAxes: [{}],
     xSplit: false,
-    yLog: false,
-    ySplit: true,
     dataZoomSlider: false,
     dataZoomInside: false,
     palette: ['#1', '#2', '#3'],
@@ -317,15 +316,99 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[0].type).toBe('value');
     });
 
-    it('adds a second yAxis only when a series targets yAxisIndex 1', () => {
+    it('emits one yAxis per configured axis (ADR-0012): alignTicks on for ≥2, position defaults', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A', yAxisIndex: 1 }],
-            p: P,
+            p: { ...P, yAxes: [{ name: 'kW' }, { name: '°C', position: 'right', color: '#f00' }] },
         });
-        const ya = option.yAxis as unknown as unknown[];
+        const ya = option.yAxis as unknown as {
+            name?: string;
+            position?: string;
+            alignTicks?: boolean;
+            axisLine?: { lineStyle: { color: string } };
+        }[];
         expect(ya).toHaveLength(2);
+        expect(ya[0].position).toBe('left'); // axis 0 defaults left
+        expect(ya[1].position).toBe('right'); // explicit
+        expect(ya[0].alignTicks).toBe(true); // smart-default on for multi-axis
+        expect(ya[1].alignTicks).toBe(true);
+        expect(ya[0].name).toBe('kW');
+        // per-axis colour paints the axis line (multi-axis legibility)
+        expect(ya[1].axisLine?.lineStyle.color).toBe('#f00');
+    });
+
+    it('defaults an axis colour to its first bound series colour (ADR-0018)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'A', color: '#abc', yAxisIndex: 0 },
+                { name: 'B', color: '#def', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{ name: 'A-axis' }, { name: 'B-axis' }] },
+        });
+        const ya = option.yAxis as unknown as {
+            axisLine?: { lineStyle: { color: string } };
+            nameTextStyle?: { color: string };
+        }[];
+        // No explicit axis colour → each axis inherits its bound series' colour (line + name).
+        expect(ya[0].axisLine?.lineStyle.color).toBe('#abc');
+        expect(ya[0].nameTextStyle?.color).toBe('#abc');
+        expect(ya[1].axisLine?.lineStyle.color).toBe('#def');
+    });
+
+    it('an explicit axis colour wins over the series-colour default (ADR-0018)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', color: '#abc', yAxisIndex: 0 }],
+            p: { ...P, yAxes: [{ color: '#explicit' }] },
+        });
+        const ya = option.yAxis as unknown as { axisLine?: { lineStyle: { color: string } } }[];
+        expect(ya[0].axisLine?.lineStyle.color).toBe('#explicit');
+    });
+
+    it('defaults an axis name to its first bound series name (ADR-0018)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'Power', data: [[1, 2]] },
+                { name: 'Temp', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'Power', yAxisIndex: 0 },
+                { name: 'Temp', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{}, {}] },
+        });
+        const ya = option.yAxis as unknown as { name?: string }[];
+        // No explicit axis name → each axis inherits its bound series' effective name.
+        expect(ya[0].name).toBe('Power');
+        expect(ya[1].name).toBe('Temp');
+    });
+
+    it('an explicit axis name wins over the series-name default (ADR-0018)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'Power', data: [[1, 2]] }],
+            meta: [{ name: 'Power', yAxisIndex: 0 }],
+            p: { ...P, yAxes: [{ name: 'kW' }] },
+        });
+        const ya = option.yAxis as unknown as { name?: string }[];
+        expect(ya[0].name).toBe('kW');
+    });
+
+    it('single axis: alignTicks defaults off; grid uses containLabel', () => {
+        const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
+        expect(ya).toHaveLength(1);
+        expect(ya[0].alignTicks).toBe(false);
+        expect((option.grid as { containLabel?: boolean }).containLabel).toBe(true);
     });
 
     it('tolerates legacy type:"area" as a line series with a flat areaStyle', () => {
@@ -403,6 +486,40 @@ describe('buildGeneratedOption — cartesian', () => {
         expect((zoom as unknown[]).some(d => (d as Record<string, unknown>).type === 'slider')).toBe(true);
         expect((zoom as unknown[]).some(d => (d as Record<string, unknown>).type === 'inside')).toBe(true);
     });
+
+    it('folds a per-series raw override into the series entry (ADR-0015); GUI wins on collision', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [
+                {
+                    name: 'A',
+                    color: '#abc',
+                    raw: '{ "markPoint": { "data": [{ "type": "max" }] }, "color": "#xxx" }',
+                },
+            ],
+            p: P,
+        });
+        const first = (option.series as unknown[])[0] as Record<string, unknown>;
+        expect(first.markPoint).toEqual({ data: [{ type: 'max' }] }); // raw supplements an uncovered key
+        expect(first.color).toBe('#abc'); // GUI wins the collision (raw's #xxx ignored)
+    });
+
+    it('always emits the non-replaceMerge components — legend/tooltip show:false when off (ADR-0016)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [],
+            p: { ...P, legendShow: false, tooltipTrigger: 'none' },
+        });
+        // legend off + tooltip none → still PRESENT with show:false (never omitted: under default-merge
+        // an omitted component is kept stale). grid/xAxis/yAxis always present.
+        expect((option.legend as { show?: boolean }).show).toBe(false);
+        expect((option.tooltip as { show?: boolean }).show).toBe(false);
+        expect(option.grid).toBeDefined();
+        expect(option.xAxis).toBeDefined();
+        expect(option.yAxis).toBeDefined();
+    });
 });
 
 describe('buildGeneratedOption — pie', () => {
@@ -445,6 +562,44 @@ describe('buildGeneratedOption — pie', () => {
         });
         const series = option.series as unknown as { data: { value: number | null }[] }[];
         expect(series[0].data[0].value).toBe(30);
+    });
+
+    it('folds a whole-pie series raw override into the pie series (ADR-0017)', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 10]] }],
+            meta: [],
+            p: {
+                ...P,
+                pie: {
+                    aggregate: 'latest',
+                    innerRadius: 0,
+                    rose: 'none',
+                    label: 'namePercent',
+                    raw: '{ "startAngle": 0, "selectedMode": "single" }',
+                },
+            },
+        });
+        const s = (option.series as unknown[])[0] as { startAngle: number; selectedMode: string };
+        expect(s.startAngle).toBe(0);
+        expect(s.selectedMode).toBe('single');
+    });
+
+    it('folds a per-slice raw override into each slice (ADR-0017)', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 10]] }],
+            meta: [{ raw: '{ "itemStyle": { "borderRadius": 6 }, "selected": true }' }],
+            p: { ...P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+        });
+        const s = (
+            option.series as unknown as {
+                data: { itemStyle: { borderRadius: number }; selected: boolean }[];
+            }[]
+        )[0];
+        // GUI owns itemStyle.color; the raw adds borderRadius (uncovered). selected is uncovered.
+        expect(s.data[0].itemStyle.borderRadius).toBe(6);
+        expect(s.data[0].selected).toBe(true);
     });
 });
 
@@ -500,6 +655,40 @@ describe('buildGeneratedOption — gauge', () => {
         const series = option.series as unknown as { axisLine: { lineStyle: { color?: unknown } } }[];
         expect(series[0].axisLine.lineStyle.color).toBeUndefined();
     });
+
+    it('emits detail.formatter only when a unit is set (ADR-0017 collision-hygiene)', () => {
+        const withUnit = buildGeneratedOption({
+            family: 'gauge',
+            value: 5,
+            meta: [],
+            p: { ...P, gauge: { min: 0, max: 100, unit: '%' } },
+        });
+        const detailWith = ((withUnit.series as unknown[])[0] as { detail?: { formatter?: string } }).detail;
+        expect(detailWith?.formatter).toBe('{value} %');
+
+        // No unit → formatter omitted (echarts defaults to "{value}"): transparent, and the key is free
+        // for a per-series raw override (the detail.formatter template).
+        const noUnit = buildGeneratedOption({ family: 'gauge', value: 5, meta: [], p: P });
+        const detailNone = ((noUnit.series as unknown[])[0] as { detail?: { formatter?: string } }).detail;
+        expect(detailNone?.formatter).toBeUndefined();
+    });
+
+    it('folds a per-series raw override into the gauge series (ADR-0017); GUI wins on collision', () => {
+        const option = buildGeneratedOption({
+            family: 'gauge',
+            value: 50,
+            meta: [{ raw: '{ "axisLine": { "lineStyle": { "color": [[0.5, "#f00"]] } }, "min": 999 }' }],
+            p: { ...P, gauge: { min: 0, max: 100 } },
+        });
+        const s = (option.series as unknown[])[0] as {
+            axisLine: { lineStyle: { color: unknown } };
+            min: number;
+        };
+        // No target → GUI emits no axisLine.lineStyle.color → the raw's colour zones apply (uncovered).
+        expect(s.axisLine.lineStyle.color).toEqual([[0.5, '#f00']]);
+        // GUI owns min → the raw's 999 is ignored (GUI wins the collision).
+        expect(s.min).toBe(0);
+    });
 });
 
 describe('buildGeneratedOption — radar', () => {
@@ -527,5 +716,66 @@ describe('buildGeneratedOption — radar', () => {
         const series = option.series as unknown as { type: string; data: { value: (number | null)[] }[] }[];
         expect(series[0].type).toBe('radar');
         expect(series[0].data[0].value).toEqual([10, 20, 30]);
+    });
+
+    it('puts per-polygon style at the series level, not on data[0] (ADR-0017)', () => {
+        const option = buildGeneratedOption({
+            family: 'radar',
+            values: [1, 2],
+            meta: [{ color: '#abc' }],
+            p: {
+                ...P,
+                radar: {
+                    shape: 'polygon',
+                    splitNumber: 5,
+                    area: true,
+                    indicators: [
+                        { name: 'A', max: 100, oid: 'a' },
+                        { name: 'B', max: 100, oid: 'b' },
+                    ],
+                },
+            },
+        });
+        const s = (option.series as unknown[])[0] as {
+            lineStyle?: { color: string };
+            itemStyle?: { color: string };
+            areaStyle?: { opacity: number };
+            data: { value: number[]; lineStyle?: unknown; itemStyle?: unknown }[];
+        };
+        // Style inherited from series level (so a series raw override can reach it).
+        expect(s.lineStyle?.color).toBe('#abc');
+        expect(s.itemStyle?.color).toBe('#abc');
+        expect(s.areaStyle?.opacity).toBe(0.2);
+        // data[0] carries only value (+ name); no redundant style copy that would shadow a raw.
+        expect(s.data[0].lineStyle).toBeUndefined();
+        expect(s.data[0].itemStyle).toBeUndefined();
+        expect(s.data[0].value).toEqual([1, 2]);
+    });
+
+    it('folds a per-series raw override into the radar series (ADR-0017)', () => {
+        const option = buildGeneratedOption({
+            family: 'radar',
+            values: [1, 2],
+            meta: [{ raw: '{ "lineStyle": { "width": 3 }, "emphasis": { "focus": "self" } }' }],
+            p: {
+                ...P,
+                radar: {
+                    shape: 'polygon',
+                    splitNumber: 5,
+                    area: true,
+                    indicators: [
+                        { name: 'A', max: 100, oid: 'a' },
+                        { name: 'B', max: 100, oid: 'b' },
+                    ],
+                },
+            },
+        });
+        const s = (option.series as unknown[])[0] as {
+            lineStyle: { width: number };
+            emphasis?: { focus: string };
+        };
+        // GUI owns lineStyle.color; the raw adds width (uncovered). emphasis is fully uncovered.
+        expect(s.lineStyle.width).toBe(3);
+        expect(s.emphasis?.focus).toBe('self');
     });
 });

@@ -46,6 +46,7 @@
         "@jaames/iro": "^5.5.2",
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.0",
+        "@uiw/react-textarea-code-editor": "^3.1.1",
         "canvas-gauges": "^2.1.7",
         "echarts": "^6.1.0",
         "iobroker.vis-2-widgets-collection": "file:..",

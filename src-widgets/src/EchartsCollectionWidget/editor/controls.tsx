@@ -101,13 +101,17 @@ export const OptionalNumberField: FC<{
     value: number | undefined;
     onChange: (value: number | undefined) => void;
     step?: number;
-}> = ({ label, value, onChange, step = 1 }) => (
+    error?: boolean;
+    helperText?: string;
+}> = ({ label, value, onChange, step = 1, error, helperText }) => (
     <TextField
         size="small"
         type="number"
         label={label}
         value={value ?? ''}
         inputProps={{ step }}
+        error={error}
+        helperText={helperText}
         onChange={e => {
             const raw = e.target.value;
             if (raw === '') {
@@ -128,7 +132,12 @@ export const TextField2: FC<{
     placeholder?: string;
     error?: boolean;
     helperText?: string;
-}> = ({ label, value, onChange, placeholder, error, helperText }) => (
+    /**
+     * Keep the label shrunk (floated) so a placeholder stays visible even when unfocused + empty —
+     * MUI otherwise hides the placeholder behind an unfloated label.
+     */
+    shrinkLabel?: boolean;
+}> = ({ label, value, onChange, placeholder, error, helperText, shrinkLabel }) => (
     <TextField
         size="small"
         label={label}
@@ -138,6 +147,7 @@ export const TextField2: FC<{
         error={error}
         helperText={helperText}
         fullWidth
+        {...(shrinkLabel ? { InputLabelProps: { shrink: true } } : {})}
     />
 );
 

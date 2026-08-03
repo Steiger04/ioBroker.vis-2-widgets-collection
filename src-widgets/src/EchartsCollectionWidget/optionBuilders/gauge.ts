@@ -16,6 +16,7 @@ import type { EChartsOption } from 'echarts';
 
 import type { EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
+import { applyRawOverride } from '../utils/mergeOption';
 
 /**
  * Build the gauge G option.
@@ -52,32 +53,39 @@ export const buildGaugeOption = (
     const option: Record<string, unknown> = {
         tooltip: buildTooltip(p),
         series: [
-            {
-                type: 'gauge',
-                min,
-                max,
-                radius: '90%',
-                progress: { show: true, width: progressWidth, itemStyle: { color } },
-                axisLine: {
-                    lineStyle: {
-                        width: progressWidth,
-                        ...(axisLineColor ? { color: axisLineColor } : {}),
+            applyRawOverride(
+                {
+                    type: 'gauge',
+                    min,
+                    max,
+                    radius: '90%',
+                    progress: { show: true, width: progressWidth, itemStyle: { color } },
+                    axisLine: {
+                        lineStyle: {
+                            width: progressWidth,
+                            ...(axisLineColor ? { color: axisLineColor } : {}),
+                        },
                     },
+                    axisTick: { show: false },
+                    splitLine: { length: 8 },
+                    pointer: { itemStyle: { color } },
+                    detail: {
+                        valueAnimation: true,
+                        // Emit formatter only when a unit is set (ADR-0017 collision-hygiene): echarts
+                        // already defaults detail.formatter to "{value}", so omitting it when unit is empty
+                        // is behaviour-transparent and leaves the key free for a per-series raw override
+                        // (the detail.formatter template). A set unit still wins (GUI owns it).
+                        ...(unit ? { formatter: `{value} ${unit}` } : {}),
+                        fontSize: 20,
+                        offsetCenter: [0, '70%'],
+                    },
+                    data: [{ value: value ?? '--', ...(name ? { name } : {}) }],
+                    animation: p.animation,
+                    ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                    ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
                 },
-                axisTick: { show: false },
-                splitLine: { length: 8 },
-                pointer: { itemStyle: { color } },
-                detail: {
-                    valueAnimation: true,
-                    formatter: unit ? `{value} ${unit}` : '{value}',
-                    fontSize: 20,
-                    offsetCenter: [0, '70%'],
-                },
-                data: [{ value: value ?? '--', ...(name ? { name } : {}) }],
-                animation: p.animation,
-                ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
-                ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
-            },
+                meta[0]?.raw,
+            ),
         ],
     };
     return option as unknown as EChartsOption;

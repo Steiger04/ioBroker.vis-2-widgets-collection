@@ -16,11 +16,12 @@
  */
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
-import { familyOf, parseJsonSeriesStyle } from '../optionBuilder';
-import { decodeChartConfig, decodeMarkLines } from '../presentation';
+import { familyOf, parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
+import { decodeAxes, decodeChartConfig, decodeMarkLines, legacyAxis } from '../presentation';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
+    EchartsAxisConfig,
     EchartsAreaFill,
     EchartsCartesianType,
     EchartsChartType,
@@ -97,13 +98,9 @@ export interface EditorState {
     /** echarts animation easing (promoted from a JSON snippet, ADR-0011 D5). Empty = default. */
     animationEasing: string;
     bgColor: string;
-    yMin: string;
-    yMax: string;
-    yName: string;
-    yLog: boolean;
-    yFormat: string;
+    /** Cartesian Y-axes (ADR-0012). Axis 0 is the default; further axes render side-by-side. */
+    yAxes: EchartsAxisConfig[];
     xSplit: boolean;
-    ySplit: boolean;
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
     paletteSource: EchartsPaletteSource;
@@ -121,6 +118,11 @@ export interface EditorState {
      * round-trip regardless so switching modes away and back preserves the user's style.
      */
     jsonSeriesStyle: Record<string, SeriesMeta>;
+    /**
+     * JSON-mode deny-list of payload series names hidden from the chart (Problem-2). The payload
+     * owns the series; this only suppresses them. Restorable in the Series section.
+     */
+    jsonHidden: string[];
 }
 
 export type EditorPatch = Partial<EditorState>;
@@ -157,13 +159,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     animationDuration: 600,
     animationEasing: '',
     bgColor: 'transparent',
-    yMin: '',
-    yMax: '',
-    yName: '',
-    yLog: false,
-    yFormat: '',
+    yAxes: [{ position: 'left', splitLine: true }],
     xSplit: false,
-    ySplit: true,
     dataZoomSlider: false,
     dataZoomInside: false,
     paletteSource: 'theme',
@@ -175,6 +172,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     visualMap: { enabled: false, min: 0, max: 100, colors: DEFAULT_VMAP_COLORS },
     userText: '',
     jsonSeriesStyle: {},
+    jsonHidden: [],
 };
 
 const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
@@ -286,6 +284,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         colors: strOr(data.visualMapColors, DEFAULT_VMAP_COLORS),
     };
 
+    // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level
+    // scalars (ADR-0012 migration — no silent rewrite; legacy widgets edit axis 0 on first open).
+    const yAxesDecoded = decodeAxes(data.yAxes as string);
+    const yAxes = yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)];
+
     return {
         ...DEFAULT_EDITOR_STATE,
         chartType,
@@ -315,13 +318,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         animationDuration: numOr(data.animationDuration, 600),
         animationEasing: strOr(data.animationEasing, ''),
         bgColor: strOr(data.bgColor, 'transparent'),
-        yMin: typeof data.yMin === 'number' ? String(data.yMin) : '',
-        yMax: typeof data.yMax === 'number' ? String(data.yMax) : '',
-        yName: strOr(data.yName, ''),
-        yLog: boolOr(data.yLog, false),
-        yFormat: strOr(data.yFormat, ''),
+        yAxes,
         xSplit: boolOr(data.xSplit, false),
-        ySplit: boolOr(data.ySplit, true),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
@@ -333,6 +331,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         visualMap: vm,
         userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
         jsonSeriesStyle: parseJsonSeriesStyle(data.jsonSeriesStyle as string),
+        jsonHidden: parseJsonHidden(data.jsonHidden as string),
     };
 };
 
@@ -368,14 +367,6 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         metaBlob = state.series.map(({ oid: _oid, ...rest }) => rest);
     }
 
-    const numOrEmpty = (s: string): number | '' => {
-        if (s === '' || s === undefined) {
-            return '';
-        }
-        const n = Number(s);
-        return Number.isFinite(n) ? n : '';
-    };
-
     const patch: Record<string, unknown> = {
         chartType: state.chartType,
         mode: state.mode,
@@ -401,13 +392,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         animationDuration: state.animationDuration,
         animationEasing: state.animationEasing,
         bgColor: state.bgColor,
-        yMin: numOrEmpty(state.yMin),
-        yMax: numOrEmpty(state.yMax),
-        yName: state.yName,
-        yLog: state.yLog,
-        yFormat: state.yFormat,
         xSplit: state.xSplit,
-        ySplit: state.ySplit,
         dataZoomSlider: state.dataZoomSlider,
         dataZoomInside: state.dataZoomInside,
         paletteSource: state.paletteSource,
@@ -431,6 +416,8 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         chartOverrides: encodeBlob(state.userText),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
         jsonSeriesStyle: encodeBlob(JSON.stringify(state.jsonSeriesStyle)),
+        jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden.length ? JSON.stringify(state.jsonHidden) : '')),
+        yAxes: encodeBlob(JSON.stringify(state.yAxes)),
     };
     const max = Math.max(seriesCount, previousCount);
     for (let i = 0; i < max; i++) {

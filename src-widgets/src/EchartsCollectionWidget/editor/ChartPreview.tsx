@@ -8,7 +8,6 @@
  * and an honest empty state when no data is bound yet. The empty state is clickable (ADR-0010):
  * it steers the rail to the section that would fill it (series, or data source for JSON mode).
  */
-import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import type React from 'react';
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
@@ -30,17 +29,7 @@ interface ChartPreviewProps {
 }
 
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
-    // Container width for the title recenter path (ADR-0009) — gated so height-only resizes don't
-    // trigger an option rebuild.
-    const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
-    const onResize = useMemo(
-        () =>
-            (w: number): void => {
-                setContainerWidth(prev => (prev === w ? prev : w));
-            },
-        [],
-    );
-    const { option, loading, hasData } = usePreviewOption(state, socket, theme, containerWidth);
+    const { option, loading, hasData } = usePreviewOption(state, socket, theme);
 
     const placeholder =
         state.chartType === 'gauge'
@@ -98,7 +87,6 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                     <EChart
                         option={option}
                         renderer={state.renderer}
-                        onResize={onResize}
                     />
                 ) : onPlaceholderClick && !loading ? (
                     <ButtonBase

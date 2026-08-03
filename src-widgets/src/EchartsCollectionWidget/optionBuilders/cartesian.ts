@@ -21,6 +21,7 @@ import type { EChartsOption } from 'echarts';
 
 import type {
     EchartsAreaFill,
+    EchartsAxisConfig,
     EchartsCartesianType,
     EchartsLegendPos,
     EchartsLineStyle,
@@ -28,6 +29,7 @@ import type {
     EchartsStep,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
+import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
 
@@ -172,6 +174,72 @@ const markLineOption = (markLines: EchartsMarkLine[]): Record<string, unknown> |
     };
 };
 
+/**
+ * Build one echarts `yAxis` entry from an {@link EchartsAxisConfig} + its index, applying the
+ * smart defaults (ADR-0012): position axis-0 left / others right; splitlines axis-0-only;
+ * `alignTicks` on for multi-axis (the #1 legibility lever); one colour paints line + label + name.
+ */
+const buildYAxisEntry = (
+    a: EchartsAxisConfig,
+    i: number,
+    total: number,
+    /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
+    seriesColor?: string,
+    /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
+    seriesName?: string,
+): Record<string, unknown> => {
+    const entry: Record<string, unknown> = {
+        type: a.log ? 'log' : 'value',
+        position: a.position ?? (i === 0 ? 'left' : 'right'),
+        offset: a.offset ?? 0,
+        alignTicks: a.alignTicks ?? total > 1,
+        splitLine: { show: a.splitLine ?? i === 0 },
+        nameLocation: 'middle',
+        nameGap: 50,
+    };
+    const axisName = a.name ?? seriesName;
+    if (axisName) {
+        entry.name = axisName;
+    }
+    if (a.min !== undefined) {
+        entry.min = a.min;
+    }
+    if (a.max !== undefined) {
+        entry.max = a.max;
+    }
+    if (a.scale) {
+        entry.scale = true;
+    }
+    if (a.splitNumber !== undefined) {
+        entry.splitNumber = a.splitNumber;
+    }
+    if (a.minInterval !== undefined) {
+        entry.minInterval = a.minInterval;
+    }
+    if (a.axisTick !== undefined) {
+        entry.axisTick = { show: a.axisTick };
+    }
+    if (a.nameRotate !== undefined) {
+        entry.nameRotate = a.nameRotate;
+    }
+    const axisLabel: Record<string, unknown> = {};
+    if (a.format) {
+        axisLabel.formatter = a.format;
+    }
+    const color = a.color ?? seriesColor;
+    if (color) {
+        // One colour codes axis line + label + name together (multi-axis legibility); defaults to the
+        // first bound series' colour when no explicit axis colour is set (ADR-0018).
+        axisLabel.color = color;
+        entry.axisLine = { show: true, lineStyle: { color } };
+        entry.nameTextStyle = { color };
+    }
+    if (Object.keys(axisLabel).length) {
+        entry.axisLabel = axisLabel;
+    }
+    return entry;
+};
+
 /** echarts valueFormatter lives in {@link buildTooltip} (shared across families). */
 
 /**
@@ -186,46 +254,45 @@ export const buildCartesianOption = (
     meta: readonly EchartsSeriesMeta[],
     p: PresentationConfig,
 ): EChartsOption => {
-    const entries = series.map((s, i) =>
-        buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType),
-    );
+    const entries = series.map((s, i) => {
+        const e = applyRawOverride(
+            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType),
+            meta[i]?.raw,
+        );
+        // Clamp the per-series axis index to the configured axes (ADR-0012): a removed axis must
+        // not leave a series bound to a non-existent yAxisIndex (echarts would drop it).
+        const yi = typeof e.yAxisIndex === 'number' ? e.yAxisIndex : 0;
+        e.yAxisIndex = yi >= p.yAxes.length ? 0 : yi;
+        return e;
+    });
     if (markLineOption(p.markLines) && entries.length > 0) {
         entries[0].markLine = markLineOption(p.markLines);
     }
 
     const names = entries.map(e => e.name as string);
-    // Emit the second (right-hand) value axis only when a series actually targets it, so a plain
-    // single-axis chart does not render an empty right axis.
-    const dualY = entries.some(e => e.yAxisIndex === 1);
-    const axisType: 'value' | 'log' = p.yLog ? 'log' : 'value';
-    const axisLabelFmt = p.yFormat ? { axisLabel: { formatter: p.yFormat } } : {};
+    // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
+    // alignTicks is smart-defaulted on for multi-axis; the axis colour AND name default to the first
+    // bound series' effective values when neither is explicit (ADR-0018).
+    const total = p.yAxes.length;
+    const yAxisEntries = p.yAxes.map((a, i) => {
+        const bound = entries.find(e => e.yAxisIndex === i);
+        const sc = bound?.color;
+        const seriesColor = typeof sc === 'string' ? sc : undefined;
+        const sn = bound?.name;
+        const seriesName = typeof sn === 'string' ? sn : undefined;
+        return buildYAxisEntry(a, i, total, seriesColor, seriesName);
+    });
+    // Grid padding grows with axes per side so multi-axis labels don't clip (containLabel handles
+    // the rest).
+    const leftCount = p.yAxes.filter((a, i) => (a.position ?? (i === 0 ? 'left' : 'right')) === 'left').length;
+    const gridLeft = 48 + Math.max(0, leftCount - 1) * 60;
+    const gridRight = 18 + Math.max(0, total - leftCount - 1) * 60;
     const option: Record<string, unknown> = {
         legend: { show: p.legendShow, data: names, ...legendPlacement(p.legendPos) },
         tooltip: buildTooltip(p),
-        grid: { left: 48, right: 18, top: 30, bottom: p.dataZoomSlider ? 48 : 28 },
+        grid: { left: gridLeft, right: gridRight, top: 30, bottom: p.dataZoomSlider ? 48 : 28, containLabel: true },
         xAxis: { type: 'time', splitLine: { show: p.xSplit } },
-        yAxis: dualY
-            ? [
-                  {
-                      type: axisType,
-                      name: p.yName,
-                      min: p.yMin,
-                      max: p.yMax,
-                      splitLine: { show: p.ySplit },
-                      ...axisLabelFmt,
-                  },
-                  { type: axisType, splitLine: { show: p.ySplit } },
-              ]
-            : [
-                  {
-                      type: axisType,
-                      name: p.yName,
-                      min: p.yMin,
-                      max: p.yMax,
-                      splitLine: { show: p.ySplit },
-                      ...axisLabelFmt,
-                  },
-              ],
+        yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,
         ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),

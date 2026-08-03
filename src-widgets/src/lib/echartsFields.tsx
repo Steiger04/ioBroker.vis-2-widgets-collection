@@ -115,6 +115,13 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: '',
         hidden: alwaysHidden,
     },
+    {
+        // JSON-mode deny-list of hidden payload series names (Problem-2). Hidden blob, modal-owned.
+        name: 'jsonHidden',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
 
     // ── Modal-owned presentation scalars (hidden; edited via the modal) ──────────
     // Defaults mirror DEFAULT_EDITOR_STATE so a fresh widget renders sensibly before the modal
@@ -135,12 +142,9 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'animationEasing', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'bgColor', type: 'text', default: 'transparent', hidden: alwaysHidden },
     { name: 'renderer', type: 'text', default: 'canvas', hidden: alwaysHidden },
-    // Cartesian axes + zoom.
-    { name: 'yName', type: 'text', default: '', hidden: alwaysHidden },
-    { name: 'yLog', type: 'checkbox', default: false, hidden: alwaysHidden },
-    { name: 'yFormat', type: 'text', default: '', hidden: alwaysHidden },
+    // Cartesian axes + zoom. Y-axes config lives in the `yAxes` base64 blob (ADR-0012); X stays single (time).
+    { name: 'yAxes', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'xSplit', type: 'checkbox', default: false, hidden: alwaysHidden },
-    { name: 'ySplit', type: 'checkbox', default: true, hidden: alwaysHidden },
     { name: 'dataZoomSlider', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'dataZoomInside', type: 'checkbox', default: false, hidden: alwaysHidden },
     // Palette + dark mode (ADR-0007).

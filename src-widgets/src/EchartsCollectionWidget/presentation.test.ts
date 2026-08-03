@@ -1,5 +1,5 @@
 /**
- * Unit tests for {@link buildTitlePlacement} (ADR-0009 title pixel-offset).
+ * Unit tests for {@link buildTitlePlacement} (ADR-0009 title pixel-offset, simplified: dx topLeft-only).
  *
  * @module EchartsCollectionWidget/presentation.test
  */
@@ -29,7 +29,7 @@ describe('buildTitlePlacement', () => {
         });
     });
 
-    describe('topLeft offset — edge-based, no containerWidth needed', () => {
+    describe('topLeft offset — edge-based, measurement-free', () => {
         it('dx shifts the left edge (resize-stable)', () => {
             expect(buildTitlePlacement({ titlePos: 'topLeft', dx: 12, dy: 0 })).toEqual({
                 left: 12,
@@ -52,48 +52,36 @@ describe('buildTitlePlacement', () => {
         });
     });
 
-    describe('topCenter offset — needs containerWidth to recenter', () => {
-        it('dx folds into the text-center anchor (left = width/2 + dx)', () => {
-            expect(buildTitlePlacement({ titlePos: 'topCenter', dx: 10, dy: 0, containerWidth: 400 })).toEqual({
-                left: 210,
-                top: 'top',
-                textAlign: 'center',
-            });
-        });
-        it('falls back to the named anchor when containerWidth is unknown', () => {
+    describe('topCenter / topRight — dx ignored (simplified ADR-0009), dy still applies', () => {
+        it('topCenter ignores dx → named center anchor', () => {
             expect(buildTitlePlacement({ titlePos: 'topCenter', dx: 10, dy: 0 })).toEqual({
                 left: 'center',
                 top: 'top',
             });
         });
-        it('negative dx shifts left of center', () => {
-            expect(buildTitlePlacement({ titlePos: 'topCenter', dx: -20, dy: 5, containerWidth: 400 })).toEqual({
-                left: 180,
-                top: 5,
-                textAlign: 'center',
-            });
-        });
-    });
-
-    describe('topRight offset — needs containerWidth to recenter', () => {
-        it('dx folds into the right-edge anchor (left = width + dx)', () => {
-            expect(buildTitlePlacement({ titlePos: 'topRight', dx: 8, dy: 0, containerWidth: 400 })).toEqual({
-                left: 408,
-                top: 'top',
-                textAlign: 'right',
-            });
-        });
-        it('falls back to the named anchor when containerWidth is unknown', () => {
+        it('topRight ignores dx → named right anchor', () => {
             expect(buildTitlePlacement({ titlePos: 'topRight', dx: 8, dy: 0 })).toEqual({
                 left: 'right',
                 top: 'top',
+            });
+        });
+        it('dy still shifts the top edge on topCenter', () => {
+            expect(buildTitlePlacement({ titlePos: 'topCenter', dx: 10, dy: 5 })).toEqual({
+                left: 'center',
+                top: 5,
+            });
+        });
+        it('dy still shifts the top edge on topRight', () => {
+            expect(buildTitlePlacement({ titlePos: 'topRight', dx: 8, dy: 5 })).toEqual({
+                left: 'right',
+                top: 5,
             });
         });
     });
 
     describe('non-finite dx/dy are ignored', () => {
         it('NaN dx is treated as no offset', () => {
-            expect(buildTitlePlacement({ titlePos: 'topCenter', dx: Number.NaN, dy: 0, containerWidth: 400 })).toEqual({
+            expect(buildTitlePlacement({ titlePos: 'topCenter', dx: Number.NaN, dy: 0 })).toEqual({
                 left: 'center',
                 top: 'top',
             });

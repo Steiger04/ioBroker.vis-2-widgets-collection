@@ -86,10 +86,10 @@ describe('validateEditor', () => {
         expect(issues.series?.map(i => i.key)).toEqual(['echarts_val_oid_missing', 'echarts_val_radar_max']);
     });
 
-    it('yMin ≥ yMax (both set) → axesZoom issue; one side auto → clean', () => {
-        expect(validateEditor(st({ yMin: '10', yMax: '5' })).axesZoom).toHaveLength(1);
-        expect(validateEditor(st({ yMin: '', yMax: '5' })).axesZoom).toBeUndefined();
-        expect(validateEditor(st({ yMin: '5', yMax: '10' })).axesZoom).toBeUndefined();
+    it('axis min ≥ max (both set) → axesZoom issue; one side auto → clean (ADR-0012)', () => {
+        expect(validateEditor(st({ yAxes: [{ min: 10, max: 5 }] })).axesZoom).toHaveLength(1);
+        expect(validateEditor(st({ yAxes: [{ max: 5 }] })).axesZoom).toBeUndefined();
+        expect(validateEditor(st({ yAxes: [{ min: 5, max: 10 }] })).axesZoom).toBeUndefined();
     });
 
     it('visualMap enabled + min ≥ max → colors issue; disabled → clean', () => {
@@ -104,8 +104,7 @@ describe('validateEditor', () => {
             st({
                 chartType: 'gauge',
                 series: [{ oid: 'a.b.c', name: '' }],
-                yMin: '10',
-                yMax: '5',
+                yAxes: [{ min: 10, max: 5 }], // bad range, but gauge skips cartesian checks
                 visualMap: { enabled: true, min: 9, max: 1, colors: '' },
             }),
         );
