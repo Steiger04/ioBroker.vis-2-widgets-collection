@@ -85,3 +85,27 @@ _Avoid_: Error badge, validation summary
 **Family-switch warning**:
 The non-blocking chip under the chart-type picker shown when the chosen chart family would drop bound items on Apply (e.g. cartesian→gauge keeps only the first OID).
 _Avoid_: Confirm dialog, type guard
+
+**Axis card**:
+A cartesian Y-axis item in the (v4) Axes manager — core knobs (name/position/colour/min/max/log/format) always visible, advanced knobs (scale/splitLine/splitNumber/minInterval/offset/alignTicks/axisTick/nameRotate) collapsible. One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
+_Avoid_: Axis row, axis settings
+
+**Axis manager**:
+The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`).
+_Avoid_: Axes tab, axis list
+
+**Axis auto-bind**:
+The cartesian default that each series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`); deleting a series drops its axis iff no surviving series remains on it (orphan-check), re-indexing the survivors (and re-staggering in the dense 1:1 case). Applies only on explicit creation — existing widgets are not silently re-laid-out. Departing from 1:1 (a manual `yAxisIndex` rebind) keeps each axis' custom position/offset on delete. An axis without an explicit colour **or name** inherits its bound series' values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot.
+_Avoid_: auto-axis (too vague)
+
+**Template snippet**:
+A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys (e.g. `graphic` overlay text, `aria`, `axisPointer` link, `radar.splitArea`). With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`) or collides with a GUI-owned key (`✗`).
+_Avoid_: Snippet, preset, series template (that is per-series)
+
+**Series raw**:
+The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object on a series card, deep-merged UNDER the GUI-authored series entry (the GUI wins collisions; the data points are force-set). Every series card carries one: cartesian per-card, gauge/radar as the single-series raw, and pie on two levels (a whole-pie series raw + a per-slice raw). It replaces the positional chart-level `U.series` array, now retired.
+_Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
+
+**Series template**:
+A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**.
+_Avoid_: Snippet, preset, template snippet (that is chart-wide)
