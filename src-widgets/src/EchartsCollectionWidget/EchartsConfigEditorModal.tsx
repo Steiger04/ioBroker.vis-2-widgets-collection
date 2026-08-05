@@ -33,7 +33,7 @@ import {
     ThemeProvider,
     Typography,
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, CloseFullscreen as RestoreIcon, OpenInFull as MaximizeIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
 import ChartPreview from './editor/ChartPreview';
@@ -77,6 +77,10 @@ function EchartsConfigEditorModal({
     const loadedCountRef = useRef(0);
     const loadedSnapshotRef = useRef('');
     const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+    // Window-style maximize toggle (fullScreen, edge-to-edge). Session-only by user decision:
+    // the component instance survives close/open, so the flag must be reset in the open effect
+    // below — every fresh open starts at normal size.
+    const [maximized, setMaximized] = useState(false);
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
     const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
@@ -102,6 +106,7 @@ function EchartsConfigEditorModal({
         loadedSnapshotRef.current = JSON.stringify(loaded);
         setState(loaded);
         setFocusSection(null);
+        setMaximized(false); // maximize is session-only — a fresh open starts at normal size
     }, [open, data]);
 
     // Self-heal stable ids: every keyed card list (axes/series/mark-lines/indicators) must carry an
@@ -252,8 +257,19 @@ function EchartsConfigEditorModal({
                 onClose={handleClose}
                 maxWidth="xl"
                 fullWidth
+                fullScreen={maximized}
                 aria-labelledby={titleId}
-                slotProps={{ paper: { sx: { height: { md: '85vh' } } } }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            height: maximized ? '100%' : { md: '85vh' },
+                            // Smooth the maximize/restore resize (the dialog stays mounted, so no
+                            // enter-transition fires on toggle — animate the geometry instead).
+                            transition:
+                                'width 200ms, height 200ms, max-width 200ms, max-height 200ms, margin 200ms, border-radius 200ms',
+                        },
+                    },
+                }}
             >
                 <DialogTitle
                     sx={{ py: 1.5, px: 2.5 }}
@@ -305,14 +321,25 @@ function EchartsConfigEditorModal({
                                 </Box>
                             )}
                         </Box>
-                        <IconButton
-                            onClick={() => handleClose()}
-                            size="small"
-                            sx={{ color: 'text.secondary' }}
-                            aria-label={Generic.t('echarts_editor_close')}
-                        >
-                            <CloseIcon />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                            <IconButton
+                                onClick={() => setMaximized(m => !m)}
+                                size="small"
+                                sx={{ color: 'text.secondary' }}
+                                aria-label={Generic.t(maximized ? 'echarts_editor_restore' : 'echarts_editor_maximize')}
+                                title={Generic.t(maximized ? 'echarts_editor_restore' : 'echarts_editor_maximize')}
+                            >
+                                {maximized ? <RestoreIcon /> : <MaximizeIcon />}
+                            </IconButton>
+                            <IconButton
+                                onClick={() => handleClose()}
+                                size="small"
+                                sx={{ color: 'text.secondary' }}
+                                aria-label={Generic.t('echarts_editor_close')}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
                     </Box>
                 </DialogTitle>
                 <DialogContent
