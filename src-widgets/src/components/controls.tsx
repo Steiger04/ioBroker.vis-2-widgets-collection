@@ -1,12 +1,17 @@
 /**
- * The echarts configurator control kit (ADR-0019) — the layout + control primitives every section
- * body is built from.
+ * The shared configurator control kit — layout + control primitives every configurator
+ * section body is built from.
  *
- * @module EchartsCollectionWidget/editor/layout
+ * @module components/controls
  * @remarks
+ * Born in the echarts configurator (ADR-0019), generalised into a shared module by ADR-0020
+ * so the theme studio (and future configurators) speak the same language:
+ * - **FieldLabel** — the one label idiom: a 12 px caption above the control, never a floating
+ *   label (those truncate brutally in narrow grid cells). Single-line with ellipsis; the full
+ *   text rides as a tooltip.
  * - **FieldGrid** — the responsive workhorse: `repeat(auto-fill, minmax(150px, 1fr))`; cells
- *   reflow 1→4 columns purely with rail width. No JS width measurement, so a splitter drag stays
- *   a layout/paint operation. A wide child takes `gridColumn: '1 / -1'`.
+ *   reflow 1→4 columns purely with container width. No JS width measurement, so a splitter
+ *   drag stays a layout/paint operation. A wide child takes `gridColumn: '1 / -1'`.
  * - **FieldRow** — flex-wrap row for composite fields (OID picker, colour); children own their
  *   `flex` basis, the row aligns control baselines (`flex-end`).
  * - **SubGroup** — an overline-labelled knob cluster inside a card body. Structure without
@@ -15,17 +20,192 @@
  *   hairline box. Replaces the stacked label-over-switch cell (the ~60 px wall).
  * - **SliderField** — the bounded-numeric idiom: slider + synced number input (either edits; the
  *   working copy updates live — the preview IS the feedback).
- * - **EditorCard** — the shared series/axis card shell: whole-header toggle, hover affordance,
- *   primary border while open, right-aligned actions.
+ * - **EditorCard** — the shared card shell: whole-header toggle, hover affordance, primary
+ *   border while open, right-aligned actions, lazily mounted body.
+ * - **LabeledSelect / NumberField / OptionalNumberField / TextField2** — scalar inputs on the
+ *   caption-above idiom.
  *
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
+ * All labels go through `Generic.t` at the call site.
  */
 import { useId, useState, type FC, type ReactNode } from 'react';
-import { Box, Collapse, Slider, Switch, TextField, Typography } from '@mui/material';
+import type React from 'react';
+import { Box, Collapse, MenuItem, Slider, Switch, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 import { ExpandMore as ExpandIcon } from '@mui/icons-material';
 
-import { FieldLabel, noSpinnerSx } from './controls';
+// ── tiny shared labels ────────────────────────────────────────────
+
+/** Hides the native number spinners (ugly + inconsistent across browsers) on type=number inputs. */
+export const noSpinnerSx = {
+    '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+        WebkitAppearance: 'none',
+        margin: 0,
+    },
+    '& input[type=number]': { MozAppearance: 'textfield', appearance: 'textfield' },
+} as const;
+
+/**
+ * The one label idiom (ADR-0019): a 12 px caption above the control — never a floating label
+ * (those truncate brutally in narrow grid cells). Single-line with ellipsis; the full text rides
+ * as a tooltip. The control below is label-free and owns the full cell width for its value.
+ */
+export const FieldLabel: FC<{ children: React.ReactNode }> = ({ children }) => (
+    <Typography
+        variant="caption"
+        color="text.secondary"
+        noWrap
+        title={typeof children === 'string' ? children : undefined}
+        sx={{ display: 'block', mb: 0.5 }}
+    >
+        {children}
+    </Typography>
+);
+
+/** Section-level label: small bold title + optional quiet hint line beneath. */
+export const SectionLabel: FC<{ children: React.ReactNode; hint?: string }> = ({ children, hint }) => (
+    <Box>
+        <Typography
+            variant="subtitle2"
+            fontWeight={600}
+        >
+            {children}
+        </Typography>
+        {hint && (
+            <Typography
+                variant="caption"
+                color="text.secondary"
+            >
+                {hint}
+            </Typography>
+        )}
+    </Box>
+);
+
+// ── scalar inputs (caption-above) ─────────────────────────────────
+
+/** Select rendered as a label-free TextField under a FieldLabel caption. */
+export const LabeledSelect: FC<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: ReadonlyArray<[string, string]>;
+    disabled?: boolean;
+}> = ({ label, value, onChange, options, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            select
+            size="small"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            disabled={disabled}
+            fullWidth
+        >
+            {options.map(([v, l]) => (
+                <MenuItem
+                    key={v}
+                    value={v}
+                >
+                    {l}
+                </MenuItem>
+            ))}
+        </TextField>
+    </Box>
+);
+
+/** Number input under a FieldLabel caption; native spinners hidden. */
+export const NumberField: FC<{
+    label: string;
+    value: number;
+    onChange: (value: number) => void;
+    step?: number;
+    error?: boolean;
+    helperText?: string;
+    disabled?: boolean;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            size="small"
+            type="number"
+            value={value}
+            inputProps={{ step }}
+            onChange={e => onChange(Number(e.target.value) || 0)}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            fullWidth
+            sx={noSpinnerSx}
+        />
+    </Box>
+);
+
+/**
+ * Number field that can be cleared: an empty input maps to `undefined` (an optional numeric
+ * config value, e.g. a gauge target where "unset" is meaningful and distinct from 0).
+ */
+export const OptionalNumberField: FC<{
+    label: string;
+    value: number | undefined;
+    onChange: (value: number | undefined) => void;
+    step?: number;
+    error?: boolean;
+    helperText?: string;
+    disabled?: boolean;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            size="small"
+            type="number"
+            value={value ?? ''}
+            inputProps={{ step }}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            onChange={e => {
+                const raw = e.target.value;
+                if (raw === '') {
+                    onChange(undefined);
+                    return;
+                }
+                const n = Number(raw);
+                onChange(Number.isFinite(n) ? n : undefined);
+            }}
+            fullWidth
+            sx={noSpinnerSx}
+        />
+    </Box>
+);
+
+/**
+ * Text input, caption-above (ADR-0019). The placeholder is always visible (no floating label
+ * competes with it) — used e.g. to show an inherited value as ghost text.
+ */
+export const TextField2: FC<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    error?: boolean;
+    helperText?: string;
+    disabled?: boolean;
+}> = ({ label, value, onChange, placeholder, error, helperText, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            size="small"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            fullWidth
+        />
+    </Box>
+);
 
 // ── layout primitives ─────────────────────────────────────────────
 
@@ -206,10 +386,10 @@ export const SliderField: FC<{
 // ── card shell ────────────────────────────────────────────────────
 
 /**
- * The shared series/axis card: quiet border (primary while open), whole-header toggle (chevron +
+ * The shared card shell: quiet border (primary while open), whole-header toggle (chevron +
  * swatch + title/subtitle), right-aligned actions. The body mounts lazily on first expand
  * (`mountOnEnter`) and stays mounted afterwards — a collapsed card costs nothing at mount time
- * (with N series the modal open must not mount N invisible card bodies), yet per-body local state
+ * (with N cards the host must not mount N invisible card bodies), yet per-body local state
  * still survives collapsing.
  */
 export const EditorCard: FC<{

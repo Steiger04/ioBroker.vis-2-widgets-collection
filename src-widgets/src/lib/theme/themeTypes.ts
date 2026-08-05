@@ -112,3 +112,19 @@ export interface ThemeFormSectionProps {
      */
     resolved?: Theme;
 }
+
+/**
+ * Props of a studio-panel section (ADR-0020) — extends the base form props with the
+ * field-level validation lookup, the colour pickers' theme-swatch presets, and the
+ * controlled expanded state (the panel drives it for scroll-to-error).
+ */
+export interface StudioSectionProps extends ThemeFormSectionProps {
+    /** Localized, human-readable validation error for a field path (undefined when valid). */
+    errorFor?: (path: string) => string | undefined;
+    /** Current theme colours, shown as the colour pickers' preset swatch row. */
+    colorPresets?: string[];
+    /** Controlled expanded state (panel-owned; enables expand-on-error-scroll). */
+    expanded?: boolean;
+    /** Expanded-state change callback (controlled mode). */
+    onExpandedChange?: (expanded: boolean) => void;
+}

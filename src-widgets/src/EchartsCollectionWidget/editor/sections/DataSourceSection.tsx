@@ -14,8 +14,7 @@ import { Box, Typography } from '@mui/material';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
-import { FieldLabel, LabeledSelect, NumberField } from '../controls';
-import { FieldGrid } from '../layout';
+import { FieldGrid, FieldLabel, LabeledSelect, NumberField } from '../../../components/controls';
 import { useHistoryInstances } from '../useHistoryInstances';
 import type { EditorState, SetEditor } from '../editorState';
 

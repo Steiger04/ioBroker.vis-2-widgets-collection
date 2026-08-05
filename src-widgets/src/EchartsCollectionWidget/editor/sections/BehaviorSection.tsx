@@ -12,8 +12,7 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { LabeledSelect } from '../controls';
-import { FieldGrid, SliderField, SwitchList, SwitchRow } from '../layout';
+import { FieldGrid, LabeledSelect, SliderField, SwitchList, SwitchRow } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface BehaviorSectionProps {

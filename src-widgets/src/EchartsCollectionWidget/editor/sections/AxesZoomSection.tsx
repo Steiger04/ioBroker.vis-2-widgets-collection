@@ -20,8 +20,19 @@ import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material
 import Generic from '../../../Generic';
 import { echartsPalette } from '../../echartsTheme';
 import { resolvePalette } from '../../presentation';
-import { FieldLabel, LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
-import { EditorCard, FieldGrid, SliderField, SubGroup, SwitchList, SwitchRow } from '../layout';
+import {
+    EditorCard,
+    FieldGrid,
+    FieldLabel,
+    LabeledSelect,
+    NumberField,
+    OptionalNumberField,
+    SliderField,
+    SubGroup,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../../components/controls';
 import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';

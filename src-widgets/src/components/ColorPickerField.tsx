@@ -10,6 +10,12 @@
  * appears only when an explicit override exists (resetting reverts to the
  * resolved value). Uses the shared usePopoverPositioning hook for popover
  * positioning.
+ *
+ * Two flavours: the default keeps the picker minimal (visual picking only — used by
+ * the JsonTable editors). Passing `presets` upgrades it to the theme-studio variant
+ * (ADR-0020): hex/rgba inputs, the eyedropper and a preset swatch row (fed with the
+ * current theme colours) become visible, and the solid/gradient toggle is hidden —
+ * theme palette slots are solid colours.
  */
 
 import ClearIcon from '@mui/icons-material/Clear';
@@ -30,6 +36,14 @@ interface ColorPickerFieldProps {
     label: string;
     /** When true, an explicit override exists and the "reset to default" button is shown. */
     overridden?: boolean;
+    /**
+     * Theme-studio variant (ADR-0020): preset swatches shown in the popover; also enables the
+     * hex/rgba inputs and the eyedropper, and hides the solid/gradient toggle. Omit for the
+     * minimal visual-only picker.
+     */
+    presets?: string[];
+    /** Field-level validation message (ADR-0020) rendered under the row; also marks the row. */
+    error?: string;
 }
 
 /**
@@ -40,9 +54,18 @@ interface ColorPickerFieldProps {
  * @param props.onChange - Callback when color changes.
  * @param props.label - Label displayed left of the swatch.
  * @param props.overridden - Whether an explicit override exists (shows reset button).
+ * @param props.presets - Theme-studio variant: preset swatches + inputs + eyedropper.
+ * @param props.error - Field-level validation message.
  * @returns Rendered field UI.
  */
-function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFieldProps): React.JSX.Element {
+function ColorPickerField({
+    value,
+    onChange,
+    label,
+    overridden,
+    presets,
+    error,
+}: ColorPickerFieldProps): React.JSX.Element {
     const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -104,7 +127,7 @@ function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFie
     );
 
     return (
-        <Box>
+        <Box data-theme-error={error ? true : undefined}>
             <Box
                 sx={{
                     display: 'grid',
@@ -121,7 +144,7 @@ function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFie
             >
                 <Typography
                     variant="body2"
-                    color="text.secondary"
+                    color={error ? 'error' : 'text.secondary'}
                     sx={{ userSelect: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                     {label}
@@ -135,7 +158,7 @@ function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFie
                             borderRadius: '4px',
                             background: cachedValue || 'transparent',
                             border: cachedValue
-                                ? `1px solid ${theme.palette.divider}`
+                                ? `1px solid ${error ? theme.palette.error.main : theme.palette.divider}`
                                 : `1px dashed ${theme.palette.text.disabled}`,
                         }}
                     />
@@ -151,6 +174,16 @@ function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFie
                     ) : null}
                 </Box>
             </Box>
+
+            {error ? (
+                <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{ display: 'block', mt: -0.25, pb: 0.5 }}
+                >
+                    {error}
+                </Typography>
+            ) : null}
 
             <Popover
                 action={popoverActionRef}
@@ -181,10 +214,18 @@ function ColorPickerField({ value, onChange, label, overridden }: ColorPickerFie
                     <ColorPicker
                         value={cachedValue || '#ffffff'}
                         onChange={handlePickerChange}
-                        hidePresets
-                        hideInputs
-                        hideEyeDrop
-                        hideInputType
+                        hidePresets={!presets}
+                        presets={presets}
+                        hideInputs={!presets}
+                        hideEyeDrop={!presets}
+                        hideInputType={!presets}
+                        // Studio variant only: palette slots are solid colours, so the
+                        // gradient machinery stays hidden. The default (JsonTable) path
+                        // keeps every control it had before ADR-0020.
+                        hideColorTypeBtns={Boolean(presets)}
+                        hideGradientControls={Boolean(presets)}
+                        hideAdvancedSliders={Boolean(presets)}
+                        hideColorGuide={Boolean(presets)}
                     />
                 </Box>
             </Popover>

@@ -28,8 +28,17 @@ import type {
     EchartsCartesianType,
     EchartsSeriesMeta,
 } from '../../../../types/field-definitions/echarts-fields';
-import { FieldLabel, LabeledSelect, TextField2 } from '../../controls';
-import { EditorCard, FieldGrid, SliderField, SubGroup, SwitchList, SwitchRow } from '../../layout';
+import {
+    EditorCard,
+    FieldGrid,
+    FieldLabel,
+    LabeledSelect,
+    SliderField,
+    SubGroup,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';

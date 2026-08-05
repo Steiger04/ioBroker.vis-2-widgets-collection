@@ -1,187 +1,21 @@
 /**
- * Shared controls + the top-row master selectors for the v2 echarts configurator.
+ * The top-row master selectors of the v2 echarts configurator.
  *
  * @module EchartsCollectionWidget/editor/controls
  * @remarks
- * Quiet, dense MUI controls aligned on the 8px scale (configurator-design anatomy). All labels
- * go through `Generic.t`. `ChartTypePicker` is the real family switch (replaces the v1 decorative
- * disabled toggle); `ModeSelect` keeps the global data-mode toggle.
+ * The generic control kit (FieldLabel, FieldGrid, SwitchList, SliderField, …) moved to
+ * `components/controls` (ADR-0020) so every configurator shares it — this module keeps only
+ * the echarts-specific selectors. `ChartTypePicker` is the real family switch (replaces the v1
+ * decorative disabled toggle); `ModeSelect` keeps the global data-mode toggle.
  */
 import type { FC } from 'react';
 import type React from 'react';
-import { Box, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
+import { FieldLabel } from '../../components/controls';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
-
-// ── tiny shared labels / inputs ───────────────────────────────────
-
-/** Hides the native number spinners (ugly + inconsistent across browsers) on type=number inputs. */
-export const noSpinnerSx = {
-    '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
-        WebkitAppearance: 'none',
-        margin: 0,
-    },
-    '& input[type=number]': { MozAppearance: 'textfield', appearance: 'textfield' },
-} as const;
-
-/**
- * The one label idiom (ADR-0019): a 12 px caption above the control — never a floating label
- * (those truncate brutally in narrow grid cells). Single-line with ellipsis; the full text rides
- * as a tooltip. The control below is label-free and owns the full cell width for its value.
- */
-export const FieldLabel: FC<{ children: React.ReactNode }> = ({ children }) => (
-    <Typography
-        variant="caption"
-        color="text.secondary"
-        noWrap
-        title={typeof children === 'string' ? children : undefined}
-        sx={{ display: 'block', mb: 0.5 }}
-    >
-        {children}
-    </Typography>
-);
-
-export const SectionLabel: FC<{ children: React.ReactNode; hint?: string }> = ({ children, hint }) => (
-    <Box>
-        <Typography
-            variant="subtitle2"
-            fontWeight={600}
-        >
-            {children}
-        </Typography>
-        {hint && (
-            <Typography
-                variant="caption"
-                color="text.secondary"
-            >
-                {hint}
-            </Typography>
-        )}
-    </Box>
-);
-
-export const LabeledSelect: FC<{
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    options: ReadonlyArray<[string, string]>;
-    disabled?: boolean;
-}> = ({ label, value, onChange, options, disabled }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            select
-            size="small"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            disabled={disabled}
-            fullWidth
-        >
-            {options.map(([v, l]) => (
-                <MenuItem
-                    key={v}
-                    value={v}
-                >
-                    {l}
-                </MenuItem>
-            ))}
-        </TextField>
-    </Box>
-);
-
-export const NumberField: FC<{
-    label: string;
-    value: number;
-    onChange: (value: number) => void;
-    step?: number;
-    error?: boolean;
-    helperText?: string;
-    disabled?: boolean;
-}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            size="small"
-            type="number"
-            value={value}
-            inputProps={{ step }}
-            onChange={e => onChange(Number(e.target.value) || 0)}
-            error={error}
-            helperText={helperText}
-            disabled={disabled}
-            fullWidth
-            sx={noSpinnerSx}
-        />
-    </Box>
-);
-
-/**
- * Number field that can be cleared: an empty input maps to `undefined` (an optional numeric
- * config value, e.g. a gauge target where "unset" is meaningful and distinct from 0).
- */
-export const OptionalNumberField: FC<{
-    label: string;
-    value: number | undefined;
-    onChange: (value: number | undefined) => void;
-    step?: number;
-    error?: boolean;
-    helperText?: string;
-    disabled?: boolean;
-}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            size="small"
-            type="number"
-            value={value ?? ''}
-            inputProps={{ step }}
-            error={error}
-            helperText={helperText}
-            disabled={disabled}
-            onChange={e => {
-                const raw = e.target.value;
-                if (raw === '') {
-                    onChange(undefined);
-                    return;
-                }
-                const n = Number(raw);
-                onChange(Number.isFinite(n) ? n : undefined);
-            }}
-            fullWidth
-            sx={noSpinnerSx}
-        />
-    </Box>
-);
-
-/**
- * Text input, caption-above (ADR-0019). The placeholder is always visible (no floating label
- * competes with it) — used e.g. to show an inherited value as ghost text.
- */
-export const TextField2: FC<{
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    error?: boolean;
-    helperText?: string;
-    disabled?: boolean;
-}> = ({ label, value, onChange, placeholder, error, helperText, disabled }) => (
-    <Box>
-        <FieldLabel>{label}</FieldLabel>
-        <TextField
-            size="small"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            placeholder={placeholder}
-            error={error}
-            helperText={helperText}
-            disabled={disabled}
-            fullWidth
-        />
-    </Box>
-);
 
 // ── master selectors (top row) ────────────────────────────────────
 

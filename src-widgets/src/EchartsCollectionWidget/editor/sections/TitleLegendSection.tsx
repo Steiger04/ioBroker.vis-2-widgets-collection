@@ -10,8 +10,7 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { LabeledSelect, NumberField, TextField2 } from '../controls';
-import { FieldGrid, SwitchList, SwitchRow } from '../layout';
+import { FieldGrid, LabeledSelect, NumberField, SwitchList, SwitchRow, TextField2 } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface TitleLegendSectionProps {

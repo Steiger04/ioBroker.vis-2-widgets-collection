@@ -11,8 +11,7 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../../Generic';
-import { FieldLabel, TextField2 } from '../../controls';
-import { FieldGrid } from '../../layout';
+import { FieldGrid, FieldLabel, TextField2 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';

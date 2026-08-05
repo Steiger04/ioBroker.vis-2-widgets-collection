@@ -14,6 +14,8 @@
  * {@link module:lib/theme/validateTheme.validateThemeOptions} cleanly.
  */
 
+import { deepmerge } from '@mui/utils';
+
 import type { UserTheme } from './themeTypes';
 
 /** One selectable preset. */
@@ -145,3 +147,105 @@ export const THEME_PRESETS: readonly ThemePreset[] = [
         },
     },
 ];
+
+/** The palette leaf paths a preset sets — the full apply + active-detection surface. */
+const PRESET_PALETTE_PATHS = [
+    'palette.mode',
+    'palette.primary.main',
+    'palette.secondary.main',
+    'palette.background.default',
+    'palette.background.paper',
+] as const;
+
+/** Reads `main` off a palette colour slot (MUI's PaletteColorOptions union hides it from TS). */
+const slotMain = (slot: unknown): string | undefined =>
+    typeof slot === 'object' && slot !== null ? (slot as { main?: string }).main : undefined;
+
+/**
+ * The four colours a preset card shows: surfaces + accents. Kept as the single leaf-access
+ * point so card rendering and active detection never drift apart.
+ */
+export function presetColors(preset: ThemePreset): {
+    mode: string | undefined;
+    primary: string | undefined;
+    secondary: string | undefined;
+    background: string | undefined;
+    paper: string | undefined;
+} {
+    const palette = preset.theme.palette;
+    const background = palette?.background;
+    return {
+        mode: palette?.mode,
+        primary: slotMain(palette?.primary),
+        secondary: slotMain(palette?.secondary),
+        background: typeof background === 'object' ? background.default : undefined,
+        paper: typeof background === 'object' ? background.paper : undefined,
+    };
+}
+
+/**
+ * Reads a preset palette leaf by dot path. Kept local (not themeUtils.getNestedValue)
+ * because the paths are fixed and the preset shape is known — plain property hops.
+ */
+function presetLeaf(preset: ThemePreset, path: (typeof PRESET_PALETTE_PATHS)[number]): string | undefined {
+    const colors = presetColors(preset);
+    switch (path) {
+        case 'palette.mode':
+            return colors.mode;
+        case 'palette.primary.main':
+            return colors.primary;
+        case 'palette.secondary.main':
+            return colors.secondary;
+        case 'palette.background.default':
+            return colors.background;
+        case 'palette.background.paper':
+            return colors.paper;
+    }
+}
+
+/** Case-insensitive colour equality (`#38BDF8` from a hex input matches `#38bdf8`). */
+function sameColor(a: string | undefined, b: string | undefined): boolean {
+    return (a ?? '').toLowerCase() === (b ?? '').toLowerCase();
+}
+
+/**
+ * Applies a preset palette-only (ADR-0020): the preset's palette leaves merge INTO the
+ * current palette — the user's other palette overrides (divider, text, status) and the
+ * whole rest of the theme (typography, corners, spacing) survive. Discrete action: the
+ * caller records it as ONE undo step.
+ */
+export function applyPreset(current: UserTheme, preset: ThemePreset): UserTheme {
+    const presetPalette = preset.theme.palette;
+    if (!presetPalette) {
+        return current;
+    }
+    const currentPalette = (current.palette ?? {}) as Record<string, unknown>;
+    return {
+        ...current,
+        palette: deepmerge(currentPalette, presetPalette as Record<string, unknown>),
+    };
+}
+
+/**
+ * True when every palette leaf the preset sets already matches the stored theme —
+ * i.e. applying the preset would be a no-op. Used to mark the active preset card.
+ * Compares colours case-insensitively; a stored-but-equal theme counts as active.
+ */
+export function isPresetActive(theme: UserTheme, preset: ThemePreset): boolean {
+    const palette = theme.palette as Record<string, unknown> | undefined;
+    if (!palette) {
+        return false;
+    }
+    return PRESET_PALETTE_PATHS.every(path => {
+        const want = presetLeaf(preset, path);
+        const segments = path.split('.').slice(1); // strip the leading "palette"
+        let node: unknown = palette;
+        for (const segment of segments) {
+            if (typeof node !== 'object' || node === null) {
+                return false;
+            }
+            node = (node as Record<string, unknown>)[segment];
+        }
+        return sameColor(typeof node === 'string' ? node : undefined, want);
+    });
+}

@@ -14,7 +14,8 @@ import { Alert, Box, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
-import { ChartTypePicker, FieldLabel, ModeSelect } from './controls';
+import { FieldLabel } from '../../components/controls';
+import { ChartTypePicker, ModeSelect } from './controls';
 import Section from './Section';
 import AdvancedJsonSection from './sections/AdvancedJsonSection';
 import AxesZoomSection from './sections/AxesZoomSection';

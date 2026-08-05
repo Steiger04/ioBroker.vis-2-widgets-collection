@@ -12,8 +12,7 @@ import { Box, Button, IconButton } from '@mui/material';
 import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
-import { FieldLabel, NumberField, TextField2 } from '../../controls';
-import { FieldGrid } from '../../layout';
+import { FieldGrid, FieldLabel, NumberField, TextField2 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';

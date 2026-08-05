@@ -14,8 +14,16 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
-import { FieldGrid, SliderField, SwitchList, SwitchRow } from '../layout';
+import {
+    FieldGrid,
+    LabeledSelect,
+    NumberField,
+    OptionalNumberField,
+    SliderField,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface FamilySectionProps {

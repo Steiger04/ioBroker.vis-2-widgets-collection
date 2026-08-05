@@ -16,8 +16,7 @@ import { DeleteOutline as DeleteIcon, Restore as RestoreIcon } from '@mui/icons-
 
 import Generic from '../../../../Generic';
 import type { EchartsCartesianType, EchartsSeriesMeta } from '../../../../types/field-definitions/echarts-fields';
-import { FieldLabel } from '../../controls';
-import { EditorCard, FieldGrid } from '../../layout';
+import { EditorCard, FieldGrid, FieldLabel } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';

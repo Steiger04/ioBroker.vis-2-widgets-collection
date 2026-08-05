@@ -129,3 +129,29 @@ _Avoid_: Stepper, spinner
 **Sub-group**:
 A named cluster of knobs inside a card body (ADR-0019), headed by a small overline label (e.g. range / scale & ticks / presentation on an Axis card). Structure without disclosure — everything in an open card stays visible; no fourth expand level.
 _Avoid_: Advanced section (v2), nested accordion, tab
+
+# Theme Studio
+
+The collection-wide theme editor (ADR-0020): edits the user theme (stored in the `vis-2-widgets-collection.0.theme` state) while every collection widget on the canvas re-themes live. Opened from the widget palette, not dropped onto the canvas.
+
+## Language
+
+**Studio panel**:
+The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Width and position persist across sessions.
+_Avoid_: Wizard dialog (the deleted modal), theme dialog
+
+**Preset card**:
+A curated theme preset rendered as mini colour swatches (background / paper / primary / secondary) plus a mode icon. The card matching the current palette is marked active.
+_Avoid_: Preset chip (the old blind dot)
+
+**Palette-only merge**:
+The preset-apply semantics (ADR-0020): applying a Preset card replaces only the draft's `palette` (including mode) — typography, corner radii, spacing and CSS variables survive, because presets are colour themes and define nothing else.
+_Avoid_: Full replace (the old silent wipe), theme reset
+
+**Feintuning**:
+The in-section disclosure at the end of Schrift & Form holding the font-weight selects and the line-height slider — rare, expert knobs (bundled fonts ship real 400/700 faces only; other weights synthesise).
+_Avoid_: Advanced typography, more options
+
+**Control kit**:
+The shared configurator primitives (`FieldLabel`, Field grid, Switch list, Slider field, Sub-group — defined under ECharts, ADR-0019) living in `src/components/controls/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection.
+_Avoid_: Editor controls, per-editor widgets

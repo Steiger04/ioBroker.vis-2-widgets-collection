@@ -11,8 +11,7 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { LabeledSelect, NumberField, TextField2 } from '../controls';
-import { FieldGrid } from '../layout';
+import { FieldGrid, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
 import { familyOf } from '../../optionBuilder';
 import type { EditorState, SetEditor } from '../editorState';
 

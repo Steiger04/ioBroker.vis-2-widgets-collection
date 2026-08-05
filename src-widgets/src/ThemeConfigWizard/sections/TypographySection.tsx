@@ -1,7 +1,14 @@
 /**
- * Typography section of the structured theme form.
+ * Typography & Shape section of the studio panel (ADR-0020).
  *
  * @module ThemeConfigWizard/sections/TypographySection
+ * @remarks
+ * Font family (bundled / system / Google / custom), base size and the corner radius.
+ * Decluttered per ADR-0020: the four per-corner sliders collapse into ONE linked slider
+ * with an unlink expander (the linked state was always the default — the UI now sells it),
+ * and the rare knobs (font weights, line height) live behind the "Feintuning" disclosure
+ * with a hint that bundled fonts ship real 400/700 faces only (other weights synthesise).
+ * Everything sits on the shared control kit (`FieldLabel`, `SliderField`, `FieldGrid`).
  */
 
 import DownloadIcon from '@mui/icons-material/Download';
@@ -9,24 +16,17 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
     Alert,
     Box,
     Button,
     Chip,
     CircularProgress,
-    FormControl,
     IconButton,
-    InputLabel,
     Link,
     ListSubheader,
     MenuItem,
     Select,
-    Slider,
     Stack,
-    TextField,
     Typography,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
@@ -35,6 +35,7 @@ import type React from 'react';
 
 import Generic from '../../Generic';
 import HelpHint from '../../components/HelpHint';
+import { FieldGrid, FieldLabel, LabeledSelect, SliderField, TextField2 } from '../../components/controls';
 import {
     BUNDLED_FONTS,
     CUSTOM_FONT_VALUE,
@@ -43,8 +44,9 @@ import {
     SYSTEM_FONTS,
 } from '../../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
-import type { ThemeFormSectionProps } from '../../lib/theme/themeTypes';
+import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
+import StudioSection from './StudioSection';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -65,12 +67,14 @@ const CORNER_FIELDS: ReadonlyArray<{ path: string; labelKey: string }> = [
     { path: 'corners.bottomLeft', labelKey: 'theme_studio_corner_bottom_left' },
 ];
 
-/** Typography section: font family, base sizes and weights. */
-function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectionProps): React.JSX.Element {
+/** Typography & Shape section: font family, base size, corner radius, feintuning. */
+function TypographySection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
     const fontSize = getNestedValue<number>(theme, 'typography.fontSize') ?? 14;
     const fontFamily = getNestedValue<string>(theme, 'typography.fontFamily');
     const lineHeight = getNestedValue<number>(theme, 'typography.allVariants.lineHeight');
     const [isCustomFont, setIsCustomFont] = useState<boolean>(resolveFontSelectValue(fontFamily) === CUSTOM_FONT_VALUE);
+    // Feintuning disclosure: weights + line height (rare, expert knobs — ADR-0020).
+    const [feintuningOpen, setFeintuningOpen] = useState<boolean>(false);
     // Corner-radius "link" toggle: default on when the four radii are uniform.
     const [linked, setLinked] = useState<boolean>(() => {
         const cornerVals = [
@@ -129,14 +133,13 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
         }
     };
 
-    // Sets one corner, or all four at once when the corners are linked.
-    const handleCornerChange = (path: string, value: number | number[]): void => {
-        const v = Array.isArray(value) ? value[0] : value;
-        if (linked) {
-            onChange('corners', { topLeft: v, topRight: v, bottomRight: v, bottomLeft: v });
-        } else {
-            onChange(path, v);
-        }
+    // Linked: one value drives all four corners. Unlinked: each corner individually.
+    const linkedRadius = getNestedValue<number>(theme, 'corners.topLeft') ?? 4;
+    const handleLinkedRadiusChange = (value: number): void => {
+        onChange('corners', { topLeft: value, topRight: value, bottomRight: value, bottomLeft: value });
+    };
+    const handleCornerChange = (path: string, value: number): void => {
+        onChange(path, value);
     };
 
     // Renders the closed Select's value in the selected font (live preview).
@@ -151,270 +154,257 @@ function TypographySection({ theme, onChange, defaultExpanded }: ThemeFormSectio
         return <span style={{ fontFamily: value }}>{entry?.label ?? value}</span>;
     };
 
+    // Summary: font + base size + radius (the section's three hero values).
+    const fontLabel = !fontSelectValue
+        ? Generic.t('theme_wizard_typography_font_family_default')
+        : fontSelectValue === CUSTOM_FONT_VALUE
+          ? Generic.t('theme_wizard_typography_font_family_custom')
+          : (FONT_CATALOGUE.find(font => font.value === fontSelectValue)?.label ?? fontSelectValue);
+    const summary = `${fontLabel} · ${fontSize}px · r=${linkedRadius}`;
+
     return (
-        <Accordion defaultExpanded={defaultExpanded ?? false}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{Generic.t('theme_studio_section_schrift_form')}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <Stack spacing={2}>
-                    <Stack spacing={1}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <FormControl
-                                fullWidth
+        <StudioSection
+            title={Generic.t('theme_studio_section_schrift_form')}
+            summary={summary}
+            expanded={expanded}
+            onExpandedChange={onExpandedChange}
+        >
+            <Stack spacing={2}>
+                <Stack spacing={1}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <FieldLabel>{Generic.t('theme_wizard_typography_font_family')}</FieldLabel>
+                            <Select
                                 size="small"
+                                fullWidth
+                                value={fontSelectValue}
+                                onChange={handleFontFamilyChange}
+                                renderValue={renderFontValue}
                             >
-                                <InputLabel id="theme-font-family-label">
-                                    {Generic.t('theme_wizard_typography_font_family')}
-                                </InputLabel>
-                                <Select
-                                    labelId="theme-font-family-label"
-                                    label={Generic.t('theme_wizard_typography_font_family')}
-                                    value={fontSelectValue}
-                                    onChange={handleFontFamilyChange}
-                                    renderValue={renderFontValue}
-                                >
-                                    <MenuItem value="">
-                                        {Generic.t('theme_wizard_typography_font_family_default')}
+                                <MenuItem value="">{Generic.t('theme_wizard_typography_font_family_default')}</MenuItem>
+                                <ListSubheader>
+                                    {Generic.t('theme_wizard_typography_font_family_group_bundled')}
+                                </ListSubheader>
+                                {BUNDLED_FONTS.map(font => (
+                                    <MenuItem
+                                        key={font.value}
+                                        value={font.value}
+                                        sx={{ fontFamily: font.value }}
+                                    >
+                                        {font.label}
                                     </MenuItem>
-                                    <ListSubheader>
-                                        {Generic.t('theme_wizard_typography_font_family_group_bundled')}
-                                    </ListSubheader>
-                                    {BUNDLED_FONTS.map(font => (
-                                        <MenuItem
-                                            key={font.value}
-                                            value={font.value}
-                                            sx={{ fontFamily: font.value }}
-                                        >
-                                            {font.label}
-                                        </MenuItem>
-                                    ))}
-                                    <ListSubheader>
-                                        {Generic.t('theme_wizard_typography_font_family_group_system')}
-                                    </ListSubheader>
-                                    {SYSTEM_FONTS.map(font => (
-                                        <MenuItem
-                                            key={font.value}
-                                            value={font.value}
-                                            sx={{ fontFamily: font.value }}
-                                        >
-                                            {font.label}
-                                        </MenuItem>
-                                    ))}
-                                    <MenuItem value={CUSTOM_FONT_VALUE}>
-                                        {Generic.t('theme_wizard_typography_font_family_custom')}
+                                ))}
+                                <ListSubheader>
+                                    {Generic.t('theme_wizard_typography_font_family_group_system')}
+                                </ListSubheader>
+                                {SYSTEM_FONTS.map(font => (
+                                    <MenuItem
+                                        key={font.value}
+                                        value={font.value}
+                                        sx={{ fontFamily: font.value }}
+                                    >
+                                        {font.label}
                                     </MenuItem>
-                                </Select>
-                            </FormControl>
+                                ))}
+                                <MenuItem value={CUSTOM_FONT_VALUE}>
+                                    {Generic.t('theme_wizard_typography_font_family_custom')}
+                                </MenuItem>
+                            </Select>
+                        </Box>
+                        <Box sx={{ pt: '18px' }}>
                             <HelpHint title={Generic.t('theme_studio_help_fonts')} />
                         </Box>
-                        {isCustomFont ? (
-                            <TextField
-                                fullWidth
-                                size="small"
-                                label={Generic.t('theme_wizard_typography_font_family_custom')}
-                                value={fontFamily ?? ''}
-                                onChange={event => onChange('typography.fontFamily', event.target.value || undefined)}
-                            />
-                        ) : null}
-                        {fontFamily ? (
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ fontFamily }}
-                            >
-                                {Generic.t('theme_wizard_typography_font_family_sample')}
-                            </Typography>
-                        ) : null}
-                    </Stack>
-                    <Stack spacing={1}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                {Generic.t('theme_wizard_typography_google_font')}
-                            </Typography>
-                            <Link
-                                href="https://fonts.google.com"
-                                target="_blank"
-                                rel="noreferrer"
-                                variant="caption"
-                            >
-                                {Generic.t('theme_studio_google_fonts_link')}
-                            </Link>
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <TextField
-                                fullWidth
-                                size="small"
-                                placeholder={Generic.t('theme_wizard_typography_google_font_hint')}
+                    </Box>
+                    {isCustomFont ? (
+                        <TextField2
+                            label={Generic.t('theme_wizard_typography_font_family_custom')}
+                            value={fontFamily ?? ''}
+                            onChange={value => onChange('typography.fontFamily', value || undefined)}
+                        />
+                    ) : null}
+                    {fontFamily ? (
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontFamily }}
+                        >
+                            {Generic.t('theme_wizard_typography_font_family_sample')}
+                        </Typography>
+                    ) : null}
+                </Stack>
+                <Stack spacing={1}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <FieldLabel>{Generic.t('theme_wizard_typography_google_font')}</FieldLabel>
+                        <Link
+                            href="https://fonts.google.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            variant="caption"
+                        >
+                            {Generic.t('theme_studio_google_fonts_link')}
+                        </Link>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <TextField2
+                                label={Generic.t('theme_wizard_typography_google_font_hint')}
                                 value={googleFontName}
-                                onChange={event => setGoogleFontName(event.target.value)}
-                                onKeyDown={event => {
-                                    if (event.key === 'Enter') {
-                                        event.preventDefault();
-                                        void handleLoadGoogleFont();
-                                    }
-                                }}
+                                onChange={setGoogleFontName}
                                 disabled={googleFontLoading}
                             />
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={googleFontLoading ? <CircularProgress size={16} /> : <DownloadIcon />}
-                                onClick={() => void handleLoadGoogleFont()}
-                                disabled={googleFontLoading || !googleFontName.trim()}
-                            >
-                                {Generic.t('theme_wizard_typography_google_font_load')}
-                            </Button>
                         </Box>
-                        {googleFontError ? (
-                            <Alert
-                                severity="error"
-                                onClose={() => setGoogleFontError(null)}
-                            >
-                                {googleFontError}
-                            </Alert>
-                        ) : null}
-                        {loadedGoogleFonts.length > 0 ? (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {loadedGoogleFonts.map(name => (
-                                    <Chip
-                                        key={name}
-                                        label={name}
-                                        size="small"
-                                        onClick={() => onChange('typography.fontFamily', `'${name}', sans-serif`)}
-                                        onDelete={() => onChange(`googleFonts.${name}`, undefined)}
-                                    />
-                                ))}
-                            </Box>
-                        ) : null}
-                    </Stack>
-                    <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{ mt: '22px', flexShrink: 0 }}
+                            startIcon={googleFontLoading ? <CircularProgress size={16} /> : <DownloadIcon />}
+                            onClick={() => void handleLoadGoogleFont()}
+                            disabled={googleFontLoading || !googleFontName.trim()}
                         >
-                            {Generic.t('theme_wizard_typography_font_size')}: {fontSize}
-                        </Typography>
-                        <Slider
-                            value={fontSize}
-                            min={8}
-                            max={24}
-                            step={0.5}
-                            valueLabelDisplay="auto"
-                            onChange={(_event, value) => onChange('typography.fontSize', value)}
-                        />
+                            {Generic.t('theme_wizard_typography_google_font_load')}
+                        </Button>
                     </Box>
-                    <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                {Generic.t('theme_wizard_typography_weight_section')}
-                            </Typography>
-                            <HelpHint title={Generic.t('theme_wizard_typography_weight_hint')} />
+                    {googleFontError ? (
+                        <Alert
+                            severity="error"
+                            onClose={() => setGoogleFontError(null)}
+                        >
+                            {googleFontError}
+                        </Alert>
+                    ) : null}
+                    {loadedGoogleFonts.length > 0 ? (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {loadedGoogleFonts.map(name => (
+                                <Chip
+                                    key={name}
+                                    label={name}
+                                    size="small"
+                                    onClick={() => onChange('typography.fontFamily', `'${name}', sans-serif`)}
+                                    onDelete={() => onChange(`googleFonts.${name}`, undefined)}
+                                />
+                            ))}
                         </Box>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                            {WEIGHT_FIELDS.map(field => {
-                                const weight = getNestedValue<number>(theme, field.path);
-                                return (
-                                    <FormControl
-                                        key={field.path}
-                                        size="small"
-                                        fullWidth
-                                    >
-                                        <InputLabel>{Generic.t(field.labelKey)}</InputLabel>
-                                        <Select
+                    ) : null}
+                </Stack>
+                <SliderField
+                    label={Generic.t('theme_wizard_typography_font_size')}
+                    value={fontSize}
+                    min={8}
+                    max={24}
+                    step={0.5}
+                    onChange={value => onChange('typography.fontSize', value)}
+                />
+                <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            {linked ? (
+                                <SliderField
+                                    label={Generic.t('theme_wizard_layout_border_radius')}
+                                    value={linkedRadius}
+                                    min={0}
+                                    max={32}
+                                    step={0.5}
+                                    onChange={handleLinkedRadiusChange}
+                                />
+                            ) : (
+                                <>
+                                    <FieldLabel>{Generic.t('theme_wizard_layout_border_radius')}</FieldLabel>
+                                    <FieldGrid min={110}>
+                                        {CORNER_FIELDS.map(field => (
+                                            <SliderField
+                                                key={field.path}
+                                                label={Generic.t(field.labelKey)}
+                                                value={getNestedValue<number>(theme, field.path) ?? 4}
+                                                min={0}
+                                                max={32}
+                                                step={0.5}
+                                                onChange={value => handleCornerChange(field.path, value)}
+                                            />
+                                        ))}
+                                    </FieldGrid>
+                                </>
+                            )}
+                        </Box>
+                        <IconButton
+                            size="small"
+                            onClick={() => setLinked(l => !l)}
+                            title={Generic.t('theme_studio_corners_link')}
+                            color={linked ? 'primary' : 'default'}
+                            sx={{ mt: '18px' }}
+                        >
+                            {linked ? <LinkIcon fontSize="small" /> : <LinkOffIcon fontSize="small" />}
+                        </IconButton>
+                    </Box>
+                </Box>
+                <Box>
+                    <Box
+                        component="button"
+                        type="button"
+                        onClick={() => setFeintuningOpen(open => !open)}
+                        aria-expanded={feintuningOpen}
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            border: 0,
+                            p: 0,
+                            bgcolor: 'transparent',
+                            color: 'text.secondary',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <ExpandMoreIcon
+                            sx={{
+                                fontSize: 16,
+                                transform: feintuningOpen ? 'rotate(180deg)' : 'none',
+                                transition: 'transform 150ms',
+                            }}
+                        />
+                        <Typography variant="caption">{Generic.t('theme_studio_feintuning')}</Typography>
+                    </Box>
+                    {feintuningOpen ? (
+                        <Stack
+                            spacing={2}
+                            sx={{ mt: 1.5 }}
+                        >
+                            <FieldGrid min={110}>
+                                {WEIGHT_FIELDS.map(field => {
+                                    const weight = getNestedValue<number>(theme, field.path);
+                                    return (
+                                        <LabeledSelect
+                                            key={field.path}
                                             label={Generic.t(field.labelKey)}
                                             value={weight === undefined ? '' : String(weight)}
-                                            onChange={(event: SelectChangeEvent) =>
-                                                onChange(
-                                                    field.path,
-                                                    event.target.value === '' ? undefined : Number(event.target.value),
-                                                )
+                                            onChange={value =>
+                                                onChange(field.path, value === '' ? undefined : Number(value))
                                             }
-                                        >
-                                            <MenuItem value="">&mdash;</MenuItem>
-                                            {FONT_WEIGHTS.map(value => (
-                                                <MenuItem
-                                                    key={value}
-                                                    value={String(value)}
-                                                >
-                                                    {value}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                );
-                            })}
-                        </Box>
-                    </Box>
-                    <Box>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            gutterBottom
-                        >
-                            {Generic.t('theme_wizard_typography_line_height')}: {lineHeight ?? '—'}
-                        </Typography>
-                        <Slider
-                            value={lineHeight ?? 1.43}
-                            min={1}
-                            max={2}
-                            step={0.05}
-                            valueLabelDisplay="auto"
-                            onChange={(_event, value) => onChange('typography.allVariants.lineHeight', value)}
-                        />
-                    </Box>
-                    <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                            options={[
+                                                ['', '—'],
+                                                ...FONT_WEIGHTS.map(w => [String(w), String(w)] as [string, string]),
+                                            ]}
+                                        />
+                                    );
+                                })}
+                            </FieldGrid>
+                            <SliderField
+                                label={Generic.t('theme_wizard_typography_line_height')}
+                                value={lineHeight ?? 1.43}
+                                min={1}
+                                max={2}
+                                step={0.05}
+                                onChange={value => onChange('typography.allVariants.lineHeight', value)}
+                            />
                             <Typography
-                                variant="body2"
+                                variant="caption"
                                 color="text.secondary"
                             >
-                                {Generic.t('theme_wizard_layout_border_radius')}
+                                {Generic.t('theme_studio_feintuning_hint')}
                             </Typography>
-                            <IconButton
-                                size="small"
-                                onClick={() => setLinked(l => !l)}
-                                title={Generic.t('theme_studio_corners_link')}
-                                color={linked ? 'primary' : 'default'}
-                            >
-                                {linked ? <LinkIcon fontSize="small" /> : <LinkOffIcon fontSize="small" />}
-                            </IconButton>
-                        </Box>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                            {CORNER_FIELDS.map(field => {
-                                const value = getNestedValue<number>(theme, field.path) ?? 4;
-                                return (
-                                    <Box key={field.path}>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                        >
-                                            {Generic.t(field.labelKey)}: {value}
-                                        </Typography>
-                                        <Slider
-                                            value={value}
-                                            min={0}
-                                            max={32}
-                                            step={0.5}
-                                            valueLabelDisplay="auto"
-                                            size="small"
-                                            onChange={(_event, val) => handleCornerChange(field.path, val)}
-                                        />
-                                    </Box>
-                                );
-                            })}
-                        </Box>
-                    </Box>
-                </Stack>
-            </AccordionDetails>
-        </Accordion>
+                        </Stack>
+                    ) : null}
+                </Box>
+            </Stack>
+        </StudioSection>
     );
 }
 

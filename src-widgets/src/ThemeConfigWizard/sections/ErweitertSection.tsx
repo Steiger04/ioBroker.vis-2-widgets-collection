@@ -1,78 +1,28 @@
 /**
- * "Erweitert" section: grouped extra palette tokens + layout + CSS variables.
+ * "Erweitert" section: layout + CSS variables (ADR-0020).
  *
  * @module ThemeConfigWizard/sections/ErweitertSection
  * @remarks
- * Consolidates the rarely-tuned controls so the main view stays focused on the
- * accent-driven core (Farben) and Schrift & Form. Holds the non-hero palette
- * slots — status / text / surface colors, grouped with plain labels — plus text
- * direction, spacing factor, and CSS variables. Each color field shows the
- * effective (resolved) value (MUI's mode-aware default) until the user overrides
- * it. Fields stack vertically within each group so swatches align
- * (ColorPickerField uses a 1fr/auto grid). Collapsed by default.
+ * What's left after ADR-0020's regrouping: the palette grab-bag moved out — surface
+ * colours went to Farben, status & text colours got their own section — so this
+ * section now holds exactly the rarely-tuned machinery: text direction, the spacing
+ * base factor, and the CSS-variables switch with its prefix. Rebuilt on the shared
+ * control kit (`SubGroup`, `SwitchRow`, `SliderField`, `FieldLabel`); the help hints
+ * stay where they were. Collapsed by default, with a one-line summary.
  */
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Box,
-    FormControlLabel,
-    Slider,
-    Stack,
-    Switch,
-    TextField,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
-} from '@mui/material';
+import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import type React from 'react';
 
-import ColorPickerField from '../../components/ColorPickerField';
 import HelpHint from '../../components/HelpHint';
+import { FieldLabel, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
 import Generic from '../../Generic';
-import type { ThemeFormSectionProps } from '../../lib/theme/themeTypes';
+import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
+import StudioSection from './StudioSection';
 
-/** A labeled group of color slots. */
-interface ColorGroup {
-    /** i18n key for the group heading. */
-    labelKey: string;
-    /** Color fields in the group, in display order. */
-    fields: ReadonlyArray<{ path: string; labelKey: string }>;
-}
-
-/** Non-hero palette slots, grouped (status / text / surface). */
-const COLOR_GROUPS: ReadonlyArray<ColorGroup> = [
-    {
-        labelKey: 'theme_studio_group_status',
-        fields: [
-            { path: 'palette.error.main', labelKey: 'theme_wizard_palette_error' },
-            { path: 'palette.warning.main', labelKey: 'theme_wizard_palette_warning' },
-            { path: 'palette.info.main', labelKey: 'theme_wizard_palette_info' },
-            { path: 'palette.success.main', labelKey: 'theme_wizard_palette_success' },
-        ],
-    },
-    {
-        labelKey: 'theme_studio_group_text',
-        fields: [
-            { path: 'palette.text.primary', labelKey: 'theme_wizard_palette_text_primary' },
-            { path: 'palette.text.secondary', labelKey: 'theme_wizard_palette_text_secondary' },
-        ],
-    },
-    {
-        labelKey: 'theme_studio_group_surface',
-        fields: [
-            { path: 'palette.background.default', labelKey: 'theme_wizard_palette_background_default' },
-            { path: 'palette.background.paper', labelKey: 'theme_wizard_palette_background_paper' },
-            { path: 'palette.divider', labelKey: 'theme_wizard_palette_divider' },
-        ],
-    },
-];
-
-/** "Erweitert" section: grouped extra colors + direction + spacing + CSS vars. */
-function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeFormSectionProps): React.JSX.Element {
+/** "Erweitert" section: direction + spacing + CSS vars. */
+function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
     const spacing = getNestedValue<number>(theme, 'spacing') ?? 8;
     const direction = getNestedValue<string>(theme, 'direction');
     const cssVariables = getNestedValue<unknown>(theme, 'cssVariables');
@@ -83,66 +33,33 @@ function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeF
         onChange('direction', value ?? undefined);
     };
 
-    const handleSpacingChange = (_event: Event, value: number | number[]): void => {
-        onChange('spacing', value);
-    };
-
-    const handleCssToggle = (_event: React.ChangeEvent<HTMLElement>, checked: boolean): void => {
+    const handleCssToggle = (checked: boolean): void => {
         onChange('cssVariables', checked ? true : undefined);
     };
 
-    const handlePrefixChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-        const value = event.target.value;
+    const handlePrefixChange = (value: string): void => {
         onChange('cssVariables', value ? { cssVarPrefix: value } : true);
     };
 
-    return (
-        <Accordion defaultExpanded={defaultExpanded ?? false}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{Generic.t('theme_studio_section_advanced')}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <Stack spacing={2}>
-                    {COLOR_GROUPS.map(group => (
-                        <Box key={group.labelKey}>
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{ display: 'block', mb: 0.5 }}
-                            >
-                                {Generic.t(group.labelKey)}
-                            </Typography>
-                            <Box>
-                                {group.fields.map(field => {
-                                    const stored = getNestedValue<string>(theme, field.path);
-                                    const resolvedValue = resolved
-                                        ? (getNestedValue<string>(resolved, field.path) ?? '')
-                                        : '';
-                                    return (
-                                        <ColorPickerField
-                                            key={field.path}
-                                            label={Generic.t(field.labelKey)}
-                                            value={stored ?? resolvedValue}
-                                            overridden={stored !== undefined}
-                                            onChange={color => onChange(field.path, color || undefined)}
-                                        />
-                                    );
-                                })}
-                            </Box>
-                        </Box>
-                    ))}
+    // Summary: direction · spacing factor · CSS-vars state.
+    const summary = `${direction === 'rtl' ? 'RTL' : 'LTR'} · ${spacing}px · ${Generic.t(
+        cssEnabled ? 'theme_studio_on' : 'theme_studio_off',
+    )}`;
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ flexShrink: 0 }}
-                            >
-                                {Generic.t('theme_wizard_layout_direction')}
-                            </Typography>
-                            <HelpHint title={Generic.t('theme_studio_help_direction')} />
-                        </Box>
+    return (
+        <StudioSection
+            title={Generic.t('theme_studio_section_advanced')}
+            summary={summary}
+            expanded={expanded}
+            onExpandedChange={onExpandedChange}
+        >
+            <SubGroup title={Generic.t('theme_studio_group_layout')}>
+                <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <FieldLabel>{Generic.t('theme_wizard_layout_direction')}</FieldLabel>
+                        <HelpHint title={Generic.t('theme_studio_help_direction')} />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <ToggleButtonGroup
                             exclusive
                             size="small"
@@ -161,59 +78,57 @@ function ErweitertSection({ theme, onChange, defaultExpanded, resolved }: ThemeF
                             </Typography>
                         ) : null}
                     </Box>
-
-                    <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                {Generic.t('theme_wizard_layout_spacing')}: {spacing}
-                            </Typography>
-                            <HelpHint title={Generic.t('theme_studio_help_spacing')} />
-                        </Box>
-                        <Slider
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <SliderField
+                            label={Generic.t('theme_wizard_layout_spacing')}
                             value={spacing}
                             min={0}
                             max={16}
                             step={0.5}
-                            valueLabelDisplay="auto"
-                            onChange={handleSpacingChange}
+                            onChange={value => onChange('spacing', value)}
                         />
                     </Box>
-
-                    <Box>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={cssEnabled}
-                                    onChange={handleCssToggle}
-                                />
-                            }
-                            label={
-                                <Box
-                                    component="span"
-                                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
-                                >
-                                    {Generic.t('theme_wizard_css_variables_enable')}
-                                    <HelpHint title={Generic.t('theme_studio_help_css_vars')} />
-                                </Box>
-                            }
-                        />
-                        {cssEnabled ? (
-                            <TextField
-                                fullWidth
-                                size="small"
+                    <Box sx={{ pt: '18px' }}>
+                        <HelpHint title={Generic.t('theme_studio_help_spacing')} />
+                    </Box>
+                </Box>
+            </SubGroup>
+            <SubGroup title={Generic.t('theme_studio_group_css')}>
+                <SwitchList>
+                    <SwitchRow
+                        label={Generic.t('theme_wizard_css_variables_enable')}
+                        checked={cssEnabled}
+                        onChange={handleCssToggle}
+                    />
+                </SwitchList>
+                {cssEnabled ? (
+                    <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <TextField2
                                 label={Generic.t('theme_wizard_css_var_prefix')}
                                 value={cssPrefix}
                                 onChange={handlePrefixChange}
-                                sx={{ mt: 1 }}
                             />
-                        ) : null}
+                        </Box>
+                        <Box sx={{ pt: '18px' }}>
+                            <HelpHint title={Generic.t('theme_studio_help_css_vars')} />
+                        </Box>
                     </Box>
-                </Stack>
-            </AccordionDetails>
-        </Accordion>
+                ) : (
+                    <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ flex: 1, minWidth: 0 }}
+                        >
+                            {Generic.t('theme_studio_help_css_vars')}
+                        </Typography>
+                    </Box>
+                )}
+            </SubGroup>
+        </StudioSection>
     );
 }
 

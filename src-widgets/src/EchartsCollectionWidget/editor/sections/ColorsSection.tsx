@@ -13,8 +13,15 @@ import { Box, useTheme } from '@mui/material';
 import Generic from '../../../Generic';
 import { echartsPalette } from '../../echartsTheme';
 import { PALETTE_PRESETS, resolvePalette } from '../../presentation';
-import { FieldLabel, LabeledSelect, NumberField } from '../controls';
-import { FieldGrid, SubGroup, SwitchList, SwitchRow } from '../layout';
+import {
+    FieldGrid,
+    FieldLabel,
+    LabeledSelect,
+    NumberField,
+    SubGroup,
+    SwitchList,
+    SwitchRow,
+} from '../../../components/controls';
 import ColorField, { ColorListField } from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';

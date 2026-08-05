@@ -1,9 +1,8 @@
 /**
- * Floating, draggable studio panel that edits the user theme with live preview.
+ * Floating, draggable studio panel that edits the user theme with live preview (ADR-0020).
  *
  * @module ThemeConfigWizard/ThemeStudioPanel
  * @remarks
- * Replaces the old blind modal dialog with a floating live-preview panel.
  * A non-modal `Paper` floats over the canvas; while open it mirrors its in-memory
  * draft into the {@link module:lib/theme/draftThemeStore} singleton, so every
  * collection widget on the canvas (each running
@@ -12,14 +11,27 @@
  * seamless handoff then retires the draft. Closing discards the draft (canvas
  * snaps back), with a confirm when there are unsaved changes.
  *
+ * ADR-0020 chrome:
+ * - **Undo/redo** — every edit runs through {@link module:lib/theme/useThemeHistory}
+ *   (slider drags coalesce per path, discrete edits push), with header buttons and
+ *   Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y (skipped while typing in inputs).
+ * - **Honest dirty state** — dirty is `present ≠ last-loaded/saved` (undo all the way
+ *   back reads clean again), shown as a dot next to the title.
+ * - **Resizable** — left-edge grip ({@link module:ThemeConfigWizard/useStudioWidth}),
+ *   width + position persisted in localStorage.
+ * - **Field-level validation** — colour errors render at their field; the footer
+ *   counter scrolls to the first problem (expanding its section). Only errors without
+ *   a field home (non-colour paths) and warnings keep a compact alert at the bottom.
+ *
  * The panel chrome is wrapped in its OWN `ThemeProvider` built from `themeType`
- * (like the old dialog) so the panel UI is unaffected by the theme being edited
- * (no RTL/dark-mode self-influence); only the in-panel preview (added in a later
- * phase) will sit under the draft theme.
+ * so the panel UI is unaffected by the theme being edited (no RTL/dark-mode
+ * self-influence); the canvas is the preview (ADR-0020 decision 2).
  */
 
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import RedoIcon from '@mui/icons-material/Redo';
+import UndoIcon from '@mui/icons-material/Undo';
 import {
     Alert,
     Box,
@@ -34,26 +46,34 @@ import {
     Paper,
     Stack,
     ThemeProvider,
+    Tooltip,
     Typography,
     createTheme,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme } from '@mui/material/styles';
 
 import Generic from '../Generic';
+import { SubGroup } from '../components/controls';
 import useDraggable from '../hooks/useDraggable';
 import { THEME_STATE_ID } from '../lib/constants';
 import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
-import { THEME_PRESETS } from '../lib/theme/presets';
+import { ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
+import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
+import useThemeHistory from '../lib/theme/useThemeHistory';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import PresetCards from './PresetCards';
 import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
+import StatusTextSection from './sections/StatusTextSection';
 import TypographySection from './sections/TypographySection';
+import useStudioWidth, { readStoredPosition, storePosition } from './useStudioWidth';
 
 /** Props for {@link ThemeStudioPanel}. */
 interface ThemeStudioPanelProps {
@@ -67,8 +87,40 @@ interface ThemeStudioPanelProps {
     themeType: 'dark' | 'light';
 }
 
-/** Panel width (px) — also used to compute the default top-right position. */
-const PANEL_WIDTH = 380;
+/** Section ids for controlled expansion (scroll-to-error). */
+type SectionKey = 'palette' | 'typography' | 'statusText' | 'erweitert';
+
+/** Minimum gap between draft pushes to the widgets while editing (ADR-0020). */
+const DRAFT_FLUSH_MS = 100;
+
+/** Maps a theme path to the section that renders a field for it. */
+function sectionForPath(path: string): SectionKey {
+    if (/^palette\.(error|warning|info|success|text)(\.|$)/.test(path)) {
+        return 'statusText';
+    }
+    if (path.startsWith('palette.')) {
+        return 'palette';
+    }
+    if (path.startsWith('typography.') || path.startsWith('corners')) {
+        return 'typography';
+    }
+    return 'erweitert';
+}
+
+/** Colour-field paths — errors on these render at the field, not in the bottom alert. */
+const COLOR_FIELD_PATHS: ReadonlySet<string> = new Set([
+    'palette.primary.main',
+    'palette.secondary.main',
+    'palette.background.default',
+    'palette.background.paper',
+    'palette.divider',
+    'palette.error.main',
+    'palette.warning.main',
+    'palette.info.main',
+    'palette.success.main',
+    'palette.text.primary',
+    'palette.text.secondary',
+]);
 
 /** Maps validator issue codes to localized message keys. */
 const VALIDATION_CODE_KEYS: Record<string, string> = {
@@ -84,27 +136,68 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
 const formatIssue = (issue: ThemeValidationIssue): string =>
     issue.code && VALIDATION_CODE_KEYS[issue.code] ? Generic.t(VALIDATION_CODE_KEYS[issue.code]) : issue.message;
 
+/** True when a keyboard event originates from an editable element (undo keys skip those). */
+const isEditableTarget = (target: EventTarget | null): boolean => {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+    const tag = target.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+};
+
 /**
  * Floating panel component for editing the theme with live preview.
  */
 function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanelProps): React.JSX.Element | null {
-    // In-memory theme object edited by the form sections; mirrored to the draft
-    // store so canvas widgets preview edits live.
-    const [themeObj, setThemeObj] = useState<UserTheme>({});
+    // The draft lives in the history stack; mirrored to the draft store so canvas
+    // widgets preview edits live.
+    const history = useThemeHistory({});
+    const themeObj = history.present;
+    // Latest draft for imperative readers (hydrate guard, throttled trailing flush).
+    const presentRef = useRef(themeObj);
+    presentRef.current = themeObj;
+    // The last loaded/saved value — dirty = present differs from it (undo-to-start is clean).
+    const [savedSnapshot, setSavedSnapshot] = useState<UserTheme>({});
     const [loading, setLoading] = useState(false);
-    const [dirty, setDirty] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+    // Panel-owned section expansion (only set once the user toggles or scroll-to-error forces one).
+    const [expandedMap, setExpandedMap] = useState<Partial<Record<SectionKey, boolean>>>({});
+    const bodyRef = useRef<HTMLDivElement>(null);
 
-    // Default position: top-right with a small margin.
+    // Default position: persisted, else top-right with a small margin.
     const [initialPosition] = useState<{ x: number; y: number }>(() => {
         if (typeof window === 'undefined') {
             return { x: 24, y: 24 };
         }
-        return { x: Math.max(0, window.innerWidth - PANEL_WIDTH - 24), y: 24 };
+        return readStoredPosition() ?? { x: Math.max(0, window.innerWidth - 380 - 24), y: 24 };
     });
-    const { position, panelRef, dragHandlers } = useDraggable({ initial: initialPosition });
+    const { position, setPosition, panelRef, dragHandlers } = useDraggable({ initial: initialPosition });
+    const positionRef = useRef(position);
+    positionRef.current = position;
+
+    // Left-edge resize: anchor the right edge by shifting the panel position.
+    const {
+        width,
+        resizing,
+        handleProps: resizeProps,
+    } = useStudioWidth({
+        gripLabel: Generic.t('theme_studio_resize'),
+        onLive: (_w, delta) => {
+            const pos = positionRef.current;
+            setPosition({ x: Math.max(0, pos.x - delta), y: pos.y });
+        },
+    });
+
+    // Persist the position (debounced — a drag streams positions).
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+        const timer = setTimeout(() => storePosition(position), 300);
+        return () => clearTimeout(timer);
+    }, [open, position]);
 
     // Panel chrome follows the vis-2 dark/light mode (independent of the edited theme).
     const chromeTheme = useMemo(
@@ -112,13 +205,23 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         [themeType],
     );
 
-    // Load the persisted theme object whenever the panel opens.
+    // Load the persisted theme object whenever the panel opens. Instant open
+    // (ADR-0020): seed from the session's last known theme so the form renders
+    // immediately, then revalidate against the ioBroker state in the background.
+    // The state only wins when the user has not touched the seeded draft yet —
+    // otherwise in-flight edits made during the round-trip would be clobbered.
     useEffect(() => {
         if (!open) {
             return;
         }
         let active = true;
-        setLoading(true);
+        const seed = getLastKnownTheme();
+        if (seed) {
+            history.rebase(seed);
+            setSavedSnapshot(seed);
+        } else {
+            setLoading(true);
+        }
         setSaveError(null);
         socket
             .getState(THEME_STATE_ID)
@@ -127,36 +230,57 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     return;
                 }
                 const raw = typeof state?.val === 'string' ? state.val : '';
-                if (!raw) {
-                    setThemeObj({});
-                    return;
+                let loaded: UserTheme = {};
+                if (raw) {
+                    try {
+                        const parsed: unknown = JSON.parse(raw);
+                        const result = validateThemeOptions(parsed);
+                        loaded = result.isValid ? (result.theme ?? {}) : {};
+                    } catch {
+                        loaded = {};
+                    }
                 }
-                try {
-                    const parsed: unknown = JSON.parse(raw);
-                    const result = validateThemeOptions(parsed);
-                    setThemeObj(result.isValid ? (result.theme ?? {}) : {});
-                } catch {
-                    setThemeObj({});
+                setLastKnownTheme(loaded);
+                setSavedSnapshot(loaded);
+                // Rebase only while the draft still matches the seed (untouched).
+                if (JSON.stringify(presentRef.current) === JSON.stringify(seed ?? {})) {
+                    history.rebase(loaded);
                 }
             })
             .catch((e: unknown) => console.error(`Cannot read theme state ${THEME_STATE_ID}: ${e}`))
             .finally(() => {
                 if (active) {
                     setLoading(false);
-                    setDirty(false);
                 }
             });
         return () => {
             active = false;
         };
+        // history is stable (all callbacks are useCallback-bound); rebase only on open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, socket]);
 
     // Mirror the in-memory theme into the draft store so canvas widgets preview
-    // live while the panel is open.
+    // live while the panel is open. Throttled to one push per DRAFT_FLUSH_MS
+    // (leading + trailing, ADR-0020): every push re-themes every canvas widget,
+    // so a slider drag must not flood the store at pointermove rate. The
+    // trailing flush reads presentRef so the final value always lands.
+    const lastDraftFlushRef = useRef(0);
     useEffect(() => {
-        if (open) {
-            setDraftTheme(themeObj);
+        if (!open) {
+            return;
         }
+        const since = Date.now() - lastDraftFlushRef.current;
+        if (since >= DRAFT_FLUSH_MS) {
+            lastDraftFlushRef.current = Date.now();
+            setDraftTheme(themeObj);
+            return;
+        }
+        const timer = setTimeout(() => {
+            lastDraftFlushRef.current = Date.now();
+            setDraftTheme(presentRef.current);
+        }, DRAFT_FLUSH_MS - since);
+        return () => clearTimeout(timer);
     }, [open, themeObj]);
 
     // Re-validate on every change.
@@ -177,6 +301,53 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         return createTheme(withPrimaryAsText(draftWithMode, resolvedPrimary));
     }, [themeObj, themeType]);
 
+    // The pickers' preset swatch row: the current theme colours (decision 5).
+    const colorPresets = useMemo<string[]>(() => {
+        const palette = resolvedTheme.palette;
+        return [
+            palette.primary.main,
+            palette.secondary.main,
+            palette.error.main,
+            palette.warning.main,
+            palette.info.main,
+            palette.success.main,
+            palette.text.primary,
+            palette.text.secondary,
+            palette.background.default,
+            palette.background.paper,
+            palette.divider,
+        ];
+    }, [resolvedTheme]);
+
+    // Dirty: present differs from the last loaded/saved snapshot (undo-to-start is clean).
+    const dirty = useMemo(() => JSON.stringify(themeObj) !== JSON.stringify(savedSnapshot), [themeObj, savedSnapshot]);
+
+    // Field-level error lookup (first error per path wins).
+    const issuesByPath = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const issue of validation.issues) {
+            if (issue.severity === 'error' && issue.path && !map.has(issue.path)) {
+                map.set(issue.path, formatIssue(issue));
+            }
+        }
+        return map;
+    }, [validation.issues]);
+    const errorFor = useCallback((path: string): string | undefined => issuesByPath.get(path), [issuesByPath]);
+
+    const errorIssues = useMemo(
+        () => validation.issues.filter(issue => issue.severity === 'error'),
+        [validation.issues],
+    );
+    const warningIssues = useMemo(
+        () => validation.issues.filter(issue => issue.severity === 'warning'),
+        [validation.issues],
+    );
+    // Errors without a colour-field home keep a compact alert at the bottom.
+    const nonFieldErrors = useMemo(
+        () => errorIssues.filter(issue => !COLOR_FIELD_PATHS.has(issue.path)),
+        [errorIssues],
+    );
+
     // Escape closes (with the same discard handling as the close button).
     const requestClose = useCallback((): void => {
         if (dirty) {
@@ -187,6 +358,8 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         onClose();
     }, [dirty, onClose]);
 
+    // Keyboard: Escape closes; Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y drive undo/redo
+    // (unless the user is typing in an input — the field's own undo wins there).
     useEffect(() => {
         if (!open) {
             return;
@@ -194,26 +367,83 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         const onKey = (event: KeyboardEvent): void => {
             if (event.key === 'Escape') {
                 requestClose();
+                return;
+            }
+            if (isEditableTarget(event.target)) {
+                return;
+            }
+            const mod = event.ctrlKey || event.metaKey;
+            if (mod && !event.altKey && event.key.toLowerCase() === 'z') {
+                event.preventDefault();
+                if (event.shiftKey) {
+                    history.redo();
+                } else {
+                    history.undo();
+                }
+            } else if (mod && !event.altKey && event.key.toLowerCase() === 'y') {
+                event.preventDefault();
+                history.redo();
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [open, requestClose]);
+    }, [open, requestClose, history]);
 
-    const handleChange = useCallback((path: string, value: unknown): void => {
-        setThemeObj(prev => setNestedValue(prev, path, value));
-        setDirty(true);
-    }, []);
+    // Scroll-to-error: expand the owning section, then scroll the first marked
+    // field (or the section itself) into view — after a tick so the lazily
+    // mounted section body exists.
+    const scrollToFirstError = useCallback((): void => {
+        const first = errorIssues[0];
+        if (!first) {
+            return;
+        }
+        const section = sectionForPath(first.path);
+        setExpandedMap(map => ({ ...map, [section]: true }));
+        window.setTimeout(() => {
+            const body = bodyRef.current;
+            if (!body) {
+                return;
+            }
+            const target =
+                body.querySelector('[data-theme-error]') ?? body.querySelector(`[data-studio-section="${section}"]`);
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+    }, [errorIssues]);
+
+    const sectionProps = useCallback(
+        (key: SectionKey): { expanded?: boolean; onExpandedChange: (expanded: boolean) => void } => ({
+            expanded: expandedMap[key],
+            onExpandedChange: expanded => {
+                setExpandedMap(map => ({ ...map, [key]: expanded }));
+                // Opening typography loads the bundled faces so the family select
+                // previews render in their real fonts (lazy — ADR-0020).
+                if (expanded && key === 'typography') {
+                    void ensureBundledFontFaces();
+                }
+            },
+        }),
+        [expandedMap],
+    );
+
+    // Continuous edits coalesce per path (one slider drag = one undo step).
+    const handleChange = useCallback(
+        (path: string, value: unknown): void => {
+            history.set(prev => setNestedValue(prev, path, value), path);
+        },
+        [history],
+    );
 
     const handleReset = useCallback((): void => {
-        setThemeObj({});
-        setDirty(true);
-    }, []);
+        history.set({});
+    }, [history]);
 
-    const handleApplyPreset = useCallback((presetTheme: UserTheme): void => {
-        setThemeObj(presetTheme);
-        setDirty(true);
-    }, []);
+    // Presets merge palette-only and count as ONE discrete undo step.
+    const handleApplyPreset = useCallback(
+        (preset: ThemePreset): void => {
+            history.set(prev => applyPreset(prev, preset));
+        },
+        [history],
+    );
 
     const handleSave = useCallback(async (): Promise<void> => {
         if (!validation.isValid || saving) {
@@ -223,7 +453,8 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         setSaveError(null);
         try {
             await socket.setState(THEME_STATE_ID, JSON.stringify(themeObj));
-            setDirty(false);
+            setLastKnownTheme(themeObj);
+            setSavedSnapshot(themeObj);
             // Do NOT clear the draft here: the hook's seamless handoff retires it
             // once the persisted state echoes the saved value (no flicker).
             onClose();
@@ -245,9 +476,6 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         return null;
     }
 
-    const errorIssues = validation.issues.filter(issue => issue.severity === 'error');
-    const warningIssues = validation.issues.filter(issue => issue.severity === 'warning');
-
     return (
         <ThemeProvider theme={chromeTheme}>
             <Paper
@@ -257,13 +485,42 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     position: 'fixed',
                     left: position.x,
                     top: position.y,
-                    width: PANEL_WIDTH,
+                    width,
                     maxHeight: '80vh',
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 1300,
+                    // No hover-transition fight while the grip streams widths.
+                    transition: resizing ? 'none' : undefined,
                 }}
             >
+                {/* Left-edge resize grip: a bare hairline hit strip (ADR-0019 idiom). */}
+                <Box
+                    {...resizeProps}
+                    title={Generic.t('theme_studio_resize')}
+                    sx={{
+                        position: 'absolute',
+                        left: -3,
+                        top: 0,
+                        bottom: 0,
+                        width: 7,
+                        cursor: 'col-resize',
+                        zIndex: 2,
+                        '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            left: 3,
+                            top: 0,
+                            bottom: 0,
+                            width: 1,
+                            bgcolor: 'transparent',
+                            transition: 'background-color 150ms',
+                        },
+                        '&:hover::after, &:focus-visible::after': { bgcolor: 'primary.main' },
+                        '&:focus-visible': { outline: 'none' },
+                    }}
+                />
+
                 <Box
                     {...dragHandlers}
                     sx={{
@@ -280,85 +537,123 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                         direction="row"
                         alignItems="center"
                         spacing={0.5}
+                        sx={{ minWidth: 0 }}
                     >
                         <DragIndicatorIcon
                             fontSize="small"
                             color="action"
                         />
-                        <Typography variant="subtitle2">{Generic.t('theme_wizard_title')}</Typography>
+                        <Typography
+                            variant="subtitle2"
+                            noWrap
+                        >
+                            {Generic.t('theme_wizard_title')}
+                        </Typography>
+                        {dirty ? (
+                            <Tooltip title={Generic.t('theme_studio_dirty')}>
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        bgcolor: 'warning.main',
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            </Tooltip>
+                        ) : null}
                     </Stack>
-                    <IconButton
-                        size="small"
-                        onClick={requestClose}
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={0}
+                        sx={{ flexShrink: 0 }}
                     >
-                        <CloseIcon fontSize="small" />
-                    </IconButton>
+                        <Tooltip title={Generic.t('theme_studio_undo')}>
+                            <span>
+                                <IconButton
+                                    size="small"
+                                    onClick={history.undo}
+                                    disabled={!history.canUndo}
+                                    aria-label={Generic.t('theme_studio_undo')}
+                                >
+                                    <UndoIcon fontSize="small" />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={Generic.t('theme_studio_redo')}>
+                            <span>
+                                <IconButton
+                                    size="small"
+                                    onClick={history.redo}
+                                    disabled={!history.canRedo}
+                                    aria-label={Generic.t('theme_studio_redo')}
+                                >
+                                    <RedoIcon fontSize="small" />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <IconButton
+                            size="small"
+                            onClick={requestClose}
+                            aria-label={Generic.t('theme_studio_close')}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </Stack>
                 </Box>
 
-                <Box sx={{ overflowY: 'auto', p: 2 }}>
+                <Box
+                    ref={bodyRef}
+                    sx={{ overflowY: 'auto', p: 2, flex: 1, minHeight: 0 }}
+                >
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                             <CircularProgress />
                         </Box>
                     ) : (
                         <>
-                            <Box sx={{ mb: 2 }}>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ display: 'block', mb: 0.75 }}
-                                >
-                                    {Generic.t('theme_studio_presets')}
-                                </Typography>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    flexWrap="wrap"
-                                    useFlexGap
-                                >
-                                    {THEME_PRESETS.map(preset => {
-                                        const main =
-                                            getNestedValue<string>(preset.theme, 'palette.primary.main') ?? '#888888';
-                                        return (
-                                            <Box
-                                                key={preset.id}
-                                                onClick={() => handleApplyPreset(preset.theme)}
-                                                sx={{
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: 0.5,
-                                                    px: 1,
-                                                    py: 0.25,
-                                                    borderRadius: 16,
-                                                    border: 1,
-                                                    borderColor: 'divider',
-                                                    cursor: 'pointer',
-                                                    '&:hover': { bgcolor: 'action.hover' },
-                                                }}
-                                            >
-                                                <Box
-                                                    sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: main }}
-                                                />
-                                                <Typography variant="caption">{Generic.t(preset.labelKey)}</Typography>
-                                            </Box>
-                                        );
-                                    })}
-                                </Stack>
+                            <SubGroup title={Generic.t('theme_studio_presets')}>
+                                <PresetCards
+                                    theme={themeObj}
+                                    onApply={handleApplyPreset}
+                                />
+                            </SubGroup>
+                            <Box data-studio-section="palette">
+                                <PaletteSection
+                                    theme={themeObj}
+                                    onChange={handleChange}
+                                    resolved={resolvedTheme}
+                                    errorFor={errorFor}
+                                    colorPresets={colorPresets}
+                                    {...sectionProps('palette')}
+                                />
                             </Box>
-                            <PaletteSection
-                                theme={themeObj}
-                                onChange={handleChange}
-                                resolved={resolvedTheme}
-                            />
-                            <TypographySection
-                                theme={themeObj}
-                                onChange={handleChange}
-                            />
-                            <ErweitertSection
-                                theme={themeObj}
-                                onChange={handleChange}
-                                resolved={resolvedTheme}
-                            />
+                            <Box data-studio-section="typography">
+                                <TypographySection
+                                    theme={themeObj}
+                                    onChange={handleChange}
+                                    {...sectionProps('typography')}
+                                />
+                            </Box>
+                            <Box data-studio-section="statusText">
+                                <StatusTextSection
+                                    theme={themeObj}
+                                    onChange={handleChange}
+                                    resolved={resolvedTheme}
+                                    errorFor={errorFor}
+                                    colorPresets={colorPresets}
+                                    {...sectionProps('statusText')}
+                                />
+                            </Box>
+                            <Box data-studio-section="erweitert">
+                                <ErweitertSection
+                                    theme={themeObj}
+                                    onChange={handleChange}
+                                    {...sectionProps('erweitert')}
+                                />
+                            </Box>
 
                             {saveError ? (
                                 <Alert
@@ -369,19 +664,16 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                 </Alert>
                             ) : null}
 
-                            {errorIssues.length > 0 ? (
+                            {nonFieldErrors.length > 0 ? (
                                 <Alert
                                     severity="error"
                                     sx={{ mt: 2 }}
                                 >
-                                    <Typography variant="body2">
-                                        {Generic.t('theme_wizard_validation_issues')}
-                                    </Typography>
                                     <Box
                                         component="ul"
-                                        sx={{ margin: '4px 0 0', paddingLeft: 3, mb: 0 }}
+                                        sx={{ margin: 0, paddingLeft: 3, mb: 0 }}
                                     >
-                                        {errorIssues.map((issue, index) => (
+                                        {nonFieldErrors.map((issue, index) => (
                                             <li key={`${issue.path}-${index}`}>
                                                 <Typography variant="body2">
                                                     {issue.path ? `${issue.path}: ` : ''}
@@ -418,7 +710,16 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     )}
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 1, p: 1.5, borderTop: 1, borderColor: 'divider' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 1.5,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                    }}
+                >
                     <Button
                         onClick={handleReset}
                         color="inherit"
@@ -426,6 +727,16 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     >
                         {Generic.t('theme_wizard_reset')}
                     </Button>
+                    {errorIssues.length > 0 ? (
+                        <Button
+                            size="small"
+                            color="error"
+                            onClick={scrollToFirstError}
+                            sx={{ textTransform: 'none' }}
+                        >
+                            {Generic.t('theme_studio_problems', String(errorIssues.length))}
+                        </Button>
+                    ) : null}
                     <Box sx={{ flex: 1 }} />
                     <Button
                         onClick={requestClose}
@@ -433,13 +744,17 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                     >
                         {Generic.t('cancel')}
                     </Button>
-                    <Button
-                        onClick={handleSave}
-                        variant="contained"
-                        disabled={!validation.isValid || loading || saving}
-                    >
-                        {saving ? <CircularProgress size={20} /> : Generic.t('save')}
-                    </Button>
+                    <Tooltip title={validation.isValid ? '' : Generic.t('theme_studio_save_invalid')}>
+                        <span>
+                            <Button
+                                onClick={handleSave}
+                                variant="contained"
+                                disabled={!validation.isValid || loading || saving}
+                            >
+                                {saving ? <CircularProgress size={20} /> : Generic.t('save')}
+                            </Button>
+                        </span>
+                    </Tooltip>
                 </Box>
             </Paper>
 
