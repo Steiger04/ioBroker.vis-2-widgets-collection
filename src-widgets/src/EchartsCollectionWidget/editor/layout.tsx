@@ -207,8 +207,10 @@ export const SliderField: FC<{
 
 /**
  * The shared series/axis card: quiet border (primary while open), whole-header toggle (chevron +
- * swatch + title/subtitle), right-aligned actions. The body collapses but stays mounted once
- * opened, so per-body local state survives.
+ * swatch + title/subtitle), right-aligned actions. The body mounts lazily on first expand
+ * (`mountOnEnter`) and stays mounted afterwards — a collapsed card costs nothing at mount time
+ * (with N series the modal open must not mount N invisible card bodies), yet per-body local state
+ * still survives collapsing.
  */
 export const EditorCard: FC<{
     open: boolean;
@@ -291,7 +293,10 @@ export const EditorCard: FC<{
             </Box>
             {actions}
         </Box>
-        <Collapse in={open}>
+        <Collapse
+            in={open}
+            mountOnEnter
+        >
             <Box sx={{ px: 1.5, pb: 1.5, pt: 0.5 }}>{children}</Box>
         </Collapse>
     </Box>

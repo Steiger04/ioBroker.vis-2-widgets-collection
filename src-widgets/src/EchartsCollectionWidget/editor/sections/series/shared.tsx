@@ -223,7 +223,12 @@ export const SeriesRawOverride: FC<{
             >
                 {open ? '−' : '+'} {Generic.t('echarts_series_raw')}
             </Button>
-            <Collapse in={open}>
+            {/* mountOnEnter: the JsonEditor (Prism highlighting) is expensive — mount it only when
+                the raw override is actually opened, never for a collapsed one. */}
+            <Collapse
+                in={open}
+                mountOnEnter
+            >
                 {slot && (
                     <SeriesTemplateMenu
                         slot={slot}
