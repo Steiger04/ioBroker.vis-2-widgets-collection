@@ -7,9 +7,30 @@
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
 /**
+ * Generate a stable axis identity. `crypto.randomUUID` (modern browsers / vis-2 WebView) gives a
+ * globally-unique id with no collision risk across reloads; a monotonic counter is the fallback.
+ * The id is for React reconciliation only — the cartesian builder never emits it to echarts.
+ */
+let _axisIdSeq = 0;
+export const nextAxisId = (): string => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    return `ax-${++_axisIdSeq}`;
+};
+
+/**
+ * Backfill a stable {@link EchartsAxisConfig.id} on any axis missing one — the migration path for
+ * axes created before the id existed (decoded blobs, legacy-synthesised axes). Called on editor load.
+ * Axes that already carry an id are returned unchanged.
+ */
+export const normalizeAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] =>
+    axes.map(a => (a.id ? a : { ...a, id: nextAxisId() }));
+
+/**
  * Position + offset for the i-th auto-created axis: alternate left/right, 80 px stagger per side
  * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`). Geometry only — safe to re-apply on re-stagger
- * without clobbering the rest of an axis config (name/colour/min/max/…).
+ * without clobbering the rest of an axis config (id/name/colour/min/max/…).
  */
 export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'offset'> => ({
     position: i % 2 ? 'right' : 'left',
@@ -17,9 +38,10 @@ export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'o
 });
 
 /**
- * Default layout for the i-th auto-created axis: {@link axisPosition} geometry + splitlines on axis 0
- * only. Used on series creation (history/live + duplicate), the JSON-mode editor sync, and to re-stagger
- * after a delete (via {@link axisPosition}, non-destructive).
+ * Default layout for the i-th auto-created axis: a stable {@link nextAxisId id} + {@link axisPosition}
+ * geometry + splitlines on axis 0 only. Used on series creation (history/live + duplicate), the
+ * JSON-mode editor sync, manual "add axis", and to re-stagger after a delete (via {@link axisPosition},
+ * non-destructive).
  *
  * Colour and name are NOT written here (ADR-0018): an axis inherits both from its bound series at
  * runtime (the cartesian builder's `a.color ?? seriesColor` / `a.name ?? seriesName`), so they track
@@ -28,6 +50,7 @@ export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'o
  * or renamed.
  */
 export const axisLayout = (i: number): EchartsAxisConfig => ({
+    id: nextAxisId(),
     ...axisPosition(i),
     splitLine: i === 0,
 });

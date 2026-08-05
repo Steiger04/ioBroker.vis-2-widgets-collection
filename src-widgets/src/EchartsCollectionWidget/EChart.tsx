@@ -4,9 +4,10 @@
  * @module EchartsCollectionWidget/EChart
  * @remarks
  * Lifecycle: `init` (Canvas) → `setOption` (with `replaceMerge: ['series', 'dataZoom',
- * 'visualMap']` so series add/remove AND disabling dataZoom/visualMap take effect — without
- * `dataZoom`/`visualMap` in replaceMerge, echarts MERGES and keeps a stale component after the
- * builder stops emitting it) → `resize` on container dimension change → `dispose` on unmount.
+ * 'visualMap', 'yAxis']` so series add/remove, disabling dataZoom/visualMap, AND Y-axis add/remove
+ * take effect — without the matching mainType in replaceMerge, echarts MERGES and keeps a stale
+ * component after the builder stops emitting it, or retains trailing entries when an array shrinks)
+ * → `resize` on container dimension change → `dispose` on unmount.
  *
  * The wrapper is presentation-merge-free: callers (the widget body and the editor preview)
  * pass the ALREADY fully-merged option — theme base + template defaults + generated data + user
@@ -45,7 +46,7 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         }
         const chart = init(el, undefined, { renderer });
         chartRef.current = chart;
-        chart.setOption(optionRef.current, { replaceMerge: ['series', 'dataZoom', 'visualMap'] });
+        chart.setOption(optionRef.current, { replaceMerge: ['series', 'dataZoom', 'visualMap', 'yAxis'] });
 
         const ro = new ResizeObserver(() => {
             chart.resize();
@@ -59,10 +60,12 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         };
     }, [renderer]);
 
-    // setOption on every change — replaceMerge covers series add/remove and the conditional
-    // dataZoom/visualMap components (so disabling them removes them, not just stops updating).
+    // setOption on every change — replaceMerge covers series add/remove, the conditional
+    // dataZoom/visualMap components (so disabling them removes them, not just stops updating), and
+    // Y-axis add/remove (so a deleted axis does not linger as a merge-retained ghost — ADR-0012
+    // multi-axis made the yAxis array dynamic; ADR-0016 addendum).
     useEffect(() => {
-        chartRef.current?.setOption(option, { replaceMerge: ['series', 'dataZoom', 'visualMap'] });
+        chartRef.current?.setOption(option, { replaceMerge: ['series', 'dataZoom', 'visualMap', 'yAxis'] });
     }, [option]);
 
     return (

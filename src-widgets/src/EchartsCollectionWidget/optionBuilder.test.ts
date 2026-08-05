@@ -403,12 +403,41 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[0].name).toBe('kW');
     });
 
+    it('an empty-string axis name falls back to the bound series name (not frozen out by ??)', () => {
+        // Regression: a.name === '' (legacy yName:'' migration, or a name typed then cleared) must NOT
+        // shadow the inherited series name. `??` let '' through and the truthy guard dropped it, so the
+        // axis name never rendered — even though the configurator showed it as the field placeholder.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'Wohnzimmer', data: [[1, 2]] }],
+            meta: [{ name: 'Wohnzimmer', yAxisIndex: 0 }],
+            p: { ...P, yAxes: [{ name: '' }] },
+        });
+        const ya = option.yAxis as unknown as { name?: string }[];
+        expect(ya[0].name).toBe('Wohnzimmer');
+    });
+
     it('single axis: alignTicks defaults off; grid uses containLabel', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
         expect(ya).toHaveLength(1);
         expect(ya[0].alignTicks).toBe(false);
         expect((option.grid as { containLabel?: boolean }).containLabel).toBe(true);
+    });
+
+    it('empty yAxes falls back to a single default axis (last-axis-deletable, builder guarantees ≥1)', () => {
+        // The editor allows deleting every axis; the builder must still emit one value axis so the
+        // chart renders (echarts errors on yAxis:[]).
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', yAxisIndex: 0 }],
+            p: { ...P, yAxes: [] },
+        });
+        const ya = option.yAxis as unknown as { type?: string; splitLine?: { show?: boolean } }[];
+        expect(ya).toHaveLength(1);
+        expect(ya[0].type).toBe('value');
+        expect(ya[0].splitLine?.show).toBe(true); // default axis 0 shows splitlines
     });
 
     it('tolerates legacy type:"area" as a line series with a flat areaStyle', () => {
@@ -505,7 +534,7 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(first.color).toBe('#abc'); // GUI wins the collision (raw's #xxx ignored)
     });
 
-    it('always emits the non-replaceMerge components — legend/tooltip show:false when off (ADR-0016)', () => {
+    it('always emits legend/tooltip/grid/xAxis/yAxis — show:false when off, never omitted (ADR-0016)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
@@ -513,7 +542,9 @@ describe('buildGeneratedOption — cartesian', () => {
             p: { ...P, legendShow: false, tooltipTrigger: 'none' },
         });
         // legend off + tooltip none → still PRESENT with show:false (never omitted: under default-merge
-        // an omitted component is kept stale). grid/xAxis/yAxis always present.
+        // an omitted component is kept stale). grid/xAxis/yAxis always present. yAxis is also in
+        // replaceMerge now (ADR-0016 addendum) — the builder still emits the full array so a replace
+        // removes deleted axes cleanly instead of leaving a merge-retained ghost.
         expect((option.legend as { show?: boolean }).show).toBe(false);
         expect((option.tooltip as { show?: boolean }).show).toBe(false);
         expect(option.grid).toBeDefined();

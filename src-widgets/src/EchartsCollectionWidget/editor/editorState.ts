@@ -18,6 +18,9 @@
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
 import { decodeAxes, decodeChartConfig, decodeMarkLines, legacyAxis } from '../presentation';
+import { normalizeAxes } from './axisLayout';
+import { normalizeSeries } from './seriesIdentity';
+import { withStableIds } from './identity';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
@@ -239,12 +242,16 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     let series: EditorSeries[];
     let radar: EchartsRadarConfig;
     if (family === 'radar') {
-        // oidN = indicator OIDs; meta[0] = polygon label/colour.
-        const indicators = (chartConfig.radar?.indicators ?? []).map((ind, i) => ({
-            name: ind.name,
-            max: ind.max,
-            oid: ind.oid || oidAt(i),
-        }));
+        // oidN = indicator OIDs; meta[0] = polygon label/colour. Carry + normalise a stable id so the
+        // indicator card list reconciles by identity (fixes the wrong-card-unmounts bug on delete).
+        const indicators = withStableIds(
+            (chartConfig.radar?.indicators ?? []).map((ind, i) => ({
+                id: ind.id,
+                name: ind.name,
+                max: ind.max,
+                oid: ind.oid || oidAt(i),
+            })),
+        );
         radar = { ...(chartConfig.radar ?? DEFAULT_EDITOR_STATE.radar), indicators };
         series = [
             {
@@ -277,6 +284,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         radar = DEFAULT_EDITOR_STATE.radar;
     }
 
+    // Normalise a stable `id` onto each series so React can reconcile series cards by identity, not
+    // array index (fixes the wrong-card-unmounts bug on middle-series delete). All families pass
+    // through here; gauge/radar ids are throwaway (their save path drops the id) but harmless.
+    series = normalizeSeries(series);
+
     const vm = {
         enabled: boolOr(data.visualMapEnabled, false),
         min: numOr(data.visualMapMin, 0),
@@ -286,8 +298,10 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
 
     // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level
     // scalars (ADR-0012 migration — no silent rewrite; legacy widgets edit axis 0 on first open).
+    // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
+    // index (fixes the wrong-card-unmounts bug on middle-axis delete).
     const yAxesDecoded = decodeAxes(data.yAxes as string);
-    const yAxes = yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)];
+    const yAxes = normalizeAxes(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)]);
 
     return {
         ...DEFAULT_EDITOR_STATE,
@@ -327,7 +341,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         paletteCustom: strOr(data.paletteCustom, ''),
         darkMode: (data.darkMode as EchartsDarkMode) ?? DEFAULT_EDITOR_STATE.darkMode,
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
-        markLines: decodeMarkLines(data.markLines as string),
+        markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
         userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
         jsonSeriesStyle: parseJsonSeriesStyle(data.jsonSeriesStyle as string),
@@ -416,7 +430,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         chartOverrides: encodeBlob(state.userText),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
         jsonSeriesStyle: encodeBlob(JSON.stringify(state.jsonSeriesStyle)),
-        jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden.length ? JSON.stringify(state.jsonHidden) : '')),
+        jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(state.yAxes)),
     };
     const max = Math.max(seriesCount, previousCount);

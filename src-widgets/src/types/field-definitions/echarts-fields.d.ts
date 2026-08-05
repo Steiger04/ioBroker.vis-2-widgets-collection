@@ -103,6 +103,13 @@ export type EchartsRadarShape = 'polygon' | 'circle';
  * type-sensitively, so unused fields simply stay undefined.
  */
 export interface EchartsSeriesMeta {
+    /**
+     * Stable identity for React reconciliation (NOT emitted to echarts — every builder reads meta
+     * field-by-field, never spreads it). Stamped at series creation (`nextSeriesId`) and backfilled
+     * on editor load by `normalizeSeries` (migration). Round-trips through the `seriesConfig` blob.
+     * Fixes the index-key bug where deleting a middle series unmounted the wrong card.
+     */
+    id?: string;
     name?: string;
     color?: string;
     /** Cartesian sub-type. @default 'line' */
@@ -183,6 +190,12 @@ export interface EchartsGaugeConfig {
 
 /** One radar indicator (axis) bound to an OID supplying its current value. */
 export interface EchartsRadarIndicator {
+    /**
+     * Stable identity for React reconciliation (NOT emitted to echarts — the radar builder maps
+     * indicators to `{name, max}` field-by-field). Stamped at creation and backfilled on editor load
+     * via `withStableIds`. Fixes the index-key bug on indicator delete.
+     */
+    id?: string;
     name: string;
     /** Axis maximum. @default 100 */
     max?: number;
@@ -224,6 +237,12 @@ export interface EchartsPieConfig {
 
 /** A horizontal/vertical threshold line on a cartesian value axis. */
 export interface EchartsMarkLine {
+    /**
+     * Stable identity for React reconciliation (NOT emitted to echarts — the cartesian builder's
+     * `markLineOption` reads value/label/color/dashed field-by-field). Stamped at creation and
+     * backfilled on editor load via `withStableIds`. Fixes the index-key bug on threshold delete.
+     */
+    id?: string;
     /** Threshold value on the Y axis. */
     value: number;
     label?: string;
@@ -252,6 +271,13 @@ export interface EchartsVisualMapConfig {
  * Advanced-JSON templates (ADR-0014).
  */
 export interface EchartsAxisConfig {
+    /**
+     * Stable identity for React reconciliation (NOT emitted to echarts — the cartesian builder
+     * builds yAxis entries field-by-field). Stamped at creation by `axisLayout` and backfilled on
+     * editor load by `normalizeAxes` (migration). Fixes the index-key bug where deleting a middle
+     * axis unmounted the wrong card.
+     */
+    id?: string;
     /** Axis name (label). */
     name?: string;
     /** Minimum; undefined = auto. */

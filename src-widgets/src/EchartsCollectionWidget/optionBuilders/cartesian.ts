@@ -197,7 +197,10 @@ const buildYAxisEntry = (
         nameLocation: 'middle',
         nameGap: 50,
     };
-    const axisName = a.name ?? seriesName;
+    // Empty string counts as "not set": an axis whose name was cleared, or one migrated from legacy
+    // `yName:''`, must still inherit its bound series' name. `??` would let '' through and the truthy
+    // guard below would then drop the name entirely — the "axis name never renders" bug.
+    const axisName = a.name || seriesName;
     if (axisName) {
         entry.name = axisName;
     }
@@ -254,6 +257,11 @@ export const buildCartesianOption = (
     meta: readonly EchartsSeriesMeta[],
     p: PresentationConfig,
 ): EChartsOption => {
+    // Guarantee ≥1 Y-axis: the editor allows deleting every axis (the last one too), but a cartesian
+    // chart must always render at least one value axis. An empty `p.yAxes` falls back to a single
+    // default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
+    const axes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
+    const total = axes.length;
     const entries = series.map((s, i) => {
         const e = applyRawOverride(
             buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType),
@@ -262,7 +270,7 @@ export const buildCartesianOption = (
         // Clamp the per-series axis index to the configured axes (ADR-0012): a removed axis must
         // not leave a series bound to a non-existent yAxisIndex (echarts would drop it).
         const yi = typeof e.yAxisIndex === 'number' ? e.yAxisIndex : 0;
-        e.yAxisIndex = yi >= p.yAxes.length ? 0 : yi;
+        e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
     if (markLineOption(p.markLines) && entries.length > 0) {
@@ -273,8 +281,7 @@ export const buildCartesianOption = (
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
     // alignTicks is smart-defaulted on for multi-axis; the axis colour AND name default to the first
     // bound series' effective values when neither is explicit (ADR-0018).
-    const total = p.yAxes.length;
-    const yAxisEntries = p.yAxes.map((a, i) => {
+    const yAxisEntries = axes.map((a, i) => {
         const bound = entries.find(e => e.yAxisIndex === i);
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
@@ -284,7 +291,7 @@ export const buildCartesianOption = (
     });
     // Grid padding grows with axes per side so multi-axis labels don't clip (containLabel handles
     // the rest).
-    const leftCount = p.yAxes.filter((a, i) => (a.position ?? (i === 0 ? 'left' : 'right')) === 'left').length;
+    const leftCount = axes.filter((a, i) => (a.position ?? (i === 0 ? 'left' : 'right')) === 'left').length;
     const gridLeft = 48 + Math.max(0, leftCount - 1) * 60;
     const gridRight = 18 + Math.max(0, total - leftCount - 1) * 60;
     const option: Record<string, unknown> = {
