@@ -1,16 +1,27 @@
 /**
- * Bundled font catalogue + `@font-face` loading for the theme wizard.
+ * Bundled font catalogue + lazy `@font-face` loading (ADR-0020).
  *
  * @module lib/theme/fontCatalogue
  * @remarks
- * Imports the latin 400/700 woff2 weights of a curated set of `@fontsource`
- * families as inlined data URIs (via the Vite `?inline` query) and injects the
- * matching `@font-face` rules into the document. Inlining — rather than
- * importing `@fontsource` CSS, which references the font files by relative
- * `url()` — keeps the `@font-face` rules self-contained: there is no external
- * font fetch, so loading works identically in the Vite dev server and the
- * production build. (The ioBroker web server does not reliably serve binary
- * font assets from the widget directory, which broke font loading —
+ * Holds the curated `@fontsource` family selection for the theme studio and injects
+ * the matching `@font-face` rules into the document **on demand**:
+ * {@link ensureBundledFontFaces} dynamically imports the latin 400/700 woff2 faces
+ * (Vite `?inline` — data URIs inside tiny async chunks) and injects the rules.
+ *
+ * Why lazy: the catalogue previously imported all 20 woff2 files statically, so
+ * every widget bundle paid ~400–600 KB of base64 at load — even though a theme
+ * references at most one bundled family (and most reference none). Now the faces
+ * load only when actually needed:
+ * - runtime widgets: {@link module:hooks/useCollectionTheme} ensures the family the
+ *   effective theme's `typography.fontFamily` references (via {@link bundledFamiliesOf});
+ * - the studio panel: opening the typography section ensures the whole catalogue so
+ *   the family select previews render in their real faces.
+ *
+ * Inlining — rather than importing `@fontsource` CSS, which references the font
+ * files by relative `url()` — keeps the `@font-face` rules self-contained: there
+ * is no external font fetch, so loading works identically in the Vite dev server
+ * and the production build. (The ioBroker web server does not reliably serve
+ * binary font assets from the widget directory, which broke font loading —
  * "Failed to decode downloaded font" — when fonts were emitted as files.)
  *
  * {@link FONT_CATALOGUE} drives the font-family selector; each entry's `value`
@@ -18,90 +29,160 @@
  * fallback so rendering degrades gracefully if a face is ever missing.
  */
 
-// Bundled families — latin subset, weights 400 (regular) + 700 (bold), inlined
-// as data URIs so no external font file is fetched at runtime.
-import roboto400 from '@fontsource/roboto/files/roboto-latin-400-normal.woff2?inline';
-import roboto700 from '@fontsource/roboto/files/roboto-latin-700-normal.woff2?inline';
-import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?inline';
-import inter700 from '@fontsource/inter/files/inter-latin-700-normal.woff2?inline';
-import openSans400 from '@fontsource/open-sans/files/open-sans-latin-400-normal.woff2?inline';
-import openSans700 from '@fontsource/open-sans/files/open-sans-latin-700-normal.woff2?inline';
-import montserrat400 from '@fontsource/montserrat/files/montserrat-latin-400-normal.woff2?inline';
-import montserrat700 from '@fontsource/montserrat/files/montserrat-latin-700-normal.woff2?inline';
-import robotoSlab400 from '@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2?inline';
-import robotoSlab700 from '@fontsource/roboto-slab/files/roboto-slab-latin-700-normal.woff2?inline';
-import merriweather400 from '@fontsource/merriweather/files/merriweather-latin-400-normal.woff2?inline';
-import merriweather700 from '@fontsource/merriweather/files/merriweather-latin-700-normal.woff2?inline';
-import playfairDisplay400 from '@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2?inline';
-import playfairDisplay700 from '@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2?inline';
-import jetbrainsMono400 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?inline';
-import jetbrainsMono700 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2?inline';
-import oswald400 from '@fontsource/oswald/files/oswald-latin-400-normal.woff2?inline';
-import oswald700 from '@fontsource/oswald/files/oswald-latin-700-normal.woff2?inline';
-import nunito400 from '@fontsource/nunito/files/nunito-latin-400-normal.woff2?inline';
-import nunito700 from '@fontsource/nunito/files/nunito-latin-700-normal.woff2?inline';
-
-/** A bundled `@font-face` rule to inject (family + weight + inlined woff2). */
-interface BundledFontFace {
+/** One lazily-loadable bundled face (family + weight + data-URI loader). */
+interface BundledFaceLoader {
     /** CSS `font-family` name (must match the quoted name in {@link FONT_CATALOGUE}). */
     family: string;
     /** Numeric CSS font-weight. */
     weight: 400 | 700;
-    /** Inlined woff2 data URI. */
-    data: string;
+    /** Dynamic-import loader: resolves to the `?inline` module (default export = data URI). */
+    load: () => Promise<{ default: string }>;
 }
 
-/** Bundled `@font-face` rules, in catalogue order. */
-const BUNDLED_FONT_FACES: ReadonlyArray<BundledFontFace> = [
-    { family: 'Roboto', weight: 400, data: roboto400 },
-    { family: 'Roboto', weight: 700, data: roboto700 },
-    { family: 'Inter', weight: 400, data: inter400 },
-    { family: 'Inter', weight: 700, data: inter700 },
-    { family: 'Open Sans', weight: 400, data: openSans400 },
-    { family: 'Open Sans', weight: 700, data: openSans700 },
-    { family: 'Montserrat', weight: 400, data: montserrat400 },
-    { family: 'Montserrat', weight: 700, data: montserrat700 },
-    { family: 'Roboto Slab', weight: 400, data: robotoSlab400 },
-    { family: 'Roboto Slab', weight: 700, data: robotoSlab700 },
-    { family: 'Merriweather', weight: 400, data: merriweather400 },
-    { family: 'Merriweather', weight: 700, data: merriweather700 },
-    { family: 'Playfair Display', weight: 400, data: playfairDisplay400 },
-    { family: 'Playfair Display', weight: 700, data: playfairDisplay700 },
-    { family: 'JetBrains Mono', weight: 400, data: jetbrainsMono400 },
-    { family: 'JetBrains Mono', weight: 700, data: jetbrainsMono700 },
-    { family: 'Oswald', weight: 400, data: oswald400 },
-    { family: 'Oswald', weight: 700, data: oswald700 },
-    { family: 'Nunito', weight: 400, data: nunito400 },
-    { family: 'Nunito', weight: 700, data: nunito700 },
+// Bundled families — latin subset, weights 400 (regular) + 700 (bold). The dynamic
+// imports keep the data URIs out of the initial bundle; each literal specifier
+// becomes its own async chunk (Vite cannot code-split variable specifiers).
+const BUNDLED_FACE_LOADERS: ReadonlyArray<BundledFaceLoader> = [
+    {
+        family: 'Roboto',
+        weight: 400,
+        load: () => import('@fontsource/roboto/files/roboto-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Roboto',
+        weight: 700,
+        load: () => import('@fontsource/roboto/files/roboto-latin-700-normal.woff2?inline'),
+    },
+    { family: 'Inter', weight: 400, load: () => import('@fontsource/inter/files/inter-latin-400-normal.woff2?inline') },
+    { family: 'Inter', weight: 700, load: () => import('@fontsource/inter/files/inter-latin-700-normal.woff2?inline') },
+    {
+        family: 'Open Sans',
+        weight: 400,
+        load: () => import('@fontsource/open-sans/files/open-sans-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Open Sans',
+        weight: 700,
+        load: () => import('@fontsource/open-sans/files/open-sans-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Montserrat',
+        weight: 400,
+        load: () => import('@fontsource/montserrat/files/montserrat-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Montserrat',
+        weight: 700,
+        load: () => import('@fontsource/montserrat/files/montserrat-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Roboto Slab',
+        weight: 400,
+        load: () => import('@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Roboto Slab',
+        weight: 700,
+        load: () => import('@fontsource/roboto-slab/files/roboto-slab-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Merriweather',
+        weight: 400,
+        load: () => import('@fontsource/merriweather/files/merriweather-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Merriweather',
+        weight: 700,
+        load: () => import('@fontsource/merriweather/files/merriweather-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Playfair Display',
+        weight: 400,
+        load: () => import('@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Playfair Display',
+        weight: 700,
+        load: () => import('@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'JetBrains Mono',
+        weight: 400,
+        load: () => import('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'JetBrains Mono',
+        weight: 700,
+        load: () => import('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Oswald',
+        weight: 400,
+        load: () => import('@fontsource/oswald/files/oswald-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Oswald',
+        weight: 700,
+        load: () => import('@fontsource/oswald/files/oswald-latin-700-normal.woff2?inline'),
+    },
+    {
+        family: 'Nunito',
+        weight: 400,
+        load: () => import('@fontsource/nunito/files/nunito-latin-400-normal.woff2?inline'),
+    },
+    {
+        family: 'Nunito',
+        weight: 700,
+        load: () => import('@fontsource/nunito/files/nunito-latin-700-normal.woff2?inline'),
+    },
 ];
 
-let fontFacesInjected = false;
+/** Faces already injected (`family:weight`). */
+const injectedFaces = new Set<string>();
 
-/**
- * Injects the bundled `@font-face` rules into the document head (idempotent).
- *
- * @remarks
- * No-op when there is no `document` (SSR) or when already injected. Runs once
- * on module import, so the fonts are available wherever the catalogue is used
- * — runtime widgets via {@link module:components/CollectionProvider} and the
- * wizard preview via {@link module:ThemeConfigWizard/sections/TypographySection}.
- */
-function injectFontFaces(): void {
-    if (fontFacesInjected || typeof document === 'undefined') {
-        return;
+/** In-flight face loads (`family:weight` → promise), so concurrent ensure calls share one fetch. */
+const pendingFaces = new Map<string, Promise<void>>();
+
+/** Loads + injects ONE face (idempotent; concurrent callers share the same promise). */
+function ensureFace(loader: BundledFaceLoader): Promise<void> {
+    const key = `${loader.family}:${loader.weight}`;
+    if (injectedFaces.has(key) || typeof document === 'undefined') {
+        return Promise.resolve();
     }
-    const css = BUNDLED_FONT_FACES.map(
-        face =>
-            `@font-face{font-family:'${face.family}';font-style:normal;font-display:swap;font-weight:${face.weight};src:url(${face.data}) format("woff2")}`,
-    ).join('');
-    const style = document.createElement('style');
-    style.setAttribute('data-collection-fonts', '');
-    style.textContent = css;
-    document.head.appendChild(style);
-    fontFacesInjected = true;
+    const pending = pendingFaces.get(key);
+    if (pending) {
+        return pending;
+    }
+    const promise = loader
+        .load()
+        .then(mod => {
+            const style = document.createElement('style');
+            style.setAttribute('data-collection-fonts', '');
+            style.textContent = `@font-face{font-family:'${loader.family}';font-style:normal;font-display:swap;font-weight:${loader.weight};src:url(${mod.default}) format("woff2")}`;
+            document.head.appendChild(style);
+            injectedFaces.add(key);
+        })
+        .finally(() => pendingFaces.delete(key));
+    pendingFaces.set(key, promise);
+    return promise;
 }
 
-injectFontFaces();
+/**
+ * Ensures the bundled `@font-face` rules are injected. With `families`, only those
+ * families (both weights each); without, the whole catalogue (the studio's family
+ * select previews every bundled entry in its real face). Idempotent, SSR-safe.
+ *
+ * @param families - CSS family names to ensure (defaults to all bundled families).
+ */
+export function ensureBundledFontFaces(families?: readonly string[]): Promise<void> {
+    if (typeof document === 'undefined') {
+        return Promise.resolve();
+    }
+    const loaders = families
+        ? BUNDLED_FACE_LOADERS.filter(loader => families.includes(loader.family))
+        : BUNDLED_FACE_LOADERS;
+    return Promise.all(loaders.map(ensureFace)).then(() => undefined);
+}
 
 /** Selector group: bundled `@fontsource` families vs. generic system stacks. */
 export type FontGroup = 'bundled' | 'system';
@@ -110,7 +191,7 @@ export type FontGroup = 'bundled' | 'system';
 export interface FontCatalogueEntry {
     /** CSS stack persisted into `typography.fontFamily` (with generic fallback). */
     value: string;
-    /** Display label (proper noun — not translated). */
+    /** Display label (proper noun — not translated). For bundled entries this IS the CSS family name. */
     label: string;
     /** Selector group. */
     group: FontGroup;
@@ -171,6 +252,21 @@ export const SYSTEM_FONTS: ReadonlyArray<FontCatalogueEntry> = FONT_CATALOGUE.fi
 
 /** Sentinel select value marking the "custom free-text" option. */
 export const CUSTOM_FONT_VALUE = '__custom__';
+
+/**
+ * Maps a stored `typography.fontFamily` value to the bundled families it references
+ * (0 or 1 — a catalogue value names exactly one family). Non-catalogue values
+ * (system stacks, custom, Google-Font stacks) yield none.
+ *
+ * @param fontFamily - The stored CSS stack (or undefined when unset).
+ */
+export function bundledFamiliesOf(fontFamily: string | undefined): string[] {
+    if (!fontFamily) {
+        return [];
+    }
+    const entry = FONT_CATALOGUE.find(e => e.value === fontFamily);
+    return entry && entry.group === 'bundled' ? [entry.label] : [];
+}
 
 /**
  * Maps a stored `typography.fontFamily` value to the wizard's select state:

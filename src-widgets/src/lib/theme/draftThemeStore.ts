@@ -31,6 +31,13 @@ let pending: UserTheme | null = null;
 /** The value `getSnapshot` returns; only updated atomically inside a flush. */
 let snapshot: UserTheme | null = null;
 
+/**
+ * `JSON.stringify(snapshot)`, computed ONCE per flush (ADR-0020): N canvas widgets
+ * run the save-handoff compare against the persisted theme — without a centrally
+ * computed string, every widget would stringify the whole draft on every flush.
+ */
+let snapshotString: string | null = null;
+
 /** Whether a rAF flush is already queued (coalescing guard). */
 let flushScheduled = false;
 
@@ -43,6 +50,7 @@ function flush(): void {
         return;
     }
     snapshot = pending;
+    snapshotString = snapshot === null ? null : JSON.stringify(snapshot);
     for (const listener of listeners) {
         listener();
     }
@@ -68,6 +76,17 @@ function scheduleFlush(): void {
  */
 export function getDraftTheme(): UserTheme | null {
     return snapshot;
+}
+
+/**
+ * Returns `JSON.stringify(snapshot)`, computed once per flush (ADR-0020) — the
+ * save-handoff in {@link module:hooks/useCollectionTheme} compares this against
+ * the persisted theme string instead of re-stringifying per widget. Only read
+ * imperatively (e.g. inside effects); it is NOT a separate `useSyncExternalStore`
+ * snapshot — it always flips atomically with {@link getDraftTheme}.
+ */
+export function getDraftThemeString(): string | null {
+    return snapshotString;
 }
 
 /**

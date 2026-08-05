@@ -16,10 +16,6 @@ import { GlobalStyles, ThemeProvider } from '@mui/material';
 import useStyles from '../hooks/useStyles';
 import useCollectionTheme from '../hooks/useCollectionTheme';
 
-// Side-effect: bundle the curated @font-face rules so bundled font families
-// selected in the theme wizard are available to runtime widgets.
-import '../lib/theme/fontCatalogue';
-
 import type { AllCollectionContextProps } from '../types';
 import type { ThemeOptions } from '@mui/material/styles';
 import { cleanSx } from '../lib/helper/sxUtils';

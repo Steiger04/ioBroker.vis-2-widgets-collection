@@ -14,11 +14,12 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createTheme } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 import { THEME_STATE_ID } from '../lib/constants';
-import { clearDraftTheme } from '../lib/theme/draftThemeStore';
+import { createThemeCached } from '../lib/theme/createThemeCache';
+import { clearDraftTheme, getDraftThemeString } from '../lib/theme/draftThemeStore';
 import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
+import { bundledFamiliesOf, ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces } from '../lib/theme/googleFonts';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { buildCornerRadiusCss, getNestedValue } from '../lib/theme/themeUtils';
@@ -161,19 +162,32 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
         injectGoogleFontFaces(userTheme.googleFonts);
     }, [userTheme.googleFonts]);
 
+    // Ensure the bundled @fontsource faces the effective theme references are
+    // injected (ADR-0020: lazy — only the configured family loads, as async
+    // chunks; the other nine families never ship over the wire). font-display:
+    // swap covers the brief async window.
+    const fontFamily = getNestedValue<string>(userTheme, 'typography.fontFamily');
+    useEffect(() => {
+        void ensureBundledFontFaces(bundledFamiliesOf(fontFamily));
+    }, [fontFamily]);
+
     // Seamless save-handoff: once the persisted state echoes the draft the panel
     // just saved, retire the draft so widgets read the persisted value. They are
     // equal at that instant, so there is no visible change (no flicker). The
     // `changed` guard avoids clearing the draft the moment the panel opens and
     // first pushes a draft that happens to equal the persisted theme.
+    // ADR-0020: the draft string comes from the store (stringified ONCE per flush,
+    // shared by all widgets); the persisted side is memoized per widget and only
+    // recomputed when the state actually echoes a new value.
+    const parsedThemeString = useMemo(() => JSON.stringify(parsedTheme), [parsedTheme]);
     const prevParsedTheme = useRef(parsedTheme);
     useEffect(() => {
         const changed = prevParsedTheme.current !== parsedTheme;
         prevParsedTheme.current = parsedTheme;
-        if (draft && changed && JSON.stringify(draft) === JSON.stringify(parsedTheme)) {
+        if (draft && changed && getDraftThemeString() === parsedThemeString) {
             clearDraftTheme();
         }
-    }, [draft, parsedTheme]);
+    }, [draft, parsedTheme, parsedThemeString]);
 
     return useMemo(() => {
         // Strip the host's pre-generated typography variant objects so that
@@ -206,7 +220,7 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
                   },
               })
             : merged;
-        return createTheme(withCorners);
+        return createThemeCached(withCorners);
     }, [hostTheme, overrides, userTheme]);
 }
 
