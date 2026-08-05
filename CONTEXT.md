@@ -55,7 +55,7 @@ The left column of the configurator modal hosting the pinned selectors and the s
 _Avoid_: Sidebar, options column
 
 **Splitter**:
-The draggable divider between Rail and Preview stage (ADR-0019): pointer-drag within the Rail's width clamps, double-click resets to the default width, keyboard-operable (`role="separator"`, arrow keys). Its hover-reveal pill grip is the configurator's interaction signature. Below the md breakpoint the modal stacks vertically and the Splitter is absent.
+The draggable divider between Rail and Preview stage (ADR-0019): pointer-drag within the Rail's width clamps, double-click resets to the default width, keyboard-operable (`role="separator"`, arrow keys). It is a bare 1 px hairline — grey at rest, primary on hover/focus/drag (the hover-reveal pill grip was removed on user feedback); the colouring line itself is the interaction signature. Below the md breakpoint the modal stacks vertically and the Splitter is absent.
 _Avoid_: Resizer, divider (that's the visual line, not the control), sash
 
 **Pinned selectors**:

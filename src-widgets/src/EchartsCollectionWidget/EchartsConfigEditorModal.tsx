@@ -8,8 +8,9 @@
  * stack ({@link EchartsEditorSections}). Right stage: a persistent **real-data** preview fed by
  * {@link ChartPreview} (the user's actual OIDs, live — not synthetic fixtures); its empty state is
  * clickable and steers the rail to the section that would fill it. The two are divided by the
- * Splitter ({@link useSplitPane}) — drag, arrow keys, double-click reset — whose hover-reveal grip
- * is the configurator's interaction signature.
+ * Splitter ({@link useSplitPane}) — drag, arrow keys, double-click reset — a bare hairline that colours
+ * primary on hover/focus/drag (the hover-reveal grip pill was removed on user feedback, ADR-0019
+ * addendum).
  *
  * The honesty contract is preserved: a working copy buffers edits, Apply is disabled until it
  * diverges (`hasChanges`, deep-equality), closing while dirty (backdrop click **or** Escape) is
@@ -353,16 +354,15 @@ function EchartsConfigEditorModal({
                                 jsonError={jsonPreview.error}
                             />
                         </Box>
-                        {/* Splitter (ADR-0019 signature element): 1 px hairline at rest; the dotted
-                            pill grip fades in on hover/focus and turns primary while dragging. */}
+                        {/* Splitter (ADR-0019 signature element): the bare 1 px hairline — divider
+                            grey at rest, primary on hover/focus/drag. No grip pill (removed on user
+                            feedback 2026-08-05): the colouring line itself is the affordance. */}
                         <Box
                             {...handleProps}
                             aria-label={Generic.t('echarts_splitter_aria')}
                             title={Generic.t('echarts_splitter_hint')}
                             sx={{
-                                display: { xs: 'none', md: 'flex' },
-                                alignItems: 'center',
-                                justifyContent: 'center',
+                                display: { xs: 'none', md: 'block' },
                                 width: 15,
                                 mx: '-7px',
                                 flexShrink: 0,
@@ -385,45 +385,8 @@ function EchartsConfigEditorModal({
                                 '&:hover::before, &:focus-visible::before': {
                                     bgcolor: 'primary.main',
                                 },
-                                '& .echarts-splitter-grip': {
-                                    opacity: dragging ? 1 : 0,
-                                    borderColor: dragging ? 'primary.main' : 'divider',
-                                },
-                                '&:hover .echarts-splitter-grip, &:focus-visible .echarts-splitter-grip': {
-                                    opacity: 1,
-                                },
                             }}
-                        >
-                            <Box
-                                className="echarts-splitter-grip"
-                                aria-hidden
-                                sx={{
-                                    width: 14,
-                                    height: 34,
-                                    borderRadius: 7,
-                                    bgcolor: 'background.paper',
-                                    border: 1,
-                                    borderColor: 'divider',
-                                    boxShadow: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '3px',
-                                    transition: 'opacity 120ms, border-color 120ms',
-                                    '& span': {
-                                        width: 3,
-                                        height: 3,
-                                        borderRadius: '50%',
-                                        bgcolor: dragging ? 'primary.main' : 'text.secondary',
-                                    },
-                                }}
-                            >
-                                <span />
-                                <span />
-                                <span />
-                            </Box>
-                        </Box>
+                        />
                         {/* Right stage: persistent real-data preview */}
                         <Box
                             sx={{
