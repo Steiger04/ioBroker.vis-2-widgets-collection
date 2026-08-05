@@ -14,7 +14,8 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { CheckField, LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
+import { LabeledSelect, NumberField, OptionalNumberField, TextField2 } from '../controls';
+import { FieldGrid, SliderField, SwitchList, SwitchRow } from '../layout';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface FamilySectionProps {
@@ -27,7 +28,7 @@ export const GaugeOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
     const rangeInvalid = (state.gauge.min ?? 0) >= (state.gauge.max ?? 100);
 
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <FieldGrid>
             <NumberField
                 label={Generic.t('echarts_gauge_min')}
                 value={state.gauge.min ?? 0}
@@ -46,9 +47,11 @@ export const GaugeOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
                 value={state.gauge.target}
                 onChange={v => setGauge({ target: v })}
             />
-            <NumberField
+            <SliderField
                 label={Generic.t('echarts_gauge_progress_width')}
                 value={state.gauge.progressWidth ?? 14}
+                min={2}
+                max={40}
                 onChange={v => setGauge({ progressWidth: v })}
             />
             <TextField2
@@ -56,7 +59,7 @@ export const GaugeOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
                 value={state.gauge.unit ?? ''}
                 onChange={v => setGauge({ unit: v })}
             />
-        </Box>
+        </FieldGrid>
     );
 };
 
@@ -64,7 +67,7 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
     const setPie = (patch: Partial<EditorState['pie']>): void => set({ pie: { ...state.pie, ...patch } });
 
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <FieldGrid>
             <LabeledSelect
                 label={Generic.t('echarts_pie_aggregate')}
                 value={state.pie.aggregate ?? 'latest'}
@@ -77,10 +80,12 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
                     ['max', Generic.t('echarts_pie_agg_max')],
                 ]}
             />
-            <NumberField
+            <SliderField
                 label={Generic.t('echarts_pie_inner_radius')}
                 value={state.pie.innerRadius ?? 0}
-                step={0.1}
+                min={0}
+                max={0.9}
+                step={0.05}
                 onChange={v => setPie({ innerRadius: v })}
             />
             <LabeledSelect
@@ -104,30 +109,34 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
                     ['area', Generic.t('echarts_rose_area')],
                 ]}
             />
-        </Box>
+        </FieldGrid>
     );
 };
 
 export const RadarOptionsSection: FC<FamilySectionProps> = ({ state, set }) => (
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <LabeledSelect
-            label={Generic.t('echarts_radar_shape')}
-            value={state.radar.shape ?? 'polygon'}
-            onChange={v => set({ radar: { ...state.radar, shape: v as 'polygon' | 'circle' } })}
-            options={[
-                ['polygon', Generic.t('echarts_radar_polygon')],
-                ['circle', Generic.t('echarts_radar_circle')],
-            ]}
-        />
-        <NumberField
-            label={Generic.t('echarts_radar_split')}
-            value={state.radar.splitNumber ?? 5}
-            onChange={v => set({ radar: { ...state.radar, splitNumber: v } })}
-        />
-        <CheckField
-            label={Generic.t('echarts_radar_area')}
-            value={state.radar.area ?? true}
-            onChange={v => set({ radar: { ...state.radar, area: v } })}
-        />
+    <Box>
+        <FieldGrid sx={{ mb: 1.5 }}>
+            <LabeledSelect
+                label={Generic.t('echarts_radar_shape')}
+                value={state.radar.shape ?? 'polygon'}
+                onChange={v => set({ radar: { ...state.radar, shape: v as 'polygon' | 'circle' } })}
+                options={[
+                    ['polygon', Generic.t('echarts_radar_polygon')],
+                    ['circle', Generic.t('echarts_radar_circle')],
+                ]}
+            />
+            <NumberField
+                label={Generic.t('echarts_radar_split')}
+                value={state.radar.splitNumber ?? 5}
+                onChange={v => set({ radar: { ...state.radar, splitNumber: v } })}
+            />
+        </FieldGrid>
+        <SwitchList>
+            <SwitchRow
+                label={Generic.t('echarts_radar_area')}
+                checked={state.radar.area ?? true}
+                onChange={v => set({ radar: { ...state.radar, area: v } })}
+            />
+        </SwitchList>
     </Box>
 );

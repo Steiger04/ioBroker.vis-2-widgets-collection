@@ -47,12 +47,16 @@ The widget renders ioBroker state data as Apache ECharts charts (line/bar/pie/ga
 ## Language
 
 **Preview stage**:
-The right-hand area of the configurator modal — a flexing (~50% width) live preview fed by the user's real OID data. The configurator's centrepiece; layout decisions exist to serve it.
+The right-hand area of the configurator modal — a live preview fed by the user's real OID data, taking whatever width the Rail leaves it. The configurator's centrepiece; layout decisions exist to serve it.
 _Avoid_: Preview pane, right column, preview tab
 
 **Rail**:
-The fixed-width (~420px) left column of the configurator modal hosting the pinned selectors and the section stack.
+The left column of the configurator modal hosting the pinned selectors and the section stack. Resizable via the Splitter (320–720 px, default 440 px, persisted across sessions).
 _Avoid_: Sidebar, options column
+
+**Splitter**:
+The draggable divider between Rail and Preview stage (ADR-0019): pointer-drag within the Rail's width clamps, double-click resets to the default width, keyboard-operable (`role="separator"`, arrow keys). Its hover-reveal pill grip is the configurator's interaction signature. Below the md breakpoint the modal stacks vertically and the Splitter is absent.
+_Avoid_: Resizer, divider (that's the visual line, not the control), sash
 
 **Pinned selectors**:
 The chart-type picker and data-mode toggle sitting above the section stack — always visible, never collapsible.
@@ -67,7 +71,7 @@ The single-line digest of effective values shown on a collapsed Section (`24h ·
 _Avoid_: Subtitle, hint text
 
 **Series card**:
-A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knob grid.
+A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, grouped into Sub-groups (basis, line/bar, area).
 _Avoid_: Accordion item (v2), row
 
 **Slice row**:
@@ -87,7 +91,7 @@ The non-blocking chip under the chart-type picker shown when the chosen chart fa
 _Avoid_: Confirm dialog, type guard
 
 **Axis card**:
-A cartesian Y-axis item in the (v4) Axes manager — core knobs (name/position/colour/min/max/log/format) always visible, advanced knobs (scale/splitLine/splitNumber/minInterval/offset/alignTicks/axisTick/nameRotate) collapsible. One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
+A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose body groups all axis knobs into Sub-groups (basis, value range, scale & ticks, presentation). One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
 _Avoid_: Axis row, axis settings
 
 **Axis manager**:
@@ -109,3 +113,19 @@ _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 **Series template**:
 A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**.
 _Avoid_: Snippet, preset, template snippet (that is chart-wide)
+
+**Field grid**:
+The section-body layout primitive (ADR-0019): a CSS `repeat(auto-fill, minmax(150px, 1fr))` grid whose cells reflow 1→4 columns purely with Rail width — no JS width measurement, so a Splitter drag never re-renders the form tree. Composite fields (OID picker, colour) live in flex rows with a flex basis; a wide field may span `1 / -1`. Hardcoded pixel widths are banned from section bodies.
+_Avoid_: Column layout, breakpoint layout
+
+**Switch list**:
+The boolean-control idiom (ADR-0019): one row per option — label left, switch right, ~32 px tall — several rows grouped in a quiet hairline box. Replaces the stacked label-over-switch cell that made six booleans a wall.
+_Avoid_: Checkbox grid, toggle cell
+
+**Slider field**:
+The bounded-numeric idiom (ADR-0019): a slider with a synced small number input beside it (either edits the value; the working copy updates live). For bounded ranges (opacity, width, radius, duration, rotation); unbounded numerics (min/max, offsets) stay plain number fields.
+_Avoid_: Stepper, spinner
+
+**Sub-group**:
+A named cluster of knobs inside a card body (ADR-0019), headed by a small overline label (e.g. range / scale & ticks / presentation on an Axis card). Structure without disclosure — everything in an open card stays visible; no fourth expand level.
+_Avoid_: Advanced section (v2), nested accordion, tab

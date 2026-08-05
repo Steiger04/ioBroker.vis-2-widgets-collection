@@ -12,7 +12,8 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { CheckField, LabeledSelect, NumberField } from '../controls';
+import { LabeledSelect } from '../controls';
+import { FieldGrid, SliderField, SwitchList, SwitchRow } from '../layout';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface BehaviorSectionProps {
@@ -21,38 +22,47 @@ interface BehaviorSectionProps {
 }
 
 const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <CheckField
-            label={Generic.t('echarts_animation')}
-            value={state.animation}
-            onChange={v => set({ animation: v })}
-        />
-        <NumberField
-            label={Generic.t('echarts_animation_duration')}
-            value={state.animationDuration}
-            onChange={v => set({ animationDuration: v })}
-        />
-        <LabeledSelect
-            label={Generic.t('echarts_animation_easing')}
-            value={state.animationEasing}
-            onChange={v => set({ animationEasing: v })}
-            options={[
-                ['', Generic.t('echarts_easing_default')],
-                ['linear', Generic.t('echarts_easing_linear')],
-                ['cubicOut', Generic.t('echarts_easing_cubic_out')],
-                ['cubicInOut', Generic.t('echarts_easing_cubic_inout')],
-                ['elasticOut', Generic.t('echarts_easing_elastic_out')],
-            ]}
-        />
-        <LabeledSelect
-            label={Generic.t('echarts_renderer')}
-            value={state.renderer}
-            onChange={v => set({ renderer: v as EditorState['renderer'] })}
-            options={[
-                ['canvas', Generic.t('echarts_renderer_canvas')],
-                ['svg', Generic.t('echarts_renderer_svg')],
-            ]}
-        />
+    <Box>
+        <SwitchList sx={{ mb: 1.5 }}>
+            <SwitchRow
+                label={Generic.t('echarts_animation')}
+                checked={state.animation}
+                onChange={v => set({ animation: v })}
+            />
+        </SwitchList>
+        <FieldGrid>
+            <SliderField
+                label={Generic.t('echarts_animation_duration')}
+                value={state.animationDuration}
+                min={0}
+                max={2000}
+                step={50}
+                disabled={!state.animation}
+                onChange={v => set({ animationDuration: v })}
+            />
+            <LabeledSelect
+                label={Generic.t('echarts_animation_easing')}
+                value={state.animationEasing}
+                onChange={v => set({ animationEasing: v })}
+                disabled={!state.animation}
+                options={[
+                    ['', Generic.t('echarts_easing_default')],
+                    ['linear', Generic.t('echarts_easing_linear')],
+                    ['cubicOut', Generic.t('echarts_easing_cubic_out')],
+                    ['cubicInOut', Generic.t('echarts_easing_cubic_inout')],
+                    ['elasticOut', Generic.t('echarts_easing_elastic_out')],
+                ]}
+            />
+            <LabeledSelect
+                label={Generic.t('echarts_renderer')}
+                value={state.renderer}
+                onChange={v => set({ renderer: v as EditorState['renderer'] })}
+                options={[
+                    ['canvas', Generic.t('echarts_renderer_canvas')],
+                    ['svg', Generic.t('echarts_renderer_svg')],
+                ]}
+            />
+        </FieldGrid>
     </Box>
 );
 

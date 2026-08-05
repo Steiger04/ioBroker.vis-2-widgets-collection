@@ -9,7 +9,7 @@
  */
 import type { FC } from 'react';
 import type React from 'react';
-import { Box, MenuItem, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
 import type { SetEditor, EditorState } from './editorState';
@@ -17,10 +17,26 @@ import type { EchartsChartType, EchartsMode } from '../../types/field-definition
 
 // ── tiny shared labels / inputs ───────────────────────────────────
 
+/** Hides the native number spinners (ugly + inconsistent across browsers) on type=number inputs. */
+export const noSpinnerSx = {
+    '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+        WebkitAppearance: 'none',
+        margin: 0,
+    },
+    '& input[type=number]': { MozAppearance: 'textfield', appearance: 'textfield' },
+} as const;
+
+/**
+ * The one label idiom (ADR-0019): a 12 px caption above the control — never a floating label
+ * (those truncate brutally in narrow grid cells). Single-line with ellipsis; the full text rides
+ * as a tooltip. The control below is label-free and owns the full cell width for its value.
+ */
 export const FieldLabel: FC<{ children: React.ReactNode }> = ({ children }) => (
     <Typography
         variant="caption"
         color="text.secondary"
+        noWrap
+        title={typeof children === 'string' ? children : undefined}
         sx={{ display: 'block', mb: 0.5 }}
     >
         {children}
@@ -51,24 +67,28 @@ export const LabeledSelect: FC<{
     value: string;
     onChange: (value: string) => void;
     options: ReadonlyArray<[string, string]>;
-}> = ({ label, value, onChange, options }) => (
-    <TextField
-        select
-        size="small"
-        label={label}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        fullWidth
-    >
-        {options.map(([v, l]) => (
-            <MenuItem
-                key={v}
-                value={v}
-            >
-                {l}
-            </MenuItem>
-        ))}
-    </TextField>
+    disabled?: boolean;
+}> = ({ label, value, onChange, options, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            select
+            size="small"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            disabled={disabled}
+            fullWidth
+        >
+            {options.map(([v, l]) => (
+                <MenuItem
+                    key={v}
+                    value={v}
+                >
+                    {l}
+                </MenuItem>
+            ))}
+        </TextField>
+    </Box>
 );
 
 export const NumberField: FC<{
@@ -78,18 +98,23 @@ export const NumberField: FC<{
     step?: number;
     error?: boolean;
     helperText?: string;
-}> = ({ label, value, onChange, step = 1, error, helperText }) => (
-    <TextField
-        size="small"
-        type="number"
-        label={label}
-        value={value}
-        inputProps={{ step }}
-        onChange={e => onChange(Number(e.target.value) || 0)}
-        error={error}
-        helperText={helperText}
-        fullWidth
-    />
+    disabled?: boolean;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            size="small"
+            type="number"
+            value={value}
+            inputProps={{ step }}
+            onChange={e => onChange(Number(e.target.value) || 0)}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            fullWidth
+            sx={noSpinnerSx}
+        />
+    </Box>
 );
 
 /**
@@ -103,28 +128,37 @@ export const OptionalNumberField: FC<{
     step?: number;
     error?: boolean;
     helperText?: string;
-}> = ({ label, value, onChange, step = 1, error, helperText }) => (
-    <TextField
-        size="small"
-        type="number"
-        label={label}
-        value={value ?? ''}
-        inputProps={{ step }}
-        error={error}
-        helperText={helperText}
-        onChange={e => {
-            const raw = e.target.value;
-            if (raw === '') {
-                onChange(undefined);
-                return;
-            }
-            const n = Number(raw);
-            onChange(Number.isFinite(n) ? n : undefined);
-        }}
-        fullWidth
-    />
+    disabled?: boolean;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <TextField
+            size="small"
+            type="number"
+            value={value ?? ''}
+            inputProps={{ step }}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            onChange={e => {
+                const raw = e.target.value;
+                if (raw === '') {
+                    onChange(undefined);
+                    return;
+                }
+                const n = Number(raw);
+                onChange(Number.isFinite(n) ? n : undefined);
+            }}
+            fullWidth
+            sx={noSpinnerSx}
+        />
+    </Box>
 );
 
+/**
+ * Text input, caption-above (ADR-0019). The placeholder is always visible (no floating label
+ * competes with it) — used e.g. to show an inherited value as ghost text.
+ */
 export const TextField2: FC<{
     label: string;
     value: string;
@@ -132,36 +166,19 @@ export const TextField2: FC<{
     placeholder?: string;
     error?: boolean;
     helperText?: string;
-    /**
-     * Keep the label shrunk (floated) so a placeholder stays visible even when unfocused + empty —
-     * MUI otherwise hides the placeholder behind an unfloated label.
-     */
-    shrinkLabel?: boolean;
-}> = ({ label, value, onChange, placeholder, error, helperText, shrinkLabel }) => (
-    <TextField
-        size="small"
-        label={label}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        error={error}
-        helperText={helperText}
-        fullWidth
-        {...(shrinkLabel ? { InputLabelProps: { shrink: true } } : {})}
-    />
-);
-
-/** Checkbox-style boolean toggle (label + MUI Switch) in a compact grid cell. */
-export const CheckField: FC<{ label: string; value: boolean; onChange: (v: boolean) => void }> = ({
-    label,
-    value,
-    onChange,
-}) => (
+    disabled?: boolean;
+}> = ({ label, value, onChange, placeholder, error, helperText, disabled }) => (
     <Box>
         <FieldLabel>{label}</FieldLabel>
-        <Switch
-            checked={value}
-            onChange={e => onChange(e.target.checked)}
+        <TextField
+            size="small"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            error={error}
+            helperText={helperText}
+            disabled={disabled}
+            fullWidth
         />
     </Box>
 );
@@ -272,6 +289,16 @@ const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon:
     { value: 'gauge', label: 'echarts_type_gauge', icon: <GaugeGlyph /> },
     { value: 'radar', label: 'echarts_type_radar', icon: <RadarGlyph /> },
 ];
+
+/** The chart-type glyph outside the picker (e.g. the modal title) — quiet, at currentColor. */
+export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType }) => (
+    <Box
+        component="span"
+        sx={{ display: 'inline-flex', color: 'text.secondary', flexShrink: 0 }}
+    >
+        {CHART_TYPES.find(t => t.value === chartType)?.icon}
+    </Box>
+);
 
 /**
  * The primary selector — a grid of the five concrete chart types. The value is the concrete

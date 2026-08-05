@@ -12,6 +12,7 @@ import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { LabeledSelect, NumberField, TextField2 } from '../controls';
+import { FieldGrid } from '../layout';
 import { familyOf } from '../../optionBuilder';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -36,7 +37,7 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
           ];
 
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <FieldGrid>
             <LabeledSelect
                 label={Generic.t('echarts_tooltip_trigger')}
                 value={effectiveTrigger}
@@ -54,13 +55,15 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                 onChange={v => set({ tooltipUnits: v })}
                 placeholder="°C / % / h"
             />
-            <TextField2
-                label={Generic.t('echarts_tooltip_template')}
-                value={state.tooltipTemplate}
-                onChange={v => set({ tooltipTemplate: v })}
-                placeholder="{b}: {c}"
-            />
-        </Box>
+            <Box sx={{ gridColumn: '1 / -1' }}>
+                <TextField2
+                    label={Generic.t('echarts_tooltip_template')}
+                    value={state.tooltipTemplate}
+                    onChange={v => set({ tooltipTemplate: v })}
+                    placeholder="{b}: {c}"
+                />
+            </Box>
+        </FieldGrid>
     );
 };
 

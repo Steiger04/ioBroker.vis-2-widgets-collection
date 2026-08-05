@@ -15,6 +15,7 @@ import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
 import { FieldLabel, LabeledSelect, NumberField } from '../controls';
+import { FieldGrid } from '../layout';
 import { useHistoryInstances } from '../useHistoryInstances';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -53,7 +54,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
     return (
         <Box>
             {isHistory && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                <FieldGrid>
                     <LabeledSelect
                         label={Generic.t('echarts_time_range')}
                         value={state.timeRange}
@@ -116,7 +117,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                             ['zero', Generic.t('echarts_ignore_null_zero')],
                         ]}
                     />
-                </Box>
+                </FieldGrid>
             )}
 
             {isJson && (

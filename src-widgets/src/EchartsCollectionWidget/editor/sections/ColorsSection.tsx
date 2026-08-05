@@ -13,7 +13,8 @@ import { Box, useTheme } from '@mui/material';
 import Generic from '../../../Generic';
 import { echartsPalette } from '../../echartsTheme';
 import { PALETTE_PRESETS, resolvePalette } from '../../presentation';
-import { CheckField, FieldLabel, LabeledSelect, NumberField, SectionLabel } from '../controls';
+import { FieldLabel, LabeledSelect, NumberField } from '../controls';
+import { FieldGrid, SubGroup, SwitchList, SwitchRow } from '../layout';
 import ColorField, { ColorListField } from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
@@ -77,37 +78,33 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                     />
                 ))}
             </Box>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+            <FieldGrid>
                 <LabeledSelect
                     label={Generic.t('echarts_palette_source')}
                     value={paletteChoice(state)}
                     onChange={onPaletteChoice}
                     options={paletteOptions}
                 />
-            </Box>
-            {state.paletteSource === 'custom' && (
-                <Box sx={{ mb: 2, maxWidth: 260 }}>
-                    <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
-                    <ColorListField
-                        value={state.paletteCustom}
-                        onChange={v => set({ paletteCustom: v })}
+                {state.paletteSource === 'custom' && (
+                    <Box sx={{ gridColumn: '1 / -1' }}>
+                        <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
+                        <ColorListField
+                            value={state.paletteCustom}
+                            onChange={v => set({ paletteCustom: v })}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
+                )}
+                <Box>
+                    <FieldLabel>{Generic.t('echarts_background')}</FieldLabel>
+                    <ColorField
+                        value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
+                        onChange={v => set({ bgColor: v ?? 'transparent' })}
                         ctx={pickerCtx}
                     />
                 </Box>
-            )}
-
-            <Box sx={{ maxWidth: 260, mb: 2 }}>
-                <FieldLabel>{Generic.t('echarts_background')}</FieldLabel>
-                <ColorField
-                    value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
-                    onChange={v => set({ bgColor: v ?? 'transparent' })}
-                    ctx={pickerCtx}
-                />
-            </Box>
-
-            {/* Dark-mode policy (moved from Behaviour — it is a theme/colour concern, and the
-                Colours summary already reported it, ADR-0011 companion / D5). */}
-            <Box sx={{ maxWidth: 260, mb: 2 }}>
+                {/* Dark-mode policy (moved from Behaviour — it is a theme/colour concern, and the
+                    Colours summary already reported it, ADR-0011 companion / D5). */}
                 <LabeledSelect
                     label={Generic.t('echarts_dark_mode')}
                     value={state.darkMode}
@@ -118,45 +115,50 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                         ['dark', Generic.t('echarts_dark_dark')],
                     ]}
                 />
-            </Box>
+            </FieldGrid>
 
             {isCartesian && (
-                <>
-                    <SectionLabel hint={Generic.t('echarts_visualmap_hint')}>
-                        {Generic.t('echarts_visualmap')}
-                    </SectionLabel>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
-                        <CheckField
+                <SubGroup
+                    title={Generic.t('echarts_visualmap')}
+                    hint={Generic.t('echarts_visualmap_hint')}
+                    sx={{ mt: 2 }}
+                >
+                    <SwitchList sx={{ mb: 1.5 }}>
+                        <SwitchRow
                             label={Generic.t('echarts_visualmap_enable')}
-                            value={state.visualMap.enabled}
+                            checked={state.visualMap.enabled}
                             onChange={v => set({ visualMap: { ...state.visualMap, enabled: v } })}
                         />
+                    </SwitchList>
+                    <FieldGrid>
                         <NumberField
                             label={Generic.t('echarts_visualmap_min')}
                             value={state.visualMap.min}
                             onChange={v => set({ visualMap: { ...state.visualMap, min: v } })}
                             error={vmapInvalid}
                             helperText={vmapInvalid ? Generic.t('echarts_val_vmap_range') : undefined}
+                            disabled={!state.visualMap.enabled}
                         />
                         <NumberField
                             label={Generic.t('echarts_visualmap_max')}
                             value={state.visualMap.max}
                             onChange={v => set({ visualMap: { ...state.visualMap, max: v } })}
                             error={vmapInvalid}
+                            disabled={!state.visualMap.enabled}
                         />
-                    </Box>
-                    {/* A value→colour scale is a gradient: one gradient picker supplies the whole
-                        scale; presentation parses it into the ordered colour array echarts needs. */}
-                    <Box sx={{ maxWidth: 260 }}>
-                        <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
-                        <ColorField
-                            value={state.visualMap.colors}
-                            onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
-                            ctx={pickerCtx}
-                            allowGradient
-                        />
-                    </Box>
-                </>
+                        {/* A value→colour scale is a gradient: one gradient picker supplies the whole
+                            scale; presentation parses it into the ordered colour array echarts needs. */}
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
+                            <ColorField
+                                value={state.visualMap.colors}
+                                onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
+                                ctx={pickerCtx}
+                                allowGradient
+                            />
+                        </Box>
+                    </FieldGrid>
+                </SubGroup>
             )}
         </Box>
     );

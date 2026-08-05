@@ -60,14 +60,14 @@ export default function OidPicker({
     const [open, setOpen] = useState(false);
 
     return (
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', width: '100%' }}>
             <TextField
                 size="small"
-                label="OID"
+                placeholder="OID"
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 autoFocus={autoFocus}
-                sx={{ width: 200 }}
+                fullWidth
             />
             <IconButton
                 size="small"
