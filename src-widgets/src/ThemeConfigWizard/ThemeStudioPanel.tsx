@@ -17,8 +17,10 @@
  *   Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y (skipped while typing in inputs).
  * - **Honest dirty state** — dirty is `present ≠ last-loaded/saved` (undo all the way
  *   back reads clean again), shown as a dot next to the title.
- * - **Resizable** — left-edge grip ({@link module:ThemeConfigWizard/useStudioWidth}),
- *   width + position persisted in localStorage.
+ * - **Resizable like an OS window** — 8 Resize grips (4 edges + 4 corners) plus header
+ *   drag via {@link module:hooks/useFloatingPanel}; the geometry `{x, y, w, h|null}`
+ *   persists as ONE localStorage entry (`h: null` = Auto height). Clamped live and on
+ *   browser-window resize; the stored intent survives clamping.
  * - **Field-level validation** — colour errors render at their field; the footer
  *   counter scrolls to the first problem (expanding its section). Only errors without
  *   a field home (non-colour paths) and warnings keep a compact alert at the bottom.
@@ -56,8 +58,9 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme } from '@mui/material/styles';
 
 import Generic from '../Generic';
+import FloatingPanelGrips from '../components/FloatingPanelGrips';
 import { SubGroup } from '../components/controls';
-import useDraggable from '../hooks/useDraggable';
+import useFloatingPanel, { PANEL_DEFAULT_W } from '../hooks/useFloatingPanel';
 import { THEME_STATE_ID } from '../lib/constants';
 import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePalette';
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
@@ -73,7 +76,9 @@ import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
 import StatusTextSection from './sections/StatusTextSection';
 import TypographySection from './sections/TypographySection';
-import useStudioWidth, { readStoredPosition, storePosition } from './useStudioWidth';
+
+/** localStorage key for the panel geometry (codebase namespacing idiom, cf. RAIL_STORAGE_KEY). */
+export const STUDIO_GEOMETRY_KEY = 'vis-2-widgets-collection:theme-studio:geometry';
 
 /** Props for {@link ThemeStudioPanel}. */
 interface ThemeStudioPanelProps {
@@ -166,38 +171,20 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
     const [expandedMap, setExpandedMap] = useState<Partial<Record<SectionKey, boolean>>>({});
     const bodyRef = useRef<HTMLDivElement>(null);
 
-    // Default position: persisted, else top-right with a small margin.
-    const [initialPosition] = useState<{ x: number; y: number }>(() => {
-        if (typeof window === 'undefined') {
-            return { x: 24, y: 24 };
-        }
-        return readStoredPosition() ?? { x: Math.max(0, window.innerWidth - 380 - 24), y: 24 };
-    });
-    const { position, setPosition, panelRef, dragHandlers } = useDraggable({ initial: initialPosition });
-    const positionRef = useRef(position);
-    positionRef.current = position;
-
-    // Left-edge resize: anchor the right edge by shifting the panel position.
-    const {
-        width,
-        resizing,
-        handleProps: resizeProps,
-    } = useStudioWidth({
-        gripLabel: Generic.t('theme_studio_resize'),
-        onLive: (_w, delta) => {
-            const pos = positionRef.current;
-            setPosition({ x: Math.max(0, pos.x - delta), y: pos.y });
+    // Window-style chrome: header drag + 8 Resize grips, geometry persisted as one entry
+    // (ADR-0020 addendum). Default dock: top-right with a small margin.
+    const { panelRef, geometry, activeDrag, dragHandleProps, edgeProps, cornerProps } = useFloatingPanel({
+        storageKey: STUDIO_GEOMETRY_KEY,
+        active: open,
+        defaultGeometry: () =>
+            typeof window === 'undefined'
+                ? { x: 24, y: 24, w: PANEL_DEFAULT_W, h: null }
+                : { x: Math.max(0, window.innerWidth - PANEL_DEFAULT_W - 24), y: 24, w: PANEL_DEFAULT_W, h: null },
+        labels: {
+            width: Generic.t('theme_studio_resize_width'),
+            height: Generic.t('theme_studio_resize_height'),
         },
     });
-
-    // Persist the position (debounced — a drag streams positions).
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-        const timer = setTimeout(() => storePosition(position), 300);
-        return () => clearTimeout(timer);
-    }, [open, position]);
 
     // Panel chrome follows the vis-2 dark/light mode (independent of the edited theme).
     const chromeTheme = useMemo(
@@ -483,46 +470,28 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                 elevation={8}
                 sx={{
                     position: 'fixed',
-                    left: position.x,
-                    top: position.y,
-                    width,
-                    maxHeight: '80vh',
+                    left: geometry.x,
+                    top: geometry.y,
+                    width: geometry.w,
+                    // Auto height follows the content up to 80vh; a fixed height renders as-is
+                    // (already viewport-clamped by the hook).
+                    ...(geometry.h == null ? { maxHeight: '80vh' } : { height: geometry.h }),
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 1300,
-                    // No hover-transition fight while the grip streams widths.
-                    transition: resizing ? 'none' : undefined,
+                    // No hover-transition fight while a grip streams sizes.
+                    transition: activeDrag ? 'none' : undefined,
                 }}
             >
-                {/* Left-edge resize grip: a bare hairline hit strip (ADR-0019 idiom). */}
-                <Box
-                    {...resizeProps}
-                    title={Generic.t('theme_studio_resize')}
-                    sx={{
-                        position: 'absolute',
-                        left: -3,
-                        top: 0,
-                        bottom: 0,
-                        width: 7,
-                        cursor: 'col-resize',
-                        zIndex: 2,
-                        '&::after': {
-                            content: '""',
-                            position: 'absolute',
-                            left: 3,
-                            top: 0,
-                            bottom: 0,
-                            width: 1,
-                            bgcolor: 'transparent',
-                            transition: 'background-color 150ms',
-                        },
-                        '&:hover::after, &:focus-visible::after': { bgcolor: 'primary.main' },
-                        '&:focus-visible': { outline: 'none' },
-                    }}
+                {/* 8 window-style Resize grips (ADR-0020 addendum, bare-hairline idiom). */}
+                <FloatingPanelGrips
+                    edgeProps={edgeProps}
+                    cornerProps={cornerProps}
+                    activeDrag={activeDrag}
                 />
 
                 <Box
-                    {...dragHandlers}
+                    {...dragHandleProps}
                     sx={{
                         display: 'flex',
                         alignItems: 'center',

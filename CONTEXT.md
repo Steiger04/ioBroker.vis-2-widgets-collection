@@ -56,7 +56,7 @@ _Avoid_: Sidebar, options column
 
 **Splitter**:
 The draggable divider between Rail and Preview stage (ADR-0019): pointer-drag within the Rail's width clamps, double-click resets to the default width, keyboard-operable (`role="separator"`, arrow keys). It is a bare 1 px hairline — grey at rest, primary on hover/focus/drag (the hover-reveal pill grip was removed on user feedback); the colouring line itself is the interaction signature. Below the md breakpoint the modal stacks vertically and the Splitter is absent.
-_Avoid_: Resizer, divider (that's the visual line, not the control), sash
+_Avoid_: Resizer, divider (that's the visual line, not the control), sash, Resize grip (that's the Studio panel's window-edge affordance)
 
 **Pinned selectors**:
 The chart-type picker and data-mode toggle sitting above the section stack — always visible, never collapsible.
@@ -137,7 +137,7 @@ The collection-wide theme editor (ADR-0020): edits the user theme (stored in the
 ## Language
 
 **Studio panel**:
-The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Width and position persist across sessions.
+The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
 _Avoid_: Wizard dialog (the deleted modal), theme dialog
 
 **Preset card**:
@@ -155,3 +155,15 @@ _Avoid_: Advanced typography, more options
 **Control kit**:
 The shared configurator primitives (`FieldLabel`, Field grid, Switch list, Slider field, Sub-group — defined under ECharts, ADR-0019) living in `src/components/controls/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection.
 _Avoid_: Editor controls, per-editor widgets
+
+**Resize grip**:
+One of the 8 window-style resize affordances on the Studio panel's edges and corners (ADR-0020 addendum). Edge grips are keyboard-operable separators (arrows ±16/±64, Home/End, double-click reset) in the bare-hairline idiom; corner grips are pointer-only, invisible hit zones revealed by the resize cursor. Distinct from the echarts configurator's Splitter — that is an in-layout divider between two panes, not a window edge.
+_Avoid_: Splitter (the echarts rail divider), resizer, sash
+
+**Auto height**:
+The Studio panel's untouched height default: the panel follows its content up to 80vh. The first drag on a horizontal edge or any corner fixes the height; a double-click on a horizontal edge restores Auto. Persisted as `h: null` in the Geometry.
+_Avoid_: Fit-to-content, dynamic height
+
+**Geometry**:
+The Studio panel's persisted window rectangle — position, width, and height-or-Auto in a single localStorage entry. Stored as the user's intent; the applied rectangle is clamped to the viewport (width 320…viewport−48, height 240…viewport−48) live during drags and on browser-window resize, so a shrunken window never strands the panel and a re-grown window restores the intended size.
+_Avoid_: Position+width (the retired two-key form), size
