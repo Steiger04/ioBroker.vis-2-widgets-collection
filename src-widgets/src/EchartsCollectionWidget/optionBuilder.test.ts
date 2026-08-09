@@ -20,7 +20,7 @@ import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definit
 /** Minimal cartesian presentation config for tests. */
 const P: PresentationConfig = {
     legendShow: true,
-    legendPos: 'top',
+    legendPos: 'topCenter',
     tooltipTrigger: 'axis',
     animation: true,
     animationDuration: 600,

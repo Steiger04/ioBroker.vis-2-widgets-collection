@@ -197,3 +197,78 @@ export const ModeSelect: FC<{ state: EditorState; set: SetEditor }> = ({ state, 
         </Typography>
     </Box>
 );
+
+// ── position grid (ADR-0021) ──────────────────────────────────────
+
+// The one signature control of the Title/Legend sections (ADR-0021): a 3-column grid of position
+// glyphs — a frame with a dot at the chosen corner/edge/centre. Language-neutral (the glyph IS the
+// label; words ride only as the button aria-label/title), scannable at 6/9 options where a dropdown
+// is not, and it mirrors the ChartTypePicker's 3-column glyph-grid idiom so it reads as the same
+// editor, not a new aesthetic.
+const PositionGlyph: FC<{ pos: string }> = ({ pos }) => {
+    const cx = pos.includes('Left') ? 5 : pos.includes('Right') ? 19 : 12;
+    const cy = pos.includes('top') ? 5 : pos.includes('bottom') ? 19 : 12;
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            width={18}
+            height={18}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.4}
+            aria-hidden
+        >
+            <rect
+                x={2.5}
+                y={2.5}
+                width={19}
+                height={19}
+                rx={2}
+            />
+            <circle
+                cx={cx}
+                cy={cy}
+                r={2.4}
+                fill="currentColor"
+                stroke="none"
+            />
+        </svg>
+    );
+};
+
+/**
+ * A 3-column position selector rendered as a glyph grid (the Title/Legend position control,
+ * ADR-0021). `options` is the active subset in row-order: title passes 6 (a 3×2 grid), legend 9
+ * (a 3×3 grid). The glyph is derived from the value; the human label rides as the aria-label.
+ */
+export const PositionGrid: FC<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: ReadonlyArray<[string, string]>;
+    disabled?: boolean;
+}> = ({ label, value, onChange, options, disabled }) => (
+    <Box>
+        <FieldLabel>{label}</FieldLabel>
+        <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={value}
+            onChange={(_, v: string | null) => v && onChange(v)}
+            sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, width: '100%' }}
+        >
+            {options.map(([v, l]) => (
+                <ToggleButton
+                    key={v}
+                    value={v}
+                    disabled={disabled}
+                    aria-label={l}
+                    title={l}
+                    sx={{ py: 0.5, px: 0, color: 'text.secondary' }}
+                >
+                    <PositionGlyph pos={v} />
+                </ToggleButton>
+            ))}
+        </ToggleButtonGroup>
+    </Box>
+);

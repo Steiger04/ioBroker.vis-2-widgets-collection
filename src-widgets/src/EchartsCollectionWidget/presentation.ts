@@ -13,6 +13,7 @@ import type {
     EchartsCartesianType,
     EchartsChartFamily,
     EchartsGaugeConfig,
+    EchartsLegendConfig,
     EchartsLegendPos,
     EchartsMarkLine,
     EchartsPieConfig,
@@ -26,44 +27,118 @@ import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import type { PresentationConfig } from './optionBuilders/types';
 
 /**
- * Build the echarts `title` placement (`left`/`top` + `textAlign`) from an anchor + pixel offset
- * (ADR-0009, simplified). `dy` (px, down-positive) applies to every anchor (edge-based, top edge —
- * measurement-free). `dx` (px, right-positive) applies ONLY to `topLeft` (the left-edge anchor is the
- * one measurement-free horizontal offset); `topCenter`/`topRight` keep their responsive named anchor
- * and ignore `dx`.
+ * Title placement + styling, authored by the GUI (ADR-0007; ADR-0009 offsets; ADR-0021 bottom row
+ * + colour/size/weight). The 3×2 anchor grid maps to echarts `left` (uniform — never `right`) +
+ * `top` (top row) / `bottom` (bottom row) + an optional `textAlign` for the numeric-offset path.
  *
- * Why the asymmetry (ADR-0009 addendum): a centered/right horizontal offset needed the container width
- * to recenter across resizes — a resize→option-rebuild churn path. echarts has no native title offset
- * (DeepWiki-verified), so the centered/right nudge had no simpler native form; dropping it removes the
- * churn (a user who needs it falls back to a numeric `left` in the Advanced JSON).
+ * - `dx` (px, right-positive) applies to the LEFT-edge anchors only (`topLeft`/`bottomLeft`) — the
+ *   one measurement-free horizontal offset (`left: dx` is width-independent). Center/right anchors
+ *   keep their responsive named anchor and ignore `dx` (ADR-0009 addendum; a centered/right nudge
+ *   needed the container width to recenter → a removed resize→rebuild churn path).
+ * - `dy` (px, down-positive) applies to every anchor: top row `top: dy`, bottom row `bottom: -dy`
+ *   (down = past the bottom edge).
  *
- * All anchors use the `left` field uniformly (never `right`), so anchor switches never leave a stale
- * `right` key across `setOption` merges (no `replaceMerge:['title']` needed).
+ * The bottom row needs echarts `bottom`, so switching top↔bottom would leave a stale key across
+ * `setOption` merges. `'title'` (and `'legend'`) therefore joined `replaceMerge` in ADR-0021 — the
+ * component is replaced each setOption, clearing any stale edge key. (Canvas, the default renderer,
+ * redraws the text with no flicker; SVG swaps the node — a theoretical cost only.)
  */
-export const buildTitlePlacement = ({
-    titlePos,
-    dx,
-    dy,
-}: {
+const titlePlacement = (pos: EchartsTitlePos, dx: number, dy: number): Record<string, unknown> => {
+    const hasDx = Number.isFinite(dx) && dx !== 0;
+    const hasDy = Number.isFinite(dy) && dy !== 0;
+    const isTopRow = pos === 'topLeft' || pos === 'topCenter' || pos === 'topRight';
+    const hAlign: 'left' | 'center' | 'right' =
+        pos === 'topLeft' || pos === 'bottomLeft'
+            ? 'left'
+            : pos === 'topRight' || pos === 'bottomRight'
+              ? 'right'
+              : 'center';
+
+    const out: Record<string, unknown> = {};
+    out[isTopRow ? 'top' : 'bottom'] = isTopRow ? (hasDy ? dy : 'top') : hasDy ? -dy : 'bottom';
+
+    // Left-edge anchors get the measurement-free numeric offset; center/right keep the named anchor.
+    if ((pos === 'topLeft' || pos === 'bottomLeft') && hasDx) {
+        out.left = dx;
+        out.textAlign = 'left';
+    } else {
+        out.left = hAlign;
+    }
+    return out;
+};
+
+/** Options for {@link buildTitleOption}. */
+export interface TitleOptionInput {
+    text: string;
     titlePos: EchartsTitlePos;
     dx: number;
     dy: number;
-}): Record<string, unknown> => {
-    const hasDx = Number.isFinite(dx) && dx !== 0;
-    const hasDy = Number.isFinite(dy) && dy !== 0;
-    const top: number | 'top' = hasDy ? dy : 'top';
+    /** Title colour override (`title.textStyle.color`); empty = inherit theme text-primary. */
+    color?: string | null;
+    /** Title font-size override; `undefined` = inherit. */
+    fontSize?: number;
+    /** Title font-weight override; empty = inherit. */
+    fontWeight?: 'normal' | 'bold' | null;
+}
 
-    switch (titlePos) {
-        case 'topLeft':
-            // Left-edge anchor: `left: dx` is resize-stable (width-independent). The ONLY anchor where
-            // a horizontal offset is measurement-free.
-            return hasDx ? { left: dx, top, textAlign: 'left' } : { left: 'left', top };
-        case 'topRight':
-            return { left: 'right', top };
-        case 'topCenter':
-        default:
-            return { left: 'center', top };
+/**
+ * Set `merged.title` from the live title text + placement + GUI-owned styling (ADR-0009 + ADR-0021).
+ * The single place the title is assembled, so the widget body and the editor preview never drift
+ * (ADR-0009 "one central helper, both consumers call it"). The theme already merged
+ * `title.textStyle.color`; a user colour/size/weight overlays onto that (deep-merged, not replaced,
+ * so a size-only override keeps the theme colour).
+ */
+export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOptionInput): void => {
+    const existing = (merged.title as Record<string, unknown> | undefined) ?? {};
+    const textStyleOverride: Record<string, unknown> = {};
+    if (opts.color) {
+        textStyleOverride.color = opts.color;
     }
+    if (opts.fontSize !== undefined && Number.isFinite(opts.fontSize)) {
+        textStyleOverride.fontSize = opts.fontSize;
+    }
+    if (opts.fontWeight) {
+        textStyleOverride.fontWeight = opts.fontWeight;
+    }
+    const existingTextStyle = (existing.textStyle as Record<string, unknown> | undefined) ?? {};
+    merged.title = {
+        ...existing,
+        text: opts.text,
+        ...titlePlacement(opts.titlePos, opts.dx, opts.dy),
+        ...(Object.keys(textStyleOverride).length ? { textStyle: { ...existingTextStyle, ...textStyleOverride } } : {}),
+    };
+};
+
+/**
+ * Legacy 4-edge → 3×3-grid legend position migration (ADR-0021). Old widgets may still store
+ * `top`/`bottom`/`left`/`right`; mapped on load, never rewritten to storage.
+ */
+const LEGACY_LEGEND_POS: Record<string, EchartsLegendPos> = {
+    top: 'topCenter',
+    bottom: 'bottomCenter',
+    left: 'middleLeft',
+    right: 'middleRight',
+};
+const LEGEND_POS_9 = new Set<EchartsLegendPos>([
+    'topLeft',
+    'topCenter',
+    'topRight',
+    'middleLeft',
+    'middleCenter',
+    'middleRight',
+    'bottomLeft',
+    'bottomCenter',
+    'bottomRight',
+]);
+/** Normalise a stored legend position to the 3×3 grid (migrating legacy 4-edge values). */
+export const normalizeLegendPos = (raw: unknown): EchartsLegendPos => {
+    if (typeof raw !== 'string') {
+        return 'topCenter';
+    }
+    if (LEGACY_LEGEND_POS[raw]) {
+        return LEGACY_LEGEND_POS[raw];
+    }
+    return LEGEND_POS_9.has(raw as EchartsLegendPos) ? (raw as EchartsLegendPos) : 'topCenter';
 };
 
 /** Named categorical palette presets (ADR-0007). The default `theme` palette comes from the caller. */
@@ -121,6 +196,19 @@ export const decodeAxes = (raw: string | undefined | null): EchartsAxisConfig[] 
         return Array.isArray(parsed) ? (parsed as EchartsAxisConfig[]) : [];
     } catch {
         return [];
+    }
+};
+
+/** Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/invalid → `{}`. */
+export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig => {
+    if (!raw) {
+        return {};
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw));
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as EchartsLegendConfig) : {};
+    } catch {
+        return {};
     }
 };
 
@@ -222,7 +310,15 @@ export const toPresentationConfig = (opts: {
 
     return {
         legendShow: bool(s.legendShow, true),
-        legendPos: (s.legendPos as EchartsLegendPos) ?? 'top',
+        legendPos: normalizeLegendPos(s.legendPos),
+        // Editor state carries the legend styling as the `legend` OBJECT (decoded once on load);
+        // persisted rxData carries it as the `legendConfig` base64 BLOB. Read whichever is present so
+        // the live body (rxData) and the editor preview (state) both get the styling (ADR-0021 fix:
+        // the preview previously decoded an undefined blob → empty legend styling).
+        legend:
+            s.legend && typeof s.legend === 'object' && !Array.isArray(s.legend)
+                ? (s.legend as EchartsLegendConfig)
+                : decodeLegendConfig(s.legendConfig as string),
         tooltipTrigger:
             // 'axis' is meaningless off-cartesian (ADR-0012 WS2): a non-cartesian that still stores
             // it (e.g. switched from cartesian) coerces to 'item' at runtime.
@@ -248,4 +344,114 @@ export const toPresentationConfig = (opts: {
         radar: chartConfig.radar,
         pie: chartConfig.pie,
     };
+};
+
+/**
+ * Map a 3×3 grid legend position to the echarts edge + `orient` (ADR-0021). Top/bottom rows place a
+ * horizontal legend at that edge (left/center/right); the left/right columns place a vertical legend
+ * at that edge; `middleCenter` centres a horizontal legend. `top`/`bottom`/`left`/`right` are emitted
+ * freely — `'legend'` is in `replaceMerge`, so a position switch never leaves a stale edge key.
+ *
+ * `offsetX` (right-positive) / `offsetY` (down-positive) nudge the legend along its edge: they add to
+ * the numeric edge value on the left/right columns / top/bottom rows respectively, and are IGNORED on
+ * the centre column / middle row (a centred nudge needs the container size → resize churn, out of
+ * scope). The 4 px edge base is uniform across all positions.
+ */
+const legendGridPlacement = (pos: EchartsLegendPos, offsetX: number, offsetY: number): Record<string, unknown> => {
+    const dx = Number.isFinite(offsetX) ? offsetX : 0;
+    const dy = Number.isFinite(offsetY) ? offsetY : 0;
+    const col = pos.endsWith('Left') ? 'left' : pos.endsWith('Right') ? 'right' : 'center';
+    const row = pos.startsWith('top') ? 'top' : pos.startsWith('bottom') ? 'bottom' : 'middle';
+    const out: Record<string, unknown> = {};
+    // Vertical: top/bottom rows take a numeric 4 px edge the down-positive Y offset adds to; the
+    // middle row keeps the responsive 'center' and ignores dy (a centred Y nudge would need the
+    // container height → resize→rebuild churn, deliberately out of scope).
+    if (row === 'top') {
+        out.top = 4 + dy;
+    } else if (row === 'bottom') {
+        out.bottom = 4 - dy;
+    } else {
+        out.top = 'center';
+    }
+    // Horizontal: left/right columns take a numeric 4 px edge the right-positive X offset adds to;
+    // the centre column keeps 'center' and ignores dx (same measurement-free rationale).
+    if (col === 'left') {
+        out.left = 4 + dx;
+    } else if (col === 'right') {
+        out.right = 4 - dx;
+    } else {
+        out.left = 'center';
+    }
+    // orient auto from the edge: only the side columns (middleLeft/middleRight) go vertical.
+    out.orient = pos === 'middleLeft' || pos === 'middleRight' ? 'vertical' : 'horizontal';
+    return out;
+};
+
+/**
+ * Build the echarts `legend` fragment from the presentation config + the family's legend item names
+ * (ADR-0021). The single legend author for every family — cartesian/pie/radar all call it, so the
+ * position/styling model is honoured uniformly (pie/radar no longer hardcode `bottom: 4`). Only the
+ * GUI-owned keys are emitted; every unset field inherits the echarts/theme default.
+ *
+ * @param p - Chart-wide presentation (`legendShow`/`legendPos` flat + `legend` styling blob).
+ * @param data - Legend item names (series/slice/polygon names — family-supplied).
+ */
+export const buildLegend = (p: PresentationConfig, data: string[]): Record<string, unknown> => {
+    const cfg = p.legend ?? {};
+    const legend: Record<string, unknown> = {
+        show: p.legendShow,
+        data,
+        ...legendGridPlacement(p.legendPos, cfg.offsetX ?? 0, cfg.offsetY ?? 0),
+    };
+    // Explicit orient overrides the edge-derived auto value (ADR-0021: free horizontal/vertical choice).
+    if (cfg.orient) {
+        legend.orient = cfg.orient;
+    }
+
+    const textStyle: Record<string, unknown> = {};
+    if (cfg.color) {
+        textStyle.color = cfg.color;
+    }
+    if (cfg.fontSize !== undefined && Number.isFinite(cfg.fontSize)) {
+        textStyle.fontSize = cfg.fontSize;
+    }
+    if (cfg.fontWeight) {
+        textStyle.fontWeight = cfg.fontWeight;
+    }
+    if (Object.keys(textStyle).length) {
+        legend.textStyle = textStyle;
+    }
+
+    if (cfg.icon) {
+        legend.icon = cfg.icon;
+    }
+    if (cfg.itemWidth !== undefined) {
+        legend.itemWidth = cfg.itemWidth;
+    }
+    if (cfg.itemHeight !== undefined) {
+        legend.itemHeight = cfg.itemHeight;
+    }
+    if (cfg.itemGap !== undefined) {
+        legend.itemGap = cfg.itemGap;
+    }
+    if (cfg.inactiveColor) {
+        legend.inactiveColor = cfg.inactiveColor;
+    }
+
+    // Legend-as-panel: background + border only emit when they would draw something.
+    if (cfg.bgColor && cfg.bgColor !== 'transparent') {
+        legend.backgroundColor = cfg.bgColor;
+    }
+    if (cfg.borderWidth) {
+        legend.borderWidth = cfg.borderWidth;
+        legend.borderColor = cfg.borderColor ?? '#ccc';
+    }
+    if (cfg.borderRadius !== undefined) {
+        legend.borderRadius = cfg.borderRadius;
+    }
+    if (cfg.padding !== undefined) {
+        legend.padding = cfg.padding;
+    }
+
+    return legend;
 };

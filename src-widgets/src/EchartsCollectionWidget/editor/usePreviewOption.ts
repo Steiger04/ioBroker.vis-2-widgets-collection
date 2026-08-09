@@ -23,7 +23,7 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import { buildEchartsTheme, echartsPalette } from '../echartsTheme';
 import { createHistoryFetcher } from '../historyFetcher';
 import { buildGeneratedOption, familyOf, parseJsonState, parseUserJson } from '../optionBuilder';
-import { resolvePalette, buildTitlePlacement, toPresentationConfig } from '../presentation';
+import { resolvePalette, buildTitleOption, toPresentationConfig } from '../presentation';
 import { mergeOptionForEcharts } from '../utils/mergeOption';
 import { useHistory } from '../useHistory';
 import { useLiveBuffer } from '../useLiveBuffer';
@@ -170,15 +170,15 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         const merged = mergeOptionForEcharts(g, overrides, themeBase);
         const titleText = state.titleText.trim();
         if (titleText) {
-            merged.title = {
-                ...((merged.title as Record<string, unknown> | undefined) ?? {}),
+            buildTitleOption(merged, {
                 text: titleText,
-                ...buildTitlePlacement({
-                    titlePos: state.titlePos ?? 'topCenter',
-                    dx: state.titleDx,
-                    dy: state.titleDy,
-                }),
-            };
+                titlePos: state.titlePos ?? 'topCenter',
+                dx: state.titleDx,
+                dy: state.titleDy,
+                color: state.titleColor ?? null,
+                fontSize: state.titleFontSize,
+                fontWeight: state.titleWeight ?? null,
+            });
         }
         if (presentation.bgColor && presentation.bgColor !== 'transparent') {
             merged.backgroundColor = presentation.bgColor;

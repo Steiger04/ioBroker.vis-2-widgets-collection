@@ -44,7 +44,7 @@ import {
     decodeAxes,
     decodeChartConfig,
     decodeMarkLines,
-    buildTitlePlacement,
+    buildTitleOption,
 } from './presentation';
 import { mergeOptionForEcharts } from './utils/mergeOption';
 import { useHistory } from './useHistory';
@@ -260,15 +260,15 @@ function EchartsCollection(): React.ReactElement {
         // Live title text (may hold {oid.val} bindings vis-2 resolved) wins over any U title.text.
         const titleText = typeof data.titleText === 'string' ? data.titleText.trim() : '';
         if (titleText) {
-            merged.title = {
-                ...((merged.title as Record<string, unknown> | undefined) ?? {}),
+            buildTitleOption(merged, {
                 text: titleText,
-                ...buildTitlePlacement({
-                    titlePos: data.titlePos ?? 'topCenter',
-                    dx: typeof data.titleDx === 'number' ? data.titleDx : 0,
-                    dy: typeof data.titleDy === 'number' ? data.titleDy : 0,
-                }),
-            };
+                titlePos: data.titlePos ?? 'topCenter',
+                dx: typeof data.titleDx === 'number' ? data.titleDx : 0,
+                dy: typeof data.titleDy === 'number' ? data.titleDy : 0,
+                color: data.titleColor ?? null,
+                fontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
+                fontWeight: data.titleWeight ?? null,
+            });
         }
         // Background colour (transparent default).
         if (presentation.bgColor && presentation.bgColor !== 'transparent') {

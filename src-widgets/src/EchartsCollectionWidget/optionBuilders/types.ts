@@ -13,6 +13,7 @@ import type {
     EchartsAxisConfig,
     EchartsCartesianType,
     EchartsGaugeConfig,
+    EchartsLegendConfig,
     EchartsLegendPos,
     EchartsMarkLine,
     EchartsPieConfig,
@@ -36,6 +37,8 @@ export interface ChartSeries {
 export interface PresentationConfig {
     legendShow: boolean;
     legendPos: EchartsLegendPos;
+    /** Legend styling (ADR-0021 `legendConfig` blob); `undefined` keys inherit echarts/theme defaults. */
+    legend?: EchartsLegendConfig;
     tooltipTrigger: EchartsTooltipTrigger;
     tooltipTemplate?: string;
     tooltipUnits?: string;

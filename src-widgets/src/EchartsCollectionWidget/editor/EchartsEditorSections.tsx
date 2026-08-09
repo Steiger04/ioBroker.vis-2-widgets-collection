@@ -24,7 +24,8 @@ import ColorsSection from './sections/ColorsSection';
 import DataSourceSection from './sections/DataSourceSection';
 import { GaugeOptionsSection, PieOptionsSection, RadarOptionsSection } from './sections/FamilySections';
 import SeriesSection from './sections/SeriesSection';
-import TitleLegendSection from './sections/TitleLegendSection';
+import TitleSection from './sections/TitleSection';
+import LegendSection from './sections/LegendSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
 import { familySwitchLoss, validateEditor, type SectionKey } from './validation';
@@ -50,17 +51,17 @@ interface EchartsEditorSectionsProps {
     jsonError?: string;
 }
 
-/** The family-aware section inventory (ADR-0010). */
+/** The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021). */
 const inventory = (chartType: EditorState['chartType']): SectionKey[] => {
     const family = familyOf(chartType);
     if (family === 'cartesian') {
-        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'axesZoom', 'colors', 'behavior', 'advancedJson'];
+        return ['series', 'dataSource', 'title', 'legend', 'tooltip', 'axesZoom', 'colors', 'behavior', 'advancedJson'];
     }
     if (family === 'pie') {
-        return ['series', 'dataSource', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
+        return ['series', 'dataSource', 'title', 'legend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
     }
     // gauge / radar: no data source (always current value), no axes
-    return ['series', 'titleLegend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
+    return ['series', 'title', 'legend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
 };
 
 const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): string => {
@@ -73,8 +74,10 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
                   : Generic.t('echarts_series');
         case 'dataSource':
             return Generic.t('echarts_data_source');
-        case 'titleLegend':
-            return Generic.t('echarts_sec_title_legend');
+        case 'title':
+            return Generic.t('echarts_sec_title');
+        case 'legend':
+            return Generic.t('echarts_sec_legend');
         case 'tooltip':
             return Generic.t('echarts_appearance_tooltip');
         case 'axesZoom':
@@ -146,11 +149,20 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         pickerCtx={pickerCtx}
                     />
                 );
-            case 'titleLegend':
+            case 'title':
                 return (
-                    <TitleLegendSection
+                    <TitleSection
                         state={state}
                         set={set}
+                        pickerCtx={pickerCtx}
+                    />
+                );
+            case 'legend':
+                return (
+                    <LegendSection
+                        state={state}
+                        set={set}
+                        pickerCtx={pickerCtx}
                     />
                 );
             case 'tooltip':

@@ -16,7 +16,8 @@ import type { EditorState } from './editorState';
 export type SectionKey =
     | 'series'
     | 'dataSource'
-    | 'titleLegend'
+    | 'title'
+    | 'legend'
     | 'tooltip'
     | 'axesZoom'
     | 'family'

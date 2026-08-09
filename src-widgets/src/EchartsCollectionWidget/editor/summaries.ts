@@ -50,9 +50,17 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
         out.dataSource = 'JSON';
     }
 
-    // title & legend
+    // title (ADR-0021: its own section)
     const title = state.titleText.trim();
-    out.titleLegend = title ? trunc(title, 24) : '';
+    out.title = title ? trunc(title, 24) : '';
+
+    // legend (ADR-0021: its own section; position + symbol digest, or "off")
+    if (state.legendShow) {
+        const posLabel = t(`echarts_pos_${state.legendPos.replace(/([A-Z])/g, '_$1').toLowerCase()}`);
+        out.legend = state.legend.icon ? `${posLabel} · ${state.legend.icon}` : posLabel;
+    } else {
+        out.legend = t('echarts_sum_off');
+    }
 
     // tooltip
     out.tooltip =

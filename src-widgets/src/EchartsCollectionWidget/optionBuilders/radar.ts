@@ -12,6 +12,7 @@ import type { EChartsOption } from 'echarts';
 
 import type { EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
+import { buildLegend } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
 
 /**
@@ -35,7 +36,7 @@ export const buildRadarOption = (
     const name = meta[0]?.name ?? 'Current';
 
     const option: Record<string, unknown> = {
-        legend: { show: p.legendShow, data: [name], bottom: 4 },
+        legend: buildLegend(p, [name]),
         tooltip: buildTooltip(p),
         radar: {
             indicator: indicators,

@@ -63,7 +63,7 @@ The chart-type picker and data-mode toggle sitting above the section stack — a
 _Avoid_: Header controls, first section
 
 **Section**:
-One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title & Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot.
+One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title`, `Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
 _Avoid_: Tab (the v2 concept), panel, accordion (that's the mechanism, not the concept)
 
 **Summary line**:
@@ -129,6 +129,10 @@ _Avoid_: Stepper, spinner
 **Sub-group**:
 A named cluster of knobs inside a card body (ADR-0019), headed by a small overline label (e.g. range / scale & ticks / presentation on an Axis card). Structure without disclosure — everything in an open card stays visible; no fourth expand level.
 _Avoid_: Advanced section (v2), nested accordion, tab
+
+**Position grid**:
+The position selector of the Title and Legend sections (ADR-0021) — a 3-column `ToggleButtonGroup` of small frame-with-dot glyphs (the glyph marks the chosen corner/edge/centre; words ride only as the aria-label). Title uses a 3×2 grid (6 positions), Legend a 3×3 grid (9). It mirrors the `ChartTypePicker` glyph-grid idiom so it reads as the same editor, not a new aesthetic; it replaced the long dropdowns the old 3-/4-value position selects would have become.
+_Avoid_: Position dropdown, alignment matrix, radio grid
 
 # Theme Studio
 

@@ -17,7 +17,14 @@
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeMarkLines, legacyAxis } from '../presentation';
+import {
+    decodeAxes,
+    decodeChartConfig,
+    decodeLegendConfig,
+    decodeMarkLines,
+    legacyAxis,
+    normalizeLegendPos,
+} from '../presentation';
 import { normalizeAxes } from './axisLayout';
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
@@ -31,6 +38,7 @@ import type {
     EchartsDarkMode,
     EchartsGaugeConfig,
     EchartsIgnoreNull,
+    EchartsLegendConfig,
     EchartsLegendPos,
     EchartsMarkLine,
     EchartsMode,
@@ -83,6 +91,12 @@ export interface EditorState {
     titleDx: number;
     /** Title vertical pixel offset from the top edge (down-positive). ADR-0009. */
     titleDy: number;
+    /** Title text colour override; `null` = inherit theme text-primary (ADR-0021). */
+    titleColor: string | null;
+    /** Title text size override; `undefined` = inherit (ADR-0021). */
+    titleFontSize: number | undefined;
+    /** Title text weight (ADR-0021). @default 'normal' */
+    titleWeight: 'normal' | 'bold';
     // series (cartesian/pie full; gauge/radar = label+colour of the single polygon)
     series: EditorSeries[];
     // family config
@@ -92,6 +106,8 @@ export interface EditorState {
     // chart-wide presentation
     legendShow: boolean;
     legendPos: EchartsLegendPos;
+    /** Legend styling (ADR-0021 `legendConfig` blob); flat `legendShow`/`legendPos` stay beside it. */
+    legend: EchartsLegendConfig;
     tooltipTrigger: EchartsTooltipTrigger;
     tooltipTemplate: string;
     tooltipUnits: string;
@@ -148,12 +164,16 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     titlePos: 'topCenter',
     titleDx: 0,
     titleDy: 0,
+    titleColor: null,
+    titleFontSize: undefined,
+    titleWeight: 'normal',
     series: [],
     gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
     radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [] },
     pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' },
     legendShow: true,
-    legendPos: 'top',
+    legendPos: 'topCenter',
+    legend: {},
     tooltipTrigger: 'axis',
     tooltipTemplate: '',
     tooltipUnits: '',
@@ -318,12 +338,16 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titlePos: (data.titlePos as EchartsTitlePos) ?? DEFAULT_EDITOR_STATE.titlePos,
         titleDx: numOr(data.titleDx, DEFAULT_EDITOR_STATE.titleDx),
         titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
+        titleColor: typeof data.titleColor === 'string' && data.titleColor ? data.titleColor : null,
+        titleFontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
+        titleWeight: data.titleWeight === 'bold' ? 'bold' : 'normal',
         series,
         gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
         radar,
         pie: chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie,
         legendShow: boolOr(data.legendShow, true),
-        legendPos: (data.legendPos as EchartsLegendPos) ?? DEFAULT_EDITOR_STATE.legendPos,
+        legendPos: normalizeLegendPos(data.legendPos),
+        legend: decodeLegendConfig(data.legendConfig as string),
         tooltipTrigger: (data.tooltipTrigger as EchartsTooltipTrigger) ?? (family === 'cartesian' ? 'axis' : 'item'),
         tooltipTemplate: strOr(data.tooltipTemplate, ''),
         tooltipUnits: strOr(data.tooltipUnits, ''),
@@ -395,9 +419,13 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         titlePos: state.titlePos,
         titleDx: state.titleDx,
         titleDy: state.titleDy,
+        titleColor: state.titleColor ?? '',
+        titleFontSize: state.titleFontSize,
+        titleWeight: state.titleWeight,
         series_count: seriesCount,
         legendShow: state.legendShow,
         legendPos: state.legendPos,
+        legendConfig: encodeBlob(JSON.stringify(state.legend)),
         tooltipTrigger: state.tooltipTrigger,
         tooltipTemplate: state.tooltipTemplate,
         tooltipUnits: state.tooltipUnits,
@@ -443,8 +471,12 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
 // Re-export the config types the editor UI imports.
 export type {
     EchartsGaugeConfig,
-    EchartsRadarConfig,
+    EchartsLegendConfig,
+    EchartsLegendIcon,
+    EchartsLegendPos,
     EchartsPieConfig,
+    EchartsRadarConfig,
+    EchartsTitlePos,
     EchartsVisualMapConfig,
     EchartsMarkLine,
 } from '../../types/field-definitions/echarts-fields';

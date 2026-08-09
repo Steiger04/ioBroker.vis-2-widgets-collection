@@ -75,12 +75,31 @@ export type EchartsPieRose = 'none' | 'radius' | 'area';
 export type EchartsLineStyle = 'solid' | 'dashed' | 'dotted';
 /** Step rendering for line series. */
 export type EchartsStep = 'none' | 'start' | 'middle' | 'end';
-/** Legend placement. */
-export type EchartsLegendPos = 'top' | 'bottom' | 'left' | 'right';
+/**
+ * Legend placement on a 3×3 grid (ADR-0021). Replaces the legacy 4-edge union (`top`/`bottom`/
+ * `left`/`right`); legacy values are migrated on load (`top→topCenter`, `bottom→bottomCenter`,
+ * `left→middleLeft`, `right→middleRight`) — no silent rewrite of stored data.
+ */
+export type EchartsLegendPos =
+    | 'topLeft'
+    | 'topCenter'
+    | 'topRight'
+    | 'middleLeft'
+    | 'middleCenter'
+    | 'middleRight'
+    | 'bottomLeft'
+    | 'bottomCenter'
+    | 'bottomRight';
+/** Built-in echarts legend symbol shapes (the `legend.icon` keywords). `undefined` = inherit from series. */
+export type EchartsLegendIcon = 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none';
 /** Tooltip trigger. */
 export type EchartsTooltipTrigger = 'axis' | 'item' | 'none';
-/** Title placement. */
-export type EchartsTitlePos = 'topLeft' | 'topCenter' | 'topRight';
+/**
+ * Title placement on a 3×2 grid (ADR-0009 + ADR-0021). The bottom row was added in ADR-0021; it
+ * needs the echarts `bottom` field, so `'title'` joined the `replaceMerge` list (top↔bottom
+ * switches no longer leave a stale key). @default 'topCenter'
+ */
+export type EchartsTitlePos = 'topLeft' | 'topCenter' | 'topRight' | 'bottomLeft' | 'bottomCenter' | 'bottomRight';
 /** Palette source (ADR-0007 GUI ownership; defaults derived from the MUI theme). */
 export type EchartsPaletteSource = 'theme' | 'preset' | 'custom';
 /** Dark-mode policy. `auto` follows the resolved vis-2 theme. */
@@ -260,6 +279,59 @@ export interface EchartsVisualMapConfig {
 }
 
 /**
+ * Legend styling config (ADR-0021) — stored as a base64 `legendConfig` blob. `legendShow` +
+ * `legendPos` stay flat scalars (the always-on core, mirroring the `yAxes`-blob-beside-legacy-
+ * scalars pattern). Every field is optional: `undefined`/empty = inherit the echarts/theme default
+ * (the effective-value-with-override-shown idiom). Interaction (`selectedMode`, `selector`,
+ * scroll `type`) stays in the Advanced JSON escape hatch; per-series legend `data` overrides are
+ * out of scope.
+ */
+export interface EchartsLegendConfig {
+    /** Legend text colour (`legend.textStyle.color`); `undefined` = inherit theme secondary. */
+    color?: string;
+    /** Legend text size (`legend.textStyle.fontSize`); `undefined` = inherit. */
+    fontSize?: number;
+    /** Legend text weight (`legend.textStyle.fontWeight`). @default undefined (inherit) */
+    fontWeight?: 'normal' | 'bold';
+    /** Legend symbol shape (`legend.icon`); `undefined` = inherit from the series. */
+    icon?: EchartsLegendIcon;
+    /**
+     * Legend item orientation (`legend.orient`); `undefined` = auto (derived from the position edge —
+     * top/bottom row → horizontal, left/right column → vertical, centre → horizontal). An explicit
+     * override lets e.g. a top legend run vertically ("untereinander").
+     */
+    orient?: 'horizontal' | 'vertical';
+    /** Legend symbol width (`legend.itemWidth`). @default 25 (echarts) */
+    itemWidth?: number;
+    /** Legend symbol height (`legend.itemHeight`). @default 14 (echarts) */
+    itemHeight?: number;
+    /** Gap between legend items (`legend.itemGap`). @default 10 (echarts) */
+    itemGap?: number;
+    /** Colour of a deselected (toggled-off) legend item (`legend.inactiveColor`). @default '#ccc' */
+    inactiveColor?: string;
+    /** Legend panel background (`legend.backgroundColor`); `'transparent'`/`undefined` = none. */
+    bgColor?: string;
+    /** Legend panel border colour (`legend.borderColor`). @default '#ccc' */
+    borderColor?: string;
+    /** Legend panel border width (`legend.borderWidth`); 0 = no border. @default 0 */
+    borderWidth?: number;
+    /** Legend panel corner radius (`legend.borderRadius`). @default 0 */
+    borderRadius?: number;
+    /** Legend panel inner padding (`legend.padding`). @default 5 (echarts) */
+    padding?: number;
+    /**
+     * Horizontal nudge in px (right-positive). Adds to the numeric edge on the left/right columns;
+     * ignored on the centre column (a centred nudge needs the container width → resize churn).
+     */
+    offsetX?: number;
+    /**
+     * Vertical nudge in px (down-positive). Adds to the numeric edge on the top/bottom rows; ignored
+     * on the middle row (a centred nudge needs the container height → resize churn).
+     */
+    offsetY?: number;
+}
+
+/**
  * Per-axis config for a cartesian Y-axis (ADR-0012). Stored as a base64 `yAxes` blob (an array of
  * these). Axis 0 is the default (left, splitlines on); further axes render side-by-side via
  * `position`/`offset`. A series binds to one via {@link EchartsSeriesMeta.yAxisIndex}.
@@ -351,12 +423,18 @@ export interface EchartsFieldsRxData {
      * rxData; the widget injects the live string as `title.text` (a forced data-wins key).
      */
     titleText?: string;
-    /** Title placement. @default 'topCenter' */
+    /** Title placement on the 3×2 grid (ADR-0009 + ADR-0021). @default 'topCenter' */
     titlePos?: EchartsTitlePos;
-    /** Title horizontal pixel offset from the anchor (right-positive). ADR-0009. @default 0 */
+    /** Title horizontal pixel offset (right-positive). Applies to the left-edge anchors (`*Left`) only — the one measurement-free horizontal offset (ADR-0009 addendum). @default 0 */
     titleDx?: number;
-    /** Title vertical pixel offset from the top edge (down-positive). ADR-0009. @default 0 */
+    /** Title vertical pixel offset (down-positive). Applies to every anchor (ADR-0009). @default 0 */
     titleDy?: number;
+    /** Title text colour (`title.textStyle.color`); `undefined`/empty = inherit theme text-primary. */
+    titleColor?: string;
+    /** Title text size (`title.textStyle.fontSize`); `undefined` = inherit. */
+    titleFontSize?: number;
+    /** Title text weight (`title.textStyle.fontWeight`). @default undefined (inherit) */
+    titleWeight?: 'normal' | 'bold';
 
     // ── Multi-OID series (indexed, auto-subscribed) ─────────────────────────
 
@@ -389,7 +467,10 @@ export interface EchartsFieldsRxData {
     // ── Chart-wide presentation (cartesian-relevant items apply per family) ─
 
     legendShow?: boolean;
+    /** Legend placement on the 3×3 grid (ADR-0021); legacy 4-edge values are migrated on load. @default 'topCenter' */
     legendPos?: EchartsLegendPos;
+    /** Base64 {@link EchartsLegendConfig} — legend styling (text/symbol/frame). `legendShow`+`legendPos` stay flat. */
+    legendConfig?: string;
     tooltipTrigger?: EchartsTooltipTrigger;
     /** echarts string template (`{a}/{b}/{c}`) that may embed vis-2 `{oid.val}` bindings. */
     tooltipTemplate?: string;

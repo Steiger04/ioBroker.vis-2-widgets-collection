@@ -13,6 +13,7 @@ import type { EChartsOption } from 'echarts';
 import type { EchartsPieAggregate } from '../../types/field-definitions/echarts-fields';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
+import { buildLegend } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
 
 /** Collapse a `[ts, val]` series to one scalar per the aggregate mode. */
@@ -69,10 +70,10 @@ export const buildPieOption = (
             m?.raw,
         );
     });
-    const names = data.map(d => d.name);
+    const names = data.map(d => d.name as string);
 
     const option: Record<string, unknown> = {
-        legend: { show: p.legendShow, data: names, bottom: 4 },
+        legend: buildLegend(p, names),
         tooltip: buildTooltip(p),
         series: [
             applyRawOverride(

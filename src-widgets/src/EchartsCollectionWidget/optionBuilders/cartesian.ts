@@ -23,12 +23,12 @@ import type {
     EchartsAreaFill,
     EchartsAxisConfig,
     EchartsCartesianType,
-    EchartsLegendPos,
     EchartsLineStyle,
     EchartsMarkLine,
     EchartsStep,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
+import { buildLegend } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
@@ -44,24 +44,6 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
     start: 'start',
     middle: 'middle',
     end: 'end',
-};
-
-/** Map the legend-position union to the echarts `top/left/orient` triplet. */
-const legendPlacement = (pos: EchartsLegendPos): Record<string, unknown> => {
-    const isTop = pos === 'top';
-    const isBottom = pos === 'bottom';
-    const horizontalAlign: Record<EchartsLegendPos, 'left' | 'right' | 'center'> = {
-        top: 'center',
-        bottom: 'center',
-        left: 'left',
-        right: 'right',
-    };
-    return {
-        top: isTop ? 4 : 'auto',
-        bottom: isBottom ? 4 : 'auto',
-        left: horizontalAlign[pos],
-        orient: pos === 'left' || pos === 'right' ? 'vertical' : 'horizontal',
-    };
 };
 
 /**
@@ -295,7 +277,7 @@ export const buildCartesianOption = (
     const gridLeft = 48 + Math.max(0, leftCount - 1) * 60;
     const gridRight = 18 + Math.max(0, total - leftCount - 1) * 60;
     const option: Record<string, unknown> = {
-        legend: { show: p.legendShow, data: names, ...legendPlacement(p.legendPos) },
+        legend: buildLegend(p, names),
         tooltip: buildTooltip(p),
         grid: { left: gridLeft, right: gridRight, top: 30, bottom: p.dataZoomSlider ? 48 : 28, containLabel: true },
         xAxis: { type: 'time', splitLine: { show: p.xSplit } },
