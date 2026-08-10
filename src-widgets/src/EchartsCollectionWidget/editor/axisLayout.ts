@@ -27,14 +27,17 @@ export const nextAxisId = (): string => {
 export const normalizeAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] =>
     axes.map(a => (a.id ? a : { ...a, id: nextAxisId() }));
 
+/** Pixel stage between stacked axes on the same side (ADR-0018). */
+export const AXIS_STAGGER_STAGE = 80;
+
 /**
  * Position + offset for the i-th auto-created axis: alternate left/right, 80 px stagger per side
- * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`). Geometry only — safe to re-apply on re-stagger
- * without clobbering the rest of an axis config (id/name/colour/min/max/…).
+ * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × stage`). Geometry only — safe to re-apply on
+ * re-stagger without clobbering the rest of an axis config (id/name/colour/min/max/…).
  */
 export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'offset'> => ({
     position: i % 2 ? 'right' : 'left',
-    offset: Math.floor(i / 2) * 80,
+    offset: Math.floor(i / 2) * AXIS_STAGGER_STAGE,
 });
 
 /**
@@ -58,3 +61,31 @@ export const axisLayout = (i: number): EchartsAxisConfig => ({
 /** True when the series are in the default 1:1 binding (series j → axis j) — the auto-layout is intact. */
 export const isOneToOne = (series: readonly { yAxisIndex?: number }[]): boolean =>
     series.every((s, idx) => s.yAxisIndex === idx);
+
+/**
+ * Re-pack the auto-staggered axes so no gap floats after one was removed (ADR-XXXX, closes the
+ * `move`+`delete` cosmetic gap). Conservative: ONLY when EVERY axis' offset sits on the 80-px raster
+ * (0/80/160… — the signature of the auto-layout). A single hand-tuned (non-raster) offset means the
+ * user built a custom layout → return unchanged and never guess around it.
+ *
+ * Each side is repacked independently to 0/80/160… by running order (mirrors {@link axisPosition}'s
+ * left/right interleaving). Position is preserved — only the offset is normalised, so manual
+ * left/right choices stay intact while gaps close.
+ */
+export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
+    const onRaster = axes.every(a => {
+        const o = typeof a.offset === 'number' ? a.offset : 0;
+        return o >= 0 && o % AXIS_STAGGER_STAGE === 0;
+    });
+    if (!onRaster) {
+        return [...axes];
+    }
+    let leftSeen = 0;
+    let rightSeen = 0;
+    return axes.map(a => {
+        if (a.position === 'right') {
+            return { ...a, offset: rightSeen++ * AXIS_STAGGER_STAGE };
+        }
+        return { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE };
+    });
+};

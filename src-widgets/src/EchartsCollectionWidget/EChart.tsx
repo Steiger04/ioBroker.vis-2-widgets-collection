@@ -15,6 +15,17 @@
  * overrides are combined upstream via `mergeOptionForEcharts`. Keeping the merge in one place
  * (the data-wins seam) avoids the double theme-merge that happened when the wrapper re-applied
  * the theme base here.
+ *
+ * The wrapper is also layout-merge-free (ADR-0024, supersedes ADR-0022): the cartesian builder
+ * emits `grid: { left: 0, right: 0, outerBoundsMode: 'same', outerBoundsContain: 'all' }`, and
+ * echarts v6's `layOutGridByOuterBounds` owns the ENTIRE horizontal reservation (tick labels + axis
+ * names + offset-shifted multi-axis labels — each axis `offset` is folded into its position bound).
+ * `'all'` (not the deprecated `containLabel:true` ≡ `'axisLabel'`, which skips the axis NAME) is
+ * what keeps the outermost offset-axis name on canvas at grid 0. So there is nothing for the wrapper
+ * to resolve at runtime: the option is passed through untouched, and a bare `chart.resize()` is
+ * enough on a container dimension change (resize re-runs the outer-bounds layout for the new width).
+ * The earlier `%`-marker + `+ maxOffset` machinery double-booked the offset space echarts already
+ * reserves → a dead margin ≈ the side's max axis offset.
  */
 import { useEffect, useRef } from 'react';
 import type React from 'react';
@@ -30,6 +41,8 @@ interface EChartProps {
     /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
     renderer?: 'canvas' | 'svg';
 }
+
+const REPLACE_MERGE = ['series', 'dataZoom', 'visualMap', 'yAxis', 'title', 'legend'] as const;
 
 export default function EChart({ option, renderer = 'canvas' }: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -47,10 +60,11 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         }
         const chart = init(el, undefined, { renderer });
         chartRef.current = chart;
-        chart.setOption(optionRef.current, {
-            replaceMerge: ['series', 'dataZoom', 'visualMap', 'yAxis', 'title', 'legend'],
-        });
+        chart.setOption(optionRef.current, { replaceMerge: [...REPLACE_MERGE] });
 
+        // On resize: sync the canvas dims. echarts re-runs the grid layout (incl. containLabel's
+        // label/name/offset reservation) for the new width, so no setOption is needed here.
+        // ResizeObserver coalesces to discrete size changes, so this is not a per-frame churn.
         const ro = new ResizeObserver(() => {
             chart.resize();
         });
@@ -68,11 +82,12 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
     // Y-axis add/remove (so a deleted axis does not linger as a merge-retained ghost — ADR-0012
     // multi-axis made the yAxis array dynamic; ADR-0016 addendum), and title/legend (so a position
     // switch drops the now-unused edge key — top↔bottom/left↔right — instead of merge-retaining it;
-    // ADR-0021).
+    // ADR-0021). The option is the fully-merged, already-layout-correct fragment — passed through.
     useEffect(() => {
-        chartRef.current?.setOption(option, {
-            replaceMerge: ['series', 'dataZoom', 'visualMap', 'yAxis', 'title', 'legend'],
-        });
+        if (!containerRef.current) {
+            return;
+        }
+        chartRef.current?.setOption(option, { replaceMerge: [...REPLACE_MERGE] });
     }, [option]);
 
     return (

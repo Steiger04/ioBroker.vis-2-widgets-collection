@@ -347,6 +347,7 @@
     "echarts_template_line": "Line",
     "echarts_template_pie": "Pie",
     "echarts_threshold_add": "Add threshold",
+    "echarts_threshold_axis": "Axis",
     "echarts_threshold_dashed": "Dashed",
     "echarts_threshold_label": "Label",
     "echarts_threshold_value": "Value",

@@ -267,6 +267,13 @@ export interface EchartsMarkLine {
     label?: string;
     color?: string;
     dashed?: boolean;
+    /**
+     * Which cartesian Y-axis the threshold belongs to (ADR-XXXX: multi-axis mark-line host).
+     * Default 0 (the first/left axis). A threshold is drawn on the axis of the series it is attached
+     * to, so the cartesian builder hangs it on the first series bound to this axis (NOT stur `entries[0]`).
+     * Undefined → 0, kept tolerant for legacy thresholds that predate the field.
+     */
+    yAxisIndex?: number;
 }
 
 /** Continuous value→colour visual map. */

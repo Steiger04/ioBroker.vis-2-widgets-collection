@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { axisLayout, axisPosition, isOneToOne, normalizeAxes } from './axisLayout';
+import { axisLayout, axisPosition, isOneToOne, normalizeAxes, packStaggeredAxes } from './axisLayout';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
 describe('axisLayout — stable identity', () => {
@@ -56,5 +56,67 @@ describe('axisLayout — predicates', () => {
         expect(reStaggered.id).toBe('stable'); // identity preserved
         expect(reStaggered.color).toBe('#f00'); // other fields preserved
         expect(reStaggered).toMatchObject({ position: 'left', offset: 80 }); // geometry overwritten
+    });
+});
+
+describe('packStaggeredAxes — gap closing (ADR-0023)', () => {
+    it('re-packs a floating gap: surviving left axes 0/160 → 0/80', () => {
+        // After deleting the middle axis (offset 80), the third axis floats at 160.
+        const survivors: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out.map(a => a.offset)).toEqual([0, 80]); // gap closed, packed by order
+        expect(out.every(a => a.position === 'left')).toBe(true); // position preserved
+    });
+
+    it('re-packs each side independently (left 0/160 + right 0 → left 0/80 + right 0)', () => {
+        const survivors: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 0 },
+            { position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
+            { p: 'left', o: 80 },
+        ]);
+    });
+
+    it('leaves a hand-tuned (non-raster) offset untouched — never guesses around custom layouts', () => {
+        const custom: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 100 }, // not on the 80-px raster
+        ];
+        expect(packStaggeredAxes(custom).map(a => a.offset)).toEqual([0, 100]); // unchanged
+    });
+
+    it('is a no-op for an already-packed set (idempotent)', () => {
+        const packed: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 0 },
+            { position: 'left', offset: 80 },
+        ];
+        expect(packStaggeredAxes(packed).map(a => a.offset)).toEqual([0, 0, 80]);
+    });
+
+    it('treats undefined offset as 0 (on the raster) and packs it', () => {
+        const withDefault: EchartsAxisConfig[] = [
+            { position: 'left' }, // offset undefined
+            { position: 'left', offset: 80 },
+        ];
+        expect(packStaggeredAxes(withDefault).map(a => a.offset)).toEqual([0, 80]);
+    });
+
+    it('preserves identity + other fields, only normalising offset', () => {
+        const survivors: EchartsAxisConfig[] = [
+            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
+            { id: 'c', name: 'C', color: '#00f', position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out[0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 });
+        expect(out[1]).toMatchObject({ id: 'c', name: 'C', color: '#00f', position: 'left', offset: 80 });
     });
 });

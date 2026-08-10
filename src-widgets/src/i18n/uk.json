@@ -347,6 +347,7 @@
     "echarts_template_line": "Лінійна",
     "echarts_template_pie": "Кругова",
     "echarts_threshold_add": "Додати порогове значення",
+    "echarts_threshold_axis": "Вісь",
     "echarts_threshold_dashed": "Пунктирна",
     "echarts_threshold_label": "Мітка",
     "echarts_threshold_value": "Значення",

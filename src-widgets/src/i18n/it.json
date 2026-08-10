@@ -347,6 +347,7 @@
     "echarts_template_line": "Linea",
     "echarts_template_pie": "Torta",
     "echarts_threshold_add": "Aggiungi soglia",
+    "echarts_threshold_axis": "Asse",
     "echarts_threshold_dashed": "Tratteggiato",
     "echarts_threshold_label": "Etichetta",
     "echarts_threshold_value": "Valore",

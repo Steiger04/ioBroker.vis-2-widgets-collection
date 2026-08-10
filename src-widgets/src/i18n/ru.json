@@ -347,6 +347,7 @@
     "echarts_template_line": "Линейная",
     "echarts_template_pie": "Круговая",
     "echarts_threshold_add": "Добавить порог",
+    "echarts_threshold_axis": "Ось",
     "echarts_threshold_dashed": "Пунктир",
     "echarts_threshold_label": "Метка",
     "echarts_threshold_value": "Значение",

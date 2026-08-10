@@ -47,6 +47,13 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 };
 
 /**
+ * Gap between an axis line and its (rotated) name (ADR-0024). Kept tight so each name reads close
+ * to its own axis instead of floating off into the offset-axis gutter; `outerBoundsContain:'all'`
+ * still reserves the name's full extent, so a tight gap never clips it.
+ */
+const AXIS_NAME_GAP = 18;
+
+/**
  * Normalize a possibly-legacy area value into the {@link EchartsAreaFill} model (ADR-0008 r4).
  * Legacy forms tolerated at runtime (no migration here — the editor rewrites on re-save):
  *  - `area: true` (boolean) → `flat`
@@ -160,11 +167,18 @@ const markLineOption = (markLines: EchartsMarkLine[]): Record<string, unknown> |
  * Build one echarts `yAxis` entry from an {@link EchartsAxisConfig} + its index, applying the
  * smart defaults (ADR-0012): position axis-0 left / others right; splitlines axis-0-only;
  * `alignTicks` on for multi-axis (the #1 legibility lever); one colour paints line + label + name.
+ *
+ * `alignTicks` smart-default (ADR-XXXX): on only when there is more than one axis AND every axis
+ * carries the same `format` string (incl. all empty) — the signal the axes likely share a unit, so
+ * aligned ticks read as "same height = same value". Mixed `format`s (°C vs. %) default to OFF so the
+ * independent scales don't get distorted to force ticks onto the same heights.
  */
 const buildYAxisEntry = (
     a: EchartsAxisConfig,
     i: number,
     total: number,
+    /** Multi-axis + same-format default for `alignTicks` (ADR-XXXX). */
+    defaultAlignTicks: boolean,
     /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
@@ -174,10 +188,10 @@ const buildYAxisEntry = (
         type: a.log ? 'log' : 'value',
         position: a.position ?? (i === 0 ? 'left' : 'right'),
         offset: a.offset ?? 0,
-        alignTicks: a.alignTicks ?? total > 1,
+        alignTicks: a.alignTicks ?? defaultAlignTicks,
         splitLine: { show: a.splitLine ?? i === 0 },
         nameLocation: 'middle',
-        nameGap: 50,
+        nameGap: AXIS_NAME_GAP,
     };
     // Empty string counts as "not set": an axis whose name was cleared, or one migrated from legacy
     // `yName:''`, must still inherit its bound series' name. `??` would let '' through and the truthy
@@ -255,31 +269,79 @@ export const buildCartesianOption = (
         e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
-    if (markLineOption(p.markLines) && entries.length > 0) {
-        entries[0].markLine = markLineOption(p.markLines);
+    // Threshold mark-lines attach to a SERIES, and echarts draws them on that series' axis. With
+    // multi-axis (ADR-XXXX) a threshold must hang on a series bound to its own axis, not stur on
+    // entries[0] (which would draw a 2000 W threshold on a 0–40 °C axis). Group thresholds by their
+    // yAxisIndex and attach each group to the first series on that axis (fall back to entries[0]
+    // when an axis has no series — rare; groups then merge onto the one host).
+    if (p.markLines.length > 0 && entries.length > 0) {
+        const byAxis = new Map<number, EchartsMarkLine[]>();
+        for (const ml of p.markLines) {
+            const ax = typeof ml.yAxisIndex === 'number' ? ml.yAxisIndex : 0;
+            const list = byAxis.get(ax);
+            if (list) {
+                list.push(ml);
+            } else {
+                byAxis.set(ax, [ml]);
+            }
+        }
+        for (const [ax, lines] of byAxis) {
+            const host = entries.find(e => e.yAxisIndex === ax) ?? entries[0];
+            const opt = markLineOption(lines);
+            if (!opt) {
+                continue;
+            }
+            if (host.markLine) {
+                // Fallback collapse: two axis-groups landed on the same host (no series on either
+                // axis) — merge their data so neither threshold is lost.
+                const prev = (host.markLine as { data?: unknown[] }).data ?? [];
+                (host.markLine as { data: unknown[] }).data = [...prev, ...((opt as { data: unknown[] }).data ?? [])];
+            } else {
+                host.markLine = opt;
+            }
+        }
     }
 
     const names = entries.map(e => e.name as string);
+    // alignTicks smart-default (ADR-XXXX): on only for multi-axis charts whose axes all share the
+    // same `format` string (incl. all empty) — the proxy for "same unit", where aligned ticks read
+    // as "same height = same value". Mixed formats (°C vs. %) default to OFF so the independent
+    // scales are not distorted to force ticks onto the same heights.
+    const sameFormat = axes.every(a => (a.format ?? '') === (axes[0]?.format ?? ''));
+    const defaultAlignTicks = total > 1 && sameFormat;
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
-    // alignTicks is smart-defaulted on for multi-axis; the axis colour AND name default to the first
-    // bound series' effective values when neither is explicit (ADR-0018).
+    // alignTicks is smart-defaulted per the format heuristic above; the axis colour AND name default
+    // to the first bound series' effective values when neither is explicit (ADR-0018).
     const yAxisEntries = axes.map((a, i) => {
         const bound = entries.find(e => e.yAxisIndex === i);
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;
         const seriesName = typeof sn === 'string' ? sn : undefined;
-        return buildYAxisEntry(a, i, total, seriesColor, seriesName);
+        return buildYAxisEntry(a, i, total, defaultAlignTicks, seriesColor, seriesName);
     });
-    // Grid padding grows with axes per side so multi-axis labels don't clip (containLabel handles
-    // the rest).
-    const leftCount = axes.filter((a, i) => (a.position ?? (i === 0 ? 'left' : 'right')) === 'left').length;
-    const gridLeft = 48 + Math.max(0, leftCount - 1) * 60;
-    const gridRight = 18 + Math.max(0, total - leftCount - 1) * 60;
+    // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
+    // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
+    // `containLabel:true` (which maps to `'axisLabel'` and reserves tick labels + offset-axis labels
+    // but NOT the axis NAME) — owns the ENTIRE horizontal reservation: tick labels, axis names, AND
+    // the offset-shifted multi-axis labels. `layOutGridByOuterBounds` folds each axis `offset` into
+    // its position bound and expands the grid rect for every label + name. So `grid.left/right = 0`
+    // with `outerBoundsMode: 'same'` (the grid rect IS the fixed outer boundary) puts the outermost
+    // axis + its label + its NAME flush against the widget border — nothing clips, no dead margin.
+    // (`containLabel:true` let the outermost offset-axis name slip to x<0 at grid 0 → it vanished;
+    // the earlier `'1%' + maxOffset` had masked that by over-reserving. `nameGap` was also 50 →
+    // names floated far from their axes; tightened via AXIS_NAME_GAP.)
     const option: Record<string, unknown> = {
         legend: buildLegend(p, names),
         tooltip: buildTooltip(p),
-        grid: { left: gridLeft, right: gridRight, top: 30, bottom: p.dataZoomSlider ? 48 : 28, containLabel: true },
+        grid: {
+            left: 0,
+            right: 0,
+            top: 30,
+            bottom: p.dataZoomSlider ? 48 : 28,
+            outerBoundsMode: 'same',
+            outerBoundsContain: 'all',
+        },
         xAxis: { type: 'time', splitLine: { show: p.xSplit } },
         yAxis: yAxisEntries,
         series: entries,

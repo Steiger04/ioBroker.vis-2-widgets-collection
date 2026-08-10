@@ -347,6 +347,7 @@
     "echarts_template_line": "Línea",
     "echarts_template_pie": "Tarta",
     "echarts_threshold_add": "Añadir umbral",
+    "echarts_threshold_axis": "Eje",
     "echarts_threshold_dashed": "Discontinua",
     "echarts_threshold_label": "Etiqueta",
     "echarts_threshold_value": "Valor",

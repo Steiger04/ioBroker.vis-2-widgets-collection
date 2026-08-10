@@ -347,6 +347,7 @@
     "echarts_template_line": "折线图",
     "echarts_template_pie": "饼图",
     "echarts_threshold_add": "添加阈值",
+    "echarts_threshold_axis": "轴",
     "echarts_threshold_dashed": "虚线",
     "echarts_threshold_label": "标签",
     "echarts_threshold_value": "值",

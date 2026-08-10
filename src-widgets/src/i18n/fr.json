@@ -347,6 +347,7 @@
     "echarts_template_line": "Ligne",
     "echarts_template_pie": "Secteurs",
     "echarts_threshold_add": "Ajouter un seuil",
+    "echarts_threshold_axis": "Axe",
     "echarts_threshold_dashed": "Tirets",
     "echarts_threshold_label": "Étiquette",
     "echarts_threshold_value": "Valeur",

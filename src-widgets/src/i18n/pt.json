@@ -347,6 +347,7 @@
     "echarts_template_line": "Linha",
     "echarts_template_pie": "Setores",
     "echarts_threshold_add": "Adicionar limite",
+    "echarts_threshold_axis": "Eixo",
     "echarts_threshold_dashed": "Tracejado",
     "echarts_threshold_label": "Etiqueta",
     "echarts_threshold_value": "Valor",

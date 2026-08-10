@@ -347,6 +347,7 @@
     "echarts_template_line": "Liniowy",
     "echarts_template_pie": "Kołowy",
     "echarts_threshold_add": "Dodaj próg",
+    "echarts_threshold_axis": "Oś",
     "echarts_threshold_dashed": "Przerywana",
     "echarts_threshold_label": "Etykieta",
     "echarts_threshold_value": "Wartość",

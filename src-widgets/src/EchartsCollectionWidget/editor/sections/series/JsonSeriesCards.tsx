@@ -168,6 +168,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 showType
                                 yAxes={state.yAxes}
                                 nameClearsToUndefined
+                                showAxis={false}
                             />
                             <CartesianSeriesKnobs
                                 meta={m}

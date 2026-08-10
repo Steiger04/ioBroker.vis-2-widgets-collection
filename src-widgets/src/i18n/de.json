@@ -347,6 +347,7 @@
     "echarts_template_line": "Linie",
     "echarts_template_pie": "Torte",
     "echarts_threshold_add": "Grenzwert hinzufügen",
+    "echarts_threshold_axis": "Achse",
     "echarts_threshold_dashed": "Gestrichelt",
     "echarts_threshold_label": "Beschriftung",
     "echarts_threshold_value": "Wert",

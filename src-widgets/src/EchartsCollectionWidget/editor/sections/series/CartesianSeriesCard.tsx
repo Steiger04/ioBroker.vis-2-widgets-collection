@@ -65,7 +65,26 @@ export const CartesianBasisFields: FC<{
     oid?: { value: string; onChange: (oid: string) => void; historyOnly: boolean };
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
     nameClearsToUndefined?: boolean;
-}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, showType, yAxes, oid, nameClearsToUndefined }) => (
+    /**
+     * Show the per-series Y-axis binding select. Hidden in JSON mode (ADR-XXXX): the modal's
+     * auto-1:1 axis effect forces `yAxisIndex = position` whenever the payload changes, so the
+     * select's free choice is not robust — auto-1:1 is the truth there.
+     *
+     * @default true
+     */
+    showAxis?: boolean;
+}> = ({
+    meta,
+    defaultType,
+    onPatch,
+    pickerCtx,
+    colorFallback,
+    showType,
+    yAxes,
+    oid,
+    nameClearsToUndefined,
+    showAxis = true,
+}) => (
     <SubGroup title={Generic.t('echarts_grp_basis')}>
         <FieldGrid>
             {oid && (
@@ -104,19 +123,24 @@ export const CartesianBasisFields: FC<{
                     ]}
                 />
             )}
-            <LabeledSelect
-                label={Generic.t('echarts_editor_series_yaxis')}
-                value={String(Math.min(Number(meta.yAxisIndex ?? 0), Math.max(0, yAxes.length - 1)))}
-                onChange={v => onPatch({ yAxisIndex: Number(v) })}
-                options={
-                    yAxes.length
-                        ? yAxes.map(
-                              (ax, ai) =>
-                                  [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [string, string],
-                          )
-                        : [['0', '1'] as [string, string]]
-                }
-            />
+            {showAxis && (
+                <LabeledSelect
+                    label={Generic.t('echarts_editor_series_yaxis')}
+                    value={String(Math.min(Number(meta.yAxisIndex ?? 0), Math.max(0, yAxes.length - 1)))}
+                    onChange={v => onPatch({ yAxisIndex: Number(v) })}
+                    options={
+                        yAxes.length
+                            ? yAxes.map(
+                                  (ax, ai) =>
+                                      [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [
+                                          string,
+                                          string,
+                                      ],
+                              )
+                            : [['0', '1'] as [string, string]]
+                    }
+                />
+            )}
         </FieldGrid>
     </SubGroup>
 );

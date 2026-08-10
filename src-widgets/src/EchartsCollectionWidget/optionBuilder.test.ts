@@ -417,12 +417,49 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[0].name).toBe('Wohnzimmer');
     });
 
-    it('single axis: alignTicks defaults off; grid uses containLabel', () => {
+    it('single axis: alignTicks defaults off; grid flush with full label+name containment', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
         expect(ya).toHaveLength(1);
         expect(ya[0].alignTicks).toBe(false);
-        expect((option.grid as { containLabel?: boolean }).containLabel).toBe(true);
+        const grid = option.grid as { outerBoundsContain?: string };
+        expect(grid.outerBoundsContain).toBe('all'); // reserves tick labels AND axis names
+    });
+
+    it('grid is flush + contains labels AND names: left/right 0 + outerBoundsContain all (ADR-0024)', () => {
+        // `outerBoundsContain:'all'` (the modern replacement for the deprecated `containLabel:true`,
+        // which mapped to 'axisLabel' and reserved tick labels but NOT the axis name) reserves tick
+        // labels + axis names + offset-axis labels — so the outermost offset axis NAME no longer
+        // slips to x<0 at grid 0. grid.left/right = 0 + outerBoundsMode 'same' = flush edges. The grid
+        // is identical regardless of axis count: the reservation is echarts' runtime job, not the
+        // builder's. Regression for both ADR-0022's '+maxOffset' dead margin AND containLabel's name
+        // clip.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+                { name: 'C', data: [[1, 4]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 1 },
+                { name: 'C', yAxisIndex: 2 },
+            ],
+            p: { ...P, yAxes: [{}, { position: 'right' }, {}] },
+        });
+        const grid = option.grid as {
+            left?: unknown;
+            right?: unknown;
+            outerBoundsMode?: string;
+            outerBoundsContain?: string;
+            containLabel?: boolean;
+        };
+        expect(grid.left).toBe(0);
+        expect(grid.right).toBe(0);
+        expect(grid.outerBoundsMode).toBe('same');
+        expect(grid.outerBoundsContain).toBe('all');
+        expect(grid.containLabel).toBeUndefined(); // deprecated; superseded by outerBoundsContain
     });
 
     it('empty yAxes falls back to a single default axis (last-axis-deletable, builder guarantees ≥1)', () => {
@@ -550,6 +587,87 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(option.grid).toBeDefined();
         expect(option.xAxis).toBeDefined();
         expect(option.yAxis).toBeDefined();
+    });
+
+    it('multi-axis with mixed format → alignTicks defaults OFF (ADR-0023)', () => {
+        // °C vs. % — different units; aligned ticks would distort the independent scales.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{ format: '{value} kW' }, { format: '{value} %' }] },
+        });
+        const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
+        expect(ya[0].alignTicks).toBe(false);
+        expect(ya[1].alignTicks).toBe(false);
+    });
+
+    it('multi-axis with matching format → alignTicks defaults ON (ADR-0023)', () => {
+        // Same format → proxy for "same unit" → aligned ticks read as same height = same value.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{ format: '{value} °C' }, { format: '{value} °C' }] },
+        });
+        const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
+        expect(ya[0].alignTicks).toBe(true);
+        expect(ya[1].alignTicks).toBe(true);
+    });
+
+    it('attaches a threshold to the series on its own axis, not stur entries[0] (ADR-0023)', () => {
+        // A 2000 W threshold must hang on the Power series (axis 1), not on Temp (entries[0]) —
+        // otherwise it draws on the 0–40 °C axis and disappears at the top.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'Temp', data: [[1, 20]] },
+                { name: 'Power', data: [[1, 2000]] },
+            ],
+            meta: [
+                { name: 'Temp', yAxisIndex: 0 },
+                { name: 'Power', yAxisIndex: 1 },
+            ],
+            p: {
+                ...P,
+                yAxes: [
+                    { min: 0, max: 40 },
+                    { min: 0, max: 5000, position: 'right' },
+                ],
+                markLines: [{ value: 2000, yAxisIndex: 1 }],
+            },
+        });
+        const series = option.series as unknown as {
+            name: string;
+            markLine?: { data: { yAxis: number }[] };
+        }[];
+        const host = series.find(s => s.markLine);
+        expect(host?.name).toBe('Power'); // hosted on the axis-1 series
+        expect(host?.markLine?.data[0].yAxis).toBe(2000);
+        expect(series[0].markLine).toBeUndefined(); // Temp (entries[0]) carries no markLine
+    });
+
+    it('a legacy threshold without yAxisIndex defaults to axis 0 (entries[0])', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', yAxisIndex: 0 }],
+            p: { ...P, markLines: [{ value: 10 }] }, // no yAxisIndex
+        });
+        const first = (option.series as unknown[])[0] as { markLine?: { data: { yAxis: number }[] } };
+        expect(first.markLine?.data[0].yAxis).toBe(10);
     });
 });
 

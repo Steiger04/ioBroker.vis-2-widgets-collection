@@ -347,6 +347,7 @@
     "echarts_template_line": "Lijn",
     "echarts_template_pie": "Taart",
     "echarts_threshold_add": "Drempelwaarde toevoegen",
+    "echarts_threshold_axis": "As",
     "echarts_threshold_dashed": "Streepjes",
     "echarts_threshold_label": "Label",
     "echarts_threshold_value": "Waarde",

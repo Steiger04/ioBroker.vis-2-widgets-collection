@@ -27,7 +27,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, axisPosition, isOneToOne } from '../axisLayout';
+import { axisLayout, axisPosition, isOneToOne, packStaggeredAxes } from '../axisLayout';
 import { nextSeriesId } from '../seriesIdentity';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -88,17 +88,18 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             return;
         }
         // The bound axis is orphaned → remove it and re-index the survivors (yAxisIndex > yi shifts
-        // down). Dense 1:1 → also re-stagger (auto-layout); a manual layout → keep each surviving axis'
-        // custom position/offset (non-destructive, like the old re-stagger).
+        // down). Dense 1:1 → full re-stagger (position + offset, auto-layout); a manual/Shared layout
+        // → keep each surviving axis' custom position, but packStaggeredAxes closes any offset gap a
+        // removed staggered axis would otherwise leave floating (ADR-XXXX; conservative — only when
+        // every survivor is on the auto raster).
         const dense = isOneToOne(series) && state.yAxes.length === series.length;
+        const survivors = state.yAxes.filter((_, idx) => idx !== yi);
         set({
             series: next.map(s => ({
                 ...s,
                 yAxisIndex: typeof s.yAxisIndex === 'number' && s.yAxisIndex > yi ? s.yAxisIndex - 1 : s.yAxisIndex,
             })),
-            yAxes: state.yAxes
-                .filter((_, idx) => idx !== yi)
-                .map((a, idx) => (dense ? { ...a, ...axisPosition(idx) } : a)),
+            yAxes: dense ? survivors.map((a, idx) => ({ ...a, ...axisPosition(idx) })) : packStaggeredAxes(survivors),
         });
     };
     const move = (i: number, dir: -1 | 1): void => {
@@ -136,14 +137,22 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         };
         const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];
         if (isCartesian) {
-            // 1:1 auto-axis (ADR-0018): the copy gets its own fresh axis (appended) so it doesn't share.
-            // Colour + name inherit the copy at runtime — not written (ADR-0018).
-            const axIdx = state.yAxes.length;
-            copy.yAxisIndex = axIdx;
-            set({
-                series: next,
-                yAxes: [...state.yAxes, axisLayout(axIdx)],
-            });
+            // 1:1 auto-axis (ADR-0018) — but only while the dense auto-layout is intact. A Shared/
+            // Custom layout (several series on one axis) → the copy inherits the source's yAxisIndex
+            // instead, so duplicating never silently breaks a deliberate Shared-Axis setup (ADR-XXXX).
+            const dense = isOneToOne(series) && state.yAxes.length === series.length;
+            if (dense) {
+                // Colour + name inherit the copy at runtime — not written (ADR-0018).
+                const axIdx = state.yAxes.length;
+                copy.yAxisIndex = axIdx;
+                set({
+                    series: next,
+                    yAxes: [...state.yAxes, axisLayout(axIdx)],
+                });
+            } else {
+                copy.yAxisIndex = series[i].yAxisIndex;
+                set({ series: next });
+            }
         } else {
             set({ series: next });
         }

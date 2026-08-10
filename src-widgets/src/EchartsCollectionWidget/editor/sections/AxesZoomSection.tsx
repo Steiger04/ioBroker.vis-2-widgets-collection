@@ -37,7 +37,7 @@ import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import { axisLayout, axisPosition, isOneToOne } from '../axisLayout';
+import { axisLayout, axisPosition, isOneToOne, packStaggeredAxes } from '../axisLayout';
 import { nextStableId } from '../identity';
 
 interface AxesZoomSectionProps {
@@ -311,9 +311,11 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
             return;
         }
         // Shared/manual layout (not 1:1): remove only the axis; rebind its series to axis 0 and
-        // re-index the rest (Gap-E fix, ADR-0018). DON'T re-stagger — preserve manual positions/offsets.
+        // re-index the rest (Gap-E fix, ADR-0018). Positions/offsets are preserved, but
+        // packStaggeredAxes closes any offset gap a removed staggered axis would otherwise leave
+        // floating (ADR-XXXX; conservative — only when every survivor is on the auto raster).
         set({
-            yAxes: axes.filter((_, idx) => idx !== i),
+            yAxes: packStaggeredAxes(axes.filter((_, idx) => idx !== i)),
             series: state.series.map(s => {
                 if (typeof s.yAxisIndex !== 'number') {
                     return s;
@@ -424,6 +426,20 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
                                 value={m.value}
                                 onChange={v => setMark(i, { value: v })}
                             />
+                            {axes.length >= 2 && (
+                                <LabeledSelect
+                                    label={Generic.t('echarts_threshold_axis')}
+                                    value={String(Math.min(Math.max(m.yAxisIndex ?? 0, 0), axes.length - 1))}
+                                    onChange={v => setMark(i, { yAxisIndex: Number(v) })}
+                                    options={axes.map(
+                                        (ax, ai) =>
+                                            [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [
+                                                string,
+                                                string,
+                                            ],
+                                    )}
+                                />
+                            )}
                             <TextField2
                                 label={Generic.t('echarts_threshold_label')}
                                 value={m.label ?? ''}
