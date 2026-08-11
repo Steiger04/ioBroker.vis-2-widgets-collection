@@ -4,8 +4,9 @@
  * @module EchartsCollectionWidget/editor/EchartsEditorSections
  * @remarks
  * Pinned selectors on top (chart type + data mode, plus the non-blocking family-switch warning
- * chip); below, the family-aware stack of collapsible {@link Section}s. `Series` starts expanded,
- * everything else starts collapsed with a summary line. Validation rolls up into the section
+ * chip); below, the family-aware stack of collapsible {@link Section}s. Every section starts
+ * collapsed on open with a summary line (reverses the ADR-0010 "Series starts expanded" default).
+ * Validation rolls up into the section
  * headers (⚠ count). The modal can steer a section via `focusSection` (expand + scroll into
  * view) — used by the clickable preview placeholder.
  */
@@ -121,8 +122,9 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
     const loss = familySwitchLoss(state);
 
-    // Expansion: Series starts open, everything else collapsed (ADR-0010).
-    const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({ series: true });
+    // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
+    // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
+    const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});
     const toggle = (key: SectionKey): void => setOpen(o => ({ ...o, [key]: !o[key] }));
 
     // External steering: expand the target section and scroll it into view.
