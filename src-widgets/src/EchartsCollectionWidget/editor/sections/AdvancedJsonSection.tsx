@@ -6,10 +6,12 @@
  * Strictly supplemental and **chart-wide only** (ADR-0017): the GUI owns all presentation, and
  * per-series presentation now lives on the series cards (Series raw), so this U textarea is for
  * echarts keys the GUI does not expose AT THE CHART LEVEL — `graphic`, `aria`, `axisPointer`,
- * `textStyle`, exotic `animationEasing`, and radar-component options (`radar.splitArea`/…).
+ * `textStyle`, exotic `animationEasing`, and radar-component options (`radar.splitArea`/…). Since
+ * ADR-0030 it also carries complete `title` / `legend` scaffolds (every GUI-uncovered subkey, default-
+ * pre-filled) — title/legend are only PARTIALLY managed, so their non-GUI subkeys DO merge through.
  * `series` is a fully-managed key (a U `series` is ignored — use the per-card Series raw instead).
  * Carries the honesty affordances: the managed-keys box, chart-wide one-click templates, JSON
- * validity, and the 2-state merge preview (✓ effective / ✗ GUI-managed).
+ * validity, and the 3-state sub-key merge preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
  */
 import type { FC } from 'react';
 import { Box, Button, Chip, Typography } from '@mui/material';
@@ -17,6 +19,7 @@ import { Box, Button, Chip, Typography } from '@mui/material';
 import Generic from '../../../Generic';
 import { familyOf, parseUserJson } from '../../optionBuilder';
 import JsonEditor from '../JsonEditor';
+import { MANAGED_KEYS, classifyUserKeys } from '../advancedJsonAnalysis';
 import type { EchartsChartFamily, EchartsChartType } from '../../../types/field-definitions/echarts-fields';
 import type { SetEditor } from '../editorState';
 
@@ -28,23 +31,7 @@ interface AdvancedJsonSectionProps {
     chartType: EchartsChartType;
 }
 
-/** Top-level option keys the GUI owns (the Advanced "Managed keys" honesty box + merge analysis). */
-const MANAGED_KEYS = [
-    'series',
-    'legend',
-    'xAxis',
-    'yAxis',
-    'title',
-    'tooltip',
-    'grid',
-    'dataZoom',
-    'visualMap',
-    'animation',
-    'animationEasing',
-    'animationDuration',
-    'color', // the series palette
-    'markLine',
-] as const;
+/** Top-level option keys the GUI owns — re-exported from the analysis module (single source). */
 
 interface Template {
     label: string;
@@ -69,6 +56,19 @@ const TPL_ALL: Template[] = [
         label: 'echarts_tpl_textstyle',
         json: '{\n  "textStyle": { "fontFamily": "Inter, sans-serif" }\n}',
     },
+    {
+        // ADR-0030: complete scaffold of EVERY title subkey the GUI does NOT own (text/placement/
+        // textStyle colour-size-weight-style are GUI-owned → omitted), pre-filled with the echarts
+        // default (a best-effort literal where the real default is a theme token / 'auto' / undefined).
+        label: 'echarts_tpl_title',
+        json: '{\n  "title": {\n    "show": true,\n    "link": "",\n    "target": "blank",\n    "subtext": "",\n    "sublink": "",\n    "subtarget": "blank",\n    "triggerEvent": false,\n    "textVerticalAlign": "auto",\n    "zlevel": 0,\n    "z": 2,\n    "itemGap": 10,\n    "padding": 5,\n    "backgroundColor": "transparent",\n    "borderColor": "#ccc",\n    "borderWidth": 0,\n    "borderType": "solid",\n    "borderRadius": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "silent": false,\n    "textStyle": {\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 18,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textBorderType": "solid",\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "textShadowOffsetX": 0,\n      "textShadowOffsetY": 0,\n      "overflow": "none"\n    },\n    "subtextStyle": {\n      "color": "#aaa",\n      "fontStyle": "normal",\n      "fontWeight": "normal",\n      "fontSize": 12,\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 12,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "overflow": "none"\n    }\n  }\n}',
+    },
+    {
+        // ADR-0030: complete scaffold of EVERY legend subkey the GUI does NOT own (show/data/
+        // placement/orient/items/frame + textStyle colour-size-weight-style are GUI-owned → omitted).
+        label: 'echarts_tpl_legend',
+        json: '{\n  "legend": {\n    "type": "plain",\n    "zlevel": 0,\n    "z": 2,\n    "align": "auto",\n    "width": "auto",\n    "height": "auto",\n    "selectedMode": true,\n    "selected": {},\n    "formatter": null,\n    "symbolRotate": 0,\n    "inactiveBorderColor": "#ccc",\n    "inactiveBorderWidth": "auto",\n    "borderType": "solid",\n    "borderDashOffset": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "scrollDataIndex": 0,\n    "pageButtonItemGap": 5,\n    "pageButtonGap": null,\n    "pageButtonPosition": "end",\n    "pageFormatter": "{current}/{total}",\n    "pageIcons": {\n      "horizontal": ["M0,0L12,-10L12,10z", "M0,0L-12,-10L-12,10z"],\n      "vertical": ["M0,0L20,0L10,-20z", "M0,0L20,0L10,20z"]\n    },\n    "pageIconColor": "#2f4554",\n    "pageIconInactiveColor": "#aaa",\n    "pageIconSize": 15,\n    "animation": true,\n    "animationDurationUpdate": 800,\n    "selector": false,\n    "selectorPosition": "auto",\n    "selectorItemGap": 7,\n    "selectorButtonGap": 10,\n    "silent": false,\n    "itemStyle": {\n      "color": "inherit",\n      "opacity": "inherit",\n      "borderColor": "inherit",\n      "borderWidth": "auto",\n      "borderType": "inherit",\n      "borderDashOffset": "inherit",\n      "borderCap": "inherit",\n      "borderJoin": "inherit",\n      "borderMiterLimit": "inherit"\n    },\n    "lineStyle": {\n      "width": "auto",\n      "color": "inherit",\n      "opacity": "inherit",\n      "type": "inherit",\n      "cap": "inherit",\n      "join": "inherit",\n      "dashOffset": "inherit",\n      "miterLimit": "inherit",\n      "inactiveColor": "#ccc",\n      "inactiveWidth": 2\n    },\n    "textStyle": {\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 14,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "overflow": "none"\n    },\n    "selectorLabel": {\n      "show": true,\n      "color": "#666",\n      "fontSize": 12,\n      "borderColor": "#ccc",\n      "borderWidth": 1,\n      "borderRadius": 10,\n      "padding": [3, 5, 3, 5]\n    },\n    "pageTextStyle": {\n      "color": "#666"\n    },\n    "emphasis": {\n      "selectorLabel": {\n        "show": true,\n        "color": "#666"\n      }\n    },\n    "tooltip": {\n      "show": false\n    }\n  }\n}',
+    },
 ];
 
 // ── Family-specific templates (ADR-0017: chart-wide/component keys only — the series-riding
@@ -91,10 +91,7 @@ const TEMPLATES_BY_FAMILY: Record<EchartsChartFamily, Template[]> = {
 
 const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserText, set: _set, chartType }) => {
     const parsed = parseUserJson(userText);
-    const managedSet = new Set<string>(MANAGED_KEYS);
-    const uKeys = parsed.ok ? Object.keys(parsed.value) : [];
-    const effective = uKeys.filter(k => !managedSet.has(k));
-    const ignored = uKeys.filter(k => managedSet.has(k));
+    const chips = parsed.ok ? classifyUserKeys(parsed.value) : [];
 
     /** Merge a snippet's keys into the current U text (accumulates; invalid current text is replaced). */
     const insertSnippet = (json: string): void => {
@@ -167,7 +164,7 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
                 {parsed.ok ? Generic.t('echarts_editor_valid_json') : `✗ ${parsed.error}`}
             </Typography>
 
-            {parsed.ok && uKeys.length > 0 && (
+            {parsed.ok && chips.length > 0 && (
                 <Box sx={{ mt: 1 }}>
                     <Typography
                         variant="caption"
@@ -177,24 +174,40 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
                         {Generic.t('echarts_advanced_effect')}
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 0.5 }}>
-                        {effective.map(k => (
-                            <Chip
-                                key={k}
-                                size="small"
-                                color="success"
-                                variant="outlined"
-                                label={`${k} ✓`}
-                            />
-                        ))}
-                        {ignored.map(k => (
-                            <Chip
-                                key={k}
-                                size="small"
-                                variant="outlined"
-                                label={`${k} ✗`}
-                                sx={{ opacity: 0.6, textDecoration: 'line-through' }}
-                            />
-                        ))}
+                        {chips.map(c => {
+                            if (c.cls === 'effective') {
+                                return (
+                                    <Chip
+                                        key={c.key}
+                                        size="small"
+                                        color="success"
+                                        variant="outlined"
+                                        label={`${c.key} ✓`}
+                                    />
+                                );
+                            }
+                            if (c.cls === 'partial') {
+                                return (
+                                    <Chip
+                                        key={c.key}
+                                        size="small"
+                                        color="warning"
+                                        variant="outlined"
+                                        label={`${c.key} ◐`}
+                                        title={`${Generic.t('echarts_advanced_gui_managed')} ${c.managed.join(', ')}`}
+                                    />
+                                );
+                            }
+                            return (
+                                <Chip
+                                    key={c.key}
+                                    size="small"
+                                    variant="outlined"
+                                    label={`${c.key} ✗`}
+                                    sx={{ opacity: 0.6, textDecoration: 'line-through' }}
+                                />
+                            );
+                        })}
                     </Box>
                     <Typography
                         variant="caption"
