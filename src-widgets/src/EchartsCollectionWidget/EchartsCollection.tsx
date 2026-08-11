@@ -27,7 +27,7 @@ import type { EchartsCollectionContextProps } from '../types';
 import { decodeBlob } from '../lib/encoding';
 
 import EChart from './EChart';
-import { buildEchartsTheme, echartsPalette } from './echartsTheme';
+import { buildEchartsTheme, echartsPalette, resolveThemeTokens } from './echartsTheme';
 import { createHistoryFetcher } from './historyFetcher';
 import {
     buildGeneratedOption,
@@ -144,17 +144,24 @@ function EchartsCollection(): React.ReactElement {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [data.paletteSource, data.palettePreset, data.paletteCustom, themeSig],
     );
+    // Semantic theme tokens for the theme-derived defaults (ADR-0027). Same content-keying as palette.
+    const themeTokens = useMemo(
+        () => resolveThemeTokens(theme, data.darkMode),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [themeSig, data.darkMode],
+    );
     const presentation = useMemo(
         () =>
             toPresentationConfig({
                 src: data as unknown as Record<string, unknown>,
                 palette,
+                themeTokens,
                 family,
                 chartConfig,
                 markLines,
                 yAxes: decodeAxes(data.yAxes as string),
             }),
-        [data, palette, family, chartConfig, markLines],
+        [data, palette, themeTokens, family, chartConfig, markLines],
     );
 
     // Theme base, with its series `color` overridden by the resolved palette.

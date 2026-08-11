@@ -1,6 +1,8 @@
 /**
- * 1:1 cartesian axis-layout helpers (ADR-0018): the default layout assigned to an auto-created axis
- * and the predicate telling whether the series are still in the default 1:1 binding.
+ * Cartesian axis-layout + series↔axis coupling helpers: the 1:1 auto-layout assigned to an
+ * auto-created axis + the predicate telling whether the series are still in the default 1:1 binding
+ * (ADR-0018); and the axis-as-independent-citizen coupling — rebind target, orphan-cleanup, and the
+ * effective axis name (ADR-0025).
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -63,23 +65,18 @@ export const isOneToOne = (series: readonly { yAxisIndex?: number }[]): boolean 
     series.every((s, idx) => s.yAxisIndex === idx);
 
 /**
- * Re-pack the auto-staggered axes so no gap floats after one was removed (ADR-XXXX, closes the
- * `move`+`delete` cosmetic gap). Conservative: ONLY when EVERY axis' offset sits on the 80-px raster
- * (0/80/160… — the signature of the auto-layout). A single hand-tuned (non-raster) offset means the
- * user built a custom layout → return unchanged and never guess around it.
- *
+ * Re-stagger the axes so both sides sit densely on the 80-px raster with no overlaps (ADR-0028).
  * Each side is repacked independently to 0/80/160… by running order (mirrors {@link axisPosition}'s
  * left/right interleaving). Position is preserved — only the offset is normalised, so manual
  * left/right choices stay intact while gaps close.
+ *
+ * Runs **unconditionally** — ADR-0028 reversed ADR-0023 #4's raster-only escape hatch. A structural
+ * change (an axis flipped left↔right, or one deleted) must resolve the collision the change can
+ * create, even when some offsets were hand-tuned. A hand-tuned offset is therefore a fine-justure
+ * that survives only until the next structural change; the trigger is `position` (the flip), never a
+ * bare offset edit.
  */
 export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
-    const onRaster = axes.every(a => {
-        const o = typeof a.offset === 'number' ? a.offset : 0;
-        return o >= 0 && o % AXIS_STAGGER_STAGE === 0;
-    });
-    if (!onRaster) {
-        return [...axes];
-    }
     let leftSeen = 0;
     let rightSeen = 0;
     return axes.map(a => {
@@ -88,4 +85,150 @@ export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAx
         }
         return { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE };
     });
+};
+
+/**
+ * Pick the axis a deleted axis' series should rebind onto (ADR-0025): the first surviving axis
+ * (by index) whose `format` matches the deleted axis' — the proxy for "same unit" (mirrors the
+ * `alignTicks` heuristic of ADR-0023, incl. empty = empty). Returns `null` when no survivor shares
+ * the format; the caller then falls back to axis 0 + an advisory unit-mismatch toast. `survivors`
+ * is the post-delete axis array, so the returned index is already the new `yAxisIndex`.
+ */
+export const sameFormatSurvivor = (
+    deletedFormat: string | undefined,
+    survivors: readonly EchartsAxisConfig[],
+): number | null => {
+    const want = deletedFormat ?? '';
+    const idx = survivors.findIndex(a => (a.format ?? '') === want);
+    return idx === -1 ? null : idx;
+};
+
+/**
+ * Drop an orphaned axis (no series remains on it) and re-index the survivors (ADR-0025). Pure — the
+ * caller owns the re-stagger policy: this returns the de-orphaned `yAxes` with the orphan removed
+ * but offsets UNCHANGED, so the caller applies {@link axisPosition} (dense auto-layout) or
+ * {@link packStaggeredAxes} (shared/manual) as appropriate. Used by both series-DELETE and series-
+ * REBIND — the orphan-check that used to run only on delete now runs whenever a series leaves an
+ * axis (the phantom-axis fix).
+ *
+ * `series` is the POST-change series array (the deleted/rebound series already removed or rebound);
+ * `orphanYi` is the PRE-drop axis index. Series with `yAxisIndex > orphanYi` shift down by 1.
+ */
+export const dropOrphanAxis = <T extends { yAxisIndex?: number }>(
+    series: readonly T[],
+    yAxes: readonly EchartsAxisConfig[],
+    orphanYi: number,
+): { series: T[]; yAxes: EchartsAxisConfig[] } => ({
+    series: series.map(s => ({
+        ...s,
+        yAxisIndex: typeof s.yAxisIndex === 'number' && s.yAxisIndex > orphanYi ? s.yAxisIndex - 1 : s.yAxisIndex,
+    })),
+    yAxes: yAxes.filter((_a, idx) => idx !== orphanYi),
+});
+
+/**
+ * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
+ * axis name, else the name inherited from the first series bound to it, else its 1-based index.
+ * Mirrors the cartesian builder's axis-name resolution (`a.name ?? seriesName`) so the dropdown
+ * matches what renders on the chart and the Axis-card title.
+ */
+export const effectiveAxisName = (
+    axis: EchartsAxisConfig,
+    i: number,
+    series: readonly { yAxisIndex?: number; name?: string }[],
+): string => {
+    if (axis.name) {
+        return axis.name;
+    }
+    const bound = series.find(s => s.yAxisIndex === i);
+    return bound?.name ? bound.name : String(i + 1);
+};
+
+/**
+ * Effective colour of axis `i` for the Axis-card swatch (ADR-0018): the first bound series' colour,
+ * else its palette slot by the series' DISPLAY position. Mirrors both the cartesian builder
+ * (`a.color ?? seriesColor`) and the Series-card swatch (`s.color ?? palette[seriesIndex]`), so the
+ * Axis card matches the Series card of its bound series — the 1:1 colour invariant.
+ *
+ * `series` MUST be in DISPLAY order: history/live passes `state.series`; JSON passes the VISIBLE
+ * payload names mapped through the overlay (in payload order, hidden ones filtered). The palette slot
+ * is therefore the series' visible position, NOT the axis index. That distinction matters in JSON:
+ * after a rebind OR a payload-name reorder the sticky reconcile keeps `yAxisIndex`, so the axis index
+ * drifts off the visible position — indexing the palette by axis would then paint the swatch with the
+ * wrong series' colour. The explicit axis colour is resolved by the caller (the swatch does
+ * `a.color ?? effectiveAxisColor(...)`), not here.
+ */
+export const effectiveAxisColor = (
+    i: number,
+    series: readonly { yAxisIndex?: number; color?: string }[],
+    palette: readonly string[],
+): string | undefined => {
+    const idx = series.findIndex(s => s.yAxisIndex === i);
+    if (idx < 0) {
+        return undefined;
+    }
+    return series[idx].color ?? palette[idx % palette.length];
+};
+
+/**
+ * Reconcile the JSON-mode axes with the visible payload series (ADR-0026 — JSON 1:n). The name-keyed
+ * overlay is the single source of truth for which axis a payload series binds to; this keeps it
+ * consistent with the axis array as the (dynamic) payload + the user's bindings change:
+ *
+ * - **Sticky:** a visible name that already carries a VALID `yAxisIndex` (< axes.length) KEEPS it — a
+ *   manual rebind survives payload changes (the whole point of JSON 1:n). The old force-`yAxisIndex
+ *   = position` effect clobbered manual choice on every payload change.
+ * - **1:1 default:** a new name (or one whose stored `yAxisIndex` went stale after axes were lost)
+ *   gets a fresh appended axis — so a fresh payload still lands 1:1 (no regression for the common
+ *   multi-unit case).
+ * - **Orphan-cleanup:** a name no longer visible (hidden or gone) is cleared; axes with no visible
+ *   series bound are dropped and the survivors re-indexed (mirrors history/live, ADR-0025).
+ *
+ * Pure — the caller (the modal effect on payload/mode change, the rebind handler on manual choice)
+ * writes the result back. Not a hook.
+ */
+export const reconcileJsonAxes = <M extends { yAxisIndex?: number }>(
+    visibleNames: readonly string[],
+    overlay: Readonly<Record<string, M>>,
+    yAxes: readonly EchartsAxisConfig[],
+): { yAxes: EchartsAxisConfig[]; overlay: Record<string, M> } => {
+    const next: Record<string, M> = { ...overlay };
+    let axes = yAxes.slice();
+    // 1. Ensure every visible name has a VALID yAxisIndex — keep an existing valid one (sticky),
+    //    else append a fresh axis (the 1:1 default for new / stale names).
+    for (const name of visibleNames) {
+        const yi = next[name]?.yAxisIndex;
+        if (typeof yi !== 'number' || yi < 0 || yi >= axes.length) {
+            const fresh = axes.length;
+            axes = [...axes, axisLayout(fresh)];
+            next[name] = { ...next[name], yAxisIndex: fresh };
+        }
+    }
+    // 2. Clear yAxisIndex on entries no longer visible (hidden or gone) so they don't anchor an axis.
+    for (const key of Object.keys(next)) {
+        if (!visibleNames.includes(key) && next[key].yAxisIndex !== undefined) {
+            next[key] = { ...next[key], yAxisIndex: undefined };
+        }
+    }
+    // 3. Orphan-cleanup: drop axes with no visible series, re-index the survivors + overlay indices.
+    //    Loop — hiding several names at once can free several axes in one reconcile pass.
+    let changed = true;
+    while (changed) {
+        changed = false;
+        const bound = new Set(
+            visibleNames.map(n => next[n]?.yAxisIndex).filter((v): v is number => typeof v === 'number'),
+        );
+        const orphan = axes.findIndex((_a, idx) => !bound.has(idx));
+        if (orphan !== -1) {
+            axes = axes.filter((_a, idx) => idx !== orphan);
+            for (const name of visibleNames) {
+                const yi = next[name]?.yAxisIndex;
+                if (typeof yi === 'number' && yi > orphan) {
+                    next[name] = { ...next[name], yAxisIndex: yi - 1 };
+                }
+            }
+            changed = true;
+        }
+    }
+    return { yAxes: packStaggeredAxes(axes), overlay: next };
 };

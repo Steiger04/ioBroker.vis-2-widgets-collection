@@ -61,8 +61,12 @@ export const buildRadarOption = (
                         },
                     ],
                     animation: p.animation,
-                    ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                    // Slider + easing drive BOTH enter and update (one honest knob; a live tick
+                    // honours the value instead of echarts' update default). Duration always emitted.
+                    animationDuration: p.animationDuration,
+                    animationDurationUpdate: p.animationDuration,
                     ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
+                    ...(p.animationEasing ? { animationEasingUpdate: p.animationEasing } : {}),
                 },
                 meta[0]?.raw,
             ),

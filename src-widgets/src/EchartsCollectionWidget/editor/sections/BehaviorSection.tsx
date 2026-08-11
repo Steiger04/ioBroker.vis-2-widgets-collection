@@ -9,7 +9,7 @@
  * hatch lives in {@link AdvancedJsonSection}.
  */
 import type { FC } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { FieldGrid, LabeledSelect, SliderField, SwitchList, SwitchRow } from '../../../components/controls';
@@ -20,6 +20,27 @@ interface BehaviorSectionProps {
     set: SetEditor;
 }
 
+/** Small info callout (quiet, left-bordered) — local copy of the DataSourceSection InfoBox. */
+const InfoBox: FC<{ text: string }> = ({ text }) => (
+    <Box
+        sx={{
+            mt: 1,
+            p: 1,
+            bgcolor: 'action.hover',
+            borderLeft: 3,
+            borderColor: 'primary.main',
+            borderRadius: 0.5,
+        }}
+    >
+        <Typography
+            variant="caption"
+            color="text.secondary"
+        >
+            {text}
+        </Typography>
+    </Box>
+);
+
 const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
     <Box>
         <SwitchList sx={{ mb: 1.5 }}>
@@ -29,7 +50,7 @@ const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
                 onChange={v => set({ animation: v })}
             />
         </SwitchList>
-        <FieldGrid>
+        <FieldGrid sx={{ mb: 1.5 }}>
             <SliderField
                 label={Generic.t('echarts_animation_duration')}
                 value={state.animationDuration}
@@ -52,15 +73,22 @@ const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
                     ['elasticOut', Generic.t('echarts_easing_elastic_out')],
                 ]}
             />
-            <LabeledSelect
-                label={Generic.t('echarts_renderer')}
-                value={state.renderer}
-                onChange={v => set({ renderer: v as EditorState['renderer'] })}
-                options={[
-                    ['canvas', Generic.t('echarts_renderer_canvas')],
-                    ['svg', Generic.t('echarts_renderer_svg')],
-                ]}
-            />
+        </FieldGrid>
+        {/* Renderer is an output/render policy, not an animation setting — its own row + a
+            canvas-vs-svg hint (the performance/export trade-off is not obvious without it). */}
+        <FieldGrid>
+            <Box sx={{ gridColumn: '1 / -1' }}>
+                <LabeledSelect
+                    label={Generic.t('echarts_renderer')}
+                    value={state.renderer}
+                    onChange={v => set({ renderer: v as EditorState['renderer'] })}
+                    options={[
+                        ['canvas', Generic.t('echarts_renderer_canvas')],
+                        ['svg', Generic.t('echarts_renderer_svg')],
+                    ]}
+                />
+                <InfoBox text={Generic.t('echarts_renderer_info')} />
+            </Box>
         </FieldGrid>
     </Box>
 );

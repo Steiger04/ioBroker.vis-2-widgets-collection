@@ -31,6 +31,17 @@ const P: PresentationConfig = {
     dataZoomSlider: false,
     dataZoomInside: false,
     palette: ['#1', '#2', '#3'],
+    themeTokens: {
+        primary: '#p',
+        secondary: '#s',
+        success: '#su',
+        warning: '#w',
+        error: '#e',
+        info: '#i',
+        divider: '#d',
+        textPrimary: '#tp',
+        textSecondary: '#ts',
+    },
     markLines: [],
 };
 
@@ -671,6 +682,32 @@ describe('buildGeneratedOption — cartesian', () => {
     });
 });
 
+describe('buildGeneratedOption — theme-token defaults (ADR-0027)', () => {
+    it('a threshold without an explicit colour inherits the divider token', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, markLines: [{ id: '1', value: 10 }] },
+        });
+        const first = (option.series as unknown[])[0] as {
+            markLine?: { data: { lineStyle: { color: string } }[] };
+        };
+        expect(first.markLine?.data[0].lineStyle.color).toBe('#d'); // P.themeTokens.divider
+    });
+
+    it('the visualMap ramp defaults to the theme token ramp when no colours are set', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, visualMap: { enabled: true, min: 0, max: 100, colors: [] } },
+        });
+        const vm = (option as { visualMap?: { inRange?: { color: string[] } } }).visualMap;
+        expect(vm?.inRange?.color).toEqual(['#p', '#su', '#w', '#e']); // primary→success→warning→error
+    });
+});
+
 describe('buildGeneratedOption — pie', () => {
     it('aggregates each OID-series to one slice (latest by default)', () => {
         const option = buildGeneratedOption({
@@ -788,9 +825,10 @@ describe('buildGeneratedOption — gauge', () => {
         const series = option.series as unknown as {
             axisLine: { lineStyle: { color?: unknown } };
         }[];
+        // Target zones are theme-derived (ADR-0027): success up to the fraction, warning beyond.
         expect(series[0].axisLine.lineStyle.color).toEqual([
-            [0.6, '#4caf50'],
-            [1, '#ff9800'],
+            [0.6, '#su'],
+            [1, '#w'],
         ]);
     });
 

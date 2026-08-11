@@ -14,12 +14,11 @@
  * min≥max carries advisory validation.
  */
 import { useState, type FC } from 'react';
-import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
+import { Alert, Box, Button, IconButton, Snackbar, Typography } from '@mui/material';
 import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
-import { echartsPalette } from '../../echartsTheme';
-import { resolvePalette } from '../../presentation';
+import { useEditorTheme } from '../useEditorTheme';
 import {
     EditorCard,
     FieldGrid,
@@ -37,13 +36,15 @@ import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import { axisLayout, axisPosition, isOneToOne, packStaggeredAxes } from '../axisLayout';
+import { axisLayout, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
 import { nextStableId } from '../identity';
 
 interface AxesZoomSectionProps {
     state: EditorState;
     set: SetEditor;
     pickerCtx: OidPickerCtx;
+    /** JSON-mode payload series names, in payload order (drives the Series-card list). */
+    jsonSeriesNames?: string[];
 }
 
 /** One Y-axis card: the shared EditorCard shell, body in SubGroups (ADR-0019). */
@@ -78,7 +79,9 @@ const AxisCard: FC<{
                         width: 16,
                         height: 16,
                         borderRadius: '4px',
-                        backgroundColor: seriesColor ?? a.color ?? '#999',
+                        // Effective axis colour: explicit wins, else the bound series' colour, else a
+                        // neutral grey (matches the builder's `a.color ?? seriesColor`, ADR-0018/0027).
+                        backgroundColor: a.color ?? seriesColor ?? '#999',
                         border: '1px solid',
                         borderColor: 'divider',
                         flexShrink: 0,
@@ -222,20 +225,17 @@ const AxisCard: FC<{
     );
 };
 
-const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) => {
+const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, jsonSeriesNames }) => {
     const axes = state.yAxes;
-    const theme = useTheme();
+    // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — matches the canvas.
+    const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
 
     // Expanded axis cards — same pattern as SeriesSection cartesian cards.
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
     const toggleCard = (i: number): void => setExpanded(e => ({ ...e, [i]: !e[i] }));
-
-    const palette = resolvePalette(
-        state.paletteSource,
-        state.palettePreset,
-        state.paletteCustom,
-        echartsPalette(theme),
-    );
+    // Advisory toast for the axis-delete rebind fallback (ADR-0025): shown when a deleted axis'
+    // series are rebound to axis 0 because no survivor shares the format (a likely unit mismatch).
+    const [toast, setToast] = useState<string | null>(null);
     /**
      * Effective colour of the first series bound to axis i — the axis-colour default (ADR-0018).
      * History/live: the positional `state.series`. JSON: the name-keyed overlay (`state.series` is
@@ -243,16 +243,18 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
      * visible overlay entry, so a lookup-by-index finds it.
      */
     const boundAxisColor = (i: number): string | undefined => {
+        // JSON: the "series" for palette-slot purposes is the VISIBLE payload names in payload order
+        // (mirrors the Series-card list). The overlay owns each name's yAxisIndex + colour; resolving
+        // the slot by visible position — NOT the axis index — keeps the swatch aligned with the Series
+        // card after a rebind or a payload-name reorder (ADR-0018; the prior axis-index fallback
+        // diverged there). History/live passes state.series directly (already in display order).
         if (state.mode === 'json') {
-            const found = Object.values(state.jsonSeriesStyle).find(m => m.yAxisIndex === i);
-            return found ? (found.color ?? palette[i % palette.length]) : undefined;
+            const visibleSeries = (jsonSeriesNames ?? [])
+                .filter(n => !state.jsonHidden.includes(n))
+                .map(n => state.jsonSeriesStyle[n] ?? ({} as { yAxisIndex?: number; color?: string }));
+            return effectiveAxisColor(i, visibleSeries, palette);
         }
-        const idx = state.series.findIndex(s => s.yAxisIndex === i);
-        if (idx < 0) {
-            return undefined;
-        }
-        const s = state.series[idx];
-        return s.color ?? palette[idx % palette.length];
+        return effectiveAxisColor(i, state.series, palette);
     };
     /** Effective name of the first series bound to axis i — the axis-name default (ADR-0018). */
     const boundAxisName = (i: number): string | undefined => {
@@ -269,8 +271,13 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
         }
         return state.series[idx].name || `Series ${idx + 1}`;
     };
-    const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void =>
-        set({ yAxes: axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) });
+    const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
+        const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
+        // A side-flip (position change) re-staggers both sides densely so no two axes overlap
+        // (ADR-0028). Only `position` triggers it — an offset edit is an explicit fine-justure the
+        // user does not want normalised out from under them.
+        set({ yAxes: 'position' in patch ? packStaggeredAxes(next) : next });
+    };
     // Manual "add axis" uses the same 1:1 layout helper as series-add (ADR-0018): alternating side,
     // 80 px stagger, splitLine on axis 0 only — so a new axis never overlaps an existing one.
     const addAxis = (): void => set({ yAxes: [...axes, axisLayout(axes.length)] });
@@ -292,41 +299,29 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
             }
             return;
         }
-        // Dense 1:1 (the auto-layout): deleting an axis removes it AND its bound series as a PAIR —
-        // symmetric to deleting a series (which removes the orphaned axis). Surviving series re-index,
-        // surviving axes re-stagger so no gap is left (mirrors `remove` in SeriesSection). The user
-        // never sees the deleted axis' series linger on another axis ("gelöschte Achse noch sichtbar").
-        const dense = isOneToOne(state.series) && axes.length === state.series.length;
-        if (dense) {
-            set({
-                yAxes: axes.filter((_, idx) => idx !== i).map((a, idx) => ({ ...a, ...axisPosition(idx) })),
-                series: state.series
-                    .filter(s => s.yAxisIndex !== i)
-                    .map(s => ({
-                        ...s,
-                        yAxisIndex:
-                            typeof s.yAxisIndex === 'number' && s.yAxisIndex > i ? s.yAxisIndex - 1 : s.yAxisIndex,
-                    })),
-            });
-            return;
+        // History/live (ADR-0025): an axis is an independent citizen — deleting it NEVER deletes its
+        // bound series. They rebind to a surviving axis of the same `format` (the unit proxy), else
+        // axis 0 + an advisory unit-mismatch toast. Survivors re-index + pack. The dense-1:1 pair-
+        // delete that used to live here is gone: the user deletes a series explicitly when they want
+        // both gone (series-delete still orphan-cleans its axis).
+        const deletedAxis = axes[i];
+        const survivors = axes.filter((_a, idx) => idx !== i);
+        const match = sameFormatSurvivor(deletedAxis?.format, survivors);
+        const target = match ?? 0; // index in survivors = the new yAxisIndex
+        if (match === null) {
+            setToast(Generic.t('echarts_axis_rebind_unit_mismatch'));
         }
-        // Shared/manual layout (not 1:1): remove only the axis; rebind its series to axis 0 and
-        // re-index the rest (Gap-E fix, ADR-0018). Positions/offsets are preserved, but
-        // packStaggeredAxes closes any offset gap a removed staggered axis would otherwise leave
-        // floating (ADR-XXXX; conservative — only when every survivor is on the auto raster).
         set({
-            yAxes: packStaggeredAxes(axes.filter((_, idx) => idx !== i)),
+            yAxes: packStaggeredAxes(survivors),
             series: state.series.map(s => {
-                if (typeof s.yAxisIndex !== 'number') {
+                const yi = s.yAxisIndex;
+                if (typeof yi !== 'number') {
                     return s;
                 }
-                if (s.yAxisIndex === i) {
-                    return { ...s, yAxisIndex: 0 };
+                if (yi === i) {
+                    return { ...s, yAxisIndex: target }; // rebind to the same-format survivor
                 }
-                if (s.yAxisIndex > i) {
-                    return { ...s, yAxisIndex: s.yAxisIndex - 1 };
-                }
-                return s;
+                return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
             }),
         });
     };
@@ -334,8 +329,9 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
     const setMark = (i: number, patch: Partial<EchartsMarkLine>): void =>
         set({ markLines: state.markLines.map((m, idx) => (idx === i ? { ...m, ...patch } : m)) });
     const addMark = (): void =>
+        // No explicit colour → inherits the theme divider token (ADR-0027), like the builder default.
         set({
-            markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', color: '#888', dashed: true }],
+            markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', dashed: true }],
         });
     const removeMark = (i: number): void => set({ markLines: state.markLines.filter((_, idx) => idx !== i) });
 
@@ -451,7 +447,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
                                         <ColorField
                                             value={m.color}
-                                            fallback="#888888"
+                                            fallback={themeTokens.divider}
                                             onChange={v => setMark(i, { color: v ?? undefined })}
                                             ctx={pickerCtx}
                                         />
@@ -484,6 +480,21 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx }) =>
                     {Generic.t('echarts_threshold_add')}
                 </Button>
             </SubGroup>
+            <Snackbar
+                open={!!toast}
+                autoHideDuration={5000}
+                onClose={() => setToast(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    severity="warning"
+                    variant="filled"
+                    onClose={() => setToast(null)}
+                    sx={{ alignItems: 'center' }}
+                >
+                    {toast}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

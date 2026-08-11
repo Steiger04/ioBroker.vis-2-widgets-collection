@@ -21,6 +21,7 @@ import {
 } from '../../../components/controls';
 import ColorField from '../colorFields';
 import { PositionGrid } from '../controls';
+import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -41,6 +42,8 @@ const TITLE_POSITIONS: ReadonlyArray<[string, string]> = [
 ];
 
 const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
+    // Theme tokens resolve against the collection theme (ADR-0027) — the title-colour inherit preview.
+    const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     // dx applies only to the left-edge anchors (ADR-0009 addendum) — hide it elsewhere (no dead control).
     const dxRelevant = state.titlePos === 'topLeft' || state.titlePos === 'bottomLeft';
     return (
@@ -66,6 +69,7 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                     <FieldLabel>{Generic.t('echarts_title_color')}</FieldLabel>
                     <ColorField
                         value={state.titleColor}
+                        fallback={themeTokens.textPrimary}
                         onChange={v => set({ titleColor: v })}
                         ctx={pickerCtx}
                     />

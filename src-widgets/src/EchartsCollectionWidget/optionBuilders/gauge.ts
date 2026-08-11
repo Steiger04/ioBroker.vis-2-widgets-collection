@@ -40,13 +40,14 @@ export const buildGaugeOption = (
     const target = g.target;
 
     // Two-zone track colour when a target is configured: success up to the target fraction,
-    // warning beyond. Falls back to the neutral track (echarts default grey) otherwise.
+    // warning beyond. Theme-derived (ADR-0027); falls back to the neutral track (echarts default
+    // grey) when no target is set.
     let axisLineColor: unknown;
     if (target !== undefined && Number.isFinite(target) && min < max) {
         const frac = Math.max(0, Math.min(1, (target - min) / (max - min)));
         axisLineColor = [
-            [frac, '#4caf50'],
-            [1, '#ff9800'],
+            [frac, p.themeTokens.success],
+            [1, p.themeTokens.warning],
         ];
     }
 
@@ -81,8 +82,12 @@ export const buildGaugeOption = (
                     },
                     data: [{ value: value ?? '--', ...(name ? { name } : {}) }],
                     animation: p.animation,
-                    ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+                    // Slider + easing drive BOTH enter and update (one honest knob; a live tick
+                    // honours the value instead of echarts' update default). Duration always emitted.
+                    animationDuration: p.animationDuration,
+                    animationDurationUpdate: p.animationDuration,
                     ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
+                    ...(p.animationEasing ? { animationEasingUpdate: p.animationEasing } : {}),
                 },
                 meta[0]?.raw,
             ),

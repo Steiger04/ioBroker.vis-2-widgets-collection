@@ -23,6 +23,7 @@ import type {
     EchartsVisualMapConfig,
 } from '../../types/field-definitions/echarts-fields';
 import type { SeriesPoint } from '../historyLogic';
+import type { ThemeTokens } from '../echartsTheme';
 
 /** A resolved cartesian/pie series the chart can render. */
 export interface ChartSeries {
@@ -64,6 +65,9 @@ export interface PresentationConfig {
     pie?: EchartsPieConfig;
     // resolved series palette (theme / preset / custom), applied per-series when no meta colour
     palette: string[];
+    // semantic theme colours for theme-derived defaults (gauge zones, visualMap ramp, markLine,
+    // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
+    themeTokens: ThemeTokens;
 }
 
 /** Discriminated input to the orchestrator {@link buildGeneratedOption}. */

@@ -41,7 +41,7 @@ import EchartsEditorSections, { type FocusSectionRequest } from './editor/Echart
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
-import { axisLayout } from './editor/axisLayout';
+import { reconcileJsonAxes } from './editor/axisLayout';
 import { normalizeSeries } from './editor/seriesIdentity';
 import { withStableIds } from './editor/identity';
 import { familyOf } from './optionBuilder';
@@ -140,13 +140,15 @@ function EchartsConfigEditorModal({
         setState(s => ({ ...s, userText: value }));
     }, []);
 
-    // JSON-mode 1:1 auto-axis (ADR-0018): for each cartesian payload series, ensure an axis exists and
-    // bind the series to it (one axis per series, alternating side + 80 px stagger). Colour + name are
-    // NOT written — each axis inherits both from its bound series at runtime. Bestehende Achsen-Konfigs
-    // werden dabei nicht berücksichtigt (nur neue Widgets).
-    // Only the visible JSON series drive the 1:1 auto-axis effect — a hidden series (jsonHidden
-    // deny-list, Problem-2) must not keep its axis. jsonNamesKey reflects the visible set so hiding
-    // a series re-runs the effect and drops the axis.
+    // JSON-mode axis reconcile (ADR-0026 — JSON 1:n): for the cartesian payload series, keep the
+    // name-keyed overlay consistent with the axis array as the (dynamic) payload + the user's bindings
+    // change. A fresh payload still lands 1:1 (each name its own axis, alternating side + 80 px
+    // stagger) — but a name that already carries a valid yAxisIndex KEEPS it, so a manual rebind now
+    // survives payload + hide/show changes (the old force-1:1 effect clobbered it). Colour + name are
+    // NOT written — each axis inherits both from its bound series at runtime.
+    // Only the visible JSON series drive the reconcile — a hidden series (jsonHidden deny-list) must
+    // not keep its axis. jsonNamesKey reflects the visible set so hiding a series re-runs the effect
+    // and orphan-cleans the freed axis.
     const visibleJsonNames = jsonPreview.names.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
@@ -157,27 +159,14 @@ function EchartsConfigEditorModal({
         ) {
             return;
         }
-        const names = visibleJsonNames;
-        const jsonSeriesStyle = { ...state.jsonSeriesStyle };
-        const prevAxes = state.yAxes;
-        const yAxes = names.map((name, i) => {
-            const m = jsonSeriesStyle[name] ?? {};
-            jsonSeriesStyle[name] = { ...m, yAxisIndex: i };
-            // Preserve an existing axis config at this index (user edits — min/max/format/colour/
-            // offset + the stable id) instead of discarding it on every re-derive; only spin up a fresh
-            // auto-layout axis when a new payload series has no axis yet (i >= previous axis count).
-            return prevAxes[i] ?? axisLayout(i);
-        });
-        // Clear yAxisIndex on hidden payload series so axis colour/name inheritance (which looks up
-        // the overlay by yAxisIndex) never matches a stale hidden entry after a hide (Problem-2).
-        for (const key of Object.keys(jsonSeriesStyle)) {
-            if (!names.includes(key) && jsonSeriesStyle[key].yAxisIndex !== undefined) {
-                jsonSeriesStyle[key] = { ...jsonSeriesStyle[key], yAxisIndex: undefined };
-            }
-        }
+        const { yAxes, overlay: jsonSeriesStyle } = reconcileJsonAxes(
+            visibleJsonNames,
+            state.jsonSeriesStyle,
+            state.yAxes,
+        );
         set({ yAxes, jsonSeriesStyle });
         // Keyed on the names content (not the array ref) + mode/type → re-syncs only on real change,
-        // so manual axis edits (state.yAxes) are preserved while names/mode/type are stable.
+        // so manual axis edits + bindings are preserved while names/mode/type are stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
 

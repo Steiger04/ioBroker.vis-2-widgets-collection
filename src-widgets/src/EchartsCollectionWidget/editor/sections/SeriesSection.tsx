@@ -18,16 +18,22 @@
  * Validation issues surface as a compact warning list on top (they are item-scoped).
  */
 import { useState, type FC } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { echartsPalette } from '../../echartsTheme';
-import { resolvePalette } from '../../presentation';
+import { useEditorTheme } from '../useEditorTheme';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, axisPosition, isOneToOne, packStaggeredAxes } from '../axisLayout';
+import {
+    axisLayout,
+    axisPosition,
+    dropOrphanAxis,
+    isOneToOne,
+    packStaggeredAxes,
+    reconcileJsonAxes,
+} from '../axisLayout';
 import { nextSeriesId } from '../seriesIdentity';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -56,13 +62,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     jsonSeriesNames = [],
     jsonError,
 }) => {
-    const theme = useTheme();
-    const palette = resolvePalette(
-        state.paletteSource,
-        state.palettePreset,
-        state.paletteCustom,
-        echartsPalette(theme),
-    );
+    // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
+    const { palette } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const slot = (i: number): string => palette[i % palette.length];
     const isPie = state.chartType === 'pie';
     const isGauge = state.chartType === 'gauge';
@@ -79,7 +80,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             set({ series: next });
             return;
         }
-        // Orphan-check (ADR-0018 robust): drop the deleted series' bound axis iff no surviving series
+        // Orphan-check (ADR-0018/0025): drop the deleted series' bound axis iff no surviving series
         // remains on it. 1:1 (the dense auto-layout) → always orphans; a shared axis stays put.
         const yi = series[i]?.yAxisIndex;
         const orphaned = typeof yi === 'number' && !next.some(s => s.yAxisIndex === yi);
@@ -87,20 +88,37 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             set({ series: next });
             return;
         }
-        // The bound axis is orphaned → remove it and re-index the survivors (yAxisIndex > yi shifts
-        // down). Dense 1:1 → full re-stagger (position + offset, auto-layout); a manual/Shared layout
-        // → keep each surviving axis' custom position, but packStaggeredAxes closes any offset gap a
-        // removed staggered axis would otherwise leave floating (ADR-XXXX; conservative — only when
-        // every survivor is on the auto raster).
+        // The bound axis is orphaned → drop it and re-index the survivors. Dense 1:1 → full re-stagger
+        // (position + offset, auto-layout); a manual/Shared layout → keep each surviving axis' custom
+        // position, but packStaggeredAxes closes any offset gap a removed staggered axis would leave
+        // (ADR-0023; conservative — only when every survivor is on the auto raster).
         const dense = isOneToOne(series) && state.yAxes.length === series.length;
-        const survivors = state.yAxes.filter((_, idx) => idx !== yi);
+        const { series: reindexed, yAxes: survivors } = dropOrphanAxis(next, state.yAxes, yi);
         set({
-            series: next.map(s => ({
-                ...s,
-                yAxisIndex: typeof s.yAxisIndex === 'number' && s.yAxisIndex > yi ? s.yAxisIndex - 1 : s.yAxisIndex,
-            })),
+            series: reindexed,
             yAxes: dense ? survivors.map((a, idx) => ({ ...a, ...axisPosition(idx) })) : packStaggeredAxes(survivors),
         });
+    };
+    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD axis
+    // gets the same orphan-check as a series-delete: if no surviving series remains on it, drop it +
+    // re-index — the phantom-axis fix (rebinding used to leave an empty rendered axis). Re-stagger is
+    // conservative (packStaggeredAxes): a rebind is itself a departure from 1:1, so preserve each
+    // axis' position and only close offset gaps. `update` handles every other field; yAxisIndex lands
+    // here, routed by the CartesianSeriesList onPatch.
+    const rebindAxis = (i: number, newYi: number): void => {
+        const oldYi = series[i]?.yAxisIndex;
+        const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
+        if (oldYi === undefined || oldYi === newYi) {
+            set({ series: next });
+            return;
+        }
+        const orphaned = !next.some(s => s.yAxisIndex === oldYi);
+        if (!orphaned) {
+            set({ series: next });
+            return;
+        }
+        const { series: reindexed, yAxes: survivors } = dropOrphanAxis(next, state.yAxes, oldYi);
+        set({ series: reindexed, yAxes: packStaggeredAxes(survivors) });
     };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
@@ -170,6 +188,19 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // owns the series; hiding only suppresses it (chart + legend + axis) — restorable.
     const hideJson = (name: string): void => set({ jsonHidden: [...state.jsonHidden, name] });
     const showJson = (name: string): void => set({ jsonHidden: state.jsonHidden.filter(n => n !== name) });
+    // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
+    // write the new yAxisIndex onto the overlay entry, then the sticky reconcile orphan-cleans the
+    // freed axis. Manual bindings survive payload changes — the modal reconcile effect keeps every
+    // valid yAxisIndex (it only auto-assigns names lacking one).
+    const rebindJsonAxis = (name: string, newYi: number): void => {
+        const overlay = {
+            ...state.jsonSeriesStyle,
+            [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
+        };
+        const visibleNames = (jsonSeriesNames ?? []).filter(n => !state.jsonHidden.includes(n));
+        const { yAxes, overlay: reconciled } = reconcileJsonAxes(visibleNames, overlay, state.yAxes);
+        set({ jsonSeriesStyle: reconciled, yAxes });
+    };
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the
     // auto-expanded skeleton); the user expands the card they edit.
@@ -205,6 +236,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     expanded={expanded}
                     onToggleCard={toggleCard}
                     onUpdateJson={updateJson}
+                    onRebindJsonAxis={rebindJsonAxis}
                     onHideJson={hideJson}
                     onShowJson={showJson}
                 />
@@ -232,6 +264,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     onMove={move}
                     onDuplicate={duplicate}
                     onAddWithOid={addWithOid}
+                    onRebindAxis={rebindAxis}
                 />
             )}
         </Box>

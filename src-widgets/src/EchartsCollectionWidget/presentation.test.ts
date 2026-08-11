@@ -150,6 +150,19 @@ describe('buildTitleOption — textStyle (ADR-0021)', () => {
 });
 
 /** Minimal presentation config for legend tests (only legend-relevant fields are read). */
+/** Minimal theme tokens for buildLegend / toPresentationConfig tests (ADR-0027). */
+const TOKENS = {
+    primary: '#p',
+    secondary: '#s',
+    success: '#su',
+    warning: '#w',
+    error: '#e',
+    info: '#i',
+    divider: '#d',
+    textPrimary: '#tp',
+    textSecondary: '#ts',
+} as const;
+
 const legendP = (
     over: {
         legendShow?: boolean;
@@ -161,6 +174,7 @@ const legendP = (
         legendShow: over.legendShow ?? true,
         legendPos: over.legendPos ?? 'topCenter',
         legend: over.legend,
+        themeTokens: TOKENS,
     }) as unknown as PresentationConfig;
 
 describe('buildLegend — placement (3×3 grid, orient auto)', () => {
@@ -247,6 +261,12 @@ describe('buildLegend — styling', () => {
         expect(buildLegend(legendP({ legend: { borderWidth: 2, borderColor: '#000' } }), ['a'])).toMatchObject({
             borderWidth: 2,
             borderColor: '#000',
+        });
+    });
+    it('border colour defaults to the theme divider token when unset (ADR-0027)', () => {
+        expect(buildLegend(legendP({ legend: { borderWidth: 2 } }), ['a'])).toMatchObject({
+            borderWidth: 2,
+            borderColor: '#d',
         });
     });
     it('radius + padding', () => {
@@ -358,7 +378,7 @@ describe('buildLegend — edge offsets (ADR-0021)', () => {
 describe('toPresentationConfig — legend source (ADR-0021 fix)', () => {
     // The editor preview passes the editor state as `src` (legend styling is the `legend` OBJECT);
     // the live body passes rxData (legend styling is the `legendConfig` base64 BLOB). Both must resolve.
-    const base = { palette: ['#1'], family: 'cartesian' as const };
+    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS };
     it('reads the editor-state legend OBJECT when present', () => {
         const p = toPresentationConfig({ ...base, src: { legend: { color: '#f00', orient: 'vertical' } } });
         expect(p.legend).toEqual({ color: '#f00', orient: 'vertical' });
@@ -367,5 +387,9 @@ describe('toPresentationConfig — legend source (ADR-0021 fix)', () => {
         const blob = encodeBlob(JSON.stringify({ icon: 'circle' }));
         const p = toPresentationConfig({ ...base, src: { legendConfig: blob } });
         expect(p.legend).toEqual({ icon: 'circle' });
+    });
+    it('stamps the resolved themeTokens through (ADR-0027)', () => {
+        const p = toPresentationConfig({ ...base, src: {} });
+        expect(p.themeTokens).toEqual(TOKENS);
     });
 });

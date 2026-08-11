@@ -100,7 +100,10 @@ const buildCartesianSeriesEntry = (
         data: s.data,
         color,
         itemStyle: { color, ...(m?.cornerRadius ? { borderRadius: m.cornerRadius } : {}) },
-        animation: true,
+        // No per-series `animation`: a hardcoded `animation: true` here would override the
+        // root `animation: p.animation` (echarts resolves it via `getShallow('animation')` on the
+        // SeriesModel — series-level wins) and make the toggle a no-op for line/bar. Left unset,
+        // each series inherits the root toggle.
     };
     if (m?.label) {
         entry.label = { show: true };
@@ -147,8 +150,13 @@ const buildCartesianSeriesEntry = (
     return entry;
 };
 
-/** Threshold markLines attached to the first cartesian series (echarts markLine is series-level). */
-const markLineOption = (markLines: EchartsMarkLine[]): Record<string, unknown> | undefined => {
+/**
+ * Threshold markLines attached to the first cartesian series (echarts markLine is series-level).
+ *
+ * @param markLines - The threshold mark-line configs.
+ * @param divider - Theme divider token — the default markLine colour when none is explicit (ADR-0027).
+ */
+const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<string, unknown> | undefined => {
     if (!markLines.length) {
         return undefined;
     }
@@ -157,7 +165,7 @@ const markLineOption = (markLines: EchartsMarkLine[]): Record<string, unknown> |
         symbol: 'none',
         data: markLines.map(ml => ({
             yAxis: ml.value,
-            lineStyle: { type: ml.dashed ? 'dashed' : 'solid', color: ml.color ?? '#888' },
+            lineStyle: { type: ml.dashed ? 'dashed' : 'solid', color: ml.color ?? divider },
             ...(ml.label ? { label: { formatter: ml.label } } : {}),
         })),
     };
@@ -287,7 +295,7 @@ export const buildCartesianOption = (
         }
         for (const [ax, lines] of byAxis) {
             const host = entries.find(e => e.yAxisIndex === ax) ?? entries[0];
-            const opt = markLineOption(lines);
+            const opt = markLineOption(lines, p.themeTokens.divider);
             if (!opt) {
                 continue;
             }
@@ -346,8 +354,15 @@ export const buildCartesianOption = (
         yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,
-        ...(p.animationDuration ? { animationDuration: p.animationDuration } : {}),
+        // Slider + easing drive BOTH the enter animation (animationDuration/Easing) AND the
+        // data-update animation (animationDurationUpdate/EasingUpdate) — one honest knob, so a live
+        // tick honours the chosen value instead of falling back to echarts' update defaults
+        // (500 ms / cubicInOut). Duration is always emitted (finite, default 600); the old truthy
+        // guard dropped it at 0, so "0 = instant" became the ~1 s default.
+        animationDuration: p.animationDuration,
+        animationDurationUpdate: p.animationDuration,
         ...(p.animationEasing ? { animationEasing: p.animationEasing } : {}),
+        ...(p.animationEasing ? { animationEasingUpdate: p.animationEasing } : {}),
     };
 
     if (p.dataZoomSlider || p.dataZoomInside) {
@@ -362,11 +377,18 @@ export const buildCartesianOption = (
     }
 
     if (p.visualMap?.enabled) {
+        // Value→colour ramp: the user's parsed scale, or the theme-derived default ramp when empty
+        // (ADR-0027). `colors` is always an array (parseColorScale never returns null), so the empty
+        // case is `.length === 0`, not nullish — a plain `??` would never fall through.
+        const ramp =
+            p.visualMap.colors && p.visualMap.colors.length
+                ? p.visualMap.colors
+                : [p.themeTokens.primary, p.themeTokens.success, p.themeTokens.warning, p.themeTokens.error];
         option.visualMap = {
             show: false,
             min: p.visualMap.min ?? 0,
             max: p.visualMap.max ?? 100,
-            inRange: { color: p.visualMap.colors ?? ['#1976d2', '#4caf50', '#ff9800', '#f44336'] },
+            inRange: { color: ramp },
             dimension: 1,
         };
     }

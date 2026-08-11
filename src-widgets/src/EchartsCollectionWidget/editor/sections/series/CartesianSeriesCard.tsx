@@ -44,6 +44,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
+import { effectiveAxisName } from '../../axisLayout';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 
 /**
@@ -61,6 +62,11 @@ export const CartesianBasisFields: FC<{
     /** Show the per-series type override (history/live: only when ≥2 series; JSON: always). */
     showType: boolean;
     yAxes: EchartsAxisConfig[];
+    /**
+     * Effective display name per axis (explicit → inherited-from-bound-series → index, ADR-0025)
+     * for the binding-dropdown labels. Omitted by the JSON card (its axis select is hidden).
+     */
+    axisDisplayNames?: string[];
     /** OID binding row (history/live only — the JSON payload owns the data). */
     oid?: { value: string; onChange: (oid: string) => void; historyOnly: boolean };
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
@@ -81,6 +87,7 @@ export const CartesianBasisFields: FC<{
     colorFallback,
     showType,
     yAxes,
+    axisDisplayNames,
     oid,
     nameClearsToUndefined,
     showAxis = true,
@@ -130,13 +137,13 @@ export const CartesianBasisFields: FC<{
                     onChange={v => onPatch({ yAxisIndex: Number(v) })}
                     options={
                         yAxes.length
-                            ? yAxes.map(
-                                  (ax, ai) =>
-                                      [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [
-                                          string,
-                                          string,
-                                      ],
-                              )
+                            ? yAxes.map((ax, ai) => {
+                                  // Effective name (explicit → inherited → index, ADR-0025) when the
+                                  // caller resolves it; else the legacy "N · name" / "N" fallback.
+                                  const label =
+                                      axisDisplayNames?.[ai] ?? (ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1));
+                                  return [String(ai), label] as [string, string];
+                              })
                             : [['0', '1'] as [string, string]]
                     }
                 />
@@ -156,7 +163,9 @@ export const CartesianSeriesKnobs: FC<{
     defaultType: EchartsCartesianType;
     onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
     pickerCtx: OidPickerCtx;
-}> = ({ meta, defaultType, onPatch, pickerCtx }) => {
+    /** Palette-slot colour of this series — the area-gradient inherit preview (ADR-0027). */
+    colorFallback: string;
+}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback }) => {
     const renderedType: EchartsCartesianType =
         meta.type === 'bar' ? 'bar' : meta.type === 'line' ? 'line' : defaultType;
     return (
@@ -263,6 +272,7 @@ export const CartesianSeriesKnobs: FC<{
                                     <FieldLabel>{Generic.t('echarts_series_area_gradient')}</FieldLabel>
                                     <ColorField
                                         value={meta.areaGradient}
+                                        fallback={meta.color ?? colorFallback}
                                         onChange={v => onPatch({ areaGradient: v ?? undefined })}
                                         ctx={pickerCtx}
                                         allowGradient
@@ -336,6 +346,8 @@ interface CartesianSeriesListProps {
     onMove: (i: number, dir: -1 | 1) => void;
     onDuplicate: (i: number) => void;
     onAddWithOid: (oid: string) => void;
+    /** Rebind a series to a different axis (orphan-cleans the old axis, ADR-0025). */
+    onRebindAxis: (i: number, yAxisIndex: number) => void;
 }
 
 /** The history/live cartesian card list: EditorCards + the OID-first add affordances. */
@@ -350,9 +362,13 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     onMove,
     onDuplicate,
     onAddWithOid,
+    onRebindAxis,
 }) => {
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
+    // Effective axis names for the per-series binding dropdown (ADR-0025): explicit name → inherited
+    // from the first bound series → 1-based index. Matches the chart + the Axis-card title.
+    const axisDisplayNames = state.yAxes.map((a, ai) => effectiveAxisName(a, ai, series));
     return (
         <Box>
             {series.length === 0 && (
@@ -423,11 +439,16 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                     <CartesianBasisFields
                         meta={s}
                         defaultType={defaultType}
-                        onPatch={p => onUpdate(i, p)}
+                        onPatch={p =>
+                            // A yAxisIndex change rebinds (orphan-cleans the old axis, ADR-0025);
+                            // every other field updates in place.
+                            p.yAxisIndex !== undefined ? onRebindAxis(i, p.yAxisIndex) : onUpdate(i, p)
+                        }
                         pickerCtx={pickerCtx}
                         colorFallback={slot(i)}
                         showType={series.length >= 2}
                         yAxes={state.yAxes}
+                        axisDisplayNames={axisDisplayNames}
                         oid={{
                             value: s.oid,
                             onChange: oid => onUpdate(i, { oid }),
@@ -439,6 +460,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         defaultType={defaultType}
                         onPatch={p => onUpdate(i, p)}
                         pickerCtx={pickerCtx}
+                        colorFallback={slot(i)}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

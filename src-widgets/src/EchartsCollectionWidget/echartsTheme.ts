@@ -39,6 +39,75 @@ const DARK_BG = '#1e1e1e';
 const LIGHT_BG = '#ffffff';
 
 /**
+ * Semantic theme colours the family builders consume for theme-derived defaults (ADR-0027).
+ *
+ * The palette colours (`primary`/`secondary`/`success`/…) come straight from the resolved theme
+ * (the collection theme in both the live body and the editor); the text/divider tokens are
+ * dark-mode-aware — they swap to the fixed light/dark token set when a `forceMode` override flips
+ * the mode away from the host, so a forced-dark chart's defaults read dark too.
+ */
+export interface ThemeTokens {
+    primary: string;
+    secondary: string;
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+    /** Axis/threshold/legend-border default — dark-mode-aware. */
+    divider: string;
+    /** Title-colour inherit default — dark-mode-aware. */
+    textPrimary: string;
+    /** Legend-text-colour inherit default — dark-mode-aware. */
+    textSecondary: string;
+}
+
+/** Fixed light/dark text+divider tokens used when a `forceMode` override flips the mode. */
+const FIXED_TEXT_DARK = {
+    textPrimary: '#e0e0e0',
+    textSecondary: 'rgba(255,255,255,0.7)',
+    divider: 'rgba(255,255,255,0.18)',
+};
+const FIXED_TEXT_LIGHT = {
+    textPrimary: 'rgba(0,0,0,0.87)',
+    textSecondary: 'rgba(0,0,0,0.6)',
+    divider: 'rgba(0,0,0,0.12)',
+};
+
+/**
+ * The effective text+divider tokens, honouring a `forceMode` override. Shared by
+ * {@link buildEchartsTheme} and {@link resolveThemeTokens} so the chart base, the builder defaults
+ * and the editor inherit swatches all agree on the same dark-mode-aware values (ADR-0027).
+ */
+export const effectiveTextTokens = (
+    theme: Theme,
+    forceMode?: 'light' | 'dark' | 'auto',
+): { textPrimary: string; textSecondary: string; divider: string } => {
+    const p = theme.palette;
+    const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
+    if (!overridden) {
+        return { textPrimary: p.text.primary, textSecondary: p.text.secondary, divider: p.divider };
+    }
+    return forceMode === 'dark' ? FIXED_TEXT_DARK : FIXED_TEXT_LIGHT;
+};
+
+/**
+ * Resolve the full semantic token set from a theme (ADR-0027). Pure — the caller passes the theme
+ * the chart renders under (the collection theme), so editor + live resolve identically.
+ */
+export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): ThemeTokens => {
+    const p = theme.palette;
+    return {
+        primary: p.primary.main,
+        secondary: p.secondary.main,
+        success: p.success.main,
+        warning: p.warning.main,
+        error: p.error.main,
+        info: p.info.main,
+        ...effectiveTextTokens(theme, forceMode),
+    };
+};
+
+/**
  * Builds the echarts presentation base from the MUI theme.
  *
  * @param theme - Current MUI theme (resolved by CollectionProvider).
@@ -54,16 +123,11 @@ const LIGHT_BG = '#ffffff';
 export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): EChartsOption => {
     const p = theme.palette;
     // Effective mode: the override wins when it is a concrete light/dark and differs from the host.
-    const effectiveMode = forceMode && forceMode !== 'auto' && forceMode !== p.mode ? forceMode : p.mode;
-    const dark = effectiveMode === 'dark';
-    // When the override flips the mode, the host palette no longer matches — use fixed tokens.
-    const textPrimary = dark ? '#e0e0e0' : 'rgba(0,0,0,0.87)';
-    const textSecondary = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
-    const divider = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)';
     const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
-    const tp = overridden ? textPrimary : p.text.primary;
-    const ts = overridden ? textSecondary : p.text.secondary;
-    const dv = overridden ? divider : p.divider;
+    const dark = (overridden ? forceMode : p.mode) === 'dark';
+    // Text + divider tokens via the shared dark-mode-aware helper (ADR-0027): the chart base, the
+    // builder defaults and the editor inherit swatches all read the same values.
+    const { textPrimary: tp, textSecondary: ts, divider: dv } = effectiveTextTokens(theme, forceMode);
     // When the override flips the mode, paint a matching canvas so the chart reads as a coherent
     // dark/light chart (light text needs a dark canvas and vice versa) — not just recoloured text on
     // a transparent background. When following the host, stay transparent and inherit the host bg.

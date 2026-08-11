@@ -25,6 +25,7 @@ import type {
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import type { PresentationConfig } from './optionBuilders/types';
+import type { ThemeTokens } from './echartsTheme';
 
 /**
  * Title placement + styling, authored by the GUI (ADR-0007; ADR-0009 offsets; ADR-0021 bottom row
@@ -284,8 +285,10 @@ export const toPresentationConfig = (opts: {
     markLines?: EchartsMarkLine[];
     /** Decoded per-axis config (ADR-0012). When empty, axis 0 is synthesised from legacy scalars. */
     yAxes?: EchartsAxisConfig[];
+    /** Semantic theme colours for the theme-derived defaults + editor inherit swatches (ADR-0027). */
+    themeTokens: ThemeTokens;
 }): PresentationConfig => {
-    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn } = opts;
+    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn, themeTokens } = opts;
     const visualMapEnabled = bool(s.visualMapEnabled, false);
     const visualMap: EchartsVisualMapConfig | undefined = visualMapEnabled
         ? {
@@ -338,6 +341,7 @@ export const toPresentationConfig = (opts: {
         dataZoomSlider: bool(s.dataZoomSlider, false),
         dataZoomInside: bool(s.dataZoomInside, false),
         palette,
+        themeTokens,
         markLines,
         visualMap,
         gauge: chartConfig.gauge,
@@ -444,7 +448,8 @@ export const buildLegend = (p: PresentationConfig, data: string[]): Record<strin
     }
     if (cfg.borderWidth) {
         legend.borderWidth = cfg.borderWidth;
-        legend.borderColor = cfg.borderColor ?? '#ccc';
+        // Border default = the theme divider token (ADR-0027), not a fixed #ccc.
+        legend.borderColor = cfg.borderColor ?? p.themeTokens.divider;
     }
     if (cfg.borderRadius !== undefined) {
         legend.borderRadius = cfg.borderRadius;

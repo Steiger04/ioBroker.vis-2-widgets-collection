@@ -51,17 +51,24 @@ interface EchartsEditorSectionsProps {
     jsonError?: string;
 }
 
-/** The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021). */
+/**
+ * The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021).
+ *
+ * Order (top → bottom): data source → behavior → title → series → (axes or family
+ * options) → legend → tooltip → colors → advanced JSON. `family` (pie / gauge / radar
+ * options) takes the slot cartesian reserves for axes — both are the per-family layout
+ * block sitting right after the series.
+ */
 const inventory = (chartType: EditorState['chartType']): SectionKey[] => {
     const family = familyOf(chartType);
     if (family === 'cartesian') {
-        return ['series', 'dataSource', 'title', 'legend', 'tooltip', 'axesZoom', 'colors', 'behavior', 'advancedJson'];
+        return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'advancedJson'];
     }
     if (family === 'pie') {
-        return ['series', 'dataSource', 'title', 'legend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
+        return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'advancedJson'];
     }
     // gauge / radar: no data source (always current value), no axes
-    return ['series', 'title', 'legend', 'tooltip', 'family', 'colors', 'behavior', 'advancedJson'];
+    return ['behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'advancedJson'];
 };
 
 const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): string => {
@@ -178,6 +185,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        jsonSeriesNames={jsonSeriesNames}
                     />
                 );
             case 'family':

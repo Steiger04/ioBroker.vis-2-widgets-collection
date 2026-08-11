@@ -22,6 +22,7 @@ import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorState } from '../../editorState';
 import { CartesianBasisFields, CartesianSeriesKnobs } from './CartesianSeriesCard';
+import { effectiveAxisName } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
 
 interface JsonSeriesCardsProps {
@@ -36,6 +37,8 @@ interface JsonSeriesCardsProps {
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdateJson: (name: string, patch: Partial<EchartsSeriesMeta>) => void;
+    /** Rebind a JSON payload series to a different axis (sticky orphan-clean, ADR-0026). */
+    onRebindJsonAxis: (name: string, yAxisIndex: number) => void;
     onHideJson: (name: string) => void;
     onShowJson: (name: string) => void;
 }
@@ -49,6 +52,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     expanded,
     onToggleCard,
     onUpdateJson,
+    onRebindJsonAxis,
     onHideJson,
     onShowJson,
 }) => {
@@ -68,6 +72,13 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     const hiddenNames = jsonSeriesNames.filter(n => state.jsonHidden.includes(n));
     const defaultType = state.chartType as EchartsCartesianType;
     const isPie = state.chartType === 'pie';
+    // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit → inherited
+    // from the first overlay entry bound to the axis → 1-based index.
+    const overlaySeries = visibleNames.map(n => ({
+        yAxisIndex: state.jsonSeriesStyle[n]?.yAxisIndex,
+        name: state.jsonSeriesStyle[n]?.name ?? n,
+    }));
+    const axisDisplayNames = state.yAxes.map((a, ai) => effectiveAxisName(a, ai, overlaySeries));
 
     return (
         <Box>
@@ -162,19 +173,26 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                             <CartesianBasisFields
                                 meta={m}
                                 defaultType={defaultType}
-                                onPatch={p => onUpdateJson(name, p)}
+                                onPatch={p =>
+                                    // A yAxisIndex change rebinds (sticky orphan-clean, ADR-0026);
+                                    // every other field updates the overlay entry in place.
+                                    p.yAxisIndex !== undefined
+                                        ? onRebindJsonAxis(name, p.yAxisIndex)
+                                        : onUpdateJson(name, p)
+                                }
                                 pickerCtx={pickerCtx}
                                 colorFallback={slot(i)}
                                 showType
                                 yAxes={state.yAxes}
+                                axisDisplayNames={axisDisplayNames}
                                 nameClearsToUndefined
-                                showAxis={false}
                             />
                             <CartesianSeriesKnobs
                                 meta={m}
                                 defaultType={defaultType}
                                 onPatch={p => onUpdateJson(name, p)}
                                 pickerCtx={pickerCtx}
+                                colorFallback={slot(i)}
                             />
                             <SeriesRawOverride
                                 slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}

@@ -147,9 +147,6 @@ export interface EditorState {
 export type EditorPatch = Partial<EditorState>;
 export type SetEditor = (patch: EditorPatch) => void;
 
-/** Default visualMap colour scale — a CSS gradient (the single gradient picker's native format). */
-const DEFAULT_VMAP_COLORS = 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)';
-
 export const DEFAULT_EDITOR_STATE: EditorState = {
     chartType: 'line',
     mode: 'history',
@@ -192,7 +189,9 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     darkMode: 'auto',
     renderer: 'canvas',
     markLines: [],
-    visualMap: { enabled: false, min: 0, max: 100, colors: DEFAULT_VMAP_COLORS },
+    // visualMap colours empty by default → the builder inherits the theme-derived ramp
+    // (primary→success→warning→error, ADR-0027), and the editor swatch previews it.
+    visualMap: { enabled: false, min: 0, max: 100, colors: '' },
     userText: '',
     jsonSeriesStyle: {},
     jsonHidden: [],
@@ -313,7 +312,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         enabled: boolOr(data.visualMapEnabled, false),
         min: numOr(data.visualMapMin, 0),
         max: numOr(data.visualMapMax, 100),
-        colors: strOr(data.visualMapColors, DEFAULT_VMAP_COLORS),
+        // Empty default → the builder inherits the theme-derived ramp (ADR-0027); a stored value is kept.
+        colors: strOr(data.visualMapColors, ''),
     };
 
     // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level

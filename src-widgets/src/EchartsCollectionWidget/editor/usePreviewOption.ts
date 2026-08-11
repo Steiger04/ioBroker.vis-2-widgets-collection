@@ -20,15 +20,16 @@ import { useMemo } from 'react';
 import type { Theme } from '@mui/material/styles';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 
-import { buildEchartsTheme, echartsPalette } from '../echartsTheme';
+import { buildEchartsTheme } from '../echartsTheme';
 import { createHistoryFetcher } from '../historyFetcher';
 import { buildGeneratedOption, familyOf, parseJsonState, parseUserJson } from '../optionBuilder';
-import { resolvePalette, buildTitleOption, toPresentationConfig } from '../presentation';
+import { buildTitleOption, toPresentationConfig } from '../presentation';
 import { mergeOptionForEcharts } from '../utils/mergeOption';
 import { useHistory } from '../useHistory';
 import { useLiveBuffer } from '../useLiveBuffer';
 
 import { useSubscribedValues } from './useSubscribedValues';
+import { useEditorTheme } from './useEditorTheme';
 import type { EditorState } from './editorState';
 
 const RANGE_MS: Record<string, number> = {
@@ -65,27 +66,28 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
     const family = familyOf(state.chartType);
     const mode = state.mode;
 
-    const palette = useMemo(
-        () => resolvePalette(state.paletteSource, state.palettePreset, state.paletteCustom, echartsPalette(theme)),
-        [state.paletteSource, state.palettePreset, state.paletteCustom, theme],
-    );
+    // Resolve the COLLECTION theme + derived palette + tokens (ADR-0027): the preview must render
+    // under the same theme the canvas does, not the vis-2 host theme the editor chrome uses.
+    const { theme: collectionTheme, palette, themeTokens } = useEditorTheme(state, socket, theme);
     const presentation = useMemo(
         () =>
             toPresentationConfig({
                 src: editorSrc(state),
                 palette,
+                themeTokens,
                 family,
                 chartConfig: { gauge: state.gauge, radar: state.radar, pie: state.pie },
                 markLines: state.markLines,
                 yAxes: state.yAxes,
             }),
-        [state, palette, family],
+        [state, palette, themeTokens, family],
     );
     const themeBase = useMemo(() => {
-        const base = buildEchartsTheme(theme, state.darkMode);
+        // Built from the COLLECTION theme (was the host theme — a second editor↔canvas divergence).
+        const base = buildEchartsTheme(collectionTheme, state.darkMode);
         base.color = palette;
         return base;
-    }, [theme, palette, state.darkMode]);
+    }, [collectionTheme, palette, state.darkMode]);
     const overrides = useMemo(() => {
         const r = parseUserJson(state.userText);
         return r.ok ? r.value : {};

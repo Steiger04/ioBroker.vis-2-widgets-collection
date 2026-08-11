@@ -8,11 +8,10 @@
  * the value axis to a colour gradient). visualMap min/max carry field-level validation.
  */
 import type { FC } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { echartsPalette } from '../../echartsTheme';
-import { PALETTE_PRESETS, resolvePalette } from '../../presentation';
+import { PALETTE_PRESETS } from '../../presentation';
 import {
     FieldGrid,
     FieldLabel,
@@ -23,6 +22,7 @@ import {
     SwitchRow,
 } from '../../../components/controls';
 import ColorField, { ColorListField } from '../colorFields';
+import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -41,19 +41,15 @@ const paletteChoice = (state: EditorState): string =>
           : 'theme';
 
 const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
-    const theme = useTheme();
+    // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — what the canvas renders
+    // under, not the vis-2 host theme.
+    const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const isCartesian = state.chartType !== 'pie' && state.chartType !== 'gauge' && state.chartType !== 'radar';
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
         ...Object.keys(PALETTE_PRESETS).map(k => [`preset:${k}`, k] as [string, string]),
         ['custom', Generic.t('echarts_palette_custom')],
     ];
-    const palette = resolvePalette(
-        state.paletteSource,
-        state.palettePreset,
-        state.paletteCustom,
-        echartsPalette(theme),
-    );
 
     const onPaletteChoice = (v: string): void => {
         if (v === 'theme') {
@@ -154,11 +150,13 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                             disabled={!state.visualMap.enabled}
                         />
                         {/* A value→colour scale is a gradient: one gradient picker supplies the whole
-                            scale; presentation parses it into the ordered colour array echarts needs. */}
+                            scale; presentation parses it into the ordered colour array echarts needs.
+                            The inherit preview is the theme-derived default ramp (ADR-0027). */}
                         <Box>
                             <FieldLabel>{Generic.t('echarts_visualmap_colors')}</FieldLabel>
                             <ColorField
                                 value={state.visualMap.colors}
+                                fallback={`linear-gradient(90deg, ${themeTokens.primary}, ${themeTokens.success}, ${themeTokens.warning}, ${themeTokens.error})`}
                                 onChange={v => set({ visualMap: { ...state.visualMap, colors: v ?? '' } })}
                                 ctx={pickerCtx}
                                 allowGradient

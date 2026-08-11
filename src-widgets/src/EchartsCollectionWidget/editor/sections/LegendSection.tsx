@@ -24,6 +24,7 @@ import {
 } from '../../../components/controls';
 import ColorField from '../colorFields';
 import { PositionGrid } from '../controls';
+import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -60,6 +61,8 @@ const LEGEND_ICONS: ReadonlyArray<[string, string]> = [
 ];
 
 const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
+    // Theme tokens resolve against the collection theme (ADR-0027) — the inherit previews.
+    const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const lg = state.legend;
     const patch = (p: Partial<typeof lg>): void => set({ legend: { ...lg, ...p } });
     // Background is "transparent"/unset when null — round-trip through the colour picker's null state.
@@ -134,6 +137,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                         <FieldLabel>{Generic.t('echarts_legend_text_color')}</FieldLabel>
                         <ColorField
                             value={lg.color ?? null}
+                            fallback={themeTokens.textSecondary}
                             onChange={v => patch({ color: v ?? undefined })}
                             ctx={pickerCtx}
                         />
@@ -183,6 +187,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                         <FieldLabel>{Generic.t('echarts_legend_inactive_color')}</FieldLabel>
                         <ColorField
                             value={lg.inactiveColor ?? null}
+                            fallback={themeTokens.divider}
                             onChange={v => patch({ inactiveColor: v ?? undefined })}
                             ctx={pickerCtx}
                         />
@@ -204,6 +209,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                         <FieldLabel>{Generic.t('echarts_legend_border_color')}</FieldLabel>
                         <ColorField
                             value={lg.borderColor ?? null}
+                            fallback={themeTokens.divider}
                             onChange={v => patch({ borderColor: v ?? undefined })}
                             ctx={pickerCtx}
                         />
