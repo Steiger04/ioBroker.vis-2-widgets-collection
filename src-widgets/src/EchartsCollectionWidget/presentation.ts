@@ -12,6 +12,8 @@ import type {
     EchartsAxisConfig,
     EchartsCartesianType,
     EchartsChartFamily,
+    EchartsFontStyle,
+    EchartsFontWeight,
     EchartsGaugeConfig,
     EchartsLegendConfig,
     EchartsLegendPos,
@@ -78,15 +80,17 @@ export interface TitleOptionInput {
     color?: string | null;
     /** Title font-size override; `undefined` = inherit. */
     fontSize?: number;
-    /** Title font-weight override; empty = inherit. */
-    fontWeight?: 'normal' | 'bold' | null;
+    /** Title font-weight override (ADR-0029 full doc set); `null` = inherit. */
+    fontWeight?: EchartsFontWeight | null;
+    /** Title font-style override (ADR-0029); `null` = inherit. */
+    fontStyle?: EchartsFontStyle | null;
 }
 
 /**
  * Set `merged.title` from the live title text + placement + GUI-owned styling (ADR-0009 + ADR-0021).
  * The single place the title is assembled, so the widget body and the editor preview never drift
  * (ADR-0009 "one central helper, both consumers call it"). The theme already merged
- * `title.textStyle.color`; a user colour/size/weight overlays onto that (deep-merged, not replaced,
+ * `title.textStyle.color`; a user colour/size/weight/style overlays onto that (deep-merged, not replaced,
  * so a size-only override keeps the theme colour).
  */
 export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOptionInput): void => {
@@ -100,6 +104,9 @@ export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOpt
     }
     if (opts.fontWeight) {
         textStyleOverride.fontWeight = opts.fontWeight;
+    }
+    if (opts.fontStyle) {
+        textStyleOverride.fontStyle = opts.fontStyle;
     }
     const existingTextStyle = (existing.textStyle as Record<string, unknown> | undefined) ?? {};
     merged.title = {
@@ -421,6 +428,9 @@ export const buildLegend = (p: PresentationConfig, data: string[]): Record<strin
     }
     if (cfg.fontWeight) {
         textStyle.fontWeight = cfg.fontWeight;
+    }
+    if (cfg.fontStyle) {
+        textStyle.fontStyle = cfg.fontStyle;
     }
     if (Object.keys(textStyle).length) {
         legend.textStyle = textStyle;

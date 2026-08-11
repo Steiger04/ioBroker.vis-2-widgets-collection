@@ -180,6 +180,7 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
                 color: state.titleColor ?? null,
                 fontSize: state.titleFontSize,
                 fontWeight: state.titleWeight ?? null,
+                fontStyle: state.titleFontStyle ?? null,
             });
         }
         if (presentation.bgColor && presentation.bgColor !== 'transparent') {

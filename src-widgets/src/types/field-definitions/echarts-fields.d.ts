@@ -95,6 +95,14 @@ export type EchartsLegendIcon = 'circle' | 'rect' | 'roundRect' | 'triangle' | '
 /** Tooltip trigger. */
 export type EchartsTooltipTrigger = 'axis' | 'item' | 'none';
 /**
+ * echarts `textStyle.fontWeight` — the full doc set (ADR-0029). The four named weights plus the
+ * numeric CSS scale (100–900); `normal`≡400, `bold`≡700. Title weight is always-emit (default
+ * `'normal'`); legend weight is nullable (`undefined` = inherit).
+ */
+export type EchartsFontWeight = 'normal' | 'bold' | 'bolder' | 'lighter' | number;
+/** echarts `textStyle.fontStyle` (ADR-0029). `oblique` is doc-faithful though ≈ `italic` in most fonts. */
+export type EchartsFontStyle = 'normal' | 'italic' | 'oblique';
+/**
  * Title placement on a 3×2 grid (ADR-0009 + ADR-0021). The bottom row was added in ADR-0021; it
  * needs the echarts `bottom` field, so `'title'` joined the `replaceMerge` list (top↔bottom
  * switches no longer leave a stale key). @default 'topCenter'
@@ -298,8 +306,10 @@ export interface EchartsLegendConfig {
     color?: string;
     /** Legend text size (`legend.textStyle.fontSize`); `undefined` = inherit. */
     fontSize?: number;
-    /** Legend text weight (`legend.textStyle.fontWeight`). @default undefined (inherit) */
-    fontWeight?: 'normal' | 'bold';
+    /** Legend text weight (`legend.textStyle.fontWeight`); `undefined` = inherit. */
+    fontWeight?: EchartsFontWeight;
+    /** Legend text style (`legend.textStyle.fontStyle`, ADR-0029); `undefined` = inherit. */
+    fontStyle?: EchartsFontStyle;
     /** Legend symbol shape (`legend.icon`); `undefined` = inherit from the series. */
     icon?: EchartsLegendIcon;
     /**
@@ -440,8 +450,10 @@ export interface EchartsFieldsRxData {
     titleColor?: string;
     /** Title text size (`title.textStyle.fontSize`); `undefined` = inherit. */
     titleFontSize?: number;
-    /** Title text weight (`title.textStyle.fontWeight`). @default undefined (inherit) */
-    titleWeight?: 'normal' | 'bold';
+    /** Title text weight (`title.textStyle.fontWeight`); the editor always-emit default is `'normal'`. */
+    titleWeight?: EchartsFontWeight;
+    /** Title text style (`title.textStyle.fontStyle`, ADR-0029); the editor default is `'normal'`. */
+    titleFontStyle?: EchartsFontStyle;
 
     // ── Multi-OID series (indexed, auto-subscribed) ─────────────────────────
 

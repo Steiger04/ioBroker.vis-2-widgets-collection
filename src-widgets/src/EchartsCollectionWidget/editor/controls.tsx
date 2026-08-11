@@ -272,3 +272,41 @@ export const PositionGrid: FC<{
         </ToggleButtonGroup>
     </Box>
 );
+
+// ── font weight / style selects (ADR-0029) ────────────────────────
+
+// The ECharts `textStyle.fontWeight` doc set, de-duplicated: the four named weights plus the
+// numeric CSS grades, but 400/700 are dropped (they ARE normal/bold). Title + Legend share this one
+// list. Values are strings (the select is string-based); `editor/fontOptions` coerces back to numbers.
+const WEIGHT_OPTIONS_RAW: ReadonlyArray<[string, string]> = [
+    ['normal', 'echarts_weight_normal'],
+    ['bold', 'echarts_weight_bold'],
+    ['bolder', 'echarts_weight_bolder'],
+    ['lighter', 'echarts_weight_lighter'],
+    ['100', 'echarts_weight_100'],
+    ['200', 'echarts_weight_200'],
+    ['300', 'echarts_weight_300'],
+    ['500', 'echarts_weight_500'],
+    ['600', 'echarts_weight_600'],
+    ['800', 'echarts_weight_800'],
+    ['900', 'echarts_weight_900'],
+];
+
+/** Font-weight select options — `[value, translated label]`. */
+export const FONT_WEIGHT_OPTIONS: ReadonlyArray<[string, string]> = WEIGHT_OPTIONS_RAW.map(([v, key]) => [
+    v,
+    Generic.t(key),
+]);
+
+// The three ECharts `textStyle.fontStyle` doc values; `oblique` is doc-faithful though ≈ italic.
+const STYLE_OPTIONS_RAW: ReadonlyArray<[string, string]> = [
+    ['normal', 'echarts_font_style_normal'],
+    ['italic', 'echarts_font_style_italic'],
+    ['oblique', 'echarts_font_style_oblique'],
+];
+
+/** Font-style select options — `[value, translated label]`. */
+export const FONT_STYLE_OPTIONS: ReadonlyArray<[string, string]> = STYLE_OPTIONS_RAW.map(([v, key]) => [
+    v,
+    Generic.t(key),
+]);

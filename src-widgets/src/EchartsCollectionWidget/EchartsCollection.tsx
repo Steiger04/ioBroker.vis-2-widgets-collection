@@ -275,6 +275,7 @@ function EchartsCollection(): React.ReactElement {
                 color: data.titleColor ?? null,
                 fontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
                 fontWeight: data.titleWeight ?? null,
+                fontStyle: data.titleFontStyle ?? null,
             });
         }
         // Background colour (transparent default).

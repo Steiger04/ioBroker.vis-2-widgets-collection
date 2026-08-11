@@ -147,6 +147,16 @@ describe('buildTitleOption — textStyle (ADR-0021)', () => {
         const r = title({ text: 'T', titlePos: 'topCenter', dx: 0, dy: 0, fontWeight: 'bold' });
         expect((r.textStyle as Record<string, unknown>).fontWeight).toBe('bold');
     });
+    it('numeric fontWeight override — preserved as a number (ADR-0029)', () => {
+        const r = title({ text: 'T', titlePos: 'topCenter', dx: 0, dy: 0, fontWeight: 600 });
+        const fw = (r.textStyle as Record<string, unknown>).fontWeight;
+        expect(fw).toBe(600);
+        expect(typeof fw).toBe('number');
+    });
+    it('fontStyle override (ADR-0029)', () => {
+        const r = title({ text: 'T', titlePos: 'topCenter', dx: 0, dy: 0, fontStyle: 'italic' });
+        expect((r.textStyle as Record<string, unknown>).fontStyle).toBe('italic');
+    });
 });
 
 /** Minimal presentation config for legend tests (only legend-relevant fields are read). */
@@ -239,6 +249,17 @@ describe('buildLegend — styling', () => {
         ).toMatchObject({
             textStyle: { color: '#f00', fontSize: 12, fontWeight: 'bold' },
         });
+    });
+    it('fontStyle → textStyle.fontStyle (ADR-0029)', () => {
+        expect(buildLegend(legendP({ legend: { fontStyle: 'italic' } }), ['a'])).toMatchObject({
+            textStyle: { fontStyle: 'italic' },
+        });
+    });
+    it('numeric fontWeight — preserved as a number (ADR-0029)', () => {
+        const l = buildLegend(legendP({ legend: { fontWeight: 600 } }), ['a']);
+        const fw = (l.textStyle as Record<string, unknown> | undefined)?.fontWeight;
+        expect(fw).toBe(600);
+        expect(typeof fw).toBe('number');
     });
     it('icon + item sizing/gap', () => {
         expect(

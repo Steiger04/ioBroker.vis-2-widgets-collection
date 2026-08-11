@@ -28,6 +28,7 @@ import {
 import { normalizeAxes } from './axisLayout';
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
+import { parseFontStyle, parseFontWeight } from './fontOptions';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
@@ -36,6 +37,8 @@ import type {
     EchartsCartesianType,
     EchartsChartType,
     EchartsDarkMode,
+    EchartsFontStyle,
+    EchartsFontWeight,
     EchartsGaugeConfig,
     EchartsIgnoreNull,
     EchartsLegendConfig,
@@ -95,8 +98,10 @@ export interface EditorState {
     titleColor: string | null;
     /** Title text size override; `undefined` = inherit (ADR-0021). */
     titleFontSize: number | undefined;
-    /** Title text weight (ADR-0021). @default 'normal' */
-    titleWeight: 'normal' | 'bold';
+    /** Title text weight (ADR-0021; widened to the full doc set ADR-0029). @default 'normal' */
+    titleWeight: EchartsFontWeight;
+    /** Title font style (ADR-0029). @default 'normal' */
+    titleFontStyle: EchartsFontStyle;
     // series (cartesian/pie full; gauge/radar = label+colour of the single polygon)
     series: EditorSeries[];
     // family config
@@ -164,6 +169,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     titleColor: null,
     titleFontSize: undefined,
     titleWeight: 'normal',
+    titleFontStyle: 'normal',
     series: [],
     gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
     radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [] },
@@ -340,7 +346,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titleDy: numOr(data.titleDy, DEFAULT_EDITOR_STATE.titleDy),
         titleColor: typeof data.titleColor === 'string' && data.titleColor ? data.titleColor : null,
         titleFontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
-        titleWeight: data.titleWeight === 'bold' ? 'bold' : 'normal',
+        titleWeight: parseFontWeight(data.titleWeight),
+        titleFontStyle: parseFontStyle(data.titleFontStyle),
         series,
         gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
         radar,
@@ -422,6 +429,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         titleColor: state.titleColor ?? '',
         titleFontSize: state.titleFontSize,
         titleWeight: state.titleWeight,
+        titleFontStyle: state.titleFontStyle,
         series_count: seriesCount,
         legendShow: state.legendShow,
         legendPos: state.legendPos,

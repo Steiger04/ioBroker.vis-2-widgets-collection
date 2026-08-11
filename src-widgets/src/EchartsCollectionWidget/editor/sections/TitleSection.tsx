@@ -20,7 +20,8 @@ import {
     TextField2,
 } from '../../../components/controls';
 import ColorField from '../colorFields';
-import { PositionGrid } from '../controls';
+import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
+import { parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
@@ -82,12 +83,15 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                 />
                 <LabeledSelect
                     label={Generic.t('echarts_weight')}
-                    value={state.titleWeight}
-                    onChange={v => set({ titleWeight: v as EditorState['titleWeight'] })}
-                    options={[
-                        ['normal', Generic.t('echarts_weight_normal')],
-                        ['bold', Generic.t('echarts_weight_bold')],
-                    ]}
+                    value={weightToSelectValue(state.titleWeight)}
+                    onChange={v => set({ titleWeight: parseFontWeight(v) })}
+                    options={FONT_WEIGHT_OPTIONS}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_font_style')}
+                    value={state.titleFontStyle}
+                    onChange={v => set({ titleFontStyle: parseFontStyle(v) })}
+                    options={FONT_STYLE_OPTIONS}
                 />
                 {dxRelevant && (
                     <NumberField

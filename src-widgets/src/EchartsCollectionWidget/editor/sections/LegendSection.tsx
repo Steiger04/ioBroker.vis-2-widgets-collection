@@ -23,7 +23,8 @@ import {
     SwitchRow,
 } from '../../../components/controls';
 import ColorField from '../colorFields';
-import { PositionGrid } from '../controls';
+import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
+import { fontStyleToSelectValue, parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
@@ -150,12 +151,15 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                     />
                     <LabeledSelect
                         label={Generic.t('echarts_weight')}
-                        value={lg.fontWeight ?? 'normal'}
-                        onChange={v => patch({ fontWeight: v as 'normal' | 'bold' })}
-                        options={[
-                            ['normal', Generic.t('echarts_weight_normal')],
-                            ['bold', Generic.t('echarts_weight_bold')],
-                        ]}
+                        value={weightToSelectValue(lg.fontWeight)}
+                        onChange={v => patch({ fontWeight: parseFontWeight(v) })}
+                        options={FONT_WEIGHT_OPTIONS}
+                    />
+                    <LabeledSelect
+                        label={Generic.t('echarts_font_style')}
+                        value={fontStyleToSelectValue(lg.fontStyle)}
+                        onChange={v => patch({ fontStyle: parseFontStyle(v) })}
+                        options={FONT_STYLE_OPTIONS}
                     />
                 </FieldGrid>
             </SubGroup>
