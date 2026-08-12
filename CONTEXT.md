@@ -123,7 +123,7 @@ The colour box in a `ColorField` that shows the field's **effective** colour —
 _Avoid_: colour preview, default swatch
 
 **Template snippet**:
-A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys (e.g. `graphic` overlay text, `aria`, `axisPointer` link, `radar.splitArea`). With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`) or collides with a GUI-owned key (`✗`).
+A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. The headline entries are **component scaffolds** for `title`/`legend`/`tooltip`: every subkey the GUI does not own, pre-filled with the echarts default (ADR-0030/0032); the rest are the radar presets (`radar.splitArea`, `radar.axisName`). With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI).
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Series raw**:

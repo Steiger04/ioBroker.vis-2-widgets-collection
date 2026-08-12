@@ -4,11 +4,12 @@
  * @module EchartsCollectionWidget/editor/sections/AdvancedJsonSection
  * @remarks
  * Strictly supplemental and **chart-wide only** (ADR-0017): the GUI owns all presentation, and
- * per-series presentation now lives on the series cards (Series raw), so this U textarea is for
- * echarts keys the GUI does not expose AT THE CHART LEVEL — `graphic`, `aria`, `axisPointer`,
- * `textStyle`, exotic `animationEasing`, and radar-component options (`radar.splitArea`/…). Since
- * ADR-0030 it also carries complete `title` / `legend` scaffolds (every GUI-uncovered subkey, default-
- * pre-filled) — title/legend are only PARTIALLY managed, so their non-GUI subkeys DO merge through.
+ * per-series presentation now lives on the series cards (Series raw), so this U textarea is the escape
+ * hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its one-click templates are the
+ * complete `title` / `legend` / `tooltip` scaffolds (every GUI-uncovered subkey, default-pre-filled —
+ * ADR-0030/0032) plus the radar presets; the free text also accepts the standalone `graphic` / `aria` /
+ * `axisPointer` / `textStyle` components and exotic `animationEasing`. title/legend/tooltip are only
+ * PARTIALLY managed, so their non-GUI subkeys DO merge through.
  * `series` is a fully-managed key (a U `series` is ignored — use the per-card Series raw instead).
  * Carries the honesty affordances: the managed-keys box, chart-wide one-click templates, JSON
  * validity, and the 3-state sub-key merge preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
@@ -41,22 +42,6 @@ interface Template {
 // ── Family-agnostic templates (chart-level GUI-uncovered keys → clean ✓) ──
 const TPL_ALL: Template[] = [
     {
-        label: 'echarts_tpl_graphic',
-        json: '{\n  "graphic": [\n    { "type": "text", "left": "center", "bottom": 10, "style": { "text": "© me" } }\n  ]\n}',
-    },
-    {
-        label: 'echarts_tpl_aria',
-        json: '{\n  "aria": { "enabled": true, "label": { "description": "Chart description for screen readers" } }\n}',
-    },
-    {
-        label: 'echarts_tpl_axispointer',
-        json: '{\n  "axisPointer": { "link": [{ "xAxisIndex": "all" }] }\n}',
-    },
-    {
-        label: 'echarts_tpl_textstyle',
-        json: '{\n  "textStyle": { "fontFamily": "Inter, sans-serif" }\n}',
-    },
-    {
         // ADR-0030: complete scaffold of EVERY title subkey the GUI does NOT own (text/placement/
         // textStyle colour-size-weight-style are GUI-owned → omitted), pre-filled with the echarts
         // default (a best-effort literal where the real default is a theme token / 'auto' / undefined).
@@ -68,6 +53,15 @@ const TPL_ALL: Template[] = [
         // placement/orient/items/frame + textStyle colour-size-weight-style are GUI-owned → omitted).
         label: 'echarts_tpl_legend',
         json: '{\n  "legend": {\n    "type": "plain",\n    "zlevel": 0,\n    "z": 2,\n    "align": "auto",\n    "width": "auto",\n    "height": "auto",\n    "selectedMode": true,\n    "selected": {},\n    "formatter": null,\n    "symbolRotate": 0,\n    "inactiveBorderColor": "#ccc",\n    "inactiveBorderWidth": "auto",\n    "borderType": "solid",\n    "borderDashOffset": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "scrollDataIndex": 0,\n    "pageButtonItemGap": 5,\n    "pageButtonGap": null,\n    "pageButtonPosition": "end",\n    "pageFormatter": "{current}/{total}",\n    "pageIcons": {\n      "horizontal": ["M0,0L12,-10L12,10z", "M0,0L-12,-10L-12,10z"],\n      "vertical": ["M0,0L20,0L10,-20z", "M0,0L20,0L10,20z"]\n    },\n    "pageIconColor": "#2f4554",\n    "pageIconInactiveColor": "#aaa",\n    "pageIconSize": 15,\n    "animation": true,\n    "animationDurationUpdate": 800,\n    "selector": false,\n    "selectorPosition": "auto",\n    "selectorItemGap": 7,\n    "selectorButtonGap": 10,\n    "silent": false,\n    "itemStyle": {\n      "color": "inherit",\n      "opacity": "inherit",\n      "borderColor": "inherit",\n      "borderWidth": "auto",\n      "borderType": "inherit",\n      "borderDashOffset": "inherit",\n      "borderCap": "inherit",\n      "borderJoin": "inherit",\n      "borderMiterLimit": "inherit"\n    },\n    "lineStyle": {\n      "width": "auto",\n      "color": "inherit",\n      "opacity": "inherit",\n      "type": "inherit",\n      "cap": "inherit",\n      "join": "inherit",\n      "dashOffset": "inherit",\n      "miterLimit": "inherit",\n      "inactiveColor": "#ccc",\n      "inactiveWidth": 2\n    },\n    "textStyle": {\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 14,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "overflow": "none"\n    },\n    "selectorLabel": {\n      "show": true,\n      "color": "#666",\n      "fontSize": 12,\n      "borderColor": "#ccc",\n      "borderWidth": 1,\n      "borderRadius": 10,\n      "padding": [3, 5, 3, 5]\n    },\n    "pageTextStyle": {\n      "color": "#666"\n    },\n    "emphasis": {\n      "selectorLabel": {\n        "show": true,\n        "color": "#666"\n      }\n    },\n    "tooltip": {\n      "show": false\n    }\n  }\n}',
+    },
+    {
+        // ADR-0032: complete scaffold of EVERY tooltip subkey the GUI does NOT own (trigger/formatter/
+        // valueFormatter/show are GUI-owned → omitted), pre-filled with the echarts default (best-effort
+        // literal where the real default is a theme token / 'auto' / undefined). axisPointer is filled to
+        // its direct keys + a full `label` (the crosshair case); the line/cross/shadow/handle style sub-
+        // trees and fontFamily are omitted. Verified against TooltipModel / CommonAxisPointerOption.
+        label: 'echarts_tpl_tooltip',
+        json: '{\n  "tooltip": {\n    "showContent": true,\n    "triggerOn": "mousemove|click",\n    "alwaysShowContent": false,\n    "showDelay": 0,\n    "hideDelay": 100,\n    "enterable": false,\n    "confine": false,\n    "renderMode": "auto",\n    "transitionDuration": 0.4,\n    "displayTransition": true,\n    "backgroundColor": "rgba(50, 50, 50, 0.7)",\n    "borderColor": "#333",\n    "borderWidth": 1,\n    "borderRadius": 4,\n    "padding": 5,\n    "extraCssText": "",\n    "shadowBlur": 10,\n    "shadowColor": "rgba(0, 0, 0, 0.2)",\n    "shadowOffsetX": 1,\n    "shadowOffsetY": 2,\n    "textStyle": {\n      "color": "#fff",\n      "fontStyle": "normal",\n      "fontWeight": "normal",\n      "fontSize": 14,\n      "align": "left",\n      "verticalAlign": "top",\n      "lineHeight": 18,\n      "backgroundColor": "transparent",\n      "borderColor": "#333",\n      "borderWidth": 0,\n      "borderType": "solid",\n      "borderDashOffset": 0,\n      "borderRadius": 0,\n      "padding": 0,\n      "shadowBlur": 0,\n      "shadowColor": "transparent",\n      "shadowOffsetX": 0,\n      "shadowOffsetY": 0,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textBorderType": "solid",\n      "textBorderDashOffset": 0,\n      "textBorderRadius": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "textShadowOffsetX": 0,\n      "textShadowOffsetY": 0,\n      "overflow": "break"\n    },\n    "axisPointer": {\n      "type": "line",\n      "axis": "auto",\n      "snap": false,\n      "triggerOn": "mousemove|click",\n      "triggerTooltip": true,\n      "triggerEmphasis": true,\n      "value": null,\n      "status": "hide",\n      "animation": "auto",\n      "animationDurationUpdate": 200,\n      "animationEasingUpdate": "cubicOut",\n      "label": {\n        "show": true,\n        "precision": "auto",\n        "formatter": null,\n        "margin": 3,\n        "color": "#fff",\n        "fontStyle": "normal",\n        "fontWeight": "normal",\n        "fontSize": 12,\n        "lineHeight": 12,\n        "align": "left",\n        "verticalAlign": "top",\n        "backgroundColor": "auto",\n        "borderColor": "#333",\n        "borderWidth": 0,\n        "borderType": "solid",\n        "borderDashOffset": 0,\n        "borderRadius": 3,\n        "padding": 3,\n        "shadowBlur": 0,\n        "shadowColor": "transparent",\n        "shadowOffsetX": 0,\n        "shadowOffsetY": 0,\n        "textBorderColor": "transparent",\n        "textBorderWidth": 0,\n        "textBorderType": "solid",\n        "textBorderDashOffset": 0,\n        "textBorderRadius": 0,\n        "textShadowBlur": 0,\n        "textShadowColor": "transparent",\n        "textShadowOffsetX": 0,\n        "textShadowOffsetY": 0,\n        "overflow": "truncate"\n      }\n    }\n  }\n}',
     },
 ];
 
@@ -155,7 +149,7 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
                 value={userText}
                 onChange={setUserText}
                 minRows={6}
-                placeholder={'{\n  "graphic": [ … ]\n}'}
+                placeholder={'{\n  "tooltip": { … }\n}'}
             />
             <Typography
                 variant="caption"

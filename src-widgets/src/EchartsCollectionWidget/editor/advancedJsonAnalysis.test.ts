@@ -22,9 +22,8 @@ describe('classifyUserKeys — non-managed / wholly-managed', () => {
         expect(clsOf({ grid: { left: 10 } }, 'grid')?.cls).toBe('ignored');
     });
 
-    it('series / tooltip / animation stay wholly ignored (no partial map)', () => {
+    it('series / animation stay wholly ignored (no partial map)', () => {
         expect(clsOf({ series: [{ type: 'line' }] }, 'series')?.cls).toBe('ignored');
-        expect(clsOf({ tooltip: { trigger: 'axis' } }, 'tooltip')?.cls).toBe('ignored');
         expect(clsOf({ animation: false }, 'animation')?.cls).toBe('ignored');
     });
 });
@@ -81,5 +80,38 @@ describe('classifyUserKeys — legend (partially managed)', () => {
         const c = clsOf({ legend: { icon: 'circle', selector: true } }, 'legend');
         expect(c?.cls).toBe('partial');
         expect(c?.managed).toEqual(['icon']);
+    });
+});
+
+describe('classifyUserKeys — tooltip (partially managed, ADR-0032)', () => {
+    it('only NON-GUI subkeys → effective (the template-insert case)', () => {
+        const c = clsOf(
+            { tooltip: { axisPointer: { type: 'cross' }, backgroundColor: '#fff', padding: 5 } },
+            'tooltip',
+        );
+        expect(c?.cls).toBe('effective');
+        expect(c?.managed).toEqual([]);
+    });
+
+    it('a non-object tooltip value → ignored (wholly overridden by buildTooltip)', () => {
+        expect(clsOf({ tooltip: false }, 'tooltip')?.cls).toBe('ignored');
+    });
+
+    it('tooltip.trigger (GUI) alone → ignored', () => {
+        const c = clsOf({ tooltip: { trigger: 'axis' } }, 'tooltip');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed).toEqual(['trigger']);
+    });
+
+    it('formatter + valueFormatter (both GUI) → ignored', () => {
+        const c = clsOf({ tooltip: { formatter: '{b}', valueFormatter: 'x' } }, 'tooltip');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed.sort()).toEqual(['formatter', 'valueFormatter']);
+    });
+
+    it('mixed (trigger + axisPointer) → partial, lists trigger', () => {
+        const c = clsOf({ tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } } }, 'tooltip');
+        expect(c?.cls).toBe('partial');
+        expect(c?.managed).toEqual(['trigger']);
     });
 });

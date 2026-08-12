@@ -6,15 +6,17 @@
  * @remarks
  * The Advanced JSON (U) supplements keys the GUI does not expose; G wins every collision
  * (ADR-0007). Most managed top-level keys are WHOLLY owned — a U value is silently overridden (→ ✗).
- * `title` and `legend` are PARTIALLY owned: the GUI sets only SOME subkeys (title text/placement/
- * textStyle colour-size-weight-style; legend show/data/items/frame), so a U object that avoids those
- * subkeys is EFFECTIVE (→ ✓). {@link MANAGED_PATHS} enumerates the GUI-owned subkey paths (one level,
+ * `title`, `legend` and `tooltip` are PARTIALLY owned: the GUI sets only SOME subkeys (title text/
+ * placement/textStyle colour-size-weight-style; legend show/data/items/frame; tooltip trigger/formatter/
+ * valueFormatter/show), so a U object that avoids those subkeys is EFFECTIVE (→ ✓). {@link
+ * MANAGED_PATHS} enumerates the GUI-owned subkey paths (one level,
  * plus `textStyle.*` at two levels — only `textStyle` has GUI-owned CHILDREN) for that partial
  * analysis. Kept in a pure module so it is unit-testable and the component stays presentational.
  *
- * INVARIANT (ADR-0030): `MANAGED_PATHS.title` / `.legend` MUST stay in sync with the keys
- * `buildTitleOption` (`presentation.ts`) and `buildLegend` actually emit — add a subkey here whenever
- * the GUI starts owning another title/legend subkey.
+ * INVARIANT (ADR-0030/0032): `MANAGED_PATHS.title` / `.legend` / `.tooltip` MUST stay in sync with the
+ * keys `buildTitleOption` (`presentation.ts`), `buildLegend`, and `buildTooltip`
+ * (`optionBuilders/tooltip.ts`) actually emit — add a subkey here whenever the GUI starts owning
+ * another title/legend/tooltip subkey.
  */
 
 /** Top-level option keys the GUI owns (at least partially). Drives the static "Managed keys" box + the analysis. */
@@ -80,6 +82,9 @@ const MANAGED_PATHS: Record<string, ReadonlySet<string>> = {
         'textStyle.fontWeight',
         'textStyle.fontStyle',
     ]),
+    // ADR-0032: the four keys `buildTooltip` (optionBuilders/tooltip.ts) can emit. tooltip.textStyle /
+    // tooltip.axisPointer and every other subkey are free → they merge through (buildTooltip is sparse).
+    tooltip: new Set(['trigger', 'formatter', 'valueFormatter', 'show']),
 };
 
 /** Merge-preview chip verdict for one top-level U key. */
