@@ -62,6 +62,10 @@ _Avoid_: Resizer, divider (that's the visual line, not the control), sash, Resiz
 The chart-type picker and data-mode toggle sitting above the section stack — always visible, never collapsible.
 _Avoid_: Header controls, first section
 
+**Data mode**:
+The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is *what the data needs*, not whether it moves — Verlauf updates too. Four values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter), **Live** (a rolling buffer of subscribed values — needs no adapter, therefore starts empty on every load and fills only as values arrive; no backfill), **JSON** (a single state delivers complete series data — the payload owns the series, so the user only styles/hides them by name), and **Aktuellwert** (gauge/radar read the live value directly — family-forced, not selectable). Switching modes is lossless: all mode-specific config coexists in the editor state and is merely shown/hidden.
+_Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
+
 **Section**:
 One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title`, `Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
 _Avoid_: Tab (the v2 concept), panel, accordion (that's the mechanism, not the concept)

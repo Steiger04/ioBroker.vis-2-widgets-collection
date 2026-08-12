@@ -16,6 +16,8 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 
 import Generic from '../../Generic';
 import EChart from '../EChart';
+import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
+import { familyOf } from '../optionBuilder';
 import { usePreviewOption } from './usePreviewOption';
 import type { SectionKey } from './validation';
 import type { EditorState } from './editorState';
@@ -31,14 +33,15 @@ interface ChartPreviewProps {
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
     const { option, loading, hasData } = usePreviewOption(state, socket, theme);
 
-    const placeholder =
-        state.chartType === 'gauge'
-            ? Generic.t('echarts_preview_select_value_oid')
-            : state.chartType === 'radar'
-              ? Generic.t('echarts_preview_add_indicators')
-              : state.mode === 'json'
-                ? Generic.t('echarts_preview_select_json_oid')
-                : Generic.t('echarts_preview_configure_series');
+    const placeholder = Generic.t(
+        PLACEHOLDER_I18N_KEY[
+            emptyPlaceholderReason({
+                family: familyOf(state.chartType),
+                mode: state.mode,
+                seriesCount: state.series.length,
+            })
+        ],
+    );
 
     // The section whose fields would replace this placeholder with a real chart.
     const targetSection: SectionKey =

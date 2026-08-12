@@ -14,9 +14,11 @@
  *
  * The honesty contract is preserved: a working copy buffers edits, Apply is disabled until it
  * diverges (`hasChanges`, deep-equality), closing while dirty (backdrop click **or** Escape) is
- * intercepted with a warning, Reset reverts — and the title bar says so (dirty dot) before the
- * user even tries. First-open onboarding is the empty-state CTA (ADR-0013 reversed the ADR-0010
- * skeleton). Wraps in a ThemeProvider for detached render.
+ * intercepted with a warning — and the title bar says so (dirty dot) before the user even tries.
+ * Footer is Apply / Cancel only (the redundant Zurücksetzen button was removed, ADR-0031: its
+ * "discard edits, stay open" semantic was already covered by Cancel). First-open onboarding is the
+ * empty-state CTA (ADR-0013 reversed the ADR-0010 skeleton). Wraps in a ThemeProvider for detached
+ * render.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
@@ -169,11 +171,6 @@ function EchartsConfigEditorModal({
         // so manual axis edits + bindings are preserved while names/mode/type are stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
-
-    const handleReset = useCallback(() => {
-        // Reset restores the loaded baseline (no skeleton injection, ADR-0013).
-        setState(loadEditorState(data as Record<string, unknown>));
-    }, [data]);
 
     const handleApply = useCallback(() => {
         onDataChange(saveEditorState(state, loadedCountRef.current) as WidgetData);
@@ -452,24 +449,15 @@ function EchartsConfigEditorModal({
                         </Box>
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ px: 2.5, py: 1.5, justifyContent: 'space-between' }}>
+                <DialogActions sx={{ px: 2.5, py: 1.5, justifyContent: 'flex-end' }}>
+                    <Button onClick={() => handleClose()}>{Generic.t('echarts_editor_cancel')}</Button>
                     <Button
-                        onClick={handleReset}
-                        color="inherit"
-                        sx={{ color: 'text.secondary' }}
+                        variant="contained"
+                        onClick={handleApply}
+                        disabled={!hasChanges}
                     >
-                        {Generic.t('echarts_editor_reset')}
+                        {Generic.t('echarts_editor_apply')}
                     </Button>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button onClick={() => handleClose()}>{Generic.t('echarts_editor_cancel')}</Button>
-                        <Button
-                            variant="contained"
-                            onClick={handleApply}
-                            disabled={!hasChanges}
-                        >
-                            {Generic.t('echarts_editor_apply')}
-                        </Button>
-                    </Box>
                 </DialogActions>
             </Dialog>
             <Snackbar

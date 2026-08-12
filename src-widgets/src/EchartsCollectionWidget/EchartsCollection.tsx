@@ -21,6 +21,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 
 import CollectionBase from '../components/CollectionBase';
 import { CollectionContext } from '../components/CollectionProvider';
+import Generic from '../Generic';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import type { EchartsCollectionContextProps } from '../types';
@@ -49,6 +50,7 @@ import {
 import { mergeOptionForEcharts } from './utils/mergeOption';
 import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
+import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
 
 /** Relative time range → milliseconds (cartesian/pie history mode). */
 const RANGE_MS: Record<string, number> = {
@@ -328,14 +330,9 @@ function EchartsCollection(): React.ReactElement {
         );
     }, [family, entries, values, option.series]);
 
-    const placeholder =
-        family === 'gauge'
-            ? 'Select a value OID'
-            : family === 'radar'
-              ? 'Add indicator OIDs'
-              : mode === 'json'
-                ? 'Select a JSON OID'
-                : 'Configure series to see data';
+    const placeholder = Generic.t(
+        PLACEHOLDER_I18N_KEY[emptyPlaceholderReason({ family, mode, seriesCount: entries.length })],
+    );
 
     return (
         <CollectionBase
