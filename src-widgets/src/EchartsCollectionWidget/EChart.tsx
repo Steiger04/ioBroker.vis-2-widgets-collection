@@ -4,11 +4,13 @@
  * @module EchartsCollectionWidget/EChart
  * @remarks
  * Lifecycle: `init` (Canvas) → `setOption` (with `replaceMerge: ['series', 'dataZoom',
- * 'visualMap', 'yAxis', 'title', 'legend']` so series add/remove, disabling dataZoom/visualMap,
- * Y-axis add/remove, AND title/legend edge-key switches take effect — without the matching mainType
- * in replaceMerge, echarts MERGES and keeps a stale component after the builder stops emitting it,
- * or retains trailing entries when an array shrinks, or a stale `top`/`bottom`/`left`/`right` key
- * after a position switch) → `resize` on container dimension change → `dispose` on unmount.
+ * 'visualMap', 'yAxis', 'title', 'legend', 'toolbox', 'graphic', 'aria', 'axisPointer']` so series
+ * add/remove, disabling dataZoom/visualMap, Y-axis add/remove, title/legend edge-key switches, AND
+ * removal of Advanced-JSON-added components (toolbox + the former-template graphic/aria/axisPointer
+ * the free text still accepts) all take effect — without the matching mainType in replaceMerge, echarts
+ * MERGES and keeps a stale component after the option stops emitting it, or retains trailing entries
+ * when an array shrinks, or a stale `top`/`bottom`/`left`/`right` key after a position switch) →
+ * `resize` on container dimension change → `dispose` on unmount.
  *
  * The wrapper is presentation-merge-free: callers (the widget body and the editor preview)
  * pass the ALREADY fully-merged option — theme base + template defaults + generated data + user
@@ -42,7 +44,24 @@ interface EChartProps {
     renderer?: 'canvas' | 'svg';
 }
 
-const REPLACE_MERGE = ['series', 'dataZoom', 'visualMap', 'yAxis', 'title', 'legend'] as const;
+// Components whose presence in the option is CONDITIONAL (array add/remove, a GUI toggle, or an
+// Advanced-JSON add the GUI never emits). Each mainType here is REPLACED on setOption, so an absent
+// component is actually removed — without it echarts MERGES and keeps a stale ghost. The first six are
+// GUI-managed (series/dataZoom/visualMap/yAxis arrays + title/legend edge-key switches); the last four
+// (toolbox/graphic/aria/axisPointer) are Advanced-JSON-only — never emitted by the GUI, so adding them
+// here is what makes deleting them from the Advanced JSON take effect.
+const REPLACE_MERGE = [
+    'series',
+    'dataZoom',
+    'visualMap',
+    'yAxis',
+    'title',
+    'legend',
+    'toolbox',
+    'graphic',
+    'aria',
+    'axisPointer',
+] as const;
 
 export default function EChart({ option, renderer = 'canvas' }: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -80,9 +99,12 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
     // setOption on every change — replaceMerge covers series add/remove, the conditional
     // dataZoom/visualMap components (so disabling them removes them, not just stops updating),
     // Y-axis add/remove (so a deleted axis does not linger as a merge-retained ghost — ADR-0012
-    // multi-axis made the yAxis array dynamic; ADR-0016 addendum), and title/legend (so a position
+    // multi-axis made the yAxis array dynamic; ADR-0016 addendum), title/legend (so a position
     // switch drops the now-unused edge key — top↔bottom/left↔right — instead of merge-retaining it;
-    // ADR-0021). The option is the fully-merged, already-layout-correct fragment — passed through.
+    // ADR-0021), AND toolbox/graphic/aria/axisPointer (Advanced-JSON-added components the GUI never
+    // emits — without their mainType here, deleting them from the option leaves a merge-retained
+    // ghost; the free-text textarea still accepts graphic/aria/axisPointer after ADR-0032 retired
+    // their template buttons). The option is the fully-merged, already-layout-correct fragment.
     useEffect(() => {
         if (!containerRef.current) {
             return;
