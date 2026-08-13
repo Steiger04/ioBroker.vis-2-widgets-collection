@@ -437,6 +437,26 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(grid.outerBoundsContain).toBe('all'); // reserves tick labels AND axis names
     });
 
+    it('emits axisTick.show:true by default (a time xAxis makes echarts auto-hide value-axis ticks)', () => {
+        // echarts' value-axis axisTick default is 'auto', which resolves to FALSE when the paired
+        // axis is time/category. The builder must emit show:true explicitly so the "Ticks zeigen"
+        // switch (which defaults on) and the chart agree — otherwise ticks are absent on first render.
+        const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        const ya = option.yAxis as unknown as { axisTick?: { show?: boolean } }[];
+        expect(ya[0].axisTick?.show).toBe(true);
+    });
+
+    it('honours an explicit axisTick:false', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', yAxisIndex: 0 }],
+            p: { ...P, yAxes: [{ axisTick: false }] },
+        });
+        const ya = option.yAxis as unknown as { axisTick?: { show?: boolean } }[];
+        expect(ya[0].axisTick?.show).toBe(false);
+    });
+
     it('grid is flush + contains labels AND names: left/right 0 + outerBoundsContain all (ADR-0024)', () => {
         // `outerBoundsContain:'all'` (the modern replacement for the deprecated `containLabel:true`,
         // which mapped to 'axisLabel' and reserved tick labels but NOT the axis name) reserves tick

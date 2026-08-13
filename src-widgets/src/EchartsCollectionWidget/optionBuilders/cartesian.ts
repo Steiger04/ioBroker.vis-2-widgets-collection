@@ -222,9 +222,11 @@ const buildYAxisEntry = (
     if (a.minInterval !== undefined) {
         entry.minInterval = a.minInterval;
     }
-    if (a.axisTick !== undefined) {
-        entry.axisTick = { show: a.axisTick };
-    }
+    // Always emit: echarts' value-axis `axisTick` default is 'auto', which resolves to FALSE when
+    // the paired axis is time/category (ours is `type:'time'`). Without this the "Ticks zeigen"
+    // switch (default on) and the chart disagree — ticks are absent on first render until the user
+    // touches the switch. Explicit false still wins.
+    entry.axisTick = { show: a.axisTick ?? true };
     if (a.nameRotate !== undefined) {
         entry.nameRotate = a.nameRotate;
     }
