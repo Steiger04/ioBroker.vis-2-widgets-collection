@@ -4,13 +4,14 @@
  * @module EchartsCollectionWidget/EChart
  * @remarks
  * Lifecycle: `init` (Canvas) → `setOption` (with `replaceMerge: ['series', 'dataZoom',
- * 'visualMap', 'yAxis', 'title', 'legend', 'toolbox', 'graphic', 'aria', 'axisPointer']` so series
- * add/remove, disabling dataZoom/visualMap, Y-axis add/remove, title/legend edge-key switches, AND
- * removal of Advanced-JSON-added components (toolbox + the former-template graphic/aria/axisPointer
- * the free text still accepts) all take effect — without the matching mainType in replaceMerge, echarts
- * MERGES and keeps a stale component after the option stops emitting it, or retains trailing entries
- * when an array shrinks, or a stale `top`/`bottom`/`left`/`right` key after a position switch) →
- * `resize` on container dimension change → `dispose` on unmount.
+ * 'visualMap', 'yAxis', 'title', 'legend', 'toolbox', 'graphic', 'axisPointer']` so series add/remove,
+ * disabling dataZoom/visualMap, Y-axis add/remove, title/legend edge-key switches, AND removal of
+ * Advanced-JSON-added components (toolbox + the former-template graphic/axisPointer the free text still
+ * accepts) all take effect — without the matching mainType in replaceMerge, echarts MERGES and keeps a
+ * stale component after the option stops emitting it, or retains trailing entries when an array shrinks,
+ * or a stale `top`/`bottom`/`left`/`right` key after a position switch). `aria` is intentionally absent:
+ * it is a preprocessor, not a component model, so replaceMerge rejects it AND it re-derives from
+ * `option.aria` each setOption (no ghost) → `resize` on dimension change → `dispose` on unmount.
  *
  * The wrapper is presentation-merge-free: callers (the widget body and the editor preview)
  * pass the ALREADY fully-merged option — theme base + template defaults + generated data + user
@@ -47,9 +48,12 @@ interface EChartProps {
 // Components whose presence in the option is CONDITIONAL (array add/remove, a GUI toggle, or an
 // Advanced-JSON add the GUI never emits). Each mainType here is REPLACED on setOption, so an absent
 // component is actually removed — without it echarts MERGES and keeps a stale ghost. The first six are
-// GUI-managed (series/dataZoom/visualMap/yAxis arrays + title/legend edge-key switches); the last four
-// (toolbox/graphic/aria/axisPointer) are Advanced-JSON-only — never emitted by the GUI, so adding them
-// here is what makes deleting them from the Advanced JSON take effect.
+// GUI-managed (series/dataZoom/visualMap/yAxis arrays + title/legend edge-key switches); the last three
+// (toolbox/graphic/axisPointer) are Advanced-JSON-only — never emitted by the GUI, so adding them here
+// is what makes deleting them from the Advanced JSON take effect. `aria` is deliberately NOT listed:
+// it registers only a preprocessor (no component model), so ComponentModel.hasClass('aria') is false
+// and echarts REJECTS it in replaceMerge — and its preprocessor re-derives from `option.aria` every
+// setOption, so it has no ghost to fix anyway.
 const REPLACE_MERGE = [
     'series',
     'dataZoom',
@@ -59,7 +63,6 @@ const REPLACE_MERGE = [
     'legend',
     'toolbox',
     'graphic',
-    'aria',
     'axisPointer',
 ] as const;
 
@@ -101,10 +104,12 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
     // Y-axis add/remove (so a deleted axis does not linger as a merge-retained ghost — ADR-0012
     // multi-axis made the yAxis array dynamic; ADR-0016 addendum), title/legend (so a position
     // switch drops the now-unused edge key — top↔bottom/left↔right — instead of merge-retaining it;
-    // ADR-0021), AND toolbox/graphic/aria/axisPointer (Advanced-JSON-added components the GUI never
-    // emits — without their mainType here, deleting them from the option leaves a merge-retained
-    // ghost; the free-text textarea still accepts graphic/aria/axisPointer after ADR-0032 retired
-    // their template buttons). The option is the fully-merged, already-layout-correct fragment.
+    // ADR-0021), AND toolbox/graphic/axisPointer (Advanced-JSON-added components the GUI never emits
+    // — without their mainType here, deleting them leaves a merge-retained ghost; the free-text
+    // textarea still accepts graphic/axisPointer after ADR-0032 retired their template buttons).
+    // `aria` is NOT listed: it is a preprocessor, not a component model, so replaceMerge rejects it
+    // and it re-derives from `option.aria` every setOption anyway (no ghost). The option is the
+    // fully-merged, already-layout-correct fragment.
     useEffect(() => {
         if (!containerRef.current) {
             return;
