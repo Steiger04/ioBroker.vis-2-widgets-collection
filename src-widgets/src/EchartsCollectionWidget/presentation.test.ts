@@ -271,6 +271,13 @@ describe('buildLegend — styling', () => {
             inactiveColor: '#ccc',
         });
     });
+    it('inactive colour defaults to the theme divider token when unset (not echarts fixed #ccc)', () => {
+        // ADR-0027: deselected legend items stay theme-aware (esp. dark mode); the swatch shows the
+        // divider token, so the builder emits it instead of deferring to echarts' fixed #ccc.
+        expect(buildLegend(legendP({ legend: {} }), ['a'])).toMatchObject({
+            inactiveColor: '#d', // TOKENS.divider
+        });
+    });
     it('background emitted only when not transparent', () => {
         expect(buildLegend(legendP({ legend: { bgColor: 'transparent' } }), ['a'])).not.toHaveProperty(
             'backgroundColor',

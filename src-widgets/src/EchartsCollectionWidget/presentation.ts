@@ -448,9 +448,10 @@ export const buildLegend = (p: PresentationConfig, data: string[]): Record<strin
     if (cfg.itemGap !== undefined) {
         legend.itemGap = cfg.itemGap;
     }
-    if (cfg.inactiveColor) {
-        legend.inactiveColor = cfg.inactiveColor;
-    }
+    // inactiveColor default = the theme divider token (ADR-0027), not echarts' fixed #ccc — so
+    // deselected legend items stay theme-aware (esp. dark mode) and match the LegendSection swatch.
+    // Always emit (an explicit override still wins via ??).
+    legend.inactiveColor = cfg.inactiveColor ?? p.themeTokens.divider;
 
     // Legend-as-panel: background + border only emit when they would draw something.
     if (cfg.bgColor && cfg.bgColor !== 'transparent') {
