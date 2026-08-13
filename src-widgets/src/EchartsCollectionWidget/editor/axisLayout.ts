@@ -89,10 +89,10 @@ export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAx
 
 /**
  * Pick the axis a deleted axis' series should rebind onto (ADR-0025): the first surviving axis
- * (by index) whose `format` matches the deleted axis' — the proxy for "same unit" (mirrors the
- * `alignTicks` heuristic of ADR-0023, incl. empty = empty). Returns `null` when no survivor shares
- * the format; the caller then falls back to axis 0 + an advisory unit-mismatch toast. `survivors`
- * is the post-delete axis array, so the returned index is already the new `yAxisIndex`.
+ * (by index) whose `format` matches the deleted axis' — the proxy for "same unit" (empty matches
+ * empty). Returns `null` when no survivor shares the format; the caller then falls back to axis 0 +
+ * an advisory unit-mismatch toast. `survivors` is the post-delete axis array, so the returned index
+ * is already the new `yAxisIndex`.
  */
 export const sameFormatSurvivor = (
     deletedFormat: string | undefined,
@@ -102,6 +102,16 @@ export const sameFormatSurvivor = (
     const idx = survivors.findIndex(a => (a.format ?? '') === want);
     return idx === -1 ? null : idx;
 };
+
+/**
+ * Whether an axis carries a tick override that makes echarts IGNORE `alignTicks` on it (ADR-0034).
+ * echarts only honours `alignTicks` on an axis whose tick interval is auto-computed; setting `min`,
+ * `max`, `splitNumber`, or `minInterval` fixes the interval, so alignment silently no-ops. The
+ * configurator shows a non-blocking warning when an axis opts into alignment AND sets one of these.
+ * Pure — a UI display predicate over an {@link EchartsAxisConfig}.
+ */
+export const alignTicksDisabledByOverride = (a: EchartsAxisConfig): boolean =>
+    a.min !== undefined || a.max !== undefined || a.splitNumber !== undefined || a.minInterval !== undefined;
 
 /**
  * Drop an orphaned axis (no series remains on it) and re-index the survivors (ADR-0025). Pure — the

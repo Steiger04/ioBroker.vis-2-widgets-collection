@@ -91,6 +91,8 @@
     "echarts_axes_y": "Ось Y",
     "echarts_axis_add": "Добавить ось",
     "echarts_axis_advanced": "Расширенные",
+    "echarts_axis_align_conflict": "[TODO] A value range or tick setting (min/max, tick segments, min interval) disables alignment for this axis — echarts then ignores it.",
+    "echarts_axis_align_hint": "[TODO] Tick alignment is cross-axis: an axis with 'Align ticks' re-ticks against the first axis (the reference). The first axis itself has no switch.",
     "echarts_axis_align_ticks": "Выровнять деления",
     "echarts_axis_delete": "Удалить ось",
     "echarts_axis_left": "Слева",

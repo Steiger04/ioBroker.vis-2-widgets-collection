@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    alignTicksDisabledByOverride,
     axisLayout,
     axisPosition,
     dropOrphanAxis,
@@ -164,7 +165,7 @@ describe('sameFormatSurvivor — axis-delete rebind target (ADR-0025)', () => {
         expect(sameFormatSurvivor('{value} °C', survivors)).toBeNull();
     });
 
-    it('treats empty/undefined format as matching empty (the same-unit proxy, like alignTicks)', () => {
+    it('treats empty/undefined format as matching empty (the same-unit proxy — empty matches empty)', () => {
         expect(sameFormatSurvivor(undefined, [{}, { format: '' }])).toBe(0); // first empty matches
         expect(sameFormatSurvivor('', [{ format: 'kW' }, {}])).toBe(1);
     });
@@ -172,6 +173,29 @@ describe('sameFormatSurvivor — axis-delete rebind target (ADR-0025)', () => {
     it('returns the FIRST match when several survivors share the format', () => {
         const survivors: EchartsAxisConfig[] = [{ format: '°C' }, { format: '°C' }];
         expect(sameFormatSurvivor('°C', survivors)).toBe(0);
+    });
+});
+
+describe('alignTicksDisabledByOverride — tick override defeats alignment (ADR-0034)', () => {
+    it('is false for a bare axis (no bounds, no tick knobs) — alignment can take effect', () => {
+        expect(alignTicksDisabledByOverride({})).toBe(false);
+    });
+
+    it('is true when min or max is set (a fixed value range fixes the interval)', () => {
+        expect(alignTicksDisabledByOverride({ min: 0 })).toBe(true);
+        expect(alignTicksDisabledByOverride({ max: 100 })).toBe(true);
+        expect(alignTicksDisabledByOverride({ min: 0, max: 100 })).toBe(true);
+    });
+
+    it('is true when splitNumber or minInterval is set (a tick-density knob fixes the interval)', () => {
+        expect(alignTicksDisabledByOverride({ splitNumber: 5 })).toBe(true);
+        expect(alignTicksDisabledByOverride({ minInterval: 1 })).toBe(true);
+    });
+
+    it('ignores non-tick fields (position/offset/log/colour/name do NOT defeat alignment)', () => {
+        expect(
+            alignTicksDisabledByOverride({ position: 'right', offset: 80, log: true, color: '#f00', name: 'kW' }),
+        ).toBe(false);
     });
 });
 

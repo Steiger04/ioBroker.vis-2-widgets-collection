@@ -327,7 +327,7 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[0].type).toBe('value');
     });
 
-    it('emits one yAxis per configured axis (ADR-0012): alignTicks on for ≥2, position defaults', () => {
+    it('emits one yAxis per configured axis (ADR-0012): alignTicks opt-in (off by default), position defaults', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
@@ -343,8 +343,8 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya).toHaveLength(2);
         expect(ya[0].position).toBe('left'); // axis 0 defaults left
         expect(ya[1].position).toBe('right'); // explicit
-        expect(ya[0].alignTicks).toBe(true); // smart-default on for multi-axis
-        expect(ya[1].alignTicks).toBe(true);
+        expect(ya[0].alignTicks).toBe(false); // explicit opt-in, off by default (ADR-0034)
+        expect(ya[1].alignTicks).toBe(false);
         expect(ya[0].name).toBe('kW');
         // per-axis colour paints the axis line (multi-axis legibility)
         expect(ya[1].axisLine?.lineStyle.color).toBe('#f00');
@@ -600,8 +600,8 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(option.yAxis).toBeDefined();
     });
 
-    it('multi-axis with mixed format → alignTicks defaults OFF (ADR-0023)', () => {
-        // °C vs. % — different units; aligned ticks would distort the independent scales.
+    it('multi-axis with mixed format → alignTicks OFF (explicit opt-in, ADR-0034)', () => {
+        // °C vs. % — different units; and regardless, alignment is now opt-in, never a hidden default.
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [
@@ -619,8 +619,8 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[1].alignTicks).toBe(false);
     });
 
-    it('multi-axis with matching format → alignTicks defaults ON (ADR-0023)', () => {
-        // Same format → proxy for "same unit" → aligned ticks read as same height = same value.
+    it('multi-axis with matching format → alignTicks still OFF (opt-in supersedes the ADR-0023 heuristic, ADR-0034)', () => {
+        // Same format used to flip the smart-default ON; alignment is now explicit opt-in only.
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [
@@ -634,8 +634,27 @@ describe('buildGeneratedOption — cartesian', () => {
             p: { ...P, yAxes: [{ format: '{value} °C' }, { format: '{value} °C' }] },
         });
         const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
-        expect(ya[0].alignTicks).toBe(true);
-        expect(ya[1].alignTicks).toBe(true);
+        expect(ya[0].alignTicks).toBe(false);
+        expect(ya[1].alignTicks).toBe(false);
+    });
+
+    it('honours an explicit alignTicks:true per axis (opt-in, ADR-0034)', () => {
+        // Off unless set; an explicit true on one axis is emitted, the unset axis stays off.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{}, { alignTicks: true }] },
+        });
+        const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
+        expect(ya[0].alignTicks).toBe(false); // not set → off
+        expect(ya[1].alignTicks).toBe(true); // explicit opt-in honoured
     });
 
     it('attaches a threshold to the series on its own axis, not stur entries[0] (ADR-0023)', () => {

@@ -6,10 +6,11 @@
  * @remarks
  * The **Axis manager** (ADR-0012): one collapsible {@link EditorCard} per configured Y-axis (same
  * shell as the series cards). The body is organised into {@link SubGroup}s — basis (name/position/
- * colour), value range (min/max/format), scale & ticks (the five booleans as a SwitchList +
- * splitNumber/minInterval/offset), presentation (name rotation) — replacing the flat ~360 px
- * label-over-switch wall. Cards start collapsed. Further axes render side-by-side via
- * position/offset; `alignTicks` + per-axis colour are smart-defaulted in the cartesian builder.
+ * colour/offset), value range (min/max/format), scale & ticks (the booleans as a SwitchList —
+ * `alignTicks` only on follower axes, axis 0 is the reference, ADR-0034 — + splitNumber/minInterval),
+ * presentation (name rotation) — replacing the flat ~360 px label-over-switch wall. Cards start
+ * collapsed. Further axes render side-by-side via position/offset; `alignTicks` is an explicit
+ * per-axis opt-in (ADR-0034) and per-axis colour is smart-defaulted in the cartesian builder.
  * Plus X splitlines, dataZoom (slider + inside as a SwitchList), and the threshold mark-lines.
  * min≥max carries advisory validation.
  */
@@ -23,6 +24,7 @@ import {
     EditorCard,
     FieldGrid,
     FieldLabel,
+    InfoBox,
     LabeledSelect,
     NumberField,
     OptionalNumberField,
@@ -36,7 +38,13 @@ import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import { axisLayout, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
+import {
+    alignTicksDisabledByOverride,
+    axisLayout,
+    effectiveAxisColor,
+    packStaggeredAxes,
+    sameFormatSurvivor,
+} from '../axisLayout';
 import { nextStableId } from '../identity';
 
 interface AxesZoomSectionProps {
@@ -63,9 +71,13 @@ const AxisCard: FC<{
     seriesName?: string;
 }> = ({ axis: a, index: i, total, open, onToggle, onChange, onRemove, pickerCtx, seriesColor, seriesName }) => {
     const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
-    // alignTicks smart-defaults on for multi-axis (ADR-0012); the switch reflects the effective value
-    // and an explicit toggle overrides the smart default.
-    const alignTicksEffective = a.alignTicks ?? total > 1;
+    // alignTicks is an explicit per-axis opt-in (ADR-0034): off by default, no smart-default. Only
+    // meaningful with 2+ axes; on axis 0 (the reference echarts aligns others to) it is a no-op, so
+    // the switch renders only on follower axes (i > 0). An explicit toggle still wins.
+    const alignTicksEffective = a.alignTicks ?? false;
+    // echarts ignores alignTicks when the tick interval is fixed (min/max/splitNumber/minInterval);
+    // surface that as a non-blocking warning on a follower axis that opted in (ADR-0034).
+    const alignConflict = i > 0 && total > 1 && alignTicksEffective && alignTicksDisabledByOverride(a);
     // axisTick defaults to shown (echarts default); the switch reflects it.
     const axisTickEffective = a.axisTick ?? true;
 
@@ -135,6 +147,14 @@ const AxisCard: FC<{
                             ctx={pickerCtx}
                         />
                     </Box>
+                    {/* Per-axis pixel offset: staggers multiple axes on the same side so they do not
+                        overlap (ADR-0018/0028). Lives with Position — both steer where the axis sits —
+                        not with the tick-density knobs in Skala & Ticks. */}
+                    <NumberField
+                        label={Generic.t('echarts_axis_offset')}
+                        value={a.offset ?? 0}
+                        onChange={v => onChange({ offset: v })}
+                    />
                 </FieldGrid>
             </SubGroup>
 
@@ -179,17 +199,26 @@ const AxisCard: FC<{
                         checked={a.scale ?? false}
                         onChange={v => onChange({ scale: v })}
                     />
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_align_ticks')}
-                        checked={alignTicksEffective}
-                        onChange={v => onChange({ alignTicks: v })}
-                    />
+                    {total > 1 && i > 0 && (
+                        <SwitchRow
+                            label={Generic.t('echarts_axis_align_ticks')}
+                            checked={alignTicksEffective}
+                            onChange={v => onChange({ alignTicks: v })}
+                        />
+                    )}
                     <SwitchRow
                         label={Generic.t('echarts_axis_tick_show')}
                         checked={axisTickEffective}
                         onChange={v => onChange({ axisTick: v })}
                     />
                 </SwitchList>
+                {total > 1 && <InfoBox text={Generic.t('echarts_axis_align_hint')} />}
+                {alignConflict && (
+                    <InfoBox
+                        tone="warning"
+                        text={Generic.t('echarts_axis_align_conflict')}
+                    />
+                )}
                 <FieldGrid min={110}>
                     <OptionalNumberField
                         label={Generic.t('echarts_axis_split_number')}
@@ -200,11 +229,6 @@ const AxisCard: FC<{
                         label={Generic.t('echarts_axis_min_interval')}
                         value={a.minInterval}
                         onChange={v => onChange({ minInterval: v })}
-                    />
-                    <NumberField
-                        label={Generic.t('echarts_axis_offset')}
-                        value={a.offset ?? 0}
-                        onChange={v => onChange({ offset: v })}
                     />
                 </FieldGrid>
             </SubGroup>

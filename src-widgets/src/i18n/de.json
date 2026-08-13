@@ -91,6 +91,8 @@
     "echarts_axes_y": "Y-Achse",
     "echarts_axis_add": "Achse hinzufügen",
     "echarts_axis_advanced": "Erweitert",
+    "echarts_axis_align_conflict": "Ein Wertebereich oder eine Tick-Einstellung (Min/Max, Tick-Anzahl, Min. Intervall) setzt das Ausrichten für diese Achse außer Kraft — echarts ignoriert es dann.",
+    "echarts_axis_align_hint": "Tick-Alignment ist achsenübergreifend: eine Achse mit 'Ticks ausrichten' richtet ihre Ticks an der ersten Achse aus (Referenzachse). Die erste Achse hat keinen eigenen Schalter.",
     "echarts_axis_align_ticks": "Ticks ausrichten",
     "echarts_axis_delete": "Achse entfernen",
     "echarts_axis_left": "Links",

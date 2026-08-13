@@ -91,6 +91,8 @@
     "echarts_axes_y": "Y-as",
     "echarts_axis_add": "As toevoegen",
     "echarts_axis_advanced": "Geavanceerd",
+    "echarts_axis_align_conflict": "[TODO] A value range or tick setting (min/max, tick segments, min interval) disables alignment for this axis — echarts then ignores it.",
+    "echarts_axis_align_hint": "[TODO] Tick alignment is cross-axis: an axis with 'Align ticks' re-ticks against the first axis (the reference). The first axis itself has no switch.",
     "echarts_axis_align_ticks": "Schaalstrepen uitlijnen",
     "echarts_axis_delete": "As verwijderen",
     "echarts_axis_left": "Links",

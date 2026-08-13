@@ -173,20 +173,19 @@ const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<s
 
 /**
  * Build one echarts `yAxis` entry from an {@link EchartsAxisConfig} + its index, applying the
- * smart defaults (ADR-0012): position axis-0 left / others right; splitlines axis-0-only;
- * `alignTicks` on for multi-axis (the #1 legibility lever); one colour paints line + label + name.
+ * smart defaults (ADR-0012): position axis-0 left / others right; splitlines axis-0-only; one colour
+ * paints line + label + name.
  *
- * `alignTicks` smart-default (ADR-XXXX): on only when there is more than one axis AND every axis
- * carries the same `format` string (incl. all empty) — the signal the axes likely share a unit, so
- * aligned ticks read as "same height = same value". Mixed `format`s (°C vs. %) default to OFF so the
- * independent scales don't get distorted to force ticks onto the same heights.
+ * `alignTicks` is an EXPLICIT per-axis opt-in (ADR-0034, supersedes the ADR-0023 format-heuristic
+ * smart-default): OFF unless the user sets it. echarts' `alignTicks:true` makes an axis re-tick to
+ * match the FIRST value axis (axis 0 = the reference) — a cross-axis effect that, as a hidden default,
+ * surprised users (an edit on axis 0 rippled to every follower). Making it opt-in removes the hidden
+ * coupling; the configurator marks axis 0 as the reference and warns when a tick override
+ * (min/max/splitNumber/minInterval) silently disables alignment (echarts ignores it then).
  */
 const buildYAxisEntry = (
     a: EchartsAxisConfig,
     i: number,
-    total: number,
-    /** Multi-axis + same-format default for `alignTicks` (ADR-XXXX). */
-    defaultAlignTicks: boolean,
     /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
@@ -196,7 +195,7 @@ const buildYAxisEntry = (
         type: a.log ? 'log' : 'value',
         position: a.position ?? (i === 0 ? 'left' : 'right'),
         offset: a.offset ?? 0,
-        alignTicks: a.alignTicks ?? defaultAlignTicks,
+        alignTicks: a.alignTicks ?? false,
         splitLine: { show: a.splitLine ?? i === 0 },
         nameLocation: 'middle',
         nameGap: AXIS_NAME_GAP,
@@ -311,22 +310,17 @@ export const buildCartesianOption = (
     }
 
     const names = entries.map(e => e.name as string);
-    // alignTicks smart-default (ADR-XXXX): on only for multi-axis charts whose axes all share the
-    // same `format` string (incl. all empty) — the proxy for "same unit", where aligned ticks read
-    // as "same height = same value". Mixed formats (°C vs. %) default to OFF so the independent
-    // scales are not distorted to force ticks onto the same heights.
-    const sameFormat = axes.every(a => (a.format ?? '') === (axes[0]?.format ?? ''));
-    const defaultAlignTicks = total > 1 && sameFormat;
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
-    // alignTicks is smart-defaulted per the format heuristic above; the axis colour AND name default
-    // to the first bound series' effective values when neither is explicit (ADR-0018).
+    // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
+    // the axis colour AND name default to the first bound series' effective values when neither is
+    // explicit (ADR-0018).
     const yAxisEntries = axes.map((a, i) => {
         const bound = entries.find(e => e.yAxisIndex === i);
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;
         const seriesName = typeof sn === 'string' ? sn : undefined;
-        return buildYAxisEntry(a, i, total, defaultAlignTicks, seriesColor, seriesName);
+        return buildYAxisEntry(a, i, seriesColor, seriesName);
     });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
