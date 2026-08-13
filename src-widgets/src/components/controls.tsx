@@ -22,6 +22,8 @@
  *   working copy updates live — the preview IS the feedback).
  * - **EditorCard** — the shared card shell: whole-header toggle, hover affordance, primary
  *   border while open, right-aligned actions, lazily mounted body.
+ * - **InfoBox** — the quiet left-bordered advisory callout; `tone="warning"` accents it for
+ *   non-blocking cautions. The one callout idiom across configurator sections.
  * - **LabeledSelect / NumberField / OptionalNumberField / TextField2** — scalar inputs on the
  *   caption-above idiom.
  *
@@ -479,5 +481,32 @@ export const EditorCard: FC<{
         >
             <Box sx={{ px: 1.5, pb: 1.5, pt: 0.5 }}>{children}</Box>
         </Collapse>
+    </Box>
+);
+
+// ── callout ───────────────────────────────────────────────────────
+
+/**
+ * The quiet advisory callout (ADR-0019 idiom): a left-bordered `action.hover` box with a caption.
+ * `tone="warning"` accents the border for non-blocking cautions (e.g. an echarts constraint the GUI
+ * cannot enforce). One callout across every configurator section — section bodies compose it inline.
+ */
+export const InfoBox: FC<{ text: string; tone?: 'info' | 'warning' }> = ({ text, tone = 'info' }) => (
+    <Box
+        sx={{
+            mt: 1,
+            p: 1,
+            bgcolor: 'action.hover',
+            borderLeft: 3,
+            borderColor: tone === 'warning' ? 'warning.main' : 'primary.main',
+            borderRadius: 0.5,
+        }}
+    >
+        <Typography
+            variant="caption"
+            color="text.secondary"
+        >
+            {text}
+        </Typography>
     </Box>
 );

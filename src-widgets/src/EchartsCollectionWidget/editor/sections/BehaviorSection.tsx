@@ -9,37 +9,16 @@
  * hatch lives in {@link AdvancedJsonSection}.
  */
 import type { FC } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { FieldGrid, LabeledSelect, SliderField, SwitchList, SwitchRow } from '../../../components/controls';
+import { FieldGrid, InfoBox, LabeledSelect, SliderField, SwitchList, SwitchRow } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface BehaviorSectionProps {
     state: EditorState;
     set: SetEditor;
 }
-
-/** Small info callout (quiet, left-bordered) — local copy of the DataSourceSection InfoBox. */
-const InfoBox: FC<{ text: string }> = ({ text }) => (
-    <Box
-        sx={{
-            mt: 1,
-            p: 1,
-            bgcolor: 'action.hover',
-            borderLeft: 3,
-            borderColor: 'primary.main',
-            borderRadius: 0.5,
-        }}
-    >
-        <Typography
-            variant="caption"
-            color="text.secondary"
-        >
-            {text}
-        </Typography>
-    </Box>
-);
 
 const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
     <Box>

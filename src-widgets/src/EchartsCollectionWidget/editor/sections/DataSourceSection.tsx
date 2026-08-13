@@ -14,7 +14,7 @@ import { Box, Typography } from '@mui/material';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
-import { FieldGrid, FieldLabel, LabeledSelect, NumberField } from '../../../components/controls';
+import { FieldGrid, FieldLabel, InfoBox, LabeledSelect, NumberField } from '../../../components/controls';
 import { useHistoryInstances } from '../useHistoryInstances';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -23,27 +23,6 @@ interface DataSourceSectionProps {
     set: SetEditor;
     pickerCtx: OidPickerCtx;
 }
-
-/** Small info callout (quiet, left-bordered). */
-const InfoBox: FC<{ text: string }> = ({ text }) => (
-    <Box
-        sx={{
-            mt: 1,
-            p: 1,
-            bgcolor: 'action.hover',
-            borderLeft: 3,
-            borderColor: 'primary.main',
-            borderRadius: 0.5,
-        }}
-    >
-        <Typography
-            variant="caption"
-            color="text.secondary"
-        >
-            {text}
-        </Typography>
-    </Box>
-);
 
 const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }) => {
     const isHistory = state.mode === 'history';
