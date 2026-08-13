@@ -235,9 +235,13 @@ const AxisCard: FC<{
 
             <SubGroup title={Generic.t('echarts_grp_presentation')}>
                 <FieldGrid>
+                    {/* echarts' nameRotate default is null → the y-axis name renders VERTICAL (≈90°) via
+                        the AxisBuilder's position-adaptive layout. Show 90 so the slider matches the
+                        chart, but keep it unset (no emit) so echarts keeps adapting ±90 per side until
+                        the user explicitly overrides. */}
                     <SliderField
                         label={Generic.t('echarts_axis_name_rotate')}
-                        value={a.nameRotate ?? 0}
+                        value={a.nameRotate ?? 90}
                         min={-90}
                         max={90}
                         step={5}
