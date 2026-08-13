@@ -33,6 +33,7 @@ import {
     FieldGrid,
     FieldLabel,
     LabeledSelect,
+    OptionalSliderField,
     SliderField,
     SubGroup,
     SwitchList,
@@ -293,17 +294,19 @@ export const CartesianSeriesKnobs: FC<{
                         />
                     </SwitchList>
                     <FieldGrid min={140}>
-                        <SliderField
+                        <OptionalSliderField
                             label={Generic.t('echarts_series_bar_gap')}
-                            value={meta.barGap ?? 0}
+                            value={meta.barGap}
+                            fallback={0.1} // echarts default barGap = 10%
                             min={0}
                             max={1}
                             step={0.05}
                             onChange={v => onPatch({ barGap: v })}
                         />
-                        <SliderField
+                        <OptionalSliderField
                             label={Generic.t('echarts_series_bar_category_gap')}
-                            value={meta.barCategoryGap ?? 0}
+                            value={meta.barCategoryGap}
+                            fallback={0.2} // echarts default ≈ 20% (dynamic: max(35−4·stacks,15)%)
                             min={0}
                             max={1}
                             step={0.05}

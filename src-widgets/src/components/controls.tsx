@@ -20,6 +20,8 @@
  *   hairline box. Replaces the stacked label-over-switch cell (the ~60 px wall).
  * - **SliderField** — the bounded-numeric idiom: slider + synced number input (either edits; the
  *   working copy updates live — the preview IS the feedback).
+ * - **OptionalSliderField** — the optional bounded-numeric idiom: value can be UNSET (deferring to
+ *   echarts' own default); the slider holds `fallback` when unset, the number clears back to "auto".
  * - **EditorCard** — the shared card shell: whole-header toggle, hover affordance, primary
  *   border while open, right-aligned actions, lazily mounted body.
  * - **InfoBox** — the quiet left-bordered advisory callout; `tone="warning"` accents it for
@@ -375,6 +377,69 @@ export const SliderField: FC<{
                             if (Number.isFinite(n)) {
                                 onChange(clamp(n));
                             }
+                        }
+                    }}
+                    onBlur={() => setDraft(null)}
+                    sx={{ width: 64, flexShrink: 0, ...noSpinnerSx }}
+                />
+            </Box>
+        </Box>
+    );
+};
+
+/**
+ * Optional bounded-numeric idiom: like {@link SliderField} but the value can be UNSET (`undefined`
+ * → "auto", deferring to echarts' own default). The slider always holds a position — `fallback`
+ * (the inherited/effective default) when unset, so the track shows what the chart actually renders;
+ * the synced number input is empty with that fallback as its placeholder, signalling "inherited"
+ * (greyed) the way the colour inherit-swatches do. Dragging the slider or typing commits a concrete
+ * value; clearing the number returns to unset. For echarts properties whose default the GUI does not
+ * own (e.g. bar gap / bar category gap).
+ */
+export const OptionalSliderField: FC<{
+    label: string;
+    value: number | undefined;
+    min: number;
+    max: number;
+    step?: number;
+    /** Slider position + placeholder shown when `value` is unset (the effective inherited default). */
+    fallback: number;
+    onChange: (value: number | undefined) => void;
+}> = ({ label, value, min, max, step = 1, fallback, onChange }) => {
+    const [draft, setDraft] = useState<string | null>(null);
+    const clamp = (n: number): number => Math.min(Math.max(n, min), max);
+    const effective = value ?? fallback; // the slider always shows a real position
+    const unset = value === undefined;
+    return (
+        <Box>
+            <FieldLabel>{label}</FieldLabel>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
+                <Slider
+                    size="small"
+                    value={effective}
+                    min={min}
+                    max={max}
+                    step={step}
+                    onChange={(_, v) => onChange(v as number)} // a drag commits a concrete value
+                    aria-label={label}
+                    sx={{ flex: 1, minWidth: 0 }}
+                />
+                <TextField
+                    size="small"
+                    type="number"
+                    value={draft ?? (unset ? '' : String(value))}
+                    inputProps={{ min, max, step, 'aria-label': label }}
+                    placeholder={unset ? String(fallback) : undefined}
+                    onFocus={() => setDraft(unset ? '' : String(value))}
+                    onChange={e => {
+                        setDraft(e.target.value);
+                        if (e.target.value === '') {
+                            onChange(undefined); // cleared → back to the inherited default
+                            return;
+                        }
+                        const n = Number(e.target.value);
+                        if (Number.isFinite(n)) {
+                            onChange(clamp(n));
                         }
                     }}
                     onBlur={() => setDraft(null)}
