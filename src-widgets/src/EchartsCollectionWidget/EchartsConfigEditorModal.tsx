@@ -43,7 +43,7 @@ import EchartsEditorSections, { type FocusSectionRequest } from './editor/Echart
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
-import { reconcileJsonAxes } from './editor/axisLayout';
+import { packStaggeredAxes, pruneOrphanAxes, reconcileJsonAxes } from './editor/axisLayout';
 import { normalizeSeries } from './editor/seriesIdentity';
 import { withStableIds } from './editor/identity';
 import { familyOf } from './optionBuilder';
@@ -171,6 +171,24 @@ function EchartsConfigEditorModal({
         // so manual axis edits + bindings are preserved while names/mode/type are stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
+
+    // Non-JSON cartesian orphan-prune (ADR-0033): a mode-switch INTO live/history is a bulk series-
+    // leave — the referencing series set changes from the JSON overlay back to `state.series`, so the
+    // same orphan-check that runs on a single series-leave prunes axes no live/history series binds.
+    // Closes the in-session JSON→Live ghost-axis gap (loadEditorState handles it on open; a switch
+    // needs no reload). The JSON side is the reconcile effect above; series add/delete/rebind are
+    // already orphan-cleaned by SeriesSection. Idempotent: once no orphan remains the length check is
+    // a no-op, so it cannot loop. A drop is a structural change → survivors re-pack densely (ADR-0028).
+    useEffect(() => {
+        if (state.mode === 'json' || (state.chartType !== 'line' && state.chartType !== 'bar')) {
+            return;
+        }
+        const { series, yAxes } = pruneOrphanAxes(state.series, state.yAxes);
+        if (yAxes.length !== state.yAxes.length) {
+            set({ series, yAxes: packStaggeredAxes(yAxes) });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state.mode, state.chartType]);
 
     const handleApply = useCallback(() => {
         onDataChange(saveEditorState(state, loadedCountRef.current) as WidgetData);

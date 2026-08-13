@@ -25,7 +25,7 @@ import {
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
-import { normalizeAxes } from './axisLayout';
+import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
@@ -327,12 +327,29 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
     const yAxesDecoded = decodeAxes(data.yAxes as string);
-    const yAxes = normalizeAxes(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)]);
+    let yAxes = normalizeAxes(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)]);
+    const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
+
+    // Mode-switch orphan-prune (ADR-0033): a non-JSON cartesian widget must not carry JSON-derived
+    // ghost axes. JSON axes are a derived projection of the payload (the modal reconcile effect
+    // re-derives them on open), but once written to the persisted `yAxes` blob they leak into every
+    // other mode — a widget saved in JSON with 6 axes reopened/switched to Live showed 6 cards, 5 of
+    // them phantoms named "Achse 2..6". Leaving JSON is a bulk series-leave, so the same orphan-check
+    // that runs on a single series-leave (ADR-0025) prunes here against `series` (undefined→0, like
+    // the builder). Idempotent + safe on a clean widget (every axis bound → no-op); heals polluted
+    // blobs without dirty-on-open noise (this IS the loaded snapshot). A prune that drops an axis is
+    // a structural change → the survivors re-pack to the dense 80-px raster (ADR-0028); a no-op prune
+    // leaves offsets (incl. hand-tuned) untouched.
+    if (family === 'cartesian' && mode !== 'json') {
+        const pruned = pruneOrphanAxes(series, yAxes);
+        series = pruned.series;
+        yAxes = pruned.yAxes.length < yAxes.length ? packStaggeredAxes(pruned.yAxes) : pruned.yAxes;
+    }
 
     return {
         ...DEFAULT_EDITOR_STATE,
         chartType,
-        mode: (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode,
+        mode,
         timeRange: (data.timeRange as TimeRange) ?? DEFAULT_EDITOR_STATE.timeRange,
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),

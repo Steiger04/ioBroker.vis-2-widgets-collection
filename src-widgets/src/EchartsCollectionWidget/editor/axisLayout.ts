@@ -127,6 +127,60 @@ export const dropOrphanAxis = <T extends { yAxisIndex?: number }>(
 });
 
 /**
+ * Drop EVERY orphan axis (no series on it) and re-index the survivors (ADR-0033 — mode-switch orphan-
+ * prune). The bulk form of {@link dropOrphanAxis}: a data-mode switch is a *bulk series-leave* — the
+ * referencing series set changes wholesale (JSON overlay ↔ `state.series`) — so the same orphan-check
+ * that runs on a single series-leave (delete/rebind, ADR-0025) runs here for all orphans at once.
+ *
+ * **Axis 0 always survives** (when present): it is the canonical axis the cartesian builder always
+ * renders (its `[{}]` fallback) and that the load legacy-fallback restores for an empty blob — so a
+ * prune must not wipe it either. This keeps a fresh 0-series widget on its single default axis and
+ * collapses a 6-ghost JSON→Live switch (0 live series) to 1 axis, not 0. Orphans are axes 1..n that
+ * no series references.
+ *
+ * A series with `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's
+ * `e.yAxisIndex ?? 0`), so a never-explicitly-bound series still anchors axis 0. Pure: returns the
+ * de-orphaned `series` (re-indexed onto the compacted array) + `yAxes` (survivors in original order);
+ * the caller owns the re-stagger policy (this does NOT touch offsets). Series/axis refs are preserved
+ * when nothing moved — the no-op case allocates nothing.
+ */
+export const pruneOrphanAxes = <T extends { yAxisIndex?: number }>(
+    series: readonly T[],
+    yAxes: readonly EchartsAxisConfig[],
+): { series: T[]; yAxes: EchartsAxisConfig[] } => {
+    // Indices still referenced by at least one series (undefined → 0), PLUS axis 0 — the canonical
+    // default that always survives (see above).
+    const bound = new Set<number>([0]);
+    for (const s of series) {
+        bound.add(typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0);
+    }
+    // Keep the referenced axes, preserving order; record the old→new index map as we go.
+    const reindex = new Map<number, number>();
+    const survivors: EchartsAxisConfig[] = [];
+    for (let i = 0; i < yAxes.length; i++) {
+        if (bound.has(i)) {
+            reindex.set(i, survivors.length);
+            survivors.push(yAxes[i]);
+        }
+    }
+    // No axis dropped → nothing to re-index; return the inputs untouched (refs preserved, true no-op).
+    if (survivors.length === yAxes.length) {
+        return { series: series as T[], yAxes: yAxes as EchartsAxisConfig[] };
+    }
+    // Re-index the series onto the compacted array. A ref is kept when its axis did not move — incl.
+    // an undefined series when axis 0 stayed put (it stays undefined, still implicit-0).
+    const nextSeries = series.map(s => {
+        if (typeof s.yAxisIndex !== 'number') {
+            const mapped = reindex.get(0);
+            return mapped === 0 || mapped === undefined ? s : { ...s, yAxisIndex: mapped };
+        }
+        const mapped = reindex.get(s.yAxisIndex);
+        return mapped === s.yAxisIndex ? s : { ...s, yAxisIndex: mapped };
+    });
+    return { series: nextSeries, yAxes: survivors };
+};
+
+/**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
  * axis name, else the name inherited from the first series bound to it, else its 1-based index.
  * Mirrors the cartesian builder's axis-name resolution (`a.name ?? seriesName`) so the dropdown

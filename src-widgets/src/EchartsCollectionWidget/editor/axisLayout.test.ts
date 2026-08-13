@@ -14,6 +14,7 @@ import {
     isOneToOne,
     normalizeAxes,
     packStaggeredAxes,
+    pruneOrphanAxes,
     reconcileJsonAxes,
     sameFormatSurvivor,
 } from './axisLayout';
@@ -215,6 +216,85 @@ describe('dropOrphanAxis — orphan cleanup on series-leave (ADR-0025)', () => {
         const series = [{ yAxisIndex: 1 }];
         const out = dropOrphanAxis(series, [{ name: 'A' }, { name: 'B' }], 1);
         expect(out.series).toEqual([{ yAxisIndex: 1 }]);
+    });
+});
+
+describe('pruneOrphanAxes — bulk orphan cleanup on mode-switch (ADR-0033)', () => {
+    it('drops every axis no series references (the JSON→Live ghost-axis bug)', () => {
+        // 6 JSON-derived axes, 1 live series bound to axis 0 → only axis 0 survives.
+        const series = [{ yAxisIndex: 0, name: 'Temp' }];
+        const yAxes: EchartsAxisConfig[] = [
+            { name: 'A' },
+            { name: 'B' },
+            { name: 'C' },
+            { name: 'D' },
+            { name: 'E' },
+            { name: 'F' },
+        ];
+        const out = pruneOrphanAxes(series, yAxes);
+        expect(out.yAxes).toEqual([{ name: 'A' }]);
+        expect(out.series).toEqual([{ yAxisIndex: 0, name: 'Temp' }]);
+    });
+
+    it('drops a middle orphan and re-indexes the higher survivors + series', () => {
+        const series = [{ yAxisIndex: 0 }, { yAxisIndex: 2 }];
+        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
+        const out = pruneOrphanAxes(series, yAxes); // axis 1 orphaned
+        expect(out.yAxes.map(a => a.name)).toEqual(['A', 'C']);
+        expect(out.series.map(s => s.yAxisIndex)).toEqual([0, 1]); // 2 → 1
+    });
+
+    it('treats an undefined yAxisIndex as bound to axis 0 (mirrors the builder)', () => {
+        // Two never-explicitly-bound series both anchor axis 0; axis 1 is an orphan and drops.
+        const series = [
+            { name: 'A', yAxisIndex: undefined },
+            { name: 'B', yAxisIndex: undefined },
+        ];
+        const yAxes: EchartsAxisConfig[] = [{ name: 'Ax0' }, { name: 'Ax1' }];
+        const out = pruneOrphanAxes(series, yAxes);
+        expect(out.yAxes).toEqual([{ name: 'Ax0' }]);
+        // undefined stays undefined (still implicit-0) — the series elements are preserved, not cloned.
+        expect(out.series[0]).toBe(series[0]);
+        expect(out.series[1]).toBe(series[1]);
+        expect(out.series.every(s => s.yAxisIndex === undefined)).toBe(true);
+    });
+
+    it('is a no-op when every axis is bound — series refs preserved, no mutation', () => {
+        const s0 = { yAxisIndex: 0 };
+        const s1 = { yAxisIndex: 1 };
+        const series = [s0, s1];
+        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }];
+        const out = pruneOrphanAxes(series, yAxes);
+        expect(out.yAxes.map(a => a.name)).toEqual(['A', 'B']);
+        expect(out.series[0]).toBe(s0); // same reference — not cloned
+        expect(out.series[1]).toBe(s1);
+    });
+
+    it('keeps axis 0 as the canonical default even when no series is present', () => {
+        // 0 series → only axis 0 survives (the chart always renders ≥1 axis; the builder's [{}]
+        // fallback and the load legacy-fallback both guarantee it, so the prune must not wipe it).
+        const out = pruneOrphanAxes([], [{ name: 'A' }, { name: 'B' }, { name: 'C' }]);
+        expect(out.yAxes).toEqual([{ name: 'A' }]);
+        expect(out.series).toEqual([]);
+    });
+
+    it('returns the input untouched when there are no axes to prune', () => {
+        const out = pruneOrphanAxes([{ yAxisIndex: 0 }, { yAxisIndex: 0 }], []);
+        expect(out.yAxes).toEqual([]);
+        expect(out.series).toEqual([{ yAxisIndex: 0 }, { yAxisIndex: 0 }]);
+    });
+
+    it('preserves survivor identity + fields, only compacting the array', () => {
+        const yAxes: EchartsAxisConfig[] = [
+            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
+            { id: 'ghost', name: 'G' },
+            { id: 'c', name: 'C', color: '#00f', position: 'right', offset: 80 },
+        ];
+        const out = pruneOrphanAxes([{ yAxisIndex: 0 }, { yAxisIndex: 2 }], yAxes);
+        expect(out.yAxes).toEqual([
+            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
+            { id: 'c', name: 'C', color: '#00f', position: 'right', offset: 80 },
+        ]);
     });
 });
 
