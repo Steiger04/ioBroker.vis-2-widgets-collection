@@ -22,6 +22,7 @@ import {
     decodeChartConfig,
     decodeLegendConfig,
     decodeMarkLines,
+    decodeXAxisWithLegacy,
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
@@ -52,6 +53,7 @@ import type {
     EchartsTimeRange,
     EchartsTitlePos,
     EchartsTooltipTrigger,
+    EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 
 // Aliases of the single-source unions (echarts-fields.d.ts), under the short editor names.
@@ -124,7 +126,8 @@ export interface EditorState {
     bgColor: string;
     /** Cartesian Y-axes (ADR-0012). Axis 0 is the default; further axes render side-by-side. */
     yAxes: EchartsAxisConfig[];
-    xSplit: boolean;
+    /** The single cartesian X-axis (ADR-0035) — flat config; empty = plain time axis. */
+    xAxis: EchartsXAxisConfig;
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
     paletteSource: EchartsPaletteSource;
@@ -186,7 +189,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     animationEasing: '',
     bgColor: 'transparent',
     yAxes: [{ position: 'left', splitLine: true }],
-    xSplit: false,
+    xAxis: {},
     dataZoomSlider: false,
     dataZoomInside: false,
     paletteSource: 'theme',
@@ -381,7 +384,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         animationEasing: strOr(data.animationEasing, ''),
         bgColor: strOr(data.bgColor, 'transparent'),
         yAxes,
-        xSplit: boolOr(data.xSplit, false),
+        // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
+        // synthesised into `splitLine` (shared resolver — same rule as the live body).
+        xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
@@ -459,7 +464,6 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         animationDuration: state.animationDuration,
         animationEasing: state.animationEasing,
         bgColor: state.bgColor,
-        xSplit: state.xSplit,
         dataZoomSlider: state.dataZoomSlider,
         dataZoomInside: state.dataZoomInside,
         paletteSource: state.paletteSource,
@@ -485,6 +489,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         jsonSeriesStyle: encodeBlob(JSON.stringify(state.jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(state.yAxes)),
+        xAxis: encodeBlob(JSON.stringify(state.xAxis)),
     };
     const max = Math.max(seriesCount, previousCount);
     for (let i = 0; i < max; i++) {

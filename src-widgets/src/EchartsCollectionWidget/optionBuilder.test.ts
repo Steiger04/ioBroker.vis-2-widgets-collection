@@ -27,7 +27,7 @@ const P: PresentationConfig = {
     bgColor: 'transparent',
     cartesianType: 'line',
     yAxes: [{}],
-    xSplit: false,
+    xAxis: {},
     dataZoomSlider: false,
     dataZoomInside: false,
     palette: ['#1', '#2', '#3'],
@@ -718,6 +718,50 @@ describe('buildGeneratedOption — cartesian', () => {
         });
         const first = (option.series as unknown[])[0] as { markLine?: { data: { yAxis: number }[] } };
         expect(first.markLine?.data[0].yAxis).toBe(10);
+    });
+});
+
+describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
+    it('always emits the time axis with the honest echarts defaults (splitLine off, ticks on)', () => {
+        const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        // Empty config = a plain time axis, pixel-identical to the pre-ADR-0035 hardcode:
+        // echarts' time-axis splitLine default is false, and `axisTick.show:'auto'` resolves
+        // TRUE for a time-x paired with a value-y — so both booleans are always emitted.
+        expect(option.xAxis).toEqual({
+            type: 'time',
+            splitLine: { show: false },
+            axisTick: { show: true },
+        });
+    });
+
+    it('emits name (middle placement) + label formatter + one-colour styling when configured', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { name: 'Zeit', format: '{HH}:{mm}', color: '#0af' } },
+        });
+        expect(option.xAxis).toEqual({
+            type: 'time',
+            name: 'Zeit',
+            nameLocation: 'middle',
+            nameGap: 30,
+            axisLabel: { formatter: '{HH}:{mm}', color: '#0af' },
+            axisLine: { show: true, lineStyle: { color: '#0af' } },
+            nameTextStyle: { color: '#0af' },
+            splitLine: { show: false },
+            axisTick: { show: true },
+        });
+    });
+
+    it('honours explicit switches (splitLine on, ticks off)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { splitLine: true, axisTick: false } },
+        });
+        expect(option.xAxis).toMatchObject({ splitLine: { show: true }, axisTick: { show: false } });
     });
 });
 

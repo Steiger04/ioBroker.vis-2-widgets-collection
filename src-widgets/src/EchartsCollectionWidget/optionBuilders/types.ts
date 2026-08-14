@@ -21,6 +21,7 @@ import type {
     EchartsSeriesMeta,
     EchartsTooltipTrigger,
     EchartsVisualMapConfig,
+    EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import type { SeriesPoint } from '../historyLogic';
 import type { ThemeTokens } from '../echartsTheme';
@@ -54,7 +55,8 @@ export interface PresentationConfig {
     cartesianType: EchartsCartesianType;
     /** Cartesian Y-axes (ADR-0012) — one entry per axis, each individually configured. */
     yAxes: EchartsAxisConfig[];
-    xSplit: boolean;
+    /** The single cartesian X-axis (ADR-0035) — flat presentation config (`type:'time'` fixed). */
+    xAxis: EchartsXAxisConfig;
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
     markLines: EchartsMarkLine[];

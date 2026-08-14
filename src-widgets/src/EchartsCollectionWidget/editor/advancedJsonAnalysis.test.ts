@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { classifyUserKeys } from './advancedJsonAnalysis';
 import type { UKeyChip } from './advancedJsonAnalysis';
+import { X_AXIS_SCAFFOLD_JSON } from './xAxisScaffold';
 
 const clsOf = (userValue: Record<string, unknown>, key: string): UKeyChip | undefined =>
     classifyUserKeys(userValue).find(c => c.key === key);
@@ -113,5 +114,47 @@ describe('classifyUserKeys — tooltip (partially managed, ADR-0032)', () => {
         const c = clsOf({ tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } } }, 'tooltip');
         expect(c?.cls).toBe('partial');
         expect(c?.managed).toEqual(['trigger']);
+    });
+});
+
+describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
+    it('only NON-GUI subkeys → effective (the scaffold-insert case)', () => {
+        const c = clsOf(
+            { xAxis: { position: 'top', inverse: true, axisLabel: { hideOverlap: true }, minorTick: { show: true } } },
+            'xAxis',
+        );
+        expect(c?.cls).toBe('effective');
+        expect(c?.managed).toEqual([]);
+    });
+
+    it('a non-object xAxis value → ignored (wholly overridden by buildXAxisEntry)', () => {
+        expect(clsOf({ xAxis: 'category' }, 'xAxis')?.cls).toBe('ignored');
+    });
+
+    it('type/name/format alone → ignored (GUI-owned)', () => {
+        const c = clsOf({ xAxis: { type: 'time', name: 'Zeit', nameGap: 30 } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed.sort()).toEqual(['name', 'nameGap', 'type']);
+    });
+
+    it('nested GUI-owned show keys resolve (splitLine.show / axisTick.show are leaves)', () => {
+        const c = clsOf({ xAxis: { splitLine: { show: true }, axisTick: { show: false } } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed.sort()).toEqual(['axisTick.show', 'splitLine.show']);
+    });
+
+    it('mixed (splitLine.show + splitLine.lineStyle + position) → partial, lists the eaten subkeys', () => {
+        const c = clsOf({ xAxis: { position: 'top', splitLine: { show: true, lineStyle: { width: 2 } } } }, 'xAxis');
+        expect(c?.cls).toBe('partial');
+        expect(c?.managed).toEqual(['splitLine.show']);
+    });
+});
+
+describe('xAxis scaffold audit (ADR-0035)', () => {
+    it('is valid JSON and duplicates no GUI-owned key — classifies effective, not partial', () => {
+        const json = JSON.parse(X_AXIS_SCAFFOLD_JSON);
+        const c = clsOf(json, 'xAxis');
+        expect(c?.cls).toBe('effective');
+        expect(c?.managed).toEqual([]);
     });
 });

@@ -421,3 +421,32 @@ describe('toPresentationConfig — legend source (ADR-0021 fix)', () => {
         expect(p.themeTokens).toEqual(TOKENS);
     });
 });
+
+describe('toPresentationConfig — xAxis source (ADR-0035)', () => {
+    // Same dual-source contract as legend: the editor preview passes the editor state as `src`
+    // (xAxis is the OBJECT); the live body passes rxData (xAxis is the base64 BLOB); a legacy
+    // widget has only the `xSplit` boolean → synthesised into splitLine.
+    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS };
+    it('reads the editor-state xAxis OBJECT when present', () => {
+        const p = toPresentationConfig({ ...base, src: { xAxis: { format: '{HH}:{mm}' } } });
+        expect(p.xAxis).toEqual({ format: '{HH}:{mm}' });
+    });
+    it('decodes the rxData xAxis BLOB when no object is present', () => {
+        const blob = encodeBlob(JSON.stringify({ name: 'Zeit', splitLine: true }));
+        const p = toPresentationConfig({ ...base, src: { xAxis: blob } });
+        expect(p.xAxis).toEqual({ name: 'Zeit', splitLine: true });
+    });
+    it('synthesises the legacy xSplit boolean into splitLine (legacy widgets render unchanged)', () => {
+        const p = toPresentationConfig({ ...base, src: { xSplit: true } });
+        expect(p.xAxis).toEqual({ splitLine: true });
+    });
+    it('defaults to an empty config (plain time axis) when nothing is set', () => {
+        const p = toPresentationConfig({ ...base, src: {} });
+        expect(p.xAxis).toEqual({});
+    });
+    it('the blob wins over a stale legacy xSplit', () => {
+        const blob = encodeBlob(JSON.stringify({ splitLine: false }));
+        const p = toPresentationConfig({ ...base, src: { xAxis: blob, xSplit: true } });
+        expect(p.xAxis).toEqual({ splitLine: false });
+    });
+});

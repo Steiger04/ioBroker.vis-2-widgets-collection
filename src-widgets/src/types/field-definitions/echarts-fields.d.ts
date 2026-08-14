@@ -403,6 +403,30 @@ export interface EchartsAxisConfig {
 // rxData
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * The single X-axis configuration (ADR-0035) — flat presentation config, deliberately NOT a
+ * miniature of the Y-axis machinery: no list, no series binding, no offset/stagger. The axis
+ * type stays hardcoded `time` (all data modes normalize points to `[ts, val]`); min/max and
+ * the time window belong to the data mode, not the axis.
+ *
+ * @remarks
+ * Stored as the base64 `xAxis` rxData blob (single object). The legacy `xSplit` boolean is
+ * synthesised into `splitLine` at load when no blob is present (legacy widgets render
+ * unchanged). Colour inherits a theme token — the X-axis belongs to no series.
+ */
+export interface EchartsXAxisConfig {
+    /** Axis name (rendered below the labels, `nameLocation:'middle'`). */
+    name?: string;
+    /** `axisLabel.formatter` time template (`{HH}:{mm}`, `{dd}.{MM}.`); empty = echarts auto-labelling. */
+    format?: string;
+    /** Axis colour (line + labels + name); unset = theme token inherit (ADR-0027/0035). */
+    color?: string;
+    /** Show axis ticks. @default true (echarts `auto` resolves true for time-x + value-y). */
+    axisTick?: boolean;
+    /** Show split lines. @default false (the echarts time-axis default). */
+    splitLine?: boolean;
+}
+
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
@@ -518,7 +542,13 @@ export interface EchartsFieldsRxData {
     yLog?: boolean;
     /** @deprecated legacy cartesian axis-0 format (ADR-0012 → `yAxes`); tolerated at load only. */
     yFormat?: string;
-    /** Show X-axis split lines (cartesian; X stays a single time-axis). */
+    /**
+     * Base64 {@link EchartsXAxisConfig} — the single cartesian X-axis (ADR-0035). Absent = a
+     * plain time axis; a legacy widget's `xSplit` boolean is synthesised into `splitLine` at
+     * load (no silent rewrite).
+     */
+    xAxis?: string;
+    /** @deprecated legacy X splitlines toggle (ADR-0035 → `xAxis` blob); tolerated at load only. */
     xSplit?: boolean;
     /** @deprecated legacy cartesian axis-0 splitlines (ADR-0012 → `yAxes[0].splitLine`). */
     ySplit?: boolean;

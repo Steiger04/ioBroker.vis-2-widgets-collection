@@ -6,10 +6,10 @@
  * Strictly supplemental and **chart-wide only** (ADR-0017): the GUI owns all presentation, and
  * per-series presentation now lives on the series cards (Series raw), so this U textarea is the escape
  * hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its one-click templates are the
- * complete `title` / `legend` / `tooltip` scaffolds (every GUI-uncovered subkey, default-pre-filled —
- * ADR-0030/0032) plus the radar presets; the free text also accepts the standalone `graphic` / `aria` /
- * `axisPointer` / `textStyle` components and exotic `animationEasing`. title/legend/tooltip are only
- * PARTIALLY managed, so their non-GUI subkeys DO merge through.
+ * complete `title` / `legend` / `tooltip` / `xAxis` scaffolds (every GUI-uncovered subkey,
+ * default-pre-filled — ADR-0030/0032/0035) plus the radar presets; the free text also accepts the
+ * standalone `graphic` / `aria` / `axisPointer` / `textStyle` components and exotic `animationEasing`.
+ * title/legend/tooltip/xAxis are only PARTIALLY managed, so their non-GUI subkeys DO merge through.
  * `series` is a fully-managed key (a U `series` is ignored — use the per-card Series raw instead).
  * Carries the honesty affordances: the managed-keys box, chart-wide one-click templates, JSON
  * validity, and the 3-state sub-key merge preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
@@ -21,6 +21,7 @@ import Generic from '../../../Generic';
 import { familyOf, parseUserJson } from '../../optionBuilder';
 import JsonEditor from '../JsonEditor';
 import { MANAGED_KEYS, classifyUserKeys } from '../advancedJsonAnalysis';
+import { X_AXIS_SCAFFOLD_JSON } from '../xAxisScaffold';
 import type { EchartsChartFamily, EchartsChartType } from '../../../types/field-definitions/echarts-fields';
 import type { SetEditor } from '../editorState';
 
@@ -77,6 +78,11 @@ const TPL_ALL: Template[] = [
         // echarts 6.1.0 ToolboxModel + the six features' defaultOption.
         label: 'echarts_tpl_toolbox',
         json: '{\n  "toolbox": {\n    "show": true,\n    "orient": "horizontal",\n    "itemSize": 15,\n    "itemGap": 10,\n    "showTitle": true,\n    "right": 0,\n    "top": 0,\n    "zlevel": 0,\n    "z": 2,\n    "silent": false,\n    "backgroundColor": "transparent",\n    "padding": 15,\n    "borderWidth": 0,\n    "borderType": "solid",\n    "borderRadius": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "tooltip": { "show": false, "position": "bottom" },\n    "feature": {\n      "saveAsImage": { "show": true, "type": "png", "name": "", "pixelRatio": null, "excludeComponents": ["toolbox"] },\n      "restore": { "show": true },\n      "dataView": { "show": true, "readOnly": true },\n      "dataZoom": { "show": true, "filterMode": "filter" },\n      "magicType": { "show": false, "type": ["line", "bar"] },\n      "brush": { "show": false, "type": ["rect", "polygon", "lineX", "lineY"] }\n    }\n  }\n}',
+    },
+    {
+        // ADR-0035: lives in the pure `editor/xAxisScaffold.ts` module (testable without MUI).
+        label: 'echarts_tpl_xaxis',
+        json: X_AXIS_SCAFFOLD_JSON,
     },
 ];
 

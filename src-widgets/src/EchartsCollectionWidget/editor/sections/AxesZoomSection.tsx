@@ -11,8 +11,10 @@
  * presentation (name rotation) — replacing the flat ~360 px label-over-switch wall. Cards start
  * collapsed. Further axes render side-by-side via position/offset; `alignTicks` is an explicit
  * per-axis opt-in (ADR-0034) and per-axis colour is smart-defaulted in the cartesian builder.
- * Plus X splitlines, dataZoom (slider + inside as a SwitchList), and the threshold mark-lines.
- * min≥max carries advisory validation.
+ * Above the Y-cards sits the **X-Karte** (ADR-0035) — the single, non-deletable card for the
+ * shared time axis (name, label time format, colour, ticks, splitlines; the old chart-level
+ * `xSplit` row lives on as its Splitlinien switch). Plus dataZoom (slider + inside as a
+ * SwitchList) and the threshold mark-lines. min≥max carries advisory validation.
  */
 import { useState, type FC } from 'react';
 import { Alert, Box, Button, IconButton, Snackbar, Typography } from '@mui/material';
@@ -36,7 +38,11 @@ import {
 } from '../../../components/controls';
 import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
-import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
+import type {
+    EchartsAxisConfig,
+    EchartsMarkLine,
+    EchartsXAxisConfig,
+} from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
 import {
     alignTicksDisabledByOverride,
@@ -54,6 +60,127 @@ interface AxesZoomSectionProps {
     /** JSON-mode payload series names, in payload order (drives the Series-card list). */
     jsonSeriesNames?: string[];
 }
+
+/**
+ * echarts time-template presets for the X-axis label format (ADR-0035). `''` = auto — echarts'
+ * own hierarchical labelling (no formatter emitted). The literal pattern doubles as the label —
+ * the pattern IS the format, locale-neutral by construction.
+ */
+const X_FORMAT_PRESETS: [string, string][] = [
+    ['{HH}:{mm}', 'HH:mm'],
+    ['{dd}.{MM}.', 'dd.MM.'],
+    ['{dd}.{MM} {HH}:{mm}', 'dd.MM HH:mm'],
+    ['{HH}:{mm}:{ss}', 'HH:mm:ss'],
+    ['{dd}.{MM}.{yyyy}', 'dd.MM.yyyy'],
+];
+/** Select sentinel for "a template not covered by any preset". */
+const X_FORMAT_CUSTOM = '__custom__';
+/** True when the stored template is one of the presets (drives the select value + custom field). */
+const isPresetFormat = (format: string | undefined): boolean =>
+    !!format && X_FORMAT_PRESETS.some(([tpl]) => tpl === format);
+
+/**
+ * The X-Karte (ADR-0035): the single, non-deletable first card of the Axis manager configuring
+ * the shared time axis — flat presentation config (never a list, never series-bound). Absorbs
+ * the old chart-level `xSplit` row (now the Splitlinien switch in Skala & Ticks).
+ */
+const XCard: FC<{
+    x: EchartsXAxisConfig;
+    open: boolean;
+    onToggle: () => void;
+    onChange: (patch: Partial<EchartsXAxisConfig>) => void;
+    pickerCtx: OidPickerCtx;
+    /** Theme text token — the axis colour's inherit value (the theme's label colour; ADR-0027/0035). */
+    fallbackColor: string;
+}> = ({ x, open, onToggle, onChange, pickerCtx, fallbackColor }) => (
+    <EditorCard
+        open={open}
+        onToggle={onToggle}
+        swatch={
+            <Box
+                sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '4px',
+                    // Effective axis colour: explicit wins, else the theme's label colour (the
+                    // theme floor paints line+labels; textSecondary is the dominant one).
+                    backgroundColor: x.color ?? fallbackColor,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    flexShrink: 0,
+                }}
+            />
+        }
+        title={Generic.t('echarts_x_title')}
+    >
+        <SubGroup title={Generic.t('echarts_grp_basis')}>
+            <FieldGrid>
+                {/* '' → undefined so a cleared name is unset (the builder omits it). */}
+                <TextField2
+                    label={Generic.t('echarts_axis_name')}
+                    value={x.name ?? ''}
+                    onChange={v => onChange({ name: v || undefined })}
+                />
+                {/* Inherited = the theme's axis colour (text token) — the axis belongs to no series. */}
+                <Box>
+                    <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
+                    <ColorField
+                        value={x.color ?? ''}
+                        fallback={fallbackColor}
+                        onChange={v => onChange({ color: v ?? undefined })}
+                        ctx={pickerCtx}
+                    />
+                </Box>
+            </FieldGrid>
+        </SubGroup>
+
+        <SubGroup title={Generic.t('echarts_grp_labels')}>
+            <FieldGrid>
+                <LabeledSelect
+                    label={Generic.t('echarts_x_format')}
+                    value={!x.format ? '' : isPresetFormat(x.format) ? x.format : X_FORMAT_CUSTOM}
+                    onChange={v =>
+                        onChange(
+                            v === X_FORMAT_CUSTOM
+                                ? // Keep the current custom template (or start from a common one).
+                                  { format: x.format || '{HH}:{mm}' }
+                                : { format: v || undefined },
+                        )
+                    }
+                    options={[
+                        ['', Generic.t('echarts_x_fmt_auto')],
+                        ...X_FORMAT_PRESETS,
+                        [X_FORMAT_CUSTOM, Generic.t('echarts_x_format_custom')],
+                    ]}
+                />
+                {/* Free template field — only meaningful while the select sits on "Eigene…". */}
+                {!x.format || isPresetFormat(x.format) ? null : (
+                    <TextField2
+                        label={Generic.t('echarts_x_format_custom')}
+                        value={x.format}
+                        placeholder="{HH}:{mm}"
+                        onChange={v => onChange({ format: v || undefined })}
+                    />
+                )}
+            </FieldGrid>
+        </SubGroup>
+
+        <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>
+            <SwitchList>
+                <SwitchRow
+                    label={Generic.t('echarts_axis_tick_show')}
+                    checked={x.axisTick ?? true}
+                    onChange={v => onChange({ axisTick: v })}
+                />
+                <SwitchRow
+                    label={Generic.t('echarts_axis_splitline')}
+                    checked={x.splitLine ?? false}
+                    onChange={v => onChange({ splitLine: v })}
+                />
+            </SwitchList>
+        </SubGroup>
+    </EditorCard>
+);
 
 /** One Y-axis card: the shared EditorCard shell, body in SubGroups (ADR-0019). */
 const AxisCard: FC<{
@@ -261,6 +388,8 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     // Expanded axis cards — same pattern as SeriesSection cartesian cards.
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
     const toggleCard = (i: number): void => setExpanded(e => ({ ...e, [i]: !e[i] }));
+    // The X-Karte has its own expand flag (a single card, no list index).
+    const [xExpanded, setXExpanded] = useState(false);
     // Advisory toast for the axis-delete rebind fallback (ADR-0025): shown when a deleted axis'
     // series are rebound to axis 0 because no survivor shares the format (a likely unit mismatch).
     const [toast, setToast] = useState<string | null>(null);
@@ -388,6 +517,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         </Typography>
                     </Box>
                 )}
+                {/* The X-Karte is the manager's first card — the shared time axis (ADR-0035). It
+                    is flat config: no delete, no reorder, no series binding; its colour inherits
+                    the theme's label token (the axis belongs to no series). */}
+                <XCard
+                    x={state.xAxis}
+                    open={xExpanded}
+                    onToggle={() => setXExpanded(v => !v)}
+                    onChange={patch => set({ xAxis: { ...state.xAxis, ...patch } })}
+                    pickerCtx={pickerCtx}
+                    fallbackColor={themeTokens.textSecondary}
+                />
                 {axes.map((a, i) => (
                     <AxisCard
                         key={a.id ?? i}
@@ -410,14 +550,6 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                 >
                     {Generic.t('echarts_axis_add')}
                 </Button>
-                {/* X splitlines are chart-level (the single x axis), not per-y-axis — one quiet row. */}
-                <SwitchList sx={{ mt: 1.5 }}>
-                    <SwitchRow
-                        label={Generic.t('echarts_x_split')}
-                        checked={state.xSplit}
-                        onChange={v => set({ xSplit: v })}
-                    />
-                </SwitchList>
             </SubGroup>
 
             <SubGroup title={Generic.t('echarts_zoom')}>

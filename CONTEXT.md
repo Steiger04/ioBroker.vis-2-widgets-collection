@@ -99,8 +99,12 @@ A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose bo
 _Avoid_: Axis row, axis settings
 
 **Axis manager**:
-The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`).
+The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`). Its first card is the X-Karte; the manageable list below is Y-only.
 _Avoid_: Axes tab, axis list
+
+**X-Karte**:
+The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (preset + free template, `Auto` = echarts' own), name, colour (theme-token inherit), ticks, split lines (ADR-0035). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
+_Avoid_: X axis settings, X axis card list (there is exactly one)
 
 **Axis auto-bind**:
 The cartesian *creation* default that each new series gets its own Y-axis (ADR-0018): creating a series creates a matching axis (1:1), alternating left/right with an 80 px stagger (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × 80`). Applies only on explicit creation — existing widgets are not silently re-laid-out, and 1:n (several series on one axis) is reached by rebind, not by this default. A structural change to the side layout — flipping an axis left↔right, or deleting one — re-staggers both sides densely to the 80 px raster by array order, so no two axes overlap (ADR-0028); the per-axis offset is a fine-justure that survives only until the next such change. An axis without an explicit colour **or name** inherits its bound series' values (colour → line + label + name; name → axis title), at runtime for every chart — never a creation-time snapshot. In the editor the Axis-card swatch resolves that inherited colour by the bound series' **display position** (palette slot) — matching the Series card, not the axis index, which drifts in JSON after a rebind or a payload-name reorder. The axis lifecycle after creation (delete/rebind) is governed by **Axis–series coupling**.

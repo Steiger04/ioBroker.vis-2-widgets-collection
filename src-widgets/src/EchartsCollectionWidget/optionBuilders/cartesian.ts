@@ -26,6 +26,7 @@ import type {
     EchartsLineStyle,
     EchartsMarkLine,
     EchartsStep,
+    EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { buildLegend } from '../presentation';
@@ -251,6 +252,49 @@ const buildYAxisEntry = (
 /** echarts valueFormatter lives in {@link buildTooltip} (shared across families). */
 
 /**
+ * Build the single time `xAxis` entry from the flat {@link EchartsXAxisConfig} (ADR-0035).
+ *
+ * The type stays hardcoded `time` — every data mode normalises its points to `[ts, val]`, so a
+ * type switch would configure against a data model the pipeline does not deliver (D9). The X
+ * axis is presentation only: no min/max (the time window belongs to the data mode), no position,
+ * no `inverse` (Advanced JSON territory). Both booleans are ALWAYS emitted so the switch state
+ * and the rendered chart cannot diverge (default-audit rule): echarts' `splitLine` default for a
+ * time axis is `false`, and `axisTick.show:'auto'` resolves TRUE for a time-x paired with a
+ * value-y (`cartesianAxisHelper` checks the OTHER axis for an interval/log scale) — so `false` /
+ * `true` are the honest defaults, matching what an unconfigured chart renders today.
+ *
+ * The axis colour (when explicit) paints line + labels + name together — same one-colour
+ * legibility idiom as `buildYAxisEntry`. Unset = the theme's axis colours (`echartsTheme` floor).
+ */
+const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
+    const entry: Record<string, unknown> = {
+        type: 'time',
+        splitLine: { show: x.splitLine ?? false },
+        axisTick: { show: x.axisTick ?? true },
+    };
+    if (x.name) {
+        // 'middle' centres the name under the axis; the gap clears the tick labels below the line.
+        entry.name = x.name;
+        entry.nameLocation = 'middle';
+        entry.nameGap = 30;
+    }
+    const axisLabel: Record<string, unknown> = {};
+    if (x.format) {
+        // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.
+        axisLabel.formatter = x.format;
+    }
+    if (x.color) {
+        entry.axisLine = { show: true, lineStyle: { color: x.color } };
+        axisLabel.color = x.color;
+        entry.nameTextStyle = { color: x.color };
+    }
+    if (Object.keys(axisLabel).length) {
+        entry.axisLabel = axisLabel;
+    }
+    return entry;
+};
+
+/**
  * Build the cartesian G option.
  *
  * @param series - Resolved chart series (history / live / json → `[ts, val]`).
@@ -346,7 +390,7 @@ export const buildCartesianOption = (
             outerBoundsMode: 'same',
             outerBoundsContain: 'all',
         },
-        xAxis: { type: 'time', splitLine: { show: p.xSplit } },
+        xAxis: buildXAxisEntry(p.xAxis),
         yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,

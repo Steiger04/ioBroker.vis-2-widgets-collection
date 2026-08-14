@@ -23,6 +23,7 @@ import type {
     EchartsTitlePos,
     EchartsTooltipTrigger,
     EchartsVisualMapConfig,
+    EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
@@ -221,6 +222,33 @@ export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegen
 };
 
 /**
+ * Decode the base64 `xAxis` blob into the single X-axis config (ADR-0035). `null` when there is
+ * no blob / it is invalid — the caller's legacy `xSplit` fallback applies exactly then. A saved
+ * but empty `{}` blob decodes to `{}` (an explicit "all defaults" choice — the legacy fallback
+ * must NOT re-apply over it).
+ */
+export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig | null => {
+    if (!raw) {
+        return null;
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw));
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as EchartsXAxisConfig) : null;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Resolve the X-axis config with the legacy `xSplit` fallback (ADR-0035): the decoded blob wins;
+ * only a legacy widget's `xSplit: true` differs from the builder default, so `false` needs no
+ * config at all. Shared by the live body (`toPresentationConfig`) and the editor
+ * (`loadEditorState`) so the two cannot drift.
+ */
+export const decodeXAxisWithLegacy = (raw: string | undefined | null, legacyXSplit: boolean): EchartsXAxisConfig =>
+    decodeXAxis(raw) ?? (legacyXSplit ? { splitLine: true } : {});
+
+/**
  * Synthesise a single axis (axis 0) from the legacy chart-level scalars (ADR-0012 migration). Used
  * only when no `yAxes` blob is present, so a legacy widget renders unchanged without a rewrite.
  */
@@ -318,6 +346,14 @@ export const toPresentationConfig = (opts: {
     // (ADR-0012 migration — no silent rewrite; legacy widgets render unchanged).
     const yAxes: EchartsAxisConfig[] = yAxesIn && yAxesIn.length ? yAxesIn : [legacyAxis(s)];
 
+    // X-axis (ADR-0035): editor state carries the `xAxis` OBJECT (decoded once on load, spread
+    // into `src` like `legend`); persisted rxData carries the base64 BLOB; a legacy widget has
+    // only the `xSplit` boolean → synthesised into `splitLine` so it renders unchanged.
+    const xAxis: EchartsXAxisConfig =
+        s.xAxis && typeof s.xAxis === 'object' && !Array.isArray(s.xAxis)
+            ? (s.xAxis as EchartsXAxisConfig)
+            : decodeXAxisWithLegacy(s.xAxis as string | undefined, bool(s.xSplit, false));
+
     return {
         legendShow: bool(s.legendShow, true),
         legendPos: normalizeLegendPos(s.legendPos),
@@ -344,7 +380,7 @@ export const toPresentationConfig = (opts: {
         bgColor: str(s.bgColor, 'transparent'),
         cartesianType,
         yAxes,
-        xSplit: bool(s.xSplit, false),
+        xAxis,
         dataZoomSlider: bool(s.dataZoomSlider, false),
         dataZoomInside: bool(s.dataZoomInside, false),
         palette,

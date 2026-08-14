@@ -8,15 +8,16 @@
  * (ADR-0007). Most managed top-level keys are WHOLLY owned — a U value is silently overridden (→ ✗).
  * `title`, `legend` and `tooltip` are PARTIALLY owned: the GUI sets only SOME subkeys (title text/
  * placement/textStyle colour-size-weight-style; legend show/data/items/frame; tooltip trigger/formatter/
- * valueFormatter/show), so a U object that avoids those subkeys is EFFECTIVE (→ ✓). {@link
- * MANAGED_PATHS} enumerates the GUI-owned subkey paths (one level,
- * plus `textStyle.*` at two levels — only `textStyle` has GUI-owned CHILDREN) for that partial
- * analysis. Kept in a pure module so it is unit-testable and the component stays presentational.
+ * valueFormatter/show; xAxis type/name/format/colour/ticks/splitlines — ADR-0035), so a U object
+ * that avoids those subkeys is EFFECTIVE (→ ✓). {@link MANAGED_PATHS} enumerates the GUI-owned
+ * subkey paths (one level, plus the {@link NESTED_LEAF_KEYS} at two levels — the nested objects
+ * with GUI-owned CHILDREN) for that partial analysis. Kept in a pure module so it is
+ * unit-testable and the component stays presentational.
  *
- * INVARIANT (ADR-0030/0032): `MANAGED_PATHS.title` / `.legend` / `.tooltip` MUST stay in sync with the
- * keys `buildTitleOption` (`presentation.ts`), `buildLegend`, and `buildTooltip`
- * (`optionBuilders/tooltip.ts`) actually emit — add a subkey here whenever the GUI starts owning
- * another title/legend/tooltip subkey.
+ * INVARIANT (ADR-0030/0032/0035): `MANAGED_PATHS.title` / `.legend` / `.tooltip` / `.xAxis` MUST stay
+ * in sync with the keys `buildTitleOption` (`presentation.ts`), `buildLegend`, `buildTooltip`
+ * (`optionBuilders/tooltip.ts`), and `buildXAxisEntry` (`optionBuilders/cartesian.ts`) actually
+ * emit — add a subkey here whenever the GUI starts owning another of their subkeys.
  */
 
 /** Top-level option keys the GUI owns (at least partially). Drives the static "Managed keys" box + the analysis. */
@@ -41,10 +42,10 @@ const MANAGED_KEYS_SET: ReadonlySet<string> = new Set(MANAGED_KEYS);
 
 /**
  * GUI-owned subkey paths for the PARTIALLY-managed top-level keys (ADR-0030). A dotted path is a
- * leaf the GUI force-emits, so a U value for it is silently overridden. Only `textStyle` is nested
- * (two levels) because it has BOTH GUI-owned children (colour/size/weight/style) and free children
- * (fontFamily, lineHeight, textShadow*, …); every other nested object (subtextStyle, itemStyle,
- * selectorLabel, …) is wholly free, so it counts as one non-managed leaf.
+ * leaf the GUI force-emits, so a U value for it is silently overridden. Only the keys in
+ * {@link NESTED_LEAF_KEYS} are nested (two levels) — objects with BOTH GUI-owned and free
+ * children; every other nested object (subtextStyle, itemStyle, selectorLabel, …) is wholly
+ * free, so it counts as one non-managed leaf.
  */
 const MANAGED_PATHS: Record<string, ReadonlySet<string>> = {
     title: new Set([
@@ -85,6 +86,33 @@ const MANAGED_PATHS: Record<string, ReadonlySet<string>> = {
     // ADR-0032: the four keys `buildTooltip` (optionBuilders/tooltip.ts) can emit. tooltip.textStyle /
     // tooltip.axisPointer and every other subkey are free → they merge through (buildTooltip is sparse).
     tooltip: new Set(['trigger', 'formatter', 'valueFormatter', 'show']),
+    // ADR-0035: the subkeys `buildXAxisEntry` (optionBuilders/cartesian.ts) emits. `axisLine.lineStyle`
+    // is listed conservatively as a whole (the GUI emits `.color` inside it when an axis colour is
+    // set — a U `width` there would actually merge through; the chip is a static approximation).
+    xAxis: new Set([
+        'type',
+        'name',
+        'nameLocation',
+        'nameGap',
+        'axisLabel.formatter',
+        'axisLabel.color',
+        'axisLine.show',
+        'axisLine.lineStyle',
+        'nameTextStyle.color',
+        'splitLine.show',
+        'axisTick.show',
+    ]),
+};
+
+/**
+ * Nested objects (per partial-managed key) whose DIRECT children are the leaves — because they
+ * carry BOTH GUI-owned and free children. For title/legend that is only `textStyle`; for the
+ * X-axis it is the five objects `buildXAxisEntry` writes into (ADR-0035).
+ */
+const NESTED_LEAF_KEYS: Record<string, ReadonlySet<string>> = {
+    title: new Set(['textStyle']),
+    legend: new Set(['textStyle']),
+    xAxis: new Set(['axisLabel', 'axisLine', 'nameTextStyle', 'splitLine', 'axisTick']),
 };
 
 /** Merge-preview chip verdict for one top-level U key. */
@@ -100,20 +128,21 @@ export interface UKeyChip {
 }
 
 /**
- * The present leaf paths of a title/legend U value, depth ≤ 2: top-level keys are leaves, EXCEPT
- * `textStyle` whose direct children are the leaves (so `textStyle.color` is distinguishable from
- * `textStyle.fontFamily`). A non-object value yields no leaves (the whole key is overridden).
+ * The present leaf paths of a partial-managed U value, depth ≤ 2: top-level keys are leaves,
+ * EXCEPT the {@link NESTED_LEAF_KEYS} of the key whose direct children are the leaves (so
+ * `textStyle.color` / `splitLine.show` are distinguishable from their free siblings). A
+ * non-object value yields no leaves (the whole key is overridden).
  */
-const presentLeaves = (value: unknown): string[] => {
+const presentLeaves = (value: unknown, nested: ReadonlySet<string>): string[] => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return [];
     }
     const obj = value as Record<string, unknown>;
     const leaves: string[] = [];
     for (const [k, v] of Object.entries(obj)) {
-        if (k === 'textStyle' && v && typeof v === 'object' && !Array.isArray(v)) {
+        if (nested.has(k) && v && typeof v === 'object' && !Array.isArray(v)) {
             for (const sub of Object.keys(v as Record<string, unknown>)) {
-                leaves.push(`textStyle.${sub}`);
+                leaves.push(`${k}.${sub}`);
             }
         } else {
             leaves.push(k);
@@ -137,7 +166,7 @@ export const classifyUserKeys = (userValue: Record<string, unknown>): UKeyChip[]
         if (!paths) {
             return { key, cls: 'ignored', managed: [] };
         }
-        const leaves = presentLeaves(userValue[key]);
+        const leaves = presentLeaves(userValue[key], NESTED_LEAF_KEYS[key] ?? new Set());
         if (leaves.length === 0) {
             return { key, cls: 'ignored', managed: [] };
         }

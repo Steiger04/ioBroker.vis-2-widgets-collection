@@ -66,6 +66,23 @@ describe('editorState — Apply round-trip (save → load)', () => {
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.jsonHidden).toEqual([]);
     });
+
+    it('xAxis survives the blob round-trip (ADR-0035)', () => {
+        const state = {
+            ...baseState(),
+            xAxis: { name: 'Zeit', format: '{HH}:{mm}', color: '#0af', axisTick: false, splitLine: true },
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.xAxis).toEqual(state.xAxis);
+    });
+
+    it('legacy xSplit=true loads as splitLine; the blob wins once saved (ADR-0035)', () => {
+        expect(loadEditorState({ ...baseState(), xSplit: true }).xAxis).toEqual({ splitLine: true });
+        expect(loadEditorState({ ...baseState(), xSplit: false }).xAxis).toEqual({});
+        // After an Apply, the blob is authoritative — a stale legacy xSplit no longer applies.
+        const saved = saveEditorState({ ...baseState(), xAxis: {} }, 0);
+        expect(loadEditorState({ ...saved, xSplit: true }).xAxis).toEqual({});
+    });
 });
 
 describe('editorState — mode-switch orphan-prune on load (ADR-0033)', () => {

@@ -142,9 +142,11 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'animationEasing', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'bgColor', type: 'text', default: 'transparent', hidden: alwaysHidden },
     { name: 'renderer', type: 'text', default: 'canvas', hidden: alwaysHidden },
-    // Cartesian axes + zoom. Y-axes config lives in the `yAxes` base64 blob (ADR-0012); X stays single (time).
+    // Cartesian axes + zoom. Y-axes config lives in the `yAxes` base64 blob (ADR-0012); the single
+    // X-axis (time, flat config) lives in the `xAxis` base64 blob (ADR-0035; legacy `xSplit` is
+    // synthesised into `splitLine` at load).
     { name: 'yAxes', type: 'text', default: '', hidden: alwaysHidden },
-    { name: 'xSplit', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'xAxis', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'dataZoomSlider', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'dataZoomInside', type: 'checkbox', default: false, hidden: alwaysHidden },
     // Palette + dark mode (ADR-0007).
