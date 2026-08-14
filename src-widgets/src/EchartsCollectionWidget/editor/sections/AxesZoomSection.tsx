@@ -203,6 +203,18 @@ const XCard: FC<{
                 value={x.format}
                 onChange={v => onChange({ format: v })}
             />
+            {/* Angled tick labels for narrow widgets; unset = 0° horizontal (no emit). Distinct
+                from Namen-Drehung above — this rotates the time labels, not the axis name. */}
+            <FieldGrid sx={{ mt: 1.5 }}>
+                <SliderField
+                    label={Generic.t('echarts_x_label_rotate')}
+                    value={x.labelRotate ?? 0}
+                    min={-90}
+                    max={90}
+                    step={5}
+                    onChange={v => onChange({ labelRotate: v })}
+                />
+            </FieldGrid>
         </SubGroup>
 
         <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>

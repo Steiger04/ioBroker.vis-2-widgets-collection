@@ -781,6 +781,17 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
         expect(bare.xAxis).not.toHaveProperty('splitNumber');
         expect(bare.xAxis).not.toHaveProperty('minInterval');
         expect(bare.xAxis).not.toHaveProperty('nameRotate');
+        expect(bare.xAxis).not.toHaveProperty('axisLabel');
+    });
+
+    it('emits axisLabel.rotate when the label rotation is set (angled time labels)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { labelRotate: -30 } },
+        });
+        expect(option.xAxis).toMatchObject({ axisLabel: { rotate: -30 } });
     });
 });
 

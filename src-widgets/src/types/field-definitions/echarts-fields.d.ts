@@ -431,6 +431,8 @@ export interface EchartsXAxisConfig {
     minInterval?: number;
     /** Rotate the axis name (deg); unset = horizontal (echarts `null` renders 0° on a bottom axis). */
     nameRotate?: number;
+    /** Rotate the tick LABELS (deg, `axisLabel.rotate`) — angled time labels on narrow widgets. */
+    labelRotate?: number;
 }
 
 export interface EchartsFieldsRxData {

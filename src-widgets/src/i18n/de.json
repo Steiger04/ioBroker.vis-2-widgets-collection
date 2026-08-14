@@ -424,6 +424,7 @@
     "echarts_x_fmt_auto": "Automatisch",
     "echarts_x_format": "Zeitformat",
     "echarts_x_format_tokens": "Platzhalter: {yyyy} · {MM} · {dd} · {HH} · {mm} · {ss} · {SSS}",
+    "echarts_x_label_rotate": "Beschriftung drehen",
     "echarts_x_min_interval_hint": "Min. Intervall in Millisekunden (z.B. 3600000 = 1 Stunde)",
     "echarts_x_title": "X-Achse (Zeit)",
     "echarts_y_format": "Y-Beschriftungsformat",

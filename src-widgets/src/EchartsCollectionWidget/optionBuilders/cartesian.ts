@@ -295,6 +295,10 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
         // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.
         axisLabel.formatter = x.format;
     }
+    if (x.labelRotate !== undefined) {
+        // Angled time labels for narrow widgets; unset = 0° (the echarts default, no emit).
+        axisLabel.rotate = x.labelRotate;
+    }
     if (x.color) {
         entry.axisLine = { show: true, lineStyle: { color: x.color } };
         axisLabel.color = x.color;

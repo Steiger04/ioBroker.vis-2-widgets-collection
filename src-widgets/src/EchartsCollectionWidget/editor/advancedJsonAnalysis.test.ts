@@ -172,6 +172,12 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
         expect(c?.cls).toBe('ignored');
         expect(c?.managed.sort()).toEqual(['minInterval', 'nameRotate', 'splitNumber']);
     });
+
+    it('axisLabel.rotate is GUI-owned (the label-rotation slider)', () => {
+        const c = clsOf({ xAxis: { axisLabel: { rotate: 45, hideOverlap: true } } }, 'xAxis');
+        expect(c?.cls).toBe('partial');
+        expect(c?.managed).toEqual(['axisLabel.rotate']);
+    });
 });
 
 describe('xAxis scaffold audit (ADR-0035)', () => {

@@ -424,6 +424,7 @@
     "echarts_x_fmt_auto": "[TODO] Automatic",
     "echarts_x_format": "[TODO] Time format",
     "echarts_x_format_tokens": "[TODO] Placeholders: {yyyy} · {MM} · {dd} · {HH} · {mm} · {ss} · {SSS}",
+    "echarts_x_label_rotate": "[TODO] Rotate labels",
     "echarts_x_min_interval_hint": "[TODO] Minimum interval in milliseconds (e.g. 3600000 = 1 hour)",
     "echarts_x_title": "[TODO] X-axis (time)",
     "echarts_y_format": "Formato de etiqueta Y",
