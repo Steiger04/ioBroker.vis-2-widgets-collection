@@ -90,6 +90,8 @@ const MANAGED_PATHS: Record<string, ReadonlySet<string>> = {
     // ADR-0035: the subkeys `buildXAxisEntry` (optionBuilders/cartesian.ts) emits. `axisLine.lineStyle`
     // is refined to its `.color` LEAF (ADR-0036): the GUI emits only the colour inside it when an axis
     // colour is set — a U `width`/`type` there merges through, and the xAxis scaffold carries both.
+    // `splitNumber`/`minInterval`/`nameRotate` joined when the X-Karte got the Y-cards' tick-density
+    // and name-rotation knobs (conditional-emit, unset = echarts default).
     xAxis: new Set([
         'type',
         'name',
@@ -102,6 +104,9 @@ const MANAGED_PATHS: Record<string, ReadonlySet<string>> = {
         'nameTextStyle.color',
         'splitLine.show',
         'axisTick.show',
+        'splitNumber',
+        'minInterval',
+        'nameRotate',
     ]),
 };
 

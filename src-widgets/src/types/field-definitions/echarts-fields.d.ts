@@ -425,6 +425,12 @@ export interface EchartsXAxisConfig {
     axisTick?: boolean;
     /** Show split lines. @default false (the echarts time-axis default). */
     splitLine?: boolean;
+    /** Target tick count (`splitNumber`); unset = the echarts time-axis default (6). */
+    splitNumber?: number;
+    /** Minimum tick interval, in MILLISECONDS (a time axis counts in ms, unlike the value Y-axis). */
+    minInterval?: number;
+    /** Rotate the axis name (deg); unset = horizontal (echarts `null` renders 0° on a bottom axis). */
+    nameRotate?: number;
 }
 
 export interface EchartsFieldsRxData {

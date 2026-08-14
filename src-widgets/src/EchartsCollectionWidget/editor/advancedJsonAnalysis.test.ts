@@ -166,6 +166,12 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
         expect(c?.cls).toBe('partial');
         expect(c?.managed).toEqual(['axisLine.lineStyle.color']);
     });
+
+    it('splitNumber/minInterval/nameRotate are GUI-owned (the X-Karte knobs)', () => {
+        const c = clsOf({ xAxis: { splitNumber: 4, minInterval: 60000, nameRotate: 30 } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed.sort()).toEqual(['minInterval', 'nameRotate', 'splitNumber']);
+    });
 });
 
 describe('xAxis scaffold audit (ADR-0035)', () => {

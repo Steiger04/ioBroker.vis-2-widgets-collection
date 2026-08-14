@@ -206,7 +206,7 @@ const XCard: FC<{
         </SubGroup>
 
         <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>
-            <SwitchList>
+            <SwitchList sx={{ mb: 1.5 }}>
                 <SwitchRow
                     label={Generic.t('echarts_axis_tick_show')}
                     checked={x.axisTick ?? true}
@@ -218,6 +218,43 @@ const XCard: FC<{
                     onChange={v => onChange({ splitLine: v })}
                 />
             </SwitchList>
+            {/* Same optional-number pair as the Y-cards; unset = the echarts time-axis default
+                (splitNumber 6, no interval floor). */}
+            <FieldGrid min={110}>
+                <OptionalNumberField
+                    label={Generic.t('echarts_axis_split_number')}
+                    value={x.splitNumber}
+                    onChange={v => onChange({ splitNumber: v })}
+                />
+                <OptionalNumberField
+                    label={Generic.t('echarts_axis_min_interval')}
+                    value={x.minInterval}
+                    onChange={v => onChange({ minInterval: v })}
+                />
+            </FieldGrid>
+            <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mt: 0.5 }}
+            >
+                {Generic.t('echarts_x_min_interval_hint')}
+            </Typography>
+        </SubGroup>
+
+        <SubGroup title={Generic.t('echarts_grp_presentation')}>
+            <FieldGrid>
+                {/* The Y-card's `??90` is wrong here: echarts' null nameRotate renders VERTICAL on a
+                    side axis but HORIZONTAL (0°) on a bottom axis — the X name's default. Unset stays
+                    unset (no emit) so echarts keeps the default until the user explicitly rotates. */}
+                <SliderField
+                    label={Generic.t('echarts_axis_name_rotate')}
+                    value={x.nameRotate ?? 0}
+                    min={-90}
+                    max={90}
+                    step={5}
+                    onChange={v => onChange({ nameRotate: v })}
+                />
+            </FieldGrid>
         </SubGroup>
     </EditorCard>
 );

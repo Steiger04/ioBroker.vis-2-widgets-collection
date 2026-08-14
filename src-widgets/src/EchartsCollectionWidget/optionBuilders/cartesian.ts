@@ -278,6 +278,18 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
         entry.nameLocation = 'middle';
         entry.nameGap = 30;
     }
+    // Tick density knobs, conditional-emit like the Y-axis: unset = the echarts default (time-axis
+    // splitNumber 6, no interval floor). `minInterval` counts MILLISECONDS on a time axis — the ms
+    // semantics are the data mode's clock, not a window edge (min/max stay data-mode-owned, ADR-0035).
+    if (x.splitNumber !== undefined) {
+        entry.splitNumber = x.splitNumber;
+    }
+    if (x.minInterval !== undefined) {
+        entry.minInterval = x.minInterval;
+    }
+    if (x.nameRotate !== undefined) {
+        entry.nameRotate = x.nameRotate;
+    }
     const axisLabel: Record<string, unknown> = {};
     if (x.format) {
         // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.
