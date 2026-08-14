@@ -148,6 +148,24 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
         expect(c?.cls).toBe('partial');
         expect(c?.managed).toEqual(['splitLine.show']);
     });
+
+    it('axisLine.lineStyle width/type are free leaves (depth 3) → effective — the scaffold carries both', () => {
+        const c = clsOf({ xAxis: { axisLine: { lineStyle: { width: 2, type: 'dashed' } } } }, 'xAxis');
+        expect(c?.cls).toBe('effective');
+        expect(c?.managed).toEqual([]);
+    });
+
+    it('axisLine.lineStyle.color alone → ignored (the GUI axis colour eats it, ADR-0036 refinement)', () => {
+        const c = clsOf({ xAxis: { axisLine: { lineStyle: { color: '#f00' } } } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed).toEqual(['axisLine.lineStyle.color']);
+    });
+
+    it('axisLine.lineStyle colour + width mixed → partial, lists only the colour leaf', () => {
+        const c = clsOf({ xAxis: { axisLine: { lineStyle: { color: '#f00', width: 3 } } } }, 'xAxis');
+        expect(c?.cls).toBe('partial');
+        expect(c?.managed).toEqual(['axisLine.lineStyle.color']);
+    });
 });
 
 describe('xAxis scaffold audit (ADR-0035)', () => {
