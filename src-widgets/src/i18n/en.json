@@ -423,7 +423,7 @@
     "echarts_weight_normal": "Normal",
     "echarts_x_fmt_auto": "Automatic",
     "echarts_x_format": "Time format",
-    "echarts_x_format_custom": "Custom…",
+    "echarts_x_format_tokens": "Placeholders: {yyyy} · {MM} · {dd} · {HH} · {mm} · {ss} · {SSS}",
     "echarts_x_title": "X-axis (time)",
     "echarts_y_format": "Y label format",
     "echarts_y_log": "Logarithmic Y axis",

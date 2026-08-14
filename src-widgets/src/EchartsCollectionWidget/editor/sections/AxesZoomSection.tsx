@@ -17,7 +17,7 @@
  * SwitchList) and the threshold mark-lines. min≥max carries advisory validation.
  */
 import { useState, type FC } from 'react';
-import { Alert, Box, Button, IconButton, Snackbar, Typography } from '@mui/material';
+import { Alert, Autocomplete, Box, Button, IconButton, Snackbar, TextField, Typography } from '@mui/material';
 import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
@@ -73,11 +73,75 @@ const X_FORMAT_PRESETS: [string, string][] = [
     ['{HH}:{mm}:{ss}', 'HH:mm:ss'],
     ['{dd}.{MM}.{yyyy}', 'dd.MM.yyyy'],
 ];
-/** Select sentinel for "a template not covered by any preset". */
-const X_FORMAT_CUSTOM = '__custom__';
-/** True when the stored template is one of the presets (drives the select value + custom field). */
-const isPresetFormat = (format: string | undefined): boolean =>
-    !!format && X_FORMAT_PRESETS.some(([tpl]) => tpl === format);
+/** The combobox dropdown values: '' (auto) + the preset templates. */
+const X_FORMAT_VALUES: string[] = ['', ...X_FORMAT_PRESETS.map(([tpl]) => tpl)];
+/** Friendly dropdown label for a value ('' → Auto; presets → their shorthand; else the raw template). */
+const xFormatOptionLabel = (value: string): string =>
+    value === '' ? Generic.t('echarts_x_fmt_auto') : (X_FORMAT_PRESETS.find(([tpl]) => tpl === value)?.[1] ?? value);
+
+/**
+ * Editable time-template combobox for the X-Karte label format (ADR-0035). The presets are
+ * dropdown OFFERS, the input is freeSolo — the template string is the single state, so there is
+ * no Eigene… sentinel and no custom-mode flag to desync (the rework replaces a select whose
+ * "Eigene…" entry could never reveal its free-text field: the seed collided with a preset value,
+ * the select snapped back, and the field stayed permanently hidden). A template typed to equal a
+ * preset is simply that preset. The caption lists the echarts time-template placeholders so the
+ * free text is discoverable.
+ */
+const XFormatCombo: FC<{
+    value: string | undefined;
+    onChange: (format: string | undefined) => void;
+}> = ({ value, onChange }) => (
+    <Box sx={{ gridColumn: '1 / -1' }}>
+        <FieldLabel>{Generic.t('echarts_x_format')}</FieldLabel>
+        <Autocomplete
+            freeSolo
+            size="small"
+            options={X_FORMAT_VALUES}
+            inputValue={value ?? ''}
+            // Typing ('input') and the clear button ('clear') write straight through; picking an
+            // option arrives via onChange (reason 'reset' would double-fire every selection).
+            onInputChange={(_, v, reason) => {
+                if (reason === 'input' || reason === 'clear') {
+                    onChange(v || undefined);
+                }
+            }}
+            onChange={(_, v) => onChange(v || undefined)}
+            getOptionLabel={o => (o === '' ? Generic.t('echarts_x_fmt_auto') : o)}
+            renderOption={(props, option) => (
+                <li
+                    {...props}
+                    key={option}
+                >
+                    {xFormatOptionLabel(option)}
+                    {option !== '' && (
+                        <Typography
+                            component="code"
+                            variant="caption"
+                            sx={{ ml: 1, color: 'text.secondary' }}
+                        >
+                            {option}
+                        </Typography>
+                    )}
+                </li>
+            )}
+            renderInput={params => (
+                <TextField
+                    {...params}
+                    placeholder={Generic.t('echarts_x_fmt_auto')}
+                    fullWidth
+                />
+            )}
+        />
+        <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block', mt: 0.5 }}
+        >
+            {Generic.t('echarts_x_format_tokens')}
+        </Typography>
+    </Box>
+);
 
 /**
  * The X-Karte (ADR-0035): the single, non-deletable first card of the Axis manager configuring
@@ -135,34 +199,10 @@ const XCard: FC<{
         </SubGroup>
 
         <SubGroup title={Generic.t('echarts_grp_labels')}>
-            <FieldGrid>
-                <LabeledSelect
-                    label={Generic.t('echarts_x_format')}
-                    value={!x.format ? '' : isPresetFormat(x.format) ? x.format : X_FORMAT_CUSTOM}
-                    onChange={v =>
-                        onChange(
-                            v === X_FORMAT_CUSTOM
-                                ? // Keep the current custom template (or start from a common one).
-                                  { format: x.format || '{HH}:{mm}' }
-                                : { format: v || undefined },
-                        )
-                    }
-                    options={[
-                        ['', Generic.t('echarts_x_fmt_auto')],
-                        ...X_FORMAT_PRESETS,
-                        [X_FORMAT_CUSTOM, Generic.t('echarts_x_format_custom')],
-                    ]}
-                />
-                {/* Free template field — only meaningful while the select sits on "Eigene…". */}
-                {!x.format || isPresetFormat(x.format) ? null : (
-                    <TextField2
-                        label={Generic.t('echarts_x_format_custom')}
-                        value={x.format}
-                        placeholder="{HH}:{mm}"
-                        onChange={v => onChange({ format: v || undefined })}
-                    />
-                )}
-            </FieldGrid>
+            <XFormatCombo
+                value={x.format}
+                onChange={v => onChange({ format: v })}
+            />
         </SubGroup>
 
         <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>

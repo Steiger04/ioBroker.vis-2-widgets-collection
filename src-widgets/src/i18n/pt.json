@@ -423,7 +423,7 @@
     "echarts_weight_normal": "Normal",
     "echarts_x_fmt_auto": "[TODO] Automatic",
     "echarts_x_format": "[TODO] Time format",
-    "echarts_x_format_custom": "[TODO] Custom…",
+    "echarts_x_format_tokens": "[TODO] Placeholders: {yyyy} · {MM} · {dd} · {HH} · {mm} · {ss} · {SSS}",
     "echarts_x_title": "[TODO] X-axis (time)",
     "echarts_y_format": "Formato da etiqueta Y",
     "echarts_y_log": "Eixo Y logarítmico",
