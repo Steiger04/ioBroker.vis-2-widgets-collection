@@ -187,4 +187,28 @@ describe('xAxis scaffold audit (ADR-0035)', () => {
         expect(c?.cls).toBe('effective');
         expect(c?.managed).toEqual([]);
     });
+
+    it('carries the COMPLETE GUI-free splitLine key set — a silently dropped key fails here', () => {
+        const splitLine = (
+            JSON.parse(X_AXIS_SCAFFOLD_JSON) as {
+                xAxis: { splitLine: { lineStyle: Record<string, unknown> } };
+            }
+        ).xAxis.splitLine;
+        // showMinLine/showMaxLine + the completed lineStyle block; `show` is GUI-owned, `interval`
+        // deprecated v5.0 (category-only, the X axis is hardcoded `time`), `color` theme-token (D4),
+        // `opacity` real-default-undefined → all deliberately absent.
+        expect(Object.keys(splitLine).sort()).toEqual(['lineStyle', 'showMaxLine', 'showMinLine']);
+        expect(Object.keys(splitLine.lineStyle).sort()).toEqual([
+            'cap',
+            'dashOffset',
+            'join',
+            'miterLimit',
+            'shadowBlur',
+            'shadowColor',
+            'shadowOffsetX',
+            'shadowOffsetY',
+            'type',
+            'width',
+        ]);
+    });
 });
