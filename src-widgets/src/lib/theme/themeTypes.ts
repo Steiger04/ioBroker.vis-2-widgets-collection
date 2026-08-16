@@ -103,8 +103,6 @@ export interface ThemeFormSectionProps {
      * clears the field and prunes now-empty parent objects.
      */
     onChange: (path: string, value: unknown) => void;
-    /** Whether the section's accordion is expanded on first render. */
-    defaultExpanded?: boolean;
     /**
      * Resolved MUI theme (mode resolved against the vis-2 host, derived secondary
      * applied) used to display the effective color in each field. Color sections

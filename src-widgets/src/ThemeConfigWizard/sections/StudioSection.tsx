@@ -22,8 +22,6 @@ interface StudioSectionProps {
     title: string;
     /** One-line digest of the section's effective values, shown while collapsed. */
     summary: string;
-    /** Whether the section starts expanded (uncontrolled mode). */
-    defaultExpanded?: boolean;
     /** Controlled expanded state — when provided, the panel owns expansion (scroll-to-error). */
     expanded?: boolean;
     /** Expanded-state change callback (controlled mode). */
@@ -34,13 +32,13 @@ interface StudioSectionProps {
 
 /**
  * Accordion section with a collapsed-state summary line and a lazily mounted body.
- * Supports uncontrolled (`defaultExpanded`) and controlled (`expanded` + `onExpandedChange`)
- * modes; the panel uses the controlled mode to expand a section holding a validation error.
+ * Supports uncontrolled and controlled (`expanded` + `onExpandedChange`) modes; the panel
+ * uses the controlled mode to expand a section holding a validation error. Sections start
+ * collapsed in uncontrolled mode.
  *
  * @param props - Component props.
  * @param props.title - Section title in the accordion header.
  * @param props.summary - One-line digest shown while collapsed.
- * @param props.defaultExpanded - Initial expanded state (uncontrolled mode).
  * @param props.expanded - Controlled expanded state (panel-owned).
  * @param props.onExpandedChange - Expanded-state change callback (controlled mode).
  * @param props.children - Section body (fields).
@@ -49,12 +47,11 @@ interface StudioSectionProps {
 function StudioSection({
     title,
     summary,
-    defaultExpanded,
     expanded: expandedProp,
     onExpandedChange,
     children,
 }: StudioSectionProps): React.JSX.Element {
-    const [expandedInternal, setExpandedInternal] = useState<boolean>(defaultExpanded ?? false);
+    const [expandedInternal, setExpandedInternal] = useState<boolean>(false);
     const expanded = expandedProp ?? expandedInternal;
     const handleChange = (isExpanded: boolean): void => {
         if (expandedProp === undefined) {

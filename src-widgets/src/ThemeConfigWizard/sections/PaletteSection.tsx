@@ -96,7 +96,6 @@ function PaletteSection({
             summary={summary}
             expanded={expanded}
             onExpandedChange={onExpandedChange}
-            defaultExpanded
         >
             <Box sx={{ mb: 2 }}>
                 <FieldLabel>{Generic.t('theme_wizard_palette_mode')}</FieldLabel>

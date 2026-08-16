@@ -247,6 +247,18 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, socket]);
 
+    // Every open starts with all sections collapsed: the panel stays mounted across
+    // close→reopen, so without this reset the sections toggled last time would reopen
+    // expanded (the per-section uncontrolled state resets on remount, this map survives).
+    // Clearing on the close transition resets while the body is unmounted, so the reopen
+    // render never sees a stale expansion. Scroll-to-error may still expand a section
+    // afterwards — that is user-driven and only ever runs while open.
+    useEffect(() => {
+        if (!open) {
+            setExpandedMap({});
+        }
+    }, [open]);
+
     // Mirror the in-memory theme into the draft store so canvas widgets preview
     // live while the panel is open. Throttled to one push per DRAFT_FLUSH_MS
     // (leading + trailing, ADR-0020): every push re-themes every canvas widget,
