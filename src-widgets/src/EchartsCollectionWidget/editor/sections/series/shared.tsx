@@ -9,7 +9,7 @@
  * menu (ADR-0015/0017).
  */
 import { useState, type FC, type ReactNode } from 'react';
-import { Box, Button, Collapse, ListSubheader, Menu, MenuItem, Typography } from '@mui/material';
+import { Box, Button, Collapse, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
 
@@ -22,6 +22,7 @@ import {
     TEMPLATE_CATEGORY_ORDER,
     type SeriesTemplateSlot,
 } from '../../seriesTemplates';
+import TemplateMenu from '../TemplateMenu';
 import type { ValidationIssue } from '../../validation';
 import type { OidPickerCtx } from '../../OidPicker';
 
@@ -146,53 +147,14 @@ export const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
 );
 
 /** Categorised template dropdown for a series card (ADR-0017): injects a GUI-uncovered preset. */
-const SeriesTemplateMenu: FC<{ slot: SeriesTemplateSlot; onInject: (json: string) => void }> = ({ slot, onInject }) => {
-    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-    const templates = SERIES_TEMPLATES[slot];
-    if (!templates?.length) {
-        return null;
-    }
-    return (
-        <Box sx={{ mt: 1 }}>
-            <Button
-                size="small"
-                variant="outlined"
-                onClick={e => setAnchor(e.currentTarget)}
-                sx={{ textTransform: 'none' }}
-            >
-                {Generic.t('echarts_stpl_insert')} ▾
-            </Button>
-            <Menu
-                anchorEl={anchor}
-                open={!!anchor}
-                onClose={() => setAnchor(null)}
-                slotProps={{ paper: { sx: { maxHeight: 360 } } }}
-            >
-                {TEMPLATE_CATEGORY_ORDER.flatMap(cat => {
-                    const items = templates.filter(t => t.category === cat);
-                    if (!items.length) {
-                        return [];
-                    }
-                    return [
-                        <ListSubheader key={`cat-${cat}`}>{Generic.t(TEMPLATE_CATEGORY_I18N[cat])}</ListSubheader>,
-                        ...items.map(t => (
-                            <MenuItem
-                                key={t.id}
-                                onClick={() => {
-                                    onInject(t.json);
-                                    setAnchor(null);
-                                }}
-                                sx={{ textTransform: 'none' }}
-                            >
-                                {t.label}
-                            </MenuItem>
-                        )),
-                    ];
-                })}
-            </Menu>
-        </Box>
-    );
-};
+const SeriesTemplateMenu: FC<{ slot: SeriesTemplateSlot; onInject: (json: string) => void }> = ({ slot, onInject }) => (
+    <TemplateMenu
+        templates={SERIES_TEMPLATES[slot]}
+        categoryOrder={TEMPLATE_CATEGORY_ORDER}
+        categoryI18n={TEMPLATE_CATEGORY_I18N}
+        onInject={onInject}
+    />
+);
 
 /**
  * Collapsible per-series raw echarts JSON override (ADR-0015/0017): GUI knobs win, data is managed.

@@ -464,3 +464,41 @@ describe('reconcileJsonAxes — sticky JSON axis reconcile (ADR-0026)', () => {
         ]);
     });
 });
+
+describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', () => {
+    const RAW = '{ "minorTick": { "show": true } }';
+    const axes: EchartsAxisConfig[] = [
+        { id: 'a0', name: 'kW', raw: RAW },
+        { id: 'a1', name: '°C', position: 'right', raw: RAW },
+    ];
+
+    it('normalizeAxes keeps raw on id-bearing axes (and backfills it as a spread field)', () => {
+        const out = normalizeAxes(axes);
+        expect(out[0].raw).toBe(RAW);
+        expect(out[1].raw).toBe(RAW);
+        const noId = normalizeAxes([{ name: 'x', raw: RAW }]);
+        expect(noId[0].raw).toBe(RAW);
+    });
+
+    it('packStaggeredAxes rewrites only offset — raw survives the re-stagger', () => {
+        const packed = packStaggeredAxes(axes);
+        expect(packed.every(a => a.raw === RAW)).toBe(true);
+    });
+
+    it('pruneOrphanAxes keeps raw on survivors (raw rides the config, not the binding)', () => {
+        const series = [{ yAxisIndex: 0 }] as { yAxisIndex: number }[];
+        const { yAxes: kept } = pruneOrphanAxes(series, axes);
+        expect(kept).toHaveLength(1);
+        expect(kept[0].raw).toBe(RAW);
+    });
+
+    it('reconcileJsonAxes keeps raw on sticky axes; a fresh axis starts WITHOUT raw', () => {
+        const overlay = { PV: { yAxisIndex: 0 }, TEMP: { yAxisIndex: 1 }, NEW: { yAxisIndex: 2 } };
+        const { yAxes } = reconcileJsonAxes(['PV', 'TEMP', 'NEW'], overlay, axes);
+        // PV/TEMP keep their sticky axes 0/1 (with raw); NEW gets the appended fresh axis
+        // (no raw — the payload owns that series, ADR-0031 semantics).
+        expect(yAxes[0].raw).toBe(RAW);
+        expect(yAxes[1].raw).toBe(RAW);
+        expect(yAxes[2].raw).toBeUndefined();
+    });
+});

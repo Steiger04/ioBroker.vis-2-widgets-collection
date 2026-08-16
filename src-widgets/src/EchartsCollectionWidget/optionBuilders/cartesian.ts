@@ -183,6 +183,12 @@ const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<s
  * surprised users (an edit on axis 0 rippled to every follower). Making it opt-in removes the hidden
  * coupling; the configurator marks axis 0 as the reference and warns when a tick override
  * (min/max/splitNumber/minInterval) silently disables alignment (echarts ignores it then).
+ *
+ * The card's raw JSON escape hatch (ADR-0037) is folded at the END via `applyRawOverride`: parsed
+ * and deep-merged UNDER this entry, so every key this builder emits wins its collisions while
+ * everything it does not emit (label/name fonts, minorTick/minorSplitLine, splitArea, label
+ * overflow/layout, logBase, boundaryGap, maxInterval, inverse, per-axis axisPointer, …) merges
+ * through unchanged.
  */
 const buildYAxisEntry = (
     a: EchartsAxisConfig,
@@ -198,8 +204,11 @@ const buildYAxisEntry = (
         offset: a.offset ?? 0,
         alignTicks: a.alignTicks ?? false,
         splitLine: { show: a.splitLine ?? i === 0 },
-        nameLocation: 'middle',
-        nameGap: AXIS_NAME_GAP,
+        // Card fields since ADR-0037 (were hard-emits with no GUI control, i.e. un-overridable
+        // under the GUI-wins raw seam). Defaults = the former hard-emit values, so existing
+        // widgets render identically.
+        nameLocation: a.nameLocation ?? 'middle',
+        nameGap: a.nameGap ?? AXIS_NAME_GAP,
     };
     // Empty string counts as "not set": an axis whose name was cleared, or one migrated from legacy
     // `yName:''`, must still inherit its bound series' name. `??` would let '' through and the truthy
@@ -246,7 +255,9 @@ const buildYAxisEntry = (
     if (Object.keys(axisLabel).length) {
         entry.axisLabel = axisLabel;
     }
-    return entry;
+    // ADR-0037: the per-axis raw override is folded UNDER the built entry (GUI wins collisions;
+    // free keys merge through) — the same seam as the per-series raw (ADR-0015).
+    return applyRawOverride(entry, a.raw);
 };
 
 /** echarts valueFormatter lives in {@link buildTooltip} (shared across families). */

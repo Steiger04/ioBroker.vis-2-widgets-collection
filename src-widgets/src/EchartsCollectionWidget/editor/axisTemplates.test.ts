@@ -1,0 +1,120 @@
+/**
+ * Unit tests for the per-axis template catalog (ADR-0037).
+ *
+ * @module EchartsCollectionWidget/editor/axisTemplates.test
+ */
+import { describe, expect, it } from 'vitest';
+
+import {
+    AXIS_CATEGORY_I18N,
+    AXIS_CATEGORY_ORDER,
+    AXIS_TEMPLATES,
+    injectAxisTemplate,
+    type AxisTemplateCategory,
+} from './axisTemplates';
+import { classifyAxisKeys } from './axisRawAnalysis';
+import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
+
+describe('AXIS_TEMPLATES catalog shape (ADR-0037)', () => {
+    it('has the locked 20 snippets with unique ids, valid object JSON and a known category', () => {
+        expect(AXIS_TEMPLATES).toHaveLength(20);
+        const ids = new Set<string>();
+        for (const t of AXIS_TEMPLATES) {
+            expect(ids.has(t.id), `duplicate id ${t.id}`).toBe(false);
+            ids.add(t.id);
+            expect(AXIS_CATEGORY_ORDER).toContain(t.category);
+            expect(AXIS_CATEGORY_I18N[t.category]).toBeTruthy();
+            const v = JSON.parse(t.json) as unknown;
+            expect(v && typeof v === 'object' && !Array.isArray(v), `${t.id} must be a JSON object`).toBe(true);
+        }
+    });
+
+    it('covers the six locked categories', () => {
+        const byCat = new Map<AxisTemplateCategory, number>();
+        for (const t of AXIS_TEMPLATES) {
+            byCat.set(t.category, (byCat.get(t.category) ?? 0) + 1);
+        }
+        // fonts 3 · grid 4 · labels 5 · scale 4 · style 3 · interaction 1 (spec table).
+        expect(Object.fromEntries(byCat)).toEqual({
+            fonts: 3,
+            grid: 4,
+            labels: 5,
+            scale: 4,
+            style: 3,
+            interaction: 1,
+        });
+    });
+});
+
+describe('AXIS_TEMPLATES audit (ADR-0037) — no template touches a builder-emitted leaf', () => {
+    // The MOST restrictive card state: every conditional emit active (name/min/max/scale/
+    // splitNumber/minInterval/nameRotate/format/colour + inherited series colour/name). If a
+    // template classifies `effective` here, it is effective under ANY card state — this is the
+    // series-template "audited against the builder" rule, state-resolved.
+    const fullest: EchartsAxisConfig = {
+        name: 'kW',
+        min: 0,
+        max: 100,
+        scale: true,
+        format: '{value} kW',
+        color: '#f00',
+        splitNumber: 5,
+        minInterval: 1,
+        nameRotate: 45,
+        log: true,
+        position: 'left',
+        offset: 0,
+        alignTicks: true,
+        splitLine: true,
+        axisTick: true,
+        nameLocation: 'middle',
+        nameGap: 18,
+    };
+
+    it('every snippet is wholly effective against a fully-configured axis', () => {
+        for (const t of AXIS_TEMPLATES) {
+            const chips = classifyAxisKeys(JSON.parse(t.json) as Record<string, unknown>, {
+                axis: fullest,
+                seriesColor: '#abc',
+                seriesName: 'Power',
+            });
+            const bad = chips.filter(c => c.cls !== 'effective');
+            expect(
+                bad,
+                `${t.id} touches card-managed keys: ${bad.map(c => `${c.key} (${c.cls}: ${c.managed.join(',')})`).join('; ')}`,
+            ).toEqual([]);
+        }
+    });
+});
+
+describe('injectAxisTemplate (ADR-0037) — deep-merge injection', () => {
+    it("merges per LEAF, not per top-level key: a second axisLabel snippet keeps the first one's keys", () => {
+        const first = injectAxisTemplate(undefined, '{ "axisLabel": { "fontFamily": "JetBrains Mono" } }');
+        const second = injectAxisTemplate(first, '{ "axisLabel": { "hideOverlap": true } }');
+        expect(JSON.parse(second)).toEqual({
+            axisLabel: { fontFamily: 'JetBrains Mono', hideOverlap: true },
+        });
+    });
+
+    it('overwrites a colliding leaf with the template value (last injection wins)', () => {
+        const first = injectAxisTemplate(undefined, '{ "minorTick": { "show": true, "splitNumber": 5 } }');
+        const second = injectAxisTemplate(first, '{ "minorTick": { "splitNumber": 2 } }');
+        expect(JSON.parse(second)).toEqual({ minorTick: { show: true, splitNumber: 2 } });
+    });
+
+    it('replaces invalid current text and no-ops on a bad template', () => {
+        expect(JSON.parse(injectAxisTemplate('not json', '{ "inverse": true }'))).toEqual({ inverse: true });
+        const cur = '{ "inverse": true }';
+        expect(injectAxisTemplate(cur, 'not json')).toBe(cur);
+        expect(injectAxisTemplate(undefined, 'not json')).toBe('');
+    });
+
+    it('deep-merges nested style objects (arrays replaced wholesale)', () => {
+        const first = injectAxisTemplate(undefined, '{ "splitLine": { "lineStyle": { "type": "dashed" } } }');
+        const second = injectAxisTemplate(first, '{ "splitArea": { "show": true } }');
+        expect(JSON.parse(second)).toEqual({
+            splitLine: { lineStyle: { type: 'dashed' } },
+            splitArea: { show: true },
+        });
+    });
+});

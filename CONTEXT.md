@@ -142,6 +142,14 @@ _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**.
 _Avoid_: Snippet, preset, template snippet (that is chart-wide)
 
+**Axis raw**:
+The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis card, deep-merged UNDER the GUI-authored yAxis entry (the card wins collisions). Present on every Y-axis card in all cartesian data modes; a JSON-derived axis keeps it through reconcile, while freshly created axes start without one. Its UI section is labelled "Erweitertes JSON"/"Advanced JSON" (the user's chosen name) — the label notwithstanding, it is NOT the chart-level Advanced JSON. Unlike the Series raw, the card surfaces a **state-aware** key analysis (✓/◐/✗) because the axis builder always-emits keys that would otherwise silently eat raw keys.
+_Avoid_: Advanced JSON (that is the chart-level U), axis JSON (too generic)
+
+**Axis template**:
+A per-axis, collision-safe preset (ADR-0037) — a small thematic snippet (one capability: label fonts, minor ticks, splitArea bands, label overflow, `logBase`…) injected deep-merged into an Axis card's Axis raw. Each entry is audited against the axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**.
+_Avoid_: Snippet, preset, series template (that is per-series)
+
 **Field grid**:
 The section-body layout primitive (ADR-0019): a CSS `repeat(auto-fill, minmax(150px, 1fr))` grid whose cells reflow 1→4 columns purely with Rail width — no JS width measurement, so a Splitter drag never re-renders the form tree. Composite fields (OID picker, colour) live in flex rows with a flex basis; a wide field may span `1 / -1`. Hardcoded pixel widths are banned from section bodies.
 _Avoid_: Column layout, breakpoint layout

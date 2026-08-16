@@ -397,6 +397,25 @@ export interface EchartsAxisConfig {
     axisTick?: boolean;
     /** Rotate the axis name (deg, for tight multi-axis layouts). */
     nameRotate?: number;
+    /**
+     * Where the axis name sits along the axis (echarts `nameLocation`; on a Y-axis 'end' = top,
+     * 'start' = bottom). Promoted from a builder hard-emit to a card field (ADR-0037) so no
+     * always-emitted key remains silently un-overridable. @default 'middle'
+     */
+    nameLocation?: 'start' | 'middle' | 'end';
+    /**
+     * Px gap between axis line and name. Card field since ADR-0037 (was the `AXIS_NAME_GAP`
+     * hard-emit). @default 18
+     */
+    nameGap?: number;
+    /**
+     * Per-axis raw echarts JSON override (ADR-0037): parsed and deep-merged UNDER the GUI-authored
+     * yAxis entry by `applyRawOverride` — the card wins every collision, so GUI-covered keys
+     * (min/max/splitLine.show/…) are protected while everything the builder does not emit (label
+     * fonts, minorTick, splitArea, logBase, …) takes effect. Rides the `yAxes` blob; survives
+     * reconcile/prune/pack (all spread-based). Freshly created axes start without one.
+     */
+    raw?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

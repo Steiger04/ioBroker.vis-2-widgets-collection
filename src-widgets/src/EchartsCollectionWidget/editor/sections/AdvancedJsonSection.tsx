@@ -149,6 +149,9 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
                                     size="small"
                                     variant="outlined"
                                     label={`${c.key} ✗`}
+                                    // ADR-0037: yAxis is card-managed per axis — point at the escape
+                                    // hatch that actually reaches it (the Axis cards' raw override).
+                                    title={c.key === 'yAxis' ? Generic.t('echarts_advanced_yaxis_hint') : undefined}
                                     sx={{ opacity: 0.6, textDecoration: 'line-through' }}
                                 />
                             );

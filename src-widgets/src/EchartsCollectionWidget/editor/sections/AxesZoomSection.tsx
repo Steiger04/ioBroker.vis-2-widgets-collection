@@ -52,6 +52,7 @@ import {
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../identity';
+import AxisRawOverride from './axes/AxisRawOverride';
 
 interface AxesZoomSectionProps {
     state: EditorState;
@@ -463,8 +464,40 @@ const AxisCard: FC<{
                         step={5}
                         onChange={v => onChange({ nameRotate: v })}
                     />
+                    {/* Name placement + gap were builder hard-emits with no card field (ADR-0037
+                        promoted them): on a Y-axis 'end' = top, 'start' = bottom. Defaults = the
+                        former hard-emit values, so existing widgets render identically. */}
+                    <LabeledSelect
+                        label={Generic.t('echarts_axis_name_location')}
+                        value={a.nameLocation ?? 'middle'}
+                        onChange={v => onChange({ nameLocation: v as 'start' | 'middle' | 'end' })}
+                        options={[
+                            ['start', Generic.t('echarts_axis_nameloc_start')],
+                            ['middle', Generic.t('echarts_axis_nameloc_middle')],
+                            ['end', Generic.t('echarts_axis_nameloc_end')],
+                        ]}
+                    />
+                    <SliderField
+                        label={Generic.t('echarts_axis_name_gap')}
+                        value={a.nameGap ?? 18}
+                        min={0}
+                        max={60}
+                        step={1}
+                        onChange={v => onChange({ nameGap: v })}
+                    />
                 </FieldGrid>
             </SubGroup>
+
+            {/* The per-axis raw escape hatch (ADR-0037): template menu + JSON editor + the
+                state-aware ✓/◐/✗ analysis. Deep-merged UNDER the built entry — the card wins
+                collisions; everything the builder does not emit merges through. */}
+            <AxisRawOverride
+                raw={a.raw}
+                onChange={v => onChange({ raw: v })}
+                axis={a}
+                seriesColor={seriesColor}
+                seriesName={seriesName}
+            />
         </EditorCard>
     );
 };

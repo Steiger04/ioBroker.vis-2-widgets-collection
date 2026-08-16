@@ -721,6 +721,163 @@ describe('buildGeneratedOption — cartesian', () => {
     });
 });
 
+describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-0037)', () => {
+    it('folds the per-axis raw UNDER the built entry — the card wins collisions', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A', yAxisIndex: 0 }],
+            p: {
+                ...P,
+                yAxes: [
+                    {
+                        min: 0,
+                        splitLine: true,
+                        format: '{value} kW',
+                        raw: JSON.stringify({
+                            min: 50, // collides with the card's min → card wins
+                            splitLine: { show: false }, // collides with the card's switch → card wins
+                            axisLabel: { formatter: '{value} W' }, // collides with format → card wins
+                        }),
+                    },
+                ],
+            },
+        });
+        const ya = option.yAxis as unknown as {
+            min?: number;
+            splitLine?: { show?: boolean };
+            axisLabel?: { formatter?: string };
+        }[];
+        expect(ya[0].min).toBe(0);
+        expect(ya[0].splitLine?.show).toBe(true);
+        expect(ya[0].axisLabel?.formatter).toBe('{value} kW');
+    });
+
+    it('lets builder-uncovered keys merge through (the escape-hatch promise)', () => {
+        const raw = {
+            axisLabel: { fontFamily: 'JetBrains Mono', fontSize: 14 },
+            nameTextStyle: { fontWeight: 'bold' },
+            minorTick: { show: true, splitNumber: 5 },
+            minorSplitLine: { show: true },
+            splitArea: { show: true },
+            logBase: 2,
+            boundaryGap: ['5%', '5%'],
+            maxInterval: 25,
+            inverse: true,
+            axisLine: { symbol: ['none', 'arrow'] },
+            axisPointer: { show: true, label: { show: true } },
+        };
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{ raw: JSON.stringify(raw) }] },
+        });
+        expect(option.yAxis as unknown[]).toHaveLength(1);
+        const ya = (option.yAxis as unknown as unknown[])[0] as Record<string, unknown>;
+        expect(ya.axisLabel).toMatchObject({ fontFamily: 'JetBrains Mono', fontSize: 14 });
+        expect(ya.nameTextStyle).toMatchObject({ fontWeight: 'bold' });
+        expect(ya.minorTick).toEqual({ show: true, splitNumber: 5 });
+        expect(ya.minorSplitLine).toEqual({ show: true });
+        expect(ya.splitArea).toEqual({ show: true });
+        expect(ya.logBase).toBe(2);
+        expect(ya.boundaryGap).toEqual(['5%', '5%']);
+        expect(ya.maxInterval).toBe(25);
+        expect(ya.inverse).toBe(true);
+        expect(ya.axisLine).toMatchObject({ symbol: ['none', 'arrow'] });
+        expect(ya.axisPointer).toEqual({ show: true, label: { show: true } });
+    });
+
+    it('ignores invalid raw JSON silently (validity is surfaced in the editor)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{ raw: 'not json {', name: 'kW' }] },
+        });
+        const ya = (option.yAxis as unknown as unknown[])[0] as Record<string, unknown>;
+        expect(ya.name).toBe('kW');
+        expect(Object.keys(ya)).not.toContain('logBase');
+    });
+
+    it('the colour trio wins its collisions: raw axisLabel.color/nameTextStyle.color lose to the card colour', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: {
+                ...P,
+                yAxes: [
+                    {
+                        color: '#f00',
+                        raw: JSON.stringify({
+                            axisLabel: { color: '#raw-c', fontFamily: 'mono' },
+                            nameTextStyle: { color: '#raw-n', fontWeight: 'bold' },
+                            axisLine: { lineStyle: { color: '#raw-l', type: 'dashed' } },
+                        }),
+                    },
+                ],
+            },
+        });
+        const ya = (option.yAxis as unknown as unknown[])[0] as {
+            axisLabel?: Record<string, unknown>;
+            nameTextStyle?: Record<string, unknown>;
+            axisLine?: { lineStyle?: Record<string, unknown> };
+        };
+        // Managed colour leaves: the card (inherited series colour absent → explicit axis colour) wins.
+        expect(ya.axisLabel?.color).toBe('#f00');
+        expect(ya.nameTextStyle?.color).toBe('#f00');
+        expect(ya.axisLine?.lineStyle?.color).toBe('#f00');
+        // Free siblings merge through — that is the escape hatch's whole promise.
+        expect(ya.axisLabel?.fontFamily).toBe('mono');
+        expect(ya.nameTextStyle?.fontWeight).toBe('bold');
+        expect(ya.axisLine?.lineStyle?.type).toBe('dashed');
+    });
+
+    it('raw merges leaf-wise into GUI sub-objects (splitLine.lineStyle survives the switch)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: {
+                ...P,
+                yAxes: [{ splitLine: true, raw: '{ "splitLine": { "lineStyle": { "type": "dashed" } } }' }],
+            },
+        });
+        const ya = (option.yAxis as unknown as unknown[])[0] as {
+            splitLine?: { show?: boolean; lineStyle?: { type?: string } };
+        };
+        expect(ya.splitLine).toEqual({ show: true, lineStyle: { type: 'dashed' } });
+    });
+
+    it('nameLocation/nameGap are card-driven, defaulting to the former hard-emit values', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: {
+                ...P,
+                yAxes: [{}, { nameLocation: 'end', nameGap: 42 }],
+            },
+        });
+        const ya = option.yAxis as unknown as { nameLocation?: string; nameGap?: number }[];
+        expect(ya[0]).toMatchObject({ nameLocation: 'middle', nameGap: 18 });
+        expect(ya[1]).toMatchObject({ nameLocation: 'end', nameGap: 42 });
+    });
+
+    it('raw cannot override nameLocation/nameGap once they are card fields', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{ raw: '{ "nameLocation": "start", "nameGap": 99 }' }] },
+        });
+        const ya = (option.yAxis as unknown as unknown[])[0] as { nameLocation?: string; nameGap?: number };
+        expect(ya.nameLocation).toBe('middle');
+        expect(ya.nameGap).toBe(18);
+    });
+});
+
 describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
     it('always emits the time axis with the honest echarts defaults (splitLine off, ticks on)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
