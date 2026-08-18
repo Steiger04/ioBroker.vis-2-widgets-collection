@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "Hiaten opvullen met 0",
     "echarts_instance": "Historie-instantie",
     "echarts_instance_auto": "Auto",
+    "echarts_instance_auto_hint": "Auto gebruikt de historie-instantie die op het datapunt zelf is ingesteld (bijv. sql.0, influxdb.0). Alleen als daar geen is ingesteld, beslist de server (standaard historie-instantie).",
     "echarts_instance_missing": "Geen historie-adapter gevonden — installeer history/sql/influxdb en schakel het in voor de OID.",
     "echarts_instance_tooltip": "Optioneel; automatisch gedetecteerd wanneer leeg",
     "echarts_json_hidden": "Verborgen series",

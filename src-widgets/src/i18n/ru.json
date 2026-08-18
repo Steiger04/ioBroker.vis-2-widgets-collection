@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "Заполнять пробелы нулём",
     "echarts_instance": "Экземпляр истории",
     "echarts_instance_auto": "Авто",
+    "echarts_instance_auto_hint": "«Авто» использует экземпляр истории, настроенный на самом datapoint (например, sql.0, influxdb.0). Только если там ничего не настроено, решает сервер (экземпляр истории по умолчанию).",
     "echarts_instance_missing": "Адаптер истории не найден — установите history/sql/influxdb и включите его для OID.",
     "echarts_instance_tooltip": "Необязательно; определяется автоматически, если пусто",
     "echarts_json_hidden": "Скрытые серии",

@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "用 0 填充空缺",
     "echarts_instance": "历史实例",
     "echarts_instance_auto": "自动",
+    "echarts_instance_auto_hint": "“自动”使用数据点自身配置的历史实例（如 sql.0、influxdb.0）。仅当未配置任何实例时，才由服务器决定（默认历史实例）。",
     "echarts_instance_missing": "未找到历史适配器 — 请安装 history/sql/influxdb 并为该 OID 启用。",
     "echarts_instance_tooltip": "可选；为空时自动检测",
     "echarts_json_hidden": "隐藏的系列",

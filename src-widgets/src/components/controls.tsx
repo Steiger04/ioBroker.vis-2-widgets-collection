@@ -105,6 +105,10 @@ export const LabeledSelect: FC<{
             onChange={e => onChange(e.target.value)}
             disabled={disabled}
             fullWidth
+            // displayEmpty: an option with the value '' (e.g. "Auto") must still be SHOWN when
+            // selected — without this, MUI renders an empty value as a blank field (isFilled('') is
+            // false), which reads as "selecting Auto does nothing".
+            slotProps={{ select: { displayEmpty: true } }}
         >
             {options.map(([v, l]) => (
                 <MenuItem

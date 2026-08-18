@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "Riempi gap con 0",
     "echarts_instance": "Istanza cronologia",
     "echarts_instance_auto": "Auto",
+    "echarts_instance_auto_hint": "Auto usa l’istanza di cronologia configurata sul datapoint stesso (es. sql.0, influxdb.0). Solo se non ne è configurata nessuna decide il server (istanza di cronologia predefinita).",
     "echarts_instance_missing": "Nessun adattatore cronologia trovato — installa history/sql/influxdb e abilitalo per l'OID.",
     "echarts_instance_tooltip": "Opzionale; rilevato automaticamente se vuoto",
     "echarts_json_hidden": "Serie nascoste",

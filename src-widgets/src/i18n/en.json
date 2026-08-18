@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "Fill gaps with 0",
     "echarts_instance": "History instance",
     "echarts_instance_auto": "Auto",
+    "echarts_instance_auto_hint": "Auto uses the history instance configured on the datapoint itself (e.g. sql.0, influxdb.0). Only if none is configured there does the server decide (default history instance).",
     "echarts_instance_missing": "No history adapter found — install history/sql/influxdb and enable it for the OID.",
     "echarts_instance_tooltip": "Optional; auto-detected when empty",
     "echarts_json_hidden": "Hidden series",

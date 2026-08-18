@@ -208,6 +208,7 @@
     "echarts_ignore_null_zero": "Remplir les espaces avec 0",
     "echarts_instance": "Instance d'historique",
     "echarts_instance_auto": "Auto",
+    "echarts_instance_auto_hint": "« Auto » utilise l’instance d’historique configurée sur le point de données lui-même (ex. sql.0, influxdb.0). Seulement si aucune n’y est configurée, le serveur décide (instance d’historique par défaut).",
     "echarts_instance_missing": "Aucun adaptateur d'historique trouvé — installez history/sql/influxdb et activez-le pour l'OID.",
     "echarts_instance_tooltip": "Optionnel ; détecté automatiquement si vide",
     "echarts_json_hidden": "Séries masquées",
