@@ -4,20 +4,20 @@
  * @module EchartsCollectionWidget/editor/EchartsEditorSections
  * @remarks
  * Pinned selectors on top (chart type + data mode, plus the non-blocking family-switch warning
- * chip); below, the family-aware stack of collapsible {@link Section}s. Every section starts
- * collapsed on open with a summary line (reverses the ADR-0010 "Series starts expanded" default).
- * Validation rolls up into the section
+ * chip); below, the family-aware stack of collapsible SectionCards (the shared configurator
+ * section shell, ADR-0038). Every section starts collapsed on open with a summary line (reverses
+ * the ADR-0010 "Series starts expanded" default). Validation rolls up into the section
  * headers (⚠ count). The modal can steer a section via `focusSection` (expand + scroll into
- * view) — used by the clickable preview placeholder.
+ * view) — used by the clickable preview placeholder and the footer's problems button.
  */
 import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { Alert, Box, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
+import SectionCard from '../../components/SectionCard';
 import { FieldLabel } from '../../components/controls';
 import { ChartTypePicker, ModeSelect } from './controls';
-import Section from './Section';
 import AdvancedJsonSection from './sections/AdvancedJsonSection';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
@@ -29,7 +29,7 @@ import TitleSection from './sections/TitleSection';
 import LegendSection from './sections/LegendSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
-import { familySwitchLoss, validateEditor, type SectionKey } from './validation';
+import { familySwitchLoss, type SectionIssues, type SectionKey } from './validation';
 import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
@@ -43,6 +43,8 @@ export interface FocusSectionRequest {
 interface EchartsEditorSectionsProps {
     state: EditorState;
     set: SetEditor;
+    /** Validation findings for the state — computed once by the modal, shared with the chips. */
+    issues: SectionIssues;
     userText: string;
     setUserText: (value: string) => void;
     pickerCtx: OidPickerCtx;
@@ -59,8 +61,11 @@ interface EchartsEditorSectionsProps {
  * options) → legend → tooltip → colors → advanced JSON. `family` (pie / gauge / radar
  * options) takes the slot cartesian reserves for axes — both are the per-family layout
  * block sitting right after the series.
+ *
+ * Exported because the modal's footer problems button needs the same order to find the
+ * FIRST section carrying issues (the scroll target matches what the user sees on screen).
  */
-const inventory = (chartType: EditorState['chartType']): SectionKey[] => {
+export const sectionInventory = (chartType: EditorState['chartType']): SectionKey[] => {
     const family = familyOf(chartType);
     if (family === 'cartesian') {
         return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'advancedJson'];
@@ -108,6 +113,7 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
 const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     state,
     set,
+    issues,
     userText,
     setUserText,
     pickerCtx,
@@ -117,8 +123,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
 }) => {
     const family = familyOf(state.chartType);
     const modeRelevant = family === 'cartesian' || family === 'pie';
-    const sections = inventory(state.chartType);
-    const issues = useMemo(() => validateEditor(state), [state]);
+    const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
     const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
     const loss = familySwitchLoss(state);
 
@@ -278,15 +283,15 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         sectionRefs.current[key] = el;
                     }}
                 >
-                    <Section
+                    <SectionCard
                         title={sectionTitle(key, state.chartType)}
                         summary={summaries[key]}
                         issueCount={issues[key]?.length ?? 0}
                         expanded={!!open[key]}
-                        onToggle={() => toggle(key)}
+                        onExpandedChange={() => toggle(key)}
                     >
                         {renderBody(key)}
-                    </Section>
+                    </SectionCard>
                 </Box>
             ))}
         </Box>

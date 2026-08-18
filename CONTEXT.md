@@ -67,8 +67,8 @@ The pinned-selector choice (cartesian/pie only) of how a chart's series acquire 
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Section**:
-One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title`, `Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
-_Avoid_: Tab (the v2 concept), panel, accordion (that's the mechanism, not the concept)
+One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title`, `Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
+_Avoid_: Tab (the v2 concept), panel, SectionCard (that's the shell component, not the concept)
 
 **Summary line**:
 The single-line digest of effective values shown on a collapsed Section (`24h · avg · 500`, `tableau · auto`). A section that cannot say anything useful collapsed does not deserve to be a section.
@@ -177,7 +177,7 @@ The collection-wide theme editor (ADR-0020): edits the user theme (stored in the
 ## Language
 
 **Studio panel**:
-The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
+The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor theme (VisTheme) inherited from the palette React tree, like every configurator (ADR-0038) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
 _Avoid_: Wizard dialog (the deleted modal), theme dialog
 
 **Preset card**:
@@ -193,8 +193,12 @@ The in-section disclosure at the end of Schrift & Form holding the font-weight s
 _Avoid_: Advanced typography, more options
 
 **Control kit**:
-The shared configurator primitives (`FieldLabel`, Field grid, Switch list, Slider field, Sub-group — defined under ECharts, ADR-0019) living in `src/components/controls/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection.
+The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor theme (VisTheme), never its own palette (ADR-0038).
 _Avoid_: Editor controls, per-editor widgets
+
+**Editor history**:
+The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input. One implementation (`useEditorHistory`) backs both working copies.
+_Avoid_: Snapshot list, timeline, draft history (that's the studio's working copy, not the mechanism)
 
 **Resize grip**:
 One of the 8 window-style resize affordances on the Studio panel's edges and corners (ADR-0020 addendum). Edge grips are keyboard-operable separators (arrows ±16/±64, Home/End, double-click reset) in the bare-hairline idiom; corner grips are pointer-only, invisible hit zones revealed by the resize cursor. Distinct from the echarts configurator's Splitter — that is an in-layout divider between two panes, not a window edge.

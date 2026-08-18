@@ -1,29 +1,31 @@
 /**
  * Rail+preview modal for the v3 echarts configurator (ADR-0010; layout per Q3, preview per Q6;
- * resizable split + chrome per ADR-0019).
+ * resizable split + chrome per ADR-0019; footer contract + editor history per ADR-0038).
  *
  * @module EchartsCollectionWidget/EchartsConfigEditorModal
  * @remarks
  * Left rail (user-resizable 320–720 px, persisted): pinned selectors + the collapsible section
- * stack ({@link EchartsEditorSections}). Right stage: a persistent **real-data** preview fed by
- * {@link ChartPreview} (the user's actual OIDs, live — not synthetic fixtures); its empty state is
- * clickable and steers the rail to the section that would fill it. The two are divided by the
- * Splitter ({@link useSplitPane}) — drag, arrow keys, double-click reset — a bare hairline that colours
- * primary on hover/focus/drag (the hover-reveal grip pill was removed on user feedback, ADR-0019
- * addendum).
+ * stack ({@link EchartsEditorSections}) on the shared SectionCard shell. Right stage: a persistent
+ * **real-data** preview fed by {@link ChartPreview} (the user's actual OIDs, live — not synthetic
+ * fixtures); its empty state is clickable and steers the rail to the section that would fill it.
+ * The two are divided by the Splitter ({@link useSplitPane}) — drag, arrow keys, double-click
+ * reset — a bare hairline that colours primary on hover/focus/drag (the hover-reveal grip pill was
+ * removed on user feedback, ADR-0019 addendum).
  *
- * The honesty contract is preserved: a working copy buffers edits, Apply is disabled until it
- * diverges (`hasChanges`, deep-equality), closing while dirty (backdrop click **or** Escape) is
- * intercepted with a warning — and the title bar says so (dirty dot) before the user even tries.
- * Footer is Apply / Cancel only (the redundant Zurücksetzen button was removed, ADR-0031: its
- * "discard edits, stay open" semantic was already covered by Cancel). First-open onboarding is the
- * empty-state CTA (ADR-0013 reversed the ADR-0010 skeleton). Wraps in a ThemeProvider for detached
- * render.
+ * The honesty contract (ADR-0038): a working copy buffers edits in an editor history
+ * ({@link useEditorHistory} — undo/redo in the header plus Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y),
+ * Apply is disabled until it diverges (`hasChanges`, deep-equality), and closing while dirty
+ * (backdrop click, Escape, Cancel or the X — every path) is intercepted by a blocking
+ * confirm dialog. The footer is the shared configurator contract: Zurücksetzen (revert the
+ * working copy to the loaded state, one undoable step) + problems counter on the left,
+ * Cancel / Apply on the right (ADR-0038 partially reverses the ADR-0031 Reset removal — with
+ * an editor history the reset is a one-step revert-to-baseline that keeps section expansion,
+ * no longer a near-duplicate of Cancel). First-open onboarding is the empty-state CTA
+ * (ADR-0013 reversed the ADR-0010 skeleton). Wraps in a ThemeProvider for detached render.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import {
-    Alert,
     Box,
     Button,
     Dialog,
@@ -31,15 +33,17 @@ import {
     DialogContent,
     DialogTitle,
     IconButton,
-    Snackbar,
     ThemeProvider,
+    Tooltip,
     Typography,
 } from '@mui/material';
 import { Close as CloseIcon, CloseFullscreen as RestoreIcon, OpenInFull as MaximizeIcon } from '@mui/icons-material';
 
 import Generic from '../Generic';
+import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
+import EditorHistoryButtons from '../components/EditorHistoryButtons';
 import ChartPreview from './editor/ChartPreview';
-import EchartsEditorSections, { type FocusSectionRequest } from './editor/EchartsEditorSections';
+import EchartsEditorSections, { sectionInventory, type FocusSectionRequest } from './editor/EchartsEditorSections';
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
@@ -47,7 +51,8 @@ import { packStaggeredAxes, pruneOrphanAxes, reconcileJsonAxes } from './editor/
 import { normalizeSeries } from './editor/seriesIdentity';
 import { withStableIds } from './editor/identity';
 import { familyOf } from './optionBuilder';
-import type { SectionKey } from './editor/validation';
+import { validateEditor, type SectionKey } from './editor/validation';
+import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -75,10 +80,15 @@ function EchartsConfigEditorModal({
     theme,
     socket,
 }: EchartsConfigEditorModalProps): React.JSX.Element {
-    const [state, setState] = useState<EditorState>(DEFAULT_EDITOR_STATE);
+    // The working copy lives in an editor history (ADR-0038): every edit is an undoable step
+    // (rapid same-key edits coalesce — one slider drag / one typed field = one step).
+    const history = useEditorHistory<EditorState>(DEFAULT_EDITOR_STATE);
+    const state = history.present;
     const loadedCountRef = useRef(0);
+    // The loaded baseline: the string snapshot drives `hasChanges`, the object drives Reset.
     const loadedSnapshotRef = useRef('');
-    const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+    const loadedStateRef = useRef<EditorState>(DEFAULT_EDITOR_STATE);
+    const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
     // Window-style maximize toggle (fullScreen, edge-to-edge). Session-only by user decision:
     // the component instance survives close/open, so the flag must be reset in the open effect
     // below — every fresh open starts at normal size.
@@ -106,16 +116,17 @@ function EchartsConfigEditorModal({
         // single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
         loadedCountRef.current = loaded.chartType === 'radar' ? loaded.radar.indicators.length : loaded.series.length;
         loadedSnapshotRef.current = JSON.stringify(loaded);
-        setState(loaded);
+        loadedStateRef.current = loaded;
+        history.rebase(loaded);
         setFocusSection(null);
         setMaximized(false); // maximize is session-only — a fresh open starts at normal size
-    }, [open, data]);
+    }, [open, data, history]);
 
     // Self-heal stable ids: every keyed card list (axes/series/mark-lines/indicators) must carry an
     // `id` so React reconciles by identity, not array index (the wrong-card-unmounts bug). loadEditorState
     // normalises on open, BUT dev HMR can preserve stale pre-id state across a code reload without
     // re-running the loader — so backfill here too. Idempotent: once every item has an id this is a
-    // pure read (no setState), so it is safe on every state change and cannot loop.
+    // pure read (no history entry), so it is safe on every state change and cannot loop.
     useEffect(() => {
         if (
             state.yAxes.some(a => !a.id) ||
@@ -123,24 +134,35 @@ function EchartsConfigEditorModal({
             state.markLines.some(m => !m.id) ||
             state.radar.indicators.some(ind => !ind.id)
         ) {
-            setState(s => ({
-                ...s,
-                yAxes: withStableIds(s.yAxes),
-                series: normalizeSeries(s.series),
-                markLines: withStableIds(s.markLines),
-                radar: { ...s.radar, indicators: withStableIds(s.radar.indicators) },
-            }));
+            history.set(
+                s => ({
+                    ...s,
+                    yAxes: withStableIds(s.yAxes),
+                    series: normalizeSeries(s.series),
+                    markLines: withStableIds(s.markLines),
+                    radar: { ...s.radar, indicators: withStableIds(s.radar.indicators) },
+                }),
+                'self-heal',
+            );
         }
-    }, [state]);
+    }, [state, history]);
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 
-    const set = useCallback((patch: EditorPatch) => {
-        setState(s => ({ ...s, ...patch }));
-    }, []);
-    const setUserText = useCallback((value: string) => {
-        setState(s => ({ ...s, userText: value }));
-    }, []);
+    // Patches coalesce by their key set: consecutive edits touching the same keys within the
+    // window replace the present snapshot (typing a field / dragging a slider = one undo step).
+    const set = useCallback(
+        (patch: EditorPatch) => {
+            history.set(s => ({ ...s, ...patch }), Object.keys(patch).sort().join(','));
+        },
+        [history],
+    );
+    const setUserText = useCallback(
+        (value: string) => {
+            history.set(s => ({ ...s, userText: value }), 'userText');
+        },
+        [history],
+    );
 
     // JSON-mode axis reconcile (ADR-0026 — JSON 1:n): for the cartesian payload series, keep the
     // name-keyed overlay consistent with the axis array as the (dynamic) payload + the user's bindings
@@ -166,7 +188,16 @@ function EchartsConfigEditorModal({
             state.jsonSeriesStyle,
             state.yAxes,
         );
-        set({ yAxes, jsonSeriesStyle });
+        // Idempotence guard: an undo that reverts `jsonHidden` flips the names key back, so the
+        // effect re-fires over the already-consistent reverted state and would recompute the
+        // same axes — pushing a no-op history step that destroys the redo branch. Only a real
+        // change records.
+        if (
+            JSON.stringify(yAxes) !== JSON.stringify(state.yAxes) ||
+            JSON.stringify(jsonSeriesStyle) !== JSON.stringify(state.jsonSeriesStyle)
+        ) {
+            set({ yAxes, jsonSeriesStyle });
+        }
         // Keyed on the names content (not the array ref) + mode/type → re-syncs only on real change,
         // so manual axis edits + bindings are preserved while names/mode/type are stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -195,18 +226,42 @@ function EchartsConfigEditorModal({
         onClose();
     }, [state, onDataChange, onClose]);
 
-    // Intercept close when dirty — backdrop click AND Escape both surface the warning, never
-    // silently discard the working copy (the v2 Escape gap, fixed per ADR-0010).
-    const handleClose = useCallback(
-        (_event?: object, reason?: string) => {
-            if ((reason === 'backdropClick' || reason === 'escapeKeyDown') && hasChanges) {
-                setShowUnsavedWarning(true);
-                return;
-            }
-            onClose();
-        },
-        [hasChanges, onClose],
+    // Every close path (backdrop, Escape, Cancel, X) goes through the same honest guard: dirty
+    // state gets a BLOCKING confirm dialog (ADR-0038, studio parity) — never a silently
+    // discarded working copy and never an auto-hiding toast that can scroll away unseen.
+    const requestClose = useCallback((): void => {
+        if (hasChanges) {
+            setConfirmDiscardOpen(true);
+            return;
+        }
+        onClose();
+    }, [hasChanges, onClose]);
+
+    const confirmDiscard = useCallback((): void => {
+        setConfirmDiscardOpen(false);
+        onClose();
+    }, [onClose]);
+
+    // Keyboard: the shared configurator undo/redo binding (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y,
+    // ADR-0038) — native undo wins inside inputs. Escape is the Dialog's own onClose path.
+    useEditorHistoryKeys(history, open);
+
+    // Footer problems counter (ADR-0038): the advisory issues rolled up into the section
+    // headers, totalled in screen order. The button steers the rail to the first section
+    // carrying issues — the same mechanism the preview placeholder uses.
+    const issues = useMemo(() => validateEditor(state), [state]);
+    const issueSections = useMemo(
+        () => sectionInventory(state.chartType).filter(key => (issues[key]?.length ?? 0) > 0),
+        [issues, state.chartType],
     );
+    const issueCount = issueSections.reduce((total, key) => total + (issues[key]?.length ?? 0), 0);
+    const firstIssueSection = issueSections[0];
+
+    const handleReset = useCallback((): void => {
+        // One undoable step back to the loaded baseline — section expansion and scroll
+        // position survive (the editor state is swapped, the rail is not reloaded).
+        history.set(loadedStateRef.current);
+    }, [history]);
 
     const handlePlaceholderClick = useCallback((key: SectionKey) => {
         focusTokenRef.current += 1;
@@ -258,7 +313,11 @@ function EchartsConfigEditorModal({
         <ThemeProvider theme={theme}>
             <Dialog
                 open={open}
-                onClose={handleClose}
+                onClose={(_event, reason) => {
+                    if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+                        requestClose();
+                    }
+                }}
                 maxWidth="xl"
                 fullWidth
                 fullScreen={maximized}
@@ -283,7 +342,7 @@ function EchartsConfigEditorModal({
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
                             <ChartTypeGlyph chartType={state.chartType} />
                             <Typography
-                                variant="h6"
+                                variant="subtitle2"
                                 noWrap
                             >
                                 {Generic.t('echarts_editor_title')}
@@ -297,35 +356,29 @@ function EchartsConfigEditorModal({
                                 {Generic.t(`echarts_type_${state.chartType}`)}
                             </Typography>
                             {hasChanges && (
-                                <Box
-                                    component="span"
-                                    sx={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: 0.75,
-                                        flexShrink: 0,
-                                    }}
-                                >
+                                <Tooltip title={Generic.t('theme_studio_dirty')}>
                                     <Box
                                         component="span"
                                         sx={{
-                                            width: 7,
-                                            height: 7,
+                                            width: 8,
+                                            height: 8,
                                             borderRadius: '50%',
                                             bgcolor: 'warning.main',
+                                            flexShrink: 0,
                                         }}
                                     />
-                                    <Typography
-                                        variant="caption"
-                                        color="warning.main"
-                                        noWrap
-                                    >
-                                        {Generic.t('echarts_editor_unsaved')}
-                                    </Typography>
-                                </Box>
+                                </Tooltip>
                             )}
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                            <EditorHistoryButtons
+                                canUndo={history.canUndo}
+                                canRedo={history.canRedo}
+                                onUndo={history.undo}
+                                onRedo={history.redo}
+                                size="small"
+                                sx={{ color: 'text.secondary' }}
+                            />
                             <IconButton
                                 onClick={() => setMaximized(m => !m)}
                                 size="small"
@@ -336,7 +389,7 @@ function EchartsConfigEditorModal({
                                 {maximized ? <RestoreIcon /> : <MaximizeIcon />}
                             </IconButton>
                             <IconButton
-                                onClick={() => handleClose()}
+                                onClick={requestClose}
                                 size="small"
                                 sx={{ color: 'text.secondary' }}
                                 aria-label={Generic.t('echarts_editor_close')}
@@ -373,6 +426,7 @@ function EchartsConfigEditorModal({
                             <EchartsEditorSections
                                 state={state}
                                 set={set}
+                                issues={issues}
                                 userText={state.userText}
                                 setUserText={setUserText}
                                 pickerCtx={{
@@ -467,8 +521,30 @@ function EchartsConfigEditorModal({
                         </Box>
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ px: 2.5, py: 1.5, justifyContent: 'flex-end' }}>
-                    <Button onClick={() => handleClose()}>{Generic.t('echarts_editor_cancel')}</Button>
+                {/* Footer contract (ADR-0038, studio parity): Reset + problems counter left,
+                    Cancel / Apply right. The counter is warning-coloured — the section roll-up
+                    chips are advisory warnings, and the colour tells that truth. */}
+                <DialogActions sx={{ px: 2.5, py: 1.5, alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 'auto' }}>
+                        <Button
+                            onClick={handleReset}
+                            color="inherit"
+                            disabled={!hasChanges}
+                        >
+                            {Generic.t('theme_wizard_reset')}
+                        </Button>
+                        {issueCount > 0 ? (
+                            <Button
+                                size="small"
+                                color="warning"
+                                onClick={() => firstIssueSection && handlePlaceholderClick(firstIssueSection)}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                {Generic.t('theme_studio_problems', String(issueCount))}
+                            </Button>
+                        ) : null}
+                    </Box>
+                    <Button onClick={requestClose}>{Generic.t('echarts_editor_cancel')}</Button>
                     <Button
                         variant="contained"
                         onClick={handleApply}
@@ -478,19 +554,12 @@ function EchartsConfigEditorModal({
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Snackbar
-                open={showUnsavedWarning}
-                autoHideDuration={3000}
-                onClose={() => setShowUnsavedWarning(false)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    severity="warning"
-                    onClose={() => setShowUnsavedWarning(false)}
-                >
-                    {Generic.t('echarts_editor_unsaved_changes')}
-                </Alert>
-            </Snackbar>
+            <ConfirmDiscardDialog
+                open={confirmDiscardOpen}
+                text={Generic.t('echarts_editor_discard_text')}
+                onCancel={() => setConfirmDiscardOpen(false)}
+                onConfirm={confirmDiscard}
+            />
         </ThemeProvider>
     );
 }
