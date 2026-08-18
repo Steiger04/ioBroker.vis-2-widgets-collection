@@ -1,28 +1,31 @@
 /**
- * Advanced JSON section — the demoted expert escape hatch (ADR-0007/0010/0014/0017).
+ * Advanced JSON section — the demoted expert escape hatch (ADR-0007/0010/0014/0017/0040).
  *
  * @module EchartsCollectionWidget/editor/sections/AdvancedJsonSection
  * @remarks
  * Strictly supplemental and **chart-wide only** (ADR-0017): the GUI owns all presentation, and
  * per-series presentation now lives on the series cards (Series raw), so this U textarea is the escape
  * hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its one-click templates (the pure
- * `editor/advancedJsonTemplates.ts` catalog — audited by the ADR-0036 replaceMerge guard test) are the
- * complete `title` / `legend` / `tooltip` / `xAxis` scaffolds (every GUI-uncovered subkey,
- * default-pre-filled — ADR-0030/0032/0035) plus the radar presets; the free text also accepts the
- * standalone `graphic` / `aria` / `axisPointer` / `textStyle` components and exotic `animationEasing`.
+ * `editor/advancedJsonTemplates.ts` catalog — audited by the ADR-0036 replaceMerge guard test) are
+ * grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, the shared TemplateMenu
+ * idiom — ADR-0040 restructured the old complete scaffolds into these small one-capability
+ * snippets) plus the radar presets; the free text also accepts the standalone `graphic` / `aria` /
+ * `axisPointer` / `textStyle` components and exotic `animationEasing`.
  * title/legend/tooltip/xAxis are only PARTIALLY managed, so their non-GUI subkeys DO merge through.
  * `series` is a fully-managed key (a U `series` is ignored — use the per-card Series raw instead).
- * Carries the honesty affordances: the managed-keys box, chart-wide one-click templates, JSON
+ * Carries the honesty affordances: the managed-keys box, the grouped one-click templates, JSON
  * validity, and the 3-state sub-key merge preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
  */
 import type { FC } from 'react';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { Box, Chip, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { familyOf, parseUserJson } from '../../optionBuilder';
 import JsonEditor from '../JsonEditor';
+import TemplateMenu from './TemplateMenu';
+import { deepMerge } from '../../utils/mergeOption';
 import { MANAGED_KEYS, classifyUserKeys } from '../advancedJsonAnalysis';
-import { TEMPLATES_BY_FAMILY, TPL_ALL } from '../advancedJsonTemplates';
+import { CHART_CATEGORY_I18N, CHART_CATEGORY_ORDER, chartTemplatesForFamily } from '../advancedJsonTemplates';
 import type { EchartsChartType } from '../../../types/field-definitions/echarts-fields';
 import type { SetEditor } from '../editorState';
 
@@ -30,7 +33,7 @@ interface AdvancedJsonSectionProps {
     userText: string;
     setUserText: (value: string) => void;
     set: SetEditor;
-    /** The chart type drives the type-aware template catalog (ADR-0014). */
+    /** The chart type drives the family-aware template catalog (ADR-0014). */
     chartType: EchartsChartType;
 }
 
@@ -38,16 +41,16 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
     const parsed = parseUserJson(userText);
     const chips = parsed.ok ? classifyUserKeys(parsed.value) : [];
 
-    /** Merge a snippet's keys into the current U text (accumulates; invalid current text is replaced). */
+    /** Deep-merge a snippet into the U text (ADR-0037 idiom: snippets of one component share keys). */
     const insertSnippet = (json: string): void => {
         const cur = parseUserJson(userText);
-        const base = cur.ok ? cur.value : {};
         const snip = parseUserJson(json);
-        const merged = { ...base, ...(snip.ok ? snip.value : {}) };
+        const base = cur.ok ? cur.value : {};
+        const merged = snip.ok ? deepMerge(base, snip.value) : base;
         setUserText(JSON.stringify(merged, null, 2));
     };
 
-    const templates = [...TEMPLATES_BY_FAMILY[familyOf(chartType)], ...TPL_ALL];
+    const templates = chartTemplatesForFamily(familyOf(chartType));
 
     return (
         <Box>
@@ -82,19 +85,12 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
             >
                 {Generic.t('echarts_advanced_templates')}
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
-                {templates.map(s => (
-                    <Button
-                        key={s.label}
-                        size="small"
-                        variant="outlined"
-                        onClick={() => insertSnippet(s.json)}
-                        sx={{ textTransform: 'none' }}
-                    >
-                        {Generic.t(s.label)}
-                    </Button>
-                ))}
-            </Box>
+            <TemplateMenu
+                templates={templates}
+                categoryOrder={CHART_CATEGORY_ORDER}
+                categoryI18n={CHART_CATEGORY_I18N}
+                onInject={insertSnippet}
+            />
 
             <JsonEditor
                 value={userText}

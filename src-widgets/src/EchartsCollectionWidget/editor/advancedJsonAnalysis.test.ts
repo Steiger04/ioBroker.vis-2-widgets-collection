@@ -7,7 +7,6 @@ import { describe, expect, it } from 'vitest';
 
 import { classifyUserKeys } from './advancedJsonAnalysis';
 import type { UKeyChip } from './advancedJsonAnalysis';
-import { X_AXIS_SCAFFOLD_JSON } from './xAxisScaffold';
 
 const clsOf = (userValue: Record<string, unknown>, key: string): UKeyChip | undefined =>
     classifyUserKeys(userValue).find(c => c.key === key);
@@ -180,35 +179,5 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
     });
 });
 
-describe('xAxis scaffold audit (ADR-0035)', () => {
-    it('is valid JSON and duplicates no GUI-owned key — classifies effective, not partial', () => {
-        const json = JSON.parse(X_AXIS_SCAFFOLD_JSON);
-        const c = clsOf(json, 'xAxis');
-        expect(c?.cls).toBe('effective');
-        expect(c?.managed).toEqual([]);
-    });
-
-    it('carries the COMPLETE GUI-free splitLine key set — a silently dropped key fails here', () => {
-        const splitLine = (
-            JSON.parse(X_AXIS_SCAFFOLD_JSON) as {
-                xAxis: { splitLine: { lineStyle: Record<string, unknown> } };
-            }
-        ).xAxis.splitLine;
-        // showMinLine/showMaxLine + the completed lineStyle block; `show` is GUI-owned, `interval`
-        // deprecated v5.0 (category-only, the X axis is hardcoded `time`), `color` theme-token (D4),
-        // `opacity` real-default-undefined → all deliberately absent.
-        expect(Object.keys(splitLine).sort()).toEqual(['lineStyle', 'showMaxLine', 'showMinLine']);
-        expect(Object.keys(splitLine.lineStyle).sort()).toEqual([
-            'cap',
-            'dashOffset',
-            'join',
-            'miterLimit',
-            'shadowBlur',
-            'shadowColor',
-            'shadowOffsetX',
-            'shadowOffsetY',
-            'type',
-            'width',
-        ]);
-    });
-});
+// The xAxis scaffold audit (ADR-0035) moved with the scaffold's retirement into
+// advancedJsonTemplates.test.ts — the ADR-0040 catalog audits cover the xAxis snippets.

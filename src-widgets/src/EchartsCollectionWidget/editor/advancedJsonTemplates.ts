@@ -1,84 +1,322 @@
 /**
- * The Advanced-JSON one-click template catalog — extracted from AdvancedJsonSection so the
- * ADR-0036 guard test can audit every template without importing MUI (the xAxisScaffold precedent,
- * ADR-0035, applied to the whole catalog).
+ * The chart-level Advanced-JSON template catalog (ADR-0040) — thematic echarts JSON snippets
+ * grouped by component, injected into the chart-wide U textarea.
  *
  * @module EchartsCollectionWidget/editor/advancedJsonTemplates
  * @remarks
- * TEMPLATE RULE (ADR-0036): a template may only set echarts component mainTypes that are listed in
- * `REPLACE_MERGE` (../replaceMerge) — deleting the template must revert the preview AND the widget,
- * which merge-mode setOption silently refuses to do. `advancedJsonTemplates.test.ts` enforces this
- * mechanically; a future template that forgets fails red there.
+ * Restructured from the complete ADR-0030/0032/0035 scaffolds (one ~40-key block per component)
+ * to the Axis-template idiom (ADR-0037): the COMPONENT names the group (Titel / Legende /
+ * Tooltip / Toolbox / X-Achse — the user-named groups), and under each sit small one-capability
+ * snippets. A complete scaffold flooded the sub-key analysis before the user did anything;
+ * a snippet sets exactly the keys of its capability.
+ *
+ * TEMPLATE RULE (ADR-0036): a template may only set echarts component mainTypes listed in
+ * `REPLACE_MERGE` (../replaceMerge) — deleting the template must revert the preview AND the
+ * widget, which merge-mode setOption silently refuses to do. `advancedJsonTemplates.test.ts`
+ * enforces this mechanically AND audits that no leaf duplicates a builder-emitted (GUI-owned)
+ * key; a future template that forgets fails red there.
+ *
+ * Design rules (inherited from ADR-0037): thematic one-capability snippets, theme-neutral
+ * payloads (no light-mode colour hardcodes; neutral grey tints / echarts' own defaults),
+ * prefill = capability keys + non-obvious companions. Defaults verified against the locally
+ * installed echarts 6.1.0 (`types/dist/echarts.d.ts`), cross-checked with the official docs.
+ * Template LABELS are echarts vocabulary shown as-is — only the CATEGORY headers translate.
  */
-import { X_AXIS_SCAFFOLD_JSON } from './xAxisScaffold';
 import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
 
-/** One one-click template: an i18n label + the JSON text merged into the U textarea. */
-export interface Template {
+/** Chart-template grouping (rendered as menu section headers; order = {@link CHART_CATEGORY_ORDER}). */
+export type ChartTemplateCategory = 'title' | 'legend' | 'tooltip' | 'toolbox' | 'xAxis' | 'radar';
+
+export const CHART_CATEGORY_ORDER: ChartTemplateCategory[] = [
+    'title',
+    'legend',
+    'tooltip',
+    'toolbox',
+    'xAxis',
+    'radar',
+];
+
+/** i18n key per category header. */
+export const CHART_CATEGORY_I18N: Record<ChartTemplateCategory, string> = {
+    title: 'echarts_tpl_cat_title',
+    legend: 'echarts_tpl_cat_legend',
+    tooltip: 'echarts_tpl_cat_tooltip',
+    toolbox: 'echarts_tpl_cat_toolbox',
+    xAxis: 'echarts_tpl_cat_xaxis',
+    radar: 'echarts_tpl_cat_radar',
+};
+
+export interface ChartTemplate {
+    /** Stable id for React keys + the audit test. */
+    id: string;
+    category: ChartTemplateCategory;
+    /** Display label (echarts vocabulary; shown as-is). */
     label: string;
+    /** Chart-level option JSON (deep-merged into the U text on inject). */
     json: string;
+    /** Chart families the entry applies to; absent = every family. */
+    families?: EchartsChartFamily[];
 }
 
-// ── Family-agnostic templates (chart-level GUI-uncovered keys → clean ✓) ──
-export const TPL_ALL: Template[] = [
+/**
+ * The catalog. GUI-owned leaves avoided per component (audited in the test):
+ *  - title: text, placement (left/top + dx/dy), textStyle colour/size/weight/style (ADR-0021/0029).
+ *  - legend: show, placement, orient, icon, item sizes/gaps, textStyle colour/size/weight/style,
+ *    inactiveColor, panel frame (backgroundColor/borderColor/borderWidth/borderRadius/padding).
+ *  - tooltip: show, trigger, formatter, valueFormatter (ADR-0032).
+ *  - toolbox: wholly user-owned (nothing avoided).
+ *  - xAxis: type ('time' fixed), name + nameLocation/nameGap/nameRotate/nameTextStyle,
+ *    axisLabel formatter/rotate/colour, axisLine.lineStyle.colour, axisTick.show,
+ *    splitLine.show, splitNumber, minInterval (ADR-0035 + addenda).
+ */
+export const CHART_TEMPLATES: ChartTemplate[] = [
+    // ── title ─────────────────────────────────────────────────────────────
     {
-        // ADR-0030: complete scaffold of EVERY title subkey the GUI does NOT own (text/placement/
-        // textStyle colour-size-weight-style are GUI-owned → omitted), pre-filled with the echarts
-        // default (a best-effort literal where the real default is a theme token / 'auto' / undefined).
-        label: 'echarts_tpl_title',
-        json: '{\n  "title": {\n    "show": true,\n    "link": "",\n    "target": "blank",\n    "subtext": "",\n    "sublink": "",\n    "subtarget": "blank",\n    "triggerEvent": false,\n    "textVerticalAlign": "auto",\n    "zlevel": 0,\n    "z": 2,\n    "itemGap": 10,\n    "padding": 5,\n    "backgroundColor": "transparent",\n    "borderColor": "#ccc",\n    "borderWidth": 0,\n    "borderType": "solid",\n    "borderRadius": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "silent": false,\n    "textStyle": {\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 18,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textBorderType": "solid",\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "textShadowOffsetX": 0,\n      "textShadowOffsetY": 0,\n      "overflow": "none"\n    },\n    "subtextStyle": {\n      "color": "#aaa",\n      "fontStyle": "normal",\n      "fontWeight": "normal",\n      "fontSize": 12,\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 12,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "overflow": "none"\n    }\n  }\n}',
+        id: 'title-subtext',
+        category: 'title',
+        label: 'title · subtext',
+        // itemGap separates main title and subtitle (verified: TitleOption.itemGap).
+        json: '{ "title": { "subtext": "", "itemGap": 6 } }',
     },
     {
-        // ADR-0030: complete scaffold of EVERY legend subkey the GUI does NOT own (show/data/
-        // placement/orient/items/frame + textStyle colour-size-weight-style are GUI-owned → omitted).
-        label: 'echarts_tpl_legend',
-        json: '{\n  "legend": {\n    "type": "plain",\n    "zlevel": 0,\n    "z": 2,\n    "align": "auto",\n    "width": "auto",\n    "height": "auto",\n    "selectedMode": true,\n    "selected": {},\n    "formatter": null,\n    "symbolRotate": 0,\n    "inactiveBorderColor": "#ccc",\n    "inactiveBorderWidth": "auto",\n    "borderType": "solid",\n    "borderDashOffset": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "scrollDataIndex": 0,\n    "pageButtonItemGap": 5,\n    "pageButtonGap": null,\n    "pageButtonPosition": "end",\n    "pageFormatter": "{current}/{total}",\n    "pageIcons": {\n      "horizontal": ["M0,0L12,-10L12,10z", "M0,0L-12,-10L-12,10z"],\n      "vertical": ["M0,0L20,0L10,-20z", "M0,0L20,0L10,20z"]\n    },\n    "pageIconColor": "#2f4554",\n    "pageIconInactiveColor": "#aaa",\n    "pageIconSize": 15,\n    "animation": true,\n    "animationDurationUpdate": 800,\n    "selector": false,\n    "selectorPosition": "auto",\n    "selectorItemGap": 7,\n    "selectorButtonGap": 10,\n    "silent": false,\n    "itemStyle": {\n      "color": "inherit",\n      "opacity": "inherit",\n      "borderColor": "inherit",\n      "borderWidth": "auto",\n      "borderType": "inherit",\n      "borderDashOffset": "inherit",\n      "borderCap": "inherit",\n      "borderJoin": "inherit",\n      "borderMiterLimit": "inherit"\n    },\n    "lineStyle": {\n      "width": "auto",\n      "color": "inherit",\n      "opacity": "inherit",\n      "type": "inherit",\n      "cap": "inherit",\n      "join": "inherit",\n      "dashOffset": "inherit",\n      "miterLimit": "inherit",\n      "inactiveColor": "#ccc",\n      "inactiveWidth": 2\n    },\n    "textStyle": {\n      "align": "left",\n      "verticalAlign": "auto",\n      "lineHeight": 14,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "overflow": "none"\n    },\n    "selectorLabel": {\n      "show": true,\n      "color": "#666",\n      "fontSize": 12,\n      "borderColor": "#ccc",\n      "borderWidth": 1,\n      "borderRadius": 10,\n      "padding": [3, 5, 3, 5]\n    },\n    "pageTextStyle": {\n      "color": "#666"\n    },\n    "emphasis": {\n      "selectorLabel": {\n        "show": true,\n        "color": "#666"\n      }\n    },\n    "tooltip": {\n      "show": false\n    }\n  }\n}',
+        id: 'title-link',
+        category: 'title',
+        label: 'title · link',
+        // The title text becomes a hyperlink (TitleOption.link/target, verified).
+        json: '{ "title": { "link": "https://www.example.com", "target": "blank" } }',
     },
     {
-        // ADR-0032: complete scaffold of EVERY tooltip subkey the GUI does NOT own (trigger/formatter/
-        // valueFormatter/show are GUI-owned → omitted), pre-filled with the echarts default (best-effort
-        // literal where the real default is a theme token / 'auto' / undefined). axisPointer is filled to
-        // its direct keys + a full `label` (the crosshair case); the line/cross/shadow/handle style sub-
-        // trees and fontFamily are omitted. Verified against TooltipModel / CommonAxisPointerOption.
-        label: 'echarts_tpl_tooltip',
-        json: '{\n  "tooltip": {\n    "showContent": true,\n    "triggerOn": "mousemove|click",\n    "alwaysShowContent": false,\n    "showDelay": 0,\n    "hideDelay": 100,\n    "enterable": false,\n    "confine": false,\n    "renderMode": "auto",\n    "transitionDuration": 0.4,\n    "displayTransition": true,\n    "backgroundColor": "rgba(50, 50, 50, 0.7)",\n    "borderColor": "#333",\n    "borderWidth": 1,\n    "borderRadius": 4,\n    "padding": 5,\n    "extraCssText": "",\n    "shadowBlur": 10,\n    "shadowColor": "rgba(0, 0, 0, 0.2)",\n    "shadowOffsetX": 1,\n    "shadowOffsetY": 2,\n    "textStyle": {\n      "color": "#fff",\n      "fontStyle": "normal",\n      "fontWeight": "normal",\n      "fontSize": 14,\n      "align": "left",\n      "verticalAlign": "top",\n      "lineHeight": 18,\n      "backgroundColor": "transparent",\n      "borderColor": "#333",\n      "borderWidth": 0,\n      "borderType": "solid",\n      "borderDashOffset": 0,\n      "borderRadius": 0,\n      "padding": 0,\n      "shadowBlur": 0,\n      "shadowColor": "transparent",\n      "shadowOffsetX": 0,\n      "shadowOffsetY": 0,\n      "textBorderColor": "transparent",\n      "textBorderWidth": 0,\n      "textBorderType": "solid",\n      "textBorderDashOffset": 0,\n      "textBorderRadius": 0,\n      "textShadowBlur": 0,\n      "textShadowColor": "transparent",\n      "textShadowOffsetX": 0,\n      "textShadowOffsetY": 0,\n      "overflow": "break"\n    },\n    "axisPointer": {\n      "type": "line",\n      "axis": "auto",\n      "snap": false,\n      "triggerOn": "mousemove|click",\n      "triggerTooltip": true,\n      "triggerEmphasis": true,\n      "value": null,\n      "status": "hide",\n      "animation": "auto",\n      "animationDurationUpdate": 200,\n      "animationEasingUpdate": "cubicOut",\n      "label": {\n        "show": true,\n        "precision": "auto",\n        "formatter": null,\n        "margin": 3,\n        "color": "#fff",\n        "fontStyle": "normal",\n        "fontWeight": "normal",\n        "fontSize": 12,\n        "lineHeight": 12,\n        "align": "left",\n        "verticalAlign": "top",\n        "backgroundColor": "auto",\n        "borderColor": "#333",\n        "borderWidth": 0,\n        "borderType": "solid",\n        "borderDashOffset": 0,\n        "borderRadius": 3,\n        "padding": 3,\n        "shadowBlur": 0,\n        "shadowColor": "transparent",\n        "shadowOffsetX": 0,\n        "shadowOffsetY": 0,\n        "textBorderColor": "transparent",\n        "textBorderWidth": 0,\n        "textBorderType": "solid",\n        "textBorderDashOffset": 0,\n        "textBorderRadius": 0,\n        "textShadowBlur": 0,\n        "textShadowColor": "transparent",\n        "textShadowOffsetX": 0,\n        "textShadowOffsetY": 0,\n        "overflow": "truncate"\n      }\n    }\n  }\n}',
+        id: 'title-shadow',
+        category: 'title',
+        label: 'title · shadow',
+        json: '{ "title": { "shadowBlur": 8, "shadowColor": "rgba(0, 0, 0, 0.3)", "shadowOffsetY": 2 } }',
     },
     {
-        // ADR-0030: complete scaffold of EVERY toolbox subkey the GUI does NOT own — the GUI owns NONE
-        // (toolbox is wholly user-owned, so it classifies ✓ effective). Pre-filled with the echarts default
-        // (best-effort literal where the real default is a theme token / 'auto' / undefined). Three
-        // deliberate deviations for the ioBroker vis context: (1) theme-token COLOUR keys (iconStyle,
-        // emphasis, toolbox.borderColor, dataView colours, dataZoom.brushStyle.color) are OMITTED so the
-        // live theme (light/dark) drives them; (2) dataView.readOnly is `true` (echarts default false) —
-        // vis state is read-only, an editable data view only misleads; (3) magicType & brush ship
-        // `show:false` (echarts default true) so the template does not flood the chart with a 6-icon bar.
-        // Also omitted as pathologic: per-feature `icon` SVG paths, locale-auto `title`/`lang` (echarts
-        // localises), and the dataView `optionToContent`/`contentToOption` functions. Verified against
-        // echarts 6.1.0 ToolboxModel + the six features' defaultOption.
-        label: 'echarts_tpl_toolbox',
-        json: '{\n  "toolbox": {\n    "show": true,\n    "orient": "horizontal",\n    "itemSize": 15,\n    "itemGap": 10,\n    "showTitle": true,\n    "right": 0,\n    "top": 0,\n    "zlevel": 0,\n    "z": 2,\n    "silent": false,\n    "backgroundColor": "transparent",\n    "padding": 15,\n    "borderWidth": 0,\n    "borderType": "solid",\n    "borderRadius": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "tooltip": { "show": false, "position": "bottom" },\n    "feature": {\n      "saveAsImage": { "show": true, "type": "png", "name": "", "pixelRatio": null, "excludeComponents": ["toolbox"] },\n      "restore": { "show": true },\n      "dataView": { "show": true, "readOnly": true },\n      "dataZoom": { "show": true, "filterMode": "filter" },\n      "magicType": { "show": false, "type": ["line", "bar"] },\n      "brush": { "show": false, "type": ["rect", "polygon", "lineX", "lineY"] }\n    }\n  }\n}',
+        id: 'title-chip',
+        category: 'title',
+        label: 'title · chip',
+        // Neutral grey tint — the axis-label-chip idiom (ADR-0037), dark-mode safe.
+        json: '{ "title": { "backgroundColor": "rgba(127, 127, 127, 0.15)", "borderRadius": 4, "padding": [4, 8] } }',
     },
     {
-        // ADR-0035: lives in the pure `editor/xAxisScaffold.ts` module (testable without MUI).
-        label: 'echarts_tpl_xaxis',
-        json: X_AXIS_SCAFFOLD_JSON,
+        id: 'title-border',
+        category: 'title',
+        label: 'title · border',
+        json: '{ "title": { "borderColor": "rgba(127, 127, 127, 0.6)", "borderWidth": 1 } }',
+    },
+    {
+        id: 'title-truncate',
+        category: 'title',
+        label: 'title · truncate',
+        // overflow acts only with an explicit width (TextStyleProps.overflow, verified).
+        json: '{ "title": { "textStyle": { "overflow": "truncate", "width": 120 } } }',
+    },
+    // ── legend ────────────────────────────────────────────────────────────
+    {
+        id: 'legend-scroll',
+        category: 'legend',
+        label: 'legend · scroll',
+        // Paging legend for many series (type 'scroll', page buttons appear automatically).
+        json: '{ "legend": { "type": "scroll" } }',
+    },
+    {
+        id: 'legend-selector',
+        category: 'legend',
+        label: 'legend · selector',
+        // All/inverse buttons (verified: SelectorType 'all' | 'inverse').
+        json: '{ "legend": { "selector": ["all", "inverse"] } }',
+    },
+    {
+        id: 'legend-single',
+        category: 'legend',
+        label: 'legend · single select',
+        // Radio behaviour: exactly one series visible.
+        json: '{ "legend": { "selectedMode": "single" } }',
+    },
+    {
+        id: 'legend-notoggle',
+        category: 'legend',
+        label: 'legend · no toggle',
+        // Purely decorative legend — clicking cannot hide series.
+        json: '{ "legend": { "selectedMode": false } }',
+    },
+    {
+        id: 'legend-alignright',
+        category: 'legend',
+        label: 'legend · label right',
+        // align places the text RIGHT of the symbol (default auto/left).
+        json: '{ "legend": { "align": "right" } }',
+    },
+    {
+        id: 'legend-linewidth',
+        category: 'legend',
+        label: 'legend · line width',
+        // Thicker line markers for line-series entries (item sizes stay GUI-owned).
+        json: '{ "legend": { "lineStyle": { "width": 3 } } }',
+    },
+    // ── tooltip ───────────────────────────────────────────────────────────
+    {
+        id: 'tooltip-cross',
+        category: 'tooltip',
+        label: 'tooltip · cross pointer',
+        json: '{ "tooltip": { "axisPointer": { "type": "cross" } } }',
+    },
+    {
+        id: 'tooltip-shadowpointer',
+        category: 'tooltip',
+        label: 'tooltip · shadow pointer',
+        json: '{ "tooltip": { "axisPointer": { "type": "shadow" } } }',
+    },
+    {
+        id: 'tooltip-confine',
+        category: 'tooltip',
+        label: 'tooltip · confine',
+        // Keeps the tooltip inside the (often small) vis widget box (verified: TooltipOption.confine).
+        json: '{ "tooltip": { "confine": true } }',
+    },
+    {
+        id: 'tooltip-click',
+        category: 'tooltip',
+        label: 'tooltip · on click',
+        // triggerOn 'click' — no tooltip chasing the pointer (verified value).
+        json: '{ "tooltip": { "triggerOn": "click" } }',
+    },
+    {
+        id: 'tooltip-valuesort',
+        category: 'tooltip',
+        label: 'tooltip · sort by value',
+        // TooltipOrderMode 'valueDesc' (verified) — rows sorted, biggest first.
+        json: '{ "tooltip": { "order": "valueDesc" } }',
+    },
+    {
+        id: 'tooltip-chip',
+        category: 'tooltip',
+        label: 'tooltip · panel',
+        // echarts' own dark panel, slightly boxed (works in light AND dark charts).
+        json: '{ "tooltip": { "backgroundColor": "rgba(50, 50, 50, 0.85)", "borderColor": "rgba(127, 127, 127, 0.4)", "borderRadius": 6, "padding": 8 } }',
+    },
+    {
+        id: 'tooltip-enterable',
+        category: 'tooltip',
+        label: 'tooltip · enterable',
+        // Pointer may move INTO the tooltip (e.g. to copy values).
+        json: '{ "tooltip": { "enterable": true, "hideDelay": 300 } }',
+    },
+    // ── toolbox ───────────────────────────────────────────────────────────
+    {
+        id: 'toolbox-save',
+        category: 'toolbox',
+        label: 'toolbox · saveAsImage',
+        // pixelRatio 2 → a crisp PNG export.
+        json: '{ "toolbox": { "show": true, "feature": { "saveAsImage": { "pixelRatio": 2 } } } }',
+    },
+    {
+        id: 'toolbox-zoom',
+        category: 'toolbox',
+        label: 'toolbox · dataZoom',
+        // Drag-select zoom + zoom-out icon.
+        json: '{ "toolbox": { "show": true, "feature": { "dataZoom": {} } } }',
+    },
+    {
+        id: 'toolbox-restore',
+        category: 'toolbox',
+        label: 'toolbox · restore',
+        json: '{ "toolbox": { "show": true, "feature": { "restore": {} } } }',
+    },
+    {
+        id: 'toolbox-dataview',
+        category: 'toolbox',
+        label: 'toolbox · dataView',
+        // readOnly — vis state is read-only, an editable view only misleads (ADR-0030 precedent).
+        json: '{ "toolbox": { "show": true, "feature": { "dataView": { "readOnly": true } } } }',
+    },
+    {
+        id: 'toolbox-magictype',
+        category: 'toolbox',
+        label: 'toolbox · magicType',
+        families: ['cartesian'],
+        // Live line↔bar switch — cartesian only (a pie/gauge/radar has no line/bar form).
+        json: '{ "toolbox": { "show": true, "feature": { "magicType": { "type": ["line", "bar"] } } } }',
+    },
+    {
+        id: 'toolbox-vertical',
+        category: 'toolbox',
+        label: 'toolbox · vertical',
+        json: '{ "toolbox": { "show": true, "orient": "vertical", "left": 0, "top": "middle" } }',
+    },
+    // ── xAxis (cartesian — the X-Karte owns its presentation keys, ADR-0035) ──
+    {
+        id: 'xaxis-dashedsplit',
+        category: 'xAxis',
+        label: 'xAxis · dashed split',
+        families: ['cartesian'],
+        // splitLine.show is GUI-owned; the line STYLE under it is free.
+        json: '{ "xAxis": { "splitLine": { "lineStyle": { "type": "dashed", "width": 1 } } } }',
+    },
+    {
+        id: 'xaxis-minorticks',
+        category: 'xAxis',
+        label: 'xAxis · minor ticks',
+        families: ['cartesian'],
+        // Time axis renders minor ticks/split lines (verified: valueAxis minor* applies to time).
+        json: '{ "xAxis": { "minorTick": { "show": true, "splitNumber": 3, "length": 3 }, "minorSplitLine": { "show": true } } }',
+    },
+    {
+        id: 'xaxis-splitarea',
+        category: 'xAxis',
+        label: 'xAxis · splitArea',
+        families: ['cartesian'],
+        // show alone inherits the theme's band colours (dark-mode safe, ADR-0037 precedent).
+        json: '{ "xAxis": { "splitArea": { "show": true } } }',
+    },
+    {
+        id: 'xaxis-hideoverlap',
+        category: 'xAxis',
+        label: 'xAxis · hideOverlap',
+        families: ['cartesian'],
+        // Auto-drops overlapping time labels (verified in the label layout pipeline).
+        json: '{ "xAxis": { "axisLabel": { "hideOverlap": true } } }',
+    },
+    {
+        id: 'xaxis-arrow',
+        category: 'xAxis',
+        label: 'xAxis · arrow',
+        families: ['cartesian'],
+        json: '{ "xAxis": { "axisLine": { "symbol": ["none", "arrow"], "symbolSize": [10, 15] } } }',
+    },
+    {
+        id: 'xaxis-onzero',
+        category: 'xAxis',
+        label: 'xAxis · free from zero',
+        families: ['cartesian'],
+        // axisLine.onZero false — the X axis stays at the bottom even for negative values.
+        json: '{ "xAxis": { "axisLine": { "onZero": false } } }',
+    },
+    {
+        id: 'xaxis-ticklength',
+        category: 'xAxis',
+        label: 'xAxis · tick length',
+        families: ['cartesian'],
+        // axisTick.show is GUI-owned; length/inside are free.
+        json: '{ "xAxis": { "axisTick": { "length": 8, "inside": false } } }',
+    },
+    // ── radar (radar family only — the classic ADR-0014 presets, regrouped) ──
+    {
+        id: 'radar-splitarea',
+        category: 'radar',
+        label: 'radar · splitArea',
+        families: ['radar'],
+        json: '{ "radar": { "splitArea": { "show": true, "areaStyle": { "color": ["#f5f5f5", "#e8e8e8"] } } } }',
+    },
+    {
+        id: 'radar-axisname',
+        category: 'radar',
+        label: 'radar · axisName',
+        families: ['radar'],
+        json: '{ "radar": { "axisName": { "formatter": "{value}", "color": "#666" } } }',
     },
 ];
 
-// ── Family-specific templates (ADR-0017: chart-wide/component keys only — the series-riding
-//    presets moved to the per-card Series raw catalogs in seriesTemplates.ts). ──
-export const TEMPLATES_BY_FAMILY: Record<EchartsChartFamily, Template[]> = {
-    cartesian: [],
-    pie: [],
-    gauge: [],
-    radar: [
-        {
-            label: 'echarts_tpl_radar_splitarea',
-            json: '{\n  "radar": { "splitArea": { "show": true, "areaStyle": { "color": ["#f5f5f5", "#e8e8e8"] } } }\n}',
-        },
-        {
-            label: 'echarts_tpl_radar_axisname',
-            json: '{\n  "radar": { "axisName": { "formatter": "{value}", "color": "#666" } }\n}',
-        },
-    ],
-};
+/** The catalog filtered to one chart family (absent `families` = applies everywhere). */
+export const chartTemplatesForFamily = (family: EchartsChartFamily): ChartTemplate[] =>
+    CHART_TEMPLATES.filter(t => !t.families || t.families.includes(family));
