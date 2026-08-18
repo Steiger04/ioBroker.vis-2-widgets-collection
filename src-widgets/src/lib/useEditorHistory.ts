@@ -119,6 +119,13 @@ export interface EditorHistory<T> {
 }
 
 /**
+ * ⚠ The hook's RESULT OBJECT has a new identity every render — only its callbacks
+ * (`set`/`undo`/`redo`/`rebase`) are stable. Never put the result object into an effect's
+ * dependency array: the effect would re-run after every edit (a `rebase` there would wipe
+ * each edit). Depend on the callbacks, or on nothing with an explanatory lint disable.
+ */
+
+/**
  * True when a keyboard event originates from an editable element — configurators skip their
  * Ctrl+Z/Ctrl+Y shortcuts there so the field's own native undo wins.
  */

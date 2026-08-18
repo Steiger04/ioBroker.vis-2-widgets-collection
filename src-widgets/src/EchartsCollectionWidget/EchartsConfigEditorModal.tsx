@@ -84,6 +84,9 @@ function EchartsConfigEditorModal({
     // (rapid same-key edits coalesce — one slider drag / one typed field = one step).
     const history = useEditorHistory<EditorState>(DEFAULT_EDITOR_STATE);
     const state = history.present;
+    // The stable commit callback, destructured so the memoized helpers below can depend on it
+    // (the history result object itself has a new identity every render).
+    const { set: commit } = history;
     const loadedCountRef = useRef(0);
     // The loaded baseline: the string snapshot drives `hasChanges`, the object drives Reset.
     const loadedSnapshotRef = useRef('');
@@ -120,7 +123,11 @@ function EchartsConfigEditorModal({
         history.rebase(loaded);
         setFocusSection(null);
         setMaximized(false); // maximize is session-only — a fresh open starts at normal size
-    }, [open, data, history]);
+        // history is NOT a dependency: the hook's result object has a new identity every render
+        // (only its callbacks are stable), so listing it would re-run this effect after every
+        // edit and rebase the working copy back to the loaded state — wiping each edit.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, data]);
 
     // Self-heal stable ids: every keyed card list (axes/series/mark-lines/indicators) must carry an
     // `id` so React reconciles by identity, not array index (the wrong-card-unmounts bug). loadEditorState
@@ -145,7 +152,9 @@ function EchartsConfigEditorModal({
                 'self-heal',
             );
         }
-    }, [state, history]);
+        // history.set is a stable callback — see the open effect above for why the object is not.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state]);
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 
@@ -153,15 +162,15 @@ function EchartsConfigEditorModal({
     // window replace the present snapshot (typing a field / dragging a slider = one undo step).
     const set = useCallback(
         (patch: EditorPatch) => {
-            history.set(s => ({ ...s, ...patch }), Object.keys(patch).sort().join(','));
+            commit(s => ({ ...s, ...patch }), Object.keys(patch).sort().join(','));
         },
-        [history],
+        [commit],
     );
     const setUserText = useCallback(
         (value: string) => {
-            history.set(s => ({ ...s, userText: value }), 'userText');
+            commit(s => ({ ...s, userText: value }), 'userText');
         },
-        [history],
+        [commit],
     );
 
     // JSON-mode axis reconcile (ADR-0026 — JSON 1:n): for the cartesian payload series, keep the
@@ -260,8 +269,8 @@ function EchartsConfigEditorModal({
     const handleReset = useCallback((): void => {
         // One undoable step back to the loaded baseline — section expansion and scroll
         // position survive (the editor state is swapped, the rail is not reloaded).
-        history.set(loadedStateRef.current);
-    }, [history]);
+        commit(loadedStateRef.current);
+    }, [commit]);
 
     const handlePlaceholderClick = useCallback((key: SectionKey) => {
         focusTokenRef.current += 1;
