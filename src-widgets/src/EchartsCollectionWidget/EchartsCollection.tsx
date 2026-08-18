@@ -378,7 +378,7 @@ function EchartsCollection(): React.ReactElement {
                     >
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{ color: 'primary.main', textAlign: 'center' }}
                         >
                             {placeholder}
                         </Typography>
