@@ -5,13 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-    AXIS_CATEGORY_I18N,
-    AXIS_CATEGORY_ORDER,
-    AXIS_TEMPLATES,
-    injectAxisTemplate,
-    type AxisTemplateCategory,
-} from './axisTemplates';
+import { AXIS_CATEGORY_I18N, AXIS_CATEGORY_ORDER, AXIS_TEMPLATES, type AxisTemplateCategory } from './axisTemplates';
 import { classifyAxisKeys } from './axisRawAnalysis';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
@@ -84,37 +78,5 @@ describe('AXIS_TEMPLATES audit (ADR-0037) — no template touches a builder-emit
                 `${t.id} touches card-managed keys: ${bad.map(c => `${c.key} (${c.cls}: ${c.managed.join(',')})`).join('; ')}`,
             ).toEqual([]);
         }
-    });
-});
-
-describe('injectAxisTemplate (ADR-0037) — deep-merge injection', () => {
-    it("merges per LEAF, not per top-level key: a second axisLabel snippet keeps the first one's keys", () => {
-        const first = injectAxisTemplate(undefined, '{ "axisLabel": { "fontFamily": "JetBrains Mono" } }');
-        const second = injectAxisTemplate(first, '{ "axisLabel": { "hideOverlap": true } }');
-        expect(JSON.parse(second)).toEqual({
-            axisLabel: { fontFamily: 'JetBrains Mono', hideOverlap: true },
-        });
-    });
-
-    it('overwrites a colliding leaf with the template value (last injection wins)', () => {
-        const first = injectAxisTemplate(undefined, '{ "minorTick": { "show": true, "splitNumber": 5 } }');
-        const second = injectAxisTemplate(first, '{ "minorTick": { "splitNumber": 2 } }');
-        expect(JSON.parse(second)).toEqual({ minorTick: { show: true, splitNumber: 2 } });
-    });
-
-    it('replaces invalid current text and no-ops on a bad template', () => {
-        expect(JSON.parse(injectAxisTemplate('not json', '{ "inverse": true }'))).toEqual({ inverse: true });
-        const cur = '{ "inverse": true }';
-        expect(injectAxisTemplate(cur, 'not json')).toBe(cur);
-        expect(injectAxisTemplate(undefined, 'not json')).toBe('');
-    });
-
-    it('deep-merges nested style objects (arrays replaced wholesale)', () => {
-        const first = injectAxisTemplate(undefined, '{ "splitLine": { "lineStyle": { "type": "dashed" } } }');
-        const second = injectAxisTemplate(first, '{ "splitArea": { "show": true } }');
-        expect(JSON.parse(second)).toEqual({
-            splitLine: { lineStyle: { type: 'dashed' } },
-            splitArea: { show: true },
-        });
     });
 });

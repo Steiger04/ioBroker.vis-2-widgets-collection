@@ -29,7 +29,7 @@ import TitleSection from './sections/TitleSection';
 import LegendSection from './sections/LegendSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
-import { familySwitchLoss, type SectionIssues, type SectionKey } from './validation';
+import { familySwitchLoss, familySwitchSnippetLoss, type SectionIssues, type SectionKey } from './validation';
 import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
@@ -126,6 +126,9 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
     const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
     const loss = familySwitchLoss(state);
+    // ADR-0042: activations the family switch would prune on Apply — advised beside the bound-OID
+    // loss; the prune itself rides Apply (nothing is dropped at switch time).
+    const snippetLoss = familySwitchSnippetLoss(state);
 
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
@@ -234,6 +237,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         setUserText={setUserText}
                         set={set}
                         chartType={state.chartType}
+                        snippets={state.chartSnippets}
                     />
                 );
         }
@@ -264,13 +268,24 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         </Typography>
                     </Box>
                 )}
-                {loss > 0 && (
+                {(loss > 0 || snippetLoss > 0) && (
                     <Alert
                         severity="warning"
                         variant="outlined"
                         sx={{ py: 0 }}
                     >
-                        {Generic.t('echarts_family_loss', Generic.t(`echarts_type_${state.chartType}`), String(loss))}
+                        {loss > 0 && (
+                            <Box component="div">
+                                {Generic.t(
+                                    'echarts_family_loss',
+                                    Generic.t(`echarts_type_${state.chartType}`),
+                                    String(loss),
+                                )}
+                            </Box>
+                        )}
+                        {snippetLoss > 0 && (
+                            <Box component="div">{Generic.t('echarts_family_loss_snippets', String(snippetLoss))}</Box>
+                        )}
                     </Alert>
                 )}
             </Box>

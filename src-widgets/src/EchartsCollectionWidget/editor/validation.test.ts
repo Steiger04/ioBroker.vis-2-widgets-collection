@@ -1,13 +1,13 @@
 /**
  * Unit tests for the advisory validation engine (ADR-0010): {@link validateEditor} +
- * {@link familySwitchLoss}.
+ * {@link familySwitchLoss} + {@link familySwitchSnippetLoss} (ADR-0042).
  *
  * @module EchartsCollectionWidget/editor/validation.test
  */
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { familySwitchLoss, validateEditor } from './validation';
+import { familySwitchLoss, familySwitchSnippetLoss, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -170,5 +170,64 @@ describe('familySwitchLoss', () => {
         expect(familySwitchLoss(st({ chartType: 'gauge', series: [{ oid: '', name: '' }] }))).toBe(0);
         expect(familySwitchLoss(st({ chartType: 'pie' }))).toBe(0);
         expect(familySwitchLoss(st({ chartType: 'radar' }))).toBe(0);
+    });
+});
+
+describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
+    it('chart-level family-invalid activations count (xAxis snippet on a radar target)', () => {
+        const n = familySwitchSnippetLoss(
+            st({ chartType: 'radar', chartSnippets: ['xaxis-dashedsplit', 'title-subtext'] }),
+        );
+        expect(n).toBe(1);
+    });
+
+    it('gauge drops the series beyond the first with their activations; the survivor goes slot-stale', () => {
+        const n = familySwitchSnippetLoss(
+            st({
+                chartType: 'gauge',
+                series: [
+                    { oid: 'a', name: '', snippets: ['line-sampling'] },
+                    { oid: 'b', name: '', snippets: ['line-clip', 'line-markpoint'] },
+                ],
+            }),
+        );
+        expect(n).toBe(3);
+    });
+
+    it('radar drops every cartesian series (survivor stale + dropped counted)', () => {
+        const n = familySwitchSnippetLoss(
+            st({
+                chartType: 'radar',
+                series: [
+                    { oid: 'a', name: '', snippets: ['line-sampling'] },
+                    { oid: 'b', name: '', snippets: ['line-clip'] },
+                ],
+            }),
+        );
+        expect(n).toBe(2);
+    });
+
+    it('pie target: slice-slot-stale cartesian activations count', () => {
+        const n = familySwitchSnippetLoss(
+            st({ chartType: 'pie', series: [{ oid: 'a', name: '', snippets: ['line-sampling', 'slice-radius'] }] }),
+        );
+        expect(n).toBe(1);
+    });
+
+    it('valid activations cost nothing — cartesian line activations on a cartesian line target', () => {
+        const n = familySwitchSnippetLoss(
+            st({
+                chartType: 'line',
+                chartSnippets: ['title-subtext'],
+                series: [{ oid: 'a', name: '', snippets: ['line-sampling'] }],
+            }),
+        );
+        expect(n).toBe(0);
+    });
+
+    it('no activations → zero for every family', () => {
+        expect(familySwitchSnippetLoss(st({ chartType: 'gauge', series: [{ oid: '', name: '' }] }))).toBe(0);
+        expect(familySwitchSnippetLoss(st({ chartType: 'radar' }))).toBe(0);
+        expect(familySwitchSnippetLoss(st({ chartType: 'pie' }))).toBe(0);
     });
 });

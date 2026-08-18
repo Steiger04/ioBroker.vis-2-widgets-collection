@@ -131,7 +131,7 @@ The colour box in a `ColorField` that shows the field's **effective** colour —
 _Avoid_: colour preview, default swatch
 
 **Template snippet**:
-A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar) with small one-capability snippets under each group header — replacing the complete scaffolds of ADR-0030/0032/0035. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI).
+A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar) with small one-capability snippets under each group header — replacing the complete scaffolds of ADR-0030/0032/0035. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI). Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Series raw**:
@@ -139,7 +139,7 @@ The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object 
 _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 
 **Series template**:
-A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**.
+A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
 _Avoid_: Snippet, preset, template snippet (that is chart-wide)
 
 **Axis raw**:
@@ -147,8 +147,20 @@ The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis ca
 _Avoid_: Advanced JSON (that is the chart-level U), axis JSON (too generic)
 
 **Axis template**:
-A per-axis, collision-safe preset (ADR-0037) — a small thematic snippet (one capability: label fonts, minor ticks, splitArea bands, label overflow, `logBase`…) injected deep-merged into an Axis card's Axis raw. Each entry is audited against the axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**.
+A per-axis, collision-safe preset (ADR-0037) — a small thematic snippet (one capability: label fonts, minor ticks, splitArea bands, label overflow, `logBase`…) injected deep-merged into an Axis card's Axis raw. Each entry is audited against the axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
 _Avoid_: Snippet, preset, series template (that is per-series)
+
+**Aktive Vorlage**:
+A catalog entry switched ON at one of the three raw levels (chart / series / axis) via the template multi-select (ADR-0042). The ordered activation list is persisted per level and deep-merged in selection order (last activation wins a shared leaf) into the level's raw JSON; deactivating removes exactly its still-pristine leaves, so its effect is gone. Each active template renders as a chip aggregating its ✓/◐/✗ leaf analysis; family-invalid activations are pruned on Apply with the family-switch warning.
+_Avoid_: selected template, inserted template (the one-shot insert is retired), checked snippet
+
+**Eigenanteil**:
+The leaves of a level's raw JSON that no active template accounts for — hand-written keys plus template leaves whose value the user changed. Determined by leaf-diff against the composed templates, never persisted itself; it survives every re-composition (the "n Schlüssel blieben erhalten" notice).
+_Avoid_: custom JSON, free JSON, user layer, delta
+
+**Tombstone**:
+The marker that a leaf an active template would re-supply was deleted by hand. Derived from the raw text at every recomposition (a composed path absent from the text IS the tombstone — nothing is stored), so it survives recomposition and reload; deactivating the last template supplying the leaf clears it.
+_Avoid_: Deletion flag, blocked key, persisted deletion list
 
 **Field grid**:
 The section-body layout primitive (ADR-0019): a CSS `repeat(auto-fill, minmax(150px, 1fr))` grid whose cells reflow 1→4 columns purely with Rail width — no JS width measurement, so a Splitter drag never re-renders the form tree. Composite fields (OID picker, colour) live in flex rows with a flex basis; a wide field may span `1 / -1`. Hardcoded pixel widths are banned from section bodies.

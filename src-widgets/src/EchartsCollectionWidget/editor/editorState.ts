@@ -30,6 +30,9 @@ import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout'
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
+import { pruneSnippetIds } from './snippetComposition';
+import { chartTemplatesForFamily } from './advancedJsonTemplates';
+import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
@@ -139,6 +142,12 @@ export interface EditorState {
     /** Decoded Advanced JSON text (the chartOverrides / U side). */
     userText: string;
     /**
+     * Ordered ids of the ACTIVE chart-level templates (ADR-0042 "Aktive Vorlage") composing
+     * `userText` together with the Eigenanteil. Persisted in the hidden `chartSnippets` blob;
+     * pruned to the family catalog on Apply.
+     */
+    chartSnippets: string[];
+    /**
      * JSON-mode per-series style overlay, keyed by the payload series name (ADR-0011). Only
      * edited in json mode (the Series section renders one card per payload series); carried
      * round-trip regardless so switching modes away and back preserves the user's style.
@@ -200,6 +209,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     // (primary→success→warning→error, ADR-0027), and the editor swatch previews it.
     visualMap: { enabled: false, min: 0, max: 100, colors: '' },
     userText: '',
+    chartSnippets: [],
     jsonSeriesStyle: {},
     jsonHidden: [],
 };
@@ -227,6 +237,40 @@ const normalizeArea = (raw: unknown, legacyAreaType: boolean): EchartsAreaFill =
 
 /** True when a series stores the legacy removed `type: 'area'` (ADR-0008 r4) — → flat fill. */
 const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).type === 'area';
+
+/**
+ * Decode a snippet-activation blob (`chartSnippets`) into an ordered id list. Tolerant of every
+ * legacy shape — missing, empty, invalid, non-array → `[]` (ADR-0042: no migration; a widget
+ * saved before the multi-select simply has no activations).
+ */
+const decodeSnippetIds = (raw: unknown): string[] => {
+    if (!raw) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(decodeBlob(raw as string));
+        return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+    } catch {
+        return [];
+    }
+};
+
+/**
+ * Prune a series' activation list to its slot catalog (ADR-0042 decision 6 — the Apply-time
+ * family/slot prune; a stale id is silently dropped, its leaves remain in the raw text as the
+ * user's own). Returns `undefined` for an empty result so the blob stays lean.
+ */
+const pruneSeriesSnippets = (
+    family: ReturnType<typeof familyOf>,
+    chartType: string,
+    s: SeriesMeta,
+): string[] | undefined => {
+    if (!s.snippets?.length) {
+        return undefined;
+    }
+    const pruned = pruneSnippetIds(SERIES_TEMPLATES[seriesSlotOf(family, chartType, s)], s.snippets);
+    return pruned.length ? pruned : undefined;
+};
 
 /**
  * Load the editor state from the widget rxData.
@@ -279,15 +323,27 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
             })),
         );
         radar = { ...(chartConfig.radar ?? DEFAULT_EDITOR_STATE.radar), indicators };
+        // meta[0] carries the polygon's raw + template activations (ADR-0042; the raw rides the
+        // meta blob since ADR-0041's parity — carried through load since the gap fix).
         series = [
             {
                 oid: '',
                 name: meta[0]?.name ?? '',
                 color: meta[0]?.color,
+                raw: meta[0]?.raw,
+                snippets: meta[0]?.snippets,
             },
         ];
     } else if (family === 'gauge') {
-        series = [{ oid: oidAt(0), name: meta[0]?.name, color: meta[0]?.color }];
+        series = [
+            {
+                oid: oidAt(0),
+                name: meta[0]?.name,
+                color: meta[0]?.color,
+                raw: meta[0]?.raw,
+                snippets: meta[0]?.snippets,
+            },
+        ];
         radar = DEFAULT_EDITOR_STATE.radar;
     } else {
         // cartesian / pie: oidN = series OIDs, 1:1 with meta. For cartesian, normalise the type
@@ -394,6 +450,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
         userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
+        chartSnippets: decodeSnippetIds(data.chartSnippets),
         jsonSeriesStyle: parseJsonSeriesStyle(data.jsonSeriesStyle as string),
         jsonHidden: parseJsonHidden(data.jsonHidden as string),
     };
@@ -419,17 +476,43 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
             {
                 name: state.series[0]?.name,
                 color: state.series[0]?.color,
+                raw: state.series[0]?.raw,
+                snippets: pruneSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
             },
         ];
     } else if (family === 'gauge') {
         seriesCount = 1;
         oidList = [state.series[0]?.oid ?? ''];
-        metaBlob = [{ name: state.series[0]?.name, color: state.series[0]?.color }];
+        metaBlob = [
+            {
+                name: state.series[0]?.name,
+                color: state.series[0]?.color,
+                raw: state.series[0]?.raw,
+                snippets: pruneSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
+            },
+        ];
     } else {
         seriesCount = state.series.length;
         oidList = state.series.map(s => s.oid || '');
-        metaBlob = state.series.map(({ oid: _oid, ...rest }) => rest);
+        metaBlob = state.series.map(({ oid: _oid, ...rest }) => ({
+            ...rest,
+            snippets: pruneSeriesSnippets(family, state.chartType, rest),
+        }));
     }
+
+    // ADR-0042 Apply-time prunes: chart-level activations to the family catalog, the whole-pie
+    // activations to the pie catalog, the JSON-mode overlay entries to their slot catalogs
+    // (decision 9 covers the JSON-mode series cards). Between a family switch and Apply the stale
+    // ids stay in the working copy (the stranded keys render nothing — verified against echarts)
+    // and the actual prune rides Apply, mirroring the bound-OID drop.
+    const chartSnippets = pruneSnippetIds(chartTemplatesForFamily(family), state.chartSnippets);
+    const pieSnippets = state.pie.snippets ? pruneSnippetIds(SERIES_TEMPLATES.pie, state.pie.snippets) : [];
+    const jsonSeriesStyle = Object.fromEntries(
+        Object.entries(state.jsonSeriesStyle).map(([name, m]) => [
+            name,
+            { ...m, snippets: pruneSeriesSnippets(family, state.chartType, m) },
+        ]),
+    );
 
     const patch: Record<string, unknown> = {
         chartType: state.chartType,
@@ -477,12 +560,13 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
             JSON.stringify({
                 gauge: state.gauge,
                 radar: state.radar,
-                pie: state.pie,
+                pie: { ...state.pie, snippets: pieSnippets.length ? pieSnippets : undefined },
             }),
         ),
         chartOverrides: encodeBlob(state.userText),
+        chartSnippets: encodeBlob(JSON.stringify(chartSnippets)),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
-        jsonSeriesStyle: encodeBlob(JSON.stringify(state.jsonSeriesStyle)),
+        jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(state.yAxes)),
         xAxis: encodeBlob(JSON.stringify(state.xAxis)),

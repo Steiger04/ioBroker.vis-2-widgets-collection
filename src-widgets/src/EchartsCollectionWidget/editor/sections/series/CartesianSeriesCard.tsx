@@ -49,6 +49,7 @@ import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
 import { effectiveAxisName } from '../../axisLayout';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
+import { snippetPatch } from '../../snippetComposition';
 
 /**
  * The "Basics" SubGroup of a cartesian series card — identity + binding. Shared by the
@@ -493,6 +494,8 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}
                         raw={s.raw}
                         onChange={v => onUpdate(i, { raw: v || undefined })}
+                        snippets={s.snippets}
+                        onToggle={r => onUpdate(i, snippetPatch(r))}
                         analysis={{
                             slot: `cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot,
                             meta: s,

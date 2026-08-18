@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
 import type { EditorState } from './editorState';
+import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
 
 const baseState = (): EditorState => ({
     ...DEFAULT_EDITOR_STATE,
@@ -187,5 +188,98 @@ describe('editorState — mode-switch orphan-prune on load (ADR-0033)', () => {
         );
         expect(reloaded.yAxes).toHaveLength(2); // axis 0 (floor) + axis 3 (bound)
         expect(reloaded.yAxes[1]).toMatchObject({ position: 'right', offset: 0 }); // re-packed, not stale 80
+    });
+});
+
+describe('editorState — ADR-0042 snippet activations', () => {
+    it('chartSnippets survive the round-trip in selection order', () => {
+        const state = { ...baseState(), chartSnippets: ['title-subtext', 'xaxis-dashedsplit'] };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.chartSnippets).toEqual(['title-subtext', 'xaxis-dashedsplit']);
+    });
+
+    it('family-invalid chart activations are pruned on Apply (xAxis snippet on a radar target)', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'radar' as const,
+            chartSnippets: ['xaxis-dashedsplit', 'title-subtext'],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.chartSnippets).toEqual(['title-subtext']);
+    });
+
+    it('series activations survive per-slot and stale slot ids are pruned on Apply (line → pie slice)', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'pie' as const,
+            series: [{ oid: 'a', name: 'A', snippets: ['line-sampling', 'slice-radius'] }],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.series[0]?.snippets).toEqual(['slice-radius']);
+    });
+
+    it('empty activations stay lean: the chart blob is [] and series meta carries no snippets key', () => {
+        const patch = saveEditorState(
+            { ...baseState(), chartType: 'line' as const, chartSnippets: [], series: [{ oid: 'a', name: 'A' }] },
+            0,
+        );
+        expect(patch.chartSnippets).toBe(encodeBlob('[]'));
+        const reloaded = loadEditorState(patch);
+        expect(reloaded.series[0]?.snippets).toBeUndefined();
+        expect(reloaded.pie.snippets).toBeUndefined();
+    });
+
+    it('gauge series raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'gauge' as const,
+            series: [{ oid: 'a', name: 'G', raw: '{ "progress": { "show": true } }', snippets: ['gauge-zones'] }],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.series[0]?.raw).toBe('{ "progress": { "show": true } }');
+        expect(reloaded.series[0]?.snippets).toEqual(['gauge-zones']);
+    });
+
+    it('radar polygon raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'radar' as const,
+            series: [{ oid: '', name: 'R', raw: '{ "lineStyle": { "width": 2 } }', snippets: ['radar-emphasis'] }],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.series[0]?.raw).toBe('{ "lineStyle": { "width": 2 } }');
+        expect(reloaded.series[0]?.snippets).toEqual(['radar-emphasis']);
+    });
+
+    it('json-mode overlay activations prune to their slot catalog on Apply', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'line' as const,
+            jsonSeriesStyle: {
+                Temp: { color: '#f00', snippets: ['line-sampling', 'slice-radius'] },
+                Power: { name: 'Leistung' },
+            },
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.jsonSeriesStyle.Temp?.snippets).toEqual(['line-sampling']);
+        expect(reloaded.jsonSeriesStyle.Power?.snippets).toBeUndefined();
+    });
+
+    it('pie whole-series activations round-trip', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'pie' as const,
+            pie: {
+                aggregate: 'latest',
+                innerRadius: 0,
+                rose: 'none',
+                label: 'namePercent',
+                raw: '{}',
+                snippets: ['pie-labelpos'],
+            } as EchartsPieConfig,
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.pie.snippets).toEqual(['pie-labelpos']);
+        expect(reloaded.pie.raw).toBe('{}');
     });
 });

@@ -53,6 +53,7 @@ import {
 } from '../axisLayout';
 import { nextStableId } from '../identity';
 import AxisRawOverride from './axes/AxisRawOverride';
+import { snippetPatch } from '../snippetComposition';
 
 interface AxesZoomSectionProps {
     state: EditorState;
@@ -494,6 +495,8 @@ const AxisCard: FC<{
             <AxisRawOverride
                 raw={a.raw}
                 onChange={v => onChange({ raw: v })}
+                snippets={a.snippets}
+                onToggle={r => onChange(snippetPatch(r))}
                 axis={a}
                 seriesColor={seriesColor}
                 seriesName={seriesName}

@@ -24,6 +24,7 @@ import type { EditorState } from '../../editorState';
 import { CartesianBasisFields, CartesianSeriesKnobs } from './CartesianSeriesCard';
 import { effectiveAxisName } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
+import { snippetPatch } from '../../snippetComposition';
 
 interface JsonSeriesCardsProps {
     state: EditorState;
@@ -198,6 +199,8 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}
                                 raw={m.raw}
                                 onChange={v => onUpdateJson(name, { raw: v })}
+                                snippets={m.snippets}
+                                onToggle={r => onUpdateJson(name, snippetPatch(r))}
                                 analysis={{
                                     slot: `cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot,
                                     meta: m,

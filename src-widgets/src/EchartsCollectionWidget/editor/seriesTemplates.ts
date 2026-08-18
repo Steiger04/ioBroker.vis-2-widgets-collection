@@ -19,8 +19,6 @@
  * CATEGORY headers are translated. The chart-level Advanced-JSON keeps its own chart-wide snippets
  * (graphic/aria/…); this catalog is per-series only.
  */
-import { deepMerge } from '../utils/mergeOption';
-
 /** Template grouping (rendered as menu section headers; order = {@link TEMPLATE_CATEGORY_ORDER}). */
 export type TemplateCategory = 'annotations' | 'labels' | 'emphasis' | 'style' | 'behavior';
 
@@ -43,6 +41,20 @@ export type SeriesTemplateSlot =
     | 'pie-slice' // per slice (data[i])
     | 'gauge'
     | 'radar';
+
+/**
+ * The slot a series' activations resolve against, derived from the chart family + the series'
+ * own type override (ADR-0042) — the ONE slot rule shared by the Apply prune (`saveEditorState`)
+ * and the family-switch loss count, so the two can never drift apart.
+ */
+export const seriesSlotOf = (family: string, chartType: string, meta: { type?: string }): SeriesTemplateSlot =>
+    family === 'gauge'
+        ? 'gauge'
+        : family === 'radar'
+          ? 'radar'
+          : family === 'pie'
+            ? 'pie-slice'
+            : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
 
 export interface SeriesTemplate {
     /** Stable id for React keys. */
@@ -463,36 +475,4 @@ export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
     'pie-slice': PIE_SLICE,
     gauge: GAUGE,
     radar: RADAR,
-};
-
-/**
- * Inject a template's JSON into a card's current raw text (accumulate). Invalid current text is
- * replaced by the template; a bad template is a no-op. The merge is a DEEP merge (the axis and
- * chart-level injector idiom, ADR-0037/0040): series snippets share top-level keys (`lineStyle`,
- * `label`, `markPoint`), so a shallow spread would clobber everything an earlier snippet set
- * under the same key. Arrays replace wholesale (a `markPoint.data` list is a unit).
- */
-export const injectTemplate = (currentRaw: string | undefined, templateJson: string): string => {
-    let base: Record<string, unknown> = {};
-    const cur = (currentRaw ?? '').trim();
-    if (cur) {
-        try {
-            const v = JSON.parse(cur);
-            if (v && typeof v === 'object' && !Array.isArray(v)) {
-                base = v as Record<string, unknown>;
-            }
-        } catch {
-            /* invalid current text → the template replaces it */
-        }
-    }
-    let add: Record<string, unknown> = {};
-    try {
-        const v = JSON.parse(templateJson);
-        if (v && typeof v === 'object' && !Array.isArray(v)) {
-            add = v as Record<string, unknown>;
-        }
-    } catch {
-        return currentRaw ?? ''; // bad template → no-op
-    }
-    return JSON.stringify(deepMerge(base, add), null, 2);
 };

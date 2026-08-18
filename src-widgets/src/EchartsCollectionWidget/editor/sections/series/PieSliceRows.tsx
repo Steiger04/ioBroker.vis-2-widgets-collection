@@ -18,6 +18,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EditorSeries, EditorState, SetEditor } from '../../editorState';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride } from './shared';
+import { snippetPatch } from '../../snippetComposition';
 
 interface PieSliceRowsProps {
     state: EditorState;
@@ -39,6 +40,8 @@ const PieSliceRows: FC<PieSliceRowsProps> = ({ state, set, pickerCtx, slot, onUp
                 slot="pie"
                 raw={state.pie.raw}
                 onChange={v => set({ pie: { ...state.pie, raw: v || undefined } })}
+                snippets={state.pie.snippets}
+                onToggle={r => set({ pie: { ...state.pie, ...snippetPatch(r) } })}
                 analysis={{
                     slot: 'pie',
                     // Builder default: no rose (`?? 'none'`) — an unset rose must read as inactive.
@@ -103,6 +106,8 @@ const PieSliceRows: FC<PieSliceRowsProps> = ({ state, set, pickerCtx, slot, onUp
                         slot="pie-slice"
                         raw={s.raw}
                         onChange={v => onUpdate(i, { raw: v || undefined })}
+                        snippets={s.snippets}
+                        onToggle={r => onUpdate(i, snippetPatch(r))}
                         analysis={{ slot: 'pie-slice', meta: s }}
                     />
                 </Box>

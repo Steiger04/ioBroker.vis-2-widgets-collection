@@ -6,8 +6,8 @@
  * The family-agnostic pieces every series sub-view composes: the read-only effective-colour
  * Swatch, the dashed EmptyState with CTA, the OID-first AddSeriesViaOid affordance, the
  * item-scoped IssueList, and the per-series raw-override editor ("Erweitertes JSON", the axis
- * label — ADR-0037 parity) with its categorised template menu (ADR-0015/0017), DEEP-merge
- * injection and the state-aware ✓/◐/✗ key analysis (seriesRawAnalysis.ts).
+ * label — ADR-0037 parity) with its template multi-select (ADR-0015/0017/0042) and the
+ * state-aware ✓/◐/✗ key analysis (seriesRawAnalysis.ts) aggregating onto the active chips.
  */
 import { useState, type FC, type ReactNode } from 'react';
 import { Box, Button, Chip, Collapse, Typography } from '@mui/material';
@@ -17,7 +17,6 @@ import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-reac
 import Generic from '../../../../Generic';
 import JsonEditor from '../../JsonEditor';
 import {
-    injectTemplate,
     SERIES_TEMPLATES,
     TEMPLATE_CATEGORY_I18N,
     TEMPLATE_CATEGORY_ORDER,
@@ -25,6 +24,7 @@ import {
 } from '../../seriesTemplates';
 import { classifySeriesKeys, type SeriesAnalysisContext } from '../../seriesRawAnalysis';
 import TemplateMenu from '../TemplateMenu';
+import SnippetChips, { activeSnippetEntries, snippetStatuses, SnippetNotice, useSnippetToggle } from '../SnippetChips';
 import type { ValidationIssue } from '../../validation';
 import type { OidPickerCtx } from '../../OidPicker';
 
@@ -148,21 +148,13 @@ export const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
     </Box>
 );
 
-/** Categorised template dropdown for a series card (ADR-0017): injects a GUI-uncovered preset. */
-const SeriesTemplateMenu: FC<{ slot: SeriesTemplateSlot; onInject: (json: string) => void }> = ({ slot, onInject }) => (
-    <TemplateMenu
-        templates={SERIES_TEMPLATES[slot]}
-        categoryOrder={TEMPLATE_CATEGORY_ORDER}
-        categoryI18n={TEMPLATE_CATEGORY_I18N}
-        onInject={onInject}
-    />
-);
-
 /**
  * Collapsible per-series raw echarts JSON override (ADR-0015/0017) — labelled "Erweitertes JSON"
- * like the axis sibling (ADR-0037 parity). GUI knobs win, data is managed. When `slot` is set, a
- * categorised template dropdown is shown above the editor; when `analysis` is set, the
- * state-aware ✓/◐/✗ key chips classify every raw key against the series builder's emissions.
+ * like the axis sibling (ADR-0037 parity). GUI knobs win, data is managed. Since ADR-0042 the
+ * templates are a persistent CHECKBOX multi-select ("Aktive Vorlage"): the active snippets compose
+ * the raw text with the Eigenanteil, the chips above the editor deactivate them, and the menu
+ * locks while the text is invalid JSON. When `analysis` is set, the state-aware ✓/◐/✗ key chips
+ * classify every raw key against the series builder's emissions — and aggregate onto each chip.
  */
 export const SeriesRawOverride: FC<{
     raw: string | undefined;
@@ -170,8 +162,18 @@ export const SeriesRawOverride: FC<{
     slot?: SeriesTemplateSlot;
     /** Card state for the ✓/◐/✗ classification; omit to skip the analysis. */
     analysis?: SeriesAnalysisContext;
-}> = ({ raw, onChange, slot, analysis }) => {
+    /** Ordered ACTIVE template ids (ADR-0042 — the series meta's `snippets`). */
+    snippets?: string[];
+    /**
+     * Recomposition callback (ADR-0042): the new editor text + activation ids, so the caller
+     * commits BOTH into its card state in one history step.
+     */
+    onToggle?: (result: { text: string; ids: string[] }) => void;
+}> = ({ raw, onChange, slot, analysis, snippets, onToggle }) => {
     const [open, setOpen] = useState(false);
+    // The shared multi-select wiring (ADR-0042): run the seam, hand BOTH layers to the card in
+    // one callback, surface the recomposition notice.
+    const { toggle, notice, clearNotice } = useSnippetToggle(r => onToggle?.(r));
     const trimmed = (raw ?? '').trim();
     let parsed: Record<string, unknown> | null = null;
     if (trimmed) {
@@ -184,6 +186,18 @@ export const SeriesRawOverride: FC<{
     }
     const valid = !trimmed || !!parsed;
     const chips = analysis && parsed ? classifySeriesKeys(parsed, analysis) : [];
+
+    const templates = slot ? SERIES_TEMPLATES[slot] : [];
+    const runToggle = (id: string): void => {
+        if (slot) {
+            toggle({ templates, ids: snippets ?? [], id, currentText: raw ?? '' });
+        }
+    };
+    const entries = activeSnippetEntries(templates, snippets ?? []);
+    const statuses = analysis
+        ? snippetStatuses(templates, snippets ?? [], v => classifySeriesKeys(v, analysis))
+        : undefined;
+
     return (
         <Box sx={{ mt: 1 }}>
             <Button
@@ -200,10 +214,21 @@ export const SeriesRawOverride: FC<{
                 mountOnEnter
             >
                 {slot && (
-                    <SeriesTemplateMenu
-                        slot={slot}
-                        onInject={json => onChange(injectTemplate(raw, json))}
-                    />
+                    <>
+                        <TemplateMenu
+                            templates={templates}
+                            categoryOrder={TEMPLATE_CATEGORY_ORDER}
+                            categoryI18n={TEMPLATE_CATEGORY_I18N}
+                            activeIds={snippets ?? []}
+                            onToggle={runToggle}
+                            disabled={!valid}
+                        />
+                        <SnippetChips
+                            entries={entries}
+                            statuses={statuses}
+                            onRemove={runToggle}
+                        />
+                    </>
                 )}
                 <JsonEditor
                     value={raw ?? ''}
@@ -261,6 +286,10 @@ export const SeriesRawOverride: FC<{
                 >
                     {Generic.t('echarts_series_raw_hint')}
                 </Typography>
+                <SnippetNotice
+                    notice={notice}
+                    onClose={clearNotice}
+                />
             </Collapse>
         </Box>
     );

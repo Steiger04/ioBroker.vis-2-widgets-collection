@@ -27,8 +27,6 @@
  * CATEGORY headers are translated. Distinct from the chart-wide Template snippets
  * (advancedJsonTemplates.ts) and the per-series Series templates (seriesTemplates.ts).
  */
-import { deepMerge } from '../utils/mergeOption';
-
 /** Axis-template grouping (rendered as menu section headers; order = {@link AXIS_CATEGORY_ORDER}). */
 export type AxisTemplateCategory = 'fonts' | 'grid' | 'labels' | 'scale' | 'style' | 'interaction';
 
@@ -200,7 +198,7 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
 
 /**
  * Parse a raw-override text into a JSON object — `null` for empty, invalid or non-object text.
- * The shared guard behind the injector and the card editor's validity check.
+ * The shared guard behind the composition seam and the card editor's validity check.
  */
 export const parseRawObject = (text: string): Record<string, unknown> | null => {
     const trimmed = (text ?? '').trim();
@@ -216,21 +214,4 @@ export const parseRawObject = (text: string): Record<string, unknown> | null => 
         /* invalid raw override — ignored (the validity is surfaced in the editor) */
     }
     return null;
-};
-
-/**
- * Inject a template's JSON into a card's current raw text — DEEP-merged (ADR-0037), unlike the
- * series `injectTemplate`'s top-level replace: axis snippets share top-level keys (`axisLabel`
- * fonts vs. overflow vs. hideOverlap), so a top-level replace would clobber everything an earlier
- * snippet set under the same key. Invalid current text is replaced by the template; a bad template
- * is a no-op (same tolerance semantics as the series injector).
- */
-export const injectAxisTemplate = (currentRaw: string | undefined, templateJson: string): string => {
-    // Invalid current text → the template replaces it; a bad template → no-op.
-    const base = parseRawObject(currentRaw ?? '') ?? {};
-    const add = parseRawObject(templateJson);
-    if (!add) {
-        return currentRaw ?? '';
-    }
-    return JSON.stringify(deepMerge(base, add), null, 2);
 };

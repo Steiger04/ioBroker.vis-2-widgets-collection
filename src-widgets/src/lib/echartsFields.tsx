@@ -116,6 +116,14 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        // Ordered ids of the ACTIVE chart-level templates (ADR-0042) composing `chartOverrides`.
+        // A sibling blob (not an envelope) so the legacy bare-text `chartOverrides` needs no migration.
+        name: 'chartSnippets',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
+    {
         // JSON-mode deny-list of hidden payload series names (Problem-2). Hidden blob, modal-owned.
         name: 'jsonHidden',
         type: 'text',

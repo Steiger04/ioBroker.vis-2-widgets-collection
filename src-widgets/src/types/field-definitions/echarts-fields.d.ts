@@ -195,6 +195,12 @@ export interface EchartsSeriesMeta {
      * folded into G by the builder, it wins over a chart-level U `series` entry on the same index.
      */
     raw?: string;
+    /**
+     * Ordered ids of the ACTIVE series templates (ADR-0042 "Aktive Vorlage") whose composition
+     * forms the `raw` text together with the user's Eigenanteil. Selection order = merge order;
+     * pruned to the card's slot catalog on Apply. Never emitted to echarts.
+     */
+    snippets?: string[];
 }
 
 /**
@@ -263,6 +269,11 @@ export interface EchartsPieConfig {
      * Per-slice presentation lives on the slice's `EchartsSeriesMeta.raw` instead.
      */
     raw?: string;
+    /**
+     * Ordered ids of the ACTIVE `pie`-slot templates (ADR-0042) composing the whole-pie `raw`;
+     * pruned to the pie catalog on Apply. Never emitted to echarts.
+     */
+    snippets?: string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -423,6 +434,11 @@ export interface EchartsAxisConfig {
      * reconcile/prune/pack (all spread-based). Freshly created axes start without one.
      */
     raw?: string;
+    /**
+     * Ordered ids of the ACTIVE axis templates (ADR-0042) composing the `raw`; the axis catalog is
+     * family-free, so no Apply-time prune. Never emitted to echarts.
+     */
+    snippets?: string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,20 +1,22 @@
 /**
- * Advanced JSON section — the demoted expert escape hatch (ADR-0007/0010/0014/0017/0040).
+ * Advanced JSON section — the demoted expert escape hatch (ADR-0007/0010/0014/0017/0040/0042).
  *
  * @module EchartsCollectionWidget/editor/sections/AdvancedJsonSection
  * @remarks
  * Strictly supplemental and **chart-wide only** (ADR-0017): the GUI owns all presentation, and
  * per-series presentation now lives on the series cards (Series raw), so this U textarea is the escape
- * hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its one-click templates (the pure
+ * hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its templates (the pure
  * `editor/advancedJsonTemplates.ts` catalog — audited by the ADR-0036 replaceMerge guard test) are
- * grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, the shared TemplateMenu
- * idiom — ADR-0040 restructured the old complete scaffolds into these small one-capability
- * snippets) plus the radar presets; the free text also accepts the standalone `graphic` / `aria` /
- * `axisPointer` / `textStyle` components and exotic `animationEasing`.
+ * grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse — ADR-0040) and, since ADR-0042,
+ * a persistent CHECKBOX multi-select: the active snippets compose the editor text together with the
+ * user's Eigenanteil, the chips above the editor deactivate them, and every leaf the user hand-wrote
+ * or hand-changed survives each recomposition. The free text also accepts the standalone `graphic` /
+ * `aria` / `axisPointer` / `textStyle` components and exotic `animationEasing`.
  * title/legend/tooltip/xAxis are only PARTIALLY managed, so their non-GUI subkeys DO merge through.
  * `series` is a fully-managed key (a U `series` is ignored — use the per-card Series raw instead).
- * Carries the honesty affordances: the managed-keys box, the grouped one-click templates, JSON
- * validity, and the 3-state sub-key merge preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
+ * Carries the honesty affordances: the managed-keys box, the template multi-select + active chips,
+ * JSON validity (invalid text LOCKS the menu — ADR-0042 decision 8), and the 3-state sub-key merge
+ * preview (ADR-0030: ✓ effective / ◐ partial / ✗ managed).
  */
 import type { FC } from 'react';
 import { Box, Chip, Typography } from '@mui/material';
@@ -23,9 +25,14 @@ import Generic from '../../../Generic';
 import { familyOf, parseUserJson } from '../../optionBuilder';
 import JsonEditor from '../JsonEditor';
 import TemplateMenu from './TemplateMenu';
-import { deepMerge } from '../../utils/mergeOption';
+import SnippetChips, { activeSnippetEntries, snippetStatuses, SnippetNotice, useSnippetToggle } from './SnippetChips';
 import { MANAGED_KEYS, classifyUserKeys } from '../advancedJsonAnalysis';
-import { CHART_CATEGORY_I18N, CHART_CATEGORY_ORDER, chartTemplatesForFamily } from '../advancedJsonTemplates';
+import {
+    CHART_CATEGORY_I18N,
+    CHART_CATEGORY_ORDER,
+    CHART_TEMPLATES,
+    chartTemplatesForFamily,
+} from '../advancedJsonTemplates';
 import type { EchartsChartType } from '../../../types/field-definitions/echarts-fields';
 import type { SetEditor } from '../editorState';
 
@@ -35,22 +42,42 @@ interface AdvancedJsonSectionProps {
     set: SetEditor;
     /** The chart type drives the family-aware template catalog (ADR-0014). */
     chartType: EchartsChartType;
+    /** Ordered ACTIVE chart-level template ids (ADR-0042 — the `chartSnippets` blob). */
+    snippets: string[];
 }
 
-const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserText, set: _set, chartType }) => {
+const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserText, set, chartType, snippets }) => {
+    // Toggle one activation (ADR-0042): recompose the text from the active snippets + the
+    // Eigenanteil and commit BOTH in one patch — one undo step. Compose against the FULL catalog:
+    // a family-stale activation (xAxis on radar, between the switch and Apply) must neither
+    // vanish nor corrupt the recomposition.
+    const { toggle, notice, clearNotice } = useSnippetToggle(r => set({ userText: r.text, chartSnippets: r.ids }));
+    // Toggle one activation (ADR-0042): recompose the text from the active snippets + the
+    // Eigenanteil and commit BOTH in one patch — one undo step. Compose against the FULL catalog:
+    // a family-stale activation (xAxis on radar, between the switch and Apply) must neither
+    // vanish nor corrupt the recomposition.
+    const runToggle = (id: string): void =>
+        toggle({ templates: CHART_TEMPLATES, ids: snippets, id, currentText: userText });
     const parsed = parseUserJson(userText);
     const chips = parsed.ok ? classifyUserKeys(parsed.value) : [];
 
-    /** Deep-merge a snippet into the U text (ADR-0037 idiom: snippets of one component share keys). */
-    const insertSnippet = (json: string): void => {
-        const cur = parseUserJson(userText);
-        const snip = parseUserJson(json);
-        const base = cur.ok ? cur.value : {};
-        const merged = snip.ok ? deepMerge(base, snip.value) : base;
-        setUserText(JSON.stringify(merged, null, 2));
-    };
-
     const templates = chartTemplatesForFamily(familyOf(chartType));
+    const statuses = snippetStatuses(CHART_TEMPLATES, snippets, classifyUserKeys);
+    // Chips for EVERY activation — including a family-stale one (still active until Apply), which
+    // renders dead with an "removed on Apply" note instead of a lying ✓ (worst wins, ADR-0042 #7).
+    const entries = activeSnippetEntries(CHART_TEMPLATES, snippets).map(e =>
+        templates.some(t => t.id === e.id)
+            ? e
+            : {
+                  ...e,
+                  note: Generic.t('echarts_family_loss_snippets', '1'),
+              },
+    );
+    for (const e of entries) {
+        if (e.note) {
+            statuses[e.id] = 'dead';
+        }
+    }
 
     return (
         <Box>
@@ -89,7 +116,14 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
                 templates={templates}
                 categoryOrder={CHART_CATEGORY_ORDER}
                 categoryI18n={CHART_CATEGORY_I18N}
-                onInject={insertSnippet}
+                activeIds={snippets}
+                onToggle={runToggle}
+                disabled={!parsed.ok}
+            />
+            <SnippetChips
+                entries={entries}
+                statuses={statuses}
+                onRemove={runToggle}
             />
 
             <JsonEditor
@@ -169,6 +203,11 @@ const AdvancedJsonSection: FC<AdvancedJsonSectionProps> = ({ userText, setUserTe
             >
                 {Generic.t('echarts_editor_advanced_note')}
             </Typography>
+
+            <SnippetNotice
+                notice={notice}
+                onClose={clearNotice}
+            />
         </Box>
     );
 };

@@ -19,6 +19,7 @@ import type { OidPickerCtx } from '../../OidPicker';
 import type { EditorState, SetEditor } from '../../editorState';
 import { nextStableId } from '../../identity';
 import { EmptyState, SeriesRawOverride } from './shared';
+import { snippetPatch } from '../../snippetComposition';
 
 interface RadarIndicatorsProps {
     state: EditorState;
@@ -132,6 +133,8 @@ const RadarIndicators: FC<RadarIndicatorsProps> = ({ state, set, pickerCtx, slot
                 slot="radar"
                 raw={s0.raw}
                 onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                snippets={s0.snippets}
+                onToggle={r => set({ series: [{ ...s0, ...snippetPatch(r) }] })}
                 analysis={{
                     slot: 'radar',
                     // Builder default: area is ON when unset (radar.ts `?? true`) — only an

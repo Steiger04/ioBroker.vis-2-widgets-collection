@@ -17,6 +17,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EditorSeries, EditorState, SetEditor } from '../../editorState';
 import { SeriesRawOverride } from './shared';
+import { snippetPatch } from '../../snippetComposition';
 
 interface GaugeBindingProps {
     state: EditorState;
@@ -76,6 +77,8 @@ const GaugeBinding: FC<GaugeBindingProps> = ({ state, set, pickerCtx, slot }) =>
                 slot="gauge"
                 raw={s0.raw}
                 onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                snippets={s0.snippets}
+                onToggle={r => set({ series: [{ ...s0, ...snippetPatch(r) }] })}
                 analysis={{
                     slot: 'gauge',
                     gaugeUnitActive: !!state.gauge.unit,
