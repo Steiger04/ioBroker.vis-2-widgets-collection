@@ -5,11 +5,12 @@
  * @remarks
  * The family-agnostic pieces every series sub-view composes: the read-only effective-colour
  * Swatch, the dashed EmptyState with CTA, the OID-first AddSeriesViaOid affordance, the
- * item-scoped IssueList, and the per-series raw-override editor with its categorised template
- * menu (ADR-0015/0017).
+ * item-scoped IssueList, and the per-series raw-override editor ("Erweitertes JSON", the axis
+ * label — ADR-0037 parity) with its categorised template menu (ADR-0015/0017), DEEP-merge
+ * injection and the state-aware ✓/◐/✗ key analysis (seriesRawAnalysis.ts).
  */
 import { useState, type FC, type ReactNode } from 'react';
-import { Box, Button, Collapse, Typography } from '@mui/material';
+import { Box, Button, Chip, Collapse, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
 
@@ -22,6 +23,7 @@ import {
     TEMPLATE_CATEGORY_ORDER,
     type SeriesTemplateSlot,
 } from '../../seriesTemplates';
+import { classifySeriesKeys, type SeriesAnalysisContext } from '../../seriesRawAnalysis';
 import TemplateMenu from '../TemplateMenu';
 import type { ValidationIssue } from '../../validation';
 import type { OidPickerCtx } from '../../OidPicker';
@@ -157,25 +159,31 @@ const SeriesTemplateMenu: FC<{ slot: SeriesTemplateSlot; onInject: (json: string
 );
 
 /**
- * Collapsible per-series raw echarts JSON override (ADR-0015/0017): GUI knobs win, data is managed.
- * When `slot` is set, a categorised template dropdown (ADR-0017) is shown above the editor.
+ * Collapsible per-series raw echarts JSON override (ADR-0015/0017) — labelled "Erweitertes JSON"
+ * like the axis sibling (ADR-0037 parity). GUI knobs win, data is managed. When `slot` is set, a
+ * categorised template dropdown is shown above the editor; when `analysis` is set, the
+ * state-aware ✓/◐/✗ key chips classify every raw key against the series builder's emissions.
  */
 export const SeriesRawOverride: FC<{
     raw: string | undefined;
     onChange: (value: string) => void;
     slot?: SeriesTemplateSlot;
-}> = ({ raw, onChange, slot }) => {
+    /** Card state for the ✓/◐/✗ classification; omit to skip the analysis. */
+    analysis?: SeriesAnalysisContext;
+}> = ({ raw, onChange, slot, analysis }) => {
     const [open, setOpen] = useState(false);
     const trimmed = (raw ?? '').trim();
-    let valid = true;
+    let parsed: Record<string, unknown> | null = null;
     if (trimmed) {
         try {
             const v = JSON.parse(trimmed);
-            valid = !!v && typeof v === 'object' && !Array.isArray(v);
+            parsed = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
         } catch {
-            valid = false;
+            parsed = null;
         }
     }
+    const valid = !trimmed || !!parsed;
+    const chips = analysis && parsed ? classifySeriesKeys(parsed, analysis) : [];
     return (
         <Box sx={{ mt: 1 }}>
             <Button
@@ -209,6 +217,44 @@ export const SeriesRawOverride: FC<{
                 >
                     {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_series_raw_invalid')}`}
                 </Typography>
+                {chips.length > 0 && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                        {chips.map(c => {
+                            if (c.cls === 'effective') {
+                                return (
+                                    <Chip
+                                        key={c.key}
+                                        size="small"
+                                        color="success"
+                                        variant="outlined"
+                                        label={`${c.key} ✓`}
+                                    />
+                                );
+                            }
+                            if (c.cls === 'partial') {
+                                return (
+                                    <Chip
+                                        key={c.key}
+                                        size="small"
+                                        color="warning"
+                                        variant="outlined"
+                                        label={`${c.key} ◐`}
+                                        title={`${Generic.t('echarts_advanced_gui_managed')} ${c.managed.join(', ')}`}
+                                    />
+                                );
+                            }
+                            return (
+                                <Chip
+                                    key={c.key}
+                                    size="small"
+                                    variant="outlined"
+                                    label={`${c.key} ✗`}
+                                    sx={{ opacity: 0.6, textDecoration: 'line-through' }}
+                                />
+                            );
+                        })}
+                    </Box>
+                )}
                 <Typography
                     variant="caption"
                     color="text.secondary"

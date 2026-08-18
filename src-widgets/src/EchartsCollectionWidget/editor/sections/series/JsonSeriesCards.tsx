@@ -198,6 +198,10 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}
                                 raw={m.raw}
                                 onChange={v => onUpdateJson(name, { raw: v })}
+                                analysis={{
+                                    slot: `cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot,
+                                    meta: m,
+                                }}
                             />
                         </EditorCard>
                     );

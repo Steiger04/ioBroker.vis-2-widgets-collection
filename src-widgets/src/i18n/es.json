@@ -339,7 +339,7 @@
     "echarts_series_label": "Etiquetas de valor",
     "echarts_series_line_style": "Estilo de línea",
     "echarts_series_line_width": "Ancho de línea",
-    "echarts_series_raw": "Anulación directa de echarts",
+    "echarts_series_raw": "JSON avanzado",
     "echarts_series_raw_hint": "Los controles de la interfaz tienen prioridad en colisiones; los datos se gestionan",
     "echarts_series_raw_invalid": "JSON no válido",
     "echarts_series_smooth": "Suavizar",

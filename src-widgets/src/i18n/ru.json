@@ -339,7 +339,7 @@
     "echarts_series_label": "Метки значений",
     "echarts_series_line_style": "Стиль линии",
     "echarts_series_line_width": "Толщина линии",
-    "echarts_series_raw": "Прямое переопределение echarts",
+    "echarts_series_raw": "Расширенный JSON",
     "echarts_series_raw_hint": "Параметры GUI имеют приоритет при конфликте; данные остаются под управлением",
     "echarts_series_raw_invalid": "Неверный JSON",
     "echarts_series_smooth": "Сглаживание",

@@ -61,7 +61,7 @@ const AXIS_NAME_GAP = 18;
  *  - per-series `type: 'area'` (with no explicit `area`) → `flat`
  *  - `area: false` / undefined / off → `off`
  */
-const normalizeAreaMode = (meta: EchartsSeriesMeta | undefined): EchartsAreaFill => {
+export const normalizeAreaMode = (meta: EchartsSeriesMeta | undefined): EchartsAreaFill => {
     // Read `area` loosely: legacy data may store a boolean `true` (not in the EchartsAreaFill union).
     const raw = (meta as { area?: unknown } | undefined)?.area;
     if (raw === 'flat' || raw === 'gradient') {

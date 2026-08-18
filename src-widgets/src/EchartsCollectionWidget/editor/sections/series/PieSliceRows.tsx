@@ -39,6 +39,12 @@ const PieSliceRows: FC<PieSliceRowsProps> = ({ state, set, pickerCtx, slot, onUp
                 slot="pie"
                 raw={state.pie.raw}
                 onChange={v => set({ pie: { ...state.pie, raw: v || undefined } })}
+                analysis={{
+                    slot: 'pie',
+                    // Builder default: no rose (`?? 'none'`) — an unset rose must read as inactive.
+                    pieRoseActive: (state.pie.rose ?? 'none') !== 'none',
+                    animationEasingActive: !!state.animationEasing,
+                }}
             />
             {series.length === 0 && (
                 <EmptyState text={Generic.t('echarts_series_empty')}>
@@ -97,6 +103,7 @@ const PieSliceRows: FC<PieSliceRowsProps> = ({ state, set, pickerCtx, slot, onUp
                         slot="pie-slice"
                         raw={s.raw}
                         onChange={v => onUpdate(i, { raw: v || undefined })}
+                        analysis={{ slot: 'pie-slice', meta: s }}
                     />
                 </Box>
             ))}

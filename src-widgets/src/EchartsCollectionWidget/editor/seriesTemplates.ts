@@ -19,6 +19,7 @@
  * CATEGORY headers are translated. The chart-level Advanced-JSON keeps its own chart-wide snippets
  * (graphic/aria/…); this catalog is per-series only.
  */
+import { deepMerge } from '../utils/mergeOption';
 
 /** Template grouping (rendered as menu section headers; order = {@link TEMPLATE_CATEGORY_ORDER}). */
 export type TemplateCategory = 'annotations' | 'labels' | 'emphasis' | 'style' | 'behavior';
@@ -465,9 +466,11 @@ export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
 };
 
 /**
- * Inject a template's JSON into a card's current raw text (accumulate; matches the chart-level
- * `insertSnippet` semantics). Invalid current text is replaced by the template; a bad template is a
- * no-op. The merge is shallow per top-level key (consistent with the Advanced-JSON snippets).
+ * Inject a template's JSON into a card's current raw text (accumulate). Invalid current text is
+ * replaced by the template; a bad template is a no-op. The merge is a DEEP merge (the axis and
+ * chart-level injector idiom, ADR-0037/0040): series snippets share top-level keys (`lineStyle`,
+ * `label`, `markPoint`), so a shallow spread would clobber everything an earlier snippet set
+ * under the same key. Arrays replace wholesale (a `markPoint.data` list is a unit).
  */
 export const injectTemplate = (currentRaw: string | undefined, templateJson: string): string => {
     let base: Record<string, unknown> = {};
@@ -491,5 +494,5 @@ export const injectTemplate = (currentRaw: string | undefined, templateJson: str
     } catch {
         return currentRaw ?? ''; // bad template → no-op
     }
-    return JSON.stringify({ ...base, ...add }, null, 2);
+    return JSON.stringify(deepMerge(base, add), null, 2);
 };

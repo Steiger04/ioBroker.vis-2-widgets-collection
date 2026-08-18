@@ -19,6 +19,7 @@
  */
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
+import { presentLeaves } from './rawLeaves';
 
 /** Same three verdicts as the chart-level analysis (ADR-0030) so the chips read alike. */
 export type AxisKeyClass = 'effective' | 'partial' | 'ignored';
@@ -127,32 +128,6 @@ const managedLeafPaths = ({ axis: a, seriesColor, seriesName }: AxisAnalysisInpu
         paths.add('nameTextStyle.color');
     }
     return paths;
-};
-
-/**
- * The present leaf paths of a raw value, RELATIVE to its top-level key (same walk as the
- * chart-level `presentLeaves`: direct children are leaves, except the {@link NESTED_LEAF_KEYS}
- * containers of the key whose own children are the leaves — `axisLine.lineStyle.color` vs. the
- * free `lineStyle.width`). A non-object value yields no leaves (the whole key is overridden).
- */
-const presentLeaves = (value: unknown, nested: ReadonlySet<string>): string[] => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        return [];
-    }
-    const obj = value as Record<string, unknown>;
-    const isPlainObject = (v: unknown): v is Record<string, unknown> =>
-        !!v && typeof v === 'object' && !Array.isArray(v);
-    const leaves: string[] = [];
-    for (const [k, v] of Object.entries(obj)) {
-        if (nested.has(k) && isPlainObject(v)) {
-            for (const sub of Object.keys(v)) {
-                leaves.push(`${k}.${sub}`);
-            }
-        } else {
-            leaves.push(k);
-        }
-    }
-    return leaves;
 };
 
 /**

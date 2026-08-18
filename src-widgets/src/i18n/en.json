@@ -339,7 +339,7 @@
     "echarts_series_label": "Value labels",
     "echarts_series_line_style": "Line style",
     "echarts_series_line_width": "Line width",
-    "echarts_series_raw": "Raw echarts override",
+    "echarts_series_raw": "Advanced JSON",
     "echarts_series_raw_hint": "GUI knobs win on collision; data is managed",
     "echarts_series_raw_invalid": "Invalid JSON",
     "echarts_series_smooth": "Smooth",

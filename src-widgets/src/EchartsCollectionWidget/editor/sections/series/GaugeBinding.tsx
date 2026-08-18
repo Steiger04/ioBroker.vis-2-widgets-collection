@@ -76,6 +76,17 @@ const GaugeBinding: FC<GaugeBindingProps> = ({ state, set, pickerCtx, slot }) =>
                 slot="gauge"
                 raw={s0.raw}
                 onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                analysis={{
+                    slot: 'gauge',
+                    gaugeUnitActive: !!state.gauge.unit,
+                    // Builder guard: the two-zone track colour needs a FINITE target AND
+                    // min < max (gauge.ts) — mirror it or the chip false-reds the colour.
+                    gaugeTargetActive:
+                        state.gauge.target !== undefined &&
+                        Number.isFinite(state.gauge.target) &&
+                        (state.gauge.min ?? 0) < (state.gauge.max ?? 100),
+                    animationEasingActive: !!state.animationEasing,
+                }}
             />
         </Box>
     );

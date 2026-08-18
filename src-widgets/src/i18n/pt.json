@@ -339,7 +339,7 @@
     "echarts_series_label": "Etiquetas de valor",
     "echarts_series_line_style": "Estilo da linha",
     "echarts_series_line_width": "Largura da linha",
-    "echarts_series_raw": "Substituição raw de echarts",
+    "echarts_series_raw": "JSON avançado",
     "echarts_series_raw_hint": "Controlos da GUI prevalecem em colisão; dados são geridos",
     "echarts_series_raw_invalid": "JSON inválido",
     "echarts_series_smooth": "Suave",

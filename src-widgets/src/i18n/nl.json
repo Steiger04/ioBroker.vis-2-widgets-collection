@@ -339,7 +339,7 @@
     "echarts_series_label": "Waardelabels",
     "echarts_series_line_style": "Lijnstijl",
     "echarts_series_line_width": "Lijnbreedte",
-    "echarts_series_raw": "Onbewerkte echarts override",
+    "echarts_series_raw": "Geavanceerde JSON",
     "echarts_series_raw_hint": "GUI-knoppen winnen bij conflict; gegevens worden beheerd",
     "echarts_series_raw_invalid": "Ongeldige JSON",
     "echarts_series_smooth": "Vloeiend",

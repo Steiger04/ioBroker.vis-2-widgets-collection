@@ -132,6 +132,13 @@ const RadarIndicators: FC<RadarIndicatorsProps> = ({ state, set, pickerCtx, slot
                 slot="radar"
                 raw={s0.raw}
                 onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
+                analysis={{
+                    slot: 'radar',
+                    // Builder default: area is ON when unset (radar.ts `?? true`) — only an
+                    // explicit false frees areaStyle.
+                    radarAreaActive: state.radar.area !== false,
+                    animationEasingActive: !!state.animationEasing,
+                }}
             />
         </Box>
     );

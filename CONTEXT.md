@@ -135,7 +135,7 @@ A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-ridi
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Series raw**:
-The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object on a series card, deep-merged UNDER the GUI-authored series entry (the GUI wins collisions; the data points are force-set). Every series card carries one: cartesian per-card, gauge/radar as the single-series raw, and pie on two levels (a whole-pie series raw + a per-slice raw). It replaces the positional chart-level `U.series` array, now retired.
+The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object on a series card, deep-merged UNDER the GUI-authored series entry (the GUI wins collisions; the data points are force-set). Every series card carries one: cartesian per-card, gauge/radar as the single-series raw, and pie on two levels (a whole-pie series raw + a per-slice raw). Since the ADR-0037 axis parity it is labelled "Erweitertes JSON"/"Advanced JSON" like the Axis raw, injects templates via DEEP merge, and surfaces the same state-aware ✓/◐/✗ key analysis (`seriesRawAnalysis`) — conditional managed keys (areaStyle, symbolSize, roseType, gauge detail.formatter, …) classify against the card's actual state. It replaces the positional chart-level `U.series` array, now retired.
 _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 
 **Series template**:

@@ -339,7 +339,7 @@
     "echarts_series_label": "Etykiety wartości",
     "echarts_series_line_style": "Styl linii",
     "echarts_series_line_width": "Szerokość linii",
-    "echarts_series_raw": "Bezpośrednie nadpisanie echarts",
+    "echarts_series_raw": "Zaawansowany JSON",
     "echarts_series_raw_hint": "W przypadku konfliktu pierwszeństwo mają kontrolki GUI; dane są zarządzane",
     "echarts_series_raw_invalid": "Nieprawidłowy JSON",
     "echarts_series_smooth": "Wygładzenie",

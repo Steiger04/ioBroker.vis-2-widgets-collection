@@ -339,7 +339,7 @@
     "echarts_series_label": "Etichette valore",
     "echarts_series_line_style": "Stile linea",
     "echarts_series_line_width": "Larghezza linea",
-    "echarts_series_raw": "Override echarts grezzo",
+    "echarts_series_raw": "JSON avanzato",
     "echarts_series_raw_hint": "I controlli GUI prevalgono in caso di conflitto; i dati sono gestiti",
     "echarts_series_raw_invalid": "JSON non valido",
     "echarts_series_smooth": "Smussato",

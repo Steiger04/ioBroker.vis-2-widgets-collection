@@ -339,7 +339,7 @@
     "echarts_series_label": "Étiquettes de valeur",
     "echarts_series_line_style": "Style de ligne",
     "echarts_series_line_width": "Largeur de ligne",
-    "echarts_series_raw": "Remplacement brut echarts",
+    "echarts_series_raw": "Advanced JSON",
     "echarts_series_raw_hint": "Les contrôles graphiques priment en cas de conflit ; les données sont gérées",
     "echarts_series_raw_invalid": "JSON invalide",
     "echarts_series_smooth": "Lisser",

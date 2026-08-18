@@ -339,7 +339,7 @@
     "echarts_series_label": "Werte-Labels",
     "echarts_series_line_style": "Linienstil",
     "echarts_series_line_width": "Linienbreite",
-    "echarts_series_raw": "Roher echarts-Override",
+    "echarts_series_raw": "Erweitertes JSON",
     "echarts_series_raw_hint": "GUI-Knobs gewinnen bei Kollision; Daten bleiben gemanagt",
     "echarts_series_raw_invalid": "Ungültiges JSON",
     "echarts_series_smooth": "Glättung",

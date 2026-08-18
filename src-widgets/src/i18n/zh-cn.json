@@ -339,7 +339,7 @@
     "echarts_series_label": "数值标签",
     "echarts_series_line_style": "线条样式",
     "echarts_series_line_width": "线条宽度",
-    "echarts_series_raw": "原始 echarts 覆盖",
+    "echarts_series_raw": "高级 JSON",
     "echarts_series_raw_hint": "冲突时以 GUI 控件为准；数据受管",
     "echarts_series_raw_invalid": "无效的 JSON",
     "echarts_series_smooth": "平滑",

@@ -339,7 +339,7 @@
     "echarts_series_label": "Мітки значень",
     "echarts_series_line_style": "Стиль лінії",
     "echarts_series_line_width": "Товщина лінії",
-    "echarts_series_raw": "Пряме перевизначення echarts",
+    "echarts_series_raw": "Розширений JSON",
     "echarts_series_raw_hint": "Елементи керування інтерфейсом мають пріоритет при колізіях; дані керуються",
     "echarts_series_raw_invalid": "Недійсний JSON",
     "echarts_series_smooth": "Плавна",
