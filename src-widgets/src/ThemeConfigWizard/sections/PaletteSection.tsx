@@ -16,11 +16,11 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
+import SectionCard from '../../components/SectionCard';
 import { FieldLabel, SubGroup } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
-import StudioSection from './StudioSection';
 
 /** One colour slot in a group. */
 interface ColorFieldDef {
@@ -91,7 +91,7 @@ function PaletteSection({
     }`;
 
     return (
-        <StudioSection
+        <SectionCard
             title={Generic.t('theme_wizard_section_palette')}
             summary={summary}
             expanded={expanded}
@@ -126,7 +126,7 @@ function PaletteSection({
             </Box>
             <SubGroup title={Generic.t('theme_studio_group_accents')}>{ACCENT_FIELDS.map(renderField)}</SubGroup>
             <SubGroup title={Generic.t('theme_studio_group_surface')}>{SURFACE_FIELDS.map(renderField)}</SubGroup>
-        </StudioSection>
+        </SectionCard>
     );
 }
 

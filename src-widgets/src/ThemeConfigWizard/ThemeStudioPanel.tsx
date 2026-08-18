@@ -12,8 +12,9 @@
  * snaps back), with a confirm when there are unsaved changes.
  *
  * ADR-0020 chrome:
- * - **Undo/redo** — every edit runs through {@link module:lib/theme/useThemeHistory}
- *   (slider drags coalesce per path, discrete edits push), with header buttons and
+ * - **Undo/redo** — every edit runs through the editor history
+ *   ({@link module:lib/useEditorHistory.useEditorHistory}, ADR-0038; slider drags coalesce per
+ *   path, discrete edits push), with header buttons and
  *   Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y (skipped while typing in inputs).
  * - **Honest dirty state** — dirty is `present ≠ last-loaded/saved` (undo all the way
  *   back reads clean again), shown as a dot next to the title.
@@ -25,29 +26,23 @@
  *   counter scrolls to the first problem (expanding its section). Only errors without
  *   a field home (non-colour paths) and warnings keep a compact alert at the bottom.
  *
- * The panel chrome is wrapped in its OWN `ThemeProvider` built from `themeType`
- * so the panel UI is unaffected by the theme being edited (no RTL/dark-mode
- * self-influence); the canvas is the preview (ADR-0020 decision 2).
+ * The panel chrome inherits the vis-2 editor theme (VisTheme) from the palette React tree
+ * (ADR-0038): the panel is editor chrome like every configurator, so it renders in the host
+ * editor's look instead of its own default-MUI theme. It stays unaffected by the theme being
+ * EDITED — the draft only flows to the canvas widgets via the draft store, never back into the
+ * panel; the canvas is the preview (ADR-0020 decision 2).
  */
 
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import RedoIcon from '@mui/icons-material/Redo';
-import UndoIcon from '@mui/icons-material/Undo';
 import {
     Alert,
     Box,
     Button,
     CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     IconButton,
     Paper,
     Stack,
-    ThemeProvider,
     Tooltip,
     Typography,
     createTheme,
@@ -58,6 +53,8 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { Theme } from '@mui/material/styles';
 
 import Generic from '../Generic';
+import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
+import EditorHistoryButtons from '../components/EditorHistoryButtons';
 import FloatingPanelGrips from '../components/FloatingPanelGrips';
 import { SubGroup } from '../components/controls';
 import useFloatingPanel, { PANEL_DEFAULT_W } from '../hooks/useFloatingPanel';
@@ -69,8 +66,8 @@ import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownThem
 import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
-import useThemeHistory from '../lib/theme/useThemeHistory';
 import { validateThemeOptions } from '../lib/theme/validateTheme';
+import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
 import PresetCards from './PresetCards';
 import ErweitertSection from './sections/ErweitertSection';
 import PaletteSection from './sections/PaletteSection';
@@ -141,22 +138,13 @@ const VALIDATION_CODE_KEYS: Record<string, string> = {
 const formatIssue = (issue: ThemeValidationIssue): string =>
     issue.code && VALIDATION_CODE_KEYS[issue.code] ? Generic.t(VALIDATION_CODE_KEYS[issue.code]) : issue.message;
 
-/** True when a keyboard event originates from an editable element (undo keys skip those). */
-const isEditableTarget = (target: EventTarget | null): boolean => {
-    if (!(target instanceof HTMLElement)) {
-        return false;
-    }
-    const tag = target.tagName;
-    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
-};
-
 /**
  * Floating panel component for editing the theme with live preview.
  */
 function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanelProps): React.JSX.Element | null {
     // The draft lives in the history stack; mirrored to the draft store so canvas
     // widgets preview edits live.
-    const history = useThemeHistory({});
+    const history = useEditorHistory<UserTheme>({});
     const themeObj = history.present;
     // Latest draft for imperative readers (hydrate guard, throttled trailing flush).
     const presentRef = useRef(themeObj);
@@ -185,12 +173,6 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
             height: Generic.t('theme_studio_resize_height'),
         },
     });
-
-    // Panel chrome follows the vis-2 dark/light mode (independent of the edited theme).
-    const chromeTheme = useMemo(
-        () => createTheme({ palette: { mode: themeType === 'dark' ? 'dark' : 'light' } }),
-        [themeType],
-    );
 
     // Load the persisted theme object whenever the panel opens. Instant open
     // (ADR-0020): seed from the session's last known theme so the form renders
@@ -357,8 +339,9 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         onClose();
     }, [dirty, onClose]);
 
-    // Keyboard: Escape closes; Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y drive undo/redo
-    // (unless the user is typing in an input — the field's own undo wins there).
+    // Keyboard: Escape closes (with the same discard handling as the close button); the
+    // undo/redo keys are the shared configurator binding (ADR-0038).
+    useEditorHistoryKeys(history, open);
     useEffect(() => {
         if (!open) {
             return;
@@ -366,27 +349,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         const onKey = (event: KeyboardEvent): void => {
             if (event.key === 'Escape') {
                 requestClose();
-                return;
-            }
-            if (isEditableTarget(event.target)) {
-                return;
-            }
-            const mod = event.ctrlKey || event.metaKey;
-            if (mod && !event.altKey && event.key.toLowerCase() === 'z') {
-                event.preventDefault();
-                if (event.shiftKey) {
-                    history.redo();
-                } else {
-                    history.undo();
-                }
-            } else if (mod && !event.altKey && event.key.toLowerCase() === 'y') {
-                event.preventDefault();
-                history.redo();
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [open, requestClose, history]);
+    }, [open, requestClose]);
 
     // Scroll-to-error: expand the owning section, then scroll the first marked
     // field (or the section itself) into view — after a tick so the lazily
@@ -476,7 +443,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
     }
 
     return (
-        <ThemeProvider theme={chromeTheme}>
+        <>
             <Paper
                 ref={panelRef}
                 elevation={8}
@@ -551,30 +518,13 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                         spacing={0}
                         sx={{ flexShrink: 0 }}
                     >
-                        <Tooltip title={Generic.t('theme_studio_undo')}>
-                            <span>
-                                <IconButton
-                                    size="small"
-                                    onClick={history.undo}
-                                    disabled={!history.canUndo}
-                                    aria-label={Generic.t('theme_studio_undo')}
-                                >
-                                    <UndoIcon fontSize="small" />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={Generic.t('theme_studio_redo')}>
-                            <span>
-                                <IconButton
-                                    size="small"
-                                    onClick={history.redo}
-                                    disabled={!history.canRedo}
-                                    aria-label={Generic.t('theme_studio_redo')}
-                                >
-                                    <RedoIcon fontSize="small" />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
+                        <EditorHistoryButtons
+                            canUndo={history.canUndo}
+                            canRedo={history.canRedo}
+                            onUndo={history.undo}
+                            onRedo={history.redo}
+                            size="small"
+                        />
                         <IconButton
                             size="small"
                             onClick={requestClose}
@@ -739,31 +689,13 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                 </Box>
             </Paper>
 
-            <Dialog
+            <ConfirmDiscardDialog
                 open={confirmDiscardOpen}
-                onClose={() => setConfirmDiscardOpen(false)}
-            >
-                <DialogTitle>{Generic.t('theme_studio_discard_title')}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>{Generic.t('theme_studio_discard_text')}</DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => setConfirmDiscardOpen(false)}
-                        color="inherit"
-                    >
-                        {Generic.t('cancel')}
-                    </Button>
-                    <Button
-                        onClick={confirmDiscard}
-                        color="error"
-                        variant="contained"
-                    >
-                        {Generic.t('theme_studio_discard')}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </ThemeProvider>
+                text={Generic.t('theme_studio_discard_text')}
+                onCancel={() => setConfirmDiscardOpen(false)}
+                onConfirm={confirmDiscard}
+            />
+        </>
     );
 }
 

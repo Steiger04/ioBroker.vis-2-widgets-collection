@@ -15,11 +15,11 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import type React from 'react';
 
 import HelpHint from '../../components/HelpHint';
+import SectionCard from '../../components/SectionCard';
 import { FieldLabel, SliderField, SubGroup, SwitchList, SwitchRow, TextField2 } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
-import StudioSection from './StudioSection';
 
 /** "Erweitert" section: direction + spacing + CSS vars. */
 function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: StudioSectionProps): React.JSX.Element {
@@ -47,7 +47,7 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
     )}`;
 
     return (
-        <StudioSection
+        <SectionCard
             title={Generic.t('theme_studio_section_advanced')}
             summary={summary}
             expanded={expanded}
@@ -128,7 +128,7 @@ function ErweitertSection({ theme, onChange, expanded, onExpandedChange }: Studi
                     </Box>
                 )}
             </SubGroup>
-        </StudioSection>
+        </SectionCard>
     );
 }
 

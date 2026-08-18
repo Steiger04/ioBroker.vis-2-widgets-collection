@@ -34,6 +34,7 @@ import { useEffect, useState } from 'react';
 import type React from 'react';
 
 import Generic from '../../Generic';
+import SectionCard from '../../components/SectionCard';
 import HelpHint from '../../components/HelpHint';
 import { FieldGrid, FieldLabel, LabeledSelect, SliderField, TextField2 } from '../../components/controls';
 import {
@@ -46,7 +47,6 @@ import {
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
-import StudioSection from './StudioSection';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -163,7 +163,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
     const summary = `${fontLabel} · ${fontSize}px · r=${linkedRadius}`;
 
     return (
-        <StudioSection
+        <SectionCard
             title={Generic.t('theme_studio_section_schrift_form')}
             summary={summary}
             expanded={expanded}
@@ -404,7 +404,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                     ) : null}
                 </Box>
             </Stack>
-        </StudioSection>
+        </SectionCard>
     );
 }
 

@@ -1,56 +1,62 @@
 /**
- * Shared section shell for the theme studio (ADR-0020).
+ * The shared collapsible section shell of the configurator control kit (ADR-0038).
  *
- * @module ThemeConfigWizard/sections/StudioSection
+ * @module components/SectionCard
  * @remarks
- * One collapsible, intent-named unit of the studio panel — the Summary-line idiom from the
- * echarts configurator: a collapsed header shows a one-line digest of its effective values,
- * so the closed panel still reads as a coherent description of the theme. The body mounts
- * lazily on first expand (`mountOnEnter` on the accordion transition) and stays mounted
- * afterwards, so opening the panel does not mount every collapsed section's controls (the
- * echarts open-cost fix), while local field state still survives collapsing.
+ * One configurator language across the collection: the echarts configurator's rail sections
+ * (formerly the flat-divider `Section`, ADR-0010) and the Theme Studio's panel sections
+ * (formerly `StudioSection`, ADR-0020) are the same unit — a bordered 12px-radius accordion
+ * card. Header: expand chevron + title + (collapsed only) the Summary line + the warning
+ * roll-up chip. The body mounts lazily on first expand (`mountOnEnter` on the accordion
+ * transition) and stays mounted afterwards, so opening the editor does not mount every
+ * collapsed section's controls, while per-item local state survives collapsing.
+ *
+ * Supports uncontrolled and controlled (`expanded` + `onExpandedChange`) modes; both
+ * configurators drive it controlled (scroll-to-error / rail steering expand sections).
  */
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Chip, Typography } from '@mui/material';
 import { useState } from 'react';
 import type React from 'react';
 
-/** Props for {@link StudioSection}. */
-interface StudioSectionProps {
-    /** Section title in the accordion header. */
+/** Props for {@link SectionCard}. */
+export interface SectionCardProps {
+    /** Section title in the card header. */
     title: string;
     /** One-line digest of the section's effective values, shown while collapsed. */
-    summary: string;
-    /** Controlled expanded state — when provided, the panel owns expansion (scroll-to-error). */
+    summary?: string;
+    /** Number of validation issues in this section (0/absent = clean) — the ⚠ roll-up chip. */
+    issueCount?: number;
+    /** Controlled expanded state — when provided, the parent owns expansion. */
     expanded?: boolean;
-    /** Expanded-state change callback (controlled mode). */
+    /** Expanded-state change callback (fires in controlled and uncontrolled mode). */
     onExpandedChange?: (expanded: boolean) => void;
     /** Section body (fields). */
     children: React.ReactNode;
 }
 
 /**
- * Accordion section with a collapsed-state summary line and a lazily mounted body.
- * Supports uncontrolled and controlled (`expanded` + `onExpandedChange`) modes; the panel
- * uses the controlled mode to expand a section holding a validation error. Sections start
- * collapsed in uncontrolled mode.
+ * Collapsible section card with a collapsed-state summary line, a warning roll-up chip and a
+ * lazily mounted body.
  *
  * @param props - Component props.
- * @param props.title - Section title in the accordion header.
+ * @param props.title - Section title in the card header.
  * @param props.summary - One-line digest shown while collapsed.
- * @param props.expanded - Controlled expanded state (panel-owned).
- * @param props.onExpandedChange - Expanded-state change callback (controlled mode).
+ * @param props.issueCount - Number of validation issues (the ⚠ roll-up chip).
+ * @param props.expanded - Controlled expanded state (parent-owned).
+ * @param props.onExpandedChange - Expanded-state change callback.
  * @param props.children - Section body (fields).
- * @returns The section accordion.
+ * @returns The section accordion card.
  */
-function StudioSection({
+function SectionCard({
     title,
     summary,
+    issueCount = 0,
     expanded: expandedProp,
     onExpandedChange,
     children,
-}: StudioSectionProps): React.JSX.Element {
+}: SectionCardProps): React.JSX.Element {
     const [expandedInternal, setExpandedInternal] = useState<boolean>(false);
     const expanded = expandedProp ?? expandedInternal;
     const handleChange = (isExpanded: boolean): void => {
@@ -86,7 +92,7 @@ function StudioSection({
                 >
                     {title}
                 </Typography>
-                {!expanded ? (
+                {!expanded && summary ? (
                     <Typography
                         variant="caption"
                         color="text.secondary"
@@ -96,10 +102,19 @@ function StudioSection({
                         {summary}
                     </Typography>
                 ) : null}
+                {issueCount > 0 && (
+                    <Chip
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        label={`⚠ ${issueCount}`}
+                        sx={{ ml: 'auto', flexShrink: 0 }}
+                    />
+                )}
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0.5 }}>{children}</AccordionDetails>
         </Accordion>
     );
 }
 
-export default StudioSection;
+export default SectionCard;

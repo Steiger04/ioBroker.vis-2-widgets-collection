@@ -13,11 +13,11 @@
 import type React from 'react';
 
 import ColorPickerField from '../../components/ColorPickerField';
+import SectionCard from '../../components/SectionCard';
 import { SubGroup } from '../../components/controls';
 import Generic from '../../Generic';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
 import { getNestedValue } from '../../lib/theme/themeUtils';
-import StudioSection from './StudioSection';
 
 /** One colour slot in a group. */
 interface ColorFieldDef {
@@ -72,7 +72,7 @@ function StatusTextSection({
     const summary = Generic.t('theme_studio_summary_set', String(overrideCount), String(ALL_FIELDS.length));
 
     return (
-        <StudioSection
+        <SectionCard
             title={Generic.t('theme_studio_section_status_text')}
             summary={summary}
             expanded={expanded}
@@ -80,7 +80,7 @@ function StatusTextSection({
         >
             <SubGroup title={Generic.t('theme_studio_group_status')}>{STATUS_FIELDS.map(renderField)}</SubGroup>
             <SubGroup title={Generic.t('theme_studio_group_text')}>{TEXT_FIELDS.map(renderField)}</SubGroup>
-        </StudioSection>
+        </SectionCard>
     );
 }
 
