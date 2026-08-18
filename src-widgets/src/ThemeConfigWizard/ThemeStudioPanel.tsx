@@ -422,7 +422,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
     );
 
     const handleSave = useCallback(async (): Promise<void> => {
-        if (!validation.isValid || saving) {
+        if (!validation.isValid || !dirty || saving) {
             return;
         }
         setSaving(true);
@@ -440,7 +440,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         } finally {
             setSaving(false);
         }
-    }, [socket, themeObj, validation.isValid, saving, onClose]);
+    }, [socket, themeObj, validation.isValid, dirty, saving, onClose]);
 
     const confirmDiscard = useCallback((): void => {
         setConfirmDiscardOpen(false);
@@ -690,7 +690,10 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                             <Button
                                 onClick={handleSave}
                                 variant="contained"
-                                disabled={!validation.isValid || loading || saving}
+                                // Disabled-when-clean (configurator-design contract): Save needs
+                                // something to commit — dirty flips back to false on a full
+                                // revert / undo-to-start, exactly like the echarts Apply.
+                                disabled={!validation.isValid || !dirty || loading || saving}
                             >
                                 {saving ? <CircularProgress size={20} /> : Generic.t('save')}
                             </Button>
