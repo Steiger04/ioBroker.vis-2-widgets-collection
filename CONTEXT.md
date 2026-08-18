@@ -177,7 +177,7 @@ The collection-wide theme editor (ADR-0020): edits the user theme (stored in the
 ## Language
 
 **Studio panel**:
-The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor theme (VisTheme) inherited from the palette React tree, like every configurator (ADR-0038) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
+The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor's theme family, rebuilt from the host mode via the ioBroker theme factory (ADR-0038) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
 _Avoid_: Wizard dialog (the deleted modal), theme dialog
 
 **Preset card**:
@@ -193,7 +193,7 @@ The in-section disclosure at the end of Schrift & Form holding the font-weight s
 _Avoid_: Advanced typography, more options
 
 **Control kit**:
-The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor theme (VisTheme), never its own palette (ADR-0038).
+The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds from the host mode via the ioBroker theme factory, ADR-0038).
 _Avoid_: Editor controls, per-editor widgets
 
 **Editor history**:

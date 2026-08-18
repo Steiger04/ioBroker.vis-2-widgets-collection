@@ -26,11 +26,14 @@
  *   counter scrolls to the first problem (expanding its section). Only errors without
  *   a field home (non-colour paths) and warnings keep a compact alert at the bottom.
  *
- * The panel chrome inherits the vis-2 editor theme (VisTheme) from the palette React tree
- * (ADR-0038): the panel is editor chrome like every configurator, so it renders in the host
- * editor's look instead of its own default-MUI theme. It stays unaffected by the theme being
- * EDITED — the draft only flows to the canvas widgets via the draft store, never back into the
- * panel; the canvas is the preview (ADR-0020 decision 2).
+ * The panel chrome renders in the vis-2 editor's theme family (ADR-0038): it is editor chrome
+ * like every configurator. The palette extension point exposes only the host MODE
+ * (`themeType`), not the theme object, and the palette React tree does not reliably provide the
+ * editor theme by context — so the chrome theme is REBUILT from the same factory the vis-2
+ * editor itself uses (`Theme()` from adapter-react-v5: the ioBroker palette family, not bare
+ * MUI defaults). It stays unaffected by the theme being EDITED — the draft only flows to the
+ * canvas widgets via the draft store, never back into the panel; the canvas is the preview
+ * (ADR-0020 decision 2).
  */
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -43,14 +46,16 @@ import {
     IconButton,
     Paper,
     Stack,
+    ThemeProvider,
     Tooltip,
     Typography,
     createTheme,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
+import { Theme } from '@iobroker/adapter-react-v5';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
-import type { Theme } from '@mui/material/styles';
+import type { Theme as MuiTheme } from '@mui/material/styles';
 
 import Generic from '../Generic';
 import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
@@ -174,6 +179,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         },
     });
 
+    // Panel chrome follows the vis-2 host mode via the ioBroker theme factory (ADR-0038):
+    // same family the editor itself renders in (dark #4dabf5, light #3399CC), independent of
+    // the theme being edited.
+    const chromeTheme = useMemo(() => Theme(themeType === 'dark' ? 'dark' : 'light'), [themeType]);
+
     // Load the persisted theme object whenever the panel opens. Instant open
     // (ADR-0020): seed from the session's last known theme so the form renders
     // immediately, then revalidate against the ioBroker state in the background.
@@ -271,7 +281,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
     // color mode resolved against the vis-2 host when set to "Auto", so every
     // color field shows the effective value (MUI's mode-aware defaults for
     // anything not explicitly overridden).
-    const resolvedTheme = useMemo<Theme>(() => {
+    const resolvedTheme = useMemo<MuiTheme>(() => {
         const storedMode = getNestedValue<string>(themeObj, 'palette.mode');
         const mode: 'light' | 'dark' =
             storedMode === 'light' || storedMode === 'dark' ? storedMode : themeType === 'dark' ? 'dark' : 'light';
@@ -443,7 +453,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
     }
 
     return (
-        <>
+        <ThemeProvider theme={chromeTheme}>
             <Paper
                 ref={panelRef}
                 elevation={8}
@@ -695,7 +705,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                 onCancel={() => setConfirmDiscardOpen(false)}
                 onConfirm={confirmDiscard}
             />
-        </>
+        </ThemeProvider>
     );
 }
 
