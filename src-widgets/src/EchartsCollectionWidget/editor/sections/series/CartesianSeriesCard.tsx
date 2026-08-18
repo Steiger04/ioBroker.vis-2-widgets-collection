@@ -3,7 +3,8 @@
  *
  * @module EchartsCollectionWidget/editor/sections/series/CartesianSeriesCard
  * @remarks
- *  - {@link CartesianBasisFields} — the "Basics" SubGroup (OID / name / colour / type / y-axis
+ *  - {@link CartesianBasisFields} — the "Basics" SubGroup (OID / history instance (Verlauf,
+ *    ADR-0039) / name / colour / type / y-axis
  *    binding) shared by the history/live card and the JSON-mode card (ADR-0011 parity). The JSON
  *    card omits the OID row (the payload owns the data) and clears names to `undefined`.
  *  - {@link CartesianSeriesKnobs} — the type-sensitive knob cluster (line / bar / area SubGroups),
@@ -70,6 +71,10 @@ export const CartesianBasisFields: FC<{
     axisDisplayNames?: string[];
     /** OID binding row (history/live only — the JSON payload owns the data). */
     oid?: { value: string; onChange: (oid: string) => void; historyOnly: boolean };
+    /** Verlauf: show the per-series history-instance select (first field under the OID, ADR-0039). */
+    showInstance?: boolean;
+    /** Verlauf: selectable history instances (empty list = none installed → Auto only). */
+    historyInstances?: string[];
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
     nameClearsToUndefined?: boolean;
     /**
@@ -90,6 +95,8 @@ export const CartesianBasisFields: FC<{
     yAxes,
     axisDisplayNames,
     oid,
+    showInstance,
+    historyInstances,
     nameClearsToUndefined,
     showAxis = true,
 }) => (
@@ -105,6 +112,17 @@ export const CartesianBasisFields: FC<{
                         historyOnly={oid.historyOnly}
                     />
                 </Box>
+            )}
+            {showInstance && (
+                <LabeledSelect
+                    label={Generic.t('echarts_instance')}
+                    value={meta.instance ?? ''}
+                    onChange={v => onPatch({ instance: v || undefined })}
+                    options={[
+                        ['', Generic.t('echarts_instance_auto')],
+                        ...(historyInstances ?? []).map(id => [id, id] as [string, string]),
+                    ]}
+                />
             )}
             <TextField2
                 label={Generic.t('echarts_editor_series_name')}
@@ -342,6 +360,8 @@ interface CartesianSeriesListProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of series i (the inherit fallback). */
     slot: (i: number) => string;
+    /** Verlauf: selectable history instances (empty = none installed / not Verlauf). */
+    historyInstances?: string[];
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdate: (i: number, patch: Partial<EditorSeries>) => void;
@@ -358,6 +378,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     state,
     pickerCtx,
     slot,
+    historyInstances,
     expanded,
     onToggleCard,
     onUpdate,
@@ -452,6 +473,8 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         showType={series.length >= 2}
                         yAxes={state.yAxes}
                         axisDisplayNames={axisDisplayNames}
+                        showInstance={state.mode === 'history'}
+                        historyInstances={historyInstances}
                         oid={{
                             value: s.oid,
                             onChange: oid => onUpdate(i, { oid }),

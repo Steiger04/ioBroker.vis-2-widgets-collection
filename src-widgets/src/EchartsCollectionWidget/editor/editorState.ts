@@ -86,7 +86,6 @@ export interface EditorState {
     aggregate: Aggregate;
     count: number;
     refreshMs: number;
-    instance: string;
     ignoreNull: IgnoreNull;
     jsonOid: string;
     // title
@@ -162,7 +161,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     aggregate: 'average',
     count: 500,
     refreshMs: 60_000,
-    instance: '',
     ignoreNull: 'keep',
     jsonOid: '',
     titleText: '',
@@ -357,7 +355,6 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
-        instance: strOr(data.instance, ''),
         ignoreNull: (data.ignoreNull as IgnoreNull) ?? DEFAULT_EDITOR_STATE.ignoreNull,
         jsonOid: strOr(data.jsonOid, '') === 'nothing_selected' ? '' : strOr(data.jsonOid, ''),
         titleText: strOr(data.titleText, ''),
@@ -441,7 +438,6 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         aggregate: state.aggregate,
         count: state.count,
         refreshMs: state.refreshMs,
-        instance: state.instance,
         ignoreNull: state.ignoreNull,
         jsonOid: state.jsonOid,
         titleText: state.titleText,

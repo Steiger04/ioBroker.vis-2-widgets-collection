@@ -61,6 +61,20 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.markLines[0]).toMatchObject({ value: 50, label: 'Grenze', dashed: true });
     });
 
+    it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {
+        const state = {
+            ...baseState(),
+            series: [
+                { id: 's1', oid: 'a.0', name: 'A', yAxisIndex: 0, instance: 'sql.0' },
+                { id: 's2', oid: 'b.0', name: 'B', yAxisIndex: 1 },
+            ],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 2));
+        expect(reloaded.series[0]).toMatchObject({ oid: 'a.0', instance: 'sql.0' });
+        expect(reloaded.series[1]).toMatchObject({ oid: 'b.0' });
+        expect(reloaded.series[1].instance).toBeUndefined();
+    });
+
     it('empty jsonHidden round-trips to empty (not lost, not garbled)', () => {
         const state = { ...baseState(), jsonHidden: [] };
         const reloaded = loadEditorState(saveEditorState(state, 0));

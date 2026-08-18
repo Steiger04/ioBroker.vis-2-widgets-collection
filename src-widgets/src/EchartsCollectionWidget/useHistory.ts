@@ -20,6 +20,8 @@ import { fetchMultiSeries, rangeToOptions, type FetchedSeries, type IgnoreNull, 
 export interface UseHistoryEntry {
     oid: string;
     name?: string;
+    /** Pinned history instance for this OID (ADR-0039); absent = Auto. */
+    instance?: string;
 }
 
 export interface UseHistoryOptions {
@@ -27,7 +29,6 @@ export interface UseHistoryOptions {
     aggregate?: ioBroker.GetHistoryOptions['aggregate'];
     count?: number;
     step?: number;
-    instance?: string;
     /** 0 / undefined = no periodic refresh. */
     refreshMs?: number;
     ignoreNull?: IgnoreNull;
@@ -59,14 +60,7 @@ export function useHistory(
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const entriesKey = JSON.stringify(entries);
-    const optsKey = JSON.stringify([
-        opts.rangeMs,
-        opts.aggregate,
-        opts.count,
-        opts.step,
-        opts.instance,
-        opts.ignoreNull,
-    ]);
+    const optsKey = JSON.stringify([opts.rangeMs, opts.aggregate, opts.count, opts.step, opts.ignoreNull]);
 
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
     useEffect(() => {

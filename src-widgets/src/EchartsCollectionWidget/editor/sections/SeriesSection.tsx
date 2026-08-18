@@ -21,7 +21,9 @@ import { useState, type FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
+import { InfoBox } from '../../../components/controls';
 import { useEditorTheme } from '../useEditorTheme';
+import { useHistoryInstances } from '../useHistoryInstances';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
@@ -70,6 +72,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const isRadar = state.chartType === 'radar';
     const isJson = state.mode === 'json';
     const isCartesian = state.chartType === 'line' || state.chartType === 'bar';
+    // Verlauf: the per-series history-instance pins live on the series cards (ADR-0039). The
+    // instance list is fetched ONCE here and passed down — every card fetching its own would
+    // fire one socket round-trip per series.
+    const isHistory = state.mode === 'history';
+    const historyInstances = useHistoryInstances(pickerCtx.socket);
 
     const series = state.series;
     const update = (i: number, patch: Partial<EditorSeries>): void =>
@@ -210,6 +217,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     return (
         <Box>
             {issues.length > 0 && <IssueList issues={issues} />}
+            {isHistory && !isGauge && !isRadar && !isJson && (
+                <Box sx={{ mb: 1.5 }}>
+                    <InfoBox text={Generic.t('echarts_instance_auto_hint')} />
+                </Box>
+            )}
             {isGauge && (
                 <GaugeBinding
                     state={state}
@@ -257,6 +269,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
+                    historyInstances={isHistory ? historyInstances : []}
                     expanded={expanded}
                     onToggleCard={toggleCard}
                     onUpdate={update}

@@ -75,7 +75,7 @@ The single-line digest of effective values shown on a collapsed Section (`24h ·
 _Avoid_: Subtitle, hint text
 
 **Series card**:
-A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, grouped into Sub-groups (basis, line/bar, area).
+A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, grouped into Sub-groups (basis, line/bar, area). The basis group leads with the OID and — in Verlauf — the per-series **history instance** (ADR-0039: each OID can store its history in a different adapter; Auto = the datapoint's own config decides, else the server).
 _Avoid_: Accordion item (v2), row
 
 **Slice row**:

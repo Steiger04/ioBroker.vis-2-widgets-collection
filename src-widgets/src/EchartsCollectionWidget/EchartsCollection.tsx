@@ -177,13 +177,14 @@ function EchartsCollection(): React.ReactElement {
 
     // Gather the indexed series OIDs (oid1..oidN), auto-subscribed by vis-2. For cartesian/pie
     // these are the series; for gauge it is the scalar (oid1); for radar the indicator OIDs.
+    // The per-series pinned history instance (ADR-0039) rides along in the meta blob.
     const entries = useMemo(() => {
         const count = typeof data.series_count === 'number' ? data.series_count : 0;
-        const out: { oid: string; name?: string }[] = [];
+        const out: { oid: string; name?: string; instance?: string }[] = [];
         for (let i = 1; i <= count; i++) {
             const oid = data[`oid${i}`];
             if (oid && oid !== 'nothing_selected') {
-                out.push({ oid, name: meta[i - 1]?.name });
+                out.push({ oid, name: meta[i - 1]?.name, instance: meta[i - 1]?.instance });
             }
         }
         return out;
@@ -195,7 +196,6 @@ function EchartsCollection(): React.ReactElement {
         rangeMs: RANGE_MS[data.timeRange ?? '24h'] ?? RANGE_MS['24h'],
         aggregate: data.aggregate,
         count: Math.min(data.count ?? 500, MAX_HISTORY_POINTS),
-        instance: data.instance,
         refreshMs: data.refreshMs,
         ignoreNull: data.ignoreNull,
         enabled: (family === 'cartesian' || family === 'pie') && mode === 'history' && entries.length > 0,

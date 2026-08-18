@@ -143,6 +143,13 @@ export interface EchartsSeriesMeta {
     type?: EchartsCartesianType;
     /** Cartesian Y-axis index this series binds to (0-based; ADR-0012 multi-axis). @default 0 */
     yAxisIndex?: number;
+    /**
+     * History adapter instance this series reads Verlauf data from (ADR-0039) — pinned per
+     * series because each OID can store its history in a different adapter. Empty/undefined =
+     * Auto: the datapoint's own config (`common.custom`) decides, else the server default.
+     * History mode only; never emitted to echarts.
+     */
+    instance?: string;
     /** Smooth line. @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family) */
     smooth?: boolean;
     /** Line width. */

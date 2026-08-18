@@ -85,6 +85,8 @@ export function toSeriesData(points: Point[], ignoreNull: IgnoreNull = 'keep'): 
 export interface HistoryEntry {
     oid: string;
     name?: string;
+    /** Pinned history instance for THIS OID (ADR-0039); absent = Auto (datapoint config, else server). */
+    instance?: string;
 }
 
 export interface FetchedSeries {
@@ -95,7 +97,8 @@ export interface FetchedSeries {
 
 /**
  * Fetch + transform multiple OIDs in parallel. `Promise.allSettled` so one failing OID
- * doesn't discard the others — a failed series becomes `{ data: [], error }`.
+ * doesn't discard the others — a failed series becomes `{ data: [], error }`. An entry's
+ * pinned `instance` (ADR-0039) overrides the base options' for that OID only.
  */
 export async function fetchMultiSeries(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
@@ -104,7 +107,12 @@ export async function fetchMultiSeries(
     ignoreNull: IgnoreNull = 'keep',
 ): Promise<FetchedSeries[]> {
     const results = await Promise.allSettled(
-        entries.map(e => getHistory(e.oid, options).then(pts => ({ name: e.name ?? e.oid, pts }))),
+        entries.map(e =>
+            getHistory(e.oid, e.instance ? { ...options, instance: e.instance } : options).then(pts => ({
+                name: e.name ?? e.oid,
+                pts,
+            })),
+        ),
     );
     return results.map((r, i) => {
         const name = entries[i].name ?? entries[i].oid;

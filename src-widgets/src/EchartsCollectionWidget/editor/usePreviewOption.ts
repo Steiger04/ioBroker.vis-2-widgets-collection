@@ -93,9 +93,13 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         return r.ok ? r.value : {};
     }, [state.userText]);
 
-    // cartesian/pie entries (used by history fetch + live buffer).
+    // cartesian/pie entries (used by history fetch + live buffer). The per-series pinned
+    // history instance (ADR-0039) rides along so the preview fetches like the widget body.
     const entries = useMemo(
-        () => state.series.filter(s => s.oid && s.oid !== 'nothing_selected').map(s => ({ oid: s.oid, name: s.name })),
+        () =>
+            state.series
+                .filter(s => s.oid && s.oid !== 'nothing_selected')
+                .map(s => ({ oid: s.oid, name: s.name, instance: s.instance })),
         [state.series],
     );
 
@@ -124,7 +128,6 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         rangeMs: RANGE_MS[state.timeRange] ?? RANGE_MS['24h'],
         aggregate: state.aggregate,
         count: Math.min(state.count || PREVIEW_MAX_POINTS, PREVIEW_MAX_POINTS),
-        instance: state.instance,
         ignoreNull: state.ignoreNull,
         enabled: (family === 'cartesian' || family === 'pie') && mode === 'history' && entries.length > 0,
     });

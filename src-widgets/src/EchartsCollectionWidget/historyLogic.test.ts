@@ -147,4 +147,15 @@ describe('fetchMultiSeries', () => {
         const out = await fetchMultiSeries(gh, [{ oid: 'demo.0.x' }], { start: 0, end: 10 });
         expect(out[0].name).toBe('demo.0.x');
     });
+
+    it("overrides the instance per entry (ADR-0039) — a pinned series routes, an Auto series doesn't", async () => {
+        const seen: Record<string, ioBroker.GetHistoryOptions> = {};
+        const gh = (id: string, options: ioBroker.GetHistoryOptions): Promise<Point[]> => {
+            seen[id] = options;
+            return Promise.resolve([]);
+        };
+        await fetchMultiSeries(gh, [{ oid: 'a', instance: 'sql.0' }, { oid: 'b' }], { start: 0, end: 10 });
+        expect(seen.a.instance).toBe('sql.0');
+        expect(seen.b).not.toHaveProperty('instance');
+    });
 });
