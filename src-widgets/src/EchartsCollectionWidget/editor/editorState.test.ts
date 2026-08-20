@@ -193,29 +193,29 @@ describe('editorState — mode-switch orphan-prune on load (ADR-0033)', () => {
 
 describe('editorState — ADR-0042 snippet activations', () => {
     it('chartSnippets survive the round-trip in selection order', () => {
-        const state = { ...baseState(), chartSnippets: ['title-subtext', 'xaxis-dashedsplit'] };
+        const state = { ...baseState(), chartSnippets: ['title-scaffold', 'xaxis-dashedsplit'] };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['title-subtext', 'xaxis-dashedsplit']);
+        expect(reloaded.chartSnippets).toEqual(['title-scaffold', 'xaxis-dashedsplit']);
     });
 
     it('family-invalid chart activations are pruned on Apply (xAxis snippet on a radar target)', () => {
         const state = {
             ...baseState(),
             chartType: 'radar' as const,
-            chartSnippets: ['xaxis-dashedsplit', 'title-subtext'],
+            chartSnippets: ['xaxis-dashedsplit', 'title-scaffold'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['title-subtext']);
+        expect(reloaded.chartSnippets).toEqual(['title-scaffold']);
     });
 
     it('series activations survive per-slot and stale slot ids are pruned on Apply (line → pie slice)', () => {
         const state = {
             ...baseState(),
             chartType: 'pie' as const,
-            series: [{ oid: 'a', name: 'A', snippets: ['line-sampling', 'slice-radius'] }],
+            series: [{ oid: 'a', name: 'A', snippets: ['line-sampling', 'slice-itemstyle'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.series[0]?.snippets).toEqual(['slice-radius']);
+        expect(reloaded.series[0]?.snippets).toEqual(['slice-itemstyle']);
     });
 
     it('empty activations stay lean: the chart blob is [] and series meta carries no snippets key', () => {
@@ -233,11 +233,11 @@ describe('editorState — ADR-0042 snippet activations', () => {
         const state = {
             ...baseState(),
             chartType: 'gauge' as const,
-            series: [{ oid: 'a', name: 'G', raw: '{ "progress": { "show": true } }', snippets: ['gauge-zones'] }],
+            series: [{ oid: 'a', name: 'G', raw: '{ "progress": { "show": true } }', snippets: ['gauge-axisline'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.series[0]?.raw).toBe('{ "progress": { "show": true } }');
-        expect(reloaded.series[0]?.snippets).toEqual(['gauge-zones']);
+        expect(reloaded.series[0]?.snippets).toEqual(['gauge-axisline']);
     });
 
     it('radar polygon raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
@@ -275,11 +275,35 @@ describe('editorState — ADR-0042 snippet activations', () => {
                 rose: 'none',
                 label: 'namePercent',
                 raw: '{}',
-                snippets: ['pie-labelpos'],
+                snippets: ['pie-label'],
             } as EchartsPieConfig,
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.pie.snippets).toEqual(['pie-labelpos']);
+        expect(reloaded.pie.snippets).toEqual(['pie-label']);
         expect(reloaded.pie.raw).toBe('{}');
+    });
+});
+
+describe('editorState — ADR-0043 silent load-prune of retired template ids', () => {
+    it('persisted activations referencing retired catalog ids drop silently on load', () => {
+        const state = { ...baseState(), chartType: 'line' as const, series: [{ oid: 'a', name: 'A' }] };
+        const patch = saveEditorState(state, 0);
+        // Simulate a widget saved before the ADR-0043 catalog rework: the persisted blobs carry
+        // retired ids (saveEditorState would prune them — the LOAD path must too, silently).
+        patch.chartSnippets = encodeBlob(JSON.stringify(['pie-labelpos', 'title-scaffold']));
+        patch.seriesConfig = encodeBlob(
+            JSON.stringify([{ name: 'A', snippets: ['line-sampling', 'line-lineopacity'] }]),
+        );
+        const reloaded = loadEditorState(patch);
+        expect(reloaded.chartSnippets).toEqual(['title-scaffold']);
+        expect(reloaded.series[0]?.snippets).toEqual(['line-sampling']);
+    });
+
+    it('axis activations prune against the axis catalog on load too', () => {
+        const state = { ...baseState(), chartType: 'line' as const };
+        const patch = saveEditorState(state, 0);
+        patch.yAxes = encodeBlob(JSON.stringify([{ snippets: ['axislabel-hideoverlap', 'logbase'] }]));
+        const reloaded = loadEditorState(patch);
+        expect(reloaded.yAxes[0]?.snippets).toEqual(['logbase']);
     });
 });

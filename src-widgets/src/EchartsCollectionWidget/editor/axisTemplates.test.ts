@@ -9,9 +9,8 @@ import { AXIS_CATEGORY_I18N, AXIS_CATEGORY_ORDER, AXIS_TEMPLATES, type AxisTempl
 import { classifyAxisKeys } from './axisRawAnalysis';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
-describe('AXIS_TEMPLATES catalog shape (ADR-0037)', () => {
-    it('has the locked 20 snippets with unique ids, valid object JSON and a known category', () => {
-        expect(AXIS_TEMPLATES).toHaveLength(20);
+describe('AXIS_TEMPLATES catalog shape (ADR-0037, option-group categories ADR-0043)', () => {
+    it('has unique ids, valid object JSON and a known category', () => {
         const ids = new Set<string>();
         for (const t of AXIS_TEMPLATES) {
             expect(ids.has(t.id), `duplicate id ${t.id}`).toBe(false);
@@ -23,24 +22,18 @@ describe('AXIS_TEMPLATES catalog shape (ADR-0037)', () => {
         }
     });
 
-    it('covers the six locked categories', () => {
+    it('covers all ten echarts option-group categories (ADR-0043)', () => {
         const byCat = new Map<AxisTemplateCategory, number>();
         for (const t of AXIS_TEMPLATES) {
             byCat.set(t.category, (byCat.get(t.category) ?? 0) + 1);
         }
-        // fonts 3 · grid 4 · labels 5 · scale 4 · style 3 · interaction 1 (spec table).
-        expect(Object.fromEntries(byCat)).toEqual({
-            fonts: 3,
-            grid: 4,
-            labels: 5,
-            scale: 4,
-            style: 3,
-            interaction: 1,
-        });
+        for (const cat of AXIS_CATEGORY_ORDER) {
+            expect(byCat.get(cat) ?? 0, `category '${cat}' has no entries`).toBeGreaterThan(0);
+        }
     });
 });
 
-describe('AXIS_TEMPLATES audit (ADR-0037) — no template touches a builder-emitted leaf', () => {
+describe('AXIS_TEMPLATES audit (ADR-0037/0043) — no template touches a builder-emitted leaf', () => {
     // The MOST restrictive card state: every conditional emit active (name/min/max/scale/
     // splitNumber/minInterval/nameRotate/format/colour + inherited series colour/name). If a
     // template classifies `effective` here, it is effective under ANY card state — this is the

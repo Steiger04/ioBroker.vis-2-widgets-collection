@@ -9,8 +9,9 @@
  *     to do that. A future template that forgets fails HERE, red.
  *  2. No template leaf duplicates a builder-emitted (GUI-owned) key (the ADR-0037 audit rule
  *     applied chart-wide) — a colliding leaf would silently lose to the GUI and mislead.
- *  3. Snippets stay SMALL (≤ 8 leaves): one capability per entry, the restructuring's whole point
- *     (ADR-0040 — a complete scaffold flooded the sub-key analysis before the user did anything).
+ *  3. Value variants + the audited xAxis/radar entries stay SMALL (≤ 8 leaves — the ADR-0040
+ *     one-capability rule); the four complete basis SCAFFOLDS (ADR-0043 partial reversion of
+ *     ADR-0040's snippet-only form) are exempt by design — completeness is their point.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -145,7 +146,7 @@ describe('Advanced-JSON templates × REPLACE_MERGE guard (ADR-0036)', () => {
     });
 });
 
-describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040)', () => {
+describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040/0043)', () => {
     it('no template leaf duplicates a builder-emitted (GUI-owned) key', () => {
         for (const tpl of CHART_TEMPLATES) {
             const owned = GUI_OWNED_LEAVES[tpl.category];
@@ -160,8 +161,11 @@ describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040)', () => {
         }
     });
 
-    it('snippets stay small — one capability per entry, max 8 leaves (ADR-0040)', () => {
+    it('non-scaffold entries stay small — one capability per entry, max 8 leaves (ADR-0040/0043)', () => {
         for (const tpl of CHART_TEMPLATES) {
+            if (tpl.id.endsWith('-scaffold')) {
+                continue; // complete basis scaffold (ADR-0043) — completeness is the point
+            }
             const json = JSON.parse(tpl.json) as Record<string, unknown>;
             expect(countLeaves(json), `${tpl.id} has too many leaves for a snippet`).toBeLessThanOrEqual(8);
         }

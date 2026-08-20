@@ -26,6 +26,7 @@ import {
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
+import { AXIS_TEMPLATES } from './axisTemplates';
 import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
@@ -403,6 +404,29 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         yAxes = pruned.yAxes.length < yAxes.length ? packStaggeredAxes(pruned.yAxes) : pruned.yAxes;
     }
 
+    // Stale-activation prune (ADR-0043): the catalog rework retired template ids deliberately —
+    // an activation referencing an unknown id drops SILENTLY here (its composed leaves simply stay
+    // in the raw text as the user's own). Filtering at LOAD also keeps the family-switch loss
+    // count honest (a stale id is not a family loss) and covers the levels the Apply-time prune
+    // never reached (axes are family-free by design; the chart list is family-pruned at Apply).
+    const chartSnippetsLoaded = pruneSnippetIds(chartTemplatesForFamily(family), decodeSnippetIds(data.chartSnippets));
+    series = series.map(s => ({ ...s, snippets: pruneSeriesSnippets(family, chartType, s) }));
+    yAxes = yAxes.map(a => ({
+        ...a,
+        snippets: a.snippets?.length ? pruneSnippetIds(AXIS_TEMPLATES, a.snippets) : a.snippets,
+    }));
+    const pieLoaded = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
+    const pie = pieLoaded.snippets?.length
+        ? { ...pieLoaded, snippets: pruneSnippetIds(SERIES_TEMPLATES.pie, pieLoaded.snippets) }
+        : pieLoaded;
+    const jsonSeriesStyleLoaded = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
+    const jsonSeriesStyle = Object.fromEntries(
+        Object.entries(jsonSeriesStyleLoaded).map(([name, m]) => [
+            name,
+            { ...m, snippets: pruneSeriesSnippets(family, chartType, m) },
+        ]),
+    );
+
     return {
         ...DEFAULT_EDITOR_STATE,
         chartType,
@@ -424,7 +448,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         series,
         gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
         radar,
-        pie: chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie,
+        pie,
         legendShow: boolOr(data.legendShow, true),
         legendPos: normalizeLegendPos(data.legendPos),
         legend: decodeLegendConfig(data.legendConfig as string),
@@ -450,8 +474,8 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
         userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
-        chartSnippets: decodeSnippetIds(data.chartSnippets),
-        jsonSeriesStyle: parseJsonSeriesStyle(data.jsonSeriesStyle as string),
+        chartSnippets: chartSnippetsLoaded,
+        jsonSeriesStyle,
         jsonHidden: parseJsonHidden(data.jsonHidden as string),
     };
 };

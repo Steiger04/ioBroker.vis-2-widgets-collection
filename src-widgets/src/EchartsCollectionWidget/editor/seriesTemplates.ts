@@ -1,39 +1,107 @@
 /**
- * Per-series template catalog (ADR-0017) — collision-safe single-series JSON presets that inject
- * GUI-uncovered echarts keys into a card's Series raw.
+ * Per-series template catalog (ADR-0017, reworked as Option-group scaffolds by ADR-0043) — the
+ * series raw's design library: the menu TEACHES the echarts option space of the slot.
  *
  * @module EchartsCollectionWidget/editor/seriesTemplates
  * @remarks
  * Each entry is a JSON object meant to go INSIDE one series (deep-merged UNDER the GUI-authored
- * entry, so the GUI wins collisions; data is force-set). Every entry was audited against the
- * family builder's actual output so no key duplicates a GUI-emitted one:
- *  - cartesian: `showSymbol` is GUI-owned (excluded); `label`/`itemStyle`/`lineStyle` are only
- *    partially owned → sub-key templates (`formatter`, `opacity`, `border`, `shadow`) survive a
- *    deep-merge. `sampling:'lttb'` is the #1 perf key for ioBroker history data.
- *  - gauge: `detail.formatter` is emitted only when a unit is set (WS3), so the template is free
- *    when unit is empty; `radius`/`axisTick`/`min`/`max` stay GUI-owned (no template).
- *  - radar: per-polygon style was lifted to the series level (WS3), so these reach it.
- *  - pie: `radius`/`label.formatter` are GUI-owned (excluded); per-slice templates target `data[i]`.
+ * entry, so the GUI wins collisions; data is force-set). ADR-0043 forms:
+ *  - **Group scaffold** — ONE echarts option group COMPLETELY (every documented, non-GUI-owned
+ *    key pre-filled with its echarts-doc value, ADR-0030 defaults rule: concrete → literal,
+ *    colour token → doc literal, auto-inherit → keyword, undefined-only → omitted). The user
+ *    deletes what they do not need. GUI-owned leaves are omitted: the merge eats them anyway and
+ *    the ✓/◐/✗ analysis would permanently read ◐/✗ — noise instead of insight.
+ *  - **Power variant** — a second scaffold inside the same group teaching the big styling
+ *    levers (area gradient, decal pattern, rich text, pie edge labels).
+ *  - **Solo** — a scalar key without an object group (behaviour levers: sampling, clip,
+ *    startAngle, universalTransition, …). The old atomic object part-snippets (`label · value`,
+ *    `emphasis · focus`, …) are retired — their group carries the scaffold now.
+ * Categories ARE the echarts option groups of the slot (CONTEXT: Option group). Template LABELS
+ * are echarts vocabulary shown as-is (English) — only the category headers translate.
  *
- * Template LABELS are shown as-is (echarts option vocabulary, universally English) — only the
- * CATEGORY headers are translated. The chart-level Advanced-JSON keeps its own chart-wide snippets
- * (graphic/aria/…); this catalog is per-series only.
+ * LEAF AUDIT (pinned by seriesTemplates.test.ts against the FULLEST card state): no template may
+ * touch an ALWAYS-builder-emitted leaf; CONDITIONALLY-owned leaves only via the explicit
+ * CONDITIONAL_ALLOW list below, each with a justification. Managed sets live in
+ * `seriesRawAnalysis.ts` (the sync invariant with the builders).
  */
-/** Template grouping (rendered as menu section headers; order = {@link TEMPLATE_CATEGORY_ORDER}). */
-export type TemplateCategory = 'annotations' | 'labels' | 'emphasis' | 'style' | 'behavior';
+/** Option-group category (rendered as menu section headers; order = {@link SERIES_CATEGORY_ORDER}). */
+export type SeriesTemplateCategory =
+    // shared series option groups
+    | 'lineStyle'
+    | 'areaStyle'
+    | 'itemStyle'
+    | 'symbol'
+    | 'label'
+    | 'labelLine'
+    | 'labelLayout'
+    | 'states'
+    | 'markers'
+    | 'backgroundStyle'
+    // gauge sub-components (gauge slot only)
+    | 'axisLine'
+    | 'axisTick'
+    | 'axisLabel'
+    | 'splitLine'
+    | 'progress'
+    | 'pointer'
+    | 'anchor'
+    | 'title'
+    | 'detail'
+    // scalar behaviour levers (every slot)
+    | 'behaviour';
 
-export const TEMPLATE_CATEGORY_ORDER: TemplateCategory[] = ['annotations', 'labels', 'emphasis', 'style', 'behavior'];
+export const SERIES_CATEGORY_ORDER: SeriesTemplateCategory[] = [
+    'lineStyle',
+    'areaStyle',
+    'itemStyle',
+    'symbol',
+    'label',
+    'labelLine',
+    'labelLayout',
+    'states',
+    'markers',
+    'backgroundStyle',
+    'axisLine',
+    'axisTick',
+    'axisLabel',
+    'splitLine',
+    'progress',
+    'pointer',
+    'anchor',
+    'title',
+    'detail',
+    'behaviour',
+];
 
 /** i18n key per category header. */
-export const TEMPLATE_CATEGORY_I18N: Record<TemplateCategory, string> = {
-    annotations: 'echarts_stpl_cat_annotations',
-    labels: 'echarts_stpl_cat_labels',
-    emphasis: 'echarts_stpl_cat_emphasis',
-    style: 'echarts_stpl_cat_style',
-    behavior: 'echarts_stpl_cat_behavior',
+export const SERIES_CATEGORY_I18N: Record<SeriesTemplateCategory, string> = {
+    lineStyle: 'echarts_stpl_cat_linestyle',
+    areaStyle: 'echarts_stpl_cat_areastyle',
+    itemStyle: 'echarts_stpl_cat_itemstyle',
+    symbol: 'echarts_stpl_cat_symbol',
+    label: 'echarts_stpl_cat_label',
+    labelLine: 'echarts_stpl_cat_labelline',
+    labelLayout: 'echarts_stpl_cat_labellayout',
+    states: 'echarts_stpl_cat_states',
+    markers: 'echarts_stpl_cat_markers',
+    backgroundStyle: 'echarts_stpl_cat_backgroundstyle',
+    axisLine: 'echarts_stpl_cat_axisline',
+    axisTick: 'echarts_stpl_cat_axistick',
+    axisLabel: 'echarts_stpl_cat_axislabel',
+    splitLine: 'echarts_stpl_cat_splitline',
+    progress: 'echarts_stpl_cat_progress',
+    pointer: 'echarts_stpl_cat_pointer',
+    anchor: 'echarts_stpl_cat_anchor',
+    title: 'echarts_stpl_cat_title',
+    detail: 'echarts_stpl_cat_detail',
+    behaviour: 'echarts_stpl_cat_behaviour',
 };
 
-/** Which card a catalog belongs to (family, or the cartesian sub-type, or the pie layer). */
+/**
+ * Which card a catalog belongs to (family, or the cartesian sub-type, or the pie layer). The
+ * categories a slot actually uses are the option groups echarts offers that series type — the
+ * gauge slot surfaces its sub-component groups, pie its label-line group, and so on.
+ */
 export type SeriesTemplateSlot =
     | 'cartesian-line'
     | 'cartesian-bar'
@@ -44,8 +112,8 @@ export type SeriesTemplateSlot =
 
 /**
  * The slot a series' activations resolve against, derived from the chart family + the series'
- * own type override (ADR-0042) — the ONE slot rule shared by the Apply prune (`saveEditorState`)
- * and the family-switch loss count, so the two can never drift apart.
+ * own type override (ADR-0042) — the ONE slot rule shared by the Apply prune (`saveEditorState`),
+ * the load prune (ADR-0043) and the family-switch loss count, so the three can never drift apart.
  */
 export const seriesSlotOf = (family: string, chartType: string, meta: { type?: string }): SeriesTemplateSlot =>
     family === 'gauge'
@@ -57,414 +125,924 @@ export const seriesSlotOf = (family: string, chartType: string, meta: { type?: s
             : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
 
 export interface SeriesTemplate {
-    /** Stable id for React keys. */
+    /** Stable id for React keys and persisted activations (ADR-0042). */
     id: string;
-    category: TemplateCategory;
+    category: SeriesTemplateCategory;
     /** Display label (echarts vocabulary; shown as-is). */
     label: string;
     /** Single-series JSON object (deep-merged into the card's raw). */
     json: string;
 }
 
+// Shared scaffold payloads (identical groups across slots — written once, reused by reference).
+/** Label container + font keys; `show`/`formatter` ownership differs per slot, callers spread extras. */
+const LABEL_FONT_KEYS = {
+    fontStyle: 'normal',
+    fontWeight: 'normal',
+    fontSize: 12,
+    backgroundColor: 'transparent',
+    borderColor: '#ccc',
+    borderWidth: 0,
+    borderType: 'solid',
+    borderRadius: 0,
+    padding: 0,
+    textBorderColor: 'transparent',
+    textBorderWidth: 0,
+    textBorderType: 'solid',
+    textShadowBlur: 0,
+    textShadowColor: 'transparent',
+    overflow: 'none',
+};
+const NO_SHADOW = { shadowBlur: 0, shadowColor: 'transparent', shadowOffsetX: 0, shadowOffsetY: 0 };
+const ITEM_BORDER = { borderColor: '#fff', borderWidth: 0, borderType: 'solid', ...NO_SHADOW };
+/** markPoint basis — symbol/symbolSize/label defaults verified against MarkPointModel (DeepWiki). */
+const MARKPOINT = {
+    symbol: 'pin',
+    symbolSize: 50,
+    symbolRotate: 0,
+    symbolOffset: [0, 0],
+    precision: 2,
+    itemStyle: { borderWidth: 2, ...NO_SHADOW },
+    label: { show: true, position: 'inside', formatter: '{b}: {c}', fontSize: 12 },
+    data: [
+        { type: 'max', name: 'Max' },
+        { type: 'min', name: 'Min' },
+    ],
+};
+/** markLine basis — symbol ends/precision/dashed default verified against MarkLineModel. */
+const MARKLINE = {
+    silent: false,
+    symbol: ['circle', 'arrow'],
+    symbolSize: [8, 16],
+    precision: 2,
+    lineStyle: { type: 'dashed', width: 1, opacity: 1, ...NO_SHADOW },
+    label: { show: true, position: 'end', distance: 5, formatter: '{b}: {c}', fontSize: 12 },
+    data: [{ type: 'average', name: 'Avg' }],
+};
+const MARKAREA = {
+    silent: true,
+    itemStyle: { color: 'rgba(200,0,0,0.08)', ...NO_SHADOW },
+    label: { show: true, position: 'inside', fontSize: 12 },
+    data: [[{ name: 'Band' }, {}]],
+};
+/** decal pattern (power variant payload) — DecalObject keys, example values. */
+const DECAL = {
+    symbol: 'circle',
+    symbolSize: 0.4,
+    color: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'none',
+    rotation: 0,
+    symbolKeepAspect: false,
+};
+
 // ── cartesian-line ────────────────────────────────────────────────────────────
+// GUI-owned leaves (always): name/type/yAxisIndex/data/color/itemStyle.color/
+// lineStyle.width/lineStyle.type/smooth/showSymbol/connectNulls. Conditional: itemStyle.
+// borderRadius, label.show, stack, symbolSize, step, areaStyle.opacity, areaStyle.color (gradient).
 const CARTESIAN_LINE: SeriesTemplate[] = [
     {
+        id: 'line-linestyle',
+        category: 'lineStyle',
+        label: 'lineStyle',
+        json: JSON.stringify({
+            lineStyle: { color: 'inherit', opacity: 1, cap: 'butt', dashOffset: 0, ...NO_SHADOW },
+        }),
+    },
+    {
+        id: 'line-areastyle',
+        category: 'areaStyle',
+        label: 'areaStyle',
+        json: JSON.stringify({ areaStyle: { origin: 'auto', ...NO_SHADOW } }),
+    },
+    {
+        id: 'line-area-gradient',
+        category: 'areaStyle',
+        label: 'areaStyle · gradient',
+        // areaStyle.color is card-owned ONLY in gradient area mode (◐ there, ✓ otherwise) — the
+        // gradient lever IS colour, so this conditional leaf is allow-listed.
+        json: JSON.stringify({
+            areaStyle: {
+                color: {
+                    type: 'linear',
+                    x: 0,
+                    y: 0,
+                    x2: 0,
+                    y2: 1,
+                    colorStops: [
+                        { offset: 0, color: 'rgba(127,127,127,0.35)' },
+                        { offset: 1, color: 'rgba(127,127,127,0.02)' },
+                    ],
+                },
+            },
+        }),
+    },
+    {
+        id: 'line-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({ itemStyle: { opacity: 1, ...ITEM_BORDER } }),
+    },
+    {
+        id: 'line-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
+    },
+    {
+        id: 'line-symbol',
+        category: 'symbol',
+        label: 'symbol',
+        // symbolSize/showSymbol are GUI-owned; symbol itself may be any built-in name or an
+        // SVG path string ('path://M0,0 L8,0 L4,8 Z') — swap the value to explore.
+        json: JSON.stringify({ symbol: 'circle', symbolRotate: 0, symbolOffset: [0, 0], symbolKeepAspect: false }),
+    },
+    {
+        id: 'line-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { position: 'top', distance: 5, rotate: 0, offset: [0, 0], formatter: '{c}', ...LABEL_FONT_KEYS },
+        }),
+    },
+    {
+        id: 'line-label-rich',
+        category: 'label',
+        label: 'label · rich',
+        json: JSON.stringify({
+            label: {
+                formatter: '{name|{a}}\n{val|{c}}',
+                rich: {
+                    name: { color: '#666', fontSize: 11, fontStyle: 'normal', fontWeight: 'normal' },
+                    val: { color: '#333', fontSize: 13, fontStyle: 'normal', fontWeight: 'bold' },
+                },
+                ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'line-endlabel',
+        category: 'label',
+        label: 'endLabel',
+        json: JSON.stringify({ endLabel: { show: true, distance: 5, formatter: '{a}', fontSize: 12 } }),
+    },
+    {
+        id: 'line-labellayout',
+        category: 'labelLayout',
+        label: 'labelLayout',
+        json: JSON.stringify({
+            labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false, dx: 0, dy: 0, rotate: 0 },
+        }),
+    },
+    {
+        id: 'line-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: { focus: 'series', scale: true, lineStyle: { width: 3 }, itemStyle: {}, label: { show: true } },
+        }),
+    },
+    {
+        id: 'line-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({
+            blur: { lineStyle: { opacity: 0.3 }, itemStyle: { opacity: 0.3 }, label: { show: false } },
+        }),
+    },
+    {
+        id: 'line-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({
+            select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } },
+        }),
+    },
+    {
+        id: 'line-markpoint',
+        category: 'markers',
+        label: 'markPoint',
+        json: JSON.stringify({ markPoint: MARKPOINT }),
+    },
+    {
+        id: 'line-markline',
+        category: 'markers',
+        label: 'markLine',
+        // silent/symbol/data are card-owned ONLY on the threshold-host card (◐ there) — the
+        // marker itself consists of exactly those keys, so they are allow-listed.
+        json: JSON.stringify({ markLine: MARKLINE }),
+    },
+    {
+        id: 'line-markarea',
+        category: 'markers',
+        label: 'markArea',
+        json: JSON.stringify({ markArea: MARKAREA }),
+    },
+    {
         id: 'line-sampling',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'sampling · lttb',
         json: '{ "sampling": "lttb" }',
     },
     {
         id: 'line-clip',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'clip',
         json: '{ "clip": true }',
     },
     {
-        id: 'line-markpoint',
-        category: 'annotations',
-        label: 'markPoint · max/min',
-        json: '{ "markPoint": { "data": [{ "type": "max", "name": "Max" }, { "type": "min", "name": "Min" }] } }',
-    },
-    {
-        id: 'line-markline',
-        category: 'annotations',
-        label: 'markLine · average',
-        json: '{ "markLine": { "data": [{ "type": "average", "name": "Avg" }] } }',
-    },
-    {
-        id: 'line-markarea',
-        category: 'annotations',
-        label: 'markArea · band',
-        json: '{ "markArea": { "silent": true, "itemStyle": { "color": "rgba(200,0,0,0.08)" }, "data": [[{ "name": "band" }, {}]] } }',
-    },
-    {
-        id: 'line-label',
-        category: 'labels',
-        label: 'label · value',
-        json: '{ "label": { "formatter": "{c}", "position": "top" } }',
-    },
-    {
-        id: 'line-endlabel',
-        category: 'labels',
-        label: 'endLabel',
-        json: '{ "endLabel": { "show": true, "formatter": "{a}" } }',
-    },
-    {
-        id: 'line-emphasis',
-        category: 'emphasis',
-        label: 'emphasis · focus series',
-        json: '{ "emphasis": { "focus": "series" } }',
-    },
-    {
-        id: 'line-lineopacity',
-        category: 'style',
-        label: 'lineStyle · opacity',
-        json: '{ "lineStyle": { "opacity": 0.85 } }',
-    },
-    {
-        id: 'line-lineshadow',
-        category: 'style',
-        label: 'lineStyle · glow',
-        json: '{ "lineStyle": { "shadowBlur": 8, "shadowColor": "rgba(0,0,0,0.4)" } }',
-    },
-    {
-        id: 'line-itemborder',
-        category: 'style',
-        label: 'itemStyle · border',
-        json: '{ "itemStyle": { "borderColor": "#fff", "borderWidth": 1 } }',
-    },
-    {
-        id: 'line-areaorigin',
-        category: 'style',
-        label: 'areaStyle · origin',
-        json: '{ "areaStyle": { "origin": "start" } }',
+        id: 'line-smoothmonotone',
+        category: 'behaviour',
+        label: 'smoothMonotone',
+        json: '{ "smoothMonotone": "none" }',
     },
     {
         id: 'line-universal',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'universalTransition',
         json: '{ "universalTransition": true }',
     },
     {
         id: 'line-animdelay',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'animationDelay',
         json: '{ "animationDelay": 200 }',
+    },
+    {
+        id: 'line-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
     },
 ];
 
 // ── cartesian-bar ─────────────────────────────────────────────────────────────
+// GUI-owned (always): name/type/yAxisIndex/data/color/itemStyle.color. Conditional:
+// itemStyle.borderRadius, label.show, stack, barGap, barCategoryGap.
 const CARTESIAN_BAR: SeriesTemplate[] = [
     {
-        id: 'bar-showbg',
-        category: 'style',
-        label: 'showBackground',
-        json: '{ "showBackground": true, "backgroundStyle": { "color": "rgba(180,180,180,0.2)" } }',
+        id: 'bar-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({ itemStyle: { opacity: 1, ...ITEM_BORDER } }),
     },
     {
-        id: 'bar-barwidth',
-        category: 'style',
+        id: 'bar-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
+    },
+    {
+        id: 'bar-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { position: 'top', distance: 5, rotate: 0, offset: [0, 0], formatter: '{c}', ...LABEL_FONT_KEYS },
+        }),
+    },
+    {
+        id: 'bar-label-rich',
+        category: 'label',
+        label: 'label · rich',
+        json: JSON.stringify({
+            label: {
+                formatter: '{name|{a}}\n{val|{c}}',
+                rich: {
+                    name: { color: '#666', fontSize: 11, fontStyle: 'normal', fontWeight: 'normal' },
+                    val: { color: '#333', fontSize: 13, fontStyle: 'normal', fontWeight: 'bold' },
+                },
+                ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'bar-labellayout',
+        category: 'labelLayout',
+        label: 'labelLayout',
+        json: JSON.stringify({
+            labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false, dx: 0, dy: 0, rotate: 0 },
+        }),
+    },
+    {
+        id: 'bar-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: {
+                focus: 'self',
+                itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
+                label: { show: true },
+            },
+        }),
+    },
+    {
+        id: 'bar-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({ blur: { itemStyle: { opacity: 0.3 }, label: { show: false } } }),
+    },
+    {
+        id: 'bar-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } } }),
+    },
+    {
+        id: 'bar-markpoint',
+        category: 'markers',
+        label: 'markPoint',
+        json: JSON.stringify({ markPoint: MARKPOINT }),
+    },
+    {
+        id: 'bar-markline',
+        category: 'markers',
+        label: 'markLine',
+        json: JSON.stringify({ markLine: MARKLINE }),
+    },
+    {
+        id: 'bar-markarea',
+        category: 'markers',
+        label: 'markArea',
+        json: JSON.stringify({ markArea: MARKAREA }),
+    },
+    {
+        id: 'bar-background',
+        category: 'backgroundStyle',
+        label: 'backgroundStyle',
+        json: JSON.stringify({
+            showBackground: true,
+            backgroundStyle: {
+                color: 'rgba(180,180,180,0.2)',
+                borderColor: 'transparent',
+                borderWidth: 0,
+                borderType: 'solid',
+                borderRadius: 0,
+                ...NO_SHADOW,
+            },
+        }),
+    },
+    {
+        id: 'bar-width',
+        category: 'behaviour',
         label: 'barWidth',
         json: '{ "barWidth": "40%" }',
     },
     {
-        id: 'bar-barminheight',
-        category: 'style',
+        id: 'bar-minheight',
+        category: 'behaviour',
         label: 'barMinHeight',
         json: '{ "barMinHeight": 2 }',
     },
     {
-        id: 'bar-markpoint',
-        category: 'annotations',
-        label: 'markPoint · max/min',
-        json: '{ "markPoint": { "data": [{ "type": "max", "name": "Max" }, { "type": "min", "name": "Min" }] } }',
-    },
-    {
-        id: 'bar-markline',
-        category: 'annotations',
-        label: 'markLine · average',
-        json: '{ "markLine": { "data": [{ "type": "average", "name": "Avg" }] } }',
-    },
-    {
-        id: 'bar-label',
-        category: 'labels',
-        label: 'label · value',
-        json: '{ "label": { "formatter": "{c}", "position": "top" } }',
-    },
-    {
-        id: 'bar-emphasis',
-        category: 'emphasis',
-        label: 'emphasis · focus self',
-        json: '{ "emphasis": { "focus": "self" } }',
-    },
-    {
-        id: 'bar-itemborder',
-        category: 'style',
-        label: 'itemStyle · border',
-        json: '{ "itemStyle": { "borderColor": "#fff", "borderWidth": 1 } }',
+        id: 'bar-stackstrategy',
+        category: 'behaviour',
+        label: 'stackStrategy',
+        json: '{ "stackStrategy": "samesign" }',
     },
     {
         id: 'bar-realtimesort',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'realtimeSort',
         json: '{ "realtimeSort": true }',
     },
     {
         id: 'bar-clip',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'clip',
         json: '{ "clip": true }',
     },
     {
+        id: 'bar-large',
+        category: 'behaviour',
+        label: 'large',
+        json: '{ "large": true, "largeThreshold": 2000 }',
+    },
+    {
         id: 'bar-universal',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'universalTransition',
         json: '{ "universalTransition": true }',
     },
     {
         id: 'bar-animdelay',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'animationDelay',
         json: '{ "animationDelay": 100 }',
+    },
+    {
+        id: 'bar-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
     },
 ];
 
 // ── pie (whole-pie series) ────────────────────────────────────────────────────
+// GUI-owned (always): type/radius/label.show/label.formatter/data. Conditional: roseType.
+// NOTE: label.formatter is ALWAYS card-owned here → NO rich-text variant for pie (rich lives in
+// the formatter); the per-slice level has it free (slice-label).
 const PIE: SeriesTemplate[] = [
     {
-        id: 'pie-labelpos',
-        category: 'labels',
-        label: 'label · outer',
-        json: '{ "label": { "position": "outer" } }',
-    },
-    {
-        id: 'pie-labelstyle',
-        category: 'labels',
-        label: 'label · colour/size',
-        json: '{ "label": { "color": "#333", "fontSize": 12 } }',
+        id: 'pie-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { position: 'outer', alignTo: 'labelLine', minMargin: 5, ...LABEL_FONT_KEYS },
+        }),
     },
     {
         id: 'pie-labeline',
-        category: 'labels',
+        category: 'labelLine',
         label: 'labelLine',
-        json: '{ "labelLine": { "show": true, "length": 10, "length2": 10, "smooth": true } }',
+        json: JSON.stringify({
+            labelLine: {
+                show: true,
+                length: 15,
+                length2: 15,
+                smooth: false,
+                lineStyle: { width: 1, opacity: 1, type: 'solid' },
+            },
+        }),
+    },
+    {
+        id: 'pie-labellayout',
+        category: 'labelLayout',
+        label: 'labelLayout',
+        json: JSON.stringify({ labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false } }),
+    },
+    {
+        id: 'pie-labellayout-edge',
+        category: 'labelLayout',
+        label: 'labelLayout · edge',
+        json: JSON.stringify({
+            labelLayout: { alignTo: 'edge', edgeDistance: 10, bleedMargin: 10, hideOverlap: true },
+        }),
+    },
+    {
+        id: 'pie-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({
+            itemStyle: {
+                opacity: 1,
+                borderColor: '#fff',
+                borderWidth: 2,
+                borderType: 'solid',
+                borderRadius: 6,
+                ...NO_SHADOW,
+            },
+        }),
+    },
+    {
+        id: 'pie-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
     },
     {
         id: 'pie-emphasis',
-        category: 'emphasis',
-        label: 'emphasis · pull-out',
-        json: '{ "emphasis": { "focus": "self", "scale": true, "itemStyle": { "shadowBlur": 10, "shadowColor": "rgba(0,0,0,0.3)" } } }',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: {
+                focus: 'self',
+                scale: true,
+                scaleSize: 10,
+                itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' },
+                label: { show: true },
+            },
+        }),
     },
     {
-        id: 'pie-radius',
-        category: 'style',
-        label: 'itemStyle · rounded',
-        json: '{ "itemStyle": { "borderRadius": 6 } }',
+        id: 'pie-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({ blur: { itemStyle: { opacity: 0.3 }, label: { show: false } } }),
     },
     {
-        id: 'pie-border',
-        category: 'style',
-        label: 'itemStyle · gap',
-        json: '{ "itemStyle": { "borderColor": "#fff", "borderWidth": 2 } }',
-    },
-    {
-        id: 'pie-shadow',
-        category: 'style',
-        label: 'itemStyle · shadow',
-        json: '{ "itemStyle": { "shadowBlur": 10, "shadowColor": "rgba(0,0,0,0.3)" } }',
+        id: 'pie-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } } }),
     },
     {
         id: 'pie-startangle',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'startAngle',
-        json: '{ "startAngle": 0 }',
-    },
-    {
-        id: 'pie-selected',
-        category: 'behavior',
-        label: 'selectedMode',
-        json: '{ "selectedMode": "single", "selectedOffset": 12 }',
+        json: '{ "startAngle": 90 }',
     },
     {
         id: 'pie-minangle',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'minAngle',
         json: '{ "minAngle": 5 }',
     },
     {
-        id: 'pie-center',
-        category: 'behavior',
-        label: 'center',
-        json: '{ "center": ["40%", "50%"] }',
+        id: 'pie-padangle',
+        category: 'behaviour',
+        label: 'padAngle',
+        json: '{ "padAngle": 0 }',
     },
     {
         id: 'pie-percentprecision',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'percentPrecision',
-        json: '{ "percentPrecision": 1 }',
+        json: '{ "percentPrecision": 2 }',
     },
     {
-        id: 'pie-anim',
-        category: 'behavior',
-        label: 'animationType · scale',
-        json: '{ "animationType": "scale", "animationEasing": "cubicOut" }',
+        id: 'pie-avoidoverlap',
+        category: 'behaviour',
+        label: 'avoidLabelOverlap',
+        json: '{ "avoidLabelOverlap": true }',
+    },
+    {
+        id: 'pie-stillzero',
+        category: 'behaviour',
+        label: 'stillShowZeroSum',
+        json: '{ "stillShowZeroSum": true }',
+    },
+    {
+        id: 'pie-selectedmode',
+        category: 'behaviour',
+        label: 'selectedMode',
+        json: '{ "selectedMode": "single" }',
+    },
+    {
+        id: 'pie-selectedoffset',
+        category: 'behaviour',
+        label: 'selectedOffset',
+        json: '{ "selectedOffset": 10 }',
+    },
+    {
+        id: 'pie-center',
+        category: 'behaviour',
+        label: 'center',
+        json: '{ "center": ["50%", "50%"] }',
     },
     {
         id: 'pie-universal',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'universalTransition',
         json: '{ "universalTransition": true }',
+    },
+    {
+        id: 'pie-animtype',
+        category: 'behaviour',
+        label: 'animationType',
+        json: '{ "animationType": "expansion" }',
     },
 ];
 
 // ── pie-slice (per slice, data[i]) ────────────────────────────────────────────
+// GUI-owned (always): name/value/itemStyle.color. Everything else — including label.show AND
+// label.formatter — is free at the slice level (rich text lives here).
 const PIE_SLICE: SeriesTemplate[] = [
     {
-        id: 'slice-radius',
-        category: 'style',
-        label: 'itemStyle · rounded',
-        json: '{ "itemStyle": { "borderRadius": 6 } }',
+        id: 'slice-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { show: true, position: 'outer', formatter: '{b}: {c}', ...LABEL_FONT_KEYS },
+        }),
     },
     {
-        id: 'slice-border',
-        category: 'style',
-        label: 'itemStyle · border',
-        json: '{ "itemStyle": { "borderColor": "#fff", "borderWidth": 2 } }',
+        id: 'slice-label-rich',
+        category: 'label',
+        label: 'label · rich',
+        json: JSON.stringify({
+            label: {
+                show: true,
+                formatter: '{name|{b}}\n{per|{d}%}',
+                rich: {
+                    name: { color: '#666', fontSize: 11, fontStyle: 'normal', fontWeight: 'normal' },
+                    per: { color: '#333', fontSize: 13, fontStyle: 'normal', fontWeight: 'bold' },
+                },
+                ...LABEL_FONT_KEYS,
+            },
+        }),
     },
     {
-        id: 'slice-shadow',
-        category: 'style',
-        label: 'itemStyle · shadow',
-        json: '{ "itemStyle": { "shadowBlur": 8, "shadowColor": "rgba(0,0,0,0.3)" } }',
+        id: 'slice-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({
+            itemStyle: {
+                opacity: 1,
+                borderColor: '#fff',
+                borderWidth: 2,
+                borderType: 'solid',
+                borderRadius: 6,
+                ...NO_SHADOW,
+            },
+        }),
+    },
+    {
+        id: 'slice-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
+    },
+    {
+        id: 'slice-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: {
+                scale: true,
+                itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
+                label: { show: true },
+            },
+        }),
+    },
+    {
+        id: 'slice-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { itemStyle: { borderWidth: 2 }, label: { show: true } } }),
     },
     {
         id: 'slice-selected',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'selected',
         json: '{ "selected": true }',
-    },
-    {
-        id: 'slice-label',
-        category: 'labels',
-        label: 'label · show',
-        json: '{ "label": { "show": true } }',
     },
 ];
 
 // ── gauge (single series) ─────────────────────────────────────────────────────
+// GUI-owned (always): type/min/max/radius/progress.show/progress.width/progress.itemStyle.color/
+// axisLine.lineStyle.width/axisTick.show/splitLine.length/pointer.itemStyle.color/detail.
+// valueAnimation/detail.fontSize/detail.offsetCenter/data. Conditional: detail.formatter (unit
+// set), axisLine.lineStyle.color (target marker set). gauge has NO minorTick/minorSplitLine.
 const GAUGE: SeriesTemplate[] = [
     {
-        id: 'gauge-zones',
-        category: 'annotations',
-        label: 'axisLine · colour zones',
-        json: '{ "axisLine": { "lineStyle": { "color": [[0.3, "#67e0e3"], [0.7, "#37a2da"], [1, "#fd666d"]] } } }',
+        id: 'gauge-axisline',
+        category: 'axisLine',
+        label: 'axisLine',
+        // lineStyle.width is card-owned; the colour ramp is card-owned only with a target marker
+        // (◐ there) — colour zones ARE the axis-line lever, allow-listed.
+        json: JSON.stringify({
+            axisLine: {
+                show: true,
+                lineStyle: {
+                    color: [
+                        [0.3, '#67e0e3'],
+                        [0.7, '#37a2da'],
+                        [1, '#fd666d'],
+                    ],
+                },
+            },
+        }),
     },
     {
-        id: 'gauge-anchor',
-        category: 'annotations',
-        label: 'anchor',
-        json: '{ "anchor": { "show": true, "size": 12, "showAbove": true } }',
+        id: 'gauge-axistick',
+        category: 'axisTick',
+        label: 'axisTick',
+        json: JSON.stringify({
+            axisTick: { length: 6, distance: 10, splitNumber: 5, lineStyle: { width: 1, type: 'solid', opacity: 1 } },
+        }),
     },
     {
-        id: 'gauge-roundcap',
-        category: 'style',
-        label: 'progress · roundCap',
-        json: '{ "progress": { "roundCap": true } }',
+        id: 'gauge-axislabel',
+        category: 'axisLabel',
+        label: 'axisLabel',
+        json: JSON.stringify({
+            axisLabel: { show: true, distance: 15, rotate: 0, formatter: '{value}', color: '#666', fontSize: 12 },
+        }),
+    },
+    {
+        id: 'gauge-splitline',
+        category: 'splitLine',
+        label: 'splitLine',
+        json: JSON.stringify({
+            splitLine: { show: true, distance: 10, lineStyle: { width: 3, type: 'solid', opacity: 1 } },
+        }),
+    },
+    {
+        id: 'gauge-progress',
+        category: 'progress',
+        label: 'progress',
+        json: JSON.stringify({ progress: { overlap: true, roundCap: false, clip: true, itemStyle: { opacity: 1 } } }),
     },
     {
         id: 'gauge-pointer',
-        category: 'style',
+        category: 'pointer',
         label: 'pointer',
-        json: '{ "pointer": { "length": "70%", "width": 5 } }',
+        // icon stays unset (null default = the needle shape); any built-in symbol or an SVG path
+        // string ('path://…') replaces it. pointer.itemStyle.color is card-owned.
+        json: JSON.stringify({
+            pointer: {
+                show: true,
+                length: '60%',
+                width: 6,
+                offsetCenter: [0, 0],
+                keepAspect: false,
+                itemStyle: { opacity: 1 },
+            },
+        }),
+    },
+    {
+        id: 'gauge-anchor',
+        category: 'anchor',
+        label: 'anchor',
+        json: JSON.stringify({
+            anchor: {
+                show: true,
+                showAbove: true,
+                size: 6,
+                icon: 'circle',
+                offsetCenter: [0, 0],
+                keepAspect: false,
+                itemStyle: { borderWidth: 0, ...NO_SHADOW },
+            },
+        }),
     },
     {
         id: 'gauge-title',
-        category: 'style',
-        label: 'title · position/colour',
-        json: '{ "title": { "offsetCenter": [0, "-30%"], "color": "#666" } }',
+        category: 'title',
+        label: 'title',
+        json: JSON.stringify({
+            title: {
+                show: true,
+                offsetCenter: [0, '20%'],
+                color: '#666',
+                fontSize: 16,
+                fontStyle: 'normal',
+                fontWeight: 'normal',
+            },
+        }),
     },
     {
         id: 'gauge-detail',
-        category: 'labels',
-        label: 'detail · formatter',
-        json: '{ "detail": { "formatter": "{value} °C" } }',
+        category: 'detail',
+        label: 'detail',
+        // formatter is card-owned only with a unit set (◐ there) — formatter IS the detail lever,
+        // allow-listed. fontSize/offsetCenter/valueAnimation stay card-owned and out.
+        json: JSON.stringify({
+            detail: {
+                show: true,
+                color: '#333',
+                fontStyle: 'normal',
+                fontWeight: 'normal',
+                backgroundColor: 'transparent',
+                formatter: '{value}',
+            },
+        }),
     },
     {
-        id: 'gauge-detailstyle',
-        category: 'labels',
-        label: 'detail · colour/size',
-        json: '{ "detail": { "color": "#333", "fontSize": 24 } }',
+        id: 'gauge-detail-rich',
+        category: 'detail',
+        label: 'detail · rich',
+        json: JSON.stringify({
+            detail: {
+                show: true,
+                formatter: '{val|{value}}{unit| °C}',
+                rich: {
+                    val: { color: '#333', fontSize: 30, fontStyle: 'normal', fontWeight: 'bold' },
+                    unit: {
+                        color: '#666',
+                        fontSize: 14,
+                        fontStyle: 'normal',
+                        fontWeight: 'normal',
+                        padding: [6, 0, 0, 0],
+                    },
+                },
+            },
+        }),
     },
     {
-        id: 'gauge-arc',
-        category: 'behavior',
-        label: 'startAngle/endAngle',
-        json: '{ "startAngle": 220, "endAngle": -40 }',
+        id: 'gauge-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } },
+        }),
+    },
+    {
+        id: 'gauge-startangle',
+        category: 'behaviour',
+        label: 'startAngle',
+        json: '{ "startAngle": 225 }',
+    },
+    {
+        id: 'gauge-endangle',
+        category: 'behaviour',
+        label: 'endAngle',
+        json: '{ "endAngle": -45 }',
     },
     {
         id: 'gauge-center',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'center',
-        json: '{ "center": ["50%", "55%"] }',
+        json: '{ "center": ["50%", "50%"] }',
     },
     {
         id: 'gauge-splitnumber',
-        category: 'behavior',
+        category: 'behaviour',
         label: 'splitNumber',
         json: '{ "splitNumber": 10 }',
     },
     {
-        id: 'gauge-emphasis',
-        category: 'emphasis',
-        label: 'emphasis · shadow',
-        json: '{ "emphasis": { "itemStyle": { "shadowBlur": 8 } } }',
+        id: 'gauge-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
     },
 ];
 
-// ── radar (single series, style lifted to series level by WS3) ────────────────
+// ── radar (single series, style lifted to series level) ───────────────────────
+// GUI-owned (always): type/lineStyle.color/itemStyle.color/data. Conditional: areaStyle.color +
+// areaStyle.opacity (area fill on). lineStyle.width IS free here (unlike cartesian).
 const RADAR: SeriesTemplate[] = [
     {
         id: 'radar-linestyle',
-        category: 'style',
-        label: 'lineStyle · width/opacity',
-        json: '{ "lineStyle": { "width": 2, "opacity": 0.9 } }',
+        category: 'lineStyle',
+        label: 'lineStyle',
+        json: JSON.stringify({
+            lineStyle: { width: 2, opacity: 0.9, dashOffset: 0, cap: 'butt', ...NO_SHADOW },
+        }),
     },
     {
-        id: 'radar-areaopacity',
-        category: 'style',
-        label: 'areaStyle · opacity',
-        json: '{ "areaStyle": { "opacity": 0.3 } }',
+        id: 'radar-areastyle',
+        category: 'areaStyle',
+        label: 'areaStyle',
+        // opacity is card-owned with the area fill on (◐ there, ✓ off) — the fill opacity IS the
+        // classic radar lever, allow-listed.
+        json: JSON.stringify({ areaStyle: { opacity: 0.3, ...NO_SHADOW } }),
     },
     {
-        id: 'radar-itemborder',
-        category: 'style',
-        label: 'itemStyle · border',
-        json: '{ "itemStyle": { "opacity": 0.9, "borderColor": "#fff", "borderWidth": 1 } }',
-    },
-    {
-        id: 'radar-label',
-        category: 'labels',
-        label: 'label · value',
-        json: '{ "label": { "show": true, "formatter": "{c}" } }',
-    },
-    {
-        id: 'radar-emphasis',
-        category: 'emphasis',
-        label: 'emphasis · focus self',
-        json: '{ "emphasis": { "focus": "self", "lineStyle": { "width": 3 } } }',
+        id: 'radar-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({
+            itemStyle: { opacity: 0.9, borderColor: '#fff', borderWidth: 1, borderType: 'solid', ...NO_SHADOW },
+        }),
     },
     {
         id: 'radar-symbol',
-        category: 'behavior',
-        label: 'symbol · vertex',
-        json: '{ "symbol": "circle", "symbolSize": 6 }',
+        category: 'symbol',
+        label: 'symbol',
+        json: JSON.stringify({
+            symbol: 'circle',
+            symbolSize: 6,
+            symbolRotate: 0,
+            symbolOffset: [0, 0],
+            symbolKeepAspect: false,
+        }),
     },
     {
-        id: 'radar-anim',
-        category: 'behavior',
-        label: 'animationType · scale',
-        json: '{ "animationType": "scale", "animationEasing": "cubicOut" }',
+        id: 'radar-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { show: true, formatter: '{c}', ...LABEL_FONT_KEYS },
+        }),
+    },
+    {
+        id: 'radar-label-rich',
+        category: 'label',
+        label: 'label · rich',
+        json: JSON.stringify({
+            label: {
+                show: true,
+                formatter: '{val|{c}}',
+                rich: { val: { color: '#333', fontSize: 12, fontStyle: 'normal', fontWeight: 'bold' } },
+                ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'radar-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: { focus: 'self', lineStyle: { width: 3 }, itemStyle: {}, label: { show: true } },
+        }),
+    },
+    {
+        id: 'radar-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({
+            blur: { lineStyle: { opacity: 0.3 }, itemStyle: { opacity: 0.3 }, label: { show: false } },
+        }),
+    },
+    {
+        id: 'radar-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { disabled: true, itemStyle: {}, label: { show: true } } }),
+    },
+    {
+        id: 'radar-animtype',
+        category: 'behaviour',
+        label: 'animationType',
+        // animationEasing stays out: conditionally card-owned when the chart-level easing is set.
+        json: '{ "animationType": "scale" }',
+    },
+    {
+        id: 'radar-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
     },
 ];
 
@@ -475,4 +1053,19 @@ export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
     'pie-slice': PIE_SLICE,
     gauge: GAUGE,
     radar: RADAR,
+};
+
+/**
+ * CONDITIONALLY card-owned leaves a template MAY carry (ADR-0043 conditional-leaf rule: included
+ * only where omitting the leaf destroys the template's purpose). Everything else the builder
+ * emits — always or conditionally — is forbidden in every scaffold/solo (guard test). Each entry
+ * is justified at the using template.
+ */
+export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
+    'cartesian-line': new Set(['areaStyle.color', 'markLine.silent', 'markLine.symbol', 'markLine.data']),
+    'cartesian-bar': new Set(['markLine.silent', 'markLine.symbol', 'markLine.data']),
+    pie: new Set(),
+    'pie-slice': new Set(),
+    gauge: new Set(['detail.formatter', 'axisLine.lineStyle.color']),
+    radar: new Set(['areaStyle.opacity']),
 };

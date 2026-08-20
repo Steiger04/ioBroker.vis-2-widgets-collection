@@ -1,49 +1,75 @@
 /**
- * Per-axis template catalog (ADR-0037) — collision-safe yAxis JSON snippets that inject
- * GUI-uncovered echarts keys into an Axis card's raw.
+ * Per-axis template catalog (ADR-0037; re-categorised to echarts Option groups by ADR-0043) —
+ * collision-safe yAxis JSON templates that inject GUI-uncovered echarts keys into an Axis card's
+ * raw. The menu teaches the yAxis option space: one category per option group.
  *
  * @module EchartsCollectionWidget/editor/axisTemplates
  * @remarks
  * Each entry is a JSON object meant to go INSIDE one yAxis (deep-merged UNDER the GUI-authored
  * entry via `applyRawOverride`, so the card wins collisions). Every entry is AUDITED against
  * `buildYAxisEntry` (optionBuilders/cartesian.ts) so no leaf duplicates a builder-emitted one —
- * pinned by the guard test in `axisTemplates.test.ts` (a future catalog entry that touches a
- * managed leaf fails red).
+ * pinned by the guard test in `axisTemplates.test.ts` against the FULLEST card state (a future
+ * catalog entry that touches a managed leaf fails red). Unlike the series catalog (ADR-0043
+ * conditional-leaf allow-list) the axis audit has NO allow-list: ADR-0037's stricter rule —
+ * every template must be wholly effective under ANY card state — is kept.
  *
- * Design rules (ADR-0037, locked 2026-08-16):
- *  - **Thematic snippets**: one capability per entry (fonts, minor ticks, splitArea bands, label
- *    overflow, logBase, …) — no complete ~40-key scaffold, which would flood the state-aware
- *    analysis red before the user did anything.
- *  - **Theme-neutral payloads**: no light-mode colour hardcodes. `splitArea:{show:true}` inherits
- *    the theme's band colours (echarts dark theme overrides them); the label chip uses a neutral
- *    grey tint. Precedent: the legend.inactiveColor dark-mode fix (ADR-0027).
- *  - **Prefill = capability keys + non-obvious companions**: `minorTick` carries `splitNumber:5`
- *    because tick density is `splitNumber × minorTick.splitNumber` (echarts Axis.getMinorTicksCoords);
- *    keys whose default already delivers the capability are omitted.
- *  - Defaults verified against the locally installed echarts 6.1.0 SOURCE (`lib/coord/axisDefault.js`,
- *    `AxisBuilder.js`, `axisNiceTicks.js`, `Log.js`), not the v5-lagging public docs.
+ * Forms (ADR-0043): a **group scaffold** per option group (complete, GUI-owned leaves omitted —
+ * always-owned: type/position/offset/alignTicks/splitLine.show/axisTick.show/nameLocation/
+ * nameGap; conditionally-owned: name, min/max/scale/splitNumber/minInterval/nameRotate,
+ * axisLabel.formatter, axisLabel.color/axisLine.show/axisLine.lineStyle.color/
+ * nameTextStyle.color when an axis colour is set) plus **value variants** (chip label, custom
+ * tick values, truncated labels) and scalar **solos** (scale group). Theme-neutral payloads
+ * (ADR-0037): no light-mode colour hardcodes — `splitArea:{show:true}` inherits the theme's
+ * band colours; the label chip uses a neutral grey tint.
  *
- * Template LABELS are shown as-is (echarts option vocabulary, universally English) — only the
- * CATEGORY headers are translated. Distinct from the chart-wide Template snippets
- * (advancedJsonTemplates.ts) and the per-series Series templates (seriesTemplates.ts).
+ * Defaults verified against the locally installed echarts 6.1.0 SOURCE (`lib/coord/axisDefault.js`,
+ * `AxisBuilder.js`, `axisNiceTicks.js`, `Log.js`), not the v5-lagging public docs. Template LABELS
+ * are shown as-is (echarts option vocabulary, universally English) — only the CATEGORY headers
+ * are translated. Distinct from the chart-wide Template snippets (advancedJsonTemplates.ts) and
+ * the per-series Series templates (seriesTemplates.ts).
  */
 /** Axis-template grouping (rendered as menu section headers; order = {@link AXIS_CATEGORY_ORDER}). */
-export type AxisTemplateCategory = 'fonts' | 'grid' | 'labels' | 'scale' | 'style' | 'interaction';
+export type AxisTemplateCategory =
+    | 'name'
+    | 'axisLine'
+    | 'axisTick'
+    | 'minorTick'
+    | 'axisLabel'
+    | 'splitLine'
+    | 'minorSplitLine'
+    | 'splitArea'
+    | 'axisPointer'
+    | 'scale';
 
-export const AXIS_CATEGORY_ORDER: AxisTemplateCategory[] = ['fonts', 'grid', 'labels', 'scale', 'style', 'interaction'];
+export const AXIS_CATEGORY_ORDER: AxisTemplateCategory[] = [
+    'name',
+    'axisLine',
+    'axisTick',
+    'minorTick',
+    'axisLabel',
+    'splitLine',
+    'minorSplitLine',
+    'splitArea',
+    'axisPointer',
+    'scale',
+];
 
 /** i18n key per category header. */
 export const AXIS_CATEGORY_I18N: Record<AxisTemplateCategory, string> = {
-    fonts: 'echarts_atpl_cat_fonts',
-    grid: 'echarts_atpl_cat_grid',
-    labels: 'echarts_atpl_cat_labels',
+    name: 'echarts_atpl_cat_name',
+    axisLine: 'echarts_atpl_cat_axisline',
+    axisTick: 'echarts_atpl_cat_axistick',
+    minorTick: 'echarts_atpl_cat_minortick',
+    axisLabel: 'echarts_atpl_cat_axislabel',
+    splitLine: 'echarts_atpl_cat_splitline',
+    minorSplitLine: 'echarts_atpl_cat_minorsplitline',
+    splitArea: 'echarts_atpl_cat_splitarea',
+    axisPointer: 'echarts_atpl_cat_axispointer',
     scale: 'echarts_atpl_cat_scale',
-    style: 'echarts_atpl_cat_style',
-    interaction: 'echarts_atpl_cat_interaction',
 };
 
 export interface AxisTemplate {
-    /** Stable id for React keys + the audit test. */
+    /** Stable catalog id (the persisted activation references it). */
     id: string;
     category: AxisTemplateCategory;
     /** Display label (echarts vocabulary; shown as-is). */
@@ -52,98 +78,103 @@ export interface AxisTemplate {
     json: string;
 }
 
-/**
- * The 20 locked snippets (ADR-0037 spec table). echarts 6.1.0 source facts behind the prefills:
- *  - `axisLabel` font keys are unset by default → global textStyle fallbacks (sans-serif/12/normal).
- *  - `minorTick` default show:false, splitNumber 5 (guarded (0,100)), length 3; `minorSplitLine`
- *    has its OWN show-gate and renders standalone off the minor-tick coords.
- *  - `splitArea` default = 2 theme band colours; `{"splitArea":{"show":true}}` alone is dark-mode-correct.
- *  - `axisLabel.hideOverlap` default OFF (AxisBuilder applies it only when truthy).
- *  - `overflow` acts only with an explicit `width`; `showMinLabel`/`showMaxLabel` default null (auto).
- *  - `logBase` default 10; fractional bases silently INVERT the axis (keep an integer > 1); needs
- *    the card's log switch (the builder derives `type:'log'` from it).
- *  - `boundaryGap` percent pairs DO apply to value axes, but die on any side with a fixed min/max.
- *  - `maxInterval` clamps the auto interval from above (value/time only; dead on log).
- *  - `axisLine.symbol` default ['none','none']; `axisPointer` per axis has NO 'cross' (downgraded
- *    to 'line') and a tooltip-triggered pointer defaults `label.show:false` — the snippet's point.
- */
 export const AXIS_TEMPLATES: AxisTemplate[] = [
-    // ── fonts ──────────────────────────────────────────────────────────
+    // ── name — the axis-title group ─────────────────────────────────────
     {
-        id: 'axislabel-font',
-        category: 'fonts',
-        label: 'axisLabel · font',
-        json: '{ "axisLabel": { "fontFamily": "sans-serif", "fontSize": 12, "fontWeight": "normal", "fontStyle": "normal" } }',
+        id: 'nametextstyle',
+        category: 'name',
+        label: 'nameTextStyle',
+        // `color` omitted: conditionally card-owned when an axis colour is set.
+        json: '{ "nameTextStyle": { "fontStyle": "normal", "fontWeight": "normal", "fontSize": 12, "align": "left", "padding": 0, "backgroundColor": "transparent" } }',
     },
+    // ── axisLine ────────────────────────────────────────────────────────
     {
-        id: 'nametextstyle-font',
-        category: 'fonts',
-        label: 'nameTextStyle · font',
-        json: '{ "nameTextStyle": { "fontFamily": "sans-serif", "fontSize": 12, "fontWeight": "normal", "fontStyle": "normal" } }',
+        id: 'axisline',
+        category: 'axisLine',
+        label: 'axisLine',
+        // `show` + `lineStyle.color` omitted (conditionally card-owned with an axis colour);
+        // `lineStyle.width` is always card-owned. Arrow end symbols are free.
+        json: '{ "axisLine": { "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0 }, "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
+    },
+    // ── axisTick ────────────────────────────────────────────────────────
+    {
+        id: 'axistick',
+        category: 'axisTick',
+        label: 'axisTick',
+        // `show` omitted (always card-owned).
+        json: '{ "axisTick": { "length": 5, "inside": false, "splitNumber": 5, "lineStyle": { "width": 1, "type": "solid", "opacity": 1 } } }',
+    },
+    // ── minorTick ───────────────────────────────────────────────────────
+    {
+        id: 'minortick',
+        category: 'minorTick',
+        label: 'minorTick',
+        // show:false default → `true` is the lever; splitNumber:5 because tick density is
+        // splitNumber × minorTick.splitNumber (the non-obvious companion, ADR-0037 prefill rule).
+        json: '{ "minorTick": { "show": true, "splitNumber": 5, "length": 3 } }',
+    },
+    // ── axisLabel ───────────────────────────────────────────────────────
+    {
+        id: 'axislabel',
+        category: 'axisLabel',
+        label: 'axisLabel',
+        // `color`/`formatter` omitted (conditionally card-owned with colour/format); rotate is
+        // the GUI label-rotation slider on the X-Karte but free on Y (only listed managed for xAxis).
+        json: '{ "axisLabel": { "show": true, "inside": false, "rotate": 0, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal", "fontSize": 12 } }',
     },
     {
         id: 'axislabel-chip',
-        category: 'fonts',
+        category: 'axisLabel',
         label: 'axisLabel · chip',
+        // Neutral grey tint — dark-mode safe (ADR-0037 theme-neutrality rule).
         json: '{ "axisLabel": { "backgroundColor": "rgba(127,127,127,0.15)", "padding": [2, 4], "borderRadius": 2 } }',
-    },
-    // ── grid ────────────────────────────────────────────────────────────
-    {
-        id: 'minortick',
-        category: 'grid',
-        label: 'minorTick',
-        json: '{ "minorTick": { "show": true, "splitNumber": 5, "length": 3 } }',
-    },
-    {
-        id: 'minorsplitline',
-        category: 'grid',
-        label: 'minorSplitLine',
-        json: '{ "minorSplitLine": { "show": true } }',
-    },
-    {
-        id: 'splitline-dashed',
-        category: 'grid',
-        label: 'splitLine · dashed',
-        json: '{ "splitLine": { "lineStyle": { "type": "dashed", "width": 1 } } }',
-    },
-    {
-        id: 'splitarea',
-        category: 'grid',
-        label: 'splitArea',
-        json: '{ "splitArea": { "show": true } }',
-    },
-    // ── labels ───────────────────────────────────────────────────────────────────
-    {
-        id: 'axislabel-hideoverlap',
-        category: 'labels',
-        label: 'axisLabel · hideOverlap',
-        json: '{ "axisLabel": { "hideOverlap": true } }',
     },
     {
         id: 'axislabel-overflow',
-        category: 'labels',
+        category: 'axisLabel',
         label: 'axisLabel · overflow',
+        // overflow acts only with an explicit width (TextStyleProps.overflow, verified).
         json: '{ "axisLabel": { "width": 56, "overflow": "truncate" } }',
     },
     {
-        id: 'axislabel-edge',
-        category: 'labels',
-        label: 'axisLabel · edge labels',
-        json: '{ "axisLabel": { "showMinLabel": false, "showMaxLabel": false } }',
-    },
-    {
-        id: 'axislabel-layout',
-        category: 'labels',
-        label: 'axisLabel · layout',
-        json: '{ "axisLabel": { "margin": 8, "rotate": 0 } }',
-    },
-    {
         id: 'axislabel-customvalues',
-        category: 'labels',
+        category: 'axisLabel',
         label: 'axisLabel · customValues',
         json: '{ "axisLabel": { "customValues": [0, 20, 40, 60, 80, 100] } }',
     },
-    // ── scale ────────────────────────────────────────────────────────────
+    // ── splitLine ───────────────────────────────────────────────────────
+    {
+        id: 'splitline',
+        category: 'splitLine',
+        label: 'splitLine',
+        // `show` omitted (always card-owned); dashed as the visible classic value.
+        json: '{ "splitLine": { "lineStyle": { "type": "dashed", "width": 1, "opacity": 1, "dashOffset": 0 } } }',
+    },
+    // ── minorSplitLine ──────────────────────────────────────────────────
+    {
+        id: 'minorsplitline',
+        category: 'minorSplitLine',
+        label: 'minorSplitLine',
+        json: '{ "minorSplitLine": { "show": true } }',
+    },
+    // ── splitArea ───────────────────────────────────────────────────────
+    {
+        id: 'splitarea',
+        category: 'splitArea',
+        label: 'splitArea',
+        // show alone inherits the theme's band colours (dark-mode safe, ADR-0037).
+        json: '{ "splitArea": { "show": true, "interval": "auto" } }',
+    },
+    // ── axisPointer ─────────────────────────────────────────────────────
+    {
+        id: 'axispointer',
+        category: 'axisPointer',
+        label: 'axisPointer',
+        // Per-axis pointers have no 'cross' (downgraded 'line') and label.show defaults FALSE —
+        // the label is the whole point (ADR-0037 source findings).
+        json: '{ "axisPointer": { "show": true, "snap": false, "triggerTooltip": true, "type": "line", "label": { "show": true, "precision": 0, "formatter": "{value}", "margin": 3, "color": "#fff", "fontSize": 12 } } }',
+    },
+    // ── scale (scalar solos — no object group) ──────────────────────────
     {
         id: 'logbase',
         category: 'scale',
@@ -168,50 +199,22 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         label: 'inverse',
         json: '{ "inverse": true }',
     },
-    // ── style ─────────────────────────────────────────────────────────────
-    {
-        id: 'axisline-arrow',
-        category: 'style',
-        label: 'axisLine · arrow',
-        json: '{ "axisLine": { "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
-    },
-    {
-        id: 'axisline-dashed',
-        category: 'style',
-        label: 'axisLine · dashed',
-        json: '{ "axisLine": { "lineStyle": { "type": "dashed" } } }',
-    },
-    {
-        id: 'axistick-length',
-        category: 'style',
-        label: 'axisTick · length',
-        json: '{ "axisTick": { "length": 5, "inside": false } }',
-    },
-    // ── interaction ────────────────────────────────────────────────
-    {
-        id: 'axispointer-label',
-        category: 'interaction',
-        label: 'axisPointer · label',
-        json: '{ "axisPointer": { "show": true, "label": { "show": true, "precision": 0, "formatter": "{value}" } } }',
-    },
 ];
 
 /**
- * Parse a raw-override text into a JSON object — `null` for empty, invalid or non-object text.
- * The shared guard behind the composition seam and the card editor's validity check.
+ * Parse an axis raw-override text into a plain object (empty text → `{}`, invalid → `null`).
+ * Shared by the axis raw section (validity chip) — kept here so the catalog module owns its
+ * payload shape end to end.
  */
 export const parseRawObject = (text: string): Record<string, unknown> | null => {
     const trimmed = (text ?? '').trim();
     if (!trimmed) {
-        return null;
+        return {};
     }
     try {
         const v = JSON.parse(trimmed);
-        if (v && typeof v === 'object' && !Array.isArray(v)) {
-            return v as Record<string, unknown>;
-        }
+        return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
     } catch {
-        /* invalid raw override — ignored (the validity is surfaced in the editor) */
+        return null;
     }
-    return null;
 };

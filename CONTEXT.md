@@ -130,8 +130,21 @@ _Avoid_: theme colour (too generic), palette colour (the palette is the position
 The colour box in a `ColorField` that shows the field's **effective** colour — the value the canvas will actually render — when no explicit override is set. Backed by the picker's `fallback` (ADR-0004): palette slot, bound-series colour, or theme token. An inherit swatch that reads empty is a bug — it must preview the real inherited value.
 _Avoid_: colour preview, default swatch
 
+**Option group**:
+An echarts configuration group — on a series `lineStyle`/`areaStyle`/`itemStyle`/`symbol`/`label`/`labelLayout`/states/markers, on an axis `axisLine`/`axisTick`/`axisLabel`/`splitLine`/…, at chart level the component (`title`, `tooltip`, …). Since ADR-0043 it is the category unit of the three template catalogs: the menu teaches the option space of its level instead of hiding it behind semantic umbrella headers.
+_Avoid_: Category (that is its menu role), theme group (the retired semantic headers)
+
+**Group scaffold**:
+A template that brings ONE Option group COMPLETELY as an editable starting point — every documented, non-GUI-owned key of the group pre-filled with its echarts-doc value; the user deletes what they do not need (ADR-0043; form inherited from the complete scaffolds of the ADR-0030 era). GUI-owned leaves are deliberately omitted: the merge eats them anyway, and the ✓/◐/✗ analysis would otherwise read ◐/✗ forever. Power variants (gradient, decal, rich text, edge labels) are additional scaffolds inside the same Option group.
+_Avoid_: Complete scaffold (old name), preset, look (those bundle MULTIPLE groups — a different, rejected form)
+
+**Solo**:
+A scalar template for ONE key that has no object group (`sampling`, `clip`, `startAngle`, `logBase`, `universalTransition`…). Object part-snippets of the old atomic style (e.g. `label · value`) no longer exist since ADR-0043 — their group carries a Group scaffold instead.
+_Avoid_: Atomic snippet (the superseded form), single-key template
+
+
 **Template snippet**:
-A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar) with small one-capability snippets under each group header — replacing the complete scaffolds of ADR-0030/0032/0035. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI). Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
+A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar). Since ADR-0043 each component category carries Group scaffolds (one per Option group, power variants included) plus scalar Solos — the one-capability part-snippet form is retired. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI). Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Series raw**:
@@ -139,7 +152,7 @@ The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object 
 _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 
 **Series template**:
-A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
+A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts keys relevant to the family/type into a card's Series raw (e.g. `sampling:'lttb'`, `markPoint` peaks, gauge `axisLine` coloured zones, radar `lineStyle`). Since ADR-0043 the catalog's categories are the echarts Option groups of the series slot, its entries Group scaffolds (with power variants: gradient, decal, rich text, edge labels) and scalar Solos; the atomic part-snippet form is retired. Each entry is audited against the builder so it duplicates no GUI-owned key; the GUI wins any residual collision. Distinct from the chart-wide **Template snippet**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
 _Avoid_: Snippet, preset, template snippet (that is chart-wide)
 
 **Axis raw**:
@@ -147,7 +160,7 @@ The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis ca
 _Avoid_: Advanced JSON (that is the chart-level U), axis JSON (too generic)
 
 **Axis template**:
-A per-axis, collision-safe preset (ADR-0037) — a small thematic snippet (one capability: label fonts, minor ticks, splitArea bands, label overflow, `logBase`…) injected deep-merged into an Axis card's Axis raw. Each entry is audited against the axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
+A per-axis, collision-safe preset (ADR-0037) — injected deep-merged into an Axis card's Axis raw. Since ADR-0043 the six semantic category headers give way to the echarts Option groups (`name`/`axisLine`/`axisTick`/`minorTick`/`axisLabel`/`splitLine`/`minorSplitLine`/`splitArea`/`axisPointer` plus a scale-Solos category), entries being Group scaffolds and scalar Solos. Each entry is audited against the axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Aktive Vorlage**:

@@ -17,9 +17,9 @@ import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-reac
 import Generic from '../../../../Generic';
 import JsonEditor from '../../JsonEditor';
 import {
+    SERIES_CATEGORY_I18N,
+    SERIES_CATEGORY_ORDER,
     SERIES_TEMPLATES,
-    TEMPLATE_CATEGORY_I18N,
-    TEMPLATE_CATEGORY_ORDER,
     type SeriesTemplateSlot,
 } from '../../seriesTemplates';
 import { classifySeriesKeys, type SeriesAnalysisContext } from '../../seriesRawAnalysis';
@@ -217,8 +217,8 @@ export const SeriesRawOverride: FC<{
                     <>
                         <TemplateMenu
                             templates={templates}
-                            categoryOrder={TEMPLATE_CATEGORY_ORDER}
-                            categoryI18n={TEMPLATE_CATEGORY_I18N}
+                            categoryOrder={SERIES_CATEGORY_ORDER}
+                            categoryI18n={SERIES_CATEGORY_I18N}
                             activeIds={snippets ?? []}
                             onToggle={runToggle}
                             disabled={!valid}

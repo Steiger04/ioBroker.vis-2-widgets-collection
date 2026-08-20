@@ -176,7 +176,7 @@ describe('familySwitchLoss', () => {
 describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
     it('chart-level family-invalid activations count (xAxis snippet on a radar target)', () => {
         const n = familySwitchSnippetLoss(
-            st({ chartType: 'radar', chartSnippets: ['xaxis-dashedsplit', 'title-subtext'] }),
+            st({ chartType: 'radar', chartSnippets: ['xaxis-dashedsplit', 'title-scaffold'] }),
         );
         expect(n).toBe(1);
     });
@@ -209,7 +209,7 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
 
     it('pie target: slice-slot-stale cartesian activations count', () => {
         const n = familySwitchSnippetLoss(
-            st({ chartType: 'pie', series: [{ oid: 'a', name: '', snippets: ['line-sampling', 'slice-radius'] }] }),
+            st({ chartType: 'pie', series: [{ oid: 'a', name: '', snippets: ['line-sampling', 'slice-itemstyle'] }] }),
         );
         expect(n).toBe(1);
     });
@@ -218,7 +218,7 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
         const n = familySwitchSnippetLoss(
             st({
                 chartType: 'line',
-                chartSnippets: ['title-subtext'],
+                chartSnippets: ['title-scaffold'],
                 series: [{ oid: 'a', name: '', snippets: ['line-sampling'] }],
             }),
         );
