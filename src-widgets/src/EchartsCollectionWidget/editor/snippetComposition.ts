@@ -32,6 +32,15 @@ export interface SnippetSelection {
     ids: string[];
 }
 
+/**
+ * The one-history-step commit shape every raw level's menu toggles AND valid text edits
+ * produce (the hosts persist text + ids together, ADR-0042 addendum).
+ */
+export interface SnippetCommit {
+    text: string;
+    ids: string[];
+}
+
 /** One toggle's outcome: the next selection, the recomposed text, and the two notice counts. */
 export interface RecomposeResult {
     selection: SnippetSelection;
@@ -199,6 +208,73 @@ export const toggleSnippet = (args: {
     return { selection: { ids: nextIds }, text, kept: own.size, deleted: tombstones.size };
 };
 
+/** The shared keep-check: unknown ids pass through; known ids survive on ≥1 remaining leaf path. */
+const keepPresentIds = (
+    templates: readonly SnippetTemplate[],
+    ids: readonly string[],
+    present: Map<string, unknown>,
+): string[] => {
+    const leavesById = new Map(templates.map(t => [t.id, [...leafMap(parseTextObject(t.json) ?? {}).keys()]]));
+    return ids.filter(id => {
+        const leaves = leavesById.get(id);
+        // Unknown ids (stale, pruned elsewhere) pass through — the load/apply prune owns them.
+        return !leaves || leaves.some(p => present.has(p));
+    });
+};
+
+/**
+ * Reconcile a level's activation ids against its raw text (ADR-0042 addendum — the badge
+ * follows the text). Hysteresis: an ACTIVE id survives while ANY of its leaf paths remains
+ * (values never matter — editing a template's values keeps the link); a NEVER-active template
+ * joins only when VERBATIM contained (every leaf path present with the template's value —
+ * editor undo / re-typed pristine content restore a badge, a coincidental key never does).
+ * Survivors keep their relative order, additions append in catalog order.
+ *
+ * @returns The reconciled ids, or `null` when the text is invalid JSON — the caller then
+ * keeps the ids unchanged (the menu is locked in that state anyway).
+ */
+export const reconcileSnippetIds = (args: {
+    templates: readonly SnippetTemplate[];
+    ids: readonly string[];
+    text: string;
+}): string[] | null => {
+    const parsed = parseTextObject(args.text);
+    if (!parsed) {
+        return null;
+    }
+    const present = leafMap(parsed);
+    const out = keepPresentIds(args.templates, args.ids, present);
+    // Additions: never-active templates VERBATIM-contained in the text (hysteresis — the strict
+    // threshold, values included, is what keeps a coincidental hand-typed key from lighting a
+    // badge; path-only would add `legend·plain` to any `{legend:{type:'scroll'}}`).
+    const kept = new Set(out);
+    for (const t of args.templates) {
+        if (!kept.has(t.id)) {
+            const leaves = leafMap(parseTextObject(t.json) ?? {});
+            if (leaves.size && [...leaves].every(([p, v]) => present.has(p) && sameValue(present.get(p), v))) {
+                out.push(t.id);
+            }
+        }
+    }
+    return out;
+};
+
+/**
+ * The keep-only half of {@link reconcileSnippetIds} — the LOAD-time heal (ADR-0042 addendum):
+ * an activation whose template no longer has ANY leaf path in the raw text drops (its badge
+ * lied about content the user had deleted inside the editor). Additions never happen at load —
+ * retro-detection of hand-typed content stays rejected (ADR-0042). Invalid text heals nothing
+ * (the ids come back unchanged).
+ */
+export const keepSnippetIds = (
+    templates: readonly SnippetTemplate[],
+    ids: readonly string[],
+    text: string,
+): string[] => {
+    const parsed = parseTextObject(text);
+    return parsed ? keepPresentIds(templates, ids, leafMap(parsed)) : [...ids];
+};
+
 /**
  * Prune an activation list to the ids the catalog still offers (family prune on Apply,
  * ADR-0042 decision 6) — `saveEditorState` runs every level's list through this.
@@ -213,7 +289,7 @@ export const pruneSnippetIds = (templates: readonly SnippetTemplate[], ids: read
  * the raw text (undefined when empty) + the activations (undefined when none) — one object the
  * host spreads into its series/axis/pie config, so both layers change in ONE history step.
  */
-export const snippetPatch = (result: { text: string; ids: string[] }): { raw?: string; snippets?: string[] } => ({
+export const snippetPatch = (result: SnippetCommit): { raw?: string; snippets?: string[] } => ({
     raw: result.text || undefined,
     snippets: result.ids.length ? result.ids : undefined,
 });

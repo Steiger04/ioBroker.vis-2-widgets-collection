@@ -489,17 +489,14 @@ const AxisCard: FC<{
                 </FieldGrid>
             </SubGroup>
 
-            {/* The per-axis raw escape hatch (ADR-0037): template menu + JSON editor + the
-                state-aware ✓/◐/✗ analysis. Deep-merged UNDER the built entry — the card wins
-                collisions; everything the builder does not emit merges through. */}
+            {/* The per-axis raw escape hatch (ADR-0037): template menu + JSON editor. Deep-merged
+                UNDER the built entry — the card wins collisions; everything the builder does not
+                emit merges through. The activation follows the text (ADR-0042 addendum). */}
             <AxisRawOverride
                 raw={a.raw}
                 onChange={v => onChange({ raw: v })}
                 snippets={a.snippets}
-                onToggle={r => onChange(snippetPatch(r))}
-                axis={a}
-                seriesColor={seriesColor}
-                seriesName={seriesName}
+                onCommit={r => onChange(snippetPatch(r))}
             />
         </EditorCard>
     );

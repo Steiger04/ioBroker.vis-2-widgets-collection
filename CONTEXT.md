@@ -144,11 +144,11 @@ _Avoid_: Atomic snippet (the superseded form), single-key template
 
 
 **Template snippet**:
-A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar). Since ADR-0043 each component category carries Group scaffolds (one per Option group, power variants included) plus scalar Solos — the one-capability part-snippet form is retired. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. The merge-preview shows whether each key takes effect (`✓`), collides with a GUI-owned key (`✗`), or is partial (`◐` — some subkeys eaten by the GUI). Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
+A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0040 the catalog is grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse, radar presets for radar). Since ADR-0043 each component category carries Group scaffolds (one per Option group, power variants included) plus scalar Solos — the one-capability part-snippet form is retired. With `series` now a managed key, a snippet never targets per-series presentation; that is the **Series template**'s job. Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Series raw**:
-The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object on a series card, deep-merged UNDER the GUI-authored series entry (the GUI wins collisions; the data points are force-set). Every series card carries one: cartesian per-card, gauge/radar as the single-series raw, and pie on two levels (a whole-pie series raw + a per-slice raw). Since the ADR-0037 axis parity it is labelled "Erweitertes JSON"/"Advanced JSON" like the Axis raw, injects templates via DEEP merge, and surfaces the same state-aware ✓/◐/✗ key analysis (`seriesRawAnalysis`) — conditional managed keys (areaStyle, symbolSize, roseType, gauge detail.formatter, …) classify against the card's actual state. It replaces the positional chart-level `U.series` array, now retired.
+The per-series echarts-JSON escape hatch (ADR-0015/0017) — a small raw object on a series card, deep-merged UNDER the GUI-authored series entry (the GUI wins collisions; the data points are force-set). Every series card carries one: cartesian per-card, gauge/radar as the single-series raw, and pie on two levels (a whole-pie series raw + a per-slice raw). Since the ADR-0037 axis parity it is labelled "Erweitertes JSON"/"Advanced JSON" like the Axis raw and injects templates via DEEP merge. It replaces the positional chart-level `U.series` array, now retired.
 _Avoid_: Advanced JSON (that is the chart-level U), JSON override (too generic)
 
 **Series template**:
@@ -156,7 +156,7 @@ A per-series, collision-safe preset (ADR-0017) — injects GUI-uncovered echarts
 _Avoid_: Snippet, preset, template snippet (that is chart-wide)
 
 **Axis raw**:
-The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis card, deep-merged UNDER the GUI-authored yAxis entry (the card wins collisions). Present on every Y-axis card in all cartesian data modes; a JSON-derived axis keeps it through reconcile, while freshly created axes start without one. Its UI section is labelled "Erweitertes JSON"/"Advanced JSON" (the user's chosen name) — the label notwithstanding, it is NOT the chart-level Advanced JSON. Unlike the Series raw, the card surfaces a **state-aware** key analysis (✓/◐/✗) because the axis builder always-emits keys that would otherwise silently eat raw keys.
+The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis card, deep-merged UNDER the GUI-authored yAxis entry (the card wins collisions). Present on every Y-axis card in all cartesian data modes; a JSON-derived axis keeps it through reconcile, while freshly created axes start without one. Its UI section is labelled "Erweitertes JSON"/"Advanced JSON" (the user's chosen name) — the label notwithstanding, it is NOT the chart-level Advanced JSON.
 _Avoid_: Advanced JSON (that is the chart-level U), axis JSON (too generic)
 
 **Axis template**:
@@ -164,11 +164,11 @@ A per-axis, collision-safe preset (ADR-0037) — injected deep-merged into an Ax
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Aktive Vorlage**:
-A catalog entry switched ON at one of the three raw levels (chart / series / axis) via the template multi-select (ADR-0042). The ordered activation list is persisted per level and deep-merged in selection order (last activation wins a shared leaf) into the level's raw JSON; deactivating removes exactly its still-pristine leaves, so its effect is gone. Each active template renders as a chip aggregating its ✓/◐/✗ leaf analysis; family-invalid activations are pruned on Apply with the family-switch warning.
+A catalog entry switched ON at one of the three raw levels (chart / series / axis) via the template multi-select (ADR-0042); renders as a plain chip carrying its label and a deactivate-X. The ordered activation list is persisted per level and deep-merged in selection order (last activation wins a shared leaf) into the level's raw JSON; deactivating removes exactly its still-pristine leaves, so its effect is gone. Since the ADR-0042 addendum the activation tracks the raw text: it lasts while ANY of its keys stands in the JSON, and arises from the text only when its complete, value-identical key set stands there (editor undo restores it; a coincidental key never lights one). Family-invalid activations are pruned on Apply with the family-switch warning.
 _Avoid_: selected template, inserted template (the one-shot insert is retired), checked snippet
 
 **Eigenanteil**:
-The leaves of a level's raw JSON that no active template accounts for — hand-written keys plus template leaves whose value the user changed. Determined by leaf-diff against the composed templates, never persisted itself; it survives every re-composition (the "n Schlüssel blieben erhalten" notice).
+The leaves of a level's raw JSON that no active template accounts for — hand-written keys plus template leaves whose value the user changed. Determined by leaf-diff against the composed templates, never persisted itself; it survives every re-composition.
 _Avoid_: custom JSON, free JSON, user layer, delta
 
 **Tombstone**:

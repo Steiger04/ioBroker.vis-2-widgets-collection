@@ -44,7 +44,6 @@ import {
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
-import { hostsMarkLines } from '../../seriesRawAnalysis';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
 import { effectiveAxisName } from '../../axisLayout';
@@ -495,19 +494,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         raw={s.raw}
                         onChange={v => onUpdate(i, { raw: v || undefined })}
                         snippets={s.snippets}
-                        onToggle={r => onUpdate(i, snippetPatch(r))}
-                        analysis={{
-                            slot: `cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot,
-                            meta: s,
-                            // Threshold markLines attach to the first series ON their axis
-                            // (builder grouping, markLineOption) — hostsMarkLines mirrors it.
-                            markLineHost: hostsMarkLines(
-                                state.markLines,
-                                series.map(x => x.yAxisIndex ?? 0),
-                                i,
-                                state.yAxes.length,
-                            ),
-                        }}
+                        onCommit={r => onUpdate(i, snippetPatch(r))}
                     />
                 </EditorCard>
             ))}

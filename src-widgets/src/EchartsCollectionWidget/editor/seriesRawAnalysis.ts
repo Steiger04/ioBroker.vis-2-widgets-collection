@@ -4,7 +4,10 @@
  *
  * @module EchartsCollectionWidget/editor/seriesRawAnalysis
  * @remarks
- * The raw override is deep-merged UNDER the built series entry (`applyRawOverride` — the GUI wins
+ * Since the ADR-0042 addendum the UI chips that surfaced this analysis are RETIRED — the module
+ * lives on as the series-catalog audit gate (every Series template must bring ≥1 key the builders
+ * do not emit; the guard test enforces it). The classification itself is unchanged: the raw
+ * override is deep-merged UNDER the built series entry (`applyRawOverride` — the GUI wins
  * collisions), so a raw key is ✓ effective only where the builder does NOT emit it. Like the axis
  * builder, the series builders' managed sets are partly CONDITIONAL (`symbolSize`/`step`/`areaStyle`
  * only when the card sets them; the gauge `detail.formatter` only with a unit; `roseType` only with

@@ -4,7 +4,10 @@
  *
  * @module EchartsCollectionWidget/editor/axisRawAnalysis
  * @remarks
- * The raw override is deep-merged UNDER the built yAxis entry (the card wins collisions), so a raw
+ * Since the ADR-0042 addendum the UI chips that surfaced this analysis are RETIRED — the module
+ * lives on as the axis-catalog audit gate (every Axis template must bring ≥1 key the card does
+ * not emit; the guard test enforces it). The classification itself is unchanged: the raw
+ * override is deep-merged UNDER the built yAxis entry (the card wins collisions), so a raw
  * key is ✓ effective only where the builder does NOT emit it. Unlike the chart-level static
  * `MANAGED_PATHS` (advancedJsonAnalysis.ts), the axis builder's managed set is partly CONDITIONAL:
  * `axisLabel.color` / `nameTextStyle.color` / `axisLine` are emitted only when an axis colour is

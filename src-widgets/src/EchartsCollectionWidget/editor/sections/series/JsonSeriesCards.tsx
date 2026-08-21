@@ -200,11 +200,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 raw={m.raw}
                                 onChange={v => onUpdateJson(name, { raw: v })}
                                 snippets={m.snippets}
-                                onToggle={r => onUpdateJson(name, snippetPatch(r))}
-                                analysis={{
-                                    slot: `cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot,
-                                    meta: m,
-                                }}
+                                onCommit={r => onUpdateJson(name, snippetPatch(r))}
                             />
                         </EditorCard>
                     );

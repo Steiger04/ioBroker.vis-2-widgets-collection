@@ -166,12 +166,6 @@ function EchartsConfigEditorModal({
         },
         [commit],
     );
-    const setUserText = useCallback(
-        (value: string) => {
-            commit(s => ({ ...s, userText: value }), 'userText');
-        },
-        [commit],
-    );
 
     // JSON-mode axis reconcile (ADR-0026 — JSON 1:n): for the cartesian payload series, keep the
     // name-keyed overlay consistent with the axis array as the (dynamic) payload + the user's bindings
@@ -437,7 +431,6 @@ function EchartsConfigEditorModal({
                                 set={set}
                                 issues={issues}
                                 userText={state.userText}
-                                setUserText={setUserText}
                                 pickerCtx={{
                                     socket,
                                     theme,

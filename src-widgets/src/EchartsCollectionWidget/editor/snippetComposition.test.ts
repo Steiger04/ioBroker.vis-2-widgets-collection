@@ -6,7 +6,14 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { composeActiveSnippets, pruneSnippetIds, toggleSnippet, type SnippetTemplate } from './snippetComposition';
+import {
+    composeActiveSnippets,
+    keepSnippetIds,
+    pruneSnippetIds,
+    reconcileSnippetIds,
+    toggleSnippet,
+    type SnippetTemplate,
+} from './snippetComposition';
 
 /** Full catalog shape (id/category/label/json) — the seam only needs id + json. */
 type TestTemplate = SnippetTemplate & { category: string; label: string };
@@ -47,6 +54,113 @@ const TEMPLATES: TestTemplate[] = [
 ];
 
 const asObject = (text: string): Record<string, unknown> => JSON.parse(text) as Record<string, unknown>;
+
+describe('reconcileSnippetIds (ADR-0042 addendum — badge follows the text)', () => {
+    it('keeps an active template while ANY of its leaf paths remains (partial deletion keeps the link)', () => {
+        // tooltip-cross has tooltip.trigger + tooltip.axisPointer.type; the user deleted only
+        // the axisPointer branch — the activation survives.
+        const text = JSON.stringify({ tooltip: { trigger: 'item' } });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['tooltip-cross'], text })).toEqual(['tooltip-cross']);
+    });
+
+    it('drops an active template once NONE of its leaf paths remains (editor deletion kills the badge)', () => {
+        const text = JSON.stringify({ title: { subtext: 'Unit: kWh' } });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['tooltip-cross', 'title-subtext'], text })).toEqual([
+            'title-subtext',
+        ]);
+    });
+
+    it('adds a never-active template only when ALL its leaf paths stand in the text (undo / re-typed)', () => {
+        const text = JSON.stringify({ legend: { type: 'scroll', pageIconSize: 12 } });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: [], text })).toEqual(['legend-scroll']);
+    });
+
+    it('never adds on a partial path match — a coincidental hand-typed single key lights no badge', () => {
+        const text = JSON.stringify({ legend: { type: 'scroll' } }); // pageIconSize missing
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: [], text })).toEqual([]);
+    });
+
+    it('hysteresis cycle: delete → drop, undo (verbatim restore) → re-add', () => {
+        const full = JSON.stringify({ tooltip: { confine: true } });
+        const step1 = reconcileSnippetIds({ templates: TEMPLATES, ids: ['tooltip-confine'], text: '' });
+        expect(step1).toEqual([]); // deleted everything — badge gone
+        // The dropped activation returns once the verbatim content is back (editor undo).
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: step1 ?? [], text: full })).toEqual([
+            'tooltip-confine',
+        ]);
+    });
+
+    it('keeps an active template whose values were ALL changed (keep is path-only)', () => {
+        const text = JSON.stringify({ tooltip: { trigger: 'axis', axisPointer: { type: 'line' } } });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['tooltip-cross'], text })).toEqual(['tooltip-cross']);
+    });
+
+    it("keeps an active template on a SHARED path even when the value is another template's", () => {
+        // legend-scroll and legend-plain share `legend.type`; the text carries plain's value.
+        // The keep rule is path-only — the scroll activation survives on the shared path alone
+        // (and plain's verbatim payload simultaneously joins via the addition rule).
+        const text = JSON.stringify({ legend: { type: 'plain' } });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['legend-scroll'], text })).toEqual([
+            'legend-scroll',
+            'legend-plain',
+        ]);
+    });
+
+    it('survivors keep their relative order; additions append in catalog order', () => {
+        const text = JSON.stringify({
+            legend: { type: 'plain' }, // legend-plain verbatim → addition (catalog idx 5)
+            markPoint: { data: [{ type: 'max' }, { type: 'min' }] }, // mark-peak verbatim → addition (idx 3)
+            title: { subtext: 'Unit: kWh', subtextStyle: { color: '#888' } }, // survivor
+        });
+        // tooltip-cross (ids[0]) has no path left (no tooltip key) → dropped; survivors keep
+        // ids order, the two additions follow catalog order (mark-peak before legend-plain).
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['tooltip-cross', 'title-subtext'], text })).toEqual([
+            'title-subtext',
+            'mark-peak',
+            'legend-plain',
+        ]);
+    });
+
+    it('returns null on invalid text — the caller keeps the ids unchanged', () => {
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['title-subtext'], text: '{"title": {' })).toBeNull();
+    });
+
+    it('passes unknown ids through untouched (the load/apply prune owns them)', () => {
+        const text = JSON.stringify({ graphic: {} });
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['nope'], text })).toEqual(['nope']);
+    });
+
+    it('empty text clears every activation', () => {
+        expect(reconcileSnippetIds({ templates: TEMPLATES, ids: ['title-subtext', 'legend-plain'], text: '' })).toEqual(
+            [],
+        );
+    });
+
+    it('never adds an empty-payload template (vacuous containment is not activation)', () => {
+        const empty: TestTemplate[] = [{ id: 'empty', category: 'x', label: 'empty', json: '{}' }];
+        expect(reconcileSnippetIds({ templates: empty, ids: [], text: '{"a":1}' })).toEqual([]);
+    });
+});
+
+describe('keepSnippetIds (ADR-0042 addendum — the load-time keep-only heal)', () => {
+    it('drops an activation whose template has no leaf path left in the text', () => {
+        const text = JSON.stringify({ tooltip: { confine: true } });
+        expect(keepSnippetIds(TEMPLATES, ['tooltip-cross', 'tooltip-confine'], text)).toEqual(['tooltip-confine']);
+    });
+
+    it('NEVER adds a verbatim-contained never-active template (retro-detection stays rejected)', () => {
+        const text = JSON.stringify({ legend: { type: 'plain' } }); // legend-plain verbatim
+        expect(keepSnippetIds(TEMPLATES, [], text)).toEqual([]);
+    });
+
+    it('returns the ids unchanged on invalid text (nothing to heal)', () => {
+        expect(keepSnippetIds(TEMPLATES, ['title-subtext'], '{"title":')).toEqual(['title-subtext']);
+    });
+
+    it('clears every activation on empty text', () => {
+        expect(keepSnippetIds(TEMPLATES, ['title-subtext', 'legend-plain'], '')).toEqual([]);
+    });
+});
 
 describe('composeActiveSnippets (ADR-0042)', () => {
     it('deep-merges the active templates in selection order — later ids win shared leaves', () => {

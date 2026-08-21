@@ -16,6 +16,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { CHART_CATEGORY_ORDER, CHART_TEMPLATES } from './advancedJsonTemplates';
+import { classifyUserKeys } from './advancedJsonAnalysis';
 import { REPLACE_MERGE } from '../replaceMerge';
 
 // echarts component mainTypes an option top-level key can name (the coordinate systems, the
@@ -158,6 +159,18 @@ describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040/0043)', () =
                     `${tpl.id}: leaf '${leaf}' collides with a GUI-owned key (the GUI wins — the snippet would mislead)`,
                 ).not.toContain(leaf);
             }
+        }
+    });
+
+    it('every template brings ≥1 effective key (ADR-0042 addendum — classifyUserKeys audit gate)', () => {
+        // The merge-analysis module lives on ONLY as this catalog audit (its UI chips are
+        // retired): a template whose EVERY key the GUI would swallow can never take effect.
+        for (const tpl of CHART_TEMPLATES) {
+            const chips = classifyUserKeys(JSON.parse(tpl.json) as Record<string, unknown>);
+            expect(
+                chips.some(c => c.cls === 'effective'),
+                `${tpl.id}: every key is GUI-owned — the template can never take effect`,
+            ).toBe(true);
         }
     });
 

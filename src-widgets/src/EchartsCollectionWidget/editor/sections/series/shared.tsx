@@ -6,11 +6,14 @@
  * The family-agnostic pieces every series sub-view composes: the read-only effective-colour
  * Swatch, the dashed EmptyState with CTA, the OID-first AddSeriesViaOid affordance, the
  * item-scoped IssueList, and the per-series raw-override editor ("Erweitertes JSON", the axis
- * label — ADR-0037 parity) with its template multi-select (ADR-0015/0017/0042) and the
- * state-aware ✓/◐/✗ key analysis (seriesRawAnalysis.ts) aggregating onto the active chips.
+ * label — ADR-0037 parity) with its template multi-select (ADR-0015/0017/0042). Since the
+ * ADR-0042 addendum the chips are plain label+X (the state-aware ✓/◐/✗ analysis is retired from
+ * the UI — the classifier lives on as the series-catalog audit test) and the activation FOLLOWS
+ * THE TEXT: every valid text edit reconciles the ids, so deleting a template's keys inside the
+ * editor removes its chip.
  */
 import { useState, type FC, type ReactNode } from 'react';
-import { Box, Button, Chip, Collapse, Typography } from '@mui/material';
+import { Box, Button, Collapse, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
 
@@ -22,9 +25,8 @@ import {
     SERIES_TEMPLATES,
     type SeriesTemplateSlot,
 } from '../../seriesTemplates';
-import { classifySeriesKeys, type SeriesAnalysisContext } from '../../seriesRawAnalysis';
 import TemplateMenu from '../TemplateMenu';
-import SnippetChips, { activeSnippetEntries, snippetStatuses, SnippetNotice, useSnippetToggle } from '../SnippetChips';
+import SnippetChips, { activeSnippetEntries, useSnippetActions } from '../SnippetChips';
 import type { ValidationIssue } from '../../validation';
 import type { OidPickerCtx } from '../../OidPicker';
 
@@ -153,27 +155,23 @@ export const IssueList: FC<{ issues: ValidationIssue[] }> = ({ issues }) => (
  * like the axis sibling (ADR-0037 parity). GUI knobs win, data is managed. Since ADR-0042 the
  * templates are a persistent CHECKBOX multi-select ("Aktive Vorlage"): the active snippets compose
  * the raw text with the Eigenanteil, the chips above the editor deactivate them, and the menu
- * locks while the text is invalid JSON. When `analysis` is set, the state-aware ✓/◐/✗ key chips
- * classify every raw key against the series builder's emissions — and aggregate onto each chip.
+ * locks while the text is invalid JSON. Since the ADR-0042 addendum the chips are plain label+X
+ * and the text edits themselves keep the activation list in sync with the text.
  */
 export const SeriesRawOverride: FC<{
     raw: string | undefined;
     onChange: (value: string) => void;
     slot?: SeriesTemplateSlot;
-    /** Card state for the ✓/◐/✗ classification; omit to skip the analysis. */
-    analysis?: SeriesAnalysisContext;
     /** Ordered ACTIVE template ids (ADR-0042 — the series meta's `snippets`). */
     snippets?: string[];
     /**
-     * Recomposition callback (ADR-0042): the new editor text + activation ids, so the caller
-     * commits BOTH into its card state in one history step.
+     * Commit callback (ADR-0042 addendum): the new editor text + activation ids, so the caller
+     * commits BOTH into its card state in one history step — fired by menu toggles AND by
+     * valid text edits. Without it (or on invalid text) edits fall back to {@link onChange}.
      */
-    onToggle?: (result: { text: string; ids: string[] }) => void;
-}> = ({ raw, onChange, slot, analysis, snippets, onToggle }) => {
+    onCommit?: (result: { text: string; ids: string[] }) => void;
+}> = ({ raw, onChange, slot, snippets, onCommit }) => {
     const [open, setOpen] = useState(false);
-    // The shared multi-select wiring (ADR-0042): run the seam, hand BOTH layers to the card in
-    // one callback, surface the recomposition notice.
-    const { toggle, notice, clearNotice } = useSnippetToggle(r => onToggle?.(r));
     const trimmed = (raw ?? '').trim();
     let parsed: Record<string, unknown> | null = null;
     if (trimmed) {
@@ -185,18 +183,25 @@ export const SeriesRawOverride: FC<{
         }
     }
     const valid = !trimmed || !!parsed;
-    const chips = analysis && parsed ? classifySeriesKeys(parsed, analysis) : [];
 
     const templates = slot ? SERIES_TEMPLATES[slot] : [];
+    // The shared wiring (ADR-0042 + addendum): menu toggles AND valid text edits commit text +
+    // ids through one callback in one history step; without `onCommit` (or on invalid text)
+    // edits fall back to onChange, leaving the ids untouched. The slot guard keeps a slot-less
+    // host (no catalog) from ever toggling an id it cannot compose.
+    const { toggle, applyText } = useSnippetActions({
+        templates,
+        ids: snippets ?? [],
+        currentText: raw ?? '',
+        commit: r => (onCommit ? onCommit(r) : onChange(r.text)),
+        onTextChange: onChange,
+    });
     const runToggle = (id: string): void => {
         if (slot) {
-            toggle({ templates, ids: snippets ?? [], id, currentText: raw ?? '' });
+            toggle(id);
         }
     };
     const entries = activeSnippetEntries(templates, snippets ?? []);
-    const statuses = analysis
-        ? snippetStatuses(templates, snippets ?? [], v => classifySeriesKeys(v, analysis))
-        : undefined;
 
     return (
         <Box sx={{ mt: 1 }}>
@@ -225,14 +230,13 @@ export const SeriesRawOverride: FC<{
                         />
                         <SnippetChips
                             entries={entries}
-                            statuses={statuses}
                             onRemove={runToggle}
                         />
                     </>
                 )}
                 <JsonEditor
                     value={raw ?? ''}
-                    onChange={onChange}
+                    onChange={applyText}
                     minRows={3}
                     placeholder={'{\n  "markPoint": { "data": [{ "type": "max" }] }\n}'}
                 />
@@ -242,54 +246,12 @@ export const SeriesRawOverride: FC<{
                 >
                     {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_series_raw_invalid')}`}
                 </Typography>
-                {chips.length > 0 && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                        {chips.map(c => {
-                            if (c.cls === 'effective') {
-                                return (
-                                    <Chip
-                                        key={c.key}
-                                        size="small"
-                                        color="success"
-                                        variant="outlined"
-                                        label={`${c.key} ✓`}
-                                    />
-                                );
-                            }
-                            if (c.cls === 'partial') {
-                                return (
-                                    <Chip
-                                        key={c.key}
-                                        size="small"
-                                        color="warning"
-                                        variant="outlined"
-                                        label={`${c.key} ◐`}
-                                        title={`${Generic.t('echarts_advanced_gui_managed')} ${c.managed.join(', ')}`}
-                                    />
-                                );
-                            }
-                            return (
-                                <Chip
-                                    key={c.key}
-                                    size="small"
-                                    variant="outlined"
-                                    label={`${c.key} ✗`}
-                                    sx={{ opacity: 0.6, textDecoration: 'line-through' }}
-                                />
-                            );
-                        })}
-                    </Box>
-                )}
                 <Typography
                     variant="caption"
                     color="text.secondary"
                 >
                     {Generic.t('echarts_series_raw_hint')}
                 </Typography>
-                <SnippetNotice
-                    notice={notice}
-                    onClose={clearNotice}
-                />
             </Collapse>
         </Box>
     );

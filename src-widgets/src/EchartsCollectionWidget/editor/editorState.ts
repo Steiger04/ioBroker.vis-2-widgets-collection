@@ -31,8 +31,8 @@ import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout'
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
-import { pruneSnippetIds } from './snippetComposition';
-import { chartTemplatesForFamily } from './advancedJsonTemplates';
+import { keepSnippetIds, pruneSnippetIds, type SnippetTemplate } from './snippetComposition';
+import { CHART_TEMPLATES, chartTemplatesForFamily } from './advancedJsonTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
@@ -256,12 +256,18 @@ const decodeSnippetIds = (raw: unknown): string[] => {
     }
 };
 
+/** Catalog prune + keep-only heal in one (ADR-0042 #6 + addendum) — for single-catalog levels. */
+const healedIds = (templates: readonly SnippetTemplate[], ids: string[], raw: string | undefined): string[] =>
+    keepSnippetIds(templates, pruneSnippetIds(templates, ids), raw ?? '');
+
 /**
- * Prune a series' activation list to its slot catalog (ADR-0042 decision 6 — the Apply-time
- * family/slot prune; a stale id is silently dropped, its leaves remain in the raw text as the
- * user's own). Returns `undefined` for an empty result so the blob stays lean.
+ * Normalize a series' activation list — the LOAD and APPLY paths share this (ADR-0042 decision 6
+ * + addendum). Prune to the slot catalog (a stale id is silently dropped, its leaves remain in
+ * the raw text as the user's own) and heal against the raw text (an activation whose template
+ * has no leaf path left drops — the badge never outlives its content; never adds). Returns
+ * `undefined` for an empty result so the blob stays lean.
  */
-const pruneSeriesSnippets = (
+const normalizeSeriesSnippets = (
     family: ReturnType<typeof familyOf>,
     chartType: string,
     s: SeriesMeta,
@@ -269,8 +275,8 @@ const pruneSeriesSnippets = (
     if (!s.snippets?.length) {
         return undefined;
     }
-    const pruned = pruneSnippetIds(SERIES_TEMPLATES[seriesSlotOf(family, chartType, s)], s.snippets);
-    return pruned.length ? pruned : undefined;
+    const healed = healedIds(SERIES_TEMPLATES[seriesSlotOf(family, chartType, s)], s.snippets, s.raw);
+    return healed.length ? healed : undefined;
 };
 
 /**
@@ -404,26 +410,35 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         yAxes = pruned.yAxes.length < yAxes.length ? packStaggeredAxes(pruned.yAxes) : pruned.yAxes;
     }
 
-    // Stale-activation prune (ADR-0043): the catalog rework retired template ids deliberately —
-    // an activation referencing an unknown id drops SILENTLY here (its composed leaves simply stay
-    // in the raw text as the user's own). Filtering at LOAD also keeps the family-switch loss
-    // count honest (a stale id is not a family loss) and covers the levels the Apply-time prune
-    // never reached (axes are family-free by design; the chart list is family-pruned at Apply).
-    const chartSnippetsLoaded = pruneSnippetIds(chartTemplatesForFamily(family), decodeSnippetIds(data.chartSnippets));
-    series = series.map(s => ({ ...s, snippets: pruneSeriesSnippets(family, chartType, s) }));
+    // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum): the catalog
+    // rework retired template ids deliberately — an activation referencing an unknown id drops
+    // SILENTLY here (its composed leaves simply stay in the raw text as the user's own). The
+    // keep-only heal then drops activations whose template has no leaf path left in the text
+    // (the badge lied about content deleted inside the editor); additions never happen at load —
+    // retro-detection of hand-typed content stays rejected. Filtering at LOAD also keeps the
+    // family-switch loss count honest (a stale id is not a family loss) and covers the levels
+    // the Apply-time prune never reached (axes are family-free by design; the chart list is
+    // family-pruned at Apply).
+    const userText = strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', '');
+    const chartSnippetsLoaded = keepSnippetIds(
+        CHART_TEMPLATES,
+        pruneSnippetIds(chartTemplatesForFamily(family), decodeSnippetIds(data.chartSnippets)),
+        userText,
+    );
+    series = series.map(s => ({ ...s, snippets: normalizeSeriesSnippets(family, chartType, s) }));
     yAxes = yAxes.map(a => ({
         ...a,
-        snippets: a.snippets?.length ? pruneSnippetIds(AXIS_TEMPLATES, a.snippets) : a.snippets,
+        snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
     }));
     const pieLoaded = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
     const pie = pieLoaded.snippets?.length
-        ? { ...pieLoaded, snippets: pruneSnippetIds(SERIES_TEMPLATES.pie, pieLoaded.snippets) }
+        ? { ...pieLoaded, snippets: healedIds(SERIES_TEMPLATES.pie, pieLoaded.snippets, pieLoaded.raw) }
         : pieLoaded;
     const jsonSeriesStyleLoaded = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
     const jsonSeriesStyle = Object.fromEntries(
         Object.entries(jsonSeriesStyleLoaded).map(([name, m]) => [
             name,
-            { ...m, snippets: pruneSeriesSnippets(family, chartType, m) },
+            { ...m, snippets: normalizeSeriesSnippets(family, chartType, m) },
         ]),
     );
 
@@ -473,7 +488,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
-        userText: strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', ''),
+        userText,
         chartSnippets: chartSnippetsLoaded,
         jsonSeriesStyle,
         jsonHidden: parseJsonHidden(data.jsonHidden as string),
@@ -501,7 +516,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 name: state.series[0]?.name,
                 color: state.series[0]?.color,
                 raw: state.series[0]?.raw,
-                snippets: pruneSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
+                snippets: normalizeSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
             },
         ];
     } else if (family === 'gauge') {
@@ -512,7 +527,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 name: state.series[0]?.name,
                 color: state.series[0]?.color,
                 raw: state.series[0]?.raw,
-                snippets: pruneSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
+                snippets: normalizeSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
             },
         ];
     } else {
@@ -520,21 +535,31 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         oidList = state.series.map(s => s.oid || '');
         metaBlob = state.series.map(({ oid: _oid, ...rest }) => ({
             ...rest,
-            snippets: pruneSeriesSnippets(family, state.chartType, rest),
+            snippets: normalizeSeriesSnippets(family, state.chartType, rest),
         }));
     }
 
-    // ADR-0042 Apply-time prunes: chart-level activations to the family catalog, the whole-pie
-    // activations to the pie catalog, the JSON-mode overlay entries to their slot catalogs
-    // (decision 9 covers the JSON-mode series cards). Between a family switch and Apply the stale
-    // ids stay in the working copy (the stranded keys render nothing — verified against echarts)
-    // and the actual prune rides Apply, mirroring the bound-OID drop.
-    const chartSnippets = pruneSnippetIds(chartTemplatesForFamily(family), state.chartSnippets);
-    const pieSnippets = state.pie.snippets ? pruneSnippetIds(SERIES_TEMPLATES.pie, state.pie.snippets) : [];
+    // ADR-0042 Apply-time prunes + addendum heal: chart-level activations to the family catalog,
+    // the whole-pie activations to the pie catalog, the JSON-mode overlay entries to their slot
+    // catalogs (decision 9 covers the JSON-mode series cards). Between a family switch and Apply
+    // the stale ids stay in the working copy (the stranded keys render nothing — verified against
+    // echarts) and the actual prune rides Apply, mirroring the bound-OID drop. The heal then also
+    // drops activations whose template has no leaf path left in the raw text — the persisted blob
+    // never carries a badge its content cannot back (chart heals against the FULL catalog so the
+    // family prune stays the only place a family-stale id drops).
+    const chartSnippets = pruneSnippetIds(
+        chartTemplatesForFamily(family),
+        keepSnippetIds(CHART_TEMPLATES, state.chartSnippets, state.userText),
+    );
+    const pieSnippets = healedIds(SERIES_TEMPLATES.pie, state.pie.snippets ?? [], state.pie.raw);
+    const yAxesHealed = state.yAxes.map(a => ({
+        ...a,
+        snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
+    }));
     const jsonSeriesStyle = Object.fromEntries(
         Object.entries(state.jsonSeriesStyle).map(([name, m]) => [
             name,
-            { ...m, snippets: pruneSeriesSnippets(family, state.chartType, m) },
+            { ...m, snippets: normalizeSeriesSnippets(family, state.chartType, m) },
         ]),
     );
 
@@ -592,7 +617,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         markLines: encodeBlob(JSON.stringify(state.markLines)),
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
-        yAxes: encodeBlob(JSON.stringify(state.yAxes)),
+        yAxes: encodeBlob(JSON.stringify(yAxesHealed)),
         xAxis: encodeBlob(JSON.stringify(state.xAxis)),
     };
     const max = Math.max(seriesCount, previousCount);

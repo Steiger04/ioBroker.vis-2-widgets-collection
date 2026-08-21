@@ -1,10 +1,13 @@
 /**
- * Advanced-JSON merge analysis (ADR-0007/0030) — classifies the user's U (Advanced JSON) keys
- * against the GUI-managed set, so the merge-preview chips tell the truth PER KEY.
+ * Advanced-JSON merge analysis (ADR-0007/0030) — classifies raw-JSON keys against the
+ * GUI-managed set, per key: effective / partial / ignored.
  *
  * @module EchartsCollectionWidget/editor/advancedJsonAnalysis
  * @remarks
- * The Advanced JSON (U) supplements keys the GUI does not expose; G wins every collision
+ * Since the ADR-0042 addendum the UI chips that surfaced this analysis are RETIRED — the
+ * module lives on as the chart-level catalog audit gate (every template must bring ≥1 key the
+ * GUI does not own; the guard test enforces it). The classification itself is unchanged:
+ * the Advanced JSON (U) supplements keys the GUI does not expose; G wins every collision
  * (ADR-0007). Most managed top-level keys are WHOLLY owned — a U value is silently overridden (→ ✗).
  * `title`, `legend` and `tooltip` are PARTIALLY owned: the GUI sets only SOME subkeys (title text/
  * placement/textStyle colour-size-weight-style; legend show/data/items/frame; tooltip trigger/formatter/
@@ -13,7 +16,7 @@
  * subkey paths (one level, plus the {@link NESTED_LEAF_KEYS} at two levels and the
  * {@link DEEP_LEAF_KEYS} at three — the nested objects with GUI-owned CHILDREN) for that partial
  * analysis. Kept in a pure module so it is
- * unit-testable and the component stays presentational.
+ * unit-testable.
  *
  * INVARIANT (ADR-0030/0032/0035): `MANAGED_PATHS.title` / `.legend` / `.tooltip` / `.xAxis` MUST stay
  * in sync with the keys `buildTitleOption` (`presentation.ts`), `buildLegend`, `buildTooltip`
@@ -21,7 +24,7 @@
  * emit — add a subkey here whenever the GUI starts owning another of their subkeys.
  */
 
-/** Top-level option keys the GUI owns (at least partially). Drives the static "Managed keys" box + the analysis. */
+/** Top-level option keys the GUI owns (at least partially). Drives the analysis. */
 export const MANAGED_KEYS = [
     'series',
     'legend',

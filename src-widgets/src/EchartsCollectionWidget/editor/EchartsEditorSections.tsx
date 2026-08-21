@@ -46,7 +46,6 @@ interface EchartsEditorSectionsProps {
     /** Validation findings for the state — computed once by the modal, shared with the chips. */
     issues: SectionIssues;
     userText: string;
-    setUserText: (value: string) => void;
     pickerCtx: OidPickerCtx;
     focusSection?: FocusSectionRequest | null;
     /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
@@ -115,7 +114,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     set,
     issues,
     userText,
-    setUserText,
     pickerCtx,
     focusSection,
     jsonSeriesNames,
@@ -234,7 +232,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                 return (
                     <AdvancedJsonSection
                         userText={userText}
-                        setUserText={setUserText}
                         set={set}
                         chartType={state.chartType}
                         snippets={state.chartSnippets}

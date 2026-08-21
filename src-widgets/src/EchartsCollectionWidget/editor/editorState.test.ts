@@ -12,8 +12,15 @@ import { describe, expect, it } from 'vitest';
 
 import { encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
+import { composeActiveSnippets } from './snippetComposition';
+import { CHART_TEMPLATES } from './advancedJsonTemplates';
+import { SERIES_TEMPLATES } from './seriesTemplates';
+import { AXIS_TEMPLATES } from './axisTemplates';
 import type { EditorState } from './editorState';
 import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
+
+/** The composed raw text an activation canonically rides with (what the UI toggle writes). */
+const chartText = (ids: string[]): string => JSON.stringify(composeActiveSnippets(CHART_TEMPLATES, ids));
 
 const baseState = (): EditorState => ({
     ...DEFAULT_EDITOR_STATE,
@@ -192,16 +199,27 @@ describe('editorState — mode-switch orphan-prune on load (ADR-0033)', () => {
 });
 
 describe('editorState — ADR-0042 snippet activations', () => {
+    // Since the ADR-0042 addendum an activation canonically rides WITH its composed raw text
+    // (the load path heals ids whose template has no leaf path left in the text), so every
+    // fixture below carries the composition the UI toggle would have written.
     it('chartSnippets survive the round-trip in selection order', () => {
-        const state = { ...baseState(), chartSnippets: ['title-scaffold', 'xaxis-dashedsplit'] };
+        const state = {
+            ...baseState(),
+            userText: chartText(['title-scaffold', 'xaxis-dashedsplit']),
+            chartSnippets: ['title-scaffold', 'xaxis-dashedsplit'],
+        };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.chartSnippets).toEqual(['title-scaffold', 'xaxis-dashedsplit']);
     });
 
     it('family-invalid chart activations are pruned on Apply (xAxis snippet on a radar target)', () => {
+        // The widget was cartesian (both activations + their composition), then switched to
+        // radar: the Apply prune drops the xAxis id, the heal keeps title-scaffold (its paths
+        // stand in the family-agnostic text).
         const state = {
             ...baseState(),
             chartType: 'radar' as const,
+            userText: chartText(['xaxis-dashedsplit', 'title-scaffold']),
             chartSnippets: ['xaxis-dashedsplit', 'title-scaffold'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
@@ -212,7 +230,14 @@ describe('editorState — ADR-0042 snippet activations', () => {
         const state = {
             ...baseState(),
             chartType: 'pie' as const,
-            series: [{ oid: 'a', name: 'A', snippets: ['line-sampling', 'slice-itemstyle'] }],
+            series: [
+                {
+                    oid: 'a',
+                    name: 'A',
+                    raw: JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES['pie-slice'], ['slice-itemstyle'])),
+                    snippets: ['line-sampling', 'slice-itemstyle'],
+                },
+            ],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.series[0]?.snippets).toEqual(['slice-itemstyle']);
@@ -230,24 +255,26 @@ describe('editorState — ADR-0042 snippet activations', () => {
     });
 
     it('gauge series raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES.gauge, ['gauge-axisline']));
         const state = {
             ...baseState(),
             chartType: 'gauge' as const,
-            series: [{ oid: 'a', name: 'G', raw: '{ "progress": { "show": true } }', snippets: ['gauge-axisline'] }],
+            series: [{ oid: 'a', name: 'G', raw, snippets: ['gauge-axisline'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.series[0]?.raw).toBe('{ "progress": { "show": true } }');
+        expect(reloaded.series[0]?.raw).toBe(raw);
         expect(reloaded.series[0]?.snippets).toEqual(['gauge-axisline']);
     });
 
     it('radar polygon raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES.radar, ['radar-emphasis']));
         const state = {
             ...baseState(),
             chartType: 'radar' as const,
-            series: [{ oid: '', name: 'R', raw: '{ "lineStyle": { "width": 2 } }', snippets: ['radar-emphasis'] }],
+            series: [{ oid: '', name: 'R', raw, snippets: ['radar-emphasis'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.series[0]?.raw).toBe('{ "lineStyle": { "width": 2 } }');
+        expect(reloaded.series[0]?.raw).toBe(raw);
         expect(reloaded.series[0]?.snippets).toEqual(['radar-emphasis']);
     });
 
@@ -256,7 +283,11 @@ describe('editorState — ADR-0042 snippet activations', () => {
             ...baseState(),
             chartType: 'line' as const,
             jsonSeriesStyle: {
-                Temp: { color: '#f00', snippets: ['line-sampling', 'slice-radius'] },
+                Temp: {
+                    color: '#f00',
+                    raw: JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES['cartesian-line'], ['line-sampling'])),
+                    snippets: ['line-sampling', 'slice-radius'],
+                },
                 Power: { name: 'Leistung' },
             },
         };
@@ -266,6 +297,7 @@ describe('editorState — ADR-0042 snippet activations', () => {
     });
 
     it('pie whole-series activations round-trip', () => {
+        const raw = JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES.pie, ['pie-label']));
         const state = {
             ...baseState(),
             chartType: 'pie' as const,
@@ -274,13 +306,27 @@ describe('editorState — ADR-0042 snippet activations', () => {
                 innerRadius: 0,
                 rose: 'none',
                 label: 'namePercent',
-                raw: '{}',
+                raw,
                 snippets: ['pie-label'],
             } as EchartsPieConfig,
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.pie.snippets).toEqual(['pie-label']);
-        expect(reloaded.pie.raw).toBe('{}');
+        expect(reloaded.pie.raw).toBe(raw);
+    });
+
+    it('the load heal drops activations whose template has no leaf path left in the text (ADR-0042 addendum)', () => {
+        // A widget saved before the addendum: the user deleted the template content inside the
+        // editor, the ids stayed — the badge lied. Loading heals both levels keep-only.
+        const state = {
+            ...baseState(),
+            userText: '',
+            chartSnippets: ['title-scaffold'],
+            series: [{ oid: 'a', name: 'A', raw: '', snippets: ['line-sampling'] }],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.chartSnippets).toEqual([]);
+        expect(reloaded.series[0]?.snippets).toBeUndefined();
     });
 });
 
@@ -289,10 +335,18 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
         const state = { ...baseState(), chartType: 'line' as const, series: [{ oid: 'a', name: 'A' }] };
         const patch = saveEditorState(state, 0);
         // Simulate a widget saved before the ADR-0043 catalog rework: the persisted blobs carry
-        // retired ids (saveEditorState would prune them — the LOAD path must too, silently).
+        // retired ids (saveEditorState would prune them — the LOAD path must too, silently) —
+        // riding with the composed raw text of the ids that are supposed to SURVIVE.
+        patch.chartOverrides = encodeBlob(chartText(['title-scaffold']));
         patch.chartSnippets = encodeBlob(JSON.stringify(['pie-labelpos', 'title-scaffold']));
         patch.seriesConfig = encodeBlob(
-            JSON.stringify([{ name: 'A', snippets: ['line-sampling', 'line-lineopacity'] }]),
+            JSON.stringify([
+                {
+                    name: 'A',
+                    raw: JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES['cartesian-line'], ['line-sampling'])),
+                    snippets: ['line-sampling', 'line-lineopacity'],
+                },
+            ]),
         );
         const reloaded = loadEditorState(patch);
         expect(reloaded.chartSnippets).toEqual(['title-scaffold']);
@@ -302,7 +356,14 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
     it('axis activations prune against the axis catalog on load too', () => {
         const state = { ...baseState(), chartType: 'line' as const };
         const patch = saveEditorState(state, 0);
-        patch.yAxes = encodeBlob(JSON.stringify([{ snippets: ['axislabel-hideoverlap', 'logbase'] }]));
+        patch.yAxes = encodeBlob(
+            JSON.stringify([
+                {
+                    raw: JSON.stringify(composeActiveSnippets(AXIS_TEMPLATES, ['logbase'])),
+                    snippets: ['axislabel-hideoverlap', 'logbase'],
+                },
+            ]),
+        );
         const reloaded = loadEditorState(patch);
         expect(reloaded.yAxes[0]?.snippets).toEqual(['logbase']);
     });

@@ -134,14 +134,7 @@ const RadarIndicators: FC<RadarIndicatorsProps> = ({ state, set, pickerCtx, slot
                 raw={s0.raw}
                 onChange={v => set({ series: [{ ...s0, raw: v || undefined }] })}
                 snippets={s0.snippets}
-                onToggle={r => set({ series: [{ ...s0, ...snippetPatch(r) }] })}
-                analysis={{
-                    slot: 'radar',
-                    // Builder default: area is ON when unset (radar.ts `?? true`) — only an
-                    // explicit false frees areaStyle.
-                    radarAreaActive: state.radar.area !== false,
-                    animationEasingActive: !!state.animationEasing,
-                }}
+                onCommit={r => set({ series: [{ ...s0, ...snippetPatch(r) }] })}
             />
         </Box>
     );
