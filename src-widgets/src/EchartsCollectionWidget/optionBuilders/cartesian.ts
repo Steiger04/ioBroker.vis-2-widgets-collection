@@ -301,6 +301,11 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
     if (x.nameRotate !== undefined) {
         entry.nameRotate = x.nameRotate;
     }
+    if (x.offset !== undefined) {
+        // Pixel offset away from the grid (bottom → down) — the X sibling of the Y-axis Versatz.
+        // `outerBoundsContain:'all'` (ADR-0024) reserves the space, generalised for both dims.
+        entry.offset = x.offset;
+    }
     const axisLabel: Record<string, unknown> = {};
     if (x.format) {
         // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.

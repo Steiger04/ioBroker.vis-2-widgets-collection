@@ -447,9 +447,9 @@ export interface EchartsAxisConfig {
 
 /**
  * The single X-axis configuration (ADR-0035) — flat presentation config, deliberately NOT a
- * miniature of the Y-axis machinery: no list, no series binding, no offset/stagger. The axis
- * type stays hardcoded `time` (all data modes normalize points to `[ts, val]`); min/max and
- * the time window belong to the data mode, not the axis.
+ * miniature of the Y-axis machinery: no list, no series binding, no stagger (a single manual
+ * Versatz aside). The axis type stays hardcoded `time` (all data modes normalize points to
+ * `[ts, val]`); min/max and the time window belong to the data mode, not the axis.
  *
  * @remarks
  * Stored as the base64 `xAxis` rxData blob (single object). The legacy `xSplit` boolean is
@@ -475,6 +475,13 @@ export interface EchartsXAxisConfig {
     nameRotate?: number;
     /** Rotate the tick LABELS (deg, `axisLabel.rotate`) — angled time labels on narrow widgets. */
     labelRotate?: number;
+    /**
+     * Pixel offset from the default (bottom) position — moves the axis down, away from the grid
+     * (the X sibling of the Y-axis Versatz, a label-crowding fine-adjustment). The grid's
+     * `outerBoundsContain:'all'` (ADR-0024) reserves the space, so the shifted axis + labels
+     * never clip; unset = 0 (no emit).
+     */
+    offset?: number;
 }
 
 export interface EchartsFieldsRxData {

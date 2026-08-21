@@ -142,6 +142,12 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
         expect(c?.managed.sort()).toEqual(['axisTick.show', 'splitLine.show']);
     });
 
+    it('offset alone → ignored (GUI-owned since the X-Karte Versatz field)', () => {
+        const c = clsOf({ xAxis: { offset: 24 } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed).toEqual(['offset']);
+    });
+
     it('mixed (splitLine.show + splitLine.lineStyle + position) → partial, lists the eaten subkeys', () => {
         const c = clsOf({ xAxis: { position: 'top', splitLine: { show: true, lineStyle: { width: 2 } } } }, 'xAxis');
         expect(c?.cls).toBe('partial');

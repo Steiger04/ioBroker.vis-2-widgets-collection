@@ -92,7 +92,14 @@ describe('editorState — Apply round-trip (save → load)', () => {
     it('xAxis survives the blob round-trip (ADR-0035)', () => {
         const state = {
             ...baseState(),
-            xAxis: { name: 'Zeit', format: '{HH}:{mm}', color: '#0af', axisTick: false, splitLine: true },
+            xAxis: {
+                name: 'Zeit',
+                format: '{HH}:{mm}',
+                color: '#0af',
+                axisTick: false,
+                splitLine: true,
+                offset: 18,
+            },
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.xAxis).toEqual(state.xAxis);

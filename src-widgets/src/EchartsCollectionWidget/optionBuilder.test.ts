@@ -921,23 +921,25 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
         expect(option.xAxis).toMatchObject({ splitLine: { show: true }, axisTick: { show: false } });
     });
 
-    it('emits splitNumber/minInterval/nameRotate only when set (unset = echarts defaults)', () => {
+    it('emits splitNumber/minInterval/nameRotate/offset only when set (unset = echarts defaults)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [],
             meta: [],
-            p: { ...P, xAxis: { splitNumber: 4, minInterval: 3_600_000, nameRotate: -45 } },
+            p: { ...P, xAxis: { splitNumber: 4, minInterval: 3_600_000, nameRotate: -45, offset: 24 } },
         });
         expect(option.xAxis).toMatchObject({
             splitNumber: 4,
             minInterval: 3_600_000,
             nameRotate: -45,
+            offset: 24,
         });
         // And the unset case emits none of them (the always-emit booleans aside).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(bare.xAxis).not.toHaveProperty('splitNumber');
         expect(bare.xAxis).not.toHaveProperty('minInterval');
         expect(bare.xAxis).not.toHaveProperty('nameRotate');
+        expect(bare.xAxis).not.toHaveProperty('offset');
         expect(bare.xAxis).not.toHaveProperty('axisLabel');
     });
 

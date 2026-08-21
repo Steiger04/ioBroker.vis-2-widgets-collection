@@ -197,6 +197,15 @@ const XCard: FC<{
                         ctx={pickerCtx}
                     />
                 </Box>
+                {/* The X sibling of the Y-axis Versatz: moves the axis down, away from the grid
+                    (label-crowding fine-adjustment). No stagger machinery here — a single axis —
+                    so the value is purely manual; `outerBoundsContain:'all'` (ADR-0024) reserves
+                    the space. Unset = 0 = no emit. */}
+                <NumberField
+                    label={Generic.t('echarts_axis_offset')}
+                    value={x.offset ?? 0}
+                    onChange={v => onChange({ offset: v })}
+                />
             </FieldGrid>
         </SubGroup>
 

@@ -94,6 +94,7 @@ const GUI_OWNED_LEAVES: Record<string, string[]> = {
         'nameTextStyle',
         'splitNumber',
         'minInterval',
+        'offset',
         'axisLabel.formatter',
         'axisLabel.rotate',
         'axisLabel.color',

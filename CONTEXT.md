@@ -103,7 +103,7 @@ The cartesian-only UI that adds/removes/reorders Axis cards and assigns series t
 _Avoid_: Axes tab, axis list
 
 **X-Karte**:
-The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (preset + free template, `Auto` = echarts' own), name, colour (theme-token inherit), ticks, split lines (ADR-0035). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
+The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (preset + free template, `Auto` = echarts' own), name, colour (theme-token inherit), ticks, split lines, pixel offset (ADR-0035). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
 _Avoid_: X axis settings, X axis card list (there is exactly one)
 
 **Axis auto-bind**:
