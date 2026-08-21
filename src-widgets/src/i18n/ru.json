@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Заголовок",
     "echarts_tpl_cat_toolbox": "Панель инструментов",
     "echarts_tpl_cat_tooltip": "Подсказка",
-    "echarts_tpl_cat_xaxis": "Ось X",
     "echarts_tpl_easing": "Сглаживание анимации",
     "echarts_tpl_gauge_detail": "Формат значения индикатора",
     "echarts_tpl_gauge_zones": "Цветные зоны индикатора",

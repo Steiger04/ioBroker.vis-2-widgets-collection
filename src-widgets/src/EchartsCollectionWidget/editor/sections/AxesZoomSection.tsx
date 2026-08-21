@@ -53,6 +53,8 @@ import {
 } from '../axisLayout';
 import { nextStableId } from '../identity';
 import AxisRawOverride from './axes/AxisRawOverride';
+import { AXIS_CATALOG } from '../axisTemplates';
+import { X_AXIS_CATALOG } from '../xAxisTemplates';
 import { snippetPatch } from '../snippetComposition';
 
 interface AxesZoomSectionProps {
@@ -281,6 +283,17 @@ const XCard: FC<{
                 />
             </FieldGrid>
         </SubGroup>
+
+        {/* The X-Karte's own raw escape hatch (ADR-0037 addendum — X joins the axis anatomy):
+            the same section the Y cards carry, fed by the X catalog (`xAxisTemplates.ts`);
+            deep-merged UNDER the built entry, the card wins collisions. */}
+        <AxisRawOverride
+            raw={x.raw}
+            onChange={v => onChange({ raw: v || undefined })}
+            catalog={X_AXIS_CATALOG}
+            snippets={x.snippets}
+            onCommit={r => onChange(snippetPatch(r))}
+        />
     </EditorCard>
 );
 
@@ -505,7 +518,8 @@ const AxisCard: FC<{
                 emit merges through. The activation follows the text (ADR-0042 addendum). */}
             <AxisRawOverride
                 raw={a.raw}
-                onChange={v => onChange({ raw: v })}
+                onChange={v => onChange({ raw: v || undefined })}
+                catalog={AXIS_CATALOG}
                 snippets={a.snippets}
                 onCommit={r => onChange(snippetPatch(r))}
             />

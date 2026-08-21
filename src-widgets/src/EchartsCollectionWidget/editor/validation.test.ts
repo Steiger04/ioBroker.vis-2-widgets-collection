@@ -174,9 +174,11 @@ describe('familySwitchLoss', () => {
 });
 
 describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
-    it('chart-level family-invalid activations count (xAxis snippet on a radar target)', () => {
+    it('chart-level family-invalid activations count (radar snippet on a cartesian target)', () => {
+        // (The classic xAxis-snippet case moved to the X-Karte's own raw with the ADR-0037
+        // addendum; the chart catalog's family-stale case is radar-only ids on cartesian.)
         const n = familySwitchSnippetLoss(
-            st({ chartType: 'radar', chartSnippets: ['xaxis-dashedsplit', 'title-scaffold'] }),
+            st({ chartType: 'line', chartSnippets: ['radar-splitarea', 'title-scaffold'] }),
         );
         expect(n).toBe(1);
     });

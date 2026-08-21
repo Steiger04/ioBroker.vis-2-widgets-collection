@@ -78,6 +78,17 @@ export interface AxisTemplate {
     json: string;
 }
 
+/**
+ * The bundled catalog triple a raw-override host hands its section (ADR-0037 addendum): one
+ * object instead of three travelling props — the Y cards pass {@link AXIS_CATALOG}, the X-Karte
+ * its own bundle over the shared category chrome.
+ */
+export interface AxisTemplateCatalog {
+    templates: readonly AxisTemplate[];
+    categoryOrder: readonly AxisTemplateCategory[];
+    categoryI18n: Record<AxisTemplateCategory, string>;
+}
+
 export const AXIS_TEMPLATES: AxisTemplate[] = [
     // ── name — the axis-title group ─────────────────────────────────────
     {
@@ -200,6 +211,13 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         json: '{ "inverse": true }',
     },
 ];
+
+/** The Y cards' catalog bundle (declared after its parts — const initialisers are not hoisted). */
+export const AXIS_CATALOG: AxisTemplateCatalog = {
+    templates: AXIS_TEMPLATES,
+    categoryOrder: AXIS_CATEGORY_ORDER,
+    categoryI18n: AXIS_CATEGORY_I18N,
+};
 
 /**
  * Parse an axis raw-override text into a plain object (empty text → `{}`, invalid → `null`).

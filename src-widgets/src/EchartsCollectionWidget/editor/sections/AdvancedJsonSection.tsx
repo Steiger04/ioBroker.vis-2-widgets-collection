@@ -7,7 +7,8 @@
  * per-series presentation now lives on the series cards (Series raw), so this U textarea is the
  * escape hatch for echarts keys the GUI does not expose AT THE CHART LEVEL. Its templates (the
  * pure `editor/advancedJsonTemplates.ts` catalog — audited by the ADR-0036 replaceMerge guard
- * test) are grouped by component (Titel / Legende / Tooltip / Toolbox / X-Achse — ADR-0040) and,
+ * test) are grouped by component (Titel / Legende / Tooltip / Toolbox — ADR-0040; the xAxis
+ * category moved to the X-Karte's own raw, ADR-0037 addendum) and,
  * since ADR-0042, a persistent CHECKBOX multi-select: the active snippets compose the editor
  * text together with the user's Eigenanteil, the chips above the editor deactivate them, and
  * every leaf the user hand-wrote or hand-changed survives each recomposition. The free text

@@ -16,6 +16,7 @@ import { composeActiveSnippets } from './snippetComposition';
 import { CHART_TEMPLATES } from './advancedJsonTemplates';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
+import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import type { EditorState } from './editorState';
 import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
 
@@ -89,7 +90,8 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.jsonHidden).toEqual([]);
     });
 
-    it('xAxis survives the blob round-trip (ADR-0035)', () => {
+    it('xAxis survives the blob round-trip (ADR-0035) incl. raw + activations (ADR-0037 addendum)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(X_AXIS_TEMPLATES, ['axisline']));
         const state = {
             ...baseState(),
             xAxis: {
@@ -99,10 +101,23 @@ describe('editorState — Apply round-trip (save → load)', () => {
                 axisTick: false,
                 splitLine: true,
                 offset: 18,
+                raw,
+                snippets: ['axisline'],
             },
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.xAxis).toEqual(state.xAxis);
+    });
+
+    it('xAxis activations heal against the raw text — dropped template content + retired chart-level ids prune silently', () => {
+        // A widget saved before the X catalog: the activation references content the raw no
+        // longer carries AND a retired chart-level id — both drop on load, never re-add.
+        const reloaded = loadEditorState({
+            ...baseState(),
+            xAxis: encodeBlob(JSON.stringify({ raw: '{ "z": 4 }', snippets: ['axisline', 'xaxis-arrow'] })),
+        });
+        expect(reloaded.xAxis.snippets).toBeUndefined();
+        expect(reloaded.xAxis.raw).toBe('{ "z": 4 }');
     });
 
     it('legacy xSplit=true loads as splitLine; the blob wins once saved (ADR-0035)', () => {
@@ -212,22 +227,23 @@ describe('editorState — ADR-0042 snippet activations', () => {
     it('chartSnippets survive the round-trip in selection order', () => {
         const state = {
             ...baseState(),
-            userText: chartText(['title-scaffold', 'xaxis-dashedsplit']),
-            chartSnippets: ['title-scaffold', 'xaxis-dashedsplit'],
+            userText: chartText(['title-scaffold', 'tooltip-cross']),
+            chartSnippets: ['title-scaffold', 'tooltip-cross'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['title-scaffold', 'xaxis-dashedsplit']);
+        expect(reloaded.chartSnippets).toEqual(['title-scaffold', 'tooltip-cross']);
     });
 
-    it('family-invalid chart activations are pruned on Apply (xAxis snippet on a radar target)', () => {
-        // The widget was cartesian (both activations + their composition), then switched to
-        // radar: the Apply prune drops the xAxis id, the heal keeps title-scaffold (its paths
-        // stand in the family-agnostic text).
+    it('family-invalid chart activations are pruned on Apply (radar snippet on a cartesian target)', () => {
+        // The widget was radar (both activations + their composition), then switched to line:
+        // the Apply prune drops the radar-only id, the heal keeps title-scaffold (its paths
+        // stand in the family-agnostic text). (The classic xAxis-snippet case moved to the
+        // X-Karte's own raw with the ADR-0037 addendum — its heal has its own test.)
         const state = {
             ...baseState(),
-            chartType: 'radar' as const,
-            userText: chartText(['xaxis-dashedsplit', 'title-scaffold']),
-            chartSnippets: ['xaxis-dashedsplit', 'title-scaffold'],
+            chartType: 'line' as const,
+            userText: chartText(['radar-splitarea', 'title-scaffold']),
+            chartSnippets: ['radar-splitarea', 'title-scaffold'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.chartSnippets).toEqual(['title-scaffold']);

@@ -953,6 +953,22 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
         expect(option.xAxis).toMatchObject({ axisLabel: { rotate: -30 } });
     });
 
+    it('x raw merges UNDER the built entry — free keys flow through, card-set keys win (ADR-0037 addendum)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: {
+                ...P,
+                xAxis: { splitNumber: 4, raw: '{ "splitNumber": 99, "axisTick": { "length": 9 }, "z": 4 }' },
+            },
+        });
+        expect(option.xAxis).toMatchObject({ splitNumber: 4, axisTick: { length: 9 }, z: 4 });
+        // No raw → the entry stands alone (no merge husk).
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).not.toHaveProperty('z');
+    });
+
     it('an offset detaches the axis line from the Y-zero (axisLine.onZero:false) — SSR-verified', () => {
         // Default axisLine.onZero:true pins the LINE to the first Y-axis' zero (= the grid floor
         // for positive data) while ticks/labels follow the offset — the axis visually splits.

@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Título",
     "echarts_tpl_cat_toolbox": "Toolbox",
     "echarts_tpl_cat_tooltip": "Tooltip",
-    "echarts_tpl_cat_xaxis": "Eje X",
     "echarts_tpl_easing": "Suavizado de animación",
     "echarts_tpl_gauge_detail": "Formato de valor del medidor",
     "echarts_tpl_gauge_zones": "Zonas de color del medidor",

@@ -85,36 +85,16 @@ const GUI_OWNED_LEAVES: Record<string, string[]> = {
     ],
     tooltip: ['show', 'trigger', 'formatter', 'valueFormatter'],
     toolbox: [],
-    xAxis: [
-        'type',
-        'name',
-        'nameLocation',
-        'nameGap',
-        'nameRotate',
-        'nameTextStyle',
-        'splitNumber',
-        'minInterval',
-        'offset',
-        'axisLabel.formatter',
-        'axisLabel.rotate',
-        'axisLabel.color',
-        'axisLine.show',
-        'axisLine.lineStyle.color',
-        'axisLine.onZero',
-        'axisTick.show',
-        'splitLine.show',
-    ],
     radar: [],
 };
 
 /**
- * Leaves the GUI owns only UNDER A CONDITION (ADR-0043 series-guard CONDITIONAL_ALLOW precedent):
- * `axisLine.onZero` is emitted only when an X offset is set (the SSR fix) — the `xaxis-onzero`
- * template detaches the line from y=0 WITHOUT an offset, where the leaf is genuinely free.
+ * Leaves the GUI owns only UNDER A CONDITION (ADR-0043 series-guard CONDITIONAL_ALLOW precedent).
+ * Empty since the chart-level xAxis category retired (ADR-0037 addendum moved it to the X-Karte's
+ * own catalog, whose guard lives in xAxisTemplates.test.ts) — the mechanism stays for the next
+ * conditional case.
  */
-const CONDITIONALLY_FREE: Record<string, string[]> = {
-    xAxis: ['axisLine.onZero'],
-};
+const CONDITIONALLY_FREE: Record<string, string[]> = {};
 
 /** All leaf paths of a JSON object, dot-joined. */
 const leafPaths = (value: unknown, prefix = ''): string[] => {

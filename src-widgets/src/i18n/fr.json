@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Titre",
     "echarts_tpl_cat_toolbox": "Toolbox",
     "echarts_tpl_cat_tooltip": "Info-bulle",
-    "echarts_tpl_cat_xaxis": "Axe X",
     "echarts_tpl_easing": "Accélération d'animation",
     "echarts_tpl_gauge_detail": "Format de la valeur de la jauge",
     "echarts_tpl_gauge_zones": "Zones colorées de la jauge",

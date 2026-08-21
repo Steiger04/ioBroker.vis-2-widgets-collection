@@ -33,6 +33,7 @@ import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { keepSnippetIds, pruneSnippetIds, type SnippetTemplate } from './snippetComposition';
 import { CHART_TEMPLATES, chartTemplatesForFamily } from './advancedJsonTemplates';
+import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
@@ -261,6 +262,20 @@ const healedIds = (templates: readonly SnippetTemplate[], ids: string[], raw: st
     keepSnippetIds(templates, pruneSnippetIds(templates, ids), raw ?? '');
 
 /**
+ * The X-Karte's activation list heal (ADR-0037 addendum + ADR-0042 addendum): prune to the X
+ *  catalog (the retired chart-level `xaxis-*` ids drop silently) + keep-only heal against the
+ *  raw — the badge never outlives its content; never adds. An empty result normalises to
+ *  `undefined` so the blob stays lean.
+ */
+const healXAxisSnippets = (x: EchartsXAxisConfig): EchartsXAxisConfig => {
+    if (!x.snippets?.length) {
+        return x;
+    }
+    const healed = healedIds(X_AXIS_TEMPLATES, x.snippets, x.raw);
+    return healed.length ? { ...x, snippets: healed } : { ...x, snippets: undefined };
+};
+
+/**
  * Normalize a series' activation list — the LOAD and APPLY paths share this (ADR-0042 decision 6
  * + addendum). Prune to the slot catalog (a stale id is silently dropped, its leaves remain in
  * the raw text as the user's own) and heal against the raw text (an activation whose template
@@ -478,7 +493,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         yAxes,
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
         // synthesised into `splitLine` (shared resolver — same rule as the live body).
-        xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
+        xAxis: healXAxisSnippets(decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false))),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
@@ -618,7 +633,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(yAxesHealed)),
-        xAxis: encodeBlob(JSON.stringify(state.xAxis)),
+        xAxis: encodeBlob(JSON.stringify(healXAxisSnippets(state.xAxis))),
     };
     const max = Math.max(seriesCount, previousCount);
     for (let i = 0; i < max; i++) {

@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "标题",
     "echarts_tpl_cat_toolbox": "工具栏",
     "echarts_tpl_cat_tooltip": "提示框",
-    "echarts_tpl_cat_xaxis": "X 轴",
     "echarts_tpl_easing": "动画缓动",
     "echarts_tpl_gauge_detail": "仪表盘数值格式",
     "echarts_tpl_gauge_zones": "仪表盘彩色分区",

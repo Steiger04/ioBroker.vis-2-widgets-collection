@@ -13,9 +13,9 @@
  * Eigenanteil (ADR-0042) instead of a one-shot text flood, and the menu search (ADR-0043)
  * scales the entry count. The ADR-0040 snippet inventory under these four components is retired
  * (every snippet's keys ⊂ its scaffold); tooltip keeps two VALUE VARIANTS (cross/shadow
- * axisPointer) and the audited xAxis/radar entries are kept unchanged (ADR-0035: the X-Karte
- * owns the presentation keys, so a complete xAxis scaffold would collide — the sub-key snippets
- * are the honest form there).
+ * axisPointer) and the audited radar entries are kept unchanged. The ADR-0040 `xAxis` category
+ * is RETIRED since the ADR-0037 addendum: the X-Karte carries its own raw escape hatch + catalog
+ * (`xAxisTemplates.ts`) — one place per component; the former ids drop silently at load.
  *
  * NOT added (deliberate, against the ADR-0043 spec draft): `grid` and `dataZoom` categories.
  * The cartesian builder ALWAYS emits the full grid block (left/right/top/bottom + v6
@@ -35,9 +35,7 @@
  *    inactiveColor, panel frame (backgroundColor/borderColor/borderWidth/borderRadius/padding).
  *  - tooltip: show, trigger, formatter, valueFormatter (ADR-0032).
  *  - toolbox: wholly user-owned (nothing avoided).
- *  - xAxis: type ('time' fixed), name + nameLocation/nameGap/nameRotate/nameTextStyle,
- *    axisLabel formatter/rotate/colour, axisLine.lineStyle.colour, axisTick.show,
- *    splitLine.show, splitNumber, minInterval (ADR-0035 + addenda).
+ *  - radar: wholly user-owned (the radar presets classifying effective is the point).
  *
  * Defaults verified against the locally installed echarts 6.1.0 (`types/dist/echarts.d.ts` and
  * ToolboxModel/TooltipModel defaultOption), cross-checked with the official docs. Template LABELS
@@ -46,16 +44,9 @@
 import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
 
 /** Chart-template grouping (rendered as menu section headers; order = {@link CHART_CATEGORY_ORDER}). */
-export type ChartTemplateCategory = 'title' | 'legend' | 'tooltip' | 'toolbox' | 'xAxis' | 'radar';
+export type ChartTemplateCategory = 'title' | 'legend' | 'tooltip' | 'toolbox' | 'radar';
 
-export const CHART_CATEGORY_ORDER: ChartTemplateCategory[] = [
-    'title',
-    'legend',
-    'tooltip',
-    'toolbox',
-    'xAxis',
-    'radar',
-];
+export const CHART_CATEGORY_ORDER: ChartTemplateCategory[] = ['title', 'legend', 'tooltip', 'toolbox', 'radar'];
 
 /** i18n key per category header. */
 export const CHART_CATEGORY_I18N: Record<ChartTemplateCategory, string> = {
@@ -63,7 +54,6 @@ export const CHART_CATEGORY_I18N: Record<ChartTemplateCategory, string> = {
     legend: 'echarts_tpl_cat_legend',
     tooltip: 'echarts_tpl_cat_tooltip',
     toolbox: 'echarts_tpl_cat_toolbox',
-    xAxis: 'echarts_tpl_cat_xaxis',
     radar: 'echarts_tpl_cat_radar',
 };
 
@@ -139,63 +129,6 @@ export const CHART_TEMPLATES: ChartTemplate[] = [
         // (echarts localises), and the dataView `optionToContent`/`contentToOption` functions.
         // Verified against echarts 6.1.0 ToolboxModel + the six features' defaultOption.
         json: '{\n  "toolbox": {\n    "show": true,\n    "orient": "horizontal",\n    "itemSize": 15,\n    "itemGap": 10,\n    "showTitle": true,\n    "right": 0,\n    "top": 0,\n    "zlevel": 0,\n    "z": 2,\n    "silent": false,\n    "backgroundColor": "transparent",\n    "padding": 15,\n    "borderWidth": 0,\n    "borderType": "solid",\n    "borderRadius": 0,\n    "shadowBlur": 0,\n    "shadowColor": "transparent",\n    "shadowOffsetX": 0,\n    "shadowOffsetY": 0,\n    "tooltip": { "show": false, "position": "bottom" },\n    "feature": {\n      "saveAsImage": { "show": true, "type": "png", "name": "", "pixelRatio": null, "excludeComponents": ["toolbox"] },\n      "restore": { "show": true },\n      "dataView": { "show": true, "readOnly": true },\n      "dataZoom": { "show": true, "filterMode": "filter" },\n      "magicType": { "show": false, "type": ["line", "bar"] },\n      "brush": { "show": false, "type": ["rect", "polygon", "lineX", "lineY"] }\n    }\n  }\n}',
-    },
-    // ── xAxis (cartesian — the X-Karte owns its presentation keys, ADR-0035; these audited
-    //    sub-key snippets are the honest form here, no complete scaffold) ──
-    {
-        id: 'xaxis-dashedsplit',
-        category: 'xAxis',
-        label: 'xAxis · dashed split',
-        families: ['cartesian'],
-        // splitLine.show is GUI-owned; the line STYLE under it is free.
-        json: '{ "xAxis": { "splitLine": { "lineStyle": { "type": "dashed", "width": 1 } } } }',
-    },
-    {
-        id: 'xaxis-minorticks',
-        category: 'xAxis',
-        label: 'xAxis · minor ticks',
-        families: ['cartesian'],
-        // Time axis renders minor ticks/split lines (verified: valueAxis minor* applies to time).
-        json: '{ "xAxis": { "minorTick": { "show": true, "splitNumber": 3, "length": 3 }, "minorSplitLine": { "show": true } } }',
-    },
-    {
-        id: 'xaxis-splitarea',
-        category: 'xAxis',
-        label: 'xAxis · splitArea',
-        families: ['cartesian'],
-        // show alone inherits the theme's band colours (dark-mode safe, ADR-0037 precedent).
-        json: '{ "xAxis": { "splitArea": { "show": true } } }',
-    },
-    {
-        id: 'xaxis-hideoverlap',
-        category: 'xAxis',
-        label: 'xAxis · hideOverlap',
-        families: ['cartesian'],
-        // Auto-drops overlapping time labels (verified in the label layout pipeline).
-        json: '{ "xAxis": { "axisLabel": { "hideOverlap": true } } }',
-    },
-    {
-        id: 'xaxis-arrow',
-        category: 'xAxis',
-        label: 'xAxis · arrow',
-        families: ['cartesian'],
-        json: '{ "xAxis": { "axisLine": { "symbol": ["none", "arrow"], "symbolSize": [10, 15] } } }',
-    },
-    {
-        id: 'xaxis-onzero',
-        category: 'xAxis',
-        label: 'xAxis · free from zero',
-        families: ['cartesian'],
-        // axisLine.onZero false — the X axis stays at the bottom even for negative values.
-        json: '{ "xAxis": { "axisLine": { "onZero": false } } }',
-    },
-    {
-        id: 'xaxis-ticklength',
-        category: 'xAxis',
-        label: 'xAxis · tick length',
-        families: ['cartesian'],
-        // axisTick.show is GUI-owned; length/inside are free.
-        json: '{ "xAxis": { "axisTick": { "length": 8, "inside": false } } }',
     },
     // ── radar (radar family only — the classic ADR-0014 presets, regrouped) ──
     {

@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Tytuł",
     "echarts_tpl_cat_toolbox": "Przybornik",
     "echarts_tpl_cat_tooltip": "Podpowiedź",
-    "echarts_tpl_cat_xaxis": "Oś X",
     "echarts_tpl_easing": "Łagodzenie animacji",
     "echarts_tpl_gauge_detail": "Format wartości wskaźnika",
     "echarts_tpl_gauge_zones": "Kolorowe strefy wskaźnika",

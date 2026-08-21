@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Заголовок",
     "echarts_tpl_cat_toolbox": "Панель інструментів",
     "echarts_tpl_cat_tooltip": "Підказка",
-    "echarts_tpl_cat_xaxis": "Вісь X",
     "echarts_tpl_easing": "Згладжування анімації",
     "echarts_tpl_gauge_detail": "Формат значення вимірювача",
     "echarts_tpl_gauge_zones": "Кольорові зони вимірювача",

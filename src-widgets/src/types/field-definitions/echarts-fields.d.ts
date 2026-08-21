@@ -484,6 +484,14 @@ export interface EchartsXAxisConfig {
      * unset = 0 (no emit, rendering unchanged incl. the onZero default).
      */
     offset?: number;
+    /**
+     * Raw echarts JSON escape hatch on the X-Karte (ADR-0037 addendum — X joins the axis
+     * anatomy): deep-merged UNDER the built xAxis entry, the card wins every collision.
+     * Populated via the X-Karte's own template catalog (`xAxisTemplates.ts`) + free text.
+     */
+    raw?: string;
+    /** Ordered ACTIVE X-template ids (ADR-0042) riding the same `xAxis` blob. */
+    snippets?: string[];
 }
 
 export interface EchartsFieldsRxData {

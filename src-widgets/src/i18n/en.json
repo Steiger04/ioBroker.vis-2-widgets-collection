@@ -410,7 +410,6 @@
     "echarts_tpl_cat_title": "Title",
     "echarts_tpl_cat_toolbox": "Toolbox",
     "echarts_tpl_cat_tooltip": "Tooltip",
-    "echarts_tpl_cat_xaxis": "X axis",
     "echarts_tpl_easing": "Animation easing",
     "echarts_tpl_gauge_detail": "Gauge value format",
     "echarts_tpl_gauge_zones": "Gauge coloured zones",

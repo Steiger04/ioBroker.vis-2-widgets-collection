@@ -430,7 +430,9 @@ export const buildCartesianOption = (
             outerBoundsMode: 'same',
             outerBoundsContain: 'all',
         },
-        xAxis: buildXAxisEntry(p.xAxis),
+        // The X raw (ADR-0037 addendum) folds UNDER the built entry like the Y cards' — the card
+        // wins collisions; `xAxis` rides REPLACE_MERGE (ADR-0036) so deleting a raw key reverts.
+        xAxis: applyRawOverride(buildXAxisEntry(p.xAxis), p.xAxis.raw),
         yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,
