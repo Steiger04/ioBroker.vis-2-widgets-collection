@@ -250,7 +250,7 @@ export const SeriesRawOverride: FC<{
                     variant="caption"
                     color="text.secondary"
                 >
-                    {Generic.t('echarts_series_raw_hint')}
+                    {Generic.t('echarts_editor_advanced_note')}
                 </Typography>
             </Collapse>
         </Box>

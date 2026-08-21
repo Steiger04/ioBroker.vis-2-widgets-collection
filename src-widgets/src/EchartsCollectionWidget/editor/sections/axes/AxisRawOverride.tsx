@@ -101,7 +101,7 @@ const AxisRawOverride: FC<{
                     color="text.secondary"
                     sx={{ display: 'block', mt: 0.5 }}
                 >
-                    {Generic.t('echarts_axis_raw_hint')}
+                    {Generic.t('echarts_editor_advanced_note')}
                 </Typography>
             </Collapse>
         </Box>
