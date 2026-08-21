@@ -476,10 +476,12 @@ export interface EchartsXAxisConfig {
     /** Rotate the tick LABELS (deg, `axisLabel.rotate`) — angled time labels on narrow widgets. */
     labelRotate?: number;
     /**
-     * Pixel offset from the default (bottom) position — moves the axis down, away from the grid
-     * (the X sibling of the Y-axis Versatz, a label-crowding fine-adjustment). The grid's
-     * `outerBoundsContain:'all'` (ADR-0024) reserves the space, so the shifted axis + labels
-     * never clip; unset = 0 (no emit).
+     * Pixel offset from the default (bottom) position — moves the whole axis down, away from the
+     * grid (the X sibling of the Y-axis Versatz, a label-crowding fine-adjustment). Setting it
+     * also emits `axisLine.onZero:false`: the default `onZero:true` pins the LINE to the first
+     * Y-axis' zero while ticks/labels follow the offset (the axis visually splits — SSR-verified).
+     * The grid's `outerBoundsContain:'all'` (ADR-0024) reserves the space, so nothing clips;
+     * unset = 0 (no emit, rendering unchanged incl. the onZero default).
      */
     offset?: number;
 }

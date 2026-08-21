@@ -148,6 +148,12 @@ describe('classifyUserKeys — xAxis (partially managed, ADR-0035)', () => {
         expect(c?.managed).toEqual(['offset']);
     });
 
+    it('axisLine.onZero alone → ignored (conditionally GUI-owned: emitted whenever an offset is set)', () => {
+        const c = clsOf({ xAxis: { axisLine: { onZero: false } } }, 'xAxis');
+        expect(c?.cls).toBe('ignored');
+        expect(c?.managed).toEqual(['axisLine.onZero']);
+    });
+
     it('mixed (splitLine.show + splitLine.lineStyle + position) → partial, lists the eaten subkeys', () => {
         const c = clsOf({ xAxis: { position: 'top', splitLine: { show: true, lineStyle: { width: 2 } } } }, 'xAxis');
         expect(c?.cls).toBe('partial');

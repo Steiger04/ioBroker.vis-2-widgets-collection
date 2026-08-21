@@ -98,11 +98,22 @@ const GUI_OWNED_LEAVES: Record<string, string[]> = {
         'axisLabel.formatter',
         'axisLabel.rotate',
         'axisLabel.color',
+        'axisLine.show',
         'axisLine.lineStyle.color',
+        'axisLine.onZero',
         'axisTick.show',
         'splitLine.show',
     ],
     radar: [],
+};
+
+/**
+ * Leaves the GUI owns only UNDER A CONDITION (ADR-0043 series-guard CONDITIONAL_ALLOW precedent):
+ * `axisLine.onZero` is emitted only when an X offset is set (the SSR fix) — the `xaxis-onzero`
+ * template detaches the line from y=0 WITHOUT an offset, where the leaf is genuinely free.
+ */
+const CONDITIONALLY_FREE: Record<string, string[]> = {
+    xAxis: ['axisLine.onZero'],
 };
 
 /** All leaf paths of a JSON object, dot-joined. */
@@ -156,9 +167,9 @@ describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040/0043)', () =
             const ownedLeaves = leafPaths(json[tpl.category]);
             for (const leaf of ownedLeaves) {
                 expect(
-                    owned,
+                    !(owned ?? []).includes(leaf) || (CONDITIONALLY_FREE[tpl.category] ?? []).includes(leaf),
                     `${tpl.id}: leaf '${leaf}' collides with a GUI-owned key (the GUI wins — the snippet would mislead)`,
-                ).not.toContain(leaf);
+                ).toBe(true);
             }
         }
     });
@@ -166,12 +177,14 @@ describe('Advanced-JSON templates × GUI-owned-leaf audit (ADR-0040/0043)', () =
     it('every template brings ≥1 effective key (ADR-0042 addendum — classifyUserKeys audit gate)', () => {
         // The merge-analysis module lives on ONLY as this catalog audit (its UI chips are
         // retired): a template whose EVERY key the GUI would swallow can never take effect.
+        // A template whose every leaf is CONDITIONALLY_FREE passes too — its leaves are only
+        // GUI-owned under a condition the template deliberately does not meet.
         for (const tpl of CHART_TEMPLATES) {
             const chips = classifyUserKeys(JSON.parse(tpl.json) as Record<string, unknown>);
-            expect(
-                chips.some(c => c.cls === 'effective'),
-                `${tpl.id}: every key is GUI-owned — the template can never take effect`,
-            ).toBe(true);
+            const allowed =
+                chips.some(c => c.cls === 'effective') ||
+                chips.every(c => (c.managed ?? []).every(leaf => (CONDITIONALLY_FREE[c.key] ?? []).includes(leaf)));
+            expect(allowed, `${tpl.id}: every key is GUI-owned — the template can never take effect`).toBe(true);
         }
     });
 

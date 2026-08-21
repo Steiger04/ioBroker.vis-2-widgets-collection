@@ -301,11 +301,6 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
     if (x.nameRotate !== undefined) {
         entry.nameRotate = x.nameRotate;
     }
-    if (x.offset !== undefined) {
-        // Pixel offset away from the grid (bottom → down) — the X sibling of the Y-axis Versatz.
-        // `outerBoundsContain:'all'` (ADR-0024) reserves the space, generalised for both dims.
-        entry.offset = x.offset;
-    }
     const axisLabel: Record<string, unknown> = {};
     if (x.format) {
         // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.
@@ -319,6 +314,19 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
         entry.axisLine = { show: true, lineStyle: { color: x.color } };
         axisLabel.color = x.color;
         entry.nameTextStyle = { color: x.color };
+    }
+    if (x.offset) {
+        // Pixel offset away from the grid (bottom → down) — the X sibling of the Y-axis Versatz.
+        // 0 counts as unset (it IS the echarts default — a cleared field must also restore the
+        // onZero default, or negative-data charts would visibly jump at "zero"). The axis line
+        // must ALSO be detached from the Y-zero: the default `axisLine.onZero:true` pins the LINE
+        // to the first Y-axis' zero (= the grid floor for positive data) while ticks and labels
+        // follow the offset — the axis visually splits (SSR-verified). onZero:false moves
+        // line+ticks+labels together; merged with a colour-set lineStyle when both are present.
+        // `outerBoundsContain:'all'` (ADR-0024) reserves the space, dimension-general.
+        entry.offset = x.offset;
+        const line = (entry.axisLine as Record<string, unknown> | undefined) ?? { show: true };
+        entry.axisLine = { ...line, onZero: false };
     }
     if (Object.keys(axisLabel).length) {
         entry.axisLabel = axisLabel;

@@ -197,14 +197,16 @@ const XCard: FC<{
                         ctx={pickerCtx}
                     />
                 </Box>
-                {/* The X sibling of the Y-axis Versatz: moves the axis down, away from the grid
-                    (label-crowding fine-adjustment). No stagger machinery here — a single axis —
-                    so the value is purely manual; `outerBoundsContain:'all'` (ADR-0024) reserves
-                    the space. Unset = 0 = no emit. */}
+                {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis down, away from the
+                    grid (label-crowding fine-adjustment). No stagger machinery here — a single
+                    axis — so the value is purely manual; `outerBoundsContain:'all'` (ADR-0024)
+                    reserves the space, and the builder detaches the line from the Y-zero
+                    (axisLine.onZero:false) so line+ticks+labels move together. 0 → undefined: a
+                    cleared field restores the full default (incl. onZero). */}
                 <NumberField
                     label={Generic.t('echarts_axis_offset')}
                     value={x.offset ?? 0}
-                    onChange={v => onChange({ offset: v })}
+                    onChange={v => onChange({ offset: v || undefined })}
                 />
             </FieldGrid>
         </SubGroup>

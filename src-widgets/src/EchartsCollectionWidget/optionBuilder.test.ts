@@ -952,6 +952,52 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
         });
         expect(option.xAxis).toMatchObject({ axisLabel: { rotate: -30 } });
     });
+
+    it('an offset detaches the axis line from the Y-zero (axisLine.onZero:false) — SSR-verified', () => {
+        // Default axisLine.onZero:true pins the LINE to the first Y-axis' zero (= the grid floor
+        // for positive data) while ticks/labels follow the offset — the axis visually splits.
+        // Only with onZero:false does the whole axis (line+ticks+labels) move together.
+        const withOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { offset: 24 } },
+        });
+        expect(withOffset.xAxis).toMatchObject({ offset: 24, axisLine: { show: true, onZero: false } });
+        // With a colour set, the offset must not clobber the lineStyle (and vice versa).
+        const withBoth = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { offset: 24, color: '#0af' } },
+        });
+        expect(withBoth.xAxis).toMatchObject({
+            offset: 24,
+            axisLine: { show: true, onZero: false, lineStyle: { color: '#0af' } },
+        });
+        // Without an offset the rendering stays exactly as before — no axisLine without a colour,
+        // no onZero switch (onZero:true is the deliberate default: negative data keeps the line
+        // at the y=0 level). An explicit 0 counts as unset (it IS the echarts default — a cleared
+        // field must also restore the onZero default).
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).not.toHaveProperty('axisLine');
+        const zero = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { offset: 0 } },
+        });
+        expect(zero.xAxis).not.toHaveProperty('offset');
+        expect(zero.xAxis).not.toHaveProperty('axisLine');
+        const colored = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { color: '#0af' } },
+        });
+        expect(colored.xAxis).not.toHaveProperty('offset');
+        expect((colored.xAxis as Record<string, { onZero?: boolean }>).axisLine).not.toHaveProperty('onZero');
+    });
 });
 
 describe('buildGeneratedOption — theme-token defaults (ADR-0027)', () => {
