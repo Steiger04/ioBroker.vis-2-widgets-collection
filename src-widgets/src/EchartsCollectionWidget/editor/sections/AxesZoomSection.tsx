@@ -1,36 +1,31 @@
 /**
  * Axes & zoom section — cartesian-only multi-axis + interaction config (ADR-0007/0010/0012;
- * control-kit layout per ADR-0019).
+ * control-kit layout per ADR-0019; card bodies decomposed into `sections/axes/*` per ADR-0051).
  *
  * @module EchartsCollectionWidget/editor/sections/AxesZoomSection
  * @remarks
- * The **Axis manager** (ADR-0012): one collapsible {@link EditorCard} per configured Y-axis (same
- * shell as the series cards). The body is organised into {@link SubGroup}s — basis (name/position/
- * colour/offset), value range (min/max/format), scale & ticks (the booleans as a SwitchList —
- * `alignTicks` only on follower axes, axis 0 is the reference, ADR-0034 — + splitNumber/minInterval),
- * presentation (name rotation) — replacing the flat ~360 px label-over-switch wall. Cards start
- * collapsed. Further axes render side-by-side via position/offset; `alignTicks` is an explicit
- * per-axis opt-in (ADR-0034) and per-axis colour is smart-defaulted in the cartesian builder.
- * Above the Y-cards sits the **X-Karte** (ADR-0035) — the single, non-deletable card for the
- * shared time axis (name, label time format, colour, ticks, splitlines; the old chart-level
- * `xSplit` row lives on as its Splitlinien switch). Plus dataZoom (slider + inside as a
- * SwitchList) and the threshold mark-lines. min≥max carries advisory validation.
+ * The **Axis manager** (ADR-0012): one collapsible EditorCard per configured Y-axis (same shell
+ * as the series cards; the card body lives in `sections/axes/AxisCard.tsx`) — cards start
+ * collapsed, further axes render side-by-side via position/offset. Above the Y-cards sits the
+ * **X-Karte** (ADR-0035; `sections/axes/XCard.tsx`) — the single, non-deletable card for the
+ * shared time axis (the old chart-level `xSplit` row lives on as its Splitlinien switch). This
+ * file owns the ORCHESTRATION: add/remove semantics (ADR-0025 — an axis is an independent
+ * citizen, its series rebind to a same-format survivor, else axis 0 + advisory toast; ADR-0028 —
+ * a side-flip re-staggers densely), the bound-series colour/name defaults per ADR-0018
+ * (history/live positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
+ * a SwitchList) and the threshold mark-lines. min≥max carries advisory validation (in the cards).
  */
 import { useState, type FC } from 'react';
-import { Alert, Autocomplete, Box, Button, IconButton, Snackbar, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, IconButton, Snackbar, Typography } from '@mui/material';
 import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
 import {
-    EditorCard,
     FieldGrid,
     FieldLabel,
-    InfoBox,
     LabeledSelect,
     NumberField,
-    OptionalNumberField,
-    SliderField,
     SubGroup,
     SwitchList,
     SwitchRow,
@@ -38,24 +33,12 @@ import {
 } from '../../../components/controls';
 import ColorField from '../colorFields';
 import type { OidPickerCtx } from '../OidPicker';
-import type {
-    EchartsAxisConfig,
-    EchartsMarkLine,
-    EchartsXAxisConfig,
-} from '../../../types/field-definitions/echarts-fields';
+import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import {
-    alignTicksDisabledByOverride,
-    axisLayout,
-    effectiveAxisColor,
-    packStaggeredAxes,
-    sameFormatSurvivor,
-} from '../axisLayout';
+import { axisLayout, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
 import { nextStableId } from '../stableId';
-import RawJsonSection from './RawJsonSection';
-import { AXIS_CATALOG } from '../axisTemplates';
-import { X_AXIS_CATALOG } from '../xAxisTemplates';
-import { snippetPatch } from '../snippetComposition';
+import XCard from './axes/XCard';
+import AxisCard from './axes/AxisCard';
 
 /**
  * The axes & zoom section's field ownership (ADR-0049 slice) — the widest honest slice: the
@@ -88,468 +71,6 @@ interface AxesZoomSectionProps {
     /** JSON-mode payload series names, in payload order (drives the Series-card list). */
     jsonSeriesNames?: string[];
 }
-
-/**
- * echarts time-template presets for the X-axis label format (ADR-0035). `''` = auto — echarts'
- * own hierarchical labelling (no formatter emitted). The literal pattern doubles as the label —
- * the pattern IS the format, locale-neutral by construction.
- */
-const X_FORMAT_PRESETS: [string, string][] = [
-    ['{HH}:{mm}', 'HH:mm'],
-    ['{dd}.{MM}.', 'dd.MM.'],
-    ['{dd}.{MM} {HH}:{mm}', 'dd.MM HH:mm'],
-    ['{HH}:{mm}:{ss}', 'HH:mm:ss'],
-    ['{dd}.{MM}.{yyyy}', 'dd.MM.yyyy'],
-];
-/** The combobox dropdown values: '' (auto) + the preset templates. */
-const X_FORMAT_VALUES: string[] = ['', ...X_FORMAT_PRESETS.map(([tpl]) => tpl)];
-/** Friendly dropdown label for a value ('' → Auto; presets → their shorthand; else the raw template). */
-const xFormatOptionLabel = (value: string): string =>
-    value === '' ? Generic.t('echarts_x_fmt_auto') : (X_FORMAT_PRESETS.find(([tpl]) => tpl === value)?.[1] ?? value);
-
-/**
- * Editable time-template combobox for the X-Karte label format (ADR-0035). The presets are
- * dropdown OFFERS, the input is freeSolo — the template string is the single state, so there is
- * no Eigene… sentinel and no custom-mode flag to desync (the rework replaces a select whose
- * "Eigene…" entry could never reveal its free-text field: the seed collided with a preset value,
- * the select snapped back, and the field stayed permanently hidden). A template typed to equal a
- * preset is simply that preset. The caption lists the echarts time-template placeholders so the
- * free text is discoverable.
- */
-const XFormatCombo: FC<{
-    value: string | undefined;
-    onChange: (format: string | undefined) => void;
-}> = ({ value, onChange }) => (
-    <Box sx={{ gridColumn: '1 / -1' }}>
-        <FieldLabel>{Generic.t('echarts_x_format')}</FieldLabel>
-        <Autocomplete
-            freeSolo
-            size="small"
-            options={X_FORMAT_VALUES}
-            inputValue={value ?? ''}
-            // Typing ('input') and the clear button ('clear') write straight through; picking an
-            // option arrives via onChange (reason 'reset' would double-fire every selection).
-            onInputChange={(_, v, reason) => {
-                if (reason === 'input' || reason === 'clear') {
-                    onChange(v || undefined);
-                }
-            }}
-            onChange={(_, v) => onChange(v || undefined)}
-            getOptionLabel={o => (o === '' ? Generic.t('echarts_x_fmt_auto') : o)}
-            renderOption={(props, option) => (
-                <li
-                    {...props}
-                    key={option}
-                >
-                    {xFormatOptionLabel(option)}
-                    {option !== '' && (
-                        <Typography
-                            component="code"
-                            variant="caption"
-                            sx={{ ml: 1, color: 'text.secondary' }}
-                        >
-                            {option}
-                        </Typography>
-                    )}
-                </li>
-            )}
-            renderInput={params => (
-                <TextField
-                    {...params}
-                    placeholder={Generic.t('echarts_x_fmt_auto')}
-                    fullWidth
-                />
-            )}
-        />
-        <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: 'block', mt: 0.5 }}
-        >
-            {Generic.t('echarts_x_format_tokens')}
-        </Typography>
-    </Box>
-);
-
-/**
- * The X-Karte (ADR-0035): the single, non-deletable first card of the Axis manager configuring
- * the shared time axis — flat presentation config (never a list, never series-bound). Absorbs
- * the old chart-level `xSplit` row (now the Splitlinien switch in Skala & Ticks).
- */
-const XCard: FC<{
-    x: EchartsXAxisConfig;
-    open: boolean;
-    onToggle: () => void;
-    onChange: (patch: Partial<EchartsXAxisConfig>) => void;
-    pickerCtx: OidPickerCtx;
-    /** Theme text token — the axis colour's inherit value (the theme's label colour; ADR-0027/0035). */
-    fallbackColor: string;
-}> = ({ x, open, onToggle, onChange, pickerCtx, fallbackColor }) => (
-    <EditorCard
-        open={open}
-        onToggle={onToggle}
-        swatch={
-            <Box
-                sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '4px',
-                    // Effective axis colour: explicit wins, else the theme's label colour (the
-                    // theme floor paints line+labels; textSecondary is the dominant one).
-                    backgroundColor: x.color ?? fallbackColor,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    flexShrink: 0,
-                }}
-            />
-        }
-        title={Generic.t('echarts_x_title')}
-    >
-        <SubGroup title={Generic.t('echarts_grp_basis')}>
-            <FieldGrid>
-                {/* '' → undefined so a cleared name is unset (the builder omits it). */}
-                <TextField2
-                    label={Generic.t('echarts_axis_name')}
-                    value={x.name ?? ''}
-                    onChange={v => onChange({ name: v || undefined })}
-                />
-                {/* Inherited = the theme's axis colour (text token) — the axis belongs to no series. */}
-                <Box>
-                    <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
-                    <ColorField
-                        value={x.color ?? ''}
-                        fallback={fallbackColor}
-                        onChange={v => onChange({ color: v ?? undefined })}
-                        ctx={pickerCtx}
-                    />
-                </Box>
-                {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis down, away from the
-                    grid (label-crowding fine-adjustment). No stagger machinery here — a single
-                    axis — so the value is purely manual; `outerBoundsContain:'all'` (ADR-0024)
-                    reserves the space, and the builder detaches the line from the Y-zero
-                    (axisLine.onZero:false) so line+ticks+labels move together. 0 → undefined: a
-                    cleared field restores the full default (incl. onZero). */}
-                <NumberField
-                    label={Generic.t('echarts_axis_offset')}
-                    value={x.offset ?? 0}
-                    onChange={v => onChange({ offset: v || undefined })}
-                />
-            </FieldGrid>
-        </SubGroup>
-
-        <SubGroup title={Generic.t('echarts_grp_labels')}>
-            <XFormatCombo
-                value={x.format}
-                onChange={v => onChange({ format: v })}
-            />
-            {/* Angled tick labels for narrow widgets; unset = 0° horizontal (no emit). Distinct
-                from Namen-Drehung above — this rotates the time labels, not the axis name. */}
-            <FieldGrid sx={{ mt: 1.5 }}>
-                <SliderField
-                    label={Generic.t('echarts_x_label_rotate')}
-                    value={x.labelRotate ?? 0}
-                    min={-90}
-                    max={90}
-                    step={5}
-                    onChange={v => onChange({ labelRotate: v })}
-                />
-            </FieldGrid>
-        </SubGroup>
-
-        <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>
-            <SwitchList sx={{ mb: 1.5 }}>
-                <SwitchRow
-                    label={Generic.t('echarts_axis_tick_show')}
-                    checked={x.axisTick ?? true}
-                    onChange={v => onChange({ axisTick: v })}
-                />
-                <SwitchRow
-                    label={Generic.t('echarts_axis_splitline')}
-                    checked={x.splitLine ?? false}
-                    onChange={v => onChange({ splitLine: v })}
-                />
-            </SwitchList>
-            {/* Same optional-number pair as the Y-cards; unset = the echarts time-axis default
-                (splitNumber 6, no interval floor). */}
-            <FieldGrid min={110}>
-                <OptionalNumberField
-                    label={Generic.t('echarts_axis_split_number')}
-                    value={x.splitNumber}
-                    onChange={v => onChange({ splitNumber: v })}
-                />
-                <OptionalNumberField
-                    label={Generic.t('echarts_axis_min_interval')}
-                    value={x.minInterval}
-                    onChange={v => onChange({ minInterval: v })}
-                />
-            </FieldGrid>
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mt: 0.5 }}
-            >
-                {Generic.t('echarts_x_min_interval_hint')}
-            </Typography>
-        </SubGroup>
-
-        <SubGroup title={Generic.t('echarts_grp_presentation')}>
-            <FieldGrid>
-                {/* The Y-card's `??90` is wrong here: echarts' null nameRotate renders VERTICAL on a
-                    side axis but HORIZONTAL (0°) on a bottom axis — the X name's default. Unset stays
-                    unset (no emit) so echarts keeps the default until the user explicitly rotates. */}
-                <SliderField
-                    label={Generic.t('echarts_axis_name_rotate')}
-                    value={x.nameRotate ?? 0}
-                    min={-90}
-                    max={90}
-                    step={5}
-                    onChange={v => onChange({ nameRotate: v })}
-                />
-            </FieldGrid>
-        </SubGroup>
-
-        {/* The X-Karte's own raw escape hatch (ADR-0037 addendum — X joins the axis anatomy):
-            the same section the Y cards carry, fed by the X catalog (`xAxisTemplates.ts`);
-            deep-merged UNDER the built entry, the card wins collisions. */}
-        <RawJsonSection
-            raw={x.raw}
-            onChange={v => onChange({ raw: v || undefined })}
-            catalog={X_AXIS_CATALOG}
-            snippets={x.snippets}
-            onCommit={r => onChange(snippetPatch(r))}
-        />
-    </EditorCard>
-);
-
-/** One Y-axis card: the shared EditorCard shell, body in SubGroups (ADR-0019). */
-const AxisCard: FC<{
-    axis: EchartsAxisConfig;
-    index: number;
-    total: number;
-    open: boolean;
-    onToggle: () => void;
-    onChange: (patch: Partial<EchartsAxisConfig>) => void;
-    onRemove: () => void;
-    pickerCtx: OidPickerCtx;
-    /** Effective colour of the first bound series — the axis-colour default shown in the swatch (ADR-0018). */
-    seriesColor?: string;
-    /** Effective name of the first bound series — the axis-name default shown as placeholder (ADR-0018). */
-    seriesName?: string;
-}> = ({ axis: a, index: i, total, open, onToggle, onChange, onRemove, pickerCtx, seriesColor, seriesName }) => {
-    const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
-    // alignTicks is an explicit per-axis opt-in (ADR-0034): off by default, no smart-default. Only
-    // meaningful with 2+ axes; on axis 0 (the reference echarts aligns others to) it is a no-op, so
-    // the switch renders only on follower axes (i > 0). An explicit toggle still wins.
-    const alignTicksEffective = a.alignTicks ?? false;
-    // echarts ignores alignTicks when the tick interval is fixed (min/max/splitNumber/minInterval);
-    // surface that as a non-blocking warning on a follower axis that opted in (ADR-0034).
-    const alignConflict = i > 0 && total > 1 && alignTicksEffective && alignTicksDisabledByOverride(a);
-    // axisTick defaults to shown (echarts default); the switch reflects it.
-    const axisTickEffective = a.axisTick ?? true;
-
-    return (
-        <EditorCard
-            open={open}
-            onToggle={onToggle}
-            swatch={
-                <Box
-                    sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '4px',
-                        // Effective axis colour: explicit wins, else the bound series' colour, else a
-                        // neutral grey (matches the builder's `a.color ?? seriesColor`, ADR-0018/0027).
-                        backgroundColor: a.color ?? seriesColor ?? '#999',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        flexShrink: 0,
-                    }}
-                />
-            }
-            title={a.name || seriesName || `Achse ${i + 1}`}
-            subtitle={
-                (a.position ?? (i === 0 ? 'left' : 'right')) === 'left'
-                    ? Generic.t('echarts_axis_left')
-                    : Generic.t('echarts_axis_right')
-            }
-            actions={
-                <IconButton
-                    size="small"
-                    onClick={onRemove}
-                    aria-label={Generic.t('echarts_axis_delete')}
-                    sx={{ p: 0.25 }}
-                >
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            }
-        >
-            <SubGroup title={Generic.t('echarts_grp_basis')}>
-                <FieldGrid>
-                    {/* '' → undefined so a cleared name inherits the bound series' name instead of
-                        freezing it out (cartesian builder treats '' as unset). */}
-                    <TextField2
-                        label={Generic.t('echarts_axis_name')}
-                        value={a.name ?? ''}
-                        placeholder={seriesName}
-                        onChange={v => onChange({ name: v || undefined })}
-                    />
-                    <LabeledSelect
-                        label={Generic.t('echarts_axis_position')}
-                        value={a.position ?? (i === 0 ? 'left' : 'right')}
-                        onChange={v => onChange({ position: v as 'left' | 'right' })}
-                        options={[
-                            ['left', Generic.t('echarts_axis_left')],
-                            ['right', Generic.t('echarts_axis_right')],
-                        ]}
-                    />
-                    {/* Colour sits in the grid like a series colour — swatch + inherit placeholder.
-                        Inherited = the bound series' effective colour (ADR-0018). */}
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
-                        <ColorField
-                            value={a.color ?? ''}
-                            fallback={seriesColor ?? ''}
-                            onChange={v => onChange({ color: v ?? undefined })}
-                            ctx={pickerCtx}
-                        />
-                    </Box>
-                    {/* Per-axis pixel offset: staggers multiple axes on the same side so they do not
-                        overlap (ADR-0018/0028). Lives with Position — both steer where the axis sits —
-                        not with the tick-density knobs in Skala & Ticks. */}
-                    <NumberField
-                        label={Generic.t('echarts_axis_offset')}
-                        value={a.offset ?? 0}
-                        onChange={v => onChange({ offset: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_grp_range')}>
-                <FieldGrid min={110}>
-                    <OptionalNumberField
-                        label={Generic.t('echarts_y_min')}
-                        value={a.min}
-                        onChange={v => onChange({ min: v })}
-                        error={axisInvalid}
-                        helperText={axisInvalid ? Generic.t('echarts_val_yminmax') : undefined}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_y_max')}
-                        value={a.max}
-                        onChange={v => onChange({ max: v })}
-                        error={axisInvalid}
-                    />
-                    <TextField2
-                        label={Generic.t('echarts_y_format')}
-                        value={a.format ?? ''}
-                        onChange={v => onChange({ format: v })}
-                        placeholder="{value} kW"
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>
-                <SwitchList sx={{ mb: 1.5 }}>
-                    <SwitchRow
-                        label={Generic.t('echarts_y_log')}
-                        checked={a.log ?? false}
-                        onChange={v => onChange({ log: v })}
-                    />
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_splitline')}
-                        checked={a.splitLine ?? i === 0}
-                        onChange={v => onChange({ splitLine: v })}
-                    />
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_scale')}
-                        checked={a.scale ?? false}
-                        onChange={v => onChange({ scale: v })}
-                    />
-                    {total > 1 && i > 0 && (
-                        <SwitchRow
-                            label={Generic.t('echarts_axis_align_ticks')}
-                            checked={alignTicksEffective}
-                            onChange={v => onChange({ alignTicks: v })}
-                        />
-                    )}
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_tick_show')}
-                        checked={axisTickEffective}
-                        onChange={v => onChange({ axisTick: v })}
-                    />
-                </SwitchList>
-                {total > 1 && <InfoBox text={Generic.t('echarts_axis_align_hint')} />}
-                {alignConflict && (
-                    <InfoBox
-                        tone="warning"
-                        text={Generic.t('echarts_axis_align_conflict')}
-                    />
-                )}
-                <FieldGrid min={110}>
-                    <OptionalNumberField
-                        label={Generic.t('echarts_axis_split_number')}
-                        value={a.splitNumber}
-                        onChange={v => onChange({ splitNumber: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_axis_min_interval')}
-                        value={a.minInterval}
-                        onChange={v => onChange({ minInterval: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_grp_presentation')}>
-                <FieldGrid>
-                    {/* echarts' nameRotate default is null → the y-axis name renders VERTICAL (≈90°) via
-                        the AxisBuilder's position-adaptive layout. Show 90 so the slider matches the
-                        chart, but keep it unset (no emit) so echarts keeps adapting ±90 per side until
-                        the user explicitly overrides. */}
-                    <SliderField
-                        label={Generic.t('echarts_axis_name_rotate')}
-                        value={a.nameRotate ?? 90}
-                        min={-90}
-                        max={90}
-                        step={5}
-                        onChange={v => onChange({ nameRotate: v })}
-                    />
-                    {/* Name placement + gap were builder hard-emits with no card field (ADR-0037
-                        promoted them): on a Y-axis 'end' = top, 'start' = bottom. Defaults = the
-                        former hard-emit values, so existing widgets render identically. */}
-                    <LabeledSelect
-                        label={Generic.t('echarts_axis_name_location')}
-                        value={a.nameLocation ?? 'middle'}
-                        onChange={v => onChange({ nameLocation: v as 'start' | 'middle' | 'end' })}
-                        options={[
-                            ['start', Generic.t('echarts_axis_nameloc_start')],
-                            ['middle', Generic.t('echarts_axis_nameloc_middle')],
-                            ['end', Generic.t('echarts_axis_nameloc_end')],
-                        ]}
-                    />
-                    <SliderField
-                        label={Generic.t('echarts_axis_name_gap')}
-                        value={a.nameGap ?? 18}
-                        min={0}
-                        max={60}
-                        step={1}
-                        onChange={v => onChange({ nameGap: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            {/* The per-axis raw escape hatch (ADR-0037): template menu + JSON editor. Deep-merged
-                UNDER the built entry — the card wins collisions; everything the builder does not
-                emit merges through. The activation follows the text (ADR-0042 addendum). */}
-            <RawJsonSection
-                raw={a.raw}
-                onChange={v => onChange({ raw: v || undefined })}
-                catalog={AXIS_CATALOG}
-                snippets={a.snippets}
-                onCommit={r => onChange(snippetPatch(r))}
-            />
-        </EditorCard>
-    );
-};
 
 const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, jsonSeriesNames }) => {
     const axes = state.yAxes;
@@ -661,7 +182,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         set({
             markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', dashed: true }],
         });
-    const removeMark = (i: number): void => set({ markLines: state.markLines.filter((_, idx) => idx !== i) });
+    const removeMark = (i: number): void => set({ markLines: state.markLines.filter((m, idx) => idx !== i) });
 
     return (
         <Box>
