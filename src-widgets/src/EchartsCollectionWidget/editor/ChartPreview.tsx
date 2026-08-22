@@ -31,7 +31,9 @@ interface ChartPreviewProps {
 }
 
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
-    const { option, loading, hasData } = usePreviewOption(state, socket, theme);
+    // The pipeline return (ADR-0046): error joins option/loading/hasData — the preview surfaces
+    // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
+    const { option, loading, hasData, error } = usePreviewOption(state, socket, theme);
 
     const placeholder = Generic.t(
         PLACEHOLDER_I18N_KEY[
@@ -84,6 +86,15 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                     size={22}
                     sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2 }}
                 />
+            )}
+            {error && (
+                <Typography
+                    color="error"
+                    variant="caption"
+                    sx={{ position: 'absolute', top: 8, left: 8, right: 40, zIndex: 2 }}
+                >
+                    {error}
+                </Typography>
             )}
             <Box sx={{ flex: 1, minHeight: 0 }}>
                 {hasData && option ? (
