@@ -47,9 +47,7 @@ import EchartsEditorSections, { sectionInventory, type FocusSectionRequest } fro
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
-import { packStaggeredAxes, pruneOrphanAxes, reconcileJsonAxes } from './editor/axisLayout';
-import { normalizeSeries } from './editor/seriesIdentity';
-import { withStableIds } from './editor/identity';
+import { healStableIds, loadedOidCount, pruneOrphanAxesStep, reconcileJsonAxesStep } from './editor/lifecycleGuards';
 import { familyOf } from './optionBuilder';
 import { validateEditor, type SectionKey } from './editor/validation';
 import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
@@ -115,9 +113,8 @@ function EchartsConfigEditorModal({
         // the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays disabled until the
         // user adds a real series/indicator.
         const loaded = loadEditorState(data as Record<string, unknown>);
-        // The number of indexed `oidN` fields to clear on save. For radar the indicators (not the
-        // single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
-        loadedCountRef.current = loaded.chartType === 'radar' ? loaded.radar.indicators.length : loaded.series.length;
+        // The number of indexed `oidN` fields to clear on save (radar counts indicators, not series).
+        loadedCountRef.current = loadedOidCount(loaded);
         loadedSnapshotRef.current = JSON.stringify(loaded);
         loadedStateRef.current = loaded;
         history.rebase(loaded);
@@ -129,28 +126,13 @@ function EchartsConfigEditorModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, data]);
 
-    // Self-heal stable ids: every keyed card list (axes/series/mark-lines/indicators) must carry an
-    // `id` so React reconciles by identity, not array index (the wrong-card-unmounts bug). loadEditorState
-    // normalises on open, BUT dev HMR can preserve stale pre-id state across a code reload without
-    // re-running the loader — so backfill here too. Idempotent: once every item has an id this is a
-    // pure read (no history entry), so it is safe on every state change and cannot loop.
+    // Self-heal stable ids (the HMR guard) — the policy lives in the pure step (ADR-0048); this
+    // effect only owns the firing condition: after every state change, guarded by the step's
+    // own no-op answer so it cannot loop or push an empty history entry.
     useEffect(() => {
-        if (
-            state.yAxes.some(a => !a.id) ||
-            state.series.some(s => !s.id) ||
-            state.markLines.some(m => !m.id) ||
-            state.radar.indicators.some(ind => !ind.id)
-        ) {
-            history.set(
-                s => ({
-                    ...s,
-                    yAxes: withStableIds(s.yAxes),
-                    series: normalizeSeries(s.series),
-                    markLines: withStableIds(s.markLines),
-                    radar: { ...s.radar, indicators: withStableIds(s.radar.indicators) },
-                }),
-                'self-heal',
-            );
+        const patch = healStableIds(state);
+        if (patch) {
+            history.set(s => ({ ...s, ...patch }), 'self-heal');
         }
         // history.set is a stable callback — see the open effect above for why the object is not.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,59 +149,31 @@ function EchartsConfigEditorModal({
         [commit],
     );
 
-    // JSON-mode axis reconcile (ADR-0026 — JSON 1:n): for the cartesian payload series, keep the
-    // name-keyed overlay consistent with the axis array as the (dynamic) payload + the user's bindings
-    // change. A fresh payload still lands 1:1 (each name its own axis, alternating side + 80 px
-    // stagger) — but a name that already carries a valid yAxisIndex KEEPS it, so a manual rebind now
-    // survives payload + hide/show changes (the old force-1:1 effect clobbered it). Colour + name are
-    // NOT written — each axis inherits both from its bound series at runtime.
-    // Only the visible JSON series drive the reconcile — a hidden series (jsonHidden deny-list) must
-    // not keep its axis. jsonNamesKey reflects the visible set so hiding a series re-runs the effect
+    // JSON-mode axis reconcile (ADR-0026 — JSON 1:n) — the policy lives in the pure step
+    // (ADR-0048); this effect owns only the firing condition. Keyed on the names content (not
+    // the array ref) + mode/type → re-syncs only on real change, so manual axis edits +
+    // bindings are preserved while names/mode/type are stable (the narrow deps ARE the clobber
+    // protection — see lifecycleGuards module remarks). Only the VISIBLE JSON series drive the
+    // reconcile: jsonNamesKey reflects the visible set so hiding a series re-runs the effect
     // and orphan-cleans the freed axis.
     const visibleJsonNames = jsonPreview.names.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
-        if (
-            state.mode !== 'json' ||
-            (state.chartType !== 'line' && state.chartType !== 'bar') ||
-            visibleJsonNames.length === 0
-        ) {
-            return;
+        const patch = reconcileJsonAxesStep(state, visibleJsonNames);
+        if (patch) {
+            set(patch);
         }
-        const { yAxes, overlay: jsonSeriesStyle } = reconcileJsonAxes(
-            visibleJsonNames,
-            state.jsonSeriesStyle,
-            state.yAxes,
-        );
-        // Idempotence guard: an undo that reverts `jsonHidden` flips the names key back, so the
-        // effect re-fires over the already-consistent reverted state and would recompute the
-        // same axes — pushing a no-op history step that destroys the redo branch. Only a real
-        // change records.
-        if (
-            JSON.stringify(yAxes) !== JSON.stringify(state.yAxes) ||
-            JSON.stringify(jsonSeriesStyle) !== JSON.stringify(state.jsonSeriesStyle)
-        ) {
-            set({ yAxes, jsonSeriesStyle });
-        }
-        // Keyed on the names content (not the array ref) + mode/type → re-syncs only on real change,
-        // so manual axis edits + bindings are preserved while names/mode/type are stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
 
-    // Non-JSON cartesian orphan-prune (ADR-0033): a mode-switch INTO live/history is a bulk series-
-    // leave — the referencing series set changes from the JSON overlay back to `state.series`, so the
-    // same orphan-check that runs on a single series-leave prunes axes no live/history series binds.
-    // Closes the in-session JSON→Live ghost-axis gap (loadEditorState handles it on open; a switch
-    // needs no reload). The JSON side is the reconcile effect above; series add/delete/rebind are
-    // already orphan-cleaned by SeriesSection. Idempotent: once no orphan remains the length check is
-    // a no-op, so it cannot loop. A drop is a structural change → survivors re-pack densely (ADR-0028).
+    // Non-JSON cartesian orphan-prune (ADR-0033) — the policy lives in the pure step (ADR-0048);
+    // this effect owns only the firing condition: a mode-switch INTO live/history is a bulk
+    // series-leave, so the orphan-check runs once per mode/type change (loadEditorState handles
+    // the open path; series add/delete/rebind are orphan-cleaned by SeriesSection).
     useEffect(() => {
-        if (state.mode === 'json' || (state.chartType !== 'line' && state.chartType !== 'bar')) {
-            return;
-        }
-        const { series, yAxes } = pruneOrphanAxes(state.series, state.yAxes);
-        if (yAxes.length !== state.yAxes.length) {
-            set({ series, yAxes: packStaggeredAxes(yAxes) });
+        const patch = pruneOrphanAxesStep(state);
+        if (patch) {
+            set(patch);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.mode, state.chartType]);
