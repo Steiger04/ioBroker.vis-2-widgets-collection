@@ -17,14 +17,29 @@ import { TOOLTIP_CATALOG } from '../tooltipTemplates';
 import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
+/**
+ * The tooltip section's field ownership (ADR-0049 slice) — `chartType` for the family-aware
+ * trigger coercion, the four flat tooltip fields, and the section raw + its template ids.
+ */
+export type TooltipSlice = Pick<
+    EditorState,
+    | 'chartType'
+    | 'tooltipTrigger'
+    | 'tooltipDecimals'
+    | 'tooltipUnits'
+    | 'tooltipTemplate'
+    | 'tooltipRaw'
+    | 'tooltipSnippets'
+>;
+
 interface TooltipSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: TooltipSlice;
+    set: SetEditor<TooltipSlice>;
 }
 
 const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
     const isCartesian = familyOf(state.chartType) === 'cartesian';
-    const effectiveTrigger: EditorState['tooltipTrigger'] =
+    const effectiveTrigger: TooltipSlice['tooltipTrigger'] =
         !isCartesian && state.tooltipTrigger === 'axis' ? 'item' : state.tooltipTrigger;
     const triggerOptions: ReadonlyArray<[string, string]> = isCartesian
         ? [
@@ -43,7 +58,7 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                 <LabeledSelect
                     label={Generic.t('echarts_tooltip_trigger')}
                     value={effectiveTrigger}
-                    onChange={v => set({ tooltipTrigger: v as EditorState['tooltipTrigger'] })}
+                    onChange={v => set({ tooltipTrigger: v as TooltipSlice['tooltipTrigger'] })}
                     options={triggerOptions}
                 />
                 <NumberField

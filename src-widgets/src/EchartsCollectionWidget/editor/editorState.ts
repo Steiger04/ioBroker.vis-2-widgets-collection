@@ -171,7 +171,14 @@ export interface EditorState {
 }
 
 export type EditorPatch = Partial<EditorState>;
-export type SetEditor = (patch: EditorPatch) => void;
+
+/**
+ * Commits a patch to the working copy. Sections declare `SetEditor<XxxSlice>` (ADR-0049): a
+ * narrow slice setter is satisfied by the rail's full-state setter via parameter
+ * contravariance, so the same setter is passed everywhere and the coalesce key (ADR-0038,
+ * the sorted patch key set) is unchanged by slicing.
+ */
+export type SetEditor<S extends object = EditorState> = (patch: Partial<S>) => void;
 
 export const DEFAULT_EDITOR_STATE: EditorState = {
     chartType: 'line',

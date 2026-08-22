@@ -57,9 +57,33 @@ import { AXIS_CATALOG } from '../axisTemplates';
 import { X_AXIS_CATALOG } from '../xAxisTemplates';
 import { snippetPatch } from '../snippetComposition';
 
+/**
+ * The axes & zoom section's field ownership (ADR-0049 slice) — the widest honest slice: the
+ * axis manager reads/writes the axis arrays (`yAxes`, `xAxis`) and the rebind cascade into
+ * `series`; JSON mode branches on `mode` + the overlay (`jsonSeriesStyle`) and hides payload
+ * series via `jsonHidden`; `markLines` and the two zoom toggles are section-owned; the 4
+ * palette/darkMode fields are transitively read via `useEditorTheme` (axis colours).
+ */
+export type AxesZoomSlice = Pick<
+    EditorState,
+    | 'mode'
+    | 'series'
+    | 'yAxes'
+    | 'xAxis'
+    | 'markLines'
+    | 'dataZoomSlider'
+    | 'dataZoomInside'
+    | 'jsonHidden'
+    | 'jsonSeriesStyle'
+    | 'paletteSource'
+    | 'palettePreset'
+    | 'paletteCustom'
+    | 'darkMode'
+>;
+
 interface AxesZoomSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: AxesZoomSlice;
+    set: SetEditor<AxesZoomSlice>;
     pickerCtx: OidPickerCtx;
     /** JSON-mode payload series names, in payload order (drives the Series-card list). */
     jsonSeriesNames?: string[];

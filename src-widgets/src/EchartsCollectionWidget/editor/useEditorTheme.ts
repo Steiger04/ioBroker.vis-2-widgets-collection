@@ -34,12 +34,15 @@ export interface EditorTheme {
     themeTokens: ThemeTokens;
 }
 
+/** The EditorState fields the theme resolution reads (ADR-0049 slice). */
+export type EditorThemeSource = Pick<EditorState, 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'darkMode'>;
+
 /**
- * @param state - Editor working state (reads `paletteSource/Preset/Custom` + `darkMode`).
+ * @param state - The theme-resolution source fields (`paletteSource/Preset/Custom` + `darkMode`).
  * @param socket - ioBroker socket — drilled to `useCollectionTheme` for the theme state.
  * @param hostTheme - The vis-2 host theme the editor chrome runs under (merged onto by the collection theme).
  */
-export function useEditorTheme(state: EditorState, socket: LegacyConnection, hostTheme: Theme): EditorTheme {
+export function useEditorTheme(state: EditorThemeSource, socket: LegacyConnection, hostTheme: Theme): EditorTheme {
     // The collection theme — draft-aware, so studio edits reflect in the configurator live.
     const theme = useCollectionTheme(socket, hostTheme);
     const palette = useMemo(

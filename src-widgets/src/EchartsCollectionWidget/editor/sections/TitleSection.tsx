@@ -28,9 +28,32 @@ import RawJsonSection from './RawJsonSection';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
+/**
+ * The title section's field ownership (ADR-0049 slice) — the flat title scalars + the
+ * section raw and its template ids; the 4 palette/darkMode fields are transitively read via
+ * `useEditorTheme` (the title-colour inherit preview).
+ */
+export type TitleSlice = Pick<
+    EditorState,
+    | 'titleText'
+    | 'titlePos'
+    | 'titleDx'
+    | 'titleDy'
+    | 'titleColor'
+    | 'titleFontSize'
+    | 'titleWeight'
+    | 'titleFontStyle'
+    | 'titleRaw'
+    | 'titleSnippets'
+    | 'paletteSource'
+    | 'palettePreset'
+    | 'paletteCustom'
+    | 'darkMode'
+>;
+
 interface TitleSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: TitleSlice;
+    set: SetEditor<TitleSlice>;
     pickerCtx: OidPickerCtx;
 }
 
@@ -64,7 +87,7 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                     <PositionGrid
                         label={Generic.t('echarts_title_position')}
                         value={state.titlePos}
-                        onChange={v => set({ titlePos: v as EditorState['titlePos'] })}
+                        onChange={v => set({ titlePos: v as TitleSlice['titlePos'] })}
                         options={TITLE_POSITIONS}
                     />
                 </Box>
