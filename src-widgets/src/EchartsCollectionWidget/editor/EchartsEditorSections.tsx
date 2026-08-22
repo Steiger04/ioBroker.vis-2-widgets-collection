@@ -18,7 +18,6 @@ import { familyOf } from '../optionBuilder';
 import SectionCard from '../../components/SectionCard';
 import { FieldLabel } from '../../components/controls';
 import { ChartTypePicker, ModeSelect } from './controls';
-import AdvancedJsonSection from './sections/AdvancedJsonSection';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
 import ColorsSection from './sections/ColorsSection';
@@ -27,6 +26,7 @@ import { GaugeOptionsSection, PieOptionsSection, RadarOptionsSection } from './s
 import SeriesSection from './sections/SeriesSection';
 import TitleSection from './sections/TitleSection';
 import LegendSection from './sections/LegendSection';
+import ToolboxSection from './sections/ToolboxSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
 import { familySwitchLoss, familySwitchSnippetLoss, type SectionIssues, type SectionKey } from './validation';
@@ -45,7 +45,6 @@ interface EchartsEditorSectionsProps {
     set: SetEditor;
     /** Validation findings for the state — computed once by the modal, shared with the chips. */
     issues: SectionIssues;
-    userText: string;
     pickerCtx: OidPickerCtx;
     focusSection?: FocusSectionRequest | null;
     /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
@@ -54,10 +53,11 @@ interface EchartsEditorSectionsProps {
 }
 
 /**
- * The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021).
+ * The family-aware section inventory (ADR-0010; Title/Legend split ADR-0021; Toolbox replaces the
+ * retired chart-level Advanced JSON, ADR-0045).
  *
  * Order (top → bottom): data source → behavior → title → series → (axes or family
- * options) → legend → tooltip → colors → advanced JSON. `family` (pie / gauge / radar
+ * options) → legend → tooltip → colors → toolbox. `family` (pie / gauge / radar
  * options) takes the slot cartesian reserves for axes — both are the per-family layout
  * block sitting right after the series.
  *
@@ -67,13 +67,13 @@ interface EchartsEditorSectionsProps {
 export const sectionInventory = (chartType: EditorState['chartType']): SectionKey[] => {
     const family = familyOf(chartType);
     if (family === 'cartesian') {
-        return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'advancedJson'];
+        return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'toolbox'];
     }
     if (family === 'pie') {
-        return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'advancedJson'];
+        return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
     }
     // gauge / radar: no data source (always current value), no axes
-    return ['behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'advancedJson'];
+    return ['behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
 };
 
 const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): string => {
@@ -104,8 +104,8 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
             return Generic.t('echarts_sec_colors');
         case 'behavior':
             return Generic.t('echarts_sec_behavior');
-        case 'advancedJson':
-            return Generic.t('echarts_sec_advanced_json');
+        case 'toolbox':
+            return Generic.t('echarts_sec_toolbox');
     }
 };
 
@@ -113,7 +113,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     state,
     set,
     issues,
-    userText,
     pickerCtx,
     focusSection,
     jsonSeriesNames,
@@ -228,13 +227,12 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         set={set}
                     />
                 );
-            case 'advancedJson':
+            case 'toolbox':
                 return (
-                    <AdvancedJsonSection
-                        userText={userText}
+                    <ToolboxSection
+                        state={state}
                         set={set}
-                        chartType={state.chartType}
-                        snippets={state.chartSnippets}
+                        pickerCtx={pickerCtx}
                     />
                 );
         }

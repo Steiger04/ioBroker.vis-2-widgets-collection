@@ -21,6 +21,7 @@ import type {
     EchartsPieConfig,
     EchartsRadarConfig,
     EchartsTitlePos,
+    EchartsToolboxConfig,
     EchartsTooltipTrigger,
     EchartsVisualMapConfig,
     EchartsXAxisConfig,
@@ -171,7 +172,7 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
 const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
-/** The decoded `chartConfig` blob: family configs + the component-section raws (ADR-0044). */
+/** The decoded `chartConfig` blob: family configs + the component-section raws (ADR-0044/0045). */
 export interface ChartConfigBlob {
     gauge?: EchartsGaugeConfig;
     radar?: EchartsRadarConfig;
@@ -183,6 +184,9 @@ export interface ChartConfigBlob {
     legendSnippets?: string[];
     tooltipRaw?: string;
     tooltipSnippets?: string[];
+    /** The Radar section's raw escape hatch + activations (ADR-0045, radar family only). */
+    radarRaw?: string;
+    radarSnippets?: string[];
 }
 
 /** Decode the base64 family-config blob into its gauge/radar/pie parts (+ section raws). */
@@ -227,18 +231,29 @@ export const decodeAxes = (raw: string | undefined | null): EchartsAxisConfig[] 
     }
 };
 
-/** Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/invalid → `{}`. */
-export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig => {
+/**
+ * Decode a base64 blob that must hold a JSON OBJECT; `fallback` for absent/invalid/non-object
+ * payloads (the shared shape of the object-blob decoders below — legend styling, toolbox config).
+ */
+const decodeObjectBlob = <T extends object>(raw: string | undefined | null, fallback: T): T => {
     if (!raw) {
-        return {};
+        return fallback;
     }
     try {
         const parsed = JSON.parse(decodeBlob(raw));
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as EchartsLegendConfig) : {};
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as T) : fallback;
     } catch {
-        return {};
+        return fallback;
     }
 };
+
+/** Decode the base64 `legendConfig` blob into the legend styling object (ADR-0021). Empty/invalid → `{}`. */
+export const decodeLegendConfig = (raw: string | undefined | null): EchartsLegendConfig =>
+    decodeObjectBlob<EchartsLegendConfig>(raw, {});
+
+/** Decode the base64 `toolboxConfig` blob into the toolbox config (ADR-0045). Empty/invalid → `{}`. */
+export const decodeToolboxConfig = (raw: string | undefined | null): EchartsToolboxConfig =>
+    decodeObjectBlob<EchartsToolboxConfig>(raw, {});
 
 /**
  * Decode the base64 `xAxis` blob into the single X-axis config (ADR-0035). `null` when there is
@@ -341,8 +356,10 @@ export const toPresentationConfig = (opts: {
     yAxes?: EchartsAxisConfig[];
     /** Semantic theme colours for the theme-derived defaults + editor inherit swatches (ADR-0027). */
     themeTokens: ThemeTokens;
+    /** The effective chart dark mode (darkMode policy resolved against the theme palette). */
+    themeDark: boolean;
 }): PresentationConfig => {
-    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn, themeTokens } = opts;
+    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn, themeTokens, themeDark } = opts;
     const visualMapEnabled = bool(s.visualMapEnabled, false);
     const visualMap: EchartsVisualMapConfig | undefined = visualMapEnabled
         ? {
@@ -397,6 +414,13 @@ export const toPresentationConfig = (opts: {
         tooltipRaw: chartConfig.tooltipRaw,
         legendRaw: chartConfig.legendRaw,
         titleRaw: chartConfig.titleRaw,
+        // Toolbox (ADR-0045): the editor state carries the `toolbox` OBJECT (decoded once on
+        // load, spread into `src` like `legend`); persisted rxData carries the `toolboxConfig`
+        // base64 BLOB — read whichever is present (the legendConfig-precedent idiom).
+        toolbox:
+            s.toolbox && typeof s.toolbox === 'object' && !Array.isArray(s.toolbox)
+                ? (s.toolbox as EchartsToolboxConfig)
+                : decodeToolboxConfig(s.toolboxConfig as string),
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,
@@ -408,10 +432,12 @@ export const toPresentationConfig = (opts: {
         dataZoomInside: bool(s.dataZoomInside, false),
         palette,
         themeTokens,
+        themeDark,
         markLines,
         visualMap,
         gauge: chartConfig.gauge,
         radar: chartConfig.radar,
+        radarRaw: chartConfig.radarRaw,
         pie: chartConfig.pie,
     };
 };

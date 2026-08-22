@@ -20,6 +20,7 @@ import type {
     EchartsRadarConfig,
     EchartsSeriesMeta,
     EchartsTooltipTrigger,
+    EchartsToolboxConfig,
     EchartsVisualMapConfig,
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
@@ -51,6 +52,8 @@ export interface PresentationConfig {
     legendRaw?: string;
     /** The Title section's raw escape hatch (ADR-0044) — folded UNDER `buildTitleOption`'s output. */
     titleRaw?: string;
+    /** The Toolbox section's GUI config (ADR-0045 `toolboxConfig` blob); unset = no toolbox. */
+    toolbox?: EchartsToolboxConfig;
     animation: boolean;
     animationDuration: number;
     /** echarts animation easing; emitted only when set (empty = echarts default). */
@@ -70,12 +73,19 @@ export interface PresentationConfig {
     // family-specific structured config
     gauge?: EchartsGaugeConfig;
     radar?: EchartsRadarConfig;
+    /** The Radar section's raw escape hatch (ADR-0045) — folded UNDER the built radar component. */
+    radarRaw?: string;
     pie?: EchartsPieConfig;
     // resolved series palette (theme / preset / custom), applied per-series when no meta colour
     palette: string[];
     // semantic theme colours for theme-derived defaults (gauge zones, visualMap ramp, markLine,
     // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
     themeTokens: ThemeTokens;
+    /**
+     * The EFFECTIVE chart dark mode (darkMode policy resolved against the theme palette) —
+     * drives the toolbox token literals (ADR-0045).
+     */
+    themeDark: boolean;
 }
 
 /** Discriminated input to the orchestrator {@link buildGeneratedOption}. */

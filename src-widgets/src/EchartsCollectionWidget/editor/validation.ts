@@ -10,7 +10,6 @@
  * (normalisation), not here.
  */
 import { familyOf } from '../optionBuilder';
-import { chartTemplatesForFamily } from './advancedJsonTemplates';
 import { pruneSnippetIds } from './snippetComposition';
 import { SERIES_TEMPLATES, seriesSlotOf, type SeriesTemplateSlot } from './seriesTemplates';
 import type { EditorState } from './editorState';
@@ -26,7 +25,7 @@ export type SectionKey =
     | 'family'
     | 'colors'
     | 'behavior'
-    | 'advancedJson';
+    | 'toolbox';
 
 /** One validation finding: an i18n key plus optional `%s` interpolation args. */
 export interface ValidationIssue {
@@ -114,8 +113,9 @@ export const familySwitchLoss = (state: EditorState): number => {
  * Advises beside {@link familySwitchLoss} — the same nothing-dropped-at-switch model: between the
  * switch and Apply the stale ids sit inert in the working copy, and the prune rides Apply.
  *
- * Three sources: chart-level activations the target family does not offer; activations on series
- * the switch drops (gauge keeps only the first); and slot-stale activations on surviving series
+ * Two sources (the chart-level term retired with the chart-U, ADR-0045 — the radar section raw
+ * rides the blob inert across families and is therefore never a loss): activations on series the
+ * switch drops (gauge keeps only the first); and slot-stale activations on surviving series
  * (e.g. a cartesian-line activation on a series that becomes a pie slice).
  */
 export const familySwitchSnippetLoss = (state: EditorState): number => {
@@ -125,18 +125,10 @@ export const familySwitchSnippetLoss = (state: EditorState): number => {
     const dropped = (list: { snippets?: string[] }[]): number =>
         list.reduce((total, s) => total + (s.snippets?.length ?? 0), 0);
 
-    let loss =
-        state.chartSnippets.length - pruneSnippetIds(chartTemplatesForFamily(family), state.chartSnippets).length;
     if (family === 'gauge' || family === 'radar') {
         // The first series survives as the single gauge series / radar polygon (its activations go
         // stale against that slot); every further series is dropped with its activations.
-        loss += stale(state.series[0]?.snippets, family);
-        loss += dropped(state.series.slice(1));
-    } else {
-        loss += state.series.reduce(
-            (total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s)),
-            0,
-        );
+        return stale(state.series[0]?.snippets, family) + dropped(state.series.slice(1));
     }
-    return loss;
+    return state.series.reduce((total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s)), 0);
 };

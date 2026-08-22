@@ -9,6 +9,9 @@
  *  - Pie: slice aggregation (exposes the previously state-only `pie.aggregate` knob), donut inner
  *    radius, slice label mode, rose mode.
  *  - Radar: polygon shape, split rings, area fill. The indicator list lives in the Series section.
+ *    Since ADR-0045 the section also hosts the radar raw escape hatch (the 6th RawJsonSection
+ *    host, after Y/X/Title/Legend/Tooltip) — the section is radar-only by inventory, so no
+ *    family gating is needed inside.
  */
 import type { FC } from 'react';
 import { Box } from '@mui/material';
@@ -24,6 +27,8 @@ import {
     SwitchRow,
     TextField2,
 } from '../../../components/controls';
+import RawJsonSection from './RawJsonSection';
+import { RADAR_CATALOG } from '../radarTemplates';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface FamilySectionProps {
@@ -139,12 +144,22 @@ export const RadarOptionsSection: FC<FamilySectionProps> = ({ state, set }) => (
                 onChange={v => set({ radar: { ...state.radar, splitNumber: v } })}
             />
         </FieldGrid>
-        <SwitchList>
+        <SwitchList sx={{ mb: 1.5 }}>
             <SwitchRow
                 label={Generic.t('echarts_radar_area')}
                 checked={state.radar.area ?? true}
                 onChange={v => set({ radar: { ...state.radar, area: v } })}
             />
         </SwitchList>
+        {/* The radar section's raw escape hatch (ADR-0045) — deep-merged UNDER the built radar
+            component (GUI wins); `radar` rides replaceMerge, so deleting the raw reverts. */}
+        <RawJsonSection
+            raw={state.radarRaw}
+            onChange={v => set({ radarRaw: v || '' })}
+            catalog={RADAR_CATALOG}
+            snippets={state.radarSnippets}
+            placeholder={'{\n  "startAngle": 90\n}'}
+            onCommit={r => set({ radarRaw: r.text || '', radarSnippets: r.ids })}
+        />
     </Box>
 );

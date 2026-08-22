@@ -140,7 +140,7 @@ export interface WidgetFieldMappings {
      *
      * @remarks
      * The collection's first multi-OID widget. Series OIDs live as indexed `oid1..oidN` fields
-     * inside the `echarts` group, plus the base64 `seriesConfig` / `chartOverrides` blobs.
+     * inside the `echarts` group, plus the base64 `seriesConfig` / `toolboxConfig` blobs.
      *
      * `commonObject` is included for type compatibility only: the shared hooks
      * (useData, useValueState) and CollectionBase are typed against the AllCollectionContextProps

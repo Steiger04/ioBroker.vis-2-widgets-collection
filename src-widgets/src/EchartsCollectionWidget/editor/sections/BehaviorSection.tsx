@@ -1,12 +1,13 @@
 /**
  * Behaviour section — output / render policy (ADR-0010; the JSON escape hatch split out into its
- * own Advanced JSON section in the v3.1 junk-drawer cleanup, ADR-0011 companion / D5).
+ * own section in the v3.1 junk-drawer cleanup, ADR-0011 companion / D5).
  *
  * @module EchartsCollectionWidget/editor/sections/BehaviorSection
  * @remarks
  * Animation / animation duration / renderer only. `darkMode` moved to Colours (it is a theme/
- * colour concern, and the Colours summary already reported it). The Advanced JSON (U) escape
- * hatch lives in {@link AdvancedJsonSection}.
+ * colour concern, and the Colours summary already reported it). The chart-level Advanced JSON
+ * escape hatch was retired entirely (ADR-0045) — the raw escape hatches live on the component
+ * sections and the Series/Axis cards.
  */
 import type { FC } from 'react';
 import { Box } from '@mui/material';

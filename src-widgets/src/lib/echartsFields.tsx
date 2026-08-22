@@ -5,7 +5,7 @@
  * @remarks
  * The modal editor is the sole editor for every chart-specific field (map decision 06), so
  * the `chart` group exposes only the "Edit chart configuration" trigger; all scalars and the
- * `seriesConfig` / `chartOverrides` blobs are hidden rxData fields (defaults still seed on
+ * `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
  * widget creation). The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
  * getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
  *
@@ -110,15 +110,9 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
-        name: 'chartOverrides',
-        type: 'text',
-        default: '',
-        hidden: alwaysHidden,
-    },
-    {
-        // Ordered ids of the ACTIVE chart-level templates (ADR-0042) composing `chartOverrides`.
-        // A sibling blob (not an envelope) so the legacy bare-text `chartOverrides` needs no migration.
-        name: 'chartSnippets',
+        // Toolbox GUI config (ADR-0045, legendConfig precedent). No default — an empty/absent
+        // blob decodes to {} (= master off, no toolbox block).
+        name: 'toolboxConfig',
         type: 'text',
         default: '',
         hidden: alwaysHidden,

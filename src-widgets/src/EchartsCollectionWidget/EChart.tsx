@@ -5,17 +5,16 @@
  * @remarks
  * Lifecycle: `init` (Canvas) → `setOption` (with the {@link REPLACE_MERGE} list — series add/remove,
  * disabling dataZoom/visualMap, X/Y-axis add/remove, title/legend edge-key switches, family switches,
- * AND removal of Advanced-JSON-added components (deleting a template reverts the chart — ADR-0036)
- * all take effect — without the matching mainType in replaceMerge, echarts MERGES and keeps a
- * stale component after the option stops emitting it, or retains trailing entries when an array shrinks,
- * or a stale `top`/`bottom`/`left`/`right` key after a position switch) → `resize` on dimension
- * change → `dispose` on unmount.
+ * AND removal of conditional components (the switched-off toolbox, the radar family switch —
+ * ADR-0036/0045) all take effect — without the matching mainType in replaceMerge, echarts MERGES
+ * and keeps a stale component after the option stops emitting it, or retains trailing entries when
+ * an array shrinks, or a stale `top`/`bottom`/`left`/`right` key after a position switch) → `resize`
+ * on dimension change → `dispose` on unmount.
  *
  * The wrapper is presentation-merge-free: callers (the widget body and the editor preview)
- * pass the ALREADY fully-merged option — theme base + template defaults + generated data + user
- * overrides are combined upstream via `mergeOptionForEcharts`. Keeping the merge in one place
- * (the data-wins seam) avoids the double theme-merge that happened when the wrapper re-applied
- * the theme base here.
+ * pass the ALREADY fully-merged option — theme base + generated data are combined upstream
+ * via `mergeGeneratedOverTheme`. Keeping the merge in one place avoids the double theme-merge
+ * that happened when the wrapper re-applied the theme base here.
  *
  * The wrapper is also layout-merge-free (ADR-0024, supersedes ADR-0022): the cartesian builder
  * emits `grid: { left: 0, right: 0, outerBoundsMode: 'same', outerBoundsContain: 'all' }`, and
@@ -38,7 +37,7 @@ import './echartsRegistration';
 import { REPLACE_MERGE } from './replaceMerge';
 
 interface EChartProps {
-    /** Fully-merged echarts option (theme + template defaults + G + U). */
+    /** Fully-merged echarts option (theme base + G). */
     option: EChartsOption;
     /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
     renderer?: 'canvas' | 'svg';
@@ -86,10 +85,9 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
     // multi-axis made the yAxis array dynamic; ADR-0016 addendum; 'xAxis' joined in ADR-0036),
     // title/legend (so a position switch drops the now-unused edge key — top↔bottom/left↔right —
     // instead of merge-retaining it; ADR-0021), grid/tooltip (always emitted by the builders, so
-    // replace is lossless — and template/free-text subkeys vanish when deleted), AND
-    // toolbox/radar/graphic/axisPointer (Advanced-JSON-added or family-conditional components the
-    // GUI never or only sometimes emits — without their mainType here, deleting the template or
-    // switching the family away leaves a merge-retained ghost; ADR-0036).
+    // replace is lossless), AND toolbox/radar (GUI-conditional: the ADR-0045 toolbox master
+    // switch / the family switch — without their mainType here, switching off leaves a
+    // merge-retained ghost) plus graphic/axisPointer (free-text-only, never builder-emitted).
     // The option is the fully-merged, already-layout-correct fragment.
     useEffect(() => {
         if (!containerRef.current) {

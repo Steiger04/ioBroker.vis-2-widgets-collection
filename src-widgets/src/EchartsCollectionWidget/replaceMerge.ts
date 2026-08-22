@@ -3,24 +3,18 @@
  *
  * @module EchartsCollectionWidget/replaceMerge
  * @remarks
- * Components whose presence in the option is CONDITIONAL (array add/remove, a GUI toggle, or an
- * Advanced-JSON add the GUI never emits). Each mainType here is REPLACED on `setOption`, so an
- * absent or shrunk component is actually removed — without its mainType echarts MERGES and keeps a
- * stale ghost: a deleted Advanced-JSON template keeps rendering, a shortened axis array lingers at
- * the tail, a position switch retains the now-unused edge key.
- *
- * INVARIANT (ADR-0036): EVERY echarts component mainType a template (or the free text) can set MUST
- * be listed here — deleting the template must revert the preview AND the widget. The guard test
- * (`editor/advancedJsonTemplates.test.ts`) enforces this for every template mechanically: a future
- * template whose mainType is missing here fails red instead of shipping a delete-does-nothing bug
- * (the exact class ADR-0036 was written for — the xAxis template was deletable but its keys kept
- * rendering because `'xAxis'` was absent).
+ * Components whose presence in the option is CONDITIONAL (array add/remove or a GUI toggle). Each
+ * mainType here is REPLACED on `setOption`, so an absent or shrunk component is actually removed —
+ * without its mainType echarts MERGES and keeps a stale ghost: a shortened axis array lingers at
+ * the tail, a position switch retains the now-unused edge key, a switched-off toolbox keeps
+ * rendering its icons.
  *
  * Grouping: `series`/`dataZoom`/`visualMap`/`yAxis`/`xAxis`/`title`/`legend`/`tooltip`/`grid` are
  * GUI-managed (the builders always emit them, so replacing with the freshly merged option is
- * lossless); `toolbox`/`graphic`/`axisPointer`/`radar` are Advanced-JSON-only or family-conditional
- * (the GUI never or only sometimes emits them — without replaceMerge, deleting the template or
- * switching the family away leaves a merge-retained ghost).
+ * lossless); `toolbox` (the ADR-0045 master switch — off emits NO block) and `radar`
+ * (family-conditional) are GUI-managed but only SOMETIMES emitted; `graphic`/`axisPointer` are
+ * free-text-only keys the GUI never emits. Without replaceMerge, every conditional of these
+ * leaves a merge-retained ghost.
  *
  * `aria` is deliberately NOT listed: it registers only a preprocessor (no component model), so
  * ComponentModel.hasClass('aria') is false and echarts REJECTS it in replaceMerge — and its
@@ -38,9 +32,10 @@ export const REPLACE_MERGE = [
     'legend',
     'tooltip',
     'grid',
-    // Advanced-JSON-only (toolbox/graphic/axisPointer) or family-conditional (radar).
+    // GUI-managed but conditional: the toolbox master switch (ADR-0045) / the radar family.
     'toolbox',
     'radar',
+    // Free-text-only, never builder-emitted.
     'graphic',
     'axisPointer',
 ] as const;

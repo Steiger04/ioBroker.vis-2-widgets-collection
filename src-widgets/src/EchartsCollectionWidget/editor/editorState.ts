@@ -6,7 +6,7 @@
  * @remarks
  * The modal is the sole editor for every chart-specific field. On open it reads the widget
  * rxData (scalars + indexed `oid1..oidN` + the base64 `seriesConfig` / `chartConfig` /
- * `chartOverrides` / `markLines` blobs) into one in-memory {@link EditorState}; on Apply it
+ * `toolboxConfig` / `markLines` blobs) into one in-memory {@link EditorState}; on Apply it
  * writes a merged `onDataChange` patch back.
  *
  * The indexed `oidN` field is the subscription vehicle (ADR-0006) and its *meaning* is
@@ -22,6 +22,7 @@ import {
     decodeChartConfig,
     decodeLegendConfig,
     decodeMarkLines,
+    decodeToolboxConfig,
     decodeXAxisWithLegacy,
     legacyAxis,
     normalizeLegendPos,
@@ -32,7 +33,7 @@ import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { keepSnippetIds, pruneSnippetIds, type SnippetTemplate } from './snippetComposition';
-import { CHART_TEMPLATES, chartTemplatesForFamily } from './advancedJsonTemplates';
+import { RADAR_TEMPLATES } from './radarTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import { LEGEND_TEMPLATES } from './legendTemplates';
@@ -60,6 +61,7 @@ import type {
     EchartsRenderer,
     EchartsTimeRange,
     EchartsTitlePos,
+    EchartsToolboxConfig,
     EchartsTooltipTrigger,
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
@@ -144,14 +146,12 @@ export interface EditorState {
     renderer: EchartsRenderer;
     markLines: EchartsMarkLine[];
     visualMap: EditorVisualMap;
-    /** Decoded Advanced JSON text (the chartOverrides / U side). */
-    userText: string;
-    /**
-     * Ordered ids of the ACTIVE chart-level templates (ADR-0042 "Aktive Vorlage") composing
-     * `userText` together with the Eigenanteil. Persisted in the hidden `chartSnippets` blob;
-     * pruned to the family catalog on Apply.
-     */
-    chartSnippets: string[];
+    /** Toolbox GUI config (ADR-0045) — persisted as the base64 `toolboxConfig` blob. */
+    toolbox: EchartsToolboxConfig;
+    /** Radar section raw (ADR-0045) — deep-merged UNDER buildRadarOption's output (GUI wins). */
+    radarRaw: string;
+    /** Ordered ACTIVE radar-template ids (ADR-0042, riding the chartConfig blob, radar family). */
+    radarSnippets: string[];
     /** Title section raw (ADR-0044) — deep-merged UNDER buildTitleOption's output (GUI wins). */
     titleRaw: string;
     /** Ordered ACTIVE title-template ids (ADR-0042, riding the chartConfig blob). */
@@ -225,8 +225,9 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     // visualMap colours empty by default → the builder inherits the theme-derived ramp
     // (primary→success→warning→error, ADR-0027), and the editor swatch previews it.
     visualMap: { enabled: false, min: 0, max: 100, colors: '' },
-    userText: '',
-    chartSnippets: [],
+    toolbox: {},
+    radarRaw: '',
+    radarSnippets: [],
     titleRaw: '',
     titleSnippets: [],
     legendRaw: '',
@@ -260,23 +261,6 @@ const normalizeArea = (raw: unknown, legacyAreaType: boolean): EchartsAreaFill =
 
 /** True when a series stores the legacy removed `type: 'area'` (ADR-0008 r4) — → flat fill. */
 const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).type === 'area';
-
-/**
- * Decode a snippet-activation blob (`chartSnippets`) into an ordered id list. Tolerant of every
- * legacy shape — missing, empty, invalid, non-array → `[]` (ADR-0042: no migration; a widget
- * saved before the multi-select simply has no activations).
- */
-const decodeSnippetIds = (raw: unknown): string[] => {
-    if (!raw) {
-        return [];
-    }
-    try {
-        const parsed = JSON.parse(decodeBlob(raw as string));
-        return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
-    } catch {
-        return [];
-    }
-};
 
 /** Catalog prune + keep-only heal in one (ADR-0042 #6 + addendum) — for single-catalog levels. */
 const healedIds = (templates: readonly SnippetTemplate[], ids: string[], raw: string | undefined): string[] =>
@@ -470,14 +454,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // (the badge lied about content deleted inside the editor); additions never happen at load —
     // retro-detection of hand-typed content stays rejected. Filtering at LOAD also keeps the
     // family-switch loss count honest (a stale id is not a family loss) and covers the levels
-    // the Apply-time prune never reached (axes are family-free by design; the chart list is
-    // family-pruned at Apply).
-    const userText = strOr(data.chartOverrides ? decodeBlob(data.chartOverrides as string) : '', '');
-    const chartSnippetsLoaded = keepSnippetIds(
-        CHART_TEMPLATES,
-        pruneSnippetIds(chartTemplatesForFamily(family), decodeSnippetIds(data.chartSnippets)),
-        userText,
-    );
+    // the Apply-time prune never reached (axes are family-free by design). The chart-level
+    // activations died with the chart-U retirement (ADR-0045 — no migration, stored
+    // chartSnippets are simply no longer read).
     series = series.map(s => ({ ...s, snippets: normalizeSeriesSnippets(family, chartType, s) }));
     yAxes = yAxes.map(a => ({
         ...a,
@@ -496,12 +475,16 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     );
     // Component-section activations (ADR-0044): same load-time prune + keep-only heal as every
     // other level — the former chart-level scaffold ids (title-scaffold etc.) drop silently.
+    // The radar raw (ADR-0045) joins the same heal; its catalog lives only in the radar family,
+    // but the blob rides regardless (switching away and back preserves it).
     const titleSnippetsLoaded =
         healSectionSnippets(TITLE_TEMPLATES, chartConfig.titleRaw, chartConfig.titleSnippets) ?? [];
     const legendSnippetsLoaded =
         healSectionSnippets(LEGEND_TEMPLATES, chartConfig.legendRaw, chartConfig.legendSnippets) ?? [];
     const tooltipSnippetsLoaded =
         healSectionSnippets(TOOLTIP_TEMPLATES, chartConfig.tooltipRaw, chartConfig.tooltipSnippets) ?? [];
+    const radarSnippetsLoaded =
+        healSectionSnippets(RADAR_TEMPLATES, chartConfig.radarRaw, chartConfig.radarSnippets) ?? [];
 
     return {
         ...DEFAULT_EDITOR_STATE,
@@ -549,8 +532,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
-        userText,
-        chartSnippets: chartSnippetsLoaded,
+        toolbox: decodeToolboxConfig(data.toolboxConfig as string),
+        radarRaw: chartConfig.radarRaw ?? '',
+        radarSnippets: radarSnippetsLoaded,
         titleRaw: chartConfig.titleRaw ?? '',
         titleSnippets: titleSnippetsLoaded,
         legendRaw: chartConfig.legendRaw ?? '',
@@ -606,22 +590,20 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         }));
     }
 
-    // ADR-0042 Apply-time prunes + addendum heal: chart-level activations to the family catalog,
-    // the whole-pie activations to the pie catalog, the JSON-mode overlay entries to their slot
-    // catalogs (decision 9 covers the JSON-mode series cards). Between a family switch and Apply
-    // the stale ids stay in the working copy (the stranded keys render nothing — verified against
-    // echarts) and the actual prune rides Apply, mirroring the bound-OID drop. The heal then also
-    // drops activations whose template has no leaf path left in the raw text — the persisted blob
-    // never carries a badge its content cannot back (chart heals against the FULL catalog so the
-    // family prune stays the only place a family-stale id drops).
-    const chartSnippets = pruneSnippetIds(
-        chartTemplatesForFamily(family),
-        keepSnippetIds(CHART_TEMPLATES, state.chartSnippets, state.userText),
-    );
-    // Component-section activations heal against their raws at Apply too (ADR-0042 addendum).
+    // ADR-0042 Apply-time prunes + addendum heal: the whole-pie activations to the pie catalog,
+    // the JSON-mode overlay entries to their slot catalogs (decision 9 covers the JSON-mode
+    // series cards). Between a family switch and Apply the stale ids stay in the working copy
+    // (the stranded keys render nothing — verified against echarts) and the actual prune rides
+    // Apply, mirroring the bound-OID drop. The heal then also drops activations whose template
+    // has no leaf path left in the raw text — the persisted blob never carries a badge its
+    // content cannot back.
+    // Component-section activations heal against their raws at Apply too (ADR-0042 addendum);
+    // the radar raw (ADR-0045) rides the chartConfig blob regardless of family — it only takes
+    // effect in the radar family, so a switch away and back preserves it.
     const titleSnippetsSaved = healSectionSnippets(TITLE_TEMPLATES, state.titleRaw, state.titleSnippets);
     const legendSnippetsSaved = healSectionSnippets(LEGEND_TEMPLATES, state.legendRaw, state.legendSnippets);
     const tooltipSnippetsSaved = healSectionSnippets(TOOLTIP_TEMPLATES, state.tooltipRaw, state.tooltipSnippets);
+    const radarSnippetsSaved = healSectionSnippets(RADAR_TEMPLATES, state.radarRaw, state.radarSnippets);
     const pieSnippets = healedIds(SERIES_TEMPLATES.pie, state.pie.snippets ?? [], state.pie.raw);
     const yAxesHealed = state.yAxes.map(a => ({
         ...a,
@@ -681,17 +663,18 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 gauge: state.gauge,
                 radar: state.radar,
                 pie: { ...state.pie, snippets: pieSnippets.length ? pieSnippets : undefined },
-                // Component-section raws + healed activations (ADR-0044) — only when set.
+                // Component-section raws + healed activations (ADR-0044/0045) — only when set.
                 ...(state.titleRaw ? { titleRaw: state.titleRaw } : {}),
                 ...(titleSnippetsSaved ? { titleSnippets: titleSnippetsSaved } : {}),
                 ...(state.legendRaw ? { legendRaw: state.legendRaw } : {}),
                 ...(legendSnippetsSaved ? { legendSnippets: legendSnippetsSaved } : {}),
                 ...(state.tooltipRaw ? { tooltipRaw: state.tooltipRaw } : {}),
                 ...(tooltipSnippetsSaved ? { tooltipSnippets: tooltipSnippetsSaved } : {}),
+                ...(state.radarRaw ? { radarRaw: state.radarRaw } : {}),
+                ...(radarSnippetsSaved ? { radarSnippets: radarSnippetsSaved } : {}),
             }),
         ),
-        chartOverrides: encodeBlob(state.userText),
-        chartSnippets: encodeBlob(JSON.stringify(chartSnippets)),
+        toolboxConfig: encodeBlob(JSON.stringify(state.toolbox)),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),

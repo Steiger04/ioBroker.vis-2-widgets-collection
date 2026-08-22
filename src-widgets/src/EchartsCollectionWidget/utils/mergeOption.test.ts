@@ -1,12 +1,14 @@
 /**
- * Unit tests for the data-wins seam (mergeOptionForEcharts, ADR-0007): G's data-binding keys are
- * forced back, U's supplemental presentation deep-merges over, the theme base is the floor.
+ * Unit tests for the theme-floor seam (mergeGeneratedOverTheme, ADR-0007/0045): the theme base
+ * floors the keys G does not emit, G wins every collision. The former three-layer U merge
+ * (data-wins force-backs, the ADR-0044 hard-ignore strip) retired with the chart-level
+ * Advanced JSON — with U gone, deepMerge already gives G every key it emits.
  *
  * @module EchartsCollectionWidget/utils/mergeOption.test
  */
 import { describe, expect, it } from 'vitest';
 
-import { deepMerge, mergeOptionForEcharts } from './mergeOption';
+import { deepMerge, mergeGeneratedOverTheme } from './mergeOption';
 import type { EChartsOption } from 'echarts';
 
 const G = (overrides: Record<string, unknown> = {}): EChartsOption =>
@@ -36,75 +38,28 @@ describe('deepMerge', () => {
     });
 });
 
-describe('mergeOptionForEcharts — data-wins force-back (ADR-0007)', () => {
-    it('forces the generated series back to G (U cannot inject data or restyle series)', () => {
-        const merged = mergeOptionForEcharts(
-            G(),
-            { series: [{ name: 'evil', type: 'line', data: [[9, 9]] }] },
-            THEME_BASE,
-        );
-        const series = merged.series as unknown as { name: string }[];
-        expect(series).toHaveLength(1);
-        expect(series[0].name).toBe('Temperature');
-    });
-
-    it('a U legend is hard-ignored — even free subkeys never merge through (ADR-0044)', () => {
-        // The legend is configured in its own section (raw folded UNDER buildLegend); the U
-        // attempt is stripped BEFORE the merge, so G's data/placement stand untouched.
-        const merged = mergeOptionForEcharts(G(), { legend: { data: ['evil'], top: 40 } }, THEME_BASE);
-        const legend = merged.legend as Record<string, unknown>;
-        expect(legend.data).toEqual(['Temperature']); // G
-        expect(legend.top).toBeUndefined(); // U did NOT merge through
-    });
-});
-
-describe('mergeOptionForEcharts — presentation layering', () => {
-    it('a U tooltip is hard-ignored — even free subkeys never merge through (ADR-0044)', () => {
-        // The tooltip is configured in its own section (raw folded UNDER buildTooltip); the U
-        // attempt is stripped BEFORE the merge, so G's trigger stands and nothing supplements.
-        const merged = mergeOptionForEcharts(
-            G(),
-            { tooltip: { trigger: 'item', backgroundColor: '#abc' } },
-            THEME_BASE,
-        );
-        const tooltip = merged.tooltip as Record<string, unknown>;
-        expect(tooltip.trigger).toBe('axis'); // G wins (ADR-0007)
-        expect(tooltip.backgroundColor).toBeUndefined(); // U did NOT merge through
-    });
-
-    it('theme base is the floor when no higher layer sets the key', () => {
-        const merged = mergeOptionForEcharts(G(), {}, THEME_BASE);
+describe('mergeGeneratedOverTheme — layering (ADR-0007/0045)', () => {
+    it('theme base is the floor when G does not emit the key', () => {
+        const merged = mergeGeneratedOverTheme(G(), THEME_BASE);
         expect(merged.color).toEqual(['#111', '#222']);
         expect((merged.textStyle as Record<string, unknown>).color).toBe('#text');
     });
 
-    it('G contributes axis type (data part), U styling deep-merges over', () => {
-        const merged = mergeOptionForEcharts(
-            G(),
-            { xAxis: { axisLine: { lineStyle: { color: '#abc' } } } },
-            THEME_BASE,
-        );
+    it('G wins every collision with the theme base (arrays replaced whole)', () => {
+        const merged = mergeGeneratedOverTheme(G({ color: ['#aaa'] }), {
+            color: ['#111', '#222'],
+            xAxis: { axisLine: { lineStyle: { color: '#theme' } } },
+        } as unknown as EChartsOption);
+        expect(merged.color).toEqual(['#aaa']); // G, not the theme palette
         const xAxis = merged.xAxis as Record<string, unknown>;
         expect(xAxis.type).toBe('time'); // from G
-        expect((xAxis.axisLine as Record<string, unknown>).lineStyle).toEqual({ color: '#abc' }); // U supplement
+        expect((xAxis.axisLine as Record<string, unknown>).lineStyle).toEqual({ color: '#theme' }); // floored: G emits no axisLine
     });
-});
 
-describe('mergeOptionForEcharts — per-series force-back (ADR-0007)', () => {
-    it('U may supplement per-series presentation, but data + GUI styling always come from G', () => {
-        const merged = mergeOptionForEcharts(
-            G(),
-            { series: [{ markPoint: { data: [{ type: 'min' }] }, data: [[9, 9]] }] },
-            THEME_BASE,
-        );
-        const series = merged.series as unknown as {
-            markPoint?: unknown;
-            data: unknown[];
-            name: string;
-        }[];
-        expect(series).toHaveLength(1);
-        expect(series[0].name).toBe('Temperature'); // G wins (no U rename)
-        expect(series[0].data).toEqual([[1, 2]]); // G data forced back per index
-        expect(series[0].markPoint).toEqual({ data: [{ type: 'min' }] }); // U supplement retained
+    it('a conditional component absent from G stays absent (no floor ghost)', () => {
+        // The toolbox master switch off → G carries no `toolbox`; the theme base carries none
+        // either — the merged option must not invent one (replaceMerge then removes it).
+        const merged = mergeGeneratedOverTheme(G(), THEME_BASE);
+        expect('toolbox' in (merged as Record<string, unknown>)).toBe(false);
     });
 });

@@ -13,16 +13,13 @@ import { describe, expect, it } from 'vitest';
 import { encodeBlob } from '../../lib/encoding';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editorState';
 import { composeActiveSnippets } from './snippetComposition';
-import { CHART_TEMPLATES } from './advancedJsonTemplates';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
+import { RADAR_TEMPLATES } from './radarTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import type { EditorState } from './editorState';
 import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
-
-/** The composed raw text an activation canonically rides with (what the UI toggle writes). */
-const chartText = (ids: string[]): string => JSON.stringify(composeActiveSnippets(CHART_TEMPLATES, ids));
 
 const baseState = (): EditorState => ({
     ...DEFAULT_EDITOR_STATE,
@@ -225,33 +222,6 @@ describe('editorState — ADR-0042 snippet activations', () => {
     // Since the ADR-0042 addendum an activation canonically rides WITH its composed raw text
     // (the load path heals ids whose template has no leaf path left in the text), so every
     // fixture below carries the composition the UI toggle would have written.
-    it('chartSnippets survive the round-trip in selection order', () => {
-        // (ADR-0044 slimmed the chart catalog to toolbox + radar — on a cartesian target the
-        // toolbox scaffold is the only all-family entry left.)
-        const state = {
-            ...baseState(),
-            userText: chartText(['toolbox-scaffold']),
-            chartSnippets: ['toolbox-scaffold'],
-        };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
-    });
-
-    it('family-invalid chart activations are pruned on Apply (radar snippet on a cartesian target)', () => {
-        // The widget was radar (both activations + their composition), then switched to line:
-        // the Apply prune drops the radar-only id, the heal keeps toolbox-scaffold (its paths
-        // stand in the family-agnostic text). (The classic xAxis-snippet case moved to the
-        // X-Karte's own raw with the ADR-0037 addendum — its heal has its own test.)
-        const state = {
-            ...baseState(),
-            chartType: 'line' as const,
-            userText: chartText(['radar-splitarea', 'toolbox-scaffold']),
-            chartSnippets: ['radar-splitarea', 'toolbox-scaffold'],
-        };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
-    });
-
     it('series activations survive per-slot and stale slot ids are pruned on Apply (line → pie slice)', () => {
         const state = {
             ...baseState(),
@@ -269,12 +239,11 @@ describe('editorState — ADR-0042 snippet activations', () => {
         expect(reloaded.series[0]?.snippets).toEqual(['slice-itemstyle']);
     });
 
-    it('empty activations stay lean: the chart blob is [] and series meta carries no snippets key', () => {
+    it('empty activations stay lean: series meta carries no snippets key', () => {
         const patch = saveEditorState(
-            { ...baseState(), chartType: 'line' as const, chartSnippets: [], series: [{ oid: 'a', name: 'A' }] },
+            { ...baseState(), chartType: 'line' as const, series: [{ oid: 'a', name: 'A' }] },
             0,
         );
-        expect(patch.chartSnippets).toBe(encodeBlob('[]'));
         const reloaded = loadEditorState(patch);
         expect(reloaded.series[0]?.snippets).toBeUndefined();
         expect(reloaded.pie.snippets).toBeUndefined();
@@ -343,15 +312,12 @@ describe('editorState — ADR-0042 snippet activations', () => {
 
     it('the load heal drops activations whose template has no leaf path left in the text (ADR-0042 addendum)', () => {
         // A widget saved before the addendum: the user deleted the template content inside the
-        // editor, the ids stayed — the badge lied. Loading heals both levels keep-only.
+        // editor, the ids stayed — the badge lied. Loading heals keep-only.
         const state = {
             ...baseState(),
-            userText: '',
-            chartSnippets: ['toolbox-scaffold'],
             series: [{ oid: 'a', name: 'A', raw: '', snippets: ['line-sampling'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual([]);
         expect(reloaded.series[0]?.snippets).toBeUndefined();
     });
 
@@ -372,6 +338,77 @@ describe('editorState — ADR-0042 snippet activations', () => {
         expect(reloaded.tooltipRaw).toBe('{ "confine": true }');
         expect(reloaded.tooltipSnippets).toEqual([]);
     });
+
+    it('the radar section raw + activations ride the chartConfig blob and heal (ADR-0045)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(RADAR_TEMPLATES, ['radar-splitarea']));
+        const state = {
+            ...baseState(),
+            chartType: 'radar' as const,
+            radarRaw: raw,
+            radarSnippets: ['radar-splitarea', 'nope'], // unknown id — prunes at load, never re-adds
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.radarRaw).toBe(raw);
+        expect(reloaded.radarSnippets).toEqual(['radar-splitarea']);
+        // The heal is keep-only: an activation whose template has no leaf left in the text drops.
+        const hollow = loadEditorState(
+            saveEditorState({ ...baseState(), radarRaw: '', radarSnippets: ['radar-splitarea'] }, 0),
+        );
+        expect(hollow.radarSnippets).toEqual([]);
+    });
+
+    it('the radar raw survives a family switch away and back (rides the blob inert, no prune)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(RADAR_TEMPLATES, ['radar-axisname']));
+        const state = {
+            ...baseState(),
+            chartType: 'radar' as const,
+            radarRaw: raw,
+            radarSnippets: ['radar-axisname'],
+        };
+        const cartesian = loadEditorState({ ...saveEditorState(state, 0), chartType: 'line' });
+        expect(cartesian.radarRaw).toBe(raw);
+        expect(cartesian.radarSnippets).toEqual(['radar-axisname']);
+        const back = loadEditorState(saveEditorState(cartesian, 0));
+        expect(back.radarRaw).toBe(raw);
+        expect(back.radarSnippets).toEqual(['radar-axisname']);
+    });
+});
+
+describe('editorState — toolbox blob round-trip (ADR-0045)', () => {
+    it('the full toolbox config survives the toolboxConfig blob', () => {
+        const state: EditorState = {
+            ...baseState(),
+            toolbox: {
+                show: true,
+                pos: 'bottomLeft',
+                orient: 'vertical',
+                itemSize: 18,
+                itemGap: 8,
+                showTitle: false,
+                iconColor: '#123',
+                iconHoverColor: '#456',
+                borderWidth: 2,
+                borderColor: '#789',
+                borderRadius: 4,
+                padding: 10,
+                backgroundColor: '#abc',
+                features: {
+                    saveAsImage: { show: true, type: 'svg', name: 'chart', pixelRatio: 2 },
+                    restore: { show: false },
+                    dataView: { show: true, readOnly: false },
+                    dataZoom: { show: true, filterMode: 'weakFilter' },
+                },
+            },
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.toolbox).toEqual(state.toolbox);
+    });
+
+    it('an absent/empty blob loads as {} (master off — no toolbox block)', () => {
+        expect(loadEditorState({}).toolbox).toEqual({});
+        expect(loadEditorState({ toolboxConfig: '' }).toolbox).toEqual({});
+        expect(loadEditorState({ toolboxConfig: 'not-base64!' }).toolbox).toEqual({});
+    });
 });
 
 describe('editorState — ADR-0043 silent load-prune of retired template ids', () => {
@@ -381,8 +418,6 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
         // Simulate a widget saved before the ADR-0043 catalog rework: the persisted blobs carry
         // retired ids (saveEditorState would prune them — the LOAD path must too, silently) —
         // riding with the composed raw text of the ids that are supposed to SURVIVE.
-        patch.chartOverrides = encodeBlob(chartText(['toolbox-scaffold']));
-        patch.chartSnippets = encodeBlob(JSON.stringify(['pie-labelpos', 'toolbox-scaffold']));
         patch.seriesConfig = encodeBlob(
             JSON.stringify([
                 {
@@ -393,7 +428,6 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
             ]),
         );
         const reloaded = loadEditorState(patch);
-        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
         expect(reloaded.series[0]?.snippets).toEqual(['line-sampling']);
     });
 

@@ -91,6 +91,20 @@ export const effectiveTextTokens = (
 };
 
 /**
+ * The effective chart dark mode: a concrete `forceMode` override (`'light'`/`'dark'`) wins when it
+ * differs from the host palette, `'auto'`/undefined follows the palette. The single resolution
+ * shared by {@link buildEchartsTheme} and the presentation assembly (toolbox token literals,
+ * ADR-0045) so every theme-aware default agrees on the same mode.
+ */
+export const effectiveDarkMode = (
+    forceMode: 'light' | 'dark' | 'auto' | undefined,
+    paletteMode: string,
+): 'light' | 'dark' => {
+    const overridden = forceMode && forceMode !== 'auto' && forceMode !== paletteMode;
+    return (overridden ? forceMode : paletteMode) === 'dark' ? 'dark' : 'light';
+};
+
+/**
  * Resolve the full semantic token set from a theme (ADR-0027). Pure — the caller passes the theme
  * the chart renders under (the collection theme), so editor + live resolve identically.
  */
@@ -122,9 +136,10 @@ export const resolveThemeTokens = (theme: Theme, forceMode?: 'light' | 'dark' | 
  */
 export const buildEchartsTheme = (theme: Theme, forceMode?: 'light' | 'dark' | 'auto'): EChartsOption => {
     const p = theme.palette;
-    // Effective mode: the override wins when it is a concrete light/dark and differs from the host.
+    // Effective mode via the shared resolver (see effectiveDarkMode): the override wins when it
+    // is a concrete light/dark and differs from the host.
     const overridden = forceMode && forceMode !== 'auto' && forceMode !== p.mode;
-    const dark = (overridden ? forceMode : p.mode) === 'dark';
+    const dark = effectiveDarkMode(forceMode, p.mode) === 'dark';
     // Text + divider tokens via the shared dark-mode-aware helper (ADR-0027): the chart base, the
     // builder defaults and the editor inherit swatches all read the same values.
     const { textPrimary: tp, textSecondary: ts, divider: dv } = effectiveTextTokens(theme, forceMode);

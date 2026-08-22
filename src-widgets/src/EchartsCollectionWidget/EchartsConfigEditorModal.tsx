@@ -430,7 +430,6 @@ function EchartsConfigEditorModal({
                                 state={state}
                                 set={set}
                                 issues={issues}
-                                userText={state.userText}
                                 pickerCtx={{
                                     socket,
                                     theme,

@@ -25,8 +25,8 @@
  * Defaults verified against the locally installed echarts 6.1.0 SOURCE (`lib/coord/axisDefault.js`,
  * `AxisBuilder.js`, `axisNiceTicks.js`, `Log.js`), not the v5-lagging public docs. Template LABELS
  * are shown as-is (echarts option vocabulary, universally English) — only the CATEGORY headers
- * are translated. Distinct from the chart-wide Template snippets (advancedJsonTemplates.ts) and
- * the per-series Series templates (seriesTemplates.ts).
+ * are translated. Distinct from the per-series Series templates (seriesTemplates.ts) and the
+ * component-section catalogs (title/legend/tooltip/radar templates).
  */
 /** Axis-template grouping (rendered as menu section headers; order = {@link AXIS_CATEGORY_ORDER}). */
 export type AxisTemplateCategory =

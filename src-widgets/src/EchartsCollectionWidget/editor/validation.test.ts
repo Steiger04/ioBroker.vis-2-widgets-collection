@@ -174,15 +174,8 @@ describe('familySwitchLoss', () => {
 });
 
 describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
-    it('chart-level family-invalid activations count (radar snippet on a cartesian target)', () => {
-        // (The classic xAxis-snippet case moved to the X-Karte's own raw with the ADR-0037
-        // addendum; the chart catalog's family-stale case is radar-only ids on cartesian.)
-        const n = familySwitchSnippetLoss(
-            st({ chartType: 'line', chartSnippets: ['radar-splitarea', 'toolbox-scaffold'] }),
-        );
-        expect(n).toBe(1);
-    });
-
+    // The chart-level term retired with the chart-U (ADR-0045); the radar section raw rides the
+    // chartConfig blob inert across families (never a loss) — what remains are the series-level terms.
     it('gauge drops the series beyond the first with their activations; the survivor goes slot-stale', () => {
         const n = familySwitchSnippetLoss(
             st({
@@ -220,7 +213,6 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
         const n = familySwitchSnippetLoss(
             st({
                 chartType: 'line',
-                chartSnippets: ['toolbox-scaffold'],
                 series: [{ oid: 'a', name: '', snippets: ['line-sampling'] }],
             }),
         );

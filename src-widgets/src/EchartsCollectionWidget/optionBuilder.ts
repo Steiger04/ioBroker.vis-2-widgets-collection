@@ -7,12 +7,10 @@
  * G is built per **chart family** (cartesian / pie / gauge / radar). Each family builder
  * authors both the data (series points, coordinate system, legend names) AND the GUI-owned
  * presentation (per-series styling, chart-wide legend/tooltip/animation/dataZoom/thresholds)
- * into one option fragment. The data-wins seam ({@link mergeOptionForEcharts}) then layers U
- * (the demoted Advanced JSON) over G and forces only the data-binding keys back.
+ * into one option fragment; the chart-wide toolbox block (ADR-0045) is layered on here.
  *
  * The parsers live here (not in the family modules) because they are family-agnostic:
- * `parseJsonState` (json-mode payload), `parseSeriesConfig` (per-series meta blob),
- * `parseUserJson` (Advanced-JSON validator).
+ * `parseJsonState` (json-mode payload), `parseSeriesConfig` (per-series meta blob).
  */
 import type { EChartsOption } from 'echarts';
 
@@ -28,6 +26,7 @@ import { buildCartesianOption } from './optionBuilders/cartesian';
 import { buildGaugeOption } from './optionBuilders/gauge';
 import { buildPieOption } from './optionBuilders/pie';
 import { buildRadarOption } from './optionBuilders/radar';
+import { buildToolbox } from './optionBuilders/toolbox';
 import type { ChartSeries, GeneratedInput, PresentationConfig } from './optionBuilders/types';
 
 // Re-export the shared builder types so existing imports (`SeriesMeta`, `ChartSeries`) keep working.
@@ -54,29 +53,6 @@ export const familyOf = (chartType: EchartsChartType | 'cartesian' | 'area' | un
         // line / bar / legacy 'cartesian' / legacy 'area' / undefined → cartesian
         default:
             return 'cartesian';
-    }
-};
-
-export type UserJsonResult = { ok: true; value: Record<string, unknown> } | { ok: false; error: string };
-
-/**
- * Validate the Advanced JSON (chartOverrides / U) — must be a JSON object of presentation keys.
- * An empty string is valid (no overrides). Functions are not expressible in JSON, so this
- * inherently rejects free-JS formatters (ADR-0007).
- */
-export const parseUserJson = (raw: string): UserJsonResult => {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-        return { ok: true, value: {} };
-    }
-    try {
-        const v = JSON.parse(trimmed);
-        if (v && typeof v === 'object' && !Array.isArray(v)) {
-            return { ok: true, value: v as Record<string, unknown> };
-        }
-        return { ok: false, error: 'Must be a JSON object of presentation keys.' };
-    } catch (e) {
-        return { ok: false, error: (e as Error).message };
     }
 };
 
@@ -215,15 +191,25 @@ export const parseJsonHidden = (raw: string | undefined | null): string[] => {
  * @returns The G fragment (data + GUI-owned presentation), pre-merge.
  */
 export const buildGeneratedOption = (input: GeneratedInput): EChartsOption => {
+    let base: Record<string, unknown>;
     switch (input.family) {
         case 'pie':
-            return buildPieOption(input.series, input.meta, input.p);
+            base = buildPieOption(input.series, input.meta, input.p) as Record<string, unknown>;
+            break;
         case 'gauge':
-            return buildGaugeOption(input.value, input.meta, input.p);
+            base = buildGaugeOption(input.value, input.meta, input.p) as Record<string, unknown>;
+            break;
         case 'radar':
-            return buildRadarOption(input.values, input.meta, input.p);
+            base = buildRadarOption(input.values, input.meta, input.p) as Record<string, unknown>;
+            break;
         case 'cartesian':
         default:
-            return buildCartesianOption(input.series, input.meta, input.p);
+            base = buildCartesianOption(input.series, input.meta, input.p) as Record<string, unknown>;
+            break;
     }
+    // The toolbox block is chart-wide (every family hosts it, ADR-0045) — layered on here at the
+    // orchestrator seam rather than duplicated into each family builder. Sparse: absent when the
+    // master switch is off, so the replaceMerge rebuild removes the component.
+    const toolbox = buildToolbox(input.p.toolbox, input.family, input.p.themeDark);
+    return (toolbox ? { ...base, toolbox } : base) as EChartsOption;
 };

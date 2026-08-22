@@ -12,8 +12,8 @@ import {
     parseJsonSeriesStyle,
     parseJsonState,
     parseSeriesConfig,
-    parseUserJson,
 } from './optionBuilder';
+import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
 import type { ChartSeries, PresentationConfig } from './optionBuilders/types';
 import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
@@ -42,30 +42,56 @@ const P: PresentationConfig = {
         textPrimary: '#tp',
         textSecondary: '#ts',
     },
+    themeDark: false,
     markLines: [],
 };
 
-describe('parseUserJson', () => {
-    it('accepts an empty string as no overrides', () => {
-        expect(parseUserJson('')).toEqual({ ok: true, value: {} });
-        expect(parseUserJson('   ')).toEqual({ ok: true, value: {} });
+describe('buildGeneratedOption — toolbox layering (ADR-0045)', () => {
+    // The toolbox block is chart-wide and layered at the orchestrator seam — one test pins the
+    // contract for every family: absent when the master is off, sparse + token-coloured when on.
+    const series: ChartSeries[] = [{ name: 'A', data: [[1, 2]] }];
+    const meta: EchartsSeriesMeta[] = [{}];
+
+    it('carries NO toolbox key when the config is unset (no ghost)', () => {
+        const out = buildGeneratedOption({ family: 'cartesian', series, meta, p: P }) as Record<string, unknown>;
+        expect('toolbox' in out).toBe(false);
     });
 
-    it('accepts a JSON object of presentation keys', () => {
-        const r = parseUserJson('{ "tooltip": { "trigger": "axis" } }');
-        expect(r.ok).toBe(true);
-        expect((r as { ok: true; value: Record<string, unknown> }).value.tooltip).toEqual({ trigger: 'axis' });
+    it('carries the sparse toolbox block when show is on (cartesian)', () => {
+        const out = buildGeneratedOption({
+            family: 'cartesian',
+            series,
+            meta,
+            p: { ...P, toolbox: { show: true, features: { restore: { show: true } } } },
+        }) as Record<string, unknown>;
+        expect(out.toolbox).toEqual({
+            show: true,
+            iconStyle: { borderColor: TOOLBOX_TOKENS.light.icon },
+            emphasis: { iconStyle: { borderColor: TOOLBOX_TOKENS.light.hover } },
+            feature: { restore: {} },
+        });
     });
 
-    it('rejects a JSON array', () => {
-        const r = parseUserJson('[1, 2, 3]');
-        expect(r.ok).toBe(false);
-    });
-
-    it('rejects invalid JSON with the parse error', () => {
-        const r = parseUserJson('{ not json');
-        expect(r.ok).toBe(false);
-        expect((r as { ok: false; error: string }).error).toBeTruthy();
+    it('carries the toolbox block on every non-cartesian family too (magicType filtered inside)', () => {
+        const withToolbox = {
+            ...P,
+            toolbox: {
+                show: true,
+                features: { magicType: { show: true, type: ['line'] as ('line' | 'bar' | 'stack' | 'tiled')[] } },
+            },
+        };
+        const cases = [
+            buildGeneratedOption({ family: 'pie', series, meta, p: withToolbox }),
+            buildGeneratedOption({ family: 'gauge', value: 5, meta, p: withToolbox }),
+            buildGeneratedOption({ family: 'radar', values: [1, 2], meta, p: withToolbox }),
+        ];
+        for (const option of cases) {
+            const toolbox = (option as Record<string, unknown>).toolbox as Record<string, unknown>;
+            expect(toolbox.show).toBe(true);
+            // D4 family filter: magicType was the ONLY configured feature and is filtered → the
+            // feature block itself stays absent (it only emits with ≥1 active feature).
+            expect((toolbox.feature as Record<string, unknown> | undefined)?.magicType).toBeUndefined();
+        }
     });
 });
 

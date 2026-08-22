@@ -23,7 +23,7 @@ import {
     SwitchRow,
 } from '../../../components/controls';
 import ColorField from '../colorFields';
-import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
+import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, GRID9_POSITIONS, PositionGrid } from '../controls';
 import { fontStyleToSelectValue, parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
@@ -36,19 +36,6 @@ interface LegendSectionProps {
     set: SetEditor;
     pickerCtx: OidPickerCtx;
 }
-
-/** The 9 legend positions in grid row-order (a 3×3 grid). */
-const LEGEND_POSITIONS: ReadonlyArray<[string, string]> = [
-    ['topLeft', Generic.t('echarts_pos_top_left')],
-    ['topCenter', Generic.t('echarts_pos_top_center')],
-    ['topRight', Generic.t('echarts_pos_top_right')],
-    ['middleLeft', Generic.t('echarts_pos_middle_left')],
-    ['middleCenter', Generic.t('echarts_pos_middle_center')],
-    ['middleRight', Generic.t('echarts_pos_middle_right')],
-    ['bottomLeft', Generic.t('echarts_pos_bottom_left')],
-    ['bottomCenter', Generic.t('echarts_pos_bottom_center')],
-    ['bottomRight', Generic.t('echarts_pos_bottom_right')],
-];
 
 /** Legend symbol shapes (the `legend.icon` keywords) plus "inherit from series". */
 const LEGEND_ICONS: ReadonlyArray<[string, string]> = [
@@ -88,7 +75,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                     label={Generic.t('echarts_legend_position')}
                     value={state.legendPos}
                     onChange={v => set({ legendPos: v as EditorState['legendPos'] })}
-                    options={LEGEND_POSITIONS}
+                    options={GRID9_POSITIONS}
                     disabled={!state.legendShow}
                 />
                 <Box sx={{ mt: 1.5 }}>

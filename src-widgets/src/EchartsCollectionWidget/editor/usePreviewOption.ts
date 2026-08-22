@@ -20,11 +20,11 @@ import { useMemo } from 'react';
 import type { Theme } from '@mui/material/styles';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 
-import { buildEchartsTheme } from '../echartsTheme';
+import { buildEchartsTheme, effectiveDarkMode } from '../echartsTheme';
 import { createHistoryFetcher } from '../historyFetcher';
-import { buildGeneratedOption, familyOf, parseJsonState, parseUserJson } from '../optionBuilder';
+import { buildGeneratedOption, familyOf, parseJsonState } from '../optionBuilder';
 import { buildTitleOption, toPresentationConfig } from '../presentation';
-import { mergeOptionForEcharts } from '../utils/mergeOption';
+import { mergeGeneratedOverTheme } from '../utils/mergeOption';
 import { useHistory } from '../useHistory';
 import { useLiveBuffer } from '../useLiveBuffer';
 
@@ -69,6 +69,9 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
     // Resolve the COLLECTION theme + derived palette + tokens (ADR-0027): the preview must render
     // under the same theme the canvas does, not the vis-2 host theme the editor chrome uses.
     const { theme: collectionTheme, palette, themeTokens } = useEditorTheme(state, socket, theme);
+    // The effective chart dark mode — drives the toolbox token literals (ADR-0045), resolved from
+    // the COLLECTION theme exactly like the live body.
+    const themeDark = effectiveDarkMode(state.darkMode, collectionTheme.palette.mode) === 'dark';
     const presentation = useMemo(
         () =>
             toPresentationConfig({
@@ -76,9 +79,10 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
                 palette,
                 themeTokens,
                 family,
-                // The section raws (ADR-0044) must ride along or the preview would silently
-                // drop legend/tooltip raw content the runtime folds (title flows via
-                // buildTitleOption's opts separately).
+                themeDark,
+                // The section raws (ADR-0044/0045) must ride along or the preview would silently
+                // drop raw content the runtime folds (title flows via buildTitleOption's opts
+                // separately; the toolbox rides `src` as the state object, like the legend).
                 chartConfig: {
                     gauge: state.gauge,
                     radar: state.radar,
@@ -86,11 +90,12 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
                     titleRaw: state.titleRaw || undefined,
                     legendRaw: state.legendRaw || undefined,
                     tooltipRaw: state.tooltipRaw || undefined,
+                    radarRaw: state.radarRaw || undefined,
                 },
                 markLines: state.markLines,
                 yAxes: state.yAxes,
             }),
-        [state, palette, themeTokens, family],
+        [state, palette, themeTokens, family, themeDark],
     );
     const themeBase = useMemo(() => {
         // Built from the COLLECTION theme (was the host theme — a second editor↔canvas divergence).
@@ -98,10 +103,6 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         base.color = palette;
         return base;
     }, [collectionTheme, palette, state.darkMode]);
-    const overrides = useMemo(() => {
-        const r = parseUserJson(state.userText);
-        return r.ok ? r.value : {};
-    }, [state.userText]);
 
     // cartesian/pie entries (used by history fetch + live buffer). The per-series pinned
     // history instance (ADR-0039) rides along so the preview fetches like the widget body.
@@ -182,7 +183,7 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
             });
         }
 
-        const merged = mergeOptionForEcharts(g, overrides, themeBase);
+        const merged = mergeGeneratedOverTheme(g, themeBase);
         const titleText = state.titleText.trim();
         // A raw title (frame/behaviour/subtitle) applies even without title text (ADR-0044).
         if (titleText || state.titleRaw) {
@@ -222,19 +223,7 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
         }
 
         return { option: merged, loading: history.loading && mode === 'history', hasData };
-    }, [
-        family,
-        mode,
-        state,
-        values,
-        entries,
-        history.series,
-        history.loading,
-        liveBuffers,
-        presentation,
-        overrides,
-        themeBase,
-    ]);
+    }, [family, mode, state, values, entries, history.series, history.loading, liveBuffers, presentation, themeBase]);
 
     return built;
 }

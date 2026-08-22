@@ -15,9 +15,9 @@
  *
  * Scalar settings are edited through the modal editor and written to these fields via
  * `onDataChange`; per-series rendering metadata lives in the base64 `seriesConfig` blob,
- * family-specific structured config (gauge/radar/pie) in the base64 `chartConfig` blob,
- * and the user's supplemental Advanced presentation overrides in the base64
- * `chartOverrides` blob. The vis-2 attribute panel only shows the "Edit chart
+ * family-specific structured config (gauge/radar/pie) + the component-section raws in the
+ * base64 `chartConfig` blob, and the toolbox GUI config in the base64 `toolboxConfig`
+ * blob (ADR-0045). The vis-2 attribute panel only shows the "Edit chart
  * configuration" trigger plus the common fields.
  */
 
@@ -116,6 +116,12 @@ export type EchartsDarkMode = 'auto' | 'light' | 'dark';
 export type EchartsRenderer = 'canvas' | 'svg';
 /** Radar shape. */
 export type EchartsRadarShape = 'polygon' | 'circle';
+/**
+ * Placement on the 3×3 grid (ADR-0045 toolbox). Same nine values as {@link EchartsLegendPos}
+ * (the PositionGrid control is shared); its own name because "legend position" on a toolbox
+ * would read wrong.
+ */
+export type EchartsGrid9Position = EchartsLegendPos;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-series rendering metadata (stored in the base64 `seriesConfig` blob)
@@ -279,6 +285,69 @@ export interface EchartsPieConfig {
 // ─────────────────────────────────────────────────────────────────────────────
 // Chart-wide presentation (scalar rxData fields, edited via the modal)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Toolbox config (ADR-0045) — stored as a base64 `toolboxConfig` blob (the `legendConfig`
+ * precedent). Every field optional: the master `show` unset = no toolbox at all; the rest
+ * `undefined` = inherit the echarts/theme default (the effective-value-with-override-shown
+ * idiom). The GUI owns the layout + the five features; deliberately NOT exposed (spec D3,
+ * pathologic or not JSON-able): icon SVG paths, locale `title`/`lang`,
+ * `optionToContent`/`contentToOption` functions, `z`/`zlevel`/`silent`, `excludeComponents`,
+ * `toolbox.tooltip` (duplicates the hover title), `connectedBackgroundColor`, the dataZoom
+ * feature's `xAxisIndex`/`yAxisIndex`, and `brush` (needs a separate `brush` component).
+ */
+export interface EchartsToolboxConfig {
+    /** Master switch. Unset/false → the builder emits NO `toolbox` block. */
+    show?: boolean;
+    /** Placement on the 3×3 grid; unset = echarts default (topRight). */
+    pos?: EchartsGrid9Position;
+    /** Icon row orientation; unset = echarts default (horizontal). */
+    orient?: 'horizontal' | 'vertical';
+    /** Icon size (`toolbox.itemSize`). @default 15 (echarts) */
+    itemSize?: number;
+    /** Gap between icons (`toolbox.itemGap`). @default 10 (echarts) */
+    itemGap?: number;
+    /** Show the feature title on hover (`toolbox.showTitle`). @default true (echarts) */
+    showTitle?: boolean;
+    /** Icon colour (`iconStyle.borderColor`); unset = the echarts accent50 token literal. */
+    iconColor?: string;
+    /** Hover colour (`emphasis.iconStyle.borderColor`); unset = the echarts accent70 token literal. */
+    iconHoverColor?: string;
+    /** Frame width; 0/unset = frameless. @default 0 */
+    borderWidth?: number;
+    /** Frame colour; unset = the echarts border token literal (only emits with a width > 0). */
+    borderColor?: string;
+    /** Frame corner radius. @default 0 */
+    borderRadius?: number;
+    /** Frame inner padding. @default 15 (echarts, token size.m) */
+    padding?: number;
+    /** Frame background; unset/'transparent' = none. */
+    backgroundColor?: string;
+    /** The five features. Undefined = none active (the master-on UI writes the D8 hero preset). */
+    features?: {
+        /** Save-as-image (png/jpeg/svg). */
+        saveAsImage?: {
+            show?: boolean;
+            type?: 'png' | 'jpeg' | 'svg';
+            /** File name; empty = chart title / "echarts". */
+            name?: string;
+            /** Export scale; unset = device pixel ratio. */
+            pixelRatio?: number;
+        };
+        /** Undo/reset the user's zoom + magicType switches. */
+        restore?: { show?: boolean };
+        /**
+         * The raw-data table. `readOnly` defaults ON here (vis state is read-only — our deliberate
+         *  default-delta vs echarts' `false`, ADR-0043-scaffold precedent) and always rides an active
+         *  dataView in the emit.
+         */
+        dataView?: { show?: boolean; readOnly?: boolean };
+        /** Zoom icons (drive existing dataZoom components or create internal 'select' zooms). */
+        dataZoom?: { show?: boolean; filterMode?: 'filter' | 'weakFilter' | 'empty' | 'none' };
+        /** Runtime chart-type switcher — cartesian only (family-filtered in UI AND builder). */
+        magicType?: { show?: boolean; type?: ('line' | 'bar' | 'stack' | 'tiled')[] };
+    };
+}
 
 /** A horizontal/vertical threshold line on a cartesian value axis. */
 export interface EchartsMarkLine {
@@ -557,10 +626,10 @@ export interface EchartsFieldsRxData {
 
     /** Base64 `[{...EchartsSeriesMeta}]` aligned by index with `oidN`. */
     seriesConfig?: string;
-    /** Base64 family-specific structured config (gauge / radar / pie). */
+    /** Base64 family-specific structured config (gauge / radar / pie) + the section raws. */
     chartConfig?: string;
-    /** Base64 supplemental presentation overrides (the demoted U escape hatch). */
-    chartOverrides?: string;
+    /** Base64 {@link EchartsToolboxConfig} — the Toolbox section (ADR-0045, legendConfig precedent). */
+    toolboxConfig?: string;
     /**
      * Base64 `Record<name, EchartsSeriesMeta>` — the JSON-mode per-series style overlay
      * (ADR-0011). Only meaningful in json mode; carried round-trip regardless so switching

@@ -67,7 +67,7 @@ The pinned-selector choice (cartesian/pie only) of how a chart's series acquire 
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
 **Section**:
-One collapsible, intent-named unit of the rail (`Series`, `Data source`, `Title`, `Legend`, `Tooltip`, `Axes & Zoom`, `Colours`, `Behaviour & JSON`, plus family options sections). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
+One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, `Axes & Zoom` (or the family options section in that slot), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; gauge/pie/radar get their own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
 _Avoid_: Tab (the v2 concept), panel, SectionCard (that's the shell component, not the concept)
 
 **Summary line**:
@@ -143,12 +143,12 @@ A scalar template for ONE key that has no object group (`sampling`, `clip`, `sta
 _Avoid_: Atomic snippet (the superseded form), single-key template
 
 
-**Template snippet**:
-A chart-wide, collision-safe Advanced-JSON preset (v4, ADR-0014; the series-riding examples moved to cards by ADR-0017) — injects GUI-uncovered *chart-level / component* option keys. Since ADR-0044 the catalog covers only the components WITHOUT an own section (the toolbox basis scaffold + the radar presets); title/legend/tooltip/xAxis moved to their own sections' catalogs, and the U hard-ignores those four components. Since ADR-0043 each component category carries Group scaffolds (one per Option group, power variants included) plus scalar Solos — the one-capability part-snippet form is retired. Since ADR-0042 the menu is a multi-select: switching an entry on makes it an **Aktive Vorlage** — persistent, chip-rendered, reversible — instead of a one-shot insert.
+**Template snippet** (retired):
+The chart-wide Advanced-JSON preset concept (v4, ADR-0014) — wound down in stages: ADR-0044 left it the toolbox scaffold + radar presets (title/legend/tooltip/xAxis had moved to their sections), and ADR-0045 retired the chart-level U entirely — the toolbox is GUI-configured in its own section, and the radar presets became the radar family's Section-raw catalog. The per-level template concept lives on as Series/Axis/Section templates.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Section raw**:
-The per-section echarts-JSON escape hatch family (ADR-0037 axis raw → ADR-0037 addendum X-Karte → ADR-0044 title/legend/tooltip): a raw object on the section that owns the component, deep-merged UNDER that component's builder output — the GUI wins every collision, every builder-uncovered key merges through. One anatomy for all hosts (menu + plain chips + validity); the activation follows the text (ADR-0042 addendum).
+The per-section echarts-JSON escape hatch family (ADR-0037 axis raw → ADR-0037 addendum X-Karte → ADR-0044 title/legend/tooltip → ADR-0045 radar): a raw object on the section that owns the component, deep-merged UNDER that component's builder output — the GUI wins every collision, every builder-uncovered key merges through. One anatomy for all hosts (menu + plain chips + validity); the activation follows the text (ADR-0042 addendum).
 _Avoid_: Advanced JSON (that is the chart-level U), component JSON (too generic)
 
 **Series raw**:
@@ -168,7 +168,7 @@ A per-axis, collision-safe preset (ADR-0037) — injected deep-merged into an Ax
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Aktive Vorlage**:
-A catalog entry switched ON at one of the raw levels (chart / series / axis / title / legend / tooltip) via the template multi-select (ADR-0042); renders as a plain chip carrying its label and a deactivate-X. The ordered activation list is persisted per level and deep-merged in selection order (last activation wins a shared leaf) into the level's raw JSON; deactivating removes exactly its still-pristine leaves, so its effect is gone. Since the ADR-0042 addendum the activation tracks the raw text: it lasts while ANY of its keys stands in the JSON, and arises from the text only when its complete, value-identical key set stands there (editor undo restores it; a coincidental key never lights one). Family-invalid activations are pruned on Apply with the family-switch warning.
+A catalog entry switched ON at one of the raw levels (series / axis / title / legend / tooltip / radar) via the template multi-select (ADR-0042); renders as a plain chip carrying its label and a deactivate-X. The ordered activation list is persisted per level and deep-merged in selection order (last activation wins a shared leaf) into the level's raw JSON; deactivating removes exactly its still-pristine leaves, so its effect is gone. Since the ADR-0042 addendum the activation tracks the raw text: it lasts while ANY of its keys stands in the JSON, and arises from the text only when its complete, value-identical key set stands there (editor undo restores it; a coincidental key never lights one). Family-invalid activations are pruned on Apply with the family-switch warning.
 _Avoid_: selected template, inserted template (the one-shot insert is retired), checked snippet
 
 **Eigenanteil**:

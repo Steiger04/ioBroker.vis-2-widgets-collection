@@ -200,6 +200,23 @@ export const ModeSelect: FC<{ state: EditorState; set: SetEditor }> = ({ state, 
 
 // ── position grid (ADR-0021) ──────────────────────────────────────
 
+/**
+ * The nine 3×3 grid positions in row-order with their i18n labels — the shared option table of
+ * every 9-position {@link PositionGrid} consumer (Legend ADR-0021, Toolbox ADR-0045; the Title
+ * keeps its own 6-entry table — its grid is 3×2).
+ */
+export const GRID9_POSITIONS: ReadonlyArray<[string, string]> = [
+    ['topLeft', Generic.t('echarts_pos_top_left')],
+    ['topCenter', Generic.t('echarts_pos_top_center')],
+    ['topRight', Generic.t('echarts_pos_top_right')],
+    ['middleLeft', Generic.t('echarts_pos_middle_left')],
+    ['middleCenter', Generic.t('echarts_pos_middle_center')],
+    ['middleRight', Generic.t('echarts_pos_middle_right')],
+    ['bottomLeft', Generic.t('echarts_pos_bottom_left')],
+    ['bottomCenter', Generic.t('echarts_pos_bottom_center')],
+    ['bottomRight', Generic.t('echarts_pos_bottom_right')],
+];
+
 // The one signature control of the Title/Legend sections (ADR-0021): a 3-column grid of position
 // glyphs — a frame with a dot at the chosen corner/edge/centre. Language-neutral (the glyph IS the
 // label; words ride only as the button aria-label/title), scannable at 6/9 options where a dropdown

@@ -6,9 +6,8 @@
  * @remarks
  * Direct children of a raw key's object are leaves, except the key's nested CONTAINERS whose own
  * children are the leaves (so `axisLine.lineStyle.color` / `progress.itemStyle.color` are
- * distinguishable from their free siblings one level down). The chart-level analysis
- * (advancedJsonAnalysis.ts) keeps its own three-level variant — a superset walk with different
- * needs; this is the axis/series twin, extracted at copy #2.
+ * distinguishable from their free siblings one level down). (The retired chart-level analysis
+ * had a three-level variant of this walk; it died with the chart-U, ADR-0045.)
  */
 
 /**

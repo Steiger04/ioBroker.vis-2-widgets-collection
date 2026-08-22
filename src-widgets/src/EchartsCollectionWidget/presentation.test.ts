@@ -406,7 +406,7 @@ describe('buildLegend — edge offsets (ADR-0021)', () => {
 describe('toPresentationConfig — legend source (ADR-0021 fix)', () => {
     // The editor preview passes the editor state as `src` (legend styling is the `legend` OBJECT);
     // the live body passes rxData (legend styling is the `legendConfig` base64 BLOB). Both must resolve.
-    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS };
+    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
     it('reads the editor-state legend OBJECT when present', () => {
         const p = toPresentationConfig({ ...base, src: { legend: { color: '#f00', orient: 'vertical' } } });
         expect(p.legend).toEqual({ color: '#f00', orient: 'vertical' });
@@ -426,7 +426,7 @@ describe('toPresentationConfig — xAxis source (ADR-0035)', () => {
     // Same dual-source contract as legend: the editor preview passes the editor state as `src`
     // (xAxis is the OBJECT); the live body passes rxData (xAxis is the base64 BLOB); a legacy
     // widget has only the `xSplit` boolean → synthesised into splitLine.
-    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS };
+    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
     it('reads the editor-state xAxis OBJECT when present', () => {
         const p = toPresentationConfig({ ...base, src: { xAxis: { format: '{HH}:{mm}' } } });
         expect(p.xAxis).toEqual({ format: '{HH}:{mm}' });
@@ -448,5 +448,32 @@ describe('toPresentationConfig — xAxis source (ADR-0035)', () => {
         const blob = encodeBlob(JSON.stringify({ splitLine: false }));
         const p = toPresentationConfig({ ...base, src: { xAxis: blob, xSplit: true } });
         expect(p.xAxis).toEqual({ splitLine: false });
+    });
+});
+
+describe('toPresentationConfig — toolbox source (ADR-0045)', () => {
+    // The legend dual-source contract applied to the toolbox: the editor preview passes the
+    // editor state as `src` (toolbox is the OBJECT); the live body passes rxData (toolbox is the
+    // `toolboxConfig` base64 BLOB). Both must resolve.
+    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
+    it('reads the editor-state toolbox OBJECT when present', () => {
+        const p = toPresentationConfig({
+            ...base,
+            src: { toolbox: { show: true, features: { restore: { show: true } } } },
+        });
+        expect(p.toolbox).toEqual({ show: true, features: { restore: { show: true } } });
+    });
+    it('decodes the rxData toolboxConfig BLOB when no object is present', () => {
+        const blob = encodeBlob(JSON.stringify({ show: true, itemSize: 18 }));
+        const p = toPresentationConfig({ ...base, src: { toolboxConfig: blob } });
+        expect(p.toolbox).toEqual({ show: true, itemSize: 18 });
+    });
+    it('empty/absent → {} (master off — the builder emits no toolbox block)', () => {
+        expect(toPresentationConfig({ ...base, src: {} }).toolbox).toEqual({});
+        expect(toPresentationConfig({ ...base, src: { toolboxConfig: '' } }).toolbox).toEqual({});
+    });
+    it('stamps the resolved themeDark through (the toolbox token literal input)', () => {
+        const p = toPresentationConfig({ ...base, themeDark: true, src: {} });
+        expect(p.themeDark).toBe(true);
     });
 });

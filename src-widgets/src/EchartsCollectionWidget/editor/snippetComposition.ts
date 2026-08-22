@@ -3,12 +3,14 @@
  *
  * @module EchartsCollectionWidget/editor/snippetComposition
  * @remarks
- * All three raw escape hatches (chart-level U, Series raw, Axis raw) switched their template
+ * Every raw escape hatch (Series raw, Axis raw, the section raws) switched its template
  * affordance from a stateless one-shot insert to a PERSISTENT, ordered activation ("Aktive
  * Vorlage"). The editor text is the composition of the active templates (deep-merged in
  * selection order, last activation winning a shared leaf) plus the **Eigenanteil** — the leaves
  * the user hand-wrote or hand-changed. The text stays the persisted truth; the activation ids
- * ride beside it (chart: `chartSnippets`; series/axis/pie: `snippets` on their config objects).
+ * ride beside it (series/axis/pie: `snippets` on their config objects; the component sections:
+ * `*Snippets` on the chartConfig blob). The chart-level U died with the chart-U retirement
+ * (ADR-0045); its `chartSnippets` blob is no longer read.
  *
  * Attribution is a leaf-diff against the composed templates (arrays atomic — deepMerge treats
  * them as units), recomputed at every toggle: a leaf belongs to the Eigenanteil iff it is absent

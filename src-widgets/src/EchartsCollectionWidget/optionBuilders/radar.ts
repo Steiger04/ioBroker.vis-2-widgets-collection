@@ -20,7 +20,7 @@ import { applyRawOverride } from '../utils/mergeOption';
  *
  * @param values - Current values of the indicator OIDs, in indicator order (null = gap).
  * @param meta - Per-polygon metadata (name + colour of the single v2 polygon).
- * @param p - Chart-wide + radar family presentation (`p.radar`).
+ * @param p - Chart-wide + radar family presentation (`p.radar` + the section raw).
  */
 export const buildRadarOption = (
     values: readonly (number | null)[],
@@ -38,11 +38,18 @@ export const buildRadarOption = (
     const option: Record<string, unknown> = {
         legend: buildLegend(p, [name]),
         tooltip: buildTooltip(p),
-        radar: {
-            indicator: indicators,
-            shape,
-            splitNumber,
-        },
+        // The Radar section's raw escape hatch (ADR-0045): deep-merged UNDER the built radar
+        // component — the GUI wins every collision (indicator/shape/splitNumber); free keys
+        // (axisName, splitArea, axisLine, startAngle, …) take effect. `radar` rides replaceMerge
+        // (ADR-0036), so deleting the raw reverts.
+        radar: applyRawOverride(
+            {
+                indicator: indicators,
+                shape,
+                splitNumber,
+            },
+            p.radarRaw,
+        ),
         series: [
             applyRawOverride(
                 {

@@ -11,9 +11,8 @@
  *  - `radar` — the indicator OIDs (`oid1..oidN`) current values, one polygon.
  *
  * The family G is merged with the theme base (palette overridden from the resolved series
- * palette) and the demoted Advanced JSON (U), then `title.text` (live titleText) and
- * `backgroundColor` (bgColor) are injected. The data-wins force-set (series + legend.data)
- * lives in {@link mergeOptionForEcharts}.
+ * palette), then `title.text` (live titleText) and `backgroundColor` (bgColor) are injected
+ * ({@link mergeGeneratedOverTheme} — the theme floors, G wins every collision).
  */
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import type React from 'react';
@@ -25,10 +24,9 @@ import Generic from '../Generic';
 import useData from '../hooks/useData';
 import useOidValue from '../hooks/useOidValue';
 import type { EchartsCollectionContextProps } from '../types';
-import { decodeBlob } from '../lib/encoding';
 
 import EChart from './EChart';
-import { buildEchartsTheme, echartsPalette, resolveThemeTokens } from './echartsTheme';
+import { buildEchartsTheme, echartsPalette, effectiveDarkMode, resolveThemeTokens } from './echartsTheme';
 import { createHistoryFetcher } from './historyFetcher';
 import {
     buildGeneratedOption,
@@ -37,7 +35,6 @@ import {
     parseJsonSeriesStyle,
     parseJsonState,
     parseSeriesConfig,
-    parseUserJson,
 } from './optionBuilder';
 import {
     resolvePalette,
@@ -47,7 +44,7 @@ import {
     decodeMarkLines,
     buildTitleOption,
 } from './presentation';
-import { mergeOptionForEcharts } from './utils/mergeOption';
+import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
@@ -94,10 +91,6 @@ function EchartsCollection(): React.ReactElement {
     const meta = useMemo(() => parseSeriesConfig(data.seriesConfig), [data.seriesConfig]);
     const chartConfig = useMemo(() => decodeChartConfig(data.chartConfig), [data.chartConfig]);
     const markLines = useMemo(() => decodeMarkLines(data.markLines), [data.markLines]);
-    const overrides = useMemo(() => {
-        const r = parseUserJson(decodeBlob(data.chartOverrides));
-        return r.ok ? r.value : {};
-    }, [data.chartOverrides]);
 
     // JSON mode: the name-keyed per-series style overlay (ADR-0011). Empty when absent — JSON
     // series then render with defaults (palette slot, inherited type).
@@ -159,11 +152,17 @@ function EchartsCollection(): React.ReactElement {
                 palette,
                 themeTokens,
                 family,
+                // The effective chart dark mode, resolved like themeSig/themeBase (content-keyed
+                // inputs, so this stays referentially sane) — drives the toolbox token literals.
+                themeDark: effectiveDarkMode(data.darkMode, theme.palette.mode) === 'dark',
                 chartConfig,
                 markLines,
                 yAxes: decodeAxes(data.yAxes as string),
             }),
-        [data, palette, themeTokens, family, chartConfig, markLines],
+        // theme.palette.mode is content-stable behind themeSig (the theme ref churns on a mere
+        // editor move, the mode does not) — see the themeSig comment above.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [data, palette, themeTokens, family, chartConfig, markLines, data.darkMode, themeSig],
     );
 
     // Theme base, with its series `color` overridden by the resolved palette.
@@ -265,7 +264,7 @@ function EchartsCollection(): React.ReactElement {
             });
         }
 
-        const merged = mergeOptionForEcharts(g, overrides, themeBase);
+        const merged = mergeGeneratedOverTheme(g, themeBase);
         // Live title text (may hold {oid.val} bindings vis-2 resolved) wins over any U title.text.
         const titleText = typeof data.titleText === 'string' ? data.titleText.trim() : '';
         // A raw title (frame/behaviour/subtitle) applies even without title text (ADR-0044).
@@ -300,7 +299,6 @@ function EchartsCollection(): React.ReactElement {
         jsonStyle,
         jsonHidden,
         presentation,
-        overrides,
         themeBase,
         chartConfig.titleRaw,
     ]);
