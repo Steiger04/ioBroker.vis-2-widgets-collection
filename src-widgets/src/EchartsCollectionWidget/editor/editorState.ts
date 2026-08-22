@@ -27,14 +27,11 @@ import {
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
-import { AXIS_TEMPLATES } from './axisTemplates';
 import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
-import { healedIds, healLoadLevels, healSaveLevels } from './rawLevels';
-import { X_AXIS_TEMPLATES } from './xAxisTemplates';
-import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
+import { healLoadLevels, healSaveLevels } from './rawLevels';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
@@ -259,39 +256,6 @@ const normalizeArea = (raw: unknown, legacyAreaType: boolean): EchartsAreaFill =
 const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).type === 'area';
 
 /**
- * The X-Karte's activation list heal (ADR-0037 addendum + ADR-0042 addendum): prune to the X
- *  catalog (the retired chart-level `xaxis-*` ids drop silently) + keep-only heal against the
- *  raw — the badge never outlives its content; never adds. An empty result normalises to
- *  `undefined` so the blob stays lean.
- */
-const healXAxisSnippets = (x: EchartsXAxisConfig): EchartsXAxisConfig => {
-    if (!x.snippets?.length) {
-        return x;
-    }
-    const healed = healedIds(X_AXIS_TEMPLATES, x.snippets, x.raw);
-    return healed.length ? { ...x, snippets: healed } : { ...x, snippets: undefined };
-};
-
-/**
- * Normalize a series' activation list — the LOAD and APPLY paths share this (ADR-0042 decision 6
- * + addendum). Prune to the slot catalog (a stale id is silently dropped, its leaves remain in
- * the raw text as the user's own) and heal against the raw text (an activation whose template
- * has no leaf path left drops — the badge never outlives its content; never adds). Returns
- * `undefined` for an empty result so the blob stays lean.
- */
-const normalizeSeriesSnippets = (
-    family: ReturnType<typeof familyOf>,
-    chartType: string,
-    s: SeriesMeta,
-): string[] | undefined => {
-    if (!s.snippets?.length) {
-        return undefined;
-    }
-    const healed = healedIds(SERIES_TEMPLATES[seriesSlotOf(family, chartType, s)], s.snippets, s.raw);
-    return healed.length ? healed : undefined;
-};
-
-/**
  * Load the editor state from the widget rxData.
  *
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
@@ -422,35 +386,17 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         yAxes = pruned.yAxes.length < yAxes.length ? packStaggeredAxes(pruned.yAxes) : pruned.yAxes;
     }
 
-    // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum): the catalog
-    // rework retired template ids deliberately — an activation referencing an unknown id drops
-    // SILENTLY here (its composed leaves simply stay in the raw text as the user's own). The
-    // keep-only heal then drops activations whose template has no leaf path left in the text
-    // (the badge lied about content deleted inside the editor); additions never happen at load —
-    // retro-detection of hand-typed content stays rejected. Filtering at LOAD also keeps the
-    // family-switch loss count honest (a stale id is not a family loss) and covers the levels
-    // the Apply-time prune never reached (axes are family-free by design). The chart-level
-    // activations died with the chart-U retirement (ADR-0045 — no migration, stored
-    // chartSnippets are simply no longer read).
-    series = series.map(s => ({ ...s, snippets: normalizeSeriesSnippets(family, chartType, s) }));
-    yAxes = yAxes.map(a => ({
-        ...a,
-        snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
-    }));
-    // Unhealed on construction — the registry's single load pass (ADR-0047, rawLevels.ts) owns
-    // the pie level's heal together with every other scalar level.
+    // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum) — EVERY raw
+    // level (sections, pie, series, axes, X, json overlay) heals in the registry's single load
+    // pass at the end of this function (ADR-0047, rawLevels.ts): an activation referencing an
+    // unknown id drops SILENTLY (its composed leaves stay in the raw text as the user's own),
+    // the keep-only heal drops activations whose template has no leaf path left in the text,
+    // additions never happen at load — retro-detection of hand-typed content stays rejected.
+    // Filtering at LOAD also keeps the family-switch loss count honest (a stale id is not a
+    // family loss). The chart-level activations died with the chart-U retirement (ADR-0045 —
+    // no migration, stored chartSnippets are simply no longer read).
     const pie = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
-    const jsonSeriesStyleLoaded = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
-    const jsonSeriesStyle = Object.fromEntries(
-        Object.entries(jsonSeriesStyleLoaded).map(([name, m]) => [
-            name,
-            { ...m, snippets: normalizeSeriesSnippets(family, chartType, m) },
-        ]),
-    );
-    // Component-section + pie activations heal in the registry's single load pass (ADR-0047,
-    // rawLevels.ts): same load-time prune + keep-only heal as before — the former chart-level
-    // scaffold ids (title-scaffold etc.) drop silently; the radar raw (ADR-0045) rides the
-    // chartConfig blob regardless of family (switching away and back preserves it).
+    const jsonSeriesStyle = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
 
     const state: EditorState = {
         ...DEFAULT_EDITOR_STATE,
@@ -487,8 +433,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         bgColor: strOr(data.bgColor, 'transparent'),
         yAxes,
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
-        // synthesised into `splitLine` (shared resolver — same rule as the live body).
-        xAxis: healXAxisSnippets(decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false))),
+        // synthesised into `splitLine` (shared resolver — same rule as the live body). The
+        // activations heal in the registry's load pass (ADR-0047).
+        xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
         paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
@@ -537,7 +484,6 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 name: state.series[0]?.name,
                 color: state.series[0]?.color,
                 raw: state.series[0]?.raw,
-                snippets: normalizeSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
             },
         ];
     } else if (family === 'gauge') {
@@ -548,35 +494,36 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 name: state.series[0]?.name,
                 color: state.series[0]?.color,
                 raw: state.series[0]?.raw,
-                snippets: normalizeSeriesSnippets(family, state.chartType, state.series[0] ?? {}),
             },
         ];
     } else {
         seriesCount = state.series.length;
         oidList = state.series.map(s => s.oid || '');
-        metaBlob = state.series.map(({ oid: _oid, ...rest }) => ({
-            ...rest,
-            snippets: normalizeSeriesSnippets(family, state.chartType, rest),
-        }));
+        // Skeleton (ADR-0047 series boundary): the raw + unhealed snippets ride via `rest`; the
+        // registry's series entry writes the healed activations into the items.
+        metaBlob = state.series.map(({ oid: _oid, ...rest }) => rest);
     }
 
     // ADR-0042 Apply-time prunes + addendum heal — the registry (ADR-0047, rawLevels.ts) owns
-    // the SCALAR levels now: it heals the working copy's pairs into the chartConfig draft
-    // (pie rides unconditionally, the sections blob-lean) without rewriting the state — between
-    // a family switch and Apply the stale ids deliberately stay in the working copy (the
-    // stranded keys render nothing — verified against echarts), the actual prune rides Apply.
+    // EVERY level now. The blob drafts below are skeletons (chartConfig seeds gauge/radar; the
+    // per-item drafts are copies of the working copy resp. the metaBlob built above); the
+    // registry heals the activations into them in one pass WITHOUT rewriting the state —
+    // between a family switch and Apply the stale ids deliberately stay in the working copy
+    // (the stranded keys render nothing — verified against echarts), the actual prune rides
+    // Apply, mirroring the bound-OID drop.
     const chartConfigDraft: Record<string, unknown> = { gauge: state.gauge, radar: state.radar };
-    healSaveLevels(state, { chartConfig: chartConfigDraft });
-    const yAxesHealed = state.yAxes.map(a => ({
-        ...a,
-        snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
-    }));
+    const yAxesHealed = state.yAxes.map(a => ({ ...a }));
+    const xAxisDraft = { ...state.xAxis };
     const jsonSeriesStyle = Object.fromEntries(
-        Object.entries(state.jsonSeriesStyle).map(([name, m]) => [
-            name,
-            { ...m, snippets: normalizeSeriesSnippets(family, state.chartType, m) },
-        ]),
+        Object.entries(state.jsonSeriesStyle).map(([name, m]) => [name, { ...m }]),
     );
+    healSaveLevels(state, {
+        chartConfig: chartConfigDraft,
+        seriesConfig: metaBlob,
+        yAxes: yAxesHealed,
+        xAxis: xAxisDraft,
+        jsonSeriesStyle,
+    });
 
     const patch: Record<string, unknown> = {
         chartType: state.chartType,
@@ -628,7 +575,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(yAxesHealed)),
-        xAxis: encodeBlob(JSON.stringify(healXAxisSnippets(state.xAxis))),
+        xAxis: encodeBlob(JSON.stringify(xAxisDraft)),
     };
     const max = Math.max(seriesCount, previousCount);
     for (let i = 0; i < max; i++) {

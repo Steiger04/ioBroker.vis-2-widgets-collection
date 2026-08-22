@@ -18,13 +18,17 @@
  * radar and pie blobs deliberately ride across family switches ("switching away and back
  * preserves it", ADR-0044/0045).
  */
-import type { familyOf } from '../optionBuilder';
+import { familyOf } from '../optionBuilder';
+import { AXIS_TEMPLATES } from './axisTemplates';
 import { LEGEND_TEMPLATES } from './legendTemplates';
 import { RADAR_TEMPLATES } from './radarTemplates';
-import { SERIES_TEMPLATES } from './seriesTemplates';
+import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import { TOOLTIP_TEMPLATES } from './tooltipTemplates';
+import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import type { EditorState } from './editorState';
+import type { SeriesMeta } from '../optionBuilder';
+import type { EchartsAxisConfig, EchartsXAxisConfig } from '../../types/field-definitions/echarts-fields';
 import type { SnippetTemplate } from './snippetComposition';
 import { keepSnippetIds, pruneSnippetIds } from './snippetComposition';
 
@@ -32,7 +36,16 @@ import { keepSnippetIds, pruneSnippetIds } from './snippetComposition';
 export type RawLevelFamily = ReturnType<typeof familyOf>;
 
 /** Registry id — the section name. */
-export type RawLevelId = 'title' | 'legend' | 'tooltip' | 'radar' | 'pie';
+export type RawLevelId =
+    | 'title'
+    | 'legend'
+    | 'tooltip'
+    | 'radar'
+    | 'pie'
+    | 'series'
+    | 'yAxes'
+    | 'xAxis'
+    | 'jsonSeriesStyle';
 
 /**
  * Catalog prune + keep-only heal in one (ADR-0042 #6 + addendum) — for single-catalog levels.
@@ -55,9 +68,22 @@ export interface RawBinding {
     commitHealed: (healed: string[] | undefined) => void;
 }
 
-/** The per-blob draft objects the save side commits into (built by `saveEditorState`, encoded once). */
+/**
+ * The per-blob draft objects the save side commits into (built by `saveEditorState`, encoded
+ * once). The per-item drafts are SKELETONS the entries heal in place: saveEditorState owns the
+ * family collapse and the non-snippet fields, the registry writes the healed activations
+ * (ADR-0047 series boundary).
+ */
 export interface SaveDrafts {
     chartConfig: Record<string, unknown>;
+    /** The seriesConfig meta items (skeleton incl. raw; entries write `snippets`). */
+    seriesConfig: SeriesMeta[];
+    /** The yAxes items (copies of the working copy; entries heal `snippets` in place). */
+    yAxes: EchartsAxisConfig[];
+    /** The X-Karte config (a copy; the entry heals `snippets` in place). */
+    xAxis: EchartsXAxisConfig;
+    /** The json-mode overlay entries (copies; entries heal `snippets` in place). */
+    jsonSeriesStyle: Record<string, SeriesMeta>;
 }
 
 /** One raw level: placement only — the lifecycle is the registry's. */
@@ -147,13 +173,117 @@ const pieLevel: RawLevelEntry = {
     ],
 };
 
-/** The registry — step 1 (ADR-0047): the five scalar levels; step 2 lifts series/yAxes/xAxis/jsonSeriesStyle in. */
+/** The slot catalog of one series card / json overlay entry (slot = family + chartType + type override). */
+const seriesCatalogFor = (m: SeriesMeta, state: EditorState): readonly SnippetTemplate[] =>
+    SERIES_TEMPLATES[seriesSlotOf(familyOf(state.chartType), state.chartType, m)];
+
+/** series — per-card raw in the seriesConfig meta blob; the catalog is SLOT-resolved per card. */
+const seriesLevel: RawLevelEntry = {
+    id: 'series',
+    // No lossRelevant annotation: series activations ARE the family-switch loss source.
+    bindLoad: state =>
+        // Series snippets are undefined-lean on every empty heal outcome (normalizeSeriesSnippets
+        // parity).
+        state.series.map(s => ({
+            raw: s.raw,
+            ids: s.snippets,
+            templates: seriesCatalogFor(s, state),
+            commitHealed: healed => {
+                s.snippets = healed?.length ? healed : undefined;
+            },
+        })),
+    bindSave: (state, drafts) =>
+        // The metaBlob skeleton (radar/gauge family collapse included) is saveEditorState's —
+        // the entry reads the working copy's cards and writes only the healed snippets into
+        // the items (ADR-0047 series boundary: the registry owns the raw lifecycle, not the
+        // data configuration).
+        drafts.seriesConfig.map((item, i) => {
+            const s = state.series[i] ?? {};
+            return {
+                raw: s.raw,
+                ids: s.snippets,
+                templates: seriesCatalogFor(s, state),
+                commitHealed: healed => {
+                    item.snippets = healed?.length ? healed : undefined;
+                },
+            };
+        }),
+};
+
+/** Axis-card bindings — load binds the state's cards, save the draft copies (same pairs). */
+const axisBindings = (axes: readonly EchartsAxisConfig[]): RawBinding[] =>
+    axes.map(a => ({
+        raw: a.raw,
+        ids: a.snippets,
+        templates: AXIS_TEMPLATES,
+        // Axis snippets keep [] both ways (empty input passthrough + heal-to-empty) — the
+        // pre-registry semantics, pinned by the characterization suite.
+        commitHealed: healed => {
+            if (!a.snippets?.length) {
+                return;
+            }
+            a.snippets = healed ?? [];
+        },
+    }));
+
+/** yAxes — per-card raw in the yAxes blob; the heal KEEPS [] both sides (pinned pre-registry semantics). */
+const yAxesLevel: RawLevelEntry = {
+    id: 'yAxes',
+    lossRelevant: false,
+    bindLoad: state => axisBindings(state.yAxes),
+    bindSave: (state, drafts) => axisBindings(drafts.yAxes),
+};
+
+const xAxisBinding = (x: EchartsXAxisConfig): RawBinding => ({
+    raw: x.raw,
+    ids: x.snippets,
+    templates: X_AXIS_TEMPLATES,
+    // Empty input stays untouched; a heal that drops everything goes undefined-lean.
+    commitHealed: healed => {
+        if (!x.snippets?.length) {
+            return;
+        }
+        x.snippets = healed?.length ? healed : undefined;
+    },
+});
+
+/** xAxis — the single X-Karte's raw in the xAxis blob. */
+const xAxisLevel: RawLevelEntry = {
+    id: 'xAxis',
+    lossRelevant: false,
+    bindLoad: state => [xAxisBinding(state.xAxis)],
+    bindSave: (state, drafts) => [xAxisBinding(drafts.xAxis)],
+};
+
+const jsonSeriesBindings = (overlay: Record<string, SeriesMeta>, state: EditorState): RawBinding[] =>
+    Object.values(overlay).map(m => ({
+        raw: m.raw,
+        ids: m.snippets,
+        templates: seriesCatalogFor(m, state),
+        commitHealed: healed => {
+            m.snippets = healed?.length ? healed : undefined;
+        },
+    }));
+
+/** jsonSeriesStyle — per-payload-name raw in the jsonSeriesStyle blob, slot-resolved like series. */
+const jsonSeriesStyleLevel: RawLevelEntry = {
+    id: 'jsonSeriesStyle',
+    lossRelevant: false,
+    bindLoad: state => jsonSeriesBindings(state.jsonSeriesStyle, state),
+    bindSave: (state, drafts) => jsonSeriesBindings(drafts.jsonSeriesStyle, state),
+};
+
+/** The registry — ADR-0047: the five scalar levels (step 1) + the per-item lift (step 2). */
 export const RAW_LEVELS: readonly RawLevelEntry[] = [
     flatSectionLevel('title', TITLE_TEMPLATES, { raw: 'titleRaw', snippets: 'titleSnippets' }),
     flatSectionLevel('legend', LEGEND_TEMPLATES, { raw: 'legendRaw', snippets: 'legendSnippets' }),
     flatSectionLevel('tooltip', TOOLTIP_TEMPLATES, { raw: 'tooltipRaw', snippets: 'tooltipSnippets' }),
     flatSectionLevel('radar', RADAR_TEMPLATES, { raw: 'radarRaw', snippets: 'radarSnippets' }, ['radar']),
     pieLevel,
+    seriesLevel,
+    yAxesLevel,
+    xAxisLevel,
+    jsonSeriesStyleLevel,
 ];
 
 /** Heal one binding list — the one-line lifecycle rule every level shares. */
