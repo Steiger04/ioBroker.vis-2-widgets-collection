@@ -233,6 +233,10 @@ _Avoid_: Editor controls, per-editor widgets
 The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input. One implementation (`useEditorHistory`) backs both working copies.
 _Avoid_: Snapshot list, timeline, draft history (that's the studio's working copy, not the mechanism)
 
+**Editor lifecycle**:
+The echarts configurator's state machine over its working copy (ADR-0048): the load/rebase pass with the dirty-snapshot baseline, the four guard effects (stable-id self-heal, JSON axis reconcile, orphan prune, mode-switch bulk leave), apply/reset, and the hasChanges comparison — all owned by `useEchartsEditorLifecycle`, with the firing conditions and idempotence guards as pure steps in `lifecycleGuards.ts` (a no-op step returns null and never touches the history). The modal keeps only chrome. Distinguished from the editor history (the undo stack beneath it) and from the chart pipeline (runtime data, not editor state).
+_Avoid_: Editor state machine, modal logic (that's the chrome half), controller
+
 **Resize grip**:
 One of the 8 window-style resize affordances on the Studio panel's edges and corners (ADR-0020 addendum). Edge grips are keyboard-operable separators (arrows ±16/±64, Home/End, double-click reset) in the bare-hairline idiom; corner grips are pointer-only, invisible hit zones revealed by the resize cursor. Distinct from the echarts configurator's Splitter — that is an in-layout divider between two panes, not a window edge.
 _Avoid_: Splitter (the echarts rail divider), resizer, sash

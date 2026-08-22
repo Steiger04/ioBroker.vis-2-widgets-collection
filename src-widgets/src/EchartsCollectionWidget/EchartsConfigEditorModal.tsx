@@ -13,7 +13,8 @@
  * removed on user feedback, ADR-0019 addendum).
  *
  * The honesty contract (ADR-0038): a working copy buffers edits in an editor history
- * ({@link useEditorHistory} — undo/redo in the header plus Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y),
+ * ({@link useEditorHistory} behind {@link useEchartsEditorLifecycle}, which owns the whole
+ * state machine per ADR-0048 — undo/redo in the header plus Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y),
  * Apply is disabled until it diverges (`hasChanges`, deep-equality), and closing while dirty
  * (backdrop click, Escape, Cancel or the X — every path) is intercepted by a blocking
  * confirm dialog. The footer is the shared configurator contract: Zurücksetzen (revert the
@@ -47,17 +48,9 @@ import EchartsEditorSections, { sectionInventory, type FocusSectionRequest } fro
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
-import { healStableIds, loadedOidCount, pruneOrphanAxesStep, reconcileJsonAxesStep } from './editor/lifecycleGuards';
+import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
 import { familyOf } from './optionBuilder';
 import { validateEditor, type SectionKey } from './editor/validation';
-import { useEditorHistory, useEditorHistoryKeys } from '../lib/useEditorHistory';
-import {
-    DEFAULT_EDITOR_STATE,
-    loadEditorState,
-    saveEditorState,
-    type EditorPatch,
-    type EditorState,
-} from './editor/editorState';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
@@ -78,110 +71,47 @@ function EchartsConfigEditorModal({
     theme,
     socket,
 }: EchartsConfigEditorModalProps): React.JSX.Element {
-    // The working copy lives in an editor history (ADR-0038): every edit is an undoable step
-    // (rapid same-key edits coalesce — one slider drag / one typed field = one step).
-    const history = useEditorHistory<EditorState>(DEFAULT_EDITOR_STATE);
-    const state = history.present;
-    // The stable commit callback, destructured so the memoized helpers below can depend on it
-    // (the history result object itself has a new identity every render).
-    const { set: commit } = history;
-    const loadedCountRef = useRef(0);
-    // The loaded baseline: the string snapshot drives `hasChanges`, the object drives Reset.
-    const loadedSnapshotRef = useRef('');
-    const loadedStateRef = useRef<EditorState>(DEFAULT_EDITOR_STATE);
     const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
     // Window-style maximize toggle (fullScreen, edge-to-edge). Session-only by user decision:
-    // the component instance survives close/open, so the flag must be reset in the open effect
-    // below — every fresh open starts at normal size.
+    // the component instance survives close/open, so the flag resets on every fresh load (the
+    // loadToken effect below) — every fresh open starts at normal size.
     const [maximized, setMaximized] = useState(false);
     // Preview placeholder → rail steering (expand the section + scroll it into view).
     const focusTokenRef = useRef(0);
     const [focusSection, setFocusSection] = useState<FocusSectionRequest | null>(null);
 
+    // The state machine (ADR-0048): working copy + history, load/rebase, the guard effects,
+    // apply/reset, hasChanges and the undo/redo keyboard binding — all owned by the lifecycle
+    // hook. This modal is composition + chrome only.
+    const { state, set, apply, reset, hasChanges, loadToken, undo, redo, canUndo, canRedo } = useEchartsEditorLifecycle(
+        open,
+        data,
+    );
+
     // JSON mode (ADR-0011): resolve the payload series names so the Series section can render one
     // editable card per series (live — tracks the jsonOid value as it changes while the modal open).
+    // The names are the lifecycle's INJECTED input (the reconcile seam) — resolved here so the
+    // lifecycle hook itself stays IO-free.
     const jsonFamily = familyOf(state.chartType);
     const jsonEnabled = state.mode === 'json' && (jsonFamily === 'cartesian' || jsonFamily === 'pie');
     const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
+    // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names; the
+    // policy + firing condition live in the lifecycle module.
+    useJsonAxisReconcile(state, jsonPreview.names, set);
 
-    // (Re)load the editor state from widget data each time the dialog opens.
+    // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
+    // the chrome (focus steering + maximize) belongs to this modal.
     useEffect(() => {
-        if (!open) {
-            return;
-        }
-        // First-open onboarding is the empty-state CTA, not an injected skeleton (ADR-0013 reversed
-        // the ADR-0010 skeleton): an empty config lands on the CTA, Apply stays disabled until the
-        // user adds a real series/indicator.
-        const loaded = loadEditorState(data as Record<string, unknown>);
-        // The number of indexed `oidN` fields to clear on save (radar counts indicators, not series).
-        loadedCountRef.current = loadedOidCount(loaded);
-        loadedSnapshotRef.current = JSON.stringify(loaded);
-        loadedStateRef.current = loaded;
-        history.rebase(loaded);
         setFocusSection(null);
-        setMaximized(false); // maximize is session-only — a fresh open starts at normal size
-        // history is NOT a dependency: the hook's result object has a new identity every render
-        // (only its callbacks are stable), so listing it would re-run this effect after every
-        // edit and rebase the working copy back to the loaded state — wiping each edit.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, data]);
+        setMaximized(false);
+    }, [loadToken]);
 
-    // Self-heal stable ids (the HMR guard) — the policy lives in the pure step (ADR-0048); this
-    // effect only owns the firing condition: after every state change, guarded by the step's
-    // own no-op answer so it cannot loop or push an empty history entry.
-    useEffect(() => {
-        const patch = healStableIds(state);
-        if (patch) {
-            history.set(s => ({ ...s, ...patch }), 'self-heal');
-        }
-        // history.set is a stable callback — see the open effect above for why the object is not.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state]);
-
-    const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
-
-    // Patches coalesce by their key set: consecutive edits touching the same keys within the
-    // window replace the present snapshot (typing a field / dragging a slider = one undo step).
-    const set = useCallback(
-        (patch: EditorPatch) => {
-            commit(s => ({ ...s, ...patch }), Object.keys(patch).sort().join(','));
-        },
-        [commit],
-    );
-
-    // JSON-mode axis reconcile (ADR-0026 — JSON 1:n) — the policy lives in the pure step
-    // (ADR-0048); this effect owns only the firing condition. Keyed on the names content (not
-    // the array ref) + mode/type → re-syncs only on real change, so manual axis edits +
-    // bindings are preserved while names/mode/type are stable (the narrow deps ARE the clobber
-    // protection — see lifecycleGuards module remarks). Only the VISIBLE JSON series drive the
-    // reconcile: jsonNamesKey reflects the visible set so hiding a series re-runs the effect
-    // and orphan-cleans the freed axis.
     const visibleJsonNames = jsonPreview.names.filter(n => !state.jsonHidden.includes(n));
-    const jsonNamesKey = visibleJsonNames.join('\n');
-    useEffect(() => {
-        const patch = reconcileJsonAxesStep(state, visibleJsonNames);
-        if (patch) {
-            set(patch);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [jsonNamesKey, state.mode, state.chartType]);
-
-    // Non-JSON cartesian orphan-prune (ADR-0033) — the policy lives in the pure step (ADR-0048);
-    // this effect owns only the firing condition: a mode-switch INTO live/history is a bulk
-    // series-leave, so the orphan-check runs once per mode/type change (loadEditorState handles
-    // the open path; series add/delete/rebind are orphan-cleaned by SeriesSection).
-    useEffect(() => {
-        const patch = pruneOrphanAxesStep(state);
-        if (patch) {
-            set(patch);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.mode, state.chartType]);
 
     const handleApply = useCallback(() => {
-        onDataChange(saveEditorState(state, loadedCountRef.current) as WidgetData);
+        onDataChange(apply());
         onClose();
-    }, [state, onDataChange, onClose]);
+    }, [apply, onDataChange, onClose]);
 
     // Every close path (backdrop, Escape, Cancel, X) goes through the same honest guard: dirty
     // state gets a BLOCKING confirm dialog (ADR-0038, studio parity) — never a silently
@@ -199,10 +129,6 @@ function EchartsConfigEditorModal({
         onClose();
     }, [onClose]);
 
-    // Keyboard: the shared configurator undo/redo binding (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y,
-    // ADR-0038) — native undo wins inside inputs. Escape is the Dialog's own onClose path.
-    useEditorHistoryKeys(history, open);
-
     // Footer problems counter (ADR-0038): the advisory issues rolled up into the section
     // headers, totalled in screen order. The button steers the rail to the first section
     // carrying issues — the same mechanism the preview placeholder uses.
@@ -213,12 +139,6 @@ function EchartsConfigEditorModal({
     );
     const issueCount = issueSections.reduce((total, key) => total + (issues[key]?.length ?? 0), 0);
     const firstIssueSection = issueSections[0];
-
-    const handleReset = useCallback((): void => {
-        // One undoable step back to the loaded baseline — section expansion and scroll
-        // position survive (the editor state is swapped, the rail is not reloaded).
-        commit(loadedStateRef.current);
-    }, [commit]);
 
     const handlePlaceholderClick = useCallback((key: SectionKey) => {
         focusTokenRef.current += 1;
@@ -329,10 +249,10 @@ function EchartsConfigEditorModal({
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
                             <EditorHistoryButtons
-                                canUndo={history.canUndo}
-                                canRedo={history.canRedo}
-                                onUndo={history.undo}
-                                onRedo={history.redo}
+                                canUndo={canUndo}
+                                canRedo={canRedo}
+                                onUndo={undo}
+                                onRedo={redo}
                                 size="small"
                                 sx={{ color: 'text.secondary' }}
                             />
@@ -482,7 +402,7 @@ function EchartsConfigEditorModal({
                 <DialogActions sx={{ px: 2.5, py: 1.5, alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 'auto' }}>
                         <Button
-                            onClick={handleReset}
+                            onClick={reset}
                             color="inherit"
                             disabled={!hasChanges}
                         >
