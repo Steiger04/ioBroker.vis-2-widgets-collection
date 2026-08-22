@@ -110,6 +110,8 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
     useEffect(() => {
         const patch = healStableIds(state);
         if (patch) {
+            // history.set (not set(patch)): the fixed 'self-heal' coalesce key keeps repeated
+            // back-to-back heals ONE undo step — a patch key would re-key on the healed fields.
             history.set(s => ({ ...s, ...patch }), 'self-heal');
         }
         // history.set is a stable callback — see the load effect above for why the object is not.
@@ -168,12 +170,14 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
  * @param state - The lifecycle's current working copy.
  * @param jsonNames - The live payload series names (unfiltered — `jsonHidden` applies here).
  * @param set - The lifecycle's patch write path.
+ * @returns The visible names (jsonHidden applied) — the SINGLE derivation site; the modal's
+ * preview meta reuses them instead of re-filtering.
  */
 export function useJsonAxisReconcile(
     state: EditorState,
     jsonNames: readonly string[],
     set: (patch: EditorPatch) => void,
-): void {
+): readonly string[] {
     const visibleJsonNames = jsonNames.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
@@ -183,4 +187,5 @@ export function useJsonAxisReconcile(
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);
+    return visibleJsonNames;
 }

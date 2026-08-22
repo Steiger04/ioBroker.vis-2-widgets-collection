@@ -95,9 +95,10 @@ function EchartsConfigEditorModal({
     const jsonFamily = familyOf(state.chartType);
     const jsonEnabled = state.mode === 'json' && (jsonFamily === 'cartesian' || jsonFamily === 'pie');
     const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
-    // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names; the
-    // policy + firing condition live in the lifecycle module.
-    useJsonAxisReconcile(state, jsonPreview.names, set);
+    // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names (the
+    // policy + firing condition live in the lifecycle module) and returns the VISIBLE set — the
+    // single derivation site, reused by the preview meta below.
+    const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set);
 
     // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
     // the chrome (focus steering + maximize) belongs to this modal.
@@ -105,8 +106,6 @@ function EchartsConfigEditorModal({
         setFocusSection(null);
         setMaximized(false);
     }, [loadToken]);
-
-    const visibleJsonNames = jsonPreview.names.filter(n => !state.jsonHidden.includes(n));
 
     const handleApply = useCallback(() => {
         onDataChange(apply());
