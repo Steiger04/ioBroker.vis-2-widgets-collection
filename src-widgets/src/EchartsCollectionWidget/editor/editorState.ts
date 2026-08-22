@@ -27,9 +27,8 @@ import {
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
-import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
-import { normalizeSeries } from './seriesIdentity';
-import { withStableIds } from './identity';
+import { packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
+import { withStableIds } from './stableId';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
 import type { SeriesMeta } from '../optionBuilder';
@@ -359,7 +358,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Normalise a stable `id` onto each series so React can reconcile series cards by identity, not
     // array index (fixes the wrong-card-unmounts bug on middle-series delete). All families pass
     // through here; gauge/radar ids are throwaway (their save path drops the id) but harmless.
-    series = normalizeSeries(series);
+    series = withStableIds(series, 'sr-');
 
     const vm = {
         enabled: boolOr(data.visualMapEnabled, false),
@@ -374,7 +373,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
     const yAxesDecoded = decodeAxes(data.yAxes as string);
-    let yAxes = normalizeAxes(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)]);
+    let yAxes = withStableIds(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)], 'ax-');
     const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
 
     // Mode-switch orphan-prune (ADR-0033): a non-JSON cartesian widget must not carry JSON-derived

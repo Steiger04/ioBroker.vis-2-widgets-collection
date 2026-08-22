@@ -13,7 +13,6 @@ import {
     effectiveAxisColor,
     effectiveAxisName,
     isOneToOne,
-    normalizeAxes,
     packStaggeredAxes,
     pruneOrphanAxes,
     reconcileJsonAxes,
@@ -34,22 +33,6 @@ describe('axisLayout — stable identity', () => {
         expect(axisLayout(0)).toMatchObject({ position: 'left', offset: 0, splitLine: true });
         expect(axisLayout(1)).toMatchObject({ position: 'right', offset: 0, splitLine: false });
         expect(axisLayout(2)).toMatchObject({ position: 'left', offset: 80, splitLine: false });
-    });
-
-    it('normalizeAxes backfills an id on axes missing one, leaves id-bearing axes untouched', () => {
-        const withId: EchartsAxisConfig = { id: 'keep-me', name: 'A', position: 'left' };
-        const withoutId: EchartsAxisConfig = { name: 'B', position: 'right' };
-        const out = normalizeAxes([withId, withoutId]);
-        expect(out[0].id).toBe('keep-me'); // preserved
-        expect(out[0]).toBe(withId); // same reference — not cloned when id present
-        expect(out[1].id).toBeTruthy(); // backfilled
-        expect(out[1].name).toBe('B'); // other fields preserved
-    });
-
-    it('normalizeAxes gives every backfilled axis a distinct id', () => {
-        const out = normalizeAxes([{ name: 'a' }, { name: 'b' }, { name: 'c' }]);
-        const ids = out.map(a => a.id);
-        expect(new Set(ids).size).toBe(3);
     });
 });
 
@@ -471,14 +454,6 @@ describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', 
         { id: 'a0', name: 'kW', raw: RAW },
         { id: 'a1', name: '°C', position: 'right', raw: RAW },
     ];
-
-    it('normalizeAxes keeps raw on id-bearing axes (and backfills it as a spread field)', () => {
-        const out = normalizeAxes(axes);
-        expect(out[0].raw).toBe(RAW);
-        expect(out[1].raw).toBe(RAW);
-        const noId = normalizeAxes([{ name: 'x', raw: RAW }]);
-        expect(noId[0].raw).toBe(RAW);
-    });
 
     it('packStaggeredAxes rewrites only offset — raw survives the re-stagger', () => {
         const packed = packStaggeredAxes(axes);

@@ -51,7 +51,7 @@ import {
     packStaggeredAxes,
     sameFormatSurvivor,
 } from '../axisLayout';
-import { nextStableId } from '../identity';
+import { nextStableId } from '../stableId';
 import RawJsonSection from './RawJsonSection';
 import { AXIS_CATALOG } from '../axisTemplates';
 import { X_AXIS_CATALOG } from '../xAxisTemplates';

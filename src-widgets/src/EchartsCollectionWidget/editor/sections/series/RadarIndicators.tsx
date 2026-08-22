@@ -17,7 +17,7 @@ import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EditorState, SetEditor } from '../../editorState';
-import { nextStableId } from '../../identity';
+import { nextStableId } from '../../stableId';
 import { EmptyState, SeriesRawOverride } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 

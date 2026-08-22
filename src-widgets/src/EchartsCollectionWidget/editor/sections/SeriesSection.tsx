@@ -36,7 +36,7 @@ import {
     packStaggeredAxes,
     reconcileJsonAxes,
 } from '../axisLayout';
-import { nextSeriesId } from '../seriesIdentity';
+import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
 import PieSliceRows from './series/PieSliceRows';
@@ -170,7 +170,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         }
         const idx = series.length;
         const patch: Partial<SeriesSlice> = {
-            series: [...series, { id: nextSeriesId(), oid, name: '', yAxisIndex: isCartesian ? idx : 0 }],
+            series: [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? idx : 0 }],
         };
         // 1:1 auto-axis (ADR-0018): a new cartesian series gets its own axis (alternating side, 80 px stagger).
         // Colour + name are NOT written — the axis inherits both from the bound series at runtime.
@@ -182,7 +182,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const duplicate = (i: number): void => {
         const copy: EditorSeries = {
             ...series[i],
-            id: nextSeriesId(), // fresh identity — don't share the source series' id (React key clash)
+            id: nextStableId('sr-'), // fresh identity — don't share the source series' id (React key clash)
             name: `${series[i].name || `Series ${i + 1}`} (${Generic.t('echarts_editor_series_copy_suffix')})`,
         };
         const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];

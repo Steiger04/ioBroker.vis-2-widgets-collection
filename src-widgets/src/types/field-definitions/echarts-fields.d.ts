@@ -138,9 +138,10 @@ export type EchartsGrid9Position = EchartsLegendPos;
 export interface EchartsSeriesMeta {
     /**
      * Stable identity for React reconciliation (NOT emitted to echarts — every builder reads meta
-     * field-by-field, never spreads it). Stamped at series creation (`nextSeriesId`) and backfilled
-     * on editor load by `normalizeSeries` (migration). Round-trips through the `seriesConfig` blob.
-     * Fixes the index-key bug where deleting a middle series unmounted the wrong card.
+     * field-by-field, never spreads it). Stamped at series creation (`nextStableId('sr-')`) and
+     * backfilled on editor load by `withStableIds` (migration). Round-trips through the
+     * `seriesConfig` blob. Fixes the index-key bug where deleting a middle series unmounted the
+     * wrong card.
      */
     id?: string;
     name?: string;
@@ -450,7 +451,7 @@ export interface EchartsAxisConfig {
     /**
      * Stable identity for React reconciliation (NOT emitted to echarts — the cartesian builder
      * builds yAxis entries field-by-field). Stamped at creation by `axisLayout` and backfilled on
-     * editor load by `normalizeAxes` (migration). Fixes the index-key bug where deleting a middle
+     * editor load by `withStableIds` (migration). Fixes the index-key bug where deleting a middle
      * axis unmounted the wrong card.
      */
     id?: string;

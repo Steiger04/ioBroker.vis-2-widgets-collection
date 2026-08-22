@@ -19,9 +19,8 @@
  */
 
 import { packStaggeredAxes, pruneOrphanAxes, reconcileJsonAxes } from './axisLayout';
-import { withStableIds } from './identity';
+import { withStableIds } from './stableId';
 import type { EditorPatch, EditorState } from './editorState';
-import { normalizeSeries } from './seriesIdentity';
 
 /**
  * Stable-id self-heal (the HMR guard): every keyed card list (axes / series / mark lines /
@@ -40,11 +39,11 @@ export const healStableIds = (state: EditorState): EditorPatch | null => {
     ) {
         return null;
     }
-    // Heal all four lists in one patch (mirror of the pre-extraction effect): withStableIds /
-    // normalizeSeries keep already-id'd items by reference, so the patch never churns clean lists.
+    // Heal all four lists in one patch (mirror of the pre-extraction effect): withStableIds keeps
+    // already-id'd items by reference, so the patch never churns clean lists.
     return {
-        yAxes: withStableIds(state.yAxes),
-        series: normalizeSeries(state.series),
+        yAxes: withStableIds(state.yAxes, 'ax-'),
+        series: withStableIds(state.series, 'sr-'),
         markLines: withStableIds(state.markLines),
         radar: { ...state.radar, indicators: withStableIds(state.radar.indicators) },
     };
