@@ -32,12 +32,8 @@ import { normalizeAxes, packStaggeredAxes, pruneOrphanAxes } from './axisLayout'
 import { normalizeSeries } from './seriesIdentity';
 import { withStableIds } from './identity';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
-import { keepSnippetIds, pruneSnippetIds, type SnippetTemplate } from './snippetComposition';
-import { RADAR_TEMPLATES } from './radarTemplates';
+import { healedIds, healLoadLevels, healSaveLevels } from './rawLevels';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
-import { TITLE_TEMPLATES } from './titleTemplates';
-import { LEGEND_TEMPLATES } from './legendTemplates';
-import { TOOLTIP_TEMPLATES } from './tooltipTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
@@ -262,10 +258,6 @@ const normalizeArea = (raw: unknown, legacyAreaType: boolean): EchartsAreaFill =
 /** True when a series stores the legacy removed `type: 'area'` (ADR-0008 r4) — → flat fill. */
 const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).type === 'area';
 
-/** Catalog prune + keep-only heal in one (ADR-0042 #6 + addendum) — for single-catalog levels. */
-const healedIds = (templates: readonly SnippetTemplate[], ids: string[], raw: string | undefined): string[] =>
-    keepSnippetIds(templates, pruneSnippetIds(templates, ids), raw ?? '');
-
 /**
  * The X-Karte's activation list heal (ADR-0037 addendum + ADR-0042 addendum): prune to the X
  *  catalog (the retired chart-level `xaxis-*` ids drop silently) + keep-only heal against the
@@ -278,23 +270,6 @@ const healXAxisSnippets = (x: EchartsXAxisConfig): EchartsXAxisConfig => {
     }
     const healed = healedIds(X_AXIS_TEMPLATES, x.snippets, x.raw);
     return healed.length ? { ...x, snippets: healed } : { ...x, snippets: undefined };
-};
-
-/**
- * Heal one component section's activation list against its raw (ADR-0042 keep-only + catalog
- *  prune — the badge never outlives its content, retired ids drop silently); `undefined` for an
- *  empty result keeps the blob lean.
- */
-const healSectionSnippets = (
-    templates: readonly SnippetTemplate[],
-    raw: string | undefined,
-    ids: string[] | undefined,
-): string[] | undefined => {
-    if (!ids?.length) {
-        return undefined;
-    }
-    const healed = healedIds(templates, ids, raw);
-    return healed.length ? healed : undefined;
 };
 
 /**
@@ -462,10 +437,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         ...a,
         snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
     }));
-    const pieLoaded = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
-    const pie = pieLoaded.snippets?.length
-        ? { ...pieLoaded, snippets: healedIds(SERIES_TEMPLATES.pie, pieLoaded.snippets, pieLoaded.raw) }
-        : pieLoaded;
+    // Unhealed on construction — the registry's single load pass (ADR-0047, rawLevels.ts) owns
+    // the pie level's heal together with every other scalar level.
+    const pie = chartConfig.pie ?? DEFAULT_EDITOR_STATE.pie;
     const jsonSeriesStyleLoaded = parseJsonSeriesStyle(data.jsonSeriesStyle as string);
     const jsonSeriesStyle = Object.fromEntries(
         Object.entries(jsonSeriesStyleLoaded).map(([name, m]) => [
@@ -473,20 +447,12 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
             { ...m, snippets: normalizeSeriesSnippets(family, chartType, m) },
         ]),
     );
-    // Component-section activations (ADR-0044): same load-time prune + keep-only heal as every
-    // other level — the former chart-level scaffold ids (title-scaffold etc.) drop silently.
-    // The radar raw (ADR-0045) joins the same heal; its catalog lives only in the radar family,
-    // but the blob rides regardless (switching away and back preserves it).
-    const titleSnippetsLoaded =
-        healSectionSnippets(TITLE_TEMPLATES, chartConfig.titleRaw, chartConfig.titleSnippets) ?? [];
-    const legendSnippetsLoaded =
-        healSectionSnippets(LEGEND_TEMPLATES, chartConfig.legendRaw, chartConfig.legendSnippets) ?? [];
-    const tooltipSnippetsLoaded =
-        healSectionSnippets(TOOLTIP_TEMPLATES, chartConfig.tooltipRaw, chartConfig.tooltipSnippets) ?? [];
-    const radarSnippetsLoaded =
-        healSectionSnippets(RADAR_TEMPLATES, chartConfig.radarRaw, chartConfig.radarSnippets) ?? [];
+    // Component-section + pie activations heal in the registry's single load pass (ADR-0047,
+    // rawLevels.ts): same load-time prune + keep-only heal as before — the former chart-level
+    // scaffold ids (title-scaffold etc.) drop silently; the radar raw (ADR-0045) rides the
+    // chartConfig blob regardless of family (switching away and back preserves it).
 
-    return {
+    const state: EditorState = {
         ...DEFAULT_EDITOR_STATE,
         chartType,
         mode,
@@ -534,16 +500,20 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         visualMap: vm,
         toolbox: decodeToolboxConfig(data.toolboxConfig as string),
         radarRaw: chartConfig.radarRaw ?? '',
-        radarSnippets: radarSnippetsLoaded,
+        radarSnippets: chartConfig.radarSnippets ?? [],
         titleRaw: chartConfig.titleRaw ?? '',
-        titleSnippets: titleSnippetsLoaded,
+        titleSnippets: chartConfig.titleSnippets ?? [],
         legendRaw: chartConfig.legendRaw ?? '',
-        legendSnippets: legendSnippetsLoaded,
+        legendSnippets: chartConfig.legendSnippets ?? [],
         tooltipRaw: chartConfig.tooltipRaw ?? '',
-        tooltipSnippets: tooltipSnippetsLoaded,
+        tooltipSnippets: chartConfig.tooltipSnippets ?? [],
         jsonSeriesStyle,
         jsonHidden: parseJsonHidden(data.jsonHidden as string),
     };
+    // ADR-0047: the single load-side heal pass — every scalar level's prune + keep-only heal
+    // in one in-place sweep over the freshly constructed (still unhealed) state.
+    healLoadLevels(state);
+    return state;
 };
 
 /**
@@ -590,21 +560,13 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         }));
     }
 
-    // ADR-0042 Apply-time prunes + addendum heal: the whole-pie activations to the pie catalog,
-    // the JSON-mode overlay entries to their slot catalogs (decision 9 covers the JSON-mode
-    // series cards). Between a family switch and Apply the stale ids stay in the working copy
-    // (the stranded keys render nothing — verified against echarts) and the actual prune rides
-    // Apply, mirroring the bound-OID drop. The heal then also drops activations whose template
-    // has no leaf path left in the raw text — the persisted blob never carries a badge its
-    // content cannot back.
-    // Component-section activations heal against their raws at Apply too (ADR-0042 addendum);
-    // the radar raw (ADR-0045) rides the chartConfig blob regardless of family — it only takes
-    // effect in the radar family, so a switch away and back preserves it.
-    const titleSnippetsSaved = healSectionSnippets(TITLE_TEMPLATES, state.titleRaw, state.titleSnippets);
-    const legendSnippetsSaved = healSectionSnippets(LEGEND_TEMPLATES, state.legendRaw, state.legendSnippets);
-    const tooltipSnippetsSaved = healSectionSnippets(TOOLTIP_TEMPLATES, state.tooltipRaw, state.tooltipSnippets);
-    const radarSnippetsSaved = healSectionSnippets(RADAR_TEMPLATES, state.radarRaw, state.radarSnippets);
-    const pieSnippets = healedIds(SERIES_TEMPLATES.pie, state.pie.snippets ?? [], state.pie.raw);
+    // ADR-0042 Apply-time prunes + addendum heal — the registry (ADR-0047, rawLevels.ts) owns
+    // the SCALAR levels now: it heals the working copy's pairs into the chartConfig draft
+    // (pie rides unconditionally, the sections blob-lean) without rewriting the state — between
+    // a family switch and Apply the stale ids deliberately stay in the working copy (the
+    // stranded keys render nothing — verified against echarts), the actual prune rides Apply.
+    const chartConfigDraft: Record<string, unknown> = { gauge: state.gauge, radar: state.radar };
+    healSaveLevels(state, { chartConfig: chartConfigDraft });
     const yAxesHealed = state.yAxes.map(a => ({
         ...a,
         snippets: a.snippets?.length ? healedIds(AXIS_TEMPLATES, a.snippets, a.raw) : a.snippets,
@@ -658,22 +620,9 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         visualMapColors: state.visualMap.colors,
         // blobs
         seriesConfig: encodeBlob(JSON.stringify(metaBlob)),
-        chartConfig: encodeBlob(
-            JSON.stringify({
-                gauge: state.gauge,
-                radar: state.radar,
-                pie: { ...state.pie, snippets: pieSnippets.length ? pieSnippets : undefined },
-                // Component-section raws + healed activations (ADR-0044/0045) — only when set.
-                ...(state.titleRaw ? { titleRaw: state.titleRaw } : {}),
-                ...(titleSnippetsSaved ? { titleSnippets: titleSnippetsSaved } : {}),
-                ...(state.legendRaw ? { legendRaw: state.legendRaw } : {}),
-                ...(legendSnippetsSaved ? { legendSnippets: legendSnippetsSaved } : {}),
-                ...(state.tooltipRaw ? { tooltipRaw: state.tooltipRaw } : {}),
-                ...(tooltipSnippetsSaved ? { tooltipSnippets: tooltipSnippetsSaved } : {}),
-                ...(state.radarRaw ? { radarRaw: state.radarRaw } : {}),
-                ...(radarSnippetsSaved ? { radarSnippets: radarSnippetsSaved } : {}),
-            }),
-        ),
+        // The registry-filled draft (ADR-0047): gauge/radar seed it, the scalar raw levels'
+        // fragments heal into it — pie unconditionally, the sections blob-lean.
+        chartConfig: encodeBlob(JSON.stringify(chartConfigDraft)),
         toolboxConfig: encodeBlob(JSON.stringify(state.toolbox)),
         markLines: encodeBlob(JSON.stringify(state.markLines)),
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),

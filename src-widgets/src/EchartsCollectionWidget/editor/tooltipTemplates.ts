@@ -16,6 +16,8 @@
  * finally have their companion styles), `handle` stays out (exotic), `decoration` stays out
  * (html renderMode only), functions stay out (not JSON-expressible).
  */
+import { defineCatalog } from './catalog';
+
 /** Tooltip-template grouping (rendered as menu section headers; order = {@link TOOLTIP_CATEGORY_ORDER}). */
 export type TooltipTemplateCategory = 'textStyle' | 'frame' | 'behavior' | 'axisPointer' | 'pointerLabel';
 
@@ -108,8 +110,8 @@ export const TOOLTIP_TEMPLATES: TooltipTemplate[] = [
 ];
 
 /** The Tooltip section's catalog bundle — structural, satisfies the RawJsonSection catalog prop. */
-export const TOOLTIP_CATALOG = {
+export const TOOLTIP_CATALOG = defineCatalog({
     templates: TOOLTIP_TEMPLATES,
     categoryOrder: TOOLTIP_CATEGORY_ORDER,
-    categoryI18n: TOOLTIP_CATEGORY_I18N as Record<string, string>,
-};
+    categoryI18n: TOOLTIP_CATEGORY_I18N,
+});

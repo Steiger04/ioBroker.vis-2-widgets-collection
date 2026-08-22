@@ -17,6 +17,8 @@
  * (link/target/triggerEvent/silent/z/show). Deliberately still out (pathologic for a vis
  * dashboard): `rich` (needs a formatter to pair), `decoration` (html renderMode only).
  */
+import { defineCatalog } from './catalog';
+
 /** Title-template grouping (rendered as menu section headers; order = {@link TITLE_CATEGORY_ORDER}). */
 export type TitleTemplateCategory = 'textStyle' | 'subtextStyle' | 'frame' | 'behavior';
 
@@ -75,8 +77,8 @@ export const TITLE_TEMPLATES: TitleTemplate[] = [
 ];
 
 /** The Title section's catalog bundle — structural, satisfies the RawJsonSection catalog prop. */
-export const TITLE_CATALOG = {
+export const TITLE_CATALOG = defineCatalog({
     templates: TITLE_TEMPLATES,
     categoryOrder: TITLE_CATEGORY_ORDER,
-    categoryI18n: TITLE_CATEGORY_I18N as Record<string, string>,
-};
+    categoryI18n: TITLE_CATEGORY_I18N,
+});

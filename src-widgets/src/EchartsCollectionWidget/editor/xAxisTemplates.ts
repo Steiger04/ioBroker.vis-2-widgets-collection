@@ -26,7 +26,8 @@
  * Theme-neutral payloads (ADR-0037): no light-mode colour hardcodes — splitArea bands inherit
  * the theme; the axisPointer label keeps the Y precedent's #fff chip contrast.
  */
-import { AXIS_CATEGORY_I18N, AXIS_CATEGORY_ORDER, type AxisTemplate, type AxisTemplateCatalog } from './axisTemplates';
+import { AXIS_CATEGORY_I18N, AXIS_CATEGORY_ORDER, type AxisTemplate } from './axisTemplates';
+import { defineCatalog } from './catalog';
 
 export const X_AXIS_TEMPLATES: AxisTemplate[] = [
     // ── name — the axis-title font group ────────────────────────────────
@@ -151,8 +152,8 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
 ];
 
 /** The X-Karte's catalog bundle — the X entries over the shared category chrome. */
-export const X_AXIS_CATALOG: AxisTemplateCatalog = {
+export const X_AXIS_CATALOG = defineCatalog({
     templates: X_AXIS_TEMPLATES,
     categoryOrder: AXIS_CATEGORY_ORDER,
     categoryI18n: AXIS_CATEGORY_I18N,
-};
+});

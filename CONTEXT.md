@@ -152,7 +152,7 @@ The chart-wide Advanced-JSON preset concept (v4, ADR-0014) — wound down in sta
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Section raw**:
-The per-section echarts-JSON escape hatch family (ADR-0037 axis raw → ADR-0037 addendum X-Karte → ADR-0044 title/legend/tooltip → ADR-0045 radar): a raw object on the section that owns the component, deep-merged UNDER that component's builder output — the GUI wins every collision, every builder-uncovered key merges through. One anatomy for all hosts (menu + plain chips + validity); the activation follows the text (ADR-0042 addendum).
+The per-section echarts-JSON escape hatch family (ADR-0037 axis raw → ADR-0037 addendum X-Karte → ADR-0044 title/legend/tooltip → ADR-0045 radar): a raw object on the section that owns the component, deep-merged UNDER that component's builder output — the GUI wins every collision, every builder-uncovered key merges through. One anatomy for all hosts (menu + plain chips + validity); the activation follows the text (ADR-0042 addendum). The STATE side of every raw level (load/save heal, prune, blob encode — scalar levels first, per-item lift to follow) is the **Raw-Level-Registry** (`editor/rawLevels.ts`, ADR-0047) — a level is a registry entry owning placement only, plus its catalog bundle via `defineCatalog` (`editor/catalog.ts`).
 _Avoid_: Advanced JSON (that is the chart-level U), component JSON (too generic)
 
 **Series raw**:

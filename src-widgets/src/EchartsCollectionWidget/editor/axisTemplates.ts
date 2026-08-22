@@ -28,6 +28,8 @@
  * are translated. Distinct from the per-series Series templates (seriesTemplates.ts) and the
  * component-section catalogs (title/legend/tooltip/radar templates).
  */
+
+import { defineCatalog } from './catalog';
 /** Axis-template grouping (rendered as menu section headers; order = {@link AXIS_CATEGORY_ORDER}). */
 export type AxisTemplateCategory =
     | 'name'
@@ -79,15 +81,11 @@ export interface AxisTemplate {
 }
 
 /**
- * The bundled catalog triple a raw-override host hands its section (ADR-0037 addendum): one
- * object instead of three travelling props — the Y cards pass {@link AXIS_CATALOG}, the X-Karte
- * its own bundle over the shared category chrome.
+ * The bundled catalog triple a raw-override host hands its section (ADR-0037 addendum; bundle
+ * anatomy unified into `defineCatalog`, ADR-0047): one object instead of three travelling
+ * props — the Y cards pass {@link AXIS_CATALOG}, the X-Karte its own bundle over the shared
+ * category chrome.
  */
-export interface AxisTemplateCatalog {
-    templates: readonly AxisTemplate[];
-    categoryOrder: readonly AxisTemplateCategory[];
-    categoryI18n: Record<AxisTemplateCategory, string>;
-}
 
 export const AXIS_TEMPLATES: AxisTemplate[] = [
     // ── name — the axis-title group ─────────────────────────────────────
@@ -213,8 +211,8 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
 ];
 
 /** The Y cards' catalog bundle (declared after its parts — const initialisers are not hoisted). */
-export const AXIS_CATALOG: AxisTemplateCatalog = {
+export const AXIS_CATALOG = defineCatalog({
     templates: AXIS_TEMPLATES,
     categoryOrder: AXIS_CATEGORY_ORDER,
     categoryI18n: AXIS_CATEGORY_I18N,
-};
+});

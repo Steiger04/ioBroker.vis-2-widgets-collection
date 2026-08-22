@@ -16,6 +16,8 @@
  * the inner textStyle frame keys. Deliberately out (pathologic): `pageIcons` SVG paths,
  * `formatter` as a FUNCTION (string templates are expressible), `rich`.
  */
+import { defineCatalog } from './catalog';
+
 /** Legend-template grouping (rendered as menu section headers; order = {@link LEGEND_CATEGORY_ORDER}). */
 export type LegendTemplateCategory =
     | 'textStyle'
@@ -119,8 +121,8 @@ export const LEGEND_TEMPLATES: LegendTemplate[] = [
 ];
 
 /** The Legend section's catalog bundle — structural, satisfies the RawJsonSection catalog prop. */
-export const LEGEND_CATALOG = {
+export const LEGEND_CATALOG = defineCatalog({
     templates: LEGEND_TEMPLATES,
     categoryOrder: LEGEND_CATEGORY_ORDER,
-    categoryI18n: LEGEND_CATEGORY_I18N as Record<string, string>,
-};
+    categoryI18n: LEGEND_CATEGORY_I18N,
+});

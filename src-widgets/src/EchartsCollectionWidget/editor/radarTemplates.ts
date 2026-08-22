@@ -17,6 +17,8 @@
  * The `axisName` label-frame keys follow the LabelOption/TextCommon family, completed after the
  * X-splitLine precedent (47a090b).
  */
+import { defineCatalog } from './catalog';
+
 /** Radar-template grouping (rendered as menu section headers; order = {@link RADAR_CATEGORY_ORDER}). */
 export type RadarTemplateCategory = 'splitArea' | 'axisName';
 
@@ -61,8 +63,8 @@ export const RADAR_TEMPLATES: RadarTemplate[] = [
 ];
 
 /** The Radar section's catalog bundle — structural, satisfies the RawJsonSection catalog prop. */
-export const RADAR_CATALOG = {
+export const RADAR_CATALOG = defineCatalog({
     templates: RADAR_TEMPLATES,
     categoryOrder: RADAR_CATEGORY_ORDER,
-    categoryI18n: RADAR_CATEGORY_I18N as Record<string, string>,
-};
+    categoryI18n: RADAR_CATEGORY_I18N,
+});

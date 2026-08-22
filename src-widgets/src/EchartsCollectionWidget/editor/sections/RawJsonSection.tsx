@@ -17,16 +17,10 @@ import { Box, Button, Collapse, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
 import JsonEditor from '../JsonEditor';
+import type { RawTemplateCatalog } from '../catalog';
 import { parseRawObject } from '../snippetComposition';
 import SnippetChips, { activeSnippetEntries, useSnippetActions } from './SnippetChips';
 import TemplateMenu from './TemplateMenu';
-
-/** The catalog bundle a raw-JSON section renders — structural, so every section catalog satisfies it. */
-export interface RawTemplateCatalog {
-    templates: readonly { id: string; category: string; label: string; json: string }[];
-    categoryOrder: readonly string[];
-    categoryI18n: Record<string, string>;
-}
 
 const RawJsonSection: FC<{
     raw: string | undefined;
