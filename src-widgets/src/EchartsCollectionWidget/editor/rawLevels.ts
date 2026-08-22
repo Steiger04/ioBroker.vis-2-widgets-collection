@@ -164,10 +164,16 @@ const pieLevel: RawLevelEntry = {
             raw: state.pie.raw,
             ids: state.pie.snippets,
             templates: SERIES_TEMPLATES.pie,
-            // The pie fragment always rides (family-free); empty activations go undefined-lean
-            // (and the raw key stays spread-in, even when '').
+            // The pie fragment always rides (family-free), blob-lean like the flat sections
+            // (follow-up decision 2026-08-22): the raw key rides only when set — the former
+            // `raw: ''` husk is gone; empty activations go undefined-lean.
             commitHealed: healed => {
-                drafts.chartConfig.pie = { ...state.pie, snippets: healed?.length ? healed : undefined };
+                const fragment: Record<string, unknown> = { ...state.pie };
+                if (!state.pie.raw) {
+                    fragment.raw = undefined;
+                }
+                fragment.snippets = healed?.length ? healed : undefined;
+                drafts.chartConfig.pie = fragment;
             },
         },
     ],

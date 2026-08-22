@@ -151,15 +151,16 @@ const LEVELS: LevelAccess[] = [
         raw: 'radarRaw',
         snippets: 'radarSnippets',
     }),
-    // pie — the scalar level nested in the chartConfig blob's pie config (its raw key rides
-    // even when empty: `{ ...state.pie }` spreads `raw: ''` — pinned as-is, ADR-0047 pure refactor).
+    // pie — the scalar level nested in the chartConfig blob's pie config. Since the follow-up
+    // decision 2026-08-22 its fragment is blob-lean like the flat sections: an empty raw no
+    // longer rides as a `raw: ''` husk.
     {
         id: 'pie',
         validId: 'pie-itemstyle',
         keepRaw: '{ "itemStyle": { "opacity": 0.5 } }',
         idsAfterDrop: [],
         idsWhenAbsent: undefined,
-        rawWhenEmptySaved: '',
+        rawWhenEmptySaved: undefined,
         savedIdsAfterDrop: undefined,
         store: (data, raw, ids) => {
             const pie: Cfg = {};
@@ -297,7 +298,7 @@ describe('raw-level save characterization (ADR-0047 — the Apply-time heal, ind
         expect(level.saved(saveEditorState(state)).ids).toEqual(level.savedIdsAfterDrop);
     });
 
-    it.each(LEVELS)('$id — empty state saves lean (flat keys omitted; nested items keep their raw: "" husk)', level => {
+    it.each(LEVELS)('$id — empty state saves lean (pie too; per-item items keep their raw: "" husk)', level => {
         const state = { ...DEFAULT_EDITOR_STATE };
         level.setState(state, '', undefined);
         const saved = level.saved(saveEditorState(state));
