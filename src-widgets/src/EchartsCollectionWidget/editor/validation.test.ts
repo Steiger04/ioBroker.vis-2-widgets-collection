@@ -178,7 +178,7 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
         // (The classic xAxis-snippet case moved to the X-Karte's own raw with the ADR-0037
         // addendum; the chart catalog's family-stale case is radar-only ids on cartesian.)
         const n = familySwitchSnippetLoss(
-            st({ chartType: 'line', chartSnippets: ['radar-splitarea', 'title-scaffold'] }),
+            st({ chartType: 'line', chartSnippets: ['radar-splitarea', 'toolbox-scaffold'] }),
         );
         expect(n).toBe(1);
     });
@@ -220,7 +220,7 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
         const n = familySwitchSnippetLoss(
             st({
                 chartType: 'line',
-                chartSnippets: ['title-scaffold'],
+                chartSnippets: ['toolbox-scaffold'],
                 series: [{ oid: 'a', name: '', snippets: ['line-sampling'] }],
             }),
         );

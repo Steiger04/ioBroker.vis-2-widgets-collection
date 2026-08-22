@@ -27,6 +27,8 @@ import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../contro
 import { fontStyleToSelectValue, parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
+import { LEGEND_CATALOG } from '../legendTemplates';
+import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface LegendSectionProps {
@@ -235,6 +237,16 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                     />
                 </FieldGrid>
             </SubGroup>
+            {/* The Legend section's own raw escape hatch (ADR-0044) — deep-merged UNDER
+                buildLegend's output, the GUI wins every collision. */}
+            <RawJsonSection
+                raw={state.legendRaw}
+                onChange={v => set({ legendRaw: v || '' })}
+                catalog={LEGEND_CATALOG}
+                snippets={state.legendSnippets}
+                placeholder={'{\n  "selector": true\n}'}
+                onCommit={r => set({ legendRaw: r.text || '', legendSnippets: r.ids })}
+            />
         </Box>
     );
 };

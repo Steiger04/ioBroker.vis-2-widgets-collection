@@ -27,6 +27,7 @@ import type {
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
+import { applyRawOverride } from './utils/mergeOption';
 import type { PresentationConfig } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -85,6 +86,8 @@ export interface TitleOptionInput {
     fontWeight?: EchartsFontWeight | null;
     /** Title font-style override (ADR-0029); `null` = inherit. */
     fontStyle?: EchartsFontStyle | null;
+    /** The Title section's raw escape hatch (ADR-0044) — folded UNDER the built title. */
+    raw?: string;
 }
 
 /**
@@ -116,6 +119,10 @@ export const buildTitleOption = (merged: Record<string, unknown>, opts: TitleOpt
         ...titlePlacement(opts.titlePos, opts.dx, opts.dy),
         ...(Object.keys(textStyleOverride).length ? { textStyle: { ...existingTextStyle, ...textStyleOverride } } : {}),
     };
+    // The Title section's raw escape hatch (ADR-0044): deep-merged UNDER the built title — the
+    // GUI wins every collision; free keys (frame, behaviour, subtitle) merge through
+    // (applyRawOverride short-circuits empty text).
+    merged.title = applyRawOverride(merged.title as Record<string, unknown>, opts.raw);
 };
 
 /**
@@ -164,17 +171,29 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
 const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
-/** Decode the base64 family-config blob into its gauge/radar/pie parts. */
-export const decodeChartConfig = (
-    raw: string | undefined | null,
-): { gauge?: EchartsGaugeConfig; radar?: EchartsRadarConfig; pie?: EchartsPieConfig } => {
+/** The decoded `chartConfig` blob: family configs + the component-section raws (ADR-0044). */
+export interface ChartConfigBlob {
+    gauge?: EchartsGaugeConfig;
+    radar?: EchartsRadarConfig;
+    pie?: EchartsPieConfig;
+    /** Title / Legend / Tooltip section raws + template activations (ADR-0044). */
+    titleRaw?: string;
+    titleSnippets?: string[];
+    legendRaw?: string;
+    legendSnippets?: string[];
+    tooltipRaw?: string;
+    tooltipSnippets?: string[];
+}
+
+/** Decode the base64 family-config blob into its gauge/radar/pie parts (+ section raws). */
+export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBlob => {
     if (!raw) {
         return {};
     }
     try {
         const parsed = JSON.parse(decodeBlob(raw));
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            return parsed as { gauge?: EchartsGaugeConfig; radar?: EchartsRadarConfig; pie?: EchartsPieConfig };
+            return parsed as ChartConfigBlob;
         }
     } catch {
         /* ignore — fall back to empty */
@@ -316,7 +335,7 @@ export const toPresentationConfig = (opts: {
     src: Record<string, unknown>;
     palette: string[];
     family: EchartsChartFamily;
-    chartConfig?: { gauge?: EchartsGaugeConfig; radar?: EchartsRadarConfig; pie?: EchartsPieConfig };
+    chartConfig?: ChartConfigBlob;
     markLines?: EchartsMarkLine[];
     /** Decoded per-axis config (ADR-0012). When empty, axis 0 is synthesised from legacy scalars. */
     yAxes?: EchartsAxisConfig[];
@@ -374,6 +393,10 @@ export const toPresentationConfig = (opts: {
         tooltipTemplate: typeof s.tooltipTemplate === 'string' ? s.tooltipTemplate : undefined,
         tooltipUnits: typeof s.tooltipUnits === 'string' ? s.tooltipUnits : undefined,
         tooltipDecimals: num(s.tooltipDecimals),
+        // Component-section raws (ADR-0044) ride the chartConfig blob.
+        tooltipRaw: chartConfig.tooltipRaw,
+        legendRaw: chartConfig.legendRaw,
+        titleRaw: chartConfig.titleRaw,
         animation: bool(s.animation, true),
         animationDuration: num(s.animationDuration) ?? 600,
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,
@@ -505,5 +528,7 @@ export const buildLegend = (p: PresentationConfig, data: string[]): Record<strin
         legend.padding = cfg.padding;
     }
 
-    return legend;
+    // The Legend section's raw escape hatch (ADR-0044): deep-merged UNDER the built legend —
+    // the GUI wins every collision; free keys (selector, pager, marker styles) merge through.
+    return applyRawOverride(legend, p.legendRaw);
 };

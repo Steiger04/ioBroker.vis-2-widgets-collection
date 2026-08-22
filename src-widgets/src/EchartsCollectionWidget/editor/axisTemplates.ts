@@ -218,21 +218,3 @@ export const AXIS_CATALOG: AxisTemplateCatalog = {
     categoryOrder: AXIS_CATEGORY_ORDER,
     categoryI18n: AXIS_CATEGORY_I18N,
 };
-
-/**
- * Parse an axis raw-override text into a plain object (empty text → `{}`, invalid → `null`).
- * Shared by the axis raw section (validity chip) — kept here so the catalog module owns its
- * payload shape end to end.
- */
-export const parseRawObject = (text: string): Record<string, unknown> | null => {
-    const trimmed = (text ?? '').trim();
-    if (!trimmed) {
-        return {};
-    }
-    try {
-        const v = JSON.parse(trimmed);
-        return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
-    } catch {
-        return null;
-    }
-};

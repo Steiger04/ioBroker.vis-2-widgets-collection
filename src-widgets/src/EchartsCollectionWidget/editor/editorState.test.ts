@@ -17,6 +17,7 @@ import { CHART_TEMPLATES } from './advancedJsonTemplates';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
+import { TITLE_TEMPLATES } from './titleTemplates';
 import type { EditorState } from './editorState';
 import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
 
@@ -225,28 +226,30 @@ describe('editorState — ADR-0042 snippet activations', () => {
     // (the load path heals ids whose template has no leaf path left in the text), so every
     // fixture below carries the composition the UI toggle would have written.
     it('chartSnippets survive the round-trip in selection order', () => {
+        // (ADR-0044 slimmed the chart catalog to toolbox + radar — on a cartesian target the
+        // toolbox scaffold is the only all-family entry left.)
         const state = {
             ...baseState(),
-            userText: chartText(['title-scaffold', 'tooltip-cross']),
-            chartSnippets: ['title-scaffold', 'tooltip-cross'],
+            userText: chartText(['toolbox-scaffold']),
+            chartSnippets: ['toolbox-scaffold'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['title-scaffold', 'tooltip-cross']);
+        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
     });
 
     it('family-invalid chart activations are pruned on Apply (radar snippet on a cartesian target)', () => {
         // The widget was radar (both activations + their composition), then switched to line:
-        // the Apply prune drops the radar-only id, the heal keeps title-scaffold (its paths
+        // the Apply prune drops the radar-only id, the heal keeps toolbox-scaffold (its paths
         // stand in the family-agnostic text). (The classic xAxis-snippet case moved to the
         // X-Karte's own raw with the ADR-0037 addendum — its heal has its own test.)
         const state = {
             ...baseState(),
             chartType: 'line' as const,
-            userText: chartText(['radar-splitarea', 'title-scaffold']),
-            chartSnippets: ['radar-splitarea', 'title-scaffold'],
+            userText: chartText(['radar-splitarea', 'toolbox-scaffold']),
+            chartSnippets: ['radar-splitarea', 'toolbox-scaffold'],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.chartSnippets).toEqual(['title-scaffold']);
+        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
     });
 
     it('series activations survive per-slot and stale slot ids are pruned on Apply (line → pie slice)', () => {
@@ -344,12 +347,30 @@ describe('editorState — ADR-0042 snippet activations', () => {
         const state = {
             ...baseState(),
             userText: '',
-            chartSnippets: ['title-scaffold'],
+            chartSnippets: ['toolbox-scaffold'],
             series: [{ oid: 'a', name: 'A', raw: '', snippets: ['line-sampling'] }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.chartSnippets).toEqual([]);
         expect(reloaded.series[0]?.snippets).toBeUndefined();
+    });
+
+    it('component-section raws + activations ride the chartConfig blob and heal (ADR-0044)', () => {
+        const raw = JSON.stringify(composeActiveSnippets(TITLE_TEMPLATES, ['frame']));
+        const state = {
+            ...baseState(),
+            titleRaw: raw,
+            titleSnippets: ['frame'],
+            legendRaw: '',
+            legendSnippets: [],
+            tooltipRaw: '{ "confine": true }',
+            tooltipSnippets: ['nope'], // unknown/retired id — prunes at load, never re-adds
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.titleRaw).toBe(raw);
+        expect(reloaded.titleSnippets).toEqual(['frame']);
+        expect(reloaded.tooltipRaw).toBe('{ "confine": true }');
+        expect(reloaded.tooltipSnippets).toEqual([]);
     });
 });
 
@@ -360,8 +381,8 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
         // Simulate a widget saved before the ADR-0043 catalog rework: the persisted blobs carry
         // retired ids (saveEditorState would prune them — the LOAD path must too, silently) —
         // riding with the composed raw text of the ids that are supposed to SURVIVE.
-        patch.chartOverrides = encodeBlob(chartText(['title-scaffold']));
-        patch.chartSnippets = encodeBlob(JSON.stringify(['pie-labelpos', 'title-scaffold']));
+        patch.chartOverrides = encodeBlob(chartText(['toolbox-scaffold']));
+        patch.chartSnippets = encodeBlob(JSON.stringify(['pie-labelpos', 'toolbox-scaffold']));
         patch.seriesConfig = encodeBlob(
             JSON.stringify([
                 {
@@ -372,7 +393,7 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
             ]),
         );
         const reloaded = loadEditorState(patch);
-        expect(reloaded.chartSnippets).toEqual(['title-scaffold']);
+        expect(reloaded.chartSnippets).toEqual(['toolbox-scaffold']);
         expect(reloaded.series[0]?.snippets).toEqual(['line-sampling']);
     });
 

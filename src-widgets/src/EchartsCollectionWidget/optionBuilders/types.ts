@@ -45,6 +45,12 @@ export interface PresentationConfig {
     tooltipTemplate?: string;
     tooltipUnits?: string;
     tooltipDecimals?: number;
+    /** The Tooltip section's raw escape hatch (ADR-0044) — folded UNDER `buildTooltip`'s output. */
+    tooltipRaw?: string;
+    /** The Legend section's raw escape hatch (ADR-0044) — folded UNDER `buildLegend`'s output. */
+    legendRaw?: string;
+    /** The Title section's raw escape hatch (ADR-0044) — folded UNDER `buildTitleOption`'s output. */
+    titleRaw?: string;
     animation: boolean;
     animationDuration: number;
     /** echarts animation easing; emitted only when set (empty = echarts default). */

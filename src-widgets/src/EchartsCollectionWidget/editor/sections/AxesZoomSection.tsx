@@ -52,7 +52,7 @@ import {
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../identity';
-import AxisRawOverride from './axes/AxisRawOverride';
+import RawJsonSection from './RawJsonSection';
 import { AXIS_CATALOG } from '../axisTemplates';
 import { X_AXIS_CATALOG } from '../xAxisTemplates';
 import { snippetPatch } from '../snippetComposition';
@@ -287,7 +287,7 @@ const XCard: FC<{
         {/* The X-Karte's own raw escape hatch (ADR-0037 addendum — X joins the axis anatomy):
             the same section the Y cards carry, fed by the X catalog (`xAxisTemplates.ts`);
             deep-merged UNDER the built entry, the card wins collisions. */}
-        <AxisRawOverride
+        <RawJsonSection
             raw={x.raw}
             onChange={v => onChange({ raw: v || undefined })}
             catalog={X_AXIS_CATALOG}
@@ -516,7 +516,7 @@ const AxisCard: FC<{
             {/* The per-axis raw escape hatch (ADR-0037): template menu + JSON editor. Deep-merged
                 UNDER the built entry — the card wins collisions; everything the builder does not
                 emit merges through. The activation follows the text (ADR-0042 addendum). */}
-            <AxisRawOverride
+            <RawJsonSection
                 raw={a.raw}
                 onChange={v => onChange({ raw: v || undefined })}
                 catalog={AXIS_CATALOG}

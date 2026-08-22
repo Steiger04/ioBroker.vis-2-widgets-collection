@@ -8,6 +8,7 @@
  * disables it. The units/decimals `valueFormatter` is a function living in G (built at runtime),
  * so it never round-trips through JSON — only U (the Advanced JSON) is JSON-only / function-free.
  */
+import { applyRawOverride } from '../utils/mergeOption';
 import type { PresentationConfig } from './types';
 
 /** echarts `valueFormatter`: append units + clamp decimals. */
@@ -23,18 +24,21 @@ const makeValueFormatter = (units?: string, decimals?: number): ((v: unknown) =>
 /**
  * Build the chart-wide tooltip option fragment.
  *
- * @param p - Chart-wide presentation (trigger / template / units / decimals).
+ * @param p - Chart-wide presentation (trigger / template / units / decimals + the section raw).
  * @returns `'none'` → `{ show: false }`; otherwise trigger + optional template formatter + units.
+ * The Tooltip section's raw escape hatch (ADR-0044) is folded UNDER the built entry — the GUI
+ * wins every collision; free keys (frame, behaviour, axisPointer) merge through.
  */
 export const buildTooltip = (p: PresentationConfig): Record<string, unknown> => {
-    if (p.tooltipTrigger === 'none') {
-        return { show: false };
-    }
-    return {
-        trigger: p.tooltipTrigger,
-        ...(p.tooltipTemplate ? { formatter: p.tooltipTemplate } : {}),
-        ...(p.tooltipUnits || p.tooltipDecimals !== undefined
-            ? { valueFormatter: makeValueFormatter(p.tooltipUnits, p.tooltipDecimals) }
-            : {}),
-    };
+    const entry: Record<string, unknown> =
+        p.tooltipTrigger === 'none'
+            ? { show: false }
+            : {
+                  trigger: p.tooltipTrigger,
+                  ...(p.tooltipTemplate ? { formatter: p.tooltipTemplate } : {}),
+                  ...(p.tooltipUnits || p.tooltipDecimals !== undefined
+                      ? { valueFormatter: makeValueFormatter(p.tooltipUnits, p.tooltipDecimals) }
+                      : {}),
+              };
+    return applyRawOverride(entry, p.tooltipRaw);
 };

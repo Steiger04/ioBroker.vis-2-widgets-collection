@@ -34,6 +34,9 @@ import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { keepSnippetIds, pruneSnippetIds, type SnippetTemplate } from './snippetComposition';
 import { CHART_TEMPLATES, chartTemplatesForFamily } from './advancedJsonTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
+import { TITLE_TEMPLATES } from './titleTemplates';
+import { LEGEND_TEMPLATES } from './legendTemplates';
+import { TOOLTIP_TEMPLATES } from './tooltipTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
@@ -149,6 +152,18 @@ export interface EditorState {
      * pruned to the family catalog on Apply.
      */
     chartSnippets: string[];
+    /** Title section raw (ADR-0044) — deep-merged UNDER buildTitleOption's output (GUI wins). */
+    titleRaw: string;
+    /** Ordered ACTIVE title-template ids (ADR-0042, riding the chartConfig blob). */
+    titleSnippets: string[];
+    /** Legend section raw (ADR-0044) — deep-merged UNDER buildLegend's output (GUI wins). */
+    legendRaw: string;
+    /** Ordered ACTIVE legend-template ids (ADR-0042, riding the chartConfig blob). */
+    legendSnippets: string[];
+    /** Tooltip section raw (ADR-0044) — deep-merged UNDER buildTooltip's output (GUI wins). */
+    tooltipRaw: string;
+    /** Ordered ACTIVE tooltip-template ids (ADR-0042, riding the chartConfig blob). */
+    tooltipSnippets: string[];
     /**
      * JSON-mode per-series style overlay, keyed by the payload series name (ADR-0011). Only
      * edited in json mode (the Series section renders one card per payload series); carried
@@ -212,6 +227,12 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     visualMap: { enabled: false, min: 0, max: 100, colors: '' },
     userText: '',
     chartSnippets: [],
+    titleRaw: '',
+    titleSnippets: [],
+    legendRaw: '',
+    legendSnippets: [],
+    tooltipRaw: '',
+    tooltipSnippets: [],
     jsonSeriesStyle: {},
     jsonHidden: [],
 };
@@ -273,6 +294,23 @@ const healXAxisSnippets = (x: EchartsXAxisConfig): EchartsXAxisConfig => {
     }
     const healed = healedIds(X_AXIS_TEMPLATES, x.snippets, x.raw);
     return healed.length ? { ...x, snippets: healed } : { ...x, snippets: undefined };
+};
+
+/**
+ * Heal one component section's activation list against its raw (ADR-0042 keep-only + catalog
+ *  prune — the badge never outlives its content, retired ids drop silently); `undefined` for an
+ *  empty result keeps the blob lean.
+ */
+const healSectionSnippets = (
+    templates: readonly SnippetTemplate[],
+    raw: string | undefined,
+    ids: string[] | undefined,
+): string[] | undefined => {
+    if (!ids?.length) {
+        return undefined;
+    }
+    const healed = healedIds(templates, ids, raw);
+    return healed.length ? healed : undefined;
 };
 
 /**
@@ -456,6 +494,14 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
             { ...m, snippets: normalizeSeriesSnippets(family, chartType, m) },
         ]),
     );
+    // Component-section activations (ADR-0044): same load-time prune + keep-only heal as every
+    // other level — the former chart-level scaffold ids (title-scaffold etc.) drop silently.
+    const titleSnippetsLoaded =
+        healSectionSnippets(TITLE_TEMPLATES, chartConfig.titleRaw, chartConfig.titleSnippets) ?? [];
+    const legendSnippetsLoaded =
+        healSectionSnippets(LEGEND_TEMPLATES, chartConfig.legendRaw, chartConfig.legendSnippets) ?? [];
+    const tooltipSnippetsLoaded =
+        healSectionSnippets(TOOLTIP_TEMPLATES, chartConfig.tooltipRaw, chartConfig.tooltipSnippets) ?? [];
 
     return {
         ...DEFAULT_EDITOR_STATE,
@@ -505,6 +551,12 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         visualMap: vm,
         userText,
         chartSnippets: chartSnippetsLoaded,
+        titleRaw: chartConfig.titleRaw ?? '',
+        titleSnippets: titleSnippetsLoaded,
+        legendRaw: chartConfig.legendRaw ?? '',
+        legendSnippets: legendSnippetsLoaded,
+        tooltipRaw: chartConfig.tooltipRaw ?? '',
+        tooltipSnippets: tooltipSnippetsLoaded,
         jsonSeriesStyle,
         jsonHidden: parseJsonHidden(data.jsonHidden as string),
     };
@@ -566,6 +618,10 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         chartTemplatesForFamily(family),
         keepSnippetIds(CHART_TEMPLATES, state.chartSnippets, state.userText),
     );
+    // Component-section activations heal against their raws at Apply too (ADR-0042 addendum).
+    const titleSnippetsSaved = healSectionSnippets(TITLE_TEMPLATES, state.titleRaw, state.titleSnippets);
+    const legendSnippetsSaved = healSectionSnippets(LEGEND_TEMPLATES, state.legendRaw, state.legendSnippets);
+    const tooltipSnippetsSaved = healSectionSnippets(TOOLTIP_TEMPLATES, state.tooltipRaw, state.tooltipSnippets);
     const pieSnippets = healedIds(SERIES_TEMPLATES.pie, state.pie.snippets ?? [], state.pie.raw);
     const yAxesHealed = state.yAxes.map(a => ({
         ...a,
@@ -625,6 +681,13 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
                 gauge: state.gauge,
                 radar: state.radar,
                 pie: { ...state.pie, snippets: pieSnippets.length ? pieSnippets : undefined },
+                // Component-section raws + healed activations (ADR-0044) — only when set.
+                ...(state.titleRaw ? { titleRaw: state.titleRaw } : {}),
+                ...(titleSnippetsSaved ? { titleSnippets: titleSnippetsSaved } : {}),
+                ...(state.legendRaw ? { legendRaw: state.legendRaw } : {}),
+                ...(legendSnippetsSaved ? { legendSnippets: legendSnippetsSaved } : {}),
+                ...(state.tooltipRaw ? { tooltipRaw: state.tooltipRaw } : {}),
+                ...(tooltipSnippetsSaved ? { tooltipSnippets: tooltipSnippetsSaved } : {}),
             }),
         ),
         chartOverrides: encodeBlob(state.userText),

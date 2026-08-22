@@ -28,91 +28,22 @@ describe('classifyUserKeys — non-managed / wholly-managed', () => {
     });
 });
 
-describe('classifyUserKeys — title (partially managed)', () => {
-    it('only NON-GUI subkeys → effective (the template-insert case)', () => {
-        const c = clsOf(
-            { title: { subtext: 'x', link: '', itemGap: 10, textStyle: { fontFamily: 'Inter' } } },
-            'title',
-        );
-        expect(c?.cls).toBe('effective');
-        expect(c?.managed).toEqual([]);
-    });
-
-    it('a non-object title value → ignored (wholly overridden by buildTitleOption)', () => {
+describe('classifyUserKeys — title/legend/tooltip (wholly managed since ADR-0044)', () => {
+    // Each of the three components is configured in its own section (carrying a raw escape
+    // hatch folded UNDER its builder); a U attempt is STRIPPED in mergeOptionForEcharts before
+    // the merge — no subkey ever merges through, so every value classifies ignored.
+    it('title (any subkeys, even wholly free ones) → ignored', () => {
+        expect(clsOf({ title: { subtext: 'x', itemGap: 10 } }, 'title')?.cls).toBe('ignored');
         expect(clsOf({ title: 'just a string' }, 'title')?.cls).toBe('ignored');
     });
 
-    it('title.text (GUI) alone → ignored', () => {
-        const c = clsOf({ title: { text: 'Hi' } }, 'title');
-        expect(c?.cls).toBe('ignored');
-        expect(c?.managed).toEqual(['text']);
+    it('legend (any subkeys) → ignored', () => {
+        expect(clsOf({ legend: { type: 'scroll', selector: true } }, 'legend')?.cls).toBe('ignored');
     });
 
-    it('mixed GUI + non-GUI subkeys → partial, lists the managed ones', () => {
-        const c = clsOf(
-            { title: { subtext: 'x', text: 'Hi', left: 10, textStyle: { fontFamily: 'Inter', color: '#f00' } } },
-            'title',
-        );
-        expect(c?.cls).toBe('partial');
-        expect(c?.managed.sort()).toEqual(['left', 'text', 'textStyle.color']);
-    });
-
-    it('textStyle.fontFamily is free but textStyle.color is managed → partial', () => {
-        const c = clsOf({ title: { textStyle: { fontFamily: 'Inter', color: '#f00' } } }, 'title');
-        expect(c?.cls).toBe('partial');
-        expect(c?.managed).toEqual(['textStyle.color']);
-    });
-});
-
-describe('classifyUserKeys — legend (partially managed)', () => {
-    it('only NON-GUI subkeys → effective', () => {
-        const c = clsOf({ legend: { type: 'scroll', selectedMode: true, selector: true, selected: {} } }, 'legend');
-        expect(c?.cls).toBe('effective');
-    });
-
-    it('legend.show + legend.data are GUI-owned → ignored when alone', () => {
-        const c = clsOf({ legend: { show: false, data: ['a'] } }, 'legend');
-        expect(c?.cls).toBe('ignored');
-        expect(c?.managed.sort()).toEqual(['data', 'show']);
-    });
-
-    it('mixed (icon + selector) → partial', () => {
-        const c = clsOf({ legend: { icon: 'circle', selector: true } }, 'legend');
-        expect(c?.cls).toBe('partial');
-        expect(c?.managed).toEqual(['icon']);
-    });
-});
-
-describe('classifyUserKeys — tooltip (partially managed, ADR-0032)', () => {
-    it('only NON-GUI subkeys → effective (the template-insert case)', () => {
-        const c = clsOf(
-            { tooltip: { axisPointer: { type: 'cross' }, backgroundColor: '#fff', padding: 5 } },
-            'tooltip',
-        );
-        expect(c?.cls).toBe('effective');
-        expect(c?.managed).toEqual([]);
-    });
-
-    it('a non-object tooltip value → ignored (wholly overridden by buildTooltip)', () => {
+    it('tooltip (any subkeys) → ignored', () => {
+        expect(clsOf({ tooltip: { axisPointer: { type: 'cross' }, padding: 5 } }, 'tooltip')?.cls).toBe('ignored');
         expect(clsOf({ tooltip: false }, 'tooltip')?.cls).toBe('ignored');
-    });
-
-    it('tooltip.trigger (GUI) alone → ignored', () => {
-        const c = clsOf({ tooltip: { trigger: 'axis' } }, 'tooltip');
-        expect(c?.cls).toBe('ignored');
-        expect(c?.managed).toEqual(['trigger']);
-    });
-
-    it('formatter + valueFormatter (both GUI) → ignored', () => {
-        const c = clsOf({ tooltip: { formatter: '{b}', valueFormatter: 'x' } }, 'tooltip');
-        expect(c?.cls).toBe('ignored');
-        expect(c?.managed.sort()).toEqual(['formatter', 'valueFormatter']);
-    });
-
-    it('mixed (trigger + axisPointer) → partial, lists trigger', () => {
-        const c = clsOf({ tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } } }, 'tooltip');
-        expect(c?.cls).toBe('partial');
-        expect(c?.managed).toEqual(['trigger']);
     });
 });
 

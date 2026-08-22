@@ -76,7 +76,17 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
                 palette,
                 themeTokens,
                 family,
-                chartConfig: { gauge: state.gauge, radar: state.radar, pie: state.pie },
+                // The section raws (ADR-0044) must ride along or the preview would silently
+                // drop legend/tooltip raw content the runtime folds (title flows via
+                // buildTitleOption's opts separately).
+                chartConfig: {
+                    gauge: state.gauge,
+                    radar: state.radar,
+                    pie: state.pie,
+                    titleRaw: state.titleRaw || undefined,
+                    legendRaw: state.legendRaw || undefined,
+                    tooltipRaw: state.tooltipRaw || undefined,
+                },
                 markLines: state.markLines,
                 yAxes: state.yAxes,
             }),
@@ -174,7 +184,8 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
 
         const merged = mergeOptionForEcharts(g, overrides, themeBase);
         const titleText = state.titleText.trim();
-        if (titleText) {
+        // A raw title (frame/behaviour/subtitle) applies even without title text (ADR-0044).
+        if (titleText || state.titleRaw) {
             buildTitleOption(merged, {
                 text: titleText,
                 titlePos: state.titlePos ?? 'topCenter',
@@ -184,6 +195,7 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
                 fontSize: state.titleFontSize,
                 fontWeight: state.titleWeight ?? null,
                 fontStyle: state.titleFontStyle ?? null,
+                raw: state.titleRaw,
             });
         }
         if (presentation.bgColor && presentation.bgColor !== 'transparent') {

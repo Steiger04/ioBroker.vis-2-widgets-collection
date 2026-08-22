@@ -57,8 +57,9 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeo
 /**
  * Parse raw-override text into a plain object. Empty text is the empty composition (nothing
  * authored); invalid or non-object text is `null` — the toggle guard that locks the menu.
+ * Public as the raw-section validity check (every host: axes, X, title/legend/tooltip).
  */
-const parseTextObject = (text: string): Record<string, unknown> | null => {
+export const parseRawObject = (text: string): Record<string, unknown> | null => {
     const trimmed = (text ?? '').trim();
     if (!trimmed) {
         return {};
@@ -70,6 +71,8 @@ const parseTextObject = (text: string): Record<string, unknown> | null => {
         return null;
     }
 };
+
+const parseTextObject = parseRawObject;
 
 /**
  * Flatten an object into dotted leaf paths: plain objects descended, arrays and primitives

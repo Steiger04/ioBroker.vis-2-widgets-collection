@@ -268,7 +268,8 @@ function EchartsCollection(): React.ReactElement {
         const merged = mergeOptionForEcharts(g, overrides, themeBase);
         // Live title text (may hold {oid.val} bindings vis-2 resolved) wins over any U title.text.
         const titleText = typeof data.titleText === 'string' ? data.titleText.trim() : '';
-        if (titleText) {
+        // A raw title (frame/behaviour/subtitle) applies even without title text (ADR-0044).
+        if (titleText || chartConfig.titleRaw) {
             buildTitleOption(merged, {
                 text: titleText,
                 titlePos: data.titlePos ?? 'topCenter',
@@ -278,6 +279,7 @@ function EchartsCollection(): React.ReactElement {
                 fontSize: typeof data.titleFontSize === 'number' ? data.titleFontSize : undefined,
                 fontWeight: data.titleWeight ?? null,
                 fontStyle: data.titleFontStyle ?? null,
+                raw: chartConfig.titleRaw,
             });
         }
         // Background colour (transparent default).
@@ -300,6 +302,7 @@ function EchartsCollection(): React.ReactElement {
         presentation,
         overrides,
         themeBase,
+        chartConfig.titleRaw,
     ]);
 
     const loading = (family === 'cartesian' || family === 'pie') && mode === 'history' && history.loading;

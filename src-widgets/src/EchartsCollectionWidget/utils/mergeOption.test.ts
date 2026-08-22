@@ -48,25 +48,28 @@ describe('mergeOptionForEcharts — data-wins force-back (ADR-0007)', () => {
         expect(series[0].name).toBe('Temperature');
     });
 
-    it('forces legend.data back to G but keeps U legend.top (chart-level styling)', () => {
+    it('a U legend is hard-ignored — even free subkeys never merge through (ADR-0044)', () => {
+        // The legend is configured in its own section (raw folded UNDER buildLegend); the U
+        // attempt is stripped BEFORE the merge, so G's data/placement stand untouched.
         const merged = mergeOptionForEcharts(G(), { legend: { data: ['evil'], top: 40 } }, THEME_BASE);
         const legend = merged.legend as Record<string, unknown>;
-        expect(legend.data).toEqual(['Temperature']); // forced back to G
-        expect(legend.top).toBe(40); // U styling preserved
+        expect(legend.data).toEqual(['Temperature']); // G
+        expect(legend.top).toBeUndefined(); // U did NOT merge through
     });
 });
 
 describe('mergeOptionForEcharts — presentation layering', () => {
-    it('GUI wins collisions with U on a GUI-owned key (tooltip trigger)', () => {
-        const merged = mergeOptionForEcharts(G(), { tooltip: { trigger: 'item' } }, THEME_BASE);
-        expect((merged.tooltip as Record<string, unknown>).trigger).toBe('axis'); // G wins (ADR-0007)
-    });
-
-    it('U supplements a presentation key the GUI does not own (tooltip backgroundColor)', () => {
-        const merged = mergeOptionForEcharts(G(), { tooltip: { backgroundColor: '#abc' } }, THEME_BASE);
+    it('a U tooltip is hard-ignored — even free subkeys never merge through (ADR-0044)', () => {
+        // The tooltip is configured in its own section (raw folded UNDER buildTooltip); the U
+        // attempt is stripped BEFORE the merge, so G's trigger stands and nothing supplements.
+        const merged = mergeOptionForEcharts(
+            G(),
+            { tooltip: { trigger: 'item', backgroundColor: '#abc' } },
+            THEME_BASE,
+        );
         const tooltip = merged.tooltip as Record<string, unknown>;
-        expect(tooltip.trigger).toBe('axis'); // G
-        expect(tooltip.backgroundColor).toBe('#abc'); // U supplement (G does not set it)
+        expect(tooltip.trigger).toBe('axis'); // G wins (ADR-0007)
+        expect(tooltip.backgroundColor).toBeUndefined(); // U did NOT merge through
     });
 
     it('theme base is the floor when no higher layer sets the key', () => {

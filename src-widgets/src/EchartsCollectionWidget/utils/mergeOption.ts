@@ -67,18 +67,23 @@ export const mergeOptionForEcharts = (
     userOverrides: Record<string, unknown>,
     themeBase: EChartsOption,
 ): EChartsOption => {
+    // Wholly GUI-owned components (ADR-0044): title/legend/tooltip are configured in their own
+    // sections — each carries a raw escape hatch folded UNDER its builder's output — so a U
+    // attempt is hard-ignored (deleted, not masked: it cannot merge through on any subkey).
+    const u = { ...userOverrides };
+    delete u.title;
+    delete u.legend;
+    delete u.tooltip;
+
     // GUI wins: U supplements the floor, G is applied on top so every GUI-owned key wins its
     // collisions with U (ADR-0007 "the GUI value wins").
-    const merged = deepMerge(
-        deepMerge(themeBase as Record<string, unknown>, userOverrides),
-        generated as Record<string, unknown>,
-    );
+    const merged = deepMerge(deepMerge(themeBase as Record<string, unknown>, u), generated as Record<string, unknown>);
 
     // Force-set the data-binding keys. `series[].data` is forced per index: U may contribute
     // per-series presentation keys the GUI does not set (deep-merged UNDER G so G wins), but the
     // data points always come from G — U can never inject, drop, rename, or rebind series.
     const gSeries = generated.series as ReadonlyArray<Record<string, unknown>> | undefined;
-    const uSeries = (userOverrides.series as ReadonlyArray<Record<string, unknown>> | undefined) ?? [];
+    const uSeries = (u.series as ReadonlyArray<Record<string, unknown>> | undefined) ?? [];
     if (gSeries !== undefined) {
         merged.series = gSeries.map((g, i) => {
             const entry = uSeries[i] ? deepMerge(uSeries[i], g) : { ...g };

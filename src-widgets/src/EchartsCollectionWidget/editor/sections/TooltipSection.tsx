@@ -13,6 +13,8 @@ import { Box } from '@mui/material';
 import Generic from '../../../Generic';
 import { FieldGrid, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
 import { familyOf } from '../../optionBuilder';
+import { TOOLTIP_CATALOG } from '../tooltipTemplates';
+import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
 interface TooltipSectionProps {
@@ -36,33 +38,45 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
           ];
 
     return (
-        <FieldGrid>
-            <LabeledSelect
-                label={Generic.t('echarts_tooltip_trigger')}
-                value={effectiveTrigger}
-                onChange={v => set({ tooltipTrigger: v as EditorState['tooltipTrigger'] })}
-                options={triggerOptions}
-            />
-            <NumberField
-                label={Generic.t('echarts_tooltip_decimals')}
-                value={state.tooltipDecimals}
-                onChange={v => set({ tooltipDecimals: v })}
-            />
-            <TextField2
-                label={Generic.t('echarts_tooltip_units')}
-                value={state.tooltipUnits}
-                onChange={v => set({ tooltipUnits: v })}
-                placeholder="°C / % / h"
-            />
-            <Box sx={{ gridColumn: '1 / -1' }}>
-                <TextField2
-                    label={Generic.t('echarts_tooltip_template')}
-                    value={state.tooltipTemplate}
-                    onChange={v => set({ tooltipTemplate: v })}
-                    placeholder="{b}: {c}"
+        <Box>
+            <FieldGrid>
+                <LabeledSelect
+                    label={Generic.t('echarts_tooltip_trigger')}
+                    value={effectiveTrigger}
+                    onChange={v => set({ tooltipTrigger: v as EditorState['tooltipTrigger'] })}
+                    options={triggerOptions}
                 />
-            </Box>
-        </FieldGrid>
+                <NumberField
+                    label={Generic.t('echarts_tooltip_decimals')}
+                    value={state.tooltipDecimals}
+                    onChange={v => set({ tooltipDecimals: v })}
+                />
+                <TextField2
+                    label={Generic.t('echarts_tooltip_units')}
+                    value={state.tooltipUnits}
+                    onChange={v => set({ tooltipUnits: v })}
+                    placeholder="°C / % / h"
+                />
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                    <TextField2
+                        label={Generic.t('echarts_tooltip_template')}
+                        value={state.tooltipTemplate}
+                        onChange={v => set({ tooltipTemplate: v })}
+                        placeholder="{b}: {c}"
+                    />
+                </Box>
+            </FieldGrid>
+            {/* The Tooltip section's own raw escape hatch (ADR-0044) — deep-merged UNDER
+                buildTooltip's output, the GUI wins every collision. */}
+            <RawJsonSection
+                raw={state.tooltipRaw}
+                onChange={v => set({ tooltipRaw: v || '' })}
+                catalog={TOOLTIP_CATALOG}
+                snippets={state.tooltipSnippets}
+                placeholder={'{\n  "axisPointer": { "type": "cross" }\n}'}
+                onCommit={r => set({ tooltipRaw: r.text || '', tooltipSnippets: r.ids })}
+            />
+        </Box>
     );
 };
 

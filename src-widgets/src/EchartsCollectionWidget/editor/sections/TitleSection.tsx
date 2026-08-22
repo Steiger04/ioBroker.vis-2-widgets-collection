@@ -23,6 +23,8 @@ import ColorField from '../colorFields';
 import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
 import { parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
 import { useEditorTheme } from '../useEditorTheme';
+import { TITLE_CATALOG } from '../titleTemplates';
+import RawJsonSection from './RawJsonSection';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
@@ -106,6 +108,16 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                     onChange={v => set({ titleDy: v })}
                 />
             </FieldGrid>
+            {/* The Title section's own raw escape hatch (ADR-0044) — deep-merged UNDER
+                buildTitleOption's output, the GUI wins every collision. */}
+            <RawJsonSection
+                raw={state.titleRaw}
+                onChange={v => set({ titleRaw: v || '' })}
+                catalog={TITLE_CATALOG}
+                snippets={state.titleSnippets}
+                placeholder={'{\n  "subtext": "Unit: kWh"\n}'}
+                onCommit={r => set({ titleRaw: r.text || '', titleSnippets: r.ids })}
+            />
         </Box>
     );
 };
