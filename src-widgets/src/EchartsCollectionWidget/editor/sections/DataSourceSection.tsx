@@ -17,9 +17,18 @@ import type { OidPickerCtx } from '../OidPicker';
 import { FieldGrid, FieldLabel, InfoBox, LabeledSelect, NumberField } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
+/**
+ * The data source section's field ownership (ADR-0049 slice) — the mode branch plus the
+ * history knobs (range/aggregate/count/refresh/null-gaps) and the JSON OID.
+ */
+export type DataSourceSlice = Pick<
+    EditorState,
+    'mode' | 'timeRange' | 'aggregate' | 'count' | 'refreshMs' | 'ignoreNull' | 'jsonOid'
+>;
+
 interface DataSourceSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: DataSourceSlice;
+    set: SetEditor<DataSourceSlice>;
     pickerCtx: OidPickerCtx;
 }
 
@@ -34,7 +43,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                     <LabeledSelect
                         label={Generic.t('echarts_time_range')}
                         value={state.timeRange}
-                        onChange={v => set({ timeRange: v as EditorState['timeRange'] })}
+                        onChange={v => set({ timeRange: v as DataSourceSlice['timeRange'] })}
                         options={[
                             ['24h', '24h'],
                             ['7d', '7d'],
@@ -44,7 +53,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                     <LabeledSelect
                         label={Generic.t('echarts_aggregate')}
                         value={state.aggregate}
-                        onChange={v => set({ aggregate: v as EditorState['aggregate'] })}
+                        onChange={v => set({ aggregate: v as DataSourceSlice['aggregate'] })}
                         options={[
                             ['average', 'average'],
                             ['minmax', 'minmax'],
@@ -70,7 +79,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                     <LabeledSelect
                         label={Generic.t('echarts_ignore_null')}
                         value={state.ignoreNull}
-                        onChange={v => set({ ignoreNull: v as EditorState['ignoreNull'] })}
+                        onChange={v => set({ ignoreNull: v as DataSourceSlice['ignoreNull'] })}
                         options={[
                             ['keep', Generic.t('echarts_ignore_null_keep')],
                             ['forward', Generic.t('echarts_ignore_null_forward')],

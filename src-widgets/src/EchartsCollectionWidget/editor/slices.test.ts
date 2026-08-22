@@ -18,7 +18,13 @@ import { describe, expectTypeOf, it } from 'vitest';
 import type { EditorState, SetEditor } from './editorState';
 import type { EditorThemeSource } from './useEditorTheme';
 import type { AxesZoomSlice } from './sections/AxesZoomSection';
+import type { BehaviorSlice } from './sections/BehaviorSection';
+import type { ColorsSlice } from './sections/ColorsSection';
+import type { DataSourceSlice } from './sections/DataSourceSection';
+import type { GaugeOptionsSlice, PieOptionsSlice, RadarOptionsSlice } from './sections/FamilySections';
+import type { LegendSlice } from './sections/LegendSection';
 import type { TitleSlice } from './sections/TitleSection';
+import type { ToolboxSlice } from './sections/ToolboxSection';
 import type { TooltipSlice } from './sections/TooltipSection';
 
 describe('section slices (ADR-0049)', () => {
@@ -80,6 +86,59 @@ describe('section slices (ADR-0049)', () => {
         >();
     });
 
+    it('LegendSlice equals the legend section ownership', () => {
+        expectTypeOf<LegendSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                | 'legendShow'
+                | 'legendPos'
+                | 'legend'
+                | 'legendRaw'
+                | 'legendSnippets'
+                | 'paletteSource'
+                | 'palettePreset'
+                | 'paletteCustom'
+                | 'darkMode'
+            >
+        >();
+    });
+
+    it('DataSourceSlice equals the data source section ownership', () => {
+        expectTypeOf<DataSourceSlice>().toEqualTypeOf<
+            Pick<EditorState, 'mode' | 'timeRange' | 'aggregate' | 'count' | 'refreshMs' | 'ignoreNull' | 'jsonOid'>
+        >();
+    });
+
+    it('ColorsSlice equals the colours section ownership', () => {
+        expectTypeOf<ColorsSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap'
+            >
+        >();
+    });
+
+    it('BehaviorSlice equals the behaviour section ownership', () => {
+        expectTypeOf<BehaviorSlice>().toEqualTypeOf<
+            Pick<EditorState, 'animation' | 'animationDuration' | 'animationEasing' | 'renderer'>
+        >();
+    });
+
+    it('ToolboxSlice equals the toolbox section ownership', () => {
+        expectTypeOf<ToolboxSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                'chartType' | 'toolbox' | 'darkMode' | 'paletteSource' | 'palettePreset' | 'paletteCustom'
+            >
+        >();
+    });
+
+    it('the family options slices equal their sections ownership', () => {
+        expectTypeOf<GaugeOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'gauge'>>();
+        expectTypeOf<PieOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'pie'>>();
+        expectTypeOf<RadarOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'radar' | 'radarRaw' | 'radarSnippets'>>();
+    });
+
     it('EditorThemeSource equals the theme-resolution read footprint', () => {
         expectTypeOf<EditorThemeSource>().toEqualTypeOf<
             Pick<EditorState, 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'darkMode'>
@@ -98,6 +157,34 @@ describe('section slices (ADR-0049)', () => {
         const axes: SetEditor<AxesZoomSlice> = () => undefined;
         // @ts-expect-error titleText is not the axes & zoom section's field
         axes({ titleText: 'no' });
+
+        const legend: SetEditor<LegendSlice> = () => undefined;
+        // @ts-expect-error tooltipDecimals is not the legend section's field
+        legend({ tooltipDecimals: 2 });
+
+        const dataSource: SetEditor<DataSourceSlice> = () => undefined;
+        // @ts-expect-error series is not the data source section's field
+        dataSource({ series: [] });
+
+        const colors: SetEditor<ColorsSlice> = () => undefined;
+        // @ts-expect-error animation is not the colours section's field
+        colors({ animation: false });
+
+        const behavior: SetEditor<BehaviorSlice> = () => undefined;
+        // @ts-expect-error bgColor is not the behaviour section's field
+        behavior({ bgColor: '#000' });
+
+        const toolbox: SetEditor<ToolboxSlice> = () => undefined;
+        // @ts-expect-error markLines is not the toolbox section's field
+        toolbox({ markLines: [] });
+
+        const gauge: SetEditor<GaugeOptionsSlice> = () => undefined;
+        // @ts-expect-error pie is not the gauge options section's field
+        gauge({ pie: {} as PieOptionsSlice['pie'] });
+
+        const radar: SetEditor<RadarOptionsSlice> = () => undefined;
+        // @ts-expect-error gauge is not the radar options section's field
+        radar({ gauge: {} as GaugeOptionsSlice['gauge'] });
     });
 
     it('the rail pass-through compiles: full state and full setter satisfy every slice', () => {
@@ -105,12 +192,52 @@ describe('section slices (ADR-0049)', () => {
         const asTooltip: SetEditor<TooltipSlice> = railSet;
         const asTitle: SetEditor<TitleSlice> = railSet;
         const asAxes: SetEditor<AxesZoomSlice> = railSet;
+        const asLegend: SetEditor<LegendSlice> = railSet;
+        const asDataSource: SetEditor<DataSourceSlice> = railSet;
+        const asColors: SetEditor<ColorsSlice> = railSet;
+        const asBehavior: SetEditor<BehaviorSlice> = railSet;
+        const asToolbox: SetEditor<ToolboxSlice> = railSet;
+        const asGauge: SetEditor<GaugeOptionsSlice> = railSet;
+        const asPie: SetEditor<PieOptionsSlice> = railSet;
+        const asRadar: SetEditor<RadarOptionsSlice> = railSet;
         const railState = {} as EditorState;
         const tooltipState: TooltipSlice = railState;
         const titleState: TitleSlice = railState;
         const axesState: AxesZoomSlice = railState;
+        const legendState: LegendSlice = railState;
+        const dataSourceState: DataSourceSlice = railState;
+        const colorsState: ColorsSlice = railState;
+        const behaviorState: BehaviorSlice = railState;
+        const toolboxState: ToolboxSlice = railState;
+        const gaugeState: GaugeOptionsSlice = railState;
+        const pieState: PieOptionsSlice = railState;
+        const radarState: RadarOptionsSlice = railState;
         // Reference everything so lint stays quiet — the assignments ARE the assertion.
-        expectTypeOf([asTooltip, asTitle, asAxes]).not.toBeAny();
-        expectTypeOf([tooltipState, titleState, axesState]).not.toBeAny();
+        expectTypeOf([
+            asTooltip,
+            asTitle,
+            asAxes,
+            asLegend,
+            asDataSource,
+            asColors,
+            asBehavior,
+            asToolbox,
+            asGauge,
+            asPie,
+            asRadar,
+        ]).not.toBeAny();
+        expectTypeOf([
+            tooltipState,
+            titleState,
+            axesState,
+            legendState,
+            dataSourceState,
+            colorsState,
+            behaviorState,
+            toolboxState,
+            gaugeState,
+            pieState,
+            radarState,
+        ]).not.toBeAny();
     });
 });

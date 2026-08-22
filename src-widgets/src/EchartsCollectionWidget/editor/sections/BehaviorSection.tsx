@@ -16,9 +16,12 @@ import Generic from '../../../Generic';
 import { FieldGrid, InfoBox, LabeledSelect, SliderField, SwitchList, SwitchRow } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
+/** The behaviour section's field ownership (ADR-0049 slice) — animation policy + renderer. */
+export type BehaviorSlice = Pick<EditorState, 'animation' | 'animationDuration' | 'animationEasing' | 'renderer'>;
+
 interface BehaviorSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: BehaviorSlice;
+    set: SetEditor<BehaviorSlice>;
 }
 
 const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
@@ -61,7 +64,7 @@ const BehaviorSection: FC<BehaviorSectionProps> = ({ state, set }) => (
                 <LabeledSelect
                     label={Generic.t('echarts_renderer')}
                     value={state.renderer}
-                    onChange={v => set({ renderer: v as EditorState['renderer'] })}
+                    onChange={v => set({ renderer: v as BehaviorSlice['renderer'] })}
                     options={[
                         ['canvas', Generic.t('echarts_renderer_canvas')],
                         ['svg', Generic.t('echarts_renderer_svg')],

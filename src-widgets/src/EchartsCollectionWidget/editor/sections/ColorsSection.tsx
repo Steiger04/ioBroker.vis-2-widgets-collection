@@ -26,14 +26,23 @@ import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
+/**
+ * The colours section's field ownership (ADR-0049 slice) — the palette trio + darkMode (the
+ * theme hook's read footprint), the chart background, and the cartesian value→colour scale.
+ */
+export type ColorsSlice = Pick<
+    EditorState,
+    'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap'
+>;
+
 interface ColorsSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: ColorsSlice;
+    set: SetEditor<ColorsSlice>;
     pickerCtx: OidPickerCtx;
 }
 
 /** Dropdown value encoding the whole palette choice: theme | preset:<name> | custom. */
-const paletteChoice = (state: EditorState): string =>
+const paletteChoice = (state: ColorsSlice): string =>
     state.paletteSource === 'custom'
         ? 'custom'
         : state.paletteSource === 'preset'
@@ -111,7 +120,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                 <LabeledSelect
                     label={Generic.t('echarts_dark_mode')}
                     value={state.darkMode}
-                    onChange={v => set({ darkMode: v as EditorState['darkMode'] })}
+                    onChange={v => set({ darkMode: v as ColorsSlice['darkMode'] })}
                     options={[
                         ['auto', Generic.t('echarts_dark_auto')],
                         ['light', Generic.t('echarts_dark_light')],

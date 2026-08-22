@@ -31,13 +31,35 @@ import RawJsonSection from './RawJsonSection';
 import { RADAR_CATALOG } from '../radarTemplates';
 import type { EditorState, SetEditor } from '../editorState';
 
-interface FamilySectionProps {
-    state: EditorState;
-    set: SetEditor;
+/** The gauge options section's field ownership (ADR-0049 slice) — the dial blob. */
+export type GaugeOptionsSlice = Pick<EditorState, 'gauge'>;
+
+/** The pie options section's field ownership (ADR-0049 slice) — the pie blob. */
+export type PieOptionsSlice = Pick<EditorState, 'pie'>;
+
+/**
+ * The radar options section's field ownership (ADR-0049 slice) — the radar blob plus the
+ * section raw and its template ids (the 6th RawJsonSection host, ADR-0045).
+ */
+export type RadarOptionsSlice = Pick<EditorState, 'radar' | 'radarRaw' | 'radarSnippets'>;
+
+interface GaugeOptionsSectionProps {
+    state: GaugeOptionsSlice;
+    set: SetEditor<GaugeOptionsSlice>;
 }
 
-export const GaugeOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
-    const setGauge = (patch: Partial<EditorState['gauge']>): void => set({ gauge: { ...state.gauge, ...patch } });
+interface PieOptionsSectionProps {
+    state: PieOptionsSlice;
+    set: SetEditor<PieOptionsSlice>;
+}
+
+interface RadarOptionsSectionProps {
+    state: RadarOptionsSlice;
+    set: SetEditor<RadarOptionsSlice>;
+}
+
+export const GaugeOptionsSection: FC<GaugeOptionsSectionProps> = ({ state, set }) => {
+    const setGauge = (patch: Partial<GaugeOptionsSlice['gauge']>): void => set({ gauge: { ...state.gauge, ...patch } });
     const rangeInvalid = (state.gauge.min ?? 0) >= (state.gauge.max ?? 100);
 
     return (
@@ -76,15 +98,15 @@ export const GaugeOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
     );
 };
 
-export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
-    const setPie = (patch: Partial<EditorState['pie']>): void => set({ pie: { ...state.pie, ...patch } });
+export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ state, set }) => {
+    const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
 
     return (
         <FieldGrid>
             <LabeledSelect
                 label={Generic.t('echarts_pie_aggregate')}
                 value={state.pie.aggregate ?? 'latest'}
-                onChange={v => setPie({ aggregate: v as EditorState['pie']['aggregate'] })}
+                onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
                 options={[
                     ['latest', Generic.t('echarts_pie_agg_latest')],
                     ['sum', Generic.t('echarts_pie_agg_sum')],
@@ -104,7 +126,7 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
             <LabeledSelect
                 label={Generic.t('echarts_pie_label')}
                 value={state.pie.label ?? 'namePercent'}
-                onChange={v => setPie({ label: v as EditorState['pie']['label'] })}
+                onChange={v => setPie({ label: v as PieOptionsSlice['pie']['label'] })}
                 options={[
                     ['none', Generic.t('echarts_label_none')],
                     ['name', Generic.t('echarts_label_name')],
@@ -115,7 +137,7 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
             <LabeledSelect
                 label={Generic.t('echarts_pie_rose')}
                 value={state.pie.rose ?? 'none'}
-                onChange={v => setPie({ rose: v as EditorState['pie']['rose'] })}
+                onChange={v => setPie({ rose: v as PieOptionsSlice['pie']['rose'] })}
                 options={[
                     ['none', Generic.t('echarts_rose_none')],
                     ['radius', Generic.t('echarts_rose_radius')],
@@ -126,7 +148,7 @@ export const PieOptionsSection: FC<FamilySectionProps> = ({ state, set }) => {
     );
 };
 
-export const RadarOptionsSection: FC<FamilySectionProps> = ({ state, set }) => (
+export const RadarOptionsSection: FC<RadarOptionsSectionProps> = ({ state, set }) => (
     <Box>
         <FieldGrid sx={{ mb: 1.5 }}>
             <LabeledSelect

@@ -31,9 +31,27 @@ import { LEGEND_CATALOG } from '../legendTemplates';
 import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
+/**
+ * The legend section's field ownership (ADR-0049 slice) — the flat show/pos pair beside the
+ * `legend` styling blob, the section raw + its template ids; the 4 palette/darkMode fields
+ * are transitively read via `useEditorTheme` (the inherit previews).
+ */
+export type LegendSlice = Pick<
+    EditorState,
+    | 'legendShow'
+    | 'legendPos'
+    | 'legend'
+    | 'legendRaw'
+    | 'legendSnippets'
+    | 'paletteSource'
+    | 'palettePreset'
+    | 'paletteCustom'
+    | 'darkMode'
+>;
+
 interface LegendSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: LegendSlice;
+    set: SetEditor<LegendSlice>;
     pickerCtx: OidPickerCtx;
 }
 
@@ -74,7 +92,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                 <PositionGrid
                     label={Generic.t('echarts_legend_position')}
                     value={state.legendPos}
-                    onChange={v => set({ legendPos: v as EditorState['legendPos'] })}
+                    onChange={v => set({ legendPos: v as LegendSlice['legendPos'] })}
                     options={GRID9_POSITIONS}
                     disabled={!state.legendShow}
                 />

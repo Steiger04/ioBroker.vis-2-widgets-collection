@@ -39,9 +39,19 @@ import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 import type { EchartsToolboxConfig } from '../../../types/field-definitions/echarts-fields';
 
+/**
+ * The toolbox section's field ownership (ADR-0049 slice) — the GUI-owned `toolbox` blob,
+ * `chartType` for the cartesian-only magicType row, `darkMode` for the token inherit swatch;
+ * the 4 palette/darkMode fields are transitively read via `useEditorTheme`.
+ */
+export type ToolboxSlice = Pick<
+    EditorState,
+    'chartType' | 'toolbox' | 'darkMode' | 'paletteSource' | 'palettePreset' | 'paletteCustom'
+>;
+
 interface ToolboxSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: ToolboxSlice;
+    set: SetEditor<ToolboxSlice>;
     pickerCtx: OidPickerCtx;
 }
 
