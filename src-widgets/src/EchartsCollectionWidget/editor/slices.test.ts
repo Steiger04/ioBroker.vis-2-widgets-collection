@@ -23,6 +23,13 @@ import type { ColorsSlice } from './sections/ColorsSection';
 import type { DataSourceSlice } from './sections/DataSourceSection';
 import type { GaugeOptionsSlice, PieOptionsSlice, RadarOptionsSlice } from './sections/FamilySections';
 import type { LegendSlice } from './sections/LegendSection';
+import type { SeriesSlice } from './sections/SeriesSection';
+import type { CartesianSeriesListSlice } from './sections/series/CartesianSeriesCard';
+import type { GaugeBindingSlice } from './sections/series/GaugeBinding';
+import type { JsonSeriesCardsSlice } from './sections/series/JsonSeriesCards';
+import type { PieSliceRowsSlice } from './sections/series/PieSliceRows';
+import type { RadarIndicatorsSlice } from './sections/series/RadarIndicators';
+import type { ChartTypePickerSlice, ModeSelectSlice } from './controls';
 import type { TitleSlice } from './sections/TitleSection';
 import type { ToolboxSlice } from './sections/ToolboxSection';
 import type { TooltipSlice } from './sections/TooltipSection';
@@ -139,6 +146,45 @@ describe('section slices (ADR-0049)', () => {
         expectTypeOf<RadarOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'radar' | 'radarRaw' | 'radarSnippets'>>();
     });
 
+    it('SeriesSlice equals the series dispatcher ownership (own footprint + sub-view union)', () => {
+        expectTypeOf<SeriesSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                | 'chartType'
+                | 'mode'
+                | 'series'
+                | 'yAxes'
+                | 'gauge'
+                | 'radar'
+                | 'pie'
+                | 'jsonOid'
+                | 'jsonHidden'
+                | 'jsonSeriesStyle'
+                | 'paletteSource'
+                | 'palettePreset'
+                | 'paletteCustom'
+                | 'darkMode'
+            >
+        >();
+    });
+
+    it('the series sub-view slices equal their surfaces ownership', () => {
+        expectTypeOf<GaugeBindingSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'gauge'>>();
+        expectTypeOf<RadarIndicatorsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'radar'>>();
+        expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'pie' | 'mode'>>();
+        expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
+            Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'>
+        >();
+        expectTypeOf<CartesianSeriesListSlice>().toEqualTypeOf<
+            Pick<EditorState, 'chartType' | 'mode' | 'series' | 'yAxes'>
+        >();
+    });
+
+    it('the pinned rail selectors equal their ownership', () => {
+        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Pick<EditorState, 'chartType'>>();
+        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Pick<EditorState, 'mode'>>();
+    });
+
     it('EditorThemeSource equals the theme-resolution read footprint', () => {
         expectTypeOf<EditorThemeSource>().toEqualTypeOf<
             Pick<EditorState, 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'darkMode'>
@@ -185,6 +231,36 @@ describe('section slices (ADR-0049)', () => {
         const radar: SetEditor<RadarOptionsSlice> = () => undefined;
         // @ts-expect-error gauge is not the radar options section's field
         radar({ gauge: {} as GaugeOptionsSlice['gauge'] });
+
+        const series: SetEditor<SeriesSlice> = () => undefined;
+        // @ts-expect-error animation is not the series dispatcher's field
+        series({ animation: false });
+
+        const gaugeBinding: SetEditor<GaugeBindingSlice> = () => undefined;
+        // @ts-expect-error mode is not the gauge binding's field
+        gaugeBinding({ mode: 'live' });
+
+        const pieRows: SetEditor<PieSliceRowsSlice> = () => undefined;
+        // @ts-expect-error gauge is not the pie slice rows' field
+        pieRows({ gauge: {} as GaugeOptionsSlice['gauge'] });
+
+        const indicators: SetEditor<RadarIndicatorsSlice> = () => undefined;
+        // @ts-expect-error pie is not the radar indicators' field
+        indicators({ pie: {} as PieOptionsSlice['pie'] });
+
+        const chartTypePicker: SetEditor<ChartTypePickerSlice> = () => undefined;
+        // @ts-expect-error mode is not the chart-type picker's field
+        chartTypePicker({ mode: 'json' });
+
+        const modeSelect: SetEditor<ModeSelectSlice> = () => undefined;
+        // @ts-expect-error chartType is not the mode select's field
+        modeSelect({ chartType: 'pie' });
+    });
+
+    it('the read-only series surfaces reject foreign reads', () => {
+        // No setter props — their honesty is the read side (writes go through dispatcher callbacks).
+        expectTypeOf<JsonSeriesCardsSlice>().not.toHaveProperty('animation');
+        expectTypeOf<CartesianSeriesListSlice>().not.toHaveProperty('animation');
     });
 
     it('the rail pass-through compiles: full state and full setter satisfy every slice', () => {
@@ -200,6 +276,12 @@ describe('section slices (ADR-0049)', () => {
         const asGauge: SetEditor<GaugeOptionsSlice> = railSet;
         const asPie: SetEditor<PieOptionsSlice> = railSet;
         const asRadar: SetEditor<RadarOptionsSlice> = railSet;
+        const asSeries: SetEditor<SeriesSlice> = railSet;
+        const asGaugeBinding: SetEditor<GaugeBindingSlice> = railSet;
+        const asPieRows: SetEditor<PieSliceRowsSlice> = railSet;
+        const asIndicators: SetEditor<RadarIndicatorsSlice> = railSet;
+        const asChartTypePicker: SetEditor<ChartTypePickerSlice> = railSet;
+        const asModeSelect: SetEditor<ModeSelectSlice> = railSet;
         const railState = {} as EditorState;
         const tooltipState: TooltipSlice = railState;
         const titleState: TitleSlice = railState;
@@ -212,6 +294,14 @@ describe('section slices (ADR-0049)', () => {
         const gaugeState: GaugeOptionsSlice = railState;
         const pieState: PieOptionsSlice = railState;
         const radarState: RadarOptionsSlice = railState;
+        const seriesState: SeriesSlice = railState;
+        const gaugeBindingState: GaugeBindingSlice = railState;
+        const pieRowsState: PieSliceRowsSlice = railState;
+        const indicatorsState: RadarIndicatorsSlice = railState;
+        const jsonCardsState: JsonSeriesCardsSlice = railState;
+        const cartesianListState: CartesianSeriesListSlice = railState;
+        const chartTypePickerState: ChartTypePickerSlice = railState;
+        const modeSelectState: ModeSelectSlice = railState;
         // Reference everything so lint stays quiet — the assignments ARE the assertion.
         expectTypeOf([
             asTooltip,
@@ -225,6 +315,12 @@ describe('section slices (ADR-0049)', () => {
             asGauge,
             asPie,
             asRadar,
+            asSeries,
+            asGaugeBinding,
+            asPieRows,
+            asIndicators,
+            asChartTypePicker,
+            asModeSelect,
         ]).not.toBeAny();
         expectTypeOf([
             tooltipState,
@@ -238,6 +334,14 @@ describe('section slices (ADR-0049)', () => {
             gaugeState,
             pieState,
             radarState,
+            seriesState,
+            gaugeBindingState,
+            pieRowsState,
+            indicatorsState,
+            jsonCardsState,
+            cartesianListState,
+            chartTypePickerState,
+            modeSelectState,
         ]).not.toBeAny();
     });
 });

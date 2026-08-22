@@ -21,9 +21,15 @@ import { nextStableId } from '../../identity';
 import { EmptyState, SeriesRawOverride } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
+/**
+ * The radar indicators' field ownership (ADR-0049 slice) — the indicator list rides the
+ * radar blob; the single polygon series carries the label/colour.
+ */
+export type RadarIndicatorsSlice = Pick<EditorState, 'series' | 'radar'>;
+
 interface RadarIndicatorsProps {
-    state: EditorState;
-    set: SetEditor;
+    state: RadarIndicatorsSlice;
+    set: SetEditor<RadarIndicatorsSlice>;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of the (single) radar polygon (the inherit fallback). */
     slot: (i: number) => string;
@@ -33,7 +39,7 @@ const RadarIndicators: FC<RadarIndicatorsProps> = ({ state, set, pickerCtx, slot
     const series = state.series;
     const s0 = series[0] ?? { name: '' };
 
-    const setIndicator = (i: number, patch: Partial<EditorState['radar']['indicators'][number]>): void => {
+    const setIndicator = (i: number, patch: Partial<RadarIndicatorsSlice['radar']['indicators'][number]>): void => {
         const indicators = state.radar.indicators.map((ind, idx) => (idx === i ? { ...ind, ...patch } : ind));
         set({ radar: { ...state.radar, indicators } });
     };

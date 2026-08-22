@@ -139,7 +139,13 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
  * `chartType` (the editor normalises a legacy `'cartesian'` or `'area'` to a concrete type on
  * load, so one of the five is always highlighted).
  */
-export const ChartTypePicker: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
+/** The chart-type picker's field ownership (ADR-0049 slice) — the pinned rail selector. */
+export type ChartTypePickerSlice = Pick<EditorState, 'chartType'>;
+
+export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<ChartTypePickerSlice> }> = ({
+    state,
+    set,
+}) => (
     <Box>
         <FieldLabel>{Generic.t('echarts_type')}</FieldLabel>
         <ToggleButtonGroup
@@ -175,7 +181,10 @@ const MODE_HINTS: Record<EchartsMode, string> = {
 };
 
 /** Per-widget data mode (chart-global, not per-series). */
-export const ModeSelect: FC<{ state: EditorState; set: SetEditor }> = ({ state, set }) => (
+/** The mode select's field ownership (ADR-0049 slice) — the pinned rail selector. */
+export type ModeSelectSlice = Pick<EditorState, 'mode'>;
+
+export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectSlice> }> = ({ state, set }) => (
     <Box>
         <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>
         <ToggleButtonGroup

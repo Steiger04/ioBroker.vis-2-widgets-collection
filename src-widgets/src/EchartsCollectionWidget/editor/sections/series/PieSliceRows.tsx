@@ -20,9 +20,15 @@ import type { EditorSeries, EditorState, SetEditor } from '../../editorState';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
+/**
+ * The pie slice rows' field ownership (ADR-0049 slice) — the slice list, the whole-pie raw
+ * (riding the pie blob), and the mode for the history-only OID picker.
+ */
+export type PieSliceRowsSlice = Pick<EditorState, 'series' | 'pie' | 'mode'>;
+
 interface PieSliceRowsProps {
-    state: EditorState;
-    set: SetEditor;
+    state: PieSliceRowsSlice;
+    set: SetEditor<PieSliceRowsSlice>;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of slice i (the inherit fallback). */
     slot: (i: number) => string;

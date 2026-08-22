@@ -51,6 +51,12 @@ import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared
 import { snippetPatch } from '../../snippetComposition';
 
 /**
+ * The cartesian card list's field ownership (ADR-0049 slice) — read-only: every write goes
+ * through the dispatcher callbacks (update / remove / move / duplicate / rebind).
+ */
+export type CartesianSeriesListSlice = Pick<EditorState, 'chartType' | 'mode' | 'series' | 'yAxes'>;
+
+/**
  * The "Basics" SubGroup of a cartesian series card — identity + binding. Shared by the
  * history/live card (bound to `state.series[i]`, with OID row) and the JSON-mode card (bound to
  * the name-keyed overlay entry, no OID row — the payload owns the data).
@@ -357,7 +363,7 @@ export const CartesianSeriesKnobs: FC<{
 };
 
 interface CartesianSeriesListProps {
-    state: EditorState;
+    state: CartesianSeriesListSlice;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of series i (the inherit fallback). */
     slot: (i: number) => string;

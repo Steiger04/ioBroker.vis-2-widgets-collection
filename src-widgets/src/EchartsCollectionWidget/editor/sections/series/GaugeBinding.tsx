@@ -19,9 +19,12 @@ import type { EditorSeries, EditorState, SetEditor } from '../../editorState';
 import { SeriesRawOverride } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
+/** The gauge binding's field ownership (ADR-0049 slice) — the single series + the unit autofill. */
+export type GaugeBindingSlice = Pick<EditorState, 'series' | 'gauge'>;
+
 interface GaugeBindingProps {
-    state: EditorState;
-    set: SetEditor;
+    state: GaugeBindingSlice;
+    set: SetEditor<GaugeBindingSlice>;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of the (single) gauge series (the inherit fallback). */
     slot: (i: number) => string;

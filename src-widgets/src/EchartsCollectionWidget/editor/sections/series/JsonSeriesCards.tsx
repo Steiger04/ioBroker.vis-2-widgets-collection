@@ -26,8 +26,18 @@ import { effectiveAxisName } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
+/**
+ * The JSON series cards' field ownership (ADR-0049 slice) — read-only: every write goes
+ * through the dispatcher callbacks (overlay patch / hide / rebind). Reads: the jsonOid
+ * empty-state branch, the family split, the overlay + deny-list, and the axis dropdowns.
+ */
+export type JsonSeriesCardsSlice = Pick<
+    EditorState,
+    'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'
+>;
+
 interface JsonSeriesCardsProps {
-    state: EditorState;
+    state: JsonSeriesCardsSlice;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of payload series i (the inherit fallback). */
     slot: (i: number) => string;

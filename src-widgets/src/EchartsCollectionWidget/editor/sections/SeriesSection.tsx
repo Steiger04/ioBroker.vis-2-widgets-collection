@@ -44,9 +44,34 @@ import GaugeBinding from './series/GaugeBinding';
 import RadarIndicators from './series/RadarIndicators';
 import JsonSeriesCards from './series/JsonSeriesCards';
 
+/**
+ * The series section dispatcher's field ownership (ADR-0049 slice) — the widest honest
+ * slice: its own footprint (the family/mode split, the series orchestration incl. the
+ * orphan-cascade into `yAxes`, the JSON overlay + deny-list, the theme hook's 4 fields)
+ * PLUS the union its sub-views consume (it hands them this same state object; each keeps
+ * its own narrower slice at its own file head).
+ */
+export type SeriesSlice = Pick<
+    EditorState,
+    | 'chartType'
+    | 'mode'
+    | 'series'
+    | 'yAxes'
+    | 'gauge'
+    | 'radar'
+    | 'pie'
+    | 'jsonOid'
+    | 'jsonHidden'
+    | 'jsonSeriesStyle'
+    | 'paletteSource'
+    | 'palettePreset'
+    | 'paletteCustom'
+    | 'darkMode'
+>;
+
 interface SeriesSectionProps {
-    state: EditorState;
-    set: SetEditor;
+    state: SeriesSlice;
+    set: SetEditor<SeriesSlice>;
     pickerCtx: OidPickerCtx;
     /** Issues for this section (item-scoped: missing OID, radar max). */
     issues?: ValidationIssue[];
@@ -144,7 +169,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             return;
         }
         const idx = series.length;
-        const patch: Partial<EditorState> = {
+        const patch: Partial<SeriesSlice> = {
             series: [...series, { id: nextSeriesId(), oid, name: '', yAxisIndex: isCartesian ? idx : 0 }],
         };
         // 1:1 auto-axis (ADR-0018): a new cartesian series gets its own axis (alternating side, 80 px stagger).
