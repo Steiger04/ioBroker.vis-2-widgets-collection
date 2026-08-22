@@ -232,6 +232,10 @@ describe('section slices (ADR-0049)', () => {
         // @ts-expect-error gauge is not the radar options section's field
         radar({ gauge: {} as GaugeOptionsSlice['gauge'] });
 
+        const pie: SetEditor<PieOptionsSlice> = () => undefined;
+        // @ts-expect-error legendShow is not the pie options section's field
+        pie({ legendShow: true });
+
         const series: SetEditor<SeriesSlice> = () => undefined;
         // @ts-expect-error animation is not the series dispatcher's field
         series({ animation: false });
