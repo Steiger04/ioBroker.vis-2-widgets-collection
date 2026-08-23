@@ -15,9 +15,26 @@
  * axes have a real `{b}`/`{d}`).
  */
 import { formatTooltipHeader, resolveHostLang } from '../timeFormat';
-import { formatChartValue } from '../valueFormat';
+import {
+    formatChartValue,
+    formatSeriesValue,
+    hasSeriesValueFormat,
+    type ChartValueFormat,
+    type SeriesFactsByName,
+} from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { PresentationConfig } from './types';
+
+/**
+ * The chart-level value-format context of a presentation config (the comma switch + the tooltip
+ * cluster as the per-fact fallback) — the ONE projection, shared by the cartesian chart context
+ * and this builder's gates so the two cannot drift.
+ */
+export const chartValueFormatOf = (p: PresentationConfig): ChartValueFormat => ({
+    comma: p.decimalComma,
+    units: p.tooltipUnits,
+    decimals: p.tooltipDecimals,
+});
 
 /**
  * echarts `valueFormatter`: append units + clamp decimals + the chart-wide comma separator
@@ -27,6 +44,25 @@ export const makeValueFormatter = (units?: string, decimals?: number, comma?: bo
     return (v: unknown): string => {
         const txt = formatChartValue(v, decimals, comma);
         return units ? `${txt} ${units}` : txt;
+    };
+};
+
+/**
+ * The per-ROW formatter resolver of a cartesian tooltip (ADR-0057 per-series Wert-Formatter):
+ * one formatter per series NAME — the row's series facts beat the chart-level cluster per fact,
+ * a series without facts formats through the cluster alone, and a chart without either renders
+ * the bare value text (`undefined` — exactly the pre-Build-B behaviour).
+ */
+const makeRowFormatter = (
+    facts: SeriesFactsByName | undefined,
+    chart: ChartValueFormat,
+): ((name?: string) => ((v: unknown) => string) | undefined) | undefined => {
+    if (!facts && !hasSeriesValueFormat(undefined, chart)) {
+        return undefined;
+    }
+    return (name?: string): ((v: unknown) => string) | undefined => {
+        const f = name !== undefined ? facts?.[name] : undefined;
+        return hasSeriesValueFormat(f, chart) ? (v: unknown): string => formatSeriesValue(v, f, chart) : undefined;
     };
 };
 
@@ -146,15 +182,15 @@ const filterTooltipRows = (
 
 /**
  * The cartesian AUTHORED-TEMPLATE formatter: one line per series, each the user's template with
- * OUR token resolution ({b} = moment time, units/decimals folded in — a callback bypasses
- * echarts' own `valueFormatter` application). No header: the template is the whole line, full
- * user control (ADR-0052: the template overrides the moment header).
+ * OUR token resolution ({b} = moment time, the row's OWN series facts folded into {c} — a
+ * callback bypasses echarts' own `valueFormatter` application). No header: the template is the
+ * whole line, full user control (ADR-0052: the template overrides the moment header).
  */
 const makeTemplateTooltipFormatter =
     (
         template: string,
         ctx: TooltipTimeContext,
-        valueFmt?: (v: unknown) => string,
+        valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
     ): ((params: unknown) => string) =>
     params => {
@@ -166,7 +202,7 @@ const makeTemplateTooltipFormatter =
                     `${markerPrefix(p)}${resolveTooltipTokens(
                         template,
                         { seriesName: p.seriesName, ts: paramTs(p), value: paramValue(p) },
-                        { format: ctx.format, lang: resolveHostLang(), valueFmt },
+                        { format: ctx.format, lang: resolveHostLang(), valueFmt: valueFmtFor?.(p.seriesName) },
                     )}`,
             )
             .join('<br/>');
@@ -175,14 +211,14 @@ const makeTemplateTooltipFormatter =
 /**
  * The moment-header tooltip formatter: `<b>header</b>` (the hovered timestamp via the Time
  * format, `<br />` token left intact — the tooltip renders HTML) + one marker/name/value row per
- * series, the value line honouring the units/decimals `valueFormatter` semantics (a custom
- * formatter callback bypasses echarts' own `valueFormatter` application, so the same formatting
- * is folded in here).
+ * series, each value line formatted through its OWN series facts (ADR-0057; a custom formatter
+ * callback bypasses echarts' own `valueFormatter` application, so the formatting is folded in
+ * here).
  */
 const makeMomentTooltipFormatter =
     (
         ctx: TooltipTimeContext,
-        valueFmt?: (v: unknown) => string,
+        valueFmtFor?: (name?: string) => ((v: unknown) => string) | undefined,
         filters?: TooltipRowFilters,
     ): ((params: unknown) => string) =>
     params => {
@@ -195,7 +231,13 @@ const makeMomentTooltipFormatter =
         return (
             header +
             list
-                .map(p => `${markerPrefix(p)}${p.seriesName ?? ''}: ${readableValue(paramValue(p), valueFmt)}`)
+                .map(
+                    p =>
+                        `${markerPrefix(p)}${p.seriesName ?? ''}: ${readableValue(
+                            paramValue(p),
+                            valueFmtFor?.(p.seriesName),
+                        )}`,
+                )
                 .join('<br/>')
         );
     };
@@ -206,21 +248,33 @@ const makeMomentTooltipFormatter =
  * @param p - Chart-wide presentation (trigger / template / units / decimals + the section raw).
  * @param time - The cartesian moment-header context (ADR-0052); omit on families without a time
  * axis (their tooltip keeps the echarts-default header + `valueFormatter` path).
+ * @param seriesFacts - Per-series Wert-Formatter facts by effective series name (ADR-0057,
+ * cartesian only): each ROW formats through its own series facts, the chart-level cluster as the
+ * per-fact fallback. Ignored on the non-cartesian paths (echarts' `valueFormatter` has no
+ * per-series context).
  * @returns `'none'` → `{ show: false }`; otherwise trigger + template / moment-header formatter +
- * units. The Tooltip section's raw escape hatch (ADR-0044) is folded UNDER the built entry — the
+ * values. The Tooltip section's raw escape hatch (ADR-0044) is folded UNDER the built entry — the
  * GUI wins every collision; free keys (frame, behaviour, axisPointer) merge through.
  */
-export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): Record<string, unknown> => {
+export const buildTooltip = (
+    p: PresentationConfig,
+    time?: TooltipTimeContext,
+    seriesFacts?: SeriesFactsByName,
+): Record<string, unknown> => {
     let entry: Record<string, unknown>;
     if (p.tooltipTrigger === 'none') {
         entry = { show: false };
     } else {
+        const chartCtx = chartValueFormatOf(p);
         // The valueFormatter semantics apply when ANY of its three knobs is authored — comma alone
-        // (no units/decimals) must still route numbers through formatChartValue (ADR-0054).
-        const valueFmt =
-            p.tooltipUnits || p.tooltipDecimals !== undefined || p.decimalComma
-                ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals, p.decimalComma)
-                : undefined;
+        // (no units/decimals) must still route numbers through formatChartValue (ADR-0054). One
+        // gate predicate for both formatter shapes (the row resolver shares the chart context).
+        const valueFmt = hasSeriesValueFormat(undefined, chartCtx)
+            ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals, p.decimalComma)
+            : undefined;
+        // The cartesian rows format per series NAME (ADR-0057): series facts first, the chart
+        // cluster as the per-fact fallback.
+        const rowFmt = time ? makeRowFormatter(seriesFacts, chartCtx) : undefined;
         // The cartesian row filters (ADR-0054) ride the custom formatters — echarts' own string /
         // valueFormatter paths have no row concept to filter.
         const filters: TooltipRowFilters = { hideNulls: p.tooltipHideNulls, noInterpolate: p.tooltipNoInterpolate };
@@ -233,7 +287,7 @@ export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): 
             entry = time
                 ? {
                       trigger: p.tooltipTrigger,
-                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, valueFmt, filters),
+                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, rowFmt, filters),
                   }
                 : {
                       trigger: p.tooltipTrigger,
@@ -244,7 +298,7 @@ export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): 
             // A custom callback bypasses echarts' valueFormatter application — fold it in.
             entry = {
                 trigger: p.tooltipTrigger,
-                formatter: makeMomentTooltipFormatter(time, valueFmt, filters),
+                formatter: makeMomentTooltipFormatter(time, rowFmt, filters),
             };
         } else {
             entry = { trigger: p.tooltipTrigger, ...(valueFmt ? { valueFormatter: valueFmt } : {}) };

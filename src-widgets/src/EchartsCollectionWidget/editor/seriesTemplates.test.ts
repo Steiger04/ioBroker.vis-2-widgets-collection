@@ -36,6 +36,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             step: 'end',
             cornerRadius: 4,
             area: 'gradient',
+            unit: '°C', // ADR-0057: the per-series Wert-Formatter facts activate label.formatter
         } as EchartsSeriesMeta,
         markLineHost: true,
     },

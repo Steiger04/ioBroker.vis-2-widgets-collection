@@ -1756,3 +1756,128 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
         expect(s0([{ barWidth: '0%' }])).not.toHaveProperty('barWidth');
     });
 });
+
+describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity Build B)', () => {
+    const WED = SAMPLE_TS;
+
+    /** Build a cartesian option from series+meta pairs; the meta names must match the series. */
+    const build = (
+        meta: EchartsSeriesMeta[],
+        over: Partial<PresentationConfig> = {},
+        series: ChartSeries[] = meta.map((m, i) => ({ name: m.name ?? `S${i}`, data: [[WED, i + 1]] })),
+    ): ReturnType<typeof buildGeneratedOption> =>
+        buildGeneratedOption({ family: 'cartesian', series, meta, p: { ...P, ...over } });
+
+    /** The cartesian tooltip formatter invoked with one row per series name/value pair. */
+    const tooltipRows = (
+        option: ReturnType<typeof buildGeneratedOption>,
+        rows: { name: string; value: unknown }[],
+    ): string =>
+        (option.tooltip as { formatter: (p: unknown) => string }).formatter(
+            rows.map(r => ({ axisValue: WED, marker: '<m>', seriesName: r.name, value: [WED, r.value] })),
+        );
+
+    it('formats each tooltip ROW with its own series facts (unit + decimals)', () => {
+        const option = build([
+            { name: 'Temp', unit: '°C', decimals: 1 },
+            { name: 'Power', unit: 'kW' },
+            { name: 'Plain' },
+        ]);
+        const html = tooltipRows(option, [
+            { name: 'Temp', value: 21.56 },
+            { name: 'Power', value: 1.234 },
+            { name: 'Plain', value: 3.7 },
+        ]);
+        expect(html).toContain('Temp: 21.6 °C'); // series decimals + unit
+        expect(html).toContain('Power: 1.234 kW'); // series unit, no decimals → the number's own digits
+        expect(html).toContain('Plain: 3.7'); // no facts at all → the bare value text
+    });
+
+    it('a series without facts falls back to the chart-level cluster; series facts win per fact', () => {
+        const option = build([{ name: 'Own', unit: 'kWh' }, { name: 'Plain' }], {
+            tooltipUnits: 'W',
+            tooltipDecimals: 0,
+        });
+        const html = tooltipRows(option, [
+            { name: 'Own', value: 21.56 }, // unit from the series, decimals from the chart
+            { name: 'Plain', value: 3.7 }, // fully chart-level
+        ]);
+        expect(html).toContain('Own: 22 kWh');
+        expect(html).toContain('Plain: 4 W');
+    });
+
+    it('resolves an authored template {c} through the per-series facts too', () => {
+        const option = build([{ name: 'Temp', unit: '°C', decimals: 1 }], { tooltipTemplate: '{a} = {c}' });
+        const html = (option.tooltip as { formatter: (p: unknown) => string }).formatter({
+            marker: '<m>',
+            seriesName: 'Temp',
+            value: 21.56,
+        });
+        expect(html).toBe('<m> Temp = 21.6 °C');
+    });
+
+    it('bar label values ride the per-series formatter; series facts beat the chart-level cluster', () => {
+        const option = build([{ name: 'W', label: true, unit: 'kW', decimals: 1 }], {
+            cartesianType: 'bar',
+            tooltipUnits: 'W',
+        });
+        const entry = (option.series as Record<string, unknown>[])[0];
+        const fmt = (entry.label as { formatter: (v: unknown) => string }).formatter;
+        expect(fmt(1.56)).toBe('1.6 kW'); // the series unit + decimals win over the chart cluster
+        // The chart-only path stays exactly as Build D shipped it (characterisation).
+        const chartLevel = build([{ name: 'W', label: true }], {
+            cartesianType: 'bar',
+            tooltipUnits: 'W',
+            tooltipDecimals: 1,
+        });
+        expect(
+            (
+                (chartLevel.series as Record<string, unknown>[])[0].label as { formatter: (v: unknown) => string }
+            ).formatter(1.56),
+        ).toBe('1.6 W');
+    });
+
+    it('a LINE label gets the formatter as well when facts exist; without facts it stays { show: true }', () => {
+        const withFacts = build([{ name: 'T', label: true, unit: '°C' }]);
+        const lineLabel = (withFacts.series as Record<string, unknown>[])[0].label as {
+            formatter?: (v: unknown) => string;
+        };
+        expect(lineLabel.formatter!(21.5)).toBe('21.5 °C');
+
+        expect((build([{ name: 'T', label: true }]).series as Record<string, unknown>[])[0].label).toEqual({
+            show: true,
+        });
+    });
+
+    // ── Y-axis unit inheritance (explicit format wins, else the shared series unit) ─────
+    it('inherits the unit into the default Y-axis labels when EVERY bound series shares it', () => {
+        const option = build([
+            { name: 'In', unit: '°C' },
+            { name: 'Out', unit: '°C' },
+        ]);
+        const y0 = (option.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
+        expect((y0.axisLabel?.formatter as (v: number) => string)(21.5)).toBe('21.5 °C');
+        // The comma switch composes with the inherited unit.
+        const comma = build([{ name: 'In', unit: '°C' }], { decimalComma: true });
+        const yc = (comma.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
+        expect((yc.axisLabel?.formatter as (v: number) => string)(21.5)).toBe('21,5 °C');
+    });
+
+    it('mixed or missing units inherit NOTHING (no label formatter without another axis knob)', () => {
+        const mixed = build([
+            { name: 'A', unit: '°C' },
+            { name: 'B', unit: '%' },
+        ]);
+        expect((mixed.yAxis as { axisLabel?: Record<string, unknown> }[])[0].axisLabel).not.toHaveProperty('formatter');
+        const withGap = build([{ name: 'A', unit: '°C' }, { name: 'B' }]); // one bound series unitless
+        expect((withGap.yAxis as { axisLabel?: Record<string, unknown> }[])[0].axisLabel).not.toHaveProperty(
+            'formatter',
+        );
+    });
+
+    it('an authored axis format wins verbatim over the inherited unit', () => {
+        const option = build([{ name: 'A', unit: '°C' }], { yAxes: [{ format: '{value} K' }] });
+        const y0 = (option.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
+        expect(y0.axisLabel?.formatter).toBe('{value} K');
+    });
+});

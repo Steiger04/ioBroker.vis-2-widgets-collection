@@ -551,6 +551,27 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
         expect((l.formatter as (name: string) => string)('Temp')).toBe('Temp [12,5]');
     });
 
+    it('per-series facts format the legend value (ADR-0057): unit + decimals, bare without facts', () => {
+        const l = buildLegend(valuesP({ legendValues: { Temp: 21.56, Hum: 40 } }), ['Temp', 'Hum'], [], {
+            Temp: { unit: '°C', decimals: 1 },
+        });
+        const fmt = l.formatter as (name: string) => string;
+        expect(fmt('Temp')).toBe('Temp [21.6 °C]');
+        expect(fmt('Hum')).toBe('Hum [40]'); // no facts → the plain value text
+    });
+
+    it('the legend value NEVER inherits the chart-level tooltip units — only the comma is chart-wide there', () => {
+        const l = buildLegend(
+            valuesP({ legendValues: { Temp: 21.5 } }),
+            ['Temp'],
+            [],
+            // Even if a future caller passes chart-cluster facts by mistake, the legend's own
+            // chart context is comma-only — pinned so the two surfaces cannot silently unify.
+            { Temp: { decimals: 1 } },
+        );
+        expect((l.formatter as (name: string) => string)('Temp')).toBe('Temp [21.5]');
+    });
+
     it('emits legend.selected ONLY when a name is hidden — the ticket-08 mechanism (adapter selected[name] = hide !== true)', () => {
         expect(buildLegend(legendP(), ['a', 'b'])).not.toHaveProperty('selected');
         const l = buildLegend(legendP(), ['a', 'b', 'c'], ['b']);

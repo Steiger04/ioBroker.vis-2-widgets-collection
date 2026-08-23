@@ -21,6 +21,7 @@
 
 import type { EchartsMarkLine, EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
 import { normalizeAreaMode, parseBarWidth } from '../optionBuilders/cartesian';
+import { factsOfMeta, hasSeriesValueFormat } from '../valueFormat';
 import { presentLeaves } from './rawLeaves';
 import type { SeriesTemplateSlot } from './seriesTemplates';
 
@@ -57,9 +58,10 @@ export interface SeriesAnalysisContext {
     /** Cartesian: this card hosts the threshold markLines (`markLine.silent/symbol/data` emitted). */
     markLineHost?: boolean;
     /**
-     * Chart-level value knobs (units/decimals/comma) are authored — a BAR card with its label on
-     * then also emits `label.formatter` (parity Build D; the same gate as the tooltip's
-     * valueFormatter).
+     * Chart-level value knobs (units/decimals/comma) are authored — a card with its label on then
+     * also emits `label.formatter` (parity Build D; the same gate as the tooltip's
+     * valueFormatter). ADR-0057: the card's OWN unit/decimals facts activate the same leaf
+     * without this flag (resolved from `meta` — the builder's per-series Wert-Formatter gate).
      */
     barLabelFormatterActive?: boolean;
 }
@@ -176,6 +178,12 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         }
         if (m?.label) {
             paths.add('label.show');
+            // ADR-0057: the label VALUES ride the per-series Wert-Formatter — the card's own
+            // unit/decimals facts emit `label.formatter` like a chart-level knob does (line AND
+            // bar: a line label is the bare switch + this formatter).
+            if (ctx.barLabelFormatterActive || hasSeriesValueFormat(factsOfMeta(m))) {
+                paths.add('label.formatter');
+            }
         }
         if (m?.stack) {
             paths.add('stack');
@@ -211,7 +219,7 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
                 if (m.labelColor) {
                     paths.add('label.color');
                 }
-                if (ctx.barLabelFormatterActive) {
+                if (ctx.barLabelFormatterActive || hasSeriesValueFormat(factsOfMeta(m))) {
                     paths.add('label.formatter');
                 }
             }

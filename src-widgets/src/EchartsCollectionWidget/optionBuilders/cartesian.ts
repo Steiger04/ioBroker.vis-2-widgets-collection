@@ -31,10 +31,17 @@ import type {
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { buildLegend } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
-import { formatChartValue } from '../valueFormat';
+import {
+    factsOfMeta,
+    formatChartValue,
+    formatSeriesValue,
+    hasSeriesValueFormat,
+    type ChartValueFormat,
+    type SeriesFactsByName,
+} from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
-import { buildTooltip, makeValueFormatter } from './tooltip';
+import { buildTooltip, chartValueFormatOf } from './tooltip';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
     solid: 'solid',
@@ -108,8 +115,8 @@ const buildCartesianSeriesEntry = (
     fallbackColor: string,
     index: number,
     defaultType: EchartsCartesianType,
-    /** Chart-level value formatter for BAR labels (parity Build D); undefined = echarts' own default text. */
-    labelFmt?: (v: unknown) => string,
+    /** The chart-level value-format context (comma + tooltip-cluster fallbacks, ADR-0057). */
+    chartFmt: ChartValueFormat,
 ): Record<string, unknown> => {
     // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
     // Legacy `type:'area'` (ADR-0008 r4 removed it) matches neither 'line' nor 'bar' → falls
@@ -133,9 +140,15 @@ const buildCartesianSeriesEntry = (
         // each series inherits the root toggle.
     };
     if (m?.label) {
-        // Bar labels carry the parity Build D knob cluster (position/size/colour/chart-level value
-        // formatting); a LINE label stays the bare switch — position semantics differ per type, and
-        // the line family never reads the bar knobs.
+        // The label VALUES ride the per-series Wert-Formatter (ADR-0057): this series' facts beat
+        // the chart-level cluster per fact; gated exactly like the tooltip — no knob on either
+        // side → no formatter, echarts' own label text. Bar labels carry the parity Build D knob
+        // cluster (position/size/colour) beside it; a LINE label stays the bare switch + formatter
+        // (position semantics differ per type, and the line family never reads the bar knobs).
+        const seriesFacts = factsOfMeta(m);
+        const labelFmt = hasSeriesValueFormat(seriesFacts, chartFmt)
+            ? (v: unknown): string => formatSeriesValue(v, seriesFacts, chartFmt)
+            : undefined;
         entry.label =
             type === 'bar'
                 ? {
@@ -145,7 +158,7 @@ const buildCartesianSeriesEntry = (
                       ...(m.labelColor ? { color: m.labelColor } : {}),
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   }
-                : { show: true };
+                : { show: true, ...(labelFmt ? { formatter: labelFmt } : {}) };
     }
     if (m?.stack) {
         entry.stack = m.stack;
@@ -242,6 +255,8 @@ const buildYAxisEntry = (
     seriesName?: string,
     /** Comma as the decimal separator for the DEFAULT numeric labels (ADR-0054). */
     comma?: boolean,
+    /** The unit EVERY bound series shares (ADR-0057); absent when units are mixed/sparse. */
+    seriesUnit?: string,
 ): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: a.log ? 'log' : 'value',
@@ -297,11 +312,15 @@ const buildYAxisEntry = (
     }
     if (a.format) {
         axisLabel.formatter = a.format;
-    } else if (comma) {
-        // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. An authored format
-        // wins verbatim (explicit beats implicit — the same rule ticket 05 fixes for the
-        // Wert-Formatter's axis inheritance).
-        axisLabel.formatter = (v: number): string => formatChartValue(v, undefined, true);
+    } else if (seriesUnit || comma) {
+        // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. ADR-0057: the axis
+        // inherits the unit every bound series shares — appended to the default numeric labels,
+        // the same explicit-beats-implicit rule as the colour/name inheritance above (an authored
+        // format wins verbatim, mixing units inherits nothing).
+        axisLabel.formatter = (v: number): string => {
+            const txt = formatChartValue(v, undefined, comma);
+            return seriesUnit ? `${txt} ${seriesUnit}` : txt;
+        };
     }
     const color = a.color ?? seriesColor;
     if (color) {
@@ -428,16 +447,12 @@ export const buildCartesianOption = (
     // default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
     const axes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
     const total = axes.length;
-    // Bar label values ride the CHART-level formatting (parity Build D; per-series units arrive
-    // with the Wert-Formatter, issue 05) — gated exactly like the tooltip's valueFormatter: only
-    // when one of the knobs (units / decimals / comma) is authored, else echarts' own label text.
-    const labelFmt =
-        p.tooltipUnits || p.tooltipDecimals !== undefined || p.decimalComma
-            ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals, p.decimalComma)
-            : undefined;
+    // The chart-level value-format context (ADR-0057): the comma switch + the tooltip cluster as
+    // the per-fact fallback for series without their own facts — the shared projection.
+    const chartFmt = chartValueFormatOf(p);
     const entries = series.map((s, i) => {
         const e = applyRawOverride(
-            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType, labelFmt),
+            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType, chartFmt),
             meta[i]?.raw,
         );
         // Clamp the per-series axis index to the configured axes (ADR-0012): a removed axis must
@@ -480,20 +495,48 @@ export const buildCartesianOption = (
     }
 
     const names = entries.map(e => e.name as string);
+    // The per-series Wert-Formatter facts, keyed by EFFECTIVE series name (ADR-0057) — the same
+    // names the legend lists and the tooltip rows carry, so every surface resolves its row's
+    // facts by the name it already knows.
+    const facts: SeriesFactsByName = {};
+    for (let i = 0; i < entries.length; i++) {
+        facts[names[i]] = factsOfMeta(meta[i]);
+    }
+    // The unit an axis inherits (ADR-0057): the one unit EVERY series bound to it shares — a
+    // unitless or divergent bound series inherits nothing (the axis stays unit-free rather than
+    // lying with one series' unit).
+    const axisUnit = (axisIndex: number): string | undefined => {
+        let unit: string | undefined;
+        for (let i = 0; i < entries.length; i++) {
+            if ((entries[i].yAxisIndex as number) !== axisIndex) {
+                continue;
+            }
+            const u = factsOfMeta(meta[i]).unit;
+            if (!u) {
+                return undefined; // a unitless bound series → no common unit
+            }
+            if (unit === undefined) {
+                unit = u;
+            } else if (unit !== u) {
+                return undefined; // mixed units → none
+            }
+        }
+        return unit;
+    };
     // The Auto labelling's clock (ADR-0052): the data span across ALL series, recomputed on every
     // build — a data update re-derives the adaptive resolution.
     const spanMs = dataSpanMs(series);
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the first bound series' effective values when neither is
-    // explicit (ADR-0018).
+    // explicit (ADR-0018); the axis LABELS inherit the bound series' shared unit (ADR-0057).
     const yAxisEntries = axes.map((a, i) => {
         const bound = entries.find(e => e.yAxisIndex === i);
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;
         const seriesName = typeof sn === 'string' ? sn : undefined;
-        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma);
+        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma, axisUnit(i));
     });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
@@ -507,10 +550,11 @@ export const buildCartesianOption = (
     // the earlier `'1%' + maxOffset` had masked that by over-reserving. `nameGap` was also 50 →
     // names floated far from their axes; tightened via AXIS_NAME_GAP.)
     const option: Record<string, unknown> = {
-        legend: buildLegend(p, names),
+        legend: buildLegend(p, names, [], facts),
         // The tooltip's time header follows the same Time format (ADR-0052) — one format, two
-        // surfaces; an authored tooltipTemplate still wins inside buildTooltip.
-        tooltip: buildTooltip(p, { format: p.xAxis.format }),
+        // surfaces; an authored tooltipTemplate still wins inside buildTooltip. The per-series
+        // facts (ADR-0057) ride along for the row formatting.
+        tooltip: buildTooltip(p, { format: p.xAxis.format }, facts),
         grid: {
             left: 0,
             right: 0,

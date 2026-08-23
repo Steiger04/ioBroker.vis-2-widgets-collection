@@ -35,6 +35,7 @@ import {
     FieldGrid,
     FieldLabel,
     LabeledSelect,
+    OptionalNumberField,
     OptionalSliderField,
     SliderField,
     SubGroup,
@@ -175,6 +176,33 @@ export const CartesianBasisFields: FC<{
                     }
                 />
             )}
+        </FieldGrid>
+    </SubGroup>
+);
+
+/**
+ * The "Werte" SubGroup of a cartesian series card (ADR-0057, parity Build B) — the per-series
+ * Wert-Formatter facts: unit + decimals. Shared by the history/live card and the JSON-mode card
+ * (the facts ride the same meta and flow through every cartesian surface: tooltip row, legend
+ * value, label values, and the shared-unit axis inheritance). Issue 06 grows this group with the
+ * bool/enum texts.
+ */
+export const SeriesValueFormatFields: FC<{
+    meta: EchartsSeriesMeta;
+    onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
+}> = ({ meta, onPatch }) => (
+    <SubGroup title={Generic.t('echarts_grp_values')}>
+        <FieldGrid min={140}>
+            <TextField2
+                label={Generic.t('echarts_series_unit')}
+                value={meta.unit ?? ''}
+                onChange={v => onPatch({ unit: v.trim() || undefined })}
+            />
+            <OptionalNumberField
+                label={Generic.t('echarts_series_decimals')}
+                value={meta.decimals}
+                onChange={v => onPatch({ decimals: v === undefined || v >= 0 ? v : 0 })}
+            />
         </FieldGrid>
     </SubGroup>
 );
@@ -550,6 +578,10 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         pickerCtx={pickerCtx}
                         colorFallback={slot(i)}
                         labelColorFallback={labelColorFallback}
+                    />
+                    <SeriesValueFormatFields
+                        meta={s}
+                        onPatch={p => onUpdate(i, p)}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

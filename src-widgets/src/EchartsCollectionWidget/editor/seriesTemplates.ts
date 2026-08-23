@@ -198,7 +198,8 @@ const DECAL = {
 // ── cartesian-line ────────────────────────────────────────────────────────────
 // GUI-owned leaves (always): name/type/yAxisIndex/data/color/itemStyle.color/
 // lineStyle.width/lineStyle.type/smooth/showSymbol/connectNulls. Conditional: itemStyle.
-// borderRadius, label.show, stack, symbolSize, step, areaStyle.opacity, areaStyle.color (gradient).
+// borderRadius, label.show, stack, symbolSize, step, areaStyle.opacity, areaStyle.color
+// (gradient), label.formatter (value format active, ADR-0057).
 const CARTESIAN_LINE: SeriesTemplate[] = [
     {
         id: 'line-linestyle',
@@ -1060,11 +1061,21 @@ export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
  * is justified at the using template.
  */
 export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
-    'cartesian-line': new Set(['areaStyle.color', 'markLine.silent', 'markLine.symbol', 'markLine.data']),
+    // `label.formatter` (ADR-0057): a line card owns it only while its label is on AND a value
+    // format is active (the card's unit/decimals facts or a chart-level knob) — the line-label
+    // scaffolds carry the leaf; without facts the template keeps it (GUI-wins seam, conditional).
+    'cartesian-line': new Set([
+        'areaStyle.color',
+        'markLine.silent',
+        'markLine.symbol',
+        'markLine.data',
+        'label.formatter',
+    ]),
     // label.* (parity Build D, ADR-0056): the bar card owns position/size only while their fields
-    // are set (and formatter only while a chart-level value knob is authored + label on) — the
-    // label scaffolds' other leaves (distance/rotate/offset/fontStyle/…) stay wholly free, and an
-    // unset field hands the leaf to the template (the ADR-0015 GUI-wins seam, conditional).
+    // are set (and formatter only while a value format is active + label on — per-series facts
+    // since ADR-0057, else a chart-level knob) — the label scaffolds' other leaves
+    // (distance/rotate/offset/fontStyle/…) stay wholly free, and an unset field hands the leaf to
+    // the template (the ADR-0015 GUI-wins seam, conditional).
     // `label.color` is deliberately NOT here: it is conditionally card-owned too, but no scaffold
     // carries it — a future label-colour scaffold must add the entry (the no-rotted-entries audit
     // forces allow-list and usage to stay in lock-step).

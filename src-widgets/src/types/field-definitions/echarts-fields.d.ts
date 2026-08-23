@@ -215,6 +215,19 @@ export interface EchartsSeriesMeta {
     symbolSize?: number;
     /** Connect nulls within this series. @default false */
     connectNulls?: boolean;
+    /**
+     * Per-series value unit (parity Build B, ADR-0057): appended by the Wert-Formatter to this
+     * series' tooltip row, legend value and label values; a Y-axis inherits it when EVERY bound
+     * series shares it (explicit axis format still wins). Empty/whitespace = unset. Never
+     * emitted to echarts as a key — it lives only in the formatted strings.
+     */
+    unit?: string;
+    /**
+     * Per-series decimals clamp for this series' values (adapter `afterComma`, parity Build B
+     * ADR-0057). `undefined` = the chart-level fallback (tooltip cluster), else the number's own
+     * digits. `0` is a fact, not an unset.
+     */
+    decimals?: number;
     /** Show value labels. @default false */
     label?: boolean;
     /**

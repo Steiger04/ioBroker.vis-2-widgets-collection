@@ -29,7 +29,7 @@ import type {
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
-import { formatChartValue } from './valueFormat';
+import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
 import { THEME_PALETTES } from './themePalettes';
 import type { PresentationConfig } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
@@ -508,17 +508,23 @@ const legendGridPlacement = (pos: EchartsLegendPos, offsetX: number, offsetY: nu
  *
  * ADR-0054: with `legendShowValues` the legend renders `Name [current value]` per item (adapter
  * `legActual`) — the values ride `p.legendValues` (pipeline-resolved: live subscription / last
- * point); a name without a resolved numeric value falls back to the bare name.
+ * point); a name without a resolved numeric value falls back to the bare name. ADR-0057: each
+ * value formats through its series' OWN Wert-Formatter facts (unit/decimals); the legend's
+ * chart-wide context is the comma switch ALONE (the chart-level tooltip units never leaked into
+ * the legend, and parity Build B keeps it that way).
  *
  * @param p - Chart-wide presentation (`legendShow`/`legendPos` flat + `legend` styling blob).
  * @param data - Legend item names (series/slice/polygon names — family-supplied).
  * @param hiddenNames - Names pre-deselected via `legend.selected` (adapter `selected[name] =
  *   hide !== true` — the mechanism ticket 08 rides). Empty (default) → no `selected` key.
+ * @param seriesFacts - Per-series Wert-Formatter facts by name (ADR-0057, cartesian callers); a
+ *   name without facts formats through the chart context alone (comma, no units).
  */
 export const buildLegend = (
     p: PresentationConfig,
     data: string[],
     hiddenNames: string[] = [],
+    seriesFacts?: SeriesFactsByName,
 ): Record<string, unknown> => {
     const cfg = p.legend ?? {};
     const legend: Record<string, unknown> = {
@@ -584,10 +590,12 @@ export const buildLegend = (
     // Legend values (adapter `legActual`, ADR-0054): `Name [value]` from the pipeline-resolved
     // current values; a name without a numeric value renders bare (the toggle never lies about a
     // value it does not have). GUI-owned — the raw fold below cannot override the formatter.
+    // ADR-0057: the value formats through the series' facts; the chart context is comma-only.
     if (p.legendShowValues) {
+        const chartCtx: ChartValueFormat = { comma: p.decimalComma };
         legend.formatter = (name: string): string => {
             const v = p.legendValues?.[name];
-            return typeof v === 'number' ? `${name} [${formatChartValue(v, undefined, p.decimalComma)}]` : name;
+            return typeof v === 'number' ? `${name} [${formatSeriesValue(v, seriesFacts?.[name], chartCtx)}]` : name;
         };
     }
 
