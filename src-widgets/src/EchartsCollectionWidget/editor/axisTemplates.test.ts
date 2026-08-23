@@ -35,9 +35,10 @@ describe('AXIS_TEMPLATES catalog shape (ADR-0037, option-group categories ADR-00
 
 describe('AXIS_TEMPLATES audit (ADR-0037/0043) — no template touches a builder-emitted leaf', () => {
     // The MOST restrictive card state: every conditional emit active (name/min/max/scale/
-    // splitNumber/minInterval/nameRotate/format/colour + inherited series colour/name). If a
-    // template classifies `effective` here, it is effective under ANY card state — this is the
-    // series-template "audited against the builder" rule, state-resolved.
+    // splitNumber/minInterval/nameRotate/format/colour + the Build D fine-tuning leaves
+    // ADR-0055 + inherited series colour/name). If a template classifies `effective` here, it is
+    // effective under ANY card state — this is the series-template "audited against the builder"
+    // rule, state-resolved.
     const fullest: EchartsAxisConfig = {
         name: 'kW',
         min: 0,
@@ -56,6 +57,9 @@ describe('AXIS_TEMPLATES audit (ADR-0037/0043) — no template touches a builder
         axisTick: true,
         nameLocation: 'middle',
         nameGap: 18,
+        labelFontSize: 16,
+        tickColor: '#0f0',
+        gridColor: '#777',
     };
 
     it('every snippet is wholly effective against a fully-configured axis', () => {

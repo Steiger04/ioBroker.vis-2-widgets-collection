@@ -207,7 +207,9 @@ const buildYAxisEntry = (
         position: a.position ?? (i === 0 ? 'left' : 'right'),
         offset: a.offset ?? 0,
         alignTicks: a.alignTicks ?? false,
-        splitLine: { show: a.splitLine ?? i === 0 },
+        // Parity Build D (ADR-0055): grid colour rides the show switch object, sparse — unset
+        // leaves splitLine a bare {show} so the raw override keeps owning lineStyle wholesale.
+        splitLine: { show: a.splitLine ?? i === 0, ...(a.gridColor ? { lineStyle: { color: a.gridColor } } : {}) },
         // Card fields since ADR-0037 (were hard-emits with no GUI control, i.e. un-overridable
         // under the GUI-wins raw seam). Defaults = the former hard-emit values, so existing
         // widgets render identically.
@@ -239,12 +241,19 @@ const buildYAxisEntry = (
     // Always emit: echarts' value-axis `axisTick` default is 'auto', which resolves to FALSE when
     // the paired axis is time/category (ours is `type:'time'`). Without this the "Ticks zeigen"
     // switch (default on) and the chart disagree — ticks are absent on first render until the user
-    // touches the switch. Explicit false still wins.
-    entry.axisTick = { show: a.axisTick ?? true };
+    // touches the switch. Explicit false still wins. The tick COLOUR (parity Build D, ADR-0055) is
+    // sparse inside the same object — separate from the labels, unset = no lineStyle at all.
+    entry.axisTick = { show: a.axisTick ?? true, ...(a.tickColor ? { lineStyle: { color: a.tickColor } } : {}) };
     if (a.nameRotate !== undefined) {
         entry.nameRotate = a.nameRotate;
     }
     const axisLabel: Record<string, unknown> = {};
+    // Parity Build D (ADR-0055): label font size — additive fine-tuning under the one-colour idiom
+    // (a set axis colour keeps painting the label COLOUR; this only sizes the text). Sparse: the
+    // bare axis emits no axisLabel at all, exactly as before.
+    if (a.labelFontSize !== undefined) {
+        axisLabel.fontSize = a.labelFontSize;
+    }
     if (a.format) {
         axisLabel.formatter = a.format;
     } else if (comma) {
@@ -294,9 +303,16 @@ const buildYAxisEntry = (
 const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: 'time',
-        splitLine: { show: x.splitLine ?? false },
-        axisTick: { show: x.axisTick ?? true },
+        // Parity Build D (ADR-0055): grid + tick colours ride their show-switch objects, sparse —
+        // unset leaves both a bare {show} so the raw override keeps owning lineStyle wholesale.
+        splitLine: { show: x.splitLine ?? false, ...(x.gridColor ? { lineStyle: { color: x.gridColor } } : {}) },
+        axisTick: { show: x.axisTick ?? true, ...(x.tickColor ? { lineStyle: { color: x.tickColor } } : {}) },
     };
+    // X position top/bottom (parity Build D): unset = no key, echarts keeps its 'bottom' default —
+    // an authored 'bottom' emits verbatim (no visual change, but the choice round-trips).
+    if (x.position) {
+        entry.position = x.position;
+    }
     if (x.name) {
         // 'middle' centres the name under the axis; the gap clears the tick labels below the line.
         entry.name = x.name;
@@ -324,6 +340,11 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number): Record<string, 
     if (x.labelRotate !== undefined) {
         // Angled time labels for narrow widgets; unset = 0° (the echarts default, no emit).
         axisLabel.rotate = x.labelRotate;
+    }
+    // Parity Build D (ADR-0055): label font size — sparse inside the always-present axisLabel
+    // block; unset keeps it formatter(+rotate)-only.
+    if (x.labelFontSize !== undefined) {
+        axisLabel.fontSize = x.labelFontSize;
     }
     if (x.color) {
         entry.axisLine = { show: true, lineStyle: { color: x.color } };

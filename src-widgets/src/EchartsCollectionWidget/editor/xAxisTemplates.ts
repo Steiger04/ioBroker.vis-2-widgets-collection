@@ -73,9 +73,10 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         id: 'axislabel',
         category: 'axisLabel',
         label: 'axisLabel',
-        // `color`/`formatter`/`rotate` omitted — all three are card-owned (colour inherits, the
-        // time format combo, the label-rotation slider). Absorbs `xAxis · hideOverlap`.
-        json: '{ "axisLabel": { "show": true, "inside": false, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal", "fontSize": 12 } }',
+        // `color`/`formatter`/`rotate`/`fontSize` omitted — all four are card-owned (colour
+        // inherits, the time format combo, the label-rotation slider, the Build D label size,
+        // ADR-0055). Absorbs `xAxis · hideOverlap`.
+        json: '{ "axisLabel": { "show": true, "inside": false, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal" } }',
     },
     {
         id: 'axislabel-chip',

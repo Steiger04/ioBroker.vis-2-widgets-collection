@@ -102,12 +102,16 @@ _Avoid_: Confirm dialog, type guard
 A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose body groups all axis knobs into Sub-groups (basis, value range, scale & ticks, presentation). One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
 _Avoid_: Axis row, axis settings
 
+**Axis fine-tuning**:
+The sparse appearance leaves beneath the axis **one-colour idiom** — label size (`axisLabel.fontSize`), tick colour (`axisTick.lineStyle.color`, separate from the labels; ticks follow the axis LINE by default), and grid colour (`splitLine.lineStyle.color`, offered only while that axis' splitlines switch is on; the value persists). Parity Build D (ADR-0055); additive: a set axis colour keeps painting line + label + name, these fields only steer their own leaf, unset = no emit.
+_Avoid_: axis styling (vague — the one-colour field is part of it), tick format (that is the value-range format field)
+
 **Axis manager**:
 The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`). Its first card is the X-Karte; the manageable list below is Y-only.
 _Avoid_: Axes tab, axis list
 
 **X-Karte**:
-The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (theme-token inherit), ticks, split lines, pixel offset (ADR-0035). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
+The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (theme-token inherit), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
 _Avoid_: X axis settings, X axis card list (there is exactly one)
 
 **Time format**:

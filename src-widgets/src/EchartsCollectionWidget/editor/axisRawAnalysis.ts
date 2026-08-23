@@ -13,7 +13,9 @@
  * managed set is partly CONDITIONAL:
  * `axisLabel.color` / `nameTextStyle.color` / `axisLine` are emitted only when an axis colour is
  * set (explicit or inherited from the bound series), `axisLabel.formatter` only when the format
- * field is filled, `min`/`max`/`scale`/`splitNumber`/`minInterval`/`nameRotate`/`name` only when
+ * field is filled, `axisLabel.fontSize`/`axisTick.lineStyle.color`/`splitLine.lineStyle.color`
+ * only when their Build D fine-tuning fields are set (ADR-0055), and
+ * `min`/`max`/`scale`/`splitNumber`/`minInterval`/`nameRotate`/`name` only when
  * their card fields are set. A static map would false-red keys that are actually free — the
  * classifier therefore resolves the managed LEAF paths from the axis config (+ the same inherited
  * colour/name defaults the builder receives) on every call.
@@ -76,11 +78,14 @@ const MANAGED_TOP_KEYS: ReadonlySet<string> = new Set([
 /**
  * Per managed top-level key: the DIRECT-CHILD containers whose own children are the leaves (so
  * `axisLine.lineStyle.color` is distinguishable from the free `.width`/`.type` siblings — the GUI
- * owns only the colour inside `lineStyle`, and only when an axis colour is set). Only `axisLine`
- * needs it: `axisLabel`/`nameTextStyle`/`splitLine`/`axisTick` carry their leaves directly.
+ * owns only the colour inside `lineStyle`, and only when an axis colour is set). `axisTick` and
+ * `splitLine` joined with parity Build D (ADR-0055): their `lineStyle.color` is conditionally
+ * card-owned (tick/grid colour fields). `axisLabel`/`nameTextStyle` carry their leaves directly.
  */
 const NESTED_LEAF_KEYS: Record<string, ReadonlySet<string>> = {
     axisLine: new Set(['lineStyle']),
+    axisTick: new Set(['lineStyle']),
+    splitLine: new Set(['lineStyle']),
 };
 
 /**
@@ -124,6 +129,17 @@ const managedLeafPaths = ({ axis: a, seriesColor, seriesName }: AxisAnalysisInpu
     }
     if (a.format) {
         paths.add('axisLabel.formatter');
+    }
+    // Parity Build D (ADR-0055): the three fine-tuning leaves are conditionally card-owned —
+    // sparse like the format/colour conditionals above, so an unset field keeps the leaf free.
+    if (a.labelFontSize !== undefined) {
+        paths.add('axisLabel.fontSize');
+    }
+    if (a.tickColor) {
+        paths.add('axisTick.lineStyle.color');
+    }
+    if (a.gridColor) {
+        paths.add('splitLine.lineStyle.color');
     }
     if (a.color ?? seriesColor) {
         paths.add('axisLabel.color');

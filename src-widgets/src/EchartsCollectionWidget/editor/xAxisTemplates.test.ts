@@ -29,16 +29,20 @@ const X_GUI_OWNED = new Set([
     'axisLabel.formatter',
     'axisLabel.color',
     'axisLabel.rotate',
+    'axisLabel.fontSize',
     'axisLine.show',
     'axisLine.lineStyle.color',
     'axisLine.onZero',
     'nameTextStyle.color',
     'splitLine.show',
+    'splitLine.lineStyle.color',
     'axisTick.show',
+    'axisTick.lineStyle.color',
     'splitNumber',
     'minInterval',
     'nameRotate',
     'offset',
+    'position',
 ]);
 
 /** The nested containers whose own children are the leaves (objects with GUI-owned CHILDREN). */

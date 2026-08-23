@@ -222,6 +222,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                     onChange={patch => set({ xAxis: { ...state.xAxis, ...patch } })}
                     pickerCtx={pickerCtx}
                     fallbackColor={themeTokens.textSecondary}
+                    dividerColor={themeTokens.divider}
                 />
                 {axes.map((a, i) => (
                     <AxisCard
@@ -236,6 +237,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         pickerCtx={pickerCtx}
                         seriesColor={boundAxisColor(i)}
                         seriesName={boundAxisName(i)}
+                        dividerColor={themeTokens.divider}
                     />
                 ))}
                 <Button

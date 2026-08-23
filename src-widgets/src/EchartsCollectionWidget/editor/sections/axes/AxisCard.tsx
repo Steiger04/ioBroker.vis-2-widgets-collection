@@ -24,6 +24,7 @@ import {
     LabeledSelect,
     NumberField,
     OptionalNumberField,
+    OptionalSliderField,
     SliderField,
     SubGroup,
     SwitchList,
@@ -52,7 +53,21 @@ const AxisCard: FC<{
     seriesColor?: string;
     /** Effective name of the first bound series — the axis-name default shown as placeholder (ADR-0018). */
     seriesName?: string;
-}> = ({ axis: a, index: i, total, open, onToggle, onChange, onRemove, pickerCtx, seriesColor, seriesName }) => {
+    /** Theme divider token — the grid colour's inherit value (the theme's splitline floor). */
+    dividerColor: string;
+}> = ({
+    axis: a,
+    index: i,
+    total,
+    open,
+    onToggle,
+    onChange,
+    onRemove,
+    pickerCtx,
+    seriesColor,
+    seriesName,
+    dividerColor,
+}) => {
     const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
     // alignTicks is an explicit per-axis opt-in (ADR-0034): off by default, no smart-default. Only
     // meaningful with 2+ axes; on axis 0 (the reference echarts aligns others to) it is a no-op, so
@@ -63,6 +78,8 @@ const AxisCard: FC<{
     const alignConflict = i > 0 && total > 1 && alignTicksEffective && alignTicksDisabledByOverride(a);
     // axisTick defaults to shown (echarts default); the switch reflects it.
     const axisTickEffective = a.axisTick ?? true;
+    // Splitlines default on for axis 0 only (ADR-0012) — the grid colour rides this state.
+    const splitLineEffective = a.splitLine ?? i === 0;
 
     return (
         <EditorCard
@@ -174,7 +191,7 @@ const AxisCard: FC<{
                     />
                     <SwitchRow
                         label={Generic.t('echarts_axis_splitline')}
-                        checked={a.splitLine ?? i === 0}
+                        checked={splitLineEffective}
                         onChange={v => onChange({ splitLine: v })}
                     />
                     <SwitchRow
@@ -202,6 +219,21 @@ const AxisCard: FC<{
                         text={Generic.t('echarts_axis_align_conflict')}
                     />
                 )}
+                {/* Grid colour (parity Build D, ADR-0055) — offered only while this axis'
+                    splitlines switch is on (the zoom-idle precedent: a dependent control renders
+                    under its switch). Inherit swatch = the theme's divider token; the value
+                    persists when the grid goes back off. */}
+                {splitLineEffective && (
+                    <Box sx={{ mb: 1.5 }}>
+                        <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
+                        <ColorField
+                            value={a.gridColor ?? ''}
+                            fallback={dividerColor}
+                            onChange={v => onChange({ gridColor: v ?? undefined })}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
+                )}
                 <FieldGrid min={110}>
                     <OptionalNumberField
                         label={Generic.t('echarts_axis_split_number')}
@@ -213,6 +245,26 @@ const AxisCard: FC<{
                         value={a.minInterval}
                         onChange={v => onChange({ minInterval: v })}
                     />
+                    {/* Label size + tick colour (parity Build D): additive fine-tuning UNDER the
+                        one-colour idiom — the axis colour keeps painting label colour + line; the
+                        tick inherit swatch shows the line's effective colour. */}
+                    <OptionalSliderField
+                        label={Generic.t('echarts_axis_label_font_size')}
+                        value={a.labelFontSize}
+                        min={6}
+                        max={32}
+                        fallback={12}
+                        onChange={v => onChange({ labelFontSize: v })}
+                    />
+                    <Box>
+                        <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
+                        <ColorField
+                            value={a.tickColor ?? ''}
+                            fallback={a.color ?? seriesColor ?? dividerColor}
+                            onChange={v => onChange({ tickColor: v ?? undefined })}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
                 </FieldGrid>
             </SubGroup>
 

@@ -514,6 +514,22 @@ export interface EchartsAxisConfig {
      */
     nameGap?: number;
     /**
+     * Font size of the tick LABELS (`axisLabel.fontSize`), parity Build D: additive fine-tuning
+     * UNDER the one-colour idiom (a set axis `color` still paints label colour, this only sizes
+     * it). Unset = no emit (echarts default 12). Rides the `yAxes` blob.
+     */
+    labelFontSize?: number;
+    /**
+     * Colour of the tick MARKS (`axisTick.lineStyle.color`), separate from the labels — parity
+     * Build D. Unset = no emit (ticks follow the axis line's colour, the echarts/theme default).
+     */
+    tickColor?: string;
+    /**
+     * Grid colour (`splitLine.lineStyle.color`) — parity Build D. The card shows it only while the
+     * splitlines switch is on, but the value persists; unset = no emit (theme divider token).
+     */
+    gridColor?: string;
+    /**
      * Per-axis raw echarts JSON override (ADR-0037): parsed and deep-merged UNDER the GUI-authored
      * yAxis entry by `applyRawOverride` — the card wins every collision, so GUI-covered keys
      * (min/max/splitLine.show/…) are protected while everything the builder does not emit (label
@@ -569,6 +585,26 @@ export interface EchartsXAxisConfig {
     nameRotate?: number;
     /** Rotate the tick LABELS (deg, `axisLabel.rotate`) — angled time labels on narrow widgets. */
     labelRotate?: number;
+    /**
+     * Font size of the tick LABELS (`axisLabel.fontSize`) — parity Build D. Unset = no emit
+     * (echarts default 12); rides the `xAxis` blob.
+     */
+    labelFontSize?: number;
+    /**
+     * Colour of the tick MARKS (`axisTick.lineStyle.color`), separate from the labels — parity
+     * Build D. Unset = no emit (ticks follow the axis line, the theme divider token).
+     */
+    tickColor?: string;
+    /**
+     * Grid colour (`splitLine.lineStyle.color`) — parity Build D; the card shows it only while the
+     * splitlines switch is on, but the value persists. Unset = no emit (theme divider token).
+     */
+    gridColor?: string;
+    /**
+     * Where the axis sits (`position`) — parity Build D layout variant: 'top' mirrors the axis
+     * above the grid. Unset = no emit (echarts default 'bottom'); rides the `xAxis` blob.
+     */
+    position?: 'bottom' | 'top';
     /**
      * Pixel offset from the default (bottom) position — moves the whole axis down, away from the
      * grid (the X sibling of the Y-axis Versatz, a label-crowding fine-adjustment). Setting it

@@ -71,6 +71,19 @@ describe('classifyAxisKeys — conditional keys are STATE-aware', () => {
         expect(chip('{ "axisLabel": { "formatter": "{value} W" } }', { format: '{value} kW' })[0].cls).toBe('ignored');
     });
 
+    it('the Build D fine-tuning leaves follow their card fields (ADR-0055)', () => {
+        const raw =
+            '{ "axisLabel": { "fontSize": 14 }, "axisTick": { "lineStyle": { "color": "#333", "width": 2 } }, "splitLine": { "lineStyle": { "color": "#333", "type": "dashed" } } }';
+        // Unset fields → every leaf free (fontSize included; the show switches are absent here).
+        expect(chip(raw, {}).every(c => c.cls === 'effective')).toBe(true);
+        // Set fields → each GUI leaf turns managed while its lineStyle siblings stay free.
+        const set = chip(raw, { labelFontSize: 16, tickColor: '#0f0', gridColor: '#777' });
+        const by = (k: string): AxisKeyChip | undefined => set.find(c => c.key === k);
+        expect(by('axisLabel')?.cls).toBe('ignored'); // fontSize is its only leaf
+        expect(by('axisTick')).toEqual({ key: 'axisTick', cls: 'partial', managed: ['axisTick.lineStyle.color'] });
+        expect(by('splitLine')).toEqual({ key: 'splitLine', cls: 'partial', managed: ['splitLine.lineStyle.color'] });
+    });
+
     it('the colour trio follows the card colour OR the inherited series colour', () => {
         // No colour anywhere → the whole axisLabel/axisLine/nameTextStyle objects are free.
         expect(chip('{ "axisLabel": { "color": "#333", "fontFamily": "mono" } }', {})[0].cls).toBe('effective');

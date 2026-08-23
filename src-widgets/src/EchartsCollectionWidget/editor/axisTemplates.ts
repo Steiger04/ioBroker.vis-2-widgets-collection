@@ -127,9 +127,10 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         id: 'axislabel',
         category: 'axisLabel',
         label: 'axisLabel',
-        // `color`/`formatter` omitted (conditionally card-owned with colour/format); rotate is
-        // the GUI label-rotation slider on the X-Karte but free on Y (only listed managed for xAxis).
-        json: '{ "axisLabel": { "show": true, "inside": false, "rotate": 0, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal", "fontSize": 12 } }',
+        // `color`/`formatter`/`fontSize` omitted (conditionally card-owned with colour/format/
+        // label size, ADR-0055); rotate is the GUI label-rotation slider on the X-Karte but free
+        // on Y (only listed managed for xAxis).
+        json: '{ "axisLabel": { "show": true, "inside": false, "rotate": 0, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal" } }',
     },
     {
         id: 'axislabel-chip',

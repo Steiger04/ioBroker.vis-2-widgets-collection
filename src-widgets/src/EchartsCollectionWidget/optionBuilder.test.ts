@@ -1563,3 +1563,127 @@ describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', ()
         expect(authored.axisLabel?.formatter).toBe('{value} kW');
     });
 });
+
+describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', () => {
+    /** First yAxis of a built option, loosely typed for leaf assertions. */
+    const y0 = (option: ReturnType<typeof buildGeneratedOption>): Record<string, unknown> =>
+        (option.yAxis as Record<string, unknown>[])[0];
+
+    it('emits axisLabel.fontSize on Y when the label size is set; unset emits no axisLabel at all', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, yAxes: [{ labelFontSize: 16 }] },
+        });
+        expect(y0(option).axisLabel).toEqual({ fontSize: 16 });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(y0(bare)).not.toHaveProperty('axisLabel');
+    });
+
+    it('emits axisTick.lineStyle.color on Y when the tick colour is set; unset keeps the bare show switch', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, yAxes: [{ tickColor: '#0f0' }] },
+        });
+        expect(y0(option).axisTick).toEqual({ show: true, lineStyle: { color: '#0f0' } });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(y0(bare).axisTick).toEqual({ show: true });
+    });
+
+    it('emits splitLine.lineStyle.color on Y when the grid colour is set; unset keeps the bare show switch', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, yAxes: [{ gridColor: '#777' }] },
+        });
+        expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#777' } });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(y0(bare).splitLine).toEqual({ show: true });
+    });
+
+    it('the raw override merges leaf-wise around the new Y leaves — GUI wins collisions, siblings flow through', () => {
+        // The card owns axisTick.lineStyle.color/splitLine.lineStyle.color only when their fields
+        // are set; raw siblings at the same level (width/type) must keep merging through.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: {
+                ...P,
+                yAxes: [
+                    {
+                        tickColor: '#gui',
+                        gridColor: '#gui',
+                        splitLine: true,
+                        raw: JSON.stringify({
+                            axisTick: { lineStyle: { color: '#raw', width: 2 } },
+                            splitLine: { lineStyle: { color: '#raw', type: 'dashed' } },
+                        }),
+                    },
+                ],
+            },
+        });
+        expect(y0(option).axisTick).toEqual({ show: true, lineStyle: { color: '#gui', width: 2 } });
+        expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#gui', type: 'dashed' } });
+    });
+
+    it('emits the X label size into the always-present axisLabel block; unset stays formatter-only', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { labelFontSize: 14 } },
+        });
+        expect(option.xAxis).toMatchObject({ axisLabel: { fontSize: 14, formatter: expect.any(Function) } });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).toMatchObject({ axisLabel: { formatter: expect.any(Function) } });
+        expect((bare.xAxis as { axisLabel: Record<string, unknown> }).axisLabel).not.toHaveProperty('fontSize');
+    });
+
+    it('emits the X tick and grid colours alongside the always-emitted show switches', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { tickColor: '#0f0', gridColor: '#777' } },
+        });
+        expect(option.xAxis).toMatchObject({
+            axisTick: { show: true, lineStyle: { color: '#0f0' } },
+            splitLine: { show: false, lineStyle: { color: '#777' } },
+        });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).toMatchObject({ axisTick: { show: true }, splitLine: { show: false } });
+        expect((bare.xAxis as { axisTick: Record<string, unknown> }).axisTick).not.toHaveProperty('lineStyle');
+        expect((bare.xAxis as { splitLine: Record<string, unknown> }).splitLine).not.toHaveProperty('lineStyle');
+    });
+
+    it('emits the X position top/bottom when authored; unset = no key (echarts default bottom)', () => {
+        const top = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top' } },
+        });
+        expect(top.xAxis).toMatchObject({ position: 'top' });
+
+        const bottom = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'bottom' } },
+        });
+        expect(bottom.xAxis).toMatchObject({ position: 'bottom' });
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).not.toHaveProperty('position');
+    });
+});
