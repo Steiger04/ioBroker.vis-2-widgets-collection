@@ -161,3 +161,57 @@ describe('fetchMultiSeries', () => {
         expect(seen.b).not.toHaveProperty('instance');
     });
 });
+
+// ── per-series request overrides (ADR-0059, parity Build B issue 07) ──
+
+describe('fetchMultiSeries — per-entry request overrides (ADR-0059)', () => {
+    /** A getHistory mock that records the options of every call, returning one null + one value. */
+    const recording =
+        (calls: { id: string; options: ioBroker.GetHistoryOptions }[]) =>
+        (id: string, options: ioBroker.GetHistoryOptions): Promise<Point[]> => {
+            calls.push({ id, options });
+            return Promise.resolve([
+                { ts: 1, val: 5 },
+                { ts: 2, val: null },
+            ]);
+        };
+
+    it("an entry's offsetMs shifts THAT OID's start/end into the past (adapter addTime subtracts); the shared window stays for the others", async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(recording(calls), [{ oid: 'a', offsetMs: 90_000 }, { oid: 'b' }], {
+            start: 1000,
+            end: 2000,
+            aggregate: 'average',
+            count: 10,
+        });
+        expect(calls[0]?.options.start).toBe(1000 - 90_000); // −offset·1000, the adapter's addTime
+        expect(calls[0]?.options.end).toBe(2000 - 90_000);
+        expect(calls[1]?.options.start).toBe(1000);
+        expect(calls[1]?.options.end).toBe(2000);
+    });
+
+    it("an entry's ignoreNull overrides the chart-level gap handling for its data only", async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        const out = await fetchMultiSeries(
+            recording(calls),
+            [{ oid: 'a', ignoreNull: 'zero' }, { oid: 'b' }, { oid: 'c', ignoreNull: 'keep' }],
+            { start: 0, end: 10, aggregate: 'none', count: 10 },
+            'forward',
+        );
+        // a: per-series zero → the null becomes 0
+        expect(out[0]?.data).toEqual([
+            [1, 5],
+            [2, 0],
+        ]);
+        // b: inherits the chart-level forward → the null carries the last value
+        expect(out[1]?.data).toEqual([
+            [1, 5],
+            [2, 5],
+        ]);
+        // c: per-series keep → the null stays a gap
+        expect(out[2]?.data).toEqual([
+            [1, 5],
+            [2, null],
+        ]);
+    });
+});

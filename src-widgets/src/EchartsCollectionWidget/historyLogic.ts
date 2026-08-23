@@ -94,6 +94,16 @@ export interface HistoryEntry {
     name?: string;
     /** Pinned history instance for THIS OID (ADR-0039); absent = Auto (datapoint config, else server). */
     instance?: string;
+    /**
+     * This series' request-window shift in ms (adapter `offset` in seconds, ADR-0059) — shifts
+     * the getHistory start/end so time-shifted recordings overlap; absent/0 = the shared window.
+     */
+    offsetMs?: number;
+    /**
+     * This series' NULL handling (ADR-0059) — overrides the chart-level `ignoreNull` argument
+     * for this entry's data; absent = inherit the chart-level setting.
+     */
+    ignoreNull?: IgnoreNull;
 }
 
 export interface FetchedSeries {
@@ -105,7 +115,9 @@ export interface FetchedSeries {
 /**
  * Fetch + transform multiple OIDs in parallel. `Promise.allSettled` so one failing OID
  * doesn't discard the others — a failed series becomes `{ data: [], error }`. An entry's
- * pinned `instance` (ADR-0039) overrides the base options' for that OID only.
+ * pinned `instance` (ADR-0039) overrides the base options' for that OID only; its
+ * `offsetMs` shifts that OID's start/end (ADR-0059) and its `ignoreNull` overrides the
+ * chart-level gap handling.
  */
 export async function fetchMultiSeries(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
@@ -114,17 +126,28 @@ export async function fetchMultiSeries(
     ignoreNull: IgnoreNull = 'keep',
 ): Promise<FetchedSeries[]> {
     const results = await Promise.allSettled(
-        entries.map(e =>
-            getHistory(e.oid, e.instance ? { ...options, instance: e.instance } : options).then(pts => ({
+        entries.map(e => {
+            // Per-entry request overrides (ADR-0039 instance; ADR-0059 window shift): only the
+            // keys this entry authors diverge from the shared options. The shift SUBTRACTS —
+            // the adapter's `addTime` moves the window by −offset·1000, so a positive X-offset
+            // shifts the series' window into the PAST (adapter parity, spec story 46).
+            const perEntry: ioBroker.GetHistoryOptions = {
+                ...options,
+                ...(e.instance ? { instance: e.instance } : {}),
+                ...(e.offsetMs
+                    ? { start: (options.start ?? 0) - e.offsetMs, end: (options.end ?? 0) - e.offsetMs }
+                    : {}),
+            };
+            return getHistory(e.oid, perEntry).then(pts => ({
                 name: e.name ?? e.oid,
                 pts,
-            })),
-        ),
+            }));
+        }),
     );
     return results.map((r, i) => {
         const name = entries[i].name ?? entries[i].oid;
         if (r.status === 'fulfilled') {
-            return { name, data: toSeriesData(r.value.pts, ignoreNull) };
+            return { name, data: toSeriesData(r.value.pts, entries[i].ignoreNull ?? ignoreNull) };
         }
         return { name, data: [], error: String(r.reason ?? 'history fetch failed') };
     });

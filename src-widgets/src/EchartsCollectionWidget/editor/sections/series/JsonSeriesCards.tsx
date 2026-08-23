@@ -21,7 +21,12 @@ import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorState } from '../../editorState';
-import { CartesianBasisFields, CartesianSeriesKnobs, SeriesValueFormatFields } from './CartesianSeriesCard';
+import {
+    CartesianBasisFields,
+    CartesianSeriesKnobs,
+    SeriesTransformFields,
+    SeriesValueFormatFields,
+} from './CartesianSeriesCard';
 import { effectiveAxisName } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
@@ -210,6 +215,10 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 labelColorFallback={labelColorFallback}
                             />
                             <SeriesValueFormatFields
+                                meta={m}
+                                onPatch={p => onUpdateJson(name, p)}
+                            />
+                            <SeriesTransformFields
                                 meta={m}
                                 onPatch={p => onUpdateJson(name, p)}
                             />

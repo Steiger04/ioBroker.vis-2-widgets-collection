@@ -49,6 +49,7 @@
         "@uiw/react-textarea-code-editor": "^3.1.1",
         "canvas-gauges": "^2.1.7",
         "echarts": "^6.1.0",
+        "expr-eval": "^2.0.2",
         "iobroker.vis-2-widgets-collection": "file:..",
         "json-logic-engine": "^5.0.6",
         "moment": "^2.30.1",

@@ -247,6 +247,28 @@ export interface EchartsSeriesMeta {
      * nearest state for axis ticks; an empty map is unset.
      */
     states?: Record<string, string>;
+    /**
+     * Value offset added BEFORE the formula (adapter `yOffset`, parity Build B ADR-0059):
+     * `f(val + yOffset)`; without a formula the offset alone shifts the values. Never emitted to
+     * echarts — the pipeline transforms the data.
+     */
+    yOffset?: number;
+    /**
+     * Conversion formula over the `val` symbol (adapter `convert`, parity Build B ADR-0059) —
+     * expr-eval math syntax, deliberately no JS execution. Unparseable → raw values (offset
+     * still applies), never a crash.
+     */
+    formula?: string;
+    /**
+     * Request-window shift in SECONDS (adapter `offset`, ADR-0059): shifts this series'
+     * getHistory start/end so time-shifted recordings overlap. History mode only; never emitted.
+     */
+    xOffset?: number;
+    /**
+     * Per-series NULL handling (adapter per-line `ignoreNull`, ADR-0059) — overrides the
+     * chart-level setting for this series' data; unset = inherit. Never emitted.
+     */
+    nullMode?: 'keep' | 'forward' | 'zero';
     /** Show value labels. @default false */
     label?: boolean;
     /**

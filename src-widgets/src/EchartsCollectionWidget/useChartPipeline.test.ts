@@ -388,3 +388,79 @@ describe('assemblePipelineResult — legend values injection (ADR-0054)', () => 
         expect(off.option.legend as object).not.toHaveProperty('formatter');
     });
 });
+
+// ── per-series value transforms (ADR-0059, parity Build B issue 07) ──
+
+describe('assemblePipelineResult — per-series value transforms (ADR-0059)', () => {
+    it('Verlauf: the Y-offset feeds the formula per series (f(val + yOffset)); nulls stay gaps', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A', yOffset: 2, formula: 'val * 10' },
+                    { oid: 'b.0', name: 'B' },
+                ],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 10],
+                                [2, null],
+                            ],
+                        },
+                        { name: 'B', data: [[1, 7]] },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([
+            [1, 120],
+            [2, null],
+        ]); // (10+2)*10
+        expect(seriesOf(option)[1]?.data).toEqual([[1, 7]]); // untouched without transforms
+    });
+
+    it('Live buffers transform through the same seam', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'live', {
+                usable: [{ oid: 'a.0', name: 'A', formula: 'val / 1000' }],
+                liveBuffers: { 'a.0': [[5, 4000]] },
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([[5, 4]]);
+    });
+
+    it('JSON: the overlay entry carries the transform', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonParsed: { series: [{ name: 'A', data: [[0, 30]] }] },
+                companions: {
+                    chartConfig: {},
+                    yAxes: [],
+                    markLines: [],
+                    jsonHidden: [],
+                    series: [],
+                    jsonSeriesStyle: { A: { yOffset: -30 } },
+                },
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([[0, 0]]);
+    });
+
+    it('an invalid formula keeps the RAW values (offset still applies) — no crash', () => {
+        const { option, hasData } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A', yOffset: 1, formula: 'val +' }],
+                history: {
+                    series: [{ name: 'A', data: [[1, 10]] }],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        expect(hasData).toBe(true);
+        expect(seriesOf(option)[0]?.data).toEqual([[1, 11]]);
+    });
+});

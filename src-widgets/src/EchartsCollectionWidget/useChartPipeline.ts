@@ -39,6 +39,7 @@ import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type SeriesPoint } from './historyLogic';
+import { transformSeriesData, xOffsetMs } from './seriesTransform';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -345,7 +346,13 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
         // positional editor series (json has no per-series OIDs to key it by).
         const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
-        g = buildGeneratedOption({ family, series, meta, p: presentationWithValues });
+        // Per-series value transforms (ADR-0059): the Y-offset feeds the formula over every
+        // mode's points — Verlauf, Live and JSON all transform at this ONE pure seam.
+        const transformed = series.map((s, i) => ({
+            name: s.name,
+            data: transformSeriesData(s.data, meta[i]),
+        }));
+        g = buildGeneratedOption({ family, series: transformed, meta, p: presentationWithValues });
     }
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
@@ -410,7 +417,22 @@ export function useChartPipeline(
     );
 
     const usable = useMemo(() => usableSeries(companions.series), [companions]);
-    const entries = useMemo(() => usable.map(s => ({ oid: s.oid, name: s.name, instance: s.instance })), [usable]);
+    // History entries carry the per-series request overrides (ADR-0039 instance; ADR-0059
+    // X-offset window shift + per-series NULL handling).
+    const entries = useMemo(
+        () =>
+            usable.map(s => {
+                const offsetMs = xOffsetMs(s.xOffset);
+                return {
+                    oid: s.oid,
+                    name: s.name,
+                    instance: s.instance,
+                    ...(offsetMs !== undefined ? { offsetMs } : {}),
+                    ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
+                };
+            }),
+        [usable],
+    );
     const indicators = useMemo(() => companions.chartConfig.radar?.indicators ?? NO_INDICATORS, [companions]);
 
     const oids = useMemo(

@@ -34,6 +34,7 @@ import {
     EditorCard,
     FieldGrid,
     FieldLabel,
+    InfoBox,
     LabeledSelect,
     OptionalNumberField,
     OptionalSliderField,
@@ -43,6 +44,7 @@ import {
     SwitchRow,
     TextField2,
 } from '../../../../components/controls';
+import { formulaIsInvalid } from '../../../seriesTransform';
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
@@ -294,6 +296,61 @@ export const SeriesValueFormatFields: FC<{
                     </Button>
                 </Box>
             )}
+        </SubGroup>
+    );
+};
+
+/**
+ * The "Transformation" SubGroup of a cartesian series card (ADR-0059, parity Build B issue 07) —
+ * the per-series data transforms: the conversion FORMULA over `val` (expr-eval; an invalid
+ * formula is visibly flagged and the chart keeps the raw values), the Y offset (feeds the
+ * formula: `f(val + yOffset)`), the X offset (seconds; shifts this series' history request
+ * window) and the per-series NULL handling (overrides the chart-level setting). Shared by the
+ * history/live card and the JSON-mode card — the pipeline applies the value transforms in every
+ * mode.
+ */
+export const SeriesTransformFields: FC<{
+    meta: EchartsSeriesMeta;
+    onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
+}> = ({ meta, onPatch }) => {
+    const invalid = formulaIsInvalid(meta.formula);
+    return (
+        <SubGroup title={Generic.t('echarts_grp_transform')}>
+            <FieldGrid min={140}>
+                <TextField2
+                    label={Generic.t('echarts_series_formula')}
+                    value={meta.formula ?? ''}
+                    onChange={v => onPatch({ formula: v.trim() || undefined })}
+                    placeholder="val / 1000 + 3"
+                    error={invalid}
+                    helperText={invalid ? Generic.t('echarts_series_formula_invalid') : undefined}
+                />
+                <OptionalNumberField
+                    label={Generic.t('echarts_series_yoffset')}
+                    value={meta.yOffset}
+                    step={0.1}
+                    onChange={v => onPatch({ yOffset: v ?? undefined })}
+                />
+                <OptionalNumberField
+                    label={Generic.t('echarts_series_xoffset')}
+                    value={meta.xOffset}
+                    // Both signs are valid (positive shifts the window into the past, the
+                    // adapter's addTime direction; negative into the future).
+                    onChange={v => onPatch({ xOffset: v ?? undefined })}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_series_null_mode')}
+                    value={meta.nullMode ?? ''}
+                    onChange={v => onPatch({ nullMode: (v || undefined) as EchartsSeriesMeta['nullMode'] })}
+                    options={[
+                        ['', Generic.t('echarts_series_null_inherit')],
+                        ['keep', Generic.t('echarts_ignore_null_keep')],
+                        ['forward', Generic.t('echarts_ignore_null_forward')],
+                        ['zero', Generic.t('echarts_ignore_null_zero')],
+                    ]}
+                />
+            </FieldGrid>
+            <InfoBox text={Generic.t('echarts_series_formula_help')} />
         </SubGroup>
     );
 };
@@ -671,6 +728,10 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         labelColorFallback={labelColorFallback}
                     />
                     <SeriesValueFormatFields
+                        meta={s}
+                        onPatch={p => onUpdate(i, p)}
+                    />
+                    <SeriesTransformFields
                         meta={s}
                         onPatch={p => onUpdate(i, p)}
                     />
