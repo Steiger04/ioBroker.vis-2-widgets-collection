@@ -6,20 +6,29 @@
  * The `axis` trigger is meaningful only for cartesian charts (ADR-0012 WS2): pie/gauge/radar get
  * `item`/`none`. A non-cartesian that still stores `axis` (e.g. switched from cartesian) displays
  * and renders as `item` (coerced here for the editor, in `toPresentationConfig` for the runtime).
+ *
+ * The template's token legend + live example teach OUR cartesian dialect (ADR-0052): echarts'
+ * own string-template path renders an EMPTY `{b}` on a time axis (no name dimension — verified
+ * against the echarts 6.1.0 source), so the cartesian builder resolves the tokens itself, `{b}`
+ * being the time in the X-Karte's Time format. Non-cartesian keeps the echarts-native string
+ * (real `{b}` category / `{d}` share there).
  */
 import type { FC } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { FieldGrid, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
 import { familyOf } from '../../optionBuilder';
+import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/tooltip';
+import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
 import { TOOLTIP_CATALOG } from '../tooltipTemplates';
 import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
 /**
  * The tooltip section's field ownership (ADR-0049 slice) — `chartType` for the family-aware
- * trigger coercion, the four flat tooltip fields, and the section raw + its template ids.
+ * trigger coercion, the four flat tooltip fields, the section raw + its template ids, and the
+ * X-Karte's Time format (read-only: it drives the `{b}` token + the live example, ADR-0052).
  */
 export type TooltipSlice = Pick<
     EditorState,
@@ -30,6 +39,7 @@ export type TooltipSlice = Pick<
     | 'tooltipTemplate'
     | 'tooltipRaw'
     | 'tooltipSnippets'
+    | 'xAxis'
 >;
 
 interface TooltipSectionProps {
@@ -79,6 +89,61 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                         onChange={v => set({ tooltipTemplate: v })}
                         placeholder="{b}: {c}"
                     />
+                    {/* Token legend + live example (ADR-0052) — code-chip caption style like the
+                        X-Karte's Time-format hints. One line per series in the rendered chart. */}
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            columnGap: 1.5,
+                            rowGap: 0.25,
+                            mt: 0.5,
+                        }}
+                    >
+                        <Box component="code">{'{a}'}</Box>
+                        {Generic.t('echarts_tooltip_tpl_a')}
+                        <Box component="code">{'{b}'}</Box>
+                        {Generic.t(isCartesian ? 'echarts_tooltip_tpl_b_time' : 'echarts_tooltip_tpl_b_cat')}
+                        <Box component="code">{'{c}'}</Box>
+                        {Generic.t('echarts_tooltip_tpl_c')}
+                        {!isCartesian && (
+                            <>
+                                <Box component="code">{'{d}'}</Box>
+                                {Generic.t('echarts_tooltip_tpl_d')}
+                            </>
+                        )}
+                    </Typography>
+                    {state.tooltipTemplate && isCartesian && (
+                        /* Live example: the template against a demo series line — with the
+                           section's own units/decimals and the X-Karte's Time format. */
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: 'block', whiteSpace: 'pre-line' }}
+                        >
+                            {Generic.t('echarts_tooltip_tpl_example')}:{' '}
+                            <Box
+                                component="code"
+                                sx={{ color: 'text.primary' }}
+                            >
+                                {resolveTooltipTokens(
+                                    state.tooltipTemplate,
+                                    { seriesName: 'Temp', ts: SAMPLE_TS, value: 21.56 },
+                                    {
+                                        format: state.xAxis?.format,
+                                        lang: resolveHostLang(),
+                                        valueFmt:
+                                            state.tooltipUnits || state.tooltipDecimals !== undefined
+                                                ? makeValueFormatter(state.tooltipUnits, state.tooltipDecimals)
+                                                : undefined,
+                                    },
+                                )}
+                            </Box>
+                        </Typography>
+                    )}
                 </Box>
             </FieldGrid>
             {/* The Tooltip section's own raw escape hatch (ADR-0044) — deep-merged UNDER

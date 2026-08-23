@@ -46,6 +46,7 @@ describe('section slices (ADR-0049)', () => {
                 | 'tooltipTemplate'
                 | 'tooltipRaw'
                 | 'tooltipSnippets'
+                | 'xAxis'
             >
         >();
     });

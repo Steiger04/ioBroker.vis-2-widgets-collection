@@ -1096,9 +1096,40 @@ describe('buildGeneratedOption — cartesian tooltip time header (ADR-0052)', ()
         expect(html).toBe('<b>19.08.26 14:05</b><br/><m> Temp: 21.6 °C');
     });
 
-    it('an authored tooltipTemplate overrides the moment header — existing GUI semantics win', () => {
+    it('an authored tooltipTemplate overrides the moment header — resolved by OUR tokens (ADR-0052)', () => {
+        // echarts' own string-template path is broken on a time axis: {b} maps to params.name,
+        // which is EMPTY for time-axes (no name dimension — only category axes have one), so
+        // '{b}: {c}' rendered ': 21.5' with the time missing entirely (verified against the
+        // echarts 6.1.0 source: TooltipView._showTooltipContent → formatTpl over
+        // $vars ['seriesName','name','value']). On cartesian we therefore resolve the template
+        // ourselves: {b} = the time in the X-Karte's Time format.
         const t = tooltipOf({ ...P, tooltipTemplate: '{b}: {c}' });
-        expect(t.formatter).toBe('{b}: {c}');
+        expect(typeof t.formatter).toBe('function');
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '<m>', seriesName: 'Temp', value: [WED, 21.5] },
+            { axisValue: WED, marker: '<m>', seriesName: 'Hum', value: [WED, 40] },
+        ]);
+        expect(html).toBe('<m> Wed, 19.08.2026 14:05: 21.5<br/><m> Wed, 19.08.2026 14:05: 40');
+    });
+
+    it('template tokens: {a} series name, {c} honours units/decimals, missing time → empty {b}', () => {
+        const t = tooltipOf({ ...P, tooltipTemplate: '{a} = {c}', tooltipUnits: '°C', tooltipDecimals: 1 });
+        const html = (t.formatter as (params: unknown) => string)({
+            marker: '<m>',
+            seriesName: 'Temp',
+            value: 21.56,
+        });
+        expect(html).toBe('<m> Temp = 21.6 °C');
+    });
+
+    it('non-cartesian keeps the echarts-native STRING template (category axes have real {b}/{d})', () => {
+        const out = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
+            p: { ...P, tooltipTemplate: '{b}: {d}%' },
+        }) as { tooltip: { formatter?: unknown } };
+        expect(out.tooltip.formatter).toBe('{b}: {d}%');
     });
 
     it('null values render as a dash; item-trigger params (no axisValue) read the point timestamp', () => {
