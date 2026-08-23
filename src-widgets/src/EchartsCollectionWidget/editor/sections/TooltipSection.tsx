@@ -14,10 +14,10 @@
  * (real `{b}` category / `{d}` share there).
  */
 import type { FC } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { FieldGrid, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
+import { FieldGrid, InfoBox, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
 import { familyOf } from '../../optionBuilder';
 import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/tooltip';
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
@@ -89,61 +89,56 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                         onChange={v => set({ tooltipTemplate: v })}
                         placeholder="{b}: {c}"
                     />
-                    {/* Token legend + live example (ADR-0052) — code-chip caption style like the
-                        X-Karte's Time-format hints. One line per series in the rendered chart. */}
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            alignItems: 'center',
-                            columnGap: 1.5,
-                            rowGap: 0.25,
-                            mt: 0.5,
-                        }}
-                    >
-                        <Box component="code">{'{a}'}</Box>
-                        {Generic.t('echarts_tooltip_tpl_a')}
-                        <Box component="code">{'{b}'}</Box>
-                        {Generic.t(isCartesian ? 'echarts_tooltip_tpl_b_time' : 'echarts_tooltip_tpl_b_cat')}
-                        <Box component="code">{'{c}'}</Box>
-                        {Generic.t('echarts_tooltip_tpl_c')}
-                        {!isCartesian && (
-                            <>
-                                <Box component="code">{'{d}'}</Box>
-                                {Generic.t('echarts_tooltip_tpl_d')}
-                            </>
-                        )}
-                    </Typography>
-                    {state.tooltipTemplate && isCartesian && (
-                        /* Live example: the template against a demo series line — with the
-                           section's own units/decimals and the X-Karte's Time format. */
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: 'block', whiteSpace: 'pre-line' }}
+                    {/* Token legend + live example (ADR-0052) in the renderer-info callout idiom:
+                        one InfoBox, code-chip legend (family-aware) + the template rendered
+                        against a demo series line with this section's units/decimals and the
+                        X-Karte's Time format. One line per series in the rendered chart. */}
+                    <InfoBox>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                columnGap: 1.5,
+                                rowGap: 0.25,
+                            }}
                         >
-                            {Generic.t('echarts_tooltip_tpl_example')}:{' '}
-                            <Box
-                                component="code"
-                                sx={{ color: 'text.primary' }}
-                            >
-                                {resolveTooltipTokens(
-                                    state.tooltipTemplate,
-                                    { seriesName: 'Temp', ts: SAMPLE_TS, value: 21.56 },
-                                    {
-                                        format: state.xAxis?.format,
-                                        lang: resolveHostLang(),
-                                        valueFmt:
-                                            state.tooltipUnits || state.tooltipDecimals !== undefined
-                                                ? makeValueFormatter(state.tooltipUnits, state.tooltipDecimals)
-                                                : undefined,
-                                    },
-                                )}
+                            <Box component="code">{'{a}'}</Box>
+                            {Generic.t('echarts_tooltip_tpl_a')}
+                            <Box component="code">{'{b}'}</Box>
+                            {Generic.t(isCartesian ? 'echarts_tooltip_tpl_b_time' : 'echarts_tooltip_tpl_b_cat')}
+                            <Box component="code">{'{c}'}</Box>
+                            {Generic.t('echarts_tooltip_tpl_c')}
+                            {!isCartesian && (
+                                <>
+                                    <Box component="code">{'{d}'}</Box>
+                                    {Generic.t('echarts_tooltip_tpl_d')}
+                                </>
+                            )}
+                        </Box>
+                        {state.tooltipTemplate && isCartesian && (
+                            <Box sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>
+                                {Generic.t('echarts_tooltip_tpl_example')}:{' '}
+                                <Box
+                                    component="code"
+                                    sx={{ color: 'text.primary' }}
+                                >
+                                    {resolveTooltipTokens(
+                                        state.tooltipTemplate,
+                                        { seriesName: 'Temp', ts: SAMPLE_TS, value: 21.56 },
+                                        {
+                                            format: state.xAxis?.format,
+                                            lang: resolveHostLang(),
+                                            valueFmt:
+                                                state.tooltipUnits || state.tooltipDecimals !== undefined
+                                                    ? makeValueFormatter(state.tooltipUnits, state.tooltipDecimals)
+                                                    : undefined,
+                                        },
+                                    )}
+                                </Box>
                             </Box>
-                        </Typography>
-                    )}
+                        )}
+                    </InfoBox>
                 </Box>
             </FieldGrid>
             {/* The Tooltip section's own raw escape hatch (ADR-0044) — deep-merged UNDER

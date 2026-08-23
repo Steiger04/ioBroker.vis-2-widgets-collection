@@ -25,6 +25,7 @@ import {
     SERIES_TEMPLATES,
     type SeriesTemplateSlot,
 } from '../../seriesTemplates';
+import { InfoBox } from '../../../../components/controls';
 import TemplateMenu from '../TemplateMenu';
 import SnippetChips, { activeSnippetEntries, useSnippetActions } from '../SnippetChips';
 import type { ValidationIssue } from '../../validation';
@@ -246,12 +247,7 @@ export const SeriesRawOverride: FC<{
                 >
                     {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_series_raw_invalid')}`}
                 </Typography>
-                <Typography
-                    variant="caption"
-                    color="text.secondary"
-                >
-                    {Generic.t('echarts_editor_advanced_note')}
-                </Typography>
+                <InfoBox text={Generic.t('echarts_editor_advanced_note')} />
             </Collapse>
         </Box>
     );

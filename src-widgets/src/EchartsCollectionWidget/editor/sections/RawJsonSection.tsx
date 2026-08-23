@@ -16,6 +16,7 @@ import { useState, type FC } from 'react';
 import { Box, Button, Collapse, Typography } from '@mui/material';
 
 import Generic from '../../../Generic';
+import { InfoBox } from '../../../components/controls';
 import JsonEditor from '../JsonEditor';
 import type { RawTemplateCatalog } from '../catalog';
 import { parseRawObject } from '../snippetComposition';
@@ -94,13 +95,7 @@ const RawJsonSection: FC<{
                 >
                     {valid ? Generic.t('echarts_editor_valid_json') : `✗ ${Generic.t('echarts_axis_raw_invalid')}`}
                 </Typography>
-                <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.5 }}
-                >
-                    {Generic.t('echarts_editor_advanced_note')}
-                </Typography>
+                <InfoBox text={Generic.t('echarts_editor_advanced_note')} />
             </Collapse>
         </Box>
     );

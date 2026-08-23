@@ -559,8 +559,14 @@ export const EditorCard: FC<{
  * The quiet advisory callout (ADR-0019 idiom): a left-bordered `action.hover` box with a caption.
  * `tone="warning"` accents the border for non-blocking cautions (e.g. an echarts constraint the GUI
  * cannot enforce). One callout across every configurator section — section bodies compose it inline.
+ * THE convention for every field-explaining info text in the configurators (the renderer info is
+ * the reference); `children` replaces `text` for structured content (token legends, live examples).
  */
-export const InfoBox: FC<{ text: string; tone?: 'info' | 'warning' }> = ({ text, tone = 'info' }) => (
+export const InfoBox: FC<{
+    text?: string;
+    children?: ReactNode;
+    tone?: 'info' | 'warning';
+}> = ({ text, children, tone = 'info' }) => (
     <Box
         sx={{
             mt: 1,
@@ -575,7 +581,7 @@ export const InfoBox: FC<{ text: string; tone?: 'info' | 'warning' }> = ({ text,
             variant="caption"
             color="text.secondary"
         >
-            {text}
+            {children ?? text}
         </Typography>
     </Box>
 );

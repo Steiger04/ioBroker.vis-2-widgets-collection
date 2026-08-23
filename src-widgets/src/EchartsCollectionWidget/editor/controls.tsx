@@ -13,7 +13,7 @@ import type React from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
 import Generic from '../../Generic';
-import { FieldLabel } from '../../components/controls';
+import { FieldLabel, InfoBox } from '../../components/controls';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -197,13 +197,7 @@ export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectS
             <ToggleButton value="live">{Generic.t('echarts_mode_live')}</ToggleButton>
             <ToggleButton value="json">{Generic.t('echarts_mode_json')}</ToggleButton>
         </ToggleButtonGroup>
-        <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: 'block', mt: 0.5 }}
-        >
-            {Generic.t(MODE_HINTS[state.mode])}
-        </Typography>
+        <InfoBox text={Generic.t(MODE_HINTS[state.mode])} />
     </Box>
 );
 

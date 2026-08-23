@@ -10,13 +10,14 @@
  *    flat presentation config, never a list, never series-bound.
  */
 import type { FC } from 'react';
-import { Autocomplete, Box, TextField, Typography } from '@mui/material';
+import { Autocomplete, Box, TextField } from '@mui/material';
 
 import Generic from '../../../../Generic';
 import {
     EditorCard,
     FieldGrid,
     FieldLabel,
+    InfoBox,
     NumberField,
     OptionalNumberField,
     SliderField,
@@ -99,22 +100,26 @@ const XFormatCombo: FC<{
                 />
             )}
         />
-        <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: 'block', mt: 0.5, whiteSpace: 'pre-line' }}
-        >
-            {value
-                ? `${Generic.t('echarts_x_format_sample')}: ${formatAxisLabel(value, SAMPLE_TS, resolveHostLang())}`
-                : Generic.t('echarts_x_fmt_auto_hint')}
-        </Typography>
-        <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: 'block' }}
-        >
-            {Generic.t('echarts_x_format_tokens')}
-        </Typography>
+        {/* Info callout (the renderer-info idiom): the live example / Auto explanation plus the
+            moment token vocabulary — one box, structured children. */}
+        <InfoBox>
+            <Box sx={{ whiteSpace: 'pre-line' }}>
+                {value ? (
+                    <>
+                        {Generic.t('echarts_x_format_sample')}:{' '}
+                        <Box
+                            component="code"
+                            sx={{ color: 'text.primary' }}
+                        >
+                            {formatAxisLabel(value, SAMPLE_TS, resolveHostLang())}
+                        </Box>
+                    </>
+                ) : (
+                    Generic.t('echarts_x_fmt_auto_hint')
+                )}
+            </Box>
+            <Box sx={{ mt: 0.5 }}>{Generic.t('echarts_x_format_tokens')}</Box>
+        </InfoBox>
     </Box>
 );
 
@@ -230,13 +235,7 @@ const XCard: FC<{
                     onChange={v => onChange({ minInterval: v })}
                 />
             </FieldGrid>
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mt: 0.5 }}
-            >
-                {Generic.t('echarts_x_min_interval_hint')}
-            </Typography>
+            <InfoBox text={Generic.t('echarts_x_min_interval_hint')} />
         </SubGroup>
 
         <SubGroup title={Generic.t('echarts_grp_presentation')}>

@@ -11,12 +11,12 @@
  * view) — used by the clickable preview placeholder and the footer's problems button.
  */
 import { useEffect, useMemo, useRef, useState, type FC } from 'react';
-import { Alert, Box, Typography } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 
 import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
 import SectionCard from '../../components/SectionCard';
-import { FieldLabel } from '../../components/controls';
+import { FieldLabel, InfoBox } from '../../components/controls';
 import { ChartTypePicker, ModeSelect } from './controls';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
@@ -254,13 +254,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                 ) : (
                     <Box>
                         <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: 'block' }}
-                        >
-                            {Generic.t('echarts_mode_current_value')}
-                        </Typography>
+                        <InfoBox text={Generic.t('echarts_mode_current_value')} />
                     </Box>
                 )}
                 {(loss > 0 || snippetLoss > 0) && (

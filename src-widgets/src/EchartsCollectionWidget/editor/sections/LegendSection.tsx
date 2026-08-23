@@ -10,12 +10,13 @@
  * the base64 `legendConfig` blob; `legendShow`/`legendPos` stay flat beside it.
  */
 import type { FC } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import {
     FieldGrid,
     FieldLabel,
+    InfoBox,
     LabeledSelect,
     OptionalNumberField,
     SubGroup,
@@ -109,15 +110,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                         ]}
                     />
                 </Box>
-                {!lg.orient && (
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: 'block', mt: 0.5 }}
-                    >
-                        {Generic.t('echarts_legend_orient_hint')}
-                    </Typography>
-                )}
+                {!lg.orient && <InfoBox text={Generic.t('echarts_legend_orient_hint')} />}
             </Box>
 
             {(offsetXRelevant || offsetYRelevant) && (
