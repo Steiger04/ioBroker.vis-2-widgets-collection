@@ -127,7 +127,7 @@ The cartesian per-axis opt-in (ADR-0034) where a Y-axis re-ticks itself to match
 _Avoid_: alignTicks (that is the echarts property), auto-align (there is none), shared grid (that is the deferred chart-level concept, ADR-0034 out-of-scope, not this one)
 
 **Colour inheritance**:
-The configurator's colour model — how a colour field resolves when no explicit value is set. The "theme" source of the palette is the COLLECTION theme (the merged theme the canvas renders under), resolved in the editor via `useEditorPalette` and in the live body via `CollectionContext` — never the vis-2 host theme (ADR-0027). Every colour field clears to a real inherited value: a series → its palette slot, an axis → its bound series' effective colour (ADR-0018), a title/legend/mark-line → a semantic **theme token**. An explicit override always wins.
+The configurator's colour model — how a colour field resolves when no explicit value is set. The "theme" source of the palette is the COLLECTION theme (the merged theme the canvas renders under), resolved in the editor via `useEditorPalette` and in the live body via `CollectionContext` — never the vis-2 host theme (ADR-0027). Every colour field clears to a real inherited value: a series → its palette slot, an axis → its bound series' effective colour (ADR-0018), a title/legend/mark-line → a semantic **theme token**. An explicit override always wins. The palette source's presets include the 17 ioBroker.echarts theme palettes (ADR-0053) — adopted verbatim as COLOUR ARRAYS (no echarts theme is registered), flowing through the same `resolvePalette` seam as the six hand-curated presets.
 _Avoid_: default colour (that is the resolved value, not a stored one), fallback (that is the mechanism, not the concept)
 
 **Theme token**:

@@ -29,6 +29,7 @@ import type {
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
+import { THEME_PALETTES } from './themePalettes';
 import type { PresentationConfig } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
@@ -158,7 +159,11 @@ export const normalizeLegendPos = (raw: unknown): EchartsLegendPos => {
     return LEGEND_POS_9.has(raw as EchartsLegendPos) ? (raw as EchartsLegendPos) : 'topCenter';
 };
 
-/** Named categorical palette presets (ADR-0007). The default `theme` palette comes from the caller. */
+/**
+ * Named categorical palette presets (ADR-0007). The default `theme` palette comes from the caller.
+ * Includes the 17 ioBroker.echarts theme palettes (ADR-0053) — appended after the curated six, so
+ * `Object.keys` (the ColorsSection dropdown order) lists the curated presets first.
+ */
 export const PALETTE_PRESETS: Record<string, string[]> = {
     tableau: ['#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F', '#EDC948', '#B07AA1', '#FF9DA7'],
     vibrant: ['#5470C6', '#91CC75', '#EE6666', '#73C0DE', '#3BA272', '#FC8452', '#9A60B4', '#EA7CCC'],
@@ -166,6 +171,7 @@ export const PALETTE_PRESETS: Record<string, string[]> = {
     warm: ['#E15759', '#FF9D2E', '#F1CE63', '#59A14F', '#4E79A7', '#76B7B2', '#B07AA1', '#9C755F'],
     cool: ['#2E5EAA', '#4C9F70', '#8AB8D8', '#5C8A8A', '#6A8D73', '#A0B0A0', '#3D6A8C', '#7BA7BC'],
     accessible: ['#0173B2', '#DE8F05', '#029E73', '#CC78BC', '#CA9161', '#FBAFE4', '#949494', '#ECE133'],
+    ...THEME_PALETTES,
 };
 
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);

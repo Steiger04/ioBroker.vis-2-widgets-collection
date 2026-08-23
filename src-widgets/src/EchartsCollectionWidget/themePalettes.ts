@@ -1,0 +1,127 @@
+/**
+ * The 17 echarts theme colour palettes of the ioBroker.echarts adapter, adopted as palette presets
+ * (ADR-0053).
+ *
+ * @module EchartsCollectionWidget/themePalettes
+ * @remarks
+ * The colour arrays are copied VERBATIM from the adapter renderer's `THEMES` table
+ * (`ioBroker.echarts` src/lib/ChartOption.ts, Apache-2.0) — including its entry grouping; the
+ * adapter's `light` entry is deliberately NOT adopted (not part of the 17-palette decision).
+ * Three of them are pinned as independent literals in {@link themePalettes.test}.
+ *
+ * These are COLOUR palettes only, not echarts themes: no theme file is registered, so the
+ * tokens/darkMode/toolbox-literal model (ADR-0045) is untouched. The palette colours reach the
+ * chart exclusively through the single `resolvePalette` seam — series without an explicit colour
+ * take their slot from it, exactly like the curated presets.
+ */
+export const THEME_PALETTES: Record<string, string[]> = {
+    dark: [
+        '#dd6b66',
+        '#759aa0',
+        '#e69d87',
+        '#8dc1a9',
+        '#ea7e53',
+        '#eedd78',
+        '#73a373',
+        '#73b9bc',
+        '#7289ab',
+        '#91ca8c',
+        '#f49f42',
+    ],
+    'dark-bold': ['#458c6b', '#f2da87', '#d9a86c', '#d94436', '#a62424', '#76bc9b', '#cce6da', '#eeeeee'],
+    'dark-blue': ['#00305a', '#004b8d', '#0074d9', '#4192d9', '#7abaf2', '#99cce6', '#d6ebf5', '#eeeeee'],
+    gray: ['#757575', '#c7c7c7', '#dadada', '#8b8b8b', '#b5b5b5', '#e9e9e9'],
+    vintage: [
+        '#d87c7c',
+        '#919e8b',
+        '#d7ab82',
+        '#6e7074',
+        '#61a0a8',
+        '#efa18d',
+        '#787464',
+        '#cc7e63',
+        '#724e58',
+        '#4b565b',
+    ],
+    macarons: [
+        '#2ec7c9',
+        '#b6a2de',
+        '#5ab1ef',
+        '#ffb980',
+        '#d87a80',
+        '#8d98b3',
+        '#e5cf0d',
+        '#97b552',
+        '#95706d',
+        '#dc69aa',
+        '#07a2a4',
+        '#9a7fd1',
+        '#588dd5',
+        '#f5994e',
+        '#c05050',
+        '#59678c',
+        '#c9ab00',
+        '#7eb00a',
+        '#6f5553',
+        '#c14089',
+    ],
+    infographic: [
+        '#C1232B',
+        '#27727B',
+        '#FCCE10',
+        '#E87C25',
+        '#B5C334',
+        '#FE8463',
+        '#9BCA63',
+        '#FAD860',
+        '#F3A43B',
+        '#60C0DD',
+        '#D7504B',
+        '#C6E579',
+        '#F4E001',
+        '#F0805A',
+        '#26C0C0',
+    ],
+    shine: ['#c12e34', '#e6b600', '#0098d9', '#2b821d', '#005eaa', '#339ca8', '#cda819', '#32a487'],
+    roma: [
+        '#E01F54',
+        '#001852',
+        '#f5e8c8',
+        '#b8d2c7',
+        '#c6b38e',
+        '#a4d8c2',
+        '#f3d999',
+        '#d3758f',
+        '#dcc392',
+        '#2e4783',
+        '#82b6e9',
+        '#ff6347',
+        '#a092f1',
+        '#0a915d',
+        '#eaf889',
+        '#6699FF',
+        '#ff6666',
+        '#3cb371',
+        '#d5b158',
+        '#38b6b6',
+    ],
+    azul: ['#f2385a', '#f5a503', '#4ad9d9', '#f7879c', '#c1d7a8', '#4dffd2', '#fccfd7', '#d5f6f6'],
+    'bee-inspired': ['#001727', '#805500', '#ffff00', '#ffd11a', '#f2d71f', '#f2be19', '#f3a81a', '#fff5cc'],
+    blue: ['#1790cf', '#1bb2d8', '#99d2dd', '#88b0bb', '#1c7099', '#038cc4', '#75abd0', '#afd6dd'],
+    royal: ['#3f7ea6', '#993366', '#408000', '#8c6f56', '#a65149', '#731f17', '#adc2eb', '#d9c3b0'],
+    'tech-blue': [
+        '#4d4d4d',
+        '#3a5897',
+        '#007bb6',
+        '#7094db',
+        '#0080ff',
+        '#b3b3ff',
+        '#00bdec',
+        '#33ccff',
+        '#ccddff',
+        '#eeeeee',
+    ],
+    red: ['#d8361b', '#f16b4c', '#f7b4a9', '#d26666', '#99311c', '#c42703', '#d07e75'],
+    'red-velvet': ['#8b1a2d', '#a7314b', '#e6004c', '#ff8066', '#8e5c4e', '#ff1a66', '#d6c582', '#f0d4af'],
+    green: ['#408829', '#68a54a', '#a9cba2', '#86b379', '#397b29', '#8abb6f', '#759c6a', '#bfd3b7'],
+};

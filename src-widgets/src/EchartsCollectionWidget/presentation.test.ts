@@ -12,9 +12,12 @@ import {
     buildTitleOption,
     decodeLegendConfig,
     normalizeLegendPos,
+    PALETTE_PRESETS,
+    resolvePalette,
     toPresentationConfig,
     type TitleOptionInput,
 } from './presentation';
+import { THEME_PALETTES } from './themePalettes';
 import type { PresentationConfig } from './optionBuilders/types';
 
 /** Run buildTitleOption on an empty option object and return the resulting `title`. */
@@ -475,5 +478,37 @@ describe('toPresentationConfig — toolbox source (ADR-0045)', () => {
     it('stamps the resolved themeDark through (the toolbox token literal input)', () => {
         const p = toPresentationConfig({ ...base, themeDark: true, src: {} });
         expect(p.themeDark).toBe(true);
+    });
+});
+
+describe('resolvePalette + PALETTE_PRESETS — theme palettes (ADR-0053)', () => {
+    const FALLBACK = ['#fallback'];
+
+    it('every theme palette is a preset (dropdown coverage)', () => {
+        // ColorsSection builds the source dropdown from Object.keys(PALETTE_PRESETS) — a theme
+        // palette missing there would be unselectable.
+        for (const key of Object.keys(THEME_PALETTES)) {
+            expect(PALETTE_PRESETS[key], key).toEqual(THEME_PALETTES[key]);
+        }
+    });
+
+    it('the curated presets survive the merge', () => {
+        for (const key of ['tableau', 'vibrant', 'pastel', 'warm', 'cool', 'accessible']) {
+            expect(PALETTE_PRESETS[key], key).toBeDefined();
+        }
+    });
+
+    it('resolves every theme palette by name', () => {
+        for (const [key, colors] of Object.entries(THEME_PALETTES)) {
+            expect(resolvePalette('preset', key, undefined, FALLBACK), key).toEqual(colors);
+        }
+    });
+
+    it('a curated preset still resolves (spot check)', () => {
+        expect(resolvePalette('preset', 'tableau', undefined, FALLBACK)).toEqual(PALETTE_PRESETS.tableau);
+    });
+
+    it('unknown preset name falls back to the theme palette', () => {
+        expect(resolvePalette('preset', 'no-such-preset', undefined, FALLBACK)).toBe(FALLBACK);
     });
 });
