@@ -56,6 +56,7 @@ import type {
     EchartsToolboxConfig,
     EchartsTooltipTrigger,
     EchartsXAxisConfig,
+    EchartsZoomResetIdle,
 } from '../../types/field-definitions/echarts-fields';
 
 // Aliases of the single-source unions (echarts-fields.d.ts), under the short editor names.
@@ -114,12 +115,22 @@ export interface EditorState {
     // chart-wide presentation
     legendShow: boolean;
     legendPos: EchartsLegendPos;
+    /** Legend values toggle (`Name [value]`, adapter `legActual`; ADR-0054). */
+    legendShowValues: boolean;
     /** Legend styling (ADR-0021 `legendConfig` blob); flat `legendShow`/`legendPos` stay beside it. */
     legend: EchartsLegendConfig;
     tooltipTrigger: EchartsTooltipTrigger;
     tooltipTemplate: string;
     tooltipUnits: string;
     tooltipDecimals: number;
+    /** Tooltip background colour (adapter `hoverBackground`; ADR-0054). '' = theme default. */
+    tooltipBgColor: string;
+    /** Drop non-exact tooltip rows (adapter `hoverNoInterpolate`; ADR-0054). */
+    tooltipNoInterpolate: boolean;
+    /** Hide null-valued tooltip rows (adapter `hoverNoNulls`; ADR-0054). */
+    tooltipHideNulls: boolean;
+    /** Comma as the decimal separator in chart values (adapter `useComma`; ADR-0054). */
+    decimalComma: boolean;
     animation: boolean;
     animationDuration: number;
     /** echarts animation easing (promoted from a JSON snippet, ADR-0011 D5). Empty = default. */
@@ -131,6 +142,8 @@ export interface EditorState {
     xAxis: EchartsXAxisConfig;
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
+    /** Zoom idle-reset select value (adapter `resetZoom`; ADR-0054). '' = off. */
+    zoomResetAfterIdle: EchartsZoomResetIdle;
     paletteSource: EchartsPaletteSource;
     palettePreset: string;
     paletteCustom: string;
@@ -202,11 +215,16 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' },
     legendShow: true,
     legendPos: 'topCenter',
+    legendShowValues: false,
     legend: {},
     tooltipTrigger: 'axis',
     tooltipTemplate: '',
     tooltipUnits: '',
     tooltipDecimals: 0,
+    tooltipBgColor: '',
+    tooltipNoInterpolate: false,
+    tooltipHideNulls: false,
+    decimalComma: false,
     animation: true,
     animationDuration: 600,
     animationEasing: '',
@@ -215,6 +233,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     xAxis: {},
     dataZoomSlider: false,
     dataZoomInside: false,
+    zoomResetAfterIdle: '',
     paletteSource: 'theme',
     palettePreset: 'tableau',
     paletteCustom: '',
@@ -428,11 +447,16 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         pie,
         legendShow: boolOr(data.legendShow, true),
         legendPos: normalizeLegendPos(data.legendPos),
+        legendShowValues: boolOr(data.legendShowValues, false),
         legend: decodeLegendConfig(data.legendConfig as string),
         tooltipTrigger: (data.tooltipTrigger as EchartsTooltipTrigger) ?? (family === 'cartesian' ? 'axis' : 'item'),
         tooltipTemplate: strOr(data.tooltipTemplate, ''),
         tooltipUnits: strOr(data.tooltipUnits, ''),
         tooltipDecimals: numOr(data.tooltipDecimals, 0),
+        tooltipBgColor: strOr(data.tooltipBgColor, ''),
+        tooltipNoInterpolate: boolOr(data.tooltipNoInterpolate, false),
+        tooltipHideNulls: boolOr(data.tooltipHideNulls, false),
+        decimalComma: boolOr(data.decimalComma, false),
         animation: boolOr(data.animation, true),
         animationDuration: numOr(data.animationDuration, 600),
         animationEasing: strOr(data.animationEasing, ''),
@@ -444,6 +468,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         xAxis: decodeXAxisWithLegacy(data.xAxis as string, boolOr(data.xSplit, false)),
         dataZoomSlider: boolOr(data.dataZoomSlider, false),
         dataZoomInside: boolOr(data.dataZoomInside, false),
+        zoomResetAfterIdle: (strOr(data.zoomResetAfterIdle, '') || '') as EchartsZoomResetIdle,
         paletteSource: (data.paletteSource as EchartsPaletteSource) ?? DEFAULT_EDITOR_STATE.paletteSource,
         palettePreset: strOr(data.palettePreset, 'tableau') || 'tableau',
         paletteCustom: strOr(data.paletteCustom, ''),
@@ -551,17 +576,23 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         series_count: seriesCount,
         legendShow: state.legendShow,
         legendPos: state.legendPos,
+        legendShowValues: state.legendShowValues,
         legendConfig: encodeBlob(JSON.stringify(state.legend)),
         tooltipTrigger: state.tooltipTrigger,
         tooltipTemplate: state.tooltipTemplate,
         tooltipUnits: state.tooltipUnits,
         tooltipDecimals: state.tooltipDecimals,
+        tooltipBgColor: state.tooltipBgColor,
+        tooltipNoInterpolate: state.tooltipNoInterpolate,
+        tooltipHideNulls: state.tooltipHideNulls,
+        decimalComma: state.decimalComma,
         animation: state.animation,
         animationDuration: state.animationDuration,
         animationEasing: state.animationEasing,
         bgColor: state.bgColor,
         dataZoomSlider: state.dataZoomSlider,
         dataZoomInside: state.dataZoomInside,
+        zoomResetAfterIdle: state.zoomResetAfterIdle,
         paletteSource: state.paletteSource,
         palettePreset: state.palettePreset,
         paletteCustom: state.paletteCustom,

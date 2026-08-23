@@ -11,6 +11,7 @@ import {
     hasMergedData,
     isUsableOid,
     pipelineError,
+    resolveLegendValues,
     subscribedOids,
     usableSeries,
     type AssemblePipelineInput,
@@ -272,5 +273,113 @@ describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
             makeInput('radar', 'history', { indicators: [{ oid: 'r.0' }, { oid: '' }], values: { 'r.0': 5 } }),
         );
         expect(hasData).toBe(true);
+    });
+});
+
+// ── resolveLegendValues + legend-values injection (ADR-0054, adapter legActual) ──
+
+describe('resolveLegendValues (ADR-0054)', () => {
+    it('Verlauf: the LAST point of each history series', () => {
+        const out = resolveLegendValues(
+            'history',
+            series('a.0', 'b.0'),
+            {},
+            [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 2],
+                        [2, 12.5],
+                    ],
+                },
+                {
+                    name: 'B',
+                    data: [
+                        [1, null],
+                        [2, 40],
+                    ],
+                },
+            ],
+            {},
+            [],
+        );
+        expect(out).toEqual({ A: 12.5, B: 40 });
+    });
+
+    it('Live: the subscribed value wins; the live buffer is the fallback (name falls back to the OID)', () => {
+        const out = resolveLegendValues(
+            'live',
+            [{ oid: 'a.0', name: 'A' }, { oid: 'b.0' }],
+            { 'a.0': 21.5 },
+            [],
+            { 'b.0': [[1, 7]] },
+            [],
+        );
+        expect(out).toEqual({ A: 21.5, 'b.0': 7 });
+    });
+
+    it('JSON: the last point of each payload series', () => {
+        const out = resolveLegendValues('json', [], {}, [], {}, [
+            {
+                name: 'P1',
+                data: [
+                    [1, 3],
+                    [2, 4],
+                ],
+            },
+            { name: 'P2', data: [[1, 9]] },
+        ]);
+        expect(out).toEqual({ P1: 4, P2: 9 });
+    });
+
+    it('a series with no usable point maps to null (the formatter falls back to the bare name)', () => {
+        const out = resolveLegendValues('history', series('a.0'), {}, [{ name: 'A', data: [] }], {}, []);
+        expect(out).toEqual({ A: null });
+    });
+});
+
+describe('assemblePipelineResult — legend values injection (ADR-0054)', () => {
+    it('injects the resolved values into the emitted legend formatter only when the toggle is on', () => {
+        const on = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 2],
+                                [2, 12.5],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                src: { legendShowValues: true },
+            }),
+        );
+        const legendOn = (on.option.legend as { formatter?: (n: string) => string }) ?? {};
+        expect(legendOn.formatter?.('A')).toBe('A [12.5]');
+
+        const off = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 2],
+                                [2, 12.5],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        expect(off.option.legend as object).not.toHaveProperty('formatter');
     });
 });

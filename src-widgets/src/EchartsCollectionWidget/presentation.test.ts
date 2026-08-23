@@ -512,3 +512,48 @@ describe('resolvePalette + PALETTE_PRESETS — theme palettes (ADR-0053)', () =>
         expect(resolvePalette('preset', 'no-such-preset', undefined, FALLBACK)).toBe(FALLBACK);
     });
 });
+
+describe('buildLegend — values + selection (ADR-0054, adapter legActual + legend.selected)', () => {
+    const valuesP = (
+        over: {
+            legendShowValues?: boolean;
+            legendValues?: Record<string, number | null>;
+            decimalComma?: boolean;
+        } = {},
+    ): PresentationConfig =>
+        ({
+            ...legendP(),
+            legendShowValues: over.legendShowValues ?? true,
+            legendValues: over.legendValues,
+            decimalComma: over.decimalComma,
+        }) as PresentationConfig;
+
+    it('no legendShowValues → no formatter key (characterisation pin)', () => {
+        expect(buildLegend(legendP(), ['a'])).not.toHaveProperty('formatter');
+    });
+
+    it('renders Name [value] from the pipeline-resolved current values', () => {
+        const l = buildLegend(valuesP({ legendValues: { Temp: 12.5, Hum: 40 } }), ['Temp', 'Hum']);
+        const fmt = l.formatter as (name: string) => string;
+        expect(fmt('Temp')).toBe('Temp [12.5]');
+        expect(fmt('Hum')).toBe('Hum [40]');
+    });
+
+    it('a name without a resolved value (or null) falls back to the bare name', () => {
+        const l = buildLegend(valuesP({ legendValues: { Temp: null } }), ['Temp', 'Unknown']);
+        const fmt = l.formatter as (name: string) => string;
+        expect(fmt('Temp')).toBe('Temp');
+        expect(fmt('Unknown')).toBe('Unknown');
+    });
+
+    it('honours the chart-wide comma separator in the legend value', () => {
+        const l = buildLegend(valuesP({ legendValues: { Temp: 12.5 }, decimalComma: true }), ['Temp']);
+        expect((l.formatter as (name: string) => string)('Temp')).toBe('Temp [12,5]');
+    });
+
+    it('emits legend.selected ONLY when a name is hidden — the ticket-08 mechanism (adapter selected[name] = hide !== true)', () => {
+        expect(buildLegend(legendP(), ['a', 'b'])).not.toHaveProperty('selected');
+        const l = buildLegend(legendP(), ['a', 'b', 'c'], ['b']);
+        expect(l.selected).toEqual({ a: true, b: false, c: true });
+    });
+});

@@ -24,6 +24,7 @@ import type {
     EchartsVisualMapConfig,
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
+
 import type { SeriesPoint } from '../historyLogic';
 import type { ThemeTokens } from '../echartsTheme';
 
@@ -40,12 +41,34 @@ export interface ChartSeries {
 export interface PresentationConfig {
     legendShow: boolean;
     legendPos: EchartsLegendPos;
+    /**
+     * Show each series' current value in the legend (`Name [value]`, adapter `legActual`;
+     * ADR-0054). The formatter reads {@link legendValues}.
+     */
+    legendShowValues: boolean;
+    /**
+     * Current value per series NAME (ADR-0054) — NOT rxData-sourced: the pipeline resolves it
+     * (Live = subscribed value, Verlauf/JSON = last point) and injects it into its presentation
+     * copy when the legend-values toggle is on.
+     */
+    legendValues?: Record<string, number | null>;
     /** Legend styling (ADR-0021 `legendConfig` blob); `undefined` keys inherit echarts/theme defaults. */
     legend?: EchartsLegendConfig;
     tooltipTrigger: EchartsTooltipTrigger;
     tooltipTemplate?: string;
     tooltipUnits?: string;
     tooltipDecimals?: number;
+    /** Tooltip background colour (adapter `hoverBackground`; ADR-0054). Empty/unset = theme default. */
+    tooltipBgColor?: string;
+    /** Drop non-exact (carried-over) tooltip rows — adapter `hoverNoInterpolate` (ADR-0054). */
+    tooltipNoInterpolate?: boolean;
+    /** Hide null-valued tooltip rows — adapter `hoverNoNulls` (ADR-0054). */
+    tooltipHideNulls?: boolean;
+    /**
+     * Comma as the decimal separator in chart values (adapter `useComma`; ADR-0054) — the
+     * `valueFormat.ts` base applied to tooltip values, legend values and default Y-axis labels.
+     */
+    decimalComma?: boolean;
     /** The Tooltip section's raw escape hatch (ADR-0044) — folded UNDER `buildTooltip`'s output. */
     tooltipRaw?: string;
     /** The Legend section's raw escape hatch (ADR-0044) — folded UNDER `buildLegend`'s output. */

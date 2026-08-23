@@ -29,6 +29,7 @@ import type {
 import { decodeBlob } from '../lib/encoding';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
+import { formatChartValue } from './valueFormat';
 import { THEME_PALETTES } from './themePalettes';
 import type { PresentationConfig } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
@@ -399,6 +400,10 @@ export const toPresentationConfig = (opts: {
     return {
         legendShow: bool(s.legendShow, true),
         legendPos: normalizeLegendPos(s.legendPos),
+        // Legend values (adapter `legActual`, ADR-0054): the toggle is rxData-sourced; the VALUES
+        // themselves are pipeline-resolved (live subscription / last point) and injected into the
+        // presentation copy by `assemblePipelineResult` — never read from a field map.
+        legendShowValues: bool(s.legendShowValues, false),
         // Editor state carries the legend styling as the `legend` OBJECT (decoded once on load);
         // persisted rxData carries it as the `legendConfig` base64 BLOB. Read whichever is present so
         // the live body (rxData) and the editor preview (state) both get the styling (ADR-0021 fix:
@@ -416,6 +421,12 @@ export const toPresentationConfig = (opts: {
         tooltipTemplate: typeof s.tooltipTemplate === 'string' ? s.tooltipTemplate : undefined,
         tooltipUnits: typeof s.tooltipUnits === 'string' ? s.tooltipUnits : undefined,
         tooltipDecimals: num(s.tooltipDecimals),
+        // The parity Build E option cluster (ADR-0054): tooltip BG + the two cartesian row
+        // filters + the chart-wide comma separator.
+        tooltipBgColor: str(s.tooltipBgColor, ''),
+        tooltipNoInterpolate: bool(s.tooltipNoInterpolate, false),
+        tooltipHideNulls: bool(s.tooltipHideNulls, false),
+        decimalComma: bool(s.decimalComma, false),
         // Component-section raws (ADR-0044) ride the chartConfig blob.
         tooltipRaw: chartConfig.tooltipRaw,
         legendRaw: chartConfig.legendRaw,
@@ -495,10 +506,20 @@ const legendGridPlacement = (pos: EchartsLegendPos, offsetX: number, offsetY: nu
  * position/styling model is honoured uniformly (pie/radar no longer hardcode `bottom: 4`). Only the
  * GUI-owned keys are emitted; every unset field inherits the echarts/theme default.
  *
+ * ADR-0054: with `legendShowValues` the legend renders `Name [current value]` per item (adapter
+ * `legActual`) — the values ride `p.legendValues` (pipeline-resolved: live subscription / last
+ * point); a name without a resolved numeric value falls back to the bare name.
+ *
  * @param p - Chart-wide presentation (`legendShow`/`legendPos` flat + `legend` styling blob).
  * @param data - Legend item names (series/slice/polygon names — family-supplied).
+ * @param hiddenNames - Names pre-deselected via `legend.selected` (adapter `selected[name] =
+ *   hide !== true` — the mechanism ticket 08 rides). Empty (default) → no `selected` key.
  */
-export const buildLegend = (p: PresentationConfig, data: string[]): Record<string, unknown> => {
+export const buildLegend = (
+    p: PresentationConfig,
+    data: string[],
+    hiddenNames: string[] = [],
+): Record<string, unknown> => {
     const cfg = p.legend ?? {};
     const legend: Record<string, unknown> = {
         show: p.legendShow,
@@ -558,6 +579,23 @@ export const buildLegend = (p: PresentationConfig, data: string[]): Record<strin
     }
     if (cfg.padding !== undefined) {
         legend.padding = cfg.padding;
+    }
+
+    // Legend values (adapter `legActual`, ADR-0054): `Name [value]` from the pipeline-resolved
+    // current values; a name without a numeric value renders bare (the toggle never lies about a
+    // value it does not have). GUI-owned — the raw fold below cannot override the formatter.
+    if (p.legendShowValues) {
+        legend.formatter = (name: string): string => {
+            const v = p.legendValues?.[name];
+            return typeof v === 'number' ? `${name} [${formatChartValue(v, undefined, p.decimalComma)}]` : name;
+        };
+    }
+
+    // `legend.selected` (ADR-0054): the adapter's deselection mechanism — emitted ONLY when a
+    // name is actually hidden (an all-true map on every chart would be noise); ticket 08
+    // ("only in legend") flips per-series flags through exactly this seam.
+    if (hiddenNames.length) {
+        legend.selected = Object.fromEntries(data.map(n => [n, !hiddenNames.includes(n)]));
     }
 
     // The Legend section's raw escape hatch (ADR-0044): deep-merged UNDER the built legend —

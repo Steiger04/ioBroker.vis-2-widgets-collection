@@ -114,6 +114,23 @@ export type EchartsPaletteSource = 'theme' | 'preset' | 'custom';
 export type EchartsDarkMode = 'auto' | 'light' | 'dark';
 /** Chart renderer (Canvas default; SVG for crisp export/print/scaling). @default 'canvas' */
 export type EchartsRenderer = 'canvas' | 'svg';
+/**
+ * Zoom idle-reset ladder (ADR-0054 parity Build E, adapter `resetZoom` select verbatim) — the
+ * value is the idle time in SECONDS as a string ('' = off). Parsed by `parseZoomIdleSeconds`.
+ */
+export type EchartsZoomResetIdle =
+    | ''
+    | '10'
+    | '15'
+    | '30'
+    | '60'
+    | '90'
+    | '120'
+    | '180'
+    | '300'
+    | '600'
+    | '1200'
+    | '1800';
 /** Radar shape. */
 export type EchartsRadarShape = 'polygon' | 'circle';
 /**
@@ -656,6 +673,11 @@ export interface EchartsFieldsRxData {
     legendShow?: boolean;
     /** Legend placement on the 3×3 grid (ADR-0021); legacy 4-edge values are migrated on load. @default 'topCenter' */
     legendPos?: EchartsLegendPos;
+    /**
+     * Show each series' CURRENT value in the legend (`Name [value]`, adapter `legActual`; ADR-0054).
+     * Live = the subscribed value; Verlauf/JSON = the last point. @default false
+     */
+    legendShowValues?: boolean;
     /** Base64 {@link EchartsLegendConfig} — legend styling (text/symbol/frame). `legendShow`+`legendPos` stay flat. */
     legendConfig?: string;
     tooltipTrigger?: EchartsTooltipTrigger;
@@ -663,6 +685,24 @@ export interface EchartsFieldsRxData {
     tooltipTemplate?: string;
     tooltipUnits?: string;
     tooltipDecimals?: number;
+    /** Tooltip background colour (`tooltip.backgroundColor`, adapter `hoverBackground`; ADR-0054). Empty = theme default. */
+    tooltipBgColor?: string;
+    /**
+     * Drop tooltip rows whose value is NOT exact at the hovered timestamp (adapter
+     * `hoverNoInterpolate`; ADR-0054). Cartesian axis tooltips only. @default false
+     */
+    tooltipNoInterpolate?: boolean;
+    /**
+     * Hide null-valued series rows from the tooltip (adapter `hoverNoNulls`; ADR-0054).
+     * Cartesian axis tooltips only. @default false
+     */
+    tooltipHideNulls?: boolean;
+    /**
+     * Comma as the decimal separator in chart values — tooltip values, legend values and the
+     * default (un-authored) Y-axis labels (adapter `useComma`; ADR-0054). An explicit axis
+     * format wins verbatim. @default false
+     */
+    decimalComma?: boolean;
     animation?: boolean;
     animationDuration?: number;
     /** echarts animation easing name (e.g. 'cubicOut'); empty/undefined = echarts default. GUI-owned (ADR-0011 D5). */
@@ -700,6 +740,11 @@ export interface EchartsFieldsRxData {
     /** dataZoom (cartesian). */
     dataZoomSlider?: boolean;
     dataZoomInside?: boolean;
+    /**
+     * Reset the zoom to the full window after N idle seconds (adapter `resetZoom`; ADR-0054).
+     * '' = off. The timer + reset live in the chart view; the decision core is `zoomIdleReset.ts`.
+     */
+    zoomResetAfterIdle?: EchartsZoomResetIdle;
 
     /** Palette (ADR-0007). @default source 'theme' */
     paletteSource?: EchartsPaletteSource;

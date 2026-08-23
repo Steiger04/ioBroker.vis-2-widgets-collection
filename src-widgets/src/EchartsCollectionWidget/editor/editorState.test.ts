@@ -446,3 +446,32 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
         expect(reloaded.yAxes[0]?.snippets).toEqual(['logbase']);
     });
 });
+
+describe('editorState — parity Build E scalars (ADR-0054)', () => {
+    it('the six option scalars round-trip and default to off/empty', () => {
+        const authored = {
+            ...baseState(),
+            legendShowValues: true,
+            tooltipBgColor: '#202124',
+            tooltipNoInterpolate: true,
+            tooltipHideNulls: true,
+            decimalComma: true,
+            zoomResetAfterIdle: '120',
+        } as EditorState;
+        const reloaded = loadEditorState(saveEditorState(authored, 0));
+        expect(reloaded.legendShowValues).toBe(true);
+        expect(reloaded.tooltipBgColor).toBe('#202124');
+        expect(reloaded.tooltipNoInterpolate).toBe(true);
+        expect(reloaded.tooltipHideNulls).toBe(true);
+        expect(reloaded.decimalComma).toBe(true);
+        expect(reloaded.zoomResetAfterIdle).toBe('120');
+
+        const fresh = loadEditorState(saveEditorState(baseState(), 0));
+        expect(fresh.legendShowValues).toBe(false);
+        expect(fresh.tooltipBgColor).toBe('');
+        expect(fresh.tooltipNoInterpolate).toBe(false);
+        expect(fresh.tooltipHideNulls).toBe(false);
+        expect(fresh.decimalComma).toBe(false);
+        expect(fresh.zoomResetAfterIdle).toBe('');
+    });
+});

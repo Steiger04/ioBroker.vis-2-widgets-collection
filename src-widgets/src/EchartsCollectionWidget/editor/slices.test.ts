@@ -43,6 +43,10 @@ describe('section slices (ADR-0049)', () => {
                 | 'tooltipTrigger'
                 | 'tooltipDecimals'
                 | 'tooltipUnits'
+                | 'tooltipBgColor'
+                | 'tooltipNoInterpolate'
+                | 'tooltipHideNulls'
+                | 'decimalComma'
                 | 'tooltipTemplate'
                 | 'tooltipRaw'
                 | 'tooltipSnippets'
@@ -84,6 +88,7 @@ describe('section slices (ADR-0049)', () => {
                 | 'markLines'
                 | 'dataZoomSlider'
                 | 'dataZoomInside'
+                | 'zoomResetAfterIdle'
                 | 'jsonHidden'
                 | 'jsonSeriesStyle'
                 | 'paletteSource'
@@ -98,7 +103,9 @@ describe('section slices (ADR-0049)', () => {
         expectTypeOf<LegendSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
+                | 'chartType'
                 | 'legendShow'
+                | 'legendShowValues'
                 | 'legendPos'
                 | 'legend'
                 | 'legendRaw'

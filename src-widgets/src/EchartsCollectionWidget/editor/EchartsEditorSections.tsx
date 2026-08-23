@@ -184,6 +184,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <TooltipSection
                         state={state}
                         set={set}
+                        pickerCtx={pickerCtx}
                     />
                 );
             case 'axesZoom':

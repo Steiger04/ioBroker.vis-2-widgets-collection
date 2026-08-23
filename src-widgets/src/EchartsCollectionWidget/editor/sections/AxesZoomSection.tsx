@@ -37,6 +37,7 @@ import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-de
 import type { EditorState, SetEditor } from '../editorState';
 import { axisLayout, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
 import { nextStableId } from '../stableId';
+import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
 import AxisCard from './axes/AxisCard';
 
@@ -44,8 +45,9 @@ import AxisCard from './axes/AxisCard';
  * The axes & zoom section's field ownership (ADR-0049 slice) — the widest honest slice: the
  * axis manager reads/writes the axis arrays (`yAxes`, `xAxis`) and the rebind cascade into
  * `series`; JSON mode branches on `mode` + the overlay (`jsonSeriesStyle`) and hides payload
- * series via `jsonHidden`; `markLines` and the two zoom toggles are section-owned; the 4
- * palette/darkMode fields are transitively read via `useEditorTheme` (axis colours).
+ * series via `jsonHidden`; `markLines`, the two zoom toggles and the zoom idle-reset select
+ * (ADR-0054) are section-owned; the 4 palette/darkMode fields are transitively read via
+ * `useEditorTheme` (axis colours).
  */
 export type AxesZoomSlice = Pick<
     EditorState,
@@ -56,6 +58,7 @@ export type AxesZoomSlice = Pick<
     | 'markLines'
     | 'dataZoomSlider'
     | 'dataZoomInside'
+    | 'zoomResetAfterIdle'
     | 'jsonHidden'
     | 'jsonSeriesStyle'
     | 'paletteSource'
@@ -245,7 +248,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             </SubGroup>
 
             <SubGroup title={Generic.t('echarts_zoom')}>
-                <SwitchList>
+                <SwitchList sx={{ mb: 1.5 }}>
                     <SwitchRow
                         label={Generic.t('echarts_zoom_slider')}
                         checked={state.dataZoomSlider}
@@ -257,6 +260,27 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         onChange={v => set({ dataZoomInside: v })}
                     />
                 </SwitchList>
+                {/* Zoom idle-reset (ADR-0054, adapter `resetZoom`): only offered when a zoom
+                    mode is actually on — an idle reset without zoom is a no-op switch. */}
+                {(state.dataZoomSlider || state.dataZoomInside) && (
+                    <LabeledSelect
+                        label={Generic.t('echarts_zoom_reset')}
+                        value={state.zoomResetAfterIdle}
+                        onChange={v => set({ zoomResetAfterIdle: (v || '') as AxesZoomSlice['zoomResetAfterIdle'] })}
+                        options={[
+                            ['', Generic.t('echarts_sum_off')],
+                            ...ZOOM_IDLE_SECONDS.map(
+                                sec =>
+                                    [
+                                        String(sec),
+                                        sec % 60 === 0
+                                            ? Generic.t('echarts_zoom_reset_minutes', String(Math.round(sec / 60)))
+                                            : Generic.t('echarts_zoom_reset_seconds', String(sec)),
+                                    ] as [string, string],
+                            ),
+                        ]}
+                    />
+                )}
             </SubGroup>
 
             <SubGroup

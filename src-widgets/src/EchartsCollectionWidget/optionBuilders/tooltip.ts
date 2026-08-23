@@ -15,15 +15,17 @@
  * axes have a real `{b}`/`{d}`).
  */
 import { formatTooltipHeader, resolveHostLang } from '../timeFormat';
+import { formatChartValue } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { PresentationConfig } from './types';
 
-/** echarts `valueFormatter`: append units + clamp decimals. Exported for the editor's live example. */
-export const makeValueFormatter = (units?: string, decimals?: number): ((v: unknown) => string) => {
+/**
+ * echarts `valueFormatter`: append units + clamp decimals + the chart-wide comma separator
+ * (ADR-0054). Exported for the editor's live example.
+ */
+export const makeValueFormatter = (units?: string, decimals?: number, comma?: boolean): ((v: unknown) => string) => {
     return (v: unknown): string => {
-        const parsed = typeof v === 'number' ? v : Number(v);
-        const finite = Number.isFinite(parsed) ? parsed : (v as number);
-        const txt = decimals !== undefined ? finite.toFixed(decimals) : String(finite);
+        const txt = formatChartValue(v, decimals, comma);
         return units ? `${txt} ${units}` : txt;
     };
 };
@@ -56,6 +58,15 @@ const paramTs = (p: TooltipParam): number | null => {
     const raw = p.axisValue ?? (Array.isArray(p.value) && typeof p.value[0] === 'number' ? p.value[0] : null);
     return typeof raw === 'number' ? raw : null;
 };
+
+/**
+ * The param's OWN point timestamp — the array-shaped value head ONLY (never `axisValue`): on an
+ * axis trigger every param carries the SAME hovered axisValue, so telling an exact row from a
+ * carried-over one (ADR-0054 `noInterpolate`) must compare against the point's own ts. A bare
+ * scalar value has no point ts → null.
+ */
+const pointTs = (p: TooltipParam): number | null =>
+    Array.isArray(p.value) && typeof p.value[0] === 'number' ? p.value[0] : null;
 
 /** The marker prefix (echarts' coloured series dot) incl. its separating space. */
 const markerPrefix = (p: TooltipParam): string => (p.marker ? `${p.marker} ` : '');
@@ -96,15 +107,59 @@ export const resolveTooltipTokens = (
 };
 
 /**
+ * The cartesian tooltip's ROW FILTERS (ADR-0054, adapter `hoverNoNulls` / `hoverNoInterpolate`):
+ * `hideNulls` drops rows whose value is null (gap series stop filling the tooltip with null
+ * lines); `noInterpolate` drops rows whose point ts is NOT the hovered ts — echarts hands the
+ * axis tooltip the NEAREST real point, so a gap shows a carried-over value under a header it
+ * does not belong to; the filter removes exactly those phantom rows.
+ */
+export interface TooltipRowFilters {
+    hideNulls?: boolean;
+    noInterpolate?: boolean;
+}
+
+/** Apply the row filters to one tooltip param list (no-ops when both flags are off). */
+const filterTooltipRows = (
+    list: TooltipParam[],
+    hoveredTs: number | null,
+    filters: TooltipRowFilters,
+): TooltipParam[] => {
+    if (!filters.hideNulls && !filters.noInterpolate) {
+        return list;
+    }
+    return list.filter(p => {
+        if (filters.hideNulls) {
+            const v = paramValue(p);
+            if (v === null || v === undefined) {
+                return false;
+            }
+        }
+        if (filters.noInterpolate && hoveredTs !== null) {
+            const pts = pointTs(p);
+            if (pts !== null && pts !== hoveredTs) {
+                return false;
+            }
+        }
+        return true;
+    });
+};
+
+/**
  * The cartesian AUTHORED-TEMPLATE formatter: one line per series, each the user's template with
  * OUR token resolution ({b} = moment time, units/decimals folded in — a callback bypasses
  * echarts' own `valueFormatter` application). No header: the template is the whole line, full
  * user control (ADR-0052: the template overrides the moment header).
  */
 const makeTemplateTooltipFormatter =
-    (template: string, ctx: TooltipTimeContext, valueFmt?: (v: unknown) => string): ((params: unknown) => string) =>
+    (
+        template: string,
+        ctx: TooltipTimeContext,
+        valueFmt?: (v: unknown) => string,
+        filters?: TooltipRowFilters,
+    ): ((params: unknown) => string) =>
     params => {
-        const list = (Array.isArray(params) ? params : [params]) as TooltipParam[];
+        const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
+        const list = filterTooltipRows(raw, paramTs(raw[0]), filters ?? {});
         return list
             .map(
                 p =>
@@ -125,11 +180,18 @@ const makeTemplateTooltipFormatter =
  * is folded in here).
  */
 const makeMomentTooltipFormatter =
-    (ctx: TooltipTimeContext, valueFmt?: (v: unknown) => string): ((params: unknown) => string) =>
+    (
+        ctx: TooltipTimeContext,
+        valueFmt?: (v: unknown) => string,
+        filters?: TooltipRowFilters,
+    ): ((params: unknown) => string) =>
     params => {
-        const list = (Array.isArray(params) ? params : [params]) as TooltipParam[];
-        const ts = paramTs(list[0]);
+        const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
+        // The header derives from the HOVERED ts (the first param) and survives the row filters —
+        // an all-rows-dropped tooltip still tells the user WHICH time they are on.
+        const ts = paramTs(raw[0]);
         const header = ts !== null ? `<b>${formatTooltipHeader(ctx.format, ts, resolveHostLang())}</b><br/>` : '';
+        const list = filterTooltipRows(raw, ts, filters ?? {});
         return (
             header +
             list
@@ -153,10 +215,15 @@ export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): 
     if (p.tooltipTrigger === 'none') {
         entry = { show: false };
     } else {
+        // The valueFormatter semantics apply when ANY of its three knobs is authored — comma alone
+        // (no units/decimals) must still route numbers through formatChartValue (ADR-0054).
         const valueFmt =
-            p.tooltipUnits || p.tooltipDecimals !== undefined
-                ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals)
+            p.tooltipUnits || p.tooltipDecimals !== undefined || p.decimalComma
+                ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals, p.decimalComma)
                 : undefined;
+        // The cartesian row filters (ADR-0054) ride the custom formatters — echarts' own string /
+        // valueFormatter paths have no row concept to filter.
+        const filters: TooltipRowFilters = { hideNulls: p.tooltipHideNulls, noInterpolate: p.tooltipNoInterpolate };
         if (p.tooltipTemplate) {
             // Authored template wins over the moment header (ADR-0052). On a cartesian chart we
             // resolve the tokens OURSELVES ({b} = the time in the Time format) — echarts' string
@@ -166,7 +233,7 @@ export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): 
             entry = time
                 ? {
                       trigger: p.tooltipTrigger,
-                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, valueFmt),
+                      formatter: makeTemplateTooltipFormatter(p.tooltipTemplate, time, valueFmt, filters),
                   }
                 : {
                       trigger: p.tooltipTrigger,
@@ -175,9 +242,17 @@ export const buildTooltip = (p: PresentationConfig, time?: TooltipTimeContext): 
                   };
         } else if (time) {
             // A custom callback bypasses echarts' valueFormatter application — fold it in.
-            entry = { trigger: p.tooltipTrigger, formatter: makeMomentTooltipFormatter(time, valueFmt) };
+            entry = {
+                trigger: p.tooltipTrigger,
+                formatter: makeMomentTooltipFormatter(time, valueFmt, filters),
+            };
         } else {
             entry = { trigger: p.tooltipTrigger, ...(valueFmt ? { valueFormatter: valueFmt } : {}) };
+        }
+        // Tooltip background (adapter `hoverBackground`, ADR-0054) — set on the BUILT entry, i.e.
+        // before the raw fold below, so the GUI colour wins a raw-JSON collision.
+        if (p.tooltipBgColor) {
+            entry.backgroundColor = p.tooltipBgColor;
         }
     }
     return applyRawOverride(entry, p.tooltipRaw);

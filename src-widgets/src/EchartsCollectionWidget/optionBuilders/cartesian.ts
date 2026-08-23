@@ -31,6 +31,7 @@ import type {
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { buildLegend } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
+import { formatChartValue } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
@@ -198,6 +199,8 @@ const buildYAxisEntry = (
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
     seriesName?: string,
+    /** Comma as the decimal separator for the DEFAULT numeric labels (ADR-0054). */
+    comma?: boolean,
 ): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: a.log ? 'log' : 'value',
@@ -244,6 +247,11 @@ const buildYAxisEntry = (
     const axisLabel: Record<string, unknown> = {};
     if (a.format) {
         axisLabel.formatter = a.format;
+    } else if (comma) {
+        // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. An authored format
+        // wins verbatim (explicit beats implicit — the same rule ticket 05 fixes for the
+        // Wert-Formatter's axis inheritance).
+        axisLabel.formatter = (v: number): string => formatChartValue(v, undefined, true);
     }
     const color = a.color ?? seriesColor;
     if (color) {
@@ -416,7 +424,7 @@ export const buildCartesianOption = (
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;
         const seriesName = typeof sn === 'string' ? sn : undefined;
-        return buildYAxisEntry(a, i, seriesColor, seriesName);
+        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma);
     });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated

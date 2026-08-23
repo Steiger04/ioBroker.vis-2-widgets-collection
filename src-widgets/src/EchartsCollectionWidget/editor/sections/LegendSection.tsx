@@ -13,6 +13,7 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
+import { familyOf } from '../../optionBuilder';
 import {
     FieldGrid,
     FieldLabel,
@@ -33,13 +34,17 @@ import RawJsonSection from './RawJsonSection';
 import type { EditorState, SetEditor } from '../editorState';
 
 /**
- * The legend section's field ownership (ADR-0049 slice) — the flat show/pos pair beside the
- * `legend` styling blob, the section raw + its template ids; the 4 palette/darkMode fields
- * are transitively read via `useEditorTheme` (the inherit previews).
+ * The legend section's field ownership (ADR-0049 slice) — the flat show/pos pair + the values
+ * toggle (ADR-0054) beside the `legend` styling blob, the section raw + its template ids; the 4
+ * palette/darkMode fields are transitively read via `useEditorTheme` (the inherit previews).
+ * `chartType` gates the values toggle to the families whose legend shows per-series current
+ * values (cartesian/pie — a radar legend names polygons, not series).
  */
 export type LegendSlice = Pick<
     EditorState,
+    | 'chartType'
     | 'legendShow'
+    | 'legendShowValues'
     | 'legendPos'
     | 'legend'
     | 'legendRaw'
@@ -80,6 +85,10 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
     // middle row (a centred nudge needs container size → resize churn, out of scope).
     const offsetXRelevant = state.legendPos.endsWith('Left') || state.legendPos.endsWith('Right');
     const offsetYRelevant = state.legendPos.startsWith('top') || state.legendPos.startsWith('bottom');
+    // Legend values (ADR-0054) need per-SERIES current values — cartesian/pie legends name series;
+    // a radar legend names the single polygon, a gauge has no legend at all.
+    const family = familyOf(state.chartType);
+    const valuesRelevant = family === 'cartesian' || family === 'pie';
     return (
         <Box>
             <SwitchList sx={{ mb: 1.5 }}>
@@ -88,6 +97,14 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                     checked={state.legendShow}
                     onChange={v => set({ legendShow: v })}
                 />
+                {valuesRelevant && (
+                    <SwitchRow
+                        label={Generic.t('echarts_legend_values')}
+                        checked={state.legendShowValues}
+                        onChange={v => set({ legendShowValues: v })}
+                        disabled={!state.legendShow}
+                    />
+                )}
             </SwitchList>
             <Box sx={{ mb: 1.5 }}>
                 <PositionGrid

@@ -132,6 +132,8 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
     { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
     { name: 'legendPos', type: 'text', default: 'top', hidden: alwaysHidden },
+    // Parity Build E option cluster (ADR-0054): the adapter options-tab scalars.
+    { name: 'legendShowValues', type: 'checkbox', default: false, hidden: alwaysHidden },
     // tooltipTrigger: no field default — `undefined` lets the runtime default per family
     // ('axis' for cartesian, 'item' otherwise) in presentation + loadEditorState, the single
     // source of truth (ADR-0011 Tier 3 — avoids a fresh pie widget rendering axis-trigger).
@@ -139,6 +141,10 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'tooltipTemplate', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'tooltipUnits', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'tooltipDecimals', type: 'number', default: 0, hidden: alwaysHidden },
+    { name: 'tooltipBgColor', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'tooltipNoInterpolate', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'tooltipHideNulls', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'decimalComma', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'animation', type: 'checkbox', default: true, hidden: alwaysHidden },
     { name: 'animationDuration', type: 'number', default: 600, hidden: alwaysHidden },
     { name: 'animationEasing', type: 'text', default: '', hidden: alwaysHidden },
@@ -151,6 +157,7 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'xAxis', type: 'text', default: '', hidden: alwaysHidden },
     { name: 'dataZoomSlider', type: 'checkbox', default: false, hidden: alwaysHidden },
     { name: 'dataZoomInside', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'zoomResetAfterIdle', type: 'text', default: '', hidden: alwaysHidden },
     // Palette + dark mode (ADR-0007).
     { name: 'paletteSource', type: 'text', default: 'theme', hidden: alwaysHidden },
     { name: 'palettePreset', type: 'text', default: 'tableau', hidden: alwaysHidden },

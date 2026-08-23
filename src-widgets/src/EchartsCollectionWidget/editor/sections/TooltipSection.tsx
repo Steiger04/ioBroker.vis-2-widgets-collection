@@ -17,18 +17,31 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { FieldGrid, InfoBox, LabeledSelect, NumberField, TextField2 } from '../../../components/controls';
+import {
+    FieldGrid,
+    FieldLabel,
+    InfoBox,
+    LabeledSelect,
+    NumberField,
+    SwitchList,
+    SwitchRow,
+    TextField2,
+} from '../../../components/controls';
 import { familyOf } from '../../optionBuilder';
 import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/tooltip';
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
 import { TOOLTIP_CATALOG } from '../tooltipTemplates';
+import ColorField from '../colorFields';
 import RawJsonSection from './RawJsonSection';
+import type { OidPickerCtx } from '../OidPicker';
 import type { EditorState, SetEditor } from '../editorState';
 
 /**
  * The tooltip section's field ownership (ADR-0049 slice) — `chartType` for the family-aware
- * trigger coercion, the four flat tooltip fields, the section raw + its template ids, and the
- * X-Karte's Time format (read-only: it drives the `{b}` token + the live example, ADR-0052).
+ * trigger coercion, the four flat tooltip fields, the parity Build E cluster (background colour,
+ * the two cartesian row filters, the chart-wide comma separator; ADR-0054), the section raw +
+ * its template ids, and the X-Karte's Time format (read-only: it drives the `{b}` token + the
+ * live example, ADR-0052).
  */
 export type TooltipSlice = Pick<
     EditorState,
@@ -36,6 +49,10 @@ export type TooltipSlice = Pick<
     | 'tooltipTrigger'
     | 'tooltipDecimals'
     | 'tooltipUnits'
+    | 'tooltipBgColor'
+    | 'tooltipNoInterpolate'
+    | 'tooltipHideNulls'
+    | 'decimalComma'
     | 'tooltipTemplate'
     | 'tooltipRaw'
     | 'tooltipSnippets'
@@ -45,9 +62,11 @@ export type TooltipSlice = Pick<
 interface TooltipSectionProps {
     state: TooltipSlice;
     set: SetEditor<TooltipSlice>;
+    /** Drills the socket/theme for the background ColorField (the section's only colour input). */
+    pickerCtx: OidPickerCtx;
 }
 
-const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
+const TooltipSection: FC<TooltipSectionProps> = ({ state, set, pickerCtx }) => {
     const isCartesian = familyOf(state.chartType) === 'cartesian';
     const effectiveTrigger: TooltipSlice['tooltipTrigger'] =
         !isCartesian && state.tooltipTrigger === 'axis' ? 'item' : state.tooltipTrigger;
@@ -82,6 +101,15 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                     onChange={v => set({ tooltipUnits: v })}
                     placeholder="°C / % / h"
                 />
+                <Box>
+                    <FieldLabel>{Generic.t('echarts_tooltip_bg')}</FieldLabel>
+                    {/* Null = unset → the theme's tooltip background (ADR-0054). */}
+                    <ColorField
+                        value={state.tooltipBgColor || null}
+                        onChange={v => set({ tooltipBgColor: v ?? '' })}
+                        ctx={pickerCtx}
+                    />
+                </Box>
                 <Box sx={{ gridColumn: '1 / -1' }}>
                     <TextField2
                         label={Generic.t('echarts_tooltip_template')}
@@ -131,7 +159,11 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                                             lang: resolveHostLang(),
                                             valueFmt:
                                                 state.tooltipUnits || state.tooltipDecimals !== undefined
-                                                    ? makeValueFormatter(state.tooltipUnits, state.tooltipDecimals)
+                                                    ? makeValueFormatter(
+                                                          state.tooltipUnits,
+                                                          state.tooltipDecimals,
+                                                          state.decimalComma,
+                                                      )
                                                     : undefined,
                                         },
                                     )}
@@ -141,6 +173,30 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set }) => {
                     </InfoBox>
                 </Box>
             </FieldGrid>
+            {/* The parity Build E switches (ADR-0054): the two cartesian row filters + the
+                chart-wide comma separator (authored here, effective everywhere values render). */}
+            <SwitchList sx={{ mb: 1.5 }}>
+                {isCartesian && (
+                    <>
+                        <SwitchRow
+                            label={Generic.t('echarts_tooltip_no_interpolate')}
+                            checked={state.tooltipNoInterpolate}
+                            onChange={v => set({ tooltipNoInterpolate: v })}
+                        />
+                        <SwitchRow
+                            label={Generic.t('echarts_tooltip_hide_nulls')}
+                            checked={state.tooltipHideNulls}
+                            onChange={v => set({ tooltipHideNulls: v })}
+                        />
+                    </>
+                )}
+                <SwitchRow
+                    label={Generic.t('echarts_decimal_comma')}
+                    checked={state.decimalComma}
+                    onChange={v => set({ decimalComma: v })}
+                />
+            </SwitchList>
+            {state.decimalComma && <InfoBox text={Generic.t('echarts_decimal_comma_hint')} />}
             {/* The Tooltip section's own raw escape hatch (ADR-0044) — deep-merged UNDER
                 buildTooltip's output, the GUI wins every collision. */}
             <RawJsonSection

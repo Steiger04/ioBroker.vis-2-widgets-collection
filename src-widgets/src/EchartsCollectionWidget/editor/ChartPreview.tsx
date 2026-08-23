@@ -18,6 +18,7 @@ import Generic from '../../Generic';
 import EChart from '../EChart';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
 import { familyOf } from '../optionBuilder';
+import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
 import type { SectionKey } from './validation';
 import type { EditorState } from './editorState';
@@ -101,6 +102,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                     <EChart
                         option={option}
                         renderer={state.renderer}
+                        zoomIdleResetSec={parseZoomIdleSeconds(state.zoomResetAfterIdle)}
                     />
                 ) : onPlaceholderClick && !loading ? (
                     <ButtonBase

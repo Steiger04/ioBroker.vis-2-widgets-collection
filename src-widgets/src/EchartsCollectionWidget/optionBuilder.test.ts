@@ -22,6 +22,7 @@ import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definit
 const P: PresentationConfig = {
     legendShow: true,
     legendPos: 'topCenter',
+    legendShowValues: false,
     tooltipTrigger: 'axis',
     animation: true,
     animationDuration: 600,
@@ -1436,5 +1437,129 @@ describe('buildGeneratedOption — radar', () => {
         // GUI owns lineStyle.color; the raw adds width (uncovered). emphasis is fully uncovered.
         expect(s.lineStyle.width).toBe(3);
         expect(s.emphasis?.focus).toBe('self');
+    });
+});
+
+describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', () => {
+    const WED = SAMPLE_TS;
+    const EARLIER = WED - 60_000;
+    type TooltipEntry = {
+        trigger?: string;
+        formatter?: unknown;
+        valueFormatter?: unknown;
+        show?: boolean;
+        backgroundColor?: string;
+        axisPointer?: unknown;
+    };
+    const tooltipOf = (p: PresentationConfig): TooltipEntry =>
+        buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p }).tooltip as TooltipEntry;
+
+    // ── tooltip background (adapter hoverBackground) ─────────────────────
+    it('emits the authored tooltip background colour into the built entry', () => {
+        expect(tooltipOf({ ...P, tooltipBgColor: '#123456' }).backgroundColor).toBe('#123456');
+    });
+
+    it('emits the background on non-cartesian families too (shared builder)', () => {
+        const out = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
+            p: { ...P, tooltipBgColor: '#abc' },
+        }) as { tooltip: TooltipEntry };
+        expect(out.tooltip.backgroundColor).toBe('#abc');
+    });
+
+    it('no background key when unset, and the section raw cannot override the GUI colour (emitted before the fold)', () => {
+        expect(tooltipOf(P)).not.toHaveProperty('backgroundColor');
+        const t = tooltipOf({
+            ...P,
+            tooltipBgColor: '#gui',
+            tooltipRaw: '{"backgroundColor":"#raw","axisPointer":{"type":"cross"}}',
+        });
+        expect(t.backgroundColor).toBe('#gui'); // GUI wins the collision…
+        expect(t.axisPointer).toEqual({ type: 'cross' }); // …while free keys merge through
+    });
+
+    // ── no interpolation in tooltip (adapter hoverNoInterpolate) ─────────
+    it('drops rows whose point ts ≠ the hovered ts when noInterpolate is on (moment header)', () => {
+        const t = tooltipOf({ ...P, tooltipNoInterpolate: true });
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '<m>', seriesName: 'Exact', value: [WED, 21.5] },
+            { axisValue: WED, marker: '<m>', seriesName: 'Carried', value: [EARLIER, 40] },
+        ]);
+        expect(html).toBe('<b>Wed, 19.08.2026 14:05</b><br/><m> Exact: 21.5');
+    });
+
+    it('applies the same filter to the authored-template formatter', () => {
+        const t = tooltipOf({ ...P, tooltipTemplate: '{a}={c}', tooltipNoInterpolate: true });
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '', seriesName: 'Exact', value: [WED, 21.5] },
+            { axisValue: WED, marker: '', seriesName: 'Carried', value: [EARLIER, 40] },
+        ]);
+        expect(html).toBe('Exact=21.5');
+    });
+
+    it('keeps carried-over rows when the switch is off (characterisation)', () => {
+        const t = tooltipOf(P);
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '', seriesName: 'Exact', value: [WED, 21.5] },
+            { axisValue: WED, marker: '', seriesName: 'Carried', value: [EARLIER, 40] },
+        ]);
+        expect(html).toContain('Carried: 40');
+    });
+
+    // ── hide nulls in tooltip (adapter hoverNoNulls) ─────────────────────
+    it('drops null-valued rows when hideNulls is on, keeps them as "-" when off', () => {
+        const params = [
+            { axisValue: WED, marker: '<m>', seriesName: 'A', value: [WED, 21.5] },
+            { axisValue: WED, marker: '<m>', seriesName: 'Gap', value: [WED, null] },
+        ];
+        const hidden = tooltipOf({ ...P, tooltipHideNulls: true }).formatter as (p: unknown) => string;
+        expect(hidden(params)).toBe('<b>Wed, 19.08.2026 14:05</b><br/><m> A: 21.5');
+        const shown = tooltipOf(P).formatter as (p: unknown) => string;
+        expect(shown(params)).toContain('Gap: -');
+    });
+
+    // ── comma as decimal separator (adapter useComma) ────────────────────
+    it('comma flows into the tooltip value rows (units/decimals semantics kept)', () => {
+        const t = tooltipOf({ ...P, tooltipUnits: '°C', tooltipDecimals: 1, decimalComma: true });
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '', seriesName: 'Temp', value: [WED, 21.56] },
+        ]);
+        expect(html).toContain('Temp: 21,6 °C');
+    });
+
+    it('comma flows into the non-cartesian valueFormatter path', () => {
+        const out = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
+            p: { ...P, tooltipDecimals: 1, decimalComma: true },
+        }) as { tooltip: { valueFormatter?: (v: unknown) => string } };
+        expect(out.tooltip.valueFormatter?.(12.34)).toBe('12,3');
+    });
+
+    it('comma emits a default Y-axis label formatter; an authored axis format wins verbatim', () => {
+        const commaOption = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, decimalComma: true },
+        });
+        const yAxis0 = (commaOption.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
+        expect(typeof yAxis0.axisLabel?.formatter).toBe('function');
+        expect((yAxis0.axisLabel?.formatter as (v: number) => string)(1234.5)).toBe('1234,5');
+
+        const plainOption = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect((plainOption.yAxis as Record<string, unknown>[])[0]).not.toHaveProperty('axisLabel');
+
+        const authoredOption = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, decimalComma: true, yAxes: [{ format: '{value} kW' }] },
+        });
+        const authored = (authoredOption.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
+        expect(authored.axisLabel?.formatter).toBe('{value} kW');
     });
 });

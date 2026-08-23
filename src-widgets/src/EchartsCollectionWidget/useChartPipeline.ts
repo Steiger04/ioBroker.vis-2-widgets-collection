@@ -202,6 +202,42 @@ export const hasMergedData = (option: EChartsOption): boolean => {
     });
 };
 
+/**
+ * The per-series CURRENT value for the legend (`Name [value]`, adapter `legActual`, ADR-0054) —
+ * name-keyed so `buildLegend`'s formatter can look items up regardless of family/series source:
+ * Verlauf = the last point of each history series; Live = the subscribed value (the rolling
+ * buffer's last point as the pre-subscription fallback); JSON = the last payload point. A series
+ * with no usable point maps to `null` (the legend formatter renders the bare name then).
+ */
+export const resolveLegendValues = (
+    mode: string,
+    usable: readonly ChartPipelineSeries[],
+    values: Record<string, unknown>,
+    historySeries: readonly { name: string; data: SeriesPoint[] }[],
+    liveBuffers: Record<string, SeriesPoint[]>,
+    jsonSeries: readonly { name: string; data: SeriesPoint[] }[],
+): Record<string, number | null> => {
+    const lastVal = (data: readonly SeriesPoint[]): number | null => {
+        const last = data[data.length - 1];
+        return last ? toNum(last[1]) : null;
+    };
+    const out: Record<string, number | null> = {};
+    if (mode === 'live') {
+        for (const s of usable) {
+            out[s.name || s.oid] = toNum(values[s.oid]) ?? lastVal(liveBuffers[s.oid] ?? []);
+        }
+    } else if (mode === 'json') {
+        for (const s of jsonSeries) {
+            out[s.name] = lastVal(s.data);
+        }
+    } else {
+        for (const s of historySeries) {
+            out[s.name] = lastVal(s.data);
+        }
+    }
+    return out;
+};
+
 /** The unified error surface: JSON parse > Verlauf fetch > per-series — null off cartesian/pie. */
 export const pipelineError = (
     family: ReturnType<typeof familyOf>,
@@ -264,17 +300,34 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         src,
     } = input;
     let g: EChartsOption;
+    // Legend values (ADR-0054): resolve the per-series current values and inject them into the
+    // presentation copy when the toggle is on (radar/gauge have no per-item current value — the
+    // formatter falls back to bare names there anyway, so no resolution is wasted on them).
+    const presentationWithValues =
+        presentation.legendShowValues && (family === 'cartesian' || family === 'pie')
+            ? {
+                  ...presentation,
+                  legendValues: resolveLegendValues(
+                      mode,
+                      usable,
+                      values,
+                      history.series,
+                      liveBuffers,
+                      jsonParsed.series,
+                  ),
+              }
+            : presentation;
     if (family === 'gauge') {
         const oid = usable[0]?.oid ?? '';
         g = buildGeneratedOption({
             family: 'gauge',
             value: oid ? toNum(values[oid]) : null,
             meta: usable,
-            p: presentation,
+            p: presentationWithValues,
         });
     } else if (family === 'radar') {
         const vals = indicators.map(ind => (ind.oid ? toNum(values[ind.oid]) : null));
-        g = buildGeneratedOption({ family: 'radar', values: vals, meta: usable, p: presentation });
+        g = buildGeneratedOption({ family: 'radar', values: vals, meta: usable, p: presentationWithValues });
     } else {
         let series: ChartSeries[];
         if (mode === 'history') {
@@ -288,7 +341,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
         // positional editor series (json has no per-series OIDs to key it by).
         const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
-        g = buildGeneratedOption({ family, series, meta, p: presentation });
+        g = buildGeneratedOption({ family, series, meta, p: presentationWithValues });
     }
 
     const merged = mergeGeneratedOverTheme(g, themeBase);

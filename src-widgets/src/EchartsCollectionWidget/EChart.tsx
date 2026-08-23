@@ -35,24 +35,44 @@ import type { EChartsOption } from 'echarts';
 
 import './echartsRegistration';
 import { REPLACE_MERGE } from './replaceMerge';
+import { zoomIdleAction } from './zoomIdleReset';
 
 interface EChartProps {
     /** Fully-merged echarts option (theme base + G). */
     option: EChartsOption;
     /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
     renderer?: 'canvas' | 'svg';
+    /**
+     * Zoom idle-reset seconds (ADR-0054, adapter `resetZoom`); `undefined` = off. The DECISION
+     * comes from `zoomIdleAction`; the timer + the reset `dispatchAction` live here (View).
+     */
+    zoomIdleResetSec?: number;
 }
+
+/** Whether the live zoom window deviates from the full 0–100 % window (across all components). */
+const zoomDeviates = (chart: ECharts): boolean => {
+    const dz = (chart.getOption() as { dataZoom?: { start?: number; end?: number }[] }).dataZoom ?? [];
+    if (!dz.length) {
+        return false;
+    }
+    const start = Math.min(...dz.map(z => z.start ?? 0));
+    const end = Math.max(...dz.map(z => z.end ?? 100));
+    return start > 0.001 || end < 99.999;
+};
 
 // The replaceMerge list lives in the pure `replaceMerge.ts` module (ADR-0036) — single source for
 // the wrapper AND the template guard test.
 
-export default function EChart({ option, renderer = 'canvas' }: EChartProps): React.JSX.Element {
+export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<ECharts | null>(null);
     // Keep the latest option so a renderer-triggered re-init can seed the fresh instance without
     // adding `option` to the init effect's deps (which would dispose/recreate on every data tick).
     const optionRef = useRef(option);
     optionRef.current = option;
+    // Same idiom for the idle-reset config: read at event time, no re-init on a config change.
+    const zoomSecRef = useRef(zoomIdleResetSec);
+    zoomSecRef.current = zoomIdleResetSec;
 
     // init + ResizeObserver → resize() + dispose on unmount OR renderer change.
     useEffect(() => {
@@ -64,6 +84,30 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         chartRef.current = chart;
         chart.setOption(optionRef.current, { replaceMerge: [...REPLACE_MERGE] });
 
+        // Zoom idle-reset (ADR-0054): every datazoom event (user drag OR our own reset — echarts
+        // emits for both) re-runs the pure decision: zoomed → (re)arm the timer, back at the
+        // full window → clear it. The armed timer resets to 0–100 %; its own event then lands on
+        // the clear branch, so the loop terminates.
+        let idleTimer: ReturnType<typeof setTimeout> | null = null;
+        const clearIdleTimer = (): void => {
+            if (idleTimer) {
+                clearTimeout(idleTimer);
+                idleTimer = null;
+            }
+        };
+        const onZoomChange = (): void => {
+            const action = zoomIdleAction(zoomSecRef.current, zoomDeviates(chart));
+            clearIdleTimer();
+            if (action.type === 'arm') {
+                const ms = action.ms;
+                idleTimer = setTimeout(() => {
+                    idleTimer = null;
+                    chart.dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
+                }, ms);
+            }
+        };
+        chart.on('datazoom', onZoomChange);
+
         // On resize: sync the canvas dims. echarts re-runs the grid layout (incl. containLabel's
         // label/name/offset reservation) for the new width, so no setOption is needed here.
         // ResizeObserver coalesces to discrete size changes, so this is not a per-frame churn.
@@ -73,6 +117,8 @@ export default function EChart({ option, renderer = 'canvas' }: EChartProps): Re
         ro.observe(el);
 
         return (): void => {
+            clearIdleTimer();
+            chart.off('datazoom', onZoomChange);
             ro.disconnect();
             chart.dispose();
             chartRef.current = null;

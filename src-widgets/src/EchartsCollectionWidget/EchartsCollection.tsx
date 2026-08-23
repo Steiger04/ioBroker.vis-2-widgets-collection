@@ -33,6 +33,7 @@ import {
     type ChartPipelineTheme,
 } from './useChartPipeline';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
+import { parseZoomIdleSeconds } from './zoomIdleReset';
 
 type ValuesMap = Record<string, ioBroker.StateValue | undefined>;
 
@@ -244,6 +245,7 @@ function EchartsCollection(): React.ReactElement {
                     <EChart
                         option={option}
                         renderer={data.renderer}
+                        zoomIdleResetSec={parseZoomIdleSeconds(data.zoomResetAfterIdle)}
                     />
                 ) : error ? null : (
                     <Box
