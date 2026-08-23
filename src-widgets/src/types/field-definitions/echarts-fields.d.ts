@@ -134,6 +134,17 @@ export type EchartsZoomResetIdle =
 /** Radar shape. */
 export type EchartsRadarShape = 'polygon' | 'circle';
 /**
+ * Chart frame border style (parity Build D, ADR-0056) — the eight CSS `border-style` values the
+ * adapter offers. Pure container styling around the chart area, never an echarts option.
+ */
+export type EchartsFrameStyle = 'solid' | 'dashed' | 'dotted' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset';
+/**
+ * Bar value-label placement (parity Build D, ADR-0056): the adapter's five options
+ * (`''`/topover/topunder/bottom/middle) mapped onto the echarts `label.position` values they
+ * emit. `''` (off) is NOT part of the union — the `label` boolean switch owns on/off.
+ */
+export type EchartsBarLabelPos = 'top' | 'insideTop' | 'insideBottom' | 'inside';
+/**
  * Placement on the 3×3 grid (ADR-0045 toolbox). Same nine values as {@link EchartsLegendPos}
  * (the PositionGrid control is shared); its own name because "legend position" on a toolbox
  * would read wrong.
@@ -206,10 +217,25 @@ export interface EchartsSeriesMeta {
     connectNulls?: boolean;
     /** Show value labels. @default false */
     label?: boolean;
+    /**
+     * Bar value-label placement (parity Build D, ADR-0056) — bar cards only; a line label stays
+     * the bare `{ show: true }`. Unset = echarts' own bar default (`top`), emitted sparse.
+     */
+    labelPosition?: EchartsBarLabelPos;
+    /** Bar value-label font size (px); unset = the theme text default, emitted sparse. */
+    labelFontSize?: number;
+    /** Bar value-label colour; unset = the theme text default, emitted sparse. */
+    labelColor?: string;
     /** Gap between bars within one category (0–1, echarts `barGap`). @default 0 (echarts auto) */
     barGap?: number;
     /** Gap between bar categories (0–1, echarts `barCategoryGap`). @default 0 (echarts auto) */
     barCategoryGap?: number;
+    /**
+     * Absolute bar width (parity Build D): plain digits = px (`'20'`), a trailing `%` = percent of
+     * the category width (`'30%'`). Unset or unparseable = echarts' auto width (emitted sparse) —
+     * stored as text so both units round-trip one field.
+     */
+    barWidth?: string;
     /** Bar corner radius (px, echarts `itemStyle.borderRadius`). */
     cornerRadius?: number;
     /**
@@ -800,4 +826,17 @@ export interface EchartsFieldsRxData {
     visualMapMax?: number;
     visualMapColors?: string;
     visualMapEnabled?: boolean;
+
+    // ── Chart frame (parity Build D, ADR-0056) — container CSS, not an echarts option ──
+
+    /** Frame on/off; width 0 while enabled also renders no frame. @default false */
+    frameEnabled?: boolean;
+    /** Frame border width (px). @default 1 */
+    frameWidth?: number;
+    /** Frame border colour; empty = the host theme's divider token. */
+    frameColor?: string;
+    /** Frame border style (the eight CSS values). @default 'solid' */
+    frameStyle?: EchartsFrameStyle;
+    /** Frame inner padding (px, the adapter's "Randabstand"). @default 0 */
+    framePadding?: number;
 }

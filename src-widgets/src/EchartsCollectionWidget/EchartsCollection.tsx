@@ -22,6 +22,7 @@ import type { EchartsCollectionContextProps } from '../types';
 
 import EChart from './EChart';
 import { buildEchartsTheme, echartsPalette, effectiveDarkMode, resolveThemeTokens } from './echartsTheme';
+import { resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
 import { decodeAxes, decodeChartConfig, decodeMarkLines, resolvePalette } from './presentation';
@@ -214,6 +215,25 @@ function EchartsCollection(): React.ReactElement {
         ],
     );
 
+    // Chart frame (parity Build D): container CSS around the chart area — the widget-body wrapper
+    // carries it, keyed on the frame scalars so an editor toggle re-renders (the chart option is
+    // untouched — a frame is layout, not echarts presentation).
+    const frameSx = useMemo(
+        () =>
+            resolveFrameCss(
+                {
+                    enabled: data.frameEnabled,
+                    width: data.frameWidth,
+                    color: data.frameColor,
+                    style: data.frameStyle as string | undefined,
+                    padding: data.framePadding,
+                },
+                theme.palette.divider,
+            ),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [dataKey, theme],
+    );
+
     return (
         <CollectionBase
             isValidType
@@ -224,6 +244,7 @@ function EchartsCollection(): React.ReactElement {
                     position: 'relative',
                     width: '100%',
                     height: '100%',
+                    ...(frameSx ?? {}),
                 }}
             >
                 {loading && (

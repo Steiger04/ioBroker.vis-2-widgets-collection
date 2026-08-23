@@ -18,6 +18,7 @@ import Generic from '../../Generic';
 import EChart from '../EChart';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
 import { familyOf } from '../optionBuilder';
+import { resolveFrameCss } from '../frameStyle';
 import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
 import type { SectionKey } from './validation';
@@ -97,7 +98,15 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                     {error}
                 </Typography>
             )}
-            <Box sx={{ flex: 1, minHeight: 0 }}>
+            {/* The authored chart frame previews live around the chart area (parity Build D) —
+                the same resolver the body applies, host-theme divider as the colour inherit. */}
+            <Box
+                sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    ...(resolveFrameCss(state.frame, theme.palette.divider) ?? {}),
+                }}
+            >
                 {hasData && option ? (
                     <EChart
                         option={option}

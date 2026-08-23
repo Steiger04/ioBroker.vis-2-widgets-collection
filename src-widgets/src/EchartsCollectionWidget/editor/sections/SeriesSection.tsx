@@ -90,8 +90,10 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     jsonError,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
-    const { palette } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
+    const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const slot = (i: number): string => palette[i % palette.length];
+    // Bar label colour inherit preview (parity Build D) — the theme's text primary, dark-mode-aware.
+    const labelColorFallback = themeTokens.textPrimary;
     const isPie = state.chartType === 'pie';
     const isGauge = state.chartType === 'gauge';
     const isRadar = state.chartType === 'radar';
@@ -268,6 +270,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
+                    labelColorFallback={labelColorFallback}
                     jsonSeriesNames={jsonSeriesNames}
                     jsonError={jsonError}
                     expanded={expanded}
@@ -294,6 +297,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     state={state}
                     pickerCtx={pickerCtx}
                     slot={slot}
+                    labelColorFallback={labelColorFallback}
                     historyInstances={isHistory ? historyInstances : []}
                     expanded={expanded}
                     onToggleCard={toggleCard}

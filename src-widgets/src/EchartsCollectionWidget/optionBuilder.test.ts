@@ -1687,3 +1687,72 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         expect(bare.xAxis).not.toHaveProperty('position');
     });
 });
+
+describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-0056)', () => {
+    /** First series entry of a built one-series bar option, loosely typed for leaf assertions. */
+    const s0 = (meta: EchartsSeriesMeta[], pOverrides?: Partial<PresentationConfig>): Record<string, unknown> => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta,
+            p: { ...P, cartesianType: 'bar', ...pOverrides },
+        });
+        return (option.series as Record<string, unknown>[])[0];
+    };
+
+    it('label on emits { show: true } only — position/size/colour stay sparse (echarts default top)', () => {
+        expect(s0([{ label: true }]).label).toEqual({ show: true });
+    });
+
+    it('labelPosition emits label.position; labelFontSize/labelColour size + colour the label', () => {
+        const entry = s0([{ label: true, labelPosition: 'insideBottom', labelFontSize: 14, labelColor: '#f00' }]);
+        expect(entry.label).toEqual({ show: true, position: 'insideBottom', fontSize: 14, color: '#f00' });
+        // Each knob sparse on its own — no half-emitted defaults.
+        expect(s0([{ label: true, labelPosition: 'inside' }]).label).toEqual({ show: true, position: 'inside' });
+        expect(s0([{ label: true, labelFontSize: 11 }]).label).toEqual({ show: true, fontSize: 11 });
+        expect(s0([{ label: true, labelColor: '#abc' }]).label).toEqual({ show: true, color: '#abc' });
+    });
+
+    it('the label values ride the chart-level formatting (units/decimals/comma); no knob → no formatter', () => {
+        const withKnobs = s0([{ label: true }], {
+            tooltipUnits: 'W',
+            tooltipDecimals: 1,
+            decimalComma: true,
+        });
+        const label = withKnobs.label as { formatter?: (v: unknown) => string };
+        expect(label.formatter).toBeTypeOf('function');
+        expect(label.formatter!(1.5)).toBe('1,5 W'); // decimals clamp + comma + unit
+
+        // Gated like the tooltip's valueFormatter: no knob authored → echarts' own label default.
+        expect(s0([{ label: true }]).label).not.toHaveProperty('formatter');
+        // Comma alone is a knob too (ADR-0054 rule, same gate as the tooltip).
+        const commaOnly = s0([{ label: true }], { decimalComma: true });
+        expect((commaOnly.label as { formatter: (v: unknown) => string }).formatter(2.5)).toBe('2,5');
+    });
+
+    it('a line label ignores the bar knobs (labelPosition stays bar-only) and emits { show: true }', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ label: true, labelPosition: 'inside', labelFontSize: 20, labelColor: '#f00' }],
+            p: P, // cartesianType stays 'line'
+        });
+        expect((option.series as Record<string, unknown>[])[0].label).toEqual({ show: true });
+    });
+
+    it('label off wins over authored knobs — no label key at all', () => {
+        expect(s0([{ labelPosition: 'inside', labelFontSize: 20 }])).not.toHaveProperty('label');
+    });
+
+    it('barWidth: plain digits emit a px number, a trailing % emits the string, unset/invalid emit nothing', () => {
+        expect(s0([{ barWidth: '20' }]).barWidth).toBe(20);
+        expect(s0([{ barWidth: '20' }]).barWidth).not.toBe('20'); // real number, not the raw string
+        expect(s0([{ barWidth: '30%' }]).barWidth).toBe('30%');
+        expect(s0([{}])).not.toHaveProperty('barWidth');
+        expect(s0([{ barWidth: '' }])).not.toHaveProperty('barWidth');
+        expect(s0([{ barWidth: 'narrow' }])).not.toHaveProperty('barWidth'); // honest: invalid = default
+        // Adapter parity: a resolved 0 is UNSET (auto), never a zero-width bar.
+        expect(s0([{ barWidth: '0' }])).not.toHaveProperty('barWidth');
+        expect(s0([{ barWidth: '0%' }])).not.toHaveProperty('barWidth');
+    });
+});

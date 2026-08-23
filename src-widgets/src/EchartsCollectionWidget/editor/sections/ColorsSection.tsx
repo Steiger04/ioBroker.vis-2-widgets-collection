@@ -12,11 +12,13 @@ import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { PALETTE_PRESETS } from '../../presentation';
+import { FRAME_STYLES } from '../../frameStyle';
 import {
     FieldGrid,
     FieldLabel,
     LabeledSelect,
     NumberField,
+    SliderField,
     SubGroup,
     SwitchList,
     SwitchRow,
@@ -28,11 +30,12 @@ import type { EditorState, SetEditor } from '../editorState';
 
 /**
  * The colours section's field ownership (ADR-0049 slice) — the palette trio + darkMode (the
- * theme hook's read footprint), the chart background, and the cartesian value→colour scale.
+ * theme hook's read footprint), the chart background, the chart frame (parity Build D), and the
+ * cartesian value→colour scale.
  */
 export type ColorsSlice = Pick<
     EditorState,
-    'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap'
+    'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap' | 'frame'
 >;
 
 interface ColorsSectionProps {
@@ -53,6 +56,8 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — what the canvas renders
     // under, not the vis-2 host theme.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
+    // Frame colour inherit preview — the collection theme's divider (what the body defaults to).
+    const frameColorFallback = themeTokens.divider;
     const isCartesian = state.chartType !== 'pie' && state.chartType !== 'gauge' && state.chartType !== 'radar';
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
@@ -128,6 +133,67 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                     ]}
                 />
             </FieldGrid>
+
+            {/* Chart frame (parity Build D, ADR-0056) — every family: it is container CSS around
+                the chart area, so it applies to cartesian AND pie/gauge/radar alike. */}
+            <SubGroup
+                title={Generic.t('echarts_frame')}
+                sx={{ mt: 2 }}
+            >
+                <SwitchList sx={{ mb: 1.5 }}>
+                    <SwitchRow
+                        label={Generic.t('echarts_frame_show')}
+                        checked={state.frame.enabled}
+                        onChange={v => set({ frame: { ...state.frame, enabled: v } })}
+                    />
+                </SwitchList>
+                <FieldGrid>
+                    <SliderField
+                        label={Generic.t('echarts_frame_width')}
+                        value={state.frame.width}
+                        min={0}
+                        max={10}
+                        step={0.5}
+                        disabled={!state.frame.enabled}
+                        onChange={v => set({ frame: { ...state.frame, width: v } })}
+                    />
+                    <LabeledSelect
+                        label={Generic.t('echarts_frame_style')}
+                        value={state.frame.style}
+                        onChange={v => set({ frame: { ...state.frame, style: v as ColorsSlice['frame']['style'] } })}
+                        // The three shared names reuse the line-style keys; the five CSS-only
+                        // styles (double/groove/…) get their own — translated like every option.
+                        options={FRAME_STYLES.map(
+                            s =>
+                                [
+                                    s,
+                                    Generic.t(
+                                        s === 'solid' || s === 'dashed' || s === 'dotted'
+                                            ? `echarts_style_${s}`
+                                            : `echarts_frame_style_${s}`,
+                                    ),
+                                ] as [string, string],
+                        )}
+                    />
+                    <Box>
+                        <FieldLabel>{Generic.t('echarts_frame_color')}</FieldLabel>
+                        <ColorField
+                            value={state.frame.color || null}
+                            fallback={frameColorFallback}
+                            onChange={v => set({ frame: { ...state.frame, color: v ?? '' } })}
+                            ctx={pickerCtx}
+                        />
+                    </Box>
+                    <SliderField
+                        label={Generic.t('echarts_frame_padding')}
+                        value={state.frame.padding}
+                        min={0}
+                        max={32}
+                        disabled={!state.frame.enabled}
+                        onChange={v => set({ frame: { ...state.frame, padding: v } })}
+                    />
+                </FieldGrid>
+            </SubGroup>
 
             {isCartesian && (
                 <SubGroup

@@ -26,6 +26,7 @@ import Generic from '../../../../Generic';
 import type {
     EchartsAreaFill,
     EchartsAxisConfig,
+    EchartsBarLabelPos,
     EchartsCartesianType,
     EchartsSeriesMeta,
 } from '../../../../types/field-definitions/echarts-fields';
@@ -191,7 +192,9 @@ export const CartesianSeriesKnobs: FC<{
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of this series — the area-gradient inherit preview (ADR-0027). */
     colorFallback: string;
-}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback }) => {
+    /** Theme text-primary — the BAR label colour's inherit preview (ADR-0027 one-hook rule). */
+    labelColorFallback: string;
+}> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, labelColorFallback }) => {
     const renderedType: EchartsCartesianType =
         meta.type === 'bar' ? 'bar' : meta.type === 'line' ? 'line' : defaultType;
     return (
@@ -319,6 +322,47 @@ export const CartesianSeriesKnobs: FC<{
                         />
                     </SwitchList>
                     <FieldGrid min={140}>
+                        {/* Label cluster (parity Build D): the position select carries the adapter's
+                            five options — picking "ohne" turns the switch off, picking a position
+                            turns it on; the two controls can never disagree. */}
+                        <LabeledSelect
+                            label={Generic.t('echarts_bar_label_pos')}
+                            value={meta.label ? (meta.labelPosition ?? 'top') : ''}
+                            onChange={v =>
+                                onPatch(
+                                    v === ''
+                                        ? { label: false }
+                                        : {
+                                              label: true,
+                                              labelPosition: v === 'top' ? undefined : (v as EchartsBarLabelPos),
+                                          },
+                                )
+                            }
+                            options={[
+                                ['', Generic.t('echarts_bar_label_pos_none')],
+                                ['top', Generic.t('echarts_bar_label_top')],
+                                ['insideTop', Generic.t('echarts_bar_label_inside_top')],
+                                ['insideBottom', Generic.t('echarts_bar_label_inside_bottom')],
+                                ['inside', Generic.t('echarts_bar_label_inside_middle')],
+                            ]}
+                        />
+                        <OptionalSliderField
+                            label={Generic.t('echarts_bar_label_size')}
+                            value={meta.labelFontSize}
+                            fallback={12} // echarts' global text default
+                            min={6}
+                            max={24}
+                            onChange={v => onPatch({ labelFontSize: v })}
+                        />
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_bar_label_color')}</FieldLabel>
+                            <ColorField
+                                value={meta.labelColor}
+                                fallback={labelColorFallback}
+                                onChange={v => onPatch({ labelColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
                         <OptionalSliderField
                             label={Generic.t('echarts_series_bar_gap')}
                             value={meta.barGap}
@@ -336,6 +380,14 @@ export const CartesianSeriesKnobs: FC<{
                             max={1}
                             step={0.05}
                             onChange={v => onPatch({ barCategoryGap: v })}
+                        />
+                        {/* Absolute bar width (parity Build D): px or %, text-typed so both units
+                            round-trip one field; empty/invalid = echarts auto (sparse emission). */}
+                        <TextField2
+                            label={Generic.t('echarts_series_bar_width')}
+                            value={meta.barWidth ?? ''}
+                            onChange={v => onPatch({ barWidth: v || undefined })}
+                            placeholder={Generic.t('echarts_series_bar_width_ph')}
                         />
                         <SliderField
                             label={Generic.t('echarts_series_corner_radius')}
@@ -367,6 +419,8 @@ interface CartesianSeriesListProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of series i (the inherit fallback). */
     slot: (i: number) => string;
+    /** Theme text-primary — the bar label colour's inherit preview. */
+    labelColorFallback: string;
     /** Verlauf: selectable history instances (empty = none installed / not Verlauf). */
     historyInstances?: string[];
     expanded: Record<number, boolean>;
@@ -385,6 +439,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     state,
     pickerCtx,
     slot,
+    labelColorFallback,
     historyInstances,
     expanded,
     onToggleCard,
@@ -494,6 +549,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         onPatch={p => onUpdate(i, p)}
                         pickerCtx={pickerCtx}
                         colorFallback={slot(i)}
+                        labelColorFallback={labelColorFallback}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

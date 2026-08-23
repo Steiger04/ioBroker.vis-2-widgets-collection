@@ -41,6 +41,8 @@ interface JsonSeriesCardsProps {
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of payload series i (the inherit fallback). */
     slot: (i: number) => string;
+    /** Theme text-primary — the bar label colour's inherit preview. */
+    labelColorFallback: string;
     /** The payload series names, in payload order. Drives the card list. */
     jsonSeriesNames: string[];
     /** Parse error from the jsonOid payload (shown instead of a silent blank). */
@@ -58,6 +60,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     state,
     pickerCtx,
     slot,
+    labelColorFallback,
     jsonSeriesNames,
     jsonError,
     expanded,
@@ -204,6 +207,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 onPatch={p => onUpdateJson(name, p)}
                                 pickerCtx={pickerCtx}
                                 colorFallback={slot(i)}
+                                labelColorFallback={labelColorFallback}
                             />
                             <SeriesRawOverride
                                 slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}

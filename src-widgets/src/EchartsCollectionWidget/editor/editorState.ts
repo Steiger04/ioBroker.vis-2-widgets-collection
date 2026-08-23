@@ -31,6 +31,7 @@ import { packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
 import { withStableIds } from './stableId';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
+import { FRAME_STYLES } from '../frameStyle';
 import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
@@ -41,6 +42,7 @@ import type {
     EchartsDarkMode,
     EchartsFontStyle,
     EchartsFontWeight,
+    EchartsFrameStyle,
     EchartsGaugeConfig,
     EchartsIgnoreNull,
     EchartsLegendConfig,
@@ -78,6 +80,22 @@ export interface EditorVisualMap {
     max: number;
     /** `;`/`,`-separated colour stops. */
     colors: string;
+}
+
+/**
+ * Chart-frame editor state (parity Build D, ADR-0056) — the CSS border around the chart area.
+ * Container styling, never an echarts option; `width` 0 while enabled renders no frame (the
+ * adapter's noBorder/border_width-0 collapse, resolved by `frameStyle.ts`).
+ */
+export interface EditorFrame {
+    enabled: boolean;
+    /** Border width in px; 0 = no frame even when enabled. */
+    width: number;
+    /** Border colour; '' = inherit the host divider token. */
+    color: string;
+    style: EchartsFrameStyle;
+    /** Inner padding in px (the adapter's "Randabstand"). */
+    padding: number;
 }
 
 /** In-memory state of the configurator modal. */
@@ -151,6 +169,8 @@ export interface EditorState {
     renderer: EchartsRenderer;
     markLines: EchartsMarkLine[];
     visualMap: EditorVisualMap;
+    /** Chart frame (parity Build D, ADR-0056) — persisted as flat `frame*` rxData scalars. */
+    frame: EditorFrame;
     /** Toolbox GUI config (ADR-0045) — persisted as the base64 `toolboxConfig` blob. */
     toolbox: EchartsToolboxConfig;
     /** Radar section raw (ADR-0045) — deep-merged UNDER buildRadarOption's output (GUI wins). */
@@ -243,6 +263,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     // visualMap colours empty by default → the builder inherits the theme-derived ramp
     // (primary→success→warning→error, ADR-0027), and the editor swatch previews it.
     visualMap: { enabled: false, min: 0, max: 100, colors: '' },
+    // Frame off by default; width 1 so the first switch-on renders a visible hairline.
+    frame: { enabled: false, width: 1, color: '', style: 'solid', padding: 0 },
     toolbox: {},
     radarRaw: '',
     radarSnippets: [],
@@ -387,6 +409,19 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         colors: strOr(data.visualMapColors, ''),
     };
 
+    // Chart frame (parity Build D): flat rxData scalars; an unknown style value (hand-edited
+    // rxData) heals to 'solid' right here — the resolver tolerates it either way.
+    const frameStyleRaw = strOr(data.frameStyle, 'solid');
+    const frame: EditorFrame = {
+        enabled: boolOr(data.frameEnabled, false),
+        width: numOr(data.frameWidth, DEFAULT_EDITOR_STATE.frame.width),
+        color: strOr(data.frameColor, ''),
+        style: (FRAME_STYLES.includes(frameStyleRaw as EchartsFrameStyle)
+            ? frameStyleRaw
+            : 'solid') as EchartsFrameStyle,
+        padding: numOr(data.framePadding, 0),
+    };
+
     // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level
     // scalars (ADR-0012 migration — no silent rewrite; legacy widgets edit axis 0 on first open).
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
@@ -476,6 +511,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         renderer: (data.renderer as EchartsRenderer) ?? DEFAULT_EDITOR_STATE.renderer,
         markLines: withStableIds(decodeMarkLines(data.markLines as string)),
         visualMap: vm,
+        frame,
         toolbox: decodeToolboxConfig(data.toolboxConfig as string),
         radarRaw: chartConfig.radarRaw ?? '',
         radarSnippets: chartConfig.radarSnippets ?? [],
@@ -602,6 +638,11 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         visualMapMin: state.visualMap.min,
         visualMapMax: state.visualMap.max,
         visualMapColors: state.visualMap.colors,
+        frameEnabled: state.frame.enabled,
+        frameWidth: state.frame.width,
+        frameColor: state.frame.color,
+        frameStyle: state.frame.style,
+        framePadding: state.frame.padding,
         // blobs
         seriesConfig: encodeBlob(JSON.stringify(metaBlob)),
         // The registry-filled draft (ADR-0047): gauge/radar seed it, the scalar raw levels'

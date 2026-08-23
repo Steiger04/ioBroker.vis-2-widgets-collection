@@ -34,7 +34,7 @@ import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import { formatChartValue } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
-import { buildTooltip } from './tooltip';
+import { buildTooltip, makeValueFormatter } from './tooltip';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
     solid: 'solid',
@@ -79,6 +79,28 @@ export const normalizeAreaMode = (meta: EchartsSeriesMeta | undefined): EchartsA
     return 'off';
 };
 
+/**
+ * Parse the authored absolute bar width (parity Build D, ADR-0056) into what echarts `barWidth`
+ * accepts: plain digits → a px NUMBER (`'20'` → 20), a trailing `%` → the STRING (`'30%'`).
+ * A resolved 0 (adapter parity: `barWidth` 0/NaN → undefined) and anything unparseable (empty,
+ * text) → `undefined` = echarts' auto width — a zero would render invisible bars, so it renders
+ * the default instead of a broken chart.
+ */
+export const parseBarWidth = (raw: string | undefined): number | string | undefined => {
+    if (typeof raw !== 'string') {
+        return undefined;
+    }
+    const m = raw.trim().match(/^(\d+(?:\.\d+)?)(%)?$/);
+    if (!m) {
+        return undefined;
+    }
+    const px = Number(m[1]);
+    if (px <= 0) {
+        return undefined; // 0 (px or %) = auto — the adapter's zero-is-unset rule
+    }
+    return m[2] ? raw.trim() : px;
+};
+
 /** Build a single cartesian series entry from its data + per-series meta. */
 const buildCartesianSeriesEntry = (
     s: ChartSeries,
@@ -86,6 +108,8 @@ const buildCartesianSeriesEntry = (
     fallbackColor: string,
     index: number,
     defaultType: EchartsCartesianType,
+    /** Chart-level value formatter for BAR labels (parity Build D); undefined = echarts' own default text. */
+    labelFmt?: (v: unknown) => string,
 ): Record<string, unknown> => {
     // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
     // Legacy `type:'area'` (ADR-0008 r4 removed it) matches neither 'line' nor 'bar' → falls
@@ -109,7 +133,19 @@ const buildCartesianSeriesEntry = (
         // each series inherits the root toggle.
     };
     if (m?.label) {
-        entry.label = { show: true };
+        // Bar labels carry the parity Build D knob cluster (position/size/colour/chart-level value
+        // formatting); a LINE label stays the bare switch — position semantics differ per type, and
+        // the line family never reads the bar knobs.
+        entry.label =
+            type === 'bar'
+                ? {
+                      show: true,
+                      ...(m.labelPosition ? { position: m.labelPosition } : {}),
+                      ...(m.labelFontSize !== undefined ? { fontSize: m.labelFontSize } : {}),
+                      ...(m.labelColor ? { color: m.labelColor } : {}),
+                      ...(labelFmt ? { formatter: labelFmt } : {}),
+                  }
+                : { show: true };
     }
     if (m?.stack) {
         entry.stack = m.stack;
@@ -148,6 +184,11 @@ const buildCartesianSeriesEntry = (
         }
         if (m?.barCategoryGap !== undefined) {
             entry.barCategoryGap = `${Math.round(m.barCategoryGap * 100)}%`;
+        }
+        // Absolute bar width (parity Build D): px number or %-string; unparseable = auto (sparse).
+        const barWidth = parseBarWidth(m?.barWidth);
+        if (barWidth !== undefined) {
+            entry.barWidth = barWidth;
         }
     }
     return entry;
@@ -387,9 +428,16 @@ export const buildCartesianOption = (
     // default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
     const axes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
     const total = axes.length;
+    // Bar label values ride the CHART-level formatting (parity Build D; per-series units arrive
+    // with the Wert-Formatter, issue 05) — gated exactly like the tooltip's valueFormatter: only
+    // when one of the knobs (units / decimals / comma) is authored, else echarts' own label text.
+    const labelFmt =
+        p.tooltipUnits || p.tooltipDecimals !== undefined || p.decimalComma
+            ? makeValueFormatter(p.tooltipUnits, p.tooltipDecimals, p.decimalComma)
+            : undefined;
     const entries = series.map((s, i) => {
         const e = applyRawOverride(
-            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType),
+            buildCartesianSeriesEntry(s, meta[i], p.palette[i % p.palette.length], i, p.cartesianType, labelFmt),
             meta[i]?.raw,
         );
         // Clamp the per-series axis index to the configured axes (ADR-0012): a removed axis must

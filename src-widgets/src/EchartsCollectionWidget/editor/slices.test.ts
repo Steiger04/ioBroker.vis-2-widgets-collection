@@ -128,7 +128,14 @@ describe('section slices (ADR-0049)', () => {
         expectTypeOf<ColorsSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
-                'chartType' | 'paletteSource' | 'palettePreset' | 'paletteCustom' | 'bgColor' | 'darkMode' | 'visualMap'
+                | 'chartType'
+                | 'paletteSource'
+                | 'palettePreset'
+                | 'paletteCustom'
+                | 'bgColor'
+                | 'darkMode'
+                | 'visualMap'
+                | 'frame'
             >
         >();
     });

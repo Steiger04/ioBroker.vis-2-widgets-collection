@@ -475,3 +475,23 @@ describe('editorState — parity Build E scalars (ADR-0054)', () => {
         expect(fresh.zoomResetAfterIdle).toBe('');
     });
 });
+
+describe('editorState — parity Build D chart frame (ADR-0056)', () => {
+    it('the five frame scalars round-trip through the flat rxData fields', () => {
+        const authored = {
+            ...baseState(),
+            frame: { enabled: true, width: 2, color: '#f00', style: 'groove', padding: 8 },
+        } as EditorState;
+        const reloaded = loadEditorState(saveEditorState(authored, 0));
+        expect(reloaded.frame).toEqual({ enabled: true, width: 2, color: '#f00', style: 'groove', padding: 8 });
+    });
+
+    it('a fresh widget defaults to no frame; an unknown stored style heals to solid', () => {
+        const fresh = loadEditorState(saveEditorState(baseState(), 0));
+        expect(fresh.frame).toEqual(DEFAULT_EDITOR_STATE.frame);
+
+        const healed = loadEditorState({ frameEnabled: true, frameWidth: 1, frameStyle: 'wavy' });
+        expect(healed.frame.style).toBe('solid');
+        expect(healed.frame.enabled).toBe(true);
+    });
+});

@@ -480,12 +480,10 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
             },
         }),
     },
-    {
-        id: 'bar-width',
-        category: 'behaviour',
-        label: 'barWidth',
-        json: '{ "barWidth": "40%" }',
-    },
+    // bar-width ('barWidth': '40%') was RETIRED with parity Build D (ADR-0056): the Bar
+    // Sub-group's absolute bar-width field owns the key 1:1 (px + %), leaving the template
+    // wholly card-owned. Stored activations heal away silently (ADR-0047 load pass); the raw
+    // text stays the user's own.
     {
         id: 'bar-minheight',
         category: 'behaviour',
@@ -1063,7 +1061,21 @@ export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
  */
 export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
     'cartesian-line': new Set(['areaStyle.color', 'markLine.silent', 'markLine.symbol', 'markLine.data']),
-    'cartesian-bar': new Set(['markLine.silent', 'markLine.symbol', 'markLine.data']),
+    // label.* (parity Build D, ADR-0056): the bar card owns position/size only while their fields
+    // are set (and formatter only while a chart-level value knob is authored + label on) — the
+    // label scaffolds' other leaves (distance/rotate/offset/fontStyle/…) stay wholly free, and an
+    // unset field hands the leaf to the template (the ADR-0015 GUI-wins seam, conditional).
+    // `label.color` is deliberately NOT here: it is conditionally card-owned too, but no scaffold
+    // carries it — a future label-colour scaffold must add the entry (the no-rotted-entries audit
+    // forces allow-list and usage to stay in lock-step).
+    'cartesian-bar': new Set([
+        'markLine.silent',
+        'markLine.symbol',
+        'markLine.data',
+        'label.position',
+        'label.fontSize',
+        'label.formatter',
+    ]),
     pie: new Set(),
     'pie-slice': new Set(),
     gauge: new Set(['detail.formatter', 'axisLine.lineStyle.color']),

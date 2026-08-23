@@ -174,6 +174,13 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         default: 'linear-gradient(90deg, #1976d2 0%, #4caf50 33%, #ff9800 66%, #f44336 100%)',
         hidden: alwaysHidden,
     },
+    // Chart frame (parity Build D, ADR-0056): flat scalars, visualMap precedent. Container CSS
+    // around the chart area (frameStyle.ts), never an echarts option.
+    { name: 'frameEnabled', type: 'checkbox', default: false, hidden: alwaysHidden },
+    { name: 'frameWidth', type: 'number', default: 1, hidden: alwaysHidden },
+    { name: 'frameColor', type: 'text', default: '', hidden: alwaysHidden },
+    { name: 'frameStyle', type: 'text', default: 'solid', hidden: alwaysHidden },
+    { name: 'framePadding', type: 'number', default: 0, hidden: alwaysHidden },
 ];
 
 export default echartsFields;

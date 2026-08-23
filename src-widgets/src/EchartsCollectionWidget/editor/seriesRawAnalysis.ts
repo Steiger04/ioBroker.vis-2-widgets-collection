@@ -20,7 +20,7 @@
  */
 
 import type { EchartsMarkLine, EchartsSeriesMeta } from '../../types/field-definitions/echarts-fields';
-import { normalizeAreaMode } from '../optionBuilders/cartesian';
+import { normalizeAreaMode, parseBarWidth } from '../optionBuilders/cartesian';
 import { presentLeaves } from './rawLeaves';
 import type { SeriesTemplateSlot } from './seriesTemplates';
 
@@ -56,6 +56,12 @@ export interface SeriesAnalysisContext {
     gaugeTargetActive?: boolean;
     /** Cartesian: this card hosts the threshold markLines (`markLine.silent/symbol/data` emitted). */
     markLineHost?: boolean;
+    /**
+     * Chart-level value knobs (units/decimals/comma) are authored — a BAR card with its label on
+     * then also emits `label.formatter` (parity Build D; the same gate as the tooltip's
+     * valueFormatter).
+     */
+    barLabelFormatterActive?: boolean;
 }
 
 /** Top-level series keys the card CAN own per slot — everything else is always effective. */
@@ -89,6 +95,7 @@ const MANAGED_TOP_KEYS: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
         'stack',
         'barGap',
         'barCategoryGap',
+        'barWidth',
         'markLine',
     ]),
     pie: new Set([
@@ -192,8 +199,28 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
                     paths.add('areaStyle.color');
                 }
             }
-        } else if (m?.barGap !== undefined) {
-            paths.add('barGap');
+        } else {
+            // Bar knobs (parity Build D, ADR-0056) — sparse like their builders' emission.
+            if (m?.label) {
+                if (m.labelPosition) {
+                    paths.add('label.position');
+                }
+                if (m.labelFontSize !== undefined) {
+                    paths.add('label.fontSize');
+                }
+                if (m.labelColor) {
+                    paths.add('label.color');
+                }
+                if (ctx.barLabelFormatterActive) {
+                    paths.add('label.formatter');
+                }
+            }
+            if (m?.barGap !== undefined) {
+                paths.add('barGap');
+            }
+            if (m?.barWidth !== undefined && parseBarWidth(m.barWidth) !== undefined) {
+                paths.add('barWidth');
+            }
         }
         if (m && (ctx.slot === 'cartesian-bar' ? m.barCategoryGap !== undefined : false)) {
             paths.add('barCategoryGap');
