@@ -464,7 +464,7 @@ function ColumnList({
                                             minWidth: 48,
                                             flexShrink: 0,
                                         }}
-                                        aria-label={`${Generic.t('json_table_type')}: ${detectedType}`}
+                                        aria-label={`${Generic.t('json_table_type_label')}: ${detectedType}`}
                                     />
                                 </Box>
                             </Card>
