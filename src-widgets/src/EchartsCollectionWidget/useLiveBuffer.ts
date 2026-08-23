@@ -9,14 +9,12 @@
  */
 import { useEffect, useState } from 'react';
 
-import type { SeriesPoint } from './historyLogic';
+import { toPlottableNumber, type SeriesPoint } from './historyLogic';
 
 /** Maximum points retained per OID in the live rolling buffer. */
 export const LIVE_MAX_POINTS = 300;
 
 type ValuesMap = Record<string, ioBroker.StateValue | undefined>;
-
-const toNum = (raw: unknown): number | null => (typeof raw === 'number' && Number.isFinite(raw) ? raw : null);
 
 /**
  * @param entries - OIDs to track (`{ oid }`).
@@ -38,7 +36,7 @@ export function useLiveBuffer(
             let changed = false;
             const next = { ...prev };
             for (const e of entries) {
-                const num = toNum(values[`${e.oid}.val`] ?? values[e.oid]);
+                const num = toPlottableNumber(values[`${e.oid}.val`] ?? values[e.oid]);
                 const buf = next[e.oid] ?? [];
                 const last = buf[buf.length - 1];
                 if (!last || last[1] !== num) {

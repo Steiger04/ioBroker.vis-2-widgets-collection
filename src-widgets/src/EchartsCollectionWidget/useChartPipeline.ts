@@ -38,7 +38,7 @@ import { buildTitleOption, toPresentationConfig, type ChartConfigBlob } from './
 import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
-import type { Point, SeriesPoint } from './historyLogic';
+import { toPlottableNumber, type Point, type SeriesPoint } from './historyLogic';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -137,7 +137,11 @@ export const DEFAULT_HISTORY_COUNT = 500;
 /** The body's hard point ceiling (the ADR-0046 `maxPoints` default; the preview passes 200). */
 export const BODY_MAX_HISTORY_POINTS = 5000;
 
-const toNum = (raw: unknown): number | null => (typeof raw === 'number' && Number.isFinite(raw) ? raw : null);
+/**
+ * The pipeline's value coercion — the shared {@link toPlottableNumber} intake rule (booleans →
+ * 1/0 so bool OIDs resolve, ADR-0058).
+ */
+const toNum = toPlottableNumber;
 
 /** A state value as JSON text — primitives stringify, objects/undefined read as empty. */
 const jsonText = (raw: unknown): string => {

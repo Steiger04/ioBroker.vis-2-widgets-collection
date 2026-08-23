@@ -33,11 +33,12 @@ import { buildLegend } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
-    formatChartValue,
     formatSeriesValue,
     hasSeriesValueFormat,
+    textFactsActive,
     type ChartValueFormat,
     type SeriesFactsByName,
+    type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
@@ -255,8 +256,8 @@ const buildYAxisEntry = (
     seriesName?: string,
     /** Comma as the decimal separator for the DEFAULT numeric labels (ADR-0054). */
     comma?: boolean,
-    /** The unit EVERY bound series shares (ADR-0057); absent when units are mixed/sparse. */
-    seriesUnit?: string,
+    /** The value-format facts every bound series shares (ADR-0057 unit + ADR-0058 texts). */
+    seriesFacts?: SeriesValueFacts,
 ): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: a.log ? 'log' : 'value',
@@ -312,15 +313,14 @@ const buildYAxisEntry = (
     }
     if (a.format) {
         axisLabel.formatter = a.format;
-    } else if (seriesUnit || comma) {
+    } else if (textFactsActive(seriesFacts) || seriesFacts?.unit || comma) {
         // ADR-0054 (adapter useComma): comma-separated DEFAULT numeric labels. ADR-0057: the axis
         // inherits the unit every bound series shares — appended to the default numeric labels,
         // the same explicit-beats-implicit rule as the colour/name inheritance above (an authored
-        // format wins verbatim, mixing units inherits nothing).
-        axisLabel.formatter = (v: number): string => {
-            const txt = formatChartValue(v, undefined, comma);
-            return seriesUnit ? `${txt} ${seriesUnit}` : txt;
-        };
+        // format wins verbatim, mixing units inherits nothing). ADR-0058: shared bool/enum TEXTS
+        // take over the ticks in `'axis'` mode (nearest state — a hit suppresses the unit).
+        const axisMode = textFactsActive(seriesFacts) ? 'axis' : 'exact';
+        axisLabel.formatter = (v: number): string => formatSeriesValue(v, seriesFacts, { comma }, axisMode);
     }
     const color = a.color ?? seriesColor;
     if (color) {
@@ -502,26 +502,60 @@ export const buildCartesianOption = (
     for (let i = 0; i < entries.length; i++) {
         facts[names[i]] = factsOfMeta(meta[i]);
     }
-    // The unit an axis inherits (ADR-0057): the one unit EVERY series bound to it shares — a
-    // unitless or divergent bound series inherits nothing (the axis stays unit-free rather than
-    // lying with one series' unit).
-    const axisUnit = (axisIndex: number): string | undefined => {
-        let unit: string | undefined;
+    /** The value-format facts of every series BOUND to an axis (the shared axis-inheritance base). */
+    const boundFacts = (axisIndex: number): SeriesValueFacts[] => {
+        const bound: SeriesValueFacts[] = [];
         for (let i = 0; i < entries.length; i++) {
-            if ((entries[i].yAxisIndex as number) !== axisIndex) {
-                continue;
+            if ((entries[i].yAxisIndex as number) === axisIndex) {
+                bound.push(factsOfMeta(meta[i]));
             }
-            const u = factsOfMeta(meta[i]).unit;
-            if (!u) {
+        }
+        return bound;
+    };
+    // The unit an axis inherits (ADR-0057): the one unit EVERY bound series shares — a unitless
+    // or divergent bound series inherits nothing (the axis stays unit-free rather than lying
+    // with one series' unit).
+    const axisUnit = (bound: SeriesValueFacts[]): string | undefined => {
+        let unit: string | undefined;
+        for (const f of bound) {
+            if (!f.unit) {
                 return undefined; // a unitless bound series → no common unit
             }
             if (unit === undefined) {
-                unit = u;
-            } else if (unit !== u) {
+                unit = f.unit;
+            } else if (unit !== f.unit) {
                 return undefined; // mixed units → none
             }
         }
         return unit;
+    };
+    /** Order-insensitive states equality (an authored row order is not a divergent mapping). */
+    const sameStates = (a?: Record<string, string>, b?: Record<string, string>): boolean => {
+        if (!a || !b) {
+            return !a && !b;
+        }
+        return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => a[k] === b[k]);
+    };
+    // The TEXT facts an axis inherits (ADR-0058): every bound series must carry IDENTICAL
+    // bool/enum texts — a textless (or divergent) bound series inherits nothing, so a numeric
+    // companion series never gets state labels it does not own pinned under its ticks. Returns
+    // the TEXT fields ONLY (unit/decimals stay owned by the rules above — the ADR-0057
+    // "decimals never inherit" contract must not leak through a spread).
+    const axisTextFacts = (bound: SeriesValueFacts[]): SeriesValueFacts | undefined => {
+        if (!bound.length || !bound.every(textFactsActive)) {
+            return undefined;
+        }
+        const [first] = bound;
+        const identical = bound.every(
+            f => f.trueText === first.trueText && f.falseText === first.falseText && sameStates(f.states, first.states),
+        );
+        return identical
+            ? {
+                  trueText: first.trueText,
+                  falseText: first.falseText,
+                  ...(first.states ? { states: first.states } : {}),
+              }
+            : undefined;
     };
     // The Auto labelling's clock (ADR-0052): the data span across ALL series, recomputed on every
     // build — a data update re-derives the adaptive resolution.
@@ -529,14 +563,21 @@ export const buildCartesianOption = (
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the first bound series' effective values when neither is
-    // explicit (ADR-0018); the axis LABELS inherit the bound series' shared unit (ADR-0057).
+    // explicit (ADR-0018); the axis LABELS inherit the bound series' shared unit (ADR-0057) and
+    // the shared text facts (ADR-0058) — decimals deliberately NOT inherited (whose would a
+    // shared axis clamp to?).
     const yAxisEntries = axes.map((a, i) => {
         const bound = entries.find(e => e.yAxisIndex === i);
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;
         const seriesName = typeof sn === 'string' ? sn : undefined;
-        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma, axisUnit(i));
+        const boundFactsList = boundFacts(i);
+        const unit = axisUnit(boundFactsList);
+        const texts = axisTextFacts(boundFactsList);
+        const seriesFacts: SeriesValueFacts | undefined =
+            unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
+        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma, seriesFacts);
     });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated

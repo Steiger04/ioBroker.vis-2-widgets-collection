@@ -318,6 +318,11 @@ describe('resolveLegendValues (ADR-0054)', () => {
         expect(out).toEqual({ A: 21.5, 'b.0': 7 });
     });
 
+    it('Live: boolean subscribed values coerce to 1/0 — a bool OID resolves its legend value (ADR-0058)', () => {
+        const out = resolveLegendValues('live', [{ oid: 'pump.0', name: 'Pump' }], { 'pump.0': true }, [], {}, []);
+        expect(out).toEqual({ Pump: 1 });
+    });
+
     it('JSON: the last point of each payload series', () => {
         const out = resolveLegendValues('json', [], {}, [], {}, [
             {

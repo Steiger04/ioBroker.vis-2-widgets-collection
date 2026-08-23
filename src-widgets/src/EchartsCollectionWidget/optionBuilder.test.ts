@@ -1881,3 +1881,105 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
         expect(y0.axisLabel?.formatter).toBe('{value} K');
     });
 });
+
+describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', () => {
+    const WED = SAMPLE_TS;
+    const STATES: Record<string, string> = { 0: 'AUS', 1: 'AUTO', 2: 'AN' };
+
+    /** Build a cartesian option from series+meta pairs; the meta names must match the series. */
+    const build = (
+        meta: EchartsSeriesMeta[],
+        over: Partial<PresentationConfig> = {},
+        series: ChartSeries[] = meta.map((m, i) => ({ name: m.name ?? `S${i}`, data: [[WED, i + 1]] })),
+    ): ReturnType<typeof buildGeneratedOption> =>
+        buildGeneratedOption({ family: 'cartesian', series, meta, p: { ...P, ...over } });
+
+    const tooltipRows = (
+        option: ReturnType<typeof buildGeneratedOption>,
+        rows: { name: string; value: unknown }[],
+    ): string =>
+        (option.tooltip as { formatter: (p: unknown) => string }).formatter(
+            rows.map(r => ({ axisValue: WED, marker: '<m>', seriesName: r.name, value: [WED, r.value] })),
+        );
+
+    it('tooltip rows map through the state names / bool texts; an in-between row stays empty', () => {
+        const option = build([
+            { name: 'Mode', states: STATES },
+            { name: 'Pump', trueText: 'AN', falseText: 'AUS' },
+        ]);
+        const html = tooltipRows(option, [
+            { name: 'Mode', value: 1 },
+            { name: 'Mode', value: 0.5 }, // in-between — re-invoked formatter, empty text
+            { name: 'Pump', value: 1 },
+        ]);
+        expect(html).toContain('Mode: AUTO');
+        expect(html).toContain('Pump: AN');
+        // The exact-miss row renders EMPTY (adapter: no half states) — not the bare number.
+        const miss = (option.tooltip as { formatter: (p: unknown) => string }).formatter([
+            { axisValue: WED, marker: '', seriesName: 'Mode', value: [WED, 0.5] },
+        ]);
+        expect(miss.endsWith('Mode: ')).toBe(true);
+    });
+
+    it('axis ticks map to the NEAREST state when every bound series shares the texts', () => {
+        const option = build([
+            { name: 'A', states: STATES },
+            { name: 'B', states: STATES },
+        ]);
+        const fmt = (option.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter as (
+            v: number,
+        ) => string;
+        expect(fmt(1)).toBe('AUTO'); // exact hit too
+        expect(fmt(0.5)).toBe('AUTO'); // next state up
+        expect(fmt(1.7)).toBe('AN');
+        expect(fmt(9)).toBe('AN'); // beyond the top → the highest state
+    });
+
+    it('a shared bool pair maps the axis split at 0.5', () => {
+        const option = build([{ name: 'A', trueText: 'AN', falseText: 'AUS' }]);
+        const fmt = (option.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter as (
+            v: number,
+        ) => string;
+        expect(fmt(1)).toBe('AN');
+        expect(fmt(0.4)).toBe('AUS');
+    });
+
+    it('a textless or divergent bound series inherits NO axis mapping (its numbers must not lie)', () => {
+        const textless = build([{ name: 'A', states: STATES }, { name: 'Plain' }]);
+        expect((textless.yAxis as { axisLabel?: Record<string, unknown> }[])[0].axisLabel).not.toHaveProperty(
+            'formatter',
+        );
+        const divergent = build([
+            { name: 'A', states: STATES },
+            { name: 'B', states: { 0: 'OFF', 1: 'ON' } },
+        ]);
+        expect((divergent.yAxis as { axisLabel?: Record<string, unknown> }[])[0].axisLabel).not.toHaveProperty(
+            'formatter',
+        );
+    });
+
+    it('the same mapping authored in a DIFFERENT row order still shares (order-insensitive equality)', () => {
+        const reordered = build([
+            { name: 'A', states: { 0: 'AUS', 1: 'AUTO', 2: 'AN' } },
+            { name: 'B', states: { 2: 'AN', 1: 'AUTO', 0: 'AUS' } }, // same map, other order
+        ]);
+        const fmt = (reordered.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter as (
+            v: number,
+        ) => string;
+        expect(fmt(0.5)).toBe('AUTO');
+    });
+
+    it('label values render the text (bar), an authored axis format still wins over shared texts', () => {
+        const labeled = build([{ name: 'M', label: true, states: STATES }], { cartesianType: 'bar' });
+        const fmt = (
+            (labeled.series as Record<string, unknown>[])[0].label as {
+                formatter: (v: unknown) => string;
+            }
+        ).formatter;
+        expect(fmt(2)).toBe('AN');
+        expect(fmt(0.5)).toBe(''); // exact mode on a label
+
+        const authored = build([{ name: 'A', states: STATES }], { yAxes: [{ format: '{value}' }] });
+        expect((authored.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter).toBe('{value}');
+    });
+});

@@ -52,8 +52,15 @@ export function rangeToOptions(now: number, rangeMs: number, opts: RangeOptionsI
     };
 }
 
-/** Coerce a raw state value to a plottable number, else null. */
-function toNumber(val: ioBroker.StateValue | null | undefined): number | null {
+/**
+ * Coerce a raw state value to a plottable number, else null — the ONE intake rule every value
+ * source shares (booleans → 1/0 so bool OIDs plot, ADR-0058; the state texts map them at format
+ * time). Takes `unknown`: the callers' value maps are untyped at the edges.
+ */
+export function toPlottableNumber(val: unknown): number | null {
+    if (typeof val === 'boolean') {
+        return val ? 1 : 0;
+    }
     return typeof val === 'number' && Number.isFinite(val) ? val : null;
 }
 
@@ -67,7 +74,7 @@ export function toSeriesData(points: Point[], ignoreNull: IgnoreNull = 'keep'): 
     const out: SeriesPoint[] = [];
     let last: number | null = null;
     for (const p of points) {
-        let v = toNumber(p.val);
+        let v = toPlottableNumber(p.val);
         if (v === null) {
             if (ignoreNull === 'forward') {
                 v = last; // carry last known value forward

@@ -572,6 +572,18 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
         expect((l.formatter as (name: string) => string)('Temp')).toBe('Temp [21.5]');
     });
 
+    it('the legend value maps through the bool/enum texts (ADR-0058) — a hit, never a bare number', () => {
+        const l = buildLegend(valuesP({ legendValues: { Mode: 1, Pump: 0, Gap: 0.5 } }), ['Mode', 'Pump', 'Gap'], [], {
+            Mode: { states: { 0: 'AUS', 1: 'AUTO' } },
+            Pump: { trueText: 'AN', falseText: 'AUS' },
+            Gap: { states: { 0: 'AUS', 1: 'AUTO' } },
+        });
+        const fmt = l.formatter as (name: string) => string;
+        expect(fmt('Mode')).toBe('Mode [AUTO]');
+        expect(fmt('Pump')).toBe('Pump [AUS]');
+        expect(fmt('Gap')).toBe('Gap []'); // exact miss → EMPTY bracket (adapter semantics)
+    });
+
     it('emits legend.selected ONLY when a name is hidden — the ticket-08 mechanism (adapter selected[name] = hide !== true)', () => {
         expect(buildLegend(legendP(), ['a', 'b'])).not.toHaveProperty('selected');
         const l = buildLegend(legendP(), ['a', 'b', 'c'], ['b']);

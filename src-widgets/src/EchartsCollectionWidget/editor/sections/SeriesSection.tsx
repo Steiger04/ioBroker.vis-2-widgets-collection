@@ -17,13 +17,14 @@
  *
  * Validation issues surface as a compact warning list on top (they are item-scoped).
  */
-import { useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
 import { InfoBox } from '../../../components/controls';
 import { useEditorTheme } from '../useEditorTheme';
 import { useHistoryInstances } from '../useHistoryInstances';
+import { applyOidTextFacts, oidTextPrefill } from '../oidTextFacts';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
@@ -108,6 +109,43 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const series = state.series;
     const update = (i: number, patch: Partial<EditorSeries>): void =>
         set({ series: series.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
+
+    // OID → text facts (ADR-0058, parity Build B): resolve each NEWLY bound OID's object once
+    // and prefill/clean the series' text fields (bool texts, enum state names). Runs on load too
+    // (a load-time heal like the rawLevels' — existing widgets get their oidType). The seen-set
+    // is keyed per SERIES + oid (a second series binding the same OID gets its own detection),
+    // so an authored override survives re-picking; `applyOidTextFacts` is a no-op once the
+    // stored `oidType` matches (re-opens never resurrect deleted prefill rows). There is
+    // deliberately NO cancellation: a cancelled in-flight patch would be un-re-fetchable (the
+    // seen-set already consumed the key) — instead the optimistic `seriesRef` update lets
+    // same-tick resolutions stack, and a set() after unmount is a React-18 no-op.
+    const seriesRef = useRef(series);
+    seriesRef.current = series;
+    const oidFactsSeen = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        for (const s of series) {
+            const oid = s.oid;
+            const seenKey = `${s.id ?? ''}:${oid}`;
+            if (!oid || oid === 'nothing_selected' || oidFactsSeen.current.has(seenKey)) {
+                continue;
+            }
+            oidFactsSeen.current.add(seenKey); // marked before the fetch — a re-render never re-fetches
+            pickerCtx.socket
+                .getObject(oid)
+                .then(obj => {
+                    const pre = oidTextPrefill(obj);
+                    const current = seriesRef.current;
+                    const patched = current.map(x => (x.oid === oid ? applyOidTextFacts(x, pre) : x));
+                    if (patched.some((x, i) => x !== current[i])) {
+                        seriesRef.current = patched; // optimistic — a same-tick sibling builds on it
+                        set({ series: patched });
+                    }
+                })
+                .catch(() => {
+                    /* unreadable object → keep the meta as authored */
+                });
+        }
+    }, [series, pickerCtx.socket, set]);
     const remove = (i: number): void => {
         const next = series.filter((_, idx) => idx !== i);
         if (!isCartesian) {

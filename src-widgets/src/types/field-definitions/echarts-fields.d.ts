@@ -228,6 +228,25 @@ export interface EchartsSeriesMeta {
      * digits. `0` is a fact, not an unset.
      */
     decimals?: number;
+    /**
+     * Detected object type of the bound OID (parity Build B, ADR-0058) — resolved on OID
+     * selection from `common.type`/`common.states`; gates the text-facts fields on the card
+     * (`'boolean'` → true/false texts, `'enum'` → state names). Never emitted to echarts.
+     */
+    oidType?: 'boolean' | 'enum';
+    /**
+     * Text for TRUE (adapter `trueText`, ADR-0058; bool OIDs). One authored text defaults the
+     * other to the adapter's TRUE/FALSE. Empty/whitespace = unset.
+     */
+    trueText?: string;
+    /** Text for FALSE (adapter `falseText`, ADR-0058; bool OIDs). Empty/whitespace = unset. */
+    falseText?: string;
+    /**
+     * Enum state names keyed by value (adapter `states`, ADR-0058) — prefilled from
+     * `common.states` on OID selection, per-key overridable. Exact hit for tooltip/legend/label,
+     * nearest state for axis ticks; an empty map is unset.
+     */
+    states?: Record<string, string>;
     /** Show value labels. @default false */
     label?: boolean;
     /**

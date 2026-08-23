@@ -7,7 +7,13 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { formatChartValue, formatSeriesValue, hasSeriesValueFormat, resolveValueFacts } from './valueFormat';
+import {
+    factsOfMeta,
+    formatChartValue,
+    formatSeriesValue,
+    hasSeriesValueFormat,
+    resolveValueFacts,
+} from './valueFormat';
 
 describe('formatChartValue (ADR-0054 comma base mechanic)', () => {
     it('stringifies numbers unchanged without decimals/comma', () => {
@@ -106,5 +112,84 @@ describe('resolveValueFacts / hasSeriesValueFormat (the emission gate)', () => {
         expect(hasSeriesValueFormat()).toBe(false);
         expect(hasSeriesValueFormat({}, {})).toBe(false);
         expect(hasSeriesValueFormat({ unit: '' }, {})).toBe(false);
+    });
+});
+
+describe('formatSeriesValue — bool/enum texts (ADR-0058, adapter yFormatter semantics)', () => {
+    const STATES: Record<string, string> = { '-1': 'FEHLER', 0: 'AUS', 1: 'AUTO', 2: 'AN' };
+
+    it('states: an exact hit maps to the state name (the tooltip/legend semantics)', () => {
+        expect(formatSeriesValue(1, { states: STATES })).toBe('AUTO');
+        expect(formatSeriesValue(0, { states: STATES })).toBe('AUS');
+        expect(formatSeriesValue(-1, { states: STATES })).toBe('FEHLER');
+        expect(formatSeriesValue('2', { states: STATES })).toBe('AN'); // string keys coerce
+    });
+
+    it('states: an in-between value stays EMPTY in exact mode — no half states (ticket: 0.8 bei bool)', () => {
+        expect(formatSeriesValue(0.5, { states: STATES })).toBe('');
+        expect(formatSeriesValue(99, { states: STATES })).toBe('');
+    });
+
+    it('states: axis mode rounds to the next state UP (keys sorted by value), beyond the last → the last', () => {
+        expect(formatSeriesValue(-0.5, { states: STATES }, {}, 'axis')).toBe('AUS'); // first key above
+        expect(formatSeriesValue(0.5, { states: STATES }, {}, 'axis')).toBe('AUTO');
+        expect(formatSeriesValue(1.4, { states: STATES }, {}, 'axis')).toBe('AN');
+        expect(formatSeriesValue(5, { states: STATES }, {}, 'axis')).toBe('AN'); // beyond → highest
+        expect(formatSeriesValue(-2, { states: STATES }, {}, 'axis')).toBe('FEHLER');
+    });
+
+    it('bool texts: exact 0/1 (and true/false literals) map; other values stay empty', () => {
+        expect(formatSeriesValue(1, { trueText: 'AN', falseText: 'AUS' })).toBe('AN');
+        expect(formatSeriesValue(0, { trueText: 'AN', falseText: 'AUS' })).toBe('AUS');
+        expect(formatSeriesValue(true, { trueText: 'AN', falseText: 'AUS' })).toBe('AN');
+        expect(formatSeriesValue('false', { trueText: 'AN', falseText: 'AUS' })).toBe('AUS');
+        expect(formatSeriesValue(0.8, { trueText: 'AN', falseText: 'AUS' })).toBe(''); // ticket example
+    });
+
+    it('bool texts: axis mode splits at 0.5 (the nearest side)', () => {
+        expect(formatSeriesValue(0.8, { trueText: 'AN', falseText: 'AUS' }, {}, 'axis')).toBe('AN');
+        expect(formatSeriesValue(0.4, { trueText: 'AN', falseText: 'AUS' }, {}, 'axis')).toBe('AUS');
+    });
+
+    it('one authored bool text defaults the other to TRUE/FALSE (the adapter || rule)', () => {
+        expect(formatSeriesValue(1, { falseText: 'AUS' })).toBe('TRUE');
+        expect(formatSeriesValue(0, { trueText: 'AN' })).toBe('FALSE');
+        expect(formatSeriesValue(0.8, { falseText: 'AUS' }, {}, 'axis')).toBe('TRUE');
+    });
+
+    it('a text hit suppresses unit and decimals entirely (the adapter ignores the unit for text series)', () => {
+        expect(formatSeriesValue(1, { states: STATES, unit: 'kWh', decimals: 2 }, { units: 'W', comma: true })).toBe(
+            'AUTO',
+        );
+        expect(formatSeriesValue(0, { trueText: 'AN', falseText: 'AUS', unit: 'V' })).toBe('AUS');
+    });
+
+    it('texts need AUTHORING: an empty map / empty strings are unset and the number renders as before', () => {
+        expect(formatSeriesValue(1, { states: {} })).toBe('1');
+        expect(formatSeriesValue(1, { trueText: '', falseText: '' })).toBe('1');
+        expect(formatSeriesValue(1, { trueText: '  ', falseText: 'AUS' })).toBe('TRUE'); // whitespace = unset
+    });
+
+    it('hasSeriesValueFormat: text facts activate the gate; empty ones do not', () => {
+        expect(hasSeriesValueFormat({ states: STATES })).toBe(true);
+        expect(hasSeriesValueFormat({ trueText: 'AN' })).toBe(true);
+        expect(hasSeriesValueFormat({ falseText: 'AUS' })).toBe(true);
+        expect(hasSeriesValueFormat({ states: {} })).toBe(false);
+        expect(hasSeriesValueFormat({ trueText: ' ' })).toBe(false);
+    });
+
+    it('resolveValueFacts passes the text facts through series-only (never a chart fallback)', () => {
+        expect(resolveValueFacts({ states: STATES }, { units: 'W' }).states).toEqual(STATES);
+        expect(resolveValueFacts({ trueText: 'AN' }).trueText).toBe('AN');
+        expect(resolveValueFacts({}, { units: 'W' }).states).toBeUndefined();
+    });
+
+    it('factsOfMeta projects the text facts (texts trimmed, empty map dropped)', () => {
+        expect(factsOfMeta({ trueText: ' AN ', falseText: '', states: STATES })).toEqual({
+            trueText: 'AN',
+            states: STATES,
+        });
+        expect(factsOfMeta({ states: {} }).states).toBeUndefined();
+        expect(factsOfMeta({ unit: '°C' }).trueText).toBeUndefined();
     });
 });

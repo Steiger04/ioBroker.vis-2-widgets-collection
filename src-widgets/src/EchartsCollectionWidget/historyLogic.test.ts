@@ -19,16 +19,18 @@ describe('toSeriesData', () => {
         ]);
     });
 
-    it('coerces non-numeric val (string / boolean / null) to null', () => {
+    it('coerces booleans to 1/0 (bool OIDs plot, ADR-0058); strings/null stay null', () => {
         const pts: Point[] = [
             { ts: 1, val: 'x' },
             { ts: 2, val: true },
             { ts: 3, val: null },
+            { ts: 4, val: false },
         ];
         expect(toSeriesData(pts)).toEqual([
             [1, null],
-            [2, null],
+            [2, 1],
             [3, null],
+            [4, 0],
         ]);
     });
 

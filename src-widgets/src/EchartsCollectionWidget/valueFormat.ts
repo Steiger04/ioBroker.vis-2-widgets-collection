@@ -41,19 +41,27 @@ export const formatChartValue = (v: unknown, decimals?: number, comma?: boolean)
 };
 
 /**
- * The per-series value-format facts the Wert-Formatter reads (parity Build B, ADR-0057) — the
- * presentation subset of the series meta. Issue 06 adds the bool/enum text facts here.
+ * The per-series value-format facts the Wert-Formatter reads (parity Build B, ADR-0057/0058) —
+ * the presentation subset of the series meta: numeric facts (unit, decimals) plus the adapter's
+ * text semantics (bool texts, enum state names — issue 06).
  */
 export interface SeriesValueFacts {
     /** Value unit appended to this series' rendered values (adapter `unit`). Empty/whitespace = unset. */
     unit?: string;
     /** Fixed decimal count for this series' values (adapter `afterComma`). `undefined` = inherit. */
     decimals?: number;
+    /** Text for TRUE (adapter `trueText`, bool OIDs). Unset while its sibling is set → adapter `TRUE`. */
+    trueText?: string;
+    /** Text for FALSE (adapter `falseText`, bool OIDs). Unset while its sibling is set → adapter `FALSE`. */
+    falseText?: string;
+    /** Enum state names keyed by value (adapter `states`); prefilled from `common.states`. */
+    states?: Record<string, string>;
 }
 
 /**
  * The chart-level format context: the chart-wide comma switch plus the tooltip cluster
- * (units/decimals) acting as the FALLBACK for series without their own facts.
+ * (units/decimals) acting as the FALLBACK for series without their own facts. Text facts have
+ * NO chart-level fallback — bool/enum texts are per-series only (adapter parity).
  */
 export interface ChartValueFormat {
     /** Comma as the decimal separator (adapter `useComma`; ADR-0054). */
@@ -64,6 +72,13 @@ export interface ChartValueFormat {
     decimals?: number;
 }
 
+/**
+ * The text mode of a formatting surface (adapter `yFormatter.forAxis`): `'exact'` (tooltip row,
+ * legend value, labels — an exact state hit or EMPTY on a miss) vs `'axis'` (tick labels round
+ * to the nearest state).
+ */
+export type SeriesValueTextMode = 'exact' | 'axis';
+
 /** Facts per EFFECTIVE series name — the lookup seam the tooltip/legend builders share. */
 export type SeriesFactsByName = Record<string, SeriesValueFacts>;
 
@@ -73,13 +88,27 @@ const cleanUnit = (raw: string | undefined): string | undefined => {
     return t ? t : undefined;
 };
 
+/** A states map with at least one entry, else `undefined` (an empty map is unset). */
+const cleanStates = (raw: Record<string, string> | undefined): Record<string, string> | undefined =>
+    raw && Object.keys(raw).length ? raw : undefined;
+
 /**
- * The Wert-Formatter facts of one series meta — the SINGLE meta→facts projection (trimmed unit,
- * decimals verbatim), so the builder, the facts map and the raw analysis gate stay identical.
+ * The Wert-Formatter facts of one series meta — the SINGLE meta→facts projection (trimmed unit
+ * and texts, empty map dropped, decimals verbatim), so the builder, the facts map and the raw
+ * analysis gate stay identical.
  */
-export const factsOfMeta = (m?: { unit?: string; decimals?: number }): SeriesValueFacts => ({
+export const factsOfMeta = (m?: {
+    unit?: string;
+    decimals?: number;
+    trueText?: string;
+    falseText?: string;
+    states?: Record<string, string>;
+}): SeriesValueFacts => ({
     unit: cleanUnit(m?.unit),
     decimals: m?.decimals,
+    trueText: cleanUnit(m?.trueText),
+    falseText: cleanUnit(m?.falseText),
+    states: cleanStates(m?.states),
 });
 
 /**
@@ -89,30 +118,103 @@ export const factsOfMeta = (m?: { unit?: string; decimals?: number }): SeriesVal
 export const resolveValueFacts = (series?: SeriesValueFacts, chart?: ChartValueFormat): SeriesValueFacts => ({
     unit: cleanUnit(series?.unit) ?? cleanUnit(chart?.units),
     decimals: series?.decimals !== undefined ? series.decimals : chart?.decimals,
+    trueText: cleanUnit(series?.trueText),
+    falseText: cleanUnit(series?.falseText),
+    states: cleanStates(series?.states),
 });
 
 /**
  * The emission gate every formatting surface shares: would {@link formatSeriesValue} differ from
  * the plain value text? True when any fact (series OR chart-level) is authored — unit, decimals,
- * or the chart-wide comma switch alone (the ADR-0054 rule: comma must still route numbers
- * through the formatter).
+ * a text fact (issue 06), or the chart-wide comma switch alone (the ADR-0054 rule: comma must
+ * still route numbers through the formatter).
  */
 export const hasSeriesValueFormat = (series?: SeriesValueFacts, chart?: ChartValueFormat): boolean => {
     const f = resolveValueFacts(series, chart);
-    return !!f.unit || f.decimals !== undefined || chart?.comma === true;
+    return !!f.unit || f.decimals !== undefined || !!f.states || !!f.trueText || !!f.falseText || chart?.comma === true;
+};
+
+/** True when enum/bool texts are authored on the RESOLVED facts (issue 06). */
+export const textFactsActive = (f: SeriesValueFacts | undefined): boolean =>
+    !!f?.states || !!f?.trueText || !!f?.falseText;
+
+/**
+ * The bool/enum TEXT for one value — the adapter `yFormatter` text semantics. Returns the text,
+ * `''` for a deliberate miss (an in-between value must render EMPTY, not a number), or `null`
+ * when no text path applies (the numeric path takes over).
+ *
+ *  - states: an exact key hit (booleans coerce to `'1'`/`'0'`); `'axis'` mode returns the first
+ *    state ABOVE the value (keys sorted NUMERICALLY — the adapter's string sort is its bug),
+ *    the last state beyond the top; an exact miss in `'exact'` mode is EMPTY.
+ *  - bool texts: the adapter's literal sets (0/'0'/false/'false' vs 1/'1'/true/'true'), one
+ *    authored text defaulting the other to TRUE/FALSE; `'axis'` mode splits at 0.5; anything
+ *    else in `'exact'` mode is EMPTY.
+ */
+const textForValue = (v: unknown, f: SeriesValueFacts, mode: SeriesValueTextMode): string | null => {
+    if (f.states) {
+        const key = typeof v === 'boolean' ? (v ? '1' : '0') : String(v);
+        const hit = f.states[key];
+        if (hit !== undefined) {
+            return String(hit);
+        }
+        if (mode === 'axis') {
+            const num = typeof v === 'number' ? v : Number(v);
+            if (Number.isFinite(num)) {
+                const keys = Object.keys(f.states)
+                    .map(Number)
+                    .filter(Number.isFinite)
+                    .sort((a, b) => a - b);
+                for (const k of keys) {
+                    if (num < k) {
+                        return String(f.states[String(k)]);
+                    }
+                }
+                return keys.length ? String(f.states[String(keys[keys.length - 1])]) : '';
+            }
+        }
+        return ''; // an exact miss is EMPTY — no half states
+    }
+    if (f.trueText || f.falseText) {
+        const trueText = f.trueText || 'TRUE';
+        const falseText = f.falseText || 'FALSE';
+        if (v === 1 || v === '1' || v === true || v === 'true') {
+            return trueText;
+        }
+        if (v === 0 || v === '0' || v === false || v === 'false') {
+            return falseText;
+        }
+        if (mode === 'axis') {
+            const num = typeof v === 'number' ? v : Number(v);
+            return Number.isFinite(num) && num >= 0.5 ? trueText : falseText;
+        }
+        return '';
+    }
+    return null;
 };
 
 /**
- * Format one value through the per-series Wert-Formatter (ADR-0057): decimals clamp + comma +
- * unit, the series facts winning over the chart-level fallback. The surfaces (tooltip row,
- * legend value, series/bar label) all call this — one formatter, like the adapter's.
+ * Format one value through the per-series Wert-Formatter (ADR-0057/0058): text facts first
+ * (exact / axis mode — a hit suppresses unit and decimals, the adapter ignores the unit for
+ * text series), else decimals clamp + comma + unit, the series facts winning over the
+ * chart-level fallback. The surfaces (tooltip row, legend value, series/bar label, axis ticks)
+ * all call this — one formatter, like the adapter's.
  *
  * @param v - The value (the {@link formatChartValue} cast-through contract applies).
  * @param series - This series' facts; `undefined`/`{}` = chart-level only.
  * @param chart - The chart-level context (comma switch + tooltip-cluster fallbacks).
+ * @param mode - Text mode: `'exact'` (default) for tooltip/legend/labels, `'axis'` for ticks.
  */
-export const formatSeriesValue = (v: unknown, series?: SeriesValueFacts, chart?: ChartValueFormat): string => {
+export const formatSeriesValue = (
+    v: unknown,
+    series?: SeriesValueFacts,
+    chart?: ChartValueFormat,
+    mode: SeriesValueTextMode = 'exact',
+): string => {
     const f = resolveValueFacts(series, chart);
+    const text = textForValue(v, f, mode);
+    if (text !== null) {
+        return text;
+    }
     const txt = formatChartValue(v, f.decimals, chart?.comma);
     return f.unit ? `${txt} ${f.unit}` : txt;
 };
