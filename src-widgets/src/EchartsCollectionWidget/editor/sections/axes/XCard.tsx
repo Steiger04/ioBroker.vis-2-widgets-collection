@@ -121,9 +121,10 @@ const XFormatCombo: FC<{
             <Box sx={{ mt: 0.5 }}>
                 {/* The link words are their own i18n key so every language can phrase them. */}
                 <Link
-                    href="https://momentjs.com/docs/#/displaying/format"
+                    href="https://momentjs.com/docs/#/displaying/format/"
                     target="_blank"
                     rel="noopener noreferrer"
+                    underline="none"
                 >
                     {Generic.t('echarts_x_format_link')}
                 </Link>
