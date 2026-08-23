@@ -30,6 +30,7 @@ import type {
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { buildLegend } from '../presentation';
+import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import { applyRawOverride } from '../utils/mergeOption';
 import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
 import { buildTooltip } from './tooltip';
@@ -276,8 +277,13 @@ const buildYAxisEntry = (
  *
  * The axis colour (when explicit) paints line + labels + name together — same one-colour
  * legibility idiom as `buildYAxisEntry`. Unset = the theme's axis colours (`echartsTheme` floor).
+ *
+ * @param x - The flat X-Karte config (ADR-0035).
+ * @param spanMs - The data span (all series, ms) — the Auto labelling's clock (ADR-0052): the
+ * moment formatter is ALWAYS emitted as a function (authored pattern or adaptive Auto), so the
+ * raw JSON keeps its function-free contract while `axisLabel.formatter` stays GUI-owned.
  */
-const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
+const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
         type: 'time',
         splitLine: { show: x.splitLine ?? false },
@@ -301,11 +307,12 @@ const buildXAxisEntry = (x: EchartsXAxisConfig): Record<string, unknown> => {
     if (x.nameRotate !== undefined) {
         entry.nameRotate = x.nameRotate;
     }
-    const axisLabel: Record<string, unknown> = {};
-    if (x.format) {
-        // echarts parses the {yyyy}…{SSS} time template itself — a plain string formatter.
-        axisLabel.formatter = x.format;
-    }
+    const axisLabel: Record<string, unknown> = {
+        // ADR-0052: the moment Time format — authored pattern, or the adaptive Auto derived from
+        // the data span. Always a FUNCTION (the raw JSON stays function-free; the analysis pins
+        // the key as GUI-owned). The locale follows the host language at format time.
+        formatter: makeAxisLabelFormatter(x.format, spanMs),
+    };
     if (x.labelRotate !== undefined) {
         // Angled time labels for narrow widgets; unset = 0° (the echarts default, no emit).
         axisLabel.rotate = x.labelRotate;
@@ -396,6 +403,9 @@ export const buildCartesianOption = (
     }
 
     const names = entries.map(e => e.name as string);
+    // The Auto labelling's clock (ADR-0052): the data span across ALL series, recomputed on every
+    // build — a data update re-derives the adaptive resolution.
+    const spanMs = dataSpanMs(series);
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the first bound series' effective values when neither is
@@ -421,7 +431,9 @@ export const buildCartesianOption = (
     // names floated far from their axes; tightened via AXIS_NAME_GAP.)
     const option: Record<string, unknown> = {
         legend: buildLegend(p, names),
-        tooltip: buildTooltip(p),
+        // The tooltip's time header follows the same Time format (ADR-0052) — one format, two
+        // surfaces; an authored tooltipTemplate still wins inside buildTooltip.
+        tooltip: buildTooltip(p, { format: p.xAxis.format }),
         grid: {
             left: 0,
             right: 0,
@@ -432,7 +444,7 @@ export const buildCartesianOption = (
         },
         // The X raw (ADR-0037 addendum) folds UNDER the built entry like the Y cards' — the card
         // wins collisions; `xAxis` rides REPLACE_MERGE (ADR-0036) so deleting a raw key reverts.
-        xAxis: applyRawOverride(buildXAxisEntry(p.xAxis), p.xAxis.raw),
+        xAxis: applyRawOverride(buildXAxisEntry(p.xAxis, spanMs), p.xAxis.raw),
         yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,

@@ -14,6 +14,7 @@ import {
     parseSeriesConfig,
 } from './optionBuilder';
 import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
+import { SAMPLE_TS } from './timeFormat';
 import type { ChartSeries, PresentationConfig } from './optionBuilders/types';
 import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
@@ -904,37 +905,62 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
     });
 });
 
-describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
+describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time format)', () => {
+    /** Pull the emitted moment formatter out of a built option (typed for direct calls). */
+    const fmtOf = (option: ReturnType<typeof buildGeneratedOption>): ((v: number, i: number) => string) =>
+        (option.xAxis as { axisLabel: { formatter: (v: number, i: number) => string } }).axisLabel.formatter;
+
     it('always emits the time axis with the honest echarts defaults (splitLine off, ticks on)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        // Empty config = a plain time axis, pixel-identical to the pre-ADR-0035 hardcode:
-        // echarts' time-axis splitLine default is false, and `axisTick.show:'auto'` resolves
-        // TRUE for a time-x paired with a value-y — so both booleans are always emitted.
+        // Empty config = a plain time axis, pixel-identical to the pre-ADR-0035 hardcode except
+        // the ALWAYS-emitted moment formatter (ADR-0052): echarts' time-axis splitLine default is
+        // false, and `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y.
         expect(option.xAxis).toEqual({
             type: 'time',
             splitLine: { show: false },
             axisTick: { show: true },
+            axisLabel: { formatter: expect.any(Function) },
         });
+        // No data → span 0 counts as a sub-30-min span → seconds resolution with the start date
+        // prefix; the span (and resolution) re-derives as soon as data arrives.
+        expect(fmtOf(option)(new Date(2026, 7, 19, 14, 5).getTime(), 2)).toBe('19.08.\n14:05:00');
     });
 
-    it('emits name (middle placement) + label formatter + one-colour styling when configured', () => {
+    it('emits name (middle placement) + the moment label formatter + one-colour styling when configured', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [],
             meta: [],
-            p: { ...P, xAxis: { name: 'Zeit', format: '{HH}:{mm}', color: '#0af' } },
+            p: { ...P, xAxis: { name: 'Zeit', format: 'HH:mm <br /> DD.MM.', color: '#0af' } },
         });
+        // The authored pattern becomes a moment FUNCTION (ADR-0052) — never a string.
         expect(option.xAxis).toEqual({
             type: 'time',
             name: 'Zeit',
             nameLocation: 'middle',
             nameGap: 30,
-            axisLabel: { formatter: '{HH}:{mm}', color: '#0af' },
+            axisLabel: { formatter: expect.any(Function), color: '#0af' },
             axisLine: { show: true, lineStyle: { color: '#0af' } },
             nameTextStyle: { color: '#0af' },
             splitLine: { show: false },
             axisTick: { show: true },
         });
+        expect(fmtOf(option)(SAMPLE_TS, 0)).toBe('14:05\n19.08.');
+    });
+
+    it('derives the Auto labelling from the data span across all series (ADR-0052)', () => {
+        const series: ChartSeries[] = [
+            {
+                name: 'a',
+                data: [
+                    [new Date(2026, 7, 19, 10).getTime(), 1],
+                    [new Date(2026, 7, 26, 10).getTime(), 2],
+                ],
+            },
+        ];
+        const option = buildGeneratedOption({ family: 'cartesian', series, meta: [], p: P });
+        // 7-day span → date-only two-line labels.
+        expect(fmtOf(option)(new Date(2026, 7, 19, 14).getTime(), 3)).toBe('19.08.\n2026');
     });
 
     it('honours explicit switches (splitLine on, ticks off)', () => {
@@ -960,13 +986,15 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
             nameRotate: -45,
             offset: 24,
         });
-        // And the unset case emits none of them (the always-emit booleans aside).
+        // And the unset case emits none of them (the always-emit booleans + the moment formatter
+        // of ADR-0052 aside — axisLabel now always carries the formatter function).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(bare.xAxis).not.toHaveProperty('splitNumber');
-        expect(bare.xAxis).not.toHaveProperty('minInterval');
-        expect(bare.xAxis).not.toHaveProperty('nameRotate');
-        expect(bare.xAxis).not.toHaveProperty('offset');
-        expect(bare.xAxis).not.toHaveProperty('axisLabel');
+        const bareX = bare.xAxis as Record<string, unknown>;
+        expect(bareX).not.toHaveProperty('splitNumber');
+        expect(bareX).not.toHaveProperty('minInterval');
+        expect(bareX).not.toHaveProperty('nameRotate');
+        expect(bareX).not.toHaveProperty('offset');
+        expect(bareX.axisLabel).toEqual({ formatter: expect.any(Function) });
     });
 
     it('emits axisLabel.rotate when the label rotation is set (angled time labels)', () => {
@@ -1039,6 +1067,59 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035)', () => {
         });
         expect(colored.xAxis).not.toHaveProperty('offset');
         expect((colored.xAxis as Record<string, { onZero?: boolean }>).axisLine).not.toHaveProperty('onZero');
+    });
+});
+
+describe('buildGeneratedOption — cartesian tooltip time header (ADR-0052)', () => {
+    const WED = SAMPLE_TS;
+    type TooltipEntry = { trigger?: string; formatter?: unknown; valueFormatter?: unknown; show?: boolean };
+    const tooltipOf = (p: PresentationConfig): TooltipEntry =>
+        buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p }).tooltip as TooltipEntry;
+
+    it('emits a moment-header FORMATTER on cartesian (default header format, values rendered)', () => {
+        const t = tooltipOf(P);
+        expect(t.trigger).toBe('axis');
+        expect(typeof t.formatter).toBe('function');
+        expect(t.valueFormatter).toBeUndefined(); // folded INTO the callback (echarts would skip it)
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '<m>', seriesName: 'Temp', value: [WED, 21.5] },
+            { axisValue: WED, marker: '<m>', seriesName: 'Hum', value: [WED, 40] },
+        ]);
+        expect(html).toBe('<b>Wed, 19.08.2026 14:05</b><br/><m> Temp: 21.5<br/><m> Hum: 40');
+    });
+
+    it('an authored Time format drives the header; units/decimals format the value rows', () => {
+        const t = tooltipOf({ ...P, xAxis: { format: 'DD.MM.YY HH:mm' }, tooltipUnits: '°C', tooltipDecimals: 1 });
+        const html = (t.formatter as (params: unknown) => string)([
+            { axisValue: WED, marker: '<m>', seriesName: 'Temp', value: [WED, 21.56] },
+        ]);
+        expect(html).toBe('<b>19.08.26 14:05</b><br/><m> Temp: 21.6 °C');
+    });
+
+    it('an authored tooltipTemplate overrides the moment header — existing GUI semantics win', () => {
+        const t = tooltipOf({ ...P, tooltipTemplate: '{b}: {c}' });
+        expect(t.formatter).toBe('{b}: {c}');
+    });
+
+    it('null values render as a dash; item-trigger params (no axisValue) read the point timestamp', () => {
+        const t = tooltipOf(P);
+        const single = (t.formatter as (params: unknown) => string)({
+            marker: '<m>',
+            seriesName: 'Temp',
+            value: [WED, null],
+        });
+        expect(single).toBe('<b>Wed, 19.08.2026 14:05</b><br/><m> Temp: -');
+    });
+
+    it('non-cartesian families keep the valueFormatter path — no moment header without a time axis', () => {
+        const out = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
+            p: { ...P, tooltipUnits: 'kWh' },
+        }) as { tooltip: TooltipEntry };
+        expect(out.tooltip.valueFormatter).toEqual(expect.any(Function));
+        expect(out.tooltip.formatter).toBeUndefined();
     });
 });
 

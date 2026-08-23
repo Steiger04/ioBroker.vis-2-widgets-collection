@@ -529,7 +529,14 @@ export interface EchartsAxisConfig {
 export interface EchartsXAxisConfig {
     /** Axis name (rendered below the labels, `nameLocation:'middle'`). */
     name?: string;
-    /** `axisLabel.formatter` time template (`{HH}:{mm}`, `{dd}.{MM}.`); empty = echarts auto-labelling. */
+    /**
+     * The **Time format** (ADR-0052) — a moment.js token string (`HH:mm`, `ddd`, `HH:mm <br /> DD.MM.`)
+     * driving BOTH the axis labels and the tooltip's time header; the locale follows the host
+     * language. Unset = the adaptive `Auto`: seconds (< 30 min span) and the day-change date
+     * prefix are derived from the data span. Emitted as a moment function, never a string — the
+     * raw JSON stays function-free (`axisLabel.formatter` is GUI-owned, pinned by the X analysis).
+     * Old `{HH}` dialect values are deliberately not migrated (conscious break, ADR-0052).
+     */
     format?: string;
     /** Axis colour (line + labels + name); unset = theme token inherit (ADR-0027/0035). */
     color?: string;

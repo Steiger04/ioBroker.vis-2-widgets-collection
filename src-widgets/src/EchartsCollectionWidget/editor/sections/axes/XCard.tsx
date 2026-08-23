@@ -1,11 +1,11 @@
 /**
- * The X-Karte — the Axis manager's shared time-axis card + its label-format combobox (ADR-0035;
+ * The X-Karte — the Axis manager's shared time-axis card + its Time-format combobox (ADR-0035;
  * extracted from AxesZoomSection per ADR-0051: concept name = file name).
  *
  * @module EchartsCollectionWidget/editor/sections/axes/XCard
  * @remarks
- *  - `XFormatCombo` — the editable time-template combobox for the label format: presets as
- *    dropdown offers, freeSolo input (ADR-0035).
+ *  - `XFormatCombo` — the editable moment Time-format combobox (ADR-0052): the 26 ioBroker.echarts
+ *    presets grouped by intent as dropdown offers, freeSolo input, live example.
  *  - `XCard` (default export) — the single, non-deletable card configuring the shared time axis;
  *    flat presentation config, never a list, never series-bound.
  */
@@ -31,33 +31,34 @@ import type { EchartsXAxisConfig } from '../../../../types/field-definitions/ech
 import RawJsonSection from '../RawJsonSection';
 import { X_AXIS_CATALOG } from '../../xAxisTemplates';
 import { snippetPatch } from '../../snippetComposition';
+import {
+    SAMPLE_TS,
+    TIME_FORMAT_PRESETS,
+    formatAxisLabel,
+    resolveHostLang,
+    type TimeFormatGroupId,
+    type TimeFormatPreset,
+} from '../../../timeFormat';
+
+/** Intent-group i18n keys for the Time-format dropdown (ADR-0052). */
+const FORMAT_GROUP_I18N: Record<TimeFormatGroupId, string> = {
+    auto: 'echarts_x_fmt_grp_auto',
+    time: 'echarts_x_fmt_grp_time',
+    date: 'echarts_x_fmt_grp_date',
+    dateTime: 'echarts_x_fmt_grp_datetime',
+    twoLine: 'echarts_x_fmt_grp_twoline',
+    international: 'echarts_x_fmt_grp_international',
+    weekday: 'echarts_x_fmt_grp_weekday',
+};
 
 /**
- * echarts time-template presets for the X-axis label format (ADR-0035). `''` = auto — echarts'
- * own hierarchical labelling (no formatter emitted). The literal pattern doubles as the label —
- * the pattern IS the format, locale-neutral by construction.
- */
-const X_FORMAT_PRESETS: [string, string][] = [
-    ['{HH}:{mm}', 'HH:mm'],
-    ['{dd}.{MM}.', 'dd.MM.'],
-    ['{dd}.{MM} {HH}:{mm}', 'dd.MM HH:mm'],
-    ['{HH}:{mm}:{ss}', 'HH:mm:ss'],
-    ['{dd}.{MM}.{yyyy}', 'dd.MM.yyyy'],
-];
-/** The combobox dropdown values: '' (auto) + the preset templates. */
-const X_FORMAT_VALUES: string[] = ['', ...X_FORMAT_PRESETS.map(([tpl]) => tpl)];
-/** Friendly dropdown label for a value ('' → Auto; presets → their shorthand; else the raw template). */
-const xFormatOptionLabel = (value: string): string =>
-    value === '' ? Generic.t('echarts_x_fmt_auto') : (X_FORMAT_PRESETS.find(([tpl]) => tpl === value)?.[1] ?? value);
-
-/**
- * Editable time-template combobox for the X-Karte label format (ADR-0035). The presets are
- * dropdown OFFERS, the input is freeSolo — the template string is the single state, so there is
- * no Eigene… sentinel and no custom-mode flag to desync (the rework replaces a select whose
- * "Eigene…" entry could never reveal its free-text field: the seed collided with a preset value,
- * the select snapped back, and the field stayed permanently hidden). A template typed to equal a
- * preset is simply that preset. The caption lists the echarts time-template placeholders so the
- * free text is discoverable.
+ * Editable moment Time-format combobox (ADR-0052): the 26 ioBroker.echarts presets grouped by
+ * intent as dropdown OFFERS, the input freeSolo — the format string is the single state, so a
+ * pattern typed to equal a preset is simply that preset. `''` = Auto (unset — the adaptive
+ * labelling; explained in the caption instead of a sample). An authored pattern shows the demo
+ * timestamp as a LIVE EXAMPLE (`whiteSpace:pre-line` renders the two-line `\n` for real), so the
+ * locale effect (weekday names) is visible before committing. The caption below points at the
+ * moment token vocabulary.
  */
 const XFormatCombo: FC<{
     value: string | undefined;
@@ -65,10 +66,11 @@ const XFormatCombo: FC<{
 }> = ({ value, onChange }) => (
     <Box sx={{ gridColumn: '1 / -1' }}>
         <FieldLabel>{Generic.t('echarts_x_format')}</FieldLabel>
-        <Autocomplete
+        <Autocomplete<TimeFormatPreset, false, false, true>
             freeSolo
             size="small"
-            options={X_FORMAT_VALUES}
+            options={TIME_FORMAT_PRESETS as TimeFormatPreset[]}
+            groupBy={o => Generic.t(FORMAT_GROUP_I18N[o.group])}
             inputValue={value ?? ''}
             // Typing ('input') and the clear button ('clear') write straight through; picking an
             // option arrives via onChange (reason 'reset' would double-fire every selection).
@@ -77,23 +79,16 @@ const XFormatCombo: FC<{
                     onChange(v || undefined);
                 }
             }}
-            onChange={(_, v) => onChange(v || undefined)}
-            getOptionLabel={o => (o === '' ? Generic.t('echarts_x_fmt_auto') : o)}
+            onChange={(_, v) => onChange(typeof v === 'string' ? v || undefined : v?.value || undefined)}
+            getOptionLabel={o =>
+                typeof o === 'string' ? o : o.value === '' ? Generic.t('echarts_x_fmt_auto') : o.value
+            }
             renderOption={(props, option) => (
                 <li
                     {...props}
-                    key={option}
+                    key={option.value || 'auto'}
                 >
-                    {xFormatOptionLabel(option)}
-                    {option !== '' && (
-                        <Typography
-                            component="code"
-                            variant="caption"
-                            sx={{ ml: 1, color: 'text.secondary' }}
-                        >
-                            {option}
-                        </Typography>
-                    )}
+                    {option.value === '' ? Generic.t('echarts_x_fmt_auto') : option.value}
                 </li>
             )}
             renderInput={params => (
@@ -107,7 +102,16 @@ const XFormatCombo: FC<{
         <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ display: 'block', mt: 0.5 }}
+            sx={{ display: 'block', mt: 0.5, whiteSpace: 'pre-line' }}
+        >
+            {value
+                ? `${Generic.t('echarts_x_format_sample')}: ${formatAxisLabel(value, SAMPLE_TS, resolveHostLang())}`
+                : Generic.t('echarts_x_fmt_auto_hint')}
+        </Typography>
+        <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block' }}
         >
             {Generic.t('echarts_x_format_tokens')}
         </Typography>
