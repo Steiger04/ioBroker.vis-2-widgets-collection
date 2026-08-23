@@ -10,7 +10,7 @@
  *    flat presentation config, never a list, never series-bound.
  */
 import type { FC } from 'react';
-import { Autocomplete, Box, TextField } from '@mui/material';
+import { Autocomplete, Box, Link, TextField } from '@mui/material';
 
 import Generic from '../../../../Generic';
 import {
@@ -118,7 +118,18 @@ const XFormatCombo: FC<{
                     Generic.t('echarts_x_fmt_auto_hint')
                 )}
             </Box>
-            <Box sx={{ mt: 0.5 }}>{Generic.t('echarts_x_format_tokens')}</Box>
+            <Box sx={{ mt: 0.5 }}>
+                {/* The link words are their own i18n key so every language can phrase them. */}
+                <Link
+                    href="https://momentjs.com/docs/#/displaying/format"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {Generic.t('echarts_x_format_link')}
+                </Link>
+                {': '}
+                {Generic.t('echarts_x_format_tokens')}
+            </Box>
         </InfoBox>
     </Box>
 );
