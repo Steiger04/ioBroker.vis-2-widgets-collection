@@ -99,7 +99,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const isGauge = state.chartType === 'gauge';
     const isRadar = state.chartType === 'radar';
     const isJson = state.mode === 'json';
-    const isCartesian = state.chartType === 'line' || state.chartType === 'bar';
+    const isCartesian = state.chartType === 'line' || state.chartType === 'bar' || state.chartType === 'scatter';
     // Verlauf: the per-series history-instance pins live on the series cards (ADR-0039). The
     // instance list is fetched ONCE here and passed down — every card fetching its own would
     // fire one socket round-trip per series.

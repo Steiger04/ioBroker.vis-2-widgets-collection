@@ -99,3 +99,34 @@ export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransfor
  * shifts the getHistory start/end; unset/0 (the echarts default) means no shift.
  */
 export const xOffsetMs = (seconds: number | undefined): number | undefined => (seconds ? seconds * 1000 : undefined);
+
+/**
+ * „Keine Zukunft" (adapter `noFuture`, ADR-0060): drop points after `now` — the adapter breaks
+ * at the first future point; on sorted data a filter is the same cut. Returns the SAME reference
+ * when nothing lies in the future.
+ */
+export const cutFuturePoints = (data: SeriesPoint[], now: number): SeriesPoint[] => {
+    const cut = data.filter(([ts]) => ts <= now);
+    return cut.length === data.length ? data : cut;
+};
+
+/**
+ * „Gültige Zeit" (adapter `validTime`, ADR-0060) — Live mode: while the last point is fresher
+ * than `validTime` seconds, hold the line to `now` at that value (the still-valid assumption);
+ * stale (or a null last value) expires to a gap point at `now`. Unset → the data unchanged.
+ */
+export const holdValidLiveValue = (
+    data: SeriesPoint[],
+    validTimeSec: number | undefined,
+    now: number,
+): SeriesPoint[] => {
+    if (!validTimeSec || !data.length) {
+        return data;
+    }
+    const [lastTs, lastVal] = data[data.length - 1];
+    if (lastTs >= now) {
+        return data; // already at (or past) now — nothing to extend
+    }
+    const fresh = now - lastTs <= validTimeSec * 1000;
+    return [...data, [now, fresh && lastVal !== null ? lastVal : null] as SeriesPoint];
+};

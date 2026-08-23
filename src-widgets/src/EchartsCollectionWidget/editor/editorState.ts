@@ -327,7 +327,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         chartTypeRaw === 'cartesian'
             ? meta[0]?.type === 'bar'
                 ? 'bar'
-                : 'line'
+                : meta[0]?.type === 'scatter'
+                  ? 'scatter'
+                  : 'line'
             : chartTypeRaw === 'area'
               ? 'line'
               : chartTypeRaw;
@@ -385,7 +387,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         series = [];
         for (let i = 0; i < seriesCount; i++) {
             const m = meta[i] ?? {};
-            const t = m.type === 'line' || m.type === 'bar' ? m.type : undefined;
+            const t = m.type === 'line' || m.type === 'bar' || m.type === 'scatter' ? m.type : undefined;
             series.push({
                 oid: oidAt(i),
                 ...m,

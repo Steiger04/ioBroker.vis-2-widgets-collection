@@ -66,6 +66,30 @@ const BarGlyph: FC = () => (
         />
     </Glyph>
 );
+const ScatterGlyph: FC = () => (
+    <Glyph>
+        <circle
+            cx="5"
+            cy="16"
+            r="1.4"
+        />
+        <circle
+            cx="11"
+            cy="8"
+            r="1.4"
+        />
+        <circle
+            cx="16"
+            cy="13"
+            r="1.4"
+        />
+        <circle
+            cx="20"
+            cy="5"
+            r="1.4"
+        />
+    </Glyph>
+);
 const PieGlyph: FC = () => (
     <Glyph>
         <circle
@@ -119,6 +143,7 @@ const RadarGlyph: FC = () => (
 const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon: React.ReactNode }> = [
     { value: 'line', label: 'echarts_type_line', icon: <LineGlyph /> },
     { value: 'bar', label: 'echarts_type_bar', icon: <BarGlyph /> },
+    { value: 'scatter', label: 'echarts_type_scatter', icon: <ScatterGlyph /> },
     { value: 'pie', label: 'echarts_type_pie', icon: <PieGlyph /> },
     { value: 'gauge', label: 'echarts_type_gauge', icon: <GaugeGlyph /> },
     { value: 'radar', label: 'echarts_type_radar', icon: <RadarGlyph /> },
@@ -135,7 +160,7 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
 );
 
 /**
- * The primary selector — a grid of the five concrete chart types. The value is the concrete
+ * The primary selector — a grid of the six concrete chart types. The value is the concrete
  * `chartType` (the editor normalises a legacy `'cartesian'` or `'area'` to a concrete type on
  * load, so one of the five is always highlighted).
  */

@@ -37,6 +37,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
             cornerRadius: 4,
             area: 'gradient',
             unit: '°C', // ADR-0057: the per-series Wert-Formatter facts activate label.formatter
+            shadowBlur: 6, // ADR-0060: the line shadow leaves are card-owned while the blur is set
         } as EchartsSeriesMeta,
         markLineHost: true,
     },
@@ -55,6 +56,16 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
         } as EchartsSeriesMeta,
         markLineHost: true,
         barLabelFormatterActive: true,
+    },
+    'cartesian-scatter': {
+        slot: 'cartesian-scatter',
+        meta: {
+            label: true,
+            symbolSize: 8,
+            cornerRadius: 4,
+            unit: '°C', // the Wert-Formatter facts activate label.formatter here too
+        } as EchartsSeriesMeta,
+        markLineHost: true,
     },
     pie: { slot: 'pie', pieRoseActive: true, animationEasingActive: true },
     'pie-slice': { slot: 'pie-slice', meta: {} as EchartsSeriesMeta },

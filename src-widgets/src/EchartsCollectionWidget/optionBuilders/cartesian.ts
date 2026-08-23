@@ -120,10 +120,11 @@ const buildCartesianSeriesEntry = (
     chartFmt: ChartValueFormat,
 ): Record<string, unknown> => {
     // Per-series override wins; otherwise inherit the chart's cartesian type (ADR-0008 r3).
-    // Legacy `type:'area'` (ADR-0008 r4 removed it) matches neither 'line' nor 'bar' → falls
-    // through to `defaultType`, which a legacy 'area' chart normalises to 'line' upstream.
+    // Legacy `type:'area'` (ADR-0008 r4 removed it) matches no concrete type → falls through to
+    // `defaultType`, which a legacy 'area' chart normalises to 'line' upstream.
     const rawType = m?.type;
-    const type: EchartsCartesianType = rawType === 'bar' ? 'bar' : rawType === 'line' ? 'line' : defaultType;
+    const type: EchartsCartesianType =
+        rawType === 'bar' || rawType === 'scatter' ? rawType : rawType === 'line' ? 'line' : defaultType;
     const color = m?.color ?? fallbackColor;
     const areaMode = normalizeAreaMode(m);
     const name = m?.name || s.name || `Series ${index + 1}`;
@@ -161,7 +162,7 @@ const buildCartesianSeriesEntry = (
                   }
                 : { show: true, ...(labelFmt ? { formatter: labelFmt } : {}) };
     }
-    if (m?.stack) {
+    if (m?.stack && type !== 'scatter') {
         entry.stack = m.stack;
     }
 
@@ -180,6 +181,9 @@ const buildCartesianSeriesEntry = (
         entry.lineStyle = {
             width: m?.lineWidth ?? 2,
             type: LINE_STYLE_DASH[m?.lineStyle ?? 'solid'],
+            // Line shadow (ADR-0060): the adapter's Linienschatten — blur in the series' own
+            // colour, sparse (unset/0 = no shadow keys at all).
+            ...(m?.shadowBlur ? { shadowBlur: m.shadowBlur, shadowColor: color } : {}),
         };
         if (areaMode !== 'off') {
             const opacity = m?.areaOpacity ?? (areaMode === 'gradient' ? 0.8 : 0.15);
@@ -191,7 +195,7 @@ const buildCartesianSeriesEntry = (
                 entry.areaStyle = { opacity };
             }
         }
-    } else {
+    } else if (type === 'bar') {
         // bar — D7: expose both echarts bar gaps (between-bar + between-category).
         if (m?.barGap !== undefined) {
             entry.barGap = `${Math.round(m.barGap * 100)}%`;
@@ -203,6 +207,13 @@ const buildCartesianSeriesEntry = (
         const barWidth = parseBarWidth(m?.barWidth);
         if (barWidth !== undefined) {
             entry.barWidth = barWidth;
+        }
+    } else {
+        // scatter (ADR-0060, parity Build B): a point series — no line/area/bar knobs; the
+        // points ARE the series (symbols always shown, echarts' scatter default), symbolSize
+        // applies like on a line.
+        if (m?.symbolSize !== undefined) {
+            entry.symbolSize = m.symbolSize;
         }
     }
     return entry;
@@ -591,7 +602,15 @@ export const buildCartesianOption = (
     // the earlier `'1%' + maxOffset` had masked that by over-reserving. `nameGap` was also 50 →
     // names floated far from their axes; tightened via AXIS_NAME_GAP.)
     const option: Record<string, unknown> = {
-        legend: buildLegend(p, names, [], facts),
+        // "Nur in Legende" (ADR-0060): the adapter's `hide` — the series stays emitted, its
+        // legend entry lands PRE-DESELECTED (`legend.selected`, the ADR-0054 seam laid for this),
+        // so the chart renders without it and a legend click brings it back.
+        legend: buildLegend(
+            p,
+            names,
+            entries.filter((e, i) => meta[i]?.legendOnly).map(e => e.name as string),
+            facts,
+        ),
         // The tooltip's time header follows the same Time format (ADR-0052) — one format, two
         // surfaces; an authored tooltipTemplate still wins inside buildTooltip. The per-series
         // facts (ADR-0057) ride along for the row formatting.

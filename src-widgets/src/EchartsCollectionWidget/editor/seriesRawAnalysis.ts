@@ -100,6 +100,8 @@ const MANAGED_TOP_KEYS: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
         'barWidth',
         'markLine',
     ]),
+    // scatter (ADR-0060): a point series — the shared identity/binding keys + label + symbolSize.
+    'cartesian-scatter': new Set(['name', 'type', 'yAxisIndex', 'data', 'color', 'itemStyle', 'label', 'markLine']),
     pie: new Set([
         'type',
         'radius',
@@ -166,7 +168,7 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
     const paths = new Set<string>();
     const m = ctx.meta;
 
-    if (ctx.slot === 'cartesian-line' || ctx.slot === 'cartesian-bar') {
+    if (ctx.slot === 'cartesian-line' || ctx.slot === 'cartesian-bar' || ctx.slot === 'cartesian-scatter') {
         paths.add('name');
         paths.add('type');
         paths.add('yAxisIndex');
@@ -185,7 +187,7 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
                 paths.add('label.formatter');
             }
         }
-        if (m?.stack) {
+        if (m?.stack && ctx.slot !== 'cartesian-scatter') {
             paths.add('stack');
         }
         if (ctx.slot === 'cartesian-line') {
@@ -194,6 +196,11 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
             paths.add('connectNulls');
             paths.add('lineStyle.width');
             paths.add('lineStyle.type');
+            if (m?.shadowBlur) {
+                // Line shadow (ADR-0060): sparse inside lineStyle — only while the blur is set.
+                paths.add('lineStyle.shadowBlur');
+                paths.add('lineStyle.shadowColor');
+            }
             if (m?.symbolSize !== undefined) {
                 paths.add('symbolSize');
             }
@@ -206,6 +213,11 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
                 if (area === 'gradient') {
                     paths.add('areaStyle.color');
                 }
+            }
+        } else if (ctx.slot === 'cartesian-scatter') {
+            // A point series (ADR-0060): no line/area/bar knobs — symbolSize like a line's.
+            if (m?.symbolSize !== undefined) {
+                paths.add('symbolSize');
             }
         } else {
             // Bar knobs (parity Build D, ADR-0056) — sparse like their builders' emission.

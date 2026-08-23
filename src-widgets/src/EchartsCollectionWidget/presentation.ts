@@ -381,7 +381,7 @@ export const toPresentationConfig = (opts: {
     // (ADR-0008 r4: the top selector is authoritative; per-series type is opt-in). A legacy
     // stored 'area' is not a cartesian type (area is a per-series fill mode) → falls back to 'line'.
     const cartesianType: EchartsCartesianType =
-        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar')
+        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar' || s.chartType === 'scatter')
             ? (s.chartType as EchartsCartesianType)
             : 'line';
 

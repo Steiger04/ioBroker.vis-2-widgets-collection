@@ -464,3 +464,66 @@ describe('assemblePipelineResult — per-series value transforms (ADR-0059)', ()
         expect(seriesOf(option)[0]?.data).toEqual([[1, 11]]);
     });
 });
+
+// ── series rest knobs: noFuture + validTime (ADR-0060, parity Build B issue 08) ──
+
+describe('assemblePipelineResult — noFuture / validTime cuts (ADR-0060)', () => {
+    it('noFuture drops points after now (history mode); a clean series keeps its reference', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A', noFuture: true },
+                    { oid: 'b.0', name: 'B' },
+                ],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 1],
+                                [99_999_999_999_999, 2],
+                            ],
+                        },
+                        { name: 'B', data: [[1, 3]] },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([[1, 1]]); // the future point is cut
+        expect(seriesOf(option)[1]?.data).toEqual([[1, 3]]);
+    });
+
+    it('validTime (Live): a FRESH last point is held to now; a stale one expires to a gap', () => {
+        const fresh = assemblePipelineResult(
+            makeInput('cartesian', 'live', {
+                usable: [{ oid: 'a.0', name: 'A', validTime: 30 }],
+                liveBuffers: { 'a.0': [[Date.now() - 5000, 7]] }, // 5 s old — inside the 30 s window
+            }),
+        );
+        // The held point lands at the build's now with the last value (2 points, value 7).
+        const freshData = seriesOf(fresh.option)[0]?.data as [number, number | null][];
+        expect(freshData).toHaveLength(2);
+        expect(freshData[1]?.[1]).toBe(7);
+
+        const stale = assemblePipelineResult(
+            makeInput('cartesian', 'live', {
+                usable: [{ oid: 'a.0', name: 'A', validTime: 1 }],
+                liveBuffers: { 'a.0': [[Date.now() - 120_000, 7]] }, // 2 min old — outside 1 s
+            }),
+        );
+        const staleData = seriesOf(stale.option)[0]?.data as [number, number | null][];
+        expect(staleData[1]?.[1]).toBeNull(); // expired → gap
+    });
+
+    it('validTime never applies outside Live (history stays untouched)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A', validTime: 30 }],
+                history: { series: [{ name: 'A', data: [[1, 5]] }], loading: false, error: null },
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([[1, 5]]);
+    });
+});

@@ -1983,3 +1983,63 @@ describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', 
         expect((authored.yAxis as { axisLabel?: { formatter?: unknown } }[])[0].axisLabel?.formatter).toBe('{value}');
     });
 });
+
+describe('buildGeneratedOption — series rest knobs (ADR-0060, parity Build B)', () => {
+    const WED = SAMPLE_TS;
+    const s0 = (m: EchartsSeriesMeta, over: Partial<PresentationConfig> = {}): Record<string, unknown> =>
+        (
+            buildGeneratedOption({
+                family: 'cartesian',
+                series: [{ name: 'A', data: [[WED, 1]] }],
+                meta: [m],
+                p: { ...P, ...over },
+            }).series as Record<string, unknown>[]
+        )[0];
+
+    it('scatter emits type scatter — no line/area/bar keys; symbolSize applies; stack is not emitted', () => {
+        const scatter = s0({ type: 'scatter', symbolSize: 9, stack: 'A' });
+        expect(scatter.type).toBe('scatter');
+        expect(scatter.symbolSize).toBe(9);
+        expect(scatter).not.toHaveProperty('lineStyle');
+        expect(scatter).not.toHaveProperty('areaStyle');
+        expect(scatter).not.toHaveProperty('stack');
+        expect(scatter).not.toHaveProperty('barGap');
+        // The chart-level default makes every non-overridden series a scatter too.
+        const inherited = (
+            buildGeneratedOption({
+                family: 'cartesian',
+                series: [{ name: 'A', data: [[WED, 1]] }],
+                meta: [{}],
+                p: { ...P, cartesianType: 'scatter' },
+            }).series as Record<string, unknown>[]
+        )[0];
+        expect(inherited.type).toBe('scatter');
+    });
+
+    it('the line shadow emits lineStyle.shadowBlur in the series colour; unset stays sparse', () => {
+        const withShadow = s0({ shadowBlur: 8, color: '#abc' });
+        expect((withShadow.lineStyle as Record<string, unknown>).shadowBlur).toBe(8);
+        expect((withShadow.lineStyle as Record<string, unknown>).shadowColor).toBe('#abc');
+        expect(s0({}).lineStyle).not.toHaveProperty('shadowBlur');
+    });
+
+    it('„Nur in Legende": the series stays emitted, its legend entry lands PRE-DESELECTED', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[WED, 1]] },
+                { name: 'B', data: [[WED, 2]] },
+            ],
+            meta: [{ legendOnly: true }, {}],
+            p: P,
+        });
+        const legend = option.legend as Record<string, unknown>;
+        expect(legend.selected).toEqual({ A: false, B: true });
+        expect((option.series as unknown[]).map(s => (s as { name: string }).name)).toEqual(['A', 'B']);
+        // Without the flag there is no selected key at all (ADR-0054 rule).
+        expect(
+            buildGeneratedOption({ family: 'cartesian', series: [{ name: 'A', data: [[WED, 1]] }], meta: [{}], p: P })
+                .legend as Record<string, unknown>,
+        ).not.toHaveProperty('selected');
+    });
+});

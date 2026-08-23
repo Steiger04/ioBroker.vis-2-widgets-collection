@@ -30,7 +30,7 @@
  * type (ADR-0008 r4): an area chart is a `line` with an `areaStyle`, so area is a per-series fill
  * mode ({@link EchartsAreaFill}), not a cartesian type.
  */
-export type EchartsCartesianType = 'line' | 'bar';
+export type EchartsCartesianType = 'line' | 'bar' | 'scatter';
 
 /**
  * The kind of chart the user is building — chosen once from the configurator's primary (top)
@@ -45,7 +45,7 @@ export type EchartsCartesianType = 'line' | 'bar';
  * tolerates both (→ cartesian) **without** an auto-migration — rewritten to a concrete type only
  * when the user re-saves after picking the type explicitly.
  */
-export type EchartsChartType = 'line' | 'bar' | 'pie' | 'gauge' | 'radar';
+export type EchartsChartType = 'line' | 'bar' | 'scatter' | 'pie' | 'gauge' | 'radar';
 
 /**
  * Per-series area fill mode for a cartesian line series (ADR-0008 r4).
@@ -269,6 +269,20 @@ export interface EchartsSeriesMeta {
      * chart-level setting for this series' data; unset = inherit. Never emitted.
      */
     nullMode?: 'keep' | 'forward' | 'zero';
+    /** Line shadow blur in px (adapter `shadowSize`, ADR-0060) — shadow in the series colour; 0/unset = off. */
+    shadowBlur?: number;
+    /**
+     * „Gültige Zeit" in seconds (adapter `validTime`, ADR-0060) — Live mode only: while the last
+     * point is fresher than this, the line is held to now at that value; stale expires to a gap.
+     */
+    validTime?: number;
+    /** „Keine Zukunft" (adapter `noFuture`, ADR-0060): points after now are cut in the pipeline. */
+    noFuture?: boolean;
+    /**
+     * „Nur in Legende" (adapter `hide`, ADR-0060): the series stays emitted but its legend entry
+     * lands pre-deselected (`legend.selected`) — hidden until a legend click re-enables it.
+     */
+    legendOnly?: boolean;
     /** Show value labels. @default false */
     label?: boolean;
     /**

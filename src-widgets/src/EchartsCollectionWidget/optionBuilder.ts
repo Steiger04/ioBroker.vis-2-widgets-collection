@@ -50,7 +50,7 @@ export const familyOf = (chartType: EchartsChartType | 'cartesian' | 'area' | un
             return 'gauge';
         case 'radar':
             return 'radar';
-        // line / bar / legacy 'cartesian' / legacy 'area' / undefined → cartesian
+        // line / bar / scatter / legacy 'cartesian' / legacy 'area' / undefined → cartesian
         default:
             return 'cartesian';
     }

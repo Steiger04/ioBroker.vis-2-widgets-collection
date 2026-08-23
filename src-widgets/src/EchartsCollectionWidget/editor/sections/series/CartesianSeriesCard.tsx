@@ -157,6 +157,7 @@ export const CartesianBasisFields: FC<{
                     options={[
                         ['line', Generic.t('echarts_type_line')],
                         ['bar', Generic.t('echarts_type_bar')],
+                        ['scatter', Generic.t('echarts_type_scatter')],
                     ]}
                 />
             )}
@@ -312,10 +313,24 @@ export const SeriesValueFormatFields: FC<{
 export const SeriesTransformFields: FC<{
     meta: EchartsSeriesMeta;
     onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
-}> = ({ meta, onPatch }) => {
+    /** Data mode — „Gültige Zeit" is Live-only (ADR-0060); omitted hides it (JSON card). */
+    mode?: string;
+}> = ({ meta, onPatch, mode }) => {
     const invalid = formulaIsInvalid(meta.formula);
     return (
         <SubGroup title={Generic.t('echarts_grp_transform')}>
+            <SwitchList sx={{ mb: 1.5 }}>
+                <SwitchRow
+                    label={Generic.t('echarts_series_no_future')}
+                    checked={meta.noFuture ?? false}
+                    onChange={v => onPatch({ noFuture: v })}
+                />
+                <SwitchRow
+                    label={Generic.t('echarts_series_legend_only')}
+                    checked={meta.legendOnly ?? false}
+                    onChange={v => onPatch({ legendOnly: v })}
+                />
+            </SwitchList>
             <FieldGrid min={140}>
                 <TextField2
                     label={Generic.t('echarts_series_formula')}
@@ -349,6 +364,13 @@ export const SeriesTransformFields: FC<{
                         ['zero', Generic.t('echarts_ignore_null_zero')],
                     ]}
                 />
+                {mode === 'live' && (
+                    <OptionalNumberField
+                        label={Generic.t('echarts_series_valid_time')}
+                        value={meta.validTime}
+                        onChange={v => onPatch({ validTime: v === undefined || v >= 0 ? v : 0 })}
+                    />
+                )}
             </FieldGrid>
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
         </SubGroup>
@@ -371,11 +393,14 @@ export const CartesianSeriesKnobs: FC<{
     /** Theme text-primary — the BAR label colour's inherit preview (ADR-0027 one-hook rule). */
     labelColorFallback: string;
 }> = ({ meta, defaultType, onPatch, pickerCtx, colorFallback, labelColorFallback }) => {
+    // The builder's own type resolution (ADR-0008 r3 + ADR-0060): an explicit bar/scatter/line
+    // override wins, else the chart's default — so a scatter override hides the line/area/bar
+    // groups exactly like the builder emits nothing for them.
     const renderedType: EchartsCartesianType =
-        meta.type === 'bar' ? 'bar' : meta.type === 'line' ? 'line' : defaultType;
+        meta.type === 'bar' || meta.type === 'scatter' ? meta.type : meta.type === 'line' ? 'line' : defaultType;
     return (
         <>
-            {renderedType !== 'bar' && (
+            {renderedType === 'line' && (
                 <>
                     <SubGroup title={Generic.t('echarts_grp_line')}>
                         <SwitchList sx={{ mb: 1.5 }}>
@@ -416,6 +441,15 @@ export const CartesianSeriesKnobs: FC<{
                                 max={20}
                                 disabled={!meta.symbol}
                                 onChange={v => onPatch({ symbolSize: v })}
+                            />
+                            {/* Line shadow (ADR-0060): blur in the series colour; unset = off. */}
+                            <OptionalSliderField
+                                label={Generic.t('echarts_series_shadow')}
+                                value={meta.shadowBlur}
+                                fallback={0}
+                                min={0}
+                                max={30}
+                                onChange={v => onPatch({ shadowBlur: v === undefined || v >= 0 ? v : 0 })}
                             />
                             <LabeledSelect
                                 label={Generic.t('echarts_series_line_style')}
@@ -734,6 +768,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                     <SeriesTransformFields
                         meta={s}
                         onPatch={p => onUpdate(i, p)}
+                        mode={state.mode}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

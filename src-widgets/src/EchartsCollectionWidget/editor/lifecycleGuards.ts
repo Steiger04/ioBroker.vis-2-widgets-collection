@@ -63,7 +63,7 @@ export const healStableIds = (state: EditorState): EditorPatch | null => {
 export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly string[]): EditorPatch | null => {
     if (
         state.mode !== 'json' ||
-        (state.chartType !== 'line' && state.chartType !== 'bar') ||
+        (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter') ||
         visibleNames.length === 0
     ) {
         return null;
@@ -87,7 +87,10 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
  * the survivors re-pack densely (ADR-0028). Idempotent (`null` while no orphan remains).
  */
 export const pruneOrphanAxesStep = (state: EditorState): EditorPatch | null => {
-    if (state.mode === 'json' || (state.chartType !== 'line' && state.chartType !== 'bar')) {
+    if (
+        state.mode === 'json' ||
+        (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter')
+    ) {
         return null;
     }
     const { series, yAxes } = pruneOrphanAxes(state.series, state.yAxes);

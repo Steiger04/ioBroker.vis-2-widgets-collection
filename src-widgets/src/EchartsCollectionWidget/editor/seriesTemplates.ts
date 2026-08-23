@@ -105,6 +105,7 @@ export const SERIES_CATEGORY_I18N: Record<SeriesTemplateCategory, string> = {
 export type SeriesTemplateSlot =
     | 'cartesian-line'
     | 'cartesian-bar'
+    | 'cartesian-scatter' // point series (ADR-0060) — no line/area/bar groups
     | 'pie' // whole-pie series (series[0])
     | 'pie-slice' // per slice (data[i])
     | 'gauge'
@@ -529,6 +530,84 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
     },
     {
         id: 'bar-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
+    },
+];
+
+// ── cartesian-scatter ─────────────────────────────────────────────────────────
+// A point series (ADR-0060): the points ARE the series, so no lineStyle/areaStyle/bar groups —
+// the catalog carries the option groups a scatter actually reads (item look, symbol, label,
+// emphasis, behaviour).
+const CARTESIAN_SCATTER: SeriesTemplate[] = [
+    {
+        id: 'scatter-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        json: JSON.stringify({ itemStyle: { opacity: 1, ...ITEM_BORDER } }),
+    },
+    {
+        id: 'scatter-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
+    },
+    {
+        id: 'scatter-symbol',
+        category: 'symbol',
+        label: 'symbol',
+        json: JSON.stringify({ symbol: 'circle', symbolRotate: 0, symbolOffset: [0, 0], symbolKeepAspect: false }),
+    },
+    {
+        id: 'scatter-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: { position: 'top', distance: 5, rotate: 0, offset: [0, 0], formatter: '{c}', ...LABEL_FONT_KEYS },
+        }),
+    },
+    {
+        id: 'scatter-label-rich',
+        category: 'label',
+        label: 'label · rich',
+        json: JSON.stringify({
+            label: {
+                formatter: '{name|{a}}\n{val|{c}}',
+                rich: {
+                    name: { color: '#666', fontSize: 11, fontStyle: 'normal', fontWeight: 'normal' },
+                    val: { color: '#333', fontSize: 13, fontStyle: 'normal', fontWeight: 'bold' },
+                },
+                ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'scatter-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: {
+                focus: 'self',
+                itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
+                label: { show: true },
+            },
+        }),
+    },
+    {
+        id: 'scatter-markline',
+        category: 'markers',
+        label: 'markLine',
+        json: JSON.stringify({ markLine: MARKLINE }),
+    },
+    {
+        id: 'scatter-clip',
+        category: 'behaviour',
+        label: 'clip',
+        json: '{ "clip": true }',
+    },
+    {
+        id: 'scatter-silent',
         category: 'behaviour',
         label: 'silent',
         json: '{ "silent": true }',
@@ -1048,6 +1127,7 @@ const RADAR: SeriesTemplate[] = [
 export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
     'cartesian-line': CARTESIAN_LINE,
     'cartesian-bar': CARTESIAN_BAR,
+    'cartesian-scatter': CARTESIAN_SCATTER,
     pie: PIE,
     'pie-slice': PIE_SLICE,
     gauge: GAUGE,
@@ -1070,6 +1150,10 @@ export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> 
         'markLine.symbol',
         'markLine.data',
         'label.formatter',
+        // Line shadow (ADR-0060): card-owned only while the blur field is set — the lineStyle
+        // scaffold's NO_SHADOW leaves hand over to the template when unset.
+        'lineStyle.shadowBlur',
+        'lineStyle.shadowColor',
     ]),
     // label.* (parity Build D, ADR-0056): the bar card owns position/size only while their fields
     // are set (and formatter only while a value format is active + label on — per-series facts
@@ -1087,6 +1171,9 @@ export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> 
         'label.fontSize',
         'label.formatter',
     ]),
+    // scatter (ADR-0060): `label.formatter` like the line card (label on + a value format
+    // active); the markLine trio when the card hosts the thresholds.
+    'cartesian-scatter': new Set(['markLine.silent', 'markLine.symbol', 'markLine.data', 'label.formatter']),
     pie: new Set(),
     'pie-slice': new Set(),
     gauge: new Set(['detail.formatter', 'axisLine.lineStyle.color']),

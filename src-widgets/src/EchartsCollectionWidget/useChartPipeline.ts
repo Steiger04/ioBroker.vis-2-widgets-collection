@@ -39,7 +39,7 @@ import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type SeriesPoint } from './historyLogic';
-import { transformSeriesData, xOffsetMs } from './seriesTransform';
+import { cutFuturePoints, holdValidLiveValue, transformSeriesData, xOffsetMs } from './seriesTransform';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -281,6 +281,11 @@ export interface AssemblePipelineInput {
     themeBase: EChartsOption;
     companions: ChartPipelineCompanions;
     src: Record<string, unknown>;
+    /**
+     * The build's clock for the per-series cuts (ADR-0060 „Keine Zukunft"/„Gültige Zeit") —
+     * injectable so the core stays deterministic; the hook passes nothing (real `Date.now()`).
+     */
+    now?: number;
 }
 
 /**
@@ -346,11 +351,17 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
         // positional editor series (json has no per-series OIDs to key it by).
         const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
-        // Per-series value transforms (ADR-0059): the Y-offset feeds the formula over every
-        // mode's points — Verlauf, Live and JSON all transform at this ONE pure seam.
+        // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
+        // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
+        // over every mode's points; „Gültige Zeit" holds a fresh Live value to now.
+        const now = input.now ?? Date.now();
         const transformed = series.map((s, i) => ({
             name: s.name,
-            data: transformSeriesData(s.data, meta[i]),
+            data: holdValidLiveValue(
+                transformSeriesData(meta[i]?.noFuture ? cutFuturePoints(s.data, now) : s.data, meta[i]),
+                mode === 'live' ? meta[i]?.validTime : undefined,
+                now,
+            ),
         }));
         g = buildGeneratedOption({ family, series: transformed, meta, p: presentationWithValues });
     }
