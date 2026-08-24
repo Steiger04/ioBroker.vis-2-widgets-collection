@@ -95,6 +95,18 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        name: 'barInterval',
+        type: 'text',
+        default: 'auto',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'barDiff',
+        type: 'checkbox',
+        default: false,
+        hidden: alwaysHidden,
+    },
+    {
         name: 'aggregate',
         type: 'text',
         default: 'average',

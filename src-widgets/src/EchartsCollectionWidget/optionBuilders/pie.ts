@@ -64,7 +64,9 @@ export const buildPieOption = (
         return applyRawOverride(
             {
                 name: m?.name || s.name,
-                value: aggregate(s.data, mode),
+                // Category-bar bucket arrays (ADR-0065) never reach the pie family — the
+                // bucketing is cartesian-only; narrowed for the points-only aggregate.
+                value: aggregate(s.data as Parameters<typeof aggregate>[0], mode),
                 itemStyle: { color: m?.color ?? p.palette[i % p.palette.length] },
             },
             m?.raw,

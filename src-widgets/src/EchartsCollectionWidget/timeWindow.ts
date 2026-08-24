@@ -32,8 +32,11 @@ export interface TimeWindow {
     end: number;
 }
 
-/** The 18 adapter range keys → minutes (calendar keys are handled separately). */
-const RANGE_MINUTES: Record<string, number> = {
+/**
+ * The fixed (non-calendar) range keys → minutes. Exported for the interval-option filter
+ * (ADR-0065) — ONE table, two consumers (resolver + editor).
+ */
+export const RANGE_MINUTES: Record<string, number> = {
     '10m': 10,
     '30m': 30,
     '1h': 60,

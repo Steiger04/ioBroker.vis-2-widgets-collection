@@ -19,6 +19,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
+import { RANGE_MINUTES } from '../../timeWindow';
 import {
     FieldGrid,
     FieldLabel,
@@ -27,9 +28,12 @@ import {
     NumberField,
     OptionalNumberField,
     OptionalSliderField,
+    SwitchList,
+    SwitchRow,
 } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 import type {
+    EchartsBarInterval,
     EchartsRelativeEnd,
     EchartsTimeRange,
     EchartsTimeType,
@@ -43,6 +47,7 @@ import type {
 export type DataSourceSlice = Pick<
     EditorState,
     | 'mode'
+    | 'chartType'
     | 'timeType'
     | 'timeRange'
     | 'relativeEnd'
@@ -52,6 +57,8 @@ export type DataSourceSlice = Pick<
     | 'percentileValue'
     | 'integralUnit'
     | 'integralInterpolation'
+    | 'barInterval'
+    | 'barDiff'
     | 'aggregate'
     | 'count'
     | 'refreshMs'
@@ -120,6 +127,44 @@ const GroupedRangeSelect: FC<{
         </TextField>
     </Box>
 );
+
+/**
+ * The interval options for the current range (adapter PresetTabs filtering, on OUR range keys):
+ * short ranges offer short intervals; static windows offer everything.
+ */
+const barIntervalOptions = (state: DataSourceSlice): [EchartsBarInterval, string][] => {
+    const all: [EchartsBarInterval, string][] = [
+        ['auto', Generic.t('echarts_bar_interval_auto')],
+        ['15m', Generic.t('echarts_bar_interval_15m')],
+        ['1h', Generic.t('echarts_bar_interval_1h')],
+        ['1d', Generic.t('echarts_bar_interval_1d')],
+        ['30d', Generic.t('echarts_bar_interval_30d')],
+    ];
+    if (state.timeType === 'static') {
+        return all;
+    }
+    // Minutes of the selected range key: the shared fixed-key table (timeWindow) + calendar
+    // keys approximated by their minimum span (they have no fixed length).
+    const CALENDAR_RANGE_MINUTES: Record<string, number> = {
+        '1m': 43200,
+        '2m': 86400,
+        '3m': 129600,
+        '6m': 259200,
+        '1y': 525600,
+        '2y': 1051200,
+    };
+    const rangeMinutes = RANGE_MINUTES[state.timeRange] ?? CALENDAR_RANGE_MINUTES[state.timeRange] ?? 1440;
+    if (rangeMinutes <= 60) {
+        return all.slice(0, 2); // auto + 15m
+    }
+    if (rangeMinutes <= 1440) {
+        return all.slice(0, 3); // + 1h
+    }
+    if (rangeMinutes <= 43200) {
+        return all.slice(0, 4); // + 1d
+    }
+    return all;
+};
 
 interface DataSourceSectionProps {
     state: DataSourceSlice;
@@ -269,6 +314,44 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                             ]}
                         />
                     </FieldGrid>
+                    {/* Category bars (ADR-0065): an explicit interval buckets an effective BAR
+                         chart onto calendar categories (auto = the time axis, unchanged). The
+                         option list follows the adapter's range filtering. */}
+                    {state.chartType === 'bar' && (
+                        <>
+                            <FieldGrid sx={{ mt: 0.5 }}>
+                                <LabeledSelect
+                                    label={Generic.t('echarts_bar_interval')}
+                                    value={state.barInterval}
+                                    onChange={v => set({ barInterval: v as EchartsBarInterval })}
+                                    options={
+                                        // A stored interval the current range filters OUT stays
+                                        // visible (appended with its own label) — the chart keeps
+                                        // bucketing with it; the select must not lie "auto"
+                                        // (review catch: it rendered EMPTY before).
+                                        barIntervalOptions(state).some(([v]) => v === state.barInterval)
+                                            ? barIntervalOptions(state)
+                                            : [
+                                                  ...barIntervalOptions(state),
+                                                  [
+                                                      state.barInterval,
+                                                      Generic.t(`echarts_bar_interval_${state.barInterval}`),
+                                                  ] as [EchartsBarInterval, string],
+                                              ]
+                                    }
+                                />
+                            </FieldGrid>
+                            {state.barInterval !== 'auto' && (
+                                <SwitchList sx={{ mt: 1 }}>
+                                    <SwitchRow
+                                        label={Generic.t('echarts_bar_diff')}
+                                        checked={state.barDiff}
+                                        onChange={v => set({ barDiff: v })}
+                                    />
+                                </SwitchList>
+                            )}
+                        </>
+                    )}
                     {isStatic && staticInvalid && <InfoBox text={Generic.t('echarts_time_static_invalid')} />}
                     {/* One side cleared: the resolver silently falls back to now−24h — say so
                      (the author's window must never be replaced without a word). */}

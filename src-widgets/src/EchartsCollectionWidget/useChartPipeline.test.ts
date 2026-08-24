@@ -571,3 +571,90 @@ describe('assemblePipelineResult — resolved marking bands ride the presentatio
         expect(first?.markArea?.data).toHaveLength(1);
     });
 });
+
+describe('assemblePipelineResult — category bars (ADR-0065)', () => {
+    const dayTs = (y: number, mo: number, d: number, h = 0): number => new Date(y, mo - 1, d, h).getTime();
+    const cats = [dayTs(2026, 8, 20), dayTs(2026, 8, 21), dayTs(2026, 8, 22), dayTs(2026, 8, 23)];
+    const end = dayTs(2026, 8, 24);
+    const pts: [number, number][] = [
+        [dayTs(2026, 8, 20, 6), 2],
+        [dayTs(2026, 8, 20, 18), 4],
+        [dayTs(2026, 8, 22, 6), 10],
+    ];
+
+    it('buckets series onto the fetch grid and emits a CATEGORY x axis', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: pts }], loading: false, error: null },
+                src: { aggregate: 'average' },
+                barCategories: cats,
+                barWindowEnd: end,
+                presentation: toPresentationConfig({
+                    src: { chartType: 'bar' },
+                    palette: ['#111'],
+                    family: 'cartesian',
+                    themeTokens: tokens,
+                    themeDark: false,
+                }),
+            }),
+        );
+        const xAxis = (option as { xAxis: { type: string; data?: number[] } }).xAxis;
+        expect(xAxis.type).toBe('category');
+        expect(xAxis.data).toEqual(cats);
+        const series = option.series as { data: unknown[] }[];
+        expect(series[0].data).toEqual([3, null, 10, null]); // avg per day bucket
+    });
+
+    it('diff drops the FIRST category and diffs consecutive buckets', () => {
+        // Consecutive-day data: totals [6, 3, 10, null] → diffs [-3, 7, 0], first bucket dropped.
+        const consecutive: [number, number][] = [
+            [dayTs(2026, 8, 20, 6), 2],
+            [dayTs(2026, 8, 20, 18), 4],
+            [dayTs(2026, 8, 21, 6), 3],
+            [dayTs(2026, 8, 22, 6), 10],
+        ];
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: consecutive }], loading: false, error: null },
+                src: { aggregate: 'total' },
+                barCategories: cats,
+                barWindowEnd: end,
+                barDiff: true,
+                presentation: toPresentationConfig({
+                    src: { chartType: 'bar' },
+                    palette: ['#111'],
+                    family: 'cartesian',
+                    themeTokens: tokens,
+                    themeDark: false,
+                }),
+            }),
+        );
+        const xAxis = (option as { xAxis: { data?: number[] } }).xAxis;
+        expect(xAxis.data).toEqual(cats.slice(1)); // the diff's first bucket has no predecessor
+        const series = option.series as { data: unknown[] }[];
+        expect(series[0].data).toEqual([-3, 7, 0]);
+    });
+
+    it('WITHOUT categories the x axis stays TIME and the data stays [ts, val] (auto unchanged)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: pts }], loading: false, error: null },
+                presentation: toPresentationConfig({
+                    src: { chartType: 'bar' },
+                    palette: ['#111'],
+                    family: 'cartesian',
+                    themeTokens: tokens,
+                    themeDark: false,
+                }),
+            }),
+        );
+        const xAxis = (option as { xAxis: { type: string; data?: unknown } }).xAxis;
+        expect(xAxis.type).toBe('time');
+        expect(xAxis.data).toBeUndefined();
+        const series = option.series as { data: unknown[] }[];
+        expect(series[0].data).toEqual(pts);
+    });
+});

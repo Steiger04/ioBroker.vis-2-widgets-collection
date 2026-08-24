@@ -79,6 +79,13 @@ export type EchartsAggregate =
     | 'integral';
 export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
 
+/**
+ * The bar bucket interval (parity Build A, ADR-0065). `'auto'`/unset = the TIME-axis path
+ * (today's bar behaviour, unchanged); an explicit key buckets the bar chart onto calendar
+ * category buckets. `'30d'` grids CALENDAR MONTHS (1st-to-1st — the adapter's own alignment).
+ */
+export type EchartsBarInterval = 'auto' | '15m' | '1h' | '1d' | '30d';
+
 /** How each bound OID collapses to a single pie-slice value. */
 export type EchartsPieAggregate = 'latest' | 'sum' | 'avg' | 'min' | 'max';
 /** Pie label content. */

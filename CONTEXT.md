@@ -78,6 +78,10 @@ _Avoid_: Tab (the v2 concept), panel, SectionCard (that's the shell component, n
 A Verlauf chart's read span (parity Build A, ADR-0063), authored in the Data source section as **relativ** (one of 18 grouped ranges — minutes/hours/days as ms, months/years CALENDAR-wise — plus a relativeEnd that rounds the window's END up to one of 17 grid/calendar boundaries instead of „now") or **statisch** (a fixed DateTimePicker pair; disables Live/refresh — a fixed span has nothing to follow). The pure `resolveTimeWindow` (timeWindow.ts) turns the authored spec into {start, end} per fetch; legacy `24h`/`30d` range keys migrate to `1d`/`1m`. NOT the Live buffer's implicit „now" (that mode has no window).
 _Avoid_: time range (that is the range KEY inside it), period, interval (that is ticket 12's aggregation step)
 
+**Kategorie-Bucket**:
+One bar of an interval-bucketed bar chart (parity Build A, ADR-0065): the window gridded onto CALENDAR boundaries (day = local midnight, `30d` = 1st-to-1st months) by the pure `barBuckets.ts` machinery; points fall into `[cat[i], cat[i+1])` and reduce per the chart aggregate (client-side, like the adapter). The fetch widens left onto the grid (one EXTRA bucket under the Differenz — the diff's first bucket has no predecessor and is dropped). With `barCategories` riding the presentation, the x axis becomes a CATEGORY axis (timestamps as data, the X-Karte's time format labels them) and bar series data is plain bucket arrays. `auto`/unset = the time-axis path, unchanged.
+_Avoid_: bar bin, bucket interval (that is the Bar-Intervall knob), histogram (implies counts)
+
 **Summary line**:
 The single-line digest of effective values shown on a collapsed Section (`24h · avg · 500`, `tableau · auto`). A section that cannot say anything useful collapsed does not deserve to be a section.
 _Avoid_: Subtitle, hint text

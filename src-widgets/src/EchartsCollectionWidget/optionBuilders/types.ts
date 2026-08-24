@@ -28,10 +28,15 @@ import type {
 import type { SeriesPoint } from '../historyLogic';
 import type { ThemeTokens } from '../echartsTheme';
 
-/** A resolved cartesian/pie series the chart can render. */
+/**
+ * A resolved cartesian/pie series the chart can render. `data` is `[ts, val]` points on the
+ * time axis — EXCEPT category bars (ADR-0065): when `PresentationConfig.barCategories` rides
+ * along, a bar series' data is the plain per-bucket array `(number | null)[]` (echarts
+ * category indexing).
+ */
 export interface ChartSeries {
     name: string;
-    data: SeriesPoint[];
+    data: SeriesPoint[] | (number | null)[];
 }
 
 /**
@@ -92,6 +97,12 @@ export interface PresentationConfig {
     dataZoomSlider: boolean;
     dataZoomInside: boolean;
     markLines: EchartsMarkLine[];
+    /**
+     * The shared bar-bucket category grid (ADR-0065) — present ⇒ the cartesian builder emits a
+     * CATEGORY x axis (timestamps as data, the X-Karte's time format as the label formatter)
+     * and bar series data is plain bucket arrays. Absent ⇒ the time axis, exactly as before.
+     */
+    barCategories?: number[];
     visualMap?: EchartsVisualMapConfig;
     // family-specific structured config
     gauge?: EchartsGaugeConfig;

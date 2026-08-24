@@ -37,6 +37,7 @@ import type { SeriesMeta } from '../optionBuilder';
 import type {
     EchartsAggregate,
     EchartsAxisConfig,
+    EchartsBarInterval,
     EchartsAreaFill,
     EchartsCartesianType,
     EchartsChartType,
@@ -122,6 +123,10 @@ export interface EditorState {
     integralUnit?: number;
     /** Integral interpolation — read only under aggregate 'integral' (server default none). */
     integralInterpolation?: 'none' | 'linear';
+    /** Bar bucket interval (ADR-0065); 'auto'/unset = the time-axis path. */
+    barInterval: EchartsBarInterval;
+    /** Bar diff post-processing on the buckets (ADR-0065) — drops the first category. */
+    barDiff: boolean;
     aggregate: Aggregate;
     count: number;
     refreshMs: number;
@@ -242,6 +247,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     percentileValue: undefined,
     integralUnit: undefined,
     integralInterpolation: undefined,
+    barInterval: 'auto',
+    barDiff: false,
     aggregate: 'average',
     count: 500,
     refreshMs: 60_000,
@@ -511,6 +518,14 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
                 : data.integralInterpolation === 'none'
                   ? 'none'
                   : undefined,
+        barInterval:
+            data.barInterval === '15m' ||
+            data.barInterval === '1h' ||
+            data.barInterval === '1d' ||
+            data.barInterval === '30d'
+                ? data.barInterval
+                : 'auto',
+        barDiff: boolOr(data.barDiff, false),
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
@@ -652,6 +667,8 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         ...(state.percentileValue !== undefined ? { percentileValue: state.percentileValue } : {}),
         ...(state.integralUnit ? { integralUnit: state.integralUnit } : {}),
         ...(state.integralInterpolation ? { integralInterpolation: state.integralInterpolation } : {}),
+        ...(state.barInterval !== 'auto' ? { barInterval: state.barInterval } : {}),
+        ...(state.barDiff ? { barDiff: true } : {}),
         aggregate: state.aggregate,
         count: state.count,
         refreshMs: state.refreshMs,

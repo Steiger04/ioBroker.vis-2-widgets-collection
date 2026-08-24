@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { fetchMultiSeries, windowToOptions, type FetchedSeries, type IgnoreNull, type Point } from './historyLogic';
 import { resolveTimeWindow, type TimeWindowSpec } from './timeWindow';
+import { barBucketCategories, widenBarWindow } from './barBuckets';
 
 export interface UseHistoryEntry {
     oid: string;
@@ -37,6 +38,15 @@ export interface UseHistoryOptions {
     integralUnit?: number;
     /** Integral interpolation — emitted only under aggregate 'integral' (ADR-0064). */
     integralInterpolation?: 'none' | 'linear';
+    /**
+     * Bar bucketing (ADR-0065): the resolved interval in MINUTES. Set ⇒ the window is widened
+     * onto the bucket grid per fetch (floor/ceil + the diff's extra left bucket) and the
+     * request carries the bucket COUNT (replacing count/step). The hook exposes the category
+     * grid it fetched for, so render and request can never drift apart.
+     */
+    barIntervalMinutes?: number;
+    /** Bar diff post-processing (ADR-0065) — widens one extra bucket left. */
+    barDiff?: boolean;
     /** 0 / undefined = no periodic refresh. */
     refreshMs?: number;
     ignoreNull?: IgnoreNull;
@@ -49,6 +59,10 @@ export interface UseHistoryResult {
     error: string | null;
     /** Force an immediate (debounced) re-fetch — e.g. when a subscribed value changes. */
     refresh: () => void;
+    /** The bar category grid of the LAST fetch (ADR-0065); null when not bucketing. */
+    barCategories: number[] | null;
+    /** The bucketed fetch window's exclusive end (the last bucket extends to it). */
+    barWindowEnd: number | null;
 }
 
 /**
@@ -64,6 +78,8 @@ export function useHistory(
     const [series, setSeries] = useState<FetchedSeries[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [barCategories, setBarCategories] = useState<number[] | null>(null);
+    const [barWindowEnd, setBarWindowEnd] = useState<number | null>(null);
     const [tick, setTick] = useState(0); // bump to force refresh
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -79,6 +95,8 @@ export function useHistory(
         opts.percentile,
         opts.integralUnit,
         opts.integralInterpolation,
+        opts.barIntervalMinutes,
+        opts.barDiff,
     ]);
 
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
@@ -90,24 +108,45 @@ export function useHistory(
         setLoading(true);
 
         const run = (): void => {
-            const options = windowToOptions(resolveTimeWindow(opts.window, Date.now()), opts);
-            fetchMultiSeries(getHistory, entries, options, opts.ignoreNull ?? 'keep')
-                .then(s => {
-                    if (active) {
-                        setSeries(s);
-                        setError(null);
-                    }
-                })
-                .catch(e => {
-                    if (active) {
-                        setError(String(e ?? 'history fetch failed'));
-                    }
-                })
-                .finally(() => {
-                    if (active) {
-                        setLoading(false);
-                    }
-                });
+            /** One fetch with the given request options (shared by both paths below). */
+            const runFetch = (options: ioBroker.GetHistoryOptions): void => {
+                fetchMultiSeries(getHistory, entries, options, opts.ignoreNull ?? 'keep')
+                    .then(s => {
+                        if (active) {
+                            setSeries(s);
+                            setError(null);
+                        }
+                    })
+                    .catch(e => {
+                        if (active) {
+                            setError(String(e ?? 'history fetch failed'));
+                        }
+                    })
+                    .finally(() => {
+                        if (active) {
+                            setLoading(false);
+                        }
+                    });
+            };
+            // Bar buckets (ADR-0065): widen the per-fetch window onto the grid; the bucket
+            // count IS the request resolution (count/step are replaced). The categories are
+            // captured from THIS fetch so render and request cannot drift.
+            if (opts.barIntervalMinutes) {
+                const resolved = resolveTimeWindow(opts.window, Date.now());
+                const widened = widenBarWindow(resolved.start, resolved.end, opts.barIntervalMinutes, !!opts.barDiff);
+                setBarCategories(barBucketCategories(widened.start, widened.end, opts.barIntervalMinutes));
+                setBarWindowEnd(widened.end);
+                runFetch(
+                    windowToOptions(
+                        { start: widened.start, end: widened.end },
+                        { ...opts, count: widened.count, step: undefined },
+                    ),
+                );
+                return;
+            }
+            setBarCategories(null);
+            setBarWindowEnd(null);
+            runFetch(windowToOptions(resolveTimeWindow(opts.window, Date.now()), opts));
         };
 
         clearTimeout(debounceRef.current);
@@ -129,5 +168,5 @@ export function useHistory(
         return () => clearInterval(h);
     }, [opts.refreshMs, opts.enabled]);
 
-    return { series, loading, error, refresh: () => setTick(t => t + 1) };
+    return { series, loading, error, refresh: () => setTick(t => t + 1), barCategories, barWindowEnd };
 }

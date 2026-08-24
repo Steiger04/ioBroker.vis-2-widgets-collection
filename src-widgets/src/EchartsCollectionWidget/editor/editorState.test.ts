@@ -97,6 +97,16 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(loadEditorState({ ...baseState() }).percentileValue).toBeUndefined();
     });
 
+    it('barInterval/barDiff round-trip sparse (ADR-0065: auto/off persist nothing)', () => {
+        const state: EditorState = { ...baseState(), barInterval: '1d', barDiff: true };
+        const re = loadEditorState(saveEditorState(state, 0));
+        expect(re).toMatchObject({ barInterval: '1d', barDiff: true });
+        const auto = loadEditorState(saveEditorState({ ...baseState() }, 0));
+        expect(auto.barInterval).toBe('auto');
+        expect(auto.barDiff).toBe(false);
+        expect(saveEditorState({ ...baseState() } as EditorState, 0)).not.toHaveProperty('barInterval');
+    });
+
     it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {
         const state = {
             ...baseState(),

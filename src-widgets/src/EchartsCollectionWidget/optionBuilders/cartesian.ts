@@ -456,9 +456,12 @@ const buildYAxisEntry = (
  * moment formatter is ALWAYS emitted as a function (authored pattern or adaptive Auto), so the
  * raw JSON keeps its function-free contract while `axisLabel.formatter` stays GUI-owned.
  */
-const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number): Record<string, unknown> => {
+const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: number[]): Record<string, unknown> => {
     const entry: Record<string, unknown> = {
-        type: 'time',
+        // Category bars (ADR-0065): the bucket grid IS the axis — timestamps as data, the same
+        // moment formatter below labels them („Zeitformat der X-Karte gilt weiter"). Everything
+        // else about the entry is shared; the time-axis-only tick-density knobs are skipped.
+        ...(categories ? { type: 'category', data: categories } : { type: 'time' }),
         // Parity Build D (ADR-0055): grid + tick colours ride their show-switch objects, sparse —
         // unset leaves both a bare {show} so the raw override keeps owning lineStyle wholesale.
         splitLine: { show: x.splitLine ?? false, ...(x.gridColor ? { lineStyle: { color: x.gridColor } } : {}) },
@@ -478,10 +481,11 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number): Record<string, 
     // Tick density knobs, conditional-emit like the Y-axis: unset = the echarts default (time-axis
     // splitNumber 6, no interval floor). `minInterval` counts MILLISECONDS on a time axis — the ms
     // semantics are the data mode's clock, not a window edge (min/max stay data-mode-owned, ADR-0035).
-    if (x.splitNumber !== undefined) {
+    // Meaningless on a category axis (the buckets ARE the ticks) — skipped there.
+    if (!categories && x.splitNumber !== undefined) {
         entry.splitNumber = x.splitNumber;
     }
-    if (x.minInterval !== undefined) {
+    if (!categories && x.minInterval !== undefined) {
         entry.minInterval = x.minInterval;
     }
     if (x.nameRotate !== undefined) {
@@ -649,8 +653,11 @@ export const buildCartesianOption = (
             : undefined;
     };
     // The Auto labelling's clock (ADR-0052): the data span across ALL series, recomputed on every
-    // build — a data update re-derives the adaptive resolution.
-    const spanMs = dataSpanMs(series);
+    // build — a data update re-derives the adaptive resolution. Category bars (ADR-0065) carry
+    // plain bucket arrays; their span is the category grid's extent.
+    const spanMs = p.barCategories?.length
+        ? Math.max(...p.barCategories) - Math.min(...p.barCategories)
+        : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
     // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the first bound series' effective values when neither is
@@ -705,7 +712,7 @@ export const buildCartesianOption = (
         },
         // The X raw (ADR-0037 addendum) folds UNDER the built entry like the Y cards' — the card
         // wins collisions; `xAxis` rides REPLACE_MERGE (ADR-0036) so deleting a raw key reverts.
-        xAxis: applyRawOverride(buildXAxisEntry(p.xAxis, spanMs), p.xAxis.raw),
+        xAxis: applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, p.barCategories), p.xAxis.raw),
         yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,

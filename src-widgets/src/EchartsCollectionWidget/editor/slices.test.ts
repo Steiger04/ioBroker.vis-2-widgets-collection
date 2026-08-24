@@ -123,6 +123,7 @@ describe('section slices (ADR-0049)', () => {
             Pick<
                 EditorState,
                 | 'mode'
+                | 'chartType'
                 | 'timeType'
                 | 'timeRange'
                 | 'relativeEnd'
@@ -132,6 +133,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'percentileValue'
                 | 'integralUnit'
                 | 'integralInterpolation'
+                | 'barInterval'
+                | 'barDiff'
                 | 'aggregate'
                 | 'count'
                 | 'refreshMs'

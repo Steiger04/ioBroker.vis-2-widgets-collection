@@ -46,6 +46,7 @@ import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type SeriesPoint } from './historyLogic';
 import { cutFuturePoints, holdValidLiveValue, transformSeriesData, xOffsetMs } from './seriesTransform';
+import { applyBarDiff, bucketizeSeries, resolveBarIntervalMinutes } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -292,6 +293,12 @@ export interface AssemblePipelineInput {
      * injectable so the core stays deterministic; the hook passes nothing (real `Date.now()`).
      */
     now?: number;
+    /** The bar bucket grid from the history fetch (ADR-0065); null/absent ⇒ time-axis path. */
+    barCategories?: number[] | null;
+    /** The bucketed fetch window's exclusive end (the last bucket extends to it, ADR-0065). */
+    barWindowEnd?: number | null;
+    /** Bar diff post-processing on the buckets (ADR-0065) — drops the first category. */
+    barDiff?: boolean;
 }
 
 /**
@@ -314,6 +321,9 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         themeBase,
         companions,
         src,
+        barCategories,
+        barWindowEnd,
+        barDiff,
     } = input;
     let g: EChartsOption;
     // Legend values (ADR-0054): resolve the per-series current values and inject them into the
@@ -329,7 +339,9 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
                       values,
                       history.series,
                       liveBuffers,
-                      jsonParsed.series,
+                      // JSON payload series are always `[ts, val]` points (bucketing is
+                      // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
+                      jsonParsed.series as { name: string; data: SeriesPoint[] }[],
                   ),
               }
             : presentation;
@@ -359,17 +371,43 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
         // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
         // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
-        // over every mode's points; „Gültige Zeit" holds a fresh Live value to now.
+        // over every mode's points; „Gültige Zeit" holds a fresh Live value to now. Point-typed
+        // here — category bars (below) are the only non-point data shape (ADR-0065).
         const now = input.now ?? Date.now();
         const transformed = series.map((s, i) => ({
             name: s.name,
             data: holdValidLiveValue(
-                transformSeriesData(meta[i]?.noFuture ? cutFuturePoints(s.data, now) : s.data, meta[i]),
+                transformSeriesData(
+                    meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
+                    meta[i],
+                ),
                 mode === 'live' ? meta[i]?.validTime : undefined,
                 now,
             ),
         }));
-        g = buildGeneratedOption({ family, series: transformed, meta, p: presentationWithValues });
+        // Category bars (ADR-0065): bucket the transformed points onto the fetch's shared grid
+        // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
+        // and ride the categories into the presentation copy — the builder switches to a
+        // category x axis and the series data becomes plain bucket arrays.
+        let presentationFinal = presentationWithValues;
+        let bucketed: ChartSeries[] = transformed;
+        if (barCategories?.length) {
+            let cats = barCategories;
+            const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
+            bucketed = transformed.map(s => ({
+                name: s.name,
+                data: bucketizeSeries(s.data, cats, src.aggregate as Parameters<typeof bucketizeSeries>[2], endBound),
+            }));
+            if (barDiff) {
+                bucketed = bucketed.map(s => ({
+                    name: s.name,
+                    data: applyBarDiff(s.data as (number | null)[]),
+                }));
+                cats = cats.slice(1); // the diff's first bucket has no predecessor
+            }
+            presentationFinal = { ...presentationWithValues, barCategories: cats };
+        }
+        g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
     }
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
@@ -475,6 +513,18 @@ export function useChartPipeline(
     // A STATIC window (ADR-0063) suppresses the polling AND the early refresh: a fixed span has
     // nothing to follow (adapter behaviour — their live select goes dark on static too).
     const isStaticWindow = src.timeType === 'static';
+    // Category bars (ADR-0065): an EXPLICIT interval on an effective-bar chart in Verlauf
+    // buckets the pipeline onto calendar categories; 'auto'/unset keeps today's time-axis path.
+    // Mixed charts (a per-series bar in a line chart) stay on the time axis — the adapter bins
+    // every series there, a quirk not copied.
+    const barInterval = src.barInterval as string | undefined;
+    const barBucketingOn =
+        family === 'cartesian' &&
+        mode === 'history' &&
+        src.chartType === 'bar' &&
+        !!barInterval &&
+        barInterval !== 'auto';
+    const barIntervalMinutes = barBucketingOn ? resolveBarIntervalMinutes(barInterval, 0) : undefined;
     const history = useHistory(getHistory, entries, {
         window: {
             timeType: src.timeType as 'relative' | 'static' | undefined,
@@ -501,6 +551,10 @@ export function useChartPipeline(
                 : src.integralInterpolation === 'none'
                   ? 'none'
                   : undefined,
+        // Category bars (ADR-0065): the resolved interval buckets the fetch; the diff widens
+        // one bucket left. The bucket count replaces count/step inside the hook.
+        barIntervalMinutes,
+        barDiff: barBucketingOn && src.barDiff === true,
         refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: isTimeFamily && mode === 'history' && entries.length > 0,
@@ -552,6 +606,11 @@ export function useChartPipeline(
             themeBase: theme.themeBase,
             companions,
             src,
+            // The fetch's bar bucket grid (ADR-0065) — from the SAME fetch the series came from,
+            // so categories and data can never drift apart.
+            barCategories: history.barCategories,
+            barWindowEnd: history.barWindowEnd,
+            barDiff: barBucketingOn && src.barDiff === true,
         });
         return {
             option,
@@ -563,11 +622,14 @@ export function useChartPipeline(
         family,
         mode,
         isTimeFamily,
+        barBucketingOn,
         usable,
         values,
         history.series,
         history.loading,
         history.error,
+        history.barCategories,
+        history.barWindowEnd,
         liveBuffers,
         jsonParsed,
         presentation,
