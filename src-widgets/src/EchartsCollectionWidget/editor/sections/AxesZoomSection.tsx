@@ -173,9 +173,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     const setMark = (i: number, patch: Partial<EchartsMarkLine>): void =>
         set({ markLines: state.markLines.map((m, idx) => (idx === i ? { ...m, ...patch } : m)) });
     const addMark = (): void =>
-        // No explicit colour → inherits the theme divider token (ADR-0027), like the builder default.
+        // No explicit colour → inherits the theme divider token (ADR-0027), like the builder
+        // default. A new mark starts as an upper-only dashed line (the stage-1 default).
         set({
-            markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', lineStyle: 'dashed' }],
+            markLines: [...state.markLines, { id: nextStableId(), upper: 0, label: '', lineStyle: 'dashed' }],
         });
     const removeMark = (i: number): void => set({ markLines: state.markLines.filter((m, idx) => idx !== i) });
     // The marking cards share the axis cards' expand pattern (one flag per list item).

@@ -24,8 +24,9 @@ import EChart from './EChart';
 import { buildEchartsTheme, echartsPalette, effectiveDarkMode, resolveThemeTokens } from './echartsTheme';
 import { resolveFrameCss } from './frameStyle';
 import { createHistoryFetcher } from './historyFetcher';
+import { useSubscribedValues } from './editor/useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
-import { decodeAxes, decodeChartConfig, decodeMarkLines, resolvePalette } from './presentation';
+import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, resolvePalette } from './presentation';
 import {
     isUsableOid,
     usableSeries,
@@ -130,20 +131,31 @@ function EchartsCollection(): React.ReactElement {
 
     const getHistory = useMemo(() => createHistoryFetcher(socket), [socket]);
 
+    // Marking bound OIDs (ADR-0062): vis-2's runtime subscription is SCHEMA-driven (oid1..oidN
+    // only), so bounds inside the base64 markLines blob never reach context.values — the body
+    // subscribes them itself via the drilled socket (the preview's mechanism) and overlays the
+    // plain-keyed map in its adapter useValues below.
+    // Cartesian-gated like subscribedOids: a stale marks blob on a non-cartesian family
+    // subscribes nothing.
+    const markOids = useMemo(() => (family === 'cartesian' ? markBoundOids(markLines) : []), [family, markLines]);
+    const markValues = useSubscribedValues(markOids, socket);
+
     // The body adapter's value normalisation (ADR-0046): vis-2 keys context.values by
     // `${oid}.val`; the pipeline expects plain OID keys. Keyed on the joined OID list + the
-    // content-keyed values map, so a move-stable values ref never re-projection.
+    // content-keyed values map, so a move-stable values ref never re-projection. Mark bound
+    // values (own subscription, plain-keyed) sit UNDER the vis-2 projection — the two sources
+    // are disjoint by construction (vis-2 never carries the mark OIDs).
     const useValues = (oids: string[]): Record<string, unknown> => {
         // Stable dependency: the joined OID list (the useSubscribedValues convention) — the array
         // identity churns per render, the key does not.
         const key = oids.join('\n');
         return useMemo(() => {
             const list = key ? key.split('\n') : [];
-            return Object.fromEntries(list.map(o => [o, (values as ValuesMap)[`${o}.val`]]));
+            return Object.fromEntries(list.map(o => [o, (values as ValuesMap)[`${o}.val`] ?? markValues[o]]));
             // `values` is the component's content-keyed memo (outer scope by construction — this
             // is the adapter closure); it IS the dependency that re-runs the projection.
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [key, values]);
+        }, [key, values, markValues]);
     };
 
     // The body's series list for the pipeline (ADR-0046): the indexed OIDs (oid1..oidN,

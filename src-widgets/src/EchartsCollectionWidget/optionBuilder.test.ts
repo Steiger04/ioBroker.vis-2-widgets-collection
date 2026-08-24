@@ -724,7 +724,7 @@ describe('buildGeneratedOption — cartesian', () => {
                     { min: 0, max: 40 },
                     { min: 0, max: 5000, position: 'right' },
                 ],
-                markLines: [{ value: 2000, yAxisIndex: 1 }],
+                markLines: [{ upper: 2000, yAxisIndex: 1 }],
             },
         });
         const series = option.series as unknown as {
@@ -742,7 +742,7 @@ describe('buildGeneratedOption — cartesian', () => {
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A', yAxisIndex: 0 }],
-            p: { ...P, markLines: [{ value: 10 }] }, // no yAxisIndex
+            p: { ...P, markLines: [{ upper: 10 }] }, // no yAxisIndex
         });
         const first = (option.series as unknown[])[0] as { markLine?: { data: { yAxis: number }[] } };
         expect(first.markLine?.data[0].yAxis).toBe(10);
@@ -759,7 +759,7 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: { ...P, markLines: [{ id: '1', value: 10, ...ml }] },
+            p: { ...P, markLines: [{ id: '1', upper: 10, ...ml }] },
         });
         const first = (option.series as unknown[])[0] as {
             markLine?: { data: MarkDatum[] };
@@ -1247,7 +1247,7 @@ describe('buildGeneratedOption — theme-token defaults (ADR-0027)', () => {
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: { ...P, markLines: [{ id: '1', value: 10 }] },
+            p: { ...P, markLines: [{ id: '1', upper: 10 }] },
         });
         const first = (option.series as unknown[])[0] as {
             markLine?: { data: { lineStyle: { color: string } }[] };
@@ -2127,5 +2127,101 @@ describe('buildGeneratedOption — series rest knobs (ADR-0060, parity Build B)'
             buildGeneratedOption({ family: 'cartesian', series: [{ name: 'A', data: [[WED, 1]] }], meta: [{}], p: P })
                 .legend as Record<string, unknown>,
         ).not.toHaveProperty('selected');
+    });
+});
+
+describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', () => {
+    /** Build with the given marks; return the first series' marker blocks. */
+    const markers = (
+        markLines: EchartsMarkLine[],
+    ): { markLine?: { data: Record<string, unknown>[] }; markArea?: { data: unknown[] } } => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, markLines },
+        });
+        const first = (option.series as unknown[])[0] as {
+            markLine?: { data: Record<string, unknown>[] };
+            markArea?: { data: unknown[] };
+        };
+        return first;
+    };
+
+    it('both bounds ⇒ markArea band (fill default 0.2, colour, borderless) — no edge lines', () => {
+        const m = markers([{ id: '1', upper: 24, lower: 18, color: '#c' }]);
+        expect(m.markArea).toBeDefined();
+        expect(m.markLine).toBeUndefined(); // the band REPLACES the two lines
+        const [start, end] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
+        expect(start.yAxis).toBe(18);
+        expect(end.yAxis).toBe(24);
+        expect(start.itemStyle).toEqual({ color: '#c', borderWidth: 0, opacity: 0.2 });
+    });
+
+    it('authored fill wins over the 0.2 default', () => {
+        const [start] = markers([{ upper: 24, lower: 18, fill: 0.6 }]).markArea!.data[0] as [Record<string, unknown>];
+        expect((start.itemStyle as Record<string, unknown>).opacity).toBe(0.6);
+    });
+
+    it('band label carries text/size/colour — position/X-offset stay line-only', () => {
+        const [start] = markers([
+            {
+                upper: 24,
+                lower: 18,
+                label: 'Komfort',
+                labelSize: 11,
+                labelColor: '#ff0',
+                labelPosition: 'end',
+                labelOffset: 5,
+            },
+        ]).markArea!.data[0] as [Record<string, unknown>];
+        expect(start.label).toEqual({ formatter: 'Komfort', fontSize: 11, color: '#ff0' });
+    });
+
+    it('exactly one resolved bound ⇒ a markLine at that bound (upper-only AND lower-only)', () => {
+        const up = markers([{ upper: 24 }]).markLine!;
+        expect(up.data[0].yAxis).toBe(24);
+        const low = markers([{ lower: 18 }]).markLine!;
+        expect(low.data[0].yAxis).toBe(18);
+        expect(markers([{ upper: 24 }]).markArea).toBeUndefined();
+    });
+
+    it('no resolved bound (or unresolved string bounds) ⇒ nothing emitted at all', () => {
+        const none = markers([{ id: '1' }]);
+        expect(none.markLine).toBeUndefined();
+        expect(none.markArea).toBeUndefined();
+        const unresolved = markers([{ upper: '0_userdata.0.x', lower: '0_userdata.0.y' }]);
+        expect(unresolved.markLine).toBeUndefined();
+        expect(unresolved.markArea).toBeUndefined();
+    });
+
+    it('a band and a line on the same axis share one host series', () => {
+        const m = markers([{ upper: 24, lower: 18 }, { upper: 30 }]);
+        expect(m.markArea).toBeDefined();
+        expect(m.markLine).toBeDefined();
+        expect(m.markLine!.data).toHaveLength(1);
+        expect(m.markArea!.data).toHaveLength(1);
+    });
+
+    it('the band attaches to the first series of the TARGET axis (multi-axis host, ADR-0023)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'Temp', data: [[1, 20]] },
+                { name: 'Power', data: [[1, 2000]] },
+            ],
+            meta: [
+                { name: 'Temp', yAxisIndex: 0 },
+                { name: 'Power', yAxisIndex: 1 },
+            ],
+            p: {
+                ...P,
+                yAxes: [{}, { position: 'right' }],
+                markLines: [{ upper: 5000, lower: 4000, yAxisIndex: 1 }],
+            },
+        });
+        const series = option.series as unknown as { name: string; markArea?: unknown }[];
+        expect(series[1].markArea).toBeDefined();
+        expect(series[0].markArea).toBeUndefined();
     });
 });

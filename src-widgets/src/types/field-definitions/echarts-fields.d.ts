@@ -480,7 +480,11 @@ export type EchartsMarkLabelPosition =
     | 'insideEndTop'
     | 'insideEndBottom';
 
-/** A marking line on a cartesian value axis (parity Build C stage 1, ADR-0061 — numeric limits). */
+/**
+ * A marking on a cartesian value axis (parity Build C, ADR-0061 stage 1 + ADR-0062 stage 2):
+ * one or two bounds (number or OID — both resolved ⇒ a band, one ⇒ a line) with style and label
+ * clusters, anchored to a Y-axis.
+ */
 export interface EchartsMarkLine {
     /**
      * Stable identity for React reconciliation (NOT emitted to echarts — the cartesian builder's
@@ -488,8 +492,27 @@ export interface EchartsMarkLine {
      * load via `withStableIds`. Fixes the index-key bug on marking delete.
      */
     id?: string;
-    /** The numeric limit the line sits at (OID limits + bands are stage 2, issue 10). */
-    value: number;
+    /**
+     * Upper bound: a number, or an OID string that resolves live via socket subscription
+     * (ADR-0062). A pure-numeric string normalizes to a number on decode (adapter `parseFloat`).
+     */
+    upper?: number | string;
+    /**
+     * Lower bound (same number-or-OID semantics as {@link upper}). Upper AND lower resolved ⇒ a
+     * markArea band; exactly one ⇒ a markLine at that bound.
+     */
+    lower?: number | string;
+    /**
+     * Band fill opacity 0–1 (ADR-0062) — only read when both bounds are resolved. Unset ⇒ the
+     * 0.2 default (a light band; the adapter's 0 default renders invisible).
+     */
+    fill?: number;
+    /**
+     * Legacy stage-1 limit (ADR-0061) — the single numeric bound before upper/lower existed.
+     * Decode migrates it to {@link upper} (an authored upper wins); tolerated at runtime, never
+     * re-saved.
+     */
+    value?: number;
     /** Label text; unset → NO label key (echarts then shows the value at the line end). */
     label?: string;
     color?: string;

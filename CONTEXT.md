@@ -111,7 +111,7 @@ The cartesian-only UI that adds/removes/reorders Axis cards and assigns series t
 _Avoid_: Axes tab, axis list
 
 **Markierung**:
-A reference line on a cartesian chart (the reworked threshold, ADR-0061) — a card in the Axes & Zoom section, anchored to a **Y-axis** (our model; the adapter anchors on a series). Carries a limit (numeric in stage 1; OID bounds + bands are reserved extensions), a style cluster (colour/width/shadow/solid-dashed-dotted) and a label cluster (text, 12 echarts-native places, X offset, size, colour). The emit stays series-level (echarts `markLine` hangs on series): the builder attaches it to the first series of the target axis. No label text → no `label` key, so echarts shows the value itself at the line end.
+A reference marking on a cartesian chart (the reworked threshold, ADR-0061/0062) — a card in the Axes & Zoom section, anchored to a **Y-axis** (our model; the adapter anchors on a series). Carries one or two **bounds** (`upper`/`lower`, each a number OR an OID that resolves live via socket subscription — both resolved ⇒ a `markArea` band with a 0–1 fill, exactly one ⇒ a `markLine`), a style cluster (colour/width/shadow/solid-dashed-dotted) and a label cluster (text, 12 echarts-native places, X offset, size, colour). The emit stays series-level (echarts `markLine`/`markArea` hang on series): the builder attaches to the first series of the target axis, reading bounds the PIPELINE resolved against the current values (the builder never subscribes). No label text → no `label` key, so echarts shows the value itself at the line end.
 _Avoid_: Threshold (the retired pre-0061 name), mark line (that is the echarts key), limit line
 
 **X-Karte**:

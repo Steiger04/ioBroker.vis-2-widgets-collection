@@ -12,7 +12,9 @@ import {
     buildTitleOption,
     decodeLegendConfig,
     decodeMarkLines,
+    markBoundOids,
     normalizeLegendPos,
+    resolveMarkLines,
     PALETTE_PRESETS,
     resolvePalette,
     toPresentationConfig,
@@ -595,30 +597,83 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
 describe('decodeMarkLines — legacy dashed migration (parity Build C, ADR-0061)', () => {
     it('dashed true/false → lineStyle dashed/solid; the dashed key is dropped on decode', () => {
         const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'a', value: 5, dashed: true }])));
-        expect(out[0]).toEqual({ id: 'a', value: 5, lineStyle: 'dashed' });
+        expect(out[0]).toEqual({ id: 'a', upper: 5, lineStyle: 'dashed' });
         const solid = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'b', value: 7, dashed: false }])));
-        expect(solid[0]).toEqual({ id: 'b', value: 7, lineStyle: 'solid' });
-        // No boolean at all → nothing to migrate: the item passes through SPARSE (the builder
-        // resolves an absent lineStyle as solid — stamping 'solid' here would bloat every re-save).
+        expect(solid[0]).toEqual({ id: 'b', upper: 7, lineStyle: 'solid' });
+        // No boolean at all → only the stage-2 value→upper migration runs: no lineStyle key is
+        // stamped (the builder resolves an absent lineStyle as solid — sparse re-save).
         const bare = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'c', value: 9 }])));
-        expect(bare[0]).toEqual({ id: 'c', value: 9 });
+        expect(bare[0]).toEqual({ id: 'c', upper: 9 });
     });
 
     it('an authored lineStyle wins over any legacy dashed (no double migration)', () => {
         const out = decodeMarkLines(encodeBlob(JSON.stringify([{ value: 5, dashed: true, lineStyle: 'dotted' }])));
         expect(out[0].lineStyle).toBe('dotted');
+        expect(out[0].upper).toBe(5);
         expect('dashed' in out[0]).toBe(false);
+        expect('value' in out[0]).toBe(false);
     });
 
     it('label/colour/axis carry over untouched (no data loss)', () => {
         const out = decodeMarkLines(
             encodeBlob(JSON.stringify([{ value: 5, dashed: true, label: 'Max', color: '#c', yAxisIndex: 1 }])),
         );
-        expect(out[0]).toEqual({ value: 5, lineStyle: 'dashed', label: 'Max', color: '#c', yAxisIndex: 1 });
+        expect(out[0]).toEqual({ upper: 5, lineStyle: 'dashed', label: 'Max', color: '#c', yAxisIndex: 1 });
     });
 
     it('already-migrated items decode unchanged (idempotent)', () => {
-        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'x', value: 3, lineStyle: 'dotted' }])));
-        expect(out[0]).toEqual({ id: 'x', value: 3, lineStyle: 'dotted' });
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'x', upper: 3, lineStyle: 'dotted' }])));
+        expect(out[0]).toEqual({ id: 'x', upper: 3, lineStyle: 'dotted' });
+    });
+});
+
+describe('decodeMarkLines — stage-2 value→upper migration (parity Build C, ADR-0062)', () => {
+    it('legacy value migrates to upper; the value key drops', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'a', value: 50, yAxisIndex: 1 }])));
+        expect(out[0]).toEqual({ id: 'a', upper: 50, yAxisIndex: 1 });
+    });
+
+    it('authored upper wins over a legacy value (no double migration)', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ value: 5, upper: 9 }])));
+        expect(out[0].upper).toBe(9);
+        expect('value' in out[0]).toBe(false);
+    });
+
+    it('numeric-string bounds normalize to numbers; OID strings stay strings; fill passes through', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ upper: '20', lower: '0_userdata.0.x', fill: 0.4 }])));
+        expect(out[0]).toEqual({ upper: 20, lower: '0_userdata.0.x', fill: 0.4 });
+    });
+});
+
+describe('markBoundOids / resolveMarkLines (ADR-0062)', () => {
+    it('markBoundOids collects string bounds only — numbers/numeric strings are not OIDs', () => {
+        const oids = markBoundOids([
+            { upper: 10, lower: 'hm-rpc.0.ABC.TEMP' },
+            { upper: '0_userdata.0.soll', lower: '' },
+            { upper: 'nothing_selected' },
+        ]);
+        expect(oids).toEqual(['hm-rpc.0.ABC.TEMP', '0_userdata.0.soll']);
+    });
+
+    it('resolveMarkLines: numbers pass, OIDs resolve from the injected values, bools coerce 1/0', () => {
+        const out = resolveMarkLines([{ upper: 10, lower: '0_userdata.0.soll' }, { upper: '0_userdata.0.pump' }], {
+            '0_userdata.0.soll': 18.5,
+            '0_userdata.0.pump': true,
+        });
+        expect(out[0]).toMatchObject({ upper: 10, lower: 18.5 });
+        expect(out[1].upper).toBe(1); // toPlottableNumber bool intake
+    });
+
+    it('resolveMarkLines: a missing/unconvertible OID bound becomes undefined (drops, no crash)', () => {
+        const out = resolveMarkLines(
+            [
+                { upper: '0_userdata.0.missing', lower: 5 },
+                { upper: '0_userdata.0.text', lower: '0_userdata.0.also-missing' },
+            ],
+            { '0_userdata.0.text': 'not-a-number' },
+        );
+        expect(out[0]).toMatchObject({ upper: undefined, lower: 5 });
+        expect(out[1].upper).toBeUndefined();
+        expect(out[1].lower).toBeUndefined();
     });
 });

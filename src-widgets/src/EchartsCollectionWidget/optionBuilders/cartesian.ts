@@ -29,7 +29,7 @@ import type {
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
-import { buildLegend, markLineStyleOf } from '../presentation';
+import { buildLegend, DEFAULT_MARK_FILL, markLineStyleOf } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
@@ -220,62 +220,109 @@ const buildCartesianSeriesEntry = (
 };
 
 /**
- * Marking markLines attached to the first cartesian series of the target axis (echarts markLine
- * is series-level; the anchor is our Y-axis model, ADR-0061).
+ * One marking's RESOLVED bounds (ADR-0062): numbers only — OID strings read as unset (the
+ * pipeline resolves bounds against the subscribed values BEFORE the presentation call; the
+ * builder itself never subscribes).
+ */
+const numericBound = (bound: number | string | undefined): number | undefined =>
+    typeof bound === 'number' && Number.isFinite(bound) ? bound : undefined;
+
+/**
+ * Marking markers attached to the first cartesian series of the target axis (echarts markLine/
+ * markArea are series-level; the anchor is our Y-axis model, ADR-0061/0062).
  *
- * Style cluster (colour/width/shadow/3-way line style) and label cluster (text/position/X
- * offset/size/colour) emit sparse — every unset field leaves no key, so pre-0061 widgets render
- * pixel-identical. A legacy boolean `dashed` is tolerated at runtime (decode normalizes it away).
+ * Per marking: both bounds resolved ⇒ a markArea BAND (fill 0–1, borderless — the band
+ * replaces the two edge lines, ticket 10); exactly one ⇒ a markLine at that bound with the full
+ * stage-1 style + label clusters; neither ⇒ skipped. Style/label emit sparse — every unset
+ * field leaves no key. A legacy boolean `dashed` is tolerated at runtime (decode normalizes it
+ * away).
  *
- * @param markLines - The marking configs.
+ * @param markLines - The marking configs (bounds resolved to numbers by the pipeline).
  * @param divider - Theme divider token — the default marking colour when none is explicit (ADR-0027).
  */
-const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<string, unknown> | undefined => {
-    if (!markLines.length) {
-        return undefined;
-    }
-    return {
-        silent: true,
-        symbol: 'none',
-        data: markLines.map(ml => {
-            const color = ml.color ?? divider;
-            // Legacy tolerance: pre-0061 blobs carry a boolean `dashed` (decode migrates, the
-            // builder never rejects). An authored 3-way lineStyle wins over any stale boolean.
-            const type = markLineStyleOf(ml);
-            // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as
-            // v+1 in the line's own colour (0/unset = off — no shadow keys at all).
-            const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
-            // Label cluster: NO text → no label key at all (echarts shows the value at the line
-            // end — the pre-0061 behaviour). X offset negates on the END places (adapter l/r:
-            // positive pulls the label inward) — including the UNSET position, whose effective
-            // default is 'end' too, so "Standard" and an explicit "Rechts" offset the same way.
-            const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
-            return {
-                yAxis: ml.value,
-                lineStyle: {
-                    type,
-                    color,
-                    ...(ml.width ? { width: ml.width } : {}),
-                    ...(shadowOn
-                        ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color }
+const markMarkers = (
+    markLines: EchartsMarkLine[],
+    divider: string,
+): { lineData: Record<string, unknown>[]; areaData: [Record<string, unknown>, Record<string, unknown>][] } => {
+    const lineData: Record<string, unknown>[] = [];
+    const areaData: [Record<string, unknown>, Record<string, unknown>][] = [];
+    for (const ml of markLines) {
+        const upper = numericBound(ml.upper);
+        const lower = numericBound(ml.lower);
+        const color = ml.color ?? divider;
+        if (upper !== undefined && lower !== undefined) {
+            // Band (ADR-0062): fill defaults 0.2 (the adapter's 0 renders invisible — documented
+            // deviation); borderless like the adapter; the label cluster's text/size/colour ride
+            // the first point (markArea data items officially carry label+itemStyle) — position
+            // and X offset stay line-only (their 12 places are line places).
+            areaData.push([
+                {
+                    yAxis: lower,
+                    itemStyle: { color, borderWidth: 0, opacity: ml.fill ?? DEFAULT_MARK_FILL },
+                    ...(ml.label
+                        ? {
+                              label: {
+                                  formatter: ml.label,
+                                  ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
+                                  ...(ml.labelColor ? { color: ml.labelColor } : {}),
+                              },
+                          }
                         : {}),
                 },
-                ...(ml.label
-                    ? {
-                          label: {
-                              formatter: ml.label,
-                              ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
-                              ...(ml.labelOffset
-                                  ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] }
-                                  : {}),
-                              ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
-                              ...(ml.labelColor ? { color: ml.labelColor } : {}),
-                          },
-                      }
-                    : {}),
-            };
-        }),
-    };
+                { yAxis: upper },
+            ]);
+            continue;
+        }
+        const bound = upper ?? lower;
+        if (bound === undefined) {
+            continue; // nothing resolved — no marker, no crash
+        }
+        // Legacy tolerance: pre-0061 blobs carry a boolean `dashed` (decode migrates, the
+        // builder never rejects). An authored 3-way lineStyle wins over any stale boolean.
+        const type = markLineStyleOf(ml);
+        // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as
+        // v+1 in the line's own colour (0/unset = off — no shadow keys at all).
+        const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
+        // Label cluster: NO text → no label key at all (echarts shows the value at the line
+        // end — the pre-0061 behaviour). X offset negates on the END places (adapter l/r:
+        // positive pulls the label inward) — including the UNSET position, whose effective
+        // default is 'end' too, so "Standard" and an explicit "Rechts" offset the same way.
+        const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
+        lineData.push({
+            yAxis: bound,
+            lineStyle: {
+                type,
+                color,
+                ...(ml.width ? { width: ml.width } : {}),
+                ...(shadowOn ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color } : {}),
+            },
+            ...(ml.label
+                ? {
+                      label: {
+                          formatter: ml.label,
+                          ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
+                          ...(ml.labelOffset ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] } : {}),
+                          ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
+                          ...(ml.labelColor ? { color: ml.labelColor } : {}),
+                      },
+                  }
+                : {}),
+        });
+    }
+    return { lineData, areaData };
+};
+
+/**
+ * Attach a marker block (`markLine`/`markArea`) to a host series, merging DATA when the host
+ * already carries one (the axis-fallback collapse — two axis-groups landing on one host).
+ */
+const attachMarker = (host: Record<string, unknown>, key: 'markLine' | 'markArea', data: unknown[]): void => {
+    const existing = host[key] as { data?: unknown[] } | undefined;
+    if (existing) {
+        existing.data = [...(existing.data ?? []), ...data];
+    } else {
+        host[key] = { silent: true, ...(key === 'markLine' ? { symbol: 'none' } : {}), data };
+    }
 };
 
 /**
@@ -510,11 +557,11 @@ export const buildCartesianOption = (
         e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
-    // Threshold mark-lines attach to a SERIES, and echarts draws them on that series' axis. With
-    // multi-axis (ADR-XXXX) a threshold must hang on a series bound to its own axis, not stur on
-    // entries[0] (which would draw a 2000 W threshold on a 0–40 °C axis). Group thresholds by their
-    // yAxisIndex and attach each group to the first series on that axis (fall back to entries[0]
-    // when an axis has no series — rare; groups then merge onto the one host).
+    // Marking markers attach to a SERIES, and echarts draws them on that series' axis. With
+    // multi-axis (ADR-0023) a marking must hang on a series bound to its own axis, not stuck on
+    // entries[0] (which would draw a 2000 W marking on a 0–40 °C axis). Group markings by their
+    // yAxisIndex and attach each group's lines AND bands to the first series on that axis (fall
+    // back to entries[0] when an axis has no series — rare; groups then merge onto the one host).
     if (p.markLines.length > 0 && entries.length > 0) {
         const byAxis = new Map<number, EchartsMarkLine[]>();
         for (const ml of p.markLines) {
@@ -526,19 +573,14 @@ export const buildCartesianOption = (
                 byAxis.set(ax, [ml]);
             }
         }
-        for (const [ax, lines] of byAxis) {
+        for (const [ax, marks] of byAxis) {
             const host = entries.find(e => e.yAxisIndex === ax) ?? entries[0];
-            const opt = markLineOption(lines, p.themeTokens.divider);
-            if (!opt) {
-                continue;
+            const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider);
+            if (lineData.length) {
+                attachMarker(host, 'markLine', lineData);
             }
-            if (host.markLine) {
-                // Fallback collapse: two axis-groups landed on the same host (no series on either
-                // axis) — merge their data so neither threshold is lost.
-                const prev = (host.markLine as { data?: unknown[] }).data ?? [];
-                (host.markLine as { data: unknown[] }).data = [...prev, ...((opt as { data: unknown[] }).data ?? [])];
-            } else {
-                host.markLine = opt;
+            if (areaData.length) {
+                attachMarker(host, 'markArea', areaData);
             }
         }
     }

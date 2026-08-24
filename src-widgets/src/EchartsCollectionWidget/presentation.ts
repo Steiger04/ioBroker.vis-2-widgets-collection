@@ -28,6 +28,7 @@ import type {
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
+import { toPlottableNumber } from './historyLogic';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
 import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
@@ -214,6 +215,12 @@ export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBl
 };
 
 /**
+ * The band fill's default (ADR-0062) — ONE source for the builder's emission and the card's
+ * slider fallback. 0.2 (a light band): the adapter's 0 renders an invisible band.
+ */
+export const DEFAULT_MARK_FILL = 0.2;
+
+/**
  * Resolve a marking's effective 3-way line style (ADR-0061): an authored `lineStyle` wins, a
  * legacy boolean `dashed` is tolerated (decode migrates it away; the builder and the card read
  * through this ONE resolver so the tolerance cannot drift apart).
@@ -222,19 +229,88 @@ export const markLineStyleOf = (ml: EchartsMarkLine): EchartsLineStyle =>
     ml.lineStyle ?? (ml.dashed ? 'dashed' : 'solid');
 
 /**
- * Migrate one marking to the ADR-0061 model: a legacy boolean `dashed` becomes the 3-way
- * `lineStyle` (an authored lineStyle wins; the boolean key is dropped either way). Items without
- * a `dashed` pass through unchanged (same reference).
+ * Normalize an authored marking bound (ADR-0062): a pure-numeric string becomes the NUMBER
+ * (the adapter's `parseFloat` semantics — a typed "20" is a number, not an OID), any other
+ * non-empty string stays an OID string, everything else is unset.
  */
-const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
-    if (ml.dashed === undefined) {
-        return ml;
+export const parseMarkBound = (raw: number | string | undefined): number | string | undefined => {
+    if (typeof raw === 'number') {
+        return Number.isFinite(raw) ? raw : undefined;
     }
-    const { dashed, ...rest } = ml;
-    return { ...rest, ...(rest.lineStyle ? {} : { lineStyle: markLineStyleOf(ml) }) };
+    if (typeof raw !== 'string' || raw.trim() === '') {
+        return undefined;
+    }
+    return /^-?\d+(?:[.,]\d+)?$/.test(raw.trim()) ? Number(raw.trim().replace(',', '.')) : raw;
 };
 
-/** Decode the base64 mark-lines blob (legacy `dashed` migrated away, ADR-0061). */
+/**
+ * The subscribable bound OIDs of a marking list (ADR-0062) — string bounds only (numbers and
+ * numeric strings are not OIDs). Mirrors the pipeline's `isUsableOid` predicate (non-empty, not
+ * vis-2's `nothing_selected` marker) without importing the pipeline module (cycle).
+ */
+export const markBoundOids = (markLines: readonly EchartsMarkLine[]): string[] => {
+    const oids: string[] = [];
+    for (const ml of markLines) {
+        for (const bound of [ml.upper, ml.lower]) {
+            if (typeof bound === 'string' && bound && bound !== 'nothing_selected') {
+                oids.push(bound);
+            }
+        }
+    }
+    return oids;
+};
+
+/**
+ * Resolve marking bounds against the CURRENT subscribed values (ADR-0062): numbers pass
+ * through, OID strings resolve via {@link toPlottableNumber} (the ADR-0058 bool→1/0 intake), a
+ * missing/unconvertible bound becomes `undefined` (it drops — no band, no crash). Style/label
+ * fields ride along untouched; the builder only reads NUMERIC bounds.
+ */
+export const resolveMarkLines = (
+    markLines: readonly EchartsMarkLine[],
+    values: Record<string, unknown>,
+): EchartsMarkLine[] =>
+    markLines.map(ml => {
+        const resolve = (bound: number | string | undefined): number | undefined =>
+            typeof bound === 'number' ? bound : (toPlottableNumber(values[bound ?? ''] ?? null) ?? undefined);
+        return { ...ml, upper: resolve(ml.upper), lower: resolve(ml.lower) };
+    });
+
+/**
+ * Migrate one marking to the current model (ADR-0061 + ADR-0062): a legacy boolean `dashed`
+ * becomes the 3-way `lineStyle` (an authored lineStyle wins), the legacy stage-1 `value`
+ * becomes `upper` (an authored upper wins), and bounds normalize via {@link parseMarkBound}.
+ * Items with nothing to migrate pass through unchanged (same reference).
+ */
+const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
+    const { dashed, value, upper, lower, ...rest } = ml;
+    const nextUpper =
+        upper !== undefined ? parseMarkBound(upper) : value !== undefined ? parseMarkBound(value) : undefined;
+    const nextLower = lower !== undefined ? parseMarkBound(lower) : undefined;
+    const nextStyle = rest.lineStyle ?? (dashed !== undefined ? (dashed ? 'dashed' : 'solid') : undefined);
+    const changed =
+        dashed !== undefined ||
+        value !== undefined ||
+        nextUpper !== upper ||
+        nextLower !== lower ||
+        nextStyle !== ml.lineStyle;
+    if (!changed) {
+        return ml;
+    }
+    const out: EchartsMarkLine = { ...rest };
+    if (nextUpper !== undefined) {
+        out.upper = nextUpper;
+    }
+    if (nextLower !== undefined) {
+        out.lower = nextLower;
+    }
+    if (nextStyle !== undefined) {
+        out.lineStyle = nextStyle;
+    }
+    return out;
+};
+
+/** Decode the base64 mark-lines blob (legacy `dashed`/`value` migrated away, ADR-0061/0062). */
 export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine[] => {
     if (!raw) {
         return [];

@@ -1,19 +1,23 @@
 /**
- * One marking card of the „Markierungen" SubGroup in Axes & Zoom (parity Build C stage 1,
- * ADR-0061; extracted per the ADR-0051 concept-name convention).
+ * One marking card of the „Markierungen" SubGroup in Axes & Zoom (parity Build C, ADR-0061
+ * stage 1 + ADR-0062 stage 2; extracted per the ADR-0051 concept-name convention).
  *
  * @module EchartsCollectionWidget/editor/sections/axes/MarkCard
  * @remarks
- * The shared EditorCard shell (swatch = effective line colour, value/label title, axis subtitle,
- * delete) with the body in three SubGroups — Grenzwert (value + target axis), Stil (colour,
+ * The shared EditorCard shell (swatch = effective line colour, bounds/label title, axis
+ * subtitle, delete) with the body in three SubGroups — Grenzwert (upper/lower as number-or-OID
+ * bound fields + target axis + the band fill while BOTH bounds are authored), Stil (colour,
  * width, shadow, 3-way line style), Beschriftung (text; the tuning fields render only while a
  * text exists — the adapter's gating). The ANCHOR is the Y-axis (our model); the emit hangs the
- * markLine on the first series of that axis (builder-side, ADR-0023). Purely presentational:
- * every write goes through the onChange patch / onRemove callbacks; the section owns the list.
+ * markLine/markArea on the first series of that axis (builder-side, ADR-0023). Both bounds
+ * resolved ⇒ a band, one ⇒ a line (ADR-0062 — the resolution itself is pipeline-side; the card
+ * only authors). Purely presentational: every write goes through the onChange patch / onRemove
+ * callbacks; the section owns the list.
  */
-import type { FC } from 'react';
-import { Box, IconButton } from '@mui/material';
-import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { useState, type FC } from 'react';
+import { Box, IconButton, TextField } from '@mui/material';
+import { DeleteOutline as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { SelectID, type Connection, type IobTheme } from '@iobroker/adapter-react-v5';
 
 import Generic from '../../../../Generic';
 import {
@@ -21,13 +25,12 @@ import {
     FieldGrid,
     FieldLabel,
     LabeledSelect,
-    NumberField,
     OptionalSliderField,
     SubGroup,
     TextField2,
 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
-import { markLineStyleOf } from '../../../presentation';
+import { DEFAULT_MARK_FILL, markLineStyleOf, parseMarkBound } from '../../../presentation';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsMarkLabelPosition, EchartsMarkLine } from '../../../../types/field-definitions/echarts-fields';
 
@@ -47,6 +50,56 @@ const LABEL_POSITIONS: ReadonlyArray<[EchartsMarkLabelPosition, string]> = [
     ['insideEndBottom', Generic.t('echarts_mark_pos_inside_end_bottom')],
 ];
 
+/**
+ * A marking bound field (ADR-0062): a number OR an OID in one input — a pure-numeric entry
+ * stores the NUMBER, anything else stays a string the pipeline resolves via subscription. The
+ * "…" button opens the SelectID dialog (the OidPicker idiom inline; marks accept any state with
+ * a current value, so no history filter).
+ */
+const BoundField: FC<{
+    label: string;
+    value: number | string | undefined;
+    onChange: (value: number | string | undefined) => void;
+    ctx: OidPickerCtx;
+}> = ({ label, value, onChange, ctx }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <Box>
+            <FieldLabel>{label}</FieldLabel>
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', width: '100%' }}>
+                <TextField
+                    size="small"
+                    placeholder="20 / oid"
+                    value={value === undefined ? '' : String(value)}
+                    onChange={e => onChange(parseMarkBound(e.target.value))}
+                    fullWidth
+                />
+                <IconButton
+                    size="small"
+                    onClick={() => setOpen(true)}
+                    aria-label={Generic.t('echarts_editor_browse_oid')}
+                >
+                    <SearchIcon fontSize="small" />
+                </IconButton>
+                {open && (
+                    <SelectID
+                        socket={ctx.socket as unknown as Connection}
+                        theme={ctx.theme as unknown as IobTheme}
+                        themeType={ctx.themeType}
+                        selected={typeof value === 'string' ? value : ''}
+                        title={label}
+                        onClose={() => setOpen(false)}
+                        onOk={(selected): void => {
+                            onChange(typeof selected === 'string' ? selected : (selected?.[0] ?? ''));
+                            setOpen(false);
+                        }}
+                    />
+                )}
+            </Box>
+        </Box>
+    );
+};
+
 /** One marking card: the shared EditorCard shell, body in SubGroups (Grenzwert/Stil/Label). */
 const MarkCard: FC<{
     mark: EchartsMarkLine;
@@ -64,6 +117,14 @@ const MarkCard: FC<{
     // different effective style than the chart draws).
     const lineStyleEffective = markLineStyleOf(m);
     const hasText = !!m.label;
+    const hasBothBounds = m.upper !== undefined && m.lower !== undefined;
+    // Collapsed title: the label, else the authored bounds (a band shows its span).
+    const boundsTitle =
+        m.upper === undefined && m.lower === undefined
+            ? '—'
+            : hasBothBounds
+              ? `${m.lower} … ${m.upper}`
+              : String(m.upper ?? m.lower);
 
     return (
         <EditorCard
@@ -84,7 +145,7 @@ const MarkCard: FC<{
                     }}
                 />
             }
-            title={m.label || String(m.value)}
+            title={m.label || boundsTitle}
             subtitle={
                 axisOptions.length > 1
                     ? (axisOptions.find(([v]) => Number(v) === (m.yAxisIndex ?? 0))?.[1] ?? axisOptions[0]?.[1])
@@ -103,10 +164,17 @@ const MarkCard: FC<{
         >
             <SubGroup title={Generic.t('echarts_mark_grp_limit')}>
                 <FieldGrid min={130}>
-                    <NumberField
-                        label={Generic.t('echarts_threshold_value')}
-                        value={m.value}
-                        onChange={v => onChange({ value: v })}
+                    <BoundField
+                        label={Generic.t('echarts_mark_upper')}
+                        value={m.upper}
+                        onChange={v => onChange({ upper: v })}
+                        ctx={pickerCtx}
+                    />
+                    <BoundField
+                        label={Generic.t('echarts_mark_lower')}
+                        value={m.lower}
+                        onChange={v => onChange({ lower: v })}
+                        ctx={pickerCtx}
                     />
                     {axisOptions.length > 1 && (
                         <LabeledSelect
@@ -114,6 +182,19 @@ const MarkCard: FC<{
                             value={String(Math.min(Math.max(m.yAxisIndex ?? 0, 0), axisOptions.length - 1))}
                             onChange={v => onChange({ yAxisIndex: Number(v) })}
                             options={axisOptions}
+                        />
+                    )}
+                    {/* The band fill exists only while BOTH bounds are authored (upper AND
+                     lower ⇒ band); with one bound the marking is a line and fill is inert. */}
+                    {hasBothBounds && (
+                        <OptionalSliderField
+                            label={Generic.t('echarts_mark_fill')}
+                            value={m.fill}
+                            min={0}
+                            max={1}
+                            step={0.05}
+                            fallback={DEFAULT_MARK_FILL}
+                            onChange={v => onChange({ fill: v })}
                         />
                     )}
                 </FieldGrid>

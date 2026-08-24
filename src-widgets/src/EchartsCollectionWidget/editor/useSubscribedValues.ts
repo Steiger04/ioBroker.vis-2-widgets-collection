@@ -6,8 +6,10 @@
  * The editor preview is detached from the vis-2 widget tree, so it cannot read
  * `context.values`. This hook subscribes directly via the drilled socket
  * (`subscribeStateAsync` / `getState` / `unsubscribeState`) and returns a `{ oid: val }` map
- * that updates live while the modal is open. On unmount it unsubscribes. Used by the real
- * editor preview for gauge / radar / json-current / cartesian+pie-live data.
+ * that updates live while the modal is open. On unmount it unsubscribes. Used by the editor
+ * preview's adapter (gauge / radar / json-current / cartesian+pie-live) AND by the runtime
+ * body for the marking bound OIDs (ADR-0062 — vis-2's schema-driven subscription only covers
+ * oidN, so bounds need their own socket subscription).
  */
 import { useEffect, useState } from 'react';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';

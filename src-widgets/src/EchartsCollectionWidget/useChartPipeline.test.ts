@@ -527,3 +527,56 @@ describe('assemblePipelineResult — noFuture / validTime cuts (ADR-0060)', () =
         expect(seriesOf(option)[0]?.data).toEqual([[1, 5]]);
     });
 });
+
+describe('subscribedOids — marking bound OIDs (ADR-0062)', () => {
+    const marks = [
+        { upper: '0_userdata.0.soll', lower: 'hm-rpc.0.TEMP' },
+        { upper: 10 }, // numeric bound — no OID to subscribe
+    ];
+
+    it('cartesian unions mark bound OIDs in EVERY mode — even Verlauf without the early refresh', () => {
+        // History without earlyRefresh subscribes NO series OIDs — the marks still subscribe
+        // (their bounds follow the datapoint live, ADR-0062).
+        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', false, marks)).toEqual([
+            '0_userdata.0.soll',
+            'hm-rpc.0.TEMP',
+        ]);
+        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', true, marks)).toEqual([
+            'a.0',
+            '0_userdata.0.soll',
+            'hm-rpc.0.TEMP',
+        ]);
+    });
+
+    it('non-cartesian families never subscribe marks (markings are cartesian-only)', () => {
+        expect(subscribedOids('radar', 'history', series('p'), [{ oid: 'i.0' }], '', false, marks)).toEqual(['i.0']);
+    });
+
+    it('without marks the list is unchanged (backward-compatible arity)', () => {
+        expect(subscribedOids('cartesian', 'live', series('a.0'), [], '', false)).toEqual(['a.0']);
+    });
+});
+
+describe('assemblePipelineResult — resolved marking bands ride the presentation (ADR-0062)', () => {
+    it('an OID-bounded band resolves from the injected values and emits markArea', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
+                values: { '0_userdata.0.soll': 24 },
+                presentation: toPresentationConfig({
+                    src: {},
+                    palette: ['#111'],
+                    family: 'cartesian',
+                    themeTokens: tokens,
+                    themeDark: false,
+                    // The pipeline resolves bounds BEFORE the presentation call — this is what
+                    // resolveMarkLines hands over (injected values, subscription outside).
+                    markLines: [{ upper: 24, lower: 18 }] as never,
+                }),
+            }),
+        );
+        const first = (option.series as { markArea?: { data: unknown[] } }[])[0];
+        expect(first?.markArea?.data).toHaveLength(1);
+    });
+});

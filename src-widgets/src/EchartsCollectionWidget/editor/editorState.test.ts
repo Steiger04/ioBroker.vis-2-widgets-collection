@@ -65,7 +65,7 @@ describe('editorState — Apply round-trip (save → load)', () => {
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.markLines).toHaveLength(1);
-        expect(reloaded.markLines[0]).toMatchObject({ value: 50, label: 'Grenze', lineStyle: 'dashed' });
+        expect(reloaded.markLines[0]).toMatchObject({ upper: 50, label: 'Grenze', lineStyle: 'dashed' });
         expect(reloaded.markLines[0].dashed).toBeUndefined(); // the boolean is gone after the round-trip
     });
 

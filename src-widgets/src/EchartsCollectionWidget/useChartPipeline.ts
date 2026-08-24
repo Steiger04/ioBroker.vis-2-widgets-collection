@@ -34,7 +34,13 @@ import {
     type JsonStateResult,
     type PresentationConfig,
 } from './optionBuilder';
-import { buildTitleOption, toPresentationConfig, type ChartConfigBlob } from './presentation';
+import {
+    buildTitleOption,
+    markBoundOids,
+    resolveMarkLines,
+    toPresentationConfig,
+    type ChartConfigBlob,
+} from './presentation';
 import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
@@ -173,6 +179,9 @@ const oidList = (oids: readonly (string | undefined)[]): string[] => oids.filter
  * Which OIDs' CURRENT values the pipeline needs (family/mode knowledge — the preview adapter
  * subscribes exactly these; the body adapter reads them from vis-2's subscribed values).
  * Verlauf needs them only for the early refresh — off in the preview, so it subscribes nothing.
+ * Marking bound OIDs (ADR-0062) are the exception: cartesian marks resolve their bounds from
+ * CURRENT values, so they subscribe in EVERY mode (a bound follows its datapoint live — spec
+ * story 33), never gated by the early refresh.
  */
 export const subscribedOids = (
     family: ReturnType<typeof familyOf>,
@@ -181,21 +190,25 @@ export const subscribedOids = (
     indicators: readonly { oid?: string }[],
     jsonOid: unknown,
     earlyRefresh: boolean,
+    markLines: readonly EchartsMarkLine[] = [],
 ): string[] => {
+    let base: string[];
     if (family === 'gauge') {
-        return oidList([series[0]?.oid]);
+        base = oidList([series[0]?.oid]);
+    } else if (family === 'radar') {
+        base = oidList(indicators.map(i => i.oid));
+    } else if (mode === 'json') {
+        base = oidList([typeof jsonOid === 'string' ? jsonOid : undefined]);
+    } else if (mode === 'live') {
+        base = oidList(series.map(s => s.oid));
+    } else {
+        // Verlauf: fetches — values only matter when the early refresh listens for them.
+        base = earlyRefresh ? oidList(series.map(s => s.oid)) : [];
     }
-    if (family === 'radar') {
-        return oidList(indicators.map(i => i.oid));
+    if (family === 'cartesian' && markLines.length) {
+        return Array.from(new Set([...base, ...markBoundOids(markLines)]));
     }
-    if (mode === 'json') {
-        return oidList([typeof jsonOid === 'string' ? jsonOid : undefined]);
-    }
-    if (mode === 'live') {
-        return oidList(series.map(s => s.oid));
-    }
-    // Verlauf: fetches — values only matter when the early refresh listens for them.
-    return earlyRefresh ? oidList(series.map(s => s.oid)) : [];
+    return base;
 };
 
 /** `hasData` on the MERGED option (ADR-0046: unified — the preview formerly checked pre-merge). */
@@ -412,21 +425,6 @@ export function useChartPipeline(
     const isTimeFamily = family === 'cartesian' || family === 'pie';
     const maxPoints = opts.maxPoints ?? BODY_MAX_HISTORY_POINTS;
 
-    const presentation = useMemo(
-        () =>
-            toPresentationConfig({
-                src,
-                palette: theme.palette,
-                family,
-                chartConfig: companions.chartConfig,
-                markLines: companions.markLines,
-                yAxes: companions.yAxes,
-                themeTokens: theme.themeTokens,
-                themeDark: theme.themeDark,
-            }),
-        [src, theme, family, companions],
-    );
-
     const usable = useMemo(() => usableSeries(companions.series), [companions]);
     // History entries carry the per-series request overrides (ADR-0039 instance; ADR-0059
     // X-offset window shift + per-series NULL handling).
@@ -447,10 +445,42 @@ export function useChartPipeline(
     const indicators = useMemo(() => companions.chartConfig.radar?.indicators ?? NO_INDICATORS, [companions]);
 
     const oids = useMemo(
-        () => subscribedOids(family, mode, usable, indicators, src.jsonOid, opts.earlyRefresh === true),
-        [family, mode, usable, indicators, src.jsonOid, opts.earlyRefresh],
+        () =>
+            subscribedOids(
+                family,
+                mode,
+                usable,
+                indicators,
+                src.jsonOid,
+                opts.earlyRefresh === true,
+                companions.markLines,
+            ),
+        [family, mode, usable, indicators, src.jsonOid, opts.earlyRefresh, companions],
     );
     const values = useValues(oids);
+
+    // Marking bounds (ADR-0062): resolve the OID bounds against the CURRENT values BEFORE the
+    // presentation call — the builder only ever sees numeric bounds (assembly tested with
+    // injected values; the subscription itself stays adapter-side). A missing/unconvertible
+    // bound drops to undefined and the marking falls back to a line (or nothing).
+    const resolvedMarkLines = useMemo(
+        () => (family === 'cartesian' ? resolveMarkLines(companions.markLines, values) : companions.markLines),
+        [family, companions, values],
+    );
+    const presentation = useMemo(
+        () =>
+            toPresentationConfig({
+                src,
+                palette: theme.palette,
+                family,
+                chartConfig: companions.chartConfig,
+                markLines: resolvedMarkLines,
+                yAxes: companions.yAxes,
+                themeTokens: theme.themeTokens,
+                themeDark: theme.themeDark,
+            }),
+        [src, theme, family, companions, resolvedMarkLines],
+    );
 
     // Verlauf acquisition: range/aggregate/count/refreshMs all ride the src record — the preview
     // now honours refreshMs too (polling while the modal is open, ADR-0046 parity decision).
