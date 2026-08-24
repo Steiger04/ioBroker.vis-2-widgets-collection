@@ -461,22 +461,60 @@ export interface EchartsToolboxConfig {
     };
 }
 
-/** A horizontal/vertical threshold line on a cartesian value axis. */
+/**
+ * The 12 echarts-native markLine label places (parity Build C, ADR-0061): the three line places
+ * plus the nine inside* variants. Unset = echarts' default (`end`). The adapter's `l`/`r`
+ * shorthands map onto `start`/`end`.
+ */
+export type EchartsMarkLabelPosition =
+    | 'start'
+    | 'middle'
+    | 'end'
+    | 'insideStart'
+    | 'insideStartTop'
+    | 'insideStartBottom'
+    | 'insideMiddle'
+    | 'insideMiddleTop'
+    | 'insideMiddleBottom'
+    | 'insideEnd'
+    | 'insideEndTop'
+    | 'insideEndBottom';
+
+/** A marking line on a cartesian value axis (parity Build C stage 1, ADR-0061 — numeric limits). */
 export interface EchartsMarkLine {
     /**
      * Stable identity for React reconciliation (NOT emitted to echarts — the cartesian builder's
-     * `markLineOption` reads value/label/color/dashed field-by-field). Stamped at creation and
-     * backfilled on editor load via `withStableIds`. Fixes the index-key bug on threshold delete.
+     * `markLineOption` reads its fields one by one). Stamped at creation and backfilled on editor
+     * load via `withStableIds`. Fixes the index-key bug on marking delete.
      */
     id?: string;
-    /** Threshold value on the Y axis. */
+    /** The numeric limit the line sits at (OID limits + bands are stage 2, issue 10). */
     value: number;
+    /** Label text; unset → NO label key (echarts then shows the value at the line end). */
     label?: string;
     color?: string;
-    dashed?: boolean;
     /**
-     * Which cartesian Y-axis the threshold belongs to (ADR-XXXX: multi-axis mark-line host).
-     * Default 0 (the first/left axis). A threshold is drawn on the axis of the series it is attached
+     * Line style (ADR-0061). Replaces the boolean `dashed`: `true` ≡ `'dashed'`. Legacy blobs are
+     * normalized on decode (`decodeMarkLines`); the builder keeps runtime tolerance.
+     */
+    lineStyle?: EchartsLineStyle;
+    /** Legacy boolean line style (pre-ADR-0061 blobs) — tolerated at runtime, never re-saved. */
+    dashed?: boolean;
+    /** Line width (`lineStyle.width`); unset/0 = no key → the echarts default. */
+    width?: number;
+    /** Shadow size (adapter `os`): blur/offsetY emit as v+1 in the line colour; unset/0 = no shadow. */
+    shadow?: number;
+    /** Label place among the 12 echarts-native positions; unset = echarts' default (end). */
+    labelPosition?: EchartsMarkLabelPosition;
+    /** Label X offset (px) → `label.distance:[v,0]`, negated on start/end (adapter l/r mechanic). */
+    labelOffset?: number;
+    /** Label font size; unset = no key. */
+    labelSize?: number;
+    /** Label text colour; unset = no key. */
+    labelColor?: string;
+    /**
+     * Which cartesian Y-axis the marking belongs to (multi-axis mark-line host, ADR-0023).
+     * Default 0 (the first/left axis). A marking is drawn on the axis of the series it is attached
      * to, so the cartesian builder hangs it on the first series bound to this axis (NOT stur `entries[0]`).
      * Undefined → 0, kept tolerant for legacy thresholds that predate the field.
      */

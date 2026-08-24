@@ -58,14 +58,15 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.yAxes[1]).toMatchObject({ position: 'right', color: '#abc' });
     });
 
-    it('markLines survive', () => {
+    it('markLines survive (a legacy dashed migrates to lineStyle, ADR-0061)', () => {
         const state = {
             ...baseState(),
             markLines: [{ id: 'm1', value: 50, label: 'Grenze', color: '#f00', dashed: true }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.markLines).toHaveLength(1);
-        expect(reloaded.markLines[0]).toMatchObject({ value: 50, label: 'Grenze', dashed: true });
+        expect(reloaded.markLines[0]).toMatchObject({ value: 50, label: 'Grenze', lineStyle: 'dashed' });
+        expect(reloaded.markLines[0].dashed).toBeUndefined(); // the boolean is gone after the round-trip
     });
 
     it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {

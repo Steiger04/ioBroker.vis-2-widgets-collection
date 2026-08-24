@@ -11,6 +11,7 @@ import {
     buildLegend,
     buildTitleOption,
     decodeLegendConfig,
+    decodeMarkLines,
     normalizeLegendPos,
     PALETTE_PRESETS,
     resolvePalette,
@@ -588,5 +589,36 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
         expect(buildLegend(legendP(), ['a', 'b'])).not.toHaveProperty('selected');
         const l = buildLegend(legendP(), ['a', 'b', 'c'], ['b']);
         expect(l.selected).toEqual({ a: true, b: false, c: true });
+    });
+});
+
+describe('decodeMarkLines — legacy dashed migration (parity Build C, ADR-0061)', () => {
+    it('dashed true/false → lineStyle dashed/solid; the dashed key is dropped on decode', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'a', value: 5, dashed: true }])));
+        expect(out[0]).toEqual({ id: 'a', value: 5, lineStyle: 'dashed' });
+        const solid = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'b', value: 7, dashed: false }])));
+        expect(solid[0]).toEqual({ id: 'b', value: 7, lineStyle: 'solid' });
+        // No boolean at all → nothing to migrate: the item passes through SPARSE (the builder
+        // resolves an absent lineStyle as solid — stamping 'solid' here would bloat every re-save).
+        const bare = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'c', value: 9 }])));
+        expect(bare[0]).toEqual({ id: 'c', value: 9 });
+    });
+
+    it('an authored lineStyle wins over any legacy dashed (no double migration)', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ value: 5, dashed: true, lineStyle: 'dotted' }])));
+        expect(out[0].lineStyle).toBe('dotted');
+        expect('dashed' in out[0]).toBe(false);
+    });
+
+    it('label/colour/axis carry over untouched (no data loss)', () => {
+        const out = decodeMarkLines(
+            encodeBlob(JSON.stringify([{ value: 5, dashed: true, label: 'Max', color: '#c', yAxisIndex: 1 }])),
+        );
+        expect(out[0]).toEqual({ value: 5, lineStyle: 'dashed', label: 'Max', color: '#c', yAxisIndex: 1 });
+    });
+
+    it('already-migrated items decode unchanged (idempotent)', () => {
+        const out = decodeMarkLines(encodeBlob(JSON.stringify([{ id: 'x', value: 3, lineStyle: 'dotted' }])));
+        expect(out[0]).toEqual({ id: 'x', value: 3, lineStyle: 'dotted' });
     });
 });

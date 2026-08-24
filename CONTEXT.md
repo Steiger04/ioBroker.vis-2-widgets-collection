@@ -110,6 +110,10 @@ _Avoid_: axis styling (vague — the one-colour field is part of it), tick forma
 The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`). Its first card is the X-Karte; the manageable list below is Y-only.
 _Avoid_: Axes tab, axis list
 
+**Markierung**:
+A reference line on a cartesian chart (the reworked threshold, ADR-0061) — a card in the Axes & Zoom section, anchored to a **Y-axis** (our model; the adapter anchors on a series). Carries a limit (numeric in stage 1; OID bounds + bands are reserved extensions), a style cluster (colour/width/shadow/solid-dashed-dotted) and a label cluster (text, 12 echarts-native places, X offset, size, colour). The emit stays series-level (echarts `markLine` hangs on series): the builder attaches it to the first series of the target axis. No label text → no `label` key, so echarts shows the value itself at the line end.
+_Avoid_: Threshold (the retired pre-0061 name), mark line (that is the echarts key), limit line
+
 **X-Karte**:
 The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (theme-token inherit), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
 _Avoid_: X axis settings, X axis card list (there is exactly one)

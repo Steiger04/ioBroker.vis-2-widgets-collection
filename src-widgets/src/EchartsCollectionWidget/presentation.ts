@@ -17,6 +17,7 @@ import type {
     EchartsGaugeConfig,
     EchartsLegendConfig,
     EchartsLegendPos,
+    EchartsLineStyle,
     EchartsMarkLine,
     EchartsPieConfig,
     EchartsRadarConfig,
@@ -212,14 +213,35 @@ export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBl
     return {};
 };
 
-/** Decode the base64 mark-lines blob. */
+/**
+ * Resolve a marking's effective 3-way line style (ADR-0061): an authored `lineStyle` wins, a
+ * legacy boolean `dashed` is tolerated (decode migrates it away; the builder and the card read
+ * through this ONE resolver so the tolerance cannot drift apart).
+ */
+export const markLineStyleOf = (ml: EchartsMarkLine): EchartsLineStyle =>
+    ml.lineStyle ?? (ml.dashed ? 'dashed' : 'solid');
+
+/**
+ * Migrate one marking to the ADR-0061 model: a legacy boolean `dashed` becomes the 3-way
+ * `lineStyle` (an authored lineStyle wins; the boolean key is dropped either way). Items without
+ * a `dashed` pass through unchanged (same reference).
+ */
+const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
+    if (ml.dashed === undefined) {
+        return ml;
+    }
+    const { dashed, ...rest } = ml;
+    return { ...rest, ...(rest.lineStyle ? {} : { lineStyle: markLineStyleOf(ml) }) };
+};
+
+/** Decode the base64 mark-lines blob (legacy `dashed` migrated away, ADR-0061). */
 export const decodeMarkLines = (raw: string | undefined | null): EchartsMarkLine[] => {
     if (!raw) {
         return [];
     }
     try {
         const parsed = JSON.parse(decodeBlob(raw));
-        return Array.isArray(parsed) ? (parsed as EchartsMarkLine[]) : [];
+        return Array.isArray(parsed) ? parsed.map(migrateMarkLine) : [];
     } catch {
         return [];
     }

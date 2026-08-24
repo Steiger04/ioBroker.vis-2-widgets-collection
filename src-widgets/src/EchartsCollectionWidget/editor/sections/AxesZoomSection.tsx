@@ -13,25 +13,16 @@
  * citizen, its series rebind to a same-format survivor, else axis 0 + advisory toast; ADR-0028 —
  * a side-flip re-staggers densely), the bound-series colour/name defaults per ADR-0018
  * (history/live positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
- * a SwitchList) and the threshold mark-lines. min≥max carries advisory validation (in the cards).
+ * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
+ * cards).
  */
 import { useState, type FC } from 'react';
-import { Alert, Box, Button, IconButton, Snackbar, Typography } from '@mui/material';
-import { Add as AddIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { Alert, Box, Button, Snackbar, Typography } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
-import {
-    FieldGrid,
-    FieldLabel,
-    LabeledSelect,
-    NumberField,
-    SubGroup,
-    SwitchList,
-    SwitchRow,
-    TextField2,
-} from '../../../components/controls';
-import ColorField from '../colorFields';
+import { LabeledSelect, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
@@ -40,6 +31,7 @@ import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
 import AxisCard from './axes/AxisCard';
+import MarkCard from './axes/MarkCard';
 
 /**
  * The axes & zoom section's field ownership (ADR-0049 slice) — the widest honest slice: the
@@ -183,9 +175,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     const addMark = (): void =>
         // No explicit colour → inherits the theme divider token (ADR-0027), like the builder default.
         set({
-            markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', dashed: true }],
+            markLines: [...state.markLines, { id: nextStableId(), value: 0, label: '', lineStyle: 'dashed' }],
         });
     const removeMark = (i: number): void => set({ markLines: state.markLines.filter((m, idx) => idx !== i) });
+    // The marking cards share the axis cards' expand pattern (one flag per list item).
+    const [markExpanded, setMarkExpanded] = useState<Record<number, boolean>>({});
+    const toggleMarkCard = (i: number): void => setMarkExpanded(e => ({ ...e, [i]: !e[i] }));
+    /** Axis select options for the marking cards (value/axis select shown with ≥2 axes only). */
+    const axisOptions: [string, string][] = axes.map((ax, ai) => [
+        String(ai),
+        ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1),
+    ]);
 
     return (
         <Box>
@@ -285,77 +285,31 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                 )}
             </SubGroup>
 
+            {/* Markierungen (parity Build C stage 1, ADR-0061): one collapsible card per
+                marking — limit + style cluster + label cluster, anchored to a Y-axis. */}
             <SubGroup
-                title={Generic.t('echarts_thresholds')}
-                hint={Generic.t('echarts_thresholds_hint')}
+                title={Generic.t('echarts_marks')}
+                hint={Generic.t('echarts_marks_hint')}
             >
                 {state.markLines.map((m, i) => (
-                    <Box
+                    <MarkCard
                         key={m.id ?? i}
-                        sx={{ border: 1, borderColor: 'divider', borderRadius: 1.5, p: 1.5, mb: 1 }}
-                    >
-                        <FieldGrid min={110}>
-                            <NumberField
-                                label={Generic.t('echarts_threshold_value')}
-                                value={m.value}
-                                onChange={v => setMark(i, { value: v })}
-                            />
-                            {axes.length >= 2 && (
-                                <LabeledSelect
-                                    label={Generic.t('echarts_threshold_axis')}
-                                    value={String(Math.min(Math.max(m.yAxisIndex ?? 0, 0), axes.length - 1))}
-                                    onChange={v => setMark(i, { yAxisIndex: Number(v) })}
-                                    options={axes.map(
-                                        (ax, ai) =>
-                                            [String(ai), ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)] as [
-                                                string,
-                                                string,
-                                            ],
-                                    )}
-                                />
-                            )}
-                            <TextField2
-                                label={Generic.t('echarts_threshold_label')}
-                                value={m.label ?? ''}
-                                onChange={v => setMark(i, { label: v })}
-                            />
-                            <Box>
-                                <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <ColorField
-                                            value={m.color}
-                                            fallback={themeTokens.divider}
-                                            onChange={v => setMark(i, { color: v ?? undefined })}
-                                            ctx={pickerCtx}
-                                        />
-                                    </Box>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => removeMark(i)}
-                                        aria-label={Generic.t('echarts_editor_series_remove')}
-                                        sx={{ flexShrink: 0 }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Box>
-                        </FieldGrid>
-                        <SwitchList sx={{ mt: 1.5 }}>
-                            <SwitchRow
-                                label={Generic.t('echarts_threshold_dashed')}
-                                checked={m.dashed ?? false}
-                                onChange={v => setMark(i, { dashed: v })}
-                            />
-                        </SwitchList>
-                    </Box>
+                        mark={m}
+                        axisOptions={axisOptions}
+                        open={!!markExpanded[i]}
+                        onToggle={() => toggleMarkCard(i)}
+                        onChange={patch => setMark(i, patch)}
+                        onRemove={() => removeMark(i)}
+                        pickerCtx={pickerCtx}
+                        dividerColor={themeTokens.divider}
+                    />
                 ))}
                 <Button
                     size="small"
                     startIcon={<AddIcon />}
                     onClick={addMark}
                 >
-                    {Generic.t('echarts_threshold_add')}
+                    {Generic.t('echarts_mark_add')}
                 </Button>
             </SubGroup>
             <Snackbar

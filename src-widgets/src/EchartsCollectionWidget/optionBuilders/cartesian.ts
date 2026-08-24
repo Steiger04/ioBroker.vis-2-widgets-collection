@@ -29,7 +29,7 @@ import type {
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
-import { buildLegend } from '../presentation';
+import { buildLegend, markLineStyleOf } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
@@ -220,10 +220,15 @@ const buildCartesianSeriesEntry = (
 };
 
 /**
- * Threshold markLines attached to the first cartesian series (echarts markLine is series-level).
+ * Marking markLines attached to the first cartesian series of the target axis (echarts markLine
+ * is series-level; the anchor is our Y-axis model, ADR-0061).
  *
- * @param markLines - The threshold mark-line configs.
- * @param divider - Theme divider token — the default markLine colour when none is explicit (ADR-0027).
+ * Style cluster (colour/width/shadow/3-way line style) and label cluster (text/position/X
+ * offset/size/colour) emit sparse — every unset field leaves no key, so pre-0061 widgets render
+ * pixel-identical. A legacy boolean `dashed` is tolerated at runtime (decode normalizes it away).
+ *
+ * @param markLines - The marking configs.
+ * @param divider - Theme divider token — the default marking colour when none is explicit (ADR-0027).
  */
 const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<string, unknown> | undefined => {
     if (!markLines.length) {
@@ -232,11 +237,44 @@ const markLineOption = (markLines: EchartsMarkLine[], divider: string): Record<s
     return {
         silent: true,
         symbol: 'none',
-        data: markLines.map(ml => ({
-            yAxis: ml.value,
-            lineStyle: { type: ml.dashed ? 'dashed' : 'solid', color: ml.color ?? divider },
-            ...(ml.label ? { label: { formatter: ml.label } } : {}),
-        })),
+        data: markLines.map(ml => {
+            const color = ml.color ?? divider;
+            // Legacy tolerance: pre-0061 blobs carry a boolean `dashed` (decode migrates, the
+            // builder never rejects). An authored 3-way lineStyle wins over any stale boolean.
+            const type = markLineStyleOf(ml);
+            // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as
+            // v+1 in the line's own colour (0/unset = off — no shadow keys at all).
+            const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
+            // Label cluster: NO text → no label key at all (echarts shows the value at the line
+            // end — the pre-0061 behaviour). X offset negates on the END places (adapter l/r:
+            // positive pulls the label inward) — including the UNSET position, whose effective
+            // default is 'end' too, so "Standard" and an explicit "Rechts" offset the same way.
+            const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
+            return {
+                yAxis: ml.value,
+                lineStyle: {
+                    type,
+                    color,
+                    ...(ml.width ? { width: ml.width } : {}),
+                    ...(shadowOn
+                        ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color }
+                        : {}),
+                },
+                ...(ml.label
+                    ? {
+                          label: {
+                              formatter: ml.label,
+                              ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
+                              ...(ml.labelOffset
+                                  ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] }
+                                  : {}),
+                              ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
+                              ...(ml.labelColor ? { color: ml.labelColor } : {}),
+                          },
+                      }
+                    : {}),
+            };
+        }),
     };
 };
 

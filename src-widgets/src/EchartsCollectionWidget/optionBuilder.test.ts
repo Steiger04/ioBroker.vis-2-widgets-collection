@@ -16,7 +16,7 @@ import {
 import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
 import { SAMPLE_TS } from './timeFormat';
 import type { ChartSeries, PresentationConfig } from './optionBuilders/types';
-import type { EchartsChartType, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
+import type { EchartsChartType, EchartsMarkLine, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
 /** Minimal cartesian presentation config for tests. */
 const P: PresentationConfig = {
@@ -746,6 +746,92 @@ describe('buildGeneratedOption — cartesian', () => {
         });
         const first = (option.series as unknown[])[0] as { markLine?: { data: { yAxis: number }[] } };
         expect(first.markLine?.data[0].yAxis).toBe(10);
+    });
+});
+
+describe('buildGeneratedOption — marking style + label cluster (parity Build C, ADR-0061)', () => {
+    /** One emitted mark-line data entry: lineStyle + (optional) label, permissively typed. */
+    type MarkDatum = { lineStyle: Record<string, unknown>; label?: Record<string, unknown> };
+
+    /** Build with one mark line and return its emitted data entry. */
+    const mark = (ml: Partial<EchartsMarkLine>): MarkDatum => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, markLines: [{ id: '1', value: 10, ...ml }] },
+        });
+        const first = (option.series as unknown[])[0] as {
+            markLine?: { data: MarkDatum[] };
+        };
+        const datum = first.markLine?.data?.[0];
+        if (!datum) {
+            throw new Error('no markLine emitted');
+        }
+        return datum;
+    };
+
+    // ── characterization: the pre-0061 behaviour stays ─────────────────
+    it('no label text → no label key (echarts shows the value at the line end)', () => {
+        expect('label' in mark({})).toBe(false);
+    });
+
+    it('legacy dashed boolean is tolerated → lineStyle type (runtime migration on decode)', () => {
+        expect(mark({ dashed: true }).lineStyle.type).toBe('dashed');
+        expect(mark({ dashed: false }).lineStyle.type).toBe('solid');
+    });
+
+    it('label text only → bare { formatter } (sparse: no position/distance/fontSize/colour)', () => {
+        expect(mark({ label: 'Max' }).label).toEqual({ formatter: 'Max' });
+    });
+
+    // ── style cluster ──────────────────────────────────────────────────
+    it('3-way lineStyle emits verbatim', () => {
+        expect(mark({ lineStyle: 'dotted' }).lineStyle.type).toBe('dotted');
+        expect(mark({ lineStyle: 'dashed' }).lineStyle.type).toBe('dashed');
+        expect(mark({ lineStyle: 'solid' }).lineStyle.type).toBe('solid');
+    });
+
+    it('width emits sparse; unset → no width key (echarts default, existing widgets unchanged)', () => {
+        expect(mark({ width: 3 }).lineStyle.width).toBe(3);
+        expect('width' in mark({}).lineStyle).toBe(false);
+        expect('width' in mark({ width: 0 }).lineStyle).toBe(false); // 0 = unset (invisible line never a choice)
+    });
+
+    it('shadow uses the adapter os formula: blur/offsetY = v+1 in the line colour', () => {
+        const ls = mark({ shadow: 4, color: '#c' }).lineStyle;
+        expect(ls.shadowBlur).toBe(5);
+        expect(ls.shadowOffsetY).toBe(5);
+        expect(ls.shadowColor).toBe('#c'); // explicit colour, not the divider default
+        expect('shadowBlur' in mark({}).lineStyle).toBe(false); // unset → no shadow keys
+        expect('shadowBlur' in mark({ shadow: 0 }).lineStyle).toBe(false); // 0 = off
+    });
+
+    // ── label cluster ──────────────────────────────────────────────────
+    it('labelPosition emits echarts-native; unset → no position key (echarts default end)', () => {
+        expect(mark({ label: 'T', labelPosition: 'insideMiddleTop' }).label!.position).toBe('insideMiddleTop');
+        expect('position' in mark({ label: 'T' }).label!).toBe(false);
+    });
+
+    it('X offset emits distance [v, 0], NEGATED on the end places — including the unset default', () => {
+        // Unset position = echarts' default 'end' → same negation as an explicit "Rechts", so
+        // "Standard" and "Rechts" offset the same way (review c.1 fix).
+        expect(mark({ label: 'T', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
+        expect(mark({ label: 'T', labelPosition: 'insideEnd', labelOffset: 5 }).label!.distance).toEqual([5, 0]);
+        expect(mark({ label: 'T', labelPosition: 'end', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
+        expect(mark({ label: 'T', labelPosition: 'start', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
+        expect('distance' in mark({ label: 'T' }).label!).toBe(false); // unset → no distance key
+        // 0 = unset (consistent with width/shadow — a zero offset emits nothing).
+        expect('distance' in mark({ label: 'T', labelOffset: 0 }).label!).toBe(false);
+    });
+
+    it('label size + colour emit sparse inside the label block', () => {
+        const label = mark({ label: 'T', labelSize: 11, labelColor: '#ff0' }).label!;
+        expect(label.fontSize).toBe(11);
+        expect(label.color).toBe('#ff0');
+        const bare = mark({ label: 'T' }).label!;
+        expect('fontSize' in bare).toBe(false);
+        expect('color' in bare).toBe(false);
     });
 });
 
