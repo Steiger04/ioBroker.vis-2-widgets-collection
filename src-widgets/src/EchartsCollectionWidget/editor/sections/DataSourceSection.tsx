@@ -15,7 +15,10 @@ import type { FC } from 'react';
 import { Box, ListSubheader, MenuItem, TextField } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+// The V3 subpath — the adapter for date-fns v3/v4. The plain '@mui/x-date-pickers/AdapterDateFns'
+// is built for date-fns V2 and deep-imports `date-fns/_lib/format/longFormatters`, which v4
+// removed (the build-time "Missing specifier" error). The class re-exports under the same name.
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
