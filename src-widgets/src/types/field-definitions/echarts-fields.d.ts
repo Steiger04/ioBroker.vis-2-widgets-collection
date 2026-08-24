@@ -60,7 +60,6 @@ export type EchartsAreaFill = 'off' | 'flat' | 'gradient';
 export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
 
 export type EchartsMode = 'history' | 'live' | 'json';
-export type EchartsTimeRange = '24h' | '7d' | '30d';
 export type EchartsAggregate = 'average' | 'minmax' | 'min' | 'max' | 'total' | 'count' | 'onchange' | 'none';
 export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
 
@@ -73,6 +72,57 @@ export type EchartsPieRose = 'none' | 'radius' | 'area';
 
 /** Line dash style. */
 export type EchartsLineStyle = 'solid' | 'dashed' | 'dotted';
+
+/** The time window's type (parity Build A, ADR-0063): a moving relative span or fixed dates. */
+export type EchartsTimeType = 'relative' | 'static';
+
+/**
+ * The 18 relative time-range keys (adapter `rangeOptions`): `10m`…`14d` are minute-based
+ * (`1h` = 60 minutes); `1m`…`6m` are CALENDAR months, `1y`/`2y` calendar years. The legacy
+ * pre-0063 keys (`24h`/`30d`) migrate to `1d`/`1m` (decode + resolver tolerance).
+ */
+export type EchartsTimeRange =
+    | '10m'
+    | '30m'
+    | '1h'
+    | '2h'
+    | '3h'
+    | '6h'
+    | '12h'
+    | '1d'
+    | '2d'
+    | '3d'
+    | '7d'
+    | '14d'
+    | '1m'
+    | '2m'
+    | '3m'
+    | '6m'
+    | '1y'
+    | '2y';
+
+/**
+ * The 17 relative-end keys (adapter `relativeEndOptions` minus the two `week2*` variants the
+ * spec's Out-of-Scope rejects): the window's END rounds up to this boundary instead of „now".
+ */
+export type EchartsRelativeEnd =
+    | 'now'
+    | '1minute'
+    | '5minutes'
+    | '10minutes'
+    | '30minutes'
+    | '1hour'
+    | '2hours'
+    | '3hours'
+    | '4hours'
+    | '6hours'
+    | '8hours'
+    | '12hours'
+    | 'today'
+    | 'weekEurope'
+    | 'weekUsa'
+    | 'month'
+    | 'year';
 /** Step rendering for line series. */
 export type EchartsStep = 'none' | 'start' | 'middle' | 'end';
 /**

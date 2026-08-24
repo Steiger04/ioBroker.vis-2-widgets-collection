@@ -37,14 +37,18 @@ export interface RangeOptionsInput {
 /**
  * Build {@link ioBroker.GetHistoryOptions} from a relative range ending at `now`.
  *
- * @param now - Range end as ms epoch.
- * @param rangeMs - Range length in ms.
+ * @param win - The RESOLVED window (`resolveTimeWindow` owns the semantics).
+ * @param win.start - Window start as ms epoch.
+ * @param win.end - Window end as ms epoch.
  * @param opts - Optional aggregate / count / step / instance overrides.
  */
-export function rangeToOptions(now: number, rangeMs: number, opts: RangeOptionsInput = {}): ioBroker.GetHistoryOptions {
+export function windowToOptions(
+    win: { start: number; end: number },
+    opts: RangeOptionsInput = {},
+): ioBroker.GetHistoryOptions {
     return {
-        start: now - rangeMs,
-        end: now,
+        start: win.start,
+        end: win.end,
         aggregate: opts.aggregate ?? 'average',
         count: opts.count ?? 500,
         ...(opts.step !== undefined ? { step: opts.step } : {}),

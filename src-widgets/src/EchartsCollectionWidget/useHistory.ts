@@ -15,7 +15,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 
-import { fetchMultiSeries, rangeToOptions, type FetchedSeries, type IgnoreNull, type Point } from './historyLogic';
+import { fetchMultiSeries, windowToOptions, type FetchedSeries, type IgnoreNull, type Point } from './historyLogic';
+import { resolveTimeWindow, type TimeWindowSpec } from './timeWindow';
 
 export interface UseHistoryEntry {
     oid: string;
@@ -25,7 +26,8 @@ export interface UseHistoryEntry {
 }
 
 export interface UseHistoryOptions {
-    rangeMs: number;
+    /** The authored window SPEC (ADR-0063) — resolved per fetch, so a relative window travels with each poll while the effect key stays stable. */
+    window: TimeWindowSpec;
     aggregate?: ioBroker.GetHistoryOptions['aggregate'];
     count?: number;
     step?: number;
@@ -60,7 +62,7 @@ export function useHistory(
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const entriesKey = JSON.stringify(entries);
-    const optsKey = JSON.stringify([opts.rangeMs, opts.aggregate, opts.count, opts.step, opts.ignoreNull]);
+    const optsKey = JSON.stringify([opts.window, opts.aggregate, opts.count, opts.step, opts.ignoreNull]);
 
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
     useEffect(() => {
@@ -71,7 +73,7 @@ export function useHistory(
         setLoading(true);
 
         const run = (): void => {
-            const options = rangeToOptions(Date.now(), opts.rangeMs, opts);
+            const options = windowToOptions(resolveTimeWindow(opts.window, Date.now()), opts);
             fetchMultiSeries(getHistory, entries, options, opts.ignoreNull ?? 'keep')
                 .then(s => {
                     if (active) {

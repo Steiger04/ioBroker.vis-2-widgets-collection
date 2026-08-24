@@ -43,7 +43,31 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         name: 'timeRange',
         type: 'text',
-        default: '24h',
+        default: '1d',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'timeType',
+        type: 'text',
+        default: 'relative',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'relativeEnd',
+        type: 'text',
+        default: 'now',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'staticStart',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'staticEnd',
+        type: 'text',
+        default: '',
         hidden: alwaysHidden,
     },
     {

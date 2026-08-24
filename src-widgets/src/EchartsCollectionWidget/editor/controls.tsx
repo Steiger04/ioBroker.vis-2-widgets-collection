@@ -206,8 +206,8 @@ const MODE_HINTS: Record<EchartsMode, string> = {
 };
 
 /** Per-widget data mode (chart-global, not per-series). */
-/** The mode select's field ownership (ADR-0049 slice) — the pinned rail selector. */
-export type ModeSelectSlice = Pick<EditorState, 'mode'>;
+/** The mode select's field ownership (ADR-0049 slice) — the pinned rail selector (+ the static-window read for the Live disable, ADR-0063). */
+export type ModeSelectSlice = Pick<EditorState, 'mode' | 'timeType'>;
 
 export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectSlice> }> = ({ state, set }) => (
     <Box>
@@ -219,7 +219,14 @@ export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectS
             onChange={(_, v: EchartsMode | null) => v && set({ mode: v })}
         >
             <ToggleButton value="history">{Generic.t('echarts_mode_history')}</ToggleButton>
-            <ToggleButton value="live">{Generic.t('echarts_mode_live')}</ToggleButton>
+            {/* A STATIC time window (ADR-0063) disables Live: a rolling subscribed buffer has no
+                window to fix — adapter behaviour (their live select goes dark on static too). */}
+            <ToggleButton
+                value="live"
+                disabled={state.timeType === 'static'}
+            >
+                {Generic.t('echarts_mode_live')}
+            </ToggleButton>
             <ToggleButton value="json">{Generic.t('echarts_mode_json')}</ToggleButton>
         </ToggleButtonGroup>
         <InfoBox text={Generic.t(MODE_HINTS[state.mode])} />

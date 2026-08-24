@@ -6,7 +6,6 @@ import type { ThemeTokens } from './echartsTheme';
 import {
     BODY_MAX_HISTORY_POINTS,
     DEFAULT_HISTORY_COUNT,
-    RANGE_MS,
     assemblePipelineResult,
     hasMergedData,
     isUsableOid,
@@ -20,15 +19,7 @@ import {
 
 const series = (...oids: string[]): ChartPipelineSeries[] => oids.map(oid => ({ oid, name: oid }));
 
-describe('RANGE_MS / point ceilings (single source, ADR-0046)', () => {
-    it('maps the three Verlauf presets to exact millisecond windows', () => {
-        expect(RANGE_MS).toEqual({
-            '24h': 86_400_000,
-            '7d': 7 * 86_400_000,
-            '30d': 30 * 86_400_000,
-        });
-    });
-
+describe('point ceilings (single source, ADR-0046)', () => {
     it('defaults the count to 500 and the hard ceiling to the body cap (the preview passes 200)', () => {
         expect(DEFAULT_HISTORY_COUNT).toBe(500);
         expect(BODY_MAX_HISTORY_POINTS).toBe(5000);

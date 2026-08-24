@@ -131,13 +131,6 @@ export interface ChartPipelineResult {
     error: string | null;
 }
 
-/** Time-range presets → ms. Single source (formerly duplicated body + preview). */
-export const RANGE_MS: Record<string, number> = {
-    '24h': 86_400_000,
-    '7d': 7 * 86_400_000,
-    '30d': 30 * 86_400_000,
-};
-
 /** Verlauf count fallback when `src.count` is unset — shared by both callers. */
 export const DEFAULT_HISTORY_COUNT = 500;
 
@@ -444,18 +437,13 @@ export function useChartPipeline(
     );
     const indicators = useMemo(() => companions.chartConfig.radar?.indicators ?? NO_INDICATORS, [companions]);
 
+    // A static window (ADR-0063) turns the body's early refresh OFF alongside the polling — one
+    // switch read by the subscription set and the refresh effect below.
+    const earlyRefresh = opts.earlyRefresh === true && src.timeType !== 'static';
+
     const oids = useMemo(
-        () =>
-            subscribedOids(
-                family,
-                mode,
-                usable,
-                indicators,
-                src.jsonOid,
-                opts.earlyRefresh === true,
-                companions.markLines,
-            ),
-        [family, mode, usable, indicators, src.jsonOid, opts.earlyRefresh, companions],
+        () => subscribedOids(family, mode, usable, indicators, src.jsonOid, earlyRefresh, companions.markLines),
+        [family, mode, usable, indicators, src.jsonOid, earlyRefresh, companions],
     );
     const values = useValues(oids);
 
@@ -482,13 +470,22 @@ export function useChartPipeline(
         [src, theme, family, companions, resolvedMarkLines],
     );
 
-    // Verlauf acquisition: range/aggregate/count/refreshMs all ride the src record — the preview
-    // now honours refreshMs too (polling while the modal is open, ADR-0046 parity decision).
+    // Verlauf acquisition: the window/aggregate/count/refreshMs all ride the src record — the
+    // preview honours refreshMs too (polling while the modal is open, ADR-0046 parity decision).
+    // A STATIC window (ADR-0063) suppresses the polling AND the early refresh: a fixed span has
+    // nothing to follow (adapter behaviour — their live select goes dark on static too).
+    const isStaticWindow = src.timeType === 'static';
     const history = useHistory(getHistory, entries, {
-        rangeMs: RANGE_MS[src.timeRange as string] ?? RANGE_MS['24h'],
+        window: {
+            timeType: src.timeType as 'relative' | 'static' | undefined,
+            timeRange: src.timeRange as string | undefined,
+            relativeEnd: src.relativeEnd as string | undefined,
+            staticStart: src.staticStart as string | undefined,
+            staticEnd: src.staticEnd as string | undefined,
+        },
         aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
         count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
-        refreshMs: (src.refreshMs as number) || undefined,
+        refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: isTimeFamily && mode === 'history' && entries.length > 0,
     });
@@ -511,7 +508,7 @@ export function useChartPipeline(
     const firstValuesRef = useRef(true);
     const { refresh } = history;
     useEffect(() => {
-        if (opts.earlyRefresh !== true || mode !== 'history' || !isTimeFamily || entries.length === 0) {
+        if (!earlyRefresh || mode !== 'history' || !isTimeFamily || entries.length === 0) {
             firstValuesRef.current = true;
             return;
         }

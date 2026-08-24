@@ -69,6 +69,26 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.markLines[0].dashed).toBeUndefined(); // the boolean is gone after the round-trip
     });
 
+    it('legacy timeRange keys migrate on load; the window scalars round-trip (ADR-0063)', () => {
+        expect(loadEditorState({ ...baseState(), timeRange: '24h' }).timeRange).toBe('1d');
+        expect(loadEditorState({ ...baseState(), timeRange: '30d' }).timeRange).toBe('1m');
+        expect(loadEditorState({ ...baseState(), timeRange: '7d' }).timeRange).toBe('7d'); // native
+        const state: EditorState = {
+            ...baseState(),
+            timeType: 'static',
+            relativeEnd: 'month',
+            staticStart: '2026-01-01T00:00',
+            staticEnd: '2026-02-01T00:00',
+        };
+        const re = loadEditorState(saveEditorState(state, 0));
+        expect(re).toMatchObject({
+            timeType: 'static',
+            relativeEnd: 'month',
+            staticStart: '2026-01-01T00:00',
+            staticEnd: '2026-02-01T00:00',
+        });
+    });
+
     it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {
         const state = {
             ...baseState(),

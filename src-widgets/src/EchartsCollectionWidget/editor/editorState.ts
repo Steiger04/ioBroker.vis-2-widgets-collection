@@ -16,6 +16,7 @@
  */
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
+import { migrateLegacyRange } from '../timeWindow';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle } from '../optionBuilder';
 import {
     decodeAxes,
@@ -53,7 +54,9 @@ import type {
     EchartsPieConfig,
     EchartsRadarConfig,
     EchartsRenderer,
+    EchartsRelativeEnd,
     EchartsTimeRange,
+    EchartsTimeType,
     EchartsTitlePos,
     EchartsToolboxConfig,
     EchartsTooltipTrigger,
@@ -104,6 +107,13 @@ export interface EditorState {
     chartType: EchartsChartType;
     mode: ChartMode;
     timeRange: TimeRange;
+    /** The window's type (ADR-0063): a moving relative span or fixed static dates. */
+    timeType: EchartsTimeType;
+    /** Where a relative window's END rounds to (17 adapter options; default now). */
+    relativeEnd: EchartsRelativeEnd;
+    /** Static window bounds (ISO strings, DateTimePicker) — read when timeType is static. */
+    staticStart: string;
+    staticEnd: string;
     aggregate: Aggregate;
     count: number;
     refreshMs: number;
@@ -215,7 +225,11 @@ export type SetEditor<S extends object = EditorState> = (patch: Partial<S>) => v
 export const DEFAULT_EDITOR_STATE: EditorState = {
     chartType: 'line',
     mode: 'history',
-    timeRange: '24h',
+    timeRange: '1d',
+    timeType: 'relative',
+    relativeEnd: 'now',
+    staticStart: '',
+    staticEnd: '',
     aggregate: 'average',
     count: 500,
     refreshMs: 60_000,
@@ -464,7 +478,12 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         ...DEFAULT_EDITOR_STATE,
         chartType,
         mode,
-        timeRange: (data.timeRange as TimeRange) ?? DEFAULT_EDITOR_STATE.timeRange,
+        // Legacy range keys migrate on load (ADR-0063) — the SHARED migration (timeWindow).
+        timeRange: migrateLegacyRange((data.timeRange as string) ?? DEFAULT_EDITOR_STATE.timeRange) as TimeRange,
+        timeType: (data.timeType as EchartsTimeType) ?? DEFAULT_EDITOR_STATE.timeType,
+        relativeEnd: (data.relativeEnd as EchartsRelativeEnd) ?? DEFAULT_EDITOR_STATE.relativeEnd,
+        staticStart: strOr(data.staticStart, ''),
+        staticEnd: strOr(data.staticEnd, ''),
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
@@ -598,6 +617,10 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         chartType: state.chartType,
         mode: state.mode,
         timeRange: state.timeRange,
+        timeType: state.timeType,
+        relativeEnd: state.relativeEnd,
+        staticStart: state.staticStart,
+        staticEnd: state.staticEnd,
         aggregate: state.aggregate,
         count: state.count,
         refreshMs: state.refreshMs,

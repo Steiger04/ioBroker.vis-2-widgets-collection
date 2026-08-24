@@ -120,7 +120,20 @@ describe('section slices (ADR-0049)', () => {
 
     it('DataSourceSlice equals the data source section ownership', () => {
         expectTypeOf<DataSourceSlice>().toEqualTypeOf<
-            Pick<EditorState, 'mode' | 'timeRange' | 'aggregate' | 'count' | 'refreshMs' | 'ignoreNull' | 'jsonOid'>
+            Pick<
+                EditorState,
+                | 'mode'
+                | 'timeType'
+                | 'timeRange'
+                | 'relativeEnd'
+                | 'staticStart'
+                | 'staticEnd'
+                | 'aggregate'
+                | 'count'
+                | 'refreshMs'
+                | 'ignoreNull'
+                | 'jsonOid'
+            >
         >();
     });
 
@@ -197,7 +210,8 @@ describe('section slices (ADR-0049)', () => {
 
     it('the pinned rail selectors equal their ownership', () => {
         expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Pick<EditorState, 'chartType'>>();
-        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Pick<EditorState, 'mode'>>();
+        // + the static-window read that disables Live (ADR-0063)
+        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Pick<EditorState, 'mode' | 'timeType'>>();
     });
 
     it('EditorThemeSource equals the theme-resolution read footprint', () => {

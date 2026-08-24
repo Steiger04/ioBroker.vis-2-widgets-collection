@@ -5,7 +5,7 @@
  * @module EchartsCollectionWidget/historyLogic.test
  */
 import { describe, expect, it } from 'vitest';
-import { fetchMultiSeries, rangeToOptions, toSeriesData, type Point } from './historyLogic';
+import { fetchMultiSeries, toSeriesData, windowToOptions, type Point } from './historyLogic';
 
 describe('toSeriesData', () => {
     it('maps {ts,val} to [ts, number]', () => {
@@ -89,9 +89,9 @@ describe('toSeriesData', () => {
     });
 });
 
-describe('rangeToOptions', () => {
-    it('computes start = now - rangeMs, end = now, with defaults', () => {
-        const o = rangeToOptions(100000, 60000);
+describe('windowToOptions (ADR-0063: the window arrives RESOLVED)', () => {
+    it('passes the resolved start/end through, with defaults', () => {
+        const o = windowToOptions({ start: 40000, end: 100000 });
         expect(o.start).toBe(40000);
         expect(o.end).toBe(100000);
         expect(o.aggregate).toBe('average');
@@ -101,14 +101,14 @@ describe('rangeToOptions', () => {
     });
 
     it('passes aggregate/count and omits step unless provided', () => {
-        const o = rangeToOptions(0, 1000, { aggregate: 'minmax', count: 250 });
+        const o = windowToOptions({ start: 0, end: 1000 }, { aggregate: 'minmax', count: 250 });
         expect(o.aggregate).toBe('minmax');
         expect(o.count).toBe(250);
         expect(o).not.toHaveProperty('step');
     });
 
     it('includes step and instance when provided', () => {
-        const o = rangeToOptions(0, 1000, { step: 60000, instance: 'sql.0' });
+        const o = windowToOptions({ start: 0, end: 1000 }, { step: 60000, instance: 'sql.0' });
         expect(o.step).toBe(60000);
         expect(o.instance).toBe('sql.0');
     });
