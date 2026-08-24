@@ -215,3 +215,36 @@ describe('fetchMultiSeries — per-entry request overrides (ADR-0059)', () => {
         ]);
     });
 });
+
+describe('windowToOptions — resolution + aggregate params (parity Build A, ADR-0064)', () => {
+    const win = { start: 0, end: 1000 };
+
+    it('a step (ms) REPLACES count in the request (ioBroker: count ignored when step set)', () => {
+        const o = windowToOptions(win, { step: 60_000 });
+        expect(o.step).toBe(60_000);
+        expect(o).not.toHaveProperty('count');
+    });
+
+    it('no step ⇒ count as before', () => {
+        const o = windowToOptions(win, { count: 250 });
+        expect(o.count).toBe(250);
+        expect(o).not.toHaveProperty('step');
+    });
+
+    it('percentile rides ONLY under the percentile aggregate (sparse elsewhere)', () => {
+        const on = windowToOptions(win, { aggregate: 'percentile', percentile: 75 });
+        expect(on.aggregate).toBe('percentile');
+        expect(on.percentile).toBe(75);
+        const off = windowToOptions(win, { aggregate: 'average', percentile: 75 });
+        expect(off).not.toHaveProperty('percentile');
+    });
+
+    it('integral rides unit + interpolation ONLY under the integral aggregate', () => {
+        const on = windowToOptions(win, { aggregate: 'integral', integralUnit: 3600, integralInterpolation: 'linear' });
+        expect(on.integralUnit).toBe(3600);
+        expect(on.integralInterpolation).toBe('linear');
+        const off = windowToOptions(win, { aggregate: 'total', integralUnit: 3600, integralInterpolation: 'linear' });
+        expect(off).not.toHaveProperty('integralUnit');
+        expect(off).not.toHaveProperty('integralInterpolation');
+    });
+});

@@ -60,7 +60,23 @@ export type EchartsAreaFill = 'off' | 'flat' | 'gradient';
 export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
 
 export type EchartsMode = 'history' | 'live' | 'json';
-export type EchartsAggregate = 'average' | 'minmax' | 'min' | 'max' | 'total' | 'count' | 'onchange' | 'none';
+/**
+ * The chart-level history aggregate. parity Build A (ADR-0064) adds the two ioBroker members
+ * the select lacked — 'percentile' (level via `percentileValue`) and 'integral' (unit +
+ * interpolation via `integralUnit`/`integralInterpolation`). 'quantile'/'integralTotal' stay
+ * out (ticket scope). Per-SERIE aggregates are consciously rejected (spec).
+ */
+export type EchartsAggregate =
+    | 'average'
+    | 'minmax'
+    | 'min'
+    | 'max'
+    | 'total'
+    | 'count'
+    | 'onchange'
+    | 'none'
+    | 'percentile'
+    | 'integral';
 export type EchartsIgnoreNull = 'keep' | 'forward' | 'zero';
 
 /** How each bound OID collapses to a single pie-slice value. */

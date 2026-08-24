@@ -114,6 +114,14 @@ export interface EditorState {
     /** Static window bounds (ISO strings, DateTimePicker) — read when timeType is static. */
     staticStart: string;
     staticEnd: string;
+    /** Zeitschrittweite in SECONDS (ADR-0064); 0/unset = the count path. Set ⇒ step replaces count. */
+    resolutionStep?: number;
+    /** Percentile level 0–100 — read only under aggregate 'percentile' (server default 50). */
+    percentileValue?: number;
+    /** Integral unit in seconds — read only under aggregate 'integral' (server default 60). */
+    integralUnit?: number;
+    /** Integral interpolation — read only under aggregate 'integral' (server default none). */
+    integralInterpolation?: 'none' | 'linear';
     aggregate: Aggregate;
     count: number;
     refreshMs: number;
@@ -230,6 +238,10 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     relativeEnd: 'now',
     staticStart: '',
     staticEnd: '',
+    resolutionStep: undefined,
+    percentileValue: undefined,
+    integralUnit: undefined,
+    integralInterpolation: undefined,
     aggregate: 'average',
     count: 500,
     refreshMs: 60_000,
@@ -484,6 +496,21 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         relativeEnd: (data.relativeEnd as EchartsRelativeEnd) ?? DEFAULT_EDITOR_STATE.relativeEnd,
         staticStart: strOr(data.staticStart, ''),
         staticEnd: strOr(data.staticEnd, ''),
+        resolutionStep: numOr(data.resolutionStep, 0) || undefined,
+        // 0 is a VALID percentile level (the 0th = min) — unlike resolutionStep/integralUnit
+        // (0 = unset there), the load must not coerce an authored 0 away (review catch: the
+        // round-trip forgot a saved 0 and fell back to the 50 default).
+        percentileValue:
+            typeof data.percentileValue === 'number' && Number.isFinite(data.percentileValue)
+                ? data.percentileValue
+                : undefined,
+        integralUnit: numOr(data.integralUnit, 0) || undefined,
+        integralInterpolation:
+            data.integralInterpolation === 'linear'
+                ? 'linear'
+                : data.integralInterpolation === 'none'
+                  ? 'none'
+                  : undefined,
         aggregate: (data.aggregate as Aggregate) ?? DEFAULT_EDITOR_STATE.aggregate,
         count: numOr(data.count, DEFAULT_EDITOR_STATE.count),
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
@@ -621,6 +648,10 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         relativeEnd: state.relativeEnd,
         staticStart: state.staticStart,
         staticEnd: state.staticEnd,
+        ...(state.resolutionStep ? { resolutionStep: state.resolutionStep } : {}),
+        ...(state.percentileValue !== undefined ? { percentileValue: state.percentileValue } : {}),
+        ...(state.integralUnit ? { integralUnit: state.integralUnit } : {}),
+        ...(state.integralInterpolation ? { integralInterpolation: state.integralInterpolation } : {}),
         aggregate: state.aggregate,
         count: state.count,
         refreshMs: state.refreshMs,

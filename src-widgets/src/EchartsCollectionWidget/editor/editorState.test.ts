@@ -89,6 +89,14 @@ describe('editorState — Apply round-trip (save → load)', () => {
         });
     });
 
+    it('percentile 0 survives the round-trip — it is a valid level, not unset (ADR-0064)', () => {
+        const state: EditorState = { ...baseState(), aggregate: 'percentile', percentileValue: 0 };
+        const re = loadEditorState(saveEditorState(state, 0));
+        expect(re.percentileValue).toBe(0);
+        // Unset stays unset (no rxData key yet → the server default 50 applies).
+        expect(loadEditorState({ ...baseState() }).percentileValue).toBeUndefined();
+    });
+
     it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {
         const state = {
             ...baseState(),

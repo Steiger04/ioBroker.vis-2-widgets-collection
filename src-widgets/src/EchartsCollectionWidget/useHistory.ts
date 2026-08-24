@@ -31,6 +31,12 @@ export interface UseHistoryOptions {
     aggregate?: ioBroker.GetHistoryOptions['aggregate'];
     count?: number;
     step?: number;
+    /** Percentile level — flows to windowToOptions (emitted only under aggregate 'percentile', ADR-0064). */
+    percentile?: number;
+    /** Integral unit in seconds — emitted only under aggregate 'integral' (ADR-0064). */
+    integralUnit?: number;
+    /** Integral interpolation — emitted only under aggregate 'integral' (ADR-0064). */
+    integralInterpolation?: 'none' | 'linear';
     /** 0 / undefined = no periodic refresh. */
     refreshMs?: number;
     ignoreNull?: IgnoreNull;
@@ -62,7 +68,18 @@ export function useHistory(
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const entriesKey = JSON.stringify(entries);
-    const optsKey = JSON.stringify([opts.window, opts.aggregate, opts.count, opts.step, opts.ignoreNull]);
+    // The fetch-effect key: every request-shaping option must appear here or a change would not
+    // refetch (ADR-0064 added the aggregate params to the set).
+    const optsKey = JSON.stringify([
+        opts.window,
+        opts.aggregate,
+        opts.count,
+        opts.step,
+        opts.ignoreNull,
+        opts.percentile,
+        opts.integralUnit,
+        opts.integralInterpolation,
+    ]);
 
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
     useEffect(() => {

@@ -485,6 +485,22 @@ export function useChartPipeline(
         },
         aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
         count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
+        // Zeitschrittweite (ADR-0064): seconds at the author level → ms here; a set step
+        // replaces count (windowToOptions omits the dead key).
+        step: (src.resolutionStep as number) > 0 ? (src.resolutionStep as number) * 1000 : undefined,
+        // Aggregate params (ADR-0064) — windowToOptions emits them only under their aggregate.
+        // percentile 0 is a VALID level (the 0th = min) — an explicit check, no `|| undefined`.
+        percentile:
+            typeof src.percentileValue === 'number' && Number.isFinite(src.percentileValue)
+                ? src.percentileValue
+                : undefined,
+        integralUnit: (src.integralUnit as number) || undefined,
+        integralInterpolation:
+            src.integralInterpolation === 'linear'
+                ? 'linear'
+                : src.integralInterpolation === 'none'
+                  ? 'none'
+                  : undefined,
         refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: isTimeFamily && mode === 'history' && entries.length > 0,

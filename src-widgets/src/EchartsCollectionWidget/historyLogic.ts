@@ -32,6 +32,12 @@ export interface RangeOptionsInput {
     count?: number;
     step?: number;
     instance?: string;
+    /** Percentile level 0–100 — emitted ONLY under aggregate 'percentile' (ADR-0064). */
+    percentile?: number;
+    /** Integral unit in seconds — emitted ONLY under aggregate 'integral' (ADR-0064). */
+    integralUnit?: number;
+    /** Integral interpolation — emitted ONLY under aggregate 'integral' (ADR-0064). */
+    integralInterpolation?: 'none' | 'linear';
 }
 
 /**
@@ -50,9 +56,19 @@ export function windowToOptions(
         start: win.start,
         end: win.end,
         aggregate: opts.aggregate ?? 'average',
-        count: opts.count ?? 500,
-        ...(opts.step !== undefined ? { step: opts.step } : {}),
+        // ADR-0064: a set step REPLACES count (ioBroker's contract says count is ignored when
+        // step is set — we omit the dead key instead of trusting the server to ignore it).
+        ...(opts.step !== undefined ? { step: opts.step } : { count: opts.count ?? 500 }),
         ...(opts.instance ? { instance: opts.instance } : {}),
+        // Aggregate params ride ONLY under their aggregate — a percentile key on an average
+        // request would be a lie (sparse, ADR-0064).
+        ...(opts.aggregate === 'percentile' && opts.percentile !== undefined ? { percentile: opts.percentile } : {}),
+        ...(opts.aggregate === 'integral' && opts.integralUnit !== undefined
+            ? { integralUnit: opts.integralUnit }
+            : {}),
+        ...(opts.aggregate === 'integral' && opts.integralInterpolation
+            ? { integralInterpolation: opts.integralInterpolation }
+            : {}),
     };
 }
 

@@ -71,6 +71,30 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        name: 'resolutionStep',
+        type: 'number',
+        default: 0,
+        hidden: alwaysHidden,
+    },
+    {
+        // No default: undefined = unset (the server's 50 applies); 0 is a valid authored level.
+        name: 'percentileValue',
+        type: 'number',
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'integralUnit',
+        type: 'number',
+        default: 0,
+        hidden: alwaysHidden,
+    },
+    {
+        name: 'integralInterpolation',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
+    {
         name: 'aggregate',
         type: 'text',
         default: 'average',

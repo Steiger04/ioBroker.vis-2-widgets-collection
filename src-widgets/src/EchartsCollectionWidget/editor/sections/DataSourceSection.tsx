@@ -19,7 +19,15 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
-import { FieldGrid, FieldLabel, InfoBox, LabeledSelect, NumberField } from '../../../components/controls';
+import {
+    FieldGrid,
+    FieldLabel,
+    InfoBox,
+    LabeledSelect,
+    NumberField,
+    OptionalNumberField,
+    OptionalSliderField,
+} from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 import type {
     EchartsRelativeEnd,
@@ -40,6 +48,10 @@ export type DataSourceSlice = Pick<
     | 'relativeEnd'
     | 'staticStart'
     | 'staticEnd'
+    | 'resolutionStep'
+    | 'percentileValue'
+    | 'integralUnit'
+    | 'integralInterpolation'
     | 'aggregate'
     | 'count'
     | 'refreshMs'
@@ -189,13 +201,53 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                                 ['count', 'count'],
                                 ['onchange', 'onchange'],
                                 ['none', 'none'],
+                                ['percentile', 'percentile'],
+                                ['integral', 'integral'],
                             ]}
+                        />
+                        {/* Zeitschrittweite (ADR-0064): the count alternative — a set step
+                             disables the count field (ONE of the two is ever active). */}
+                        <OptionalNumberField
+                            label={Generic.t('echarts_step_seconds')}
+                            value={state.resolutionStep}
+                            onChange={v => set({ resolutionStep: v })}
                         />
                         <NumberField
                             label={Generic.t('echarts_count')}
                             value={state.count}
                             onChange={v => set({ count: v })}
+                            disabled={!!state.resolutionStep}
                         />
+                        {/* Aggregate params (ADR-0064) — only under their aggregate (the
+                             adapter's own gating; sparse, unset = the server default). */}
+                        {state.aggregate === 'percentile' && (
+                            <OptionalSliderField
+                                label={Generic.t('echarts_percentile')}
+                                value={state.percentileValue}
+                                min={0}
+                                max={100}
+                                fallback={50}
+                                onChange={v => set({ percentileValue: v })}
+                            />
+                        )}
+                        {state.aggregate === 'integral' && (
+                            <OptionalNumberField
+                                label={Generic.t('echarts_integral_unit')}
+                                value={state.integralUnit}
+                                onChange={v => set({ integralUnit: v })}
+                            />
+                        )}
+                        {state.aggregate === 'integral' && (
+                            <LabeledSelect
+                                label={Generic.t('echarts_integral_interpolation')}
+                                value={state.integralInterpolation ?? 'none'}
+                                onChange={v => set({ integralInterpolation: v as 'none' | 'linear' })}
+                                options={[
+                                    ['none', Generic.t('echarts_interp_none')],
+                                    ['linear', Generic.t('echarts_interp_linear')],
+                                ]}
+                            />
+                        )}
                         {/* Static hides the refresh field (ADR-0063): a fixed window has nothing
                          to follow — the pipeline suppresses polling anyway. */}
                         {!isStatic && (
