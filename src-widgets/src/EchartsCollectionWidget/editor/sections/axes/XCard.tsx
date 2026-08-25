@@ -194,12 +194,13 @@ const XCard: FC<{
                             ctx={pickerCtx}
                         />
                     </Box>
-                    {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis down, away from the
-                    grid (label-crowding fine-adjustment). No stagger machinery here — a single
-                    axis — so the value is purely manual; `outerBoundsContain:'all'` (ADR-0024)
-                    reserves the space, and the builder detaches the line from the Y-zero
-                    (axisLine.onZero:false) so line+ticks+labels move together. 0 → undefined: a
-                    cleared field restores the full default (incl. onZero). */}
+                    {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis away from the grid
+                    in the position's direction (down at 'bottom', up at 'top' — a label-crowding
+                    fine-adjustment). No stagger machinery here — a single axis — so the value is
+                    purely manual; `outerBoundsContain:'all'` (ADR-0024) reserves the space, and
+                    the builder detaches the line from the Y-zero (axisLine.onZero:false) so
+                    line+ticks+labels move together. 0 → undefined: a cleared field restores the
+                    full default (incl. onZero). */}
                     <NumberField
                         label={Generic.t('echarts_axis_offset')}
                         value={x.offset ?? 0}
@@ -207,7 +208,10 @@ const XCard: FC<{
                     />
                     {/* X position (parity Build D, ADR-0055): the adapter's "axis on top" layout
                     variant. 'bottom' is the echarts default — an authored choice emits verbatim,
-                    unset stays key-free. */}
+                    unset stays key-free. 'top' ALSO detaches the line from the Y-zero
+                    (axisLine.onZero:false, same as the offset above): the default onZero:true
+                    pins the line at y=0 while the labels escape via their labelOffset — only the
+                    axis labels would move. */}
                     <LabeledSelect
                         label={Generic.t('echarts_x_position')}
                         value={x.position ?? 'bottom'}

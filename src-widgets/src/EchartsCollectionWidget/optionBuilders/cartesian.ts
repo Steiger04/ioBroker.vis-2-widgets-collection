@@ -441,8 +441,8 @@ const buildYAxisEntry = (
  *
  * The type stays hardcoded `time` — every data mode normalises its points to `[ts, val]`, so a
  * type switch would configure against a data model the pipeline does not deliver (D9). The X
- * axis is presentation only: no min/max (the time window belongs to the data mode), no position,
- * no `inverse` (Advanced JSON territory). Both booleans are ALWAYS emitted so the switch state
+ * axis is presentation only: no min/max (the time window belongs to the data mode), no
+ * `inverse` (Advanced JSON territory). Both booleans are ALWAYS emitted so the switch state
  * and the rendered chart cannot diverge (default-audit rule): echarts' `splitLine` default for a
  * time axis is `false`, and `axisTick.show:'auto'` resolves TRUE for a time-x paired with a
  * value-y (`cartesianAxisHelper` checks the OTHER axis for an interval/log scale) — so `false` /
@@ -468,7 +468,8 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: num
         axisTick: { show: x.axisTick ?? true, ...(x.tickColor ? { lineStyle: { color: x.tickColor } } : {}) },
     };
     // X position top/bottom (parity Build D): unset = no key, echarts keeps its 'bottom' default —
-    // an authored 'bottom' emits verbatim (no visual change, but the choice round-trips).
+    // an authored 'bottom' emits verbatim (no visual change, but the choice round-trips). 'top'
+    // additionally detaches the line from the Y-zero below (the onZero block).
     if (x.position) {
         entry.position = x.position;
     }
@@ -511,16 +512,22 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: num
         axisLabel.color = x.color;
         entry.nameTextStyle = { color: x.color };
     }
-    if (x.offset) {
-        // Pixel offset away from the grid (bottom → down) — the X sibling of the Y-axis Versatz.
-        // 0 counts as unset (it IS the echarts default — a cleared field must also restore the
-        // onZero default, or negative-data charts would visibly jump at "zero"). The axis line
-        // must ALSO be detached from the Y-zero: the default `axisLine.onZero:true` pins the LINE
-        // to the first Y-axis' zero (= the grid floor for positive data) while ticks and labels
-        // follow the offset — the axis visually splits (SSR-verified). onZero:false moves
-        // line+ticks+labels together; merged with a colour-set lineStyle when both are present.
+    if (x.offset || x.position === 'top') {
+        // Pixel offset away from the grid — the X sibling of the Y-axis Versatz; echarts applies
+        // it in the POSITION's direction (bottom → down, top → up). 0 counts as unset (it IS the
+        // echarts default — a cleared field must also restore the onZero default, or
+        // negative-data charts would visibly jump at "zero"). The axis line must ALSO be
+        // detached from the Y-zero: the default `axisLine.onZero:true` pins the LINE to the
+        // first Y-axis' zero (= the grid floor for positive data; any value-Y extent containing
+        // 0 activates it) while the labels escape via their labelOffset — with an offset the
+        // line stays put while ticks/labels move, with position:'top' only the labels reach
+        // the top (cartesianAxisHelper.layout(), labelRotate even flips its sign). Both tear
+        // the axis visually (the offset case SSR-verified). onZero:false moves line+ticks+
+        // labels together; merged with a colour-set lineStyle when present.
         // `outerBoundsContain:'all'` (ADR-0024) reserves the space, dimension-general.
-        entry.offset = x.offset;
+        if (x.offset) {
+            entry.offset = x.offset;
+        }
         const line = (entry.axisLine as Record<string, unknown> | undefined) ?? { show: true };
         entry.axisLine = { ...line, onZero: false };
     }

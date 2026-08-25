@@ -830,16 +830,20 @@ export interface EchartsXAxisConfig {
     gridColor?: string;
     /**
      * Where the axis sits (`position`) — parity Build D layout variant: 'top' mirrors the axis
-     * above the grid. Unset = no emit (echarts default 'bottom'); rides the `xAxis` blob.
+     * above the grid. 'top' also emits `axisLine.onZero:false`: the default `onZero:true` pins
+     * the LINE to the Y-zero while the labels escape via their labelOffset (only the axis
+     * labels move — the axis visually splits, `cartesianAxisHelper.layout()`).
+     * Unset = no emit (echarts default 'bottom'); rides the `xAxis` blob.
      */
     position?: 'bottom' | 'top';
     /**
-     * Pixel offset from the default (bottom) position — moves the whole axis down, away from the
-     * grid (the X sibling of the Y-axis Versatz, a label-crowding fine-adjustment). Setting it
-     * also emits `axisLine.onZero:false`: the default `onZero:true` pins the LINE to the first
-     * Y-axis' zero while ticks/labels follow the offset (the axis visually splits — SSR-verified).
-     * The grid's `outerBoundsContain:'all'` (ADR-0024) reserves the space, so nothing clips;
-     * unset = 0 (no emit, rendering unchanged incl. the onZero default).
+     * Pixel offset from the default position — moves the whole axis away from the grid in the
+     * position's direction (down at 'bottom', up at 'top'; the X sibling of the Y-axis Versatz,
+     * a label-crowding fine-adjustment). Setting it also emits `axisLine.onZero:false`: the
+     * default `onZero:true` pins the LINE to the first Y-axis' zero while ticks/labels follow
+     * the offset (the axis visually splits — SSR-verified). The grid's
+     * `outerBoundsContain:'all'` (ADR-0024) reserves the space, so nothing clips; unset = 0
+     * (no emit, rendering unchanged incl. the onZero default).
      */
     offset?: number;
     /**

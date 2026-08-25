@@ -11,9 +11,9 @@
  * `xAxisTemplates.test.ts` via `classifyUserKeys` (stays in sync with `MANAGED_PATHS.xAxis` by
  * construction). GUI-owned leaves are omitted exactly like on Y: always-owned (type/name/
  * nameLocation/nameGap/nameRotate/offset/splitLine.show/axisTick.show/splitNumber/minInterval/
- * axisLabel.formatter/axisLabel.rotate) and conditionally-owned with an axis colour or offset
- * (axisLabel.color, axisLine.show, axisLine.lineStyle.color, nameTextStyle.color,
- * axisLine.onZero). The seven former chart-level `xAxis` category entries (arrow/onZero/
+ * axisLabel.formatter/axisLabel.rotate) and conditionally-owned with an axis colour, an offset
+ * or position:'top' (axisLabel.color, axisLine.show, axisLine.lineStyle.color,
+ * nameTextStyle.color, axisLine.onZero). The seven former chart-level `xAxis` category entries (arrow/onZero/
  * tickLength/dashedSplit/hideOverlap/minorTicks/splitArea, ADR-0040) merged INTO these group
  * scaffolds — one place per component; the ids broke deliberately (silent load-prune,
  * ADR-0043 pattern).
@@ -44,8 +44,9 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         category: 'axisLine',
         label: 'axisLine',
         // `show` + `lineStyle.color` omitted (conditionally card-owned with an axis colour);
-        // `onZero` is emitted by the builder whenever an offset is set. Arrow symbols are free
-        // — absorbs the former chart-level `xAxis · arrow` entry.
+        // `onZero` is emitted by the builder whenever an offset is set or the position is 'top'
+        // (both detach the line from the Y-zero so it moves with ticks+labels). Arrow symbols are
+        // free — absorbs the former chart-level `xAxis · arrow` entry.
         json: '{ "axisLine": { "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0 }, "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
     },
     // ── axisTick ────────────────────────────────────────────────────────

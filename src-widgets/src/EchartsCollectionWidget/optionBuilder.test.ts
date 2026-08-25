@@ -1772,6 +1772,57 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(bare.xAxis).not.toHaveProperty('position');
     });
+
+    it("position:'top' detaches the axis line from the Y-zero (axisLine.onZero:false) — like the offset", () => {
+        // echarts' cartesianAxisHelper.layout() pins the LINE to the Y-zero whenever the default
+        // axisLine.onZero:true is active, while the LABELS get a labelOffset to the raw position
+        // ('top') — the axis visually splits (labels at the top, line stuck at y=0; this hits any
+        // value Y whose extent contains 0, i.e. already the all-positive default). Only with
+        // onZero:false does the whole axis (line+ticks+labels) move together. 'bottom' — authored
+        // or default — keeps the onZero default: negative data keeps the line at the y=0 level.
+        const top = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top' } },
+        });
+        expect(top.xAxis).toMatchObject({ position: 'top', axisLine: { show: true, onZero: false } });
+
+        const bottom = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'bottom' } },
+        });
+        expect(bottom.xAxis).toMatchObject({ position: 'bottom' });
+        expect(bottom.xAxis).not.toHaveProperty('axisLine');
+
+        // top + offset: both triggers, one detach — offset stacks on the detached line (echarts
+        // moves the axis away from the grid in the POSITION's direction, so positive = up at top).
+        const topOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top', offset: 24 } },
+        });
+        expect(topOffset.xAxis).toMatchObject({
+            position: 'top',
+            offset: 24,
+            axisLine: { show: true, onZero: false },
+        });
+
+        // With a colour set, the detach must not clobber the lineStyle (and vice versa).
+        const topColored = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top', color: '#0af' } },
+        });
+        expect(topColored.xAxis).toMatchObject({
+            position: 'top',
+            axisLine: { show: true, onZero: false, lineStyle: { color: '#0af' } },
+        });
+    });
 });
 
 describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-0056)', () => {
