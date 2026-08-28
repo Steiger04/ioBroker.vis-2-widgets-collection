@@ -5,8 +5,9 @@
  * @module EchartsCollectionWidget/editor/sections/SeriesSection
  * @remarks
  * This file is the thin dispatcher: it owns the shared series state orchestration (add / remove /
- * move / duplicate incl. the 1:1 auto-axis pair semantics of ADR-0018, and the JSON overlay +
- * hide/show deny-list of ADR-0011) and renders the family-specific view:
+ * move / duplicate incl. the 1:1 auto-axis pair semantics of ADR-0018 and the bound-axes
+ * auto-balance of ADR-0067, and the JSON overlay + hide/show deny-list of ADR-0011) and renders
+ * the family-specific view:
  *  - cartesian — {@link CartesianSeriesList}: EditorCards (swatch, name, OID, ↑↓, duplicate,
  *    delete) expanding to the type-sensitive knob SubGroups.
  *  - pie — {@link PieSliceRows}: name + OID + colour + delete rows. (The OID picker was missing in
@@ -29,7 +30,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, isOneToOneBound, jsonBindingView, restingNamePatch } from '../axisLayout';
+import { axisLayout, balanceAxes, isOneToOneBound, jsonBindingView, restingNamePatch } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -142,13 +143,22 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // Series-leave keeps the axis (ADR-0066): deleting a series turns its bound axis UNBOUND iff no
     // surviving series remains on it — kept with its config (a persistent resting state), never
     // rendered until a series binds it again. Only an explicit axis-delete in the Axis manager
-    // removes an axis; no re-index/re-stagger here, so axis indices stay stable across deletes.
-    // The resting-name diff snapshots the vacated axis' displayed name (it inherited it from its
-    // series — without the snapshot the card/dropdowns would collapse to „Achse N").
+    // removes an axis; no re-index here, so axis indices stay stable across deletes. The
+    // resting-name diff snapshots the vacated axis' displayed name FIRST (it inherited it from its
+    // series — without the snapshot the card/dropdowns would collapse to „Achse N"). Then the
+    // auto-balance (ADR-0067) re-arranges the surviving BOUND axes — dense standard interleaving;
+    // the unbound axis takes no slot and keeps its stored geometry. Cartesian only: the other
+    // families carry no axis bindings, so they pass through on the plain resting-name patch.
     const remove = (i: number): void => {
         const next = series.filter((_s, idx) => idx !== i);
-        const yAxes = restingNamePatch(series, next, state.yAxes);
-        set(yAxes ? { series: next, yAxes } : { series: next });
+        const restedAxes = restingNamePatch(series, next, state.yAxes);
+        set(
+            isCartesian
+                ? { series: next, yAxes: balanceAxes(restedAxes ?? state.yAxes, next) }
+                : restedAxes
+                  ? { series: next, yAxes: restedAxes }
+                  : { series: next },
+        );
     };
     // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD
     // axis turns unbound when no series remains on it (ADR-0066) — it stays selectable in the
@@ -181,13 +191,14 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         // appended at the end — it never claims an unbound slot (that return path is the per-series
         // dropdown's explicit assignment alone). Binding to `yAxes.length` (the appended index)
         // rather than the series count also keeps shared-setups consistent. Colour + name are NOT
-        // written — the axis inherits both from the bound series at runtime.
+        // written — the axis inherits both from the bound series at runtime. The auto-balance
+        // (ADR-0067) then re-arranges every bound axis densely (the fresh axis included — its
+        // appended index may interleave differently than its slot); unbound axes keep their spot.
         const axIdx = state.yAxes.length;
-        const patch: Partial<SeriesSlice> = {
-            series: [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }],
-        };
+        const next = [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }];
+        const patch: Partial<SeriesSlice> = { series: next };
         if (isCartesian) {
-            patch.yAxes = [...state.yAxes, axisLayout(axIdx)];
+            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next);
         }
         set(patch);
     };

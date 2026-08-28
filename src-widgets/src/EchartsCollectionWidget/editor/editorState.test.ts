@@ -266,6 +266,47 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
     });
 });
 
+describe('editorState — 0-axes start (ADR-0067)', () => {
+    it('the DEFAULT_EDITOR_STATE carries zero axes', () => {
+        expect(DEFAULT_EDITOR_STATE.yAxes).toEqual([]);
+    });
+
+    it('a fresh widget (no yAxes blob, no series) loads with ZERO axes — no ghost "Achse 1"', () => {
+        const reloaded = loadEditorState({ chartType: 'line' });
+        expect(reloaded.yAxes).toEqual([]);
+    });
+
+    it('a legacy CARTESIAN widget with series still synthesises axis 0 from the legacy scalars (ADR-0012)', () => {
+        const reloaded = loadEditorState({
+            chartType: 'line',
+            series_count: 1,
+            oid1: 'dev.temp',
+            yName: '°C',
+            yMin: 0,
+            yMax: 40,
+        });
+        expect(reloaded.yAxes).toHaveLength(1);
+        expect(reloaded.yAxes[0]).toMatchObject({ name: '°C', min: 0, max: 40, position: 'left' });
+    });
+
+    it('a legacy widget WITHOUT series starts at zero axes too — there is nothing bound to axis 0', () => {
+        const reloaded = loadEditorState({ chartType: 'line', series_count: 0, yName: '°C' });
+        expect(reloaded.yAxes).toEqual([]);
+    });
+
+    it('gauge/radar/pie never synthesise an axis (yAxes is cartesian-only state)', () => {
+        expect(loadEditorState({ chartType: 'gauge', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
+        expect(loadEditorState({ chartType: 'radar', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
+        expect(loadEditorState({ chartType: 'pie', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
+    });
+
+    it('an empty-yAxes round-trip stays empty (Apply writes [], load keeps [])', () => {
+        const state = { ...baseState(), chartType: 'line' as const, series: [], yAxes: [] };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.yAxes).toEqual([]);
+    });
+});
+
 describe('editorState — ADR-0042 snippet activations', () => {
     // Since the ADR-0042 addendum an activation canonically rides WITH its composed raw text
     // (the load path heals ids whose template has no leaf path left in the text), so every

@@ -4,7 +4,10 @@
  * bound-aware since ADR-0066); and the axis-as-independent-citizen coupling — rebind target, the
  * sticky JSON reconcile, and the effective axis name (ADR-0025/0026). Since ADR-0066 a series
  * leaving its axis keeps it as an unbound axis in EVERY mode: nothing prunes anymore, only an
- * explicit axis-delete removes an axis.
+ * explicit axis-delete removes an axis. Since ADR-0067 every structural event re-arranges the
+ * bound axes (standard interleaving, dense on the raster) via {@link balanceAxes} — the migrated
+ * events do; the remaining call sites (rebind/duplicate, AxesZoomSection, the JSON reconcile)
+ * move over in the ADR-0067 follow-up.
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -79,6 +82,11 @@ export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boo
  * create, even when some offsets were hand-tuned. A hand-tuned offset is therefore a fine-justure
  * that survives only until the next structural change; the trigger is `position` (the flip), never a
  * bare offset edit.
+ *
+ * @deprecated ADR-0067 replaces the pack form with {@link balanceAxes} (bound-only + standard
+ * interleaving) — migrate the remaining call sites (the SeriesSection rebind/duplicate handlers,
+ * AxesZoomSection, reconcileJsonAxes) in the ADR-0067 follow-up; until then this stays the pack
+ * path for not-yet-migrated structural events.
  */
 export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
     let leftSeen = 0;
@@ -89,6 +97,28 @@ export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAx
         }
         return { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE };
     });
+};
+
+/**
+ * Auto-Balance (ADR-0067): re-arrange every BOUND axis after a structural event. The bound axes —
+ * in array order — get the standard interleaving ({@link axisPosition} slot by slot: even → left,
+ * odd → right) densely on the 80-px raster. Position AND offset are re-assigned; every other field
+ * (id, name, raw, splitLine, …) survives. An UNBOUND axis takes no geometry slot: it passes through
+ * with its stored position/offset as the preference a later re-bind's balance re-arranges — the
+ * builder never renders it, so a coinciding geometry is harmless. A manual position/offset is
+ * fine-justure until the next structural event (ADR-0028's idiom, extended to the position).
+ *
+ * The series view decides what "bound" means: history/live passes `state.series`, JSON the visible
+ * overlay view ({@link jsonBindingView}). Both are `{ yAxisIndex?: number }` lists in which a
+ * series WITHOUT an index counts as bound to axis 0 (mirroring the builder).
+ */
+export const balanceAxes = (
+    yAxes: readonly EchartsAxisConfig[],
+    series: readonly { yAxisIndex?: number }[],
+): EchartsAxisConfig[] => {
+    const bound = boundAxisIndices(series);
+    let slot = 0;
+    return yAxes.map((a, i) => (bound.has(i) ? { ...a, ...axisPosition(slot++) } : a));
 };
 
 /**

@@ -9,6 +9,7 @@ import {
     alignTicksDisabledByOverride,
     axisLayout,
     axisPosition,
+    balanceAxes,
     boundAxisIndices,
     effectiveAxisColor,
     effectiveAxisName,
@@ -455,6 +456,11 @@ describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', 
         expect(packed.every(a => a.raw === RAW)).toBe(true);
     });
 
+    it('balanceAxes rewrites only geometry — raw survives the balance', () => {
+        const balanced = balanceAxes(axes, [{ yAxisIndex: 0 }, { yAxisIndex: 1 }]);
+        expect(balanced.every(a => a.raw === RAW)).toBe(true);
+    });
+
     it('reconcileJsonAxes keeps raw on sticky axes; a fresh axis starts WITHOUT raw', () => {
         const overlay = { PV: { yAxisIndex: 0 }, TEMP: { yAxisIndex: 1 }, NEW: { yAxisIndex: 2 } };
         const { yAxes } = reconcileJsonAxes(['PV', 'TEMP', 'NEW'], overlay, axes);
@@ -463,5 +469,99 @@ describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', 
         expect(yAxes[0].raw).toBe(RAW);
         expect(yAxes[1].raw).toBe(RAW);
         expect(yAxes[2].raw).toBeUndefined();
+    });
+});
+
+describe('balanceAxes — auto-balance over BOUND axes (ADR-0067)', () => {
+    it('standard interleaving: bound axes in array order alternate left/right, dense on the raster', () => {
+        // Every axis stored left (a hand-tuned set) — the balance redistributes the geometry
+        // from scratch: bound slot 0/1/2/3 → L0, R0, L80, R80 regardless of the stored side.
+        const allLeft: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'left', offset: 80 },
+            { id: 'a2', position: 'left', offset: 160 },
+            { id: 'a3', position: 'left', offset: 240 },
+        ];
+        const out = balanceAxes(allLeft, [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }, { yAxisIndex: 3 }]);
+        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
+            { p: 'left', o: 80 },
+            { p: 'right', o: 80 },
+        ]);
+    });
+
+    it('an unbound axis takes NO slot — it keeps its stored position/offset untouched', () => {
+        // A series-delete vacated axis 1 (kept as unbound at its old right/120 spot). The two
+        // bound axes interleave L0/R0 — the unbound axis' geometry is neither consulted nor
+        // overwritten (it is the preference a later re-bind's balance re-arranges).
+        const axes: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 120 },
+            { id: 'a2', position: 'left', offset: 80 },
+        ];
+        const out = balanceAxes(axes, [{ yAxisIndex: 0 }, { yAxisIndex: 2 }]);
+        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 }, // bound slot 0
+            { p: 'right', o: 120 }, // unbound — stored geometry survives verbatim
+            { p: 'right', o: 0 }, // bound slot 1 — dense behind slot 0, no gap for the unbound axis
+        ]);
+    });
+
+    it('a delete-hole closes densely: the surviving bound axes re-arrange with no gap', () => {
+        // 1:1 layout [L0, R0, L80]; the series on axis 1 is deleted → axis 1 rests unbound at
+        // right/0, the series of axis 2 re-arranges into bound slot 1 (right/0's GEOMETRY —
+        // the unbound axis does not reserve it, the builder never renders it).
+        const axes: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0 },
+            { id: 'a2', position: 'left', offset: 80 },
+        ];
+        const out = balanceAxes(axes, [{ yAxisIndex: 0 }, { yAxisIndex: 2 }]);
+        expect(out[2]).toMatchObject({ position: 'right', offset: 0 });
+        expect(out[1]).toMatchObject({ position: 'right', offset: 0 }); // unbound keeps right/0 too — no slot
+    });
+
+    it('a series without yAxisIndex binds axis 0 (mirrors the builder), so axis 0 balances', () => {
+        const axes: EchartsAxisConfig[] = [{ id: 'a0', position: 'right', offset: 160 }];
+        const out = balanceAxes(axes, [{}]);
+        expect(out[0]).toMatchObject({ position: 'left', offset: 0 });
+    });
+
+    it('no bound series at all → nothing is arranged, every axis passes through by reference', () => {
+        const axes: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'right', offset: 160 },
+            { id: 'a1', position: 'left', offset: 40 },
+        ];
+        expect(balanceAxes(axes, [])).toEqual(axes);
+        expect(balanceAxes(axes, [])[0]).toBe(axes[0]); // referential pass-through
+        expect(balanceAxes(axes, [])[1]).toBe(axes[1]);
+    });
+
+    it('three bound axes pack 0/80 dense per side (L0, R0, L80)', () => {
+        const axes: EchartsAxisConfig[] = [{ id: 'a0' }, { id: 'a1' }, { id: 'a2' }];
+        const out = balanceAxes(axes, [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }]);
+        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
+            { p: 'left', o: 80 },
+        ]);
+    });
+
+    it('preserves identity + every non-geometry field — only position/offset are rewritten', () => {
+        const axes: EchartsAxisConfig[] = [{ id: 'a0', name: 'kW', color: '#f00', splitLine: false, format: '1.1' }];
+        const [out] = balanceAxes(axes, [{ yAxisIndex: 0 }]);
+        expect(out.id).toBe('a0');
+        expect(out.name).toBe('kW');
+        expect(out.color).toBe('#f00');
+        expect(out.splitLine).toBe(false);
+        expect(out.format).toBe('1.1');
+        expect(out).toMatchObject({ position: 'left', offset: 0 });
+    });
+
+    it('a stale series index (>= yAxes.length) balances nothing extra — no crash, no phantom slot', () => {
+        const axes: EchartsAxisConfig[] = [{ id: 'a0', position: 'right', offset: 42 }];
+        const out = balanceAxes(axes, [{ yAxisIndex: 3 }]);
+        expect(out).toEqual(axes); // index 3 has no axis → the set has no member → pass-through
     });
 });

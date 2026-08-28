@@ -176,7 +176,11 @@ export interface EditorState {
     /** echarts animation easing (promoted from a JSON snippet, ADR-0011 D5). Empty = default. */
     animationEasing: string;
     bgColor: string;
-    /** Cartesian Y-axes (ADR-0012). Axis 0 is the default; further axes render side-by-side. */
+    /**
+     * Cartesian Y-axes (ADR-0012). 0-axes start (ADR-0067): a fresh/reset state has NONE —
+     * axes arise only through the series auto-bind (first series → first axis). Further axes
+     * render side-by-side, re-arranged by the auto-balance on every structural event.
+     */
     yAxes: EchartsAxisConfig[];
     /** The single cartesian X-axis (ADR-0035) — flat config; empty = plain time axis. */
     xAxis: EchartsXAxisConfig;
@@ -281,7 +285,10 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     animationDuration: 600,
     animationEasing: '',
     bgColor: 'transparent',
-    yAxes: [{ position: 'left', splitLine: true }],
+    // 0-axes start (ADR-0067): no ghost "Achse 1" in a fresh state — axes arise only through
+    // the series auto-bind (first series → axisLayout(0): left, offset 0, splitLine on). The
+    // chart still renders one value axis via the builder's empty-array fallback.
+    yAxes: [],
     xAxis: {},
     dataZoomSlider: false,
     dataZoomInside: false,
@@ -457,11 +464,18 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     };
 
     // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level
-    // scalars (ADR-0012 migration — no silent rewrite; legacy widgets edit axis 0 on first open).
+    // scalars — but ONLY for a legacy CARTESIAN widget that actually has series (ADR-0012
+    // migration — no silent rewrite; legacy widgets edit axis 0 on first open). Everything else
+    // (a fresh widget, gauge/radar/pie) starts with 0 axes (ADR-0067): no blob → no axis; axes
+    // arise through the series auto-bind alone. The load never re-arranges anything — stored
+    // offsets/positions survive verbatim.
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
     const yAxesDecoded = decodeAxes(data.yAxes as string);
-    const yAxes = withStableIds(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)], 'ax-');
+    const yAxes = withStableIds(
+        yAxesDecoded.length ? yAxesDecoded : family === 'cartesian' && seriesCount > 0 ? [legacyAxis(data)] : [],
+        'ax-',
+    );
     const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
 
     // NO load-time orphan-prune (ADR-0066 removed ADR-0033's load heal): an axis no series binds is
