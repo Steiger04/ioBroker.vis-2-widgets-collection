@@ -20,6 +20,7 @@
 
 import { reconcileJsonAxes } from './axisLayout';
 import { withStableIds } from './stableId';
+import { familyOf } from '../optionBuilder';
 import type { EditorPatch, EditorState } from './editorState';
 
 /**
@@ -91,6 +92,14 @@ export const loadedOidCount = (state: EditorState): number =>
  */
 export const crossesJsonBoundary = (from: EditorState['mode'], to: EditorState['mode']): boolean =>
     (from === 'json') !== (to === 'json');
+
+/**
+ * True when a chart-type switch crosses a **family boundary** — cartesian↔pie↔gauge↔radar,
+ * including json-cartesian→json-pie (ADR-0067). line↔bar↔scatter share the identical series/
+ * axis structure and cross nothing: `false`. So does re-selecting the same type.
+ */
+export const crossesFamilyBoundary = (from: EditorState['chartType'], to: EditorState['chartType']): boolean =>
+    from !== to && familyOf(from) !== familyOf(to);
 
 /**
  * The data-path patch a structural boundary reset applies (ADR-0067): series/OIDs, Y-axes (the

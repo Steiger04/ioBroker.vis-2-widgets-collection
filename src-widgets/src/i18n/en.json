@@ -201,7 +201,7 @@
     "echarts_editor_title": "Chart configuration",
     "echarts_editor_title_text": "Chart title",
     "echarts_editor_valid_json": "✓ valid presentation JSON",
-    "echarts_family_loss": "Switching to %s would drop %s bound OID(s)",
+    "echarts_family_boundary_loss": "Switching the chart family deletes %s series and %s axes",
     "echarts_family_loss_snippets": "%s active template(s) will be removed on Apply",
     "echarts_mode_boundary_loss": "Switching to or from JSON deletes %s series and %s axes",
     "echarts_font_style": "Font style",

@@ -216,7 +216,13 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('the pinned rail selectors equal their ownership', () => {
-        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Pick<EditorState, 'chartType'>>();
+        // + the data-path reset keys the family-crossing patch writes (ADR-0067)
+        expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+            >
+        >();
         // + the static-window read that disables Live (ADR-0063) + the JSON-boundary data-path
         // reset keys the crossing patch writes (ADR-0067)
         expectTypeOf<ModeSelectSlice>().toEqualTypeOf<

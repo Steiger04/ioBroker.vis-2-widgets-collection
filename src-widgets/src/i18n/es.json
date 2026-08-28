@@ -201,7 +201,7 @@
     "echarts_editor_title": "Configuración del gráfico",
     "echarts_editor_title_text": "Título del gráfico",
     "echarts_editor_valid_json": "✓ JSON de presentación válido",
-    "echarts_family_loss": "Cambiar a %s descartaría %s OID(s) vinculado(s)",
+    "echarts_family_boundary_loss": "El cambio de familia del gráfico elimina %s series y %s ejes",
     "echarts_family_loss_snippets": "%s plantilla(s) activa(s) se eliminarán al aplicar",
     "echarts_mode_boundary_loss": "El cambio a o desde JSON elimina %s series y %s ejes",
     "echarts_font_style": "Estilo de fuente",

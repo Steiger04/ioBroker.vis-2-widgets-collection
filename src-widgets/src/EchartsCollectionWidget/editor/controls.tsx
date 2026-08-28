@@ -14,7 +14,7 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
 import Generic from '../../Generic';
 import { FieldLabel, InfoBox } from '../../components/controls';
-import { crossesJsonBoundary, dataPathReset } from './lifecycleGuards';
+import { crossesFamilyBoundary, crossesJsonBoundary, dataPathReset } from './lifecycleGuards';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -165,8 +165,15 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
  * `chartType` (the editor normalises a legacy `'cartesian'` or `'area'` to a concrete type on
  * load, so one of the five is always highlighted).
  */
-/** The chart-type picker's field ownership (ADR-0049 slice) — the pinned rail selector. */
-export type ChartTypePickerSlice = Pick<EditorState, 'chartType'>;
+/**
+ * The chart-type picker's field ownership (ADR-0049 slice) — the pinned rail selector AND the
+ * family-boundary data-path reset (ADR-0067): the crossing patch carries the reset keys, so the
+ * slice owns every field the handler writes.
+ */
+export type ChartTypePickerSlice = Pick<
+    EditorState,
+    'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+>;
 
 export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<ChartTypePickerSlice> }> = ({
     state,
@@ -178,7 +185,20 @@ export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<C
             exclusive
             size="small"
             value={state.chartType}
-            onChange={(_, v: EchartsChartType | null) => v && set({ chartType: v })}
+            onChange={(_, v: EchartsChartType | null) => {
+                if (!v) {
+                    return;
+                }
+                // Family boundary (ADR-0067): crossing cartesian↔pie↔gauge↔radar (incl.
+                // json-cartesian→json-pie) deletes the whole data path IMMEDIATELY — type flip +
+                // reset in ONE patch, so undo restores both in a single step. line↔bar↔scatter
+                // share the series structure: plain flip, no reset.
+                set(
+                    crossesFamilyBoundary(state.chartType, v)
+                        ? { chartType: v, ...dataPathReset(state) }
+                        : { chartType: v },
+                );
+            }}
             sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, width: '100%' }}
         >
             {CHART_TYPES.map(({ value, label, icon }) => (

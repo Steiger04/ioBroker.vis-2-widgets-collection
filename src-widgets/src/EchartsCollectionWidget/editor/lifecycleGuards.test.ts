@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './editorState';
 import {
+    crossesFamilyBoundary,
     crossesJsonBoundary,
     dataPathReset,
     healStableIds,
@@ -196,6 +197,21 @@ describe('JSON-boundary data-path reset (ADR-0067)', () => {
         expect(crossesJsonBoundary('json', 'live')).toBe(true);
         expect(crossesJsonBoundary('history', 'live')).toBe(false);
         expect(crossesJsonBoundary('live', 'history')).toBe(false);
+    });
+
+    it('crossesFamilyBoundary fires across chart families — never within cartesian or on identity', () => {
+        expect(crossesFamilyBoundary('line', 'pie')).toBe(true);
+        expect(crossesFamilyBoundary('bar', 'gauge')).toBe(true);
+        expect(crossesFamilyBoundary('scatter', 'radar')).toBe(true);
+        expect(crossesFamilyBoundary('pie', 'line')).toBe(true);
+        expect(crossesFamilyBoundary('radar', 'pie')).toBe(true);
+        expect(crossesFamilyBoundary('gauge', 'radar')).toBe(true);
+        // line↔bar↔scatter share the series structure — no boundary, no reset
+        expect(crossesFamilyBoundary('line', 'bar')).toBe(false);
+        expect(crossesFamilyBoundary('bar', 'scatter')).toBe(false);
+        expect(crossesFamilyBoundary('scatter', 'line')).toBe(false);
+        // identity (a re-select of the same type) is no crossing either
+        expect(crossesFamilyBoundary('line', 'line')).toBe(false);
     });
 
     it('dataPathReset empties the ENTIRE data path — series, axes, markings, JSON state, indicators', () => {

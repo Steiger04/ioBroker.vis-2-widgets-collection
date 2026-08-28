@@ -107,7 +107,7 @@ The `⚠ n` chip in a section header aggregating that section's field-level vali
 _Avoid_: Error badge, validation summary
 
 **Family-switch warning**:
-The non-blocking chip under the chart-type picker shown when the chosen chart family would drop bound items on Apply (e.g. cartesian→gauge keeps only the first OID).
+The non-blocking chip under the chart-type picker warning BEFORE a family crossing (ADR-0067): a cartesian↔pie↔gauge↔radar switch deletes the whole **Data path** — the chip shows the falling counts („N series, M axes"; radar counts its indicators). line↔bar↔scatter crosses nothing. Beside it (unchanged, ADR-0042) the snippet-loss advice can still name family-invalid ACTIVE template activations — though since the reset deletes every series on crossing, its post-switch case is vacuous.
 _Avoid_: Confirm dialog, type guard
 
 **Axis card**:

@@ -86,27 +86,17 @@ export const validateEditor = (state: EditorState): SectionIssues => {
 };
 
 /**
- * Count the bound items a chart-family switch would silently drop on Apply (ADR-0010).
- * The warning chip under the type picker appears when this is > 0.
- *
- * Survival rules per target family: cartesian/pie keep all series OIDs (radar indicators are
- * dropped); gauge keeps only the first series OID (and drops any radar indicators); radar keeps
- * the indicator OIDs (all series OIDs are dropped).
- *
- * @param state - Current editor state (with the TARGET chart type already selected).
+ * What a chart-FAMILY crossing (cartesian↔pie↔gauge↔radar, ADR-0067) deletes from the current
+ * state — the numbers of the type-picker warning chip. The crossing resets the whole data path,
+ * so the loss is the ENTIRE series/axis set of the current family (the pre-ADR-0067 survival
+ * model — cartesian→pie keeping the series as slices — is pensioned with it). Radar's data path
+ * is its INDICATOR list (the polygon series is presentation); line↔bar↔scatter cross nothing and
+ * never ask. Zero/zero loses nothing — no chip.
  */
-export const familySwitchLoss = (state: EditorState): number => {
-    const family = familyOf(state.chartType);
-    const boundSeries = state.series.filter(s => s.oid).length;
-    const boundIndicators = state.radar.indicators.filter(i => i.oid).length;
-    if (family === 'gauge') {
-        return Math.max(0, boundSeries - 1) + boundIndicators;
-    }
-    if (family === 'radar') {
-        return boundSeries;
-    }
-    return boundIndicators;
-};
+export const familyBoundaryLoss = (state: EditorState): { series: number; axes: number } => ({
+    series: familyOf(state.chartType) === 'radar' ? state.radar.indicators.length : state.series.length,
+    axes: state.yAxes.length,
+});
 
 /**
  * What the NEXT JSON-boundary crossing (into or out of JSON, ADR-0067) deletes from the current
@@ -133,13 +123,15 @@ export const jsonBoundaryLoss = (
 
 /**
  * Count the ACTIVE template activations (ADR-0042) a chart-family switch would prune on Apply.
- * Advises beside {@link familySwitchLoss} — the same nothing-dropped-at-switch model: between the
- * switch and Apply the stale ids sit inert in the working copy, and the prune rides Apply.
+ * The LAST family-switch loss advice (the bound-OID share died with ADR-0067's data-path reset):
+ * between the switch and Apply the stale ids sit inert in the working copy, and the prune rides
+ * Apply.
  *
- * Two sources (the chart-level term retired with the chart-U, ADR-0045 — the radar section raw
- * rides the blob inert across families and is therefore never a loss): activations on series the
- * switch drops (gauge keeps only the first); and slot-stale activations on surviving series
- * (e.g. a cartesian-line activation on a series that becomes a pie slice).
+ * ADR-0067 note: since the family crossing RESETS every series, the historical survivor model
+ * below (gauge keeping the first series, slot-stale activations on survivors) can only bite on
+ * a working copy that never actually crossed — the post-switch case is vacuous (no series left).
+ * Kept verbatim per the ticket ("die Snippet-Prune-Warnung bleibt unberührt"); the slot-stale
+ * machinery still guards the load path over hand-edited blobs.
  */
 export const familySwitchSnippetLoss = (state: EditorState): number => {
     const family = familyOf(state.chartType);
@@ -149,8 +141,8 @@ export const familySwitchSnippetLoss = (state: EditorState): number => {
         list.reduce((total, s) => total + (s.snippets?.length ?? 0), 0);
 
     if (family === 'gauge' || family === 'radar') {
-        // The first series survives as the single gauge series / radar polygon (its activations go
-        // stale against that slot); every further series is dropped with its activations.
+        // Historical model: the first series survives as the single gauge series / radar polygon
+        // (its activations go stale against that slot); every further series is dropped.
         return stale(state.series[0]?.snippets, family) + dropped(state.series.slice(1));
     }
     return state.series.reduce((total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s)), 0);

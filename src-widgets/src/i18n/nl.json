@@ -201,7 +201,7 @@
     "echarts_editor_title": "Diagramconfiguratie",
     "echarts_editor_title_text": "Diagramtitel",
     "echarts_editor_valid_json": "✓ geldige presentatie-JSON",
-    "echarts_family_loss": "Overschakelen naar %s verwijdert %s gebonden OID(s)",
+    "echarts_family_boundary_loss": "De wissel van de grafiekfamilie verwijdert %s reeksen en %s assen",
     "echarts_family_loss_snippets": "%s actieve sjabloon(en) worden verwijderd bij toepassen",
     "echarts_mode_boundary_loss": "De wissel naar of van JSON verwijdert %s reeksen en %s assen",
     "echarts_font_style": "Lettertypestijl",

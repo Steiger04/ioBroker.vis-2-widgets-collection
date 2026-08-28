@@ -201,7 +201,7 @@
     "echarts_editor_title": "Konfiguracja wykresu",
     "echarts_editor_title_text": "Tytuł wykresu",
     "echarts_editor_valid_json": "✓ poprawny JSON prezentacji",
-    "echarts_family_loss": "Przełączenie na %s spowoduje porzucenie %s powiązanych OID",
+    "echarts_family_boundary_loss": "Zmiana rodzaju wykresu usunie %s serie i %s osie",
     "echarts_family_loss_snippets": "%s aktywny(ch) szablon(ów) zostanie usunięty(ch) przy zastosowaniu",
     "echarts_mode_boundary_loss": "Zmiana na JSON lub z JSON usunie %s serie i %s osie",
     "echarts_font_style": "Styl czcionki",

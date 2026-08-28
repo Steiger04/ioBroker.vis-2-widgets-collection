@@ -201,7 +201,7 @@
     "echarts_editor_title": "图表配置",
     "echarts_editor_title_text": "图表标题",
     "echarts_editor_valid_json": "✓ 有效的展示 JSON",
-    "echarts_family_loss": "切换到 %s 将丢弃 %s 个绑定的 OID",
+    "echarts_family_boundary_loss": "切换图表类别将删除 %s 个系列和 %s 个坐标轴",
     "echarts_family_loss_snippets": "应用时将移除 %s 个活动模板",
     "echarts_mode_boundary_loss": "切换到或离开 JSON 将删除 %s 个系列和 %s 个坐标轴",
     "echarts_font_style": "字体样式",

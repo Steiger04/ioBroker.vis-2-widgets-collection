@@ -30,7 +30,7 @@ import ToolboxSection from './sections/ToolboxSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
 import {
-    familySwitchLoss,
+    familyBoundaryLoss,
     familySwitchSnippetLoss,
     jsonBoundaryLoss,
     type SectionIssues,
@@ -115,6 +115,22 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
     }
 };
 
+/**
+ * The non-blocking boundary-reset warning chip (ADR-0067), shared by both crossing selectors —
+ * the chart-type picker (family boundary) and the mode toggle (JSON boundary). Rendered while the
+ * CURRENT state holds a data path the next crossing would delete; zero/zero renders nothing.
+ */
+const BoundaryLossAlert: FC<{ lossKey: string; loss: { series: number; axes: number } }> = ({ lossKey, loss }) =>
+    loss.series > 0 || loss.axes > 0 ? (
+        <Alert
+            severity="warning"
+            variant="outlined"
+            sx={{ py: 0, mt: 1 }}
+        >
+            {Generic.t(lossKey, String(loss.series), String(loss.axes))}
+        </Alert>
+    ) : null;
+
 const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     state,
     set,
@@ -128,10 +144,13 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     const modeRelevant = family === 'cartesian' || family === 'pie';
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
     const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
-    const loss = familySwitchLoss(state);
-    // ADR-0042: activations the family switch would prune on Apply — advised beside the bound-OID
-    // loss; the prune itself rides Apply (nothing is dropped at switch time).
+    // ADR-0042: activations the family switch would prune on Apply — advised below; the prune
+    // itself rides Apply (nothing is dropped at switch time). The pre-ADR-0067 bound-OID loss
+    // beside it is pensioned: a family crossing now RESETS the data path (chip at the picker).
     const snippetLoss = familySwitchSnippetLoss(state);
+    // The family-boundary reset warning (ADR-0067): a non-blocking chip at the type picker,
+    // shown BEFORE the crossing — what the next family switch deletes from the current state.
+    const familyLoss = familyBoundaryLoss(state);
     // The JSON-boundary reset warning (ADR-0067): a non-blocking chip at the mode toggle, shown
     // BEFORE the crossing — what the next into/out-of-JSON switch deletes from the current state.
     const boundaryLoss = jsonBoundaryLoss(state, jsonSeriesNames ?? []);
@@ -252,29 +271,26 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
         <Box>
             {/* Pinned selectors (ADR-0010): never collapsible, always visible. */}
             <Box sx={{ display: 'grid', gap: 2, mb: 1.5 }}>
-                <ChartTypePicker
-                    state={state}
-                    set={set}
-                />
+                <Box>
+                    <ChartTypePicker
+                        state={state}
+                        set={set}
+                    />
+                    <BoundaryLossAlert
+                        lossKey="echarts_family_boundary_loss"
+                        loss={familyLoss}
+                    />
+                </Box>
                 {modeRelevant ? (
                     <Box>
                         <ModeSelect
                             state={state}
                             set={set}
                         />
-                        {(boundaryLoss.series > 0 || boundaryLoss.axes > 0) && (
-                            <Alert
-                                severity="warning"
-                                variant="outlined"
-                                sx={{ py: 0, mt: 1 }}
-                            >
-                                {Generic.t(
-                                    'echarts_mode_boundary_loss',
-                                    String(boundaryLoss.series),
-                                    String(boundaryLoss.axes),
-                                )}
-                            </Alert>
-                        )}
+                        <BoundaryLossAlert
+                            lossKey="echarts_mode_boundary_loss"
+                            loss={boundaryLoss}
+                        />
                     </Box>
                 ) : (
                     <Box>
@@ -282,24 +298,16 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         <InfoBox text={Generic.t('echarts_mode_current_value')} />
                     </Box>
                 )}
-                {(loss > 0 || snippetLoss > 0) && (
+                {/* Snippet-prune advice (ADR-0042) — the ONLY family-switch warning left: the
+                    pre-ADR-0067 bound-OID loss share is pensioned (the family crossing resets the
+                    data path now, advised by the chip at the type picker above). */}
+                {snippetLoss > 0 && (
                     <Alert
                         severity="warning"
                         variant="outlined"
                         sx={{ py: 0 }}
                     >
-                        {loss > 0 && (
-                            <Box component="div">
-                                {Generic.t(
-                                    'echarts_family_loss',
-                                    Generic.t(`echarts_type_${state.chartType}`),
-                                    String(loss),
-                                )}
-                            </Box>
-                        )}
-                        {snippetLoss > 0 && (
-                            <Box component="div">{Generic.t('echarts_family_loss_snippets', String(snippetLoss))}</Box>
-                        )}
+                        <Box component="div">{Generic.t('echarts_family_loss_snippets', String(snippetLoss))}</Box>
                     </Alert>
                 )}
             </Box>

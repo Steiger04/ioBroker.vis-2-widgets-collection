@@ -1,13 +1,14 @@
 /**
  * Unit tests for the advisory validation engine (ADR-0010): {@link validateEditor} +
- * {@link familySwitchLoss} + {@link familySwitchSnippetLoss} (ADR-0042).
+ * {@link familyBoundaryLoss}/{@link jsonBoundaryLoss} (ADR-0067) +
+ * {@link familySwitchSnippetLoss} (ADR-0042).
  *
  * @module EchartsCollectionWidget/editor/validation.test
  */
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { familySwitchLoss, familySwitchSnippetLoss, jsonBoundaryLoss, validateEditor } from './validation';
+import { familyBoundaryLoss, familySwitchSnippetLoss, jsonBoundaryLoss, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -113,45 +114,27 @@ describe('validateEditor', () => {
     });
 });
 
-describe('familySwitchLoss', () => {
-    it('gauge keeps only the first bound series OID; radar indicators drop too', () => {
-        const n = familySwitchLoss(
-            st({
-                chartType: 'gauge',
-                series: [
-                    { oid: 'a', name: '' },
-                    { oid: 'b', name: '' },
-                    { oid: '', name: '' },
-                ],
-                radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [{ name: 'I', max: 1, oid: 'c' }] },
-            }),
-        );
-        expect(n).toBe(2); // series b + indicator c
-    });
+describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)', () => {
+    // ADR-0067 pensions the familySwitchLoss survival model (cartesian→pie kept the series as
+    // slices): a family crossing now RESETS the whole data path, so the loss is the entire
+    // series/axis set of the current family — counted up front by the picker warning chip.
 
-    it('gauge with a single bound series → no loss', () => {
-        expect(familySwitchLoss(st({ chartType: 'gauge', series: [{ oid: 'a', name: '' }] }))).toBe(0);
-    });
-
-    it('radar drops every bound series OID (indicators survive)', () => {
-        const n = familySwitchLoss(
-            st({
-                chartType: 'radar',
-                series: [
-                    { oid: 'a', name: '' },
-                    { oid: 'b', name: '' },
-                ],
-                radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [{ name: 'I', max: 1, oid: 'c' }] },
-            }),
-        );
-        expect(n).toBe(2);
-    });
-
-    it('cartesian/pie drop bound radar indicators, keep series OIDs', () => {
-        const n = familySwitchLoss(
+    it('cartesian counts the authored series + axes that fall on any family exit', () => {
+        const loss = familyBoundaryLoss(
             st({
                 chartType: 'line',
-                series: [{ oid: 'a', name: '' }],
+                series: [{ oid: 'a' }, { oid: 'b' }],
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+            }),
+        );
+        expect(loss).toEqual({ series: 2, axes: 2 });
+    });
+
+    it('radar counts the INDICATORS (its oidN data path), not the polygon series', () => {
+        const loss = familyBoundaryLoss(
+            st({
+                chartType: 'radar',
+                series: [{ oid: '', name: 'Polygon' }],
                 radar: {
                     shape: 'polygon',
                     splitNumber: 5,
@@ -163,13 +146,17 @@ describe('familySwitchLoss', () => {
                 },
             }),
         );
-        expect(n).toBe(2);
+        expect(loss).toEqual({ series: 2, axes: 0 });
     });
 
-    it('nothing bound → zero loss for every family', () => {
-        expect(familySwitchLoss(st({ chartType: 'gauge', series: [{ oid: '', name: '' }] }))).toBe(0);
-        expect(familySwitchLoss(st({ chartType: 'pie' }))).toBe(0);
-        expect(familySwitchLoss(st({ chartType: 'radar' }))).toBe(0);
+    it('gauge counts its single series', () => {
+        const loss = familyBoundaryLoss(st({ chartType: 'gauge', series: [{ oid: 'a' }] }));
+        expect(loss).toEqual({ series: 1, axes: 0 });
+    });
+
+    it('an empty data path loses nothing — zero/zero renders no chip', () => {
+        expect(familyBoundaryLoss(st({ chartType: 'line' }))).toEqual({ series: 0, axes: 0 });
+        expect(familyBoundaryLoss(st({ chartType: 'radar' }))).toEqual({ series: 0, axes: 0 });
     });
 });
 

@@ -201,7 +201,7 @@
     "echarts_editor_title": "Конфигурация графика",
     "echarts_editor_title_text": "Заголовок графика",
     "echarts_editor_valid_json": "✓ корректный JSON представления",
-    "echarts_family_loss": "Переключение на %s приведет к удалению %s привязанных OID",
+    "echarts_family_boundary_loss": "Переключение типа диаграммы удалит %s серий и %s осей",
     "echarts_family_loss_snippets": "%s активных шаблон(ов) будут удалены при применении",
     "echarts_mode_boundary_loss": "Переключение на JSON или обратно удалит %s серий и %s осей",
     "echarts_font_style": "Стиль шрифта",
