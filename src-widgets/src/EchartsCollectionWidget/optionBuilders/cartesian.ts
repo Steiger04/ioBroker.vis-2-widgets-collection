@@ -690,12 +690,22 @@ export const buildCartesianOption = (
         : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
     // Y-axes: one entry per BOUND axis (ADR-0012; unbound axes rest, ADR-0066). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
-    // the axis colour AND name default to the first bound series' effective values when neither is
-    // explicit (ADR-0018); the axis LABELS inherit the bound series' shared unit (ADR-0057) and
-    // the shared text facts (ADR-0058) — decimals deliberately NOT inherited (whose would a
-    // shared axis clamp to?).
+    // the axis colour AND name default to the axis' OWNER series' effective values when neither is
+    // explicit (ADR-0018; owner-first since ADR-0068 — the incumbent series keeps the identity, a
+    // rebinding newcomer standing earlier in the array never steals it; the owner matches by meta
+    // id in history/live, by payload name in JSON); the axis LABELS inherit the bound series'
+    // shared unit (ADR-0057) and the shared text facts (ADR-0058) — decimals deliberately NOT
+    // inherited (whose would a shared axis clamp to?).
     const yAxisEntries = axes.map((a, i) => {
-        const bound = entries.find(e => e.yAxisIndex === i);
+        const firstBinder = entries.find(e => e.yAxisIndex === i);
+        const ownerIdx =
+            a.owner === undefined
+                ? -1
+                : meta.findIndex(m => m?.id === a.owner) >= 0
+                  ? meta.findIndex(m => m?.id === a.owner)
+                  : series.findIndex(s => s.name === a.owner);
+        const ownerEntry = ownerIdx >= 0 ? entries[ownerIdx] : undefined;
+        const bound = ownerEntry !== undefined && ownerEntry.yAxisIndex === i ? ownerEntry : firstBinder;
         const sc = bound?.color;
         const seriesColor = typeof sc === 'string' ? sc : undefined;
         const sn = bound?.name;

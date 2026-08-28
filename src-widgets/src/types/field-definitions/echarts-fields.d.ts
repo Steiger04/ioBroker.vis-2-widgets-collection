@@ -714,8 +714,19 @@ export interface EchartsAxisConfig {
     position?: 'left' | 'right';
     /** Px offset from the grid edge (stacks axes on the same side). @default 0 */
     offset?: number;
-    /** Axis colour (axis line + label + name). Defaults to the first bound series' colour. */
+    /** Axis colour (axis line + label + name). Defaults to the owner series' colour (ADR-0068). */
     color?: string;
+    /**
+     * The axis' **owner** („Namensgeber", ADR-0068): the series whose name/colour the axis
+     * displays while more than one series binds it — the series id in history/live, the
+     * payload name in JSON mode. The incumbent keeps the identity: a series REBINDING onto an
+     * occupied axis never steals the display, however early it sits in the series list; when
+     * the owner leaves, the first remaining binder takes over. Kept current by the binding
+     * patch (`restingNamePatch`) on every structural event; the live inheritance (renames
+     * follow immediately) is unchanged. Never emitted to echarts as a key — the builder
+     * resolves it to the owner series' name/colour.
+     */
+    owner?: string;
     /** Don't force the axis to include zero. @default false */
     scale?: boolean;
     /** Show split lines. @default true for axis 0, false otherwise. */

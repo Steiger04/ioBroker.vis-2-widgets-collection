@@ -107,6 +107,9 @@ describe('reconcileJsonAxesStep', () => {
     });
 
     it('keeps a valid manual rebind (sticky — a swapped binding survives)', () => {
+        // The FIRST reconcile after a load bootstraps the axis owners (ADR-0068 — the swapped
+        // binding's incumbents: axis 0 ← kw, axis 1 ← temp); the re-fire over its own output
+        // is the sticky no-op it always was (bindings untouched, owner already current).
         const rebound = jsonState({
             chartType: 'line',
             yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
@@ -115,7 +118,11 @@ describe('reconcileJsonAxesStep', () => {
                 kw: { yAxisIndex: 0 },
             },
         });
-        expect(reconcileJsonAxesStep(rebound, ['temp', 'kw'])).toBeNull();
+        const bootstrapped = asPatch(reconcileJsonAxesStep(rebound, ['temp', 'kw']));
+        expect(bootstrapped.jsonSeriesStyle).toEqual(rebound.jsonSeriesStyle); // sticky
+        expect(bootstrapped.yAxes[0]).toMatchObject({ owner: 'kw' });
+        expect(bootstrapped.yAxes[1]).toMatchObject({ owner: 'temp' });
+        expect(reconcileJsonAxesStep({ ...rebound, yAxes: bootstrapped.yAxes }, ['temp', 'kw'])).toBeNull();
     });
 
     it('frees the axis of a name that is no longer visible (payload-gone → the axis rests unbound)', () => {

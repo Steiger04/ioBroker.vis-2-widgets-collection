@@ -256,13 +256,13 @@ describe('implicit axis-0 binding — the materialised display sight (Q7)', () =
         // not „Achse 1" + a grey swatch. (Pre-Q7 characterization: '1' / 'Alt' / undefined.)
         expect(effectiveAxisName({}, 0, [{ name: 'PV' }])).toBe('PV');
         expect(effectiveAxisName({ restingName: 'Alt' }, 0, [{ name: 'PV' }])).toBe('PV'); // bound ignores it
-        expect(effectiveAxisColor(0, [{ color: '#f00' }], ['#aaa'])).toBe('#f00');
+        expect(effectiveAxisColor({}, 0, [{ color: '#f00' }], ['#aaa'])).toBe('#f00');
         expect(restingAxisName({}, 0, [{ name: 'PV' }])).toBe('PV');
     });
 
     it('only axis 0 gains binders — an implicit binder never matches a higher axis', () => {
         expect(effectiveAxisName({}, 1, [{ name: 'PV' }])).toBe('Series 2');
-        expect(effectiveAxisColor(1, [{ color: '#f00' }], ['#aaa'])).toBeUndefined();
+        expect(effectiveAxisColor({}, 1, [{ color: '#f00' }], ['#aaa'])).toBeUndefined();
     });
 
     it('re-binding an implicit binder AWAY now transitions axis 0 — the resting snapshot fires', () => {
@@ -285,14 +285,14 @@ describe('jsonBindingView — the JSON binding view (ADR-0066)', () => {
             [],
         );
         expect(view).toEqual([
-            { yAxisIndex: 0, name: 'Außen' },
-            { yAxisIndex: 1, name: 'Leistung' },
+            { id: 'Temp', yAxisIndex: 0, name: 'Außen' },
+            { id: 'Leistung', yAxisIndex: 1, name: 'Leistung' },
         ]);
     });
 
     it('filters hidden names — a hidden binder must not count as bound', () => {
         const view = jsonBindingView(['A', 'B'], { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } }, ['B']);
-        expect(view).toEqual([{ yAxisIndex: 0, name: 'A' }]);
+        expect(view).toEqual([{ id: 'A', yAxisIndex: 0, name: 'A' }]);
     });
 });
 
@@ -301,8 +301,8 @@ describe('effectiveAxisColor — Axis-card swatch matches the bound Series card 
 
     it("uses the bound series' palette slot by its DISPLAY position (history/live 1:1)", () => {
         const series = [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }];
-        expect(effectiveAxisColor(0, series, palette)).toBe('#aaa');
-        expect(effectiveAxisColor(2, series, palette)).toBe('#ccc');
+        expect(effectiveAxisColor({}, 0, series, palette)).toBe('#aaa');
+        expect(effectiveAxisColor({}, 2, series, palette)).toBe('#ccc');
     });
 
     it('uses the VISIBLE position, not the axis index, when the binding is permuted (JSON reorder)', () => {
@@ -315,19 +315,19 @@ describe('effectiveAxisColor — Axis-card swatch matches the bound Series card 
             { yAxisIndex: 0 }, // A (visible position 1)
             { yAxisIndex: 2 }, // C (visible position 2)
         ];
-        expect(effectiveAxisColor(1, visibleSeries, palette)).toBe('#aaa'); // B's slot
-        expect(effectiveAxisColor(0, visibleSeries, palette)).toBe('#bbb'); // A's slot (visible pos 1)
-        expect(effectiveAxisColor(2, visibleSeries, palette)).toBe('#ccc'); // C's slot
+        expect(effectiveAxisColor({}, 1, visibleSeries, palette)).toBe('#aaa'); // B's slot
+        expect(effectiveAxisColor({}, 0, visibleSeries, palette)).toBe('#bbb'); // A's slot (visible pos 1)
+        expect(effectiveAxisColor({}, 2, visibleSeries, palette)).toBe('#ccc'); // C's slot
     });
 
     it('an explicit bound-series colour wins over the palette slot', () => {
         const series = [{ yAxisIndex: 0, color: '#f00' }, { yAxisIndex: 1 }];
-        expect(effectiveAxisColor(0, series, palette)).toBe('#f00');
-        expect(effectiveAxisColor(1, series, palette)).toBe('#bbb');
+        expect(effectiveAxisColor({}, 0, series, palette)).toBe('#f00');
+        expect(effectiveAxisColor({}, 1, series, palette)).toBe('#bbb');
     });
 
     it('returns undefined when no series is bound to the axis', () => {
-        expect(effectiveAxisColor(5, [{ yAxisIndex: 0 }], palette)).toBeUndefined();
+        expect(effectiveAxisColor({}, 5, [{ yAxisIndex: 0 }], palette)).toBeUndefined();
     });
 });
 
@@ -619,14 +619,14 @@ describe('boundJsonView — the strict JSON balance sight (ADR-0067)', () => {
     it('filters the visible binding view down to DEFINED indices', () => {
         const overlay = { A: { yAxisIndex: 1 }, B: { yAxisIndex: 0 }, C: { yAxisIndex: undefined } };
         expect(boundJsonView(['A', 'B', 'C'], overlay, [])).toEqual([
-            { yAxisIndex: 1, name: 'A' },
-            { yAxisIndex: 0, name: 'B' },
+            { id: 'A', yAxisIndex: 1, name: 'A' },
+            { id: 'B', yAxisIndex: 0, name: 'B' },
         ]);
     });
 
     it('hidden names never reach the sight', () => {
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
-        expect(boundJsonView(['A', 'B'], overlay, ['B'])).toEqual([{ yAxisIndex: 0, name: 'A' }]);
+        expect(boundJsonView(['A', 'B'], overlay, ['B'])).toEqual([{ id: 'A', yAxisIndex: 0, name: 'A' }]);
     });
 });
 
@@ -825,16 +825,16 @@ describe('boundJsonAxisIndices / boundJsonAxisName — the STRICT JSON card sigh
 
     it('boundJsonAxisName: the title comes from the first VISIBLE binder only', () => {
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Bezug' } };
-        expect(boundJsonAxisName(1, ['A', 'B'], overlay, ['B'])).toBeUndefined(); // hidden binder titles nothing
-        expect(boundJsonAxisName(1, ['A', 'B'], overlay, [])).toBe('Bezug'); // authored name wins
-        expect(boundJsonAxisName(0, ['A'], { A: { yAxisIndex: 0 } }, [])).toBe('A'); // payload name fallback
-        expect(boundJsonAxisName(2, ['A'], { A: { yAxisIndex: 0 } }, [])).toBeUndefined(); // unbound
+        expect(boundJsonAxisName({}, 1, ['A', 'B'], overlay, ['B'])).toBeUndefined(); // hidden binder titles nothing
+        expect(boundJsonAxisName({}, 1, ['A', 'B'], overlay, [])).toBe('Bezug'); // authored name wins
+        expect(boundJsonAxisName({}, 0, ['A'], { A: { yAxisIndex: 0 } }, [])).toBe('A'); // payload name fallback
+        expect(boundJsonAxisName({}, 2, ['A'], { A: { yAxisIndex: 0 } }, [])).toBeUndefined(); // unbound
     });
 
     it('a hidden binder and a visible binder SHARING one axis: the axis stays bound, titled by the visible one', () => {
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 0, name: 'Bezug' } };
         expect(boundJsonAxisIndices(['A', 'B'], overlay, ['A'])).toEqual(new Set([0]));
-        expect(boundJsonAxisName(0, ['A', 'B'], overlay, ['A'])).toBe('Bezug');
+        expect(boundJsonAxisName({}, 0, ['A', 'B'], overlay, ['A'])).toBe('Bezug');
     });
 });
 
@@ -914,5 +914,113 @@ describe('displayAxisIndex — the select clamp shows the builder truth (B4, F7/
     it('the 0-axes state stays displayable (axis 1)', () => {
         expect(displayAxisIndex(undefined, 0)).toBe(0);
         expect(displayAxisIndex(0, 0)).toBe(0);
+    });
+});
+
+describe('axis name owner „Namensgeber" — the incumbent keeps the axis identity (ticket 05)', () => {
+    const baseAxes: EchartsAxisConfig[] = [
+        { id: 'a0', position: 'left', offset: 0 },
+        { id: 'a1', position: 'right', offset: 0 },
+        { id: 'a2', position: 'left', offset: 80 },
+    ];
+    const oneToOne = [
+        { id: 's1', yAxisIndex: 0, name: 'S1' },
+        { id: 's2', yAxisIndex: 1, name: 'S2' },
+        { id: 's3', yAxisIndex: 2, name: 'S3' },
+    ];
+
+    it("the user regression: rebinding S2 onto S3's axis NEVER renames it to S2", () => {
+        // 3 series 1:1 (no owner yet — bootstraps from BEFORE); S2 rebinds onto axis 2.
+        // Before the owner rule the newcomer stood FIRST in series order and stole name +
+        // colour: every surface read "S2", the axis of S3 was name-gone ("komplett
+        // verschwunden"). With the owner, axis 2 keeps "S3" and axis 1 rests as "S2".
+        const after = [oneToOne[0], { ...oneToOne[1], yAxisIndex: 2 }, oneToOne[2]];
+        const patched = restingNamePatch(oneToOne, after, baseAxes)!;
+        expect(patched[2]).toMatchObject({ owner: 's3' });
+        expect(axisOptionLabel(2, patched[2], after)).toBe('3 · S3');
+        expect(patched[1]).toMatchObject({ restingName: 'S2' }); // the vacated axis snapshot
+        expect(axisOptionLabel(1, patched[1], after)).toBe('2 · S2');
+    });
+
+    it('effectiveAxisName resolves owner-first — even when the newcomer stands EARLIER in the array', () => {
+        const axis: EchartsAxisConfig = { id: 'a2', position: 'left', offset: 80, owner: 's3' };
+        const series = [
+            { id: 's1', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', yAxisIndex: 2, name: 'S2' }, // newcomer, array position 1
+            { id: 's3', yAxisIndex: 2, name: 'S3' }, // incumbent owner, later position
+        ];
+        expect(effectiveAxisName(axis, 2, series)).toBe('S3');
+    });
+
+    it('the owner leaving hands the name to the first remaining binder', () => {
+        // axis 1 carries s2 (owner) + s3; s2 rebinds onto axis 0 → owner becomes s3.
+        const before = [
+            { id: 's1', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', yAxisIndex: 1, name: 'S2' },
+            { id: 's3', yAxisIndex: 1, name: 'S3' },
+        ];
+        const after = [
+            { id: 's1', yAxisIndex: 0, name: 'S1' },
+            { id: 's2', yAxisIndex: 0, name: 'S2' },
+            { id: 's3', yAxisIndex: 1, name: 'S3' },
+        ];
+        const patched = restingNamePatch(before, after, [
+            baseAxes[0],
+            { id: 'a1', position: 'right', offset: 0, owner: 's2' },
+            baseAxes[2],
+        ])!;
+        expect(patched[1]).toMatchObject({ owner: 's3' });
+        expect(effectiveAxisName(patched[1], 1, after)).toBe('S3');
+    });
+
+    it('a GAIN on an owner-less unbound axis names the arriving binder', () => {
+        const before = [{ id: 's1', yAxisIndex: 0, name: 'S1' }];
+        const after = [...before, { id: 's2', yAxisIndex: 1, name: 'S2' }];
+        const patched = restingNamePatch(before, after, baseAxes)!;
+        expect(patched[1]).toMatchObject({ owner: 's2' });
+    });
+
+    it("restingAxisName snapshots the OWNER binder's name on leave — not the first in array order", () => {
+        const axis: EchartsAxisConfig = { id: 'a1', position: 'right', offset: 0, owner: 's3' };
+        const series = [
+            { id: 's2', yAxisIndex: 1, name: 'S2' }, // still bound, earlier position
+            { id: 's3', yAxisIndex: 1, name: 'S3' }, // the owner, leaving next
+        ];
+        expect(restingAxisName(axis, 1, series)).toBe('S3');
+    });
+
+    it("effectiveAxisColor paints the swatch with the owner series' colour", () => {
+        const axis: EchartsAxisConfig = { id: 'a1', position: 'right', offset: 0, owner: 's3' };
+        const series = [
+            { id: 's2', yAxisIndex: 1, color: '#0f0' },
+            { id: 's3', yAxisIndex: 1, color: '#00f' },
+        ];
+        expect(effectiveAxisColor(axis, 1, series, ['#f00', '#0f0', '#00f'])).toBe('#00f');
+        // without an explicit colour the owner's palette SLOT paints — the OWNER's display
+        // position (s3 sits at position 1 → palette[1]), not the axis index.
+        expect(
+            effectiveAxisColor(
+                axis,
+                1,
+                [
+                    { id: 's2', yAxisIndex: 1 },
+                    { id: 's3', yAxisIndex: 1 },
+                ],
+                ['#f00', '#0f0', '#00f'],
+            ),
+        ).toBe('#0f0');
+    });
+
+    it('id-less sights (legacy lists without ids) keep the first-binder fallback', () => {
+        const axis: EchartsAxisConfig = { id: 'a1', position: 'right', offset: 0 };
+        expect(effectiveAxisName(axis, 1, [{ yAxisIndex: 1, name: 'X' }])).toBe('X');
+    });
+
+    it('boundJsonAxisName resolves the JSON owner (the payload name) before the first binder', () => {
+        const axis: EchartsAxisConfig = { id: 'a1', position: 'right', offset: 0, owner: 'N3' };
+        const overlay = { N2: { yAxisIndex: 1 }, N3: { yAxisIndex: 1, name: 'Drei' } };
+        expect(boundJsonAxisName(axis, 1, ['N2', 'N3'], overlay, [])).toBe('Drei');
+        // owner gone/hidden → first visible binder
+        expect(boundJsonAxisName(axis, 1, ['N2', 'N3'], overlay, ['N3'])).toBe('N2');
     });
 });

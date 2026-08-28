@@ -33,6 +33,7 @@ import type { EditorState, SetEditor } from '../editorState';
 import {
     axisLayout,
     balanceAxes,
+    binderIndexOf,
     boundAxisIndices,
     boundJsonAxisIndices,
     boundJsonAxisName,
@@ -40,9 +41,10 @@ import {
     effectiveAxisColor,
     emittedAxisRanks,
     isRealSideFlip,
+    jsonBindingView,
     jsonBoundAxisDeletePatch,
-    materializedAxisIndex,
     remapMarkAxisIndices,
+    restingNamePatch,
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../stableId';
@@ -110,25 +112,30 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         // the slot by visible position — NOT the axis index — keeps the swatch aligned with the Series
         // card after a rebind or a payload-name reorder (ADR-0018; the prior axis-index fallback
         // diverged there). History/live passes state.series directly (already in display order).
+        // Both resolve OWNER-first (ADR-0068): the axis' incumbent series paints the swatch.
         if (state.mode === 'json') {
-            const visibleSeries = (jsonSeriesNames ?? [])
-                .filter(n => !state.jsonHidden.includes(n))
-                .map(n => state.jsonSeriesStyle[n] ?? ({} as { yAxisIndex?: number; color?: string }));
-            return effectiveAxisColor(i, visibleSeries, palette);
+            const visibleSeries = jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden).map(
+                b => ({
+                    id: b.id,
+                    yAxisIndex: b.yAxisIndex,
+                    color: b.id ? state.jsonSeriesStyle[b.id]?.color : undefined,
+                }),
+            );
+            return effectiveAxisColor(axes[i], i, visibleSeries, palette);
         }
-        return effectiveAxisColor(i, state.series, palette);
+        return effectiveAxisColor(axes[i], i, state.series, palette);
     };
-    /** Effective name of the first series bound to axis i — the axis-name default (ADR-0018). */
+    /** Effective name of the axis' display series (owner-first, ADR-0068) — the axis-name default (ADR-0018). */
     const boundAxisName = (i: number): string | undefined => {
         if (state.mode === 'json') {
             // The STRICT sight (B2): only VISIBLE names bind — a hidden entry whose index
             // awaits the reconcile clear must not title the axis (and must not un-"unbenutzt"
             // its badge either, see boundIdx below).
-            return boundJsonAxisName(i, jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden);
+            return boundJsonAxisName(axes[i], i, jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden);
         }
         // Materialised sight (Q7): a legacy series without a stored index binds axis 0 — the
         // card title shows its name, like the chart does.
-        const idx = state.series.findIndex(s => materializedAxisIndex(s) === i);
+        const idx = binderIndexOf(axes[i], i, state.series);
         if (idx < 0) {
             return undefined;
         }
@@ -248,12 +255,6 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         // The deleted axis' series rebind onto `target` — a GAINED binder clears the target's
         // stale resting name (ADR-0066: bound axes inherit live). No survivor ever LOSES a binder
         // on this path, so there is nothing to snapshot here.
-        const rebinds = state.series.some(s => s.yAxisIndex === i);
-        const cleaned = rebinds
-            ? survivors.map((a, idx) =>
-                  idx === target && a.restingName !== undefined ? { ...a, restingName: undefined } : a,
-              )
-            : survivors;
         const rebound = state.series.map(s => {
             const yi = s.yAxisIndex;
             if (typeof yi !== 'number') {
@@ -264,11 +265,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             }
             return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
         });
+        // The binding patch over the rebind does BOTH cares in one pass (replacing the old
+        // hand-built `cleaned`): a GAINED binder clears the target's stale resting name
+        // (ADR-0066: bound axes inherit live — only when series actually rebind), and the
+        // owner rule keeps/assigns each survivor's display series (ADR-0068 — the rebound
+        // series respect an existing incumbent on the target axis).
+        const patched = restingNamePatch(state.series, rebound, survivors) ?? survivors;
         // Marking anchors re-index with the axes (B4): the deleted axis' markings follow the
         // rebind target (their axis' series land there), higher anchors shift down — without
         // the remap every marking above the hole silently pointed at the SHIFTED axis.
         set({
-            yAxes: balanceAxes(cleaned, rebound),
+            yAxes: balanceAxes(patched, rebound),
             series: rebound,
             markLines: remapMarkAxisIndices(state.markLines, i, target),
         });

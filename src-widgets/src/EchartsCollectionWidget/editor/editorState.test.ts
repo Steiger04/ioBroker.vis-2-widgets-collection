@@ -264,6 +264,21 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
         const reloaded = loadEditorState(saveEditorState(state, 1));
         expect(reloaded.yAxes[1]?.restingName).toBe('Leistung'); // rides the blob, no explicit name
     });
+
+    it('the axis OWNER („Namensgeber", ADR-0068) survives the round-trip', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'line' as const,
+            mode: 'live' as const,
+            series: [
+                { id: 'sr-1', oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 },
+                { id: 'sr-2', oid: 'dev.hum', name: 'Hum', yAxisIndex: 0 },
+            ],
+            yAxes: [{ id: 'ax-1', position: 'left' as const, owner: 'sr-1' }],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 2));
+        expect(reloaded.yAxes[0]?.owner).toBe('sr-1'); // rides the yAxes blob (no whitelist)
+    });
 });
 
 describe('editorState — 0-axes start (ADR-0067)', () => {

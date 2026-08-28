@@ -434,6 +434,48 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(ya[1].name).toBe('Temp');
     });
 
+    it('the axis OWNER keeps name + colour — a rebind newcomer never steals them (ADR-0068)', () => {
+        // S2 (earlier in the array) rebound onto axis 0 alongside the incumbent S3: without the
+        // owner the FIRST binder in series order won and the axis rendered "S2" — the incumbent
+        // series lost every visible trace (dropdown, axis card, chart name).
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'S1', data: [[1, 1]] },
+                { name: 'S2', data: [[1, 2]] },
+                { name: 'S3', data: [[1, 3]] },
+            ],
+            meta: [
+                { id: 'sr-1', name: 'S1', yAxisIndex: 1 },
+                { id: 'sr-2', name: 'S2', color: '#0f0', yAxisIndex: 0 }, // the newcomer on axis 0
+                { id: 'sr-3', name: 'S3', color: '#00f', yAxisIndex: 0 }, // the incumbent owner
+            ],
+            p: { ...P, yAxes: [{ owner: 'sr-3' }, {}] },
+        });
+        const ya = option.yAxis as unknown as { name?: string; axisLine?: { lineStyle: { color: string } } }[];
+        // Emitted axes in array order: axis 0 (S2+S3) first, axis 1 (S1) second.
+        expect(ya[0].name).toBe('S3'); // the OWNER's name — not the array-earlier newcomer's
+        expect(ya[0].axisLine?.lineStyle.color).toBe('#00f'); // the owner's colour
+        expect(ya[1].name).toBe('S1');
+    });
+
+    it('the JSON owner (a payload name) resolves on id-less meta by series name (ADR-0068)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'N2', data: [[1, 2]] },
+                { name: 'N3', data: [[1, 3]] },
+            ],
+            meta: [
+                { name: 'N2', yAxisIndex: 0 },
+                { name: 'N3', yAxisIndex: 0 },
+            ],
+            p: { ...P, yAxes: [{ owner: 'N3' }] },
+        });
+        const ya = option.yAxis as unknown as { name?: string }[];
+        expect(ya[0].name).toBe('N3'); // owner-first even though N2 is the first binder
+    });
+
     it('an explicit axis name wins over the series-name default (ADR-0018)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
