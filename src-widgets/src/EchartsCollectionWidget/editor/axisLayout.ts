@@ -197,6 +197,23 @@ export const restingNamePatch = (
 };
 
 /**
+ * The JSON binding view for {@link restingNamePatch}: one {index, display name} entry per VISIBLE
+ * payload name — the overlay-authored name, else the payload name (the label the dropdown and the
+ * Axis-card show). Visibility matters: a hidden name keeps its overlay `yAxisIndex` until the
+ * reconcile clears it, so a diff over raw overlay entries would miss the transition; the view sees
+ * only what renders. Shared by the SeriesSection hide/rebind handlers and the AxesZoomSection
+ * JSON axis-delete (which hides the bound payload series).
+ */
+export const jsonBindingView = (
+    names: readonly string[],
+    overlay: Readonly<Record<string, { yAxisIndex?: number; name?: string }>>,
+    hidden: readonly string[],
+): { yAxisIndex?: number; name?: string }[] =>
+    names
+        .filter(n => !hidden.includes(n))
+        .map(n => ({ yAxisIndex: overlay[n]?.yAxisIndex, name: overlay[n]?.name || n }));
+
+/**
  * Effective colour of axis `i` for the Axis-card swatch (ADR-0018): the first bound series' colour,
  * else its palette slot by the series' DISPLAY position. Mirrors both the cartesian builder
  * (`a.color ?? seriesColor`) and the Series-card swatch (`s.color ?? palette[seriesIndex]`), so the

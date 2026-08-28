@@ -26,7 +26,15 @@ import { LabeledSelect, SubGroup, SwitchList, SwitchRow } from '../../../compone
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import { axisLayout, boundAxisIndices, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
+import {
+    axisLayout,
+    boundAxisIndices,
+    effectiveAxisColor,
+    jsonBindingView,
+    packStaggeredAxes,
+    restingNamePatch,
+    sameFormatSurvivor,
+} from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
@@ -147,7 +155,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         if (state.mode === 'json') {
             const boundName = Object.entries(state.jsonSeriesStyle).find(([, m]) => m.yAxisIndex === i)?.[0];
             if (boundName && !state.jsonHidden.includes(boundName)) {
-                set({ jsonHidden: [...state.jsonHidden, boundName] });
+                // Hiding the bound payload series frees the axis — it RESTS unbound (ADR-0066:
+                // nothing drops it anymore). Snapshot its displayed name first, so the card keeps
+                // the label instead of collapsing to „Achse N" (the reconcile clears the hidden
+                // entry's yAxisIndex only later; the VISIBILITY view sees the transition already).
+                const hidden = [...state.jsonHidden, boundName];
+                const yAxes = restingNamePatch(
+                    jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden),
+                    jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, hidden),
+                    state.yAxes,
+                );
+                set(yAxes ? { jsonHidden: hidden, yAxes } : { jsonHidden: hidden });
             } else {
                 // No bound payload series (unbound axis, or already hidden) — drop the config and
                 // re-index the overlay entries around the removed slot: a stale-but-in-range
@@ -179,8 +197,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         if (match === null) {
             setToast(Generic.t('echarts_axis_rebind_unit_mismatch'));
         }
+        // The deleted axis' series rebind onto `target` — a GAINED binder clears the target's
+        // stale resting name (ADR-0066: bound axes inherit live). No survivor ever LOSES a binder
+        // on this path, so there is nothing to snapshot here.
+        const rebinds = state.series.some(s => s.yAxisIndex === i);
+        const cleaned = rebinds
+            ? survivors.map((a, idx) =>
+                  idx === target && a.restingName !== undefined ? { ...a, restingName: undefined } : a,
+              )
+            : survivors;
         set({
-            yAxes: packStaggeredAxes(survivors),
+            yAxes: packStaggeredAxes(cleaned),
             series: state.series.map(s => {
                 const yi = s.yAxisIndex;
                 if (typeof yi !== 'number') {

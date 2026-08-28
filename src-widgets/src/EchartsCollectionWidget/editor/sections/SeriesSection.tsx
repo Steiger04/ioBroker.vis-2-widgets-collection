@@ -29,7 +29,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, isOneToOneBound, restingNamePatch } from '../axisLayout';
+import { axisLayout, isOneToOneBound, jsonBindingView, restingNamePatch } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -228,17 +228,12 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 [name]: { ...state.jsonSeriesStyle[name], ...patch },
             },
         });
-    // The JSON binding view for the resting-name diff: one {index, display name} per VISIBLE
-    // payload name (overlay-authored name ?? payload name — the name the dropdown/card shows).
-    // Visibility matters: hideJson keeps the overlay's yAxisIndex until the reconcile clears it,
-    // so the diff must compare visible views, not raw overlay entries.
+    // The JSON binding view for the resting-name diff (shared pure helper, `jsonBindingView`):
+    // one {index, display name} per VISIBLE payload name. Local adapter closes over the names.
     const jsonBindings = (
         overlay: Readonly<Record<string, EchartsSeriesMeta>>,
         hidden: readonly string[],
-    ): { yAxisIndex?: number; name?: string }[] =>
-        (jsonSeriesNames ?? [])
-            .filter(n => !hidden.includes(n))
-            .map(n => ({ yAxisIndex: overlay[n]?.yAxisIndex, name: overlay[n]?.name || n }));
+    ): { yAxisIndex?: number; name?: string }[] => jsonBindingView(jsonSeriesNames ?? [], overlay, hidden);
     // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
     // owns the series; hiding only suppresses it (chart + legend + axis) — restorable. Hiding the
     // last binder of an axis snapshots its displayed name first (ADR-0066 resting name).

@@ -15,6 +15,7 @@ import {
     isOneToOneBound,
     packStaggeredAxes,
     reconcileJsonAxes,
+    jsonBindingView,
     restingAxisName,
     restingNamePatch,
     sameFormatSurvivor,
@@ -295,6 +296,37 @@ describe('restingNamePatch — transition diff over before/after bindings (ADR-0
         const after: { yAxisIndex: number; name: string }[] = [];
         const next = restingNamePatch(before, after, axes);
         expect(next?.[1]).toMatchObject({ restingName: 'Power' });
+    });
+
+    it('composed with the JSON binding view: hiding the last binder snapshots the payload name', () => {
+        // The AxesZoomSection JSON axis-delete path: hiding the bound payload series must snapshot
+        // the axis' displayed name even though the overlay entry keeps its yAxisIndex until the
+        // reconcile clears it — the VISIBILITY view sees the transition the raw overlay misses.
+        const names = ['Temp', 'Leistung'];
+        const overlay = { Temp: { yAxisIndex: 0 }, Leistung: { yAxisIndex: 1 } };
+        const before = jsonBindingView(names, overlay, []);
+        const after = jsonBindingView(names, overlay, ['Leistung']);
+        const next = restingNamePatch(before, after, axes);
+        expect(next?.[1]).toMatchObject({ restingName: 'Leistung' }); // payload name, no authored one
+    });
+});
+
+describe('jsonBindingView — the JSON binding view (ADR-0066)', () => {
+    it('maps visible names to {index, display name} — authored name wins over the payload name', () => {
+        const view = jsonBindingView(
+            ['Temp', 'Leistung'],
+            { Temp: { yAxisIndex: 0, name: 'Außen' }, Leistung: { yAxisIndex: 1 } },
+            [],
+        );
+        expect(view).toEqual([
+            { yAxisIndex: 0, name: 'Außen' },
+            { yAxisIndex: 1, name: 'Leistung' },
+        ]);
+    });
+
+    it('filters hidden names — a hidden binder must not count as bound', () => {
+        const view = jsonBindingView(['A', 'B'], { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } }, ['B']);
+        expect(view).toEqual([{ yAxisIndex: 0, name: 'A' }]);
     });
 });
 
