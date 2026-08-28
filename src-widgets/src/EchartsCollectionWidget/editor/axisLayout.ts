@@ -57,6 +57,16 @@ export const materializedAxisIndex = (s: { yAxisIndex?: number }): number =>
     typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0;
 
 /**
+ * The DISPLAY clamp of a stored axis index against the configured total (the F7/Q6 idiom): the
+ * select shows the builder truth (`yi >= total ? 0 : yi`, cartesian.ts), while the STORED value
+ * stays untouched — no silent rewrite; the stale-index validation explains the divergence.
+ * Shared by the per-series Y-axis select and the marking card's axis select (B4: the marking
+ * card still clamped to `total-1`, showing an axis the chart never draws on).
+ */
+export const displayAxisIndex = (yi: number | undefined, total: number): number =>
+    yi !== undefined && yi >= total ? 0 : (yi ?? 0);
+
+/**
  * The axis indices at least one series binds — the **bound set** (ADR-0066). A series with
  * `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's `e.yAxisIndex ?? 0`).
  * Every configured axis OUTSIDE this set is an unbound axis: kept in the editor with its config,
@@ -158,6 +168,31 @@ export const sameFormatSurvivor = (
 };
 
 /**
+ * Re-index marking anchors around a deleted axis (B4): a marking anchored to the DELETED axis
+ * follows the rebind target — history/live passes the series rebind's `sameFormatSurvivor`
+ * target (the marking stays with the axis its series land on); the JSON config-delete passes
+ * `Math.max(0, i - 1)` (the stack position the deleted axis occupied — no format concept there,
+ * the axis was unbound). Higher anchors shift down around the hole; an undefined anchor passes
+ * through untouched. Without the remap every marking above the deleted index silently pointed
+ * at the axis that SHIFTED into the slot — the select saying one axis, the chart another.
+ */
+export const remapMarkAxisIndices = <M extends { yAxisIndex?: number }>(
+    marks: readonly M[],
+    deletedIndex: number,
+    target: number,
+): M[] =>
+    marks.map(m => {
+        const yi = m.yAxisIndex;
+        if (typeof yi !== 'number') {
+            return m;
+        }
+        if (yi === deletedIndex) {
+            return { ...m, yAxisIndex: target };
+        }
+        return yi > deletedIndex ? { ...m, yAxisIndex: yi - 1 } : m;
+    });
+
+/**
  * Whether an axis carries a tick override that makes echarts IGNORE `alignTicks` on it (ADR-0034).
  * echarts only honours `alignTicks` on an axis whose tick interval is auto-computed; setting `min`,
  * `max`, `splitNumber`, or `minInterval` fixes the interval, so alignment silently no-ops. The
@@ -198,6 +233,21 @@ export const effectiveAxisName = (
     }
     return `Series ${(boundPos >= 0 ? boundPos : i) + 1}`;
 };
+
+/**
+ * The per-series binding dropdown's item label (B1): the 1-based axis number + the effective
+ * name. The number is what keeps the item identifiable after a rebind — the name alone can
+ * COLLIDE: the rebind's own series becomes the target axis' first binder (the label jumps to
+ * the user's own series name) while the vacated axis keeps the very same name as its resting
+ * name — two identical labels, the selection unreadable. The number prefix matches the
+ * marking card's axis options and the legacy fallback of {@link CartesianBasisFields}; the
+ * „(unbenutzt)" suffix for unbound axes is appended by the caller (an i18n concern).
+ */
+export const axisOptionLabel = (
+    ai: number,
+    axis: EchartsAxisConfig,
+    series: readonly { yAxisIndex?: number; name?: string }[],
+): string => `${ai + 1} · ${effectiveAxisName(axis, ai, series)}`;
 
 /**
  * The display name to persist as {@link EchartsAxisConfig.restingName} when axis `i` transitions to
@@ -299,6 +349,38 @@ export const boundJsonView = (
     overlay: Readonly<Record<string, { yAxisIndex?: number }>>,
     hidden: readonly string[],
 ): { yAxisIndex?: number }[] => jsonBindingView(names, overlay, hidden).filter(b => typeof b.yAxisIndex === 'number');
+
+/**
+ * The JSON bound set over the STRICT sight (B2): the defined indices of VISIBLE names — the
+ * Axis manager's badge/position-lock sight. A hidden entry whose `yAxisIndex` awaits the
+ * reconcile's clear must not count as a binder: reading all `Object.values` (the old inline
+ * form) marked such an axis bound — badge off, position locked, title from the hidden name —
+ * while the Series dropdown suffixed the same axis „(unbenutzt)" until the next payload change.
+ */
+export const boundJsonAxisIndices = (
+    names: readonly string[],
+    overlay: Readonly<Record<string, { yAxisIndex?: number }>>,
+    hidden: readonly string[],
+): Set<number> => new Set(boundJsonView(names, overlay, hidden).map(b => b.yAxisIndex as number));
+
+/**
+ * The JSON Axis-card title source (B2): the first VISIBLE name bound to the axis — the
+ * authored overlay name wins, else the payload name, else the Series-N fallback. Hidden
+ * entries never title an axis (their index is pending reconcile bookkeeping, not a binding).
+ * The JSON sibling of the history/live `boundAxisName` in the Axis manager.
+ */
+export const boundJsonAxisName = (
+    i: number,
+    names: readonly string[],
+    overlay: Readonly<Record<string, { yAxisIndex?: number; name?: string }>>,
+    hidden: readonly string[],
+): string | undefined => {
+    const binder = names.find(n => !hidden.includes(n) && overlay[n]?.yAxisIndex === i);
+    if (binder === undefined) {
+        return undefined;
+    }
+    return overlay[binder]?.name || binder || `Series ${i + 1}`;
+};
 
 /**
  * Effective colour of axis `i` for the Axis-card swatch (ADR-0018): the first bound series' colour,
@@ -432,4 +514,41 @@ export const jsonBoundAxisDeletePatch = (
             yAxes,
         ),
     };
+};
+
+/**
+ * The show patch for a hidden JSON payload series (B3): un-hide + reconcile in ONE undoable
+ * step. Two halves, each with its own sight transition:
+ *
+ * 1. The hidden→shown resting diff (the previous showJson behaviour): an axis GAINING its
+ *    binder back drops the stale restingName (ADR-0066: clear on every gain).
+ * 2. The full reconcile over the shown state: every VISIBLE name is guaranteed a valid
+ *    `yAxisIndex` IMMEDIATELY. An entry the reconcile had cleared while hidden (a payload
+ *    change happened in between) would otherwise linger index-less until the NEXT payload
+ *    change — dropdown showing axis 1, editor seeing it unbound, builder rendering axis 0 —
+ *    and then land on a fresh axis anyway. A sticky index never triggers an append, so the
+ *    common hide→show round-trip changes nothing but the deny-list and the gain-clear.
+ */
+export const jsonShowPatch = <M extends { yAxisIndex?: number; name?: string }>(
+    names: readonly string[],
+    overlay: Readonly<Record<string, M>>,
+    yAxes: readonly EchartsAxisConfig[],
+    hidden: readonly string[],
+    name: string,
+): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M> } => {
+    // `nextHidden` — the deny-list WITHOUT the shown name (NOT the set of shown names; the old
+    // `shown` name invited exactly that misreading of the reconcile args below).
+    const nextHidden = hidden.filter(n => n !== name);
+    const rested = restingBalance(
+        boundJsonView(names, overlay, hidden),
+        boundJsonView(names, overlay, nextHidden),
+        yAxes,
+    );
+    const { yAxes: reconciled, overlay: next } = reconcileJsonAxes(
+        names.filter(n => !nextHidden.includes(n)),
+        overlay,
+        rested,
+        nextHidden,
+    );
+    return { jsonHidden: nextHidden, yAxes: reconciled, jsonSeriesStyle: next };
 };

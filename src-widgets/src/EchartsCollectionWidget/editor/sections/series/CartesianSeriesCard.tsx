@@ -50,7 +50,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
-import { boundAxisIndices, effectiveAxisName } from '../../axisLayout';
+import { axisOptionLabel, boundAxisIndices, displayAxisIndex } from '../../axisLayout';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -168,9 +168,7 @@ export const CartesianBasisFields: FC<{
                 // rewrite; the stale-index validation explains the divergence).
                 <LabeledSelect
                     label={Generic.t('echarts_editor_series_yaxis')}
-                    value={String(
-                        meta.yAxisIndex !== undefined && meta.yAxisIndex >= yAxes.length ? 0 : (meta.yAxisIndex ?? 0),
-                    )}
+                    value={String(displayAxisIndex(meta.yAxisIndex, yAxes.length))}
                     onChange={v => onPatch({ yAxisIndex: Number(v) })}
                     options={
                         yAxes.length
@@ -669,12 +667,14 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
     // Effective axis names for the per-series binding dropdown (ADR-0025): explicit name → inherited
-    // from the first bound series → 1-based index. Matches the chart + the Axis-card title. An
-    // unbound axis (ADR-0066) keeps its slot with an „unbenutzt" suffix — the resting state is
-    // visible exactly where the re-assignment happens.
+    // from the first bound series → 1-based index. The label carries the 1-BASED AXIS NUMBER
+    // (B1): the name alone collides after a rebind — the rebind's own series becomes the target
+    // axis' first binder while the vacated axis keeps the same name as its resting name — and
+    // the selection becomes unreadable. An unbound axis (ADR-0066) keeps its slot with an
+    // „unbenutzt" suffix — the resting state is visible exactly where the re-assignment happens.
     const bound = boundAxisIndices(series);
     const axisDisplayNames = state.yAxes.map(
-        (a, ai) => effectiveAxisName(a, ai, series) + (bound.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
+        (a, ai) => axisOptionLabel(ai, a, series) + (bound.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
     );
     return (
         <Box>

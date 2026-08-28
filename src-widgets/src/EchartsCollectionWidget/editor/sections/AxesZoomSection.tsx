@@ -34,12 +34,15 @@ import {
     axisLayout,
     balanceAxes,
     boundAxisIndices,
+    boundJsonAxisIndices,
+    boundJsonAxisName,
     boundJsonView,
     effectiveAxisColor,
     emittedAxisRanks,
     isRealSideFlip,
     jsonBoundAxisDeletePatch,
     materializedAxisIndex,
+    remapMarkAxisIndices,
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../stableId';
@@ -118,11 +121,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     /** Effective name of the first series bound to axis i — the axis-name default (ADR-0018). */
     const boundAxisName = (i: number): string | undefined => {
         if (state.mode === 'json') {
-            const found = Object.entries(state.jsonSeriesStyle).find(([, m]) => m.yAxisIndex === i);
-            if (!found) {
-                return undefined;
-            }
-            return found[1].name || found[0] || `Series ${i + 1}`;
+            // The STRICT sight (B2): only VISIBLE names bind — a hidden entry whose index
+            // awaits the reconcile clear must not title the axis (and must not un-"unbenutzt"
+            // its badge either, see boundIdx below).
+            return boundJsonAxisName(i, jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden);
         }
         // Materialised sight (Q7): a legacy series without a stored index binds axis 0 — the
         // card title shows its name, like the chart does.
@@ -134,14 +136,12 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     };
     // The bound set (ADR-0066): every axis OUTSIDE it is unbound — kept with its config, flagged
     // „unbenutzt" on its card, never rendered. History/live reads `state.series`; JSON reads the
-    // overlay (the reconcile keeps only visible names' yAxisIndex defined, hidden ones are cleared).
+    // STRICT visible sight (B2): a hidden entry whose index awaits the reconcile clear never
+    // binds — reading all Object.values marked such an axis bound (badge off, position locked,
+    // hidden name as title) while the Series dropdown suffixed it „(unbenutzt)".
     const boundIdx: Set<number> =
         state.mode === 'json'
-            ? new Set(
-                  Object.values(state.jsonSeriesStyle)
-                      .map(m => m.yAxisIndex)
-                      .filter((v): v is number => typeof v === 'number'),
-              )
+            ? boundJsonAxisIndices(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden)
             : boundAxisIndices(state.series);
     // The emitted (effective) positions (Q5): the builder emits the BOUND axes compacted in array
     // order — the alignTicks gates on the card read the emitted index/total, not the configured
@@ -210,7 +210,9 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                 // re-index the overlay entries around the removed slot: a stale-but-in-range
                 // index would otherwise silently rebind a payload series to the WRONG axis
                 // (out-of-range ones the reconcile heals with a fresh axis). The delete is a
-                // structural event: the surviving bound set re-arranges (ADR-0067).
+                // structural event: the surviving bound set re-arranges (ADR-0067). Marking
+                // anchors re-index with the config (B4): the deleted axis' anchor stays at the
+                // stack position it occupied (max(0, i-1)), higher anchors shift down.
                 const reindexed = Object.fromEntries(
                     Object.entries(state.jsonSeriesStyle).map(([n, m]) => [
                         n,
@@ -225,6 +227,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         balanceSight(reindexed, state.jsonHidden),
                     ),
                     jsonSeriesStyle: reindexed,
+                    markLines: remapMarkAxisIndices(state.markLines, i, Math.max(0, i - 1)),
                 });
             }
             return;
@@ -261,9 +264,13 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             }
             return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
         });
+        // Marking anchors re-index with the axes (B4): the deleted axis' markings follow the
+        // rebind target (their axis' series land there), higher anchors shift down — without
+        // the remap every marking above the hole silently pointed at the SHIFTED axis.
         set({
             yAxes: balanceAxes(cleaned, rebound),
             series: rebound,
+            markLines: remapMarkAxisIndices(state.markLines, i, target),
         });
     };
 

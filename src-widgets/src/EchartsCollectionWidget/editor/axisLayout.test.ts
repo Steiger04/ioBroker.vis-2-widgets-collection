@@ -8,18 +8,24 @@ import { describe, expect, it } from 'vitest';
 import {
     alignTicksDisabledByOverride,
     axisLayout,
+    axisOptionLabel,
     axisPosition,
     balanceAxes,
     boundAxisIndices,
+    boundJsonAxisIndices,
+    boundJsonAxisName,
     boundJsonView,
+    displayAxisIndex,
     effectiveAxisColor,
     emittedAxisRanks,
     isRealSideFlip,
     jsonBoundAxisDeletePatch,
+    jsonShowPatch,
     effectiveAxisName,
     isOneToOneBound,
     reconcileJsonAxes,
     jsonBindingView,
+    remapMarkAxisIndices,
     restingAxisName,
     restingBalance,
     restingNamePatch,
@@ -777,5 +783,136 @@ describe('balanceAxes — auto-balance over BOUND axes (ADR-0067)', () => {
         const axes: EchartsAxisConfig[] = [{ id: 'a0', position: 'right', offset: 42 }];
         const out = balanceAxes(axes, [{ yAxisIndex: 3 }]);
         expect(out).toEqual(axes); // index 3 has no axis → the set has no member → pass-through
+    });
+});
+
+describe('axisOptionLabel — the binding-dropdown item carries the axis number (B1)', () => {
+    const axes: EchartsAxisConfig[] = [
+        { id: 'a0', position: 'left', offset: 0 },
+        { id: 'a1', position: 'right', offset: 0 },
+    ];
+
+    it('prefixes the 1-based axis number — the clicked item stays identifiable after a rebind', () => {
+        // B1: N1 rebinds onto axis 1 → axis 1 inherits "N1" (first binder, live) and axis 0
+        // keeps "N1" as its resting name. Without the number both dropdown items read "N1"
+        // and the selection is unreadable; with it they are "1 · N1" / "2 · N1".
+        const rebound = [
+            { yAxisIndex: 1, name: 'N1' },
+            { yAxisIndex: 1, name: 'N2' },
+        ];
+        expect(axisOptionLabel(0, { ...axes[0], restingName: 'N1' }, rebound)).toBe('1 · N1');
+        expect(axisOptionLabel(1, axes[1], rebound)).toBe('2 · N1');
+    });
+
+    it('an explicit axis name stays dominant', () => {
+        expect(axisOptionLabel(0, { ...axes[0], name: 'kW' }, [])).toBe('1 · kW');
+    });
+
+    it('the unnamed fallback inherits the Series-N label — prefixed like every other name', () => {
+        expect(axisOptionLabel(1, axes[1], [{ yAxisIndex: 0, name: '' }])).toBe('2 · Series 2');
+    });
+});
+
+describe('boundJsonAxisIndices / boundJsonAxisName — the STRICT JSON card sight (B2)', () => {
+    it('a hidden entry whose index awaits the reconcile clear does NOT bind — card and dropdown agree', () => {
+        // hideJson leaves the overlay index standing (the reconcile clears it on the next
+        // payload change). Reading Object.values — the old Axis-card sight — counted it as a
+        // binder: badge off, position locked, title from the hidden name, while the Series
+        // dropdown suffixed the same axis „(unbenutzt)".
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Bezug' } };
+        expect(boundJsonAxisIndices(['A', 'B'], overlay, ['B'])).toEqual(new Set([0]));
+    });
+
+    it('boundJsonAxisName: the title comes from the first VISIBLE binder only', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Bezug' } };
+        expect(boundJsonAxisName(1, ['A', 'B'], overlay, ['B'])).toBeUndefined(); // hidden binder titles nothing
+        expect(boundJsonAxisName(1, ['A', 'B'], overlay, [])).toBe('Bezug'); // authored name wins
+        expect(boundJsonAxisName(0, ['A'], { A: { yAxisIndex: 0 } }, [])).toBe('A'); // payload name fallback
+        expect(boundJsonAxisName(2, ['A'], { A: { yAxisIndex: 0 } }, [])).toBeUndefined(); // unbound
+    });
+
+    it('a hidden binder and a visible binder SHARING one axis: the axis stays bound, titled by the visible one', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 0, name: 'Bezug' } };
+        expect(boundJsonAxisIndices(['A', 'B'], overlay, ['A'])).toEqual(new Set([0]));
+        expect(boundJsonAxisName(0, ['A', 'B'], overlay, ['A'])).toBe('Bezug');
+    });
+});
+
+describe('jsonShowPatch — un-hide + reconcile in ONE step (B3)', () => {
+    const baseAxes: EchartsAxisConfig[] = [
+        { id: 'a0', position: 'left', offset: 0 },
+        { id: 'a1', position: 'right', offset: 0, restingName: 'B' }, // from hideJson
+    ];
+
+    it('sticky case (no interim reconcile): the kept index survives, the gained axis clears its restingName', () => {
+        // hide → show without a payload change in between: B still carries yAxisIndex 1 —
+        // no fresh axis (count unchanged), and axis 1's hide-time restingName drops (gain).
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        const patch = jsonShowPatch(['A', 'B'], overlay, baseAxes, ['B'], 'B');
+        expect(patch.jsonHidden).toEqual([]);
+        expect(patch.jsonSeriesStyle.B?.yAxisIndex).toBe(1); // sticky
+        expect(patch.yAxes).toHaveLength(2); // no fresh axis
+        expect(patch.yAxes[1].restingName).toBeUndefined(); // gain-clear
+    });
+
+    it('cleared case (interim reconcile): the shown name gets a FRESH axis immediately', () => {
+        // hide → payload change (the reconcile cleared B's index; its axis rests) → show: B
+        // must not linger index-less (dropdown „Achse 1", editor unbound, builder axis 0 —
+        // three truths) — the reconcile appends a fresh axis NOW; the old one keeps its name.
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: undefined } };
+        const patch = jsonShowPatch(['A', 'B'], overlay, baseAxes, ['B'], 'B');
+        expect(patch.jsonHidden).toEqual([]);
+        expect(patch.jsonSeriesStyle.B?.yAxisIndex).toBe(2); // fresh axis appended — not the resting 1
+        expect(patch.yAxes).toHaveLength(3);
+        expect(patch.yAxes[1]).toMatchObject({ restingName: 'B' }); // the old axis rests on
+    });
+
+    it('a second run over its own output changes nothing (no fresh axis, no re-snapshot, no churn)', () => {
+        // Ticket 03's idempotence requirement, pinned at the helper seam: the editor-side
+        // no-op guarantee rests on this — repeat inputs must not append axes or touch names.
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        const run1 = jsonShowPatch(['A', 'B'], overlay, baseAxes, ['B'], 'B');
+        const run2 = jsonShowPatch(['A', 'B'], run1.jsonSeriesStyle, run1.yAxes, run1.jsonHidden, 'B');
+        expect(run2.yAxes).toEqual(run1.yAxes);
+        expect(run2.jsonSeriesStyle).toEqual(run1.jsonSeriesStyle);
+        expect(run2.jsonHidden).toEqual(run1.jsonHidden);
+    });
+});
+
+describe('remapMarkAxisIndices — marking anchors follow an axis delete (B4)', () => {
+    it('history/live: a marking on the deleted axis follows the rebind target, higher anchors shift down', () => {
+        const marks = [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }, { label: 'x' }];
+        expect(remapMarkAxisIndices(marks, 1, 0)).toEqual([
+            { yAxisIndex: 0 }, // below the deleted index — untouched
+            { yAxisIndex: 0 }, // was on the deleted axis 1 → survivor target 0
+            { yAxisIndex: 1 }, // shifted down around the hole
+            { label: 'x' }, // undefined anchor passes through untouched
+        ]);
+    });
+
+    it('JSON config-delete target: the anchor stays at the stack position the deleted axis occupied', () => {
+        // i=1 of 3 → the marking on axis 1 lands on max(0, i-1)=0; axis 2 shifts down.
+        expect(remapMarkAxisIndices([{ yAxisIndex: 1 }, { yAxisIndex: 2 }], 1, Math.max(0, 1 - 1))).toEqual([
+            { yAxisIndex: 0 },
+            { yAxisIndex: 1 },
+        ]);
+        // i=0: max(0, -1) = 0 — the anchor keeps the slot; everything above shifts down.
+        expect(remapMarkAxisIndices([{ yAxisIndex: 0 }, { yAxisIndex: 1 }], 0, Math.max(0, 0 - 1))).toEqual([
+            { yAxisIndex: 0 },
+            { yAxisIndex: 0 },
+        ]);
+    });
+});
+
+describe('displayAxisIndex — the select clamp shows the builder truth (B4, F7/Q6 idiom)', () => {
+    it('a stale index (>= total) displays as axis 1; a valid one passes through', () => {
+        expect(displayAxisIndex(5, 3)).toBe(0);
+        expect(displayAxisIndex(undefined, 3)).toBe(0);
+        expect(displayAxisIndex(2, 3)).toBe(2);
+    });
+
+    it('the 0-axes state stays displayable (axis 1)', () => {
+        expect(displayAxisIndex(undefined, 0)).toBe(0);
+        expect(displayAxisIndex(0, 0)).toBe(0);
     });
 });

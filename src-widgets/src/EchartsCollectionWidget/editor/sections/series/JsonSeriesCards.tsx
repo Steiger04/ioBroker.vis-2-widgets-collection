@@ -27,7 +27,7 @@ import {
     SeriesTransformFields,
     SeriesValueFormatFields,
 } from './CartesianSeriesCard';
-import { effectiveAxisName } from '../../axisLayout';
+import { axisOptionLabel, boundJsonAxisIndices, jsonBindingView } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -96,17 +96,18 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     const defaultType = state.chartType as EchartsCartesianType;
     const isPie = state.chartType === 'pie';
     // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit → inherited
-    // from the first overlay entry bound to the axis → 1-based index. An axis no visible entry
-    // binds is unbound (ADR-0066) — suffix it so the resting state is visible at the point of
-    // assignment (identical to the history/live dropdown).
-    const overlaySeries = visibleNames.map(n => ({
-        yAxisIndex: state.jsonSeriesStyle[n]?.yAxisIndex,
-        name: state.jsonSeriesStyle[n]?.name ?? n,
-    }));
-    const boundJson = new Set(overlaySeries.map(s => s.yAxisIndex).filter((v): v is number => typeof v === 'number'));
+    // from the first overlay entry bound to the axis → 1-based index. The label carries the
+    // 1-BASED AXIS NUMBER (B1) — the name alone collides after a rebind (the rebind's own
+    // series becomes the target axis' first binder while the vacated axis keeps the same name
+    // as its resting name). An axis no visible entry binds is unbound (ADR-0066) — suffix it so
+    // the resting state is visible at the point of assignment (identical to the history/live
+    // dropdown). The binding sight is the SHARED jsonBindingView (the `||` name semantics) — a
+    // hand-mapped `??` variant would diverge on an overlay entry with an empty-string name.
+    const overlaySeries = jsonBindingView(jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden);
+    const boundJson = boundJsonAxisIndices(jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden);
     const axisDisplayNames = state.yAxes.map(
         (a, ai) =>
-            effectiveAxisName(a, ai, overlaySeries) +
+            axisOptionLabel(ai, a, overlaySeries) +
             (boundJson.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
     );
 

@@ -30,6 +30,7 @@ import {
     TextField2,
 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
+import { displayAxisIndex } from '../../axisLayout';
 import { DEFAULT_MARK_FILL, markLineStyleOf, parseMarkBound } from '../../../presentation';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsMarkLabelPosition, EchartsMarkLine } from '../../../../types/field-definitions/echarts-fields';
@@ -125,6 +126,11 @@ const MarkCard: FC<{
             : hasBothBounds
               ? `${m.lower} … ${m.upper}`
               : String(m.upper ?? m.lower);
+    // The DISPLAY clamp mirrors the builder (`yi >= total ? 0 : yi` — B4, the F7/Q6 idiom): the
+    // select AND the collapsed subtitle read the same clamped value, so they can never name
+    // different axes; the STORED value stays untouched (no silent rewrite). The old
+    // `Math.min(…, length-1)` clamp showed the LAST axis while the chart clamped to axis 1.
+    const shownAxis = displayAxisIndex(m.yAxisIndex, axisOptions.length);
 
     return (
         <EditorCard
@@ -148,7 +154,7 @@ const MarkCard: FC<{
             title={m.label || boundsTitle}
             subtitle={
                 axisOptions.length > 1
-                    ? (axisOptions.find(([v]) => Number(v) === (m.yAxisIndex ?? 0))?.[1] ?? axisOptions[0]?.[1])
+                    ? (axisOptions.find(([v]) => Number(v) === shownAxis)?.[1] ?? axisOptions[0]?.[1])
                     : undefined
             }
             actions={
@@ -179,7 +185,7 @@ const MarkCard: FC<{
                     {axisOptions.length > 1 && (
                         <LabeledSelect
                             label={Generic.t('echarts_threshold_axis')}
-                            value={String(Math.min(Math.max(m.yAxisIndex ?? 0, 0), axisOptions.length - 1))}
+                            value={String(shownAxis)}
                             onChange={v => onChange({ yAxisIndex: Number(v) })}
                             options={axisOptions}
                         />
