@@ -287,7 +287,10 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     bgColor: 'transparent',
     // 0-axes start (ADR-0067): no ghost "Achse 1" in a fresh state — axes arise only through
     // the series auto-bind (first series → axisLayout(0): left, offset 0, splitLine on). The
-    // chart still renders one value axis via the builder's empty-array fallback.
+    // chart still renders one value axis regardless: `toPresentationConfig` synthesises a
+    // `legacyAxis` whenever the stored blob is empty (presentation.ts) — the builder's own
+    // empty-array fallback (optionBuilders/cartesian.ts) sits behind it and practically never
+    // fires.
     yAxes: [],
     xAxis: {},
     dataZoomSlider: false,
@@ -481,9 +484,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // NO load-time orphan-prune (ADR-0066 removed ADR-0033's load heal): an axis no series binds is
     // an unbound axis — a persistent resting state, kept with its config so a re-assign can revive
     // it. Historical ghost pollution (pre-ADR-0033 blobs) therefore surfaces as unbound axis cards,
-    // deleted manually once; NEW pollution cannot enter — the mode-switch prune
-    // (`pruneOrphanAxesStep`) culls JSON-derived axes when JSON is left, and the builder never
-    // emits an unbound axis.
+    // deleted manually once; NEW pollution cannot enter — nothing adds axes silently, and NO axis
+    // prune exists anywhere since ADR-0066 (not even on the mode switch; the only deliberate axis
+    // wipes are the two ADR-0067 data-path resets, fired by the mode/family boundary toggles in
+    // controls.tsx via `dataPathReset` — lifecycleGuards.ts), while the builder never emits an
+    // unbound axis.
 
     // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum) — EVERY raw
     // level (sections, pie, series, axes, X, json overlay) heals in the registry's single load

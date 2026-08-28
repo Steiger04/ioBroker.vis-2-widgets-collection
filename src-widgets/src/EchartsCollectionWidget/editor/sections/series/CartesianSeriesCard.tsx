@@ -163,9 +163,14 @@ export const CartesianBasisFields: FC<{
                 />
             )}
             {showAxis && (
+                // Q6: the DISPLAY clamp mirrors the builder (`yi >= total ? 0 : yi`) — the select
+                // shows the render truth (axis 1), the STORED value stays untouched (no silent
+                // rewrite; the stale-index validation explains the divergence).
                 <LabeledSelect
                     label={Generic.t('echarts_editor_series_yaxis')}
-                    value={String(Math.min(Number(meta.yAxisIndex ?? 0), Math.max(0, yAxes.length - 1)))}
+                    value={String(
+                        meta.yAxisIndex !== undefined && meta.yAxisIndex >= yAxes.length ? 0 : (meta.yAxisIndex ?? 0),
+                    )}
                     onChange={v => onPatch({ yAxisIndex: Number(v) })}
                     options={
                         yAxes.length

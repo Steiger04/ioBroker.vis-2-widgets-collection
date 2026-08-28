@@ -36,7 +36,10 @@ import {
     boundAxisIndices,
     boundJsonView,
     effectiveAxisColor,
-    restingBalance,
+    emittedAxisRanks,
+    isRealSideFlip,
+    jsonBoundAxisDeletePatch,
+    materializedAxisIndex,
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../stableId';
@@ -121,7 +124,9 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             }
             return found[1].name || found[0] || `Series ${i + 1}`;
         }
-        const idx = state.series.findIndex(s => s.yAxisIndex === i);
+        // Materialised sight (Q7): a legacy series without a stored index binds axis 0 — the
+        // card title shows its name, like the chart does.
+        const idx = state.series.findIndex(s => materializedAxisIndex(s) === i);
         if (idx < 0) {
             return undefined;
         }
@@ -138,6 +143,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                       .filter((v): v is number => typeof v === 'number'),
               )
             : boundAxisIndices(state.series);
+    // The emitted (effective) positions (Q5): the builder emits the BOUND axes compacted in array
+    // order — the alignTicks gates on the card read the emitted index/total, not the configured
+    // ones (the reference axis is the first BOUND axis; an unbound configured axis 0 is not it).
+    const emittedRanks = emittedAxisRanks(boundIdx);
     /**
      * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the mode —
      * history/live passes the series list (a series without an index implicitly binds axis 0);
@@ -154,12 +163,14 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
         // A side-flip is a structural event: the FULL re-arrange runs — every bound axis re-takes
         // its standard-interleaving slot (ADR-0067 pensions ADR-0028's position-preserving pack).
-        // Flipping a BOUND axis therefore snaps back to its array-position side; flipping an
-        // UNBOUND axis sticks (the balance never touches it — its stored geometry is the re-bind
-        // preference). Any other field edit (offset/name/colour/min-max/…) is fine-justure: NO
-        // re-arrange, the manual geometry survives until the next structural event. The trigger
-        // fires on a REAL flip only — re-selecting the same side is a no-op, not a structural event.
-        const flipped = 'position' in patch && patch.position !== (axes[i]?.position ?? 'left');
+        // Flipping a BOUND axis therefore snaps back to its array-position side (the card's
+        // position select is LOCKED while bound, Q4); flipping an UNBOUND axis sticks (the
+        // balance never touches it — its stored geometry is the re-bind preference). Any other
+        // field edit (offset/name/colour/min-max/…) is fine-justure: NO re-arrange, the manual
+        // geometry survives until the next structural event. The trigger fires on a REAL flip
+        // only (`isRealSideFlip` — the detector's default mirrors the select's display default,
+        // so re-selecting the SHOWN value on an unstored position is a no-op, Q4).
+        const flipped = isRealSideFlip(axes, i, patch);
         set({ yAxes: flipped ? balanceAxes(next, balanceSight()) : next });
     };
     // Manual "add axis" uses the same 1:1 layout helper as series-add (ADR-0018): alternating side,
@@ -169,29 +180,31 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     // a structural event: the bound set re-arranges (ADR-0067).
     const addAxis = (): void => set({ yAxes: balanceAxes([...axes, axisLayout(axes.length)], balanceSight()) });
     const removeAxis = (i: number): void => {
-        // JSON mode: `state.series` is empty — the payload owns the series, and the axes are DERIVED
-        // 1:1 from the visible payload names (the modal axis effect rebuilds `yAxes` whenever the
-        // visible set changes). Removing an axis config directly would leave `jsonSeriesStyle.yAxisIndex`
-        // stale, so the builder clamps the orphaned series to axis 0 (the "wrong axis gone + line
-        // lingers" chaos). The only sane "delete this axis" here is to HIDE its bound payload series
-        // (jsonHidden, ADR-0011) — the axis effect then drops the axis automatically. Symmetric to the
-        // history/live pair-delete below.
+        // JSON mode: `state.series` is empty — the payload owns the series, and the axes follow the
+        // visible payload names via the reconcile (it APPENDS an axis for a new name; a freed axis
+        // rests — it never drops one, ADR-0066). Removing an axis config directly would leave
+        // `jsonSeriesStyle.yAxisIndex` stale, so the builder clamps the orphaned series to axis 0
+        // (the "wrong axis gone + line lingers" chaos). The only sane "delete this axis" here is to
+        // HIDE its bound payload series — ALL of them (jsonHidden, ADR-0011; 1:n means several
+        // names can bind one axis) — the axis then RESTS unbound instead (see the inner comment
+        // below). Symmetric to the history/live pair-delete below.
         if (state.mode === 'json') {
-            const boundName = Object.entries(state.jsonSeriesStyle).find(([, m]) => m.yAxisIndex === i)?.[0];
-            if (boundName && !state.jsonHidden.includes(boundName)) {
-                // Hiding the bound payload series frees the axis — it RESTS unbound (ADR-0066:
-                // nothing drops it anymore). Snapshot its displayed name first, so the card keeps
-                // the label instead of collapsing to „Achse N" (the reconcile clears the hidden
-                // entry's yAxisIndex only later; the VISIBILITY sight sees the transition already).
-                const hidden = [...state.jsonHidden, boundName];
-                set({
-                    jsonHidden: hidden,
-                    yAxes: restingBalance(
-                        balanceSight(state.jsonSeriesStyle, state.jsonHidden),
-                        balanceSight(state.jsonSeriesStyle, hidden),
-                        state.yAxes,
-                    ),
-                });
+            const deletePatch = jsonBoundAxisDeletePatch(
+                jsonSeriesNames ?? [],
+                state.jsonSeriesStyle,
+                state.jsonHidden,
+                state.yAxes,
+                i,
+            );
+            if (deletePatch) {
+                // Hiding EVERY visible payload name bound to the axis frees it — ALL binders, not
+                // the first (1:n is first-class; one leftover binder would keep the axis rendered:
+                // the button must do what it says). The axis RESTS unbound (ADR-0066: nothing drops
+                // it anymore); the patch snapshots the first binder's displayed name, so the card
+                // keeps the label instead of collapsing to „Achse N" (the reconcile clears the
+                // hidden entries' yAxisIndex only later; the VISIBILITY sight sees the transition
+                // already). One patch → one undo step. Symmetric to the history/live pair-delete.
+                set(deletePatch);
             } else {
                 // No bound payload series (unbound axis, or already hidden) — drop the config and
                 // re-index the overlay entries around the removed slot: a stale-but-in-range
@@ -319,7 +332,8 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         key={a.id ?? i}
                         axis={a}
                         index={i}
-                        total={axes.length}
+                        emittedIndex={emittedRanks.get(i)}
+                        emittedTotal={emittedRanks.size}
                         open={!!expanded[i]}
                         onToggle={() => toggleCard(i)}
                         onChange={patch => setAxis(i, patch)}
@@ -328,6 +342,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         seriesColor={boundAxisColor(i)}
                         seriesName={boundAxisName(i)}
                         unbound={!boundIdx.has(i)}
+                        positionLocked={boundIdx.has(i)}
                         dividerColor={themeTokens.divider}
                     />
                 ))}

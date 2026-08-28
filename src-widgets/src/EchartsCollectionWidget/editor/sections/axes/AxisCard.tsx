@@ -34,7 +34,7 @@ import {
 import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsAxisConfig } from '../../../../types/field-definitions/echarts-fields';
-import { alignTicksDisabledByOverride } from '../../axisLayout';
+import { alignTicksDisabledByOverride, displayPosition } from '../../axisLayout';
 import RawJsonSection from '../RawJsonSection';
 import { AXIS_CATALOG } from '../../axisTemplates';
 import { snippetPatch } from '../../snippetComposition';
@@ -43,7 +43,15 @@ import { snippetPatch } from '../../snippetComposition';
 const AxisCard: FC<{
     axis: EchartsAxisConfig;
     index: number;
-    total: number;
+    /**
+     * The axis' EMITTED index (Q5): its rank among the BOUND axes in array order — the position
+     * the builder emits. `undefined` while unbound (no rank — the axis rests, its alignTicks
+     * config stays stored). The alignTicks gates follow this, not the configured index: the
+     * reference axis is the first BOUND axis.
+     */
+    emittedIndex?: number;
+    /** The number of BOUND axes — the emitted total the alignTicks gates read (Q5). */
+    emittedTotal: number;
     open: boolean;
     onToggle: () => void;
     onChange: (patch: Partial<EchartsAxisConfig>) => void;
@@ -55,12 +63,20 @@ const AxisCard: FC<{
     seriesName?: string;
     /** No series binds this axis (ADR-0066): the card stays fully editable but flags the resting state. */
     unbound?: boolean;
+    /**
+     * A series binds this axis (Q4): the side is deterministic — the dense axis distribution
+     * (array position) re-assigns it on every structural event — so the position select renders
+     * disabled with a hint. The offset field stays ACTIVE (fine-justure of a bound axis is
+     * allowed; only the side-flip is deterministically overruled). Unbound axes keep the select.
+     */
+    positionLocked?: boolean;
     /** Theme divider token — the grid colour's inherit value (the theme's splitline floor). */
     dividerColor: string;
 }> = ({
     axis: a,
     index: i,
-    total,
+    emittedIndex,
+    emittedTotal,
     open,
     onToggle,
     onChange,
@@ -69,20 +85,30 @@ const AxisCard: FC<{
     seriesColor,
     seriesName,
     unbound = false,
+    positionLocked = false,
     dividerColor,
 }) => {
     const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
     // alignTicks is an explicit per-axis opt-in (ADR-0034): off by default, no smart-default. Only
-    // meaningful with 2+ axes; on axis 0 (the reference echarts aligns others to) it is a no-op, so
-    // the switch renders only on follower axes (i > 0). An explicit toggle still wins.
+    // meaningful with 2+ EMITTED axes, and only on an emitted FOLLOWER (rank > 0): echarts aligns
+    // followers against the FIRST EMITTED value axis — an unbound configured axis 0 is NOT the
+    // reference (it does not render at all), so the gates read the emitted index/total (Q5), not
+    // the configured ones. An unbound axis carries no rank: no switch, its config rests stored.
     const alignTicksEffective = a.alignTicks ?? false;
+    // The emitted follower predicate (Q5): rank > 0 among ≥2 bound axes — the alignTicks switch
+    // and its override warning share it; the reference (rank 0) and unbound axes get no switch.
+    const isEmittedFollower = emittedTotal > 1 && (emittedIndex ?? -1) > 0;
     // echarts ignores alignTicks when the tick interval is fixed (min/max/splitNumber/minInterval);
-    // surface that as a non-blocking warning on a follower axis that opted in (ADR-0034).
-    const alignConflict = i > 0 && total > 1 && alignTicksEffective && alignTicksDisabledByOverride(a);
+    // surface that as a non-blocking warning on an emitted follower axis that opted in (ADR-0034).
+    const alignConflict = isEmittedFollower && alignTicksEffective && alignTicksDisabledByOverride(a);
     // axisTick defaults to shown (echarts default); the switch reflects it.
     const axisTickEffective = a.axisTick ?? true;
-    // Splitlines default on for axis 0 only (ADR-0012) — the grid colour rides this state.
-    const splitLineEffective = a.splitLine ?? i === 0;
+    // Splitlines default on for the emitted rank-0 axis only (ADR-0012) — the grid colour rides
+    // this state. Q5's sight applies here too: the builder resolves the default at the EMITTED
+    // index (cartesian buildYAxisEntry), so with axis 0 unbound the chart draws gridlines on the
+    // first BOUND axis and the card must show that. Unbound: no rank — the configured index keeps
+    // the resting display (the stored splitLine survives either way).
+    const splitLineEffective = a.splitLine ?? (emittedIndex ?? i) === 0;
 
     return (
         <EditorCard
@@ -128,9 +154,7 @@ const AxisCard: FC<{
                 </Box>
             }
             subtitle={
-                (a.position ?? (i === 0 ? 'left' : 'right')) === 'left'
-                    ? Generic.t('echarts_axis_left')
-                    : Generic.t('echarts_axis_right')
+                displayPosition(a, i) === 'left' ? Generic.t('echarts_axis_left') : Generic.t('echarts_axis_right')
             }
             actions={
                 <IconButton
@@ -160,15 +184,23 @@ const AxisCard: FC<{
                         placeholder={seriesName ?? a.restingName}
                         onChange={v => onChange({ name: v || undefined })}
                     />
-                    <LabeledSelect
-                        label={Generic.t('echarts_axis_position')}
-                        value={a.position ?? (i === 0 ? 'left' : 'right')}
-                        onChange={v => onChange({ position: v as 'left' | 'right' })}
-                        options={[
-                            ['left', Generic.t('echarts_axis_left')],
-                            ['right', Generic.t('echarts_axis_right')],
-                        ]}
-                    />
+                    {/* The side of a BOUND axis is deterministic (Q4): the balance re-assigns it
+                        from the array position on every structural event — a flip would snap
+                        back immediately. Locked with a title hint; UNBOUND axes stay free.
+                        `displayPosition` is the SAME default the flip detector reads — the
+                        shown value and the trigger can never diverge again. */}
+                    <Box title={positionLocked ? Generic.t('echarts_axis_position_locked') : undefined}>
+                        <LabeledSelect
+                            label={Generic.t('echarts_axis_position')}
+                            value={displayPosition(a, i)}
+                            onChange={v => onChange({ position: v as 'left' | 'right' })}
+                            options={[
+                                ['left', Generic.t('echarts_axis_left')],
+                                ['right', Generic.t('echarts_axis_right')],
+                            ]}
+                            disabled={positionLocked}
+                        />
+                    </Box>
                     {/* Colour sits in the grid like a series colour — swatch + inherit placeholder.
                         Inherited = the bound series' effective colour (ADR-0018). */}
                     <Box>
@@ -232,7 +264,7 @@ const AxisCard: FC<{
                         checked={a.scale ?? false}
                         onChange={v => onChange({ scale: v })}
                     />
-                    {total > 1 && i > 0 && (
+                    {isEmittedFollower && (
                         <SwitchRow
                             label={Generic.t('echarts_axis_align_ticks')}
                             checked={alignTicksEffective}
@@ -245,7 +277,7 @@ const AxisCard: FC<{
                         onChange={v => onChange({ axisTick: v })}
                     />
                 </SwitchList>
-                {total > 1 && <InfoBox text={Generic.t('echarts_axis_align_hint')} />}
+                {emittedTotal > 1 && <InfoBox text={Generic.t('echarts_axis_align_hint')} />}
                 {alignConflict && (
                     <InfoBox
                         tone="warning"

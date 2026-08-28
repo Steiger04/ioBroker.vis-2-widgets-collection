@@ -120,9 +120,10 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
 
     // NO mode-switch orphan-prune since ADR-0066: an axis no series of the current mode binds is
     // an unbound axis — a persistent resting state in EVERY mode (JSON reconcile and series
-    // add/delete/rebind all keep it). Nothing AUTO-removes an axis; the ONE deliberate exception
-    // is the user's JSON-boundary crossing (ADR-0067): it deletes the whole data path in the
-    // toggle handler — one explicit, undoable patch, never an effect-side prune.
+    // add/delete/rebind all keep it). Nothing AUTO-removes an axis; the only deliberate exceptions
+    // are the user's boundary crossings (ADR-0067 — the JSON-mode toggle and the chart-family
+    // toggle): each deletes the whole data path in its toggle handler — one explicit, undoable
+    // patch, never an effect-side prune.
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 

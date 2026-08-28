@@ -74,6 +74,19 @@ export const validateEditor = (state: EditorState): SectionIssues => {
     }
 
     if (family === 'cartesian') {
+        // Stale series→axis binding (Q6): a stored `yAxisIndex` beyond the axis array (reachable
+        // via hand-edit blobs or an axis-delete race) silently renders on axis 1 — the builder
+        // clamps `yi >= total` to 0, and the card's dropdown display clamps the same way. The
+        // warning says WHY the dropdown disagrees with the stored value. Deliberately NO warning
+        // in the 0-axes state: deleting every axis is legal, the builder's empty-fallback catches
+        // it, and a chorus of per-series warnings would drown the real cases.
+        if (state.yAxes.length) {
+            state.series.forEach((s, i) => {
+                if (typeof s.yAxisIndex === 'number' && s.yAxisIndex >= state.yAxes.length) {
+                    push('series', 'echarts_val_stale_yaxis', s.name || `${i + 1}`);
+                }
+            });
+        }
         if (state.yAxes.some(ax => typeof ax.min === 'number' && typeof ax.max === 'number' && ax.min >= ax.max)) {
             push('axesZoom', 'echarts_val_yminmax');
         }
@@ -86,39 +99,59 @@ export const validateEditor = (state: EditorState): SectionIssues => {
 };
 
 /**
+ * What a boundary crossing deletes — the numbers of the warning chip (ADR-0067 + F10: the reset
+ * wipes more than series and axes, and the chip must say so — markings and a set JSON data point
+ * fall with it too).
+ */
+export interface BoundaryLoss {
+    series: number;
+    axes: number;
+    /** Cartesian markings (markLines) the reset wipes — markings are cartesian-only (F10). */
+    marks: number;
+    /** The JSON data point (`jsonOid`) falls with the crossing when one is set (F10). */
+    dataPoint: boolean;
+}
+
+/**
  * What a chart-FAMILY crossing (cartesian↔pie↔gauge↔radar, ADR-0067) deletes from the current
  * state — the numbers of the type-picker warning chip. The crossing resets the whole data path,
  * so the loss is the ENTIRE series/axis set of the current family (the pre-ADR-0067 survival
  * model — cartesian→pie keeping the series as slices — is pensioned with it). Radar's data path
  * is its INDICATOR list (the polygon series is presentation); line↔bar↔scatter cross nothing and
- * never ask. Zero/zero loses nothing — no chip.
+ * never ask. Zero across the board loses nothing — no chip.
  */
-export const familyBoundaryLoss = (state: EditorState): { series: number; axes: number } => ({
-    series: familyOf(state.chartType) === 'radar' ? state.radar.indicators.length : state.series.length,
-    axes: state.yAxes.length,
-});
+export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => {
+    const family = familyOf(state.chartType);
+    return {
+        series: family === 'radar' ? state.radar.indicators.length : state.series.length,
+        axes: state.yAxes.length,
+        marks: family === 'cartesian' ? state.markLines.length : 0,
+        dataPoint: !!state.jsonOid,
+    };
+};
 
 /**
  * What the NEXT JSON-boundary crossing (into or out of JSON, ADR-0067) deletes from the current
  * state — the numbers of the mode-toggle warning chip. History/Live counts the authored series
  * and axes that fall on JSON entry; JSON counts the VISIBLE payload series (the live-resolved
  * names, falling back to the stored unhidden overlay entries when no payload preview exists) and
- * the axes. Zero/zero loses nothing — no chip. Verlauf↔Live crosses nothing and never asks.
+ * the axes. Zero across the board loses nothing — no chip. Verlauf↔Live crosses nothing and
+ * never asks.
  */
-export const jsonBoundaryLoss = (
-    state: EditorState,
-    jsonSeriesNames: readonly string[] = [],
-): { series: number; axes: number } => {
+export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
     const unhidden = (names: readonly string[]): number => names.filter(n => !state.jsonHidden.includes(n)).length;
+    const cartesian = familyOf(state.chartType) === 'cartesian';
+    const marks = cartesian ? state.markLines.length : 0;
+    const dataPoint = !!state.jsonOid;
     if (state.mode === 'json') {
         // A live payload preview is authoritative (ALL visible names counted — zero when every
         // name is hidden); the stored overlay entries are the fallback while no preview exists.
         const series = jsonSeriesNames.length
             ? unhidden(jsonSeriesNames)
             : unhidden(Object.keys(state.jsonSeriesStyle));
-        return { series, axes: state.yAxes.length };
+        return { series, axes: state.yAxes.length, marks, dataPoint };
     }
-    return { series: state.series.length, axes: state.yAxes.length };
+    return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint };
 };
 
 /**

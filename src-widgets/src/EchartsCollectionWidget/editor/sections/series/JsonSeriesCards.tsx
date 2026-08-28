@@ -16,7 +16,7 @@ import { DeleteOutline as DeleteIcon, Restore as RestoreIcon } from '@mui/icons-
 
 import Generic from '../../../../Generic';
 import type { EchartsCartesianType, EchartsSeriesMeta } from '../../../../types/field-definitions/echarts-fields';
-import { EditorCard, FieldGrid, FieldLabel } from '../../../../components/controls';
+import { EditorCard, FieldGrid, FieldLabel, InfoBox } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
@@ -89,6 +89,10 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     // and listed below for restore. The trash on a card header hides a series.
     const visibleNames = jsonSeriesNames.filter(n => !state.jsonHidden.includes(n));
     const hiddenNames = jsonSeriesNames.filter(n => state.jsonHidden.includes(n));
+    // Duplicate payload names (F11): the overlay, the axis binding and the hide deny-list are all
+    // NAME-keyed — two payload series sharing a name share style + axis binding, and hiding one
+    // hits BOTH. Advisory only (the payload owns the names; no index-keying here).
+    const duplicateNames = jsonSeriesNames.filter((n, i) => jsonSeriesNames.indexOf(n) !== i);
     const defaultType = state.chartType as EchartsCartesianType;
     const isPie = state.chartType === 'pie';
     // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit → inherited
@@ -115,6 +119,14 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
             >
                 {Generic.t('echarts_json_series_hint')}
             </Typography>
+            {!jsonError && state.jsonOid && duplicateNames.length > 0 && (
+                <Box sx={{ mb: 1.5 }}>
+                    <InfoBox
+                        tone="warning"
+                        text={Generic.t('echarts_json_duplicate_names')}
+                    />
+                </Box>
+            )}
             {jsonError ? (
                 <Alert
                     severity="error"

@@ -31,6 +31,7 @@ import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
 import {
     familyBoundaryLoss,
+    type BoundaryLoss,
     familySwitchSnippetLoss,
     jsonBoundaryLoss,
     type SectionIssues,
@@ -118,16 +119,20 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
 /**
  * The non-blocking boundary-reset warning chip (ADR-0067), shared by both crossing selectors —
  * the chart-type picker (family boundary) and the mode toggle (JSON boundary). Rendered while the
- * CURRENT state holds a data path the next crossing would delete; zero/zero renders nothing.
+ * CURRENT state holds a data path the next crossing would delete; nothing to lose renders nothing.
+ * F10: the chip names the FULL reset scope — markings and a set JSON data point fall with the
+ * series/axes; the two segment keys append only when their count is non-zero.
  */
-const BoundaryLossAlert: FC<{ lossKey: string; loss: { series: number; axes: number } }> = ({ lossKey, loss }) =>
-    loss.series > 0 || loss.axes > 0 ? (
+const BoundaryLossAlert: FC<{ lossKey: string; loss: BoundaryLoss }> = ({ lossKey, loss }) =>
+    loss.series > 0 || loss.axes > 0 || loss.marks > 0 || loss.dataPoint ? (
         <Alert
             severity="warning"
             variant="outlined"
             sx={{ py: 0, mt: 1 }}
         >
             {Generic.t(lossKey, String(loss.series), String(loss.axes))}
+            {loss.marks > 0 && ` ${Generic.t('echarts_boundary_loss_marks', String(loss.marks))}`}
+            {loss.dataPoint && ` ${Generic.t('echarts_boundary_loss_datapoint')}`}
         </Alert>
     ) : null;
 

@@ -118,8 +118,10 @@ describe('reconcileJsonAxesStep', () => {
         expect(reconcileJsonAxesStep(rebound, ['temp', 'kw'])).toBeNull();
     });
 
-    it('frees the axis of a name that is no longer visible (hide → the axis rests unbound)', () => {
-        const withHidden = jsonState({
+    it('frees the axis of a name that is no longer visible (payload-gone → the axis rests unbound)', () => {
+        // kw is gone from the payload (a HIDDEN name never reaches the step — the caller filters
+        // `jsonHidden` out of the visible names; its overlay index clears here as bookkeeping).
+        const withGone = jsonState({
             chartType: 'line',
             yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
             jsonSeriesStyle: {
@@ -127,10 +129,30 @@ describe('reconcileJsonAxesStep', () => {
                 kw: { yAxisIndex: 1 },
             },
         });
-        const patch = asPatch(reconcileJsonAxesStep(withHidden, ['temp'])); // kw hidden
+        const patch = asPatch(reconcileJsonAxesStep(withGone, ['temp'])); // kw payload-gone
         expect(patch.yAxes).toHaveLength(2); // kw's axis stays — unbound, not dropped (ADR-0066)
         expect(patch.jsonSeriesStyle.temp?.yAxisIndex).toBe(0);
         expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
+    });
+
+    it('a payload-vanish snapshots the resting name — and records nothing on the re-fire (redo survives)', () => {
+        // ADR-0066 addendum: the vanish leave snapshots the displayed name INSIDE the reconcile
+        // (overlay name, else payload name) — and the stringify idempotence guard covers the
+        // resting share too: it diffs the WHOLE yAxes, so the re-fire over the applied state
+        // is a null (no empty history entry destroys the redo branch).
+        const before = jsonState({
+            chartType: 'line',
+            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
+            jsonSeriesStyle: {
+                temp: { yAxisIndex: 0 },
+                kw: { yAxisIndex: 1, name: 'kW' },
+            },
+        });
+        const patch = asPatch(reconcileJsonAxesStep(before, ['temp'])); // kw gone from the payload
+        expect(patch.yAxes[1]).toMatchObject({ restingName: 'kW' }); // the vanish snapshot
+        expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
+        const applied = state({ ...before, ...patch });
+        expect(reconcileJsonAxesStep(applied, ['temp'])).toBeNull(); // stable — no re-record
     });
 
     it('is idempotent over its own output (an undo re-fire records nothing — redo survives)', () => {

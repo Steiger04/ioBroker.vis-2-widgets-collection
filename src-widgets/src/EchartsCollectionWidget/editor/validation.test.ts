@@ -43,6 +43,49 @@ describe('validateEditor', () => {
         expect(issues.series?.[0].args).toEqual(['2']);
     });
 
+    it('stale series→axis index (beyond the axis array) → series issue naming the render fallback (Q6)', () => {
+        const issues = validateEditor(
+            st({
+                yAxes: [{ position: 'left' }, { position: 'right' }, { position: 'left' }],
+                series: [{ oid: 'a.b.c', name: 'PV', yAxisIndex: 5 }],
+            }),
+        );
+        expect(issues.series).toEqual([{ key: 'echarts_val_stale_yaxis', args: ['PV'] }]);
+    });
+
+    it('the >= boundary itself: yAxisIndex === yAxes.length is already stale', () => {
+        const issues = validateEditor(
+            st({
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+                series: [{ oid: 'a.b.c', name: 'B', yAxisIndex: 2 }],
+            }),
+        );
+        expect(issues.series).toEqual([{ key: 'echarts_val_stale_yaxis', args: ['B'] }]);
+    });
+
+    it('valid series→axis indices → no issue', () => {
+        const issues = validateEditor(
+            st({
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+                series: [
+                    { oid: 'a.b.c', name: 'A', yAxisIndex: 0 },
+                    { oid: 'd.e.f', name: 'B', yAxisIndex: 1 },
+                ],
+            }),
+        );
+        expect(issues).toEqual({});
+    });
+
+    it('an index-less series (implicit axis 0) → no issue', () => {
+        const issues = validateEditor(st({ yAxes: [{ position: 'left' }], series: [{ oid: 'a.b.c' }] }));
+        expect(issues).toEqual({});
+    });
+
+    it('0 axes + series → no stale-index chorus (the deliberate 0-axes state, builder-caught)', () => {
+        const issues = validateEditor(st({ yAxes: [], series: [{ oid: 'a.b.c', name: 'A', yAxisIndex: 2 }] }));
+        expect(issues).toEqual({});
+    });
+
     it('pie slices without OID → series roll-up', () => {
         const issues = validateEditor(st({ chartType: 'pie', series: [{ oid: '', name: 'Slice' }] }));
         expect(issues.series).toHaveLength(1);
@@ -127,7 +170,7 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
                 yAxes: [{ position: 'left' }, { position: 'right' }],
             }),
         );
-        expect(loss).toEqual({ series: 2, axes: 2 });
+        expect(loss).toEqual({ series: 2, axes: 2, marks: 0, dataPoint: false });
     });
 
     it('radar counts the INDICATORS (its oidN data path), not the polygon series', () => {
@@ -146,17 +189,48 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
                 },
             }),
         );
-        expect(loss).toEqual({ series: 2, axes: 0 });
+        expect(loss).toEqual({ series: 2, axes: 0, marks: 0, dataPoint: false });
     });
 
     it('gauge counts its single series', () => {
         const loss = familyBoundaryLoss(st({ chartType: 'gauge', series: [{ oid: 'a' }] }));
-        expect(loss).toEqual({ series: 1, axes: 0 });
+        expect(loss).toEqual({ series: 1, axes: 0, marks: 0, dataPoint: false });
+    });
+
+    it('F10: cartesian markings count and a set jsonOid falls with the crossing', () => {
+        const loss = familyBoundaryLoss(
+            st({
+                chartType: 'line',
+                series: [{ oid: 'a' }],
+                yAxes: [{ position: 'left' }],
+                markLines: [
+                    { id: 'm0', upper: 50 },
+                    { id: 'm1', upper: 80 },
+                ],
+                jsonOid: 'dev.payload',
+            }),
+        );
+        expect(loss).toEqual({ series: 1, axes: 1, marks: 2, dataPoint: true });
+    });
+
+    it('F10: markings are cartesian-only — radar/pie/gauge report none even with markLines set', () => {
+        expect(familyBoundaryLoss(st({ chartType: 'radar', markLines: [{ id: 'm0', upper: 1 }] })).marks).toBe(0);
+        expect(familyBoundaryLoss(st({ chartType: 'pie', markLines: [{ id: 'm0', upper: 1 }] })).marks).toBe(0);
     });
 
     it('an empty data path loses nothing — zero/zero renders no chip', () => {
-        expect(familyBoundaryLoss(st({ chartType: 'line' }))).toEqual({ series: 0, axes: 0 });
-        expect(familyBoundaryLoss(st({ chartType: 'radar' }))).toEqual({ series: 0, axes: 0 });
+        expect(familyBoundaryLoss(st({ chartType: 'line' }))).toEqual({
+            series: 0,
+            axes: 0,
+            marks: 0,
+            dataPoint: false,
+        });
+        expect(familyBoundaryLoss(st({ chartType: 'radar' }))).toEqual({
+            series: 0,
+            axes: 0,
+            marks: 0,
+            dataPoint: false,
+        });
     });
 });
 
@@ -222,7 +296,7 @@ describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR
                 yAxes: [{ position: 'left' }, { position: 'right' }, { position: 'left', offset: 80 }],
             }),
         );
-        expect(loss).toEqual({ series: 2, axes: 3 });
+        expect(loss).toEqual({ series: 2, axes: 3, marks: 0, dataPoint: false });
     });
 
     it('json counts the VISIBLE payload series — hidden names never count', () => {
@@ -234,7 +308,15 @@ describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR
             }),
             ['A', 'B', 'C'],
         );
-        expect(loss).toEqual({ series: 2, axes: 2 });
+        expect(loss).toEqual({ series: 2, axes: 2, marks: 0, dataPoint: false });
+    });
+
+    it('F10: leaving JSON with a set jsonOid loses the data point; markings count (json-cartesian)', () => {
+        const loss = jsonBoundaryLoss(
+            st({ mode: 'json', chartType: 'line', jsonOid: 'dev.payload', markLines: [{ id: 'm0', upper: 5 }] }),
+            ['A'],
+        );
+        expect(loss).toEqual({ series: 1, axes: 0, marks: 1, dataPoint: true });
     });
 
     it('json without live names falls back to the stored unhidden overlay entries', () => {
@@ -261,7 +343,12 @@ describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR
     });
 
     it('an empty data path loses nothing — zero/zero renders no chip', () => {
-        expect(jsonBoundaryLoss(st({ mode: 'history' }))).toEqual({ series: 0, axes: 0 });
-        expect(jsonBoundaryLoss(st({ mode: 'json', yAxes: [] }), [])).toEqual({ series: 0, axes: 0 });
+        expect(jsonBoundaryLoss(st({ mode: 'history' }))).toEqual({ series: 0, axes: 0, marks: 0, dataPoint: false });
+        expect(jsonBoundaryLoss(st({ mode: 'json', yAxes: [] }), [])).toEqual({
+            series: 0,
+            axes: 0,
+            marks: 0,
+            dataPoint: false,
+        });
     });
 });

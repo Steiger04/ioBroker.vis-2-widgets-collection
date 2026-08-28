@@ -247,8 +247,9 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         });
     // The JSON binding sight (shared pure helpers, local adapters closing over the names):
     // `boundBindings` is the STRICT sight (ADR-0067) — DEFINED indices only, a cleared entry is
-    // unbound, never an implicit axis-0 binder. It feeds {@link restingBalance} for both halves
-    // (the resting diff is index-strict, so the filtered sight snapshots identically).
+    // unbound, never an implicit axis-0 binder. It feeds {@link restingBalance} for both halves —
+    // the resting diff materialises undefined→0 for the history/live sights (Q7), so JSON MUST
+    // feed it defined-only entries, which `boundBindings` guarantees.
     const boundBindings = (
         overlay: Readonly<Record<string, EchartsSeriesMeta>>,
         hidden: readonly string[],
@@ -273,7 +274,16 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         const shown = state.jsonHidden.filter(n => n !== name);
         set({
             jsonHidden: shown,
-            yAxes: balanceAxes(state.yAxes, boundJsonView(jsonSeriesNames ?? [], state.jsonSeriesStyle, shown)),
+            // restingBalance (symmetric to hideJson/rebindJsonAxis): an axis GAINING its binder
+            // back drops the stale restingName (ADR-0066: clear on every gain) — pure data
+            // hygiene, bound cards inherit live anyway; the next leave re-snapshots. The clear
+            // fires when the shown entry still carries its index; a reconcile-cleared entry's
+            // gain lands with the next reconcile's own resting balance instead.
+            yAxes: restingBalance(
+                boundBindings(state.jsonSeriesStyle, state.jsonHidden),
+                boundBindings(state.jsonSeriesStyle, shown),
+                state.yAxes,
+            ),
         });
     };
     // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):

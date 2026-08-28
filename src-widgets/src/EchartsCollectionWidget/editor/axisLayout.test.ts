@@ -13,6 +13,9 @@ import {
     boundAxisIndices,
     boundJsonView,
     effectiveAxisColor,
+    emittedAxisRanks,
+    isRealSideFlip,
+    jsonBoundAxisDeletePatch,
     effectiveAxisName,
     isOneToOneBound,
     reconcileJsonAxes,
@@ -130,9 +133,15 @@ describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
         expect(effectiveAxisName({}, 1, series)).toBe('Power');
     });
 
-    it('falls back to the 1-based index when neither axis nor bound series has a name', () => {
-        expect(effectiveAxisName({}, 2, series)).toBe('3');
-        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('1');
+    it('falls back to the Series-N label when neither axis nor bound series has a name (F11: dropdown === card === chart)', () => {
+        expect(effectiveAxisName({}, 2, series)).toBe('Series 3');
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('Series 1');
+    });
+
+    it('a BOUND unnamed series keys its Series-N label by SERIES position — even in a misaligned binding (F11)', () => {
+        // Series #0 (unnamed) binds axis 2: the builder renders "Series 1" and the Axis-card title
+        // shows "Series 1" — the dropdown must not diverge to the axis index ("Series 3").
+        expect(effectiveAxisName({}, 2, [{ yAxisIndex: 2 }])).toBe('Series 1');
     });
 
     it('prefers the explicit axis name over a bound series name', () => {
@@ -158,8 +167,10 @@ describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
             { yAxisIndex: 1, name: 'Verbrauch' },
         ];
         expect(effectiveAxisName({ restingName: 'Power' }, 1, rebound)).toBe('Verbrauch');
-        // A bound-but-unnamed series does not resurrect the resting name either — index fallback.
-        expect(effectiveAxisName({ restingName: 'Power' }, 1, [{ yAxisIndex: 1 }])).toBe('2');
+        // A bound-but-unnamed series does not resurrect the resting name either — the Series-N
+        // fallback keys by SERIES position (position 0 here, even though it binds axis 1): the
+        // exact label the builder renders and the card title shows (F11).
+        expect(effectiveAxisName({ restingName: 'Power' }, 1, [{ yAxisIndex: 1 }])).toBe('Series 1');
     });
 });
 
@@ -228,6 +239,35 @@ describe('restingNamePatch — transition diff over before/after bindings (ADR-0
         const after = jsonBindingView(names, overlay, ['Leistung']);
         const next = restingNamePatch(before, after, axes);
         expect(next?.[1]).toMatchObject({ restingName: 'Leistung' }); // payload name, no authored one
+    });
+});
+
+describe('implicit axis-0 binding — the materialised display sight (Q7)', () => {
+    it('a legacy series without a stored index inherits axis 0 — the editor shows what the chart renders', () => {
+        // Pre-ADR-0018 blobs / hand edits carry series without `yAxisIndex`; the builder binds
+        // them to axis 0 (`?? 0`) and inherits name + colour there. The display helpers read the
+        // SAME materialised sight (Q7): the Axis card and dropdown show the series name/colour,
+        // not „Achse 1" + a grey swatch. (Pre-Q7 characterization: '1' / 'Alt' / undefined.)
+        expect(effectiveAxisName({}, 0, [{ name: 'PV' }])).toBe('PV');
+        expect(effectiveAxisName({ restingName: 'Alt' }, 0, [{ name: 'PV' }])).toBe('PV'); // bound ignores it
+        expect(effectiveAxisColor(0, [{ color: '#f00' }], ['#aaa'])).toBe('#f00');
+        expect(restingAxisName({}, 0, [{ name: 'PV' }])).toBe('PV');
+    });
+
+    it('only axis 0 gains binders — an implicit binder never matches a higher axis', () => {
+        expect(effectiveAxisName({}, 1, [{ name: 'PV' }])).toBe('Series 2');
+        expect(effectiveAxisColor(1, [{ color: '#f00' }], ['#aaa'])).toBeUndefined();
+    });
+
+    it('re-binding an implicit binder AWAY now transitions axis 0 — the resting snapshot fires', () => {
+        // Pre-Q7 the resting diff never saw the implicit binder: axis 0 never transitioned, no
+        // snapshot. Materialised, the leave is visible and the axis keeps its displayed name.
+        const next = restingNamePatch([{ name: 'PV' }], [{ yAxisIndex: 1, name: 'PV' }], [{ id: 'a0' }]);
+        expect(next?.[0]).toMatchObject({ restingName: 'PV' });
+    });
+
+    it('the JSON sights stay STRICT — a cleared overlay entry never binds axis 0 (characterization)', () => {
+        expect(boundJsonView(['A'], { A: { yAxisIndex: undefined } }, [])).toEqual([]);
     });
 });
 
@@ -386,6 +426,189 @@ describe('reconcileJsonAxes — sticky JSON axis reconcile (ADR-0026)', () => {
     });
 });
 
+describe('reconcileJsonAxes — payload-vanish resting snapshot (ADR-0066 addendum)', () => {
+    it('a name vanishing from the payload snapshots its axis name — no collapse to „Achse N"', () => {
+        // B was bound to axis 1; the payload ticks and B is GONE. Every other leave transition
+        // (rebind / series-delete / hide / JSON axis-delete) snapshots the displayed name — the
+        // vanish must too (ADR-0066: snapshot on EVERY leave). The overlay-authored name wins,
+        // else the payload name.
+        const r = reconcileJsonAxes(['A'], { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Power' } }, [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0 },
+        ]);
+        expect(r.overlay.B?.yAxisIndex).toBeUndefined(); // cleared — B anchors nothing
+        expect(r.yAxes[1]).toMatchObject({ restingName: 'Power' }); // overlay name wins
+    });
+
+    it('falls back to the payload name when the overlay carries none', () => {
+        const r = reconcileJsonAxes(['A'], { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } }, [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0 },
+        ]);
+        expect(r.yAxes[1]).toMatchObject({ restingName: 'B' }); // payload name
+    });
+
+    it('is idempotent — a second reconcile over its own output re-snapshots nothing', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Power' } };
+        const axes = [
+            { id: 'a0', position: 'left' as const, offset: 0 },
+            { id: 'a1', position: 'right' as const, offset: 0 },
+        ];
+        const r1 = reconcileJsonAxes(['A'], overlay, axes);
+        const r2 = reconcileJsonAxes(['A'], r1.overlay, r1.yAxes);
+        expect(r2.yAxes).toEqual(r1.yAxes); // stable — no second patch, no history entry
+    });
+
+    it('a HIDDEN name is outside the before-sight — its leave was snapshotted at hide time', () => {
+        // kw is freshly hidden (hideJson already snapshotted "kw"; jsonHidden carries it, the
+        // overlay index is cleared HERE as bookkeeping only). Hum VANISHED from the payload.
+        // The reconcile snapshots Hum's axis and leaves kw's resting name untouched. kw's overlay
+        // name deliberately DIFFERS from its hide-time snapshot — a re-snapshot would overwrite
+        // 'kw' with 'Kilowatt', so the assertion discriminates (the hidden filter really excludes).
+        const r = reconcileJsonAxes(
+            ['temp'],
+            { temp: { yAxisIndex: 0 }, kw: { yAxisIndex: 1, name: 'Kilowatt' }, Hum: { yAxisIndex: 2 } },
+            [
+                { id: 'a0', position: 'left', offset: 0 },
+                { id: 'a1', position: 'right', offset: 0, restingName: 'kw' }, // from hideJson
+                { id: 'a2', position: 'left', offset: 80 },
+            ],
+            ['kw'],
+        );
+        expect(r.overlay.kw?.yAxisIndex).toBeUndefined(); // cleared (bookkeeping)
+        expect(r.yAxes[1]).toMatchObject({ restingName: 'kw' }); // untouched — NOT 'Kilowatt'
+        expect(r.yAxes[2]).toMatchObject({ restingName: 'Hum' }); // the vanish snapshots
+    });
+
+    it('fresh payload name + vanish of the axis-0 binder in ONE reconcile: the snapshot takes the DISPLAYED name (Q7 seam)', () => {
+        // 'Neu' has no overlay entry yet (undefined index) and never rendered anywhere; 'Alte'
+        // bound axis 0 and vanished. The before-sight is the STRICT JSON view (defined indices
+        // only) — an unfiltered sight would materialise 'Neu' onto axis 0 and let it STEAL the
+        // snapshot (visible-first order). The resting diff may materialise (Q7, history/live),
+        // so JSON callers MUST hand it defined-only entries.
+        const r = reconcileJsonAxes(['Neu'], { Gone: { yAxisIndex: 0, name: 'Alte' } }, [
+            { id: 'a0', position: 'left', offset: 0 },
+        ]);
+        expect(r.overlay.Neu?.yAxisIndex).toBe(1); // fresh axis appended, never axis 0
+        expect(r.overlay.Gone?.yAxisIndex).toBeUndefined();
+        expect(r.yAxes[0]).toMatchObject({ restingName: 'Alte' }); // the displayed name — NOT 'Neu'
+    });
+});
+
+describe('jsonBoundAxisDeletePatch — JSON axis-delete hides ALL bound names (Q3, ADR-0066 addendum)', () => {
+    const axes: EchartsAxisConfig[] = [
+        { id: 'a0', position: 'left', offset: 0 },
+        { id: 'a1', position: 'right', offset: 0 },
+    ];
+
+    it('a SHARED axis (1:n): every visible binder goes into jsonHidden, the axis rests with the FIRST binder name', () => {
+        // B and C share axis 1 (1:n is first-class). Deleting axis 1 must hide BOTH — hiding just
+        // the first would leave the axis bound and rendered: the button would not do what it says.
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1, name: 'Bezug' }, C: { yAxisIndex: 1 } };
+        const patch = jsonBoundAxisDeletePatch(['A', 'B', 'C'], overlay, [], axes, 1);
+        expect(patch?.jsonHidden).toEqual(['B', 'C']);
+        expect(patch?.yAxes).toHaveLength(2); // the axis RESTS — not dropped (ADR-0066)
+        expect(patch?.yAxes[1]).toMatchObject({ restingName: 'Bezug' }); // first binder, overlay name
+        expect(patch?.yAxes[0]).toMatchObject({ position: 'left', offset: 0 }); // balance over {0}
+    });
+
+    it('a single binder: unchanged behaviour — exactly that name hides (regression)', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        const patch = jsonBoundAxisDeletePatch(['A', 'B'], overlay, [], axes, 1);
+        expect(patch?.jsonHidden).toEqual(['B']);
+        expect(patch?.yAxes[1]).toMatchObject({ restingName: 'B' });
+    });
+
+    it('no VISIBLE binder (unbound axis, or only already-hidden binders) → null: the caller takes the config-delete path', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        expect(jsonBoundAxisDeletePatch(['A', 'B'], overlay, [], axes, 2)).toBeNull(); // unbound axis
+        expect(jsonBoundAxisDeletePatch(['A', 'B'], overlay, ['B'], axes, 1)).toBeNull(); // binder hidden
+    });
+
+    it('one patch → one undo step: jsonHidden AND yAxes travel together', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        const patch = jsonBoundAxisDeletePatch(['A', 'B'], overlay, [], axes, 1);
+        expect(patch && Object.keys(patch).sort()).toEqual(['jsonHidden', 'yAxes']);
+    });
+});
+
+describe("isRealSideFlip — the flip detector with the select's index-aware default (Q4)", () => {
+    it('re-selecting the DISPLAYED value on an axis without a stored position is NOT a flip', () => {
+        // Axis 1 has no stored position (a hand-edit blob): the card displays the index-aware
+        // default 'right'. Re-selecting 'right' must not count as a flip — the index-blind
+        // `?? 'left'` default mis-read it as one and re-rastered every bound axis' hand-tuned
+        // offset through the balance (ADR-0067).
+        expect(
+            isRealSideFlip(
+                [
+                    { id: 'a0', position: 'left', offset: 0 },
+                    { id: 'a1', offset: 42 },
+                ],
+                1,
+                {
+                    position: 'right',
+                },
+            ),
+        ).toBe(false); // offsets survive — no balance run
+    });
+
+    it('a REAL flip (stored or default position differs) is a flip', () => {
+        const axes = [
+            { id: 'a0', position: 'left' as const, offset: 0 },
+            { id: 'a1', offset: 42 },
+            { id: 'a2', position: 'left' as const, offset: 80 },
+        ];
+        expect(isRealSideFlip(axes, 1, { position: 'left' })).toBe(true); // displayed 'right' → left
+        expect(isRealSideFlip(axes, 2, { position: 'right' })).toBe(true); // stored left → right
+        expect(isRealSideFlip(axes, 0, { position: 'right' })).toBe(true); // default left → right
+    });
+
+    it('a real flip of an UNBOUND axis still fires (its geometry sticks — the balance never touches it)', () => {
+        // The detector does not care about boundness: the unbound flip keeps triggering the
+        // balance path exactly as before; the balance leaves the unbound axis alone (ADR-0067).
+        expect(isRealSideFlip([{ id: 'a1', offset: 42 }], 0, { position: 'right' })).toBe(true);
+    });
+
+    it('a patch without a position key is never a flip', () => {
+        expect(isRealSideFlip([{ id: 'a0', position: 'left', offset: 0 }], 0, { offset: 120 })).toBe(false);
+        expect(isRealSideFlip([{ id: 'a0', position: 'left', offset: 0 }], 0, {})).toBe(false);
+    });
+});
+
+describe('emittedAxisRanks — the emitted (effective) axis positions (Q5)', () => {
+    it('identity when every axis is bound: rank === configured index (any insertion order)', () => {
+        expect([...emittedAxisRanks(new Set([0, 1, 2]))]).toEqual([
+            [0, 0],
+            [1, 1],
+            [2, 2],
+        ]);
+        // unsorted insertion exercises the ascending-sort guard — the rank follows the ARRAY
+        // order, not the Set's insertion order.
+        expect([...emittedAxisRanks(new Set([2, 0, 1]))]).toEqual([
+            [0, 0],
+            [1, 1],
+            [2, 2],
+        ]);
+    });
+
+    it('an unbound axis 0 makes axis 1 the EMITTED reference (rank 0) — the switch must hide there', () => {
+        // Configured axis 0 rests unbound; the builder emits axis 1 first — echarts aligns
+        // followers against IT, so axis 1 is the reference and carries no alignTicks switch.
+        expect([...emittedAxisRanks(new Set([1]))]).toEqual([[1, 0]]);
+    });
+
+    it('a hole in the middle compacts the ranks: axis 2 with axis 1 unbound is emitted index 1', () => {
+        expect([...emittedAxisRanks(new Set([0, 2]))]).toEqual([
+            [0, 0],
+            [2, 1],
+        ]);
+    });
+
+    it('no bound axis at all: empty map (size 0 — the 0-axes state is deliberate)', () => {
+        expect(emittedAxisRanks(new Set()).size).toBe(0);
+    });
+});
+
 describe('boundJsonView — the strict JSON balance sight (ADR-0067)', () => {
     it('filters the visible binding view down to DEFINED indices', () => {
         const overlay = { A: { yAxisIndex: 1 }, B: { yAxisIndex: 0 }, C: { yAxisIndex: undefined } };
@@ -423,6 +646,20 @@ describe('restingBalance — the series-leave→re-arrange seam (ADR-0066 + 0067
         expect(out[0]).toMatchObject({ position: 'left', offset: 0 }); // balance slot 0
         expect(out[1]).toMatchObject({ restingName: 'Power', position: 'right', offset: 0 }); // unbound
         expect(out[2]).toMatchObject({ position: 'right', offset: 0 }); // balance slot 1 — hole closed
+    });
+
+    it('a GAIN clears a stale restingName — the showJson wiring (ADR-0066 addendum)', () => {
+        // showJson diffs the CURRENT hidden sight against the shown one (symmetric to hideJson
+        // and rebindJsonAxis): an axis that wins its binder back drops the stale restingName —
+        // bound axes inherit live (ADR-0018), the next leave re-snapshots. Pure data hygiene:
+        // bound cards never display the resting name anyway.
+        const yAxes: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0, restingName: 'kw' },
+        ];
+        const out = restingBalance([{ yAxisIndex: 0 }], [{ yAxisIndex: 0 }, { yAxisIndex: 1 }], yAxes);
+        expect(out[1].restingName).toBeUndefined(); // cleared on the gain
+        expect(out[1]).toMatchObject({ position: 'right', offset: 0 }); // balance slot 1
     });
 });
 

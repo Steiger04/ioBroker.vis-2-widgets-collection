@@ -69,7 +69,12 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
     ) {
         return null;
     }
-    const { yAxes, overlay: jsonSeriesStyle } = reconcileJsonAxes(visibleNames, state.jsonSeriesStyle, state.yAxes);
+    const { yAxes, overlay: jsonSeriesStyle } = reconcileJsonAxes(
+        visibleNames,
+        state.jsonSeriesStyle,
+        state.yAxes,
+        state.jsonHidden,
+    );
     if (
         JSON.stringify(yAxes) === JSON.stringify(state.yAxes) &&
         JSON.stringify(jsonSeriesStyle) === JSON.stringify(state.jsonSeriesStyle)
