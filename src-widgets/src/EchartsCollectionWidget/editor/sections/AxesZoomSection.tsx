@@ -149,8 +149,21 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             if (boundName && !state.jsonHidden.includes(boundName)) {
                 set({ jsonHidden: [...state.jsonHidden, boundName] });
             } else {
-                // No bound payload series (orphan axis, or already hidden) — just drop the config.
-                set({ yAxes: axes.filter((_, idx) => idx !== i) });
+                // No bound payload series (unbound axis, or already hidden) — drop the config and
+                // re-index the overlay entries around the removed slot: a stale-but-in-range
+                // index would otherwise silently rebind a payload series to the WRONG axis
+                // (out-of-range ones the reconcile heals with a fresh axis).
+                set({
+                    yAxes: axes.filter((_a, idx) => idx !== i),
+                    jsonSeriesStyle: Object.fromEntries(
+                        Object.entries(state.jsonSeriesStyle).map(([n, m]) => [
+                            n,
+                            typeof m.yAxisIndex === 'number' && m.yAxisIndex > i
+                                ? { ...m, yAxisIndex: m.yAxisIndex - 1 }
+                                : m,
+                        ]),
+                    ),
+                });
             }
             return;
         }

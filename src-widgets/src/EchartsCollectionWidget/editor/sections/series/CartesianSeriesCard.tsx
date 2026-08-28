@@ -77,7 +77,8 @@ export const CartesianBasisFields: FC<{
     yAxes: EchartsAxisConfig[];
     /**
      * Effective display name per axis (explicit → inherited-from-bound-series → index, ADR-0025)
-     * for the binding-dropdown labels. Omitted by the JSON card (its axis select is hidden).
+     * for the binding-dropdown labels — already carrying the „unbenutzt" suffix for unbound axes
+     * (ADR-0066). Resolved by the owning card list (history/live and JSON alike).
      */
     axisDisplayNames?: string[];
     /** OID binding row (history/live only — the JSON payload owns the data). */
@@ -89,9 +90,9 @@ export const CartesianBasisFields: FC<{
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
     nameClearsToUndefined?: boolean;
     /**
-     * Show the per-series Y-axis binding select. Hidden in JSON mode (ADR-XXXX): the modal's
-     * auto-1:1 axis effect forces `yAxisIndex = position` whenever the payload changes, so the
-     * select's free choice is not robust — auto-1:1 is the truth there.
+     * Show the per-series Y-axis binding select. Shown in every cartesian data mode — incl. JSON,
+     * where a manual rebind is sticky and the freed axis rests unbound (ADR-0026/0066). The gate
+     * exists for non-cartesian future uses of the shared basis group.
      *
      * @default true
      */

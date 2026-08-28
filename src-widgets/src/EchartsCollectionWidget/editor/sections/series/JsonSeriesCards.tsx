@@ -55,7 +55,7 @@ interface JsonSeriesCardsProps {
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdateJson: (name: string, patch: Partial<EchartsSeriesMeta>) => void;
-    /** Rebind a JSON payload series to a different axis (sticky orphan-clean, ADR-0026). */
+    /** Rebind a JSON payload series to a different axis (sticky; the freed axis rests unbound, ADR-0066). */
     onRebindJsonAxis: (name: string, yAxisIndex: number) => void;
     onHideJson: (name: string) => void;
     onShowJson: (name: string) => void;
@@ -92,12 +92,19 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     const defaultType = state.chartType as EchartsCartesianType;
     const isPie = state.chartType === 'pie';
     // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit → inherited
-    // from the first overlay entry bound to the axis → 1-based index.
+    // from the first overlay entry bound to the axis → 1-based index. An axis no visible entry
+    // binds is unbound (ADR-0066) — suffix it so the resting state is visible at the point of
+    // assignment (identical to the history/live dropdown).
     const overlaySeries = visibleNames.map(n => ({
         yAxisIndex: state.jsonSeriesStyle[n]?.yAxisIndex,
         name: state.jsonSeriesStyle[n]?.name ?? n,
     }));
-    const axisDisplayNames = state.yAxes.map((a, ai) => effectiveAxisName(a, ai, overlaySeries));
+    const boundJson = new Set(overlaySeries.map(s => s.yAxisIndex).filter((v): v is number => typeof v === 'number'));
+    const axisDisplayNames = state.yAxes.map(
+        (a, ai) =>
+            effectiveAxisName(a, ai, overlaySeries) +
+            (boundJson.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
+    );
 
     return (
         <Box>
@@ -193,8 +200,8 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 meta={m}
                                 defaultType={defaultType}
                                 onPatch={p =>
-                                    // A yAxisIndex change rebinds (sticky orphan-clean, ADR-0026);
-                                    // every other field updates the overlay entry in place.
+                                    // A yAxisIndex change rebinds (the freed axis rests unbound,
+                                    // ADR-0066); every other field updates the overlay entry in place.
                                     p.yAxisIndex !== undefined
                                         ? onRebindJsonAxis(name, p.yAxisIndex)
                                         : onUpdateJson(name, p)

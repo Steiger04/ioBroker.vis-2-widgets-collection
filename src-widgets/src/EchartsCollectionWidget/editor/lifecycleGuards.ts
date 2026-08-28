@@ -18,7 +18,7 @@
  * "move, don't merge").
  */
 
-import { packStaggeredAxes, pruneOrphanAxes, reconcileJsonAxes } from './axisLayout';
+import { reconcileJsonAxes } from './axisLayout';
 import { withStableIds } from './stableId';
 import type { EditorPatch, EditorState } from './editorState';
 
@@ -76,29 +76,6 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
         return null;
     }
     return { yAxes, jsonSeriesStyle };
-};
-
-/**
- * Non-JSON cartesian orphan-prune (ADR-0033): a mode-switch INTO live/history is a bulk
- * series-leave — the referencing series set changes from the JSON overlay back to
- * `state.series` — and an unbound axis deliberately does NOT survive a JSON interlude (ADR-0066),
- * so this prunes axes no live/history series binds. Axis 0 always survives (the builder's `[{}]`
- * fallback); a series
- * with `yAxisIndex === undefined` counts as bound to axis 0. A drop is a structural change →
- * the survivors re-pack densely (ADR-0028). Idempotent (`null` while no orphan remains).
- */
-export const pruneOrphanAxesStep = (state: EditorState): EditorPatch | null => {
-    if (
-        state.mode === 'json' ||
-        (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter')
-    ) {
-        return null;
-    }
-    const { series, yAxes } = pruneOrphanAxes(state.series, state.yAxes);
-    if (yAxes.length === state.yAxes.length) {
-        return null;
-    }
-    return { series, yAxes: packStaggeredAxes(yAxes) };
 };
 
 /**

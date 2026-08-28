@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './editorState';
-import { healStableIds, loadedOidCount, pruneOrphanAxesStep, reconcileJsonAxesStep } from './lifecycleGuards';
+import { healStableIds, loadedOidCount, reconcileJsonAxesStep } from './lifecycleGuards';
 
 const state = (overrides: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...overrides });
 
@@ -111,7 +111,7 @@ describe('reconcileJsonAxesStep', () => {
         expect(reconcileJsonAxesStep(rebound, ['temp', 'kw'])).toBeNull();
     });
 
-    it('frees the axis of a name that is no longer visible (hide → orphan-clean)', () => {
+    it('frees the axis of a name that is no longer visible (hide → the axis rests unbound)', () => {
         const withHidden = jsonState({
             chartType: 'line',
             yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
@@ -121,7 +121,7 @@ describe('reconcileJsonAxesStep', () => {
             },
         });
         const patch = asPatch(reconcileJsonAxesStep(withHidden, ['temp'])); // kw hidden
-        expect(patch.yAxes).toHaveLength(1);
+        expect(patch.yAxes).toHaveLength(2); // kw's axis stays — unbound, not dropped (ADR-0066)
         expect(patch.jsonSeriesStyle.temp?.yAxisIndex).toBe(0);
         expect(patch.jsonSeriesStyle.kw?.yAxisIndex).toBeUndefined();
     });
@@ -149,86 +149,6 @@ describe('reconcileJsonAxesStep', () => {
         });
         const patch = asPatch(reconcileJsonAxesStep(handTuned, ['temp', 'kw']));
         expect(patch.yAxes[1]?.offset).toBe(0);
-    });
-});
-
-describe('pruneOrphanAxesStep', () => {
-    it('returns null in json mode (the reconcile is the json-side cleaner)', () => {
-        const json = state({ mode: 'json', chartType: 'line' });
-        expect(pruneOrphanAxesStep(json)).toBeNull();
-    });
-
-    it('returns null for non-cartesian families', () => {
-        expect(pruneOrphanAxesStep(state({ chartType: 'gauge' }))).toBeNull();
-    });
-
-    it('prunes the ghosts a JSON→Live mode switch leaves behind', () => {
-        const switched = state({
-            mode: 'live',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'right', 80)],
-            series: [{ oid: 'oid1', id: 's0', yAxisIndex: 0 }],
-        });
-        const patch = asPatch(pruneOrphanAxesStep(switched));
-        expect(patch.yAxes).toHaveLength(1);
-        expect(patch.yAxes[0]?.id).toBe('a0');
-    });
-
-    it('keeps axis 0 alive even with no series at all', () => {
-        const empty = state({
-            mode: 'live',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'right', 80)],
-            series: [],
-        });
-        const patch = asPatch(pruneOrphanAxesStep(empty));
-        expect(patch.yAxes).toHaveLength(1);
-        expect(patch.yAxes[0]?.id).toBe('a0');
-    });
-
-    it('re-indexes the surviving series onto the compacted array', () => {
-        const switched = state({
-            mode: 'history',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'right', 80)],
-            series: [
-                { oid: 'oid1', id: 's0', yAxisIndex: 0 },
-                { oid: 'oid2', id: 's2', yAxisIndex: 2 }, // binds the axis that survives
-            ],
-        });
-        const patch = asPatch(pruneOrphanAxesStep(switched));
-        expect(patch.series.find(s => s.id === 's2')?.yAxisIndex).toBe(1);
-        expect(patch.series.find(s => s.id === 's0')?.yAxisIndex).toBe(0);
-    });
-
-    it('re-packs the survivors densely (ADR-0028 — a drop closes the offset gap)', () => {
-        // Per SIDE from zero: dropping the right axis leaves two left axes at 0/160 — the pack
-        // closes the gap to 0/80. (Pack is per-side: the FIRST survivor of a side gets 0.)
-        const dropped = state({
-            mode: 'live',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0), axis('a2', 'left', 160)],
-            series: [
-                { oid: 'oid1', id: 's0', yAxisIndex: 0 },
-                { oid: 'oid2', id: 's2', yAxisIndex: 2 }, // a1 (right) loses its series
-            ],
-        });
-        const patch = asPatch(pruneOrphanAxesStep(dropped));
-        expect(patch.yAxes.map(a => a.offset)).toEqual([0, 80]);
-        expect(patch.yAxes[1]?.id).toBe('a2');
-    });
-
-    it('returns null when every axis is bound (clean N/N — pure read)', () => {
-        const clean = state({
-            mode: 'live',
-            chartType: 'line',
-            yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
-            series: [
-                { oid: 'oid1', id: 's0', yAxisIndex: 0 },
-                { oid: 'oid2', id: 's1', yAxisIndex: 1 },
-            ],
-        });
-        expect(pruneOrphanAxesStep(clean)).toBeNull();
     });
 });
 

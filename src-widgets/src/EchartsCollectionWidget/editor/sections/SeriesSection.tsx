@@ -29,7 +29,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, isOneToOneBound, reconcileJsonAxes } from '../axisLayout';
+import { axisLayout, isOneToOneBound } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -226,17 +226,16 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const hideJson = (name: string): void => set({ jsonHidden: [...state.jsonHidden, name] });
     const showJson = (name: string): void => set({ jsonHidden: state.jsonHidden.filter(n => n !== name) });
     // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
-    // write the new yAxisIndex onto the overlay entry, then the sticky reconcile orphan-cleans the
-    // freed axis. Manual bindings survive payload changes — the modal reconcile effect keeps every
-    // valid yAxisIndex (it only auto-assigns names lacking one).
+    // write the new yAxisIndex onto the overlay entry — done. The freed axis rests UNBOUND
+    // (ADR-0066: nothing prunes anymore); the modal reconcile effect keeps every valid yAxisIndex
+    // sticky across payload changes (it only auto-assigns names lacking one).
     const rebindJsonAxis = (name: string, newYi: number): void => {
-        const overlay = {
-            ...state.jsonSeriesStyle,
-            [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
-        };
-        const visibleNames = (jsonSeriesNames ?? []).filter(n => !state.jsonHidden.includes(n));
-        const { yAxes, overlay: reconciled } = reconcileJsonAxes(visibleNames, overlay, state.yAxes);
-        set({ jsonSeriesStyle: reconciled, yAxes });
+        set({
+            jsonSeriesStyle: {
+                ...state.jsonSeriesStyle,
+                [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
+            },
+        });
     };
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the

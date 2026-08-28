@@ -27,7 +27,7 @@ import {
     type EditorPatch,
     type EditorState,
 } from './editorState';
-import { healStableIds, loadedOidCount, pruneOrphanAxesStep, reconcileJsonAxesStep } from './lifecycleGuards';
+import { healStableIds, loadedOidCount, reconcileJsonAxesStep } from './lifecycleGuards';
 import type { WidgetData } from '@iobroker/types-vis-2';
 
 /** The editor lifecycle's public surface — the modal's state machine minus its chrome. */
@@ -118,17 +118,10 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state]);
 
-    // Non-JSON cartesian orphan-prune (ADR-0033) — the policy lives in the pure step; this
-    // effect owns only the firing condition: a mode-switch INTO live/history is a bulk
-    // series-leave, so the orphan-check runs once per mode/type change (loadEditorState handles
-    // the open path; series add/delete/rebind are orphan-cleaned by SeriesSection).
-    useEffect(() => {
-        const patch = pruneOrphanAxesStep(state);
-        if (patch) {
-            set(patch);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.mode, state.chartType]);
+    // NO mode-switch orphan-prune since ADR-0066: an axis no series of the current mode binds is
+    // an unbound axis — a persistent resting state in EVERY mode (JSON reconcile and series
+    // add/delete/rebind all keep it). Nothing auto-removes an axis anymore; the Axis-card delete
+    // is the only removal, and the builder never renders an unbound axis.
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 

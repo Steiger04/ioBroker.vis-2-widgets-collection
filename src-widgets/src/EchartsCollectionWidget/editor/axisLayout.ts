@@ -2,8 +2,9 @@
  * Cartesian axis-layout + series↔axis coupling helpers: the 1:1 auto-layout assigned to an
  * auto-created axis + the predicate telling whether every series still owns its axis (ADR-0018,
  * bound-aware since ADR-0066); and the axis-as-independent-citizen coupling — rebind target, the
- * mode-switch orphan-prune, and the effective axis name (ADR-0025/0033; series-leave keeps the
- * axis as an unbound axis since ADR-0066).
+ * sticky JSON reconcile, and the effective axis name (ADR-0025/0026). Since ADR-0066 a series
+ * leaving its axis keeps it as an unbound axis in EVERY mode: nothing prunes anymore, only an
+ * explicit axis-delete removes an axis.
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -117,60 +118,6 @@ export const alignTicksDisabledByOverride = (a: EchartsAxisConfig): boolean =>
     a.min !== undefined || a.max !== undefined || a.splitNumber !== undefined || a.minInterval !== undefined;
 
 /**
- * Drop EVERY orphan axis (no series on it) and re-index the survivors (ADR-0033 — mode-switch orphan-
- * prune). A data-mode switch is a *bulk series-leave* — the referencing series set changes wholesale
- * (JSON overlay ↔ `state.series`) — and an unbound axis deliberately does NOT survive a JSON
- * interlude (ADR-0066), so the orphan-check prunes here.
- *
- * **Axis 0 always survives** (when present): it is the canonical axis the cartesian builder always
- * renders (its `[{}]` fallback) and that the load legacy-fallback restores for an empty blob — so a
- * prune must not wipe it either. This keeps a fresh 0-series widget on its single default axis and
- * collapses a 6-ghost JSON→Live switch (0 live series) to 1 axis, not 0. Orphans are axes 1..n that
- * no series references.
- *
- * A series with `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's
- * `e.yAxisIndex ?? 0`), so a never-explicitly-bound series still anchors axis 0. Pure: returns the
- * de-orphaned `series` (re-indexed onto the compacted array) + `yAxes` (survivors in original order);
- * the caller owns the re-stagger policy (this does NOT touch offsets). Series/axis refs are preserved
- * when nothing moved — the no-op case allocates nothing.
- */
-export const pruneOrphanAxes = <T extends { yAxisIndex?: number }>(
-    series: readonly T[],
-    yAxes: readonly EchartsAxisConfig[],
-): { series: T[]; yAxes: EchartsAxisConfig[] } => {
-    // Indices still referenced by at least one series (undefined → 0), PLUS axis 0 — the canonical
-    // default that always survives (see above).
-    const bound = new Set<number>([0]);
-    for (const s of series) {
-        bound.add(typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0);
-    }
-    // Keep the referenced axes, preserving order; record the old→new index map as we go.
-    const reindex = new Map<number, number>();
-    const survivors: EchartsAxisConfig[] = [];
-    for (let i = 0; i < yAxes.length; i++) {
-        if (bound.has(i)) {
-            reindex.set(i, survivors.length);
-            survivors.push(yAxes[i]);
-        }
-    }
-    // No axis dropped → nothing to re-index; return the inputs untouched (refs preserved, true no-op).
-    if (survivors.length === yAxes.length) {
-        return { series: series as T[], yAxes: yAxes as EchartsAxisConfig[] };
-    }
-    // Re-index the series onto the compacted array. A ref is kept when its axis did not move — incl.
-    // an undefined series when axis 0 stayed put (it stays undefined, still implicit-0).
-    const nextSeries = series.map(s => {
-        if (typeof s.yAxisIndex !== 'number') {
-            const mapped = reindex.get(0);
-            return mapped === 0 || mapped === undefined ? s : { ...s, yAxisIndex: mapped };
-        }
-        const mapped = reindex.get(s.yAxisIndex);
-        return mapped === s.yAxisIndex ? s : { ...s, yAxisIndex: mapped };
-    });
-    return { series: nextSeries, yAxes: survivors };
-};
-
-/**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
  * axis name, else the name inherited from the first series bound to it, else its 1-based index.
  * Mirrors the cartesian builder's axis-name resolution (`a.name ?? seriesName`) so the dropdown
@@ -225,11 +172,12 @@ export const effectiveAxisColor = (
  * - **1:1 default:** a new name (or one whose stored `yAxisIndex` went stale after axes were lost)
  *   gets a fresh appended axis — so a fresh payload still lands 1:1 (no regression for the common
  *   multi-unit case).
- * - **Orphan-cleanup:** a name no longer visible (hidden or gone) is cleared; axes with no visible
- *   series bound are dropped and the survivors re-indexed (mirrors history/live, ADR-0025).
+ * - **Unbound axes persist (ADR-0066):** a name no longer visible (hidden or gone) is cleared; the
+ *   freed axis STAYS as an unbound axis — selectable in the dropdown, deletable on its card, never
+ *   rendered. Same rule as a manual rebind in history/live: only an explicit axis-delete removes an
+ *   axis, so the reconcile never drops or re-indexes anything.
  *
- * Pure — the caller (the modal effect on payload/mode change, the rebind handler on manual choice)
- * writes the result back. Not a hook.
+ * Pure — the caller (the modal effect on payload/mode change) writes the result back. Not a hook.
  */
 export const reconcileJsonAxes = <M extends { yAxisIndex?: number }>(
     visibleNames: readonly string[],
@@ -248,30 +196,11 @@ export const reconcileJsonAxes = <M extends { yAxisIndex?: number }>(
             next[name] = { ...next[name], yAxisIndex: fresh };
         }
     }
-    // 2. Clear yAxisIndex on entries no longer visible (hidden or gone) so they don't anchor an axis.
+    // 2. Clear yAxisIndex on entries no longer visible (hidden or gone) so they don't anchor an axis
+    //    (its axis rests unbound instead — the builder never renders it).
     for (const key of Object.keys(next)) {
         if (!visibleNames.includes(key) && next[key].yAxisIndex !== undefined) {
             next[key] = { ...next[key], yAxisIndex: undefined };
-        }
-    }
-    // 3. Orphan-cleanup: drop axes with no visible series, re-index the survivors + overlay indices.
-    //    Loop — hiding several names at once can free several axes in one reconcile pass.
-    let changed = true;
-    while (changed) {
-        changed = false;
-        const bound = new Set(
-            visibleNames.map(n => next[n]?.yAxisIndex).filter((v): v is number => typeof v === 'number'),
-        );
-        const orphan = axes.findIndex((_a, idx) => !bound.has(idx));
-        if (orphan !== -1) {
-            axes = axes.filter((_a, idx) => idx !== orphan);
-            for (const name of visibleNames) {
-                const yi = next[name]?.yAxisIndex;
-                if (typeof yi === 'number' && yi > orphan) {
-                    next[name] = { ...next[name], yAxisIndex: yi - 1 };
-                }
-            }
-            changed = true;
         }
     }
     return { yAxes: packStaggeredAxes(axes), overlay: next };

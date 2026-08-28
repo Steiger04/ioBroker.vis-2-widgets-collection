@@ -14,7 +14,6 @@ import {
     effectiveAxisName,
     isOneToOneBound,
     packStaggeredAxes,
-    pruneOrphanAxes,
     reconcileJsonAxes,
     sameFormatSurvivor,
 } from './axisLayout';
@@ -193,85 +192,6 @@ describe('alignTicksDisabledByOverride — tick override defeats alignment (ADR-
     });
 });
 
-describe('pruneOrphanAxes — bulk orphan cleanup on mode-switch (ADR-0033)', () => {
-    it('drops every axis no series references (the JSON→Live ghost-axis bug)', () => {
-        // 6 JSON-derived axes, 1 live series bound to axis 0 → only axis 0 survives.
-        const series = [{ yAxisIndex: 0, name: 'Temp' }];
-        const yAxes: EchartsAxisConfig[] = [
-            { name: 'A' },
-            { name: 'B' },
-            { name: 'C' },
-            { name: 'D' },
-            { name: 'E' },
-            { name: 'F' },
-        ];
-        const out = pruneOrphanAxes(series, yAxes);
-        expect(out.yAxes).toEqual([{ name: 'A' }]);
-        expect(out.series).toEqual([{ yAxisIndex: 0, name: 'Temp' }]);
-    });
-
-    it('drops a middle orphan and re-indexes the higher survivors + series', () => {
-        const series = [{ yAxisIndex: 0 }, { yAxisIndex: 2 }];
-        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
-        const out = pruneOrphanAxes(series, yAxes); // axis 1 orphaned
-        expect(out.yAxes.map(a => a.name)).toEqual(['A', 'C']);
-        expect(out.series.map(s => s.yAxisIndex)).toEqual([0, 1]); // 2 → 1
-    });
-
-    it('treats an undefined yAxisIndex as bound to axis 0 (mirrors the builder)', () => {
-        // Two never-explicitly-bound series both anchor axis 0; axis 1 is an orphan and drops.
-        const series = [
-            { name: 'A', yAxisIndex: undefined },
-            { name: 'B', yAxisIndex: undefined },
-        ];
-        const yAxes: EchartsAxisConfig[] = [{ name: 'Ax0' }, { name: 'Ax1' }];
-        const out = pruneOrphanAxes(series, yAxes);
-        expect(out.yAxes).toEqual([{ name: 'Ax0' }]);
-        // undefined stays undefined (still implicit-0) — the series elements are preserved, not cloned.
-        expect(out.series[0]).toBe(series[0]);
-        expect(out.series[1]).toBe(series[1]);
-        expect(out.series.every(s => s.yAxisIndex === undefined)).toBe(true);
-    });
-
-    it('is a no-op when every axis is bound — series refs preserved, no mutation', () => {
-        const s0 = { yAxisIndex: 0 };
-        const s1 = { yAxisIndex: 1 };
-        const series = [s0, s1];
-        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }];
-        const out = pruneOrphanAxes(series, yAxes);
-        expect(out.yAxes.map(a => a.name)).toEqual(['A', 'B']);
-        expect(out.series[0]).toBe(s0); // same reference — not cloned
-        expect(out.series[1]).toBe(s1);
-    });
-
-    it('keeps axis 0 as the canonical default even when no series is present', () => {
-        // 0 series → only axis 0 survives (the chart always renders ≥1 axis; the builder's [{}]
-        // fallback and the load legacy-fallback both guarantee it, so the prune must not wipe it).
-        const out = pruneOrphanAxes([], [{ name: 'A' }, { name: 'B' }, { name: 'C' }]);
-        expect(out.yAxes).toEqual([{ name: 'A' }]);
-        expect(out.series).toEqual([]);
-    });
-
-    it('returns the input untouched when there are no axes to prune', () => {
-        const out = pruneOrphanAxes([{ yAxisIndex: 0 }, { yAxisIndex: 0 }], []);
-        expect(out.yAxes).toEqual([]);
-        expect(out.series).toEqual([{ yAxisIndex: 0 }, { yAxisIndex: 0 }]);
-    });
-
-    it('preserves survivor identity + fields, only compacting the array', () => {
-        const yAxes: EchartsAxisConfig[] = [
-            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
-            { id: 'ghost', name: 'G' },
-            { id: 'c', name: 'C', color: '#00f', position: 'right', offset: 80 },
-        ];
-        const out = pruneOrphanAxes([{ yAxisIndex: 0 }, { yAxisIndex: 2 }], yAxes);
-        expect(out.yAxes).toEqual([
-            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
-            { id: 'c', name: 'C', color: '#00f', position: 'right', offset: 80 },
-        ]);
-    });
-});
-
 describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
     const series = [
         { yAxisIndex: 0, name: 'Temp' },
@@ -349,27 +269,30 @@ describe('reconcileJsonAxes — sticky JSON axis reconcile (ADR-0026)', () => {
         expect(r.overlay.C?.yAxisIndex).toBe(2);
     });
 
-    it('keeps a valid manual yAxisIndex — a rebind survives a payload change (sticky)', () => {
-        // B was merged onto A's axis (1:n); the freed axis 1 must drop, B stays on 0.
+    it('keeps a valid manual yAxisIndex — the freed axis rests unbound (sticky, ADR-0066)', () => {
+        // B was merged onto A's axis (1:n); the freed axis 1 STAYS as an unbound axis —
+        // selectable in the dropdown, never rendered — instead of being dropped.
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 0 } };
         const r = reconcileJsonAxes(['A', 'B'], overlay, [{ position: 'left' }, { position: 'right' }]);
         expect(r.overlay.A?.yAxisIndex).toBe(0);
         expect(r.overlay.B?.yAxisIndex).toBe(0); // sticky — NOT reset to 1
-        expect(r.yAxes.length).toBe(1); // axis 1 orphaned (no name) → dropped
+        expect(r.yAxes.length).toBe(2); // axis 1 freed → unbound, not dropped
     });
 
-    it('clears yAxisIndex on a name no longer visible and drops the orphaned axis', () => {
+    it('clears yAxisIndex on a name no longer visible; its axis stays unbound', () => {
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
         const r = reconcileJsonAxes(['A'], overlay, [{ position: 'left' }, { position: 'right' }]);
         expect(r.overlay.A?.yAxisIndex).toBe(0);
         expect(r.overlay.B?.yAxisIndex).toBeUndefined(); // cleared (hidden/gone)
-        expect(r.yAxes.length).toBe(1); // B's axis dropped
+        expect(r.yAxes.length).toBe(2); // B's axis freed → unbound, not dropped
     });
 
-    it('reassigns a name whose stored yAxisIndex is stale (beyond the axis array) to a valid axis', () => {
+    it('heals a stale yAxisIndex (beyond the axis array) with a FRESH axis — never a claim', () => {
+        // The stored 5 is invalid (the axis was deleted); the strict rule (ADR-0066) appends a
+        // fresh axis for the name instead of claiming the unbound axis 0 — which rests unbound.
         const r = reconcileJsonAxes(['A'], { A: { yAxisIndex: 5 } }, [{ position: 'left' }]);
-        expect(r.overlay.A?.yAxisIndex).toBe(0); // a valid home, not 5
-        expect(r.yAxes.length).toBe(1);
+        expect(r.overlay.A?.yAxisIndex).toBe(1); // the fresh appended axis, not 5, not the claim
+        expect(r.yAxes.length).toBe(2); // axis 0 rests unbound
     });
 
     it('a new payload name gets its own fresh axis (1:1 default), not axis 0', () => {
@@ -425,13 +348,6 @@ describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', 
     it('packStaggeredAxes rewrites only offset — raw survives the re-stagger', () => {
         const packed = packStaggeredAxes(axes);
         expect(packed.every(a => a.raw === RAW)).toBe(true);
-    });
-
-    it('pruneOrphanAxes keeps raw on survivors (raw rides the config, not the binding)', () => {
-        const series = [{ yAxisIndex: 0 }] as { yAxisIndex: number }[];
-        const { yAxes: kept } = pruneOrphanAxes(series, axes);
-        expect(kept).toHaveLength(1);
-        expect(kept[0].raw).toBe(RAW);
     });
 
     it('reconcileJsonAxes keeps raw on sticky axes; a fresh axis starts WITHOUT raw', () => {
