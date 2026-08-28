@@ -108,7 +108,7 @@ const AxisCard: FC<{
                     component="span"
                     sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}
                 >
-                    {a.name || seriesName || `Achse ${i + 1}`}
+                    {a.name || seriesName || a.restingName || `Achse ${i + 1}`}
                     {unbound && (
                         // Status chip (ADR-0066) — a status display, not a hint, so no InfoBox here;
                         // the explanatory hint sits at the top of the card body.
@@ -151,11 +151,13 @@ const AxisCard: FC<{
             <SubGroup title={Generic.t('echarts_grp_basis')}>
                 <FieldGrid>
                     {/* '' → undefined so a cleared name inherits the bound series' name instead of
-                        freezing it out (cartesian builder treats '' as unset). */}
+                        freezing it out (cartesian builder treats '' as unset). While UNBOUND the
+                        placeholder shows the resting name (the display an empty name falls back
+                        to, ADR-0066) instead of the bare "Achse N". */}
                     <TextField2
                         label={Generic.t('echarts_axis_name')}
                         value={a.name ?? ''}
-                        placeholder={seriesName}
+                        placeholder={seriesName ?? a.restingName}
                         onChange={v => onChange({ name: v || undefined })}
                     />
                     <LabeledSelect

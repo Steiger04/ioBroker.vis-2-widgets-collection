@@ -119,9 +119,10 @@ export const alignTicksDisabledByOverride = (a: EchartsAxisConfig): boolean =>
 
 /**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
- * axis name, else the name inherited from the first series bound to it, else its 1-based index.
- * Mirrors the cartesian builder's axis-name resolution (`a.name ?? seriesName`) so the dropdown
- * matches what renders on the chart and the Axis-card title.
+ * axis name, else the name inherited from the first series bound to it, else — while UNBOUND — the
+ * **resting name** (the name the axis carried when its series left, ADR-0066), else its 1-based
+ * index. Bound axes ignore the resting name (live series inheritance wins, ADR-0018); the builder's
+ * axis-name resolution (`a.name ?? seriesName`) never sees it either — it renders bound axes only.
  */
 export const effectiveAxisName = (
     axis: EchartsAxisConfig,
@@ -132,7 +133,67 @@ export const effectiveAxisName = (
         return axis.name;
     }
     const bound = series.find(s => s.yAxisIndex === i);
-    return bound?.name ? bound.name : String(i + 1);
+    if (bound?.name) {
+        return bound.name;
+    }
+    if (!bound && axis.restingName) {
+        return axis.restingName;
+    }
+    return String(i + 1);
+};
+
+/**
+ * The display name to persist as {@link EchartsAxisConfig.restingName} when axis `i` transitions to
+ * unbound (ADR-0066): the name the axis is showing right now — its inherited series name, since an
+ * axis with an explicit `name` needs no snapshot. `undefined` when there is nothing worth freezing
+ * (explicit name set, or the bound series is unnamed) — the caller keeps any existing restingName
+ * then. Callers snapshot on series-leave (rebind / series-delete / JSON rebind / hide) BEFORE
+ * applying the change, against the pre-change series list; a rebind onto the axis CLEARS the
+ * restingName (bound axes inherit live again).
+ */
+export const restingAxisName = (
+    axis: EchartsAxisConfig,
+    i: number,
+    series: readonly { yAxisIndex?: number; name?: string }[],
+): string | undefined => {
+    if (axis.name) {
+        return undefined;
+    }
+    return series.find(s => s.yAxisIndex === i)?.name || undefined;
+};
+
+/**
+ * Resting-name transitions (ADR-0066): diff the BEFORE/AFTER binding views (history/live series
+ * lists, or the JSON visible-overlay view) against the axes and return the patched `yAxes` — every
+ * axis whose last binder LEFT gets its displayed name snapshotted into
+ * {@link EchartsAxisConfig.restingName}; every axis that GAINED a binder has its resting name
+ * cleared (live series inheritance resumes). `undefined` when no axis transitions — the caller
+ * keeps the array referentially stable.
+ */
+export const restingNamePatch = (
+    before: readonly { yAxisIndex?: number; name?: string }[],
+    after: readonly { yAxisIndex?: number; name?: string }[],
+    yAxes: readonly EchartsAxisConfig[],
+): EchartsAxisConfig[] | undefined => {
+    let next: EchartsAxisConfig[] | undefined;
+    for (let yi = 0; yi < yAxes.length; yi++) {
+        const wasBound = before.some(s => s.yAxisIndex === yi);
+        const isBound = after.some(s => s.yAxisIndex === yi);
+        if (wasBound === isBound) {
+            continue; // no transition on this axis
+        }
+        if (isBound) {
+            if (yAxes[yi].restingName !== undefined) {
+                (next ??= yAxes.slice())[yi] = { ...yAxes[yi], restingName: undefined };
+            }
+            continue;
+        }
+        const snapshot = restingAxisName(yAxes[yi], yi, before);
+        if (snapshot) {
+            (next ??= yAxes.slice())[yi] = { ...yAxes[yi], restingName: snapshot };
+        }
+    }
+    return next;
 };
 
 /**

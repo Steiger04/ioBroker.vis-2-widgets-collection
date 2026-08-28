@@ -15,6 +15,8 @@ import {
     isOneToOneBound,
     packStaggeredAxes,
     reconcileJsonAxes,
+    restingAxisName,
+    restingNamePatch,
     sameFormatSurvivor,
 } from './axisLayout';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
@@ -222,6 +224,77 @@ describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
             { yAxisIndex: 0, name: 'Second' },
         ];
         expect(effectiveAxisName({}, 0, shared)).toBe('First');
+    });
+
+    it('shows the restingName while UNBOUND — the last name survives the series leaving (ADR-0066)', () => {
+        // Axis 1 lost its series (Power rebound away); its resting name keeps the label stable.
+        expect(effectiveAxisName({ restingName: 'Power' }, 1, [{ yAxisIndex: 0, name: 'Temp' }])).toBe('Power');
+    });
+
+    it('ignores the restingName while BOUND — live series inheritance wins (ADR-0018)', () => {
+        const rebound = [
+            { yAxisIndex: 0, name: 'Temp' },
+            { yAxisIndex: 1, name: 'Verbrauch' },
+        ];
+        expect(effectiveAxisName({ restingName: 'Power' }, 1, rebound)).toBe('Verbrauch');
+        // A bound-but-unnamed series does not resurrect the resting name either — index fallback.
+        expect(effectiveAxisName({ restingName: 'Power' }, 1, [{ yAxisIndex: 1 }])).toBe('2');
+    });
+});
+
+describe('restingAxisName — the snapshot to persist when an axis goes unbound (ADR-0066)', () => {
+    const series = [
+        { yAxisIndex: 0, name: 'Temp' },
+        { yAxisIndex: 1, name: 'Power' },
+    ];
+
+    it('captures the inherited series name (the name the axis displayed)', () => {
+        expect(restingAxisName({}, 1, series)).toBe('Power');
+    });
+
+    it('captures nothing when the axis has an explicit name (already persisted)', () => {
+        expect(restingAxisName({ name: 'Eigene' }, 1, series)).toBeUndefined();
+    });
+
+    it('captures nothing when the bound series is unnamed (nothing worth freezing)', () => {
+        expect(restingAxisName({}, 1, [{ yAxisIndex: 1 }])).toBeUndefined();
+    });
+});
+
+describe('restingNamePatch — transition diff over before/after bindings (ADR-0066)', () => {
+    const axes: EchartsAxisConfig[] = [{ id: 'a0' }, { id: 'a1' }, { id: 'a2', restingName: 'Altlast' }];
+
+    it('snapshots the displayed name on the axis a rebind vacated', () => {
+        const before = [
+            { yAxisIndex: 0, name: 'Temp' },
+            { yAxisIndex: 1, name: 'Power' },
+        ];
+        const after = [
+            { yAxisIndex: 0, name: 'Temp' },
+            { yAxisIndex: 0, name: 'Power' }, // Power merged onto axis 0 → axis 1 unbound
+        ];
+        const next = restingNamePatch(before, after, axes);
+        expect(next?.[1]).toMatchObject({ restingName: 'Power' });
+        expect(next?.[0]).toBe(axes[0]); // untouched axis keeps its reference (no churn)
+    });
+
+    it('clears the resting name on the axis a rebind targets (live inheritance resumes)', () => {
+        const before = [{ yAxisIndex: 0, name: 'Temp' }];
+        const after = [{ yAxisIndex: 2, name: 'Temp' }]; // onto the axis carrying a stale name
+        const next = restingNamePatch(before, after, axes);
+        expect(next?.[2]?.restingName).toBeUndefined(); // cleared (key dropped on blob encode)
+    });
+
+    it('returns undefined when no axis transitions (referentially stable no-op)', () => {
+        const same = [{ yAxisIndex: 0, name: 'Temp' }];
+        expect(restingNamePatch(same, same, axes)).toBeUndefined();
+    });
+
+    it('a series-delete snapshots the vacated axis (the remove path)', () => {
+        const before = [{ yAxisIndex: 1, name: 'Power' }];
+        const after: { yAxisIndex: number; name: string }[] = [];
+        const next = restingNamePatch(before, after, axes);
+        expect(next?.[1]).toMatchObject({ restingName: 'Power' });
     });
 });
 

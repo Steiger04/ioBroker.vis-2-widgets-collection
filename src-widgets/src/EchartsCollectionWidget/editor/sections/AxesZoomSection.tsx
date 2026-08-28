@@ -213,7 +213,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
      */
     const axisOptions: [string, string][] = axes.map((ax, ai) => [
         String(ai),
-        (ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)) +
+        ((ax.name ?? ax.restingName) ? `${ai + 1} · ${ax.name ?? ax.restingName}` : String(ai + 1)) +
             (boundIdx.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
     ]);
 

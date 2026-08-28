@@ -29,7 +29,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, isOneToOneBound } from '../axisLayout';
+import { axisLayout, isOneToOneBound, restingNamePatch } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -143,16 +143,23 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // surviving series remains on it — kept with its config (a persistent resting state), never
     // rendered until a series binds it again. Only an explicit axis-delete in the Axis manager
     // removes an axis; no re-index/re-stagger here, so axis indices stay stable across deletes.
+    // The resting-name diff snapshots the vacated axis' displayed name (it inherited it from its
+    // series — without the snapshot the card/dropdowns would collapse to „Achse N").
     const remove = (i: number): void => {
-        set({ series: series.filter((_s, idx) => idx !== i) });
+        const next = series.filter((_s, idx) => idx !== i);
+        const yAxes = restingNamePatch(series, next, state.yAxes);
+        set(yAxes ? { series: next, yAxes } : { series: next });
     };
     // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD
     // axis turns unbound when no series remains on it (ADR-0066) — it stays selectable in the
     // dropdown with its config, and the builder simply stops emitting it (no phantom axis). No
-    // re-index: every other series' yAxisIndex keeps pointing at the same slot. `update` handles
+    // re-index: every other series' yAxisIndex keeps pointing at the same slot; the resting-name
+    // diff snapshots the vacated axis and clears the target's stale resting name. `update` handles
     // every other field; yAxisIndex lands here, routed by the CartesianSeriesList onPatch.
     const rebindAxis = (i: number, newYi: number): void => {
-        set({ series: series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s)) });
+        const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
+        const yAxes = restingNamePatch(series, next, state.yAxes);
+        set(yAxes ? { series: next, yAxes } : { series: next });
     };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
@@ -221,21 +228,46 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 [name]: { ...state.jsonSeriesStyle[name], ...patch },
             },
         });
+    // The JSON binding view for the resting-name diff: one {index, display name} per VISIBLE
+    // payload name (overlay-authored name ?? payload name — the name the dropdown/card shows).
+    // Visibility matters: hideJson keeps the overlay's yAxisIndex until the reconcile clears it,
+    // so the diff must compare visible views, not raw overlay entries.
+    const jsonBindings = (
+        overlay: Readonly<Record<string, EchartsSeriesMeta>>,
+        hidden: readonly string[],
+    ): { yAxisIndex?: number; name?: string }[] =>
+        (jsonSeriesNames ?? [])
+            .filter(n => !hidden.includes(n))
+            .map(n => ({ yAxisIndex: overlay[n]?.yAxisIndex, name: overlay[n]?.name || n }));
     // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
-    // owns the series; hiding only suppresses it (chart + legend + axis) — restorable.
-    const hideJson = (name: string): void => set({ jsonHidden: [...state.jsonHidden, name] });
+    // owns the series; hiding only suppresses it (chart + legend + axis) — restorable. Hiding the
+    // last binder of an axis snapshots its displayed name first (ADR-0066 resting name).
+    const hideJson = (name: string): void => {
+        const hidden = [...state.jsonHidden, name];
+        const yAxes = restingNamePatch(
+            jsonBindings(state.jsonSeriesStyle, state.jsonHidden),
+            jsonBindings(state.jsonSeriesStyle, hidden),
+            state.yAxes,
+        );
+        set(yAxes ? { jsonHidden: hidden, yAxes } : { jsonHidden: hidden });
+    };
     const showJson = (name: string): void => set({ jsonHidden: state.jsonHidden.filter(n => n !== name) });
     // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
-    // write the new yAxisIndex onto the overlay entry — done. The freed axis rests UNBOUND
-    // (ADR-0066: nothing prunes anymore); the modal reconcile effect keeps every valid yAxisIndex
-    // sticky across payload changes (it only auto-assigns names lacking one).
+    // write the new yAxisIndex onto the overlay entry; the resting-name diff snapshots the freed
+    // axis' displayed name and clears the target's stale one (ADR-0066). The freed axis rests
+    // UNBOUND — nothing prunes anymore — and the modal reconcile effect keeps every valid
+    // yAxisIndex sticky across payload changes (it only auto-assigns names lacking one).
     const rebindJsonAxis = (name: string, newYi: number): void => {
-        set({
-            jsonSeriesStyle: {
-                ...state.jsonSeriesStyle,
-                [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
-            },
-        });
+        const overlay = {
+            ...state.jsonSeriesStyle,
+            [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
+        };
+        const yAxes = restingNamePatch(
+            jsonBindings(state.jsonSeriesStyle, state.jsonHidden),
+            jsonBindings(overlay, state.jsonHidden),
+            state.yAxes,
+        );
+        set(yAxes ? { jsonSeriesStyle: overlay, yAxes } : { jsonSeriesStyle: overlay });
     };
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the

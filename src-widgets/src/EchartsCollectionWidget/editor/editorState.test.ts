@@ -249,6 +249,21 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
         expect(reloaded.yAxes).toHaveLength(2); // axis 1 is unbound (no series binds it) — persists
         expect(reloaded.yAxes[1]).toMatchObject({ min: 0, max: 5000, name: 'W', position: 'right' });
     });
+
+    it('an unbound axis without an explicit name keeps its restingName across the round-trip', () => {
+        const state = {
+            ...baseState(),
+            chartType: 'line' as const,
+            mode: 'live' as const,
+            series: [{ oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 }],
+            yAxes: [
+                { id: 'ax-1', position: 'left' as const },
+                { id: 'ax-2', position: 'right' as const, restingName: 'Leistung' },
+            ],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 1));
+        expect(reloaded.yAxes[1]?.restingName).toBe('Leistung'); // rides the blob, no explicit name
+    });
 });
 
 describe('editorState — ADR-0042 snippet activations', () => {
