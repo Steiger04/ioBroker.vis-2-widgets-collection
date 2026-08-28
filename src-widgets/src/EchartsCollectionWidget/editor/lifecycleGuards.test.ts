@@ -133,12 +133,12 @@ describe('reconcileJsonAxesStep', () => {
         expect(reconcileJsonAxesStep(applied, ['temp', 'kw'])).toBeNull();
     });
 
-    it('re-packs a manual offset when it fires — the offset survives only BETWEEN firings', () => {
-        // The ADR-0048 rationale in test form: reconcileJsonAxes ends in an unconditional
-        // packStaggeredAxes (ADR-0028), so a hand-tuned 42 px offset dies the moment the
-        // reconcile runs (a payload change). It survives unrelated edits ONLY because the
-        // owning effect's deps stay narrow — which is why the guards must not collapse into
-        // one heal pass over every state change.
+    it('re-balances a manual offset when it fires — the offset survives only BETWEEN firings', () => {
+        // The ADR-0048 rationale in test form: reconcileJsonAxes ends in the unconditional
+        // auto-balance (ADR-0067, pensioning ADR-0028's pack), so a hand-tuned 42 px offset dies
+        // the moment the reconcile runs (a payload change). It survives unrelated edits ONLY
+        // because the owning effect's deps stay narrow — which is why the guards must not
+        // collapse into one heal pass over every state change.
         const handTuned = jsonState({
             chartType: 'line',
             yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 42)],

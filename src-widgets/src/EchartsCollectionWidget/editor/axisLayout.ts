@@ -4,10 +4,9 @@
  * bound-aware since ADR-0066); and the axis-as-independent-citizen coupling — rebind target, the
  * sticky JSON reconcile, and the effective axis name (ADR-0025/0026). Since ADR-0066 a series
  * leaving its axis keeps it as an unbound axis in EVERY mode: nothing prunes anymore, only an
- * explicit axis-delete removes an axis. Since ADR-0067 every structural event re-arranges the
- * bound axes (standard interleaving, dense on the raster) via {@link balanceAxes} — the migrated
- * events do; the remaining call sites (rebind/duplicate, AxesZoomSection, the JSON reconcile)
- * move over in the ADR-0067 follow-up.
+ * explicit axis-delete removes an axis. Since ADR-0067 EVERY structural event (series/axis
+ * add/delete/rebind, JSON hide/show, a side-flip, the reconcile, a data-path reset) re-arranges
+ * the bound axes via {@link balanceAxes} — standard interleaving, dense on the raster.
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -20,7 +19,7 @@ export const AXIS_STAGGER_STAGE = 80;
 /**
  * Position + offset for the i-th auto-created axis: alternate left/right, 80 px stagger per side
  * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × stage`). Geometry only — safe to re-apply on
- * re-stagger without clobbering the rest of an axis config (id/name/colour/min/max/…).
+ * re-arrange without clobbering the rest of an axis config (id/name/colour/min/max/…).
  */
 export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'offset'> => ({
     position: i % 2 ? 'right' : 'left',
@@ -32,8 +31,7 @@ export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'o
  * {@link module:EchartsCollectionWidget/editor/stableId} — for React reconciliation only, the
  * cartesian builder never emits it to echarts) + {@link axisPosition} geometry + splitlines on
  * axis 0 only. Used on series creation (history/live + duplicate), the JSON-mode editor sync,
- * manual "add axis", and to re-stagger after a delete (via {@link axisPosition},
- * non-destructive).
+ * manual "add axis", and the auto-balance re-arrange (via {@link axisPosition}, non-destructive).
  *
  * Colour and name are NOT written here (ADR-0018): an axis inherits both from its bound series at
  * runtime (the cartesian builder's `a.color ?? seriesColor` / `a.name ?? seriesName`), so they track
@@ -72,45 +70,19 @@ export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boo
     boundAxisIndices(series).size === series.length;
 
 /**
- * Re-stagger the axes so both sides sit densely on the 80-px raster with no overlaps (ADR-0028).
- * Each side is repacked independently to 0/80/160… by running order (mirrors {@link axisPosition}'s
- * left/right interleaving). Position is preserved — only the offset is normalised, so manual
- * left/right choices stay intact while gaps close.
- *
- * Runs **unconditionally** — ADR-0028 reversed ADR-0023 #4's raster-only escape hatch. A structural
- * change (an axis flipped left↔right, or one deleted) must resolve the collision the change can
- * create, even when some offsets were hand-tuned. A hand-tuned offset is therefore a fine-justure
- * that survives only until the next structural change; the trigger is `position` (the flip), never a
- * bare offset edit.
- *
- * @deprecated ADR-0067 replaces the pack form with {@link balanceAxes} (bound-only + standard
- * interleaving) — migrate the remaining call sites (the SeriesSection rebind/duplicate handlers,
- * AxesZoomSection, reconcileJsonAxes) in the ADR-0067 follow-up; until then this stays the pack
- * path for not-yet-migrated structural events.
- */
-export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
-    let leftSeen = 0;
-    let rightSeen = 0;
-    return axes.map(a => {
-        if (a.position === 'right') {
-            return { ...a, offset: rightSeen++ * AXIS_STAGGER_STAGE };
-        }
-        return { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE };
-    });
-};
-
-/**
  * Auto-Balance (ADR-0067): re-arrange every BOUND axis after a structural event. The bound axes —
  * in array order — get the standard interleaving ({@link axisPosition} slot by slot: even → left,
  * odd → right) densely on the 80-px raster. Position AND offset are re-assigned; every other field
  * (id, name, raw, splitLine, …) survives. An UNBOUND axis takes no geometry slot: it passes through
  * with its stored position/offset as the preference a later re-bind's balance re-arranges — the
  * builder never renders it, so a coinciding geometry is harmless. A manual position/offset is
- * fine-justure until the next structural event (ADR-0028's idiom, extended to the position).
+ * fine-justure until the next structural event — ADR-0028's idiom extended to the position; the
+ * pack form (both sides repacked independently, position preserved) is pensioned with it.
  *
- * The series view decides what "bound" means: history/live passes `state.series`, JSON the visible
- * overlay view ({@link jsonBindingView}). Both are `{ yAxisIndex?: number }` lists in which a
- * series WITHOUT an index counts as bound to axis 0 (mirroring the builder).
+ * The series view decides what "bound" means, and the two modes read the index DIFFERENTLY:
+ * history/live passes `state.series` — a series WITHOUT an index counts as bound to axis 0
+ * (mirroring the builder). JSON passes {@link boundJsonView} — STRICT: a cleared entry
+ * (`yAxisIndex` undefined) is unbound, never an implicit axis-0 binder.
  */
 export const balanceAxes = (
     yAxes: readonly EchartsAxisConfig[],
@@ -227,6 +199,19 @@ export const restingNamePatch = (
 };
 
 /**
+ * Resting-name snapshot + auto-balance in one — the shared series-leave→re-arrange seam (ADR-0066 +
+ * ADR-0067): {@link restingNamePatch} snapshots against the BEFORE series view, then the balance
+ * re-arranges the AFTER bound set over the patched axes. `before`/`after` follow each mode's sight
+ * (history/live: the series lists; JSON: the strict visible views — {@link boundJsonView}; the
+ * resting diff is index-strict, so filtered and unfiltered sights yield the same snapshot).
+ */
+export const restingBalance = (
+    before: readonly { yAxisIndex?: number; name?: string }[],
+    after: readonly { yAxisIndex?: number }[],
+    yAxes: readonly EchartsAxisConfig[],
+): EchartsAxisConfig[] => balanceAxes(restingNamePatch(before, after, yAxes) ?? yAxes, after);
+
+/**
  * The JSON binding view for {@link restingNamePatch}: one {index, display name} entry per VISIBLE
  * payload name — the overlay-authored name, else the payload name (the label the dropdown and the
  * Axis-card show). Visibility matters: a hidden name keeps its overlay `yAxisIndex` until the
@@ -242,6 +227,19 @@ export const jsonBindingView = (
     names
         .filter(n => !hidden.includes(n))
         .map(n => ({ yAxisIndex: overlay[n]?.yAxisIndex, name: overlay[n]?.name || n }));
+
+/**
+ * The JSON binding view reduced to DEFINED indices — the sight {@link balanceAxes} (and any
+ * bound-set computation) needs in JSON mode. JSON binding is STRICT: an overlay entry with
+ * `yAxisIndex` undefined (cleared by the reconcile when its name hid) is UNBOUND — unlike a
+ * history/live series without an index, which implicitly binds axis 0 (the builder's `?? 0`).
+ * Filtering here keeps the two binding semantics from bleeding into each other at the seam.
+ */
+export const boundJsonView = (
+    names: readonly string[],
+    overlay: Readonly<Record<string, { yAxisIndex?: number }>>,
+    hidden: readonly string[],
+): { yAxisIndex?: number }[] => jsonBindingView(names, overlay, hidden).filter(b => typeof b.yAxisIndex === 'number');
 
 /**
  * Effective colour of axis `i` for the Axis-card swatch (ADR-0018): the first bound series' colour,
@@ -284,6 +282,10 @@ export const effectiveAxisColor = (
  *   freed axis STAYS as an unbound axis — selectable in the dropdown, deletable on its card, never
  *   rendered. Same rule as a manual rebind in history/live: only an explicit axis-delete removes an
  *   axis, so the reconcile never drops or re-indexes anything.
+ * - **Auto-balanced (ADR-0067):** the reconcile IS a structural event — it ends in
+ *   {@link balanceAxes} over the visible names' bindings (the strict sight: a cleared entry never
+ *   counts as bound). A hand-tuned position/offset survives only between reconcile firings; a
+ *   fresh appended axis lands in the next free balance slot, dense behind the bound set.
  *
  * Pure — the caller (the modal effect on payload/mode change) writes the result back. Not a hook.
  */
@@ -311,5 +313,13 @@ export const reconcileJsonAxes = <M extends { yAxisIndex?: number }>(
             next[key] = { ...next[key], yAxisIndex: undefined };
         }
     }
-    return { yAxes: packStaggeredAxes(axes), overlay: next };
+    // 3. Auto-balance (ADR-0067): the sight is the POST-reconcile overlay — every visible name now
+    //    carries a defined index (step 1 guarantees it), every cleared one is filtered (strict).
+    return {
+        yAxes: balanceAxes(
+            axes,
+            visibleNames.map(n => next[n]),
+        ),
+        overlay: next,
+    };
 };

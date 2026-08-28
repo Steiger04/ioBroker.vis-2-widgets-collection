@@ -30,7 +30,14 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import { axisLayout, balanceAxes, isOneToOneBound, jsonBindingView, restingNamePatch } from '../axisLayout';
+import {
+    axisLayout,
+    balanceAxes,
+    boundJsonView,
+    isOneToOneBound,
+    restingBalance,
+    restingNamePatch,
+} from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -151,25 +158,23 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // families carry no axis bindings, so they pass through on the plain resting-name patch.
     const remove = (i: number): void => {
         const next = series.filter((_s, idx) => idx !== i);
-        const restedAxes = restingNamePatch(series, next, state.yAxes);
-        set(
-            isCartesian
-                ? { series: next, yAxes: balanceAxes(restedAxes ?? state.yAxes, next) }
-                : restedAxes
-                  ? { series: next, yAxes: restedAxes }
-                  : { series: next },
-        );
+        if (!isCartesian) {
+            const restedAxes = restingNamePatch(series, next, state.yAxes);
+            set(restedAxes ? { series: next, yAxes: restedAxes } : { series: next });
+            return;
+        }
+        set({ series: next, yAxes: restingBalance(series, next, state.yAxes) });
     };
     // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD
     // axis turns unbound when no series remains on it (ADR-0066) — it stays selectable in the
     // dropdown with its config, and the builder simply stops emitting it (no phantom axis). No
     // re-index: every other series' yAxisIndex keeps pointing at the same slot; the resting-name
-    // diff snapshots the vacated axis and clears the target's stale resting name. `update` handles
-    // every other field; yAxisIndex lands here, routed by the CartesianSeriesList onPatch.
+    // diff snapshots the vacated axis and clears the target's stale resting name. The auto-balance
+    // (ADR-0067) then re-arranges the (newly composed) bound set — one set() = one undo step.
+    // `update` handles every other field; yAxisIndex lands here, routed by the onPatch dispatcher.
     const rebindAxis = (i: number, newYi: number): void => {
         const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
-        const yAxes = restingNamePatch(series, next, state.yAxes);
-        set(yAxes ? { series: next, yAxes } : { series: next });
+        set({ series: next, yAxes: restingBalance(series, next, state.yAxes) });
     };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
@@ -213,18 +218,19 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             // 1:1 auto-axis (ADR-0018) — but only while every series owns its bound axis (dense,
             // bound-aware since ADR-0066: unbound axes don't count). A genuinely shared axis (2+
             // series on it) → the copy inherits the source's yAxisIndex instead, so duplicating
-            // never silently breaks a deliberate Shared-Axis setup.
+            // never silently breaks a deliberate Shared-Axis setup. Either way a series-add is a
+            // structural event: the auto-balance (ADR-0067) runs over the resulting bound set.
             if (isOneToOneBound(series)) {
                 // Colour + name inherit the copy at runtime — not written (ADR-0018).
                 const axIdx = state.yAxes.length;
                 copy.yAxisIndex = axIdx;
                 set({
                     series: next,
-                    yAxes: [...state.yAxes, axisLayout(axIdx)],
+                    yAxes: balanceAxes([...state.yAxes, axisLayout(axIdx)], next),
                 });
             } else {
                 copy.yAxisIndex = series[i].yAxisIndex;
-                set({ series: next });
+                set({ series: next, yAxes: balanceAxes(state.yAxes, next) });
             }
         } else {
             set({ series: next });
@@ -239,41 +245,56 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 [name]: { ...state.jsonSeriesStyle[name], ...patch },
             },
         });
-    // The JSON binding view for the resting-name diff (shared pure helper, `jsonBindingView`):
-    // one {index, display name} per VISIBLE payload name. Local adapter closes over the names.
-    const jsonBindings = (
+    // The JSON binding sight (shared pure helpers, local adapters closing over the names):
+    // `boundBindings` is the STRICT sight (ADR-0067) — DEFINED indices only, a cleared entry is
+    // unbound, never an implicit axis-0 binder. It feeds {@link restingBalance} for both halves
+    // (the resting diff is index-strict, so the filtered sight snapshots identically).
+    const boundBindings = (
         overlay: Readonly<Record<string, EchartsSeriesMeta>>,
         hidden: readonly string[],
-    ): { yAxisIndex?: number; name?: string }[] => jsonBindingView(jsonSeriesNames ?? [], overlay, hidden);
+    ): { yAxisIndex?: number }[] => boundJsonView(jsonSeriesNames ?? [], overlay, hidden);
     // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
     // owns the series; hiding only suppresses it (chart + legend + axis) — restorable. Hiding the
-    // last binder of an axis snapshots its displayed name first (ADR-0066 resting name).
+    // last binder of an axis snapshots its displayed name first (ADR-0066 resting name). Both
+    // directions are structural events: the auto-balance (ADR-0067) runs over the after-sight —
+    // the VISIBLE bindings with DEFINED indices (strict; a cleared entry is unbound).
     const hideJson = (name: string): void => {
         const hidden = [...state.jsonHidden, name];
-        const yAxes = restingNamePatch(
-            jsonBindings(state.jsonSeriesStyle, state.jsonHidden),
-            jsonBindings(state.jsonSeriesStyle, hidden),
-            state.yAxes,
-        );
-        set(yAxes ? { jsonHidden: hidden, yAxes } : { jsonHidden: hidden });
+        set({
+            jsonHidden: hidden,
+            yAxes: restingBalance(
+                boundBindings(state.jsonSeriesStyle, state.jsonHidden),
+                boundBindings(state.jsonSeriesStyle, hidden),
+                state.yAxes,
+            ),
+        });
     };
-    const showJson = (name: string): void => set({ jsonHidden: state.jsonHidden.filter(n => n !== name) });
+    const showJson = (name: string): void => {
+        const shown = state.jsonHidden.filter(n => n !== name);
+        set({
+            jsonHidden: shown,
+            yAxes: balanceAxes(state.yAxes, boundJsonView(jsonSeriesNames ?? [], state.jsonSeriesStyle, shown)),
+        });
+    };
     // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
     // write the new yAxisIndex onto the overlay entry; the resting-name diff snapshots the freed
     // axis' displayed name and clears the target's stale one (ADR-0066). The freed axis rests
     // UNBOUND — nothing prunes anymore — and the modal reconcile effect keeps every valid
-    // yAxisIndex sticky across payload changes (it only auto-assigns names lacking one).
+    // yAxisIndex sticky across payload changes (it only auto-assigns names lacking one). The
+    // auto-balance (ADR-0067) runs over the re-composed visible sight.
     const rebindJsonAxis = (name: string, newYi: number): void => {
         const overlay = {
             ...state.jsonSeriesStyle,
             [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
         };
-        const yAxes = restingNamePatch(
-            jsonBindings(state.jsonSeriesStyle, state.jsonHidden),
-            jsonBindings(overlay, state.jsonHidden),
-            state.yAxes,
-        );
-        set(yAxes ? { jsonSeriesStyle: overlay, yAxes } : { jsonSeriesStyle: overlay });
+        set({
+            jsonSeriesStyle: overlay,
+            yAxes: restingBalance(
+                boundBindings(state.jsonSeriesStyle, state.jsonHidden),
+                boundBindings(overlay, state.jsonHidden),
+                state.yAxes,
+            ),
+        });
     };
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the

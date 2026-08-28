@@ -10,11 +10,11 @@
  * **X-Karte** (ADR-0035; `sections/axes/XCard.tsx`) — the single, non-deletable card for the
  * shared time axis (the old chart-level `xSplit` row lives on as its Splitlinien switch). This
  * file owns the ORCHESTRATION: add/remove semantics (ADR-0025 — an axis is an independent
- * citizen, its series rebind to a same-format survivor, else axis 0 + advisory toast; ADR-0028 —
- * a side-flip re-staggers densely), the bound-series colour/name defaults per ADR-0018
- * (history/live positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
- * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
- * cards).
+ * citizen, its series rebind to a same-format survivor, else axis 0 + advisory toast; ADR-0067 —
+ * every structural event re-arranges the bound axes densely), the bound-series colour/name
+ * defaults per ADR-0018 (history/live positional, JSON via the visible-payload overlay), dataZoom
+ * (slider + inside as a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory
+ * validation (in the cards).
  */
 import { useState, type FC } from 'react';
 import { Alert, Box, Button, Snackbar, Typography } from '@mui/material';
@@ -24,15 +24,19 @@ import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
 import { LabeledSelect, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
 import type { OidPickerCtx } from '../OidPicker';
-import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
+import type {
+    EchartsAxisConfig,
+    EchartsMarkLine,
+    EchartsSeriesMeta,
+} from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
 import {
     axisLayout,
+    balanceAxes,
     boundAxisIndices,
+    boundJsonView,
     effectiveAxisColor,
-    jsonBindingView,
-    packStaggeredAxes,
-    restingNamePatch,
+    restingBalance,
     sameFormatSurvivor,
 } from '../axisLayout';
 import { nextStableId } from '../stableId';
@@ -134,16 +138,36 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                       .filter((v): v is number => typeof v === 'number'),
               )
             : boundAxisIndices(state.series);
+    /**
+     * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the mode —
+     * history/live passes the series list (a series without an index implicitly binds axis 0);
+     * JSON passes the visible overlay bindings through the STRICT sight (a cleared entry is
+     * unbound, never an implicit axis-0 binder). Handlers that change the overlay/hidden set pass
+     * their AFTER values; the defaults read the current state.
+     */
+    const balanceSight = (
+        overlay: Readonly<Record<string, EchartsSeriesMeta>> = state.jsonSeriesStyle,
+        hidden: readonly string[] = state.jsonHidden,
+    ): { yAxisIndex?: number }[] =>
+        state.mode === 'json' ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-        // A side-flip (position change) re-staggers both sides densely so no two axes overlap
-        // (ADR-0028). Only `position` triggers it — an offset edit is an explicit fine-justure the
-        // user does not want normalised out from under them.
-        set({ yAxes: 'position' in patch ? packStaggeredAxes(next) : next });
+        // A side-flip is a structural event: the FULL re-arrange runs — every bound axis re-takes
+        // its standard-interleaving slot (ADR-0067 pensions ADR-0028's position-preserving pack).
+        // Flipping a BOUND axis therefore snaps back to its array-position side; flipping an
+        // UNBOUND axis sticks (the balance never touches it — its stored geometry is the re-bind
+        // preference). Any other field edit (offset/name/colour/min-max/…) is fine-justure: NO
+        // re-arrange, the manual geometry survives until the next structural event. The trigger
+        // fires on a REAL flip only — re-selecting the same side is a no-op, not a structural event.
+        const flipped = 'position' in patch && patch.position !== (axes[i]?.position ?? 'left');
+        set({ yAxes: flipped ? balanceAxes(next, balanceSight()) : next });
     };
     // Manual "add axis" uses the same 1:1 layout helper as series-add (ADR-0018): alternating side,
-    // 80 px stagger, splitLine on axis 0 only — so a new axis never overlaps an existing one.
-    const addAxis = (): void => set({ yAxes: [...axes, axisLayout(axes.length)] });
+    // 80 px stagger, splitLine on axis 0 only. The fresh axis is UNBOUND — the balance leaves its
+    // geometry alone, and axisLayout(axes.length) places it BEHIND every bound slot (the array
+    // length is always ≥ the bound count), so it never coincides with a rendered axis. The add is
+    // a structural event: the bound set re-arranges (ADR-0067).
+    const addAxis = (): void => set({ yAxes: balanceAxes([...axes, axisLayout(axes.length)], balanceSight()) });
     const removeAxis = (i: number): void => {
         // JSON mode: `state.series` is empty — the payload owns the series, and the axes are DERIVED
         // 1:1 from the visible payload names (the modal axis effect rebuilds `yAxes` whenever the
@@ -158,38 +182,46 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                 // Hiding the bound payload series frees the axis — it RESTS unbound (ADR-0066:
                 // nothing drops it anymore). Snapshot its displayed name first, so the card keeps
                 // the label instead of collapsing to „Achse N" (the reconcile clears the hidden
-                // entry's yAxisIndex only later; the VISIBILITY view sees the transition already).
+                // entry's yAxisIndex only later; the VISIBILITY sight sees the transition already).
                 const hidden = [...state.jsonHidden, boundName];
-                const yAxes = restingNamePatch(
-                    jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden),
-                    jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, hidden),
-                    state.yAxes,
-                );
-                set(yAxes ? { jsonHidden: hidden, yAxes } : { jsonHidden: hidden });
+                set({
+                    jsonHidden: hidden,
+                    yAxes: restingBalance(
+                        balanceSight(state.jsonSeriesStyle, state.jsonHidden),
+                        balanceSight(state.jsonSeriesStyle, hidden),
+                        state.yAxes,
+                    ),
+                });
             } else {
                 // No bound payload series (unbound axis, or already hidden) — drop the config and
                 // re-index the overlay entries around the removed slot: a stale-but-in-range
                 // index would otherwise silently rebind a payload series to the WRONG axis
-                // (out-of-range ones the reconcile heals with a fresh axis).
+                // (out-of-range ones the reconcile heals with a fresh axis). The delete is a
+                // structural event: the surviving bound set re-arranges (ADR-0067).
+                const reindexed = Object.fromEntries(
+                    Object.entries(state.jsonSeriesStyle).map(([n, m]) => [
+                        n,
+                        typeof m.yAxisIndex === 'number' && m.yAxisIndex > i
+                            ? { ...m, yAxisIndex: m.yAxisIndex - 1 }
+                            : m,
+                    ]),
+                );
                 set({
-                    yAxes: axes.filter((_a, idx) => idx !== i),
-                    jsonSeriesStyle: Object.fromEntries(
-                        Object.entries(state.jsonSeriesStyle).map(([n, m]) => [
-                            n,
-                            typeof m.yAxisIndex === 'number' && m.yAxisIndex > i
-                                ? { ...m, yAxisIndex: m.yAxisIndex - 1 }
-                                : m,
-                        ]),
+                    yAxes: balanceAxes(
+                        axes.filter((_a, idx) => idx !== i),
+                        balanceSight(reindexed, state.jsonHidden),
                     ),
+                    jsonSeriesStyle: reindexed,
                 });
             }
             return;
         }
         // History/live (ADR-0025): an axis is an independent citizen — deleting it NEVER deletes its
         // bound series. They rebind to a surviving axis of the same `format` (the unit proxy), else
-        // axis 0 + an advisory unit-mismatch toast. Survivors re-index + pack. This explicit delete
-        // is the ONLY axis removal since ADR-0066 — a series leaving its axis (rebind/delete) merely
-        // turns it unbound, so the user deletes the axis here when they want it gone.
+        // axis 0 + an advisory unit-mismatch toast. Survivors re-index; the delete is a structural
+        // event, so the rebound bound set ends balanced (ADR-0067). This explicit delete is the ONLY
+        // axis removal since ADR-0066 — a series leaving its axis (rebind/delete) merely turns it
+        // unbound, so the user deletes the axis here when they want it gone.
         const deletedAxis = axes[i];
         const survivors = axes.filter((_a, idx) => idx !== i);
         const match = sameFormatSurvivor(deletedAxis?.format, survivors);
@@ -206,18 +238,19 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                   idx === target && a.restingName !== undefined ? { ...a, restingName: undefined } : a,
               )
             : survivors;
+        const rebound = state.series.map(s => {
+            const yi = s.yAxisIndex;
+            if (typeof yi !== 'number') {
+                return s;
+            }
+            if (yi === i) {
+                return { ...s, yAxisIndex: target }; // rebind to the same-format survivor
+            }
+            return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
+        });
         set({
-            yAxes: packStaggeredAxes(cleaned),
-            series: state.series.map(s => {
-                const yi = s.yAxisIndex;
-                if (typeof yi !== 'number') {
-                    return s;
-                }
-                if (yi === i) {
-                    return { ...s, yAxisIndex: target }; // rebind to the same-format survivor
-                }
-                return { ...s, yAxisIndex: yi > i ? yi - 1 : yi }; // re-index around the dropped axis
-            }),
+            yAxes: balanceAxes(cleaned, rebound),
+            series: rebound,
         });
     };
 

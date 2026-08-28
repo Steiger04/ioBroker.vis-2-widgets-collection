@@ -11,13 +11,14 @@ import {
     axisPosition,
     balanceAxes,
     boundAxisIndices,
+    boundJsonView,
     effectiveAxisColor,
     effectiveAxisName,
     isOneToOneBound,
-    packStaggeredAxes,
     reconcileJsonAxes,
     jsonBindingView,
     restingAxisName,
+    restingBalance,
     restingNamePatch,
     sameFormatSurvivor,
 } from './axisLayout';
@@ -66,88 +67,6 @@ describe('axisLayout — predicates', () => {
         expect(reStaggered.id).toBe('stable'); // identity preserved
         expect(reStaggered.color).toBe('#f00'); // other fields preserved
         expect(reStaggered).toMatchObject({ position: 'left', offset: 80 }); // geometry overwritten
-    });
-});
-
-describe('packStaggeredAxes — dense restagger (ADR-0023, reversed by ADR-0028)', () => {
-    it('re-packs a floating gap: surviving left axes 0/160 → 0/80', () => {
-        // After deleting the middle axis (offset 80), the third axis floats at 160.
-        const survivors: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'left', offset: 160 },
-        ];
-        const out = packStaggeredAxes(survivors);
-        expect(out.map(a => a.offset)).toEqual([0, 80]); // gap closed, packed by order
-        expect(out.every(a => a.position === 'left')).toBe(true); // position preserved
-    });
-
-    it('re-packs each side independently (left 0/160 + right 0 → left 0/80 + right 0)', () => {
-        const survivors: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'right', offset: 0 },
-            { position: 'left', offset: 160 },
-        ];
-        const out = packStaggeredAxes(survivors);
-        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
-            { p: 'left', o: 0 },
-            { p: 'right', o: 0 },
-            { p: 'left', o: 80 },
-        ]);
-    });
-
-    it('normalises a hand-tuned (non-raster) offset to the raster (ADR-0028 reversed the escape hatch)', () => {
-        const custom: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'left', offset: 100 }, // not on the 80-px raster
-        ];
-        // No longer left untouched: a structural change must resolve collisions even in a custom
-        // layout, so the 100 px offset snaps to the next raster slot.
-        expect(packStaggeredAxes(custom).map(a => a.offset)).toEqual([0, 80]);
-    });
-
-    it('resolves a side-flip collision — flips axis 2 to the right and repacks both sides (ADR-0028)', () => {
-        // Default 1:1 [L0/0, R0/0, L1/80, R1/80]; the user flips axis 2 (L1) to the right. Its
-        // offset stays 80 → it would collide with axis 3 (R1/80) on the right. packStaggeredAxes
-        // repacks each side densely by array order, so the overlap is gone.
-        const flipped: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'right', offset: 0 },
-            { position: 'right', offset: 80 }, // was left/80, now right — collides with the next
-            { position: 'right', offset: 80 },
-        ];
-        expect(packStaggeredAxes(flipped).map(a => ({ p: a.position, o: a.offset }))).toEqual([
-            { p: 'left', o: 0 }, // axis 0 alone on the left
-            { p: 'right', o: 0 }, // axes 1, 2, 3 repacked to 0/80/160 by running order
-            { p: 'right', o: 80 },
-            { p: 'right', o: 160 },
-        ]);
-    });
-
-    it('is a no-op for an already-packed set (idempotent)', () => {
-        const packed: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'right', offset: 0 },
-            { position: 'left', offset: 80 },
-        ];
-        expect(packStaggeredAxes(packed).map(a => a.offset)).toEqual([0, 0, 80]);
-    });
-
-    it('treats undefined offset as 0 (on the raster) and packs it', () => {
-        const withDefault: EchartsAxisConfig[] = [
-            { position: 'left' }, // offset undefined
-            { position: 'left', offset: 80 },
-        ];
-        expect(packStaggeredAxes(withDefault).map(a => a.offset)).toEqual([0, 80]);
-    });
-
-    it('preserves identity + other fields, only normalising offset', () => {
-        const survivors: EchartsAxisConfig[] = [
-            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
-            { id: 'c', name: 'C', color: '#00f', position: 'left', offset: 160 },
-        ];
-        const out = packStaggeredAxes(survivors);
-        expect(out[0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 });
-        expect(out[1]).toMatchObject({ id: 'c', name: 'C', color: '#00f', position: 'left', offset: 80 });
     });
 });
 
@@ -419,28 +338,91 @@ describe('reconcileJsonAxes — sticky JSON axis reconcile (ADR-0026)', () => {
         expect(r.yAxes.length).toBe(2); // both axes still bound
     });
 
-    it('a manual position flip survives a names-identical reconcile (JSON side-flip, ADR-0028)', () => {
-        // The exact JSON-mode cycle: fresh payload → 1:1 layout → user flips an axis in the Axes
-        // section (setAxis repacks) → the payload ticks with the SAME names, so the modal reconcile
-        // effect re-runs with the flipped axes as input. The sticky path keeps each bound axis, so
-        // the flip + repack survive — JSON must behave like history/live here.
+    it('a payload tick re-arranges a hand-flipped layout back to the standard interleaving (ADR-0067)', () => {
+        // The exact JSON-mode cycle, ADR-0067 semantics: fresh payload → 1:1 layout → the user
+        // flips axes by hand (a manual position is fine-justure ONLY between structural events —
+        // setAxis leaves it, see the AxesZoomSection field-edit rule). The next payload tick
+        // re-fires the reconcile — a structural event — and the balance snaps every BOUND axis
+        // back to the standard interleaving; the flip is gone, exactly like a hand-tuned offset.
         // 1. Fresh payload → default 1:1 [A:left/0, B:right/0, C:left/80].
         const r0 = reconcileJsonAxes(['A', 'B', 'C'], {}, []);
-        // 2. User flips B's axis (index 1) to the left; setAxis repacks.
-        const flipped = r0.yAxes.map((a, i) => (i === 1 ? { ...a, position: 'left' as const } : a));
-        const packed = packStaggeredAxes(flipped); // all three on the left: 0/80/160
-        expect(packed.map(a => ({ p: a.position, o: a.offset }))).toEqual([
-            { p: 'left', o: 0 },
-            { p: 'left', o: 80 },
-            { p: 'left', o: 160 },
-        ]);
-        // 3. Payload tick, same names → reconcile re-runs over the flipped axes. Flip survives.
-        const r1 = reconcileJsonAxes(['A', 'B', 'C'], r0.overlay, packed);
+        // 2. User flips B's and C's axes (index 1, 2) to the left — all three on the left.
+        const handFlipped = r0.yAxes.map((a, i) => (i === 1 || i === 2 ? { ...a, position: 'left' as const } : a));
+        // 3. Payload tick, same names → reconcile re-runs: bound axes re-arrange to standard.
+        const r1 = reconcileJsonAxes(['A', 'B', 'C'], r0.overlay, handFlipped);
         expect(r1.yAxes.map(a => ({ p: a.position, o: a.offset }))).toEqual([
             { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
             { p: 'left', o: 80 },
-            { p: 'left', o: 160 },
         ]);
+    });
+
+    it('closes holes densely — a fresh appended axis takes the next balance slot, not the append index', () => {
+        // A hides B's payload series → axis 1 rests unbound at right/0. A NEW payload name
+        // arrives: the strict 1:1 appends a fresh axis at index 2 (axisLayout(2) = left/80), but
+        // the reconcile's balance runs over the BOUND set {0, 2} — the new axis lands in balance
+        // slot 1 (right/0), dense behind axis 0; the unbound axis keeps its stored geometry.
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: undefined } };
+        const r = reconcileJsonAxes(['A', 'NEW'], overlay, [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0 },
+        ]);
+        expect(r.overlay.NEW?.yAxisIndex).toBe(2); // strict 1:1 — appended, no unbound claim
+        expect(r.yAxes[2]).toMatchObject({ position: 'right', offset: 0 }); // balance slot 1
+        expect(r.yAxes[1]).toMatchObject({ position: 'right', offset: 0 }); // unbound keeps its spot
+    });
+
+    it('a cleared JSON entry does NOT bind axis 0 (strict JSON binding semantics)', () => {
+        // JSON binding is strict: an overlay entry with yAxisIndex undefined is UNBOUND — unlike a
+        // history/live series without an index, which implicitly binds axis 0. Axis 0 here rests
+        // unbound (right/160) and must not be re-arranged by the reconcile's balance.
+        const overlay = { A: { yAxisIndex: 1 }, B: { yAxisIndex: undefined } };
+        const r = reconcileJsonAxes(['A'], overlay, [
+            { id: 'a0', position: 'right', offset: 160 },
+            { id: 'a1', position: 'right', offset: 0 },
+        ]);
+        expect(r.yAxes[0]).toMatchObject({ position: 'right', offset: 160 }); // untouched
+        expect(r.yAxes[1]).toMatchObject({ position: 'left', offset: 0 }); // A's balance slot 0
+    });
+});
+
+describe('boundJsonView — the strict JSON balance sight (ADR-0067)', () => {
+    it('filters the visible binding view down to DEFINED indices', () => {
+        const overlay = { A: { yAxisIndex: 1 }, B: { yAxisIndex: 0 }, C: { yAxisIndex: undefined } };
+        expect(boundJsonView(['A', 'B', 'C'], overlay, [])).toEqual([
+            { yAxisIndex: 1, name: 'A' },
+            { yAxisIndex: 0, name: 'B' },
+        ]);
+    });
+
+    it('hidden names never reach the sight', () => {
+        const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
+        expect(boundJsonView(['A', 'B'], overlay, ['B'])).toEqual([{ yAxisIndex: 0, name: 'A' }]);
+    });
+});
+
+describe('restingBalance — the series-leave→re-arrange seam (ADR-0066 + 0067)', () => {
+    it('snapshots the vacated axis against BEFORE, then balances the AFTER bound set', () => {
+        // 3 axes 1:1; the series on axis 1 (named "Power") leaves → axis 1 rests unbound with the
+        // resting name "Power" (kept geometry), and the series of axis 2 re-arranges into slot 1.
+        const yAxes: EchartsAxisConfig[] = [
+            { id: 'a0', position: 'left', offset: 0 },
+            { id: 'a1', position: 'right', offset: 0 },
+            { id: 'a2', position: 'left', offset: 80 },
+        ];
+        const out = restingBalance(
+            [
+                { yAxisIndex: 0, name: 'Temp' },
+                { yAxisIndex: 1, name: 'Power' },
+                { yAxisIndex: 2, name: 'Hum' },
+            ],
+            // `after` feeds the balance only — the resting snapshot reads BEFORE, so no names here.
+            [{ yAxisIndex: 0 }, { yAxisIndex: 2 }],
+            yAxes,
+        );
+        expect(out[0]).toMatchObject({ position: 'left', offset: 0 }); // balance slot 0
+        expect(out[1]).toMatchObject({ restingName: 'Power', position: 'right', offset: 0 }); // unbound
+        expect(out[2]).toMatchObject({ position: 'right', offset: 0 }); // balance slot 1 — hole closed
     });
 });
 
@@ -450,11 +432,6 @@ describe('axis raw survival (ADR-0037) — the yAxes blob is field-preserving', 
         { id: 'a0', name: 'kW', raw: RAW },
         { id: 'a1', name: '°C', position: 'right', raw: RAW },
     ];
-
-    it('packStaggeredAxes rewrites only offset — raw survives the re-stagger', () => {
-        const packed = packStaggeredAxes(axes);
-        expect(packed.every(a => a.raw === RAW)).toBe(true);
-    });
 
     it('balanceAxes rewrites only geometry — raw survives the balance', () => {
         const balanced = balanceAxes(axes, [{ yAxisIndex: 0 }, { yAxisIndex: 1 }]);
