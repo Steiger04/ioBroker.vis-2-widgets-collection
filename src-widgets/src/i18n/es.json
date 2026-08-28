@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Líneas divisorias",
     "echarts_axis_tick_color": "Color de las marcas",
     "echarts_axis_tick_show": "Mostrar marcas",
+    "echarts_axis_unbound": "sin usar",
+    "echarts_axis_unbound_hint": "Ninguna serie está asignada a este eje, por eso no se muestra en el gráfico. Asigna una serie para volver a mostrarlo.",
     "echarts_background": "Fondo",
     "echarts_bar_diff": "Diferencia entre barras",
     "echarts_bar_interval": "Intervalo de barras",

@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Разделительные линии",
     "echarts_axis_tick_color": "Цвет делений",
     "echarts_axis_tick_show": "Показывать деления",
+    "echarts_axis_unbound": "не используется",
+    "echarts_axis_unbound_hint": "Этой оси не назначен ни один ряд, поэтому она не отображается на диаграмме. Назначьте ей ряд, чтобы снова её показать.",
     "echarts_background": "Фон",
     "echarts_bar_diff": "Разность между столбцами",
     "echarts_bar_interval": "Интервал столбцов",

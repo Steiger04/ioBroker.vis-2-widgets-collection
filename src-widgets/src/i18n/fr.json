@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Lignes de séparation",
     "echarts_axis_tick_color": "Couleur des graduations",
     "echarts_axis_tick_show": "Afficher les graduations",
+    "echarts_axis_unbound": "inutilisée",
+    "echarts_axis_unbound_hint": "Aucune série n'est affectée à cet axe, il n'est donc pas affiché dans le graphique. Affectez-lui une série pour l'afficher à nouveau.",
     "echarts_background": "Arrière-plan",
     "echarts_bar_diff": "Différence entre barres",
     "echarts_bar_interval": "Intervalle des barres",

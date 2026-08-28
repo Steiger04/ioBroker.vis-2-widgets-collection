@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Linie podziału",
     "echarts_axis_tick_color": "Kolor znaczników",
     "echarts_axis_tick_show": "Pokaż znaczniki",
+    "echarts_axis_unbound": "nieużywana",
+    "echarts_axis_unbound_hint": "Do tej osi nie jest przypisana żadna seria, dlatego nie jest rysowana na wykresie. Przypisz serię, aby ponownie ją wyświetlić.",
     "echarts_background": "Tło",
     "echarts_bar_diff": "Różnica między słupkami",
     "echarts_bar_interval": "Interwał słupków",

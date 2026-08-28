@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Scheidingslijnen",
     "echarts_axis_tick_color": "Kleur schaalstrepen",
     "echarts_axis_tick_show": "Schaalstrepen weergeven",
+    "echarts_axis_unbound": "ongebruikt",
+    "echarts_axis_unbound_hint": "Er is geen reeks aan deze as toegewezen, daarom wordt hij niet in de grafiek getoond. Wijs een reeks toe om hem weer te tonen.",
     "echarts_background": "Achtergrond",
     "echarts_bar_diff": "Verschil tussen balken",
     "echarts_bar_interval": "Balkinterval",

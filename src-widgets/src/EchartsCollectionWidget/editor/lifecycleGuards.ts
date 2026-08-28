@@ -81,8 +81,9 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
 /**
  * Non-JSON cartesian orphan-prune (ADR-0033): a mode-switch INTO live/history is a bulk
  * series-leave — the referencing series set changes from the JSON overlay back to
- * `state.series`, so the same orphan-check that runs on a single series-leave prunes axes no
- * live/history series binds. Axis 0 always survives (the builder's `[{}]` fallback); a series
+ * `state.series` — and an unbound axis deliberately does NOT survive a JSON interlude (ADR-0066),
+ * so this prunes axes no live/history series binds. Axis 0 always survives (the builder's `[{}]`
+ * fallback); a series
  * with `yAxisIndex === undefined` counts as bound to axis 0. A drop is a structural change →
  * the survivors re-pack densely (ADR-0028). Idempotent (`null` while no orphan remains).
  */

@@ -358,8 +358,11 @@ describe('buildGeneratedOption — cartesian', () => {
     it('emits one yAxis per configured axis (ADR-0012): alignTicks opt-in (off by default), position defaults', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A', yAxisIndex: 1 }],
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
             p: { ...P, yAxes: [{ name: 'kW' }, { name: '°C', position: 'right', color: '#f00' }] },
         });
         const ya = option.yAxis as unknown as {
@@ -967,8 +970,11 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
     it('nameLocation/nameGap are card-driven, defaulting to the former hard-emit values', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A' }],
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
             p: {
                 ...P,
                 yAxes: [{}, { nameLocation: 'end', nameGap: 42 }],
@@ -989,6 +995,79 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
         const ya = (option.yAxis as unknown as unknown[])[0] as { nameLocation?: string; nameGap?: number };
         expect(ya.nameLocation).toBe('middle');
         expect(ya.nameGap).toBe(18);
+    });
+});
+
+describe('buildGeneratedOption — unbound axes are never emitted (ADR-0066)', () => {
+    it('a middle unbound axis is skipped and the series refs are remapped onto the compacted array', () => {
+        // Axes 0 and 2 are bound (series A and B), axis 1 is unbound — B must land on emitted
+        // index 1, not dangle on a non-existent array slot.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 2 }],
+            p: { ...P, yAxes: [{ name: 'A' }, { name: 'hole' }, { name: 'C' }] },
+        });
+        const ya = option.yAxis as unknown as { name?: string }[];
+        expect(ya.map(a => a.name)).toEqual(['A', 'C']); // the hole is not emitted
+        const entries = option.series as unknown as { yAxisIndex?: number; name?: string }[];
+        expect(entries.map(e => e.yAxisIndex)).toEqual([0, 1]); // remapped onto [A, C]
+    });
+
+    it('an axis whose series all left falls back to the single default axis (no phantom)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, yAxes: [{ name: 'A' }, { name: 'B' }] },
+        });
+        const ya = option.yAxis as unknown as unknown[];
+        expect(ya).toHaveLength(1); // the `[{}]` guarantee — a cartesian renders ≥1 value axis
+    });
+
+    it('a marking anchored to an unbound axis rests — no fallback onto another axis', () => {
+        // One series on axis 0; a line mark on axis 0 (draws) + one on axis 1 (unbound → rests).
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: {
+                ...P,
+                yAxes: [{ name: 'A' }, { name: 'B' }],
+                markLines: [
+                    { id: 'm0', upper: 3, yAxisIndex: 0 },
+                    { id: 'm1', upper: 2000, yAxisIndex: 1 },
+                ],
+            },
+        });
+        const entry = (option.series as unknown as Record<string, unknown>[])[0];
+        const markLine = entry.markLine as { data?: { yAxis?: number }[] } | undefined;
+        expect(markLine?.data).toHaveLength(1); // only the axis-0 line
+        expect(markLine?.data?.[0]?.yAxis).toBe(3); // the 2000 mark did NOT fall back to axis 0
+    });
+
+    it('a marking anchored to a bound axis still draws after the remap', () => {
+        // Axis 1 unbound in the middle; the mark targets axis 2 (bound by series B) — it must
+        // attach to B and survive the index compaction.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 2 }],
+            p: {
+                ...P,
+                yAxes: [{ name: 'A' }, { name: 'hole' }, { name: 'C' }],
+                markLines: [{ id: 'm2', upper: 7, yAxisIndex: 2 }],
+            },
+        });
+        const entries = option.series as unknown as Record<string, unknown>[];
+        const b = entries.find(e => e.name === 'B') as { markLine?: { data?: { yAxis?: number }[] } };
+        expect(b.markLine?.data?.[0]?.yAxis).toBe(7); // hosted on B (its axis), not on A
     });
 });
 
@@ -1641,8 +1720,8 @@ describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', ()
 
         const authoredOption = buildGeneratedOption({
             family: 'cartesian',
-            series: [],
-            meta: [],
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
             p: { ...P, decimalComma: true, yAxes: [{ format: '{value} kW' }] },
         });
         const authored = (authoredOption.yAxis as { axisLabel?: { formatter?: unknown } }[])[0];
@@ -1658,11 +1737,13 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
     it('emits axisLabel.fontSize on Y when the label size is set; unset emits no axisLabel at all', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [],
-            meta: [],
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
             p: { ...P, yAxes: [{ labelFontSize: 16 }] },
         });
-        expect(y0(option).axisLabel).toEqual({ fontSize: 16 });
+        // toMatchObject: the bound series also inherits its palette colour onto the label
+        // (ADR-0018) — the shape test must not depend on that coupling.
+        expect(y0(option).axisLabel).toMatchObject({ fontSize: 16 });
 
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(y0(bare)).not.toHaveProperty('axisLabel');
@@ -1671,8 +1752,8 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
     it('emits axisTick.lineStyle.color on Y when the tick colour is set; unset keeps the bare show switch', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [],
-            meta: [],
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
             p: { ...P, yAxes: [{ tickColor: '#0f0' }] },
         });
         expect(y0(option).axisTick).toEqual({ show: true, lineStyle: { color: '#0f0' } });
@@ -1684,8 +1765,8 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
     it('emits splitLine.lineStyle.color on Y when the grid colour is set; unset keeps the bare show switch', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [],
-            meta: [],
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
             p: { ...P, yAxes: [{ gridColor: '#777' }] },
         });
         expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#777' } });
@@ -1699,8 +1780,8 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         // are set; raw siblings at the same level (width/type) must keep merging through.
         const option = buildGeneratedOption({
             family: 'cartesian',
-            series: [],
-            meta: [],
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{}],
             p: {
                 ...P,
                 yAxes: [

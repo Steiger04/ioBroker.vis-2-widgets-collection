@@ -29,14 +29,7 @@ import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts
 import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
-import {
-    axisLayout,
-    axisPosition,
-    dropOrphanAxis,
-    isOneToOne,
-    packStaggeredAxes,
-    reconcileJsonAxes,
-} from '../axisLayout';
+import { axisLayout, isOneToOneBound, reconcileJsonAxes } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
@@ -48,7 +41,7 @@ import JsonSeriesCards from './series/JsonSeriesCards';
 /**
  * The series section dispatcher's field ownership (ADR-0049 slice) — the widest honest
  * slice: its own footprint (the family/mode split, the series orchestration incl. the
- * orphan-cascade into `yAxes`, the JSON overlay + deny-list, the theme hook's 4 fields)
+ * series-leave→unbound-axis semantics (ADR-0066), the JSON overlay + deny-list, the theme hook's 4 fields)
  * PLUS the union its sub-views consume (it hands them this same state object; each keeps
  * its own narrower slice at its own file head).
  */
@@ -146,51 +139,20 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 });
         }
     }, [series, pickerCtx.socket, set]);
+    // Series-leave keeps the axis (ADR-0066): deleting a series turns its bound axis UNBOUND iff no
+    // surviving series remains on it — kept with its config (a persistent resting state), never
+    // rendered until a series binds it again. Only an explicit axis-delete in the Axis manager
+    // removes an axis; no re-index/re-stagger here, so axis indices stay stable across deletes.
     const remove = (i: number): void => {
-        const next = series.filter((_, idx) => idx !== i);
-        if (!isCartesian) {
-            set({ series: next });
-            return;
-        }
-        // Orphan-check (ADR-0018/0025): drop the deleted series' bound axis iff no surviving series
-        // remains on it. 1:1 (the dense auto-layout) → always orphans; a shared axis stays put.
-        const yi = series[i]?.yAxisIndex;
-        const orphaned = typeof yi === 'number' && !next.some(s => s.yAxisIndex === yi);
-        if (!orphaned) {
-            set({ series: next });
-            return;
-        }
-        // The bound axis is orphaned → drop it and re-index the survivors. Dense 1:1 → full re-stagger
-        // (position + offset, auto-layout); a manual/Shared layout → keep each surviving axis' custom
-        // position, but packStaggeredAxes closes any offset gap a removed staggered axis would leave
-        // (ADR-0023; conservative — only when every survivor is on the auto raster).
-        const dense = isOneToOne(series) && state.yAxes.length === series.length;
-        const { series: reindexed, yAxes: survivors } = dropOrphanAxis(next, state.yAxes, yi);
-        set({
-            series: reindexed,
-            yAxes: dense ? survivors.map((a, idx) => ({ ...a, ...axisPosition(idx) })) : packStaggeredAxes(survivors),
-        });
+        set({ series: series.filter((_s, idx) => idx !== i) });
     };
-    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD axis
-    // gets the same orphan-check as a series-delete: if no surviving series remains on it, drop it +
-    // re-index — the phantom-axis fix (rebinding used to leave an empty rendered axis). Re-stagger is
-    // conservative (packStaggeredAxes): a rebind is itself a departure from 1:1, so preserve each
-    // axis' position and only close offset gaps. `update` handles every other field; yAxisIndex lands
-    // here, routed by the CartesianSeriesList onPatch.
+    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD
+    // axis turns unbound when no series remains on it (ADR-0066) — it stays selectable in the
+    // dropdown with its config, and the builder simply stops emitting it (no phantom axis). No
+    // re-index: every other series' yAxisIndex keeps pointing at the same slot. `update` handles
+    // every other field; yAxisIndex lands here, routed by the CartesianSeriesList onPatch.
     const rebindAxis = (i: number, newYi: number): void => {
-        const oldYi = series[i]?.yAxisIndex;
-        const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
-        if (oldYi === undefined || oldYi === newYi) {
-            set({ series: next });
-            return;
-        }
-        const orphaned = !next.some(s => s.yAxisIndex === oldYi);
-        if (!orphaned) {
-            set({ series: next });
-            return;
-        }
-        const { series: reindexed, yAxes: survivors } = dropOrphanAxis(next, state.yAxes, oldYi);
-        set({ series: reindexed, yAxes: packStaggeredAxes(survivors) });
+        set({ series: series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s)) });
     };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
@@ -208,14 +170,17 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         if (!oid || oid === 'nothing_selected') {
             return;
         }
-        const idx = series.length;
+        // Strict 1:1 auto-axis (ADR-0018/0066): a new cartesian series ALWAYS gets a fresh axis
+        // appended at the end — it never claims an unbound slot (that return path is the per-series
+        // dropdown's explicit assignment alone). Binding to `yAxes.length` (the appended index)
+        // rather than the series count also keeps shared-setups consistent. Colour + name are NOT
+        // written — the axis inherits both from the bound series at runtime.
+        const axIdx = state.yAxes.length;
         const patch: Partial<SeriesSlice> = {
-            series: [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? idx : 0 }],
+            series: [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }],
         };
-        // 1:1 auto-axis (ADR-0018): a new cartesian series gets its own axis (alternating side, 80 px stagger).
-        // Colour + name are NOT written — the axis inherits both from the bound series at runtime.
-        if (isCartesian && idx >= state.yAxes.length) {
-            patch.yAxes = [...state.yAxes, axisLayout(idx)];
+        if (isCartesian) {
+            patch.yAxes = [...state.yAxes, axisLayout(axIdx)];
         }
         set(patch);
     };
@@ -227,11 +192,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         };
         const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];
         if (isCartesian) {
-            // 1:1 auto-axis (ADR-0018) — but only while the dense auto-layout is intact. A Shared/
-            // Custom layout (several series on one axis) → the copy inherits the source's yAxisIndex
-            // instead, so duplicating never silently breaks a deliberate Shared-Axis setup (ADR-XXXX).
-            const dense = isOneToOne(series) && state.yAxes.length === series.length;
-            if (dense) {
+            // 1:1 auto-axis (ADR-0018) — but only while every series owns its bound axis (dense,
+            // bound-aware since ADR-0066: unbound axes don't count). A genuinely shared axis (2+
+            // series on it) → the copy inherits the source's yAxisIndex instead, so duplicating
+            // never silently breaks a deliberate Shared-Axis setup.
+            if (isOneToOneBound(series)) {
                 // Colour + name inherit the copy at runtime — not written (ADR-0018).
                 const axIdx = state.yAxes.length;
                 copy.yAxisIndex = axIdx;

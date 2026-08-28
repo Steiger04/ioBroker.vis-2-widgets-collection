@@ -26,7 +26,7 @@ import { LabeledSelect, SubGroup, SwitchList, SwitchRow } from '../../../compone
 import type { OidPickerCtx } from '../OidPicker';
 import type { EchartsAxisConfig, EchartsMarkLine } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
-import { axisLayout, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
+import { axisLayout, boundAxisIndices, effectiveAxisColor, packStaggeredAxes, sameFormatSurvivor } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { ZOOM_IDLE_SECONDS } from '../../zoomIdleReset';
 import XCard from './axes/XCard';
@@ -115,6 +115,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         }
         return state.series[idx].name || `Series ${idx + 1}`;
     };
+    // The bound set (ADR-0066): every axis OUTSIDE it is unbound — kept with its config, flagged
+    // „unbenutzt" on its card, never rendered. History/live reads `state.series`; JSON reads the
+    // overlay (the reconcile keeps only visible names' yAxisIndex defined, hidden ones are cleared).
+    const boundIdx: Set<number> =
+        state.mode === 'json'
+            ? new Set(
+                  Object.values(state.jsonSeriesStyle)
+                      .map(m => m.yAxisIndex)
+                      .filter((v): v is number => typeof v === 'number'),
+              )
+            : boundAxisIndices(state.series);
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
         // A side-flip (position change) re-staggers both sides densely so no two axes overlap
@@ -145,9 +156,9 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         }
         // History/live (ADR-0025): an axis is an independent citizen — deleting it NEVER deletes its
         // bound series. They rebind to a surviving axis of the same `format` (the unit proxy), else
-        // axis 0 + an advisory unit-mismatch toast. Survivors re-index + pack. The dense-1:1 pair-
-        // delete that used to live here is gone: the user deletes a series explicitly when they want
-        // both gone (series-delete still orphan-cleans its axis).
+        // axis 0 + an advisory unit-mismatch toast. Survivors re-index + pack. This explicit delete
+        // is the ONLY axis removal since ADR-0066 — a series leaving its axis (rebind/delete) merely
+        // turns it unbound, so the user deletes the axis here when they want it gone.
         const deletedAxis = axes[i];
         const survivors = axes.filter((_a, idx) => idx !== i);
         const match = sameFormatSurvivor(deletedAxis?.format, survivors);
@@ -182,10 +193,15 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     // The marking cards share the axis cards' expand pattern (one flag per list item).
     const [markExpanded, setMarkExpanded] = useState<Record<number, boolean>>({});
     const toggleMarkCard = (i: number): void => setMarkExpanded(e => ({ ...e, [i]: !e[i] }));
-    /** Axis select options for the marking cards (value/axis select shown with ≥2 axes only). */
+    /**
+     * Axis select options for the marking cards (value/axis select shown with ≥2 axes only). An
+     * unbound axis gets the suffix — a marking anchored to it rests (not drawn) until a series
+     * re-binds the axis (ADR-0066), and the select must say so.
+     */
     const axisOptions: [string, string][] = axes.map((ax, ai) => [
         String(ai),
-        ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1),
+        (ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1)) +
+            (boundIdx.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
     ]);
 
     return (
@@ -238,6 +254,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
                         pickerCtx={pickerCtx}
                         seriesColor={boundAxisColor(i)}
                         seriesName={boundAxisName(i)}
+                        unbound={!boundIdx.has(i)}
                         dividerColor={themeTokens.divider}
                     />
                 ))}

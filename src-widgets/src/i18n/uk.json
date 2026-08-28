@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Лінії сітки",
     "echarts_axis_tick_color": "Колір міток",
     "echarts_axis_tick_show": "Показувати мітки",
+    "echarts_axis_unbound": "не використовується",
+    "echarts_axis_unbound_hint": "Цій осі не призначено жодного ряду, тому вона не відображається на діаграмі. Призначте їй ряд, щоб знову її показати.",
     "echarts_background": "Фон",
     "echarts_bar_diff": "Різниця між стовпцями",
     "echarts_bar_interval": "Інтервал стовпців",

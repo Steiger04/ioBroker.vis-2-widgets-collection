@@ -550,10 +550,11 @@ export const buildCartesianOption = (
     p: PresentationConfig,
 ): EChartsOption => {
     // Guarantee ≥1 Y-axis: the editor allows deleting every axis (the last one too), but a cartesian
-    // chart must always render at least one value axis. An empty `p.yAxes` falls back to a single
-    // default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
-    const axes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
-    const total = axes.length;
+    // chart must always render at least one value axis. An empty `p.yAxes` — or one where EVERY
+    // axis is unbound (no series binds it, ADR-0066) — falls back to a single default-config axis
+    // (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
+    const allAxes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
+    const total = allAxes.length;
     // The chart-level value-format context (ADR-0057): the comma switch + the tooltip cluster as
     // the per-fact fallback for series without their own facts — the shared projection.
     const chartFmt = chartValueFormatOf(p);
@@ -568,11 +569,22 @@ export const buildCartesianOption = (
         e.yAxisIndex = yi >= total ? 0 : yi;
         return e;
     });
+    // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the
+    // editor with its config, absent from the chart (no phantom, no reserved grid space). Keep
+    // only the bound axes and remap the series refs onto the compacted array — echarts matches
+    // `yAxisIndex` against the EMITTED array, so a hole in the middle would dangle every higher
+    // ref. The remap runs AFTER the marking host lookup below, which matches against the
+    // configured indices.
+    const boundAxes = new Set(entries.map(e => e.yAxisIndex as number));
+    const emittedIdx = allAxes.map((_a, i) => i).filter(i => boundAxes.has(i));
+    const axes: readonly EchartsAxisConfig[] = emittedIdx.length ? emittedIdx.map(i => allAxes[i]) : [{}];
+    const axisRemap = new Map<number, number>(emittedIdx.map((old, pos) => [old, pos]));
     // Marking markers attach to a SERIES, and echarts draws them on that series' axis. With
     // multi-axis (ADR-0023) a marking must hang on a series bound to its own axis, not stuck on
     // entries[0] (which would draw a 2000 W marking on a 0–40 °C axis). Group markings by their
-    // yAxisIndex and attach each group's lines AND bands to the first series on that axis (fall
-    // back to entries[0] when an axis has no series — rare; groups then merge onto the one host).
+    // yAxisIndex and attach each group's lines AND bands to the first series on that axis. A
+    // marking anchored to an UNBOUND axis rests with it (ADR-0066): no fallback onto another
+    // axis' scale — it returns when a series re-binds the axis.
     if (p.markLines.length > 0 && entries.length > 0) {
         const byAxis = new Map<number, EchartsMarkLine[]>();
         for (const ml of p.markLines) {
@@ -585,7 +597,13 @@ export const buildCartesianOption = (
             }
         }
         for (const [ax, marks] of byAxis) {
-            const host = entries.find(e => e.yAxisIndex === ax) ?? entries[0];
+            if (!boundAxes.has(ax)) {
+                continue; // target axis unbound (or a stale index) — the marking rests
+            }
+            const host = entries.find(e => e.yAxisIndex === ax);
+            if (!host) {
+                continue; // unreachable while bound is derived from entries — defensive
+            }
             const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider);
             if (lineData.length) {
                 attachMarker(host, 'markLine', lineData);
@@ -594,6 +612,11 @@ export const buildCartesianOption = (
                 attachMarker(host, 'markArea', areaData);
             }
         }
+    }
+    // Remap the series refs onto the compacted (bound-only) emission array. `axisRemap.get` is
+    // defined for every entry (the bound set was derived from exactly these refs).
+    for (const e of entries) {
+        e.yAxisIndex = axisRemap.get(e.yAxisIndex as number) ?? 0;
     }
 
     const names = entries.map(e => e.name as string);
@@ -665,7 +688,7 @@ export const buildCartesianOption = (
     const spanMs = p.barCategories?.length
         ? Math.max(...p.barCategories) - Math.min(...p.barCategories)
         : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
-    // Y-axes: one entry per configured axis (ADR-0012). position/offset place them side-by-side;
+    // Y-axes: one entry per BOUND axis (ADR-0012; unbound axes rest, ADR-0066). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the first bound series' effective values when neither is
     // explicit (ADR-0018); the axis LABELS inherit the bound series' shared unit (ADR-0057) and

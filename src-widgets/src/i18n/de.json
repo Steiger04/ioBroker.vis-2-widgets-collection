@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Gitterlinien",
     "echarts_axis_tick_color": "Strichfarbe",
     "echarts_axis_tick_show": "Ticks zeigen",
+    "echarts_axis_unbound": "unbenutzt",
+    "echarts_axis_unbound_hint": "Dieser Achse ist keine Serie zugewiesen, daher wird sie im Diagramm nicht dargestellt. Weise ihr eine Serie zu, um sie wieder anzuzeigen.",
     "echarts_background": "Hintergrund",
     "echarts_bar_diff": "Differenz zwischen Balken",
     "echarts_bar_interval": "Balken-Intervall",

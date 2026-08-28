@@ -28,7 +28,6 @@ import {
     legacyAxis,
     normalizeLegendPos,
 } from '../presentation';
-import { packStaggeredAxes, pruneOrphanAxes } from './axisLayout';
 import { withStableIds } from './stableId';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
@@ -462,24 +461,15 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
     // index (fixes the wrong-card-unmounts bug on middle-axis delete).
     const yAxesDecoded = decodeAxes(data.yAxes as string);
-    let yAxes = withStableIds(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)], 'ax-');
+    const yAxes = withStableIds(yAxesDecoded.length ? yAxesDecoded : [legacyAxis(data)], 'ax-');
     const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
 
-    // Mode-switch orphan-prune (ADR-0033): a non-JSON cartesian widget must not carry JSON-derived
-    // ghost axes. JSON axes are a derived projection of the payload (the modal reconcile effect
-    // re-derives them on open), but once written to the persisted `yAxes` blob they leak into every
-    // other mode — a widget saved in JSON with 6 axes reopened/switched to Live showed 6 cards, 5 of
-    // them phantoms named "Achse 2..6". Leaving JSON is a bulk series-leave, so the same orphan-check
-    // that runs on a single series-leave (ADR-0025) prunes here against `series` (undefined→0, like
-    // the builder). Idempotent + safe on a clean widget (every axis bound → no-op); heals polluted
-    // blobs without dirty-on-open noise (this IS the loaded snapshot). A prune that drops an axis is
-    // a structural change → the survivors re-pack to the dense 80-px raster (ADR-0028); a no-op prune
-    // leaves offsets (incl. hand-tuned) untouched.
-    if (family === 'cartesian' && mode !== 'json') {
-        const pruned = pruneOrphanAxes(series, yAxes);
-        series = pruned.series;
-        yAxes = pruned.yAxes.length < yAxes.length ? packStaggeredAxes(pruned.yAxes) : pruned.yAxes;
-    }
+    // NO load-time orphan-prune (ADR-0066 removed ADR-0033's load heal): an axis no series binds is
+    // an unbound axis — a persistent resting state, kept with its config so a re-assign can revive
+    // it. Historical ghost pollution (pre-ADR-0033 blobs) therefore surfaces as unbound axis cards,
+    // deleted manually once; NEW pollution cannot enter — the mode-switch prune
+    // (`pruneOrphanAxesStep`) culls JSON-derived axes when JSON is left, and the builder never
+    // emits an unbound axis.
 
     // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum) — EVERY raw
     // level (sections, pie, series, axes, X, json overlay) heals in the registry's single load

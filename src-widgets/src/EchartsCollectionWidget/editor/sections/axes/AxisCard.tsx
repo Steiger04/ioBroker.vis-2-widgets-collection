@@ -12,7 +12,7 @@
  * onChange patch / onRemove callbacks; the section owns the orchestration.
  */
 import type { FC } from 'react';
-import { Box, IconButton } from '@mui/material';
+import { Box, Chip, IconButton } from '@mui/material';
 import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
@@ -53,6 +53,8 @@ const AxisCard: FC<{
     seriesColor?: string;
     /** Effective name of the first bound series — the axis-name default shown as placeholder (ADR-0018). */
     seriesName?: string;
+    /** No series binds this axis (ADR-0066): the card stays fully editable but flags the resting state. */
+    unbound?: boolean;
     /** Theme divider token — the grid colour's inherit value (the theme's splitline floor). */
     dividerColor: string;
 }> = ({
@@ -66,6 +68,7 @@ const AxisCard: FC<{
     pickerCtx,
     seriesColor,
     seriesName,
+    unbound = false,
     dividerColor,
 }) => {
     const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
@@ -100,7 +103,30 @@ const AxisCard: FC<{
                     }}
                 />
             }
-            title={a.name || seriesName || `Achse ${i + 1}`}
+            title={
+                <Box
+                    component="span"
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}
+                >
+                    {a.name || seriesName || `Achse ${i + 1}`}
+                    {unbound && (
+                        // Status chip (ADR-0066) — a status display, not a hint, so no InfoBox here;
+                        // the explanatory hint sits at the top of the card body.
+                        <Chip
+                            label={Generic.t('echarts_axis_unbound')}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                                height: 16,
+                                borderRadius: 1,
+                                fontSize: '0.7rem',
+                                flexShrink: 0,
+                                '& .MuiChip-label': { px: 0.5 },
+                            }}
+                        />
+                    )}
+                </Box>
+            }
             subtitle={
                 (a.position ?? (i === 0 ? 'left' : 'right')) === 'left'
                     ? Generic.t('echarts_axis_left')
@@ -117,6 +143,11 @@ const AxisCard: FC<{
                 </IconButton>
             }
         >
+            {unbound && (
+                <Box sx={{ mb: 1.5 }}>
+                    <InfoBox text={Generic.t('echarts_axis_unbound_hint')} />
+                </Box>
+            )}
             <SubGroup title={Generic.t('echarts_grp_basis')}>
                 <FieldGrid>
                     {/* '' → undefined so a cleared name inherits the bound series' name instead of

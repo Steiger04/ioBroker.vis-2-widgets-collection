@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "分割线",
     "echarts_axis_tick_color": "刻度颜色",
     "echarts_axis_tick_show": "显示刻度",
+    "echarts_axis_unbound": "未使用",
+    "echarts_axis_unbound_hint": "未分配任何序列到此轴，因此图表中不显示该轴。分配一个序列即可重新显示。",
     "echarts_background": "背景",
     "echarts_bar_diff": "柱间差值",
     "echarts_bar_interval": "柱状图区间",

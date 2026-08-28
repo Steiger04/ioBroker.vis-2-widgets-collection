@@ -1,8 +1,9 @@
 /**
  * Cartesian axis-layout + series↔axis coupling helpers: the 1:1 auto-layout assigned to an
- * auto-created axis + the predicate telling whether the series are still in the default 1:1 binding
- * (ADR-0018); and the axis-as-independent-citizen coupling — rebind target, orphan-cleanup, and the
- * effective axis name (ADR-0025).
+ * auto-created axis + the predicate telling whether every series still owns its axis (ADR-0018,
+ * bound-aware since ADR-0066); and the axis-as-independent-citizen coupling — rebind target, the
+ * mode-switch orphan-prune, and the effective axis name (ADR-0025/0033; series-leave keeps the
+ * axis as an unbound axis since ADR-0066).
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -42,9 +43,29 @@ export const axisLayout = (i: number): EchartsAxisConfig => ({
     splitLine: i === 0,
 });
 
-/** True when the series are in the default 1:1 binding (series j → axis j) — the auto-layout is intact. */
-export const isOneToOne = (series: readonly { yAxisIndex?: number }[]): boolean =>
-    series.every((s, idx) => s.yAxisIndex === idx);
+/**
+ * The axis indices at least one series binds — the **bound set** (ADR-0066). A series with
+ * `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's `e.yAxisIndex ?? 0`).
+ * Every configured axis OUTSIDE this set is an unbound axis: kept in the editor with its config,
+ * never emitted to the chart.
+ */
+export const boundAxisIndices = (series: readonly { yAxisIndex?: number }[]): Set<number> => {
+    const bound = new Set<number>();
+    for (const s of series) {
+        bound.add(typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0);
+    }
+    return bound;
+};
+
+/**
+ * True when every series sits on its OWN bound axis — a bijection between series and bound axes,
+ * i.e. the dense 1:1 layout MODULO unbound axes (ADR-0066 supersedes the positional
+ * `series j → axis j` reading of ADR-0018's dense check). A rebound series that left a hole still
+ * owns its axis, so duplicating still yields a fresh axis; only a genuinely shared axis (2+ series
+ * on it) is non-dense and makes the copy inherit the source binding.
+ */
+export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boolean =>
+    boundAxisIndices(series).size === series.length;
 
 /**
  * Re-stagger the axes so both sides sit densely on the 80-px raster with no overlaps (ADR-0028).
@@ -96,33 +117,10 @@ export const alignTicksDisabledByOverride = (a: EchartsAxisConfig): boolean =>
     a.min !== undefined || a.max !== undefined || a.splitNumber !== undefined || a.minInterval !== undefined;
 
 /**
- * Drop an orphaned axis (no series remains on it) and re-index the survivors (ADR-0025). Pure — the
- * caller owns the re-stagger policy: this returns the de-orphaned `yAxes` with the orphan removed
- * but offsets UNCHANGED, so the caller applies {@link axisPosition} (dense auto-layout) or
- * {@link packStaggeredAxes} (shared/manual) as appropriate. Used by both series-DELETE and series-
- * REBIND — the orphan-check that used to run only on delete now runs whenever a series leaves an
- * axis (the phantom-axis fix).
- *
- * `series` is the POST-change series array (the deleted/rebound series already removed or rebound);
- * `orphanYi` is the PRE-drop axis index. Series with `yAxisIndex > orphanYi` shift down by 1.
- */
-export const dropOrphanAxis = <T extends { yAxisIndex?: number }>(
-    series: readonly T[],
-    yAxes: readonly EchartsAxisConfig[],
-    orphanYi: number,
-): { series: T[]; yAxes: EchartsAxisConfig[] } => ({
-    series: series.map(s => ({
-        ...s,
-        yAxisIndex: typeof s.yAxisIndex === 'number' && s.yAxisIndex > orphanYi ? s.yAxisIndex - 1 : s.yAxisIndex,
-    })),
-    yAxes: yAxes.filter((_a, idx) => idx !== orphanYi),
-});
-
-/**
  * Drop EVERY orphan axis (no series on it) and re-index the survivors (ADR-0033 — mode-switch orphan-
- * prune). The bulk form of {@link dropOrphanAxis}: a data-mode switch is a *bulk series-leave* — the
- * referencing series set changes wholesale (JSON overlay ↔ `state.series`) — so the same orphan-check
- * that runs on a single series-leave (delete/rebind, ADR-0025) runs here for all orphans at once.
+ * prune). A data-mode switch is a *bulk series-leave* — the referencing series set changes wholesale
+ * (JSON overlay ↔ `state.series`) — and an unbound axis deliberately does NOT survive a JSON
+ * interlude (ADR-0066), so the orphan-check prunes here.
  *
  * **Axis 0 always survives** (when present): it is the canonical axis the cartesian builder always
  * renders (its `[{}]` fallback) and that the load legacy-fallback restores for an empty blob — so a

@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Linee di separazione",
     "echarts_axis_tick_color": "Colore delle tacche",
     "echarts_axis_tick_show": "Mostra tacche",
+    "echarts_axis_unbound": "inutilizzata",
+    "echarts_axis_unbound_hint": "A quest'asse non è assegnata nessuna serie, quindi non viene disegnato nel grafico. Assegna una serie per mostrarlo di nuovo.",
     "echarts_background": "Sfondo",
     "echarts_bar_diff": "Differenza tra barre",
     "echarts_bar_interval": "Intervallo barre",

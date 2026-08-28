@@ -9,10 +9,10 @@ import {
     alignTicksDisabledByOverride,
     axisLayout,
     axisPosition,
-    dropOrphanAxis,
+    boundAxisIndices,
     effectiveAxisColor,
     effectiveAxisName,
-    isOneToOne,
+    isOneToOneBound,
     packStaggeredAxes,
     pruneOrphanAxes,
     reconcileJsonAxes,
@@ -37,13 +37,24 @@ describe('axisLayout — stable identity', () => {
 });
 
 describe('axisLayout — predicates', () => {
-    it('isOneToOne is true for the default binding (series j → axis j)', () => {
-        expect(isOneToOne([{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }])).toBe(true);
+    it('isOneToOneBound is true for the default binding (series j → axis j)', () => {
+        expect(isOneToOneBound([{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }])).toBe(true);
     });
 
-    it('isOneToOne is false once a series is rebound away from its slot', () => {
-        expect(isOneToOne([{ yAxisIndex: 0 }, { yAxisIndex: 0 }, { yAxisIndex: 2 }])).toBe(false);
-        expect(isOneToOne([])).toBe(true); // vacuously true
+    it('isOneToOneBound ignores unbound axes — a rebound series that left a hole still owns its axis', () => {
+        // Series 0 rebound onto axis 1 → axis 0 unbound; series 1 stays on axis 2. Each series
+        // still sits on its OWN bound axis → dense (ADR-0066: the hole does not make it shared).
+        expect(isOneToOneBound([{ yAxisIndex: 1 }, { yAxisIndex: 2 }])).toBe(true);
+    });
+
+    it('isOneToOneBound is false when an axis is genuinely shared (2+ series on it)', () => {
+        expect(isOneToOneBound([{ yAxisIndex: 0 }, { yAxisIndex: 0 }, { yAxisIndex: 2 }])).toBe(false);
+        expect(isOneToOneBound([])).toBe(true); // vacuously true
+    });
+
+    it('boundAxisIndices collects the referenced indices (undefined → 0, like the builder)', () => {
+        expect(boundAxisIndices([{ yAxisIndex: 0 }, { yAxisIndex: 2 }, {}])).toEqual(new Set([0, 2]));
+        expect(boundAxisIndices([])).toEqual(new Set());
     });
 
     it('axisPosition is pure geometry (no id), safe to re-spread without clobbering identity', () => {
@@ -179,50 +190,6 @@ describe('alignTicksDisabledByOverride — tick override defeats alignment (ADR-
         expect(
             alignTicksDisabledByOverride({ position: 'right', offset: 80, log: true, color: '#f00', name: 'kW' }),
         ).toBe(false);
-    });
-});
-
-describe('dropOrphanAxis — orphan cleanup on series-leave (ADR-0025)', () => {
-    it('drops the orphan axis and shifts higher yAxisIndex down by 1', () => {
-        const series = [{ yAxisIndex: 0 }, { yAxisIndex: 2 }, { yAxisIndex: 3 }];
-        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }];
-        const out = dropOrphanAxis(series, yAxes, 1); // axis 1 orphaned
-        expect(out.yAxes.map(a => a.name)).toEqual(['A', 'C', 'D']); // axis 1 removed
-        expect(out.series.map(s => s.yAxisIndex)).toEqual([0, 1, 2]); // >1 shifted down
-    });
-
-    it('leaves series on lower axes unchanged', () => {
-        const series = [{ yAxisIndex: 0 }, { yAxisIndex: 0 }, { yAxisIndex: 2 }];
-        const yAxes: EchartsAxisConfig[] = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
-        const out = dropOrphanAxis(series, yAxes, 1);
-        expect(out.series.map(s => s.yAxisIndex)).toEqual([0, 0, 1]); // the two on axis 0 stay
-    });
-
-    it('does NOT re-stagger — offsets are unchanged (the caller applies the restagger policy)', () => {
-        const yAxes: EchartsAxisConfig[] = [
-            { position: 'left', offset: 0 },
-            { position: 'left', offset: 160 },
-        ];
-        const out = dropOrphanAxis([], yAxes, 0);
-        expect(out.yAxes.map(a => a.offset)).toEqual([160]); // not packed to 0
-    });
-
-    it('preserves survivor identity + fields', () => {
-        const yAxes: EchartsAxisConfig[] = [
-            { id: 'a', name: 'A', color: '#f00' },
-            { id: 'b', name: 'B' },
-        ];
-        const out = dropOrphanAxis([], yAxes, 0);
-        expect(out.yAxes).toEqual([{ id: 'b', name: 'B' }]);
-    });
-
-    it('leaves a series bound to the orphan index untouched (caller guarantees no survivors on it)', () => {
-        // The rebound series in a rebind already carries its NEW yAxisIndex; dropOrphanAxis only
-        // re-indexes around the dropped slot. A series still pointing at the orphan index (should not
-        // happen post-orphan-check) is left as-is — defensive.
-        const series = [{ yAxisIndex: 1 }];
-        const out = dropOrphanAxis(series, [{ name: 'A' }, { name: 'B' }], 1);
-        expect(out.series).toEqual([{ yAxisIndex: 1 }]);
     });
 });
 

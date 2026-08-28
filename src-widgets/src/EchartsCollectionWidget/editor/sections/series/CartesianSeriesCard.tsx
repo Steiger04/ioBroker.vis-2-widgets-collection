@@ -50,7 +50,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
-import { effectiveAxisName } from '../../axisLayout';
+import { boundAxisIndices, effectiveAxisName } from '../../axisLayout';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -640,7 +640,7 @@ interface CartesianSeriesListProps {
     onMove: (i: number, dir: -1 | 1) => void;
     onDuplicate: (i: number) => void;
     onAddWithOid: (oid: string) => void;
-    /** Rebind a series to a different axis (orphan-cleans the old axis, ADR-0025). */
+    /** Rebind a series to a different axis (the old axis turns unbound, ADR-0066 — kept, not dropped). */
     onRebindAxis: (i: number, yAxisIndex: number) => void;
 }
 
@@ -663,8 +663,13 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
     // Effective axis names for the per-series binding dropdown (ADR-0025): explicit name → inherited
-    // from the first bound series → 1-based index. Matches the chart + the Axis-card title.
-    const axisDisplayNames = state.yAxes.map((a, ai) => effectiveAxisName(a, ai, series));
+    // from the first bound series → 1-based index. Matches the chart + the Axis-card title. An
+    // unbound axis (ADR-0066) keeps its slot with an „unbenutzt" suffix — the resting state is
+    // visible exactly where the re-assignment happens.
+    const bound = boundAxisIndices(series);
+    const axisDisplayNames = state.yAxes.map(
+        (a, ai) => effectiveAxisName(a, ai, series) + (bound.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
+    );
     return (
         <Box>
             {series.length === 0 && (

@@ -123,6 +123,8 @@
     "echarts_axis_splitline": "Split lines",
     "echarts_axis_tick_color": "Tick colour",
     "echarts_axis_tick_show": "Show ticks",
+    "echarts_axis_unbound": "unused",
+    "echarts_axis_unbound_hint": "No series is assigned to this axis, so it is not rendered on the chart. Assign a series to it to show it again.",
     "echarts_background": "Background",
     "echarts_bar_diff": "Difference between bars",
     "echarts_bar_interval": "Bar interval",
