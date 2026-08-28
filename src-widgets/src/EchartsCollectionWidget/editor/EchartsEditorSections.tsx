@@ -29,7 +29,13 @@ import LegendSection from './sections/LegendSection';
 import ToolboxSection from './sections/ToolboxSection';
 import TooltipSection from './sections/TooltipSection';
 import { sectionSummaries } from './summaries';
-import { familySwitchLoss, familySwitchSnippetLoss, type SectionIssues, type SectionKey } from './validation';
+import {
+    familySwitchLoss,
+    familySwitchSnippetLoss,
+    jsonBoundaryLoss,
+    type SectionIssues,
+    type SectionKey,
+} from './validation';
 import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
@@ -126,6 +132,9 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     // ADR-0042: activations the family switch would prune on Apply — advised beside the bound-OID
     // loss; the prune itself rides Apply (nothing is dropped at switch time).
     const snippetLoss = familySwitchSnippetLoss(state);
+    // The JSON-boundary reset warning (ADR-0067): a non-blocking chip at the mode toggle, shown
+    // BEFORE the crossing — what the next into/out-of-JSON switch deletes from the current state.
+    const boundaryLoss = jsonBoundaryLoss(state, jsonSeriesNames ?? []);
 
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
@@ -248,10 +257,25 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     set={set}
                 />
                 {modeRelevant ? (
-                    <ModeSelect
-                        state={state}
-                        set={set}
-                    />
+                    <Box>
+                        <ModeSelect
+                            state={state}
+                            set={set}
+                        />
+                        {(boundaryLoss.series > 0 || boundaryLoss.axes > 0) && (
+                            <Alert
+                                severity="warning"
+                                variant="outlined"
+                                sx={{ py: 0, mt: 1 }}
+                            >
+                                {Generic.t(
+                                    'echarts_mode_boundary_loss',
+                                    String(boundaryLoss.series),
+                                    String(boundaryLoss.axes),
+                                )}
+                            </Alert>
+                        )}
+                    </Box>
                 ) : (
                     <Box>
                         <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>

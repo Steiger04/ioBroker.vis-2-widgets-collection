@@ -203,6 +203,7 @@
     "echarts_editor_valid_json": "✓ JSON de présentation valide",
     "echarts_family_loss": "Passer à %s supprimerait %s OID(s) lié(s)",
     "echarts_family_loss_snippets": "%s modèle(s) actif(s) seront supprimés lors de l'application",
+    "echarts_mode_boundary_loss": "Le passage à ou depuis JSON supprime %s séries et %s axes",
     "echarts_font_style": "Style de police",
     "echarts_font_style_italic": "Italique",
     "echarts_font_style_normal": "Normal",

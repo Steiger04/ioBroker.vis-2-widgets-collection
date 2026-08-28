@@ -203,6 +203,7 @@
     "echarts_editor_valid_json": "✓ poprawny JSON prezentacji",
     "echarts_family_loss": "Przełączenie na %s spowoduje porzucenie %s powiązanych OID",
     "echarts_family_loss_snippets": "%s aktywny(ch) szablon(ów) zostanie usunięty(ch) przy zastosowaniu",
+    "echarts_mode_boundary_loss": "Zmiana na JSON lub z JSON usunie %s serie i %s osie",
     "echarts_font_style": "Styl czcionki",
     "echarts_font_style_italic": "Kursywa",
     "echarts_font_style_normal": "Normalny",

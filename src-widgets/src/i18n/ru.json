@@ -203,6 +203,7 @@
     "echarts_editor_valid_json": "✓ корректный JSON представления",
     "echarts_family_loss": "Переключение на %s приведет к удалению %s привязанных OID",
     "echarts_family_loss_snippets": "%s активных шаблон(ов) будут удалены при применении",
+    "echarts_mode_boundary_loss": "Переключение на JSON или обратно удалит %s серий и %s осей",
     "echarts_font_style": "Стиль шрифта",
     "echarts_font_style_italic": "Курсив",
     "echarts_font_style_normal": "Обычный",

@@ -203,6 +203,7 @@
     "echarts_editor_valid_json": "✓ gültiges Präsentations-JSON",
     "echarts_family_loss": "Wechsel zu %s würde %s gebundene OID(s) verwerfen",
     "echarts_family_loss_snippets": "%s aktive Vorlage(n) werden beim Übernehmen entfernt",
+    "echarts_mode_boundary_loss": "Der Wechsel zu oder von JSON löscht %s Serien und %s Achsen",
     "echarts_font_style": "Schriftstil",
     "echarts_font_style_italic": "Kursiv",
     "echarts_font_style_normal": "Normal",

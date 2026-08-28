@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { familySwitchLoss, familySwitchSnippetLoss, validateEditor } from './validation';
+import { familySwitchLoss, familySwitchSnippetLoss, jsonBoundaryLoss, validateEditor } from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -223,5 +223,58 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
         expect(familySwitchSnippetLoss(st({ chartType: 'gauge', series: [{ oid: '', name: '' }] }))).toBe(0);
         expect(familySwitchSnippetLoss(st({ chartType: 'radar' }))).toBe(0);
         expect(familySwitchSnippetLoss(st({ chartType: 'pie' }))).toBe(0);
+    });
+});
+
+describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR-0067)', () => {
+    it('history/live counts the authored series + axes that fall on JSON entry', () => {
+        const loss = jsonBoundaryLoss(
+            st({
+                mode: 'history',
+                series: [{ oid: 'a' }, { oid: 'b' }],
+                yAxes: [{ position: 'left' }, { position: 'right' }, { position: 'left', offset: 80 }],
+            }),
+        );
+        expect(loss).toEqual({ series: 2, axes: 3 });
+    });
+
+    it('json counts the VISIBLE payload series — hidden names never count', () => {
+        const loss = jsonBoundaryLoss(
+            st({
+                mode: 'json',
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+                jsonHidden: ['B'],
+            }),
+            ['A', 'B', 'C'],
+        );
+        expect(loss).toEqual({ series: 2, axes: 2 });
+    });
+
+    it('json without live names falls back to the stored unhidden overlay entries', () => {
+        const loss = jsonBoundaryLoss(
+            st({
+                mode: 'json',
+                jsonSeriesStyle: { Temp: { yAxisIndex: 0 }, Power: { yAxisIndex: 1 } },
+                jsonHidden: ['Power'],
+            }),
+        );
+        expect(loss.series).toBe(1);
+    });
+
+    it('a live preview is AUTHORITATIVE — all names hidden means zero, stale overlay entries do not resurrect', () => {
+        const loss = jsonBoundaryLoss(
+            st({
+                mode: 'json',
+                jsonSeriesStyle: { Stale: { yAxisIndex: 0 } }, // not in the payload anymore
+                jsonHidden: ['A'],
+            }),
+            ['A'],
+        );
+        expect(loss.series).toBe(0);
+    });
+
+    it('an empty data path loses nothing — zero/zero renders no chip', () => {
+        expect(jsonBoundaryLoss(st({ mode: 'history' }))).toEqual({ series: 0, axes: 0 });
+        expect(jsonBoundaryLoss(st({ mode: 'json', yAxes: [] }), [])).toEqual({ series: 0, axes: 0 });
     });
 });

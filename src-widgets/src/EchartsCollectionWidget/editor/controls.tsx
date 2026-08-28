@@ -14,6 +14,7 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
 import Generic from '../../Generic';
 import { FieldLabel, InfoBox } from '../../components/controls';
+import { crossesJsonBoundary, dataPathReset } from './lifecycleGuards';
 import type { SetEditor, EditorState } from './editorState';
 import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
@@ -206,8 +207,15 @@ const MODE_HINTS: Record<EchartsMode, string> = {
 };
 
 /** Per-widget data mode (chart-global, not per-series). */
-/** The mode select's field ownership (ADR-0049 slice) — the pinned rail selector (+ the static-window read for the Live disable, ADR-0063). */
-export type ModeSelectSlice = Pick<EditorState, 'mode' | 'timeType'>;
+/**
+ * The mode select's field ownership (ADR-0049 slice) — the pinned rail selector (+ the static-window
+ * read for the Live disable, ADR-0063) AND the JSON-boundary data-path reset (ADR-0067): the
+ * crossing patch carries the reset keys, so the slice owns every field the handler writes.
+ */
+export type ModeSelectSlice = Pick<
+    EditorState,
+    'mode' | 'timeType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+>;
 
 export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectSlice> }> = ({ state, set }) => (
     <Box>
@@ -216,7 +224,19 @@ export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectS
             exclusive
             size="small"
             value={state.mode}
-            onChange={(_, v: EchartsMode | null) => v && set({ mode: v })}
+            onChange={(_, v: EchartsMode | null) => {
+                if (!v) {
+                    return;
+                }
+                // JSON boundary (ADR-0067): crossing into or out of JSON deletes the whole data
+                // path IMMEDIATELY — mode flip + reset in ONE patch, so undo restores both in a
+                // single step. Verlauf↔Live shares the series structure: plain flip, no reset.
+                set(
+                    v !== state.mode && crossesJsonBoundary(state.mode, v)
+                        ? { mode: v, ...dataPathReset(state) }
+                        : { mode: v },
+                );
+            }}
         >
             <ToggleButton value="history">{Generic.t('echarts_mode_history')}</ToggleButton>
             {/* A STATIC time window (ADR-0063) disables Live: a rolling subscribed buffer has no

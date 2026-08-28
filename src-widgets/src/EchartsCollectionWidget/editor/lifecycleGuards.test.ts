@@ -14,7 +14,13 @@ import { describe, expect, it } from 'vitest';
 
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './editorState';
-import { healStableIds, loadedOidCount, reconcileJsonAxesStep } from './lifecycleGuards';
+import {
+    crossesJsonBoundary,
+    dataPathReset,
+    healStableIds,
+    loadedOidCount,
+    reconcileJsonAxesStep,
+} from './lifecycleGuards';
 
 const state = (overrides: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...overrides });
 
@@ -179,5 +185,61 @@ describe('loadedOidCount', () => {
             ],
         });
         expect(loadedOidCount(line)).toBe(4);
+    });
+});
+
+describe('JSON-boundary data-path reset (ADR-0067)', () => {
+    it('crossesJsonBoundary fires on into-JSON and out-of-JSON — never on Verlauf↔Live', () => {
+        expect(crossesJsonBoundary('history', 'json')).toBe(true);
+        expect(crossesJsonBoundary('live', 'json')).toBe(true);
+        expect(crossesJsonBoundary('json', 'history')).toBe(true);
+        expect(crossesJsonBoundary('json', 'live')).toBe(true);
+        expect(crossesJsonBoundary('history', 'live')).toBe(false);
+        expect(crossesJsonBoundary('live', 'history')).toBe(false);
+    });
+
+    it('dataPathReset empties the ENTIRE data path — series, axes, markings, JSON state, indicators', () => {
+        const patch = dataPathReset(
+            state({
+                series: [{ oid: 'a', id: 's0' }],
+                yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
+                markLines: [{ id: 'm0', upper: 50 }],
+                jsonSeriesStyle: { Temp: { yAxisIndex: 0 } },
+                jsonHidden: ['Temp'],
+                jsonOid: 'dev.payload',
+                radar: { indicators: [{ name: 'T', oid: 'o', id: 'i0' }], shape: 'circle', splitNumber: 4 },
+            }),
+        );
+        expect(patch.series).toEqual([]);
+        expect(patch.yAxes).toEqual([]); // 0-axes start — the reconcile rebuilds 1:1 on JSON entry
+        expect(patch.markLines).toEqual([]);
+        expect(patch.jsonSeriesStyle).toEqual({});
+        expect(patch.jsonHidden).toEqual([]);
+        expect(patch.jsonOid).toBe('');
+        expect(patch.radar).toEqual({ indicators: [], shape: 'circle', splitNumber: 4 });
+    });
+
+    it('dataPathReset never touches the presentation — the patch keys are the data path alone', () => {
+        const presentational = state({
+            titleText: 'PV',
+            legendShow: false,
+            tooltipUnits: 'kW',
+            paletteSource: 'preset',
+            xAxis: { name: 'Zeit' },
+            dataZoomSlider: true,
+            timeRange: '7d',
+            aggregate: 'max',
+        });
+        const patch = dataPathReset(presentational);
+        // The presentation fields above are all UNTOUCHED — the patch carries data-path keys only.
+        expect(Object.keys(patch).sort()).toEqual([
+            'jsonHidden',
+            'jsonOid',
+            'jsonSeriesStyle',
+            'markLines',
+            'radar',
+            'series',
+            'yAxes',
+        ]);
     });
 });

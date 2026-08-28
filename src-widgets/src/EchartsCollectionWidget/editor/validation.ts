@@ -109,6 +109,29 @@ export const familySwitchLoss = (state: EditorState): number => {
 };
 
 /**
+ * What the NEXT JSON-boundary crossing (into or out of JSON, ADR-0067) deletes from the current
+ * state — the numbers of the mode-toggle warning chip. History/Live counts the authored series
+ * and axes that fall on JSON entry; JSON counts the VISIBLE payload series (the live-resolved
+ * names, falling back to the stored unhidden overlay entries when no payload preview exists) and
+ * the axes. Zero/zero loses nothing — no chip. Verlauf↔Live crosses nothing and never asks.
+ */
+export const jsonBoundaryLoss = (
+    state: EditorState,
+    jsonSeriesNames: readonly string[] = [],
+): { series: number; axes: number } => {
+    const unhidden = (names: readonly string[]): number => names.filter(n => !state.jsonHidden.includes(n)).length;
+    if (state.mode === 'json') {
+        // A live payload preview is authoritative (ALL visible names counted — zero when every
+        // name is hidden); the stored overlay entries are the fallback while no preview exists.
+        const series = jsonSeriesNames.length
+            ? unhidden(jsonSeriesNames)
+            : unhidden(Object.keys(state.jsonSeriesStyle));
+        return { series, axes: state.yAxes.length };
+    }
+    return { series: state.series.length, axes: state.yAxes.length };
+};
+
+/**
  * Count the ACTIVE template activations (ADR-0042) a chart-family switch would prune on Apply.
  * Advises beside {@link familySwitchLoss} — the same nothing-dropped-at-switch model: between the
  * switch and Apply the stale ids sit inert in the working copy, and the prune rides Apply.

@@ -217,8 +217,22 @@ describe('section slices (ADR-0049)', () => {
 
     it('the pinned rail selectors equal their ownership', () => {
         expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<Pick<EditorState, 'chartType'>>();
-        // + the static-window read that disables Live (ADR-0063)
-        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<Pick<EditorState, 'mode' | 'timeType'>>();
+        // + the static-window read that disables Live (ADR-0063) + the JSON-boundary data-path
+        // reset keys the crossing patch writes (ADR-0067)
+        expectTypeOf<ModeSelectSlice>().toEqualTypeOf<
+            Pick<
+                EditorState,
+                | 'mode'
+                | 'timeType'
+                | 'series'
+                | 'yAxes'
+                | 'markLines'
+                | 'jsonSeriesStyle'
+                | 'jsonHidden'
+                | 'jsonOid'
+                | 'radar'
+            >
+        >();
     });
 
     it('EditorThemeSource equals the theme-resolution read footprint', () => {

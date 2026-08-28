@@ -84,3 +84,31 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
  */
 export const loadedOidCount = (state: EditorState): number =>
     state.chartType === 'radar' ? state.radar.indicators.length : state.series.length;
+
+/**
+ * True when a mode switch crosses the **JSON boundary** — into JSON or out of it (ADR-0067).
+ * Verlauf↔Live shares the series structure and crosses nothing: `false`.
+ */
+export const crossesJsonBoundary = (from: EditorState['mode'], to: EditorState['mode']): boolean =>
+    (from === 'json') !== (to === 'json');
+
+/**
+ * The data-path patch a structural boundary reset applies (ADR-0067): series/OIDs, Y-axes (the
+ * 0-axes start — the JSON reconcile rebuilds 1:1 from the payload on entry), markings, the JSON
+ * overlay + deny-list + jsonOid (the leaving mode's data input), and the radar indicators. The
+ * radar SHAPE config survives (presentation); everything presentationary — title, legend,
+ * tooltip, colours, toolbox, raws, X-Karte, zoom, and the time window — is untouched.
+ *
+ * The caller merges this with the boundary flip (mode/chartType) into ONE `set()` patch, so undo
+ * restores the crossing AND the deletion together in a single step. The parameter is the radar
+ * read alone (the only field the patch derives from) — the mode toggle passes its slice.
+ */
+export const dataPathReset = (state: Pick<EditorState, 'radar'>): EditorPatch => ({
+    series: [],
+    yAxes: [],
+    markLines: [],
+    jsonSeriesStyle: {},
+    jsonHidden: [],
+    jsonOid: '',
+    radar: { ...state.radar, indicators: [] },
+});
