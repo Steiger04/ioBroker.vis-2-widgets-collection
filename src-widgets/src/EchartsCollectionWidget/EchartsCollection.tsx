@@ -36,6 +36,7 @@ import {
 } from './useChartPipeline';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
 import { parseZoomIdleSeconds } from './zoomIdleReset';
+import { resolvePaddingSx } from './paddingStyle';
 
 type ValuesMap = Record<string, ioBroker.StateValue | undefined>;
 
@@ -227,8 +228,8 @@ function EchartsCollection(): React.ReactElement {
         ],
     );
 
-    // Chart frame (parity Build D): container CSS around the chart area — the widget-body wrapper
-    // carries it, keyed on the frame scalars so an editor toggle re-renders (the chart option is
+    // Chart frame (parity Build D): container CSS around the chart area — the INNER box carries
+    // it, keyed on the frame scalars so an editor toggle re-renders (the chart option is
     // untouched — a frame is layout, not echarts presentation).
     const frameSx = useMemo(
         () =>
@@ -246,6 +247,21 @@ function EchartsCollection(): React.ReactElement {
         [dataKey, theme],
     );
 
+    // Chart padding (4-side, panel-owned): the OUTER box carries it (widget edge → padding →
+    // frame → chart), additive beneath basePadding. MUI spacing units, border-box keeps the
+    // widget bounds; 0 on every side emits nothing — pixel-identical to the single-box era.
+    const paddingSx = useMemo(
+        () =>
+            resolvePaddingSx({
+                top: data.paddingTop,
+                right: data.paddingRight,
+                bottom: data.paddingBottom,
+                left: data.paddingLeft,
+            }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [dataKey],
+    );
+
     return (
         <CollectionBase
             isValidType
@@ -253,51 +269,60 @@ function EchartsCollection(): React.ReactElement {
         >
             <Box
                 sx={{
-                    position: 'relative',
                     width: '100%',
                     height: '100%',
-                    ...(frameSx ?? {}),
+                    boxSizing: 'border-box',
+                    ...paddingSx,
                 }}
             >
-                {loading && (
-                    <CircularProgress
-                        size={24}
-                        sx={{ position: 'absolute', top: 8, right: 8 }}
-                    />
-                )}
-                {error && (
-                    <Typography
-                        color="error"
-                        variant="caption"
-                        sx={{ position: 'absolute', top: 8, left: 8, right: 40 }}
-                    >
-                        {error}
-                    </Typography>
-                )}
-                {hasData ? (
-                    <EChart
-                        option={option}
-                        renderer={data.renderer}
-                        zoomIdleResetSec={parseZoomIdleSeconds(data.zoomResetAfterIdle)}
-                    />
-                ) : error ? null : (
-                    <Box
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
+                <Box
+                    sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        ...(frameSx ?? {}),
+                    }}
+                >
+                    {loading && (
+                        <CircularProgress
+                            size={24}
+                            sx={{ position: 'absolute', top: 8, right: 8 }}
+                        />
+                    )}
+                    {error && (
                         <Typography
-                            variant="body2"
-                            sx={{ color: 'primary.main', textAlign: 'center' }}
+                            color="error"
+                            variant="caption"
+                            sx={{ position: 'absolute', top: 8, left: 8, right: 40 }}
                         >
-                            {placeholder}
+                            {error}
                         </Typography>
-                    </Box>
-                )}
+                    )}
+                    {hasData ? (
+                        <EChart
+                            option={option}
+                            renderer={data.renderer}
+                            zoomIdleResetSec={parseZoomIdleSeconds(data.zoomResetAfterIdle)}
+                        />
+                    ) : error ? null : (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Typography
+                                variant="body2"
+                                sx={{ color: 'primary.main', textAlign: 'center' }}
+                            >
+                                {placeholder}
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
             </Box>
         </CollectionBase>
     );

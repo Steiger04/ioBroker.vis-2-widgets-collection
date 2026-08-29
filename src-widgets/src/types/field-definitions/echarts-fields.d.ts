@@ -1056,4 +1056,15 @@ export interface EchartsFieldsRxData {
     frameStyle?: EchartsFrameStyle;
     /** Frame inner padding (px, the adapter's "Randabstand"). @default 0 */
     framePadding?: number;
+
+    // ── Chart padding (`.scratch/chart-padding/`) — container CSS, not an echarts option ──
+
+    /** Chart padding top (MUI spacing units, 1 = 8 px). @default 0 */
+    paddingTop?: number;
+    /** Chart padding bottom (MUI spacing units, 1 = 8 px). @default 0 */
+    paddingBottom?: number;
+    /** Chart padding left (MUI spacing units, 1 = 8 px). @default 0 */
+    paddingLeft?: number;
+    /** Chart padding right (MUI spacing units, 1 = 8 px). @default 0 */
+    paddingRight?: number;
 }

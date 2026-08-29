@@ -3,9 +3,10 @@
  *
  * @module lib/echartsFields
  * @remarks
- * The modal editor is the sole editor for every chart-specific field (map decision 06), so
- * the `chart` group exposes only the "Edit chart configuration" trigger; all scalars and the
- * `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
+ * The modal editor is the sole editor for every chart-specific field (map decision 06); the
+ * `chart` group exposes the "Edit chart configuration" trigger plus the four panel-owned chart
+ * padding sliders (layout, not chart config — `.scratch/chart-padding/`); all other scalars and
+ * the `seriesConfig` / `toolboxConfig` blobs are hidden rxData fields (defaults still seed on
  * widget creation). The indexed `series` group (auto-subscribed `oid1..oidN`) is declared in
  * getWidgetInfo; its OID field is hidden too (the modal writes `oidN` directly).
  *
@@ -31,6 +32,51 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         label: 'echarts_editor_edit_config',
         type: 'custom',
         component: EchartsConfigEditor,
+    },
+
+    // ── Chart padding (4-side, panel-owned layout — not chart config; .scratch/chart-padding/) ──
+    // MUI spacing units like basePadding; CSS on the chart wrapper OUTSIDE the frame, additive
+    // beneath basePadding. Default 0 = pixel-identical (the resolver emits no sx key).
+    {
+        label: '',
+        type: 'custom',
+        component: () => <CollectionDivider dividerText="echarts_padding" />,
+    },
+    {
+        name: 'paddingTop',
+        label: 'echarts_padding_top',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 0.1,
+        default: 0,
+    },
+    {
+        name: 'paddingBottom',
+        label: 'echarts_padding_bottom',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 0.1,
+        default: 0,
+    },
+    {
+        name: 'paddingLeft',
+        label: 'echarts_padding_left',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 0.1,
+        default: 0,
+    },
+    {
+        name: 'paddingRight',
+        label: 'echarts_padding_right',
+        type: 'slider',
+        min: 0,
+        max: 10,
+        step: 0.1,
+        default: 0,
     },
 
     // ── Modal-owned scalars (hidden; edited via the modal) ───────────
