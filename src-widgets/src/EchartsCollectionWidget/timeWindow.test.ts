@@ -142,8 +142,45 @@ describe('resolveTimeWindow — static', () => {
 
 describe('resolveTimeWindow — the full 18×17 sweep (acceptance [4])', () => {
     it('every range × relativeEnd combination yields a finite, ordered window', () => {
-        const RANGES = ['10m','30m','1h','2h','3h','6h','12h','1d','2d','3d','7d','14d','1m','2m','3m','6m','1y','2y'];
-        const ENDS = ['now','1minute','5minutes','10minutes','30minutes','1hour','2hours','3hours','4hours','6hours','8hours','12hours','today','weekEurope','weekUsa','month','year'];
+        const RANGES = [
+            '10m',
+            '30m',
+            '1h',
+            '2h',
+            '3h',
+            '6h',
+            '12h',
+            '1d',
+            '2d',
+            '3d',
+            '7d',
+            '14d',
+            '1m',
+            '2m',
+            '3m',
+            '6m',
+            '1y',
+            '2y',
+        ];
+        const ENDS = [
+            'now',
+            '1minute',
+            '5minutes',
+            '10minutes',
+            '30minutes',
+            '1hour',
+            '2hours',
+            '3hours',
+            '4hours',
+            '6hours',
+            '8hours',
+            '12hours',
+            'today',
+            'weekEurope',
+            'weekUsa',
+            'month',
+            'year',
+        ];
         const now = ts(2026, 8, 24, 15, 30, 45);
         for (const range of RANGES) {
             for (const end of ENDS) {

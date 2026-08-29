@@ -209,6 +209,10 @@ const LEVELS: LevelAccess[] = [
         { drop: [], absent: undefined },
         {
             storeItem: (data, item) => {
+                // The axis needs a binder to survive the ADR-0069 load heal (history/live sight).
+                data.series_count = 1;
+                data.oid1 = 'adapter.0.axisraw';
+                data.seriesConfig = encodeBlob(JSON.stringify([{ name: 'S1', yAxisIndex: 0 }]));
                 data.yAxes = encodeBlob(JSON.stringify([{ position: 'left', splitLine: true, ...item }]));
             },
             loadedItem: state => state.yAxes[0] as Item | undefined,

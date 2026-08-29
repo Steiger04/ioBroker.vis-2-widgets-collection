@@ -550,9 +550,10 @@ export const buildCartesianOption = (
     p: PresentationConfig,
 ): EChartsOption => {
     // Guarantee ≥1 Y-axis: the editor allows deleting every axis (the last one too), but a cartesian
-    // chart must always render at least one value axis. An empty `p.yAxes` — or one where EVERY
-    // axis is unbound (no series binds it, ADR-0066) — falls back to a single default-config axis
-    // (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves exactly that.
+    // chart must always render at least one value axis. An empty `p.yAxes` — or one where every
+    // axis is unbound (only reachable through hand-edited JSON since ADR-0069) — falls back to a
+    // single default-config axis (left, splitLine on) — `buildYAxisEntry({}, 0, 1)` resolves
+    // exactly that.
     const allAxes: readonly EchartsAxisConfig[] = p.yAxes.length ? p.yAxes : [{}];
     const total = allAxes.length;
     // The chart-level value-format context (ADR-0057): the comma switch + the tooltip cluster as
@@ -598,7 +599,7 @@ export const buildCartesianOption = (
         }
         for (const [ax, marks] of byAxis) {
             if (!boundAxes.has(ax)) {
-                continue; // target axis unbound (or a stale index) — the marking rests
+                continue; // target axis unbound (hand-edited JSON / stale index) — the marking rests
             }
             const host = entries.find(e => e.yAxisIndex === ax);
             if (!host) {
@@ -688,7 +689,8 @@ export const buildCartesianOption = (
     const spanMs = p.barCategories?.length
         ? Math.max(...p.barCategories) - Math.min(...p.barCategories)
         : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
-    // Y-axes: one entry per BOUND axis (ADR-0012; unbound axes rest, ADR-0066). position/offset place them side-by-side;
+    // Y-axes: one entry per BOUND axis (ADR-0012; the bound-only filter is hand-edited-JSON
+    // defense since ADR-0069 — in-state every axis is bound). position/offset place them side-by-side;
     // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
     // the axis colour AND name default to the axis' OWNER series' effective values when neither is
     // explicit (ADR-0018; owner-first since ADR-0068 — the incumbent series keeps the identity, a

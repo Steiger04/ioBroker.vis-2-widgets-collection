@@ -27,7 +27,7 @@ import {
     SeriesTransformFields,
     SeriesValueFormatFields,
 } from './CartesianSeriesCard';
-import { axisOptionLabel, boundJsonAxisIndices, jsonBindingView } from '../../axisLayout';
+import { axisOptionLabel, jsonBindingView } from '../../axisLayout';
 import { SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -55,7 +55,7 @@ interface JsonSeriesCardsProps {
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdateJson: (name: string, patch: Partial<EchartsSeriesMeta>) => void;
-    /** Rebind a JSON payload series to a different axis (sticky; the freed axis rests unbound, ADR-0066). */
+    /** Rebind a JSON payload series to a different axis (sticky; the freed axis dies, ADR-0069). */
     onRebindJsonAxis: (name: string, yAxisIndex: number) => void;
     onHideJson: (name: string) => void;
     onShowJson: (name: string) => void;
@@ -95,21 +95,14 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
     const duplicateNames = jsonSeriesNames.filter((n, i) => jsonSeriesNames.indexOf(n) !== i);
     const defaultType = state.chartType as EchartsCartesianType;
     const isPie = state.chartType === 'pie';
-    // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit → inherited
-    // from the first overlay entry bound to the axis → 1-based index. The label carries the
-    // 1-BASED AXIS NUMBER (B1) — the name alone collides after a rebind (the rebind's own
-    // series becomes the target axis' first binder while the vacated axis keeps the same name
-    // as its resting name). An axis no visible entry binds is unbound (ADR-0066) — suffix it so
-    // the resting state is visible at the point of assignment (identical to the history/live
-    // dropdown). The binding sight is the SHARED jsonBindingView (the `||` name semantics) — a
-    // hand-mapped `??` variant would diverge on an overlay entry with an empty-string name.
+    // Effective axis names for the per-series binding dropdown (ADR-0025/0026): explicit →
+    // inherited from the owner overlay entry → 1-based index. The label carries the 1-BASED
+    // AXIS NUMBER (B1): unnamed payload series can share effective labels across axes, and a
+    // rebind death re-numbers every follower (ADR-0069). The binding sight is the SHARED
+    // jsonBindingView (the `||` name semantics) — a hand-mapped `??` variant would diverge on
+    // an overlay entry with an empty-string name.
     const overlaySeries = jsonBindingView(jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden);
-    const boundJson = boundJsonAxisIndices(jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden);
-    const axisDisplayNames = state.yAxes.map(
-        (a, ai) =>
-            axisOptionLabel(ai, a, overlaySeries) +
-            (boundJson.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
-    );
+    const axisDisplayNames = state.yAxes.map((a, ai) => axisOptionLabel(ai, a, overlaySeries));
 
     return (
         <Box>
@@ -213,8 +206,8 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 meta={m}
                                 defaultType={defaultType}
                                 onPatch={p =>
-                                    // A yAxisIndex change rebinds (the freed axis rests unbound,
-                                    // ADR-0066); every other field updates the overlay entry in place.
+                                    // A yAxisIndex change rebinds (the freed axis dies, ADR-0069);
+                                    // every other field updates the overlay entry in place.
                                     p.yAxisIndex !== undefined
                                         ? onRebindJsonAxis(name, p.yAxisIndex)
                                         : onUpdateJson(name, p)

@@ -5,9 +5,10 @@
  * @module EchartsCollectionWidget/editor/sections/SeriesSection
  * @remarks
  * This file is the thin dispatcher: it owns the shared series state orchestration (add / remove /
- * move / duplicate incl. the 1:1 auto-axis pair semantics of ADR-0018 and the bound-axes
- * auto-balance of ADR-0067, and the JSON overlay + hide/show deny-list of ADR-0011) and renders
- * the family-specific view:
+ * move / duplicate incl. the 1:1 auto-axis pair semantics of ADR-0018, the axis death of ADR-0069
+ * — a series leaving its axis drops it when no binder remains — the bound-axes auto-balance of
+ * ADR-0067, and the JSON overlay + hide/show deny-list of ADR-0011) and renders the
+ * family-specific view:
  *  - cartesian — {@link CartesianSeriesList}: EditorCards (swatch, name, OID, ↑↓, duplicate,
  *    delete) expanding to the type-sensitive knob SubGroups.
  *  - pie — {@link PieSliceRows}: name + OID + colour + delete rows. (The OID picker was missing in
@@ -16,12 +17,15 @@
  *  - radar — {@link RadarIndicators}: the indicator-OID list + polygon label/colour.
  *  - json (cartesian + pie) — {@link JsonSeriesCards}: one card per payload series.
  *
- * Validation issues surface as a compact warning list on top (they are item-scoped).
+ * Validation issues surface as a compact warning list on top (they are item-scoped). An axis death
+ * by side effect (series-delete, rebind, JSON hide) reports through the ADR-0069 snackbar with an
+ * undo action (the triggering `set` IS the undoable step).
  */
 import { useEffect, useRef, useState, type FC } from 'react';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 import Generic from '../../../Generic';
+import NoticeSnackbar from '../../components/NoticeSnackbar';
 import { InfoBox } from '../../../components/controls';
 import { useEditorTheme } from '../useEditorTheme';
 import { useHistoryInstances } from '../useHistoryInstances';
@@ -31,13 +35,16 @@ import type { OidPickerCtx } from '../OidPicker';
 import type { ValidationIssue } from '../validation';
 import type { EditorSeries, EditorState, SetEditor } from '../editorState';
 import {
+    axesFollowBinders,
     axisLayout,
     balanceAxes,
     boundJsonView,
+    effectiveAxisName,
     isOneToOneBound,
+    jsonAxisDeathName,
     jsonShowPatch,
-    restingBalance,
-    restingNamePatch,
+    materializedAxisIndex,
+    reindexJsonOverlay,
 } from '../axisLayout';
 import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
@@ -50,7 +57,7 @@ import JsonSeriesCards from './series/JsonSeriesCards';
 /**
  * The series section dispatcher's field ownership (ADR-0049 slice) — the widest honest
  * slice: its own footprint (the family/mode split, the series orchestration incl. the
- * series-leave→unbound-axis semantics (ADR-0066), the JSON overlay + deny-list, the theme hook's 4 fields)
+ * ADR-0069 axis-death semantics, the JSON overlay + deny-list, the theme hook's 4 fields)
  * PLUS the union its sub-views consume (it hands them this same state object; each keeps
  * its own narrower slice at its own file head).
  */
@@ -60,6 +67,7 @@ export type SeriesSlice = Pick<
     | 'mode'
     | 'series'
     | 'yAxes'
+    | 'markLines'
     | 'gauge'
     | 'radar'
     | 'pie'
@@ -82,6 +90,12 @@ interface SeriesSectionProps {
     jsonSeriesNames?: string[];
     /** JSON mode: parse error from the jsonOid payload (shown instead of a silent blank). */
     jsonError?: string;
+    /**
+     * The editor's undo (ADR-0069 safety net) — powers the axis-death snackbar's action. The
+     * triggering `set` below is one history step, so undo restores series + axis + anchors
+     * together. Absent (tests, non-modal callers): the snackbar degrades to info-only.
+     */
+    undo?: () => void;
 }
 
 const SeriesSection: FC<SeriesSectionProps> = ({
@@ -91,6 +105,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     issues = [],
     jsonSeriesNames = [],
     jsonError,
+    undo,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -111,6 +126,22 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const series = state.series;
     const update = (i: number, patch: Partial<EditorSeries>): void =>
         set({ series: series.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
+
+    // The ADR-0069 axis-death snackbar: a death by side effect reports the lost axis(es) with an
+    // undo action (non-blocking; one set() = the undoable step). Explicit deletes stay silent.
+    const [axisDeath, setAxisDeath] = useState<string[] | null>(null);
+    const reportDeathsFor = (diedIndices: readonly number[]): void => {
+        if (!diedIndices.length) {
+            return;
+        }
+        setAxisDeath(
+            diedIndices.map(idx =>
+                isJson
+                    ? jsonAxisDeathName(state.yAxes[idx], idx, jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden)
+                    : effectiveAxisName(state.yAxes[idx], idx, series),
+            ),
+        );
+    };
 
     // OID → text facts (ADR-0058, parity Build B): resolve each NEWLY bound OID's object once
     // and prefill/clean the series' text fields (bool texts, enum state names). Runs on load too
@@ -148,34 +179,33 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 });
         }
     }, [series, pickerCtx.socket, set]);
-    // Series-leave keeps the axis (ADR-0066): deleting a series turns its bound axis UNBOUND iff no
-    // surviving series remains on it — kept with its config (a persistent resting state), never
-    // rendered until a series binds it again. Only an explicit axis-delete in the Axis manager
-    // removes an axis; no re-index here, so axis indices stay stable across deletes. The
-    // resting-name diff snapshots the vacated axis' displayed name FIRST (it inherited it from its
-    // series — without the snapshot the card/dropdowns would collapse to „Achse N"). Then the
-    // auto-balance (ADR-0067) re-arranges the surviving BOUND axes — dense standard interleaving;
-    // the unbound axis takes no slot and keeps its stored geometry. Cartesian only: the other
-    // families carry no axis bindings, so they pass through on the plain resting-name patch.
+    // Series-leave KILLS the axis (ADR-0069): deleting a series drops its bound axis when no
+    // surviving series remains on it — config gone, marking anchors re-indexed onto the stack
+    // predecessor, survivors re-numbered, the bound set re-arranged (ADR-0067), all in the ONE
+    // undoable step. Non-cartesian families carry no axis bindings — a plain series removal.
     const remove = (i: number): void => {
         const next = series.filter((_s, idx) => idx !== i);
         if (!isCartesian) {
-            const restedAxes = restingNamePatch(series, next, state.yAxes);
-            set(restedAxes ? { series: next, yAxes: restedAxes } : { series: next });
+            set({ series: next });
             return;
         }
-        set({ series: next, yAxes: restingBalance(series, next, state.yAxes) });
+        const r = axesFollowBinders(series, next, state.yAxes, state.markLines);
+        set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
+        reportDeathsFor(r.diedIndices);
     };
-    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). The OLD
-    // axis turns unbound when no series remains on it (ADR-0066) — it stays selectable in the
-    // dropdown with its config, and the builder simply stops emitting it (no phantom axis). No
-    // re-index: every other series' yAxisIndex keeps pointing at the same slot; the resting-name
-    // diff snapshots the vacated axis and clears the target's stale resting name. The auto-balance
-    // (ADR-0067) then re-arranges the (newly composed) bound set — one set() = one undo step.
-    // `update` handles every other field; yAxisIndex lands here, routed by the onPatch dispatcher.
+    // Rebind a series to a different axis via the per-series Y-axis dropdown (ADR-0025). A value
+    // ≥ yAxes.length is the „Neue Achse" entry (ADR-0069) — the axis is appended and bound in
+    // the same step, the replacement of the retired „Achse hinzufügen" button. The VACATED axis
+    // dies when no binder remains: dropped, its marking anchors follow the series onto the
+    // rebind target, survivors re-index and re-arrange — one set() = one undo step.
     const rebindAxis = (i: number, newYi: number): void => {
+        const append = newYi >= state.yAxes.length;
+        const yAxesNow = append ? [...state.yAxes, axisLayout(newYi)] : state.yAxes;
+        const from = materializedAxisIndex(series[i]);
         const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
-        set({ series: next, yAxes: restingBalance(series, next, state.yAxes) });
+        const r = axesFollowBinders(series, next, yAxesNow, state.markLines, { from, to: newYi });
+        set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
+        reportDeathsFor(r.diedIndices);
     };
     const move = (i: number, dir: -1 | 1): void => {
         const j = i + dir;
@@ -193,13 +223,12 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         if (!oid || oid === 'nothing_selected') {
             return;
         }
-        // Strict 1:1 auto-axis (ADR-0018/0066): a new cartesian series ALWAYS gets a fresh axis
-        // appended at the end — it never claims an unbound slot (that return path is the per-series
-        // dropdown's explicit assignment alone). Binding to `yAxes.length` (the appended index)
-        // rather than the series count also keeps shared-setups consistent. Colour + name are NOT
-        // written — the axis inherits both from the bound series at runtime. The auto-balance
-        // (ADR-0067) then re-arranges every bound axis densely (the fresh axis included — its
-        // appended index may interleave differently than its slot); unbound axes keep their spot.
+        // Strict 1:1 auto-axis (ADR-0018): a new cartesian series ALWAYS gets a fresh axis
+        // appended at the end. Binding to `yAxes.length` (the appended index) rather than the
+        // series count also keeps shared-setups consistent. Colour + name are NOT written — the
+        // axis inherits both from the bound series at runtime. The auto-balance (ADR-0067) then
+        // re-arranges every bound axis densely (the fresh axis included — its appended index may
+        // interleave differently than its slot).
         const axIdx = state.yAxes.length;
         const next = [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }];
         const patch: Partial<SeriesSlice> = { series: next };
@@ -216,11 +245,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         };
         const next = [...series.slice(0, i + 1), copy, ...series.slice(i + 1)];
         if (isCartesian) {
-            // 1:1 auto-axis (ADR-0018) — but only while every series owns its bound axis (dense,
-            // bound-aware since ADR-0066: unbound axes don't count). A genuinely shared axis (2+
-            // series on it) → the copy inherits the source's yAxisIndex instead, so duplicating
-            // never silently breaks a deliberate Shared-Axis setup. Either way a series-add is a
-            // structural event: the auto-balance (ADR-0067) runs over the resulting bound set.
+            // 1:1 auto-axis (ADR-0018) — but only while every series owns its axis (dense). A
+            // genuinely shared axis (2+ series on it) → the copy inherits the source's
+            // yAxisIndex instead, so duplicating never silently breaks a deliberate Shared-Axis
+            // setup. Either way a series-add is a structural event: the auto-balance (ADR-0067)
+            // runs over the resulting bound set.
             if (isOneToOneBound(series)) {
                 // Colour + name inherit the copy at runtime — not written (ADR-0018).
                 const axIdx = state.yAxes.length;
@@ -247,58 +276,78 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             },
         });
     // The JSON binding sight (shared pure helpers, local adapters closing over the names):
-    // `boundBindings` is the STRICT sight (ADR-0067) — DEFINED indices only, a cleared entry is
-    // unbound, never an implicit axis-0 binder. It feeds {@link restingBalance} for both halves —
-    // the resting diff materialises undefined→0 for the history/live sights (Q7), so JSON MUST
-    // feed it defined-only entries, which `boundBindings` guarantees.
+    // `boundBindings` is the STRICT sight — DEFINED indices only, a cleared entry is unbound,
+    // never an implicit axis-0 binder. It feeds {@link axesFollowBinders} for both halves.
     const boundBindings = (
         overlay: Readonly<Record<string, EchartsSeriesMeta>>,
         hidden: readonly string[],
     ): { yAxisIndex?: number }[] => boundJsonView(jsonSeriesNames ?? [], overlay, hidden);
     // jsonHidden deny-list (Problem-2): hide/show a JSON payload series by name. The payload still
-    // owns the series; hiding only suppresses it (chart + legend + axis) — restorable. Hiding the
-    // last binder of an axis snapshots its displayed name first (ADR-0066 resting name). Both
-    // directions are structural events: the auto-balance (ADR-0067) runs over the after-sight —
-    // the VISIBLE bindings with DEFINED indices (strict; a cleared entry is unbound).
+    // owns the series; hiding only suppresses it (chart + legend) — restorable. Hiding the LAST
+    // binder of an axis kills it (ADR-0069): the overlay entries + marking anchors re-index around
+    // the hole, the survivors re-arrange (ADR-0067). One set() = one undo step — the snackbar
+    // carries the death.
     const hideJson = (name: string): void => {
         const hidden = [...state.jsonHidden, name];
+        const r = axesFollowBinders(
+            boundBindings(state.jsonSeriesStyle, state.jsonHidden),
+            boundBindings(state.jsonSeriesStyle, hidden),
+            state.yAxes,
+            state.markLines,
+        );
         set({
             jsonHidden: hidden,
-            yAxes: restingBalance(
-                boundBindings(state.jsonSeriesStyle, state.jsonHidden),
-                boundBindings(state.jsonSeriesStyle, hidden),
-                state.yAxes,
-            ),
+            yAxes: r.yAxes,
+            jsonSeriesStyle: r.diedIndices.length
+                ? reindexJsonOverlay(state.jsonSeriesStyle, r.reindex)
+                : state.jsonSeriesStyle,
+            markLines: r.markLines,
         });
+        reportDeathsFor(r.diedIndices);
     };
     const showJson = (name: string): void => {
-        // Un-hide + reconcile in ONE step (B3): the resting diff clears a gained axis' stale
-        // restingName (symmetric to hideJson/rebindJsonAxis), and the reconcile guarantees the
-        // shown name a VALID yAxisIndex immediately — a reconcile-cleared entry (hidden through
-        // a payload change) would otherwise linger index-less until the next payload change,
-        // with the dropdown clamped to axis 1 while the editor sees it unbound and the builder
-        // renders axis 0. A sticky index never triggers an append (round-trip unchanged).
-        set(jsonShowPatch(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.yAxes, state.jsonHidden, name));
+        // Un-hide + reconcile in ONE step (B3): the reconcile guarantees the shown name a VALID
+        // yAxisIndex immediately — sticky when its axis survived the hide, else a FRESH appended
+        // axis (ADR-0069: the axis died with its last binder; a re-show is a re-birth with
+        // default config, not a resurrection).
+        set(
+            jsonShowPatch(
+                jsonSeriesNames ?? [],
+                state.jsonSeriesStyle,
+                state.yAxes,
+                state.jsonHidden,
+                name,
+                state.markLines,
+            ),
+        );
     };
     // Rebind a JSON payload series to a different axis via the Y-axis dropdown (ADR-0026 JSON 1:n):
-    // write the new yAxisIndex onto the overlay entry; the resting-name diff snapshots the freed
-    // axis' displayed name and clears the target's stale one (ADR-0066). The freed axis rests
-    // UNBOUND — nothing prunes anymore — and the modal reconcile effect keeps every valid
-    // yAxisIndex sticky across payload changes (it only auto-assigns names lacking one). The
+    // write the new yAxisIndex onto the overlay entry; a value ≥ yAxes.length is the „Neue Achse"
+    // entry (appended + bound in the same step, ADR-0069). The freed axis DIES when no binder
+    // remains — its marking anchors follow the series onto the rebind target — and the modal
+    // reconcile effect keeps every valid yAxisIndex sticky across payload changes. The
     // auto-balance (ADR-0067) runs over the re-composed visible sight.
     const rebindJsonAxis = (name: string, newYi: number): void => {
+        const append = newYi >= state.yAxes.length;
+        const yAxesNow = append ? [...state.yAxes, axisLayout(newYi)] : state.yAxes;
         const overlay = {
             ...state.jsonSeriesStyle,
             [name]: { ...state.jsonSeriesStyle[name], yAxisIndex: newYi },
         };
+        const cur = state.jsonSeriesStyle[name]?.yAxisIndex;
+        const r = axesFollowBinders(
+            boundBindings(state.jsonSeriesStyle, state.jsonHidden),
+            boundBindings(overlay, state.jsonHidden),
+            yAxesNow,
+            state.markLines,
+            typeof cur === 'number' ? { from: cur, to: newYi } : undefined,
+        );
         set({
-            jsonSeriesStyle: overlay,
-            yAxes: restingBalance(
-                boundBindings(state.jsonSeriesStyle, state.jsonHidden),
-                boundBindings(overlay, state.jsonHidden),
-                state.yAxes,
-            ),
+            jsonSeriesStyle: r.diedIndices.length ? reindexJsonOverlay(overlay, r.reindex) : overlay,
+            yAxes: r.yAxes,
+            markLines: r.markLines,
         });
+        reportDeathsFor(r.diedIndices);
     };
 
     // Expanded cards (cartesian + json-cartesian). Cards start collapsed (ADR-0013 removed the
@@ -372,6 +421,27 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     onDuplicate={duplicate}
                     onAddWithOid={addWithOid}
                     onRebindAxis={rebindAxis}
+                />
+            )}
+            {axisDeath && (
+                <NoticeSnackbar
+                    message={Generic.t('echarts_axis_died', axisDeath.join(', '))}
+                    severity="warning"
+                    onClose={() => setAxisDeath(null)}
+                    action={
+                        undo ? (
+                            <Button
+                                color="inherit"
+                                size="small"
+                                onClick={() => {
+                                    undo();
+                                    setAxisDeath(null);
+                                }}
+                            >
+                                {Generic.t('echarts_undo')}
+                            </Button>
+                        ) : undefined
+                    }
                 />
             )}
         </Box>

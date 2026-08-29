@@ -1,12 +1,13 @@
 /**
  * Cartesian axis-layout + series↔axis coupling helpers: the 1:1 auto-layout assigned to an
  * auto-created axis + the predicate telling whether every series still owns its axis (ADR-0018,
- * bound-aware since ADR-0066); and the axis-as-independent-citizen coupling — rebind target, the
- * sticky JSON reconcile, and the effective axis name (ADR-0025/0026). Since ADR-0066 a series
- * leaving its axis keeps it as an unbound axis in EVERY mode: nothing prunes anymore, only an
- * explicit axis-delete removes an axis. Since ADR-0067 EVERY structural event (series/axis
- * add/delete/rebind, JSON hide/show, a side-flip, the reconcile, a data-path reset) re-arranges
- * the bound axes via {@link balanceAxes} — standard interleaving, dense on the raster.
+ * bound-aware since ADR-0066); and the axis-as-derived-citizen coupling — rebind target, the
+ * sticky JSON reconcile, and the effective axis name (ADR-0025/0026). Since ADR-0069 an axis
+ * exists exactly while at least one series binds it: the last binder leaving (delete, rebind,
+ * JSON hide, payload-vanish) DROPS the axis in the same undo step via
+ * {@link axesFollowBinders} — there is no resting state. Every structural event (series/axis
+ * add/delete/rebind, JSON hide/show, the reconcile, a data-path reset) still re-arranges the
+ * bound axes via {@link balanceAxes} — standard interleaving, dense on the raster (ADR-0067).
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -31,7 +32,8 @@ export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'o
  * {@link module:EchartsCollectionWidget/editor/stableId} — for React reconciliation only, the
  * cartesian builder never emits it to echarts) + {@link axisPosition} geometry + splitlines on
  * axis 0 only. Used on series creation (history/live + duplicate), the JSON-mode editor sync,
- * manual "add axis", and the auto-balance re-arrange (via {@link axisPosition}, non-destructive).
+ * the „Neue Achse" dropdown append (ADR-0069), and the auto-balance re-arrange (via
+ * {@link axisPosition}, non-destructive).
  *
  * Colour and name are NOT written here (ADR-0018): an axis inherits both from its bound series at
  * runtime (the cartesian builder's `a.color ?? seriesColor` / `a.name ?? seriesName`), so they track
@@ -67,10 +69,10 @@ export const displayAxisIndex = (yi: number | undefined, total: number): number 
     yi !== undefined && yi >= total ? 0 : (yi ?? 0);
 
 /**
- * The axis indices at least one series binds — the **bound set** (ADR-0066). A series with
+ * The axis indices at least one series binds — the **bound set**. A series with
  * `yAxisIndex === undefined` counts as bound to axis 0 (mirrors the builder's `e.yAxisIndex ?? 0`).
- * Every configured axis OUTSIDE this set is an unbound axis: kept in the editor with its config,
- * never emitted to the chart.
+ * Since ADR-0069 every configured axis is IN the set (an axis outside it dies at the structural
+ * event that emptied it) — the builder still filters to the set as defense for hand-edited JSON.
  */
 export const boundAxisIndices = (series: readonly { yAxisIndex?: number }[]): Set<number> => {
     const bound = new Set<number>();
@@ -81,29 +83,28 @@ export const boundAxisIndices = (series: readonly { yAxisIndex?: number }[]): Se
 };
 
 /**
- * True when every series sits on its OWN bound axis — a bijection between series and bound axes,
- * i.e. the dense 1:1 layout MODULO unbound axes (ADR-0066 supersedes the positional
- * `series j → axis j` reading of ADR-0018's dense check). A rebound series that left a hole still
- * owns its axis, so duplicating still yields a fresh axis; only a genuinely shared axis (2+ series
- * on it) is non-dense and makes the copy inherit the source binding.
+ * True when every series sits on its OWN bound axis — a bijection between series and axes,
+ * i.e. the dense 1:1 layout (ADR-0018's dense check, bound-aware). A rebound series that left a
+ * hole took its axis with it (ADR-0069), so duplicating still yields a fresh axis; only a
+ * genuinely shared axis (2+ series on it) is non-dense and makes the copy inherit the source
+ * binding.
  */
 export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boolean =>
     boundAxisIndices(series).size === series.length;
 
 /**
- * Auto-Balance (ADR-0067): re-arrange every BOUND axis after a structural event. The bound axes —
- * in array order — get the standard interleaving ({@link axisPosition} slot by slot: even → left,
- * odd → right) densely on the 80-px raster. Position AND offset are re-assigned; every other field
- * (id, name, raw, splitLine, …) survives. An UNBOUND axis takes no geometry slot: it passes through
- * with its stored position/offset as the preference a later re-bind's balance re-arranges — the
- * builder never renders it, so a coinciding geometry is harmless. A manual position/offset is
- * fine-justure until the next structural event — ADR-0028's idiom extended to the position; the
- * pack form (both sides repacked independently, position preserved) is pensioned with it.
+ * Auto-Balance (ADR-0067): re-arrange every axis after a structural event. The axes — in array
+ * order — get the standard interleaving ({@link axisPosition} slot by slot: even → left,
+ * odd → right) densely on the 80-px raster. Position AND offset are re-assigned; every other
+ * field (id, name, raw, splitLine, …) survives. A manual position/offset is fine-justure until
+ * the next structural event — ADR-0028's idiom extended to the position; the pack form (both
+ * sides repacked independently, position preserved) is pensioned with it.
  *
  * The series view decides what "bound" means, and the two modes read the index DIFFERENTLY:
  * history/live passes `state.series` — a series WITHOUT an index counts as bound to axis 0
  * (mirroring the builder). JSON passes {@link boundJsonView} — STRICT: a cleared entry
- * (`yAxisIndex` undefined) is unbound, never an implicit axis-0 binder.
+ * (`yAxisIndex` undefined) is unbound, never an implicit axis-0 binder. The load path never
+ * re-arranges.
  */
 export const balanceAxes = (
     yAxes: readonly EchartsAxisConfig[],
@@ -128,9 +129,7 @@ export const displayPosition = (axis: EchartsAxisConfig | undefined, i: number):
  * the {@link balanceAxes} re-arrange (Q4): the comparison runs through {@link displayPosition},
  * so re-selecting the value the card SHOWS on an axis without a stored position (a hand-edit
  * blob) is a no-op, not a structural event. The index-blind `?? 'left'` default mis-read such a
- * re-select as a flip and re-rastered every bound axis' hand-tuned offset. The detector is
- * boundness-blind by design: a flip of an UNBOUND axis keeps firing (its stored geometry sticks —
- * the balance never touches it, ADR-0067).
+ * re-select as a flip and re-rastered every bound axis' hand-tuned offset.
  */
 export const isRealSideFlip = (
     axes: readonly EchartsAxisConfig[],
@@ -139,11 +138,11 @@ export const isRealSideFlip = (
 ): boolean => 'position' in patch && patch.position !== displayPosition(axes[i], i);
 
 /**
- * The emitted (effective) axis positions (Q5): the cartesian builder emits the BOUND axes only,
- * compacted in array order — `ranks.get(i)` is axis i's EMITTED index (its rank among the bound
- * indices, ascending), `undefined` when unbound (no rank — the axis rests). UI gates that must
- * follow the emitted truth (the alignTicks switch/warning: the reference axis is the first BOUND
- * axis, an unbound configured axis 0 is NOT it) read here instead of the configured index.
+ * The emitted (effective) axis positions (Q5): the cartesian builder emits the axes compacted in
+ * array order — `ranks.get(i)` is axis i's EMITTED index (its rank, ascending). UI gates that
+ * must follow the emitted truth (the alignTicks switch/warning: the reference axis is the first
+ * axis, an unbound configured axis 0 is never it — retired with ADR-0069) read here instead of
+ * the configured index.
  */
 export const emittedAxisRanks = (bound: ReadonlySet<number>): Map<number, number> => {
     const ranks = new Map<number, number>();
@@ -229,14 +228,10 @@ export const binderIndexOf = (
 /**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
  * axis name, else the name inherited from the axis' owner series (first binder before ADR-0068),
- * else — while UNBOUND — the **resting name** (the name the axis carried when its series left,
- * ADR-0066), else the `Series N` label. While BOUND, N is the binder's SERIES position — the exact
- * label the builder renders for an unnamed series and the Axis-card title shows (`boundAxisName`),
- * so all three agree even in a misaligned binding; an unbound axis has no series, so its N is the
- * axis index (the card's own bare fallback there is the `Achse N` identity label — dropdown shows
- * inherited labels, card shows identity; F11). Bound axes ignore the resting name (live series
- * inheritance wins, ADR-0018); the builder's axis-name resolution (`a.name ?? seriesName`) never
- * sees it either — it renders bound axes only.
+ * else the `Series N` label. N is the binder's SERIES position — the exact label the builder
+ * renders for an unnamed series and the Axis-card title shows (`boundAxisName`), so all three
+ * agree even in a misaligned binding. An unbound axis no longer exists (ADR-0069) — the index
+ * fallback below is defensive only.
  */
 export const effectiveAxisName = (
     axis: EchartsAxisConfig,
@@ -250,20 +245,15 @@ export const effectiveAxisName = (
     if (boundPos >= 0 && series[boundPos].name) {
         return series[boundPos].name;
     }
-    if (boundPos < 0 && axis.restingName) {
-        return axis.restingName;
-    }
     return `Series ${(boundPos >= 0 ? boundPos : i) + 1}`;
 };
 
 /**
  * The per-series binding dropdown's item label (B1): the 1-based axis number + the effective
- * name. The number is what keeps the item identifiable after a rebind — the name alone can
- * COLLIDE: the rebind's own series becomes the target axis' first binder (the label jumps to
- * the user's own series name) while the vacated axis keeps the very same name as its resting
- * name — two identical labels, the selection unreadable. The number prefix matches the
- * marking card's axis options and the legacy fallback of {@link CartesianBasisFields}; the
- * „(unbenutzt)" suffix for unbound axes is appended by the caller (an i18n concern).
+ * name. The number is what keeps the item identifiable — unnamed series can share effective
+ * labels across axes, and the rebind death re-numbers every follower (ADR-0069). The number
+ * prefix matches the marking card's axis options and the legacy fallback of
+ * {@link CartesianBasisFields}.
  */
 export const axisOptionLabel = (
     ai: number,
@@ -272,36 +262,18 @@ export const axisOptionLabel = (
 ): string => `${ai + 1} · ${effectiveAxisName(axis, ai, series)}`;
 
 /**
- * The display name to persist as {@link EchartsAxisConfig.restingName} when axis `i` transitions to
- * unbound (ADR-0066): the name the axis is showing right now — its owner series' inherited name,
- * since an axis with an explicit `name` needs no snapshot. `undefined` when there is nothing worth
- * freezing (explicit name set, or the display binder is unnamed) — the caller keeps any existing
- * restingName then. Callers snapshot on series-leave (rebind / series-delete / JSON rebind / hide)
- * BEFORE applying the change, against the pre-change series list; a rebind onto the axis CLEARS the
- * restingName (bound axes inherit live again).
+ * Owner maintenance over a before/after binding transition (ADR-0068 — the surviving half of the
+ * retired resting-name patch): every axis an AFTER binder still holds gets its `owner` kept
+ * current — an owner still bound to THIS axis keeps the identity (a rebind newcomer never
+ * steals it); an unset owner bootstraps from the axis' BEFORE binder (the incumbent at the
+ * moment of the first event); an owner that left hands over to the first remaining after-binder.
+ * `undefined` when no owner changes — the caller keeps the array referentially stable. The
+ * axis-DYING half of the old patch is gone: an axis that loses its last binder is dropped (see
+ * {@link dropUnboundAxes}) — there is no resting state to snapshot anymore (ADR-0069).
  */
-export const restingAxisName = (
-    axis: EchartsAxisConfig,
-    i: number,
-    series: readonly { id?: string; yAxisIndex?: number; name?: string }[],
-): string | undefined => {
-    if (axis.name) {
-        return undefined;
-    }
-    return series[binderIndexOf(axis, i, series)]?.name || undefined;
-};
-
-/**
- * Resting-name transitions (ADR-0066): diff the BEFORE/AFTER binding views (history/live series
- * lists, or the JSON visible-overlay view) against the axes and return the patched `yAxes` — every
- * axis whose last binder LEFT gets its displayed name snapshotted into
- * {@link EchartsAxisConfig.restingName}; every axis that GAINED a binder has its resting name
- * cleared (live series inheritance resumes). `undefined` when no axis transitions — the caller
- * keeps the array referentially stable.
- */
-export const restingNamePatch = (
-    before: readonly { id?: string; yAxisIndex?: number; name?: string }[],
-    after: readonly { id?: string; yAxisIndex?: number; name?: string }[],
+export const ownerPatch = (
+    before: readonly { id?: string; yAxisIndex?: number }[],
+    after: readonly { id?: string; yAxisIndex?: number }[],
     yAxes: readonly EchartsAxisConfig[],
 ): EchartsAxisConfig[] | undefined => {
     let next: EchartsAxisConfig[] | undefined;
@@ -309,76 +281,165 @@ export const restingNamePatch = (
         // Materialised sight (Q7): an implicit axis-0 binder transitions like any other — a
         // history/live fix. JSON callers pass DEFINED-only sights (boundJsonView everywhere,
         // incl. the reconcile's before-sight), so the materialisation is a no-op on JSON.
-        const wasBound = before.some(s => materializedAxisIndex(s) === yi);
-        const isBound = after.some(s => materializedAxisIndex(s) === yi);
-        // Owner rule (ADR-0068, ticket 05) — runs on EVERY bound axis, not only transitions:
-        // a bound owner keeps the identity; an unset owner BOOTSTRAPS from the before-binder
-        // (the incumbent — without this the first rebind would still hand the name to the
-        // newcomer); an owner that left hands over to the first remaining after-binder.
         // id-less sights (legacy lists) stay owner-less — the display falls back to the first
         // binder, exactly the pre-0068 behaviour.
         const afterBinder = after.find(s => materializedAxisIndex(s) === yi);
-        if (afterBinder) {
-            const owner = yAxes[yi].owner;
-            // The owner must bind THIS axis — an owner that merely still EXISTS (rebound
-            // elsewhere) has left and hands over.
-            const ownerStillBound =
-                owner !== undefined && after.some(s => s.id === owner && materializedAxisIndex(s) === yi);
-            let nextOwner = owner;
-            if (!ownerStillBound) {
-                if (owner === undefined) {
-                    const incumbent = before.find(s => materializedAxisIndex(s) === yi)?.id;
-                    nextOwner =
-                        incumbent !== undefined &&
-                        after.some(s => s.id === incumbent && materializedAxisIndex(s) === yi)
-                            ? incumbent
-                            : afterBinder.id;
-                } else {
-                    nextOwner = afterBinder.id;
-                }
-            }
-            if (nextOwner !== owner) {
-                (next ??= yAxes.slice())[yi] = { ...(next?.[yi] ?? yAxes[yi]), owner: nextOwner };
+        if (!afterBinder) {
+            continue; // dying (ADR-0069 drops it) or already gone — no owner to maintain
+        }
+        const owner = yAxes[yi].owner;
+        // The owner must bind THIS axis — an owner that merely still EXISTS (rebound
+        // elsewhere) has left and hands over.
+        const ownerStillBound =
+            owner !== undefined && after.some(s => s.id === owner && materializedAxisIndex(s) === yi);
+        let nextOwner = owner;
+        if (!ownerStillBound) {
+            if (owner === undefined) {
+                const incumbent = before.find(s => materializedAxisIndex(s) === yi)?.id;
+                nextOwner =
+                    incumbent !== undefined && after.some(s => s.id === incumbent && materializedAxisIndex(s) === yi)
+                        ? incumbent
+                        : afterBinder.id;
+            } else {
+                nextOwner = afterBinder.id;
             }
         }
-        if (wasBound === isBound) {
-            continue; // no transition on this axis
-        }
-        if (isBound) {
-            if (yAxes[yi].restingName !== undefined) {
-                (next ??= yAxes.slice())[yi] = { ...(next?.[yi] ?? yAxes[yi]), restingName: undefined };
-            }
-            continue;
-        }
-        const snapshot = restingAxisName(next?.[yi] ?? yAxes[yi], yi, before);
-        if (snapshot) {
-            (next ??= yAxes.slice())[yi] = { ...(next?.[yi] ?? yAxes[yi]), restingName: snapshot };
+        if (nextOwner !== owner) {
+            (next ??= yAxes.slice())[yi] = { ...(next?.[yi] ?? yAxes[yi]), owner: nextOwner };
         }
     }
     return next;
 };
 
 /**
- * Resting-name snapshot + auto-balance in one — the shared series-leave→re-arrange seam (ADR-0066 +
- * ADR-0067): {@link restingNamePatch} snapshots against the BEFORE series view, then the balance
- * re-arranges the AFTER bound set over the patched axes. `before`/`after` follow each mode's sight
- * (history/live: the raw series lists — the diff MATERIALIZES an undefined index to axis 0, Q7;
- * JSON: the STRICT visible views — {@link boundJsonView}, defined indices only — an unfiltered
- * JSON sight would mis-read a fresh name as an axis-0 binder, so JSON callers MUST filter).
+ * The axis-death core (ADR-0069): drop every axis the AFTER sight leaves unbound, re-indexing the
+ * binders and the marking anchors around the holes. An axis exists exactly while ≥1 series binds
+ * it — the last binder leaving (series-delete, rebind, JSON hide, payload-vanish) deletes the
+ * axis HERE, inside the caller's one undo step. Markings follow their axis' fate (the B4 remap
+ * rule): the REBIND's vacated axis passes its anchors onto the rebind target (the marking stays
+ * with the series' new axis), every other death anchors them on the stack predecessor — the
+ * first kept axis below, else index 0 (an emptied chart anchors the next axis to be born).
+ * `reindex` maps an OLD index to its new rank — `undefined` for a dropped axis (the JSON overlay
+ * clears such an entry's binding via {@link reindexJsonOverlay}; a visible binder can never hold
+ * one). WITHOUT the balance — the load-path heal composes this directly and never re-arranges.
  */
-export const restingBalance = (
-    before: readonly { yAxisIndex?: number; name?: string }[],
-    after: readonly { yAxisIndex?: number }[],
+export const dropUnboundAxes = <S extends { yAxisIndex?: number }, M extends { yAxisIndex?: number }>(
+    after: readonly S[],
     yAxes: readonly EchartsAxisConfig[],
-): EchartsAxisConfig[] => balanceAxes(restingNamePatch(before, after, yAxes) ?? yAxes, after);
+    marks: readonly M[],
+    rebind?: { from: number; to: number },
+): {
+    yAxes: EchartsAxisConfig[];
+    binders: S[];
+    markLines: M[];
+    reindex: (yi: number) => number | undefined;
+    diedIndices: number[];
+} => {
+    const bound = boundAxisIndices(after);
+    const kept: number[] = [];
+    for (let i = 0; i < yAxes.length; i++) {
+        if (bound.has(i)) {
+            kept.push(i);
+        }
+    }
+    const diedIndices = yAxes.map((_a, i) => i).filter(i => !bound.has(i));
+    const rank = (oldIdx: number): number => kept.filter(k => k < oldIdx).length;
+    const markLines: M[] = diedIndices.length
+        ? marks.map(m => {
+              const yi = m.yAxisIndex;
+              if (typeof yi !== 'number') {
+                  return m;
+              }
+              if (bound.has(yi)) {
+                  const r = rank(yi);
+                  return r === yi ? m : { ...m, yAxisIndex: r };
+              }
+              if (rebind && yi === rebind.from) {
+                  return { ...m, yAxisIndex: rank(rebind.to) };
+              }
+              let t = yi - 1;
+              while (t >= 0 && !bound.has(t)) {
+                  t--;
+              }
+              return { ...m, yAxisIndex: t >= 0 ? rank(t) : 0 };
+          })
+        : marks.slice();
+    const binders: S[] = diedIndices.length
+        ? after.map(s => {
+              const yi = s.yAxisIndex;
+              if (typeof yi !== 'number' || !bound.has(yi)) {
+                  return s; // undefined stays — it still binds axis 0 implicitly (history/live)
+              }
+              const r = rank(yi);
+              return r === yi ? s : { ...s, yAxisIndex: r };
+          })
+        : after.slice();
+    return {
+        yAxes: kept.map(i => yAxes[i]),
+        binders,
+        markLines,
+        reindex: yi => (bound.has(yi) ? rank(yi) : undefined),
+        diedIndices,
+    };
+};
 
 /**
- * The JSON binding view for {@link restingNamePatch}: one {id, index, display name} entry per
+ * The structural-event seam (ADR-0069 + ADR-0067): owner maintenance, axis death, re-index and
+ * the auto-balance in ONE call — the replacement of the retired restingBalance. `before`/
+ * `after` follow each mode's sight (history/live: the raw series lists, an undefined index
+ * materialises to axis 0, Q7; JSON: the STRICT visible views — {@link boundJsonView}, defined
+ * indices only — an unfiltered JSON sight would mis-read a fresh name as an axis-0 binder, so
+ * JSON callers MUST filter). Returns the patched `yAxes`/`binders`/`markLines` plus `diedIndices`
+ * for the caller's snackbar (the ADR-0069 safety net) and `reindex` (the JSON overlay's pass).
+ */
+export const axesFollowBinders = <S extends { yAxisIndex?: number }, M extends { yAxisIndex?: number }>(
+    before: readonly { id?: string; yAxisIndex?: number }[],
+    after: readonly S[],
+    yAxes: readonly EchartsAxisConfig[],
+    marks: readonly M[],
+    rebind?: { from: number; to: number },
+): {
+    yAxes: EchartsAxisConfig[];
+    binders: S[];
+    markLines: M[];
+    reindex: (yi: number) => number | undefined;
+    diedIndices: number[];
+} => {
+    const owned = ownerPatch(before, after, yAxes) ?? yAxes;
+    const death = dropUnboundAxes(after, owned, marks, rebind);
+    return { ...death, yAxes: balanceAxes(death.yAxes, death.binders) };
+};
+
+/**
+ * Re-index a name-keyed JSON overlay around dropped axes (ADR-0069): a defined entry on a KEPT
+ * axis takes its new rank; an entry pointing at a DROPPED axis (a hidden or vanished name whose
+ * binding outlived its axis) is CLEARED — undefined is the unbound marker the reconcile expects,
+ * and a re-show appends a fresh axis rather than mis-binding to a stranger.
+ */
+export const reindexJsonOverlay = <M extends { yAxisIndex?: number }>(
+    overlay: Readonly<Record<string, M>>,
+    reindex: (yi: number) => number | undefined,
+): Record<string, M> => {
+    const next: Record<string, M> = {};
+    for (const [name, m] of Object.entries(overlay)) {
+        const yi = m.yAxisIndex;
+        if (typeof yi !== 'number') {
+            next[name] = m;
+            continue;
+        }
+        const r = reindex(yi);
+        next[name] = r === yi ? m : { ...m, yAxisIndex: r };
+    }
+    return next;
+};
+
+/**
+ * The JSON binding view for {@link ownerPatch}: one {id, index, display name} entry per
  * VISIBLE payload name — the overlay-authored name, else the payload name (the label the dropdown
  * and the Axis-card show). The `id` is the payload NAME itself: in JSON the name IS the series
  * identity (the overlay is name-keyed), so it doubles as the axis **owner** key (ADR-0068).
- * Visibility matters: a hidden name keeps its overlay `yAxisIndex` until the reconcile clears it,
- * so a diff over raw overlay entries would miss the transition; the view sees only what renders.
+ * Visibility matters: a hidden name keeps its overlay `yAxisIndex` until it is re-indexed, so a
+ * diff over raw overlay entries would miss the transition; the view sees only what renders.
  * Shared by the SeriesSection hide/rebind handlers and the AxesZoomSection JSON axis-delete
  * (which hides the bound payload series).
  */
@@ -394,7 +455,7 @@ export const jsonBindingView = (
 /**
  * The JSON binding view reduced to DEFINED indices — the sight {@link balanceAxes} (and any
  * bound-set computation) needs in JSON mode. JSON binding is STRICT: an overlay entry with
- * `yAxisIndex` undefined (cleared by the reconcile when its name hid) is UNBOUND — unlike a
+ * `yAxisIndex` undefined (cleared when its name hid or its axis died) is UNBOUND — unlike a
  * history/live series without an index, which implicitly binds axis 0 (the builder's `?? 0`).
  * Filtering here keeps the two binding semantics from bleeding into each other at the seam.
  * The {id, name} entries pass through — the id is the owner key (ADR-0068).
@@ -408,10 +469,8 @@ export const boundJsonView = (
 
 /**
  * The JSON bound set over the STRICT sight (B2): the defined indices of VISIBLE names — the
- * Axis manager's badge/position-lock sight. A hidden entry whose `yAxisIndex` awaits the
- * reconcile's clear must not count as a binder: reading all `Object.values` (the old inline
- * form) marked such an axis bound — badge off, position locked, title from the hidden name —
- * while the Series dropdown suffixed the same axis „(unbenutzt)" until the next payload change.
+ * Axis manager's badge/position-lock sight (kept for the emitted-rank computation; an unbound
+ * axis can no longer exist since ADR-0069, the set is every axis).
  */
 export const boundJsonAxisIndices = (
     names: readonly string[],
@@ -423,7 +482,7 @@ export const boundJsonAxisIndices = (
  * The JSON Axis-card title source (B2 + ADR-0068): the axis' OWNER payload name when it still
  * binds visibly, else the first VISIBLE name bound to the axis — the authored overlay name wins,
  * else the payload name, else the Series-N fallback. Hidden entries never title an axis (their
- * index is pending reconcile bookkeeping, not a binding). The JSON sibling of the history/live
+ * index is pending bookkeeping, not a binding). The JSON sibling of the history/live
  * `boundAxisName` in the Axis manager.
  */
 export const boundJsonAxisName = (
@@ -444,6 +503,26 @@ export const boundJsonAxisName = (
         return undefined;
     }
     return overlay[binder]?.name || binder || `Series ${i + 1}`;
+};
+
+/**
+ * The display name a DYING JSON axis carried — for the ADR-0069 snackbar. {@link boundJsonAxisName}
+ * reads only VISIBLE names, but a death's last binder is often invisible by the time the notice
+ * fires (a vanish death's name is GONE from the payload; a hide death's name just entered the
+ * deny-list): the sight here EXTENDS the visible names by the vanished overlay keys, so the
+ * pre-death label (overlay name, else payload name) survives into the toast. The one shared
+ * resolution for both death sites — the Series section's undo snackbar and the modal's
+ * vanish notice (it MUST NOT be re-implemented at the call sites).
+ */
+export const jsonAxisDeathName = (
+    axis: EchartsAxisConfig,
+    i: number,
+    names: readonly string[],
+    overlay: Readonly<Record<string, { yAxisIndex?: number; name?: string }>>,
+    hidden: readonly string[],
+): string => {
+    const extended = [...names, ...Object.keys(overlay).filter(n => !names.includes(n) && !hidden.includes(n))];
+    return boundJsonAxisName(axis, i, extended, overlay, hidden) ?? `Achse ${i + 1}`;
 };
 
 /**
@@ -485,28 +564,25 @@ export const effectiveAxisColor = (
  * - **1:1 default:** a new name (or one whose stored `yAxisIndex` went stale after axes were lost)
  *   gets a fresh appended axis — so a fresh payload still lands 1:1 (no regression for the common
  *   multi-unit case).
- * - **Unbound axes persist (ADR-0066):** a name no longer visible (hidden or gone) is cleared; the
- *   freed axis STAYS as an unbound axis — selectable in the dropdown, deletable on its card, never
- *   rendered. Same rule as a manual rebind in history/live: only an explicit axis-delete removes an
- *   axis, so the reconcile never drops or re-indexes anything.
- * - **Vanish snapshots too (ADR-0066 addendum):** a name VANISHING from the payload is a leave
- *   transition like every other — the reconcile snapshots its axis' displayed name into
- *   `restingName` (overlay name, else payload name) over the visibility sight, so the resting card
- *   keeps its label instead of collapsing to „Achse N". A HIDDEN name is outside that sight: its
- *   leave was snapshotted at hide time; the clear here is bookkeeping only.
- * - **Auto-balanced (ADR-0067):** the reconcile IS a structural event — it ends in
- *   {@link balanceAxes} over the visible names' bindings (the strict sight: a cleared entry never
- *   counts as bound). A hand-tuned position/offset survives only between reconcile firings; a
- *   fresh appended axis lands in the next free balance slot, dense behind the bound set.
+ * - **Vanish = death (ADR-0069):** a name no longer visible (hidden or gone) is cleared; the freed
+ *   axis is DROPPED right here — overlay entries and marking anchors re-index around the hole, the
+ *   survivors re-arrange. Only the explicit axis-delete and this reconcile remove axes in JSON.
+ * - **Auto-balanced (ADR-0067):** the reconcile IS a structural event — it ends in the balance over
+ *   the visible names' bindings (the strict sight: a cleared entry never counts as bound). A
+ *   hand-tuned position/offset survives only between reconcile firings; a fresh appended axis lands
+ *   in the next free balance slot, dense behind the bound set.
  *
  * Pure — the caller (the modal effect on payload/mode change) writes the result back. Not a hook.
+ * `diedIndices` reports the axes this pass dropped (the caller's info snackbar — undo is futile,
+ * the next reconcile over the same payload re-kills them).
  */
-export const reconcileJsonAxes = <M extends { yAxisIndex?: number; name?: string }>(
+export const reconcileJsonAxes = <M extends { yAxisIndex?: number; name?: string }, K extends { yAxisIndex?: number }>(
     visibleNames: readonly string[],
     overlay: Readonly<Record<string, M>>,
     yAxes: readonly EchartsAxisConfig[],
     hidden: readonly string[] = [],
-): { yAxes: EchartsAxisConfig[]; overlay: Record<string, M> } => {
+    marks: readonly K[] = [],
+): { yAxes: EchartsAxisConfig[]; overlay: Record<string, M>; markLines?: K[]; diedIndices: number[] } => {
     const next: Record<string, M> = { ...overlay };
     let axes = yAxes.slice();
     // 1. Ensure every visible name has a VALID yAxisIndex — keep an existing valid one (sticky),
@@ -519,102 +595,103 @@ export const reconcileJsonAxes = <M extends { yAxisIndex?: number; name?: string
             next[name] = { ...next[name], yAxisIndex: fresh };
         }
     }
-    // 2. Clear yAxisIndex on entries no longer visible (hidden or gone) so they don't anchor an axis
-    //    (its axis rests unbound instead — the builder never renders it).
+    // 2. Clear yAxisIndex on entries no longer visible (hidden or gone) so they don't anchor an axis.
     for (const key of Object.keys(next)) {
         if (!visibleNames.includes(key) && next[key].yAxisIndex !== undefined) {
             next[key] = { ...next[key], yAxisIndex: undefined };
         }
     }
-    // 3. Resting snapshot + auto-balance. The vanish is a LEAVE transition like every other
-    //    (ADR-0066 addendum: snapshot on every leave, clear on every gain): BEFORE = the STRICT
-    //    visibility sight of every name that was rendering-bound — still visible or vanished from
-    //    the payload (defined indices only: a fresh name without an overlay entry never bound
-    //    anything in JSON, and a HIDDEN name rests outside the sight; its leave was snapshotted
-    //    at hide time, the clear in step 2 is bookkeeping only). AFTER = the POST-reconcile sight
-    //    — same strictness, step 1 guarantees defined indices. {@link restingBalance} is exactly
-    //    patch-then-balance: the snapshot reads the FIRST binder's name (the display-inherit
-    //    rule, consistent for a 1:n axis pre-vanish), then the balance re-arranges the bound set
-    //    (ADR-0067). NOTE the seam: the resting diff materialises undefined→0 INSIDE, for the
-    //    history/live sights — feeding it unfiltered JSON entries would mis-read a fresh name as
-    //    an axis-0 binder and snapshot the never-rendered name; the strict filter here prevents
-    //    exactly that (Q7).
+    // 3. Death + balance over the visible sight (ADR-0069): an axis whose binder vanished from
+    //    the payload dies NOW — dropped, overlay + marking anchors re-indexed around the hole —
+    //    then the balance re-arranges the surviving bound set. BEFORE (the owner sight) = the
+    //    STRICT visibility view of every name that was rendering-bound — still visible or
+    //    vanished (defined indices only: a fresh name without an overlay entry never bound
+    //    anything in JSON, and a HIDDEN name is outside the sight — its hide-time handler
+    //    already settled its axis; the clear in step 2 is bookkeeping only).
     const vanished = Object.keys(overlay).filter(n => !visibleNames.includes(n) && !hidden.includes(n));
     const before = boundJsonView([...visibleNames, ...vanished], overlay, hidden);
+    const r = axesFollowBinders(before, boundJsonView(visibleNames, next, []), axes, marks);
+    const reindexed = r.diedIndices.length ? reindexJsonOverlay(next, r.reindex) : next;
     return {
-        yAxes: restingBalance(before, boundJsonView(visibleNames, next, []), axes),
-        overlay: next,
+        yAxes: r.yAxes,
+        overlay: reindexed,
+        ...(r.diedIndices.length ? { markLines: r.markLines } : {}),
+        diedIndices: r.diedIndices,
     };
 };
 
 /**
- * The JSON-mode axis-delete patch for a BOUND axis (Q3, ADR-0066 addendum — the JSON sibling of
- * {@link sameFormatSurvivor} on the history/live delete path): "delete this axis" hides EVERY
- * visible payload name bound to the axis — ALL binders, not the first. With 1:n first-class
- * (ADR-0026), hiding just one binder would leave the axis bound and rendered: the button would
- * not do what it says (an undo step catches misclicks; deliberately NOT first-name + toast).
- * The resting snapshot runs over the visibility sight like every leave: the axis' displayed name
- * (the FIRST binder's, payload order) survives as `restingName`, and the remaining bound set
- * re-arranges (ADR-0067). `jsonHidden` and `yAxes` travel in ONE patch → one undo step.
+ * The JSON-mode axis-delete patch for a BOUND axis (Q3 line → ADR-0069): "delete this axis" hides
+ * EVERY visible payload name bound to the axis — ALL binders, not the first (1:n first-class;
+ * one leftover binder would keep the axis rendered) — and the axis DIES with its last binder in
+ * the same patch: dropped, overlay entries + marking anchors re-indexed around the hole, the
+ * surviving bound set re-arranged (ADR-0067). `jsonHidden`, `yAxes`, `jsonSeriesStyle` and
+ * `markLines` travel in ONE patch → one undo step.
  *
- * `null` when no VISIBLE name binds the axis (an unbound axis, or only already-hidden binders) —
- * the caller then takes the unbound config-delete path (drop the axis + re-index the overlay).
+ * `null` when no VISIBLE name binds the axis — the caller then takes the config-delete path
+ * (drop the axis + re-index the overlay), the defensive branch for states the invariant already
+ * excludes.
  */
-export const jsonBoundAxisDeletePatch = (
+export const jsonBoundAxisDeletePatch = <
+    M extends { yAxisIndex?: number; name?: string },
+    K extends { yAxisIndex?: number },
+>(
     visibleNames: readonly string[],
-    overlay: Readonly<Record<string, { yAxisIndex?: number; name?: string }>>,
+    overlay: Readonly<Record<string, M>>,
     hidden: readonly string[],
     yAxes: readonly EchartsAxisConfig[],
     i: number,
-): { jsonHidden: string[]; yAxes: EchartsAxisConfig[] } | null => {
+    marks: readonly K[] = [],
+): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M>; markLines?: K[] } | null => {
     const boundVisible = visibleNames.filter(n => overlay[n]?.yAxisIndex === i && !hidden.includes(n));
     if (!boundVisible.length) {
         return null;
     }
     const jsonHidden = [...hidden, ...boundVisible];
+    const r = axesFollowBinders(
+        boundJsonView(visibleNames, overlay, hidden),
+        boundJsonView(visibleNames, overlay, jsonHidden),
+        yAxes,
+        marks,
+    );
     return {
         jsonHidden,
-        yAxes: restingBalance(
-            boundJsonView(visibleNames, overlay, hidden),
-            boundJsonView(visibleNames, overlay, jsonHidden),
-            yAxes,
-        ),
+        yAxes: r.yAxes,
+        jsonSeriesStyle: reindexJsonOverlay(overlay, r.reindex),
+        ...(r.diedIndices.length ? { markLines: r.markLines } : {}),
     };
 };
 
 /**
- * The show patch for a hidden JSON payload series (B3): un-hide + reconcile in ONE undoable
- * step. Two halves, each with its own sight transition:
- *
- * 1. The hidden→shown resting diff (the previous showJson behaviour): an axis GAINING its
- *    binder back drops the stale restingName (ADR-0066: clear on every gain).
- * 2. The full reconcile over the shown state: every VISIBLE name is guaranteed a valid
- *    `yAxisIndex` IMMEDIATELY. An entry the reconcile had cleared while hidden (a payload
- *    change happened in between) would otherwise linger index-less until the NEXT payload
- *    change — dropdown showing axis 1, editor seeing it unbound, builder rendering axis 0 —
- *    and then land on a fresh axis anyway. A sticky index never triggers an append, so the
- *    common hide→show round-trip changes nothing but the deny-list and the gain-clear.
+ * The show patch for a hidden JSON payload series (B3): un-hide + reconcile in ONE undoable step.
+ * The reconcile guarantees the shown name a VALID `yAxisIndex` IMMEDIATELY — sticky when its axis
+ * survived the hide (the round-trip changes nothing but the deny-list), else a FRESH appended
+ * axis (ADR-0069: the axis died with its last binder — the hide-time patch cleared the entry; a
+ * re-show is a re-birth with default config, not a resurrection). An entry left index-less would
+ * otherwise linger until the NEXT payload change — dropdown clamped to axis 1, editor seeing it
+ * unbound, builder rendering axis 0.
  */
-export const jsonShowPatch = <M extends { yAxisIndex?: number; name?: string }>(
+export const jsonShowPatch = <M extends { yAxisIndex?: number; name?: string }, K extends { yAxisIndex?: number }>(
     names: readonly string[],
     overlay: Readonly<Record<string, M>>,
     yAxes: readonly EchartsAxisConfig[],
     hidden: readonly string[],
     name: string,
-): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M> } => {
+    marks: readonly K[] = [],
+): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M>; markLines?: K[] } => {
     // `nextHidden` — the deny-list WITHOUT the shown name (NOT the set of shown names; the old
     // `shown` name invited exactly that misreading of the reconcile args below).
     const nextHidden = hidden.filter(n => n !== name);
-    const rested = restingBalance(
-        boundJsonView(names, overlay, hidden),
-        boundJsonView(names, overlay, nextHidden),
-        yAxes,
-    );
-    const { yAxes: reconciled, overlay: next } = reconcileJsonAxes(
+    const {
+        yAxes: reconciled,
+        overlay: next,
+        markLines,
+    } = reconcileJsonAxes(
         names.filter(n => !nextHidden.includes(n)),
         overlay,
-        rested,
+        yAxes,
         nextHidden,
+        marks,
     );
-    return { jsonHidden: nextHidden, yAxes: reconciled, jsonSeriesStyle: next };
+    return { jsonHidden: nextHidden, yAxes: reconciled, jsonSeriesStyle: next, ...(markLines ? { markLines } : {}) };
 };

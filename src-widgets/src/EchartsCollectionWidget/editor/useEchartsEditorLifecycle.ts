@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
+import { jsonAxisDeathName } from './axisLayout';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -118,12 +119,12 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state]);
 
-    // NO mode-switch orphan-prune since ADR-0066: an axis no series of the current mode binds is
-    // an unbound axis — a persistent resting state in EVERY mode (JSON reconcile and series
-    // add/delete/rebind all keep it). Nothing AUTO-removes an axis; the only deliberate exceptions
-    // are the user's boundary crossings (ADR-0067 — the JSON-mode toggle and the chart-family
-    // toggle): each deletes the whole data path in its toggle handler — one explicit, undoable
-    // patch, never an effect-side prune.
+    // No mode-switch orphan-prune: an axis no binder holds cannot enter the working copy in the
+    // first place — the structural-event handlers drop it with its last binder (ADR-0069), and the
+    // load path enforces the invariant in `loadEditorState`. The only deliberate bulk wipes are
+    // the user's boundary crossings (ADR-0067 — the JSON-mode toggle and the chart-family toggle):
+    // each deletes the whole data path in its toggle handler — one explicit, undoable patch, never
+    // an effect-side prune.
 
     const hasChanges = useMemo(() => JSON.stringify(state) !== loadedSnapshotRef.current, [state]);
 
@@ -165,6 +166,9 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
  * @param state - The lifecycle's current working copy.
  * @param jsonNames - The live payload series names (unfiltered — `jsonHidden` applies here).
  * @param set - The lifecycle's patch write path.
+ * @param onAxisDeath - ADR-0069 safety net: called with the DISPLAY NAMES of the axes a pass
+ * dropped (a payload name vanished). Info-only by design — undoing a vanish death is futile,
+ * the next reconcile tick over the same payload re-kills the restored axis.
  * @returns The visible names (jsonHidden applied) — the SINGLE derivation site; the modal's
  * preview meta reuses them instead of re-filtering.
  */
@@ -172,13 +176,23 @@ export function useJsonAxisReconcile(
     state: EditorState,
     jsonNames: readonly string[],
     set: (patch: EditorPatch) => void,
+    onAxisDeath?: (names: string[]) => void,
 ): readonly string[] {
     const visibleJsonNames = jsonNames.filter(n => !state.jsonHidden.includes(n));
     const jsonNamesKey = visibleJsonNames.join('\n');
     useEffect(() => {
-        const patch = reconcileJsonAxesStep(state, visibleJsonNames);
-        if (patch) {
-            set(patch);
+        const step = reconcileJsonAxesStep(state, visibleJsonNames);
+        if (step) {
+            set(step.patch);
+            if (step.diedIndices.length && onAxisDeath) {
+                // The pre-death label: the vanish death's binder is gone from the visible list,
+                // so the shared resolver extends the sight by the vanished overlay keys.
+                onAxisDeath(
+                    step.diedIndices.map(i =>
+                        jsonAxisDeathName(state.yAxes[i], i, visibleJsonNames, state.jsonSeriesStyle, state.jsonHidden),
+                    ),
+                );
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonNamesKey, state.mode, state.chartType]);

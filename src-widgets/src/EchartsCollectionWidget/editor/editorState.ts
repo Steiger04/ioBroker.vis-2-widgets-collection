@@ -29,6 +29,7 @@ import {
     normalizeLegendPos,
 } from '../presentation';
 import { withStableIds } from './stableId';
+import { boundJsonView, dropUnboundAxes, reindexJsonOverlay } from './axisLayout';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
 import { FRAME_STYLES } from '../frameStyle';
@@ -481,14 +482,10 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     );
     const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
 
-    // NO load-time orphan-prune (ADR-0066 removed ADR-0033's load heal): an axis no series binds is
-    // an unbound axis — a persistent resting state, kept with its config so a re-assign can revive
-    // it. Historical ghost pollution (pre-ADR-0033 blobs) therefore surfaces as unbound axis cards,
-    // deleted manually once; NEW pollution cannot enter — nothing adds axes silently, and NO axis
-    // prune exists anywhere since ADR-0066 (not even on the mode switch; the only deliberate axis
-    // wipes are the two ADR-0067 data-path resets, fired by the mode/family boundary toggles in
-    // controls.tsx via `dataPathReset` — lifecycleGuards.ts), while the builder never emits an
-    // unbound axis.
+    // No mode-switch orphan-prune exists (ADR-0048's narrow effect deps remain the clobber
+    // protection) — the only deliberate axis wipes are the two ADR-0067 data-path resets (fired
+    // by the mode/family boundary toggles in controls.tsx via `dataPathReset`) and the ADR-0069
+    // series-leave deaths inside the structural-event handlers.
 
     // Stale-activation prune (ADR-0043) + activation↔text heal (ADR-0042 addendum) — EVERY raw
     // level (sections, pie, series, axes, X, json overlay) heals in the registry's single load
@@ -599,6 +596,35 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // ADR-0047: the single load-side heal pass — every scalar level's prune + keep-only heal
     // in one in-place sweep over the freshly constructed (still unhealed) state.
     healLoadLevels(state);
+    // ADR-0069 load heal — the derived-citizen invariant: an axis no visible binder binds cannot
+    // exist, so a blob from the resting era (ADR-0066) drops SILENTLY here, re-indexing series,
+    // overlay and marking anchors around the holes. Never re-arranges (stored geometry survives
+    // verbatim — {@link dropUnboundAxes} without the balance). JSON heals over the overlay-key
+    // sight (the payload names are not resolved yet; the reconcile refines on their arrival),
+    // history/live over the materialised series sight. Non-cartesian families carry no axes by
+    // construction (the ADR-0067 resets) — nothing to heal there.
+    if (family === 'cartesian') {
+        if (mode === 'json') {
+            const names = Object.keys(state.jsonSeriesStyle);
+            const healed = dropUnboundAxes(
+                boundJsonView(names, state.jsonSeriesStyle, state.jsonHidden),
+                state.yAxes,
+                state.markLines,
+            );
+            if (healed.diedIndices.length) {
+                state.yAxes = healed.yAxes;
+                state.markLines = healed.markLines;
+                state.jsonSeriesStyle = reindexJsonOverlay(state.jsonSeriesStyle, healed.reindex);
+            }
+        } else if (state.yAxes.length) {
+            const healed = dropUnboundAxes(state.series, state.yAxes, state.markLines);
+            if (healed.diedIndices.length) {
+                state.yAxes = healed.yAxes;
+                state.series = healed.binders;
+                state.markLines = healed.markLines;
+            }
+        }
+    }
     return state;
 };
 

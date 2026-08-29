@@ -50,7 +50,7 @@ import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
-import { axisOptionLabel, boundAxisIndices, displayAxisIndex } from '../../axisLayout';
+import { axisOptionLabel, displayAxisIndex } from '../../axisLayout';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -77,8 +77,8 @@ export const CartesianBasisFields: FC<{
     yAxes: EchartsAxisConfig[];
     /**
      * Effective display name per axis (explicit → inherited-from-bound-series → index, ADR-0025)
-     * for the binding-dropdown labels — already carrying the „unbenutzt" suffix for unbound axes
-     * (ADR-0066). Resolved by the owning card list (history/live and JSON alike).
+     * for the binding-dropdown labels. Resolved by the owning card list (history/live and JSON
+     * alike).
      */
     axisDisplayNames?: string[];
     /** OID binding row (history/live only — the JSON payload owns the data). */
@@ -91,7 +91,7 @@ export const CartesianBasisFields: FC<{
     nameClearsToUndefined?: boolean;
     /**
      * Show the per-series Y-axis binding select. Shown in every cartesian data mode — incl. JSON,
-     * where a manual rebind is sticky and the freed axis rests unbound (ADR-0026/0066). The gate
+     * where a manual rebind is sticky and the freed axis dies (ADR-0026/0069). The gate
      * exists for non-cartesian future uses of the shared basis group.
      *
      * @default true
@@ -165,22 +165,24 @@ export const CartesianBasisFields: FC<{
             {showAxis && (
                 // Q6: the DISPLAY clamp mirrors the builder (`yi >= total ? 0 : yi`) — the select
                 // shows the render truth (axis 1), the STORED value stays untouched (no silent
-                // rewrite; the stale-index validation explains the divergence).
+                // rewrite; the stale-index validation explains the divergence). The LAST entry is
+                // „Neue Achse" (ADR-0069): its value is the append slot — choosing it grows the
+                // axis array and binds this series in the rebind handler's single step, the
+                // replacement of the retired „Achse hinzufügen" button.
                 <LabeledSelect
                     label={Generic.t('echarts_editor_series_yaxis')}
                     value={String(displayAxisIndex(meta.yAxisIndex, yAxes.length))}
                     onChange={v => onPatch({ yAxisIndex: Number(v) })}
-                    options={
-                        yAxes.length
-                            ? yAxes.map((ax, ai) => {
-                                  // Effective name (explicit → inherited → index, ADR-0025) when the
-                                  // caller resolves it; else the legacy "N · name" / "N" fallback.
-                                  const label =
-                                      axisDisplayNames?.[ai] ?? (ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1));
-                                  return [String(ai), label] as [string, string];
-                              })
-                            : [['0', '1'] as [string, string]]
-                    }
+                    options={[
+                        ...yAxes.map((ax, ai) => {
+                            // Effective name (explicit → inherited → index, ADR-0025) when the
+                            // caller resolves it; else the legacy "N · name" / "N" fallback.
+                            const label =
+                                axisDisplayNames?.[ai] ?? (ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1));
+                            return [String(ai), label] as [string, string];
+                        }),
+                        [String(yAxes.length), Generic.t('echarts_axis_new')] as [string, string],
+                    ]}
                 />
             )}
         </FieldGrid>
@@ -644,7 +646,7 @@ interface CartesianSeriesListProps {
     onMove: (i: number, dir: -1 | 1) => void;
     onDuplicate: (i: number) => void;
     onAddWithOid: (oid: string) => void;
-    /** Rebind a series to a different axis (the old axis turns unbound, ADR-0066 — kept, not dropped). */
+    /** Rebind a series to a different axis (a value ≥ yAxes.length appends „Neue Achse"; the vacated axis dies, ADR-0069). */
     onRebindAxis: (i: number, yAxisIndex: number) => void;
 }
 
@@ -666,16 +668,11 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
 }) => {
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
-    // Effective axis names for the per-series binding dropdown (ADR-0025): explicit name → inherited
-    // from the first bound series → 1-based index. The label carries the 1-BASED AXIS NUMBER
-    // (B1): the name alone collides after a rebind — the rebind's own series becomes the target
-    // axis' first binder while the vacated axis keeps the same name as its resting name — and
-    // the selection becomes unreadable. An unbound axis (ADR-0066) keeps its slot with an
-    // „unbenutzt" suffix — the resting state is visible exactly where the re-assignment happens.
-    const bound = boundAxisIndices(series);
-    const axisDisplayNames = state.yAxes.map(
-        (a, ai) => axisOptionLabel(ai, a, series) + (bound.has(ai) ? '' : ` (${Generic.t('echarts_axis_unbound')})`),
-    );
+    // Effective axis names for the per-series binding dropdown (ADR-0025): explicit name →
+    // inherited from the owner series → 1-based index. The label carries the 1-BASED AXIS
+    // NUMBER (B1): unnamed series can share effective labels across axes, and a rebind death
+    // re-numbers every follower (ADR-0069) — the number keeps the item identifiable.
+    const axisDisplayNames = state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series));
     return (
         <Box>
             {series.length === 0 && (

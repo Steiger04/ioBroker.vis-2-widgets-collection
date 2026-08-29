@@ -12,7 +12,7 @@
  * onChange patch / onRemove callbacks; the section owns the orchestration.
  */
 import type { FC } from 'react';
-import { Box, Chip, IconButton } from '@mui/material';
+import { Box, IconButton } from '@mui/material';
 import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
@@ -44,13 +44,12 @@ const AxisCard: FC<{
     axis: EchartsAxisConfig;
     index: number;
     /**
-     * The axis' EMITTED index (Q5): its rank among the BOUND axes in array order — the position
-     * the builder emits. `undefined` while unbound (no rank — the axis rests, its alignTicks
-     * config stays stored). The alignTicks gates follow this, not the configured index: the
-     * reference axis is the first BOUND axis.
+     * The axis' EMITTED index (Q5): its rank among the axes in array order — the position the
+     * builder emits. The alignTicks gates follow this, not the configured index: the reference
+     * axis is the first one.
      */
     emittedIndex?: number;
-    /** The number of BOUND axes — the emitted total the alignTicks gates read (Q5). */
+    /** The number of axes — the emitted total the alignTicks gates read (Q5). */
     emittedTotal: number;
     open: boolean;
     onToggle: () => void;
@@ -61,15 +60,6 @@ const AxisCard: FC<{
     seriesColor?: string;
     /** Effective name of the first bound series — the axis-name default shown as placeholder (ADR-0018). */
     seriesName?: string;
-    /** No series binds this axis (ADR-0066): the card stays fully editable but flags the resting state. */
-    unbound?: boolean;
-    /**
-     * A series binds this axis (Q4): the side is deterministic — the dense axis distribution
-     * (array position) re-assigns it on every structural event — so the position select renders
-     * disabled with a hint. The offset field stays ACTIVE (fine-justure of a bound axis is
-     * allowed; only the side-flip is deterministically overruled). Unbound axes keep the select.
-     */
-    positionLocked?: boolean;
     /** Theme divider token — the grid colour's inherit value (the theme's splitline floor). */
     dividerColor: string;
 }> = ({
@@ -84,19 +74,16 @@ const AxisCard: FC<{
     pickerCtx,
     seriesColor,
     seriesName,
-    unbound = false,
-    positionLocked = false,
     dividerColor,
 }) => {
     const axisInvalid = typeof a.min === 'number' && typeof a.max === 'number' && a.min >= a.max;
     // alignTicks is an explicit per-axis opt-in (ADR-0034): off by default, no smart-default. Only
     // meaningful with 2+ EMITTED axes, and only on an emitted FOLLOWER (rank > 0): echarts aligns
-    // followers against the FIRST EMITTED value axis — an unbound configured axis 0 is NOT the
-    // reference (it does not render at all), so the gates read the emitted index/total (Q5), not
-    // the configured ones. An unbound axis carries no rank: no switch, its config rests stored.
+    // followers against the FIRST EMITTED value axis, so the gates read the emitted index/total
+    // (Q5), not the configured ones.
     const alignTicksEffective = a.alignTicks ?? false;
-    // The emitted follower predicate (Q5): rank > 0 among ≥2 bound axes — the alignTicks switch
-    // and its override warning share it; the reference (rank 0) and unbound axes get no switch.
+    // The emitted follower predicate (Q5): rank > 0 among ≥2 axes — the alignTicks switch and its
+    // override warning share it; the reference (rank 0) gets no switch.
     const isEmittedFollower = emittedTotal > 1 && (emittedIndex ?? -1) > 0;
     // echarts ignores alignTicks when the tick interval is fixed (min/max/splitNumber/minInterval);
     // surface that as a non-blocking warning on an emitted follower axis that opted in (ADR-0034).
@@ -105,10 +92,8 @@ const AxisCard: FC<{
     const axisTickEffective = a.axisTick ?? true;
     // Splitlines default on for the emitted rank-0 axis only (ADR-0012) — the grid colour rides
     // this state. Q5's sight applies here too: the builder resolves the default at the EMITTED
-    // index (cartesian buildYAxisEntry), so with axis 0 unbound the chart draws gridlines on the
-    // first BOUND axis and the card must show that. Unbound: no rank — the configured index keeps
-    // the resting display (the stored splitLine survives either way).
-    const splitLineEffective = a.splitLine ?? (emittedIndex ?? i) === 0;
+    // index (cartesian buildYAxisEntry), so the card must show what the chart draws.
+    const splitLineEffective = a.splitLine ?? emittedIndex === 0;
 
     return (
         <EditorCard
@@ -134,23 +119,7 @@ const AxisCard: FC<{
                     component="span"
                     sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}
                 >
-                    {a.name || seriesName || a.restingName || `Achse ${i + 1}`}
-                    {unbound && (
-                        // Status chip (ADR-0066) — a status display, not a hint, so no InfoBox here;
-                        // the explanatory hint sits at the top of the card body.
-                        <Chip
-                            label={Generic.t('echarts_axis_unbound')}
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                                height: 16,
-                                borderRadius: 1,
-                                fontSize: '0.7rem',
-                                flexShrink: 0,
-                                '& .MuiChip-label': { px: 0.5 },
-                            }}
-                        />
-                    )}
+                    {a.name || seriesName || `Achse ${i + 1}`}
                 </Box>
             }
             subtitle={
@@ -167,29 +136,22 @@ const AxisCard: FC<{
                 </IconButton>
             }
         >
-            {unbound && (
-                <Box sx={{ mb: 1.5 }}>
-                    <InfoBox text={Generic.t('echarts_axis_unbound_hint')} />
-                </Box>
-            )}
             <SubGroup title={Generic.t('echarts_grp_basis')}>
                 <FieldGrid>
                     {/* '' → undefined so a cleared name inherits the bound series' name instead of
-                        freezing it out (cartesian builder treats '' as unset). While UNBOUND the
-                        placeholder shows the resting name (the display an empty name falls back
-                        to, ADR-0066) instead of the bare "Achse N". */}
+                        freezing it out (cartesian builder treats '' as unset). */}
                     <TextField2
                         label={Generic.t('echarts_axis_name')}
                         value={a.name ?? ''}
-                        placeholder={seriesName ?? a.restingName}
+                        placeholder={seriesName}
                         onChange={v => onChange({ name: v || undefined })}
                     />
-                    {/* The side of a BOUND axis is deterministic (Q4): the balance re-assigns it
-                        from the array position on every structural event — a flip would snap
-                        back immediately. Locked with a title hint; UNBOUND axes stay free.
+                    {/* The side is deterministic (Q4, every axis is bound — ADR-0069): the balance
+                        re-assigns it from the array position on every structural event — a flip
+                        would snap back immediately. Locked with a title hint.
                         `displayPosition` is the SAME default the flip detector reads — the
                         shown value and the trigger can never diverge again. */}
-                    <Box title={positionLocked ? Generic.t('echarts_axis_position_locked') : undefined}>
+                    <Box title={Generic.t('echarts_axis_position_locked')}>
                         <LabeledSelect
                             label={Generic.t('echarts_axis_position')}
                             value={displayPosition(a, i)}
@@ -198,7 +160,7 @@ const AxisCard: FC<{
                                 ['left', Generic.t('echarts_axis_left')],
                                 ['right', Generic.t('echarts_axis_right')],
                             ]}
-                            disabled={positionLocked}
+                            disabled
                         />
                     </Box>
                     {/* Colour sits in the grid like a series colour — swatch + inherit placeholder.

@@ -189,6 +189,7 @@ describe('section slices (ADR-0049)', () => {
                 | 'mode'
                 | 'series'
                 | 'yAxes'
+                | 'markLines'
                 | 'gauge'
                 | 'radar'
                 | 'pie'

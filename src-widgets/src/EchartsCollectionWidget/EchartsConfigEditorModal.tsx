@@ -42,6 +42,7 @@ import { Close as CloseIcon, CloseFullscreen as RestoreIcon, OpenInFull as Maxim
 
 import Generic from '../Generic';
 import ConfirmDiscardDialog from '../components/ConfirmDiscardDialog';
+import NoticeSnackbar from './components/NoticeSnackbar';
 import EditorHistoryButtons from '../components/EditorHistoryButtons';
 import ChartPreview from './editor/ChartPreview';
 import EchartsEditorSections, { sectionInventory, type FocusSectionRequest } from './editor/EchartsEditorSections';
@@ -97,8 +98,10 @@ function EchartsConfigEditorModal({
     const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
     // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names (the
     // policy + firing condition live in the lifecycle module) and returns the VISIBLE set — the
-    // single derivation site, reused by the preview meta below.
-    const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set);
+    // single derivation site, reused by the preview meta below. The ADR-0069 vanish death reports
+    // info-only (undo is futile — the next reconcile over the same payload re-kills the axis).
+    const [vanishDeath, setVanishDeath] = useState<string[] | null>(null);
+    const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set, setVanishDeath);
 
     // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
     // the chrome (focus steering + maximize) belongs to this modal.
@@ -311,6 +314,7 @@ function EchartsConfigEditorModal({
                                 focusSection={focusSection}
                                 jsonSeriesNames={jsonPreview.names}
                                 jsonError={jsonPreview.error}
+                                undo={undo}
                             />
                         </Box>
                         {/* Splitter (ADR-0019 signature element): the bare 1 px hairline — divider
@@ -434,6 +438,16 @@ function EchartsConfigEditorModal({
                 onCancel={() => setConfirmDiscardOpen(false)}
                 onConfirm={confirmDiscard}
             />
+            {/* ADR-0069 vanish-death notice (info-only, no undo — the next reconcile over the
+                same payload would re-kill the restored axis; the Series section owns the
+                undoable deaths' snackbar). */}
+            {vanishDeath && (
+                <NoticeSnackbar
+                    message={Generic.t('echarts_axis_died_info', vanishDeath.join(', '))}
+                    severity="info"
+                    onClose={() => setVanishDeath(null)}
+                />
+            )}
         </ThemeProvider>
     );
 }

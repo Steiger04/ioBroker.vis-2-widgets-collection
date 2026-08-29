@@ -55,13 +55,20 @@ export const healStableIds = (state: EditorState): EditorPatch | null => {
  * the axis array as the (dynamic) payload + the user's bindings change. A fresh payload still
  * lands 1:1 (each name its own axis, alternating side + 80 px stagger) — but a name that
  * already carries a valid `yAxisIndex` KEEPS it, so a manual rebind survives payload +
- * hide/show changes. Only the VISIBLE payload series drive the reconcile — the caller filters
- * `jsonHidden` before passing the names (a hidden series must not keep its axis).
+ * hide/show changes. Since ADR-0069 a name VANISHING from the payload kills its axis inside
+ * this pass (dropped + re-indexed). Only the VISIBLE payload series drive the reconcile — the
+ * caller filters `jsonHidden` before passing the names (a hidden series must not keep its
+ * axis).
  *
  * `null` outside json-cartesian, with no visible names, or over an already-consistent state
- * (the idempotence guard that protects the redo branch — see module remarks).
+ * (the idempotence guard that protects the redo branch — see module remarks). Otherwise the
+ * patch plus `diedIndices` — the axes this pass dropped, for the caller's info-only snackbar
+ * (undo is futile: the next reconcile over the same payload re-kills them).
  */
-export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly string[]): EditorPatch | null => {
+export const reconcileJsonAxesStep = (
+    state: EditorState,
+    visibleNames: readonly string[],
+): { patch: EditorPatch; diedIndices: number[] } | null => {
     if (
         state.mode !== 'json' ||
         (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter') ||
@@ -69,19 +76,23 @@ export const reconcileJsonAxesStep = (state: EditorState, visibleNames: readonly
     ) {
         return null;
     }
-    const { yAxes, overlay: jsonSeriesStyle } = reconcileJsonAxes(
-        visibleNames,
-        state.jsonSeriesStyle,
-        state.yAxes,
-        state.jsonHidden,
-    );
+    const {
+        yAxes,
+        overlay: jsonSeriesStyle,
+        markLines,
+        diedIndices,
+    } = reconcileJsonAxes(visibleNames, state.jsonSeriesStyle, state.yAxes, state.jsonHidden, state.markLines);
     if (
         JSON.stringify(yAxes) === JSON.stringify(state.yAxes) &&
-        JSON.stringify(jsonSeriesStyle) === JSON.stringify(state.jsonSeriesStyle)
+        JSON.stringify(jsonSeriesStyle) === JSON.stringify(state.jsonSeriesStyle) &&
+        !markLines
     ) {
         return null;
     }
-    return { yAxes, jsonSeriesStyle };
+    return {
+        patch: markLines ? { yAxes, jsonSeriesStyle, markLines } : { yAxes, jsonSeriesStyle },
+        diedIndices,
+    };
 };
 
 /**

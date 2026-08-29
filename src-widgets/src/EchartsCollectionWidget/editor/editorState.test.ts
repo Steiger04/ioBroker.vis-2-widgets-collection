@@ -44,15 +44,18 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.jsonSeriesStyle.Power).toMatchObject({ name: 'Leistung' });
     });
 
-    it('yAxes survive (per-axis config incl. the stable id)', () => {
+    it('yAxes survive (per-axis config incl. the stable id) while their binders exist', () => {
+        // baseState runs JSON mode — the axes bind through the overlay there (the payload owns
+        // the series), so the fixture names the binders in jsonSeriesStyle.
         const state: EditorState = {
             ...baseState(),
+            jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } },
             yAxes: [
                 { id: 'a1', position: 'left', splitLine: true, min: 0, max: 100, name: 'kW' },
                 { id: 'a2', position: 'right', splitLine: false, color: '#abc' },
             ],
         };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
+        const reloaded = loadEditorState(saveEditorState(state, 2));
         expect(reloaded.yAxes).toHaveLength(2);
         expect(reloaded.yAxes[0]).toMatchObject({ position: 'left', min: 0, max: 100, name: 'kW' });
         expect(reloaded.yAxes[1]).toMatchObject({ position: 'right', color: '#abc' });
@@ -166,11 +169,11 @@ describe('editorState — Apply round-trip (save → load)', () => {
     });
 });
 
-describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-heal removed)', () => {
-    // A widget saved in JSON could accumulate one derived axis per payload series in the persisted
-    // `yAxes` blob (pre-ADR-0033 pollution), and a rebind/series-delete leaves an axis unbound by
-    // design since ADR-0066. Load no longer prunes either: an axis no series binds is an unbound
-    // axis — kept with its config, surfaced as an unbound card, deleted manually once.
+describe('editorState — load heal enforces the derived-citizen invariant (ADR-0069)', () => {
+    // Resting-era pollution (ADR-0066 blobs, pre-ADR-0033 ghosts): an axis no visible binder
+    // binds cannot exist — the load drops it SILENTLY, re-indexing series + marking anchors
+    // around the holes. Never re-arranges (stored geometry survives verbatim). No shipped
+    // Bestand exists — only dev blobs carry these shapes.
     const polluted = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
         chartType: 'line',
         mode: 'live',
@@ -190,22 +193,23 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
         ...overrides,
     });
 
-    it('keeps every configured axis when loaded as live — unbound axes rest, not pruned', () => {
+    it('heals a polluted live blob down to the bound axis — unbound axes are gone, not resting', () => {
         const reloaded = loadEditorState(polluted());
         expect(reloaded.mode).toBe('live');
-        expect(reloaded.yAxes).toHaveLength(6); // 1 bound + 5 unbound, offsets untouched
         expect(reloaded.series).toHaveLength(1);
-        expect(reloaded.yAxes[3]).toMatchObject({ position: 'right', offset: 80 });
+        expect(reloaded.yAxes.map(a => a.id)).toEqual(['a0']); // Temp binds axis 0 implicitly
     });
 
-    it("leaves JSON-mode axes untouched on load (re-derive is the modal reconcile effect's job)", () => {
+    it('heals a JSON blob over the overlay-key sight (the reconcile refines on payload arrival)', () => {
+        // No overlay entries ⇒ nothing binds ⇒ every resting-era axis drops; the modal reconcile
+        // rebuilds 1:1 from the payload on open.
         const reloaded = loadEditorState(polluted({ mode: 'json', jsonOid: 'dev.payload' }));
-        expect(reloaded.yAxes).toHaveLength(6); // reconcile runs on open, never at load
+        expect(reloaded.yAxes).toHaveLength(0);
     });
 
-    it('keeps the whole axis set when a non-JSON widget has no live series', () => {
+    it('heals the whole set away when no live series exists (no binder, no axis)', () => {
         const reloaded = loadEditorState(polluted({ series_count: 0 }));
-        expect(reloaded.yAxes).toHaveLength(6);
+        expect(reloaded.yAxes).toHaveLength(0);
         expect(reloaded.series).toHaveLength(0);
     });
 
@@ -234,7 +238,7 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
         expect(reloaded.yAxes[1]).toMatchObject({ name: 'kW' });
     });
 
-    it('an unbound axis survives the apply round-trip (save → load) with its config', () => {
+    it('an unbound axis in the blob is healed away on load (ADR-0069 — save writes, load enforces)', () => {
         const state = {
             ...baseState(),
             chartType: 'line' as const,
@@ -246,23 +250,31 @@ describe('editorState — unbound axes persist on load (ADR-0066, ADR-0033 load-
             ],
         };
         const reloaded = loadEditorState(saveEditorState(state, 1));
-        expect(reloaded.yAxes).toHaveLength(2); // axis 1 is unbound (no series binds it) — persists
-        expect(reloaded.yAxes[1]).toMatchObject({ min: 0, max: 5000, name: 'W', position: 'right' });
+        expect(reloaded.yAxes).toHaveLength(1); // axis 1 is unbound — the load heal drops it
+        expect(reloaded.yAxes[0]).toMatchObject({ min: 0, max: 40, name: '°C' });
+        expect(reloaded.series[0]?.yAxisIndex).toBe(0); // the binder stays put
     });
 
-    it('an unbound axis without an explicit name keeps its restingName across the round-trip', () => {
+    it('the load heal re-indexes a binder above the dropped axis (marks follow)', () => {
         const state = {
             ...baseState(),
             chartType: 'line' as const,
             mode: 'live' as const,
-            series: [{ oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 }],
-            yAxes: [
-                { id: 'ax-1', position: 'left' as const },
-                { id: 'ax-2', position: 'right' as const, restingName: 'Leistung' },
+            series: [
+                { oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 },
+                { oid: 'dev.hum', name: 'Hum', yAxisIndex: 2 },
             ],
+            yAxes: [
+                { id: 'ax-1', position: 'left' as const, splitLine: true },
+                { id: 'ax-2', position: 'right' as const, splitLine: false }, // unbound hole
+                { id: 'ax-3', position: 'right' as const, offset: 80, splitLine: false },
+            ],
+            markLines: [{ id: 'm1', upper: 50, yAxisIndex: 2 }],
         };
-        const reloaded = loadEditorState(saveEditorState(state, 1));
-        expect(reloaded.yAxes[1]?.restingName).toBe('Leistung'); // rides the blob, no explicit name
+        const reloaded = loadEditorState(saveEditorState(state, 2));
+        expect(reloaded.yAxes.map(a => a.id)).toEqual(['ax-1', 'ax-3']);
+        expect(reloaded.series[1]?.yAxisIndex).toBe(1); // compacted around the hole
+        expect(reloaded.markLines[0]?.yAxisIndex).toBe(1);
     });
 
     it('the axis OWNER („Namensgeber", ADR-0068) survives the round-trip', () => {
@@ -538,6 +550,8 @@ describe('editorState — ADR-0043 silent load-prune of retired template ids', (
     it('axis activations prune against the axis catalog on load too', () => {
         const state = { ...baseState(), chartType: 'line' as const };
         const patch = saveEditorState(state, 0);
+        // JSON mode (baseState): the axis needs an overlay binder to survive the ADR-0069 load heal.
+        patch.jsonSeriesStyle = encodeBlob(JSON.stringify({ Temp: { yAxisIndex: 0 } }));
         patch.yAxes = encodeBlob(
             JSON.stringify([
                 {

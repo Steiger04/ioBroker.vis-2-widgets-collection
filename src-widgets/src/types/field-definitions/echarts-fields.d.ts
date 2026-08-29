@@ -722,7 +722,7 @@ export interface EchartsAxisConfig {
      * payload name in JSON mode. The incumbent keeps the identity: a series REBINDING onto an
      * occupied axis never steals the display, however early it sits in the series list; when
      * the owner leaves, the first remaining binder takes over. Kept current by the binding
-     * patch (`restingNamePatch`) on every structural event; the live inheritance (renames
+     * patch (`ownerPatch`) on every structural event; the live inheritance (renames
      * follow immediately) is unchanged. Never emitted to echarts as a key — the builder
      * resolves it to the owner series' name/colour.
      */
@@ -781,15 +781,6 @@ export interface EchartsAxisConfig {
      * family-free, so no Apply-time prune. Never emitted to echarts.
      */
     snippets?: string[];
-    /**
-     * Display name the axis carried when it last went UNBOUND (ADR-0066 resting-name rule): while
-     * no series binds the axis, `name ?? restingName` is shown (card title, dropdowns, mark select)
-     * instead of the bare index — the name a bound axis inherits from its series would otherwise be
-     * lost the moment the series leaves. Purely a resting-state memory: a bound axis ignores it
-     * (live series inheritance wins, ADR-0018), it is re-snapshotted on every transition to unbound
-     * and cleared when a rebind targets the axis. Never emitted to echarts; rides the `yAxes` blob.
-     */
-    restingName?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

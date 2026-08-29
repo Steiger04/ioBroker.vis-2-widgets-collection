@@ -57,6 +57,8 @@ interface EchartsEditorSectionsProps {
     /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
     jsonSeriesNames?: string[];
     jsonError?: string;
+    /** The editor's undo — passed through to the Series section's ADR-0069 death snackbar. */
+    undo?: () => void;
 }
 
 /**
@@ -144,6 +146,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     focusSection,
     jsonSeriesNames,
     jsonError,
+    undo,
 }) => {
     const family = familyOf(state.chartType);
     const modeRelevant = family === 'cartesian' || family === 'pie';
@@ -186,6 +189,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         issues={issues.series}
                         jsonSeriesNames={jsonSeriesNames}
                         jsonError={jsonError}
+                        undo={undo}
                     />
                 );
             case 'dataSource':
