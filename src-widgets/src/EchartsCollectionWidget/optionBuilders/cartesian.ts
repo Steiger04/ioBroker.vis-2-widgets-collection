@@ -58,6 +58,17 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 };
 
 /**
+ * The colour the border axes paint with (ADR-0070): echarts v6's `tokens.color.axisSplitLine`
+ * (`neutral15`) — the colour the plot's splitLines ACTUALLY render with. The border axis is a grid
+ * element in the user's vocabulary („Gitterlinie"), so it matches the grid, not the axis lines: the
+ * theme floor never reaches the emitted axis arrays (mergeGeneratedOverTheme replaces objects with
+ * arrays), so the splitLines keep echarts' built-in light grey in every theme — stamping this same
+ * value keeps the edge visually identical to them. (The originally chosen divider token was
+ * SSR-proven to render, but is perceptually dead on dark backgrounds — live-measured 2026-08-30.)
+ */
+const EDGE_LINE_COLOR = '#dbdee4';
+
+/**
  * Gap between an axis line and its (rotated) name (ADR-0024). Kept tight so each name reads close
  * to its own axis instead of floating off into the offset-axis gutter; `outerBoundsContain:'all'`
  * still reserves the name's full extent, so a tight gap never clips it.
@@ -737,11 +748,8 @@ export const buildCartesianOption = (
     // carry only a Versatz is simply NAKED (the ADR-0070 report: the "missing gridline" was the
     // flipped axis' own line). The builder closes an unstaffed side with ONE synthesized border
     // axis: silent except its line, min/max-pinned so echarts' alignTicks cannot see it (the
-    // ADR-0034 fixed-extent exclusion), painted with the theme's divider token. The colour is
-    // STAMPED, not inherited: the theme floor's yAxis defaults never reach the emitted axes (the
-    // generated array wholesale replaces the floor object in mergeGeneratedOverTheme), so a passive
-    // colour would fall to echarts' built-in neutral — the explicit token is the theme-tracking
-    // divider (SSR-verified), the same themeTokens seam the markLine defaults use (ADR-0027).
+    // ADR-0034 fixed-extent exclusion), painted in the splitLine colour the grid renders with
+    // (EDGE_LINE_COLOR — see the const above for why not a theme token).
     // Detected over the EMITTED entries (position/offset defaults already applied), appended LAST
     // so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it exists only in
     // this option — the editor never sees it. A two-sided chart emits none: the option stays
@@ -751,7 +759,11 @@ export const buildCartesianOption = (
     // detaches from the Y-zero (`onZero:false`, the ADR-0055 rule): with the default onZero:true an
     // X twin would draw at the first value-Y's zero instead of the plot's bottom edge whenever that
     // extent contains 0 (already the all-positive default… and always for negative data).
-    const edgeLine = (): Record<string, unknown> => ({ show: true, onZero: false, lineStyle: { color: divider } });
+    const edgeLine = (): Record<string, unknown> => ({
+        show: true,
+        onZero: false,
+        lineStyle: { color: EDGE_LINE_COLOR },
+    });
     const edgeSilence = {
         axisTick: { show: false },
         axisLabel: { show: false },
