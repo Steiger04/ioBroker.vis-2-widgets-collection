@@ -179,7 +179,7 @@ A boundary line of the cartesian plot area under the ADR-0070 contract: left, ri
 _Avoid_: Gitterlinie, Rahmen (that is the Chart frame — CSS around the widget area), grid border (echarts' `grid.show` box, deliberately unused)
 
 **Grenzachse (border axis)**:
-The builder-synthesized axis that enforces the **Plot edge** contract (ADR-0070) — silent except its axisLine (no ticks/labels/name/splitline, min/max pinned so tick alignment ignores it), painted in the **grid splitLine colour** so it reads as one more Gitterlinie, appended last so no index shifts. The editor never sees one: no Axis card, no dropdown entry, no binding — it exists only in the emitted option.
+The builder-synthesized axis that enforces the **Plot edge** contract (ADR-0070) — silent except its axisLine (no ticks/labels/name/splitline, min/max pinned so tick alignment ignores it), painted in the theme divider at 2px so a full 1px survives the rect-edge cut (a centred stroke loses its outer half to sub-pixel rasterizing), appended last so no index shifts. The editor never sees one: no Axis card, no dropdown entry, no binding — it exists only in the emitted option.
 _Avoid_: phantom axis, frame axis, dummy axis
 
 **Tick alignment**:

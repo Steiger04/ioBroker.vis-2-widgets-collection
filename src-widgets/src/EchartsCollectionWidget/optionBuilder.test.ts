@@ -2404,13 +2404,14 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
 });
 
 describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)', () => {
-    // The twin's fingerprint: min/max pins + the grid-splitLine-coloured bare axisLine. A REAL axis
-    // never matches: its axisLine colour resolves to the palette/series colour, and an unset min/max
-    // emits no key at all.
+    // The twin's fingerprint: min/max pins + the divider-coloured 2px edge axisLine (the width
+    // survives the rect-edge half-cut, ADR-0070 addendum 3). A REAL axis never matches: its
+    // axisLine colour resolves to the palette/series colour, and an unset min/max emits no key.
     const isBorderAxis = (e: Record<string, unknown>): boolean =>
         e.min === 0 &&
         e.max === 1 &&
-        (e.axisLine as { lineStyle?: { color?: string } })?.lineStyle?.color === '#dbdee4';
+        (e.axisLine as { lineStyle?: { color?: string; width?: number } })?.lineStyle?.color === '#d' &&
+        (e.axisLine as { lineStyle?: { width?: number } }).lineStyle?.width === 2;
 
     it('closes an unstaffed vertical side with one silent border axis (the K1 report)', () => {
         // One bound axis (left, offset 0) staffs only the LEFT edge — the right side is naked since
@@ -2432,11 +2433,13 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
         expect(ya[1].axisLabel).toEqual({ show: false });
         expect(ya[1].splitLine).toEqual({ show: false });
         expect(ya[1]).not.toHaveProperty('name');
-        // stamped in the grid-splitLine colour (echarts v6 neutral15): the theme floor's yAxis
-        // defaults never reach the emitted array (the mergeGeneratedOverTheme deep merge replaces
-        // the floor object with the array), so the value is stamped at build time to match the
-        // grid the splitLines actually paint.
-        expect((ya[1].axisLine as { lineStyle?: { color?: string } }).lineStyle?.color).toBe('#dbdee4');
+        // stamped in the theme divider (the colour the floor-merged xAxis OBJECT paints the X
+        // splitLines with — the yAxis array never sees the floor) and 2 px wide: echarts cuts
+        // strokes at the rect edge, so the inner 1 px is what stays visible (ADR-0070 addendum 3).
+        expect((ya[1].axisLine as { lineStyle?: { color?: string; width?: number } }).lineStyle).toEqual({
+            color: '#d',
+            width: 2,
+        });
     });
 
     it('emits NO border axis when both sides are staffed (two-sided charts stay byte-identical)', () => {
@@ -2511,7 +2514,7 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
         expect(xa[1]).toMatchObject({
             type: 'time',
             position: 'bottom',
-            axisLine: { show: true, onZero: false, lineStyle: { color: '#dbdee4' } },
+            axisLine: { show: true, onZero: false, lineStyle: { color: '#d', width: 2 } },
             axisTick: { show: false },
             axisLabel: { show: false },
             splitLine: { show: false },

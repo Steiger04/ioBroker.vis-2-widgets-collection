@@ -58,15 +58,14 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 };
 
 /**
- * The colour the border axes paint with (ADR-0070): echarts v6's `tokens.color.axisSplitLine`
- * (`neutral15`) — the colour the plot's splitLines ACTUALLY render with. The border axis is a grid
- * element in the user's vocabulary („Gitterlinie"), so it matches the grid, not the axis lines: the
- * theme floor never reaches the emitted axis arrays (mergeGeneratedOverTheme replaces objects with
- * arrays), so the splitLines keep echarts' built-in light grey in every theme — stamping this same
- * value keeps the edge visually identical to them. (The originally chosen divider token was
- * SSR-proven to render, but is perceptually dead on dark backgrounds — live-measured 2026-08-30.)
+ * The stroke width of every border-axis edge line (ADR-0070): 2 px so the INNER half survives the
+ * plot-rect cut. Live-measured 2026-08-30: echarts clips strokes at the grid-rect boundary — the
+ * time axis' end gridline (`showMaxLine`, drawn at the rect edge in every chart) rendered as
+ * exactly HALF its authored width (4 px → 2 px measured in the user's canvas), so a 1 px line
+ * centered on the edge loses its visible half and disappears. `width: 2` keeps a full 1 px inside
+ * the rect — the exact weight of the 1 px splitLines it closes.
  */
-const EDGE_LINE_COLOR = '#dbdee4';
+const EDGE_LINE_WIDTH = 2;
 
 /**
  * Gap between an axis line and its (rotated) name (ADR-0024). Kept tight so each name reads close
@@ -748,8 +747,10 @@ export const buildCartesianOption = (
     // carry only a Versatz is simply NAKED (the ADR-0070 report: the "missing gridline" was the
     // flipped axis' own line). The builder closes an unstaffed side with ONE synthesized border
     // axis: silent except its line, min/max-pinned so echarts' alignTicks cannot see it (the
-    // ADR-0034 fixed-extent exclusion), painted in the splitLine colour the grid renders with
-    // (EDGE_LINE_COLOR — see the const above for why not a theme token).
+    // ADR-0034 fixed-extent exclusion), painted in the theme divider — the colour the X splitLines
+    // ACTUALLY render with (the floor-merged xAxis OBJECT survives the merge, unlike the yAxis
+    // array; live-measured ≈#707070 on the user's dark theme, the exact grey of their vertical
+    // gridlines). Width EDGE_LINE_WIDTH so the rect-edge cut cannot eat the line (see the const).
     // Detected over the EMITTED entries (position/offset defaults already applied), appended LAST
     // so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it exists only in
     // this option — the editor never sees it. A two-sided chart emits none: the option stays
@@ -762,7 +763,7 @@ export const buildCartesianOption = (
     const edgeLine = (): Record<string, unknown> => ({
         show: true,
         onZero: false,
-        lineStyle: { color: EDGE_LINE_COLOR },
+        lineStyle: { color: divider, width: EDGE_LINE_WIDTH },
     });
     const edgeSilence = {
         axisTick: { show: false },
