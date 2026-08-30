@@ -115,7 +115,7 @@ A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose bo
 _Avoid_: Axis row, axis settings
 
 **Axis fine-tuning**:
-The sparse appearance leaves beneath the axis **one-colour idiom** — label size (`axisLabel.fontSize`), tick colour (`axisTick.lineStyle.color`, separate from the labels; ticks follow the axis LINE by default), and grid colour (`splitLine.lineStyle.color`, offered only while that axis' splitlines switch is on; the value persists). Parity Build D (ADR-0055); additive: a set axis colour keeps painting line + label + name, these fields only steer their own leaf, unset = no emit.
+The sparse appearance leaves beneath the axis **one-colour idiom** — label size (`axisLabel.fontSize`), tick colour (`axisTick.lineStyle.color`, separate from the labels; ticks follow the axis LINE by default), and grid colour (`splitLine.lineStyle.color`, offered only while that axis' splitlines switch is on; the value persists). Parity Build D (ADR-0055); additive: a set axis colour keeps painting line + label + name, these fields only steer their own leaf. Since the ADR-0055 addendum the two grid DEFAULTS are stamped, not inherited: the Y grid colour is always emitted (divider — one grid grey in both directions) and the X axis line always carries the light former-grid grey (ticks follow). The X-Karte's grid colour and every Y card's grid colour stay separately authorable and win over the defaults.
 _Avoid_: axis styling (vague — the one-colour field is part of it), tick format (that is the value-range format field)
 
 **Axis manager**:

@@ -1004,9 +1004,11 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
             },
         });
         const ya = (option.yAxis as unknown as unknown[])[0] as {
-            splitLine?: { show?: boolean; lineStyle?: { type?: string } };
+            splitLine?: { show?: boolean; lineStyle?: { type?: string; color?: string } };
         };
-        expect(ya.splitLine).toEqual({ show: true, lineStyle: { type: 'dashed' } });
+        // The divider default rides along (always-emitted since the ADR-0055 addendum); the raw
+        // `type` leaf merges through — the GUI owns only the colour.
+        expect(ya.splitLine).toEqual({ show: true, lineStyle: { color: '#d', type: 'dashed' } });
     });
 
     it('nameLocation/nameGap are card-driven, defaulting to the former hard-emit values', () => {
@@ -1120,13 +1122,15 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
 
     it('always emits the time axis with the honest echarts defaults (splitLine off, ticks on)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        // Empty config = a plain time axis, pixel-identical to the pre-ADR-0035 hardcode except
-        // the ALWAYS-emitted moment formatter (ADR-0052): echarts' time-axis splitLine default is
-        // false, and `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y.
+        // Empty config = a plain time axis; the ALWAYS-emitted moment formatter (ADR-0052) and the
+        // ALWAYS-emitted axis line colour (ADR-0055 addendum: the light X-axis default — ticks
+        // follow the line) ride along. echarts' time-axis splitLine default is false,
+        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y.
         expect(option.xAxis).toEqual({
             type: 'time',
             splitLine: { show: false },
             axisTick: { show: true },
+            axisLine: { show: true, lineStyle: { color: '#dbdee4' } },
             axisLabel: { formatter: expect.any(Function) },
         });
         // No data → span 0 counts as a sub-30-min span → seconds resolution with the start date
@@ -1253,12 +1257,13 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
             offset: 24,
             axisLine: { show: true, onZero: false, lineStyle: { color: '#0af' } },
         });
-        // Without an offset the rendering stays exactly as before — no axisLine without a colour,
-        // no onZero switch (onZero:true is the deliberate default: negative data keeps the line
-        // at the y=0 level). An explicit 0 counts as unset (it IS the echarts default — a cleared
-        // field must also restore the onZero default).
+        // Without an offset there is no onZero switch (onZero:true is the deliberate default:
+        // negative data keeps the line at the y=0 level). The axis line itself is ALWAYS emitted
+        // since the ADR-0055 addendum — the light X-axis default colour (ticks follow the line).
+        // An explicit 0 counts as unset (it IS the echarts default).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(bare.xAxis).not.toHaveProperty('axisLine');
+        expect(bare.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#dbdee4' } } });
+        expect((bare.xAxis as Record<string, unknown>).axisLine).not.toHaveProperty('onZero');
         const zero = buildGeneratedOption({
             family: 'cartesian',
             series: [],
@@ -1266,7 +1271,7 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
             p: { ...P, xAxis: { offset: 0 } },
         });
         expect(zero.xAxis).not.toHaveProperty('offset');
-        expect(zero.xAxis).not.toHaveProperty('axisLine');
+        expect((zero.xAxis as Record<string, unknown>).axisLine).not.toHaveProperty('onZero');
         const colored = buildGeneratedOption({
             family: 'cartesian',
             series: [],
@@ -1804,7 +1809,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         expect(y0(bare).axisTick).toEqual({ show: true });
     });
 
-    it('emits splitLine.lineStyle.color on Y when the grid colour is set; unset keeps the bare show switch', () => {
+    it('emits the Y grid colour: authored field wins, unset falls to the divider default (ADR-0055 addendum)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
@@ -1813,8 +1818,11 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         });
         expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#777' } });
 
+        // Unset = the divider stamp (unifies the horizontal Y grid with the vertical X grid —
+        // the yAxis ARRAY never sees the theme floor, so a passive default would fall to echarts'
+        // light builtin, the two-grey inconsistency live-measured 2026-08-30).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(y0(bare).splitLine).toEqual({ show: true });
+        expect(y0(bare).splitLine).toEqual({ show: true, lineStyle: { color: '#d' } });
     });
 
     it('the raw override merges leaf-wise around the new Y leaves — GUI wins collisions, siblings flow through', () => {
@@ -1921,7 +1929,10 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             p: { ...P, xAxis: { position: 'bottom' } },
         });
         expect(bottom.xAxis).toMatchObject({ position: 'bottom' });
-        expect(bottom.xAxis).not.toHaveProperty('axisLine');
+        // The line is always emitted now (ADR-0055 addendum) — but stays onZero-defaulted at
+        // 'bottom' (negative data keeps the line at the y=0 level).
+        expect(bottom.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#dbdee4' } } });
+        expect((bottom.xAxis as Record<string, unknown>).axisLine).not.toHaveProperty('onZero');
 
         // top + offset: both triggers, one detach — offset stacks on the detached line (echarts
         // moves the axis away from the grid in the POSITION's direction, so positive = up at top).

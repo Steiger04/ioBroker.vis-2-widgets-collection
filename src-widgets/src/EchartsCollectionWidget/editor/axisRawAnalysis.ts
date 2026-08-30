@@ -13,8 +13,9 @@
  * managed set is partly CONDITIONAL:
  * `axisLabel.color` / `nameTextStyle.color` / `axisLine` are emitted only when an axis colour is
  * set (explicit or inherited from the bound series), `axisLabel.formatter` only when the format
- * field is filled, `axisLabel.fontSize`/`axisTick.lineStyle.color`/`splitLine.lineStyle.color`
- * only when their Build D fine-tuning fields are set (ADR-0055), and
+ * field is filled, `axisLabel.fontSize`/`axisTick.lineStyle.color` only when their Build D
+ * fine-tuning fields are set (ADR-0055), `splitLine.lineStyle.color` ALWAYS (the divider default,
+ * ADR-0055 addendum), and
  * `min`/`max`/`scale`/`splitNumber`/`minInterval`/`nameRotate`/`name` only when
  * their card fields are set. A static map would false-red keys that are actually free — the
  * classifier therefore resolves the managed LEAF paths from the axis config (+ the same inherited
@@ -130,17 +131,17 @@ const managedLeafPaths = ({ axis: a, seriesColor, seriesName }: AxisAnalysisInpu
     if (a.format) {
         paths.add('axisLabel.formatter');
     }
-    // Parity Build D (ADR-0055): the three fine-tuning leaves are conditionally card-owned —
-    // sparse like the format/colour conditionals above, so an unset field keeps the leaf free.
+    // Parity Build D (ADR-0055): the fine-tuning leaves are conditionally card-owned — sparse like
+    // the format/colour conditionals above, so an unset field keeps the leaf free. EXCEPT the grid
+    // colour: since the ADR-0055 addendum the builder ALWAYS emits it (the divider default that
+    // unifies the grid — see cartesian.ts), so that leaf is unconditionally GUI-owned.
     if (a.labelFontSize !== undefined) {
         paths.add('axisLabel.fontSize');
     }
     if (a.tickColor) {
         paths.add('axisTick.lineStyle.color');
     }
-    if (a.gridColor) {
-        paths.add('splitLine.lineStyle.color');
-    }
+    paths.add('splitLine.lineStyle.color');
     if (a.color ?? seriesColor) {
         paths.add('axisLabel.color');
         paths.add('axisLine.show');

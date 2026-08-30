@@ -71,11 +71,17 @@ describe('classifyAxisKeys — conditional keys are STATE-aware', () => {
         expect(chip('{ "axisLabel": { "formatter": "{value} W" } }', { format: '{value} kW' })[0].cls).toBe('ignored');
     });
 
-    it('the Build D fine-tuning leaves follow their card fields (ADR-0055)', () => {
+    it('the Build D fine-tuning leaves follow their card fields (ADR-0055; grid colour always GUI)', () => {
         const raw =
             '{ "axisLabel": { "fontSize": 14 }, "axisTick": { "lineStyle": { "color": "#333", "width": 2 } }, "splitLine": { "lineStyle": { "color": "#333", "type": "dashed" } } }';
-        // Unset fields → every leaf free (fontSize included; the show switches are absent here).
-        expect(chip(raw, {}).every(c => c.cls === 'effective')).toBe(true);
+        // Unset fields → fontSize/tick-colour free; the GRID colour leaf is ALWAYS managed (the
+        // builder stamps the divider default, ADR-0055 addendum) — so splitLine reads partial
+        // even with no field set, its colour eaten, `type` free.
+        const unset = chip(raw, {});
+        const by0 = (k: string): AxisKeyChip | undefined => unset.find(c => c.key === k);
+        expect(by0('axisLabel')?.cls).toBe('effective');
+        expect(by0('axisTick')?.cls).toBe('effective');
+        expect(by0('splitLine')).toEqual({ key: 'splitLine', cls: 'partial', managed: ['splitLine.lineStyle.color'] });
         // Set fields → each GUI leaf turns managed while its lineStyle siblings stay free.
         const set = chip(raw, { labelFontSize: 16, tickColor: '#0f0', gridColor: '#777' });
         const by = (k: string): AxisKeyChip | undefined => set.find(c => c.key === k);

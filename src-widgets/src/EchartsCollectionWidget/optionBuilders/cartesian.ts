@@ -68,6 +68,15 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 const EDGE_LINE_WIDTH = 2;
 
 /**
+ * The DEFAULT colour of the X axis line (+ its ticks, which follow the line — echarts' rule, the
+ * ADR-0055 fact): echarts v6's `tokens.color.axisSplitLine` (neutral15) — deliberately the colour
+ * the Y splitLines rendered with BEFORE the ADR-0055 addendum unified the grid on the divider (the
+ * user-ordered swap: grid = divider everywhere, while the X axis line + ticks take the old light
+ * grid grey and separate visually from the grid). Authored `x.color` still wins.
+ */
+const X_AXIS_LINE_COLOR = '#dbdee4';
+
+/**
  * Gap between an axis line and its (rotated) name (ADR-0024). Kept tight so each name reads close
  * to its own axis instead of floating off into the offset-axis gutter; `outerBoundsContain:'all'`
  * still reserves the name's full extent, so a tight gap never clips it.
@@ -356,6 +365,8 @@ const attachMarker = (host: Record<string, unknown>, key: 'markLine' | 'markArea
 const buildYAxisEntry = (
     a: EchartsAxisConfig,
     i: number,
+    /** Theme divider token — the DEFAULT grid colour (ADR-0055 addendum: the grid is ONE colour). */
+    divider: string,
     /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
@@ -370,9 +381,12 @@ const buildYAxisEntry = (
         position: a.position ?? (i === 0 ? 'left' : 'right'),
         offset: a.offset ?? 0,
         alignTicks: a.alignTicks ?? false,
-        // Parity Build D (ADR-0055): grid colour rides the show switch object, sparse — unset
-        // leaves splitLine a bare {show} so the raw override keeps owning lineStyle wholesale.
-        splitLine: { show: a.splitLine ?? i === 0, ...(a.gridColor ? { lineStyle: { color: a.gridColor } } : {}) },
+        // ADR-0055 addendum: the grid colour is ALWAYS emitted — the divider default unifies the
+        // horizontal Y splitLines with the vertical X splitLines (the X entry is an OBJECT whose
+        // theme-floor merge supplies the divider, but this yAxis ARRAY wholesale replaces the
+        // floor object, so a passive default would fall to echarts' light builtin — the two-grey
+        // inconsistency, live-measured 2026-08-30). An authored grid colour still wins.
+        splitLine: { show: a.splitLine ?? i === 0, lineStyle: { color: a.gridColor ?? divider } },
         // Card fields since ADR-0037 (were hard-emits with no GUI control, i.e. un-overridable
         // under the GUI-wins raw seam). Defaults = the former hard-emit values, so existing
         // widgets render identically.
@@ -517,8 +531,13 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: num
     if (x.labelFontSize !== undefined) {
         axisLabel.fontSize = x.labelFontSize;
     }
+    // ADR-0055 addendum: the axis line is ALWAYS emitted — the default X_AXIS_LINE_COLOR is the
+    // pre-unification grid grey (the user-ordered swap: the grid goes divider, the axis line goes
+    // light). The TICKS need no emission of their own: their stroke follows the axis line colour
+    // (echarts rule, the ADR-0055 verified fact), so they ride along. An authored x.color still
+    // paints line + labels + name together (the one-colour idiom).
+    entry.axisLine = { show: true, lineStyle: { color: x.color ?? X_AXIS_LINE_COLOR } };
     if (x.color) {
-        entry.axisLine = { show: true, lineStyle: { color: x.color } };
         axisLabel.color = x.color;
         entry.nameTextStyle = { color: x.color };
     }
@@ -727,7 +746,7 @@ export const buildCartesianOption = (
         const texts = axisTextFacts(boundFactsList);
         const seriesFacts: SeriesValueFacts | undefined =
             unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
-        return buildYAxisEntry(a, i, seriesColor, seriesName, p.decimalComma, seriesFacts);
+        return buildYAxisEntry(a, i, p.themeTokens.divider, seriesColor, seriesName, p.decimalComma, seriesFacts);
     });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
@@ -803,14 +822,11 @@ export const buildCartesianOption = (
     // edge and xAxis stays the single object (which also keeps the theme floor's natural object
     // merge: no array, no stamping needed). The array shape RETIRES the theme floor for BOTH X
     // entries (the generated array replaces the floor's xAxis object in the merge), so the floor's
-    // three X keys are stamped onto the real entry where the author left them unset — otherwise
-    // 'top' charts would silently flip line/label/grid colours to echarts' built-in neutrals.
+    // remaining X keys (label + grid colour — the axisLine colour is builder-emitted since the
+    // ADR-0055 addendum) are stamped onto the real entry where the author left them unset.
     const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, p.barCategories), p.xAxis.raw);
     let emittedXAxis: Record<string, unknown> | Array<Record<string, unknown>> = xAxisEntry;
     if (xAxisEntry.position === 'top' && xGridOn) {
-        const line = (xAxisEntry.axisLine as Record<string, unknown> | undefined) ?? { show: true };
-        const lineStyle = (line.lineStyle as Record<string, unknown> | undefined) ?? {};
-        xAxisEntry.axisLine = { ...line, lineStyle: { color: divider, ...lineStyle } };
         const label = (xAxisEntry.axisLabel as Record<string, unknown> | undefined) ?? {};
         xAxisEntry.axisLabel = { color: p.themeTokens.textSecondary, ...label };
         const split = (xAxisEntry.splitLine as Record<string, unknown> | undefined) ?? { show: false };
