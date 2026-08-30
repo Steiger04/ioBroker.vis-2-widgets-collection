@@ -116,7 +116,6 @@
     "echarts_axis_new": "Nowa oś",
     "echarts_axis_offset": "Przesunięcie (px)",
     "echarts_axis_position": "Strona",
-    "echarts_axis_position_locked": "Strona wynika z gęstego rozmieszczenia osi i jest ponownie przypisywana przy każdym zdarzeniu strukturalnym.",
     "echarts_axis_raw": "Zaawansowany JSON",
     "echarts_axis_raw_invalid": "Nieprawidłowy JSON",
     "echarts_axis_rebind_unit_mismatch": "Series przeniesione na oś z inną jednostką. Sprawdź skalę.",

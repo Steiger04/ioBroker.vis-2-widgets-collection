@@ -116,7 +116,6 @@
     "echarts_axis_new": "New axis",
     "echarts_axis_offset": "Offset (px)",
     "echarts_axis_position": "Side",
-    "echarts_axis_position_locked": "The side follows the dense axis distribution and is re-assigned on every structural event.",
     "echarts_axis_raw": "Advanced JSON",
     "echarts_axis_raw_invalid": "Invalid JSON",
     "echarts_axis_rebind_unit_mismatch": "Series rebound to an axis with a different unit. Please check the scale.",

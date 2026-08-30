@@ -116,7 +116,6 @@
     "echarts_axis_new": "Nieuwe as",
     "echarts_axis_offset": "Offset (px)",
     "echarts_axis_position": "Zijde",
-    "echarts_axis_position_locked": "De zijde volgt de dichtheidsverdeling van assen en wordt bij elke structurele gebeurtenis opnieuw toegewezen.",
     "echarts_axis_raw": "Geavanceerde JSON",
     "echarts_axis_raw_invalid": "Ongeldige JSON",
     "echarts_axis_rebind_unit_mismatch": "Series naar een as met een andere eenheid verplaatst. Controleer de schaal.",

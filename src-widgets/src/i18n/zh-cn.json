@@ -116,7 +116,6 @@
     "echarts_axis_new": "新坐标轴",
     "echarts_axis_offset": "偏移量 (px)",
     "echarts_axis_position": "侧边",
-    "echarts_axis_position_locked": "边遵循密集的坐标轴分布，并在每次结构性事件时重新分配。",
     "echarts_axis_raw": "高级 JSON",
     "echarts_axis_raw_invalid": "无效的 JSON",
     "echarts_axis_rebind_unit_mismatch": "系列已重新绑定到单位不同的轴。请检查刻度。",

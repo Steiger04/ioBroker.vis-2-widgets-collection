@@ -116,7 +116,6 @@
     "echarts_axis_new": "Нова вісь",
     "echarts_axis_offset": "Зміщення (px)",
     "echarts_axis_position": "Сторона",
-    "echarts_axis_position_locked": "Сторона відповідає щільному розподілу осей і перепризначається при кожній структурній події.",
     "echarts_axis_raw": "Розширений JSON",
     "echarts_axis_raw_invalid": "Неправильний JSON",
     "echarts_axis_rebind_unit_mismatch": "Серії переприв'язані до осі з іншою одиницею. Перевірте масштаб.",

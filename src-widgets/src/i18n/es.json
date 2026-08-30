@@ -116,7 +116,6 @@
     "echarts_axis_new": "Nuevo eje",
     "echarts_axis_offset": "Desplazamiento (px)",
     "echarts_axis_position": "Lado",
-    "echarts_axis_position_locked": "El lado sigue la distribución densa de ejes y se reasigna en cada evento estructural.",
     "echarts_axis_raw": "JSON avanzado",
     "echarts_axis_raw_invalid": "JSON no válido",
     "echarts_axis_rebind_unit_mismatch": "Series reasignadas a un eje con otra unidad. Revise la escala.",

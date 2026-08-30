@@ -116,7 +116,6 @@
     "echarts_axis_new": "Новая ось",
     "echarts_axis_offset": "Смещение (px)",
     "echarts_axis_position": "Сторона",
-    "echarts_axis_position_locked": "Сторона следует плотному распределению осей и переназначается при каждом структурном событии.",
     "echarts_axis_raw": "Расширенный JSON",
     "echarts_axis_raw_invalid": "Некорректный JSON",
     "echarts_axis_rebind_unit_mismatch": "Серии привязаны к оси с другой единицей. Проверьте масштаб.",

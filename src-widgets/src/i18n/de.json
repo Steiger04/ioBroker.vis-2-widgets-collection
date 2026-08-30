@@ -116,7 +116,6 @@
     "echarts_axis_new": "Neue Achse",
     "echarts_axis_offset": "Versatz (px)",
     "echarts_axis_position": "Seite",
-    "echarts_axis_position_locked": "Die Seite folgt der dichten Achsenverteilung und wird bei jedem Struktur-Ereignis neu zugewiesen.",
     "echarts_axis_raw": "Erweitertes JSON",
     "echarts_axis_raw_invalid": "Ungültiges JSON",
     "echarts_axis_rebind_unit_mismatch": "Serien auf eine Achse mit anderer Einheit umgebunden. Bitte Skala prüfen.",

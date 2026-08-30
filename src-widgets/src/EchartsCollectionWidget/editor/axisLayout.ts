@@ -117,25 +117,12 @@ export const balanceAxes = (
 
 /**
  * The side an axis card DISPLAYS when no position is stored (a hand-edit blob): the index-aware
- * default `i === 0 ? 'left' : 'right'`. The card's position select, the card's position subtitle,
- * and the flip detector ({@link isRealSideFlip}) all read through here — ONE default, so the
- * detector can never drift from what the select shows again (Q4's bug class).
+ * default `i === 0 ? 'left' : 'right'`. The card's position select and the card's position
+ * subtitle read through here — the SAME default the builder emits (ADR-0012), so the shown
+ * value can never drift from what renders.
  */
 export const displayPosition = (axis: EchartsAxisConfig | undefined, i: number): 'left' | 'right' =>
     axis?.position ?? (i === 0 ? 'left' : 'right');
-
-/**
- * Whether a position patch on axis `i` is a REAL side-flip — the structural event that triggers
- * the {@link balanceAxes} re-arrange (Q4): the comparison runs through {@link displayPosition},
- * so re-selecting the value the card SHOWS on an axis without a stored position (a hand-edit
- * blob) is a no-op, not a structural event. The index-blind `?? 'left'` default mis-read such a
- * re-select as a flip and re-rastered every bound axis' hand-tuned offset.
- */
-export const isRealSideFlip = (
-    axes: readonly EchartsAxisConfig[],
-    i: number,
-    patch: Partial<EchartsAxisConfig>,
-): boolean => 'position' in patch && patch.position !== displayPosition(axes[i], i);
 
 /**
  * The emitted (effective) axis positions (Q5): the cartesian builder emits the axes compacted in

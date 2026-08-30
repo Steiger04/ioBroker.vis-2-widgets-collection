@@ -146,23 +146,19 @@ const AxisCard: FC<{
                         placeholder={seriesName}
                         onChange={v => onChange({ name: v || undefined })}
                     />
-                    {/* The side is deterministic (Q4, every axis is bound — ADR-0069): the balance
-                        re-assigns it from the array position on every structural event — a flip
-                        would snap back immediately. Locked with a title hint.
-                        `displayPosition` is the SAME default the flip detector reads — the
-                        shown value and the trigger can never diverge again. */}
-                    <Box title={Generic.t('echarts_axis_position_locked')}>
-                        <LabeledSelect
-                            label={Generic.t('echarts_axis_position')}
-                            value={displayPosition(a, i)}
-                            onChange={v => onChange({ position: v as 'left' | 'right' })}
-                            options={[
-                                ['left', Generic.t('echarts_axis_left')],
-                                ['right', Generic.t('echarts_axis_right')],
-                            ]}
-                            disabled
-                        />
-                    </Box>
+                    {/* The side is fine-justure exactly like the offset beside it (ADR-0067: a
+                        manual position survives until the next STRUCTURAL event — a flip itself
+                        is not one, so the Q4 lock is reverted). `displayPosition` is the same
+                        index-aware default the builder emits (ADR-0012). */}
+                    <LabeledSelect
+                        label={Generic.t('echarts_axis_position')}
+                        value={displayPosition(a, i)}
+                        onChange={v => onChange({ position: v as 'left' | 'right' })}
+                        options={[
+                            ['left', Generic.t('echarts_axis_left')],
+                            ['right', Generic.t('echarts_axis_right')],
+                        ]}
+                    />
                     {/* Colour sits in the grid like a series colour — swatch + inherit placeholder.
                         Inherited = the bound series' effective colour (ADR-0018). */}
                     <Box>

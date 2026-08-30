@@ -42,7 +42,6 @@ import {
     boundJsonView,
     effectiveAxisColor,
     emittedAxisRanks,
-    isRealSideFlip,
     jsonBindingView,
     jsonBoundAxisDeletePatch,
     ownerPatch,
@@ -169,16 +168,13 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         state.mode === 'json' ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-        // A side-flip is a structural event: the FULL re-arrange runs — every axis re-takes
-        // its standard-interleaving slot (ADR-0067 pensions ADR-0028's position-preserving pack).
-        // Flipping therefore snaps back to the array-position side (the card's position select
-        // is LOCKED, Q4 — every axis is bound since ADR-0069). Any other field edit
-        // (offset/name/colour/min-max/…) is fine-justure: NO re-arrange, the manual geometry
-        // survives until the next structural event. The trigger fires on a REAL flip only
-        // (`isRealSideFlip` — the detector's default mirrors the select's display default, so
-        // re-selecting the SHOWN value on an unstored position is a no-op, Q4).
-        const flipped = isRealSideFlip(axes, i, patch);
-        set({ yAxes: flipped ? balanceAxes(next, balanceSight()) : next });
+        // Every card edit — a side-flip included — is fine-justure: NO re-arrange, the manual
+        // geometry (position AND offset) survives until the next STRUCTURAL event (add/delete/
+        // rebind/JSON-hide/Data-path reset), where the dense balance re-rasters it (ADR-0067).
+        // The Q4 flip-as-structural gate is reverted: it made the position select a no-op, and
+        // ADR-0069's every-axis-bound turned its lock permanent — while ADR-0067 itself promises
+        // manual position as fine-justure.
+        set({ yAxes: next });
     };
     // Manual "add axis" is retired (ADR-0069): the button created an axis nothing bound — an
     // unbound axis, which the new invariant drops on the spot. Axes are born in the Series

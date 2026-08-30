@@ -22,7 +22,6 @@ import {
     dropUnboundAxes,
     effectiveAxisColor,
     emittedAxisRanks,
-    isRealSideFlip,
     jsonBoundAxisDeletePatch,
     jsonShowPatch,
     effectiveAxisName,
@@ -583,43 +582,6 @@ describe('jsonBoundAxisDeletePatch — JSON axis-delete hides ALL bound names, t
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
         const patch = jsonBoundAxisDeletePatch(['A', 'B'], overlay, [], axes, 1);
         expect(patch && Object.keys(patch).sort()).toEqual(['jsonHidden', 'jsonSeriesStyle', 'markLines', 'yAxes']);
-    });
-});
-
-describe("isRealSideFlip — the flip detector with the select's index-aware default (Q4)", () => {
-    it('re-selecting the DISPLAYED value on an axis without a stored position is NOT a flip', () => {
-        // Axis 1 has no stored position (a hand-edit blob): the card displays the index-aware
-        // default 'right'. Re-selecting 'right' must not count as a flip — the index-blind
-        // `?? 'left'` default mis-read it as one and re-rastered every axis' hand-tuned
-        // offset through the balance (ADR-0067).
-        expect(
-            isRealSideFlip(
-                [
-                    { id: 'a0', position: 'left', offset: 0 },
-                    { id: 'a1', offset: 42 },
-                ],
-                1,
-                {
-                    position: 'right',
-                },
-            ),
-        ).toBe(false); // offsets survive — no balance run
-    });
-
-    it('a REAL flip (stored or default position differs) is a flip', () => {
-        const axes = [
-            { id: 'a0', position: 'left' as const, offset: 0 },
-            { id: 'a1', offset: 42 },
-            { id: 'a2', position: 'left' as const, offset: 80 },
-        ];
-        expect(isRealSideFlip(axes, 1, { position: 'left' })).toBe(true); // displayed 'right' → left
-        expect(isRealSideFlip(axes, 2, { position: 'right' })).toBe(true); // stored left → right
-        expect(isRealSideFlip(axes, 0, { position: 'right' })).toBe(true); // default left → right
-    });
-
-    it('a patch without a position key is never a flip', () => {
-        expect(isRealSideFlip([{ id: 'a0', position: 'left', offset: 0 }], 0, { offset: 120 })).toBe(false);
-        expect(isRealSideFlip([{ id: 'a0', position: 'left', offset: 0 }], 0, {})).toBe(false);
     });
 });
 
