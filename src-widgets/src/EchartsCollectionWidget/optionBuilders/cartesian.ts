@@ -740,22 +740,29 @@ export const buildCartesianOption = (
     // (`containLabel:true` let the outermost offset-axis name slip to x<0 at grid 0 → it vanished;
     // the earlier `'1%' + maxOffset` had masked that by over-reserving. `nameGap` was also 50 →
     // names floated far from their axes; tightened via AXIS_NAME_GAP.)
-    // Plot-edge contract (ADR-0070): left/right/bottom ALWAYS show a line; top NEVER (unless the X
-    // axis itself sits there). A side's vertical edge line is its offset-0 axis' axisLine — echarts
-    // places axis lines at rect ± offset (cartesianAxisHelper.layout; onZero is dead against a time
-    // axis) and draws no grid border of its own, so a side whose axes all flipped away, died or
-    // carry only a Versatz is simply NAKED (the ADR-0070 report: the "missing gridline" was the
-    // flipped axis' own line). The builder closes an unstaffed side with ONE synthesized border
-    // axis: silent except its line, min/max-pinned so echarts' alignTicks cannot see it (the
-    // ADR-0034 fixed-extent exclusion), painted in the theme divider — the colour the X splitLines
-    // ACTUALLY render with (the floor-merged xAxis OBJECT survives the merge, unlike the yAxis
-    // array; live-measured ≈#707070 on the user's dark theme, the exact grey of their vertical
+    // Plot-edge contract (ADR-0070, grid-coupled since addendum 4): while the X gridlines are ON,
+    // left/right/bottom each show a line (top never — unless the X axis itself sits there); with
+    // the grid OFF no twin is emitted at all — the twins are the FIRST and LAST Gitterlinie of the
+    // time axis, grid elements that follow their switch (user decision 2026-08-30: lone edge lines
+    // on a gridless chart read as noise). A staffed side's REAL axis line is not a grid element —
+    // it closes its side whatever the switch says. A side's vertical edge line is its offset-0
+    // axis' axisLine — echarts places axis lines at rect ± offset (cartesianAxisHelper.layout;
+    // onZero is dead against a time axis) and draws no grid border of its own, so a side whose
+    // axes all flipped away, died or carry only a Versatz is NAKED without the twin (the ADR-0070
+    // report). The builder closes an unstaffed side with ONE synthesized border axis: silent
+    // except its line, min/max-pinned so echarts' alignTicks cannot see it (the ADR-0034
+    // fixed-extent exclusion), painted in the theme divider — the colour the X splitLines ACTUALLY
+    // render with (the floor-merged xAxis OBJECT survives the merge, unlike the yAxis array;
+    // live-measured ≈#707070 on the user's dark theme, the exact grey of their vertical
     // gridlines). Width EDGE_LINE_WIDTH so the rect-edge cut cannot eat the line (see the const).
-    // Detected over the EMITTED entries (position/offset defaults already applied), appended LAST
-    // so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it exists only in
-    // this option — the editor never sees it. A two-sided chart emits none: the option stays
-    // byte-identical to the pre-0070 shape.
+    // The grid flag reads the CONFIG (`p.xAxis.splitLine ?? false` — the switch's own default is
+    // OFF): a raw override cannot flip a GUI-owned switch (applyRawOverride, GUI wins collisions),
+    // so config truth IS emitted truth here. Detected over the EMITTED entries (position/offset
+    // defaults already applied), appended LAST so no bound axis index shifts (yAxisIndex refs +
+    // marking hosts stay put); it exists only in this option — the editor never sees it. A
+    // two-sided chart emits none: the option stays byte-identical to the pre-0070 shape.
     const divider = p.themeTokens.divider;
+    const xGridOn = p.xAxis.splitLine ?? false;
     // The silent shell every synthesized edge carries — only its line renders (ADR-0070). The line
     // detaches from the Y-zero (`onZero:false`, the ADR-0055 rule): with the default onZero:true an
     // X twin would draw at the first value-Y's zero instead of the plot's bottom edge whenever that
@@ -780,23 +787,27 @@ export const buildCartesianOption = (
         axisLine: edgeLine(),
         ...edgeSilence,
     });
-    const borderSides = (['left', 'right'] as const).filter(
-        side => !yAxisEntries.some(e => e.position === side && (e.offset ?? 0) === 0),
-    );
+    const borderSides = xGridOn
+        ? (['left', 'right'] as const).filter(
+              side => !yAxisEntries.some(e => e.position === side && (e.offset ?? 0) === 0),
+          )
+        : [];
     const emittedYAxes: Record<string, unknown>[] = [...yAxisEntries, ...borderSides.map(borderAxisEntry)];
 
-    // Horizontal half of the same contract (ADR-0070 K6): an X axis on 'top' leaves the BOTTOM edge
+    // Horizontal half of the same contract (ADR-0070 K6, grid-coupled since addendum 4 — the user
+    // coupled the bottom twin to the grid switch too): an X axis on 'top' leaves the BOTTOM edge
     // unstaffed — the twin mirrors the EMITTED entry's type/data and shows only its line (divider-
     // stamped like its Y siblings). The gate reads the EMITTED position (post-raw-fold), the same
     // emitted-truth rule as the Y sides — a raw `{ position: 'top' }` hand-edit gets the twin too.
-    // At 'bottom' (authored, default, or raw) the real axis owns that edge and xAxis stays the
-    // single object. The array shape RETIRES the theme floor for BOTH X entries (the generated
-    // array replaces the floor's xAxis object in the merge), so the floor's three X keys are
-    // stamped onto the real entry where the author left them unset — otherwise 'top' charts would
-    // silently flip line/label/grid colours to echarts' built-in neutrals.
+    // At 'bottom' (authored, default, or raw) — or with the grid OFF — the real axis owns that
+    // edge and xAxis stays the single object (which also keeps the theme floor's natural object
+    // merge: no array, no stamping needed). The array shape RETIRES the theme floor for BOTH X
+    // entries (the generated array replaces the floor's xAxis object in the merge), so the floor's
+    // three X keys are stamped onto the real entry where the author left them unset — otherwise
+    // 'top' charts would silently flip line/label/grid colours to echarts' built-in neutrals.
     const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, p.barCategories), p.xAxis.raw);
     let emittedXAxis: Record<string, unknown> | Array<Record<string, unknown>> = xAxisEntry;
-    if (xAxisEntry.position === 'top') {
+    if (xAxisEntry.position === 'top' && xGridOn) {
         const line = (xAxisEntry.axisLine as Record<string, unknown> | undefined) ?? { show: true };
         const lineStyle = (line.lineStyle as Record<string, unknown> | undefined) ?? {};
         xAxisEntry.axisLine = { ...line, lineStyle: { color: divider, ...lineStyle } };

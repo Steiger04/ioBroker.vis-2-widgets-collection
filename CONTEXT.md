@@ -175,11 +175,11 @@ The line an axis draws at its own position + offset — part of the axis' one-co
 _Avoid_: Gitterlinie (no such vertical construct exists outside axes), Plotkante (that is the contract, not the element)
 
 **Plot edge**:
-A boundary line of the cartesian plot area under the ADR-0070 contract: left, right and bottom ALWAYS show a line, top NEVER — unless the X axis itself sits at top, in which case the bottom takes the border twin. A staffed edge's line is the real axis' **Achsenlinie**, an unstaffed edge's a **Grenzachse**. Supersedes the emergent state where edges appeared and vanished with axis layout.
+A boundary line of the cartesian plot area under the ADR-0070 contract (grid-coupled since addendum 4): WHILE the X gridlines are on, left, right and bottom each show a line (top never — unless the X axis itself sits at top, then the bottom takes the border twin); with the grid off no twin is emitted at all. A staffed edge's line is the real axis' **Achsenlinie** (an axis is not a grid element — it stays whatever the switch says), an unstaffed edge's a **Grenzachse**.
 _Avoid_: Gitterlinie, Rahmen (that is the Chart frame — CSS around the widget area), grid border (echarts' `grid.show` box, deliberately unused)
 
 **Grenzachse (border axis)**:
-The builder-synthesized axis that enforces the **Plot edge** contract (ADR-0070) — silent except its axisLine (no ticks/labels/name/splitline, min/max pinned so tick alignment ignores it), painted in the theme divider at 2px so a full 1px survives the rect-edge cut (a centred stroke loses its outer half to sub-pixel rasterizing), appended last so no index shifts. The editor never sees one: no Axis card, no dropdown entry, no binding — it exists only in the emitted option.
+The builder-synthesized axis that enforces the **Plot edge** contract (ADR-0070) — the FIRST and LAST Gitterlinie of the time axis, a grid element that follows the X gridlines switch (emitted only while the grid is on). Silent except its axisLine (no ticks/labels/name/splitline, min/max pinned so tick alignment ignores it), painted in the theme divider at 2px so a full 1px survives the rect-edge cut (a centred stroke loses its outer half to sub-pixel rasterizing), appended last so no index shifts. The editor never sees one: no Axis card, no dropdown entry, no binding — it exists only in the emitted option.
 _Avoid_: phantom axis, frame axis, dummy axis
 
 **Tick alignment**:
