@@ -148,8 +148,10 @@ const AxisCard: FC<{
                     />
                     {/* The side is fine-justure exactly like the offset beside it (ADR-0067: a
                         manual position survives until the next STRUCTURAL event — a flip itself
-                        is not one, so the Q4 lock is reverted). `displayPosition` is the same
-                        index-aware default the builder emits (ADR-0012). */}
+                        is not one, so the Q4 lock is reverted). A REAL flip re-staggers both
+                        sides densely with the sides preserved (ADR-0028 flip semantics):
+                        no collision with the axes already on the target side. `displayPosition`
+                        is the same index-aware default the builder emits (ADR-0012). */}
                     <LabeledSelect
                         label={Generic.t('echarts_axis_position')}
                         value={displayPosition(a, i)}

@@ -40,8 +40,10 @@ import {
     boundJsonAxisIndices,
     boundJsonAxisName,
     boundJsonView,
+    displayPosition,
     effectiveAxisColor,
     emittedAxisRanks,
+    packStaggeredAxes,
     jsonBindingView,
     jsonBoundAxisDeletePatch,
     ownerPatch,
@@ -168,13 +170,14 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         state.mode === 'json' ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-        // Every card edit — a side-flip included — is fine-justure: NO re-arrange, the manual
-        // geometry (position AND offset) survives until the next STRUCTURAL event (add/delete/
-        // rebind/JSON-hide/Data-path reset), where the dense balance re-rasters it (ADR-0067).
-        // The Q4 flip-as-structural gate is reverted: it made the position select a no-op, and
-        // ADR-0069's every-axis-bound turned its lock permanent — while ADR-0067 itself promises
-        // manual position as fine-justure.
-        set({ yAxes: next });
+        // A REAL side-flip re-staggers both sides densely, sides preserved (ADR-0028's flip
+        // semantics, re-introduced for the manual fine-justure flip — ADR-0067's interleaving
+        // balance stays reserved for structural events). The flip check runs through
+        // `displayPosition`, so re-selecting the value the card SHOWS is no flip: hand-tuned
+        // offsets survive. Any other edit (offset/name/colour/min-max/…) is plain fine-justure —
+        // no re-pack either.
+        const flipped = 'position' in patch && patch.position !== displayPosition(axes[i], i);
+        set({ yAxes: flipped ? packStaggeredAxes(next) : next });
     };
     // Manual "add axis" is retired (ADR-0069): the button created an axis nothing bound — an
     // unbound axis, which the new invariant drops on the spot. Axes are born in the Series

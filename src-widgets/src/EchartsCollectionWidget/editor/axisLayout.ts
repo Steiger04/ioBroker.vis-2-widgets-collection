@@ -125,6 +125,28 @@ export const displayPosition = (axis: EchartsAxisConfig | undefined, i: number):
     axis?.position ?? (i === 0 ? 'left' : 'right');
 
 /**
+ * The side-PRESERVING dense restagger (ADR-0028's flip semantics, re-introduced 2026-08-30): a
+ * manual side-flip keeps every axis' chosen side (the flipped one included) and re-staggers BOTH
+ * sides densely in array order on the 80-px raster — resolving the collision a moved axis can
+ * create. Runs unconditionally on the flip: a hand-tuned offset is fine-justure that survives
+ * only until the next structural change; the trigger is the flip, never a bare offset edit. The
+ * counted side is {@link displayPosition} — the side the card SHOWS and the builder EMITS (an
+ * unstored position renders its index-aware default, not 'left'; the pre-ADR-0067 variant read
+ * `a.position` raw). ADR-0067's interleaving {@link balanceAxes} stays reserved for structural
+ * events — its rejection of the side-preserving pack concerned THOSE (predictability); an
+ * explicit user flip IS the intent, so the sides are exactly what must survive here.
+ */
+export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
+    let leftSeen = 0;
+    let rightSeen = 0;
+    return axes.map((a, i) =>
+        displayPosition(a, i) === 'right'
+            ? { ...a, offset: rightSeen++ * AXIS_STAGGER_STAGE }
+            : { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE },
+    );
+};
+
+/**
  * The emitted (effective) axis positions (Q5): the cartesian builder emits the axes compacted in
  * array order — `ranks.get(i)` is axis i's EMITTED index (its rank, ascending). UI gates that
  * must follow the emitted truth (the alignTicks switch/warning: the reference axis is the first

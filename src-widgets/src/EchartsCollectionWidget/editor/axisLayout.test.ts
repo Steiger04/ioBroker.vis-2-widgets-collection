@@ -22,6 +22,7 @@ import {
     dropUnboundAxes,
     effectiveAxisColor,
     emittedAxisRanks,
+    packStaggeredAxes,
     jsonBoundAxisDeletePatch,
     jsonShowPatch,
     effectiveAxisName,
@@ -582,6 +583,102 @@ describe('jsonBoundAxisDeletePatch — JSON axis-delete hides ALL bound names, t
         const overlay = { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } };
         const patch = jsonBoundAxisDeletePatch(['A', 'B'], overlay, [], axes, 1);
         expect(patch && Object.keys(patch).sort()).toEqual(['jsonHidden', 'jsonSeriesStyle', 'markLines', 'yAxes']);
+    });
+});
+
+describe('packStaggeredAxes — side-preserving dense restagger (ADR-0028 flip semantics, re-introduced)', () => {
+    it('re-packs a floating gap: surviving left axes 0/160 → 0/80', () => {
+        // After deleting the middle axis (offset 80), the third axis floats at 160.
+        const survivors: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out.map(a => a.offset)).toEqual([0, 80]); // gap closed, packed by order
+        expect(out.every(a => a.position === 'left')).toBe(true); // position preserved
+    });
+
+    it('re-packs each side independently (left 0/160 + right 0 → left 0/80 + right 0)', () => {
+        const survivors: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 0 },
+            { position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out.map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 },
+            { p: 'right', o: 0 },
+            { p: 'left', o: 80 },
+        ]);
+    });
+
+    it('normalises a hand-tuned (non-raster) offset to the raster (ADR-0028 reversed the escape hatch)', () => {
+        const custom: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 100 }, // not on the 80-px raster
+        ];
+        // A flip must resolve collisions even in a custom layout — the 100 px offset snaps to
+        // the next raster slot.
+        expect(packStaggeredAxes(custom).map(a => a.offset)).toEqual([0, 80]);
+    });
+
+    it('resolves a side-flip collision — flips axis 2 to the right and repacks both sides (ADR-0028)', () => {
+        // Default 1:1 [L0/0, R0/0, L1/80, R1/80]; the user flips axis 2 (L1) to the right. Its
+        // offset stays 80 → it would collide with axis 3 (R1/80) on the right. packStaggeredAxes
+        // repacks each side densely by array order, so the overlap is gone.
+        const flipped: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 0 },
+            { position: 'right', offset: 80 }, // was left/80, now right — collides with the next
+            { position: 'right', offset: 80 },
+        ];
+        expect(packStaggeredAxes(flipped).map(a => ({ p: a.position, o: a.offset }))).toEqual([
+            { p: 'left', o: 0 }, // axis 0 alone on the left
+            { p: 'right', o: 0 }, // axes 1, 2, 3 repacked to 0/80/160 by running order
+            { p: 'right', o: 80 },
+            { p: 'right', o: 160 },
+        ]);
+    });
+
+    it('is a no-op for an already-packed set (idempotent)', () => {
+        const packed: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 0 },
+            { position: 'left', offset: 80 },
+        ];
+        expect(packStaggeredAxes(packed).map(a => a.offset)).toEqual([0, 0, 80]);
+    });
+
+    it('treats undefined offset as 0 (on the raster) and packs it', () => {
+        const withDefault: EchartsAxisConfig[] = [
+            { position: 'left' }, // offset undefined
+            { position: 'left', offset: 80 },
+        ];
+        expect(packStaggeredAxes(withDefault).map(a => a.offset)).toEqual([0, 80]);
+    });
+
+    it('preserves identity + other fields, only normalising offset', () => {
+        const survivors: EchartsAxisConfig[] = [
+            { id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 },
+            { id: 'c', name: 'C', color: '#00f', position: 'left', offset: 160 },
+        ];
+        const out = packStaggeredAxes(survivors);
+        expect(out[0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 });
+        expect(out[1]).toMatchObject({ id: 'c', name: 'C', color: '#00f', position: 'left', offset: 80 });
+    });
+
+    it('counts an UNSTORED position on its rendered side (displayPosition — the index-aware default)', () => {
+        // Axis 1 has no stored position: the card shows AND the builder emits 'right'
+        // (index-aware default). The pack must stagger it on the RIGHT — the old pre-ADR-0067
+        // variant read `a.position === 'right'` raw and would have counted it LEFT.
+        const unstored: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { offset: 80 }, // index 1 → renders right
+            { position: 'right', offset: 160 },
+        ];
+        const out = packStaggeredAxes(unstored);
+        expect(out.map(a => a.offset)).toEqual([0, 0, 80]); // axis 1 is the FIRST right axis
+        expect(out[1].position).toBeUndefined(); // the pack normalises offset only
     });
 });
 
