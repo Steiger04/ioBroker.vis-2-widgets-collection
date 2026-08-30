@@ -347,11 +347,11 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(first.itemStyle).toEqual({ color: '#abc' });
     });
 
-    it('provides a time xAxis and a single value yAxis by default', () => {
+    it('provides a time xAxis and the default left axis, closed by the right border axis (ADR-0070)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(option.xAxis).toMatchObject({ type: 'time' });
         const ya = option.yAxis as unknown as { type: string }[];
-        expect(ya).toHaveLength(1);
+        expect(ya).toHaveLength(2); // the default axis + the right border axis (ADR-0070)
         expect(ya[0].type).toBe('value');
     });
 
@@ -504,7 +504,7 @@ describe('buildGeneratedOption — cartesian', () => {
     it('single axis: alignTicks defaults off; grid flush with full label+name containment', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
-        expect(ya).toHaveLength(1);
+        expect(ya).toHaveLength(2); // the default axis + the right border axis (ADR-0070)
         expect(ya[0].alignTicks).toBe(false);
         const grid = option.grid as { outerBoundsContain?: string };
         expect(grid.outerBoundsContain).toBe('all'); // reserves tick labels AND axis names
@@ -576,7 +576,7 @@ describe('buildGeneratedOption — cartesian', () => {
             p: { ...P, yAxes: [] },
         });
         const ya = option.yAxis as unknown as { type?: string; splitLine?: { show?: boolean } }[];
-        expect(ya).toHaveLength(1);
+        expect(ya).toHaveLength(2); // the fallback axis + the right border axis (ADR-0070)
         expect(ya[0].type).toBe('value');
         expect(ya[0].splitLine?.show).toBe(true); // default axis 0 shows splitlines
     });
@@ -932,7 +932,7 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
             meta: [{ name: 'A' }],
             p: { ...P, yAxes: [{ raw: JSON.stringify(raw) }] },
         });
-        expect(option.yAxis as unknown[]).toHaveLength(1);
+        expect(option.yAxis as unknown[]).toHaveLength(2); // real axis + right border axis (ADR-0070)
         const ya = (option.yAxis as unknown as unknown[])[0] as Record<string, unknown>;
         expect(ya.axisLabel).toMatchObject({ fontFamily: 'JetBrains Mono', fontSize: 14 });
         expect(ya.nameTextStyle).toMatchObject({ fontWeight: 'bold' });
@@ -1067,7 +1067,7 @@ describe('buildGeneratedOption — unbound axes are never emitted (ADR-0066)', (
             p: { ...P, yAxes: [{ name: 'A' }, { name: 'B' }] },
         });
         const ya = option.yAxis as unknown as unknown[];
-        expect(ya).toHaveLength(1); // the `[{}]` guarantee — a cartesian renders ≥1 value axis
+        expect(ya).toHaveLength(2); // the `[{}]` axis + the right border axis — ≥1 value axis holds (ADR-0070)
     });
 
     it('a marking anchored to an unbound axis rests — no fallback onto another axis', () => {
@@ -1882,7 +1882,9 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top' } },
         });
-        expect(top.xAxis).toMatchObject({ position: 'top' });
+        // 'top' makes xAxis an ARRAY: [real axis, bottom border twin] (ADR-0070 K6 — the top axis
+        // leaves the bottom edge unstaffed).
+        expect((top.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({ position: 'top' });
 
         const bottom = buildGeneratedOption({
             family: 'cartesian',
@@ -1909,7 +1911,8 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top' } },
         });
-        expect(top.xAxis).toMatchObject({ position: 'top', axisLine: { show: true, onZero: false } });
+        const topX = (top.xAxis as unknown as Record<string, unknown>[])[0]; // [real, bottom twin] (ADR-0070)
+        expect(topX).toMatchObject({ position: 'top', axisLine: { show: true, onZero: false } });
 
         const bottom = buildGeneratedOption({
             family: 'cartesian',
@@ -1928,7 +1931,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', offset: 24 } },
         });
-        expect(topOffset.xAxis).toMatchObject({
+        expect((topOffset.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({
             position: 'top',
             offset: 24,
             axisLine: { show: true, onZero: false },
@@ -1941,7 +1944,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', color: '#0af' } },
         });
-        expect(topColored.xAxis).toMatchObject({
+        expect((topColored.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({
             position: 'top',
             axisLine: { show: true, onZero: false, lineStyle: { color: '#0af' } },
         });
@@ -2397,5 +2400,143 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
         const series = option.series as unknown as { name: string; markArea?: unknown }[];
         expect(series[1].markArea).toBeDefined();
         expect(series[0].markArea).toBeUndefined();
+    });
+});
+
+describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)', () => {
+    // The twin's fingerprint: min/max pins + a divider-stamped bare axisLine. A REAL axis never
+    // matches: its axisLine colour resolves to the palette/series colour (never the divider), and
+    // an unset min/max emits no key at all.
+    const isBorderAxis = (e: Record<string, unknown>): boolean =>
+        e.min === 0 && e.max === 1 && (e.axisLine as { lineStyle?: { color?: string } })?.lineStyle?.color === '#d';
+
+    it('closes an unstaffed vertical side with one silent border axis (the K1 report)', () => {
+        // One bound axis (left, offset 0) staffs only the LEFT edge — the right side is naked since
+        // echarts draws no grid border of its own (grid.show is a 4-side box). The twin closes it.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: P,
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(2);
+        expect(isBorderAxis(ya[1])).toBe(true);
+        expect(ya[1].position).toBe('right');
+        expect(ya[1].offset).toBe(0);
+        expect(ya[1].alignTicks).toBe(false);
+        expect((ya[1].axisLine as { onZero?: boolean }).onZero).toBe(false); // ADR-0055 detach
+        expect(ya[1].axisTick).toEqual({ show: false });
+        expect(ya[1].axisLabel).toEqual({ show: false });
+        expect(ya[1].splitLine).toEqual({ show: false });
+        expect(ya[1]).not.toHaveProperty('name');
+        // divider-stamped: the theme floor's yAxis defaults never reach the emitted array (the
+        // mergeGeneratedOverTheme deep merge replaces the floor object with the array) — the token
+        // is stamped at build time, the markLine-defaults seam (ADR-0027).
+        expect((ya[1].axisLine as { lineStyle?: { color?: string } }).lineStyle?.color).toBe('#d');
+    });
+
+    it('emits NO border axis when both sides are staffed (two-sided charts stay byte-identical)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
+            p: { ...P, yAxes: [{}, { position: 'right' }] },
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(2);
+        expect(ya.some(isBorderAxis)).toBe(false);
+        // no synthesized entries: real axes never carry the min/max pins at defaults
+        expect(ya.every(e => e.min === undefined && e.max === undefined)).toBe(true);
+    });
+
+    it('closes BOTH sides when no axis sits at offset 0 (the all-Versatz side, K4)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{ position: 'left', offset: 80 }] },
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(3);
+        expect(ya[0].offset).toBe(80); // the real axis, untouched
+        const twins = ya.filter(isBorderAxis);
+        expect(twins.map(t => t.position)).toEqual(['left', 'right']); // exactly one per side
+    });
+
+    it('the index-aware default staffs a side too (position-less axis 0 guards left)', () => {
+        // A hand-edited axis WITHOUT a stored position still emits `left` at index 0 — the twin
+        // detection reads the EMITTED entries, so the default counts as staffing.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{}] },
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(2);
+        expect(isBorderAxis(ya[1])).toBe(true);
+        expect(ya[1].position).toBe('right');
+    });
+
+    it('ADR-0069 defense stays: unbound axes are still filtered, the twin is no side door', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, yAxes: [{ name: 'A' }, { name: 'Ghost' }] },
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(2); // real left axis + right twin — 'Ghost' is NOT emitted
+        expect(ya.every(e => e.name !== 'Ghost')).toBe(true);
+        expect(isBorderAxis(ya[1])).toBe(true);
+    });
+
+    it('X on top gets a bottom twin; X at bottom/unset keeps the single-object shape', () => {
+        const top = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top' } },
+        });
+        const xa = top.xAxis as unknown as Record<string, unknown>[];
+        expect(xa).toHaveLength(2);
+        expect(xa[0]).toMatchObject({ position: 'top' });
+        expect(xa[1]).toMatchObject({
+            type: 'time',
+            position: 'bottom',
+            axisLine: { show: true, onZero: false, lineStyle: { color: '#d' } },
+            axisTick: { show: false },
+            axisLabel: { show: false },
+            splitLine: { show: false },
+        });
+
+        // authored 'bottom' staffs the edge itself — single object, no twin
+        const bottom = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'bottom' } },
+        });
+        expect(bottom.xAxis).toMatchObject({ type: 'time', position: 'bottom' });
+        expect(Array.isArray(bottom.xAxis)).toBe(false);
+
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(bare.xAxis).toMatchObject({ type: 'time' });
+        expect((bare.xAxis as Record<string, unknown>).position).toBeUndefined();
+    });
+
+    it('the bottom twin mirrors the category shape for bar buckets', () => {
+        const top = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, cartesianType: 'bar', barCategories: [100, 200, 300], xAxis: { position: 'top' } },
+        });
+        const xa = top.xAxis as unknown as Record<string, unknown>[];
+        expect(xa[1]).toMatchObject({ type: 'category', data: [100, 200, 300], position: 'bottom' });
     });
 });
