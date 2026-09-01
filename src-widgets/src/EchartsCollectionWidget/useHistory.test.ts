@@ -12,7 +12,7 @@
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderHook } from './testHarness';
+import { renderHook } from '../lib/testing/testHarness';
 import { makeBarPlan } from './barBuckets';
 import { useHistory } from './useHistory';
 import type { Point } from './historyLogic';

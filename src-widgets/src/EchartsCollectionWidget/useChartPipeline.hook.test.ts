@@ -14,7 +14,7 @@
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { renderHook } from './testHarness';
+import { renderHook } from '../lib/testing/testHarness';
 import { useChartPipeline, type ChartPipelineAdapter } from './useChartPipeline';
 import type { ThemeTokens } from './echartsTheme';
 import type { Point } from './historyLogic';

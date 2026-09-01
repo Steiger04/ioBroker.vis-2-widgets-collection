@@ -28,13 +28,15 @@
  *   non-blocking cautions. The one callout idiom across configurator sections.
  * - **LabeledSelect / NumberField / OptionalNumberField / TextField2** — scalar inputs on the
  *   caption-above idiom.
+ * - **SectionTabs** — the one tab idiom (ADR-0073): a dense scrollable tab row for section and
+ *   card bodies; view-only local state, ⚠ dot per tab beside the section rollup.
  *
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
  * All labels go through `Generic.t` at the call site.
  */
 import { useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';
-import { Box, Collapse, MenuItem, Slider, Switch, TextField, Typography } from '@mui/material';
+import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
 import { ExpandMore as ExpandIcon } from '@mui/icons-material';
 
@@ -588,3 +590,81 @@ export const InfoBox: FC<{
         </Typography>
     </Box>
 );
+
+// ── tab rows (ADR-0073: the one Sektions-Tab / Karten-Tab idiom) ──────────────────
+
+/** One tab of a {@link SectionTabs} row (ADR-0073) — key, label, and its open issues. */
+export interface SectionTab {
+    /** Stable tab identity (content maps by POSITION; the key names it). */
+    key: string;
+    /** Visible tab text (already translated by the caller). */
+    label: string;
+    /**
+     * Open validation issues ON THIS tab — > 0 renders the ⚠ dot beside the label (the
+     *  section rollup chip stays; the dot is per-tab addressing, wired in spec ticket 08).
+     */
+    issueCount?: number;
+}
+
+/**
+ * The tab row of a section body or a card body (ADR-0073 — Sektions-Tab/Karten-Tab): MUI
+ * `Tabs` in the scrollable variant (the rail spans ~320–720 px; long tab sets scroll, never
+ * wrap), dense sizing, NO icons. The active tab is LOCAL view state — never persisted, every
+ * open starts on the first tab; tabs write NOTHING to the editor state or history (the
+ * ADR-0049 slices stay read-only surfaces). `children` maps the tabs by position: the active
+ * tab's child renders beneath the row. Keyboard arrows stay MUI-standard; each tab carries
+ * its label as `aria-label`.
+ */
+export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode }> = ({ tabs, children }) => {
+    const [active, setActive] = useState(tabs[0]?.key ?? '');
+    const items = Array.isArray(children) ? children : [children];
+    // The active key falls back to the first tab (a caller re-shuffling tabs mid-flight keeps
+    // a sane selection instead of rendering nothing).
+    const index = Math.max(
+        0,
+        tabs.findIndex(t => t.key === active),
+    );
+    return (
+        <Box>
+            <Tabs
+                value={index}
+                onChange={(_, v: number) => setActive(tabs[v]?.key ?? '')}
+                variant="scrollable"
+                scrollButtons="auto"
+                // Dense sizing for the rail: a standard 48px+ tab row would eat a fifth of a
+                // 320 px rail before any field renders.
+                sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.8rem' } }}
+            >
+                {tabs.map(t => (
+                    <Tab
+                        key={t.key}
+                        disableRipple
+                        aria-label={t.label}
+                        label={
+                            <Box
+                                component="span"
+                                sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                            >
+                                {t.label}
+                                {!!t.issueCount && (
+                                    <Box
+                                        component="span"
+                                        data-issue-dot
+                                        aria-hidden
+                                        sx={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: '50%',
+                                            bgcolor: 'warning.main',
+                                        }}
+                                    />
+                                )}
+                            </Box>
+                        }
+                    />
+                ))}
+            </Tabs>
+            <Box sx={{ mt: 1.5 }}>{items[index]}</Box>
+        </Box>
+    );
+};

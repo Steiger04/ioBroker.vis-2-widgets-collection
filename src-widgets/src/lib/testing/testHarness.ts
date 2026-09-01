@@ -1,14 +1,15 @@
 /**
- * A minimal renderHook harness (K5) — the ADR-0046 implementation addendum's "no renderHook
+ * A minimal render harness (K5) — the ADR-0046 implementation addendum's "no renderHook
  * infrastructure" resolution: React 18's stable `act` + `react-dom/client` over a happy-dom
  * element, with NO @testing-library dependency (the project's chosen dev-dep abstinence).
  *
- * @module EchartsCollectionWidget/testHarness
+ * @module lib/testing/testHarness
  * @remarks
- * Widget-local on purpose — extract into `src/lib/testing/` on the second consumer (the
- * project's "extract on second use" stance). Time-based behaviour is driven with vitest fake
- * timers by the TESTS; the harness only owns mount / rerender / unmount. `rerender` takes the
- * NEXT hook callback so effect dependencies change exactly as they would in a real component.
+ * Born widget-local (EchartsCollectionWidget), extracted into `src/lib/testing/` when the
+ * first consumer outside the widget arrived (the controls tests, ADR-0073). Time-based
+ * behaviour is driven with vitest fake timers by the TESTS; the harness only owns mount /
+ * rerender / unmount. `rerender` takes the NEXT hook callback (renderHook) resp. the NEXT
+ * props (renderComponent) so effect dependencies change exactly as in a real component.
  */
 import { act, createElement, type FC, type ReactElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';

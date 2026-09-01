@@ -52,7 +52,7 @@ vi.hoisted(() => {
     };
 });
 
-import { renderComponent, type RenderComponentHandle } from '../../../testHarness';
+import { renderComponent, type RenderComponentHandle } from '../../../../lib/testing/testHarness';
 import { SeriesDataFields, xOffsetMode } from './CartesianSeriesCard';
 
 // The card module's heavy leaves, stubbed to keep this a card-logic test: `shared` pulls

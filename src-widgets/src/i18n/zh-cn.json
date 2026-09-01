@@ -525,6 +525,7 @@
     "echarts_style_solid": "实线",
     "echarts_sum_off": "关闭",
     "echarts_sum_on": "开启",
+    "echarts_tab_motion": "动效",
     "echarts_template_bar": "柱状图",
     "echarts_template_gauge": "仪表盘",
     "echarts_template_line": "折线图",
