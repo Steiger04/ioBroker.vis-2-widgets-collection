@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Modo oscuro",
     "echarts_data_source": "Origen de datos",
     "echarts_data_value_oid": "Punto de datos de valor (OID)",
+    "echarts_datasource_own_count": "%s propias",
+    "echarts_datasource_preset_hint": "Aplica como valor predefinido a todas las series; cada serie puede sobrescribirlo en su tarjeta.",
     "echarts_decimal_comma": "Coma como separador decimal",
     "echarts_decimal_comma_hint": "Se aplica a todos los valores del gráfico: filas del tooltip, valores de la leyenda y las etiquetas predeterminadas del eje Y. Un formato de eje definido explícitamente no cambia.",
     "echarts_easing_cubic_inout": "Cúbico in-out",

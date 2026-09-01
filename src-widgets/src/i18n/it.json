@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Modalità scura",
     "echarts_data_source": "Sorgente dati",
     "echarts_data_value_oid": "Punto dati valore (OID)",
+    "echarts_datasource_own_count": "%s proprie",
+    "echarts_datasource_preset_hint": "Vale come preimpostazione per tutte le serie; ogni serie può sovrascriverla nella sua scheda.",
     "echarts_decimal_comma": "Virgola come separatore decimale",
     "echarts_decimal_comma_hint": "Si applica a tutti i valori del grafico: righe del tooltip, valori della legenda e etichette predefinite dell’asse Y. Un formato di asse impostato esplicitamente rimane invariato.",
     "echarts_easing_cubic_inout": "Cubico in-out",

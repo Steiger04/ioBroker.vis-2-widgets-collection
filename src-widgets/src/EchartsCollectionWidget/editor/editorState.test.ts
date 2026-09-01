@@ -237,6 +237,29 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(second.seriesConfig).toBe(first.seriesConfig); // no field injected, none dropped
     });
 
+    it('a configuration WITH ADR-0072 overrides is BYTE-stable across load→save (Phase A round-trip)', () => {
+        const configured = {
+            ...baseState(),
+            mode: 'history',
+            series: [
+                {
+                    id: 's1',
+                    oid: 'a.0',
+                    name: 'A',
+                    area: 'off',
+                    yAxisIndex: 0,
+                    aggregate: 'percentile',
+                    percentileValue: 90,
+                },
+                { id: 's2', oid: 'b.0', name: 'B', area: 'off', yAxisIndex: 1, diffMode: 'diff', xOffset: '2y' },
+            ] as EditorSeries[],
+        };
+        const first = saveEditorState(configured as EditorState, 2);
+        const reloaded = loadEditorState(first);
+        const second = saveEditorState(reloaded, 2);
+        expect(second.seriesConfig).toBe(first.seriesConfig); // overrides survive verbatim, no rewrite
+    });
+
     it('empty jsonHidden round-trips to empty (not lost, not garbled)', () => {
         const state = { ...baseState(), jsonHidden: [] };
         const reloaded = loadEditorState(saveEditorState(state, 0));

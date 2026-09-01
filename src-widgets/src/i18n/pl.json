@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Tryb ciemny",
     "echarts_data_source": "Źródło danych",
     "echarts_data_value_oid": "Punkt danych wartości (OID)",
+    "echarts_datasource_own_count": "%s własne",
+    "echarts_datasource_preset_hint": "Obowiązuje jako ustawienie wstępne dla wszystkich serii; każda seria może je nadpisać na swojej karcie.",
     "echarts_decimal_comma": "Przecinek jako separator dziesiętny",
     "echarts_decimal_comma_hint": "Dotyczy wszystkich wartości wykresu: wierszy podpowiedzi, wartości legendy oraz domyślnych etykiet osi Y. Jawnie ustawiony format osi pozostaje bez zmian.",
     "echarts_easing_cubic_inout": "Sześcienny (in-out)",

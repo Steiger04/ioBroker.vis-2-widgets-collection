@@ -236,6 +236,11 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                                 />
                             </Box>
                         )}
+                        {/* ADR-0072: the aggregate cluster is the Voreinstellung for every series
+                            now — say so where it is authored (Renderer InfoBox convention). */}
+                        <Box sx={{ gridColumn: '1 / -1' }}>
+                            <InfoBox text={Generic.t('echarts_datasource_preset_hint')} />
+                        </Box>
                         <LabeledSelect
                             label={Generic.t('echarts_aggregate')}
                             value={state.aggregate}

@@ -74,3 +74,16 @@ export const inheritedIntegralInterpolation = (
     chartAggregate: EchartsAggregate | undefined,
     chartIntegralInterpolation: 'none' | 'linear' | undefined,
 ): 'none' | 'linear' => (chartParamRides(chartAggregate, 'integral') ? (chartIntegralInterpolation ?? 'none') : 'none');
+
+/** The aggregate-cluster override subset (the summary's „own" counter reads this). */
+export type AggregateOverrideMeta = Pick<
+    EchartsSeriesMeta,
+    'aggregate' | 'percentileValue' | 'integralUnit' | 'integralInterpolation'
+>;
+
+/** True when the series authors ANY aggregate-cluster override (ADR-0072) — the Data source summary's own counter. */
+export const hasAggregateOverride = (meta: AggregateOverrideMeta | undefined): boolean =>
+    meta?.aggregate !== undefined ||
+    meta?.percentileValue !== undefined ||
+    meta?.integralUnit !== undefined ||
+    meta?.integralInterpolation !== undefined;

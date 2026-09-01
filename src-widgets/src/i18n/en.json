@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Dark mode",
     "echarts_data_source": "Data source",
     "echarts_data_value_oid": "Value data point (OID)",
+    "echarts_datasource_own_count": "%s own",
+    "echarts_datasource_preset_hint": "Applies as the preset for every series; each series can override it on its card.",
     "echarts_decimal_comma": "Comma as decimal separator",
     "echarts_decimal_comma_hint": "Applies to every chart value: tooltip rows, legend values and the default Y-axis labels. An explicitly authored axis format stays unchanged.",
     "echarts_easing_cubic_inout": "Cubic in-out",

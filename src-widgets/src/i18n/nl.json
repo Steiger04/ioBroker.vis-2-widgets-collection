@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Donkere modus",
     "echarts_data_source": "Gegevensbron",
     "echarts_data_value_oid": "Waarde data point (OID)",
+    "echarts_datasource_own_count": "%s eigen",
+    "echarts_datasource_preset_hint": "Geldt als voorinstelling voor alle reeksen; per reeks overschrijfbaar op de kaart.",
     "echarts_decimal_comma": "Komma als decimaalteken",
     "echarts_decimal_comma_hint": "Werkt op alle grafiekwaarden: tooltipregels, legendawaarden en de standaardlabels van de Y-as. Een expliciet ingesteld asformaat blijft ongewijzigd.",
     "echarts_easing_cubic_inout": "Cubic in-out",

@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Темний режим",
     "echarts_data_source": "Джерело даних",
     "echarts_data_value_oid": "Точка даних значення (OID)",
+    "echarts_datasource_own_count": "%s власних",
+    "echarts_datasource_preset_hint": "Діє як типове значення для всіх серій; для кожної серії можна перевизначити на її картці.",
     "echarts_decimal_comma": "Кома як десятковий роздільник",
     "echarts_decimal_comma_hint": "Застосовується до всіх значень графіка: рядкам спливаючої підказки, значенням легенди та типовим підписам осі Y. Явно заданий формат осі залишається без змін.",
     "echarts_easing_cubic_inout": "Кубічний in-out",

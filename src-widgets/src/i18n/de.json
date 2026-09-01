@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Dunkelmodus",
     "echarts_data_source": "Datenquelle",
     "echarts_data_value_oid": "Wert-Datenpunkt (OID)",
+    "echarts_datasource_own_count": "%s eigene",
+    "echarts_datasource_preset_hint": "Gilt als Voreinstellung für alle Serien; je Serie auf der Karte übersteuerbar.",
     "echarts_decimal_comma": "Komma als Dezimaltrennzeichen",
     "echarts_decimal_comma_hint": "Wirkt auf alle Chart-Werte: Tooltip-Zeilen, Legendenwerte und die Standard-Y-Achsenbeschriftung. Ein explizit gesetztes Achsenformat bleibt unverändert.",
     "echarts_easing_cubic_inout": "Cubic in-out",

@@ -150,6 +150,8 @@
     "echarts_dark_mode": "深色模式",
     "echarts_data_source": "数据源",
     "echarts_data_value_oid": "数值数据点（OID）",
+    "echarts_datasource_own_count": "%s 个自有",
+    "echarts_datasource_preset_hint": "作为所有序列的预设；可在各序列卡片上逐个覆盖。",
     "echarts_decimal_comma": "逗号作为小数分隔符",
     "echarts_decimal_comma_hint": "作用于图表的所有数值：提示框行、图例值以及 Y 轴默认标签。显式设置的坐标轴格式保持不变。",
     "echarts_easing_cubic_inout": "三次方缓入缓出",

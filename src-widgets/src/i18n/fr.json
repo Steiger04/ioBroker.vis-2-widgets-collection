@@ -150,6 +150,8 @@
     "echarts_dark_mode": "Mode sombre",
     "echarts_data_source": "Source de données",
     "echarts_data_value_oid": "Point de données de valeur (OID)",
+    "echarts_datasource_own_count": "%s propres",
+    "echarts_datasource_preset_hint": "Vaut comme préréglage pour toutes les séries ; chaque série peut le remplacer sur sa carte.",
     "echarts_decimal_comma": "Virgule comme séparateur décimal",
     "echarts_decimal_comma_hint": "S'applique à toutes les valeurs du graphique : lignes de l'infobulle, valeurs de la légende et étiquettes par défaut de l'axe Y. Un format d'axe défini explicitement reste inchangé.",
     "echarts_easing_cubic_inout": "Cubique in-out",

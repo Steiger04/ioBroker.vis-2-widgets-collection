@@ -9,6 +9,7 @@
  * deserve to be a section.
  */
 import { familyOf } from '../optionBuilder';
+import { hasAggregateOverride } from '../seriesDataOverrides';
 import type { EditorState } from './editorState';
 import type { SectionKey } from './validation';
 
@@ -37,9 +38,14 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
     // series
     out.series = joinNames(state.series.map(s => s.name));
 
-    // data source (cartesian/pie only)
+    // data source (cartesian/pie only) — the chart-level Voreinstellung digest (ADR-0072):
+    // series with their own aggregate-cluster overrides append a counter; the line itself
+    // keeps showing the DEFAULT every inheriting series uses.
     if (state.mode === 'history') {
-        out.dataSource = `${state.timeRange} · ${state.aggregate} · ${state.count}`;
+        const own = state.series.filter(s => hasAggregateOverride(s)).length;
+        out.dataSource = `${state.timeRange} · ${state.aggregate} · ${state.count}${
+            own ? ` · ${t('echarts_datasource_own_count', String(own))}` : ''
+        }`;
     } else {
         out.dataSource = 'JSON';
     }

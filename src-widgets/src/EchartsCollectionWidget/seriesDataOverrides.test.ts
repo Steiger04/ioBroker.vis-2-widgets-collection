@@ -10,6 +10,7 @@ import {
     AGGREGATE_VALUES,
     effectiveAggregate,
     effectiveDiff,
+    hasAggregateOverride,
     inheritedIntegralInterpolation,
     inheritedIntegralUnit,
     inheritedPercentileLevel,
@@ -75,5 +76,16 @@ describe('AGGREGATE_VALUES (the one shared list)', () => {
             'percentile',
             'integral',
         ]);
+    });
+});
+
+describe('hasAggregateOverride (the summary own counter, ADR-0072)', () => {
+    it('any aggregate-cluster authoring counts; a pure inherit does not', () => {
+        expect(hasAggregateOverride(undefined)).toBe(false);
+        expect(hasAggregateOverride({})).toBe(false);
+        expect(hasAggregateOverride({ aggregate: 'max' })).toBe(true);
+        expect(hasAggregateOverride({ percentileValue: 90 })).toBe(true);
+        expect(hasAggregateOverride({ integralUnit: 3600 })).toBe(true);
+        expect(hasAggregateOverride({ integralInterpolation: 'linear' })).toBe(true);
     });
 });
