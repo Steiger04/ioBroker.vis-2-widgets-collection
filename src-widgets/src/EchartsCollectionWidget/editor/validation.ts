@@ -37,6 +37,47 @@ export interface ValidationIssue {
 export type SectionIssues = Partial<Record<SectionKey, ValidationIssue[]>>;
 
 /**
+ * The SECTION TAB an issue's field lives on (ADR-0073 tab addressing) — derived purely from
+ * the field placement, nothing persisted. `undefined` = not tab-placeable: the Series body is
+ * the tab-less card list, and issues inside a CARD (the Y-axis Werte tab) address the card's
+ * host tab (Achsen) — the section-level jump lands the user beside the card.
+ */
+export const tabOfIssue = (issue: ValidationIssue): string | undefined => {
+    switch (issue.key) {
+        case 'echarts_val_yminmax':
+            return 'axes'; // inside the Y-axis cards on the Achsen tab
+        case 'echarts_val_vmap_range':
+            return 'scale'; // the Farbskala tab (Colours)
+        default:
+            return undefined;
+    }
+};
+
+/** Issue counts per section-tab key — the ⚠ dot feed (ADR-0073; the header rollup stays). */
+export const issueCountsByTab = (issues: readonly ValidationIssue[] | undefined): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const issue of issues ?? []) {
+        const tab = tabOfIssue(issue);
+        if (tab !== undefined) {
+            out[tab] = (out[tab] ?? 0) + 1;
+        }
+    }
+    return out;
+};
+
+/**
+ * The section's FIRST issue's tab (ADR-0073) — the Problems button / preview placeholder glue:
+ * the jump carries this tab so the addressed section's tab row selects it. Undefined = no tab
+ * to address. NOTE: validation is SECTION-granular today, so CARD tabs (a Y-axis card's Werte
+ * tab) get no dots — the section jump lands beside the card; per-card dots wait for per-card
+ * validation granularity (documented limit, spec ticket 08).
+ */
+export const firstIssueTabOf = (issues: SectionIssues | undefined, key: SectionKey): string | undefined => {
+    const first = issues?.[key]?.[0];
+    return first ? tabOfIssue(first) : undefined;
+};
+
+/**
  * Validate the working state.
  *
  * @param state - Current editor state.

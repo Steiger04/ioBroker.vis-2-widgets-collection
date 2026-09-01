@@ -35,6 +35,8 @@ import {
     SwitchList,
     SwitchRow,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import type { EditorState, SetEditor } from '../editorState';
 import type {
     EchartsBarInterval,
@@ -171,18 +173,25 @@ const barIntervalOptions = (state: DataSourceSlice): [EchartsBarInterval, string
 };
 
 interface DataSourceSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: DataSourceSlice;
     set: SetEditor<DataSourceSlice>;
     pickerCtx: OidPickerCtx;
 }
 
-const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }) => {
+const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     const isHistory = state.mode === 'history';
     const isJson = state.mode === 'json';
     const isStatic = state.timeType === 'static';
     const staticStart = state.staticStart ? new Date(state.staticStart) : null;
     const staticEnd = state.staticEnd ? new Date(state.staticEnd) : null;
     const staticInvalid = isStatic && staticStart && staticEnd ? staticStart.getTime() >= staticEnd.getTime() : false;
+
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
 
     return (
         <Box>
@@ -195,9 +204,10 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                         tab, the acquisition defaults (Voreinstellung) + the bar cluster on the
                         other. JSON mode renders NO tab chrome (the Leerfall: one field). */}
                     <SectionTabs
+                        focus={focusTab}
                         tabs={[
-                            { key: 'window', label: Generic.t('echarts_tab_time_window') },
-                            { key: 'fetch', label: Generic.t('echarts_tab_data_fetch') },
+                            { key: 'window', label: Generic.t('echarts_tab_time_window'), issueCount: dots.window },
+                            { key: 'fetch', label: Generic.t('echarts_tab_data_fetch'), issueCount: dots.fetch },
                         ]}
                     >
                         <Box>

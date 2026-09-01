@@ -30,6 +30,8 @@ import {
     SwitchRow,
     TextField2,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import ColorField from '../colorFields';
 import { GRID9_POSITIONS, PositionGrid } from '../controls';
 import { effectiveDarkMode } from '../../echartsTheme';
@@ -51,6 +53,10 @@ export type ToolboxSlice = Pick<
 >;
 
 interface ToolboxSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: ToolboxSlice;
     set: SetEditor<ToolboxSlice>;
     pickerCtx: OidPickerCtx;
@@ -91,7 +97,7 @@ const HERO_FEATURES: NonNullable<EchartsToolboxConfig['features']> = {
     dataZoom: { show: true, filterMode: 'filter' },
 };
 
-const ToolboxSection: FC<ToolboxSectionProps> = ({ state, set, pickerCtx }) => {
+const ToolboxSection: FC<ToolboxSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     const { theme } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     // The token inherit swatch resolves against echarts' builtin light/dark tokens by the
     // EFFECTIVE chart mode (D10) — the same literals the builder emits (user decision 2026-08-22).
@@ -128,6 +134,9 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ state, set, pickerCtx }) => {
     // Background is 'transparent'/unset when null — round-trip through the picker's null state.
     const bgValue = tb.backgroundColor && tb.backgroundColor !== 'transparent' ? tb.backgroundColor : null;
 
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         <Box>
             <SwitchList sx={{ mb: 1.5 }}>
@@ -142,9 +151,10 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ state, set, pickerCtx }) => {
                 // Sektions-Tabs (ADR-0073): Allgemein (the master's layout cluster) |
                 // Funktionen (the feature switches + their params). Off ⇒ no chrome at all.
                 <SectionTabs
+                    focus={focusTab}
                     tabs={[
-                        { key: 'general', label: Generic.t('echarts_tab_general') },
-                        { key: 'features', label: Generic.t('echarts_tab_features') },
+                        { key: 'general', label: Generic.t('echarts_tab_general'), issueCount: dots.general },
+                        { key: 'features', label: Generic.t('echarts_tab_features'), issueCount: dots.features },
                     ]}
                 >
                     <SubGroup title={Generic.t('echarts_toolbox_group_layout')}>

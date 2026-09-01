@@ -51,7 +51,7 @@ import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
 import { useSplitPane } from './editor/useSplitPane';
 import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
 import { familyOf } from './optionBuilder';
-import { validateEditor, type SectionKey } from './editor/validation';
+import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
 import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
@@ -142,10 +142,16 @@ function EchartsConfigEditorModal({
     const issueCount = issueSections.reduce((total, key) => total + (issues[key]?.length ?? 0), 0);
     const firstIssueSection = issueSections[0];
 
-    const handlePlaceholderClick = useCallback((key: SectionKey) => {
-        focusTokenRef.current += 1;
-        setFocusSection({ key, token: focusTokenRef.current });
-    }, []);
+    const handlePlaceholderClick = useCallback(
+        (key: SectionKey) => {
+            focusTokenRef.current += 1;
+            // ADR-0073 tab addressing: the jump carries the TAB of the section's FIRST issue
+            // (derived purely from field placement) — the addressed tab row selects it.
+            const tab = firstIssueTabOf(issues, key);
+            setFocusSection({ key, token: focusTokenRef.current, ...(tab ? { tab } : {}) });
+        },
+        [issues],
+    );
 
     // Resizable rail/preview split (ADR-0019): pointer-drag + keyboard + double-click reset,
     // width persisted across sessions. Pure layout — the form grid reflows via CSS only.

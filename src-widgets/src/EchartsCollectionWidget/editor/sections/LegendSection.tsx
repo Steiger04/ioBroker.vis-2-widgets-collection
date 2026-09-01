@@ -24,6 +24,8 @@ import {
     SwitchList,
     SwitchRow,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import ColorField from '../colorFields';
 import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, GRID9_POSITIONS, PositionGrid } from '../controls';
 import { fontStyleToSelectValue, parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
@@ -56,6 +58,10 @@ export type LegendSlice = Pick<
 >;
 
 interface LegendSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: LegendSlice;
     set: SetEditor<LegendSlice>;
     pickerCtx: OidPickerCtx;
@@ -74,7 +80,7 @@ const LEGEND_ICONS: ReadonlyArray<[string, string]> = [
     ['none', Generic.t('echarts_legend_icon_none')],
 ];
 
-const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
+const LegendSection: FC<LegendSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     // Theme tokens resolve against the collection theme (ADR-0027) — the inherit previews.
     const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     const lg = state.legend;
@@ -87,13 +93,17 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
     const offsetYRelevant = state.legendPos.startsWith('top') || state.legendPos.startsWith('bottom');
     // Legend values (ADR-0054) need per-SERIES current values — cartesian/pie legends name series.
     const valuesRelevant = true;
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         // Sektions-Tabs (ADR-0073): Anzeige | Stil | Vorlagen — the same fields, regrouped.
         <SectionTabs
+            focus={focusTab}
             tabs={[
-                { key: 'display', label: Generic.t('echarts_tab_display') },
-                { key: 'style', label: Generic.t('echarts_tab_style') },
-                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+                { key: 'display', label: Generic.t('echarts_tab_display'), issueCount: dots.display },
+                { key: 'style', label: Generic.t('echarts_tab_style'), issueCount: dots.style },
+                { key: 'templates', label: Generic.t('echarts_tab_templates'), issueCount: dots.templates },
             ]}
         >
             <Box>

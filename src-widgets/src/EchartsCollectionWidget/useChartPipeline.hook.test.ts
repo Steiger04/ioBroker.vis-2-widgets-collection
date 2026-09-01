@@ -146,3 +146,37 @@ describe('useChartPipeline — Verlauf early refresh (ADR-0046 body behaviour, K
         h.unmount();
     });
 });
+
+describe('useChartPipeline — per-series overrides ride the ONE seam (ADR-0072 preview/body parity)', () => {
+    it('the hook fetches each series with ITS override — whatever caller mounted it', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        const getHistory = vi.fn((id: string, options: ioBroker.GetHistoryOptions) => {
+            calls.push({ id, options });
+            return Promise.resolve([] as Point[]);
+        });
+        const adapter: ChartPipelineAdapter = { useValues: makeValuesSource().useValues, getHistory, theme };
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { ...SRC, aggregate: 'average' },
+                {
+                    ...COMPANIONS,
+                    series: [
+                        { oid: 'a.0', name: 'A' }, // inherits average
+                        { oid: 'b.0', name: 'B', aggregate: 'max' }, // own override
+                        { oid: 'c.0', name: 'C', xOffset: '1m' }, // calendar window shift
+                    ],
+                },
+            ),
+        );
+        await actAdvance(1000); // past the 200 ms fetch debounce
+        const a = calls.find(c => c.id === 'a.0');
+        const b = calls.find(c => c.id === 'b.0');
+        const c = calls.find(c => c.id === 'c.0');
+        expect(a?.options.aggregate).toBe('average');
+        expect(b?.options.aggregate).toBe('max');
+        // '1m' shifts the request window one calendar month back — resolved per fetch.
+        expect(c?.options.start).toBeLessThan(a?.options.start ?? 0);
+        expect(result.current.error).toBeNull();
+    });
+});

@@ -12,26 +12,36 @@ import type { FC } from 'react';
 
 import Generic from '../../../Generic';
 import { FieldGrid, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import type { EditorState, SetEditor } from '../editorState';
 
 /** The pie options section's field ownership (ADR-0049 slice) — the pie blob. */
 export type PieOptionsSlice = Pick<EditorState, 'pie'>;
 
 interface PieOptionsSectionProps {
+    /** External tab jump (ADR-0073): the focus request tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** Validation findings — the per-tab warning dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: PieOptionsSlice;
     set: SetEditor<PieOptionsSlice>;
 }
 
-export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ state, set }) => {
+export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues, state, set }) => {
     const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
+
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
 
     return (
         // Sektions-Tabs (ADR-0073): Form (donut/rose) | Werte (aggregation + label) — the
         // strict-uniformity rule reaches the family sections too (deliberately thin tabs).
         <SectionTabs
+            focus={focusTab}
             tabs={[
-                { key: 'shape', label: Generic.t('echarts_tab_shape') },
-                { key: 'values', label: Generic.t('echarts_tab_values') },
+                { key: 'shape', label: Generic.t('echarts_tab_shape'), issueCount: dots.shape },
+                { key: 'values', label: Generic.t('echarts_tab_values'), issueCount: dots.values },
             ]}
         >
             <FieldGrid>

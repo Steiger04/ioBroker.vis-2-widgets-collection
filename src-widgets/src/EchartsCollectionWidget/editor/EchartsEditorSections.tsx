@@ -36,6 +36,7 @@ import {
     type SectionIssues,
     type SectionKey,
 } from './validation';
+import type { SectionTabsFocus } from '../../components/controls';
 import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
@@ -44,6 +45,12 @@ export interface FocusSectionRequest {
     key: SectionKey;
     /** Monotonic token so repeated requests for the same section re-trigger. */
     token: number;
+    /**
+     * The section TAB of the first issue (ADR-0073) — derived from field placement; the
+     *  affected section's tab row jumps to it. Absent = no tab to address (tab-less body or
+     *  an issue that lives outside any tab).
+     */
+    tab?: string;
 }
 
 interface EchartsEditorSectionsProps {
@@ -165,6 +172,14 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     }, [focusSection]);
 
     const renderBody = (key: SectionKey): React.JSX.Element => {
+        // The ADR-0073 tab addressing: the focus request's TAB flows to the addressed
+        // section's tab row; every tabbed section also receives its issues (the ⚠ dot feed —
+        // the header rollup chip stays).
+        const focusTab: SectionTabsFocus | undefined =
+            focusSection?.key === key && focusSection.tab
+                ? { key: focusSection.tab, token: focusSection.token }
+                : undefined;
+        const sectionIssues = issues[key];
         switch (key) {
             case 'series':
                 return (
@@ -172,7 +187,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
-                        issues={issues.series}
+                        issues={sectionIssues}
                         jsonSeriesNames={jsonSeriesNames}
                         jsonError={jsonError}
                         undo={undo}
@@ -184,6 +199,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'title':
@@ -192,6 +209,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'legend':
@@ -200,6 +219,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'tooltip':
@@ -208,6 +229,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'axesZoom':
@@ -217,6 +240,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         set={set}
                         pickerCtx={pickerCtx}
                         jsonSeriesNames={jsonSeriesNames}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'family':
@@ -224,6 +249,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <PieOptionsSection
                         state={state}
                         set={set}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'colors':
@@ -232,6 +259,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'behavior':
@@ -239,6 +268,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     <BehaviorSection
                         state={state}
                         set={set}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
             case 'toolbox':
@@ -247,6 +278,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         state={state}
                         set={set}
                         pickerCtx={pickerCtx}
+                        focusTab={focusTab}
+                        issues={sectionIssues}
                     />
                 );
         }

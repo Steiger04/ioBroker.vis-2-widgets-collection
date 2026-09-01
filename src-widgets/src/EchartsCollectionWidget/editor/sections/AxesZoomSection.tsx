@@ -25,6 +25,8 @@ import { Add as AddIcon } from '@mui/icons-material';
 import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
 import { LabeledSelect, SectionTabs, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import type { OidPickerCtx } from '../OidPicker';
 import type {
     EchartsAxisConfig,
@@ -83,6 +85,10 @@ export type AxesZoomSlice = Pick<
 >;
 
 interface AxesZoomSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: AxesZoomSlice;
     set: SetEditor<AxesZoomSlice>;
     pickerCtx: OidPickerCtx;
@@ -90,7 +96,7 @@ interface AxesZoomSectionProps {
     jsonSeriesNames?: string[];
 }
 
-const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, jsonSeriesNames }) => {
+const AxesZoomSection: FC<AxesZoomSectionProps> = ({ focusTab, issues, state, set, pickerCtx, jsonSeriesNames }) => {
     const axes = state.yAxes;
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -298,15 +304,19 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1),
     ]);
 
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         <Box>
             {/* Sektions-Tabs (ADR-0073): Achsen | Markierungen | Zoom — the three Sub-groups
                 become tabs (Sub-group structure inside a tab stays for the card clusters). */}
             <SectionTabs
+                focus={focusTab}
                 tabs={[
-                    { key: 'axes', label: Generic.t('echarts_tab_axes') },
-                    { key: 'marks', label: Generic.t('echarts_tab_marks') },
-                    { key: 'zoom', label: Generic.t('echarts_tab_zoom') },
+                    { key: 'axes', label: Generic.t('echarts_tab_axes'), issueCount: dots.axes },
+                    { key: 'marks', label: Generic.t('echarts_tab_marks'), issueCount: dots.marks },
+                    { key: 'zoom', label: Generic.t('echarts_tab_zoom'), issueCount: dots.zoom },
                 ]}
             >
                 <SubGroup

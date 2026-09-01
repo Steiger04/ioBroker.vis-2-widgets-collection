@@ -8,7 +8,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
-import { familyBoundaryLoss, familySwitchSnippetLoss, jsonBoundaryLoss, validateEditor } from './validation';
+import {
+    familyBoundaryLoss,
+    familySwitchSnippetLoss,
+    firstIssueTabOf,
+    jsonBoundaryLoss,
+    issueCountsByTab,
+    tabOfIssue,
+    validateEditor,
+} from './validation';
 
 /** Shorthand: a working state with the given overrides. */
 const st = (patch: Partial<EditorState>): EditorState => ({ ...DEFAULT_EDITOR_STATE, ...patch });
@@ -260,5 +268,30 @@ describe('jsonBoundaryLoss — what the next JSON-boundary crossing deletes (ADR
             marks: 0,
             dataPoint: false,
         });
+    });
+});
+
+describe('tab addressing (ADR-0073) — issue → section tab, purely from field placement', () => {
+    it('tabOfIssue maps the placed issues; everything else addresses no tab', () => {
+        expect(tabOfIssue({ key: 'echarts_val_yminmax' })).toBe('axes');
+        expect(tabOfIssue({ key: 'echarts_val_vmap_range' })).toBe('scale');
+        expect(tabOfIssue({ key: 'echarts_val_oid_missing' })).toBeUndefined();
+        expect(tabOfIssue({ key: 'echarts_val_stale_yaxis' })).toBeUndefined();
+    });
+
+    it('issueCountsByTab aggregates the ⚠ dot feed per tab key', () => {
+        expect(issueCountsByTab(undefined)).toEqual({});
+        expect(
+            issueCountsByTab([{ key: 'echarts_val_yminmax' }, { key: 'echarts_val_oid_missing', args: ['A'] }]),
+        ).toEqual({ axes: 1 });
+    });
+});
+
+describe('firstIssueTabOf — the Problems-button glue (ADR-0073)', () => {
+    it('derives the section first issue tab; clean or unplaceable sections address none', () => {
+        expect(firstIssueTabOf({ colors: [{ key: 'echarts_val_vmap_range' }] }, 'colors')).toBe('scale');
+        expect(firstIssueTabOf({ series: [{ key: 'echarts_val_oid_missing' }] }, 'series')).toBeUndefined();
+        expect(firstIssueTabOf({}, 'colors')).toBeUndefined();
+        expect(firstIssueTabOf(undefined, 'colors')).toBeUndefined();
     });
 });

@@ -28,6 +28,8 @@ import {
     SwitchRow,
     TextField2,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import { familyOf } from '../../optionBuilder';
 import { makeValueFormatter, resolveTooltipTokens } from '../../optionBuilders/tooltip';
 import { SAMPLE_TS, resolveHostLang } from '../../timeFormat';
@@ -61,13 +63,17 @@ export type TooltipSlice = Pick<
 >;
 
 interface TooltipSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: TooltipSlice;
     set: SetEditor<TooltipSlice>;
     /** Drills the socket/theme for the background ColorField (the section's only colour input). */
     pickerCtx: OidPickerCtx;
 }
 
-const TooltipSection: FC<TooltipSectionProps> = ({ state, set, pickerCtx }) => {
+const TooltipSection: FC<TooltipSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     const isCartesian = familyOf(state.chartType) === 'cartesian';
     const effectiveTrigger: TooltipSlice['tooltipTrigger'] =
         !isCartesian && state.tooltipTrigger === 'axis' ? 'item' : state.tooltipTrigger;
@@ -82,14 +88,18 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set, pickerCtx }) => {
               ['none', Generic.t('echarts_tooltip_none')],
           ];
 
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         // Sektions-Tabs (ADR-0073): Verhalten (trigger + the string template) | Werte (units/
         // decimals/comma/bg/row-filters) | Vorlagen (raw + templates).
         <SectionTabs
+            focus={focusTab}
             tabs={[
-                { key: 'behavior', label: Generic.t('echarts_tab_behavior') },
-                { key: 'values', label: Generic.t('echarts_tab_values') },
-                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+                { key: 'behavior', label: Generic.t('echarts_tab_behavior'), issueCount: dots.behavior },
+                { key: 'values', label: Generic.t('echarts_tab_values'), issueCount: dots.values },
+                { key: 'templates', label: Generic.t('echarts_tab_templates'), issueCount: dots.templates },
             ]}
         >
             <Box>

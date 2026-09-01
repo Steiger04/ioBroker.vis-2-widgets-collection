@@ -20,6 +20,8 @@ import {
     SectionTabs,
     TextField2,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import ColorField from '../colorFields';
 import { FONT_STYLE_OPTIONS, FONT_WEIGHT_OPTIONS, PositionGrid } from '../controls';
 import { parseFontStyle, parseFontWeight, weightToSelectValue } from '../fontOptions';
@@ -53,6 +55,10 @@ export type TitleSlice = Pick<
 >;
 
 interface TitleSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: TitleSlice;
     set: SetEditor<TitleSlice>;
     pickerCtx: OidPickerCtx;
@@ -68,20 +74,24 @@ const TITLE_POSITIONS: ReadonlyArray<[string, string]> = [
     ['bottomRight', Generic.t('echarts_pos_bottom_right')],
 ];
 
-const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
+const TitleSection: FC<TitleSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     // Theme tokens resolve against the collection theme (ADR-0027) — the title-colour inherit preview.
     const { themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     // dx applies only to the left-edge anchors (ADR-0009 addendum) — hide it elsewhere (no dead control).
     const dxRelevant = state.titlePos === 'topLeft' || state.titlePos === 'bottomLeft';
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         // Sektions-Tabs (ADR-0073): Text | Position | Stil | Vorlagen — view-only regrouping of
         // the same fields, nothing moved into or out of the section.
         <SectionTabs
+            focus={focusTab}
             tabs={[
-                { key: 'text', label: Generic.t('echarts_tab_text') },
-                { key: 'position', label: Generic.t('echarts_tab_position') },
-                { key: 'style', label: Generic.t('echarts_tab_style') },
-                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+                { key: 'text', label: Generic.t('echarts_tab_text'), issueCount: dots.text },
+                { key: 'position', label: Generic.t('echarts_tab_position'), issueCount: dots.position },
+                { key: 'style', label: Generic.t('echarts_tab_style'), issueCount: dots.style },
+                { key: 'templates', label: Generic.t('echarts_tab_templates'), issueCount: dots.templates },
             ]}
         >
             <TextField2

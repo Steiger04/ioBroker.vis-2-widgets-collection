@@ -34,7 +34,7 @@
  * Hardcoded pixel widths are banned from section bodies — these primitives carry the geometry.
  * All labels go through `Generic.t` at the call site.
  */
-import { useId, useState, type FC, type ReactNode } from 'react';
+import { useEffect, useId, useState, type FC, type ReactNode } from 'react';
 import type React from 'react';
 import { Box, Collapse, MenuItem, Slider, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material/styles';
@@ -607,16 +607,41 @@ export interface SectionTab {
 }
 
 /**
+ * An external tab jump (ADR-0073 focus addressing): the Problems button / preview placeholder
+ * steer to a section AND the tab of its first issue. The token re-triggers repeated requests
+ * for the same tab (the same monotonic-token contract the section focus request uses).
+ */
+export interface SectionTabsFocus {
+    key: string;
+    token: number;
+}
+
+/**
  * The tab row of a section body or a card body (ADR-0073 — Sektions-Tab/Karten-Tab): MUI
  * `Tabs` in the scrollable variant (the rail spans ~320–720 px; long tab sets scroll, never
  * wrap), dense sizing, NO icons. The active tab is LOCAL view state — never persisted, every
  * open starts on the first tab; tabs write NOTHING to the editor state or history (the
  * ADR-0049 slices stay read-only surfaces). `children` maps the tabs by position: the active
  * tab's child renders beneath the row. Keyboard arrows stay MUI-standard; each tab carries
- * its label as `aria-label`.
+ * its label as `aria-label`. `focus` is the one EXTERNAL steer (ADR-0073): a fresh token
+ * selects that tab once — the row stays local, nothing persists.
  */
-export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode }> = ({ tabs, children }) => {
+export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode; focus?: SectionTabsFocus }> = ({
+    tabs,
+    children,
+    focus,
+}) => {
     const [active, setActive] = useState(tabs[0]?.key ?? '');
+    // The external jump: keyed on the PRIMITIVE token (not the object identity — callers build
+    // the focus inline, so identity would re-fire on every parent render and snap the user
+    // back after a manual tab switch). A fresh token selects the tab once.
+    const focusKey = focus?.key;
+    const focusToken = focus?.token;
+    useEffect(() => {
+        if (focusKey !== undefined) {
+            setActive(focusKey);
+        }
+    }, [focusKey, focusToken]);
     const items = Array.isArray(children) ? children : [children];
     // The children↔tabs contract is POSITIONAL — a diverging count silently hides content (an
     // extra child never renders). Dev-only guard: section/card authors see the mismatch

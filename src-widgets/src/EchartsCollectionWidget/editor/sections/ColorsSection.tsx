@@ -24,6 +24,8 @@ import {
     SwitchList,
     SwitchRow,
 } from '../../../components/controls';
+import type { SectionTabsFocus } from '../../../components/controls';
+import { issueCountsByTab, type ValidationIssue } from '../validation';
 import ColorField, { ColorListField } from '../colorFields';
 import { useEditorTheme } from '../useEditorTheme';
 import type { OidPickerCtx } from '../OidPicker';
@@ -40,6 +42,10 @@ export type ColorsSlice = Pick<
 >;
 
 interface ColorsSectionProps {
+    /** External tab jump (ADR-0073): the focus request's tab selects once. */
+    focusTab?: SectionTabsFocus;
+    /** This section's validation findings — the per-tab ⚠ dot feed (the header rollup stays). */
+    issues?: ValidationIssue[];
     state: ColorsSlice;
     set: SetEditor<ColorsSlice>;
     pickerCtx: OidPickerCtx;
@@ -53,7 +59,7 @@ const paletteChoice = (state: ColorsSlice): string =>
           ? `preset:${state.palettePreset}`
           : 'theme';
 
-const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
+const ColorsSection: FC<ColorsSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — what the canvas renders
     // under, not the vis-2 host theme.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -78,16 +84,22 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
 
     const vmapInvalid = state.visualMap.enabled && state.visualMap.min >= state.visualMap.max;
 
+    // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
+    const dots = issueCountsByTab(issues);
+
     return (
         // Sektions-Tabs (ADR-0073): Palette | Fläche | Rahmen | Farbskala — the Farbskala tab
         // is cartesian-only (visualMap maps the value axis); a tab with NO fields is the one
         // allowed drop (the Leerfall rule — a tab with remaining fields stays).
         <SectionTabs
+            focus={focusTab}
             tabs={[
-                { key: 'palette', label: Generic.t('echarts_tab_palette') },
-                { key: 'surface', label: Generic.t('echarts_tab_surface') },
-                { key: 'frame', label: Generic.t('echarts_tab_frame') },
-                ...(isCartesian ? [{ key: 'scale', label: Generic.t('echarts_tab_color_scale') }] : []),
+                { key: 'palette', label: Generic.t('echarts_tab_palette'), issueCount: dots.palette },
+                { key: 'surface', label: Generic.t('echarts_tab_surface'), issueCount: dots.surface },
+                { key: 'frame', label: Generic.t('echarts_tab_frame'), issueCount: dots.frame },
+                ...(isCartesian
+                    ? [{ key: 'scale', label: Generic.t('echarts_tab_color_scale'), issueCount: dots.scale }]
+                    : []),
             ]}
         >
             <Box>
