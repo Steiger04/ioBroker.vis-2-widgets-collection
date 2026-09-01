@@ -11,7 +11,7 @@
 import type { FC } from 'react';
 
 import Generic from '../../../Generic';
-import { FieldGrid, LabeledSelect, SliderField } from '../../../components/controls';
+import { FieldGrid, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
 
 /** The pie options section's field ownership (ADR-0049 slice) — the pie blob. */
@@ -26,48 +26,59 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ state, set }) =>
     const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
 
     return (
-        <FieldGrid>
-            <LabeledSelect
-                label={Generic.t('echarts_pie_aggregate')}
-                value={state.pie.aggregate ?? 'latest'}
-                onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
-                options={[
-                    ['latest', Generic.t('echarts_pie_agg_latest')],
-                    ['sum', Generic.t('echarts_pie_agg_sum')],
-                    ['avg', Generic.t('echarts_pie_agg_avg')],
-                    ['min', Generic.t('echarts_pie_agg_min')],
-                    ['max', Generic.t('echarts_pie_agg_max')],
-                ]}
-            />
-            <SliderField
-                label={Generic.t('echarts_pie_inner_radius')}
-                value={state.pie.innerRadius ?? 0}
-                min={0}
-                max={0.9}
-                step={0.05}
-                onChange={v => setPie({ innerRadius: v })}
-            />
-            <LabeledSelect
-                label={Generic.t('echarts_pie_label')}
-                value={state.pie.label ?? 'namePercent'}
-                onChange={v => setPie({ label: v as PieOptionsSlice['pie']['label'] })}
-                options={[
-                    ['none', Generic.t('echarts_label_none')],
-                    ['name', Generic.t('echarts_label_name')],
-                    ['percent', Generic.t('echarts_label_percent')],
-                    ['namePercent', Generic.t('echarts_label_name_percent')],
-                ]}
-            />
-            <LabeledSelect
-                label={Generic.t('echarts_pie_rose')}
-                value={state.pie.rose ?? 'none'}
-                onChange={v => setPie({ rose: v as PieOptionsSlice['pie']['rose'] })}
-                options={[
-                    ['none', Generic.t('echarts_rose_none')],
-                    ['radius', Generic.t('echarts_rose_radius')],
-                    ['area', Generic.t('echarts_rose_area')],
-                ]}
-            />
-        </FieldGrid>
+        // Sektions-Tabs (ADR-0073): Form (donut/rose) | Werte (aggregation + label) — the
+        // strict-uniformity rule reaches the family sections too (deliberately thin tabs).
+        <SectionTabs
+            tabs={[
+                { key: 'shape', label: Generic.t('echarts_tab_shape') },
+                { key: 'values', label: Generic.t('echarts_tab_values') },
+            ]}
+        >
+            <FieldGrid>
+                <SliderField
+                    label={Generic.t('echarts_pie_inner_radius')}
+                    value={state.pie.innerRadius ?? 0}
+                    min={0}
+                    max={0.9}
+                    step={0.05}
+                    onChange={v => setPie({ innerRadius: v })}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_pie_rose')}
+                    value={state.pie.rose ?? 'none'}
+                    onChange={v => setPie({ rose: v as PieOptionsSlice['pie']['rose'] })}
+                    options={[
+                        ['none', Generic.t('echarts_rose_none')],
+                        ['radius', Generic.t('echarts_rose_radius')],
+                        ['area', Generic.t('echarts_rose_area')],
+                    ]}
+                />
+            </FieldGrid>
+            <FieldGrid>
+                <LabeledSelect
+                    label={Generic.t('echarts_pie_aggregate')}
+                    value={state.pie.aggregate ?? 'latest'}
+                    onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
+                    options={[
+                        ['latest', Generic.t('echarts_pie_agg_latest')],
+                        ['sum', Generic.t('echarts_pie_agg_sum')],
+                        ['avg', Generic.t('echarts_pie_agg_avg')],
+                        ['min', Generic.t('echarts_pie_agg_min')],
+                        ['max', Generic.t('echarts_pie_agg_max')],
+                    ]}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_pie_label')}
+                    value={state.pie.label ?? 'namePercent'}
+                    onChange={v => setPie({ label: v as PieOptionsSlice['pie']['label'] })}
+                    options={[
+                        ['none', Generic.t('echarts_label_none')],
+                        ['name', Generic.t('echarts_label_name')],
+                        ['percent', Generic.t('echarts_label_percent')],
+                        ['namePercent', Generic.t('echarts_label_name_percent')],
+                    ]}
+                />
+            </FieldGrid>
+        </SectionTabs>
     );
 };

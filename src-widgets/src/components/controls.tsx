@@ -618,6 +618,15 @@ export interface SectionTab {
 export const SectionTabs: FC<{ tabs: SectionTab[]; children: ReactNode }> = ({ tabs, children }) => {
     const [active, setActive] = useState(tabs[0]?.key ?? '');
     const items = Array.isArray(children) ? children : [children];
+    // The children↔tabs contract is POSITIONAL — a diverging count silently hides content (an
+    // extra child never renders). Dev-only guard: section/card authors see the mismatch
+    // immediately instead of hunting a vanished field. Falsy children (a conditional tab's
+    // `false && …` hole) count as absent — the hole keeps the positions aligned.
+    if (import.meta.env?.DEV && items.filter(Boolean).length !== tabs.length) {
+        console.warn(
+            `SectionTabs: ${items.filter(Boolean).length} children for ${tabs.length} tabs — the lists map by position and must stay in sync.`,
+        );
+    }
     // The active key falls back to the first tab (a caller re-shuffling tabs mid-flight keeps
     // a sane selection instead of rendering nothing).
     const index = Math.max(

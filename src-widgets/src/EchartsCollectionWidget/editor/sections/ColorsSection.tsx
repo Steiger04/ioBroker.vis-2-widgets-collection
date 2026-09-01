@@ -18,6 +18,7 @@ import {
     FieldLabel,
     LabeledSelect,
     NumberField,
+    SectionTabs,
     SliderField,
     SubGroup,
     SwitchList,
@@ -78,68 +79,77 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
     const vmapInvalid = state.visualMap.enabled && state.visualMap.min >= state.visualMap.max;
 
     return (
-        <Box>
-            {/* Live preview of the resolved palette (the colours series inherit). */}
-            <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
-                {palette.map((c, i) => (
-                    <Box
-                        key={i}
-                        sx={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: '3px',
-                            backgroundColor: c,
-                            border: '1px solid',
-                            borderColor: 'divider',
-                        }}
-                    />
-                ))}
-            </Box>
-            <FieldGrid>
-                <LabeledSelect
-                    label={Generic.t('echarts_palette_source')}
-                    value={paletteChoice(state)}
-                    onChange={onPaletteChoice}
-                    options={paletteOptions}
-                />
-                {state.paletteSource === 'custom' && (
-                    <Box sx={{ gridColumn: '1 / -1' }}>
-                        <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
-                        <ColorListField
-                            value={state.paletteCustom}
-                            onChange={v => set({ paletteCustom: v })}
-                            ctx={pickerCtx}
+        // Sektions-Tabs (ADR-0073): Palette | Fläche | Rahmen | Farbskala — the Farbskala tab
+        // is cartesian-only (visualMap maps the value axis); a tab with NO fields is the one
+        // allowed drop (the Leerfall rule — a tab with remaining fields stays).
+        <SectionTabs
+            tabs={[
+                { key: 'palette', label: Generic.t('echarts_tab_palette') },
+                { key: 'surface', label: Generic.t('echarts_tab_surface') },
+                { key: 'frame', label: Generic.t('echarts_tab_frame') },
+                ...(isCartesian ? [{ key: 'scale', label: Generic.t('echarts_tab_color_scale') }] : []),
+            ]}
+        >
+            <Box>
+                {/* Live preview of the resolved palette (the colours series inherit). */}
+                <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
+                    {palette.map((c, i) => (
+                        <Box
+                            key={i}
+                            sx={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '3px',
+                                backgroundColor: c,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                            }}
                         />
-                    </Box>
-                )}
-                <Box>
-                    <FieldLabel>{Generic.t('echarts_background')}</FieldLabel>
-                    <ColorField
-                        value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
-                        onChange={v => set({ bgColor: v ?? 'transparent' })}
-                        ctx={pickerCtx}
-                    />
+                    ))}
                 </Box>
-                {/* Dark-mode policy (moved from Behaviour — it is a theme/colour concern, and the
-                    Colours summary already reported it, ADR-0011 companion / D5). */}
-                <LabeledSelect
-                    label={Generic.t('echarts_dark_mode')}
-                    value={state.darkMode}
-                    onChange={v => set({ darkMode: v as ColorsSlice['darkMode'] })}
-                    options={[
-                        ['auto', Generic.t('echarts_dark_auto')],
-                        ['light', Generic.t('echarts_dark_light')],
-                        ['dark', Generic.t('echarts_dark_dark')],
-                    ]}
+                <FieldGrid>
+                    <LabeledSelect
+                        label={Generic.t('echarts_palette_source')}
+                        value={paletteChoice(state)}
+                        onChange={onPaletteChoice}
+                        options={paletteOptions}
+                    />
+                    {state.paletteSource === 'custom' && (
+                        <Box sx={{ gridColumn: '1 / -1' }}>
+                            <FieldLabel>{Generic.t('echarts_palette_custom_colors')}</FieldLabel>
+                            <ColorListField
+                                value={state.paletteCustom}
+                                onChange={v => set({ paletteCustom: v })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                    )}
+                    {/* Dark-mode policy (moved from Behaviour — it is a theme/colour concern, and
+                        the Colours summary already reported it, ADR-0011 companion / D5). */}
+                    <LabeledSelect
+                        label={Generic.t('echarts_dark_mode')}
+                        value={state.darkMode}
+                        onChange={v => set({ darkMode: v as ColorsSlice['darkMode'] })}
+                        options={[
+                            ['auto', Generic.t('echarts_dark_auto')],
+                            ['light', Generic.t('echarts_dark_light')],
+                            ['dark', Generic.t('echarts_dark_dark')],
+                        ]}
+                    />
+                </FieldGrid>
+            </Box>
+            <Box>
+                <FieldLabel>{Generic.t('echarts_background')}</FieldLabel>
+                <ColorField
+                    value={state.bgColor === 'transparent' || !state.bgColor ? null : state.bgColor}
+                    onChange={v => set({ bgColor: v ?? 'transparent' })}
+                    ctx={pickerCtx}
                 />
-            </FieldGrid>
-
+            </Box>
             {/* Chart frame (parity Build D, ADR-0056) — every family: it is container CSS around
-                the chart area, so it applies to cartesian AND pie alike. */}
-            <SubGroup
-                title={Generic.t('echarts_frame')}
-                sx={{ mt: 2 }}
-            >
+                the chart area, so it applies to cartesian AND pie alike. The tab IS the group —
+                no SubGroup title echo (ADR-0073). */}
+            <Box>
                 <SwitchList sx={{ mb: 1.5 }}>
                     <SwitchRow
                         label={Generic.t('echarts_frame_show')}
@@ -193,13 +203,11 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                         onChange={v => set({ frame: { ...state.frame, padding: v } })}
                     />
                 </FieldGrid>
-            </SubGroup>
-
+            </Box>
             {isCartesian && (
                 <SubGroup
                     title={Generic.t('echarts_visualmap')}
                     hint={Generic.t('echarts_visualmap_hint')}
-                    sx={{ mt: 2 }}
                 >
                     <SwitchList sx={{ mb: 1.5 }}>
                         <SwitchRow
@@ -240,7 +248,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
                     </FieldGrid>
                 </SubGroup>
             )}
-        </Box>
+        </SectionTabs>
     );
 };
 

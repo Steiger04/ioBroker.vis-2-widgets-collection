@@ -23,6 +23,7 @@ import {
     FieldLabel,
     LabeledSelect,
     OptionalNumberField,
+    SectionTabs,
     SliderField,
     SubGroup,
     SwitchList,
@@ -138,7 +139,14 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ state, set, pickerCtx }) => {
             </SwitchList>
 
             {tb.show && (
-                <>
+                // Sektions-Tabs (ADR-0073): Allgemein (the master's layout cluster) |
+                // Funktionen (the feature switches + their params). Off ⇒ no chrome at all.
+                <SectionTabs
+                    tabs={[
+                        { key: 'general', label: Generic.t('echarts_tab_general') },
+                        { key: 'features', label: Generic.t('echarts_tab_features') },
+                    ]}
+                >
                     <SubGroup title={Generic.t('echarts_toolbox_group_layout')}>
                         <PositionGrid
                             label={Generic.t('echarts_toolbox_position')}
@@ -358,7 +366,7 @@ const ToolboxSection: FC<ToolboxSectionProps> = ({ state, set, pickerCtx }) => {
                             </Box>
                         )}
                     </SubGroup>
-                </>
+                </SectionTabs>
             )}
         </Box>
     );

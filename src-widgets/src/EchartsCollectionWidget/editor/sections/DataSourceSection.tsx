@@ -31,6 +31,7 @@ import {
     NumberField,
     OptionalNumberField,
     OptionalSliderField,
+    SectionTabs,
     SwitchList,
     SwitchRow,
 } from '../../../components/controls';
@@ -190,173 +191,187 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                 locale import per language is not worth the bundle. */}
             {isHistory && (
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <FieldGrid>
-                        <LabeledSelect
-                            label={Generic.t('echarts_time_type')}
-                            value={state.timeType}
-                            onChange={v => set({ timeType: v as EchartsTimeType })}
-                            options={[
-                                ['relative', Generic.t('echarts_time_type_relative')],
-                                ['static', Generic.t('echarts_time_type_static')],
-                            ]}
-                        />
-                        {!isStatic && (
-                            <GroupedRangeSelect
-                                value={state.timeRange}
-                                onChange={v => set({ timeRange: v })}
-                            />
-                        )}
-                        {!isStatic && (
-                            <LabeledSelect
-                                label={Generic.t('echarts_relative_end')}
-                                value={state.relativeEnd}
-                                onChange={v => set({ relativeEnd: v as EchartsRelativeEnd })}
-                                options={RELATIVE_ENDS.map(
-                                    k => [k, Generic.t(`echarts_relend_${k}`)] as [string, string],
-                                )}
-                            />
-                        )}
-                        {isStatic && (
-                            <Box>
-                                <FieldLabel>{Generic.t('echarts_time_static_start')}</FieldLabel>
-                                <DateTimePicker
-                                    value={staticStart}
-                                    onChange={d => set({ staticStart: d ? d.toISOString() : '' })}
-                                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
-                                />
-                            </Box>
-                        )}
-                        {isStatic && (
-                            <Box>
-                                <FieldLabel>{Generic.t('echarts_time_static_end')}</FieldLabel>
-                                <DateTimePicker
-                                    value={staticEnd}
-                                    onChange={d => set({ staticEnd: d ? d.toISOString() : '' })}
-                                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
-                                />
-                            </Box>
-                        )}
-                        {/* ADR-0072: the aggregate cluster is the Voreinstellung for every series
-                            now — say so where it is authored (Renderer InfoBox convention). */}
-                        <Box sx={{ gridColumn: '1 / -1' }}>
-                            <InfoBox text={Generic.t('echarts_datasource_preset_hint')} />
-                        </Box>
-                        <LabeledSelect
-                            label={Generic.t('echarts_aggregate')}
-                            value={state.aggregate}
-                            onChange={v => set({ aggregate: v as DataSourceSlice['aggregate'] })}
-                            // The one shared aggregate list (ADR-0072) — the series cards'
-                            // Daten cluster offers the same values under their inherit entry.
-                            options={AGGREGATE_VALUES.map(a => [a, a] as [string, string])}
-                        />
-                        {/* Zeitschrittweite (ADR-0064): the count alternative — a set step
-                             disables the count field (ONE of the two is ever active). */}
-                        <OptionalNumberField
-                            label={Generic.t('echarts_step_seconds')}
-                            value={state.resolutionStep}
-                            onChange={v => set({ resolutionStep: v })}
-                        />
-                        <NumberField
-                            label={Generic.t('echarts_count')}
-                            value={state.count}
-                            onChange={v => set({ count: v })}
-                            disabled={!!state.resolutionStep}
-                        />
-                        {/* Aggregate params (ADR-0064) — only under their aggregate (the
-                             adapter's own gating; sparse, unset = the server default). */}
-                        {state.aggregate === 'percentile' && (
-                            <OptionalSliderField
-                                label={Generic.t('echarts_percentile')}
-                                value={state.percentileValue}
-                                min={0}
-                                max={100}
-                                fallback={50}
-                                onChange={v => set({ percentileValue: v })}
-                            />
-                        )}
-                        {state.aggregate === 'integral' && (
-                            <OptionalNumberField
-                                label={Generic.t('echarts_integral_unit')}
-                                value={state.integralUnit}
-                                onChange={v => set({ integralUnit: v })}
-                            />
-                        )}
-                        {state.aggregate === 'integral' && (
-                            <LabeledSelect
-                                label={Generic.t('echarts_integral_interpolation')}
-                                value={state.integralInterpolation ?? 'none'}
-                                onChange={v => set({ integralInterpolation: v as 'none' | 'linear' })}
-                                options={[
-                                    ['none', Generic.t('echarts_interp_none')],
-                                    ['linear', Generic.t('echarts_interp_linear')],
-                                ]}
-                            />
-                        )}
-                        {/* Static hides the refresh field (ADR-0063): a fixed window has nothing
-                         to follow — the pipeline suppresses polling anyway. */}
-                        {!isStatic && (
-                            <NumberField
-                                label={Generic.t('echarts_refresh')}
-                                value={state.refreshMs}
-                                step={1000}
-                                onChange={v => set({ refreshMs: v })}
-                            />
-                        )}
-                        <LabeledSelect
-                            label={Generic.t('echarts_ignore_null')}
-                            value={state.ignoreNull}
-                            onChange={v => set({ ignoreNull: v as DataSourceSlice['ignoreNull'] })}
-                            options={[
-                                ['keep', Generic.t('echarts_ignore_null_keep')],
-                                ['forward', Generic.t('echarts_ignore_null_forward')],
-                                ['zero', Generic.t('echarts_ignore_null_zero')],
-                            ]}
-                        />
-                    </FieldGrid>
-                    {/* Category bars (ADR-0065): an explicit interval buckets an effective BAR
-                         chart onto calendar categories (auto = the time axis, unchanged). The
-                         option list follows the adapter's range filtering. */}
-                    {state.chartType === 'bar' && (
-                        <>
-                            <FieldGrid sx={{ mt: 0.5 }}>
+                    {/* Sektions-Tabs (ADR-0073): Zeitfenster | Datenabruf — the window on one
+                        tab, the acquisition defaults (Voreinstellung) + the bar cluster on the
+                        other. JSON mode renders NO tab chrome (the Leerfall: one field). */}
+                    <SectionTabs
+                        tabs={[
+                            { key: 'window', label: Generic.t('echarts_tab_time_window') },
+                            { key: 'fetch', label: Generic.t('echarts_tab_data_fetch') },
+                        ]}
+                    >
+                        <Box>
+                            <FieldGrid>
                                 <LabeledSelect
-                                    label={Generic.t('echarts_bar_interval')}
-                                    value={state.barInterval}
-                                    onChange={v => set({ barInterval: v as EchartsBarInterval })}
-                                    options={
-                                        // A stored interval the current range filters OUT stays
-                                        // visible (appended with its own label) — the chart keeps
-                                        // bucketing with it; the select must not lie "auto"
-                                        // (review catch: it rendered EMPTY before).
-                                        barIntervalOptions(state).some(([v]) => v === state.barInterval)
-                                            ? barIntervalOptions(state)
-                                            : [
-                                                  ...barIntervalOptions(state),
-                                                  [
-                                                      state.barInterval,
-                                                      Generic.t(`echarts_bar_interval_${state.barInterval}`),
-                                                  ] as [EchartsBarInterval, string],
-                                              ]
-                                    }
+                                    label={Generic.t('echarts_time_type')}
+                                    value={state.timeType}
+                                    onChange={v => set({ timeType: v as EchartsTimeType })}
+                                    options={[
+                                        ['relative', Generic.t('echarts_time_type_relative')],
+                                        ['static', Generic.t('echarts_time_type_static')],
+                                    ]}
+                                />
+                                {!isStatic && (
+                                    <GroupedRangeSelect
+                                        value={state.timeRange}
+                                        onChange={v => set({ timeRange: v })}
+                                    />
+                                )}
+                                {!isStatic && (
+                                    <LabeledSelect
+                                        label={Generic.t('echarts_relative_end')}
+                                        value={state.relativeEnd}
+                                        onChange={v => set({ relativeEnd: v as EchartsRelativeEnd })}
+                                        options={RELATIVE_ENDS.map(
+                                            k => [k, Generic.t(`echarts_relend_${k}`)] as [string, string],
+                                        )}
+                                    />
+                                )}
+                                {isStatic && (
+                                    <Box>
+                                        <FieldLabel>{Generic.t('echarts_time_static_start')}</FieldLabel>
+                                        <DateTimePicker
+                                            value={staticStart}
+                                            onChange={d => set({ staticStart: d ? d.toISOString() : '' })}
+                                            slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                                        />
+                                    </Box>
+                                )}
+                                {isStatic && (
+                                    <Box>
+                                        <FieldLabel>{Generic.t('echarts_time_static_end')}</FieldLabel>
+                                        <DateTimePicker
+                                            value={staticEnd}
+                                            onChange={d => set({ staticEnd: d ? d.toISOString() : '' })}
+                                            slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                                        />
+                                    </Box>
+                                )}
+                            </FieldGrid>
+                            {isStatic && staticInvalid && <InfoBox text={Generic.t('echarts_time_static_invalid')} />}
+                            {/* One side cleared: the resolver silently falls back to now−24h — say so
+                             (the author's window must never be replaced without a word). */}
+                            {isStatic && !staticInvalid && (!staticStart || !staticEnd) && (
+                                <InfoBox text={Generic.t('echarts_time_static_incomplete')} />
+                            )}
+                        </Box>
+                        <Box>
+                            {/* ADR-0072: the aggregate cluster is the Voreinstellung for every series
+                             now — say so where it is authored (Renderer InfoBox convention). */}
+                            <InfoBox text={Generic.t('echarts_datasource_preset_hint')} />
+                            <FieldGrid>
+                                <LabeledSelect
+                                    label={Generic.t('echarts_aggregate')}
+                                    value={state.aggregate}
+                                    onChange={v => set({ aggregate: v as DataSourceSlice['aggregate'] })}
+                                    // The one shared aggregate list (ADR-0072) — the series cards'
+                                    // Daten cluster offers the same values under their inherit entry.
+                                    options={AGGREGATE_VALUES.map(a => [a, a] as [string, string])}
+                                />
+                                {/* Zeitschrittweite (ADR-0064): the count alternative — a set step
+                             disables the count field (ONE of the two is ever active). */}
+                                <OptionalNumberField
+                                    label={Generic.t('echarts_step_seconds')}
+                                    value={state.resolutionStep}
+                                    onChange={v => set({ resolutionStep: v })}
+                                />
+                                <NumberField
+                                    label={Generic.t('echarts_count')}
+                                    value={state.count}
+                                    onChange={v => set({ count: v })}
+                                    disabled={!!state.resolutionStep}
+                                />
+                                {/* Aggregate params (ADR-0064) — only under their aggregate (the
+                             adapter's own gating; sparse, unset = the server default). */}
+                                {state.aggregate === 'percentile' && (
+                                    <OptionalSliderField
+                                        label={Generic.t('echarts_percentile')}
+                                        value={state.percentileValue}
+                                        min={0}
+                                        max={100}
+                                        fallback={50}
+                                        onChange={v => set({ percentileValue: v })}
+                                    />
+                                )}
+                                {state.aggregate === 'integral' && (
+                                    <OptionalNumberField
+                                        label={Generic.t('echarts_integral_unit')}
+                                        value={state.integralUnit}
+                                        onChange={v => set({ integralUnit: v })}
+                                    />
+                                )}
+                                {state.aggregate === 'integral' && (
+                                    <LabeledSelect
+                                        label={Generic.t('echarts_integral_interpolation')}
+                                        value={state.integralInterpolation ?? 'none'}
+                                        onChange={v => set({ integralInterpolation: v as 'none' | 'linear' })}
+                                        options={[
+                                            ['none', Generic.t('echarts_interp_none')],
+                                            ['linear', Generic.t('echarts_interp_linear')],
+                                        ]}
+                                    />
+                                )}
+                                {/* Static hides the refresh field (ADR-0063): a fixed window has nothing
+                         to follow — the pipeline suppresses polling anyway. */}
+                                {!isStatic && (
+                                    <NumberField
+                                        label={Generic.t('echarts_refresh')}
+                                        value={state.refreshMs}
+                                        step={1000}
+                                        onChange={v => set({ refreshMs: v })}
+                                    />
+                                )}
+                                <LabeledSelect
+                                    label={Generic.t('echarts_ignore_null')}
+                                    value={state.ignoreNull}
+                                    onChange={v => set({ ignoreNull: v as DataSourceSlice['ignoreNull'] })}
+                                    options={[
+                                        ['keep', Generic.t('echarts_ignore_null_keep')],
+                                        ['forward', Generic.t('echarts_ignore_null_forward')],
+                                        ['zero', Generic.t('echarts_ignore_null_zero')],
+                                    ]}
                                 />
                             </FieldGrid>
-                            {state.barInterval !== 'auto' && (
-                                <SwitchList sx={{ mt: 1 }}>
-                                    <SwitchRow
-                                        label={Generic.t('echarts_bar_diff')}
-                                        checked={state.barDiff}
-                                        onChange={v => set({ barDiff: v })}
-                                    />
-                                </SwitchList>
+                            {/* Category bars (ADR-0065): an explicit interval buckets an effective BAR
+                         chart onto calendar categories (auto = the time axis, unchanged). The
+                         option list follows the adapter's range filtering. */}
+                            {state.chartType === 'bar' && (
+                                <>
+                                    <FieldGrid sx={{ mt: 0.5 }}>
+                                        <LabeledSelect
+                                            label={Generic.t('echarts_bar_interval')}
+                                            value={state.barInterval}
+                                            onChange={v => set({ barInterval: v as EchartsBarInterval })}
+                                            options={
+                                                // A stored interval the current range filters OUT stays
+                                                // visible (appended with its own label) — the chart keeps
+                                                // bucketing with it; the select must not lie "auto"
+                                                // (review catch: it rendered EMPTY before).
+                                                barIntervalOptions(state).some(([v]) => v === state.barInterval)
+                                                    ? barIntervalOptions(state)
+                                                    : [
+                                                          ...barIntervalOptions(state),
+                                                          [
+                                                              state.barInterval,
+                                                              Generic.t(`echarts_bar_interval_${state.barInterval}`),
+                                                          ] as [EchartsBarInterval, string],
+                                                      ]
+                                            }
+                                        />
+                                    </FieldGrid>
+                                    {state.barInterval !== 'auto' && (
+                                        <SwitchList sx={{ mt: 1 }}>
+                                            <SwitchRow
+                                                label={Generic.t('echarts_bar_diff')}
+                                                checked={state.barDiff}
+                                                onChange={v => set({ barDiff: v })}
+                                            />
+                                        </SwitchList>
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
-                    {isStatic && staticInvalid && <InfoBox text={Generic.t('echarts_time_static_invalid')} />}
-                    {/* One side cleared: the resolver silently falls back to now−24h — say so
-                     (the author's window must never be replaced without a word). */}
-                    {isStatic && !staticInvalid && (!staticStart || !staticEnd) && (
-                        <InfoBox text={Generic.t('echarts_time_static_incomplete')} />
-                    )}
+                        </Box>
+                    </SectionTabs>
                 </LocalizationProvider>
             )}
 

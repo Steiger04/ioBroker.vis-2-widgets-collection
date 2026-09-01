@@ -24,7 +24,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
 import { useEditorTheme } from '../useEditorTheme';
-import { LabeledSelect, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
+import { LabeledSelect, SectionTabs, SubGroup, SwitchList, SwitchRow } from '../../../components/controls';
 import type { OidPickerCtx } from '../OidPicker';
 import type {
     EchartsAxisConfig,
@@ -300,123 +300,137 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
 
     return (
         <Box>
-            <SubGroup
-                title={Generic.t('echarts_axes')}
-                hint={Generic.t('echarts_axes_hint')}
+            {/* Sektions-Tabs (ADR-0073): Achsen | Markierungen | Zoom — the three Sub-groups
+                become tabs (Sub-group structure inside a tab stays for the card clusters). */}
+            <SectionTabs
+                tabs={[
+                    { key: 'axes', label: Generic.t('echarts_tab_axes') },
+                    { key: 'marks', label: Generic.t('echarts_tab_marks') },
+                    { key: 'zoom', label: Generic.t('echarts_tab_zoom') },
+                ]}
             >
-                {axes.length === 0 && (
-                    <Box
-                        sx={{
-                            mb: 1.5,
-                            p: 1.5,
-                            border: '1px dashed',
-                            borderColor: 'divider',
-                            borderRadius: 1,
-                            textAlign: 'center',
-                        }}
-                    >
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                        >
-                            {Generic.t('echarts_axes_empty')}
-                        </Typography>
-                    </Box>
-                )}
-                {/* The X-Karte is the manager's first card — the shared time axis (ADR-0035). It
-                    is flat config: no delete, no reorder, no series binding; its colour inherits
-                    the theme's label token (the axis belongs to no series). */}
-                <XCard
-                    x={state.xAxis}
-                    open={xExpanded}
-                    onToggle={() => setXExpanded(v => !v)}
-                    onChange={patch => set({ xAxis: { ...state.xAxis, ...patch } })}
-                    pickerCtx={pickerCtx}
-                    fallbackColor={themeTokens.textSecondary}
-                    dividerColor={themeTokens.divider}
-                />
-                {axes.map((a, i) => (
-                    <AxisCard
-                        key={a.id ?? i}
-                        axis={a}
-                        index={i}
-                        emittedIndex={emittedRanks.get(i)}
-                        emittedTotal={emittedRanks.size}
-                        open={!!expanded[i]}
-                        onToggle={() => toggleCard(i)}
-                        onChange={patch => setAxis(i, patch)}
-                        onRemove={() => removeAxis(i)}
-                        pickerCtx={pickerCtx}
-                        seriesColor={boundAxisColor(i)}
-                        seriesName={boundAxisName(i)}
-                        dividerColor={themeTokens.divider}
-                    />
-                ))}
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_zoom')}>
-                <SwitchList sx={{ mb: 1.5 }}>
-                    <SwitchRow
-                        label={Generic.t('echarts_zoom_slider')}
-                        checked={state.dataZoomSlider}
-                        onChange={v => set({ dataZoomSlider: v })}
-                    />
-                    <SwitchRow
-                        label={Generic.t('echarts_zoom_inside')}
-                        checked={state.dataZoomInside}
-                        onChange={v => set({ dataZoomInside: v })}
-                    />
-                </SwitchList>
-                {/* Zoom idle-reset (ADR-0054, adapter `resetZoom`): only offered when a zoom
-                    mode is actually on — an idle reset without zoom is a no-op switch. */}
-                {(state.dataZoomSlider || state.dataZoomInside) && (
-                    <LabeledSelect
-                        label={Generic.t('echarts_zoom_reset')}
-                        value={state.zoomResetAfterIdle}
-                        onChange={v => set({ zoomResetAfterIdle: (v || '') as AxesZoomSlice['zoomResetAfterIdle'] })}
-                        options={[
-                            ['', Generic.t('echarts_sum_off')],
-                            ...ZOOM_IDLE_SECONDS.map(
-                                sec =>
-                                    [
-                                        String(sec),
-                                        sec % 60 === 0
-                                            ? Generic.t('echarts_zoom_reset_minutes', String(Math.round(sec / 60)))
-                                            : Generic.t('echarts_zoom_reset_seconds', String(sec)),
-                                    ] as [string, string],
-                            ),
-                        ]}
-                    />
-                )}
-            </SubGroup>
-
-            {/* Markierungen (parity Build C stage 1, ADR-0061): one collapsible card per
-                marking — limit + style cluster + label cluster, anchored to a Y-axis. */}
-            <SubGroup
-                title={Generic.t('echarts_marks')}
-                hint={Generic.t('echarts_marks_hint')}
-            >
-                {state.markLines.map((m, i) => (
-                    <MarkCard
-                        key={m.id ?? i}
-                        mark={m}
-                        axisOptions={axisOptions}
-                        open={!!markExpanded[i]}
-                        onToggle={() => toggleMarkCard(i)}
-                        onChange={patch => setMark(i, patch)}
-                        onRemove={() => removeMark(i)}
-                        pickerCtx={pickerCtx}
-                        dividerColor={themeTokens.divider}
-                    />
-                ))}
-                <Button
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addMark}
+                <SubGroup
+                    title={Generic.t('echarts_axes')}
+                    hint={Generic.t('echarts_axes_hint')}
                 >
-                    {Generic.t('echarts_mark_add')}
-                </Button>
-            </SubGroup>
+                    {axes.length === 0 && (
+                        <Box
+                            sx={{
+                                mb: 1.5,
+                                p: 1.5,
+                                border: '1px dashed',
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                textAlign: 'center',
+                            }}
+                        >
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                {Generic.t('echarts_axes_empty')}
+                            </Typography>
+                        </Box>
+                    )}
+                    {/* The X-Karte is the manager's first card — the shared time axis (ADR-0035). It
+                        is flat config: no delete, no reorder, no series binding; its colour inherits
+                        the theme's label token (the axis belongs to no series). */}
+                    <XCard
+                        x={state.xAxis}
+                        open={xExpanded}
+                        onToggle={() => setXExpanded(v => !v)}
+                        onChange={patch => set({ xAxis: { ...state.xAxis, ...patch } })}
+                        pickerCtx={pickerCtx}
+                        fallbackColor={themeTokens.textSecondary}
+                        dividerColor={themeTokens.divider}
+                    />
+                    {axes.map((a, i) => (
+                        <AxisCard
+                            key={a.id ?? i}
+                            axis={a}
+                            index={i}
+                            emittedIndex={emittedRanks.get(i)}
+                            emittedTotal={emittedRanks.size}
+                            open={!!expanded[i]}
+                            onToggle={() => toggleCard(i)}
+                            onChange={patch => setAxis(i, patch)}
+                            onRemove={() => removeAxis(i)}
+                            pickerCtx={pickerCtx}
+                            seriesColor={boundAxisColor(i)}
+                            seriesName={boundAxisName(i)}
+                            dividerColor={themeTokens.divider}
+                        />
+                    ))}
+                </SubGroup>
+
+                {/* Markierungen (parity Build C stage 1, ADR-0061): one collapsible card per
+                    marking — limit + style cluster + label cluster, anchored to a Y-axis. */}
+                <SubGroup
+                    title={Generic.t('echarts_marks')}
+                    hint={Generic.t('echarts_marks_hint')}
+                >
+                    {state.markLines.map((m, i) => (
+                        <MarkCard
+                            key={m.id ?? i}
+                            mark={m}
+                            axisOptions={axisOptions}
+                            open={!!markExpanded[i]}
+                            onToggle={() => toggleMarkCard(i)}
+                            onChange={patch => setMark(i, patch)}
+                            onRemove={() => removeMark(i)}
+                            pickerCtx={pickerCtx}
+                            dividerColor={themeTokens.divider}
+                        />
+                    ))}
+                    <Button
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={addMark}
+                    >
+                        {Generic.t('echarts_mark_add')}
+                    </Button>
+                </SubGroup>
+
+                {/* The zoom tab needs no SubGroup of its own — the tab IS the group (ADR-0073:
+                    sub-groups are fine grouping WITHIN a tab, not a 1:1 title echo). */}
+                <Box>
+                    <SwitchList sx={{ mb: 1.5 }}>
+                        <SwitchRow
+                            label={Generic.t('echarts_zoom_slider')}
+                            checked={state.dataZoomSlider}
+                            onChange={v => set({ dataZoomSlider: v })}
+                        />
+                        <SwitchRow
+                            label={Generic.t('echarts_zoom_inside')}
+                            checked={state.dataZoomInside}
+                            onChange={v => set({ dataZoomInside: v })}
+                        />
+                    </SwitchList>
+                    {/* Zoom idle-reset (ADR-0054, adapter `resetZoom`): only offered when a zoom
+                        mode is actually on — an idle reset without zoom is a no-op switch. */}
+                    {(state.dataZoomSlider || state.dataZoomInside) && (
+                        <LabeledSelect
+                            label={Generic.t('echarts_zoom_reset')}
+                            value={state.zoomResetAfterIdle}
+                            onChange={v =>
+                                set({ zoomResetAfterIdle: (v || '') as AxesZoomSlice['zoomResetAfterIdle'] })
+                            }
+                            options={[
+                                ['', Generic.t('echarts_sum_off')],
+                                ...ZOOM_IDLE_SECONDS.map(
+                                    sec =>
+                                        [
+                                            String(sec),
+                                            sec % 60 === 0
+                                                ? Generic.t('echarts_zoom_reset_minutes', String(Math.round(sec / 60)))
+                                                : Generic.t('echarts_zoom_reset_seconds', String(sec)),
+                                        ] as [string, string],
+                                ),
+                            ]}
+                        />
+                    )}
+                </Box>
+            </SectionTabs>
             <Snackbar
                 open={!!toast}
                 autoHideDuration={5000}

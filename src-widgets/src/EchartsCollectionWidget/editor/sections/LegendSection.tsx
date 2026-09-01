@@ -19,6 +19,7 @@ import {
     InfoBox,
     LabeledSelect,
     OptionalNumberField,
+    SectionTabs,
     SubGroup,
     SwitchList,
     SwitchRow,
@@ -87,23 +88,30 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
     // Legend values (ADR-0054) need per-SERIES current values — cartesian/pie legends name series.
     const valuesRelevant = true;
     return (
-        <Box>
-            <SwitchList sx={{ mb: 1.5 }}>
-                <SwitchRow
-                    label={Generic.t('echarts_legend_show')}
-                    checked={state.legendShow}
-                    onChange={v => set({ legendShow: v })}
-                />
-                {valuesRelevant && (
+        // Sektions-Tabs (ADR-0073): Anzeige | Stil | Vorlagen — the same fields, regrouped.
+        <SectionTabs
+            tabs={[
+                { key: 'display', label: Generic.t('echarts_tab_display') },
+                { key: 'style', label: Generic.t('echarts_tab_style') },
+                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+            ]}
+        >
+            <Box>
+                <SwitchList sx={{ mb: 1.5 }}>
                     <SwitchRow
-                        label={Generic.t('echarts_legend_values')}
-                        checked={state.legendShowValues}
-                        onChange={v => set({ legendShowValues: v })}
-                        disabled={!state.legendShow}
+                        label={Generic.t('echarts_legend_show')}
+                        checked={state.legendShow}
+                        onChange={v => set({ legendShow: v })}
                     />
-                )}
-            </SwitchList>
-            <Box sx={{ mb: 1.5 }}>
+                    {valuesRelevant && (
+                        <SwitchRow
+                            label={Generic.t('echarts_legend_values')}
+                            checked={state.legendShowValues}
+                            onChange={v => set({ legendShowValues: v })}
+                            disabled={!state.legendShow}
+                        />
+                    )}
+                </SwitchList>
                 <PositionGrid
                     label={Generic.t('echarts_legend_position')}
                     value={state.legendPos}
@@ -125,130 +133,131 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                     />
                 </Box>
                 {!lg.orient && <InfoBox text={Generic.t('echarts_legend_orient_hint')} />}
+                {(offsetXRelevant || offsetYRelevant) && (
+                    <FieldGrid sx={{ mt: 1.5 }}>
+                        {offsetXRelevant && (
+                            <OptionalNumberField
+                                label={Generic.t('echarts_legend_offset_x')}
+                                value={lg.offsetX}
+                                onChange={v => patch({ offsetX: v })}
+                            />
+                        )}
+                        {offsetYRelevant && (
+                            <OptionalNumberField
+                                label={Generic.t('echarts_legend_offset_y')}
+                                value={lg.offsetY}
+                                onChange={v => patch({ offsetY: v })}
+                            />
+                        )}
+                    </FieldGrid>
+                )}
             </Box>
 
-            {(offsetXRelevant || offsetYRelevant) && (
-                <FieldGrid sx={{ mb: 1.5 }}>
-                    {offsetXRelevant && (
+            <Box>
+                <SubGroup title={Generic.t('echarts_legend_group_text')}>
+                    <FieldGrid>
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_legend_text_color')}</FieldLabel>
+                            <ColorField
+                                value={lg.color ?? null}
+                                fallback={themeTokens.textSecondary}
+                                onChange={v => patch({ color: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
                         <OptionalNumberField
-                            label={Generic.t('echarts_legend_offset_x')}
-                            value={lg.offsetX}
-                            onChange={v => patch({ offsetX: v })}
+                            label={Generic.t('echarts_legend_font_size')}
+                            value={lg.fontSize}
+                            onChange={v => patch({ fontSize: v })}
+                            step={1}
                         />
-                    )}
-                    {offsetYRelevant && (
+                        <LabeledSelect
+                            label={Generic.t('echarts_weight')}
+                            value={weightToSelectValue(lg.fontWeight)}
+                            onChange={v => patch({ fontWeight: parseFontWeight(v) })}
+                            options={FONT_WEIGHT_OPTIONS}
+                        />
+                        <LabeledSelect
+                            label={Generic.t('echarts_font_style')}
+                            value={fontStyleToSelectValue(lg.fontStyle)}
+                            onChange={v => patch({ fontStyle: parseFontStyle(v) })}
+                            options={FONT_STYLE_OPTIONS}
+                        />
+                    </FieldGrid>
+                </SubGroup>
+
+                <SubGroup title={Generic.t('echarts_legend_group_symbol')}>
+                    <FieldGrid>
+                        <LabeledSelect
+                            label={Generic.t('echarts_legend_icon')}
+                            value={lg.icon ?? ''}
+                            onChange={v => patch({ icon: (v || undefined) as typeof lg.icon })}
+                            options={LEGEND_ICONS}
+                        />
                         <OptionalNumberField
-                            label={Generic.t('echarts_legend_offset_y')}
-                            value={lg.offsetY}
-                            onChange={v => patch({ offsetY: v })}
+                            label={Generic.t('echarts_legend_item_width')}
+                            value={lg.itemWidth}
+                            onChange={v => patch({ itemWidth: v })}
                         />
-                    )}
-                </FieldGrid>
-            )}
+                        <OptionalNumberField
+                            label={Generic.t('echarts_legend_item_height')}
+                            value={lg.itemHeight}
+                            onChange={v => patch({ itemHeight: v })}
+                        />
+                        <OptionalNumberField
+                            label={Generic.t('echarts_legend_item_gap')}
+                            value={lg.itemGap}
+                            onChange={v => patch({ itemGap: v })}
+                        />
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_legend_inactive_color')}</FieldLabel>
+                            <ColorField
+                                value={lg.inactiveColor ?? null}
+                                fallback={themeTokens.divider}
+                                onChange={v => patch({ inactiveColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                    </FieldGrid>
+                </SubGroup>
 
-            <SubGroup title={Generic.t('echarts_legend_group_text')}>
-                <FieldGrid>
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_legend_text_color')}</FieldLabel>
-                        <ColorField
-                            value={lg.color ?? null}
-                            fallback={themeTokens.textSecondary}
-                            onChange={v => patch({ color: v ?? undefined })}
-                            ctx={pickerCtx}
+                <SubGroup title={Generic.t('echarts_legend_group_frame')}>
+                    <FieldGrid>
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_legend_background')}</FieldLabel>
+                            <ColorField
+                                value={bgValue}
+                                onChange={v => patch({ bgColor: v ?? 'transparent' })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_legend_border_color')}</FieldLabel>
+                            <ColorField
+                                value={lg.borderColor ?? null}
+                                fallback={themeTokens.divider}
+                                onChange={v => patch({ borderColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                        <OptionalNumberField
+                            label={Generic.t('echarts_legend_border_width')}
+                            value={lg.borderWidth}
+                            onChange={v => patch({ borderWidth: v })}
                         />
-                    </Box>
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_font_size')}
-                        value={lg.fontSize}
-                        onChange={v => patch({ fontSize: v })}
-                        step={1}
-                    />
-                    <LabeledSelect
-                        label={Generic.t('echarts_weight')}
-                        value={weightToSelectValue(lg.fontWeight)}
-                        onChange={v => patch({ fontWeight: parseFontWeight(v) })}
-                        options={FONT_WEIGHT_OPTIONS}
-                    />
-                    <LabeledSelect
-                        label={Generic.t('echarts_font_style')}
-                        value={fontStyleToSelectValue(lg.fontStyle)}
-                        onChange={v => patch({ fontStyle: parseFontStyle(v) })}
-                        options={FONT_STYLE_OPTIONS}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_legend_group_symbol')}>
-                <FieldGrid>
-                    <LabeledSelect
-                        label={Generic.t('echarts_legend_icon')}
-                        value={lg.icon ?? ''}
-                        onChange={v => patch({ icon: (v || undefined) as typeof lg.icon })}
-                        options={LEGEND_ICONS}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_item_width')}
-                        value={lg.itemWidth}
-                        onChange={v => patch({ itemWidth: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_item_height')}
-                        value={lg.itemHeight}
-                        onChange={v => patch({ itemHeight: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_item_gap')}
-                        value={lg.itemGap}
-                        onChange={v => patch({ itemGap: v })}
-                    />
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_legend_inactive_color')}</FieldLabel>
-                        <ColorField
-                            value={lg.inactiveColor ?? null}
-                            fallback={themeTokens.divider}
-                            onChange={v => patch({ inactiveColor: v ?? undefined })}
-                            ctx={pickerCtx}
+                        <OptionalNumberField
+                            label={Generic.t('echarts_legend_border_radius')}
+                            value={lg.borderRadius}
+                            onChange={v => patch({ borderRadius: v })}
                         />
-                    </Box>
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_legend_group_frame')}>
-                <FieldGrid>
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_legend_background')}</FieldLabel>
-                        <ColorField
-                            value={bgValue}
-                            onChange={v => patch({ bgColor: v ?? 'transparent' })}
-                            ctx={pickerCtx}
+                        <OptionalNumberField
+                            label={Generic.t('echarts_legend_padding')}
+                            value={lg.padding}
+                            onChange={v => patch({ padding: v })}
                         />
-                    </Box>
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_legend_border_color')}</FieldLabel>
-                        <ColorField
-                            value={lg.borderColor ?? null}
-                            fallback={themeTokens.divider}
-                            onChange={v => patch({ borderColor: v ?? undefined })}
-                            ctx={pickerCtx}
-                        />
-                    </Box>
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_border_width')}
-                        value={lg.borderWidth}
-                        onChange={v => patch({ borderWidth: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_border_radius')}
-                        value={lg.borderRadius}
-                        onChange={v => patch({ borderRadius: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_legend_padding')}
-                        value={lg.padding}
-                        onChange={v => patch({ padding: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
+                    </FieldGrid>
+                </SubGroup>
+            </Box>
             {/* The Legend section's own raw escape hatch (ADR-0044) — deep-merged UNDER
                 buildLegend's output, the GUI wins every collision. */}
             <RawJsonSection
@@ -259,7 +268,7 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
                 placeholder={'{\n  "selector": true\n}'}
                 onCommit={r => set({ legendRaw: r.text || '', legendSnippets: r.ids })}
             />
-        </Box>
+        </SectionTabs>
     );
 };
 

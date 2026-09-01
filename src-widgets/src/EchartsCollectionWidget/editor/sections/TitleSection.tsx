@@ -17,6 +17,7 @@ import {
     LabeledSelect,
     NumberField,
     OptionalNumberField,
+    SectionTabs,
     TextField2,
 } from '../../../components/controls';
 import ColorField from '../colorFields';
@@ -73,24 +74,45 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
     // dx applies only to the left-edge anchors (ADR-0009 addendum) — hide it elsewhere (no dead control).
     const dxRelevant = state.titlePos === 'topLeft' || state.titlePos === 'bottomLeft';
     return (
-        <Box>
-            <FieldGrid sx={{ mb: 1.5 }}>
-                <Box sx={{ gridColumn: '1 / -1' }}>
-                    <TextField2
-                        label={Generic.t('echarts_editor_title_text')}
-                        value={state.titleText}
-                        onChange={v => set({ titleText: v })}
-                        placeholder={'Living room: {0.0.temperature.val} °C'}
+        // Sektions-Tabs (ADR-0073): Text | Position | Stil | Vorlagen — view-only regrouping of
+        // the same fields, nothing moved into or out of the section.
+        <SectionTabs
+            tabs={[
+                { key: 'text', label: Generic.t('echarts_tab_text') },
+                { key: 'position', label: Generic.t('echarts_tab_position') },
+                { key: 'style', label: Generic.t('echarts_tab_style') },
+                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+            ]}
+        >
+            <TextField2
+                label={Generic.t('echarts_editor_title_text')}
+                value={state.titleText}
+                onChange={v => set({ titleText: v })}
+                placeholder={'Living room: {0.0.temperature.val} °C'}
+            />
+            <Box>
+                <PositionGrid
+                    label={Generic.t('echarts_title_position')}
+                    value={state.titlePos}
+                    onChange={v => set({ titlePos: v as TitleSlice['titlePos'] })}
+                    options={TITLE_POSITIONS}
+                />
+                <FieldGrid sx={{ mt: 1.5 }}>
+                    {dxRelevant && (
+                        <NumberField
+                            label={Generic.t('echarts_title_dx')}
+                            value={state.titleDx}
+                            onChange={v => set({ titleDx: v })}
+                        />
+                    )}
+                    <NumberField
+                        label={Generic.t('echarts_title_dy')}
+                        value={state.titleDy}
+                        onChange={v => set({ titleDy: v })}
                     />
-                </Box>
-                <Box sx={{ gridColumn: '1 / -1' }}>
-                    <PositionGrid
-                        label={Generic.t('echarts_title_position')}
-                        value={state.titlePos}
-                        onChange={v => set({ titlePos: v as TitleSlice['titlePos'] })}
-                        options={TITLE_POSITIONS}
-                    />
-                </Box>
+                </FieldGrid>
+            </Box>
+            <FieldGrid>
                 <Box>
                     <FieldLabel>{Generic.t('echarts_title_color')}</FieldLabel>
                     <ColorField
@@ -118,18 +140,6 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                     onChange={v => set({ titleFontStyle: parseFontStyle(v) })}
                     options={FONT_STYLE_OPTIONS}
                 />
-                {dxRelevant && (
-                    <NumberField
-                        label={Generic.t('echarts_title_dx')}
-                        value={state.titleDx}
-                        onChange={v => set({ titleDx: v })}
-                    />
-                )}
-                <NumberField
-                    label={Generic.t('echarts_title_dy')}
-                    value={state.titleDy}
-                    onChange={v => set({ titleDy: v })}
-                />
             </FieldGrid>
             {/* The Title section's own raw escape hatch (ADR-0044) — deep-merged UNDER
                 buildTitleOption's output, the GUI wins every collision. */}
@@ -141,7 +151,7 @@ const TitleSection: FC<TitleSectionProps> = ({ state, set, pickerCtx }) => {
                 placeholder={'{\n  "subtext": "Unit: kWh"\n}'}
                 onCommit={r => set({ titleRaw: r.text || '', titleSnippets: r.ids })}
             />
-        </Box>
+        </SectionTabs>
     );
 };
 

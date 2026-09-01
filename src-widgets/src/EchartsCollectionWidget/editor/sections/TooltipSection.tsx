@@ -23,6 +23,7 @@ import {
     InfoBox,
     LabeledSelect,
     NumberField,
+    SectionTabs,
     SwitchList,
     SwitchRow,
     TextField2,
@@ -82,121 +83,133 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set, pickerCtx }) => {
           ];
 
     return (
-        <Box>
-            <FieldGrid>
-                <LabeledSelect
-                    label={Generic.t('echarts_tooltip_trigger')}
-                    value={effectiveTrigger}
-                    onChange={v => set({ tooltipTrigger: v as TooltipSlice['tooltipTrigger'] })}
-                    options={triggerOptions}
-                />
-                <NumberField
-                    label={Generic.t('echarts_tooltip_decimals')}
-                    value={state.tooltipDecimals}
-                    onChange={v => set({ tooltipDecimals: v })}
-                />
+        // Sektions-Tabs (ADR-0073): Verhalten (trigger + the string template) | Werte (units/
+        // decimals/comma/bg/row-filters) | Vorlagen (raw + templates).
+        <SectionTabs
+            tabs={[
+                { key: 'behavior', label: Generic.t('echarts_tab_behavior') },
+                { key: 'values', label: Generic.t('echarts_tab_values') },
+                { key: 'templates', label: Generic.t('echarts_tab_templates') },
+            ]}
+        >
+            <Box>
+                <FieldGrid sx={{ mb: 1.5 }}>
+                    <LabeledSelect
+                        label={Generic.t('echarts_tooltip_trigger')}
+                        value={effectiveTrigger}
+                        onChange={v => set({ tooltipTrigger: v as TooltipSlice['tooltipTrigger'] })}
+                        options={triggerOptions}
+                    />
+                </FieldGrid>
                 <TextField2
-                    label={Generic.t('echarts_tooltip_units')}
-                    value={state.tooltipUnits}
-                    onChange={v => set({ tooltipUnits: v })}
-                    placeholder="°C / % / h"
+                    label={Generic.t('echarts_tooltip_template')}
+                    value={state.tooltipTemplate}
+                    onChange={v => set({ tooltipTemplate: v })}
+                    placeholder="{b}: {c}"
                 />
-                <Box>
-                    <FieldLabel>{Generic.t('echarts_tooltip_bg')}</FieldLabel>
-                    {/* Null = unset → the theme's tooltip background (ADR-0054). */}
-                    <ColorField
-                        value={state.tooltipBgColor || null}
-                        onChange={v => set({ tooltipBgColor: v ?? '' })}
-                        ctx={pickerCtx}
-                    />
-                </Box>
-                <Box sx={{ gridColumn: '1 / -1' }}>
-                    <TextField2
-                        label={Generic.t('echarts_tooltip_template')}
-                        value={state.tooltipTemplate}
-                        onChange={v => set({ tooltipTemplate: v })}
-                        placeholder="{b}: {c}"
-                    />
-                    {/* Token legend + live example (ADR-0052) in the renderer-info callout idiom:
-                        one InfoBox, code-chip legend (family-aware) + the template rendered
-                        against a demo series line with this section's units/decimals and the
-                        X-Karte's Time format. One line per series in the rendered chart. */}
-                    <InfoBox>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                alignItems: 'center',
-                                columnGap: 1.5,
-                                rowGap: 0.25,
-                            }}
-                        >
-                            <Box component="code">{'{a}'}</Box>
-                            {Generic.t('echarts_tooltip_tpl_a')}
-                            <Box component="code">{'{b}'}</Box>
-                            {Generic.t(isCartesian ? 'echarts_tooltip_tpl_b_time' : 'echarts_tooltip_tpl_b_cat')}
-                            <Box component="code">{'{c}'}</Box>
-                            {Generic.t('echarts_tooltip_tpl_c')}
-                            {!isCartesian && (
-                                <>
-                                    <Box component="code">{'{d}'}</Box>
-                                    {Generic.t('echarts_tooltip_tpl_d')}
-                                </>
-                            )}
-                        </Box>
-                        {state.tooltipTemplate && isCartesian && (
-                            <Box sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>
-                                {Generic.t('echarts_tooltip_tpl_example')}:{' '}
-                                <Box
-                                    component="code"
-                                    sx={{ color: 'text.primary' }}
-                                >
-                                    {resolveTooltipTokens(
-                                        state.tooltipTemplate,
-                                        { seriesName: 'Temp', ts: SAMPLE_TS, value: 21.56 },
-                                        {
-                                            format: state.xAxis?.format,
-                                            lang: resolveHostLang(),
-                                            valueFmt:
-                                                state.tooltipUnits || state.tooltipDecimals !== undefined
-                                                    ? makeValueFormatter(
-                                                          state.tooltipUnits,
-                                                          state.tooltipDecimals,
-                                                          state.decimalComma,
-                                                      )
-                                                    : undefined,
-                                        },
-                                    )}
-                                </Box>
-                            </Box>
+                {/* Token legend + live example (ADR-0052) in the renderer-info callout idiom:
+                    one InfoBox, code-chip legend (family-aware) + the template rendered
+                    against a demo series line with this section's units/decimals and the
+                    X-Karte's Time format. One line per series in the rendered chart. */}
+                <InfoBox>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            columnGap: 1.5,
+                            rowGap: 0.25,
+                        }}
+                    >
+                        <Box component="code">{'{a}'}</Box>
+                        {Generic.t('echarts_tooltip_tpl_a')}
+                        <Box component="code">{'{b}'}</Box>
+                        {Generic.t(isCartesian ? 'echarts_tooltip_tpl_b_time' : 'echarts_tooltip_tpl_b_cat')}
+                        <Box component="code">{'{c}'}</Box>
+                        {Generic.t('echarts_tooltip_tpl_c')}
+                        {!isCartesian && (
+                            <>
+                                <Box component="code">{'{d}'}</Box>
+                                {Generic.t('echarts_tooltip_tpl_d')}
+                            </>
                         )}
-                    </InfoBox>
-                </Box>
-            </FieldGrid>
-            {/* The parity Build E switches (ADR-0054): the two cartesian row filters + the
-                chart-wide comma separator (authored here, effective everywhere values render). */}
-            <SwitchList sx={{ mb: 1.5 }}>
-                {isCartesian && (
-                    <>
-                        <SwitchRow
-                            label={Generic.t('echarts_tooltip_no_interpolate')}
-                            checked={state.tooltipNoInterpolate}
-                            onChange={v => set({ tooltipNoInterpolate: v })}
+                    </Box>
+                    {state.tooltipTemplate && isCartesian && (
+                        <Box sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>
+                            {Generic.t('echarts_tooltip_tpl_example')}:{' '}
+                            <Box
+                                component="code"
+                                sx={{ color: 'text.primary' }}
+                            >
+                                {resolveTooltipTokens(
+                                    state.tooltipTemplate,
+                                    { seriesName: 'Temp', ts: SAMPLE_TS, value: 21.56 },
+                                    {
+                                        format: state.xAxis?.format,
+                                        lang: resolveHostLang(),
+                                        valueFmt:
+                                            state.tooltipUnits || state.tooltipDecimals !== undefined
+                                                ? makeValueFormatter(
+                                                      state.tooltipUnits,
+                                                      state.tooltipDecimals,
+                                                      state.decimalComma,
+                                                  )
+                                                : undefined,
+                                    },
+                                )}
+                            </Box>
+                        </Box>
+                    )}
+                </InfoBox>
+            </Box>
+            <Box>
+                <FieldGrid sx={{ mb: 1.5 }}>
+                    <NumberField
+                        label={Generic.t('echarts_tooltip_decimals')}
+                        value={state.tooltipDecimals}
+                        onChange={v => set({ tooltipDecimals: v })}
+                    />
+                    <TextField2
+                        label={Generic.t('echarts_tooltip_units')}
+                        value={state.tooltipUnits}
+                        onChange={v => set({ tooltipUnits: v })}
+                        placeholder="°C / % / h"
+                    />
+                    <Box>
+                        <FieldLabel>{Generic.t('echarts_tooltip_bg')}</FieldLabel>
+                        {/* Null = unset → the theme's tooltip background (ADR-0054). */}
+                        <ColorField
+                            value={state.tooltipBgColor || null}
+                            onChange={v => set({ tooltipBgColor: v ?? '' })}
+                            ctx={pickerCtx}
                         />
-                        <SwitchRow
-                            label={Generic.t('echarts_tooltip_hide_nulls')}
-                            checked={state.tooltipHideNulls}
-                            onChange={v => set({ tooltipHideNulls: v })}
-                        />
-                    </>
-                )}
-                <SwitchRow
-                    label={Generic.t('echarts_decimal_comma')}
-                    checked={state.decimalComma}
-                    onChange={v => set({ decimalComma: v })}
-                />
-            </SwitchList>
-            {state.decimalComma && <InfoBox text={Generic.t('echarts_decimal_comma_hint')} />}
+                    </Box>
+                </FieldGrid>
+                {/* The parity Build E switches (ADR-0054): the two cartesian row filters + the
+                    chart-wide comma separator (authored here, effective everywhere values render). */}
+                <SwitchList sx={{ mb: 1.5 }}>
+                    {isCartesian && (
+                        <>
+                            <SwitchRow
+                                label={Generic.t('echarts_tooltip_no_interpolate')}
+                                checked={state.tooltipNoInterpolate}
+                                onChange={v => set({ tooltipNoInterpolate: v })}
+                            />
+                            <SwitchRow
+                                label={Generic.t('echarts_tooltip_hide_nulls')}
+                                checked={state.tooltipHideNulls}
+                                onChange={v => set({ tooltipHideNulls: v })}
+                            />
+                        </>
+                    )}
+                    <SwitchRow
+                        label={Generic.t('echarts_decimal_comma')}
+                        checked={state.decimalComma}
+                        onChange={v => set({ decimalComma: v })}
+                    />
+                </SwitchList>
+                {state.decimalComma && <InfoBox text={Generic.t('echarts_decimal_comma_hint')} />}
+            </Box>
             {/* The Tooltip section's own raw escape hatch (ADR-0044) — deep-merged UNDER
                 buildTooltip's output, the GUI wins every collision. */}
             <RawJsonSection
@@ -207,7 +220,7 @@ const TooltipSection: FC<TooltipSectionProps> = ({ state, set, pickerCtx }) => {
                 placeholder={'{\n  "axisPointer": { "type": "cross" }\n}'}
                 onCommit={r => set({ tooltipRaw: r.text || '', tooltipSnippets: r.ids })}
             />
-        </Box>
+        </SectionTabs>
     );
 };
 
