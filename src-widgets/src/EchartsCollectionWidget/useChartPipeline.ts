@@ -44,9 +44,9 @@ import {
 import { useHistory } from './useHistory';
 import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
-import { toPlottableNumber, type Point, type SeriesPoint } from './historyLogic';
+import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
 import { cutFuturePoints, holdValidLiveValue, transformSeriesData, xOffsetMs } from './seriesTransform';
-import { applyBarDiff, bucketizeSeries, resolveBarIntervalMinutes } from './barBuckets';
+import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
     EchartsAxisConfig,
@@ -559,8 +559,44 @@ export function useChartPipeline(
         src.chartType === 'bar' &&
         !!barInterval &&
         barInterval !== 'auto';
-    const barIntervalMinutes = barBucketingOn ? resolveBarIntervalMinutes(barInterval, 0) : undefined;
-    const history = useHistory(getHistory, entries, {
+    const barDiff = barBucketingOn && src.barDiff === true;
+    // The shared request options — read once for BOTH paths (the plain options and the bar
+    // plan's base). Memoized so the identities stay stable while `src` is (the fetch effect
+    // keys on the JSON of the plain options and the bar plan's reference).
+    const baseRequest = useMemo<RangeOptionsInput>(
+        () => ({
+            aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
+            // The point ceiling bounds the count path (K3; preview 200, body/default 5000).
+            count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
+            // Zeitschrittweite (ADR-0064): seconds at the author level → ms here; a set step
+            // replaces count (windowToOptions omits the dead key). The DEFAULT plan raises it
+            // to span/maxPoints (sanitizeStep, K3) — the bar plan ignores it (the grid is the
+            // resolution there, ADR-0065).
+            step: (src.resolutionStep as number) > 0 ? (src.resolutionStep as number) * 1000 : undefined,
+            // Aggregate params (ADR-0064) — windowToOptions emits them only under their aggregate.
+            // percentile 0 is a VALID level (the 0th = min) — an explicit check, no `|| undefined`.
+            percentile:
+                typeof src.percentileValue === 'number' && Number.isFinite(src.percentileValue)
+                    ? src.percentileValue
+                    : undefined,
+            integralUnit: (src.integralUnit as number) || undefined,
+            integralInterpolation:
+                src.integralInterpolation === 'linear'
+                    ? 'linear'
+                    : src.integralInterpolation === 'none'
+                      ? 'none'
+                      : undefined,
+        }),
+        [src, maxPoints],
+    );
+    // The bar fetch plan (K4, ADR-0065 addendum): ONE factory in barBuckets owns the bucketed
+    // request — window widening, the category grid, the diff's extra bucket, the K3 count cap.
+    // Memoized: the plan rides the fetch effect by IDENTITY (a new plan is a new request).
+    const barPlan = useMemo(
+        () => (barBucketingOn ? makeBarPlan(barInterval ?? 'auto', barDiff, maxPoints, baseRequest) : undefined),
+        [barBucketingOn, barInterval, barDiff, maxPoints, baseRequest],
+    );
+    const history = useHistory<BarFetchExtras>(getHistory, entries, {
         window: {
             timeType: src.timeType as 'relative' | 'static' | undefined,
             timeRange: src.timeRange as string | undefined,
@@ -568,30 +604,8 @@ export function useChartPipeline(
             staticStart: src.staticStart as string | undefined,
             staticEnd: src.staticEnd as string | undefined,
         },
-        aggregate: src.aggregate as ioBroker.GetHistoryOptions['aggregate'],
-        count: Math.min((src.count as number) ?? DEFAULT_HISTORY_COUNT, maxPoints),
-        // Zeitschrittweite (ADR-0064): seconds at the author level → ms here; a set step
-        // replaces count (windowToOptions omits the dead key).
-        step: (src.resolutionStep as number) > 0 ? (src.resolutionStep as number) * 1000 : undefined,
-        // Aggregate params (ADR-0064) — windowToOptions emits them only under their aggregate.
-        // percentile 0 is a VALID level (the 0th = min) — an explicit check, no `|| undefined`.
-        percentile:
-            typeof src.percentileValue === 'number' && Number.isFinite(src.percentileValue)
-                ? src.percentileValue
-                : undefined,
-        integralUnit: (src.integralUnit as number) || undefined,
-        integralInterpolation:
-            src.integralInterpolation === 'linear'
-                ? 'linear'
-                : src.integralInterpolation === 'none'
-                  ? 'none'
-                  : undefined,
-        // Category bars (ADR-0065): the resolved interval buckets the fetch; the diff widens
-        // one bucket left. The bucket count replaces count/step inside the hook.
-        barIntervalMinutes,
-        barDiff: barBucketingOn && src.barDiff === true,
-        // The point ceiling bounds EVERY resolution path now (K3): the count clamp here, the
-        // sanitized step and the capped bucket count inside the hook.
+        ...baseRequest,
+        planFetch: barPlan,
         maxPoints,
         refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
@@ -644,11 +658,11 @@ export function useChartPipeline(
             themeBase: theme.themeBase,
             companions,
             src,
-            // The fetch's bar bucket grid (ADR-0065) — from the SAME fetch the series came from,
-            // so categories and data can never drift apart.
-            barCategories: history.barCategories,
-            barWindowEnd: history.barWindowEnd,
-            barDiff: barBucketingOn && src.barDiff === true,
+            // The fetch's bar bucket grid (ADR-0065) — the plan's extras from the SAME fetch
+            // the series came from, so categories and data can never drift apart.
+            barCategories: history.extras?.cats ?? null,
+            barWindowEnd: history.extras?.end ?? null,
+            barDiff,
         });
         return {
             option,
@@ -660,14 +674,13 @@ export function useChartPipeline(
         family,
         mode,
         isTimeFamily,
-        barBucketingOn,
+        barDiff,
         usable,
         values,
         history.series,
         history.loading,
         history.error,
-        history.barCategories,
-        history.barWindowEnd,
+        history.extras,
         liveBuffers,
         jsonParsed,
         presentation,

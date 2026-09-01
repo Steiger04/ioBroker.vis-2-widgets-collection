@@ -13,7 +13,8 @@
  * output, tests drive them directly (the ticket's named module).
  */
 import type { EchartsAggregate, EchartsBarInterval } from '../types/field-definitions/echarts-fields';
-import type { SeriesPoint } from './historyLogic';
+import { windowToOptions, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
+import type { TimeWindow } from './timeWindow';
 
 // The interval union lives in echarts-fields.d.ts (EchartsBarInterval); `'30d'` grids
 // CALENDAR MONTHS (1st-to-1st).
@@ -221,4 +222,56 @@ export const applyBarDiff = (values: readonly (number | null)[]): (number | null
     // The caller drops the first category accordingly (the diff's first bucket has no
     // predecessor).
     return out;
+};
+
+/** The bar plan's fetch companions — what a bucketed fetch hands back beside the points. */
+export interface BarFetchExtras {
+    /** The category grid of THIS fetch — the builder's category axis data. */
+    cats: number[];
+    /** The bucketed window's exclusive end (the last bucket extends to it). */
+    end: number;
+}
+
+/**
+ * Build the bar fetch plan (K4, ADR-0065 addendum): ONE place owns what a bucketed fetch IS —
+ * the window widening (incl. the diff's extra left bucket), the category grid the render will
+ * use, and the K3 point-ceiling cap on the bucket count. The fetch hook executes the plan per
+ * fetch (ADR-0063: the window resolves there); this module never touches fetching itself, the
+ * hook never touches bars.
+ *
+ * @param interval - The authored interval KEY ('15m'/'1h'/'1d'/'30d'; never 'auto' — the
+ * pipeline keeps auto on the time-axis path).
+ * @param diff - Bar diff post-processing — widens one extra bucket left.
+ * @param maxPoints - Point ceiling capping the request count (K3); undefined = uncapped.
+ * @param base - The shared request options (aggregate/count/step…) the plan overrides.
+ */
+export const makeBarPlan = (
+    interval: string,
+    diff: boolean,
+    maxPoints: number | undefined,
+    base: RangeOptionsInput,
+): ((win: TimeWindow) => { options: ioBroker.GetHistoryOptions; extras: BarFetchExtras }) => {
+    // Direct-key resolution (spanMs 0 — the span rules document the adapter's 'auto' behaviour
+    // and serve direct callers; the plan always arrives with a concrete key).
+    const minutes = resolveBarIntervalMinutes(interval, 0);
+    return win => {
+        const widened = widenBarWindow(win.start, win.end, minutes, diff);
+        return {
+            options: windowToOptions(
+                { start: widened.start, end: widened.end },
+                {
+                    ...base,
+                    // The bucket count IS the resolution (count/step are replaced, ADR-0065);
+                    // capped at maxPoints so a stored interval over a grown range cannot
+                    // request unbounded volume (K3).
+                    count: maxPoints ? Math.min(widened.count, maxPoints) : widened.count,
+                    step: undefined,
+                },
+            ),
+            extras: {
+                cats: barBucketCategories(widened.start, widened.end, minutes),
+                end: widened.end,
+            },
+        };
+    };
 };

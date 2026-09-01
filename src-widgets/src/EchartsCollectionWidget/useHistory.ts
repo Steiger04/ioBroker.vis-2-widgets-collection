@@ -23,8 +23,7 @@ import {
     type IgnoreNull,
     type Point,
 } from './historyLogic';
-import { resolveTimeWindow, type TimeWindowSpec } from './timeWindow';
-import { barBucketCategories, widenBarWindow } from './barBuckets';
+import { resolveTimeWindow, type TimeWindow, type TimeWindowSpec } from './timeWindow';
 
 export interface UseHistoryEntry {
     oid: string;
@@ -33,7 +32,17 @@ export interface UseHistoryEntry {
     instance?: string;
 }
 
-export interface UseHistoryOptions {
+/** One fetch's plan: the request options plus opaque companions the caller needs (K4). */
+export interface FetchPlan<T = unknown> {
+    options: ioBroker.GetHistoryOptions;
+    /** Widget-specific companions of THIS fetch (the bar category grid) — opaque to the hook. */
+    extras?: T;
+}
+
+/** Turns the RESOLVED window into the fetch plan — executed per fetch (ADR-0063 seam). */
+export type PlanFetch<T = unknown> = (win: TimeWindow) => FetchPlan<T>;
+
+export interface UseHistoryOptions<T = unknown> {
     /** The authored window SPEC (ADR-0063) — resolved per fetch, so a relative window travels with each poll while the effect key stays stable. */
     window: TimeWindowSpec;
     aggregate?: ioBroker.GetHistoryOptions['aggregate'];
@@ -46,18 +55,17 @@ export interface UseHistoryOptions {
     /** Integral interpolation — emitted only under aggregate 'integral' (ADR-0064). */
     integralInterpolation?: 'none' | 'linear';
     /**
-     * Bar bucketing (ADR-0065): the resolved interval in MINUTES. Set ⇒ the window is widened
-     * onto the bucket grid per fetch (floor/ceil + the diff's extra left bucket) and the
-     * request carries the bucket COUNT (replacing count/step). The hook exposes the category
-     * grid it fetched for, so render and request can never drift apart.
+     * The fetch plan (K4, ADR-0065 addendum): turns the resolved window into the request
+     * options + opaque extras from the SAME fetch (render and request can never drift).
+     * Default: `windowToOptions` with the K3 step ceiling; bar bucketing injects
+     * `makeBarPlan` (barBuckets.ts) — this hook stays free of bar knowledge. Callers hand a
+     * STABLE reference (the effect re-fetches when the plan identity changes).
      */
-    barIntervalMinutes?: number;
-    /** Bar diff post-processing (ADR-0065) — widens one extra bucket left. */
-    barDiff?: boolean;
+    planFetch?: PlanFetch<T>;
     /**
      * Hard point ceiling per series (ADR-0046 addendum, K3) — the pipeline passes its own
-     * `maxPoints` (preview 200, body 5000). Bounds EVERY resolution path: a set step is raised
-     * to span/maxPoints (sanitizeStep) and the bar bucket count is capped; a ceiling of 0/unset
+     * `maxPoints` (preview 200, body 5000). Bounds the default plan's step (raised to
+     * span/maxPoints, sanitizeStep); the bar plan caps its bucket count with it. 0/unset
      * disables the guard (tests drive it explicitly).
      */
     maxPoints?: number;
@@ -67,40 +75,54 @@ export interface UseHistoryOptions {
     enabled?: boolean;
 }
 
-export interface UseHistoryResult {
+export interface UseHistoryResult<T = unknown> {
     series: FetchedSeries[];
     loading: boolean;
     error: string | null;
     /** Force an immediate (debounced) re-fetch — e.g. when a subscribed value changes. */
     refresh: () => void;
-    /** The bar category grid of the LAST fetch (ADR-0065); null when not bucketing. */
-    barCategories: number[] | null;
-    /** The bucketed fetch window's exclusive end (the last bucket extends to it). */
-    barWindowEnd: number | null;
+    /** The LAST fetch's plan extras (K4) — e.g. the bar category grid; undefined when the plan carries none. */
+    extras: T | undefined;
 }
+
+/**
+ * The default fetch plan (K4): the plain window options with the K3 point ceiling applied to
+ * a set step — the span is only known here, per resolved fetch (ADR-0063 seam).
+ */
+const defaultPlan =
+    (opts: UseHistoryOptions): PlanFetch =>
+    win => ({
+        options: windowToOptions(win, {
+            ...opts,
+            step:
+                opts.step !== undefined && opts.maxPoints
+                    ? sanitizeStep(opts.step, win.end - win.start, opts.maxPoints)
+                    : opts.step,
+        }),
+    });
 
 /**
  * @param getHistory - ioBroker history fetcher (bound to the socket by the caller).
  * @param entries - OIDs (+ optional names) to fetch.
  * @param opts - Range / aggregate / refresh options.
  */
-export function useHistory(
+export function useHistory<T = unknown>(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
     entries: UseHistoryEntry[],
-    opts: UseHistoryOptions,
-): UseHistoryResult {
+    opts: UseHistoryOptions<T>,
+): UseHistoryResult<T> {
     const [series, setSeries] = useState<FetchedSeries[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [barCategories, setBarCategories] = useState<number[] | null>(null);
-    const [barWindowEnd, setBarWindowEnd] = useState<number | null>(null);
+    const [extras, setExtras] = useState<T | undefined>(undefined);
     const [tick, setTick] = useState(0); // bump to force refresh
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const entriesKey = JSON.stringify(entries);
     // The fetch-effect key: every request-shaping option must appear here or a change would not
-    // refetch (ADR-0064 added the aggregate params to the set; K3 added maxPoints — it shapes
-    // the sanitized step and the capped bucket count).
+    // refetch (ADR-0064 added the aggregate params; K3 added maxPoints — it shapes the default
+    // plan's sanitized step). `planFetch` itself is NOT serializable — it rides the effect deps
+    // by IDENTITY (callers memoize; a new plan is a new request by construction).
     const optsKey = JSON.stringify([
         opts.window,
         opts.aggregate,
@@ -110,8 +132,6 @@ export function useHistory(
         opts.percentile,
         opts.integralUnit,
         opts.integralInterpolation,
-        opts.barIntervalMinutes,
-        opts.barDiff,
         opts.maxPoints,
     ]);
 
@@ -144,43 +164,15 @@ export function useHistory(
                         }
                     });
             };
-            // Bar buckets (ADR-0065): widen the per-fetch window onto the grid; the bucket
-            // count IS the request resolution (count/step are replaced). The categories are
-            // captured from THIS fetch so render and request cannot drift. The request count
-            // is capped at maxPoints (K3): a stored interval the range filter no longer shows
-            // stays active (ADR-0065 decision 5), so 15 m over 2 y ≈ 70 080 — the category
-            // GRID is untouched, only the request volume is bounded.
-            if (opts.barIntervalMinutes) {
-                const resolved = resolveTimeWindow(opts.window, Date.now());
-                const widened = widenBarWindow(resolved.start, resolved.end, opts.barIntervalMinutes, !!opts.barDiff);
-                setBarCategories(barBucketCategories(widened.start, widened.end, opts.barIntervalMinutes));
-                setBarWindowEnd(widened.end);
-                runFetch(
-                    windowToOptions(
-                        { start: widened.start, end: widened.end },
-                        {
-                            ...opts,
-                            count: opts.maxPoints ? Math.min(widened.count, opts.maxPoints) : widened.count,
-                            step: undefined,
-                        },
-                    ),
-                );
-                return;
-            }
-            setBarCategories(null);
-            setBarWindowEnd(null);
-            // Point ceiling on the step path (K3): raise a too-fine step to span/maxPoints —
-            // resolved HERE because the span is only known per fetch (ADR-0063 seam).
-            const plain = resolveTimeWindow(opts.window, Date.now());
-            runFetch(
-                windowToOptions(plain, {
-                    ...opts,
-                    step:
-                        opts.step !== undefined && opts.maxPoints
-                            ? sanitizeStep(opts.step, plain.end - plain.start, opts.maxPoints)
-                            : opts.step,
-                }),
-            );
+            // The PLAN owns the request shape (K4): the window resolves HERE (ADR-0063 — a
+            // relative window travels with every fetch), the plan — the caller's or the
+            // default — turns it into options + extras from the SAME fetch (no render/request
+            // drift, ADR-0065).
+            // The default plan carries no extras (unknown narrows to undefined) — cast is safe.
+            const plan: PlanFetch<T> = opts.planFetch ?? (defaultPlan(opts) as PlanFetch<T>);
+            const planned = plan(resolveTimeWindow(opts.window, Date.now()));
+            setExtras(planned.extras);
+            runFetch(planned.options);
         };
 
         clearTimeout(debounceRef.current);
@@ -191,7 +183,7 @@ export function useHistory(
             clearTimeout(debounceRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getHistory, entriesKey, optsKey, opts.enabled, tick]);
+    }, [getHistory, entriesKey, optsKey, opts.enabled, tick, opts.planFetch]);
 
     // Periodic refresh (polling) — the only live-refresh path (no push, per 02).
     useEffect(() => {
@@ -202,5 +194,5 @@ export function useHistory(
         return () => clearInterval(h);
     }, [opts.refreshMs, opts.enabled]);
 
-    return { series, loading, error, refresh: () => setTick(t => t + 1), barCategories, barWindowEnd };
+    return { series, loading, error, refresh: () => setTick(t => t + 1), extras };
 }
