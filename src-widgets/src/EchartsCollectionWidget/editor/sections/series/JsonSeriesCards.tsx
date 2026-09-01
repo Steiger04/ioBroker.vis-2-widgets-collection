@@ -16,7 +16,7 @@ import { DeleteOutline as DeleteIcon, Restore as RestoreIcon } from '@mui/icons-
 
 import Generic from '../../../../Generic';
 import type { EchartsCartesianType, EchartsSeriesMeta } from '../../../../types/field-definitions/echarts-fields';
-import { EditorCard, FieldGrid, FieldLabel, InfoBox } from '../../../../components/controls';
+import { EditorCard, FieldGrid, FieldLabel, InfoBox, SectionTabs } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
@@ -202,46 +202,61 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 </IconButton>
                             }
                         >
-                            <CartesianBasisFields
-                                meta={m}
-                                defaultType={defaultType}
-                                onPatch={p =>
-                                    // A yAxisIndex change rebinds (the freed axis dies, ADR-0069);
-                                    // every other field updates the overlay entry in place.
-                                    p.yAxisIndex !== undefined
-                                        ? onRebindJsonAxis(name, p.yAxisIndex)
-                                        : onUpdateJson(name, p)
-                                }
-                                pickerCtx={pickerCtx}
-                                colorFallback={slot(i)}
-                                showType
-                                yAxes={state.yAxes}
-                                axisDisplayNames={axisDisplayNames}
-                                nameClearsToUndefined
-                            />
-                            <CartesianSeriesKnobs
-                                meta={m}
-                                defaultType={defaultType}
-                                onPatch={p => onUpdateJson(name, p)}
-                                pickerCtx={pickerCtx}
-                                colorFallback={slot(i)}
-                                labelColorFallback={labelColorFallback}
-                            />
-                            <SeriesValueFormatFields
-                                meta={m}
-                                onPatch={p => onUpdateJson(name, p)}
-                            />
-                            <SeriesTransformFields
-                                meta={m}
-                                onPatch={p => onUpdateJson(name, p)}
-                            />
-                            <SeriesRawOverride
-                                slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}
-                                raw={m.raw}
-                                onChange={v => onUpdateJson(name, { raw: v })}
-                                snippets={m.snippets}
-                                onCommit={r => onUpdateJson(name, snippetPatch(r))}
-                            />
+                            {/* Karten-Tabs (ADR-0073), mode-adapted: JSON swaps the Daten tab for
+                                the value TRANSFORMS (no fetch to shape, but the pipeline applies
+                                the transforms in JSON mode too — they get the Daten slot's
+                                position instead of vanishing; documented spec deviation, see
+                                spec.md). The Werte facts stay their own tab, like Verlauf. */}
+                            <SectionTabs
+                                tabs={[
+                                    { key: 'basis', label: Generic.t('echarts_grp_basis') },
+                                    { key: 'transform', label: Generic.t('echarts_grp_transform') },
+                                    { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
+                                    { key: 'values', label: Generic.t('echarts_tab_values') },
+                                    { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                ]}
+                            >
+                                <CartesianBasisFields
+                                    meta={m}
+                                    defaultType={defaultType}
+                                    onPatch={p =>
+                                        // A yAxisIndex change rebinds (the freed axis dies, ADR-0069);
+                                        // every other field updates the overlay entry in place.
+                                        p.yAxisIndex !== undefined
+                                            ? onRebindJsonAxis(name, p.yAxisIndex)
+                                            : onUpdateJson(name, p)
+                                    }
+                                    pickerCtx={pickerCtx}
+                                    colorFallback={slot(i)}
+                                    showType
+                                    yAxes={state.yAxes}
+                                    axisDisplayNames={axisDisplayNames}
+                                    nameClearsToUndefined
+                                />
+                                <SeriesTransformFields
+                                    meta={m}
+                                    onPatch={p => onUpdateJson(name, p)}
+                                />
+                                <CartesianSeriesKnobs
+                                    meta={m}
+                                    defaultType={defaultType}
+                                    onPatch={p => onUpdateJson(name, p)}
+                                    pickerCtx={pickerCtx}
+                                    colorFallback={slot(i)}
+                                    labelColorFallback={labelColorFallback}
+                                />
+                                <SeriesValueFormatFields
+                                    meta={m}
+                                    onPatch={p => onUpdateJson(name, p)}
+                                />
+                                <SeriesRawOverride
+                                    slot={`cartesian-${m.type ?? defaultType}` as SeriesTemplateSlot}
+                                    raw={m.raw}
+                                    onChange={v => onUpdateJson(name, { raw: v })}
+                                    snippets={m.snippets}
+                                    onCommit={r => onUpdateJson(name, snippetPatch(r))}
+                                />
+                            </SectionTabs>
                         </EditorCard>
                     );
                 })

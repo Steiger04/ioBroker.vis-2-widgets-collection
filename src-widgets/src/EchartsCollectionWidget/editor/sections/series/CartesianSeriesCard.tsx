@@ -3,18 +3,18 @@
  *
  * @module EchartsCollectionWidget/editor/sections/series/CartesianSeriesCard
  * @remarks
- *  - {@link CartesianBasisFields} — the "Basics" SubGroup (OID / history instance (Verlauf,
+ *  - {@link CartesianBasisFields} — the Basis tab content (OID / history instance (Verlauf,
  *    ADR-0039) / name / colour / type / y-axis
  *    binding) shared by the Verlauf card and the JSON-mode card (ADR-0011 parity). The JSON
  *    card omits the OID row (the payload owns the data) and clears names to `undefined`.
  *  - {@link CartesianSeriesKnobs} — the type-sensitive knob cluster (line / bar / area SubGroups),
  *    purely meta-driven; the caller owns the binding. Bounded numerics are SliderFields, booleans
  *    live in SwitchLists (ADR-0019). „Nur in Legende" rides here too (presentation, ADR-0072).
- *  - {@link SeriesDataFields} — the "Daten" SubGroup (ADR-0072): the per-series acquisition
+ *  - {@link SeriesDataFields} — the Daten tab content (ADR-0072): the per-series acquisition
  *    knobs as Erben-Overrides over the Data source Voreinstellung (aggregate + params, diff
  *    tristate, X offset seconds/calendar) plus the value transforms — Verlauf cards only.
- *  - {@link SeriesValueFormatFields} / {@link SeriesTransformFields} — the Werte facts (shared)
- *    and the JSON card's slim transform rest.
+ *  - {@link SeriesValueFormatFields} / {@link SeriesTransformFields} — the Werte tab content
+ *    (shared) and the JSON card's slim transform rest (its Transformation tab).
  *  - {@link CartesianSeriesList} — the Verlauf card list: EditorCards with swatch, name/OID,
  *    ↑↓ reorder, duplicate, delete + the OID-first add affordances.
  */
@@ -52,6 +52,7 @@ import {
     LabeledSelect,
     OptionalNumberField,
     OptionalSliderField,
+    SectionTabs,
     SliderField,
     SubGroup,
     SwitchList,
@@ -111,7 +112,7 @@ export const xOffsetMode = (xOffset: EchartsSeriesMeta['xOffset']): 'sec' | Echa
     typeof xOffset === 'string' ? xOffset : 'sec';
 
 /**
- * The "Basics" SubGroup of a cartesian series card — identity + binding. Shared by the
+ * The Basis tab content of a cartesian series card — identity + binding. Shared by the
  * Verlauf card (bound to `state.series[i]`, with OID row) and the JSON-mode card (bound to
  * the name-keyed overlay entry, no OID row — the payload owns the data).
  */
@@ -162,7 +163,7 @@ export const CartesianBasisFields: FC<{
     nameClearsToUndefined,
     showAxis = true,
 }) => (
-    <SubGroup title={Generic.t('echarts_grp_basis')}>
+    <Box>
         <FieldGrid>
             {oid && (
                 <Box sx={{ gridColumn: '1 / -1' }}>
@@ -236,11 +237,11 @@ export const CartesianBasisFields: FC<{
                 />
             )}
         </FieldGrid>
-    </SubGroup>
+    </Box>
 );
 
 /**
- * The "Werte" SubGroup of a cartesian series card (ADR-0057/0058, parity Build B) — the
+ * The Werte tab content of a cartesian series card (ADR-0057/0058, parity Build B) — the
  * per-series Wert-Formatter facts: unit + decimals, plus the adapter's text semantics — „Text bei
  * wahr/falsch" on a BOOLEAN OID, the state-names editor (value → text, prefilled from
  * `common.states`) on an ENUM OID; both gated by the OID type detected on selection. Shared by
@@ -270,7 +271,7 @@ export const SeriesValueFormatFields: FC<{
     };
     const stateRows = Object.entries(meta.states ?? {}).sort(([a], [b]) => Number(a) - Number(b));
     return (
-        <SubGroup title={Generic.t('echarts_grp_values')}>
+        <Box>
             <FieldGrid min={140}>
                 <TextField2
                     label={Generic.t('echarts_series_unit')}
@@ -353,12 +354,12 @@ export const SeriesValueFormatFields: FC<{
                     </Button>
                 </Box>
             )}
-        </SubGroup>
+        </Box>
     );
 };
 
 /**
- * The "Daten" SubGroup of a Verlauf series card (ADR-0072) — the per-series acquisition knobs
+ * The Daten tab content of a Verlauf series card (ADR-0072) — the per-series acquisition knobs
  * as Erben-Overrides over the Data source section's Voreinstellung: the aggregate with its
  * sparsely gated params (percentile level / integral unit + interpolation), the bar-mode diff
  * tristate, the X offset (numeric seconds or the ±1m…±2y calendar keys) and the value
@@ -402,7 +403,7 @@ export const SeriesDataFields: FC<{
     const interpInherit = inheritedIntegralInterpolation(chartAggregate, chartIntegralInterpolation);
     const offMode = xOffsetMode(meta.xOffset);
     return (
-        <SubGroup title={Generic.t('echarts_grp_data')}>
+        <Box>
             <FieldGrid min={140}>
                 <LabeledSelect
                     label={Generic.t('echarts_aggregate')}
@@ -529,12 +530,12 @@ export const SeriesDataFields: FC<{
             <InfoBox text={Generic.t('echarts_series_data_preset_hint')} />
             {isBarChart && <InfoBox text={Generic.t('echarts_series_xoffset_bar_limit')} />}
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
-        </SubGroup>
+        </Box>
     );
 };
 
 /**
- * The "Transformation" SubGroup of a JSON-mode series card — the slim value-transform rest of
+ * The Transformation tab content of a JSON-mode series card — the slim value-transform rest of
  * the former Verlauf group (ADR-0072 pulled the acquisition knobs into {@link SeriesDataFields},
  * Verlauf-only): the conversion FORMULA over `val` (expr-eval; an invalid formula is visibly
  * flagged and the chart keeps the raw values), the Y offset (feeds the formula:
@@ -548,7 +549,7 @@ export const SeriesTransformFields: FC<{
 }> = ({ meta, onPatch }) => {
     const invalid = formulaIsInvalid(meta.formula);
     return (
-        <SubGroup title={Generic.t('echarts_grp_transform')}>
+        <Box>
             <SwitchList sx={{ mb: 1.5 }}>
                 <SwitchRow
                     label={Generic.t('echarts_series_no_future')}
@@ -584,7 +585,7 @@ export const SeriesTransformFields: FC<{
                 />
             </FieldGrid>
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
-        </SubGroup>
+        </Box>
     );
 };
 
@@ -955,59 +956,74 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         </>
                     }
                 >
-                    <CartesianBasisFields
-                        meta={s}
-                        defaultType={defaultType}
-                        onPatch={p =>
-                            // A yAxisIndex change rebinds (orphan-cleans the old axis, ADR-0025);
-                            // every other field updates in place.
-                            p.yAxisIndex !== undefined ? onRebindAxis(i, p.yAxisIndex) : onUpdate(i, p)
-                        }
-                        pickerCtx={pickerCtx}
-                        colorFallback={slot(i)}
-                        showType={series.length >= 2}
-                        yAxes={state.yAxes}
-                        axisDisplayNames={axisDisplayNames}
-                        showInstance={state.mode === 'history'}
-                        historyInstances={historyInstances}
-                        oid={{
-                            value: s.oid,
-                            onChange: oid => onUpdate(i, { oid }),
-                            historyOnly: state.mode === 'history',
-                        }}
-                    />
-                    <CartesianSeriesKnobs
-                        meta={s}
-                        defaultType={defaultType}
-                        onPatch={p => onUpdate(i, p)}
-                        pickerCtx={pickerCtx}
-                        colorFallback={slot(i)}
-                        labelColorFallback={labelColorFallback}
-                    />
-                    <SeriesValueFormatFields
-                        meta={s}
-                        onPatch={p => onUpdate(i, p)}
-                    />
-                    {/* The Daten cluster (ADR-0072) — acquisition Erben-Overrides over the Data
-                        source Voreinstellung + the pulled-in transforms. This list is Verlauf
-                        by construction (JSON cartesians render JsonSeriesCards); the JSON cards
-                        keep the slim SeriesTransformFields instead. */}
-                    <SeriesDataFields
-                        meta={s}
-                        onPatch={p => onUpdate(i, p)}
-                        chartAggregate={state.aggregate}
-                        chartPercentile={state.percentileValue}
-                        chartIntegralUnit={state.integralUnit}
-                        chartIntegralInterpolation={state.integralInterpolation}
-                        isBarChart={state.chartType === 'bar'}
-                    />
-                    <SeriesRawOverride
-                        slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}
-                        raw={s.raw}
-                        onChange={v => onUpdate(i, { raw: v || undefined })}
-                        snippets={s.snippets}
-                        onCommit={r => onUpdate(i, snippetPatch(r))}
-                    />
+                    {/* Karten-Tabs (ADR-0073): Basis | Daten | Darstellung | Werte | Erweitert —
+                        the card's fourth navigation level. The card header (swatch, name, OID,
+                        reorder, duplicate, delete) stays OUTSIDE; stable ids and reconciliation
+                        are untouched (tabs are view-only, the card identity stays id-based).
+                        Switching tabs unmounts the inactive content — every field writes into
+                        the WORKING COPY on change, so nothing but DOM focus resets. */}
+                    <SectionTabs
+                        tabs={[
+                            { key: 'basis', label: Generic.t('echarts_grp_basis') },
+                            { key: 'daten', label: Generic.t('echarts_grp_data') },
+                            { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
+                            { key: 'values', label: Generic.t('echarts_tab_values') },
+                            { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                        ]}
+                    >
+                        <CartesianBasisFields
+                            meta={s}
+                            defaultType={defaultType}
+                            onPatch={p =>
+                                // A yAxisIndex change rebinds (orphan-cleans the old axis, ADR-0025);
+                                // every other field updates in place.
+                                p.yAxisIndex !== undefined ? onRebindAxis(i, p.yAxisIndex) : onUpdate(i, p)
+                            }
+                            pickerCtx={pickerCtx}
+                            colorFallback={slot(i)}
+                            showType={series.length >= 2}
+                            yAxes={state.yAxes}
+                            axisDisplayNames={axisDisplayNames}
+                            showInstance={state.mode === 'history'}
+                            historyInstances={historyInstances}
+                            oid={{
+                                value: s.oid,
+                                onChange: oid => onUpdate(i, { oid }),
+                                historyOnly: state.mode === 'history',
+                            }}
+                        />
+                        {/* The Daten cluster (ADR-0072) — acquisition Erben-Overrides over the
+                            Data source Voreinstellung + the pulled-in transforms. This list is
+                            Verlauf by construction (JSON cartesians render JsonSeriesCards). */}
+                        <SeriesDataFields
+                            meta={s}
+                            onPatch={p => onUpdate(i, p)}
+                            chartAggregate={state.aggregate}
+                            chartPercentile={state.percentileValue}
+                            chartIntegralUnit={state.integralUnit}
+                            chartIntegralInterpolation={state.integralInterpolation}
+                            isBarChart={state.chartType === 'bar'}
+                        />
+                        <CartesianSeriesKnobs
+                            meta={s}
+                            defaultType={defaultType}
+                            onPatch={p => onUpdate(i, p)}
+                            pickerCtx={pickerCtx}
+                            colorFallback={slot(i)}
+                            labelColorFallback={labelColorFallback}
+                        />
+                        <SeriesValueFormatFields
+                            meta={s}
+                            onPatch={p => onUpdate(i, p)}
+                        />
+                        <SeriesRawOverride
+                            slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}
+                            raw={s.raw}
+                            onChange={v => onUpdate(i, { raw: v || undefined })}
+                            snippets={s.snippets}
+                            onCommit={r => onUpdate(i, snippetPatch(r))}
+                        />
+                    </SectionTabs>
                 </EditorCard>
             ))}
             {series.length > 0 && (

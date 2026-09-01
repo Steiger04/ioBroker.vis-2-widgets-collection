@@ -22,8 +22,8 @@ import {
     NumberField,
     OptionalNumberField,
     OptionalSliderField,
+    SectionTabs,
     SliderField,
-    SubGroup,
     SwitchList,
     SwitchRow,
     TextField2,
@@ -140,7 +140,7 @@ const XFormatCombo: FC<{
 /**
  * The X-Karte (ADR-0035): the single, non-deletable first card of the Axis manager configuring
  * the shared time axis — flat presentation config (never a list, never series-bound). Absorbs
- * the old chart-level `xSplit` row (now the Splitlinien switch in Skala & Ticks).
+ * the old chart-level `xSplit` row (now the Splitlinien switch in Ticks & Gitter, ADR-0073).
  */
 const XCard: FC<{
     x: EchartsXAxisConfig;
@@ -176,16 +176,60 @@ const XCard: FC<{
             }
             title={Generic.t('echarts_x_title')}
         >
-            <SubGroup title={Generic.t('echarts_grp_basis')}>
-                <FieldGrid>
-                    {/* '' → undefined so a cleared name is unset (the builder omits it). */}
-                    <TextField2
-                        label={Generic.t('echarts_axis_name')}
-                        value={x.name ?? ''}
-                        onChange={v => onChange({ name: v || undefined })}
-                    />
-                    {/* Inherited = the theme's axis colour (text token) — the axis belongs to no series. */}
-                    <Box>
+            {/* Karten-Tabs (ADR-0073): Basis | Beschriftung | Ticks & Gitter | Erweitert —
+                the spec's X inventory: the Zeitformat lives in Beschriftung (with the axis
+                colour, which paints the labels), the Feinjustur sheet (name rotation) in
+                Ticks & Gitter, the raw escape hatch in Erweitert. */}
+            <SectionTabs
+                tabs={[
+                    { key: 'basis', label: Generic.t('echarts_grp_basis') },
+                    { key: 'labels', label: Generic.t('echarts_grp_labels') },
+                    { key: 'ticks', label: Generic.t('echarts_tab_ticks_grid') },
+                    { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                ]}
+            >
+                <Box>
+                    <FieldGrid>
+                        {/* '' → undefined so a cleared name is unset (the builder omits it). */}
+                        <TextField2
+                            label={Generic.t('echarts_axis_name')}
+                            value={x.name ?? ''}
+                            onChange={v => onChange({ name: v || undefined })}
+                        />
+                        {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis away from the grid
+                    in the position's direction (down at 'bottom', up at 'top' — a label-crowding
+                    fine-adjustment). No stagger machinery here — a single axis — so the value is
+                    purely manual; `outerBoundsContain:'all'` (ADR-0024) reserves the space, and
+                    the builder detaches the line from the Y-zero (axisLine.onZero:false) so
+                    line+ticks+labels move together. 0 → undefined: a cleared field restores the
+                    full default (incl. onZero). */}
+                        <NumberField
+                            label={Generic.t('echarts_axis_offset')}
+                            value={x.offset ?? 0}
+                            onChange={v => onChange({ offset: v || undefined })}
+                        />
+                        {/* X position (parity Build D, ADR-0055): the adapter's "axis on top" layout
+                    variant. 'bottom' is the echarts default — an authored choice emits verbatim,
+                    unset stays key-free. 'top' ALSO detaches the line from the Y-zero
+                    (axisLine.onZero:false, same as the offset above): the default onZero:true
+                    pins the line at y=0 while the labels escape via their labelOffset — only the
+                    axis labels would move. */}
+                        <LabeledSelect
+                            label={Generic.t('echarts_x_position')}
+                            value={x.position ?? 'bottom'}
+                            onChange={v => onChange({ position: v as 'bottom' | 'top' })}
+                            options={[
+                                ['bottom', Generic.t('echarts_pos_bottom')],
+                                ['top', Generic.t('echarts_pos_top')],
+                            ]}
+                        />
+                    </FieldGrid>
+                </Box>
+                <Box>
+                    {/* The axis colour paints line + labels (the axis belongs to no series) —
+                    inherited = the theme's label token. Lives with the labelling per the
+                    spec's X inventory. */}
+                    <Box sx={{ mb: 1.5 }}>
                         <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
                         <ColorField
                             value={x.color ?? ''}
@@ -194,148 +238,115 @@ const XCard: FC<{
                             ctx={pickerCtx}
                         />
                     </Box>
-                    {/* The X sibling of the Y-axis Versatz: moves the WHOLE axis away from the grid
-                    in the position's direction (down at 'bottom', up at 'top' — a label-crowding
-                    fine-adjustment). No stagger machinery here — a single axis — so the value is
-                    purely manual; `outerBoundsContain:'all'` (ADR-0024) reserves the space, and
-                    the builder detaches the line from the Y-zero (axisLine.onZero:false) so
-                    line+ticks+labels move together. 0 → undefined: a cleared field restores the
-                    full default (incl. onZero). */}
-                    <NumberField
-                        label={Generic.t('echarts_axis_offset')}
-                        value={x.offset ?? 0}
-                        onChange={v => onChange({ offset: v || undefined })}
+                    <XFormatCombo
+                        value={x.format}
+                        onChange={v => onChange({ format: v })}
                     />
-                    {/* X position (parity Build D, ADR-0055): the adapter's "axis on top" layout
-                    variant. 'bottom' is the echarts default — an authored choice emits verbatim,
-                    unset stays key-free. 'top' ALSO detaches the line from the Y-zero
-                    (axisLine.onZero:false, same as the offset above): the default onZero:true
-                    pins the line at y=0 while the labels escape via their labelOffset — only the
-                    axis labels would move. */}
-                    <LabeledSelect
-                        label={Generic.t('echarts_x_position')}
-                        value={x.position ?? 'bottom'}
-                        onChange={v => onChange({ position: v as 'bottom' | 'top' })}
-                        options={[
-                            ['bottom', Generic.t('echarts_pos_bottom')],
-                            ['top', Generic.t('echarts_pos_top')],
-                        ]}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_grp_labels')}>
-                <XFormatCombo
-                    value={x.format}
-                    onChange={v => onChange({ format: v })}
-                />
-                {/* Angled tick labels for narrow widgets; unset = 0° horizontal (no emit). Distinct
+                    {/* Angled tick labels for narrow widgets; unset = 0° horizontal (no emit). Distinct
                 from Namen-Drehung above — this rotates the time labels, not the axis name. The
                 label SIZE (parity Build D) sits beside it — unset defers to echarts' 12. */}
-                <FieldGrid
-                    sx={{ mt: 1.5 }}
-                    min={170}
-                >
-                    <SliderField
-                        label={Generic.t('echarts_x_label_rotate')}
-                        value={x.labelRotate ?? 0}
-                        min={-90}
-                        max={90}
-                        step={5}
-                        onChange={v => onChange({ labelRotate: v })}
-                    />
-                    <OptionalSliderField
-                        label={Generic.t('echarts_axis_label_font_size')}
-                        value={x.labelFontSize}
-                        min={6}
-                        max={32}
-                        fallback={12}
-                        onChange={v => onChange({ labelFontSize: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            <SubGroup title={Generic.t('echarts_grp_scale_ticks')}>
-                <SwitchList sx={{ mb: 1.5 }}>
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_tick_show')}
-                        checked={x.axisTick ?? true}
-                        onChange={v => onChange({ axisTick: v })}
-                    />
-                    <SwitchRow
-                        label={Generic.t('echarts_axis_splitline')}
-                        checked={splitLineEffective}
-                        onChange={v => onChange({ splitLine: v })}
-                    />
-                </SwitchList>
-                {/* Grid colour (parity Build D, ADR-0055) — offered only while the splitlines switch
+                    <FieldGrid
+                        sx={{ mt: 1.5 }}
+                        min={170}
+                    >
+                        <SliderField
+                            label={Generic.t('echarts_x_label_rotate')}
+                            value={x.labelRotate ?? 0}
+                            min={-90}
+                            max={90}
+                            step={5}
+                            onChange={v => onChange({ labelRotate: v })}
+                        />
+                        <OptionalSliderField
+                            label={Generic.t('echarts_axis_label_font_size')}
+                            value={x.labelFontSize}
+                            min={6}
+                            max={32}
+                            fallback={12}
+                            onChange={v => onChange({ labelFontSize: v })}
+                        />
+                    </FieldGrid>
+                </Box>
+                <Box>
+                    <SwitchList sx={{ mb: 1.5 }}>
+                        <SwitchRow
+                            label={Generic.t('echarts_axis_tick_show')}
+                            checked={x.axisTick ?? true}
+                            onChange={v => onChange({ axisTick: v })}
+                        />
+                        <SwitchRow
+                            label={Generic.t('echarts_axis_splitline')}
+                            checked={splitLineEffective}
+                            onChange={v => onChange({ splitLine: v })}
+                        />
+                    </SwitchList>
+                    {/* Grid colour (parity Build D, ADR-0055) — offered only while the splitlines switch
                 is on (the zoom-idle precedent: a dependent control renders under its switch).
                 Inherit swatch = the theme's divider token (the theme floor's splitline colour);
                 the value persists when the grid goes back off. */}
-                {splitLineEffective && (
-                    <Box sx={{ mb: 1.5 }}>
-                        <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
-                        <ColorField
-                            value={x.gridColor ?? ''}
-                            fallback={dividerColor}
-                            onChange={v => onChange({ gridColor: v ?? undefined })}
-                            ctx={pickerCtx}
-                        />
-                    </Box>
-                )}
-                {/* Same optional-number pair as the Y-cards; unset = the echarts time-axis default
+                    {splitLineEffective && (
+                        <Box sx={{ mb: 1.5 }}>
+                            <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
+                            <ColorField
+                                value={x.gridColor ?? ''}
+                                fallback={dividerColor}
+                                onChange={v => onChange({ gridColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                    )}
+                    {/* Same optional-number pair as the Y-cards; unset = the echarts time-axis default
                 (splitNumber 6, no interval floor). The tick colour (parity Build D) colours the
                 tick MARKS separately from the labels; inherit = the axis line's colour. */}
-                <FieldGrid min={110}>
-                    <OptionalNumberField
-                        label={Generic.t('echarts_axis_split_number')}
-                        value={x.splitNumber}
-                        onChange={v => onChange({ splitNumber: v })}
-                    />
-                    <OptionalNumberField
-                        label={Generic.t('echarts_axis_min_interval')}
-                        value={x.minInterval}
-                        onChange={v => onChange({ minInterval: v })}
-                    />
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
-                        <ColorField
-                            value={x.tickColor ?? ''}
-                            fallback={x.color ?? dividerColor}
-                            onChange={v => onChange({ tickColor: v ?? undefined })}
-                            ctx={pickerCtx}
+                    <FieldGrid min={110}>
+                        <OptionalNumberField
+                            label={Generic.t('echarts_axis_split_number')}
+                            value={x.splitNumber}
+                            onChange={v => onChange({ splitNumber: v })}
                         />
-                    </Box>
-                </FieldGrid>
-                <InfoBox text={Generic.t('echarts_x_min_interval_hint')} />
-            </SubGroup>
+                        <OptionalNumberField
+                            label={Generic.t('echarts_axis_min_interval')}
+                            value={x.minInterval}
+                            onChange={v => onChange({ minInterval: v })}
+                        />
+                        <Box>
+                            <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
+                            <ColorField
+                                value={x.tickColor ?? ''}
+                                fallback={x.color ?? dividerColor}
+                                onChange={v => onChange({ tickColor: v ?? undefined })}
+                                ctx={pickerCtx}
+                            />
+                        </Box>
+                    </FieldGrid>
+                    <InfoBox text={Generic.t('echarts_x_min_interval_hint')} />
+                    {/* Feinjustur (the spec X inventory puts the fine-justure sheet here): the
+                    Y-card ??90 is wrong on X — echarts null nameRotate renders VERTICAL on a side
+                    axis but HORIZONTAL (0°) on a bottom axis — the X name default. Unset stays
+                    unset (no emit) until the user explicitly rotates. */}
+                    <FieldGrid>
+                        <SliderField
+                            label={Generic.t('echarts_axis_name_rotate')}
+                            value={x.nameRotate ?? 0}
+                            min={-90}
+                            max={90}
+                            step={5}
+                            onChange={v => onChange({ nameRotate: v })}
+                        />
+                    </FieldGrid>
+                </Box>
 
-            <SubGroup title={Generic.t('echarts_grp_presentation')}>
-                <FieldGrid>
-                    {/* The Y-card's `??90` is wrong here: echarts' null nameRotate renders VERTICAL on a
-                    side axis but HORIZONTAL (0°) on a bottom axis — the X name's default. Unset stays
-                    unset (no emit) so echarts keeps the default until the user explicitly rotates. */}
-                    <SliderField
-                        label={Generic.t('echarts_axis_name_rotate')}
-                        value={x.nameRotate ?? 0}
-                        min={-90}
-                        max={90}
-                        step={5}
-                        onChange={v => onChange({ nameRotate: v })}
-                    />
-                </FieldGrid>
-            </SubGroup>
-
-            {/* The X-Karte's own raw escape hatch (ADR-0037 addendum — X joins the axis anatomy):
+                {/* The X-Karte's own raw escape hatch (ADR-0037 addendum — X joins the axis anatomy):
             the same section the Y cards carry, fed by the X catalog (`xAxisTemplates.ts`);
             deep-merged UNDER the built entry, the card wins collisions. */}
-            <RawJsonSection
-                raw={x.raw}
-                onChange={v => onChange({ raw: v || undefined })}
-                catalog={X_AXIS_CATALOG}
-                snippets={x.snippets}
-                onCommit={r => onChange(snippetPatch(r))}
-            />
+                <RawJsonSection
+                    raw={x.raw}
+                    onChange={v => onChange({ raw: v || undefined })}
+                    catalog={X_AXIS_CATALOG}
+                    snippets={x.snippets}
+                    onCommit={r => onChange(snippetPatch(r))}
+                />
+            </SectionTabs>
         </EditorCard>
     );
 };
