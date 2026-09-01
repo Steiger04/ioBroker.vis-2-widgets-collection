@@ -556,3 +556,165 @@ describe('assemblePipelineResult — category bars (ADR-0065)', () => {
         expect(series[0].data).toEqual(pts);
     });
 });
+
+describe('assemblePipelineResult — per-series aggregate + diff tristate on category bars (ADR-0072)', () => {
+    const dayTs = (d: number, h = 0): number => new Date(2026, 7, d, h).getTime(); // August 2026
+    const cats = [dayTs(20), dayTs(21), dayTs(22)];
+    const end = dayTs(23);
+    /** Daily-total points: one value per category bucket (the bar-plan would have fetched these). */
+    const totals = (name: string, vals: number[]): { name: string; data: [number, number][] } => ({
+        name,
+        data: vals.map((v, i) => [dayTs(20 + i, 6), v] as [number, number]),
+    });
+
+    it('each series reduces with its EFFECTIVE aggregate — avg inherits, max overrides, minmax takes the LAST value', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A' }, // inherits chart average
+                    { oid: 'b.0', name: 'B', aggregate: 'max' },
+                    { oid: 'c.0', name: 'C', aggregate: 'minmax' }, // non-reducible → last value
+                ],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [dayTs(20, 6), 2],
+                                [dayTs(20, 18), 4],
+                                [dayTs(22, 6), 10],
+                            ] as [number, number][],
+                        },
+                        {
+                            name: 'B',
+                            data: [
+                                [dayTs(20, 6), 1],
+                                [dayTs(20, 18), 5],
+                            ] as [number, number][],
+                        },
+                        {
+                            name: 'C',
+                            data: [
+                                [dayTs(20, 14), 7],
+                                [dayTs(20, 20), 9],
+                            ] as [number, number][],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar', aggregate: 'average' },
+                barCategories: cats,
+                barWindowEnd: end,
+            }),
+        );
+        const series = option.series as { name: string; data: unknown[] }[];
+        expect(series[0].data).toEqual([3, null, 10]); // avg(2,4) — the chart default
+        expect(series[1].data).toEqual([5, null, null]); // max(1,5)
+        expect(series[2].data).toEqual([9, null, null]); // minmax → LAST value (adapter parity)
+    });
+
+    it("diffMode 'raw' in a chart-diff chart: the axis keeps every category — the raw series' first value stands, the diff series pads a leading null", () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A' },
+                    { oid: 'b.0', name: 'B', diffMode: 'raw' },
+                ],
+                history: {
+                    series: [totals('A', [6, 3, 10]), totals('B', [2, 4, 6])],
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar', aggregate: 'total' },
+                barCategories: cats,
+                barWindowEnd: end,
+                barDiff: true,
+            }),
+        );
+        const xAxis = (option as { xAxis: { data?: number[] } }).xAxis;
+        expect(xAxis.data).toEqual(cats); // mixed chart — the sacrificial bucket stays
+        const series = option.series as { name: string; data: unknown[] }[];
+        // A inherits the diff: totals [6,3,10] → diffs [-3,7], no predecessor in bucket 0
+        expect(series[0].data).toEqual([null, -3, 7]);
+        // B is raw: every bucket value stands where it fell
+        expect(series[1].data).toEqual([2, 4, 6]);
+    });
+
+    it("diffMode 'diff' in a NON-diff chart: only that series drops its first category (leading null), the axis stays complete", () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A', diffMode: 'diff' },
+                    { oid: 'b.0', name: 'B' },
+                ],
+                history: {
+                    series: [totals('A', [6, 3, 10]), totals('B', [2, 4, 6])],
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar', aggregate: 'total' },
+                barCategories: cats,
+                barWindowEnd: end,
+                barDiff: false,
+            }),
+        );
+        const xAxis = (option as { xAxis: { data?: number[] } }).xAxis;
+        expect(xAxis.data).toEqual(cats);
+        const series = option.series as { name: string; data: unknown[] }[];
+        expect(series[0].data).toEqual([null, -3, 7]); // its OWN diff, against the chart default
+        expect(series[1].data).toEqual([2, 4, 6]); // inherits raw (chart barDiff off)
+    });
+
+    it('legend values on MIXED diff bars read each series from its final buckets — diff value for the diff series, raw for the raw (K2 extension)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A' },
+                    { oid: 'b.0', name: 'B', diffMode: 'raw' },
+                ],
+                history: {
+                    series: [totals('A', [6, 3, 10, 12]), totals('B', [2, 4, 6, 8])],
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar', aggregate: 'total', legendShowValues: true },
+                barCategories: [...cats, dayTs(23)],
+                barWindowEnd: dayTs(24),
+                barDiff: true,
+            }),
+        );
+        // A: totals [6,3,10,12] → padded [null,-3,7,2] → last non-null 2 (the last DIFF);
+        // B raw → last bucket 8. Both match exactly what the bars show.
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [2]');
+        expect(legend.formatter?.('B')).toBe('B [8]');
+    });
+
+    it("EVERY series 'diff' with chart barDiff OFF still slices the axis — the window never widened, so the first AUTHORED bucket vanishes (under-shoot, adapter parity: the diff's first bucket is meaningless without a predecessor)", () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A', diffMode: 'diff' },
+                    { oid: 'b.0', name: 'B', diffMode: 'diff' },
+                ],
+                history: {
+                    series: [totals('A', [6, 3, 10]), totals('B', [2, 4, 6])],
+                    loading: false,
+                    error: null,
+                },
+                src: { chartType: 'bar', aggregate: 'total' },
+                barCategories: cats,
+                barWindowEnd: end,
+                barDiff: false,
+            }),
+        );
+        // allDiff → the axis drops bucket 0 exactly like a chart-level diff would; no widening
+        // happened (chart barDiff off), so the first authored bucket is the sacrificial one.
+        const xAxis = (option as { xAxis: { data?: number[] } }).xAxis;
+        expect(xAxis.data).toEqual(cats.slice(1));
+        const series = option.series as { name: string; data: unknown[] }[];
+        expect(series[0].data).toEqual([-3, 7]);
+        expect(series[1].data).toEqual([2, 2]); // diffs of its own buckets: 4−2, 6−4
+    });
+});

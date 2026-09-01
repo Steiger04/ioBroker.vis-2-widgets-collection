@@ -363,15 +363,35 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     if (barCategories?.length) {
         let cats = barCategories;
         const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
-        bucketed = transformed.map(s => ({
-            name: s.name,
-            data: bucketizeSeries(s.data, cats, src.aggregate as Parameters<typeof bucketizeSeries>[2], endBound),
-        }));
-        if (barDiff) {
-            bucketed = bucketed.map(s => ({
-                name: s.name,
-                data: applyBarDiff(s.data as (number | null)[]),
-            }));
+        // Per-series effective aggregate (ADR-0072): an override reshapes BOTH the entry's
+        // server request (the fetch seam, ticket 01) and this client-side reduction — a max
+        // series reduces max inside an average chart. Non-reducible aggregates
+        // (onchange/minmax/count/none/percentile/integral) → last value (adapter parity,
+        // bucketizeSeries' default branch).
+        const chartAggregate = src.aggregate as Parameters<typeof bucketizeSeries>[2];
+        // Per-series diff tristate (ADR-0072): 'diff' always diffs, 'raw' never, unset (or the
+        // explicit 'inherit') follows the chart-level barDiff. Only diff series lose their
+        // first category: when EVERY series diffs, the axis drops the sacrificial bucket
+        // (ADR-0065 behaviour unchanged); in a mixed chart the axis keeps it — a diff series
+        // pads a leading null (no predecessor there), a raw series' first value simply stays
+        // standing. The window widening stays tied to the CHART-level barDiff: the one extra
+        // bucket it may have bought for non-diff series is harmless for exactly that reason,
+        // and an all-diff chart without it pays with its first AUTHORED bucket (the diff's
+        // first bucket is meaningless without a predecessor — adapter parity, under-shoot
+        // accepted).
+        const seriesDiffs = meta.map(
+            (m): boolean => m?.diffMode === 'diff' || (m?.diffMode !== 'raw' && barDiff === true),
+        );
+        const allDiff = seriesDiffs.length > 0 && seriesDiffs.every(Boolean);
+        bucketed = transformed.map((s, i) => {
+            const vals = bucketizeSeries(s.data, cats, meta[i]?.aggregate ?? chartAggregate, endBound);
+            if (!seriesDiffs[i]) {
+                return { name: s.name, data: vals };
+            }
+            const diffs = applyBarDiff(vals);
+            return { name: s.name, data: allDiff ? diffs : [null, ...diffs] };
+        });
+        if (allDiff) {
             cats = cats.slice(1); // the diff's first bucket has no predecessor
         }
         presentationFinal = { ...presentationWithValues, barCategories: cats };
@@ -498,6 +518,11 @@ export function useChartPipeline(
     // Mixed charts (a per-series bar in a line chart) stay on the time axis — the adapter bins
     // every series there, a quirk not copied.
     const barInterval = src.barInterval as string | undefined;
+    // KNOWN boundary (ADR-0072, adapter parity): a per-series X-offset shifts ONLY that
+    // series' request window (getStartStop, adapter ChartModel.ts:880–1013 — timestamps are
+    // never back-shifted). Inside the category-bar grid that lands the shifted series
+    // OUTSIDE the shared buckets (empty bars) — documented limit, not "fixed"; the series
+    // card's Daten cluster surfaces it as an InfoBox hint (spec ticket 03).
     const barBucketingOn =
         family === 'cartesian' &&
         mode === 'history' &&

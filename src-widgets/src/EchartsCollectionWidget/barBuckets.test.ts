@@ -11,9 +11,11 @@ import {
     applyBarDiff,
     barBucketCategories,
     bucketizeSeries,
+    makeBarPlan,
     resolveBarIntervalMinutes,
     widenBarWindow,
 } from './barBuckets';
+import { entryRequestOptions } from './historyLogic';
 import type { SeriesPoint } from './historyLogic';
 
 const ts = (y: number, mo: number, d: number, h = 0, mi = 0): number => new Date(y, mo - 1, d, h, mi, 0, 0).getTime();
@@ -158,5 +160,21 @@ describe('applyBarDiff (adapter diff + first-bucket drop)', () => {
 
     it('a single bucket diffs to nothing visible', () => {
         expect(applyBarDiff([7])).toEqual([]);
+    });
+});
+
+describe('makeBarPlan — per-entry aggregate composition (ADR-0072 bar mode)', () => {
+    it("the plan's bucket-count request + the entry override compose: the resolution rides SHARED, the aggregate diverges per series", () => {
+        const plan = makeBarPlan('1h', true, undefined, { aggregate: 'average' });
+        // 10:07→13:01 widens (diff) to 09:00→14:00 on the hour grid = 5 buckets.
+        const { options, extras } = plan({ start: ts(2026, 1, 10, 10, 7), end: ts(2026, 1, 10, 13, 1) });
+        expect(extras.cats).toHaveLength(5);
+        const inherit = entryRequestOptions(options, { oid: 'a.0' });
+        const override = entryRequestOptions(options, { oid: 'b.0', aggregate: 'max' });
+        expect(inherit.count).toBe(5); // the bucket count IS the resolution (ADR-0065)
+        expect(inherit.aggregate).toBe('average');
+        expect(override.count).toBe(5); // the plan's resolution survives the per-entry spread
+        expect(override.start).toBe(inherit.start); // same widened window
+        expect(override.aggregate).toBe('max'); // only the series' OWN keys diverge
     });
 });
