@@ -16,13 +16,12 @@ import { Alert, Box } from '@mui/material';
 import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
 import SectionCard from '../../components/SectionCard';
-import { FieldLabel, InfoBox } from '../../components/controls';
 import { ChartTypePicker, ModeSelect } from './controls';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
 import ColorsSection from './sections/ColorsSection';
 import DataSourceSection from './sections/DataSourceSection';
-import { GaugeOptionsSection, PieOptionsSection, RadarOptionsSection } from './sections/FamilySections';
+import { PieOptionsSection } from './sections/FamilySections';
 import SeriesSection from './sections/SeriesSection';
 import TitleSection from './sections/TitleSection';
 import LegendSection from './sections/LegendSection';
@@ -66,9 +65,9 @@ interface EchartsEditorSectionsProps {
  * retired chart-level Advanced JSON, ADR-0045).
  *
  * Order (top → bottom): data source → behavior → title → series → (axes or family
- * options) → legend → tooltip → colors → toolbox. `family` (pie / gauge / radar
- * options) takes the slot cartesian reserves for axes — both are the per-family layout
- * block sitting right after the series.
+ * options) → legend → tooltip → colors → toolbox. `family` (the pie options) takes the
+ * slot cartesian reserves for axes — both are the per-family layout block sitting right
+ * after the series.
  *
  * Exported because the modal's footer problems button needs the same order to find the
  * FIRST section carrying issues (the scroll target matches what the user sees on screen).
@@ -78,21 +77,14 @@ export const sectionInventory = (chartType: EditorState['chartType']): SectionKe
     if (family === 'cartesian') {
         return ['dataSource', 'behavior', 'title', 'series', 'axesZoom', 'legend', 'tooltip', 'colors', 'toolbox'];
     }
-    if (family === 'pie') {
-        return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
-    }
-    // gauge / radar: no data source (always current value), no axes
-    return ['behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
+    // pie
+    return ['dataSource', 'behavior', 'title', 'series', 'family', 'legend', 'tooltip', 'colors', 'toolbox'];
 };
 
-const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): string => {
+const sectionTitle = (key: SectionKey): string => {
     switch (key) {
         case 'series':
-            return chartType === 'gauge'
-                ? Generic.t('echarts_sec_value')
-                : chartType === 'radar'
-                  ? Generic.t('echarts_sec_indicators')
-                  : Generic.t('echarts_series');
+            return Generic.t('echarts_series');
         case 'dataSource':
             return Generic.t('echarts_data_source');
         case 'title':
@@ -104,11 +96,7 @@ const sectionTitle = (key: SectionKey, chartType: EditorState['chartType']): str
         case 'axesZoom':
             return Generic.t('echarts_sec_axes_zoom');
         case 'family':
-            return chartType === 'gauge'
-                ? Generic.t('echarts_sec_gauge_options')
-                : chartType === 'pie'
-                  ? Generic.t('echarts_sec_pie_options')
-                  : Generic.t('echarts_sec_radar_options');
+            return Generic.t('echarts_sec_pie_options');
         case 'colors':
             return Generic.t('echarts_sec_colors');
         case 'behavior':
@@ -148,8 +136,6 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     jsonError,
     undo,
 }) => {
-    const family = familyOf(state.chartType);
-    const modeRelevant = family === 'cartesian' || family === 'pie';
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
     const summaries = useMemo(() => sectionSummaries(state, Generic.t.bind(Generic)), [state]);
     // ADR-0042: activations the family switch would prune on Apply — advised below; the prune
@@ -234,18 +220,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     />
                 );
             case 'family':
-                return family === 'gauge' ? (
-                    <GaugeOptionsSection
-                        state={state}
-                        set={set}
-                    />
-                ) : family === 'pie' ? (
+                return (
                     <PieOptionsSection
-                        state={state}
-                        set={set}
-                    />
-                ) : (
-                    <RadarOptionsSection
                         state={state}
                         set={set}
                     />
@@ -290,23 +266,16 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         loss={familyLoss}
                     />
                 </Box>
-                {modeRelevant ? (
-                    <Box>
-                        <ModeSelect
-                            state={state}
-                            set={set}
-                        />
-                        <BoundaryLossAlert
-                            lossKey="echarts_mode_boundary_loss"
-                            loss={boundaryLoss}
-                        />
-                    </Box>
-                ) : (
-                    <Box>
-                        <FieldLabel>{Generic.t('echarts_editor_data_mode')}</FieldLabel>
-                        <InfoBox text={Generic.t('echarts_mode_current_value')} />
-                    </Box>
-                )}
+                <Box>
+                    <ModeSelect
+                        state={state}
+                        set={set}
+                    />
+                    <BoundaryLossAlert
+                        lossKey="echarts_mode_boundary_loss"
+                        loss={boundaryLoss}
+                    />
+                </Box>
                 {/* Snippet-prune advice (ADR-0042) — the ONLY family-switch warning left: the
                     pre-ADR-0067 bound-OID loss share is pensioned (the family crossing resets the
                     data path now, advised by the chip at the type picker above). */}
@@ -330,7 +299,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                     }}
                 >
                     <SectionCard
-                        title={sectionTitle(key, state.chartType)}
+                        title={sectionTitle(key)}
                         summary={summaries[key]}
                         issueCount={issues[key]?.length ?? 0}
                         expanded={!!open[key]}

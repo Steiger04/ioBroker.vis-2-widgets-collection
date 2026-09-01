@@ -234,7 +234,7 @@ describe('jsonBindingView — the JSON binding view', () => {
 describe('effectiveAxisColor — Axis-card swatch matches the bound Series card (ADR-0018, JSON fix)', () => {
     const palette = ['#aaa', '#bbb', '#ccc', '#ddd'];
 
-    it("uses the bound series' palette slot by its DISPLAY position (history/live 1:1)", () => {
+    it("uses the bound series' palette slot by its DISPLAY position (history 1:1)", () => {
         const series = [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }];
         expect(effectiveAxisColor({}, 0, series, palette)).toBe('#aaa');
         expect(effectiveAxisColor({}, 2, series, palette)).toBe('#ccc');
@@ -915,7 +915,7 @@ describe('jsonShowPatch — un-hide + reconcile in ONE step (B3, ADR-0069 re-bir
 });
 
 describe('remapMarkAxisIndices — marking anchors follow an axis delete (B4)', () => {
-    it('history/live: a marking on the deleted axis follows the rebind target, higher anchors shift down', () => {
+    it('history: a marking on the deleted axis follows the rebind target, higher anchors shift down', () => {
         const marks = [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }, { label: 'x' }];
         expect(remapMarkAxisIndices(marks, 1, 0)).toEqual([
             { yAxisIndex: 0 }, // below the deleted index — untouched

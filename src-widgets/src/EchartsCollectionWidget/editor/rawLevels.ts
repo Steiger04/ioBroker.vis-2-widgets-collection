@@ -15,13 +15,12 @@
  * touched again.
  *
  * `families` is UI visibility ONLY: heal/encode run regardless of the current family — the
- * radar and pie blobs deliberately ride across family switches ("switching away and back
- * preserves it", ADR-0044/0045).
+ * pie blob deliberately rides across family switches ("switching away and back preserves it",
+ * ADR-0044/0045).
  */
 import { familyOf } from '../optionBuilder';
 import { AXIS_TEMPLATES } from './axisTemplates';
 import { LEGEND_TEMPLATES } from './legendTemplates';
-import { RADAR_TEMPLATES } from './radarTemplates';
 import { SERIES_TEMPLATES, seriesSlotOf } from './seriesTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import { TOOLTIP_TEMPLATES } from './tooltipTemplates';
@@ -36,16 +35,7 @@ import { keepSnippetIds, pruneSnippetIds } from './snippetComposition';
 export type RawLevelFamily = ReturnType<typeof familyOf>;
 
 /** Registry id — the section name. */
-export type RawLevelId =
-    | 'title'
-    | 'legend'
-    | 'tooltip'
-    | 'radar'
-    | 'pie'
-    | 'series'
-    | 'yAxes'
-    | 'xAxis'
-    | 'jsonSeriesStyle';
+export type RawLevelId = 'title' | 'legend' | 'tooltip' | 'pie' | 'series' | 'yAxes' | 'xAxis' | 'jsonSeriesStyle';
 
 /**
  * Catalog prune + keep-only heal in one (ADR-0042 #6 + addendum) — for single-catalog levels.
@@ -99,11 +89,11 @@ export interface RawLevelEntry {
 
 /** The four flat section levels share one placement anatomy — a factory over the two state keys. */
 const flatSectionLevel = (
-    id: 'title' | 'legend' | 'tooltip' | 'radar',
+    id: 'title' | 'legend' | 'tooltip',
     templates: readonly SnippetTemplate[],
     keys: {
-        raw: 'titleRaw' | 'legendRaw' | 'tooltipRaw' | 'radarRaw';
-        snippets: 'titleSnippets' | 'legendSnippets' | 'tooltipSnippets' | 'radarSnippets';
+        raw: 'titleRaw' | 'legendRaw' | 'tooltipRaw';
+        snippets: 'titleSnippets' | 'legendSnippets' | 'tooltipSnippets';
     },
     families?: readonly RawLevelFamily[],
 ): RawLevelEntry => ({
@@ -199,7 +189,7 @@ const seriesLevel: RawLevelEntry = {
             },
         })),
     bindSave: (state, drafts) =>
-        // The metaBlob skeleton (radar/gauge family collapse included) is saveEditorState's —
+        // The metaBlob skeleton is saveEditorState's —
         // the entry reads the working copy's cards and writes only the healed snippets into
         // the items (ADR-0047 series boundary: the registry owns the raw lifecycle, not the
         // data configuration).
@@ -279,12 +269,11 @@ const jsonSeriesStyleLevel: RawLevelEntry = {
     bindSave: (state, drafts) => jsonSeriesBindings(drafts.jsonSeriesStyle, state),
 };
 
-/** The registry — ADR-0047: the five scalar levels (step 1) + the per-item lift (step 2). */
+/** The registry — ADR-0047: the scalar levels (step 1) + the per-item lift (step 2). */
 export const RAW_LEVELS: readonly RawLevelEntry[] = [
     flatSectionLevel('title', TITLE_TEMPLATES, { raw: 'titleRaw', snippets: 'titleSnippets' }),
     flatSectionLevel('legend', LEGEND_TEMPLATES, { raw: 'legendRaw', snippets: 'legendSnippets' }),
     flatSectionLevel('tooltip', TOOLTIP_TEMPLATES, { raw: 'tooltipRaw', snippets: 'tooltipSnippets' }),
-    flatSectionLevel('radar', RADAR_TEMPLATES, { raw: 'radarRaw', snippets: 'radarSnippets' }, ['radar']),
     pieLevel,
     seriesLevel,
     yAxesLevel,

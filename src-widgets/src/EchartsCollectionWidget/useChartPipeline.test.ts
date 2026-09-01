@@ -46,37 +46,16 @@ describe('usableSeries / isUsableOid', () => {
 });
 
 describe('subscribedOids (family/mode knowledge, ADR-0046)', () => {
-    it('gauge needs only the first usable series value (Aktuellwert)', () => {
-        expect(subscribedOids('gauge', 'history', series('a.0', 'b.0'), [], '', false)).toEqual(['a.0']);
-    });
-
-    it('radar subscribes the indicator OIDs, skipping empty ones', () => {
-        expect(
-            subscribedOids(
-                'radar',
-                'history',
-                series('poly'),
-                [{ oid: 'a.0' }, { oid: '' }, { oid: 'b.0' }],
-                '',
-                false,
-            ),
-        ).toEqual(['a.0', 'b.0']);
-    });
-
     it('json subscribes the payload state; nothing_selected subscribes nothing', () => {
-        expect(subscribedOids('cartesian', 'json', series('a.0'), [], 'javascript.0.chart', false)).toEqual([
+        expect(subscribedOids('cartesian', 'json', series('a.0'), 'javascript.0.chart', false)).toEqual([
             'javascript.0.chart',
         ]);
-        expect(subscribedOids('pie', 'json', series('a.0'), [], 'nothing_selected', false)).toEqual([]);
-    });
-
-    it('live subscribes every usable series OID', () => {
-        expect(subscribedOids('cartesian', 'live', series('a.0', 'b.0'), [], '', false)).toEqual(['a.0', 'b.0']);
+        expect(subscribedOids('pie', 'json', series('a.0'), 'nothing_selected', false)).toEqual([]);
     });
 
     it('Verlauf subscribes nothing — unless the early refresh listens for values', () => {
-        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', false)).toEqual([]);
-        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', true)).toEqual(['a.0']);
+        expect(subscribedOids('cartesian', 'history', series('a.0'), '', false)).toEqual([]);
+        expect(subscribedOids('cartesian', 'history', series('a.0'), '', true)).toEqual(['a.0']);
     });
 });
 
@@ -92,29 +71,16 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
     });
 });
 
-describe('pipelineError (unified three-source error, ADR-0046)', () => {
-    it('stays null off cartesian/pie even with errors present', () => {
-        expect(pipelineError('gauge', 'json', 'parse failed', 'fetch failed')).toBeNull();
-        expect(pipelineError('radar', 'history', undefined, 'fetch failed')).toBeNull();
-    });
-
+describe('pipelineError (unified error surface, ADR-0046)', () => {
     it('json mode surfaces the parse error', () => {
-        expect(pipelineError('cartesian', 'json', 'Unexpected token', null)).toBe('Unexpected token');
-        expect(pipelineError('pie', 'json', undefined, 'ignored')).toBeNull();
+        expect(pipelineError('json', 'Unexpected token', null)).toBe('Unexpected token');
+        expect(pipelineError('json', undefined, 'ignored')).toBeNull();
     });
 
     it('Verlauf prefers the fetch error, then the first per-series error', () => {
-        expect(pipelineError('cartesian', 'history', undefined, 'fetch failed', [{ error: 'series failed' }])).toBe(
-            'fetch failed',
-        );
-        expect(pipelineError('cartesian', 'history', undefined, null, [{}, { error: 'series failed' }])).toBe(
-            'series failed',
-        );
-        expect(pipelineError('cartesian', 'history', undefined, null, [])).toBeNull();
-    });
-
-    it('live mode has no error source', () => {
-        expect(pipelineError('cartesian', 'live', 'parse', 'fetch', [{ error: 'x' }])).toBeNull();
+        expect(pipelineError('history', undefined, 'fetch failed', [{ error: 'series failed' }])).toBe('fetch failed');
+        expect(pipelineError('history', undefined, null, [{}, { error: 'series failed' }])).toBe('series failed');
+        expect(pipelineError('history', undefined, null, [])).toBeNull();
     });
 });
 
@@ -133,7 +99,7 @@ const tokens = {
 } as unknown as ThemeTokens;
 
 const makeInput = (
-    family: 'cartesian' | 'pie' | 'gauge' | 'radar',
+    family: 'cartesian' | 'pie',
     mode: string,
     over: Partial<AssemblePipelineInput> = {},
 ): AssemblePipelineInput => {
@@ -142,10 +108,7 @@ const makeInput = (
         family,
         mode,
         usable: [],
-        indicators: [],
-        values: {},
         history: { series: [], loading: false, error: null },
-        liveBuffers: {},
         jsonParsed: { series: [] },
         presentation: toPresentationConfig({ src, palette: ['#111'], family, themeTokens: tokens, themeDark: false }),
         themeBase: {} as EChartsOption,
@@ -181,17 +144,6 @@ describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
         expect(hasData).toBe(true);
         expect(seriesOf(option).map(s => s.name)).toEqual(['A']);
         expect(seriesOf(option)[0]?.data).toHaveLength(2);
-    });
-
-    it('Live falls back to the OID as the series name and reads the rolling buffer', () => {
-        const { option, hasData } = assemblePipelineResult(
-            makeInput('cartesian', 'live', {
-                usable: [{ oid: 'a.0' }],
-                liveBuffers: { 'a.0': [[1, 5]] },
-            }),
-        );
-        expect(hasData).toBe(true);
-        expect(seriesOf(option)[0]?.name).toBe('a.0');
     });
 
     it('JSON filters the jsonHidden deny-list and applies the name-keyed overlay meta', () => {
@@ -246,25 +198,6 @@ describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
         );
         expect(option.backgroundColor).toBe('#123456');
     });
-
-    it('gauge reads its scalar from the values map (hasData by value)', () => {
-        const withValue = assemblePipelineResult(
-            makeInput('gauge', 'history', {
-                usable: [{ oid: 'g.0' }],
-                values: { 'g.0': 42 },
-            }),
-        );
-        expect(withValue.hasData).toBe(true);
-        const without = assemblePipelineResult(makeInput('gauge', 'history', { usable: [{ oid: 'g.0' }] }));
-        expect(without.hasData).toBe(false);
-    });
-
-    it('radar reads its indicator values (hasData by value)', () => {
-        const { hasData } = assemblePipelineResult(
-            makeInput('radar', 'history', { indicators: [{ oid: 'r.0' }, { oid: '' }], values: { 'r.0': 5 } }),
-        );
-        expect(hasData).toBe(true);
-    });
 });
 
 // ── resolveLegendValues + legend-values injection (ADR-0054, adapter legActual) ──
@@ -273,8 +206,6 @@ describe('resolveLegendValues (ADR-0054)', () => {
     it('Verlauf: the LAST point of each history series', () => {
         const out = resolveLegendValues(
             'history',
-            series('a.0', 'b.0'),
-            {},
             [
                 {
                     name: 'A',
@@ -291,45 +222,31 @@ describe('resolveLegendValues (ADR-0054)', () => {
                     ],
                 },
             ],
-            {},
             [],
         );
         expect(out).toEqual({ A: 12.5, B: 40 });
     });
 
-    it('Live: the subscribed value wins; the live buffer is the fallback (name falls back to the OID)', () => {
-        const out = resolveLegendValues(
-            'live',
-            [{ oid: 'a.0', name: 'A' }, { oid: 'b.0' }],
-            { 'a.0': 21.5 },
-            [],
-            { 'b.0': [[1, 7]] },
-            [],
-        );
-        expect(out).toEqual({ A: 21.5, 'b.0': 7 });
-    });
-
-    it('Live: boolean subscribed values coerce to 1/0 — a bool OID resolves its legend value (ADR-0058)', () => {
-        const out = resolveLegendValues('live', [{ oid: 'pump.0', name: 'Pump' }], { 'pump.0': true }, [], {}, []);
-        expect(out).toEqual({ Pump: 1 });
-    });
-
     it('JSON: the last point of each payload series', () => {
-        const out = resolveLegendValues('json', [], {}, [], {}, [
-            {
-                name: 'P1',
-                data: [
-                    [1, 3],
-                    [2, 4],
-                ],
-            },
-            { name: 'P2', data: [[1, 9]] },
-        ]);
+        const out = resolveLegendValues(
+            'json',
+            [],
+            [
+                {
+                    name: 'P1',
+                    data: [
+                        [1, 3],
+                        [2, 4],
+                    ],
+                },
+                { name: 'P2', data: [[1, 9]] },
+            ],
+        );
         expect(out).toEqual({ P1: 4, P2: 9 });
     });
 
     it('a series with no usable point maps to null (the formatter falls back to the bare name)', () => {
-        const out = resolveLegendValues('history', series('a.0'), {}, [{ name: 'A', data: [] }], {}, []);
+        const out = resolveLegendValues('history', [{ name: 'A', data: [] }], []);
         expect(out).toEqual({ A: null });
     });
 });
@@ -413,16 +330,6 @@ describe('assemblePipelineResult — per-series value transforms (ADR-0059)', ()
         expect(seriesOf(option)[1]?.data).toEqual([[1, 7]]); // untouched without transforms
     });
 
-    it('Live buffers transform through the same seam', () => {
-        const { option } = assemblePipelineResult(
-            makeInput('cartesian', 'live', {
-                usable: [{ oid: 'a.0', name: 'A', formula: 'val / 1000' }],
-                liveBuffers: { 'a.0': [[5, 4000]] },
-            }),
-        );
-        expect(seriesOf(option)[0]?.data).toEqual([[5, 4]]);
-    });
-
     it('JSON: the overlay entry carries the transform', () => {
         const { option } = assemblePipelineResult(
             makeInput('cartesian', 'json', {
@@ -456,9 +363,9 @@ describe('assemblePipelineResult — per-series value transforms (ADR-0059)', ()
     });
 });
 
-// ── series rest knobs: noFuture + validTime (ADR-0060, parity Build B issue 08) ──
+// ── series rest knobs: noFuture (ADR-0060, parity Build B issue 08; validTime died with Live, ADR-0071) ──
 
-describe('assemblePipelineResult — noFuture / validTime cuts (ADR-0060)', () => {
+describe('assemblePipelineResult — noFuture cuts (ADR-0060)', () => {
     it('noFuture drops points after now (history mode); a clean series keeps its reference', () => {
         const { option } = assemblePipelineResult(
             makeInput('cartesian', 'history', {
@@ -485,38 +392,6 @@ describe('assemblePipelineResult — noFuture / validTime cuts (ADR-0060)', () =
         expect(seriesOf(option)[0]?.data).toEqual([[1, 1]]); // the future point is cut
         expect(seriesOf(option)[1]?.data).toEqual([[1, 3]]);
     });
-
-    it('validTime (Live): a FRESH last point is held to now; a stale one expires to a gap', () => {
-        const fresh = assemblePipelineResult(
-            makeInput('cartesian', 'live', {
-                usable: [{ oid: 'a.0', name: 'A', validTime: 30 }],
-                liveBuffers: { 'a.0': [[Date.now() - 5000, 7]] }, // 5 s old — inside the 30 s window
-            }),
-        );
-        // The held point lands at the build's now with the last value (2 points, value 7).
-        const freshData = seriesOf(fresh.option)[0]?.data as [number, number | null][];
-        expect(freshData).toHaveLength(2);
-        expect(freshData[1]?.[1]).toBe(7);
-
-        const stale = assemblePipelineResult(
-            makeInput('cartesian', 'live', {
-                usable: [{ oid: 'a.0', name: 'A', validTime: 1 }],
-                liveBuffers: { 'a.0': [[Date.now() - 120_000, 7]] }, // 2 min old — outside 1 s
-            }),
-        );
-        const staleData = seriesOf(stale.option)[0]?.data as [number, number | null][];
-        expect(staleData[1]?.[1]).toBeNull(); // expired → gap
-    });
-
-    it('validTime never applies outside Live (history stays untouched)', () => {
-        const { option } = assemblePipelineResult(
-            makeInput('cartesian', 'history', {
-                usable: [{ oid: 'a.0', name: 'A', validTime: 30 }],
-                history: { series: [{ name: 'A', data: [[1, 5]] }], loading: false, error: null },
-            }),
-        );
-        expect(seriesOf(option)[0]?.data).toEqual([[1, 5]]);
-    });
 });
 
 describe('subscribedOids — marking bound OIDs (ADR-0062)', () => {
@@ -528,23 +403,23 @@ describe('subscribedOids — marking bound OIDs (ADR-0062)', () => {
     it('cartesian unions mark bound OIDs in EVERY mode — even Verlauf without the early refresh', () => {
         // History without earlyRefresh subscribes NO series OIDs — the marks still subscribe
         // (their bounds follow the datapoint live, ADR-0062).
-        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', false, marks)).toEqual([
+        expect(subscribedOids('cartesian', 'history', series('a.0'), '', false, marks)).toEqual([
             '0_userdata.0.soll',
             'hm-rpc.0.TEMP',
         ]);
-        expect(subscribedOids('cartesian', 'history', series('a.0'), [], '', true, marks)).toEqual([
+        expect(subscribedOids('cartesian', 'history', series('a.0'), '', true, marks)).toEqual([
             'a.0',
             '0_userdata.0.soll',
             'hm-rpc.0.TEMP',
         ]);
     });
 
-    it('non-cartesian families never subscribe marks (markings are cartesian-only)', () => {
-        expect(subscribedOids('radar', 'history', series('p'), [{ oid: 'i.0' }], '', false, marks)).toEqual(['i.0']);
+    it('pie never subscribes marks (markings are cartesian-only)', () => {
+        expect(subscribedOids('pie', 'history', series('a.0'), '', false, marks)).toEqual([]);
     });
 
     it('without marks the list is unchanged (backward-compatible arity)', () => {
-        expect(subscribedOids('cartesian', 'live', series('a.0'), [], '', false)).toEqual(['a.0']);
+        expect(subscribedOids('cartesian', 'history', series('a.0'), '', true)).toEqual(['a.0']);
     });
 });
 
@@ -554,7 +429,6 @@ describe('assemblePipelineResult — resolved marking bands ride the presentatio
             makeInput('cartesian', 'history', {
                 usable: [{ oid: 'a.0', name: 'A' }],
                 history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
-                values: { '0_userdata.0.soll': 24 },
                 presentation: toPresentationConfig({
                     src: {},
                     palette: ['#111'],

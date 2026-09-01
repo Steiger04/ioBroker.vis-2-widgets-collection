@@ -112,42 +112,12 @@ const PieGlyph: FC = () => (
         />
     </Glyph>
 );
-const GaugeGlyph: FC = () => (
-    <Glyph>
-        <path d="M4 18 A8 8 0 0 1 20 18" />
-        <line
-            x1="12"
-            y1="18"
-            x2="15.5"
-            y2="11"
-        />
-    </Glyph>
-);
-const RadarGlyph: FC = () => (
-    <Glyph>
-        <polygon points="12,4 20.5,18 3.5,18" />
-        <line
-            x1="12"
-            y1="4"
-            x2="12"
-            y2="18"
-        />
-        <line
-            x1="3.5"
-            y1="18"
-            x2="20.5"
-            y2="18"
-        />
-    </Glyph>
-);
 
 const CHART_TYPES: ReadonlyArray<{ value: EchartsChartType; label: string; icon: React.ReactNode }> = [
     { value: 'line', label: 'echarts_type_line', icon: <LineGlyph /> },
     { value: 'bar', label: 'echarts_type_bar', icon: <BarGlyph /> },
     { value: 'scatter', label: 'echarts_type_scatter', icon: <ScatterGlyph /> },
     { value: 'pie', label: 'echarts_type_pie', icon: <PieGlyph /> },
-    { value: 'gauge', label: 'echarts_type_gauge', icon: <GaugeGlyph /> },
-    { value: 'radar', label: 'echarts_type_radar', icon: <RadarGlyph /> },
 ];
 
 /** The chart-type glyph outside the picker (e.g. the modal title) — quiet, at currentColor. */
@@ -172,7 +142,7 @@ export const ChartTypeGlyph: FC<{ chartType: EchartsChartType }> = ({ chartType 
  */
 export type ChartTypePickerSlice = Pick<
     EditorState,
-    'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+    'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
 >;
 
 export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<ChartTypePickerSlice> }> = ({
@@ -189,14 +159,12 @@ export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<C
                 if (!v) {
                     return;
                 }
-                // Family boundary (ADR-0067): crossing cartesian↔pie↔gauge↔radar (incl.
+                // Family boundary (ADR-0067): crossing cartesian↔pie (incl.
                 // json-cartesian→json-pie) deletes the whole data path IMMEDIATELY — type flip +
                 // reset in ONE patch, so undo restores both in a single step. line↔bar↔scatter
                 // share the series structure: plain flip, no reset.
                 set(
-                    crossesFamilyBoundary(state.chartType, v)
-                        ? { chartType: v, ...dataPathReset(state) }
-                        : { chartType: v },
+                    crossesFamilyBoundary(state.chartType, v) ? { chartType: v, ...dataPathReset() } : { chartType: v },
                 );
             }}
             sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, width: '100%' }}
@@ -222,19 +190,18 @@ export const ChartTypePicker: FC<{ state: ChartTypePickerSlice; set: SetEditor<C
 
 const MODE_HINTS: Record<EchartsMode, string> = {
     history: 'echarts_editor_mode_hint_history',
-    live: 'echarts_editor_mode_hint_live',
     json: 'echarts_editor_mode_hint_json',
 };
 
 /** Per-widget data mode (chart-global, not per-series). */
 /**
- * The mode select's field ownership (ADR-0049 slice) — the pinned rail selector (+ the static-window
- * read for the Live disable, ADR-0063) AND the JSON-boundary data-path reset (ADR-0067): the
- * crossing patch carries the reset keys, so the slice owns every field the handler writes.
+ * The mode select's field ownership (ADR-0049 slice) — the pinned rail selector AND the
+ * JSON-boundary data-path reset (ADR-0067): the crossing patch carries the reset keys, so the
+ * slice owns every field the handler writes.
  */
 export type ModeSelectSlice = Pick<
     EditorState,
-    'mode' | 'timeType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+    'mode' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
 >;
 
 export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectSlice> }> = ({ state, set }) => (
@@ -250,23 +217,15 @@ export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectS
                 }
                 // JSON boundary (ADR-0067): crossing into or out of JSON deletes the whole data
                 // path IMMEDIATELY — mode flip + reset in ONE patch, so undo restores both in a
-                // single step. Verlauf↔Live shares the series structure: plain flip, no reset.
+                // single step.
                 set(
                     v !== state.mode && crossesJsonBoundary(state.mode, v)
-                        ? { mode: v, ...dataPathReset(state) }
+                        ? { mode: v, ...dataPathReset() }
                         : { mode: v },
                 );
             }}
         >
             <ToggleButton value="history">{Generic.t('echarts_mode_history')}</ToggleButton>
-            {/* A STATIC time window (ADR-0063) disables Live: a rolling subscribed buffer has no
-                window to fix — adapter behaviour (their live select goes dark on static too). */}
-            <ToggleButton
-                value="live"
-                disabled={state.timeType === 'static'}
-            >
-                {Generic.t('echarts_mode_live')}
-            </ToggleButton>
             <ToggleButton value="json">{Generic.t('echarts_mode_json')}</ToggleButton>
         </ToggleButtonGroup>
         <InfoBox text={Generic.t(MODE_HINTS[state.mode])} />

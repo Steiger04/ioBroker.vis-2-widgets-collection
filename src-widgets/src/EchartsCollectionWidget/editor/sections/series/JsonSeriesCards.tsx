@@ -4,7 +4,7 @@
  * @module EchartsCollectionWidget/editor/sections/series/JsonSeriesCards
  * @remarks
  * The payload owns series identity (count + data); the name-keyed overlay (`jsonSeriesStyle`) owns
- * presentation. Cards share the cartesian internals with the history/live card
+ * presentation. Cards share the cartesian internals with the history card
  * ({@link CartesianBasisFields}/{@link CartesianSeriesKnobs}) — minus the OID row. The trash on a
  * card header HIDES the series (jsonHidden deny-list, restorable via the chips row) — payload
  * series can never be truly deleted. Pie-json renders compact slice rows (name + colour, no

@@ -136,7 +136,7 @@ export interface WidgetFieldMappings {
     tplInputCollectionWidget: ['base', 'common', 'commonObject', 'input', 'state', 'delay'];
 
     /**
-     * Echarts Widget - Apache ECharts line-chart time-series (history / live / json modes)
+     * Echarts Widget - Apache ECharts line-chart time-series (history / json modes)
      *
      * @remarks
      * The collection's first multi-OID widget. Series OIDs live as indexed `oid1..oidN` fields

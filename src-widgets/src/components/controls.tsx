@@ -151,7 +151,7 @@ export const NumberField: FC<{
 
 /**
  * Number field that can be cleared: an empty input maps to `undefined` (an optional numeric
- * config value, e.g. a gauge target where "unset" is meaningful and distinct from 0).
+ * config value, e.g. a pie inner radius where "unset" is meaningful and distinct from 0).
  */
 export const OptionalNumberField: FC<{
     label: string;

@@ -47,8 +47,8 @@ export const Swatch: FC<{ color: string }> = ({ color }) => (
 );
 
 /**
- * Dashed empty state; the CTA is supplied as children (an OID-picker CTA for cartesian/pie, a plain
- * button for radar indicators — ADR-0010 onboarding, skeleton removed per ADR-0013).
+ * Dashed empty state; the CTA is supplied as children (an OID-picker CTA — ADR-0010
+ * onboarding, skeleton removed per ADR-0013).
  */
 export const EmptyState: FC<{ text: string; children: ReactNode }> = ({ text, children }) => (
     <Box

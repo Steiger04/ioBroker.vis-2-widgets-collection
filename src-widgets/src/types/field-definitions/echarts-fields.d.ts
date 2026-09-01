@@ -4,8 +4,7 @@
  * @remarks
  * Configures an Apache ECharts (v6) widget with a **type-family data model** (ADR-0008):
  * cartesian line/bar and pie share the OID time-series pipeline (`[ts, val]`, pie
- * aggregating each OID to one slice); gauge binds a scalar OID + min/max/target; radar
- * binds a list of indicator OIDs. The option seam is **GUI-owns-presentation**: the GUI
+ * aggregating each OID to one slice). The option seam is **GUI-owns-presentation**: the GUI
  * authors all presentation (chart-wide + per-series) into the generated option G, and the
  * data-wins force-set protects only the data-binding keys (ADR-0007, supersedes ADR-0005).
  *
@@ -15,7 +14,7 @@
  *
  * Scalar settings are edited through the modal editor and written to these fields via
  * `onDataChange`; per-series rendering metadata lives in the base64 `seriesConfig` blob,
- * family-specific structured config (gauge/radar/pie) + the component-section raws in the
+ * family-specific structured config (pie) + the component-section raws in the
  * base64 `chartConfig` blob, and the toolbox GUI config in the base64 `toolboxConfig`
  * blob (ADR-0045). The vis-2 attribute panel only shows the "Edit chart
  * configuration" trigger plus the common fields.
@@ -35,17 +34,18 @@ export type EchartsCartesianType = 'line' | 'bar' | 'scatter';
 /**
  * The kind of chart the user is building — chosen once from the configurator's primary (top)
  * selector. This is the chart's user-facing identity AND the authoritative source of the rendered
- * type: `line`/`bar` share the cartesian family (every non-overridden series inherits this type);
- * `pie`/`gauge`/`radar` are single-family types. The {@link EchartsChartFamily} is *derived* from
+ * type: `line`/`bar`/`scatter` share the cartesian family (every non-overridden series inherits
+ * this type); `pie` is the single-family type. The {@link EchartsChartFamily} is *derived* from
  * this via `familyOf`, never chosen separately.
  *
  * @remarks
  * ADR-0008 r4 removed `'area'` from this union — echarts has no `type:'area'`; area is a per-series
- * fill mode. Legacy widgets may still store `'area'` (or the family-only `'cartesian'`); `familyOf`
- * tolerates both (→ cartesian) **without** an auto-migration — rewritten to a concrete type only
- * when the user re-saves after picking the type explicitly.
+ * fill mode. ADR-0071 removed the gauge/radar families. Legacy widgets may still store `'area'`,
+ * the family-only `'cartesian'`, or `'gauge'`/`'radar'`; `familyOf` tolerates all of them
+ * (→ cartesian) **without** an auto-migration — rewritten to a concrete type only when the user
+ * re-saves after picking the type explicitly.
  */
-export type EchartsChartType = 'line' | 'bar' | 'scatter' | 'pie' | 'gauge' | 'radar';
+export type EchartsChartType = 'line' | 'bar' | 'scatter' | 'pie';
 
 /**
  * Per-series area fill mode for a cartesian line series (ADR-0008 r4).
@@ -57,9 +57,21 @@ export type EchartsChartType = 'line' | 'bar' | 'scatter' | 'pie' | 'gauge' | 'r
 export type EchartsAreaFill = 'off' | 'flat' | 'gradient';
 
 /** Coordinate-system family derived from {@link EchartsChartType}. */
-export type EchartsChartFamily = 'cartesian' | 'pie' | 'gauge' | 'radar';
+export type EchartsChartFamily = 'cartesian' | 'pie';
 
-export type EchartsMode = 'history' | 'live' | 'json';
+/**
+ * The chartType values older widgets may still store: the current union plus every removed member
+ * ('cartesian' ADR-0008 r3, 'area' r4, 'gauge'/'radar' ADR-0071). Load-tolerance only — healed
+ * in memory by `loadEditorState` and tolerated by `familyOf`; never written back on its own.
+ */
+export type LegacyChartType = EchartsChartType | 'cartesian' | 'area' | 'gauge' | 'radar' | undefined;
+
+/**
+ * How a cartesian/pie chart's series acquire their values (ADR-0031; Live removed by ADR-0071).
+ * Legacy widgets may still store `'live'` — healed to `'history'` on editor load and tolerated
+ * by the runtime pipeline (decode-and-tolerate, the `24h`→`1d` precedent).
+ */
+export type EchartsMode = 'history' | 'json';
 /**
  * The chart-level history aggregate. parity Build A (ADR-0064) adds the two ioBroker members
  * the select lacked — 'percentile' (level via `percentileValue`) and 'integral' (unit +
@@ -204,8 +216,6 @@ export type EchartsZoomResetIdle =
     | '600'
     | '1200'
     | '1800';
-/** Radar shape. */
-export type EchartsRadarShape = 'polygon' | 'circle';
 /**
  * Chart frame border style (parity Build D, ADR-0056) — the eight CSS `border-style` values the
  * adapter offers. Pure container styling around the chart area, never an echarts option.
@@ -233,7 +243,7 @@ export type EchartsGrid9Position = EchartsLegendPos;
  *
  * @remarks
  * Only the cartesian-relevant fields apply to cartesian series; pie slices use `name` +
- * `color` only; radar polygons use `name` + `color` + `area`. The editor shows fields
+ * `color` only. The editor shows fields
  * type-sensitively, so unused fields simply stay undefined.
  */
 export interface EchartsSeriesMeta {
@@ -344,11 +354,6 @@ export interface EchartsSeriesMeta {
     nullMode?: 'keep' | 'forward' | 'zero';
     /** Line shadow blur in px (adapter `shadowSize`, ADR-0060) — shadow in the series colour; 0/unset = off. */
     shadowBlur?: number;
-    /**
-     * „Gültige Zeit" in seconds (adapter `validTime`, ADR-0060) — Live mode only: while the last
-     * point is fresher than this, the line is held to now at that value; stale expires to a gap.
-     */
-    validTime?: number;
     /** „Keine Zukunft" (adapter `noFuture`, ADR-0060): points after now are cut in the pipeline. */
     noFuture?: boolean;
     /**
@@ -406,44 +411,6 @@ export type EchartsJsonSeriesStyle = Record<string, EchartsSeriesMeta>;
 // ─────────────────────────────────────────────────────────────────────────────
 // Family-specific structured config (stored in the base64 `chartConfig` blob)
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** Gauge config — a scalar dial within a range. */
-export interface EchartsGaugeConfig {
-    min?: number;
-    max?: number;
-    /** Optional target marker. */
-    target?: number;
-    /** Progress arc width (px). @default 14 */
-    progressWidth?: number;
-    /** Value unit suffix. */
-    unit?: string;
-}
-
-/** One radar indicator (axis) bound to an OID supplying its current value. */
-export interface EchartsRadarIndicator {
-    /**
-     * Stable identity for React reconciliation (NOT emitted to echarts — the radar builder maps
-     * indicators to `{name, max}` field-by-field). Stamped at creation and backfilled on editor load
-     * via `withStableIds`. Fixes the index-key bug on indicator delete.
-     */
-    id?: string;
-    name: string;
-    /** Axis maximum. @default 100 */
-    max?: number;
-    /** OID supplying this indicator's current value (auto-subscribed as `oidN`). */
-    oid: string;
-}
-
-/** Radar config — the indicator list + polygon shape. */
-export interface EchartsRadarConfig {
-    shape?: EchartsRadarShape;
-    /** Number of split rings. @default 5 */
-    splitNumber?: number;
-    /** Area-fill the polygon. @default true */
-    area?: boolean;
-    /** Indicators (the axes). Empty list = no radar. */
-    indicators: EchartsRadarIndicator[];
-}
 
 /** Pie config — aggregation + donut/rose/label. */
 export interface EchartsPieConfig {
@@ -870,7 +837,7 @@ export interface EchartsXAxisConfig {
 export interface EchartsFieldsRxData {
     // ── Family & data mode ──────────────────────────────────────────────────
 
-    /** Kind of chart (line/bar/pie/gauge/radar — area is a per-series fill mode, not a type, ADR-0008 r4). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
+    /** Kind of chart (line/bar/scatter/pie — area is a per-series fill mode, not a type, ADR-0008 r4; gauge/radar removed by ADR-0071). Drives the data shape + binding UI; the family is derived via `familyOf`. @default 'line' */
     chartType?: EchartsChartType;
 
     /** Data source mode. @default 'history' */
@@ -930,7 +897,7 @@ export interface EchartsFieldsRxData {
 
     /** Base64 `[{...EchartsSeriesMeta}]` aligned by index with `oidN`. */
     seriesConfig?: string;
-    /** Base64 family-specific structured config (gauge / radar / pie) + the section raws. */
+    /** Base64 family-specific structured config (pie) + the section raws. */
     chartConfig?: string;
     /** Base64 {@link EchartsToolboxConfig} — the Toolbox section (ADR-0045, legendConfig precedent). */
     toolboxConfig?: string;

@@ -13,7 +13,6 @@ import type { FC } from 'react';
 import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import { familyOf } from '../../optionBuilder';
 import {
     FieldGrid,
     FieldLabel,
@@ -38,7 +37,7 @@ import type { EditorState, SetEditor } from '../editorState';
  * toggle (ADR-0054) beside the `legend` styling blob, the section raw + its template ids; the 4
  * palette/darkMode fields are transitively read via `useEditorTheme` (the inherit previews).
  * `chartType` gates the values toggle to the families whose legend shows per-series current
- * values (cartesian/pie — a radar legend names polygons, not series).
+ * values (cartesian/pie).
  */
 export type LegendSlice = Pick<
     EditorState,
@@ -85,10 +84,8 @@ const LegendSection: FC<LegendSectionProps> = ({ state, set, pickerCtx }) => {
     // middle row (a centred nudge needs container size → resize churn, out of scope).
     const offsetXRelevant = state.legendPos.endsWith('Left') || state.legendPos.endsWith('Right');
     const offsetYRelevant = state.legendPos.startsWith('top') || state.legendPos.startsWith('bottom');
-    // Legend values (ADR-0054) need per-SERIES current values — cartesian/pie legends name series;
-    // a radar legend names the single polygon, a gauge has no legend at all.
-    const family = familyOf(state.chartType);
-    const valuesRelevant = family === 'cartesian' || family === 'pie';
+    // Legend values (ADR-0054) need per-SERIES current values — cartesian/pie legends name series.
+    const valuesRelevant = true;
     return (
         <Box>
             <SwitchList sx={{ mb: 1.5 }}>

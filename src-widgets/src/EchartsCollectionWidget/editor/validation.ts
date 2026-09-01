@@ -49,29 +49,11 @@ export const validateEditor = (state: EditorState): SectionIssues => {
     };
     const family = familyOf(state.chartType);
 
-    if (family === 'cartesian' || family === 'pie') {
-        state.series.forEach((s, i) => {
-            if (!s.oid) {
-                push('series', 'echarts_val_oid_missing', s.name || `${i + 1}`);
-            }
-        });
-    } else if (family === 'gauge') {
-        if (!state.series[0]?.oid) {
-            push('series', 'echarts_val_oid_missing', state.series[0]?.name || '1');
+    state.series.forEach((s, i) => {
+        if (!s.oid) {
+            push('series', 'echarts_val_oid_missing', s.name || `${i + 1}`);
         }
-        if ((state.gauge.min ?? 0) >= (state.gauge.max ?? 100)) {
-            push('family', 'echarts_val_gauge_range');
-        }
-    } else if (family === 'radar') {
-        state.radar.indicators.forEach((ind, i) => {
-            if (!ind.oid) {
-                push('series', 'echarts_val_oid_missing', ind.name || `${i + 1}`);
-            }
-            if (!(typeof ind.max === 'number' && ind.max > 0)) {
-                push('series', 'echarts_val_radar_max', ind.name || `${i + 1}`);
-            }
-        });
-    }
+    });
 
     if (family === 'cartesian') {
         // Stale series→axis binding (Q6): a stored `yAxisIndex` beyond the axis array (reachable
@@ -113,7 +95,7 @@ export interface BoundaryLoss {
 }
 
 /**
- * What a chart-FAMILY crossing (cartesian↔pie↔gauge↔radar, ADR-0067) deletes from the current
+ * What a chart-FAMILY crossing (cartesian↔pie, ADR-0067) deletes from the current
  * state — the numbers of the type-picker warning chip. The crossing resets the whole data path,
  * so the loss is the ENTIRE series/axis set of the current family (the pre-ADR-0067 survival
  * model — cartesian→pie keeping the series as slices — is pensioned with it). Radar's data path
@@ -123,7 +105,7 @@ export interface BoundaryLoss {
 export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => {
     const family = familyOf(state.chartType);
     return {
-        series: family === 'radar' ? state.radar.indicators.length : state.series.length,
+        series: state.series.length,
         axes: state.yAxes.length,
         marks: family === 'cartesian' ? state.markLines.length : 0,
         dataPoint: !!state.jsonOid,
@@ -161,7 +143,7 @@ export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly s
  * Apply.
  *
  * ADR-0067 note: since the family crossing RESETS every series, the historical survivor model
- * below (gauge keeping the first series, slot-stale activations on survivors) can only bite on
+ * below (slot-stale activations on survivors) can only bite on
  * a working copy that never actually crossed — the post-switch case is vacuous (no series left).
  * Kept verbatim per the ticket ("die Snippet-Prune-Warnung bleibt unberührt"); the slot-stale
  * machinery still guards the load path over hand-edited blobs.
@@ -170,13 +152,5 @@ export const familySwitchSnippetLoss = (state: EditorState): number => {
     const family = familyOf(state.chartType);
     const stale = (ids: string[] | undefined, slot: SeriesTemplateSlot): number =>
         ids ? ids.length - pruneSnippetIds(SERIES_TEMPLATES[slot], ids).length : 0;
-    const dropped = (list: { snippets?: string[] }[]): number =>
-        list.reduce((total, s) => total + (s.snippets?.length ?? 0), 0);
-
-    if (family === 'gauge' || family === 'radar') {
-        // Historical model: the first series survives as the single gauge series / radar polygon
-        // (its activations go stale against that slot); every further series is dropped.
-        return stale(state.series[0]?.snippets, family) + dropped(state.series.slice(1));
-    }
     return state.series.reduce((total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s)), 0);
 };

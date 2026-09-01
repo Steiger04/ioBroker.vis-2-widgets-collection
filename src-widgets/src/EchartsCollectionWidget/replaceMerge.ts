@@ -11,8 +11,8 @@
  *
  * Grouping: `series`/`dataZoom`/`visualMap`/`yAxis`/`xAxis`/`title`/`legend`/`tooltip`/`grid` are
  * GUI-managed (the builders always emit them, so replacing with the freshly merged option is
- * lossless); `toolbox` (the ADR-0045 master switch — off emits NO block) and `radar`
- * (family-conditional) are GUI-managed but only SOMETIMES emitted; `graphic`/`axisPointer` are
+ * lossless); `toolbox` (the ADR-0045 master switch — off emits NO block)
+ * (family-conditional) is GUI-managed but only SOMETIMES emitted; `graphic`/`axisPointer` are
  * free-text-only keys the GUI never emits. Without replaceMerge, every conditional of these
  * leaves a merge-retained ghost.
  *
@@ -32,9 +32,8 @@ export const REPLACE_MERGE = [
     'legend',
     'tooltip',
     'grid',
-    // GUI-managed but conditional: the toolbox master switch (ADR-0045) / the radar family.
+    // GUI-managed but conditional: the toolbox master switch (ADR-0045).
     'toolbox',
-    'radar',
     // Free-text-only, never builder-emitted.
     'graphic',
     'axisPointer',

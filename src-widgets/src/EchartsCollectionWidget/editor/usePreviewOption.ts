@@ -68,15 +68,12 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
     const companions = useMemo(
         () => ({
             chartConfig: {
-                gauge: state.gauge,
-                radar: state.radar,
                 pie: state.pie,
-                // The section raws (ADR-0044/0045) must ride along or the pipeline would silently
+                // The section raws (ADR-0044) must ride along or the pipeline would silently
                 // drop raw content the runtime folds (the ADR-0044 spec-review catch).
                 titleRaw: state.titleRaw || undefined,
                 legendRaw: state.legendRaw || undefined,
                 tooltipRaw: state.tooltipRaw || undefined,
-                radarRaw: state.radarRaw || undefined,
             },
             yAxes: state.yAxes,
             markLines: state.markLines,

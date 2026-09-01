@@ -88,7 +88,7 @@ const paramValue = (p: TooltipParam): unknown => (Array.isArray(p.value) ? p.val
 
 /**
  * The hovered timestamp: axis trigger → `axisValue`; item trigger → the point's own `[ts, …]`
- * head. A BARE scalar value is a value, not a timestamp (pie/gauge numbers) → null.
+ * head. A BARE scalar value is a value, not a timestamp (pie numbers) → null.
  */
 const paramTs = (p: TooltipParam): number | null => {
     const raw = p.axisValue ?? (Array.isArray(p.value) && typeof p.value[0] === 'number' ? p.value[0] : null);

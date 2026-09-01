@@ -5,7 +5,7 @@
  * @remarks
  * Lifecycle: `init` (Canvas) → `setOption` (with the {@link REPLACE_MERGE} list — series add/remove,
  * disabling dataZoom/visualMap, X/Y-axis add/remove, title/legend edge-key switches, family switches,
- * AND removal of conditional components (the switched-off toolbox, the radar family switch —
+ * AND removal of conditional components (the switched-off toolbox master switch —
  * ADR-0036/0045) all take effect — without the matching mainType in replaceMerge, echarts MERGES
  * and keeps a stale component after the option stops emitting it, or retains trailing entries when
  * an array shrinks, or a stale `top`/`bottom`/`left`/`right` key after a position switch) → `resize`
@@ -131,9 +131,9 @@ export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }
     // multi-axis made the yAxis array dynamic; ADR-0016 addendum; 'xAxis' joined in ADR-0036),
     // title/legend (so a position switch drops the now-unused edge key — top↔bottom/left↔right —
     // instead of merge-retaining it; ADR-0021), grid/tooltip (always emitted by the builders, so
-    // replace is lossless), AND toolbox/radar (GUI-conditional: the ADR-0045 toolbox master
-    // switch / the family switch — without their mainType here, switching off leaves a
-    // merge-retained ghost) plus graphic/axisPointer (free-text-only, never builder-emitted).
+    // replace is lossless), AND toolbox (GUI-conditional: the ADR-0045 master switch — without
+    // its mainType here, switching off leaves a merge-retained ghost) plus graphic/axisPointer
+    // (free-text-only, never builder-emitted).
     // The option is the fully-merged, already-layout-correct fragment.
     useEffect(() => {
         if (!containerRef.current) {

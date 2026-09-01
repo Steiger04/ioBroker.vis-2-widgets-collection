@@ -17,7 +17,6 @@ import type { LegacyConnection } from '@iobroker/adapter-react-v5';
 import Generic from '../../Generic';
 import EChart from '../EChart';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from '../emptyPlaceholder';
-import { familyOf } from '../optionBuilder';
 import { resolveFrameCss } from '../frameStyle';
 import { parseZoomIdleSeconds } from '../zoomIdleReset';
 import { usePreviewOption } from './usePreviewOption';
@@ -37,19 +36,10 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
     // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
     const { option, loading, hasData, error } = usePreviewOption(state, socket, theme);
 
-    const placeholder = Generic.t(
-        PLACEHOLDER_I18N_KEY[
-            emptyPlaceholderReason({
-                family: familyOf(state.chartType),
-                mode: state.mode,
-                seriesCount: state.series.length,
-            })
-        ],
-    );
+    const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(state.mode)]);
 
     // The section whose fields would replace this placeholder with a real chart.
-    const targetSection: SectionKey =
-        state.mode === 'json' && state.chartType !== 'gauge' && state.chartType !== 'radar' ? 'dataSource' : 'series';
+    const targetSection: SectionKey = state.mode === 'json' ? 'dataSource' : 'series';
 
     const emptyBody = (
         <>

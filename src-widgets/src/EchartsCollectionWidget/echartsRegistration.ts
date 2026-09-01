@@ -7,18 +7,18 @@
  * set on the global echarts core. `use()` is global and idempotent, so importing this once
  * anywhere in the widget bundle is enough — it is imported once by `EChart.tsx`.
  *
- * The v2 set (ADR-0008) covers every shipped chart family — cartesian (line/bar/area via
- * LineChart+BarChart), PieChart, GaugeChart, RadarChart — plus the presentation components
- * the GUI and the Advanced JSON escape hatch reach for: the cartesian coordinate system
+ * The set (ADR-0008, widened by ADR-0060/0071) covers every shipped chart family — cartesian
+ * (line/bar/scatter via LineChart+BarChart+ScatterChart) and PieChart — plus the presentation
+ * components the GUI and the raw escape hatches reach for: the cartesian coordinate system
  * (GridComponent), dataZoom, mark lines/areas/points, toolbox, visualMap (value→colour
- * scales), the radar coordinate system (RadarComponent), graphic (custom U shapes), and
- * aria. Scatter is deferred (ADR-0008) and therefore not registered.
+ * scales), graphic (custom shapes), and aria. (GaugeChart/RadarChart died with their
+ * families, ADR-0071.)
  *
  * HARD RULE: never `import * as echarts from 'echarts'` anywhere in the widget source —
  * one stray full import silently restores the full bundle and undoes the tree-shaking.
  */
 import { use } from 'echarts/core';
-import { BarChart, GaugeChart, LineChart, PieChart, RadarChart } from 'echarts/charts';
+import { BarChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
 import {
     GridComponent,
     TooltipComponent,
@@ -32,7 +32,6 @@ import {
     MarkAreaComponent,
     MarkPointComponent,
     VisualMapComponent,
-    RadarComponent,
     GraphicComponent,
     ToolboxComponent,
     AriaComponent,
@@ -44,15 +43,13 @@ import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
 // so the react-hooks/rules-of-hooks lint rule does not apply here.
 // eslint-disable-next-line react-hooks/rules-of-hooks
 use([
-    // Charts (cartesian line/bar/area use LineChart + BarChart; area is line + areaStyle)
+    // Charts (cartesian line/bar/scatter + pie; gauge/radar removed by ADR-0071)
     LineChart,
     BarChart,
+    ScatterChart,
     PieChart,
-    GaugeChart,
-    RadarChart,
     // Coordinate systems
     GridComponent,
-    RadarComponent,
     // Presentation components (GUI + Advanced JSON)
     TooltipComponent,
     LegendComponent,

@@ -37,16 +37,6 @@ export type SeriesTemplateCategory =
     | 'states'
     | 'markers'
     | 'backgroundStyle'
-    // gauge sub-components (gauge slot only)
-    | 'axisLine'
-    | 'axisTick'
-    | 'axisLabel'
-    | 'splitLine'
-    | 'progress'
-    | 'pointer'
-    | 'anchor'
-    | 'title'
-    | 'detail'
     // scalar behaviour levers (every slot)
     | 'behaviour';
 
@@ -61,15 +51,6 @@ export const SERIES_CATEGORY_ORDER: SeriesTemplateCategory[] = [
     'states',
     'markers',
     'backgroundStyle',
-    'axisLine',
-    'axisTick',
-    'axisLabel',
-    'splitLine',
-    'progress',
-    'pointer',
-    'anchor',
-    'title',
-    'detail',
     'behaviour',
 ];
 
@@ -85,31 +66,20 @@ export const SERIES_CATEGORY_I18N: Record<SeriesTemplateCategory, string> = {
     states: 'echarts_stpl_cat_states',
     markers: 'echarts_stpl_cat_markers',
     backgroundStyle: 'echarts_stpl_cat_backgroundstyle',
-    axisLine: 'echarts_stpl_cat_axisline',
-    axisTick: 'echarts_stpl_cat_axistick',
-    axisLabel: 'echarts_stpl_cat_axislabel',
-    splitLine: 'echarts_stpl_cat_splitline',
-    progress: 'echarts_stpl_cat_progress',
-    pointer: 'echarts_stpl_cat_pointer',
-    anchor: 'echarts_stpl_cat_anchor',
-    title: 'echarts_stpl_cat_title',
-    detail: 'echarts_stpl_cat_detail',
     behaviour: 'echarts_stpl_cat_behaviour',
 };
 
 /**
  * Which card a catalog belongs to (family, or the cartesian sub-type, or the pie layer). The
  * categories a slot actually uses are the option groups echarts offers that series type — the
- * gauge slot surfaces its sub-component groups, pie its label-line group, and so on.
+ * pie slot surfaces its label-line group, and so on.
  */
 export type SeriesTemplateSlot =
     | 'cartesian-line'
     | 'cartesian-bar'
     | 'cartesian-scatter' // point series (ADR-0060) — no line/area/bar groups
     | 'pie' // whole-pie series (series[0])
-    | 'pie-slice' // per slice (data[i])
-    | 'gauge'
-    | 'radar';
+    | 'pie-slice'; // per slice (data[i])
 
 /**
  * The slot a series' activations resolve against, derived from the chart family + the series'
@@ -117,13 +87,7 @@ export type SeriesTemplateSlot =
  * the load prune (ADR-0043) and the family-switch loss count, so the three can never drift apart.
  */
 export const seriesSlotOf = (family: string, chartType: string, meta: { type?: string }): SeriesTemplateSlot =>
-    family === 'gauge'
-        ? 'gauge'
-        : family === 'radar'
-          ? 'radar'
-          : family === 'pie'
-            ? 'pie-slice'
-            : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
+    family === 'pie' ? 'pie-slice' : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
 
 export interface SeriesTemplate {
     /** Stable id for React keys and persisted activations (ADR-0042). */
@@ -845,293 +809,12 @@ const PIE_SLICE: SeriesTemplate[] = [
     },
 ];
 
-// ── gauge (single series) ─────────────────────────────────────────────────────
-// GUI-owned (always): type/min/max/radius/progress.show/progress.width/progress.itemStyle.color/
-// axisLine.lineStyle.width/axisTick.show/splitLine.length/pointer.itemStyle.color/detail.
-// valueAnimation/detail.fontSize/detail.offsetCenter/data. Conditional: detail.formatter (unit
-// set), axisLine.lineStyle.color (target marker set). gauge has NO minorTick/minorSplitLine.
-const GAUGE: SeriesTemplate[] = [
-    {
-        id: 'gauge-axisline',
-        category: 'axisLine',
-        label: 'axisLine',
-        // lineStyle.width is card-owned; the colour ramp is card-owned only with a target marker
-        // (◐ there) — colour zones ARE the axis-line lever, allow-listed.
-        json: JSON.stringify({
-            axisLine: {
-                show: true,
-                lineStyle: {
-                    color: [
-                        [0.3, '#67e0e3'],
-                        [0.7, '#37a2da'],
-                        [1, '#fd666d'],
-                    ],
-                },
-            },
-        }),
-    },
-    {
-        id: 'gauge-axistick',
-        category: 'axisTick',
-        label: 'axisTick',
-        json: JSON.stringify({
-            axisTick: { length: 6, distance: 10, splitNumber: 5, lineStyle: { width: 1, type: 'solid', opacity: 1 } },
-        }),
-    },
-    {
-        id: 'gauge-axislabel',
-        category: 'axisLabel',
-        label: 'axisLabel',
-        json: JSON.stringify({
-            axisLabel: { show: true, distance: 15, rotate: 0, formatter: '{value}', color: '#666', fontSize: 12 },
-        }),
-    },
-    {
-        id: 'gauge-splitline',
-        category: 'splitLine',
-        label: 'splitLine',
-        json: JSON.stringify({
-            splitLine: { show: true, distance: 10, lineStyle: { width: 3, type: 'solid', opacity: 1 } },
-        }),
-    },
-    {
-        id: 'gauge-progress',
-        category: 'progress',
-        label: 'progress',
-        json: JSON.stringify({ progress: { overlap: true, roundCap: false, clip: true, itemStyle: { opacity: 1 } } }),
-    },
-    {
-        id: 'gauge-pointer',
-        category: 'pointer',
-        label: 'pointer',
-        // icon stays unset (null default = the needle shape); any built-in symbol or an SVG path
-        // string ('path://…') replaces it. pointer.itemStyle.color is card-owned.
-        json: JSON.stringify({
-            pointer: {
-                show: true,
-                length: '60%',
-                width: 6,
-                offsetCenter: [0, 0],
-                keepAspect: false,
-                itemStyle: { opacity: 1 },
-            },
-        }),
-    },
-    {
-        id: 'gauge-anchor',
-        category: 'anchor',
-        label: 'anchor',
-        json: JSON.stringify({
-            anchor: {
-                show: true,
-                showAbove: true,
-                size: 6,
-                icon: 'circle',
-                offsetCenter: [0, 0],
-                keepAspect: false,
-                itemStyle: { borderWidth: 0, ...NO_SHADOW },
-            },
-        }),
-    },
-    {
-        id: 'gauge-title',
-        category: 'title',
-        label: 'title',
-        json: JSON.stringify({
-            title: {
-                show: true,
-                offsetCenter: [0, '20%'],
-                color: '#666',
-                fontSize: 16,
-                fontStyle: 'normal',
-                fontWeight: 'normal',
-            },
-        }),
-    },
-    {
-        id: 'gauge-detail',
-        category: 'detail',
-        label: 'detail',
-        // formatter is card-owned only with a unit set (◐ there) — formatter IS the detail lever,
-        // allow-listed. fontSize/offsetCenter/valueAnimation stay card-owned and out.
-        json: JSON.stringify({
-            detail: {
-                show: true,
-                color: '#333',
-                fontStyle: 'normal',
-                fontWeight: 'normal',
-                backgroundColor: 'transparent',
-                formatter: '{value}',
-            },
-        }),
-    },
-    {
-        id: 'gauge-detail-rich',
-        category: 'detail',
-        label: 'detail · rich',
-        json: JSON.stringify({
-            detail: {
-                show: true,
-                formatter: '{val|{value}}{unit| °C}',
-                rich: {
-                    val: { color: '#333', fontSize: 30, fontStyle: 'normal', fontWeight: 'bold' },
-                    unit: {
-                        color: '#666',
-                        fontSize: 14,
-                        fontStyle: 'normal',
-                        fontWeight: 'normal',
-                        padding: [6, 0, 0, 0],
-                    },
-                },
-            },
-        }),
-    },
-    {
-        id: 'gauge-emphasis',
-        category: 'states',
-        label: 'emphasis',
-        json: JSON.stringify({
-            emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } },
-        }),
-    },
-    {
-        id: 'gauge-startangle',
-        category: 'behaviour',
-        label: 'startAngle',
-        json: '{ "startAngle": 225 }',
-    },
-    {
-        id: 'gauge-endangle',
-        category: 'behaviour',
-        label: 'endAngle',
-        json: '{ "endAngle": -45 }',
-    },
-    {
-        id: 'gauge-center',
-        category: 'behaviour',
-        label: 'center',
-        json: '{ "center": ["50%", "50%"] }',
-    },
-    {
-        id: 'gauge-splitnumber',
-        category: 'behaviour',
-        label: 'splitNumber',
-        json: '{ "splitNumber": 10 }',
-    },
-    {
-        id: 'gauge-silent',
-        category: 'behaviour',
-        label: 'silent',
-        json: '{ "silent": true }',
-    },
-];
-
-// ── radar (single series, style lifted to series level) ───────────────────────
-// GUI-owned (always): type/lineStyle.color/itemStyle.color/data. Conditional: areaStyle.color +
-// areaStyle.opacity (area fill on). lineStyle.width IS free here (unlike cartesian).
-const RADAR: SeriesTemplate[] = [
-    {
-        id: 'radar-linestyle',
-        category: 'lineStyle',
-        label: 'lineStyle',
-        json: JSON.stringify({
-            lineStyle: { width: 2, opacity: 0.9, dashOffset: 0, cap: 'butt', ...NO_SHADOW },
-        }),
-    },
-    {
-        id: 'radar-areastyle',
-        category: 'areaStyle',
-        label: 'areaStyle',
-        // opacity is card-owned with the area fill on (◐ there, ✓ off) — the fill opacity IS the
-        // classic radar lever, allow-listed.
-        json: JSON.stringify({ areaStyle: { opacity: 0.3, ...NO_SHADOW } }),
-    },
-    {
-        id: 'radar-itemstyle',
-        category: 'itemStyle',
-        label: 'itemStyle',
-        json: JSON.stringify({
-            itemStyle: { opacity: 0.9, borderColor: '#fff', borderWidth: 1, borderType: 'solid', ...NO_SHADOW },
-        }),
-    },
-    {
-        id: 'radar-symbol',
-        category: 'symbol',
-        label: 'symbol',
-        json: JSON.stringify({
-            symbol: 'circle',
-            symbolSize: 6,
-            symbolRotate: 0,
-            symbolOffset: [0, 0],
-            symbolKeepAspect: false,
-        }),
-    },
-    {
-        id: 'radar-label',
-        category: 'label',
-        label: 'label',
-        json: JSON.stringify({
-            label: { show: true, formatter: '{c}', ...LABEL_FONT_KEYS },
-        }),
-    },
-    {
-        id: 'radar-label-rich',
-        category: 'label',
-        label: 'label · rich',
-        json: JSON.stringify({
-            label: {
-                show: true,
-                formatter: '{val|{c}}',
-                rich: { val: { color: '#333', fontSize: 12, fontStyle: 'normal', fontWeight: 'bold' } },
-                ...LABEL_FONT_KEYS,
-            },
-        }),
-    },
-    {
-        id: 'radar-emphasis',
-        category: 'states',
-        label: 'emphasis',
-        json: JSON.stringify({
-            emphasis: { focus: 'self', lineStyle: { width: 3 }, itemStyle: {}, label: { show: true } },
-        }),
-    },
-    {
-        id: 'radar-blur',
-        category: 'states',
-        label: 'blur',
-        json: JSON.stringify({
-            blur: { lineStyle: { opacity: 0.3 }, itemStyle: { opacity: 0.3 }, label: { show: false } },
-        }),
-    },
-    {
-        id: 'radar-select',
-        category: 'states',
-        label: 'select',
-        json: JSON.stringify({ select: { disabled: true, itemStyle: {}, label: { show: true } } }),
-    },
-    {
-        id: 'radar-animtype',
-        category: 'behaviour',
-        label: 'animationType',
-        // animationEasing stays out: conditionally card-owned when the chart-level easing is set.
-        json: '{ "animationType": "scale" }',
-    },
-    {
-        id: 'radar-silent',
-        category: 'behaviour',
-        label: 'silent',
-        json: '{ "silent": true }',
-    },
-];
-
 export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
     'cartesian-line': CARTESIAN_LINE,
     'cartesian-bar': CARTESIAN_BAR,
     'cartesian-scatter': CARTESIAN_SCATTER,
     pie: PIE,
     'pie-slice': PIE_SLICE,
-    gauge: GAUGE,
-    radar: RADAR,
 };
 
 /**
@@ -1176,6 +859,4 @@ export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> 
     'cartesian-scatter': new Set(['markLine.silent', 'markLine.symbol', 'markLine.data', 'label.formatter']),
     pie: new Set(),
     'pie-slice': new Set(),
-    gauge: new Set(['detail.formatter', 'axisLine.lineStyle.color']),
-    radar: new Set(['areaStyle.opacity']),
 };

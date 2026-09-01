@@ -109,24 +109,3 @@ export const cutFuturePoints = (data: SeriesPoint[], now: number): SeriesPoint[]
     const cut = data.filter(([ts]) => ts <= now);
     return cut.length === data.length ? data : cut;
 };
-
-/**
- * „Gültige Zeit" (adapter `validTime`, ADR-0060) — Live mode: while the last point is fresher
- * than `validTime` seconds, hold the line to `now` at that value (the still-valid assumption);
- * stale (or a null last value) expires to a gap point at `now`. Unset → the data unchanged.
- */
-export const holdValidLiveValue = (
-    data: SeriesPoint[],
-    validTimeSec: number | undefined,
-    now: number,
-): SeriesPoint[] => {
-    if (!validTimeSec || !data.length) {
-        return data;
-    }
-    const [lastTs, lastVal] = data[data.length - 1];
-    if (lastTs >= now) {
-        return data; // already at (or past) now — nothing to extend
-    }
-    const fresh = now - lastTs <= validTimeSec * 1000;
-    return [...data, [now, fresh && lastVal !== null ? lastVal : null] as SeriesPoint];
-};

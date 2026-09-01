@@ -14,13 +14,11 @@ import type {
     EchartsChartFamily,
     EchartsFontStyle,
     EchartsFontWeight,
-    EchartsGaugeConfig,
     EchartsLegendConfig,
     EchartsLegendPos,
     EchartsLineStyle,
     EchartsMarkLine,
     EchartsPieConfig,
-    EchartsRadarConfig,
     EchartsTitlePos,
     EchartsToolboxConfig,
     EchartsTooltipTrigger,
@@ -181,10 +179,8 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
 const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
-/** The decoded `chartConfig` blob: family configs + the component-section raws (ADR-0044/0045). */
+/** The decoded `chartConfig` blob: the pie family config + the component-section raws (ADR-0044/0045). */
 export interface ChartConfigBlob {
-    gauge?: EchartsGaugeConfig;
-    radar?: EchartsRadarConfig;
     pie?: EchartsPieConfig;
     /** Title / Legend / Tooltip section raws + template activations (ADR-0044). */
     titleRaw?: string;
@@ -193,12 +189,9 @@ export interface ChartConfigBlob {
     legendSnippets?: string[];
     tooltipRaw?: string;
     tooltipSnippets?: string[];
-    /** The Radar section's raw escape hatch + activations (ADR-0045, radar family only). */
-    radarRaw?: string;
-    radarSnippets?: string[];
 }
 
-/** Decode the base64 family-config blob into its gauge/radar/pie parts (+ section raws). */
+/** Decode the base64 family-config blob into its pie part (+ section raws). */
 export const decodeChartConfig = (raw: string | undefined | null): ChartConfigBlob => {
     if (!raw) {
         return {};
@@ -550,9 +543,6 @@ export const toPresentationConfig = (opts: {
         themeDark,
         markLines,
         visualMap,
-        gauge: chartConfig.gauge,
-        radar: chartConfig.radar,
-        radarRaw: chartConfig.radarRaw,
         pie: chartConfig.pie,
     };
 };
@@ -600,7 +590,7 @@ const legendGridPlacement = (pos: EchartsLegendPos, offsetX: number, offsetY: nu
 
 /**
  * Build the echarts `legend` fragment from the presentation config + the family's legend item names
- * (ADR-0021). The single legend author for every family — cartesian/pie/radar all call it, so the
+ * (ADR-0021). The single legend author for every family — cartesian/pie both call it, so the
  * position/styling model is honoured uniformly (pie/radar no longer hardcode `bottom: 4`). Only the
  * GUI-owned keys are emitted; every unset field inherits the echarts/theme default.
  *

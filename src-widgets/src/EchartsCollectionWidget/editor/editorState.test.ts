@@ -15,7 +15,6 @@ import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState } from './editor
 import { composeActiveSnippets } from './snippetComposition';
 import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
-import { RADAR_TEMPLATES } from './radarTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
 import type { EditorState } from './editorState';
@@ -232,7 +231,7 @@ describe('editorState — load heal enforces the derived-citizen invariant (ADR-
     // Bestand exists — only dev blobs carry these shapes.
     const polluted = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
         chartType: 'line',
-        mode: 'live',
+        mode: 'history',
         series_count: 1,
         oid1: 'dev.temp',
         seriesConfig: encodeBlob(JSON.stringify([{ name: 'Temp' }])),
@@ -251,7 +250,7 @@ describe('editorState — load heal enforces the derived-citizen invariant (ADR-
 
     it('heals a polluted live blob down to the bound axis — unbound axes are gone, not resting', () => {
         const reloaded = loadEditorState(polluted());
-        expect(reloaded.mode).toBe('live');
+        expect(reloaded.mode).toBe('history');
         expect(reloaded.series).toHaveLength(1);
         expect(reloaded.yAxes.map(a => a.id)).toEqual(['a0']); // Temp binds axis 0 implicitly
     });
@@ -298,7 +297,7 @@ describe('editorState — load heal enforces the derived-citizen invariant (ADR-
         const state = {
             ...baseState(),
             chartType: 'line' as const,
-            mode: 'live' as const,
+            mode: 'history' as const,
             series: [{ oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 }],
             yAxes: [
                 { id: 'ax-1', position: 'left' as const, splitLine: true, min: 0, max: 40, name: '°C' },
@@ -315,7 +314,7 @@ describe('editorState — load heal enforces the derived-citizen invariant (ADR-
         const state = {
             ...baseState(),
             chartType: 'line' as const,
-            mode: 'live' as const,
+            mode: 'history' as const,
             series: [
                 { oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 },
                 { oid: 'dev.hum', name: 'Hum', yAxisIndex: 2 },
@@ -337,7 +336,7 @@ describe('editorState — load heal enforces the derived-citizen invariant (ADR-
         const state = {
             ...baseState(),
             chartType: 'line' as const,
-            mode: 'live' as const,
+            mode: 'history' as const,
             series: [
                 { id: 'sr-1', oid: 'dev.temp', name: 'Temp', yAxisIndex: 0 },
                 { id: 'sr-2', oid: 'dev.hum', name: 'Hum', yAxisIndex: 0 },
@@ -377,9 +376,7 @@ describe('editorState — 0-axes start (ADR-0067)', () => {
         expect(reloaded.yAxes).toEqual([]);
     });
 
-    it('gauge/radar/pie never synthesise an axis (yAxes is cartesian-only state)', () => {
-        expect(loadEditorState({ chartType: 'gauge', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
-        expect(loadEditorState({ chartType: 'radar', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
+    it('pie never synthesises an axis (yAxes is cartesian-only state)', () => {
         expect(loadEditorState({ chartType: 'pie', series_count: 1, oid1: 'dev.p' }).yAxes).toEqual([]);
     });
 
@@ -387,6 +384,37 @@ describe('editorState — 0-axes start (ADR-0067)', () => {
         const state = { ...baseState(), chartType: 'line' as const, series: [], yAxes: [] };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.yAxes).toEqual([]);
+    });
+});
+
+describe('editorState — ADR-0071 legacy heal (live mode + gauge/radar families)', () => {
+    it("heals mode:'live' to history on load", () => {
+        const reloaded = loadEditorState({ chartType: 'line', mode: 'live', series_count: 1, oid1: 'dev.temp' });
+        expect(reloaded.mode).toBe('history');
+    });
+
+    it("heals chartType:'gauge' to line — the scalar oid1 becomes the line series", () => {
+        const reloaded = loadEditorState({ chartType: 'gauge', mode: 'live', series_count: 1, oid1: 'dev.temp' });
+        expect(reloaded.chartType).toBe('line');
+        expect(reloaded.mode).toBe('history');
+        expect(reloaded.series).toHaveLength(1);
+        expect(reloaded.series[0]?.oid).toBe('dev.temp');
+    });
+
+    it("heals chartType:'radar' to line — every indicator oidN becomes a line series", () => {
+        const reloaded = loadEditorState({
+            chartType: 'radar',
+            series_count: 2,
+            oid1: 'dev.temp',
+            oid2: 'dev.hum',
+        });
+        expect(reloaded.chartType).toBe('line');
+        expect(reloaded.series.map(s => s.oid)).toEqual(['dev.temp', 'dev.hum']);
+    });
+
+    it('a healed gauge/radar config synthesises one legacy axis (the 0-axes minimum)', () => {
+        const reloaded = loadEditorState({ chartType: 'gauge', series_count: 1, oid1: 'dev.temp' });
+        expect(reloaded.yAxes).toHaveLength(1);
     });
 });
 
@@ -419,30 +447,6 @@ describe('editorState — ADR-0042 snippet activations', () => {
         const reloaded = loadEditorState(patch);
         expect(reloaded.series[0]?.snippets).toBeUndefined();
         expect(reloaded.pie.snippets).toBeUndefined();
-    });
-
-    it('gauge series raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
-        const raw = JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES.gauge, ['gauge-axisline']));
-        const state = {
-            ...baseState(),
-            chartType: 'gauge' as const,
-            series: [{ oid: 'a', name: 'G', raw, snippets: ['gauge-axisline'] }],
-        };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.series[0]?.raw).toBe(raw);
-        expect(reloaded.series[0]?.snippets).toEqual(['gauge-axisline']);
-    });
-
-    it('radar polygon raw + activations round-trip (the pre-ADR-0042 persistence gap)', () => {
-        const raw = JSON.stringify(composeActiveSnippets(SERIES_TEMPLATES.radar, ['radar-emphasis']));
-        const state = {
-            ...baseState(),
-            chartType: 'radar' as const,
-            series: [{ oid: '', name: 'R', raw, snippets: ['radar-emphasis'] }],
-        };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.series[0]?.raw).toBe(raw);
-        expect(reloaded.series[0]?.snippets).toEqual(['radar-emphasis']);
     });
 
     it('json-mode overlay activations prune to their slot catalog on Apply', () => {
@@ -509,40 +513,6 @@ describe('editorState — ADR-0042 snippet activations', () => {
         expect(reloaded.titleSnippets).toEqual(['frame']);
         expect(reloaded.tooltipRaw).toBe('{ "confine": true }');
         expect(reloaded.tooltipSnippets).toEqual([]);
-    });
-
-    it('the radar section raw + activations ride the chartConfig blob and heal (ADR-0045)', () => {
-        const raw = JSON.stringify(composeActiveSnippets(RADAR_TEMPLATES, ['radar-splitarea']));
-        const state = {
-            ...baseState(),
-            chartType: 'radar' as const,
-            radarRaw: raw,
-            radarSnippets: ['radar-splitarea', 'nope'], // unknown id — prunes at load, never re-adds
-        };
-        const reloaded = loadEditorState(saveEditorState(state, 0));
-        expect(reloaded.radarRaw).toBe(raw);
-        expect(reloaded.radarSnippets).toEqual(['radar-splitarea']);
-        // The heal is keep-only: an activation whose template has no leaf left in the text drops.
-        const hollow = loadEditorState(
-            saveEditorState({ ...baseState(), radarRaw: '', radarSnippets: ['radar-splitarea'] }, 0),
-        );
-        expect(hollow.radarSnippets).toEqual([]);
-    });
-
-    it('the radar raw survives a family switch away and back (rides the blob inert, no prune)', () => {
-        const raw = JSON.stringify(composeActiveSnippets(RADAR_TEMPLATES, ['radar-axisname']));
-        const state = {
-            ...baseState(),
-            chartType: 'radar' as const,
-            radarRaw: raw,
-            radarSnippets: ['radar-axisname'],
-        };
-        const cartesian = loadEditorState({ ...saveEditorState(state, 0), chartType: 'line' });
-        expect(cartesian.radarRaw).toBe(raw);
-        expect(cartesian.radarSnippets).toEqual(['radar-axisname']);
-        const back = loadEditorState(saveEditorState(cartesian, 0));
-        expect(back.radarRaw).toBe(raw);
-        expect(back.radarSnippets).toEqual(['radar-axisname']);
     });
 });
 

@@ -10,12 +10,12 @@
  * override is deep-merged UNDER the built series entry (`applyRawOverride` — the GUI wins
  * collisions), so a raw key is ✓ effective only where the builder does NOT emit it. Like the axis
  * builder, the series builders' managed sets are partly CONDITIONAL (`symbolSize`/`step`/`areaStyle`
- * only when the card sets them; the gauge `detail.formatter` only with a unit; `roseType` only with
+ * only when the card sets them; `roseType` only with
  * a rose mode; `animationEasing` only when the chart-level easing is set), so a static map would
  * false-red free keys — the classifier resolves the managed LEAF paths from the card state.
  *
  * INVARIANT (as with axes): the managed sets here MUST stay in sync with the builders
- * (`buildCartesianSeriesEntry`, `buildPieOption`, `buildGaugeOption`, `buildRadarOption`) — add a
+ * (`buildCartesianSeriesEntry`, `buildPieOption`) — add a
  * leaf here whenever a series card starts owning another subkey. Pinned by tests.
  */
 
@@ -47,14 +47,8 @@ export interface SeriesAnalysisContext {
     meta?: EchartsSeriesMeta;
     /** Pie whole-series: a rose mode is active (`roseType` emitted). */
     pieRoseActive?: boolean;
-    /** Chart-level easing is set (pie/gauge/radar emit `animationEasing`(+`Update`)). */
+    /** Chart-level easing is set (pie emits `animationEasing`(+`Update`)). */
     animationEasingActive?: boolean;
-    /** Radar: the area fill is on (`areaStyle` emitted). */
-    radarAreaActive?: boolean;
-    /** Gauge: a unit is set (`detail.formatter` emitted). */
-    gaugeUnitActive?: boolean;
-    /** Gauge: a target marker is configured (`axisLine.lineStyle.color` emitted). */
-    gaugeTargetActive?: boolean;
     /** Cartesian: this card hosts the threshold markLines (`markLine.silent/symbol/data` emitted). */
     markLineHost?: boolean;
     /**
@@ -115,41 +109,11 @@ const MANAGED_TOP_KEYS: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
         'animationEasingUpdate',
     ]),
     'pie-slice': new Set(['name', 'value', 'itemStyle']),
-    gauge: new Set([
-        'type',
-        'min',
-        'max',
-        'radius',
-        'progress',
-        'axisLine',
-        'axisTick',
-        'splitLine',
-        'pointer',
-        'detail',
-        'data',
-        'animation',
-        'animationDuration',
-        'animationDurationUpdate',
-        'animationEasing',
-        'animationEasingUpdate',
-    ]),
-    radar: new Set([
-        'type',
-        'lineStyle',
-        'itemStyle',
-        'areaStyle',
-        'data',
-        'animation',
-        'animationDuration',
-        'animationDurationUpdate',
-        'animationEasing',
-        'animationEasingUpdate',
-    ]),
 };
 
 /**
  * Per managed top-level key: child containers whose OWN children are the leaves (so
- * `progress.itemStyle.color` is a leaf, not the whole `progress` object). Only gauge needs
+ * whole `progress` object). Only pie needs
  * two-level leaves; cartesian/pie/radar carry their leaves one level under the top key.
  */
 const NESTED_LEAF_KEYS: Record<string, ReadonlySet<string>> = {
@@ -277,50 +241,6 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         return paths;
     }
 
-    if (ctx.slot === 'gauge') {
-        paths.add('type');
-        paths.add('min');
-        paths.add('max');
-        paths.add('radius');
-        paths.add('progress.show');
-        paths.add('progress.width');
-        paths.add('progress.itemStyle.color');
-        paths.add('axisLine.lineStyle.width');
-        if (ctx.gaugeTargetActive) {
-            paths.add('axisLine.lineStyle.color');
-        }
-        paths.add('axisTick.show');
-        paths.add('splitLine.length');
-        paths.add('pointer.itemStyle.color');
-        paths.add('detail.valueAnimation');
-        paths.add('detail.fontSize');
-        paths.add('detail.offsetCenter');
-        if (ctx.gaugeUnitActive) {
-            paths.add('detail.formatter');
-        }
-        paths.add('data');
-        ANIMATION_LEAVES.forEach(p => paths.add(p));
-        if (ctx.animationEasingActive) {
-            paths.add('animationEasing');
-            paths.add('animationEasingUpdate');
-        }
-        return paths;
-    }
-
-    // radar
-    paths.add('type');
-    paths.add('lineStyle.color');
-    paths.add('itemStyle.color');
-    if (ctx.radarAreaActive) {
-        paths.add('areaStyle.color');
-        paths.add('areaStyle.opacity');
-    }
-    paths.add('data');
-    ANIMATION_LEAVES.forEach(p => paths.add(p));
-    if (ctx.animationEasingActive) {
-        paths.add('animationEasing');
-        paths.add('animationEasingUpdate');
-    }
     return paths;
 };
 

@@ -26,7 +26,7 @@
  * `AxisBuilder.js`, `axisNiceTicks.js`, `Log.js`), not the v5-lagging public docs. Template LABELS
  * are shown as-is (echarts option vocabulary, universally English) — only the CATEGORY headers
  * are translated. Distinct from the per-series Series templates (seriesTemplates.ts) and the
- * component-section catalogs (title/legend/tooltip/radar templates).
+ * component-section catalogs (title/legend/tooltip templates).
  */
 
 import { defineCatalog } from './catalog';

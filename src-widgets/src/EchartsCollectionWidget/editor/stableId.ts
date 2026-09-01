@@ -1,6 +1,6 @@
 /**
  * The single stable-id strategy for every keyed editor card list (series, axes, threshold
- * mark-lines, radar indicators).
+ * mark-lines).
  *
  * @module EchartsCollectionWidget/editor/stableId
  * @remarks
@@ -29,8 +29,8 @@ export const nextStableId = (prefix = 'id-'): string => {
 
 /**
  * Backfill a stable `id` on any item missing one — the migration path for items created before the
- * id existed (decoded blobs) or whose save path drops it (gauge/radar series persist only
- * name+colour). Items that already carry an id are returned unchanged (same reference).
+ * id existed (decoded blobs). Items that already carry an id are returned unchanged (same
+ * reference).
  */
 export const withStableIds = <T extends { id?: string }>(items: readonly T[], prefix = 'id-'): T[] =>
     items.map(item => (item.id ? item : { ...item, id: nextStableId(prefix) }));

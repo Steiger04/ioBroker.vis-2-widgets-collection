@@ -69,8 +69,6 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
     },
     pie: { slot: 'pie', pieRoseActive: true, animationEasingActive: true },
     'pie-slice': { slot: 'pie-slice', meta: {} as EchartsSeriesMeta },
-    gauge: { slot: 'gauge', gaugeUnitActive: true, gaugeTargetActive: true, animationEasingActive: true },
-    radar: { slot: 'radar', radarAreaActive: true, animationEasingActive: true },
 };
 
 describe('SERIES_TEMPLATES catalog shape (ADR-0043)', () => {

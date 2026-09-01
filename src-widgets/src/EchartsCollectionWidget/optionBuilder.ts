@@ -4,7 +4,7 @@
  *
  * @module EchartsCollectionWidget/optionBuilder
  * @remarks
- * G is built per **chart family** (cartesian / pie / gauge / radar). Each family builder
+ * G is built per **chart family** (cartesian / pie — gauge/radar removed by ADR-0071). Each family builder
  * authors both the data (series points, coordinate system, legend names) AND the GUI-owned
  * presentation (per-series styling, chart-wide legend/tooltip/animation/dataZoom/thresholds)
  * into one option fragment; the chart-wide toolbox block (ADR-0045) is layered on here.
@@ -14,18 +14,12 @@
  */
 import type { EChartsOption } from 'echarts';
 
-import type {
-    EchartsChartFamily,
-    EchartsChartType,
-    EchartsSeriesMeta,
-} from '../types/field-definitions/echarts-fields';
+import type { EchartsChartFamily, EchartsSeriesMeta, LegacyChartType } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import type { SeriesPoint } from './historyLogic';
 
 import { buildCartesianOption } from './optionBuilders/cartesian';
-import { buildGaugeOption } from './optionBuilders/gauge';
 import { buildPieOption } from './optionBuilders/pie';
-import { buildRadarOption } from './optionBuilders/radar';
 import { buildToolbox } from './optionBuilders/toolbox';
 import type { ChartSeries, GeneratedInput, PresentationConfig } from './optionBuilders/types';
 
@@ -37,20 +31,17 @@ export type { EchartsChartFamily, EchartsChartType } from '../types/field-defini
 
 /**
  * Derive the coordinate-system family from the concrete {@link EchartsChartType} (ADR-0008
- * addendum r4). line/bar → cartesian; pie/gauge/radar → themselves. The `default` arm also
- * covers legacy values still stored by older widgets (no auto-migration): the family-only
- * `'cartesian'` AND the removed `'area'` type (r4 — area is now a per-series fill mode, not a
- * chart type) both render as the cartesian family (default line).
+ * addendum r4). line/bar/scatter → cartesian; pie → itself. The `default` arm also covers
+ * legacy values still stored by older widgets (no auto-migration): the family-only
+ * `'cartesian'`, the removed `'area'` type (r4 — area is a per-series fill mode now) AND the
+ * removed gauge/radar families (ADR-0071 — healed to `'line'` on editor load) all render as
+ * the cartesian family (default line).
  */
-export const familyOf = (chartType: EchartsChartType | 'cartesian' | 'area' | undefined): EchartsChartFamily => {
+export const familyOf = (chartType: LegacyChartType): EchartsChartFamily => {
     switch (chartType) {
         case 'pie':
             return 'pie';
-        case 'gauge':
-            return 'gauge';
-        case 'radar':
-            return 'radar';
-        // line / bar / scatter / legacy 'cartesian' / legacy 'area' / undefined → cartesian
+        // line / bar / scatter / legacy 'cartesian' / legacy 'area' / legacy 'gauge'/'radar' / undefined → cartesian
         default:
             return 'cartesian';
     }
@@ -195,12 +186,6 @@ export const buildGeneratedOption = (input: GeneratedInput): EChartsOption => {
     switch (input.family) {
         case 'pie':
             base = buildPieOption(input.series, input.meta, input.p) as Record<string, unknown>;
-            break;
-        case 'gauge':
-            base = buildGaugeOption(input.value, input.meta, input.p) as Record<string, unknown>;
-            break;
-        case 'radar':
-            base = buildRadarOption(input.values, input.meta, input.p) as Record<string, unknown>;
             break;
         case 'cartesian':
         default:

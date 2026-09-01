@@ -7,7 +7,7 @@
  * supplies vis-2's subscribed values (normalised from the `${oid}.val` keying to plain OIDs),
  * the socket-bound history fetcher, and the stabilised theme trio — the anti-churn keying
  * (`dataKey`/`valuesKey`/`themeSig` content signatures) lives HERE because ref-churn is a
- * property of the value source. Everything the data mode owns (Verlauf/Live/JSON acquisition,
+ * property of the value source. Everything the data mode owns (Verlauf/JSON acquisition,
  * family dispatch, merge, error/hasData) is pipeline-owned.
  */
 import { useContext, useMemo } from 'react';
@@ -27,13 +27,7 @@ import { createHistoryFetcher } from './historyFetcher';
 import { useSubscribedValues } from './editor/useSubscribedValues';
 import { familyOf, parseJsonHidden, parseJsonSeriesStyle, parseSeriesConfig } from './optionBuilder';
 import { decodeAxes, decodeChartConfig, decodeMarkLines, markBoundOids, resolvePalette } from './presentation';
-import {
-    isUsableOid,
-    usableSeries,
-    useChartPipeline,
-    type ChartPipelineSeries,
-    type ChartPipelineTheme,
-} from './useChartPipeline';
+import { isUsableOid, useChartPipeline, type ChartPipelineSeries, type ChartPipelineTheme } from './useChartPipeline';
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
 import { parseZoomIdleSeconds } from './zoomIdleReset';
 import { resolvePaddingSx } from './paddingStyle';
@@ -172,41 +166,17 @@ function EchartsCollection(): React.ReactElement {
         return out;
     }, [data, meta]);
 
-    const oidAt = (i: number): string => {
-        const v = data[`oid${i + 1}`];
-        return typeof v === 'string' && isUsableOid(v) ? v : '';
-    };
-    // Radar indicator OID backfill (loadEditorState parity, ADR-0046): older blobs carry the
-    // indicator list without oids — the indexed oidN fields are the source of truth. The old
-    // body read the radar values straight from oidN; the pipeline reads indicator oids, so the
-    // backfill keeps those widgets rendering. Extra keys on an indicator are ignored by echarts
-    // (the preview has always passed id+oid through).
-    const companionsChartConfig = useMemo(() => {
-        const indicators = chartConfig.radar?.indicators;
-        if (family === 'radar' && indicators?.some(ind => !ind.oid)) {
-            return {
-                ...chartConfig,
-                radar: {
-                    ...chartConfig.radar,
-                    indicators: indicators.map((ind, i) => ({ ...ind, oid: ind.oid || oidAt(i) })),
-                },
-            };
-        }
-        return chartConfig;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chartConfig, dataKey, family]);
-
     const yAxes = useMemo(() => decodeAxes(data.yAxes as string), [data]);
     const companions = useMemo(
         () => ({
-            chartConfig: companionsChartConfig,
+            chartConfig,
             yAxes,
             markLines,
             jsonSeriesStyle: jsonStyle,
             jsonHidden,
             series: pipelineSeries,
         }),
-        [companionsChartConfig, yAxes, markLines, jsonStyle, jsonHidden, pipelineSeries],
+        [chartConfig, yAxes, markLines, jsonStyle, jsonHidden, pipelineSeries],
     );
 
     // The pipeline (ADR-0046) — one data-mode decision tree, shared with the preview. The body
@@ -218,15 +188,7 @@ function EchartsCollection(): React.ReactElement {
         { earlyRefresh: true },
     );
 
-    const placeholder = Generic.t(
-        PLACEHOLDER_I18N_KEY[
-            emptyPlaceholderReason({
-                family,
-                mode,
-                seriesCount: usableSeries(pipelineSeries).length,
-            })
-        ],
-    );
+    const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(mode)]);
 
     // Chart frame (parity Build D): container CSS around the chart area — the INNER box carries
     // it, keyed on the frame scalars so an editor toggle re-renders (the chart option is

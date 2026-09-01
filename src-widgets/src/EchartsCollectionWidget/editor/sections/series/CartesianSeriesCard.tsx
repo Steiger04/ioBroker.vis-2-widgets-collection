@@ -1,16 +1,16 @@
 /**
- * Cartesian series cards (history/live) + the shared cartesian card internals (ADR-0019, WS5).
+ * Cartesian series cards (history) + the shared cartesian card internals (ADR-0019, WS5).
  *
  * @module EchartsCollectionWidget/editor/sections/series/CartesianSeriesCard
  * @remarks
  *  - {@link CartesianBasisFields} — the "Basics" SubGroup (OID / history instance (Verlauf,
  *    ADR-0039) / name / colour / type / y-axis
- *    binding) shared by the history/live card and the JSON-mode card (ADR-0011 parity). The JSON
+ *    binding) shared by the Verlauf card and the JSON-mode card (ADR-0011 parity). The JSON
  *    card omits the OID row (the payload owns the data) and clears names to `undefined`.
  *  - {@link CartesianSeriesKnobs} — the type-sensitive knob cluster (line / bar / area SubGroups),
  *    purely meta-driven; the caller owns the binding. Bounded numerics are SliderFields, booleans
  *    live in SwitchLists (ADR-0019).
- *  - {@link CartesianSeriesList} — the history/live card list: EditorCards with swatch, name/OID,
+ *  - {@link CartesianSeriesList} — the Verlauf card list: EditorCards with swatch, name/OID,
  *    ↑↓ reorder, duplicate, delete + the OID-first add affordances.
  */
 import type { FC } from 'react';
@@ -62,7 +62,7 @@ export type CartesianSeriesListSlice = Pick<EditorState, 'chartType' | 'mode' | 
 
 /**
  * The "Basics" SubGroup of a cartesian series card — identity + binding. Shared by the
- * history/live card (bound to `state.series[i]`, with OID row) and the JSON-mode card (bound to
+ * Verlauf card (bound to `state.series[i]`, with OID row) and the JSON-mode card (bound to
  * the name-keyed overlay entry, no OID row — the payload owns the data).
  */
 export const CartesianBasisFields: FC<{
@@ -72,16 +72,16 @@ export const CartesianBasisFields: FC<{
     pickerCtx: OidPickerCtx;
     /** Palette slot the colour picker falls back to (the inherit preview). */
     colorFallback: string;
-    /** Show the per-series type override (history/live: only when ≥2 series; JSON: always). */
+    /** Show the per-series type override (history: only when ≥2 series; JSON: always). */
     showType: boolean;
     yAxes: EchartsAxisConfig[];
     /**
      * Effective display name per axis (explicit → inherited-from-bound-series → index, ADR-0025)
-     * for the binding-dropdown labels. Resolved by the owning card list (history/live and JSON
+     * for the binding-dropdown labels. Resolved by the owning card list (history and JSON
      * alike).
      */
     axisDisplayNames?: string[];
-    /** OID binding row (history/live only — the JSON payload owns the data). */
+    /** OID binding row (history only — the JSON payload owns the data). */
     oid?: { value: string; onChange: (oid: string) => void; historyOnly: boolean };
     /** Verlauf: show the per-series history-instance select (first field under the OID, ADR-0039). */
     showInstance?: boolean;
@@ -194,7 +194,7 @@ export const CartesianBasisFields: FC<{
  * per-series Wert-Formatter facts: unit + decimals, plus the adapter's text semantics — „Text bei
  * wahr/falsch" on a BOOLEAN OID, the state-names editor (value → text, prefilled from
  * `common.states`) on an ENUM OID; both gated by the OID type detected on selection. Shared by
- * the history/live card and the JSON-mode card (the facts ride the same meta and flow through
+ * the Verlauf card and the JSON-mode card (the facts ride the same meta and flow through
  * every cartesian surface: tooltip row, legend value, label values, and the shared-facts axis
  * inheritance).
  */
@@ -313,15 +313,13 @@ export const SeriesValueFormatFields: FC<{
  * formula is visibly flagged and the chart keeps the raw values), the Y offset (feeds the
  * formula: `f(val + yOffset)`), the X offset (seconds; shifts this series' history request
  * window) and the per-series NULL handling (overrides the chart-level setting). Shared by the
- * history/live card and the JSON-mode card — the pipeline applies the value transforms in every
+ * Verlauf card and the JSON-mode card — the pipeline applies the value transforms in every
  * mode.
  */
 export const SeriesTransformFields: FC<{
     meta: EchartsSeriesMeta;
     onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
-    /** Data mode — „Gültige Zeit" is Live-only (ADR-0060); omitted hides it (JSON card). */
-    mode?: string;
-}> = ({ meta, onPatch, mode }) => {
+}> = ({ meta, onPatch }) => {
     const invalid = formulaIsInvalid(meta.formula);
     return (
         <SubGroup title={Generic.t('echarts_grp_transform')}>
@@ -370,13 +368,6 @@ export const SeriesTransformFields: FC<{
                         ['zero', Generic.t('echarts_ignore_null_zero')],
                     ]}
                 />
-                {mode === 'live' && (
-                    <OptionalNumberField
-                        label={Generic.t('echarts_series_valid_time')}
-                        value={meta.validTime}
-                        onChange={v => onPatch({ validTime: v === undefined || v >= 0 ? v : 0 })}
-                    />
-                )}
             </FieldGrid>
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
         </SubGroup>
@@ -385,7 +376,7 @@ export const SeriesTransformFields: FC<{
 
 /**
  * The type-sensitive cartesian knob cluster (line / area / bar SubGroups) — shared by the
- * cartesian series card (history/live, bound to `state.series[i]`) and the JSON-mode series card
+ * cartesian series card (history, bound to `state.series[i]`) and the JSON-mode series card
  * (bound to the name-keyed overlay entry, ADR-0011 parity). Purely meta-driven; the caller owns
  * the binding (onPatch).
  */
@@ -650,7 +641,7 @@ interface CartesianSeriesListProps {
     onRebindAxis: (i: number, yAxisIndex: number) => void;
 }
 
-/** The history/live cartesian card list: EditorCards + the OID-first add affordances. */
+/** The history cartesian card list: EditorCards + the OID-first add affordances. */
 export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
     state,
     pickerCtx,
@@ -776,7 +767,6 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                     <SeriesTransformFields
                         meta={s}
                         onPatch={p => onUpdate(i, p)}
-                        mode={state.mode}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

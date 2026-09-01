@@ -12,12 +12,10 @@ import type { EChartsOption } from 'echarts';
 import type {
     EchartsAxisConfig,
     EchartsCartesianType,
-    EchartsGaugeConfig,
     EchartsLegendConfig,
     EchartsLegendPos,
     EchartsMarkLine,
     EchartsPieConfig,
-    EchartsRadarConfig,
     EchartsSeriesMeta,
     EchartsTooltipTrigger,
     EchartsToolboxConfig,
@@ -105,14 +103,10 @@ export interface PresentationConfig {
     barCategories?: number[];
     visualMap?: EchartsVisualMapConfig;
     // family-specific structured config
-    gauge?: EchartsGaugeConfig;
-    radar?: EchartsRadarConfig;
-    /** The Radar section's raw escape hatch (ADR-0045) — folded UNDER the built radar component. */
-    radarRaw?: string;
     pie?: EchartsPieConfig;
     // resolved series palette (theme / preset / custom), applied per-series when no meta colour
     palette: string[];
-    // semantic theme colours for theme-derived defaults (gauge zones, visualMap ramp, markLine,
+    // semantic theme colours for theme-derived defaults (visualMap ramp, markLine,
     // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
     themeTokens: ThemeTokens;
     /**
@@ -125,8 +119,6 @@ export interface PresentationConfig {
 /** Discriminated input to the orchestrator {@link buildGeneratedOption}. */
 export type GeneratedInput =
     | { family: 'cartesian'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationConfig }
-    | { family: 'pie'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationConfig }
-    | { family: 'gauge'; value: number | null; meta: EchartsSeriesMeta[]; p: PresentationConfig }
-    | { family: 'radar'; values: (number | null)[]; meta: EchartsSeriesMeta[]; p: PresentationConfig };
+    | { family: 'pie'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationConfig };
 
 export type { EchartsSeriesMeta, EChartsOption };

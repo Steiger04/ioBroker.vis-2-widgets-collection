@@ -21,14 +21,12 @@ import type { AxesZoomSlice } from './sections/AxesZoomSection';
 import type { BehaviorSlice } from './sections/BehaviorSection';
 import type { ColorsSlice } from './sections/ColorsSection';
 import type { DataSourceSlice } from './sections/DataSourceSection';
-import type { GaugeOptionsSlice, PieOptionsSlice, RadarOptionsSlice } from './sections/FamilySections';
+import type { PieOptionsSlice } from './sections/FamilySections';
 import type { LegendSlice } from './sections/LegendSection';
 import type { SeriesSlice } from './sections/SeriesSection';
 import type { CartesianSeriesListSlice } from './sections/series/CartesianSeriesCard';
-import type { GaugeBindingSlice } from './sections/series/GaugeBinding';
 import type { JsonSeriesCardsSlice } from './sections/series/JsonSeriesCards';
 import type { PieSliceRowsSlice } from './sections/series/PieSliceRows';
-import type { RadarIndicatorsSlice } from './sections/series/RadarIndicators';
 import type { ChartTypePickerSlice, ModeSelectSlice } from './controls';
 import type { TitleSlice } from './sections/TitleSection';
 import type { ToolboxSlice } from './sections/ToolboxSection';
@@ -175,10 +173,8 @@ describe('section slices (ADR-0049)', () => {
         >();
     });
 
-    it('the family options slices equal their sections ownership', () => {
-        expectTypeOf<GaugeOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'gauge'>>();
+    it('the family options slice equals its section ownership', () => {
         expectTypeOf<PieOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'pie'>>();
-        expectTypeOf<RadarOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'radar' | 'radarRaw' | 'radarSnippets'>>();
     });
 
     it('SeriesSlice equals the series dispatcher ownership (own footprint + sub-view union)', () => {
@@ -190,8 +186,6 @@ describe('section slices (ADR-0049)', () => {
                 | 'series'
                 | 'yAxes'
                 | 'markLines'
-                | 'gauge'
-                | 'radar'
                 | 'pie'
                 | 'jsonOid'
                 | 'jsonHidden'
@@ -205,8 +199,6 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('the series sub-view slices equal their surfaces ownership', () => {
-        expectTypeOf<GaugeBindingSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'gauge'>>();
-        expectTypeOf<RadarIndicatorsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'radar'>>();
         expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'pie' | 'mode'>>();
         expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
             Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'>
@@ -221,24 +213,12 @@ describe('section slices (ADR-0049)', () => {
         expectTypeOf<ChartTypePickerSlice>().toEqualTypeOf<
             Pick<
                 EditorState,
-                'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid' | 'radar'
+                'chartType' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'
             >
         >();
-        // + the static-window read that disables Live (ADR-0063) + the JSON-boundary data-path
-        // reset keys the crossing patch writes (ADR-0067)
+        // + the JSON-boundary data-path reset keys the crossing patch writes (ADR-0067)
         expectTypeOf<ModeSelectSlice>().toEqualTypeOf<
-            Pick<
-                EditorState,
-                | 'mode'
-                | 'timeType'
-                | 'series'
-                | 'yAxes'
-                | 'markLines'
-                | 'jsonSeriesStyle'
-                | 'jsonHidden'
-                | 'jsonOid'
-                | 'radar'
-            >
+            Pick<EditorState, 'mode' | 'series' | 'yAxes' | 'markLines' | 'jsonSeriesStyle' | 'jsonHidden' | 'jsonOid'>
         >();
     });
 
@@ -281,14 +261,6 @@ describe('section slices (ADR-0049)', () => {
         // @ts-expect-error markLines is not the toolbox section's field
         toolbox({ markLines: [] });
 
-        const gauge: SetEditor<GaugeOptionsSlice> = () => undefined;
-        // @ts-expect-error pie is not the gauge options section's field
-        gauge({ pie: {} as PieOptionsSlice['pie'] });
-
-        const radar: SetEditor<RadarOptionsSlice> = () => undefined;
-        // @ts-expect-error gauge is not the radar options section's field
-        radar({ gauge: {} as GaugeOptionsSlice['gauge'] });
-
         const pie: SetEditor<PieOptionsSlice> = () => undefined;
         // @ts-expect-error legendShow is not the pie options section's field
         pie({ legendShow: true });
@@ -297,17 +269,9 @@ describe('section slices (ADR-0049)', () => {
         // @ts-expect-error animation is not the series dispatcher's field
         series({ animation: false });
 
-        const gaugeBinding: SetEditor<GaugeBindingSlice> = () => undefined;
-        // @ts-expect-error mode is not the gauge binding's field
-        gaugeBinding({ mode: 'live' });
-
         const pieRows: SetEditor<PieSliceRowsSlice> = () => undefined;
-        // @ts-expect-error gauge is not the pie slice rows' field
-        pieRows({ gauge: {} as GaugeOptionsSlice['gauge'] });
-
-        const indicators: SetEditor<RadarIndicatorsSlice> = () => undefined;
-        // @ts-expect-error pie is not the radar indicators' field
-        indicators({ pie: {} as PieOptionsSlice['pie'] });
+        // @ts-expect-error yAxes is not the pie slice rows' field
+        pieRows({ yAxes: [] });
 
         const chartTypePicker: SetEditor<ChartTypePickerSlice> = () => undefined;
         // @ts-expect-error mode is not the chart-type picker's field
@@ -334,13 +298,9 @@ describe('section slices (ADR-0049)', () => {
         const asColors: SetEditor<ColorsSlice> = railSet;
         const asBehavior: SetEditor<BehaviorSlice> = railSet;
         const asToolbox: SetEditor<ToolboxSlice> = railSet;
-        const asGauge: SetEditor<GaugeOptionsSlice> = railSet;
         const asPie: SetEditor<PieOptionsSlice> = railSet;
-        const asRadar: SetEditor<RadarOptionsSlice> = railSet;
         const asSeries: SetEditor<SeriesSlice> = railSet;
-        const asGaugeBinding: SetEditor<GaugeBindingSlice> = railSet;
         const asPieRows: SetEditor<PieSliceRowsSlice> = railSet;
-        const asIndicators: SetEditor<RadarIndicatorsSlice> = railSet;
         const asChartTypePicker: SetEditor<ChartTypePickerSlice> = railSet;
         const asModeSelect: SetEditor<ModeSelectSlice> = railSet;
         const railState = {} as EditorState;
@@ -352,13 +312,9 @@ describe('section slices (ADR-0049)', () => {
         const colorsState: ColorsSlice = railState;
         const behaviorState: BehaviorSlice = railState;
         const toolboxState: ToolboxSlice = railState;
-        const gaugeState: GaugeOptionsSlice = railState;
         const pieState: PieOptionsSlice = railState;
-        const radarState: RadarOptionsSlice = railState;
         const seriesState: SeriesSlice = railState;
-        const gaugeBindingState: GaugeBindingSlice = railState;
         const pieRowsState: PieSliceRowsSlice = railState;
-        const indicatorsState: RadarIndicatorsSlice = railState;
         const jsonCardsState: JsonSeriesCardsSlice = railState;
         const cartesianListState: CartesianSeriesListSlice = railState;
         const chartTypePickerState: ChartTypePickerSlice = railState;
@@ -373,13 +329,9 @@ describe('section slices (ADR-0049)', () => {
             asColors,
             asBehavior,
             asToolbox,
-            asGauge,
             asPie,
-            asRadar,
             asSeries,
-            asGaugeBinding,
             asPieRows,
-            asIndicators,
             asChartTypePicker,
             asModeSelect,
         ]).not.toBeAny();
@@ -392,13 +344,9 @@ describe('section slices (ADR-0049)', () => {
             colorsState,
             behaviorState,
             toolboxState,
-            gaugeState,
             pieState,
-            radarState,
             seriesState,
-            gaugeBindingState,
             pieRowsState,
-            indicatorsState,
             jsonCardsState,
             cartesianListState,
             chartTypePickerState,

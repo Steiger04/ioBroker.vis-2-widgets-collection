@@ -14,7 +14,7 @@
  * file owns the ORCHESTRATION: the delete semantics (ADR-0025 — an axis' series rebind to a
  * same-format survivor, else axis 0 + advisory toast; ADR-0067 — every structural event
  * re-arranges the bound axes densely), the bound-series colour/name defaults per ADR-0018
- * (history/live positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
+ * (history positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
  * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
  * cards).
  */
@@ -105,7 +105,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     const [toast, setToast] = useState<string | null>(null);
     /**
      * Effective colour of the first series bound to axis i — the axis-colour default (ADR-0018).
-     * History/live: the positional `state.series`. JSON: the name-keyed overlay (`state.series` is
+     * History: the positional `state.series`. JSON: the name-keyed overlay (`state.series` is
      * empty there — the payload owns the series); the modal axis effect writes `yAxisIndex` onto each
      * visible overlay entry, so a lookup-by-index finds it.
      */
@@ -114,7 +114,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         // (mirrors the Series-card list). The overlay owns each name's yAxisIndex + colour; resolving
         // the slot by visible position — NOT the axis index — keeps the swatch aligned with the Series
         // card after a rebind or a payload-name reorder (ADR-0018; the prior axis-index fallback
-        // diverged there). History/live passes state.series directly (already in display order).
+        // diverged there). History passes state.series directly (already in display order).
         // Both resolve OWNER-first (ADR-0068): the axis' incumbent series paints the swatch.
         if (state.mode === 'json') {
             const visibleSeries = jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden).map(
@@ -145,7 +145,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
         return state.series[idx].name || `Series ${idx + 1}`;
     };
     // The bound set — under ADR-0069 every axis is IN it (an axis outside died at the structural
-    // event that emptied it); the set still feeds the emitted-rank computation. History/live
+    // event that emptied it); the set still feeds the emitted-rank computation. History
     // reads `state.series`; JSON reads the STRICT visible sight (B2): a hidden entry whose index
     // awaits the re-index never binds.
     const boundIdx: Set<number> =
@@ -158,7 +158,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
     const emittedRanks = emittedAxisRanks(boundIdx);
     /**
      * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the mode —
-     * history/live passes the series list (a series without an index implicitly binds axis 0);
+     * history passes the series list (a series without an index implicitly binds axis 0);
      * JSON passes the visible overlay bindings through the STRICT sight (a cleared entry is
      * unbound, never an implicit axis-0 binder). Handlers that change the overlay/hidden set pass
      * their AFTER values; the defaults read the current state.
@@ -232,7 +232,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ state, set, pickerCtx, json
             }
             return;
         }
-        // History/live (ADR-0025): deleting an axis NEVER deletes its bound series. They rebind to
+        // History (ADR-0025): deleting an axis NEVER deletes its bound series. They rebind to
         // a surviving axis of the same `format` (the unit proxy), else axis 0 + an advisory
         // unit-mismatch toast. Survivors re-index; the delete is a structural event, so the
         // rebound bound set ends balanced (ADR-0067). Deleting the LAST axis while series remain

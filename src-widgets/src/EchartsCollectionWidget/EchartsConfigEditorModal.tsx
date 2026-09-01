@@ -152,39 +152,13 @@ function EchartsConfigEditorModal({
     const { railWidth, containerRef, dragging, handleProps } = useSplitPane();
 
     // Preview-header meta: "{count} {countLabel} · {mode} · {renderer}" — a one-glance summary of
-    // what the preview currently shows. Gauge/radar have no mode choice (always current value), so
-    // the mode segment is omitted there.
+    // what the preview currently shows.
     const previewMeta = useMemo(() => {
-        const family = familyOf(state.chartType);
-        const count =
-            state.chartType === 'gauge'
-                ? 1
-                : state.chartType === 'radar'
-                  ? state.radar.indicators.length
-                  : state.mode === 'json'
-                    ? visibleJsonNames.length
-                    : state.series.length;
-        const countLabel = Generic.t(
-            state.chartType === 'gauge'
-                ? 'echarts_sec_value'
-                : state.chartType === 'radar'
-                  ? 'echarts_sec_indicators'
-                  : 'echarts_series',
-        );
-        const parts = [`${count} ${countLabel}`];
-        if (family === 'cartesian' || family === 'pie') {
-            parts.push(Generic.t(`echarts_mode_${state.mode}`));
-        }
+        const count = state.mode === 'json' ? visibleJsonNames.length : state.series.length;
+        const parts = [`${count} ${Generic.t('echarts_series')}`, Generic.t(`echarts_mode_${state.mode}`)];
         parts.push(Generic.t(`echarts_renderer_${state.renderer}`));
         return parts.join(' · ');
-    }, [
-        state.chartType,
-        state.mode,
-        state.renderer,
-        state.series.length,
-        state.radar.indicators.length,
-        visibleJsonNames.length,
-    ]);
+    }, [state.mode, state.renderer, state.series.length, visibleJsonNames.length]);
 
     const titleId = 'echarts-config-editor-title';
 

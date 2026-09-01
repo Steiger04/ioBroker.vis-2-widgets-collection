@@ -46,23 +46,20 @@ describe('healStableIds', () => {
             yAxes: [axis('a0', 'left', 0)],
             series: [{ oid: 'oid1', id: 's0' }],
             markLines: [{ value: 20, id: 'm0' }],
-            radar: { indicators: [{ name: 'T', oid: 'oid2', id: 'i0' }] },
         });
         expect(healStableIds(clean)).toBeNull();
     });
 
-    it('backfills ids on all four lists in one patch', () => {
+    it('backfills ids on all three lists in one patch', () => {
         const dirty = state({
             yAxes: [{ position: 'left', splitLine: true }],
             series: [{ oid: 'oid1' }],
             markLines: [{ value: 20 }],
-            radar: { indicators: [{ name: 'T', oid: 'oid2' }] },
         });
         const patch = asPatch(healStableIds(dirty));
         expect(patch.yAxes[0]?.id).toBeTruthy();
         expect(patch.series[0]?.id).toBeTruthy();
         expect(patch.markLines[0]?.id).toBeTruthy();
-        expect(patch.radar.indicators[0]?.id).toBeTruthy();
     });
 
     it('keeps already-id’d items by reference and their fields untouched', () => {
@@ -71,12 +68,10 @@ describe('healStableIds', () => {
             yAxes: [{ position: 'left', splitLine: true }], // only this list is dirty
             series: [cleanSeries],
             markLines: [{ value: 20, id: 'm0' }],
-            radar: { indicators: [{ name: 'T', oid: 'oid2', id: 'i0' }] },
         });
         const patch = asPatch(healStableIds(dirty));
         expect(patch.series[0]).toBe(cleanSeries);
         expect(patch.markLines[0]?.id).toBe('m0');
-        expect(patch.radar.indicators[0]?.id).toBe('i0');
     });
 });
 
@@ -90,7 +85,6 @@ describe('reconcileJsonAxesStep', () => {
 
     it('returns null for non-cartesian families', () => {
         expect(reconcileJsonAxesStep(jsonState({ chartType: 'pie' }), ['a'])).toBeNull();
-        expect(reconcileJsonAxesStep(jsonState({ chartType: 'gauge' }), ['a'])).toBeNull();
     });
 
     it('returns null with no visible names', () => {
@@ -193,22 +187,7 @@ describe('reconcileJsonAxesStep', () => {
 });
 
 describe('loadedOidCount', () => {
-    it('counts the radar indicators (not the single polygon series)', () => {
-        const radar = state({
-            chartType: 'radar',
-            series: [{ oid: 'polygon', id: 's0' }],
-            radar: {
-                indicators: [
-                    { name: 'T', oid: 'oid1', id: 'i0' },
-                    { name: 'H', oid: 'oid2', id: 'i1' },
-                    { name: 'W', oid: 'oid3', id: 'i2' },
-                ],
-            },
-        });
-        expect(loadedOidCount(radar)).toBe(3);
-    });
-
-    it('counts the series outside radar', () => {
+    it('counts the series', () => {
         const line = state({
             chartType: 'line',
             series: [
@@ -223,22 +202,16 @@ describe('loadedOidCount', () => {
 });
 
 describe('JSON-boundary data-path reset (ADR-0067)', () => {
-    it('crossesJsonBoundary fires on into-JSON and out-of-JSON — never on Verlauf↔Live', () => {
+    it('crossesJsonBoundary fires on into-JSON and out-of-JSON — never on a re-select', () => {
         expect(crossesJsonBoundary('history', 'json')).toBe(true);
-        expect(crossesJsonBoundary('live', 'json')).toBe(true);
         expect(crossesJsonBoundary('json', 'history')).toBe(true);
-        expect(crossesJsonBoundary('json', 'live')).toBe(true);
-        expect(crossesJsonBoundary('history', 'live')).toBe(false);
-        expect(crossesJsonBoundary('live', 'history')).toBe(false);
+        expect(crossesJsonBoundary('history', 'history')).toBe(false);
+        expect(crossesJsonBoundary('json', 'json')).toBe(false);
     });
 
     it('crossesFamilyBoundary fires across chart families — never within cartesian or on identity', () => {
         expect(crossesFamilyBoundary('line', 'pie')).toBe(true);
-        expect(crossesFamilyBoundary('bar', 'gauge')).toBe(true);
-        expect(crossesFamilyBoundary('scatter', 'radar')).toBe(true);
         expect(crossesFamilyBoundary('pie', 'line')).toBe(true);
-        expect(crossesFamilyBoundary('radar', 'pie')).toBe(true);
-        expect(crossesFamilyBoundary('gauge', 'radar')).toBe(true);
         // line↔bar↔scatter share the series structure — no boundary, no reset
         expect(crossesFamilyBoundary('line', 'bar')).toBe(false);
         expect(crossesFamilyBoundary('bar', 'scatter')).toBe(false);
@@ -247,46 +220,24 @@ describe('JSON-boundary data-path reset (ADR-0067)', () => {
         expect(crossesFamilyBoundary('line', 'line')).toBe(false);
     });
 
-    it('dataPathReset empties the ENTIRE data path — series, axes, markings, JSON state, indicators', () => {
-        const patch = dataPathReset(
-            state({
-                series: [{ oid: 'a', id: 's0' }],
-                yAxes: [axis('a0', 'left', 0), axis('a1', 'right', 0)],
-                markLines: [{ id: 'm0', upper: 50 }],
-                jsonSeriesStyle: { Temp: { yAxisIndex: 0 } },
-                jsonHidden: ['Temp'],
-                jsonOid: 'dev.payload',
-                radar: { indicators: [{ name: 'T', oid: 'o', id: 'i0' }], shape: 'circle', splitNumber: 4 },
-            }),
-        );
+    it('dataPathReset empties the ENTIRE data path — series, axes, markings, JSON state', () => {
+        const patch = dataPathReset();
         expect(patch.series).toEqual([]);
         expect(patch.yAxes).toEqual([]); // 0-axes start — the reconcile rebuilds 1:1 on JSON entry
         expect(patch.markLines).toEqual([]);
         expect(patch.jsonSeriesStyle).toEqual({});
         expect(patch.jsonHidden).toEqual([]);
         expect(patch.jsonOid).toBe('');
-        expect(patch.radar).toEqual({ indicators: [], shape: 'circle', splitNumber: 4 });
     });
 
     it('dataPathReset never touches the presentation — the patch keys are the data path alone', () => {
-        const presentational = state({
-            titleText: 'PV',
-            legendShow: false,
-            tooltipUnits: 'kW',
-            paletteSource: 'preset',
-            xAxis: { name: 'Zeit' },
-            dataZoomSlider: true,
-            timeRange: '7d',
-            aggregate: 'max',
-        });
-        const patch = dataPathReset(presentational);
+        const patch = dataPathReset();
         // The presentation fields above are all UNTOUCHED — the patch carries data-path keys only.
         expect(Object.keys(patch).sort()).toEqual([
             'jsonHidden',
             'jsonOid',
             'jsonSeriesStyle',
             'markLines',
-            'radar',
             'series',
             'yAxes',
         ]);

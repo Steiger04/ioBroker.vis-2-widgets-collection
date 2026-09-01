@@ -116,26 +116,4 @@ describe('classifySeriesKeys — cartesian bar / pie / radar / gauge', () => {
         expect(chipOf({ itemStyle: { borderRadius: 6 } }, ctx, 'itemStyle')?.cls).toBe('effective');
         expect(chipOf({ itemStyle: { color: '#f00', borderRadius: 6 } }, ctx, 'itemStyle')?.cls).toBe('partial');
     });
-
-    it('radar: areaStyle free unless the area is on; symbol free', () => {
-        const radar = { slot: 'radar' as const };
-        expect(chipOf({ areaStyle: { opacity: 0.5 } }, radar, 'areaStyle')?.cls).toBe('effective');
-        expect(chipOf({ areaStyle: { opacity: 0.5 } }, { ...radar, radarAreaActive: true }, 'areaStyle')?.cls).toBe(
-            'ignored',
-        );
-        expect(chipOf({ symbol: 'circle' }, radar, 'symbol')?.cls).toBe('effective');
-    });
-
-    it('gauge: nested progress.itemStyle.color is a leaf; detail.formatter is conditional on the unit', () => {
-        const gauge = { slot: 'gauge' as const };
-        expect(chipOf({ progress: { itemStyle: { color: '#0f0' } } }, gauge, 'progress')?.cls).toBe('ignored');
-        expect(chipOf({ progress: { itemStyle: { color: '#0f0' }, roundCap: true } }, gauge, 'progress')?.cls).toBe(
-            'partial',
-        );
-        expect(chipOf({ detail: { formatter: '{value} kW' } }, gauge, 'detail')?.cls).toBe('effective');
-        expect(
-            chipOf({ detail: { formatter: '{value} kW' } }, { ...gauge, gaugeUnitActive: true }, 'detail')?.cls,
-        ).toBe('ignored');
-        expect(chipOf({ anchor: { show: true } }, gauge, 'anchor')?.cls).toBe('effective');
-    });
 });

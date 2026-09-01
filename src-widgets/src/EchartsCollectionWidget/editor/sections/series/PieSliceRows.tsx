@@ -1,5 +1,5 @@
 /**
- * Pie slice rows (history/live) — name + OID + colour + delete per slice (ADR-0019, WS5).
+ * Pie slice rows (history) — name + OID + colour + delete per slice (ADR-0019, WS5).
  *
  * @module EchartsCollectionWidget/editor/sections/series/PieSliceRows
  * @remarks

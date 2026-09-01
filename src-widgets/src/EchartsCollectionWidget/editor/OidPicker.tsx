@@ -41,7 +41,7 @@ interface OidPickerProps {
     ctx: OidPickerCtx;
     /**
      * Restrict the browse dialog to history-enabled states (history/sql/influxdb). Only meaningful
-     * for history-mode series; gauge/radar/live/json bind any state with a current value.
+     * for history-mode series; json binds any state with a current value.
      *
      * @default false
      */
@@ -84,7 +84,7 @@ export default function OidPicker({
                     selected={value || ''}
                     title={Generic.t('oid')}
                     // History-enabled states only when explicitly requested (cartesian/pie history);
-                    // gauge/radar/live/json bind any state with a current value.
+                    // json binds any state with a current value.
                     {...(historyOnly ? { customFilter: { common: { custom: '_dataSources' } } } : {})}
                     onClose={() => setOpen(false)}
                     onOk={(selected): void => {

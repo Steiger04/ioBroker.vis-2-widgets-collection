@@ -24,29 +24,23 @@ import { familyOf } from '../optionBuilder';
 import type { EditorPatch, EditorState } from './editorState';
 
 /**
- * Stable-id self-heal (the HMR guard): every keyed card list (axes / series / mark lines /
- * radar indicators) must carry an `id` so React reconciles by identity, not array index (the
+ * Stable-id self-heal (the HMR guard): every keyed card list (axes / series / mark lines)
+ * must carry an `id` so React reconciles by identity, not array index (the
  * wrong-card-unmounts bug). `loadEditorState` normalises on open, BUT a dev-HMR code reload
  * can preserve stale pre-id state without re-running the loader — so the owner re-fires this
  * on every state change. Idempotent: once every item has an id this is a pure read (`null`),
  * so it is safe on every state change and cannot loop.
  */
 export const healStableIds = (state: EditorState): EditorPatch | null => {
-    if (
-        !state.yAxes.some(a => !a.id) &&
-        !state.series.some(s => !s.id) &&
-        !state.markLines.some(m => !m.id) &&
-        !state.radar.indicators.some(ind => !ind.id)
-    ) {
+    if (!state.yAxes.some(a => !a.id) && !state.series.some(s => !s.id) && !state.markLines.some(m => !m.id)) {
         return null;
     }
-    // Heal all four lists in one patch (mirror of the pre-extraction effect): withStableIds keeps
+    // Heal all three lists in one patch (mirror of the pre-extraction effect): withStableIds keeps
     // already-id'd items by reference, so the patch never churns clean lists.
     return {
         yAxes: withStableIds(state.yAxes, 'ax-'),
         series: withStableIds(state.series, 'sr-'),
         markLines: withStableIds(state.markLines),
-        radar: { ...state.radar, indicators: withStableIds(state.radar.indicators) },
     };
 };
 
@@ -95,24 +89,20 @@ export const reconcileJsonAxesStep = (
     };
 };
 
-/**
- * The number of indexed `oidN` fields to clear on save. For radar the indicators (not the
- * single polygon) are the indexed OIDs, so use their count — otherwise it is the series count.
- */
-export const loadedOidCount = (state: EditorState): number =>
-    state.chartType === 'radar' ? state.radar.indicators.length : state.series.length;
+/** The number of indexed `oidN` fields to clear on save — the series count. */
+export const loadedOidCount = (state: EditorState): number => state.series.length;
 
 /**
  * True when a mode switch crosses the **JSON boundary** — into JSON or out of it (ADR-0067).
- * Verlauf↔Live shares the series structure and crosses nothing: `false`.
+ * With the two-value mode set (ADR-0071) every non-JSON switch is history→history: `false`.
  */
 export const crossesJsonBoundary = (from: EditorState['mode'], to: EditorState['mode']): boolean =>
     (from === 'json') !== (to === 'json');
 
 /**
- * True when a chart-type switch crosses a **family boundary** — cartesian↔pie↔gauge↔radar,
- * including json-cartesian→json-pie (ADR-0067). line↔bar↔scatter share the identical series/
- * axis structure and cross nothing: `false`. So does re-selecting the same type.
+ * True when a chart-type switch crosses a **family boundary** — cartesian↔pie, including
+ * json-cartesian→json-pie (ADR-0067). line↔bar↔scatter share the identical series/axis
+ * structure and cross nothing: `false`. So does re-selecting the same type.
  */
 export const crossesFamilyBoundary = (from: EditorState['chartType'], to: EditorState['chartType']): boolean =>
     from !== to && familyOf(from) !== familyOf(to);
@@ -120,20 +110,18 @@ export const crossesFamilyBoundary = (from: EditorState['chartType'], to: Editor
 /**
  * The data-path patch a structural boundary reset applies (ADR-0067): series/OIDs, Y-axes (the
  * 0-axes start — the JSON reconcile rebuilds 1:1 from the payload on entry), markings, the JSON
- * overlay + deny-list + jsonOid (the leaving mode's data input), and the radar indicators. The
- * radar SHAPE config survives (presentation); everything presentationary — title, legend,
+ * overlay + deny-list + jsonOid (the leaving mode's data input). Everything
+ * presentationary — title, legend,
  * tooltip, colours, toolbox, raws, X-Karte, zoom, and the time window — is untouched.
  *
  * The caller merges this with the boundary flip (mode/chartType) into ONE `set()` patch, so undo
- * restores the crossing AND the deletion together in a single step. The parameter is the radar
- * read alone (the only field the patch derives from) — the mode toggle passes its slice.
+ * restores the crossing AND the deletion together in a single step.
  */
-export const dataPathReset = (state: Pick<EditorState, 'radar'>): EditorPatch => ({
+export const dataPathReset = (): EditorPatch => ({
     series: [],
     yAxes: [],
     markLines: [],
     jsonSeriesStyle: {},
     jsonHidden: [],
     jsonOid: '',
-    radar: { ...state.radar, indicators: [] },
 });

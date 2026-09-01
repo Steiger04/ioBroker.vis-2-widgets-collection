@@ -58,7 +58,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
     // Frame colour inherit preview — the collection theme's divider (what the body defaults to).
     const frameColorFallback = themeTokens.divider;
-    const isCartesian = state.chartType !== 'pie' && state.chartType !== 'gauge' && state.chartType !== 'radar';
+    const isCartesian = state.chartType !== 'pie';
     const paletteOptions: ReadonlyArray<[string, string]> = [
         ['theme', Generic.t('echarts_palette_theme')],
         ...Object.keys(PALETTE_PRESETS).map(k => [`preset:${k}`, k] as [string, string]),
@@ -135,7 +135,7 @@ const ColorsSection: FC<ColorsSectionProps> = ({ state, set, pickerCtx }) => {
             </FieldGrid>
 
             {/* Chart frame (parity Build D, ADR-0056) — every family: it is container CSS around
-                the chart area, so it applies to cartesian AND pie/gauge/radar alike. */}
+                the chart area, so it applies to cartesian AND pie alike. */}
             <SubGroup
                 title={Generic.t('echarts_frame')}
                 sx={{ mt: 2 }}

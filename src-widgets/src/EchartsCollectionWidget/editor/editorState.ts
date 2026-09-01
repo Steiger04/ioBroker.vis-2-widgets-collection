@@ -9,10 +9,8 @@
  * `toolboxConfig` / `markLines` blobs) into one in-memory {@link EditorState}; on Apply it
  * writes a merged `onDataChange` patch back.
  *
- * The indexed `oidN` field is the subscription vehicle (ADR-0006) and its *meaning* is
- * family-dependent: cartesian/pie → the series OIDs; gauge → the single scalar OID (`oid1`);
- * radar → the indicator OIDs. `series_count` follows: number of series (cartesian/pie), 1
- * (gauge), or number of indicators (radar).
+ * The indexed `oidN` field is the subscription vehicle (ADR-0006): one entry per series,
+ * mirrored by `series_count`.
  */
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
@@ -45,15 +43,14 @@ import type {
     EchartsFontStyle,
     EchartsFontWeight,
     EchartsFrameStyle,
-    EchartsGaugeConfig,
     EchartsIgnoreNull,
     EchartsLegendConfig,
     EchartsLegendPos,
+    LegacyChartType,
     EchartsMarkLine,
     EchartsMode,
     EchartsPaletteSource,
     EchartsPieConfig,
-    EchartsRadarConfig,
     EchartsRenderer,
     EchartsRelativeEnd,
     EchartsTimeRange,
@@ -73,7 +70,7 @@ export type IgnoreNull = EchartsIgnoreNull;
 
 /** A series as edited in the modal (rendering metadata + its bound OID). */
 export interface EditorSeries extends SeriesMeta {
-    /** Indexed rxData OID (`oidN`); empty when unset. (Unused for radar polygons.) */
+    /** Indexed rxData OID (`oidN`); empty when unset. */
     oid: string;
 }
 
@@ -147,11 +144,9 @@ export interface EditorState {
     titleWeight: EchartsFontWeight;
     /** Title font style (ADR-0029). @default 'normal' */
     titleFontStyle: EchartsFontStyle;
-    // series (cartesian/pie full; gauge/radar = label+colour of the single polygon)
+    // series (cartesian/pie full)
     series: EditorSeries[];
     // family config
-    gauge: EchartsGaugeConfig;
-    radar: EchartsRadarConfig;
     pie: EchartsPieConfig;
     // chart-wide presentation
     legendShow: boolean;
@@ -200,10 +195,6 @@ export interface EditorState {
     frame: EditorFrame;
     /** Toolbox GUI config (ADR-0045) — persisted as the base64 `toolboxConfig` blob. */
     toolbox: EchartsToolboxConfig;
-    /** Radar section raw (ADR-0045) — deep-merged UNDER buildRadarOption's output (GUI wins). */
-    radarRaw: string;
-    /** Ordered ACTIVE radar-template ids (ADR-0042, riding the chartConfig blob, radar family). */
-    radarSnippets: string[];
     /** Title section raw (ADR-0044) — deep-merged UNDER buildTitleOption's output (GUI wins). */
     titleRaw: string;
     /** Ordered ACTIVE title-template ids (ADR-0042, riding the chartConfig blob). */
@@ -267,8 +258,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     titleWeight: 'normal',
     titleFontStyle: 'normal',
     series: [],
-    gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
-    radar: { shape: 'polygon', splitNumber: 5, area: true, indicators: [] },
     pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' },
     legendShow: true,
     legendPos: 'topCenter',
@@ -309,8 +298,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     // Frame off by default; width 1 so the first switch-on renders a visible hairline.
     frame: { enabled: false, width: 1, color: '', style: 'solid', padding: 0 },
     toolbox: {},
-    radarRaw: '',
-    radarSnippets: [],
     titleRaw: '',
     titleSnippets: [],
     legendRaw: '',
@@ -351,7 +338,7 @@ const isLegacyAreaType = (m: SeriesMeta): boolean => (m as { type?: string }).ty
  * @param data - Widget data map (scalars + indexed `oidN` + blobs).
  */
 export const loadEditorState = (data: Record<string, unknown>): EditorState => {
-    const chartTypeRaw = (data.chartType as EchartsChartType | 'cartesian' | 'area' | undefined) ?? 'line';
+    const chartTypeRaw = (data.chartType as LegacyChartType) ?? 'line';
     const seriesCount = numOr(data.series_count, 0);
 
     // seriesConfig → per-index meta (name/colour/type/...)
@@ -363,9 +350,12 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         meta = [];
     }
 
-    // Normalize legacy chartType values (ADR-0008 r4): the family-only 'cartesian' derives its
-    // concrete type from the first series (default line); the removed 'area' type maps to 'line'
-    // (area is a per-series fill mode now). In-memory only — rewritten to a concrete type on save.
+    // Normalize legacy chartType values (ADR-0008 r4 + ADR-0071): the family-only 'cartesian'
+    // derives its concrete type from the first series (default line); the removed 'area' type
+    // maps to 'line' (area is a per-series fill mode now); the removed gauge/radar families
+    // (ADR-0071) heal to 'line' — their oidN series (the gauge's scalar OID, the radar's
+    // indicator OIDs) become ordinary cartesian line series in the branch below. In-memory
+    // only — rewritten to a concrete type on save.
     const chartType: EchartsChartType =
         chartTypeRaw === 'cartesian'
             ? meta[0]?.type === 'bar'
@@ -373,7 +363,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
                 : meta[0]?.type === 'scatter'
                   ? 'scatter'
                   : 'line'
-            : chartTypeRaw === 'area'
+            : chartTypeRaw === 'area' || chartTypeRaw === 'gauge' || chartTypeRaw === 'radar'
               ? 'line'
               : chartTypeRaw;
     const family = familyOf(chartType);
@@ -384,66 +374,27 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         return typeof v === 'string' && v !== 'nothing_selected' ? v : '';
     };
 
-    let series: EditorSeries[];
-    let radar: EchartsRadarConfig;
-    if (family === 'radar') {
-        // oidN = indicator OIDs; meta[0] = polygon label/colour. Carry + normalise a stable id so the
-        // indicator card list reconciles by identity (fixes the wrong-card-unmounts bug on delete).
-        const indicators = withStableIds(
-            (chartConfig.radar?.indicators ?? []).map((ind, i) => ({
-                id: ind.id,
-                name: ind.name,
-                max: ind.max,
-                oid: ind.oid || oidAt(i),
-            })),
-        );
-        radar = { ...(chartConfig.radar ?? DEFAULT_EDITOR_STATE.radar), indicators };
-        // meta[0] carries the polygon's raw + template activations (ADR-0042; the raw rides the
-        // meta blob since ADR-0041's parity — carried through load since the gap fix).
-        series = [
-            {
-                oid: '',
-                name: meta[0]?.name ?? '',
-                color: meta[0]?.color,
-                raw: meta[0]?.raw,
-                snippets: meta[0]?.snippets,
-            },
-        ];
-    } else if (family === 'gauge') {
-        series = [
-            {
-                oid: oidAt(0),
-                name: meta[0]?.name,
-                color: meta[0]?.color,
-                raw: meta[0]?.raw,
-                snippets: meta[0]?.snippets,
-            },
-        ];
-        radar = DEFAULT_EDITOR_STATE.radar;
-    } else {
-        // cartesian / pie: oidN = series OIDs, 1:1 with meta. For cartesian, normalise the type
-        // model (ADR-0008 r3): a series whose stored type equals the chart type becomes "inherit"
-        // (type undefined → follows the top selector); one that differs stays an explicit override.
-        // Legacy `type:'area'` (ADR-0008 r4 removed it) is treated as inherit (line) + flat area.
-        const inheritType: EchartsCartesianType | undefined =
-            family === 'cartesian' ? (chartType as EchartsCartesianType) : undefined;
-        series = [];
-        for (let i = 0; i < seriesCount; i++) {
-            const m = meta[i] ?? {};
-            const t = m.type === 'line' || m.type === 'bar' || m.type === 'scatter' ? m.type : undefined;
-            series.push({
-                oid: oidAt(i),
-                ...m,
-                type: t && inheritType && t !== inheritType ? t : undefined,
-                area: normalizeArea(m.area, isLegacyAreaType(m)),
-            });
-        }
-        radar = DEFAULT_EDITOR_STATE.radar;
+    // cartesian / pie: oidN = series OIDs, 1:1 with meta. For cartesian, normalise the type
+    // model (ADR-0008 r3): a series whose stored type equals the chart type becomes "inherit"
+    // (type undefined → follows the top selector); one that differs stays an explicit override.
+    // Legacy `type:'area'` (ADR-0008 r4 removed it) is treated as inherit (line) + flat area.
+    // A healed legacy gauge/radar lands here too (ADR-0071): its oidN entries become line series.
+    const inheritType: EchartsCartesianType | undefined =
+        family === 'cartesian' ? (chartType as EchartsCartesianType) : undefined;
+    let series: EditorSeries[] = [];
+    for (let i = 0; i < seriesCount; i++) {
+        const m = meta[i] ?? {};
+        const t = m.type === 'line' || m.type === 'bar' || m.type === 'scatter' ? m.type : undefined;
+        series.push({
+            oid: oidAt(i),
+            ...m,
+            type: t && inheritType && t !== inheritType ? t : undefined,
+            area: normalizeArea(m.area, isLegacyAreaType(m)),
+        });
     }
 
-    // Normalise a stable `id` onto each series so React can reconcile series cards by identity, not
-    // array index (fixes the wrong-card-unmounts bug on middle-series delete). All families pass
-    // through here; gauge/radar ids are throwaway (their save path drops the id) but harmless.
+    // Normalise a stable `id` onto each series so React can reconcile series cards by identity,
+    // not array index (fixes the wrong-card-unmounts bug on middle-series delete).
     series = withStableIds(series, 'sr-');
 
     const vm = {
@@ -470,7 +421,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // Y-axes: decoded `yAxes` blob, else a single axis synthesised from the legacy chart-level
     // scalars — but ONLY for a legacy CARTESIAN widget that actually has series (ADR-0012
     // migration — no silent rewrite; legacy widgets edit axis 0 on first open). Everything else
-    // (a fresh widget, gauge/radar/pie) starts with 0 axes (ADR-0067): no blob → no axis; axes
+    // (a fresh widget, pie) starts with 0 axes (ADR-0067): no blob → no axis; axes
     // arise through the series auto-bind alone. The load never re-arranges anything — stored
     // offsets/positions survive verbatim.
     // Normalise a stable `id` onto each so React can reconcile axis cards by identity, not array
@@ -480,7 +431,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         yAxesDecoded.length ? yAxesDecoded : family === 'cartesian' && seriesCount > 0 ? [legacyAxis(data)] : [],
         'ax-',
     );
-    const mode = (data.mode as ChartMode) ?? DEFAULT_EDITOR_STATE.mode;
+    // ADR-0071: the retired 'live' mode heals to 'history' (decode-and-tolerate, the 24h→1d
+    // precedent) — written back as history only on save; the runtime pipeline tolerates it too.
+    const mode: ChartMode = data.mode === 'json' ? 'json' : 'history';
 
     // No mode-switch orphan-prune exists (ADR-0048's narrow effect deps remain the clobber
     // protection) — the only deliberate axis wipes are the two ADR-0067 data-path resets (fired
@@ -546,8 +499,6 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         titleWeight: parseFontWeight(data.titleWeight),
         titleFontStyle: parseFontStyle(data.titleFontStyle),
         series,
-        gauge: chartConfig.gauge ?? DEFAULT_EDITOR_STATE.gauge,
-        radar,
         pie,
         legendShow: boolOr(data.legendShow, true),
         legendPos: normalizeLegendPos(data.legendPos),
@@ -582,8 +533,6 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         visualMap: vm,
         frame,
         toolbox: decodeToolboxConfig(data.toolboxConfig as string),
-        radarRaw: chartConfig.radarRaw ?? '',
-        radarSnippets: chartConfig.radarSnippets ?? [],
         titleRaw: chartConfig.titleRaw ?? '',
         titleSnippets: chartConfig.titleSnippets ?? [],
         legendRaw: chartConfig.legendRaw ?? '',
@@ -601,7 +550,7 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // overlay and marking anchors around the holes. Never re-arranges (stored geometry survives
     // verbatim — {@link dropUnboundAxes} without the balance). JSON heals over the overlay-key
     // sight (the payload names are not resolved yet; the reconcile refines on their arrival),
-    // history/live over the materialised series sight. Non-cartesian families carry no axes by
+    // history over the materialised series sight. Non-cartesian families carry no axes by
     // construction (the ADR-0067 resets) — nothing to heal there.
     if (family === 'cartesian') {
         if (mode === 'json') {
@@ -635,48 +584,20 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
  * @param previousCount - Previously loaded series count, so stale `oidN` are cleared.
  */
 export const saveEditorState = (state: EditorState, previousCount = 0): Record<string, unknown> => {
-    const family = familyOf(state.chartType);
-
-    // series_count + oidN source depend on family.
-    let seriesCount: number;
-    let oidList: string[];
-    let metaBlob: SeriesMeta[];
-    if (family === 'radar') {
-        seriesCount = state.radar.indicators.length;
-        oidList = state.radar.indicators.map(ind => ind.oid || '');
-        metaBlob = [
-            {
-                name: state.series[0]?.name,
-                color: state.series[0]?.color,
-                raw: state.series[0]?.raw,
-            },
-        ];
-    } else if (family === 'gauge') {
-        seriesCount = 1;
-        oidList = [state.series[0]?.oid ?? ''];
-        metaBlob = [
-            {
-                name: state.series[0]?.name,
-                color: state.series[0]?.color,
-                raw: state.series[0]?.raw,
-            },
-        ];
-    } else {
-        seriesCount = state.series.length;
-        oidList = state.series.map(s => s.oid || '');
-        // Skeleton (ADR-0047 series boundary): the raw + unhealed snippets ride via `rest`; the
-        // registry's series entry writes the healed activations into the items.
-        metaBlob = state.series.map(({ oid: _oid, ...rest }) => rest);
-    }
+    const seriesCount = state.series.length;
+    const oidList = state.series.map(s => s.oid || '');
+    // Skeleton (ADR-0047 series boundary): the raw + unhealed snippets ride via `rest`; the
+    // registry's series entry writes the healed activations into the items.
+    const metaBlob: SeriesMeta[] = state.series.map(({ oid: _oid, ...rest }) => rest);
 
     // ADR-0042 Apply-time prunes + addendum heal — the registry (ADR-0047, rawLevels.ts) owns
-    // EVERY level now. The blob drafts below are skeletons (chartConfig seeds gauge/radar; the
-    // per-item drafts are copies of the working copy resp. the metaBlob built above); the
+    // EVERY level now. The blob drafts below are skeletons (the per-item drafts are copies of
+    // the working copy resp. the metaBlob built above); the
     // registry heals the activations into them in one pass WITHOUT rewriting the state —
     // between a family switch and Apply the stale ids deliberately stay in the working copy
     // (the stranded keys render nothing — verified against echarts), the actual prune rides
     // Apply, mirroring the bound-OID drop.
-    const chartConfigDraft: Record<string, unknown> = { gauge: state.gauge, radar: state.radar };
+    const chartConfigDraft: Record<string, unknown> = {};
     const yAxesHealed = state.yAxes.map(a => ({ ...a }));
     const xAxisDraft = { ...state.xAxis };
     const jsonSeriesStyle = Object.fromEntries(
@@ -761,7 +682,7 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         framePadding: state.frame.padding,
         // blobs
         seriesConfig: encodeBlob(JSON.stringify(metaBlob)),
-        // The registry-filled draft (ADR-0047): gauge/radar seed it, the scalar raw levels'
+        // The registry-filled draft (ADR-0047): the scalar raw levels'
         // fragments heal into it — pie unconditionally, the sections blob-lean.
         chartConfig: encodeBlob(JSON.stringify(chartConfigDraft)),
         toolboxConfig: encodeBlob(JSON.stringify(state.toolbox)),
@@ -780,12 +701,10 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
 
 // Re-export the config types the editor UI imports.
 export type {
-    EchartsGaugeConfig,
     EchartsLegendConfig,
     EchartsLegendIcon,
     EchartsLegendPos,
     EchartsPieConfig,
-    EchartsRadarConfig,
     EchartsTitlePos,
     EchartsVisualMapConfig,
     EchartsMarkLine,

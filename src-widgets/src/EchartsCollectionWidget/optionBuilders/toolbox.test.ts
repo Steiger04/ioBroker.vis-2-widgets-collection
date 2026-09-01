@@ -249,7 +249,7 @@ describe('buildToolbox — feature block', () => {
     });
 
     it('magicType is filtered out on non-cartesian families even when configured (D4)', () => {
-        for (const family of ['pie', 'gauge', 'radar'] as const) {
+        for (const family of ['pie'] as const) {
             const out = buildToolbox(
                 { show: true, features: { magicType: { show: true, type: ['line'] }, restore: { show: true } } },
                 family,

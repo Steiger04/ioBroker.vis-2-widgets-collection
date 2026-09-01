@@ -31,7 +31,7 @@ export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'o
  * Default layout for the i-th auto-created axis: a stable id (`nextStableId('ax-')` from
  * {@link module:EchartsCollectionWidget/editor/stableId} — for React reconciliation only, the
  * cartesian builder never emits it to echarts) + {@link axisPosition} geometry + splitlines on
- * axis 0 only. Used on series creation (history/live + duplicate), the JSON-mode editor sync,
+ * axis 0 only. Used on series creation (history + duplicate), the JSON-mode editor sync,
  * the „Neue Achse" dropdown append (ADR-0069), and the auto-balance re-arrange (via
  * {@link axisPosition}, non-destructive).
  *
@@ -53,7 +53,7 @@ export const axisLayout = (i: number): EchartsAxisConfig => ({
  * place it lives. The display helpers read through here so the editor shows what the chart
  * renders (a legacy series without a stored index inherits axis 0's name/colour slot). The JSON
  * sights stay STRICT (a cleared overlay entry is unbound — see {@link boundJsonView}); the
- * materialisation is a history/live binding-sight concern, never a JSON one.
+ * materialisation is a history binding-sight concern, never a JSON one.
  */
 export const materializedAxisIndex = (s: { yAxisIndex?: number }): number =>
     typeof s.yAxisIndex === 'number' ? s.yAxisIndex : 0;
@@ -101,7 +101,7 @@ export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boo
  * sides repacked independently, position preserved) is pensioned with it.
  *
  * The series view decides what "bound" means, and the two modes read the index DIFFERENTLY:
- * history/live passes `state.series` — a series WITHOUT an index counts as bound to axis 0
+ * history passes `state.series` — a series WITHOUT an index counts as bound to axis 0
  * (mirroring the builder). JSON passes {@link boundJsonView} — STRICT: a cleared entry
  * (`yAxisIndex` undefined) is unbound, never an implicit axis-0 binder. The load path never
  * re-arranges.
@@ -177,7 +177,7 @@ export const sameFormatSurvivor = (
 
 /**
  * Re-index marking anchors around a deleted axis (B4): a marking anchored to the DELETED axis
- * follows the rebind target — history/live passes the series rebind's `sameFormatSurvivor`
+ * follows the rebind target — history passes the series rebind's `sameFormatSurvivor`
  * target (the marking stays with the axis its series land on); the JSON config-delete passes
  * `Math.max(0, i - 1)` (the stack position the deleted axis occupied — no format concept there,
  * the axis was unbound). Higher anchors shift down around the hole; an undefined anchor passes
@@ -288,7 +288,7 @@ export const ownerPatch = (
     let next: EchartsAxisConfig[] | undefined;
     for (let yi = 0; yi < yAxes.length; yi++) {
         // Materialised sight (Q7): an implicit axis-0 binder transitions like any other — a
-        // history/live fix. JSON callers pass DEFINED-only sights (boundJsonView everywhere,
+        // history fix. JSON callers pass DEFINED-only sights (boundJsonView everywhere,
         // incl. the reconcile's before-sight), so the materialisation is a no-op on JSON.
         // id-less sights (legacy lists) stay owner-less — the display falls back to the first
         // binder, exactly the pre-0068 behaviour.
@@ -377,7 +377,7 @@ export const dropUnboundAxes = <S extends { yAxisIndex?: number }, M extends { y
         ? after.map(s => {
               const yi = s.yAxisIndex;
               if (typeof yi !== 'number' || !bound.has(yi)) {
-                  return s; // undefined stays — it still binds axis 0 implicitly (history/live)
+                  return s; // undefined stays — it still binds axis 0 implicitly (history)
               }
               const r = rank(yi);
               return r === yi ? s : { ...s, yAxisIndex: r };
@@ -395,7 +395,7 @@ export const dropUnboundAxes = <S extends { yAxisIndex?: number }, M extends { y
 /**
  * The structural-event seam (ADR-0069 + ADR-0067): owner maintenance, axis death, re-index and
  * the auto-balance in ONE call — the replacement of the retired restingBalance. `before`/
- * `after` follow each mode's sight (history/live: the raw series lists, an undefined index
+ * `after` follow each mode's sight (history: the raw series lists, an undefined index
  * materialises to axis 0, Q7; JSON: the STRICT visible views — {@link boundJsonView}, defined
  * indices only — an unfiltered JSON sight would mis-read a fresh name as an axis-0 binder, so
  * JSON callers MUST filter). Returns the patched `yAxes`/`binders`/`markLines` plus `diedIndices`
@@ -465,7 +465,7 @@ export const jsonBindingView = (
  * The JSON binding view reduced to DEFINED indices — the sight {@link balanceAxes} (and any
  * bound-set computation) needs in JSON mode. JSON binding is STRICT: an overlay entry with
  * `yAxisIndex` undefined (cleared when its name hid or its axis died) is UNBOUND — unlike a
- * history/live series without an index, which implicitly binds axis 0 (the builder's `?? 0`).
+ * history series without an index, which implicitly binds axis 0 (the builder's `?? 0`).
  * Filtering here keeps the two binding semantics from bleeding into each other at the seam.
  * The {id, name} entries pass through — the id is the owner key (ADR-0068).
  */
@@ -491,7 +491,7 @@ export const boundJsonAxisIndices = (
  * The JSON Axis-card title source (B2 + ADR-0068): the axis' OWNER payload name when it still
  * binds visibly, else the first VISIBLE name bound to the axis — the authored overlay name wins,
  * else the payload name, else the Series-N fallback. Hidden entries never title an axis (their
- * index is pending bookkeeping, not a binding). The JSON sibling of the history/live
+ * index is pending bookkeeping, not a binding). The JSON sibling of the history
  * `boundAxisName` in the Axis manager.
  */
 export const boundJsonAxisName = (
@@ -541,7 +541,7 @@ export const jsonAxisDeathName = (
  * (`s.color ?? palette[seriesIndex]`), so the Axis card matches the Series card of its display
  * series — the 1:1 colour invariant.
  *
- * `series` MUST be in DISPLAY order: history/live passes `state.series`; JSON passes the VISIBLE
+ * `series` MUST be in DISPLAY order: history passes `state.series`; JSON passes the VISIBLE
  * payload names mapped through the overlay (in payload order, hidden ones filtered). The palette slot
  * is therefore the series' visible position, NOT the axis index. That distinction matters in JSON:
  * after a rebind OR a payload-name reorder the sticky reconcile keeps `yAxisIndex`, so the axis index

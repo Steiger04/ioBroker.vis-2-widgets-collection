@@ -7,7 +7,7 @@
  * live body), with accidental drift (duplicated `RANGE_MS`/`toNum`, point caps 200 vs 5000, `hasData`
  * pre-merge vs post-merge, the three-source error only in the body, `refreshMs` ignored by the
  * preview). This module owns everything the data mode owns: series entries, subscriptions,
- * Verlauf/Live/JSON acquisition, family dispatch, presentation resolution, the merge + title +
+ * Verlauf/JSON acquisition, family dispatch, presentation resolution, the merge + title +
  * background block, and the unified return. Two adapters over the seam make it real:
  *
  *  - the ADAPTER supplies stabilised sources only — a plain-OID-keyed value map
@@ -42,10 +42,9 @@ import {
     type ChartConfigBlob,
 } from './presentation';
 import { useHistory } from './useHistory';
-import { useLiveBuffer } from './useLiveBuffer';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
-import { cutFuturePoints, holdValidLiveValue, transformSeriesData, xOffsetMs } from './seriesTransform';
+import { cutFuturePoints, transformSeriesData, xOffsetMs } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
@@ -65,7 +64,7 @@ export type ChartPipelineGetHistory = (id: string, options: ioBroker.GetHistoryO
  * `state.series` directly; the body builds it from `oid1..N` + the decoded `seriesConfig` meta.
  */
 export interface ChartPipelineSeries extends EchartsSeriesMeta {
-    /** Bound state id; empty when unset. (Unused for radar polygons.) */
+    /** Bound state id; empty when unset. */
     oid: string;
 }
 
@@ -91,7 +90,7 @@ export interface ChartPipelineAdapter {
 
 /** Already-decoded companions — blob decoding stays caller-side (ADR-0046). */
 export interface ChartPipelineCompanions {
-    /** Decoded chartConfig blob / editor family state (gauge/radar/pie + section raws). */
+    /** Decoded chartConfig blob / editor family state (pie + section raws). */
     chartConfig: ChartConfigBlob;
     /** Decoded per-axis config (ADR-0012). */
     yAxes: EchartsAxisConfig[];
@@ -165,8 +164,6 @@ export const isUsableOid = (oid: string | undefined): oid is string => !!oid && 
 export const usableSeries = (series: readonly ChartPipelineSeries[]): ChartPipelineSeries[] =>
     series.filter(s => isUsableOid(s.oid));
 
-const NO_INDICATORS: { oid?: string; name?: string; max?: number; id?: string }[] = [];
-
 const oidList = (oids: readonly (string | undefined)[]): string[] => oids.filter(isUsableOid);
 
 /**
@@ -181,20 +178,13 @@ export const subscribedOids = (
     family: ReturnType<typeof familyOf>,
     mode: string,
     series: readonly ChartPipelineSeries[],
-    indicators: readonly { oid?: string }[],
     jsonOid: unknown,
     earlyRefresh: boolean,
     markLines: readonly EchartsMarkLine[] = [],
 ): string[] => {
     let base: string[];
-    if (family === 'gauge') {
-        base = oidList([series[0]?.oid]);
-    } else if (family === 'radar') {
-        base = oidList(indicators.map(i => i.oid));
-    } else if (mode === 'json') {
+    if (mode === 'json') {
         base = oidList([typeof jsonOid === 'string' ? jsonOid : undefined]);
-    } else if (mode === 'live') {
-        base = oidList(series.map(s => s.oid));
     } else {
         // Verlauf: fetches — values only matter when the early refresh listens for them.
         base = earlyRefresh ? oidList(series.map(s => s.oid)) : [];
@@ -217,16 +207,12 @@ export const hasMergedData = (option: EChartsOption): boolean => {
 /**
  * The per-series CURRENT value for the legend (`Name [value]`, adapter `legActual`, ADR-0054) —
  * name-keyed so `buildLegend`'s formatter can look items up regardless of family/series source:
- * Verlauf = the last point of each history series; Live = the subscribed value (the rolling
- * buffer's last point as the pre-subscription fallback); JSON = the last payload point. A series
+ * Verlauf = the last point of each history series; JSON = the last payload point. A series
  * with no usable point maps to `null` (the legend formatter renders the bare name then).
  */
 export const resolveLegendValues = (
     mode: string,
-    usable: readonly ChartPipelineSeries[],
-    values: Record<string, unknown>,
     historySeries: readonly { name: string; data: SeriesPoint[] }[],
-    liveBuffers: Record<string, SeriesPoint[]>,
     jsonSeries: readonly { name: string; data: SeriesPoint[] }[],
 ): Record<string, number | null> => {
     const lastVal = (data: readonly SeriesPoint[]): number | null => {
@@ -234,11 +220,7 @@ export const resolveLegendValues = (
         return last ? toNum(last[1]) : null;
     };
     const out: Record<string, number | null> = {};
-    if (mode === 'live') {
-        for (const s of usable) {
-            out[s.name || s.oid] = toNum(values[s.oid]) ?? lastVal(liveBuffers[s.oid] ?? []);
-        }
-    } else if (mode === 'json') {
+    if (mode === 'json') {
         for (const s of jsonSeries) {
             out[s.name] = lastVal(s.data);
         }
@@ -272,17 +254,13 @@ const bucketedLegendValues = (
     return out;
 };
 
-/** The unified error surface: JSON parse > Verlauf fetch > per-series — null off cartesian/pie. */
+/** The unified error surface: JSON parse > Verlauf fetch > per-series — null when clean. */
 export const pipelineError = (
-    family: ReturnType<typeof familyOf>,
     mode: string,
     jsonError: string | undefined,
     historyError: string | null | undefined,
     historySeries: readonly { error?: string }[] = [],
 ): string | null => {
-    if (family !== 'cartesian' && family !== 'pie') {
-        return null;
-    }
     if (mode === 'json') {
         return jsonError ?? null;
     }
@@ -297,22 +275,19 @@ export interface AssemblePipelineInput {
     family: ReturnType<typeof familyOf>;
     mode: string;
     usable: ChartPipelineSeries[];
-    indicators: readonly { oid?: string }[];
-    values: Record<string, unknown>;
     history: {
         series: readonly { name: string; data: SeriesPoint[]; error?: string }[];
         loading: boolean;
         error: string | null;
     };
-    liveBuffers: Record<string, SeriesPoint[]>;
     jsonParsed: JsonStateResult;
     presentation: PresentationConfig;
     themeBase: EChartsOption;
     companions: ChartPipelineCompanions;
     src: Record<string, unknown>;
     /**
-     * The build's clock for the per-series cuts (ADR-0060 „Keine Zukunft"/„Gültige Zeit") —
-     * injectable so the core stays deterministic; the hook passes nothing (real `Date.now()`).
+     * The build's clock for the per-series cuts (ADR-0060 „Keine Zukunft") — injectable so the
+     * core stays deterministic; the hook passes nothing (real `Date.now()`).
      */
     now?: number;
     /** The bar bucket grid from the history fetch (ADR-0065); null/absent ⇒ time-axis path. */
@@ -324,20 +299,16 @@ export interface AssemblePipelineInput {
 }
 
 /**
- * The pure build core (ADR-0046 test surface): family dispatch (gauge value / radar values /
- * Verlauf-Live-JSON series), the theme merge, the title fold (incl. raw-without-text, ADR-0044),
- * the background injection, and `hasData` (values for gauge/radar, the MERGED option for
- * cartesian/pie). The hook is a thin composition over this + the acquisition hooks.
+ * The pure build core (ADR-0046 test surface): the Verlauf-JSON series dispatch, the theme
+ * merge, the title fold (incl. raw-without-text, ADR-0044), the background injection, and
+ * `hasData` (the MERGED option). The hook is a thin composition over this + the fetch hook.
  */
 export const assemblePipelineResult = (input: AssemblePipelineInput): { option: EChartsOption; hasData: boolean } => {
     const {
         family,
         mode,
         usable,
-        indicators,
-        values,
         history,
-        liveBuffers,
         jsonParsed,
         presentation,
         themeBase,
@@ -347,103 +318,78 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         barWindowEnd,
         barDiff,
     } = input;
-    let g: EChartsOption;
     // Legend values (ADR-0054): resolve the per-series current values and inject them into the
-    // presentation copy when the toggle is on (radar/gauge have no per-item current value — the
-    // formatter falls back to bare names there anyway, so no resolution is wasted on them).
-    const presentationWithValues =
-        presentation.legendShowValues && (family === 'cartesian' || family === 'pie')
-            ? {
-                  ...presentation,
-                  legendValues: resolveLegendValues(
-                      mode,
-                      usable,
-                      values,
-                      history.series,
-                      liveBuffers,
-                      // JSON payload series are always `[ts, val]` points (bucketing is
-                      // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
-                      jsonParsed.series as { name: string; data: SeriesPoint[] }[],
-                  ),
-              }
-            : presentation;
-    if (family === 'gauge') {
-        const oid = usable[0]?.oid ?? '';
-        g = buildGeneratedOption({
-            family: 'gauge',
-            value: oid ? toNum(values[oid]) : null,
-            meta: usable,
-            p: presentationWithValues,
-        });
-    } else if (family === 'radar') {
-        const vals = indicators.map(ind => (ind.oid ? toNum(values[ind.oid]) : null));
-        g = buildGeneratedOption({ family: 'radar', values: vals, meta: usable, p: presentationWithValues });
+    // presentation copy when the toggle is on.
+    const presentationWithValues = presentation.legendShowValues
+        ? {
+              ...presentation,
+              legendValues: resolveLegendValues(
+                  mode,
+                  history.series,
+                  // JSON payload series are always `[ts, val]` points (bucketing is
+                  // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
+                  jsonParsed.series as { name: string; data: SeriesPoint[] }[],
+              ),
+          }
+        : presentation;
+    let series: ChartSeries[];
+    if (mode === 'history') {
+        series = history.series.map(s => ({ name: s.name, data: s.data }));
     } else {
-        let series: ChartSeries[];
-        if (mode === 'history') {
-            series = history.series.map(s => ({ name: s.name, data: s.data }));
-        } else if (mode === 'live') {
-            series = usable.map(s => ({ name: s.name || s.oid, data: liveBuffers[s.oid] ?? [] }));
-        } else {
-            // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2).
-            series = jsonParsed.series.filter(s => !companions.jsonHidden.includes(s.name));
-        }
-        // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
-        // positional editor series (json has no per-series OIDs to key it by).
-        const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
-        // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
-        // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
-        // over every mode's points; „Gültige Zeit" holds a fresh Live value to now. Point-typed
-        // here — category bars (below) are the only non-point data shape (ADR-0065).
-        const now = input.now ?? Date.now();
-        const transformed = series.map((s, i) => ({
-            name: s.name,
-            data: holdValidLiveValue(
-                transformSeriesData(
-                    meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
-                    meta[i],
-                ),
-                mode === 'live' ? meta[i]?.validTime : undefined,
-                now,
-            ),
-        }));
-        // Category bars (ADR-0065): bucket the transformed points onto the fetch's shared grid
-        // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
-        // and ride the categories into the presentation copy — the builder switches to a
-        // category x axis and the series data becomes plain bucket arrays.
-        let presentationFinal = presentationWithValues;
-        let bucketed: ChartSeries[] = transformed;
-        if (barCategories?.length) {
-            let cats = barCategories;
-            const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
-            bucketed = transformed.map(s => ({
-                name: s.name,
-                data: bucketizeSeries(s.data, cats, src.aggregate as Parameters<typeof bucketizeSeries>[2], endBound),
-            }));
-            if (barDiff) {
-                bucketed = bucketed.map(s => ({
-                    name: s.name,
-                    data: applyBarDiff(s.data as (number | null)[]),
-                }));
-                cats = cats.slice(1); // the diff's first bucket has no predecessor
-            }
-            presentationFinal = { ...presentationWithValues, barCategories: cats };
-            // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff
-            // included) value the chart actually shows. Reading the raw history series here
-            // made the legend contradict the bars (a meter reading against its diff).
-            if (presentationWithValues.legendValues) {
-                presentationFinal = {
-                    ...presentationFinal,
-                    // Bucketed bars carry plain arrays by construction (the ChartSeries union
-                    // still allows points for the time-axis path) — narrowed for the resolver.
-                    legendValues: bucketedLegendValues(
-                        bucketed.map(s => ({ name: s.name, data: s.data as (number | null)[] })),
-                    ),
-                };
-            }
-        }
-        g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
+        // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2).
+        series = jsonParsed.series.filter(s => !companions.jsonHidden.includes(s.name));
     }
+    // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
+    // positional editor series (json has no per-series OIDs to key it by).
+    const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
+    // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
+    // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
+    // over every mode's points. Point-typed here — category bars (below) are the only
+    // non-point data shape (ADR-0065).
+    const now = input.now ?? Date.now();
+    const transformed = series.map((s, i) => ({
+        name: s.name,
+        data: transformSeriesData(
+            meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
+            meta[i],
+        ),
+    }));
+    // Category bars (ADR-0065): bucket the transformed points onto the fetch's shared grid
+    // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
+    // and ride the categories into the presentation copy — the builder switches to a
+    // category x axis and the series data becomes plain bucket arrays.
+    let presentationFinal = presentationWithValues;
+    let bucketed: ChartSeries[] = transformed;
+    if (barCategories?.length) {
+        let cats = barCategories;
+        const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
+        bucketed = transformed.map(s => ({
+            name: s.name,
+            data: bucketizeSeries(s.data, cats, src.aggregate as Parameters<typeof bucketizeSeries>[2], endBound),
+        }));
+        if (barDiff) {
+            bucketed = bucketed.map(s => ({
+                name: s.name,
+                data: applyBarDiff(s.data as (number | null)[]),
+            }));
+            cats = cats.slice(1); // the diff's first bucket has no predecessor
+        }
+        presentationFinal = { ...presentationWithValues, barCategories: cats };
+        // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff
+        // included) value the chart actually shows. Reading the raw history series here
+        // made the legend contradict the bars (a meter reading against its diff).
+        if (presentationWithValues.legendValues) {
+            presentationFinal = {
+                ...presentationFinal,
+                // Bucketed bars carry plain arrays by construction (the ChartSeries union
+                // still allows points for the time-axis path) — narrowed for the resolver.
+                legendValues: bucketedLegendValues(
+                    bucketed.map(s => ({ name: s.name, data: s.data as (number | null)[] })),
+                ),
+            };
+        }
+    }
+    const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
     const titleText = typeof src.titleText === 'string' ? src.titleText.trim() : '';
@@ -465,18 +411,12 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         merged.backgroundColor = presentation.bgColor;
     }
 
-    const hasData =
-        family === 'gauge'
-            ? toNum(values[usable[0]?.oid ?? '']) !== null
-            : family === 'radar'
-              ? indicators.some(ind => (ind.oid ? toNum(values[ind.oid]) : null) !== null)
-              : hasMergedData(merged);
-    return { option: merged, hasData };
+    return { option: merged, hasData: hasMergedData(merged) };
 };
 
 /**
  * Run the chart pipeline. Pure branching in the exported helpers; this hook composes them with
- * the acquisition hooks ({@link useHistory}, {@link useLiveBuffer}) over the adapter.
+ * the acquisition hook ({@link useHistory}) over the adapter.
  */
 export function useChartPipeline(
     adapter: ChartPipelineAdapter,
@@ -487,8 +427,10 @@ export function useChartPipeline(
     const { useValues, getHistory, theme } = adapter;
     const chartType = src.chartType as Parameters<typeof familyOf>[0];
     const family = familyOf(chartType);
-    const mode = (src.mode as string) ?? 'history';
-    const isTimeFamily = family === 'cartesian' || family === 'pie';
+    // ADR-0071 decode-and-tolerate: a still-persisted 'live' (or any legacy/garbage value)
+    // renders as Verlauf here — the editor load heals it to 'history' in memory; the body
+    // never re-saves on its own.
+    const mode = src.mode === 'json' ? 'json' : 'history';
     const maxPoints = opts.maxPoints ?? BODY_MAX_HISTORY_POINTS;
 
     const usable = useMemo(() => usableSeries(companions.series), [companions]);
@@ -508,15 +450,13 @@ export function useChartPipeline(
             }),
         [usable],
     );
-    const indicators = useMemo(() => companions.chartConfig.radar?.indicators ?? NO_INDICATORS, [companions]);
-
     // A static window (ADR-0063) turns the body's early refresh OFF alongside the polling — one
     // switch read by the subscription set and the refresh effect below.
     const earlyRefresh = opts.earlyRefresh === true && src.timeType !== 'static';
 
     const oids = useMemo(
-        () => subscribedOids(family, mode, usable, indicators, src.jsonOid, earlyRefresh, companions.markLines),
-        [family, mode, usable, indicators, src.jsonOid, earlyRefresh, companions],
+        () => subscribedOids(family, mode, usable, src.jsonOid, earlyRefresh, companions.markLines),
+        [family, mode, usable, src.jsonOid, earlyRefresh, companions],
     );
     const values = useValues(oids);
 
@@ -609,19 +549,13 @@ export function useChartPipeline(
         maxPoints,
         refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
-        enabled: isTimeFamily && mode === 'history' && entries.length > 0,
+        enabled: mode === 'history' && entries.length > 0,
     });
-
-    const liveBuffers = useLiveBuffer(
-        entries,
-        values as Record<string, ioBroker.StateValue | undefined>,
-        isTimeFamily && mode === 'live',
-    );
 
     // JSON acquisition: the payload state's CURRENT value (subscribed via the adapter).
     const jsonOidRaw = typeof src.jsonOid === 'string' ? src.jsonOid : undefined;
     const jsonOid = isUsableOid(jsonOidRaw) ? jsonOidRaw : '';
-    const jsonRaw = mode === 'json' && isTimeFamily ? values[jsonOid] : undefined;
+    const jsonRaw = mode === 'json' ? values[jsonOid] : undefined;
     const jsonParsed = useMemo(() => parseJsonState(jsonText(jsonRaw)), [jsonRaw]);
 
     // Debounced early refresh in Verlauf (body behaviour, off in the preview): re-fetch soon when
@@ -630,7 +564,7 @@ export function useChartPipeline(
     const firstValuesRef = useRef(true);
     const { refresh } = history;
     useEffect(() => {
-        if (!earlyRefresh || mode !== 'history' || !isTimeFamily || entries.length === 0) {
+        if (!earlyRefresh || mode !== 'history' || entries.length === 0) {
             firstValuesRef.current = true;
             return;
         }
@@ -649,10 +583,7 @@ export function useChartPipeline(
             family,
             mode,
             usable,
-            indicators,
-            values,
             history: { series: history.series, loading: history.loading, error: history.error },
-            liveBuffers,
             jsonParsed,
             presentation,
             themeBase: theme.themeBase,
@@ -667,25 +598,21 @@ export function useChartPipeline(
         return {
             option,
             hasData,
-            loading: isTimeFamily && mode === 'history' && history.loading,
-            error: pipelineError(family, mode, jsonParsed.error, history.error, history.series),
+            loading: mode === 'history' && history.loading,
+            error: pipelineError(mode, jsonParsed.error, history.error, history.series),
         };
     }, [
         family,
         mode,
-        isTimeFamily,
         barDiff,
         usable,
-        values,
         history.series,
         history.loading,
         history.error,
         history.extras,
-        liveBuffers,
         jsonParsed,
         presentation,
         theme.themeBase,
-        indicators,
         companions,
         src,
     ]);

@@ -4,99 +4,23 @@
  *
  * @module EchartsCollectionWidget/editor/sections/FamilySections
  * @remarks
- *  - Gauge: the dial presentation (min/max/target/progress arc/unit). The OID binding lives in the
- *    Series section. min/max carry field-level validation (min must be below max).
- *  - Pie: slice aggregation (exposes the previously state-only `pie.aggregate` knob), donut inner
- *    radius, slice label mode, rose mode.
- *  - Radar: polygon shape, split rings, area fill. The indicator list lives in the Series section.
- *    Since ADR-0045 the section also hosts the radar raw escape hatch (the 6th RawJsonSection
- *    host, after Y/X/Title/Legend/Tooltip) — the section is radar-only by inventory, so no
- *    family gating is needed inside.
+ * Pie: slice aggregation (exposes the previously state-only `pie.aggregate` knob), donut inner
+ * radius, slice label mode, rose mode. (The gauge and radar sections died with their families,
+ * ADR-0071.)
  */
 import type { FC } from 'react';
-import { Box } from '@mui/material';
 
 import Generic from '../../../Generic';
-import {
-    FieldGrid,
-    LabeledSelect,
-    NumberField,
-    OptionalNumberField,
-    SliderField,
-    SwitchList,
-    SwitchRow,
-    TextField2,
-} from '../../../components/controls';
-import RawJsonSection from './RawJsonSection';
-import { RADAR_CATALOG } from '../radarTemplates';
+import { FieldGrid, LabeledSelect, SliderField } from '../../../components/controls';
 import type { EditorState, SetEditor } from '../editorState';
-
-/** The gauge options section's field ownership (ADR-0049 slice) — the dial blob. */
-export type GaugeOptionsSlice = Pick<EditorState, 'gauge'>;
 
 /** The pie options section's field ownership (ADR-0049 slice) — the pie blob. */
 export type PieOptionsSlice = Pick<EditorState, 'pie'>;
-
-/**
- * The radar options section's field ownership (ADR-0049 slice) — the radar blob plus the
- * section raw and its template ids (the 6th RawJsonSection host, ADR-0045).
- */
-export type RadarOptionsSlice = Pick<EditorState, 'radar' | 'radarRaw' | 'radarSnippets'>;
-
-interface GaugeOptionsSectionProps {
-    state: GaugeOptionsSlice;
-    set: SetEditor<GaugeOptionsSlice>;
-}
 
 interface PieOptionsSectionProps {
     state: PieOptionsSlice;
     set: SetEditor<PieOptionsSlice>;
 }
-
-interface RadarOptionsSectionProps {
-    state: RadarOptionsSlice;
-    set: SetEditor<RadarOptionsSlice>;
-}
-
-export const GaugeOptionsSection: FC<GaugeOptionsSectionProps> = ({ state, set }) => {
-    const setGauge = (patch: Partial<GaugeOptionsSlice['gauge']>): void => set({ gauge: { ...state.gauge, ...patch } });
-    const rangeInvalid = (state.gauge.min ?? 0) >= (state.gauge.max ?? 100);
-
-    return (
-        <FieldGrid>
-            <NumberField
-                label={Generic.t('echarts_gauge_min')}
-                value={state.gauge.min ?? 0}
-                onChange={v => setGauge({ min: v })}
-                error={rangeInvalid}
-                helperText={rangeInvalid ? Generic.t('echarts_val_gauge_range') : undefined}
-            />
-            <NumberField
-                label={Generic.t('echarts_gauge_max')}
-                value={state.gauge.max ?? 100}
-                onChange={v => setGauge({ max: v })}
-                error={rangeInvalid}
-            />
-            <OptionalNumberField
-                label={Generic.t('echarts_gauge_target')}
-                value={state.gauge.target}
-                onChange={v => setGauge({ target: v })}
-            />
-            <SliderField
-                label={Generic.t('echarts_gauge_progress_width')}
-                value={state.gauge.progressWidth ?? 14}
-                min={2}
-                max={40}
-                onChange={v => setGauge({ progressWidth: v })}
-            />
-            <TextField2
-                label={Generic.t('echarts_gauge_unit')}
-                value={state.gauge.unit ?? ''}
-                onChange={v => setGauge({ unit: v })}
-            />
-        </FieldGrid>
-    );
-};
 
 export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ state, set }) => {
     const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
@@ -147,41 +71,3 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ state, set }) =>
         </FieldGrid>
     );
 };
-
-export const RadarOptionsSection: FC<RadarOptionsSectionProps> = ({ state, set }) => (
-    <Box>
-        <FieldGrid sx={{ mb: 1.5 }}>
-            <LabeledSelect
-                label={Generic.t('echarts_radar_shape')}
-                value={state.radar.shape ?? 'polygon'}
-                onChange={v => set({ radar: { ...state.radar, shape: v as 'polygon' | 'circle' } })}
-                options={[
-                    ['polygon', Generic.t('echarts_radar_polygon')],
-                    ['circle', Generic.t('echarts_radar_circle')],
-                ]}
-            />
-            <NumberField
-                label={Generic.t('echarts_radar_split')}
-                value={state.radar.splitNumber ?? 5}
-                onChange={v => set({ radar: { ...state.radar, splitNumber: v } })}
-            />
-        </FieldGrid>
-        <SwitchList sx={{ mb: 1.5 }}>
-            <SwitchRow
-                label={Generic.t('echarts_radar_area')}
-                checked={state.radar.area ?? true}
-                onChange={v => set({ radar: { ...state.radar, area: v } })}
-            />
-        </SwitchList>
-        {/* The radar section's raw escape hatch (ADR-0045) — deep-merged UNDER the built radar
-            component (GUI wins); `radar` rides replaceMerge, so deleting the raw reverts. */}
-        <RawJsonSection
-            raw={state.radarRaw}
-            onChange={v => set({ radarRaw: v || '' })}
-            catalog={RADAR_CATALOG}
-            snippets={state.radarSnippets}
-            placeholder={'{\n  "startAngle": 90\n}'}
-            onCommit={r => set({ radarRaw: r.text || '', radarSnippets: r.ids })}
-        />
-    </Box>
-);

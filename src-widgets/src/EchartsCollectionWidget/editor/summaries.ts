@@ -35,17 +35,11 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
     const out: Partial<Record<SectionKey, string>> = {};
 
     // series
-    if (family === 'radar') {
-        out.series = joinNames(state.radar.indicators.map(i => i.name));
-    } else {
-        out.series = joinNames(state.series.map(s => s.name));
-    }
+    out.series = joinNames(state.series.map(s => s.name));
 
     // data source (cartesian/pie only)
     if (state.mode === 'history') {
         out.dataSource = `${state.timeRange} · ${state.aggregate} · ${state.count}`;
-    } else if (state.mode === 'live') {
-        out.dataSource = t('echarts_mode_live');
     } else {
         out.dataSource = 'JSON';
     }
@@ -76,16 +70,12 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
     out.axesZoom = yBounds + axesN + (zoom ? ` · ${zoom}` : '');
 
     // family options
-    if (family === 'gauge') {
-        out.family = `${state.gauge.min ?? 0}–${state.gauge.max ?? 100}${state.gauge.unit ? ` ${state.gauge.unit}` : ''}`;
-    } else if (family === 'pie') {
+    if (family === 'pie') {
         out.family = state.pie.innerRadius
             ? `donut ${Math.round((state.pie.innerRadius ?? 0) * 100)}%`
             : state.pie.rose !== 'none'
               ? `rose · ${state.pie.rose}`
               : '';
-    } else if (family === 'radar') {
-        out.family = `${state.radar.shape ?? 'polygon'} · ${state.radar.splitNumber ?? 5}`;
     }
 
     // colours

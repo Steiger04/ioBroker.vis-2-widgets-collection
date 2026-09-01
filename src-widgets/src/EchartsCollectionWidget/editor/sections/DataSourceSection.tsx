@@ -5,11 +5,10 @@
  * @remarks
  * What is shared across ALL of a chart's series: history mode (the time WINDOW per ADR-0063 —
  * type relative/static, the 18-key grouped range, the 17-key relative end, or the static
- * DateTimePicker pair — plus aggregate / count / refresh / null gaps), the JSON OID (json mode),
- * or a live-mode hint. A STATIC window hides the refresh field (the pipeline suppresses polling
+ * DateTimePicker pair — plus aggregate / count / refresh / null gaps), the JSON OID (json mode).
+ * A STATIC window hides the refresh field (the pipeline suppresses polling
  * and the early refresh anyway) and shows a start≥end advisory. OID binding — and with it the
- * per-series history instance (ADR-0039) — lives in the Series section. Not rendered for
- * gauge/radar (they always read the current value — the pinned selectors say so).
+ * per-series history instance (ADR-0039) — lives in the Series section.
  */
 import type { FC } from 'react';
 import { Box, ListSubheader, MenuItem, TextField } from '@mui/material';
@@ -375,8 +374,6 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                     <InfoBox text={Generic.t('echarts_editor_info_json')} />
                 </Box>
             )}
-
-            {!isHistory && !isJson && <InfoBox text={Generic.t('echarts_editor_mode_hint_live')} />}
         </Box>
     );
 };

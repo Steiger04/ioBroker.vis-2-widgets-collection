@@ -13,8 +13,6 @@
  *    delete) expanding to the type-sensitive knob SubGroups.
  *  - pie — {@link PieSliceRows}: name + OID + colour + delete rows. (The OID picker was missing in
  *    v2 — slices could never bind data.)
- *  - gauge — {@link GaugeBinding}: the scalar OID + label + colour (dial lives in Gauge options).
- *  - radar — {@link RadarIndicators}: the indicator-OID list + polygon label/colour.
  *  - json (cartesian + pie) — {@link JsonSeriesCards}: one card per payload series.
  *
  * Validation issues surface as a compact warning list on top (they are item-scoped). An axis death
@@ -50,8 +48,6 @@ import { nextStableId } from '../stableId';
 import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
 import PieSliceRows from './series/PieSliceRows';
-import GaugeBinding from './series/GaugeBinding';
-import RadarIndicators from './series/RadarIndicators';
 import JsonSeriesCards from './series/JsonSeriesCards';
 
 /**
@@ -68,8 +64,6 @@ export type SeriesSlice = Pick<
     | 'series'
     | 'yAxes'
     | 'markLines'
-    | 'gauge'
-    | 'radar'
     | 'pie'
     | 'jsonOid'
     | 'jsonHidden'
@@ -84,7 +78,7 @@ interface SeriesSectionProps {
     state: SeriesSlice;
     set: SetEditor<SeriesSlice>;
     pickerCtx: OidPickerCtx;
-    /** Issues for this section (item-scoped: missing OID, radar max). */
+    /** Issues for this section (item-scoped: missing OID). */
     issues?: ValidationIssue[];
     /** JSON mode (ADR-0011): the payload series names, in payload order. Drives the card list. */
     jsonSeriesNames?: string[];
@@ -113,8 +107,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     // Bar label colour inherit preview (parity Build D) — the theme's text primary, dark-mode-aware.
     const labelColorFallback = themeTokens.textPrimary;
     const isPie = state.chartType === 'pie';
-    const isGauge = state.chartType === 'gauge';
-    const isRadar = state.chartType === 'radar';
     const isJson = state.mode === 'json';
     const isCartesian = state.chartType === 'line' || state.chartType === 'bar' || state.chartType === 'scatter';
     // Verlauf: the per-series history-instance pins live on the series cards (ADR-0039). The
@@ -358,28 +350,12 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     return (
         <Box>
             {issues.length > 0 && <IssueList issues={issues} />}
-            {isHistory && !isGauge && !isRadar && !isJson && (
+            {isHistory && !isJson && (
                 <Box sx={{ mb: 1.5 }}>
                     <InfoBox text={Generic.t('echarts_instance_auto_hint')} />
                 </Box>
             )}
-            {isGauge && (
-                <GaugeBinding
-                    state={state}
-                    set={set}
-                    pickerCtx={pickerCtx}
-                    slot={slot}
-                />
-            )}
-            {isRadar && (
-                <RadarIndicators
-                    state={state}
-                    set={set}
-                    pickerCtx={pickerCtx}
-                    slot={slot}
-                />
-            )}
-            {!isGauge && !isRadar && isJson && (
+            {isJson && (
                 <JsonSeriesCards
                     state={state}
                     pickerCtx={pickerCtx}
@@ -395,7 +371,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     onShowJson={showJson}
                 />
             )}
-            {!isGauge && !isRadar && !isJson && isPie && (
+            {!isJson && isPie && (
                 <PieSliceRows
                     state={state}
                     set={set}
@@ -406,7 +382,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     onAddWithOid={addWithOid}
                 />
             )}
-            {!isGauge && !isRadar && !isJson && isCartesian && (
+            {!isJson && isCartesian && (
                 <CartesianSeriesList
                     state={state}
                     pickerCtx={pickerCtx}

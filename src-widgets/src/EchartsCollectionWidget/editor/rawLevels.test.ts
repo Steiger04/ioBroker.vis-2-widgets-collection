@@ -12,7 +12,7 @@
  * The lean semantics DIFFER per storage and are pinned per level: flat state fields
  * normalise to `[]` and omit their blob keys; nested items stay `undefined`-lean — except
  * yAxes, whose heal keeps `[]` both sides. Every scenario heals under the DEFAULT cartesian
- * family — that pins ADR-0047's family-free semantics (radar/pie blobs ride across switches).
+ * family — that pins ADR-0047's family-free semantics (the pie blob rides across switches).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -26,7 +26,7 @@ type Data = Record<string, unknown>;
 /** A raw level's placement — the only per-level knowledge the harness has. */
 interface LevelAccess {
     /** Registry id (the meta test maps RAW_LEVELS against this). */
-    id: 'title' | 'legend' | 'tooltip' | 'radar' | 'pie' | 'series' | 'yAxes' | 'xAxis' | 'jsonSeriesStyle';
+    id: 'title' | 'legend' | 'tooltip' | 'pie' | 'series' | 'yAxes' | 'xAxis' | 'jsonSeriesStyle';
     /** A real catalog id whose activation survives with {@link keepRaw}. */
     validId: string;
     /** Raw text keeping {@link validId} alive (≥1 leaf path present). */
@@ -54,7 +54,7 @@ type Cfg = Record<string, unknown>;
 
 /** Flat section levels share one placement anatomy — a factory over the two state keys. */
 const flatLevel = (
-    id: 'title' | 'legend' | 'tooltip' | 'radar',
+    id: 'title' | 'legend' | 'tooltip',
     validId: string,
     keepRaw: string,
     keys: { raw: string; snippets: string },
@@ -146,10 +146,6 @@ const LEVELS: LevelAccess[] = [
     flatLevel('tooltip', 'textstyle', '{ "textStyle": { "color": "#222" } }', {
         raw: 'tooltipRaw',
         snippets: 'tooltipSnippets',
-    }),
-    flatLevel('radar', 'radar-splitarea', '{ "splitArea": { "show": true } }', {
-        raw: 'radarRaw',
-        snippets: 'radarSnippets',
     }),
     // pie — the scalar level nested in the chartConfig blob's pie config. Since the follow-up
     // decision 2026-08-22 its fragment is blob-lean like the flat sections: an empty raw no
@@ -320,9 +316,8 @@ describe('raw-level registry (ADR-0047 — the registry side of the pinned contr
         expect(ids.length).toBe(fixtureIds.size);
     });
 
-    it('families is UI-visibility metadata only (radar/pie scoped, the rest family-free)', () => {
+    it('families is UI-visibility metadata only (pie scoped, the rest family-free)', () => {
         const byId = new Map(RAW_LEVELS.map(level => [level.id, level]));
-        expect(byId.get('radar')?.families).toEqual(['radar']);
         expect(byId.get('pie')?.families).toEqual(['pie']);
         for (const id of ['title', 'legend', 'tooltip', 'series', 'yAxes', 'xAxis', 'jsonSeriesStyle'] as const) {
             expect(byId.get(id)?.families).toBeUndefined();

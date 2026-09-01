@@ -92,44 +92,6 @@ describe('validateEditor', () => {
         expect(issues.series?.[0].key).toBe('echarts_val_oid_missing');
     });
 
-    it('gauge: missing OID → series issue; min ≥ max → family issue', () => {
-        const issues = validateEditor(
-            st({
-                chartType: 'gauge',
-                series: [{ oid: '', name: '' }],
-                gauge: { min: 100, max: 0, progressWidth: 14, unit: '' },
-            }),
-        );
-        expect(issues.series?.[0]).toEqual({ key: 'echarts_val_oid_missing', args: ['1'] });
-        expect(issues.family).toEqual([{ key: 'echarts_val_gauge_range', args: undefined }]);
-    });
-
-    it('gauge with sane range → no family issue', () => {
-        const issues = validateEditor(
-            st({
-                chartType: 'gauge',
-                series: [{ oid: 'a.b.c', name: '' }],
-                gauge: { min: 0, max: 100, progressWidth: 14, unit: '' },
-            }),
-        );
-        expect(issues.family).toBeUndefined();
-    });
-
-    it('radar: indicator without OID and max ≤ 0 → two series issues', () => {
-        const issues = validateEditor(
-            st({
-                chartType: 'radar',
-                radar: {
-                    shape: 'polygon',
-                    splitNumber: 5,
-                    area: true,
-                    indicators: [{ name: 'Speed', max: 0, oid: '' }],
-                },
-            }),
-        );
-        expect(issues.series?.map(i => i.key)).toEqual(['echarts_val_oid_missing', 'echarts_val_radar_max']);
-    });
-
     it('axis min ≥ max (both set) → axesZoom issue; one side auto → clean (ADR-0012)', () => {
         expect(validateEditor(st({ yAxes: [{ min: 10, max: 5 }] })).axesZoom).toHaveLength(1);
         expect(validateEditor(st({ yAxes: [{ max: 5 }] })).axesZoom).toBeUndefined();
@@ -143,12 +105,12 @@ describe('validateEditor', () => {
         expect(off.colors).toBeUndefined();
     });
 
-    it('gauge/radar states never produce cartesian-only issues', () => {
+    it('pie states never produce cartesian-only issues', () => {
         const issues = validateEditor(
             st({
-                chartType: 'gauge',
+                chartType: 'pie',
                 series: [{ oid: 'a.b.c', name: '' }],
-                yAxes: [{ min: 10, max: 5 }], // bad range, but gauge skips cartesian checks
+                yAxes: [{ min: 10, max: 5 }], // bad range, but pie skips cartesian checks
                 visualMap: { enabled: true, min: 9, max: 1, colors: '' },
             }),
         );
@@ -173,30 +135,6 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
         expect(loss).toEqual({ series: 2, axes: 2, marks: 0, dataPoint: false });
     });
 
-    it('radar counts the INDICATORS (its oidN data path), not the polygon series', () => {
-        const loss = familyBoundaryLoss(
-            st({
-                chartType: 'radar',
-                series: [{ oid: '', name: 'Polygon' }],
-                radar: {
-                    shape: 'polygon',
-                    splitNumber: 5,
-                    area: true,
-                    indicators: [
-                        { name: 'I', max: 1, oid: 'c' },
-                        { name: 'J', max: 1, oid: 'd' },
-                    ],
-                },
-            }),
-        );
-        expect(loss).toEqual({ series: 2, axes: 0, marks: 0, dataPoint: false });
-    });
-
-    it('gauge counts its single series', () => {
-        const loss = familyBoundaryLoss(st({ chartType: 'gauge', series: [{ oid: 'a' }] }));
-        expect(loss).toEqual({ series: 1, axes: 0, marks: 0, dataPoint: false });
-    });
-
     it('F10: cartesian markings count and a set jsonOid falls with the crossing', () => {
         const loss = familyBoundaryLoss(
             st({
@@ -213,8 +151,7 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
         expect(loss).toEqual({ series: 1, axes: 1, marks: 2, dataPoint: true });
     });
 
-    it('F10: markings are cartesian-only — radar/pie/gauge report none even with markLines set', () => {
-        expect(familyBoundaryLoss(st({ chartType: 'radar', markLines: [{ id: 'm0', upper: 1 }] })).marks).toBe(0);
+    it('F10: markings are cartesian-only — pie reports none even with markLines set', () => {
         expect(familyBoundaryLoss(st({ chartType: 'pie', markLines: [{ id: 'm0', upper: 1 }] })).marks).toBe(0);
     });
 
@@ -225,7 +162,7 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
             marks: 0,
             dataPoint: false,
         });
-        expect(familyBoundaryLoss(st({ chartType: 'radar' }))).toEqual({
+        expect(familyBoundaryLoss(st({ chartType: 'pie' }))).toEqual({
             series: 0,
             axes: 0,
             marks: 0,
@@ -237,32 +174,6 @@ describe('familyBoundaryLoss — what a chart-family crossing deletes (ADR-0067)
 describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch prunes on Apply)', () => {
     // The chart-level term retired with the chart-U (ADR-0045); the radar section raw rides the
     // chartConfig blob inert across families (never a loss) — what remains are the series-level terms.
-    it('gauge drops the series beyond the first with their activations; the survivor goes slot-stale', () => {
-        const n = familySwitchSnippetLoss(
-            st({
-                chartType: 'gauge',
-                series: [
-                    { oid: 'a', name: '', snippets: ['line-sampling'] },
-                    { oid: 'b', name: '', snippets: ['line-clip', 'line-markpoint'] },
-                ],
-            }),
-        );
-        expect(n).toBe(3);
-    });
-
-    it('radar drops every cartesian series (survivor stale + dropped counted)', () => {
-        const n = familySwitchSnippetLoss(
-            st({
-                chartType: 'radar',
-                series: [
-                    { oid: 'a', name: '', snippets: ['line-sampling'] },
-                    { oid: 'b', name: '', snippets: ['line-clip'] },
-                ],
-            }),
-        );
-        expect(n).toBe(2);
-    });
-
     it('pie target: slice-slot-stale cartesian activations count', () => {
         const n = familySwitchSnippetLoss(
             st({ chartType: 'pie', series: [{ oid: 'a', name: '', snippets: ['line-sampling', 'slice-itemstyle'] }] }),
@@ -281,9 +192,8 @@ describe('familySwitchSnippetLoss (ADR-0042 — activations the family switch pr
     });
 
     it('no activations → zero for every family', () => {
-        expect(familySwitchSnippetLoss(st({ chartType: 'gauge', series: [{ oid: '', name: '' }] }))).toBe(0);
-        expect(familySwitchSnippetLoss(st({ chartType: 'radar' }))).toBe(0);
         expect(familySwitchSnippetLoss(st({ chartType: 'pie' }))).toBe(0);
+        expect(familySwitchSnippetLoss(st({ chartType: 'line' }))).toBe(0);
     });
 });
 
