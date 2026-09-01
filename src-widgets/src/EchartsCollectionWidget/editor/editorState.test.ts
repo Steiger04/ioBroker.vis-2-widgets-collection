@@ -100,14 +100,70 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(loadEditorState({ ...baseState() }).percentileValue).toBeUndefined();
     });
 
-    it('barInterval/barDiff round-trip sparse (ADR-0065: auto/off persist nothing)', () => {
+    it('barInterval/barDiff round-trip sparse (ADR-0065: auto/off persist the null delete)', () => {
         const state: EditorState = { ...baseState(), barInterval: '1d', barDiff: true };
         const re = loadEditorState(saveEditorState(state, 0));
         expect(re).toMatchObject({ barInterval: '1d', barDiff: true });
         const auto = loadEditorState(saveEditorState({ ...baseState() }, 0));
         expect(auto.barInterval).toBe('auto');
         expect(auto.barDiff).toBe(false);
-        expect(saveEditorState({ ...baseState() } as EditorState, 0)).not.toHaveProperty('barInterval');
+        // The unset form rides as null — vis-2's custom-field patch contract DELETES the key
+        // on null (a missing key would keep a previously stored value alive forever).
+        expect(saveEditorState({ ...baseState() } as EditorState, 0)).toMatchObject({
+            barInterval: null,
+            barDiff: null,
+        });
+    });
+
+    it('clearing a previously stored sparse field sends null — vis-2 deletes the key (K1)', () => {
+        // vis-2's custom-field merge (WidgetField.tsx): a MISSING patch key keeps the stored
+        // value, only `null` deletes it. A field the user resets must therefore ride as null,
+        // or the runtime keeps fetching with the stale step/interval/diff after Apply.
+        const stored: EditorState = {
+            ...baseState(),
+            resolutionStep: 60,
+            percentileValue: 75,
+            integralUnit: 30,
+            integralInterpolation: 'linear',
+            barInterval: '1d',
+            barDiff: true,
+        };
+        const cleared = saveEditorState(
+            {
+                ...stored,
+                resolutionStep: undefined,
+                percentileValue: undefined,
+                integralUnit: undefined,
+                integralInterpolation: undefined,
+                barInterval: 'auto',
+                barDiff: false,
+            },
+            0,
+        );
+        expect(cleared).toMatchObject({
+            resolutionStep: null,
+            percentileValue: null,
+            integralUnit: null,
+            integralInterpolation: null,
+            barInterval: null,
+            barDiff: null,
+        });
+        // Through the vis-2 contract (null deletes, value sets) the stale stored values die:
+        const rxData: Record<string, unknown> = { ...saveEditorState(stored, 0) };
+        for (const [k, v] of Object.entries(cleared)) {
+            if (v === null) {
+                delete rxData[k];
+            } else {
+                rxData[k] = v;
+            }
+        }
+        const healed = loadEditorState(rxData);
+        expect(healed.resolutionStep).toBeUndefined();
+        expect(healed.percentileValue).toBeUndefined();
+        expect(healed.integralUnit).toBeUndefined();
+        expect(healed.integralInterpolation).toBeUndefined();
+        expect(healed.barInterval).toBe('auto');
+        expect(healed.barDiff).toBe(false);
     });
 
     it('per-series history instance survives the seriesConfig blob (ADR-0039)', () => {

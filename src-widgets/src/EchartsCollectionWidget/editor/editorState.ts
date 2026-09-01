@@ -698,12 +698,20 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         relativeEnd: state.relativeEnd,
         staticStart: state.staticStart,
         staticEnd: state.staticEnd,
-        ...(state.resolutionStep ? { resolutionStep: state.resolutionStep } : {}),
-        ...(state.percentileValue !== undefined ? { percentileValue: state.percentileValue } : {}),
-        ...(state.integralUnit ? { integralUnit: state.integralUnit } : {}),
-        ...(state.integralInterpolation ? { integralInterpolation: state.integralInterpolation } : {}),
-        ...(state.barInterval !== 'auto' ? { barInterval: state.barInterval } : {}),
-        ...(state.barDiff ? { barDiff: true } : {}),
+        // Sparse fields (ADR-0064/0065) ride their UNSET form as `null`: vis-2's custom-field
+        // patch contract (WidgetField.tsx) keeps a missing key's stored value and only `null`
+        // DELETES it — omitting the key made a once-authored step/interval/diff impossible to
+        // clear (the editor showed it cleared while the runtime kept using the stale value).
+        ...(state.resolutionStep ? { resolutionStep: state.resolutionStep } : { resolutionStep: null }),
+        ...(state.percentileValue !== undefined
+            ? { percentileValue: state.percentileValue }
+            : { percentileValue: null }),
+        ...(state.integralUnit ? { integralUnit: state.integralUnit } : { integralUnit: null }),
+        ...(state.integralInterpolation
+            ? { integralInterpolation: state.integralInterpolation }
+            : { integralInterpolation: null }),
+        ...(state.barInterval !== 'auto' ? { barInterval: state.barInterval } : { barInterval: null }),
+        ...(state.barDiff ? { barDiff: true } : { barDiff: null }),
         aggregate: state.aggregate,
         count: state.count,
         refreshMs: state.refreshMs,

@@ -73,6 +73,14 @@ export function windowToOptions(
 }
 
 /**
+ * Keep the point ceiling (ADR-0046) effective on the step path (K3): a step finer than
+ * `span/maxPoints` would request more points than the ceiling allows (1 s over 30 d ≈ 2.6 M).
+ * Returns the coarsest step that still fits — `Math.ceil`, so the ceiling is never exceeded.
+ */
+export const sanitizeStep = (step: number, spanMs: number, maxPoints: number): number =>
+    Math.max(step, Math.ceil(spanMs / Math.max(maxPoints, 1)));
+
+/**
  * Coerce a raw state value to a plottable number, else null — the ONE intake rule every value
  * source shares (booleans → 1/0 so bool OIDs plot, ADR-0058; the state texts map them at format
  * time). Takes `unknown`: the callers' value maps are untyped at the edges.

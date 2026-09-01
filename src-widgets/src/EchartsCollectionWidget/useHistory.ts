@@ -15,7 +15,14 @@
  */
 import { useEffect, useRef, useState } from 'react';
 
-import { fetchMultiSeries, windowToOptions, type FetchedSeries, type IgnoreNull, type Point } from './historyLogic';
+import {
+    fetchMultiSeries,
+    sanitizeStep,
+    windowToOptions,
+    type FetchedSeries,
+    type IgnoreNull,
+    type Point,
+} from './historyLogic';
 import { resolveTimeWindow, type TimeWindowSpec } from './timeWindow';
 import { barBucketCategories, widenBarWindow } from './barBuckets';
 
@@ -47,6 +54,13 @@ export interface UseHistoryOptions {
     barIntervalMinutes?: number;
     /** Bar diff post-processing (ADR-0065) — widens one extra bucket left. */
     barDiff?: boolean;
+    /**
+     * Hard point ceiling per series (ADR-0046 addendum, K3) — the pipeline passes its own
+     * `maxPoints` (preview 200, body 5000). Bounds EVERY resolution path: a set step is raised
+     * to span/maxPoints (sanitizeStep) and the bar bucket count is capped; a ceiling of 0/unset
+     * disables the guard (tests drive it explicitly).
+     */
+    maxPoints?: number;
     /** 0 / undefined = no periodic refresh. */
     refreshMs?: number;
     ignoreNull?: IgnoreNull;
@@ -85,7 +99,8 @@ export function useHistory(
 
     const entriesKey = JSON.stringify(entries);
     // The fetch-effect key: every request-shaping option must appear here or a change would not
-    // refetch (ADR-0064 added the aggregate params to the set).
+    // refetch (ADR-0064 added the aggregate params to the set; K3 added maxPoints — it shapes
+    // the sanitized step and the capped bucket count).
     const optsKey = JSON.stringify([
         opts.window,
         opts.aggregate,
@@ -97,6 +112,7 @@ export function useHistory(
         opts.integralInterpolation,
         opts.barIntervalMinutes,
         opts.barDiff,
+        opts.maxPoints,
     ]);
 
     // Fetch (debounced) on mount + whenever inputs change or refresh is forced.
@@ -130,7 +146,10 @@ export function useHistory(
             };
             // Bar buckets (ADR-0065): widen the per-fetch window onto the grid; the bucket
             // count IS the request resolution (count/step are replaced). The categories are
-            // captured from THIS fetch so render and request cannot drift.
+            // captured from THIS fetch so render and request cannot drift. The request count
+            // is capped at maxPoints (K3): a stored interval the range filter no longer shows
+            // stays active (ADR-0065 decision 5), so 15 m over 2 y ≈ 70 080 — the category
+            // GRID is untouched, only the request volume is bounded.
             if (opts.barIntervalMinutes) {
                 const resolved = resolveTimeWindow(opts.window, Date.now());
                 const widened = widenBarWindow(resolved.start, resolved.end, opts.barIntervalMinutes, !!opts.barDiff);
@@ -139,14 +158,29 @@ export function useHistory(
                 runFetch(
                     windowToOptions(
                         { start: widened.start, end: widened.end },
-                        { ...opts, count: widened.count, step: undefined },
+                        {
+                            ...opts,
+                            count: opts.maxPoints ? Math.min(widened.count, opts.maxPoints) : widened.count,
+                            step: undefined,
+                        },
                     ),
                 );
                 return;
             }
             setBarCategories(null);
             setBarWindowEnd(null);
-            runFetch(windowToOptions(resolveTimeWindow(opts.window, Date.now()), opts));
+            // Point ceiling on the step path (K3): raise a too-fine step to span/maxPoints —
+            // resolved HERE because the span is only known per fetch (ADR-0063 seam).
+            const plain = resolveTimeWindow(opts.window, Date.now());
+            runFetch(
+                windowToOptions(plain, {
+                    ...opts,
+                    step:
+                        opts.step !== undefined && opts.maxPoints
+                            ? sanitizeStep(opts.step, plain.end - plain.start, opts.maxPoints)
+                            : opts.step,
+                }),
+            );
         };
 
         clearTimeout(debounceRef.current);

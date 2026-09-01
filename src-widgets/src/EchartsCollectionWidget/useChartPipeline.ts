@@ -250,6 +250,28 @@ export const resolveLegendValues = (
     return out;
 };
 
+/**
+ * Legend values over FINAL bucket data (category bars, ADR-0065 + K2): the last non-null bucket
+ * of each series — the value the bars and tooltip show, the diff already applied. A series of
+ * only null buckets resolves to null (the legend formatter renders the bare name).
+ */
+const bucketedLegendValues = (
+    series: readonly { name: string; data: (number | null)[] }[],
+): Record<string, number | null> => {
+    const out: Record<string, number | null> = {};
+    for (const s of series) {
+        let v: number | null = null;
+        for (let i = s.data.length - 1; i >= 0; i--) {
+            if (s.data[i] !== null) {
+                v = s.data[i]!;
+                break;
+            }
+        }
+        out[s.name] = v;
+    }
+    return out;
+};
+
 /** The unified error surface: JSON parse > Verlauf fetch > per-series — null off cartesian/pie. */
 export const pipelineError = (
     family: ReturnType<typeof familyOf>,
@@ -406,6 +428,19 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
                 cats = cats.slice(1); // the diff's first bucket has no predecessor
             }
             presentationFinal = { ...presentationWithValues, barCategories: cats };
+            // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff
+            // included) value the chart actually shows. Reading the raw history series here
+            // made the legend contradict the bars (a meter reading against its diff).
+            if (presentationWithValues.legendValues) {
+                presentationFinal = {
+                    ...presentationFinal,
+                    // Bucketed bars carry plain arrays by construction (the ChartSeries union
+                    // still allows points for the time-axis path) — narrowed for the resolver.
+                    legendValues: bucketedLegendValues(
+                        bucketed.map(s => ({ name: s.name, data: s.data as (number | null)[] })),
+                    ),
+                };
+            }
         }
         g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
     }
@@ -555,6 +590,9 @@ export function useChartPipeline(
         // one bucket left. The bucket count replaces count/step inside the hook.
         barIntervalMinutes,
         barDiff: barBucketingOn && src.barDiff === true,
+        // The point ceiling bounds EVERY resolution path now (K3): the count clamp here, the
+        // sanitized step and the capped bucket count inside the hook.
+        maxPoints,
         refreshMs: isStaticWindow ? undefined : (src.refreshMs as number) || undefined,
         ignoreNull: src.ignoreNull as Parameters<typeof useHistory>[2]['ignoreNull'],
         enabled: isTimeFamily && mode === 'history' && entries.length > 0,

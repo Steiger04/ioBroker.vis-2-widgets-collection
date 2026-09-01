@@ -5,7 +5,7 @@
  * @module EchartsCollectionWidget/historyLogic.test
  */
 import { describe, expect, it } from 'vitest';
-import { fetchMultiSeries, toSeriesData, windowToOptions, type Point } from './historyLogic';
+import { fetchMultiSeries, sanitizeStep, toSeriesData, windowToOptions, type Point } from './historyLogic';
 
 describe('toSeriesData', () => {
     it('maps {ts,val} to [ts, number]', () => {
@@ -246,5 +246,25 @@ describe('windowToOptions — resolution + aggregate params (parity Build A, ADR
         const off = windowToOptions(win, { aggregate: 'total', integralUnit: 3600, integralInterpolation: 'linear' });
         expect(off).not.toHaveProperty('integralUnit');
         expect(off).not.toHaveProperty('integralInterpolation');
+    });
+});
+
+describe('sanitizeStep — the point ceiling on the step path (K3, ADR-0046 addendum)', () => {
+    it('raises a too-fine step to span/maxPoints (1 s over 30 d at 5000 points)', () => {
+        const monthMs = 30 * 86_400_000;
+        expect(sanitizeStep(1000, monthMs, 5000)).toBe(Math.ceil(monthMs / 5000)); // ≈ 8.6 min
+    });
+
+    it('keeps a step that already fits the ceiling untouched', () => {
+        expect(sanitizeStep(3600_000, 86_400_000, 5000)).toBe(3600_000); // 1 h over 1 d fits
+    });
+
+    it('rounds UP so the ceiling is never exceeded (span not divisible)', () => {
+        // 1000 ms span, 3 points allowed → 333.33… → ceil 334 ms (334·3 = 1002 ≥ span — never under).
+        expect(sanitizeStep(1, 1000, 3)).toBe(334);
+    });
+
+    it('degrades safely on a zero/negative ceiling (no division blow-up)', () => {
+        expect(sanitizeStep(500, 1000, 0)).toBe(1000); // max(500, ceil(1000/1)) — guard, not a crash
     });
 });

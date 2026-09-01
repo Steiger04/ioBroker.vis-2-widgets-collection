@@ -637,6 +637,30 @@ describe('assemblePipelineResult — category bars (ADR-0065)', () => {
         expect(series[0].data).toEqual([-3, 7, 0]);
     });
 
+    it('legend values on category bars read the FINAL (diffed) buckets — not the raw last point (K2)', () => {
+        const consecutive: [number, number][] = [
+            [dayTs(2026, 8, 20, 6), 2],
+            [dayTs(2026, 8, 20, 18), 4],
+            [dayTs(2026, 8, 21, 6), 3],
+            [dayTs(2026, 8, 22, 6), 10],
+            [dayTs(2026, 8, 23, 6), 12],
+        ];
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: consecutive }], loading: false, error: null },
+                src: { chartType: 'bar', aggregate: 'total', legendShowValues: true },
+                barCategories: cats,
+                barWindowEnd: end,
+                barDiff: true,
+            }),
+        );
+        // Buckets total → [6, 3, 10, 12], diff → [-3, 7, 2]: the legend shows the LAST DIFF
+        // bucket (2) — the raw last point (12) would contradict every bar and tooltip on screen.
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [2]');
+    });
+
     it('WITHOUT categories the x axis stays TIME and the data stays [ts, val] (auto unchanged)', () => {
         const { option } = assemblePipelineResult(
             makeInput('cartesian', 'history', {
