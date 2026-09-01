@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { compileFormula, transformSeriesData, xOffsetMs } from './seriesTransform';
+import { compileFormula, transformSeriesData } from './seriesTransform';
 import type { SeriesPoint } from './historyLogic';
 
 const pts = (...vals: (number | null)[]): SeriesPoint[] => vals.map((v, i) => [1000 + i, v]);
@@ -80,14 +80,5 @@ describe('transformSeriesData (Y-offset → formula, adapter processOneValue ord
         expect(transformSeriesData(data, undefined)).toBe(data);
         expect(transformSeriesData(data, {})).toBe(data);
         expect(transformSeriesData(data, { yOffset: 0, formula: '' })).toBe(data);
-    });
-});
-
-describe('xOffsetMs (the request window shift, adapter offset-in-seconds)', () => {
-    it('converts authored seconds to ms; unset/0 is no shift', () => {
-        expect(xOffsetMs(undefined)).toBeUndefined();
-        expect(xOffsetMs(0)).toBeUndefined();
-        expect(xOffsetMs(90)).toBe(90_000);
-        expect(xOffsetMs(-3600)).toBe(-3_600_000);
     });
 });

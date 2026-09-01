@@ -352,7 +352,11 @@ export const SeriesTransformFields: FC<{
                 />
                 <OptionalNumberField
                     label={Generic.t('echarts_series_xoffset')}
-                    value={meta.xOffset}
+                    // ADR-0072 widened xOffset to number | calendar key — this numeric field
+                    // reads the SECONDS form only; a stored calendar key renders empty here
+                    // (still shifts the request, resolved at the fetch seam) until the Daten
+                    // cluster lands its Select+Number pair (spec ticket 03).
+                    value={typeof meta.xOffset === 'number' ? meta.xOffset : undefined}
                     // Both signs are valid (positive shifts the window into the past, the
                     // adapter's addTime direction; negative into the future).
                     onChange={v => onPatch({ xOffset: v ?? undefined })}

@@ -17,7 +17,7 @@ import { SERIES_TEMPLATES } from './seriesTemplates';
 import { AXIS_TEMPLATES } from './axisTemplates';
 import { X_AXIS_TEMPLATES } from './xAxisTemplates';
 import { TITLE_TEMPLATES } from './titleTemplates';
-import type { EditorState } from './editorState';
+import type { EditorSeries, EditorState } from './editorState';
 import type { EchartsPieConfig } from '../../types/field-definitions/echarts-fields';
 
 const baseState = (): EditorState => ({
@@ -177,6 +177,64 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.series[0]).toMatchObject({ oid: 'a.0', instance: 'sql.0' });
         expect(reloaded.series[1]).toMatchObject({ oid: 'b.0' });
         expect(reloaded.series[1].instance).toBeUndefined();
+    });
+
+    it('per-series data-source overrides ride the seriesConfig blob verbatim — no migration, none invented (ADR-0072)', () => {
+        const state = {
+            ...baseState(),
+            series: [
+                {
+                    id: 's1',
+                    oid: 'a.0',
+                    name: 'A',
+                    aggregate: 'percentile',
+                    percentileValue: 90,
+                },
+                {
+                    id: 's2',
+                    oid: 'b.0',
+                    name: 'B',
+                    aggregate: 'integral',
+                    integralUnit: 3600,
+                    integralInterpolation: 'linear',
+                },
+                { id: 's3', oid: 'c.0', name: 'C', diffMode: 'raw', xOffset: '-6m' },
+                { id: 's4', oid: 'd.0', name: 'D', xOffset: 120 },
+                { id: 's5', oid: 'e.0', name: 'E' }, // unconfigured — inherits everything
+            ] as EditorSeries[],
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 5));
+        expect(reloaded.series[0]).toMatchObject({ aggregate: 'percentile', percentileValue: 90 });
+        expect(reloaded.series[1]).toMatchObject({
+            aggregate: 'integral',
+            integralUnit: 3600,
+            integralInterpolation: 'linear',
+        });
+        expect(reloaded.series[2]).toMatchObject({ diffMode: 'raw', xOffset: '-6m' });
+        expect(reloaded.series[3]).toMatchObject({ xOffset: 120 });
+        // Nothing invented on the unconfigured series — unset stays unset (Erben-Override).
+        expect(reloaded.series[4]).not.toHaveProperty('aggregate');
+        expect(reloaded.series[4]).not.toHaveProperty('percentileValue');
+        expect(reloaded.series[4]).not.toHaveProperty('integralUnit');
+        expect(reloaded.series[4]).not.toHaveProperty('integralInterpolation');
+        expect(reloaded.series[4]).not.toHaveProperty('diffMode');
+        expect(reloaded.series[4]).not.toHaveProperty('xOffset');
+    });
+
+    it('the blob of a legacy configuration (no ADR-0072 fields) is BYTE-stable across load→save', () => {
+        // `area: 'off'` included because load's normalizeArea injects it — a real stored legacy
+        // config carries it (this pins the ADR-0072 fields, not that pre-existing normalization).
+        const legacy = {
+            ...baseState(),
+            series: [
+                { id: 's1', oid: 'a.0', name: 'A', color: '#f00', area: 'off', yAxisIndex: 0, xOffset: 90 },
+                { id: 's2', oid: 'b.0', name: 'B', area: 'off', yAxisIndex: 1 },
+            ] as EditorSeries[],
+        };
+        const first = saveEditorState(legacy as EditorState, 2);
+        const reloaded = loadEditorState(first);
+        const second = saveEditorState(reloaded, 2);
+        expect(second.seriesConfig).toBe(first.seriesConfig); // no field injected, none dropped
     });
 
     it('empty jsonHidden round-trips to empty (not lost, not garbled)', () => {

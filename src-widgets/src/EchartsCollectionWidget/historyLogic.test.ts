@@ -5,7 +5,26 @@
  * @module EchartsCollectionWidget/historyLogic.test
  */
 import { describe, expect, it } from 'vitest';
-import { fetchMultiSeries, sanitizeStep, toSeriesData, windowToOptions, type Point } from './historyLogic';
+import {
+    entryRequestOptions,
+    fetchMultiSeries,
+    sanitizeStep,
+    shiftByOffset,
+    toSeriesData,
+    windowToOptions,
+    type Point,
+} from './historyLogic';
+
+/** A getHistory mock that records the options of every call, returning one null + one value. */
+const recording =
+    (calls: { id: string; options: ioBroker.GetHistoryOptions }[]) =>
+    (id: string, options: ioBroker.GetHistoryOptions): Promise<Point[]> => {
+        calls.push({ id, options });
+        return Promise.resolve([
+            { ts: 1, val: 5 },
+            { ts: 2, val: null },
+        ]);
+    };
 
 describe('toSeriesData', () => {
     it('maps {ts,val} to [ts, number]', () => {
@@ -165,20 +184,9 @@ describe('fetchMultiSeries', () => {
 // ── per-series request overrides (ADR-0059, parity Build B issue 07) ──
 
 describe('fetchMultiSeries — per-entry request overrides (ADR-0059)', () => {
-    /** A getHistory mock that records the options of every call, returning one null + one value. */
-    const recording =
-        (calls: { id: string; options: ioBroker.GetHistoryOptions }[]) =>
-        (id: string, options: ioBroker.GetHistoryOptions): Promise<Point[]> => {
-            calls.push({ id, options });
-            return Promise.resolve([
-                { ts: 1, val: 5 },
-                { ts: 2, val: null },
-            ]);
-        };
-
-    it("an entry's offsetMs shifts THAT OID's start/end into the past (adapter addTime subtracts); the shared window stays for the others", async () => {
+    it("an entry's numeric xOffset (SECONDS, ADR-0059 semantics unchanged) shifts THAT OID's start/end into the past (adapter addTime subtracts); the shared window stays for the others", async () => {
         const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
-        await fetchMultiSeries(recording(calls), [{ oid: 'a', offsetMs: 90_000 }, { oid: 'b' }], {
+        await fetchMultiSeries(recording(calls), [{ oid: 'a', xOffset: 90 }, { oid: 'b' }], {
             start: 1000,
             end: 2000,
             aggregate: 'average',
@@ -213,6 +221,132 @@ describe('fetchMultiSeries — per-entry request overrides (ADR-0059)', () => {
             [1, 5],
             [2, null],
         ]);
+    });
+});
+
+// ── per-series aggregate overrides (ADR-0072, Erben-Override over the chart default) ──
+
+describe('fetchMultiSeries — per-entry aggregate overrides (ADR-0072)', () => {
+    it('entries diverge per series: A inherits average, B overrides percentile with its own level, C inherits verbatim', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(
+            recording(calls),
+            [{ oid: 'a' }, { oid: 'b', aggregate: 'percentile', percentile: 90 }, { oid: 'c' }],
+            { start: 0, end: 10, aggregate: 'average', count: 500 },
+        );
+        expect(calls[0]?.options.aggregate).toBe('average'); // inherits the shared request
+        expect(calls[1]?.options.aggregate).toBe('percentile');
+        expect(calls[1]?.options.percentile).toBe(90); // its OWN level, not the server default
+        expect(calls[2]?.options.aggregate).toBe('average');
+    });
+
+    it('an override AWAY from the base aggregate drops the base params (sparse: a percentile key on an average request is a lie)', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(recording(calls), [{ oid: 'a', aggregate: 'max' }], {
+            start: 0,
+            end: 10,
+            aggregate: 'percentile',
+            percentile: 75,
+            count: 500,
+        });
+        expect(calls[0]?.options.aggregate).toBe('max');
+        expect(calls[0]?.options).not.toHaveProperty('percentile');
+    });
+
+    it('an inheriting entry keeps the base aggregate params untouched (they already match)', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(
+            recording(calls),
+            [{ oid: 'a', percentile: 42 }], // param authored but aggregate INHERITS percentile
+            { start: 0, end: 10, aggregate: 'percentile', percentile: 75, count: 500 },
+        );
+        expect(calls[0]?.options.aggregate).toBe('percentile');
+        expect(calls[0]?.options.percentile).toBe(42); // the entry's own level wins under the matching aggregate
+    });
+
+    it('an entry switching to percentile WITHOUT its own level gets no percentile key (server default 50)', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(recording(calls), [{ oid: 'a', aggregate: 'percentile' }], {
+            start: 0,
+            end: 10,
+            aggregate: 'average',
+            count: 500,
+        });
+        expect(calls[0]?.options).not.toHaveProperty('percentile');
+    });
+
+    it('integral unit + interpolation ride only under the entry effective integral aggregate', async () => {
+        const calls: { id: string; options: ioBroker.GetHistoryOptions }[] = [];
+        await fetchMultiSeries(
+            recording(calls),
+            [
+                { oid: 'a', aggregate: 'integral', integralUnit: 3600, integralInterpolation: 'linear' },
+                { oid: 'b', aggregate: 'total' },
+                { oid: 'c' },
+            ],
+            { start: 0, end: 10, aggregate: 'integral', integralUnit: 60, integralInterpolation: 'none', count: 500 },
+        );
+        expect(calls[0]?.options.integralUnit).toBe(3600); // its own unit + interpolation
+        expect(calls[0]?.options.integralInterpolation).toBe('linear');
+        expect(calls[1]?.options.aggregate).toBe('total');
+        expect(calls[1]?.options).not.toHaveProperty('integralUnit'); // override drops the base params
+        expect(calls[1]?.options).not.toHaveProperty('integralInterpolation');
+        expect(calls[2]?.options.integralUnit).toBe(60); // inheriting entry keeps the base params
+        expect(calls[2]?.options.integralInterpolation).toBe('none');
+    });
+});
+
+// ── calendar offset keys (ADR-0072, adapter addTime parity: setMonth/setFullYear) ──
+
+describe('shiftByOffset — calendar keys resolve per fetch against the window (addTime parity, ADR-0072)', () => {
+    /** [y, m(0-based), d, h, min] of the shifted local time — TZ-robust wall-clock assertions. */
+    const ymdh = (ts: number): [number, number, number, number, number] => {
+        const d = new Date(ts);
+        return [d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()];
+    };
+
+    it('numeric offsets stay SECONDS subtracted (the ADR-0059 contract, byte-identical)', () => {
+        expect(shiftByOffset(2000, 90)).toBe(2000 - 90_000);
+        expect(shiftByOffset(2000, -3600)).toBe(2000 + 3_600_000);
+        expect(shiftByOffset(2000, 0)).toBe(2000);
+    });
+
+    it("'1y' over a leap day overflows like JS/adapter: 2024-02-29 → 2023-03-01 (no clamp)", () => {
+        const start = new Date(2024, 1, 29, 12, 0).getTime();
+        expect(ymdh(shiftByOffset(start, '1y'))).toEqual([2023, 2, 1, 12, 0]); // Feb 29 − 1y rolls to Mar 1
+    });
+
+    it("'-1m' over the month end overflows forward: 2026-03-31 → 2026-05-01 (Apr has 30 days)", () => {
+        const start = new Date(2026, 2, 31, 8, 30).getTime();
+        expect(ymdh(shiftByOffset(start, '-1m'))).toEqual([2026, 4, 1, 8, 30]);
+    });
+
+    it("'1m' shifts INTO THE PAST, '-1m' into the future (the adapter's subtracting setMonth)", () => {
+        const start = new Date(2026, 3, 15, 0, 0).getTime(); // Apr 15
+        expect(ymdh(shiftByOffset(start, '1m'))).toEqual([2026, 2, 15, 0, 0]); // Mar 15
+        expect(ymdh(shiftByOffset(start, '-1m'))).toEqual([2026, 4, 15, 0, 0]); // May 15
+    });
+
+    it("'2y' and '-6m' compose the same arithmetic (year/month magnitudes from the key)", () => {
+        const start = new Date(2026, 0, 10, 6, 0).getTime();
+        expect(ymdh(shiftByOffset(start, '2y'))).toEqual([2024, 0, 10, 6, 0]);
+        expect(ymdh(shiftByOffset(start, '-6m'))).toEqual([2026, 6, 10, 6, 0]);
+    });
+
+    it('the DST day keeps the LOCAL wall clock (2025-10-26 12:00 → 2024-10-26 12:00; in DST zones the epoch delta is 365d ± 1h — never a fixed-ms shortcut)', () => {
+        // 2025-10-26 is Berlin's fall-back Sunday (03:00→02:00): 12:00 local is post-switch.
+        // One year back lands on a PRE-switch 2024-10-26 — the wall clock is preserved while
+        // the UTC offset differs. The pin is TZ-agnostic (12:00 exists everywhere); on DST
+        // runners it is exactly the case a `start − 365d·ms` shortcut would get wrong by 1h.
+        const start = new Date(2025, 9, 26, 12, 0).getTime();
+        expect(ymdh(shiftByOffset(start, '1y'))).toEqual([2024, 9, 26, 12, 0]);
+    });
+
+    it('a calendar key shifts BOTH window ends through the fetch seam (entryRequestOptions)', () => {
+        const win = { start: new Date(2026, 5, 15, 0, 0).getTime(), end: new Date(2026, 8, 15, 0, 0).getTime() };
+        const req = entryRequestOptions({ ...win, aggregate: 'average' }, { oid: 'a', xOffset: '-3m' });
+        expect(ymdh(req.start ?? 0)).toEqual([2026, 8, 15, 0, 0]); // Jun 15 + 3m = Sep 15
+        expect(ymdh(req.end ?? 0)).toEqual([2026, 11, 15, 0, 0]); // Sep 15 + 3m = Dec 15
     });
 });
 

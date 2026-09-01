@@ -15,6 +15,8 @@
  *  - `ts` is already Unix-ms — do NOT multiply by 1000.
  */
 
+import type { EchartsOffsetKey } from '../types/field-definitions/echarts-fields';
+
 export type IgnoreNull = 'keep' | 'forward' | 'zero';
 
 export interface Point {
@@ -123,10 +125,24 @@ export interface HistoryEntry {
     /** Pinned history instance for THIS OID (ADR-0039); absent = Auto (datapoint config, else server). */
     instance?: string;
     /**
-     * This series' request-window shift in ms (adapter `offset` in seconds, ADR-0059) — shifts
-     * the getHistory start/end so time-shifted recordings overlap; absent/0 = the shared window.
+     * This series' request-window shift as SPEC (ADR-0059 numeric seconds, ADR-0072 calendar
+     * keys): numeric values shift start/end by −offset·1000 ms, {@link EchartsOffsetKey} values
+     * resolve PER FETCH via setMonth/setFullYear against the resolved window (adapter `addTime`
+     * parity — the caller must NOT precompute static ms for the keys, a relative window's
+     * resolved bounds move every fetch). Absent/0 = the shared window.
      */
-    offsetMs?: number;
+    xOffset?: number | EchartsOffsetKey;
+    /**
+     * This series' aggregate override (ADR-0072) — reshapes THIS entry's request; absent =
+     * inherit the shared options' aggregate.
+     */
+    aggregate?: Aggregate;
+    /** Percentile level — emitted only under this entry's effective 'percentile' aggregate (ADR-0072). */
+    percentile?: number;
+    /** Integral unit in seconds — emitted only under this entry's effective 'integral' aggregate (ADR-0072). */
+    integralUnit?: number;
+    /** Integral interpolation — emitted only under this entry's effective 'integral' aggregate (ADR-0072). */
+    integralInterpolation?: 'none' | 'linear';
     /**
      * This series' NULL handling (ADR-0059) — overrides the chart-level `ignoreNull` argument
      * for this entry's data; absent = inherit the chart-level setting.
@@ -141,11 +157,81 @@ export interface FetchedSeries {
 }
 
 /**
+ * The adapter's `addTime` calendar arithmetic (src-chart/ChartModel.ts, ADR-0072 parity): 'm'
+ * keys subtract months, 'y' keys subtract years — both via `setMonth`/`setFullYear` on the LOCAL
+ * clock (JS day-of-month overflow rolls over, Mar 31 − 1m → Mar 3; DST offsets shift the epoch
+ * delta off the naive fixed duration — the adapter keeps both, so do we). Numeric values are
+ * SECONDS subtracted. A positive offset moves the window INTO THE PAST in both forms.
+ */
+export const shiftByOffset = (ts: number, offset: number | EchartsOffsetKey): number => {
+    if (typeof offset === 'number') {
+        return ts - offset * 1000;
+    }
+    const n = parseInt(offset, 10);
+    const d = new Date(ts);
+    if (offset.endsWith('m')) {
+        d.setMonth(d.getMonth() - n);
+    } else {
+        d.setFullYear(d.getFullYear() - n);
+    }
+    return d.getTime();
+};
+
+/**
+ * The per-entry request overrides as ONE seam (ADR-0072): the entry's pinned `instance`
+ * (ADR-0039), its aggregate override + sparsely re-gated params (the ADR-0064 gating mirrored
+ * per entry — a percentile key on an average request is a lie, so a base param rides ONLY while
+ * its aggregate survives the override), and its window shift resolved HERE, per fetch, against
+ * the resolved window. Everything the entry does not author stays the shared options verbatim.
+ */
+export function entryRequestOptions(
+    options: ioBroker.GetHistoryOptions,
+    entry: HistoryEntry,
+): ioBroker.GetHistoryOptions {
+    const out: ioBroker.GetHistoryOptions = { ...options };
+    if (entry.instance) {
+        out.instance = entry.instance;
+    }
+    if (entry.aggregate) {
+        out.aggregate = entry.aggregate;
+    }
+    // The entry's EFFECTIVE aggregate governs the params — what the request will ask for, not
+    // what the chart default was.
+    const aggregate = out.aggregate ?? 'average';
+    // Params gate under the ENTRY's effective aggregate: an entry override drops the base
+    // params of a different aggregate, its own ride only under their matching one; an
+    // inheriting entry keeps the base params untouched (they already match).
+    if (aggregate === 'percentile') {
+        if (entry.percentile !== undefined) {
+            out.percentile = entry.percentile;
+        }
+    } else {
+        delete out.percentile;
+    }
+    if (aggregate === 'integral') {
+        if (entry.integralUnit !== undefined) {
+            out.integralUnit = entry.integralUnit;
+        }
+        if (entry.integralInterpolation) {
+            out.integralInterpolation = entry.integralInterpolation;
+        }
+    } else {
+        delete out.integralUnit;
+        delete out.integralInterpolation;
+    }
+    if (entry.xOffset) {
+        out.start = shiftByOffset(options.start ?? 0, entry.xOffset);
+        out.end = shiftByOffset(options.end ?? 0, entry.xOffset);
+    }
+    return out;
+}
+
+/**
  * Fetch + transform multiple OIDs in parallel. `Promise.allSettled` so one failing OID
- * doesn't discard the others — a failed series becomes `{ data: [], error }`. An entry's
- * pinned `instance` (ADR-0039) overrides the base options' for that OID only; its
- * `offsetMs` shifts that OID's start/end (ADR-0059) and its `ignoreNull` overrides the
- * chart-level gap handling.
+ * doesn't discard the others — a failed series becomes `{ data: [], error }`. Each entry's
+ * request diverges only where it authors an override — instance, aggregate + params, window
+ * shift ({@link entryRequestOptions}) — and its `ignoreNull` overrides the chart-level gap
+ * handling.
  */
 export async function fetchMultiSeries(
     getHistory: (id: string, options: ioBroker.GetHistoryOptions) => Promise<Point[]>,
@@ -154,23 +240,12 @@ export async function fetchMultiSeries(
     ignoreNull: IgnoreNull = 'keep',
 ): Promise<FetchedSeries[]> {
     const results = await Promise.allSettled(
-        entries.map(e => {
-            // Per-entry request overrides (ADR-0039 instance; ADR-0059 window shift): only the
-            // keys this entry authors diverge from the shared options. The shift SUBTRACTS —
-            // the adapter's `addTime` moves the window by −offset·1000, so a positive X-offset
-            // shifts the series' window into the PAST (adapter parity, spec story 46).
-            const perEntry: ioBroker.GetHistoryOptions = {
-                ...options,
-                ...(e.instance ? { instance: e.instance } : {}),
-                ...(e.offsetMs
-                    ? { start: (options.start ?? 0) - e.offsetMs, end: (options.end ?? 0) - e.offsetMs }
-                    : {}),
-            };
-            return getHistory(e.oid, perEntry).then(pts => ({
+        entries.map(e =>
+            getHistory(e.oid, entryRequestOptions(options, e)).then(pts => ({
                 name: e.name ?? e.oid,
                 pts,
-            }));
-        }),
+            })),
+        ),
     );
     return results.map((r, i) => {
         const name = entries[i].name ?? entries[i].oid;

@@ -73,10 +73,12 @@ export type LegacyChartType = EchartsChartType | 'cartesian' | 'area' | 'gauge' 
  */
 export type EchartsMode = 'history' | 'json';
 /**
- * The chart-level history aggregate. parity Build A (ADR-0064) adds the two ioBroker members
- * the select lacked — 'percentile' (level via `percentileValue`) and 'integral' (unit +
- * interpolation via `integralUnit`/`integralInterpolation`). 'quantile'/'integralTotal' stay
- * out (ticket scope). Per-SERIE aggregates are consciously rejected (spec).
+ * The history aggregate — chart-level union AND per-series override type (the same members;
+ * ADR-0072). Chart level (parity Build A, ADR-0064) adds the two ioBroker members the select
+ * lacked — 'percentile' (level via `percentileValue`) and 'integral' (unit + interpolation via
+ * `integralUnit`/`integralInterpolation`); 'quantile'/'integralTotal' stay out (ticket scope).
+ * Per-SERIE aggregates ride the SAME union as an Erben-Override on the series card
+ * (ADR-0072 — the former conscious rejection, overruled).
  */
 export type EchartsAggregate =
     | 'average'
@@ -234,6 +236,15 @@ export type EchartsBarLabelPos = 'top' | 'insideTop' | 'insideBottom' | 'inside'
  */
 export type EchartsGrid9Position = EchartsLegendPos;
 
+/**
+ * Calendar window-shift keys for the per-series X-offset (ADR-0072, the adapter `offset` union
+ * minus its numeric members): 'm' = months, 'y' = years. Resolved PER FETCH via
+ * `setMonth`/`setFullYear` on the resolved request window (adapter `addTime` semantics —
+ * positive keys shift the window INTO THE PAST, negative into the future). Numeric offsets stay
+ * SECONDS in {@link EchartsSeriesMeta.xOffset}.
+ */
+export type EchartsOffsetKey = '1m' | '2m' | '3m' | '6m' | '1y' | '2y' | '-1m' | '-2m' | '-3m' | '-6m' | '-1y' | '-2y';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-series rendering metadata (stored in the base64 `seriesConfig` blob)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -343,10 +354,37 @@ export interface EchartsSeriesMeta {
      */
     formula?: string;
     /**
-     * Request-window shift in SECONDS (adapter `offset`, ADR-0059): shifts this series'
-     * getHistory start/end so time-shifted recordings overlap. History mode only; never emitted.
+     * Request-window shift (adapter `offset`, ADR-0059 numeric seconds + ADR-0072 calendar
+     * keys): shifts this series' getHistory start/end so time-shifted recordings overlap —
+     * numeric values are SECONDS, {@link EchartsOffsetKey} values resolve per fetch against the
+     * resolved window (setMonth/setFullYear, `addTime` parity). Never emitted to echarts.
      */
-    xOffset?: number;
+    xOffset?: number | EchartsOffsetKey;
+    /**
+     * Per-series aggregate override (ADR-0072, adapter per-LINE `line.aggregate || config.aggregate`):
+     * re-shapes THIS series' history request; unset = inherit the chart-level `aggregate`
+     * (the Data source section's Voreinstellung). Verlauf mode only; never emitted to echarts.
+     */
+    aggregate?: EchartsAggregate;
+    /**
+     * Percentile level 0–100 for THIS series — emitted only under its effective 'percentile'
+     * aggregate (the ADR-0064 sparse gating, per-entry; ADR-0072). Inherited from the chart
+     * level while the series aggregate itself inherits; never emitted to echarts.
+     */
+    percentileValue?: number;
+    /** Integral unit in seconds for THIS series — only under its effective 'integral' aggregate (ADR-0072). */
+    integralUnit?: number;
+    /**
+     * Integral interpolation for THIS series — only under its effective 'integral' aggregate
+     * (ADR-0072; the adapter declares it per line but leaves its runtime a Todo — we run it).
+     */
+    integralInterpolation?: 'none' | 'linear';
+    /**
+     * Diff post-processing tristate for the category-bar mode (ADR-0072): 'diff' drops THIS
+     * series' first bucket, 'raw' keeps it, 'inherit' (unset) follows the chart-level `barDiff`.
+     * Time-axis path ignores it. Never emitted to echarts.
+     */
+    diffMode?: 'inherit' | 'diff' | 'raw';
     /**
      * Per-series NULL handling (adapter per-line `ignoreNull`, ADR-0059) — overrides the
      * chart-level setting for this series' data; unset = inherit. Never emitted.

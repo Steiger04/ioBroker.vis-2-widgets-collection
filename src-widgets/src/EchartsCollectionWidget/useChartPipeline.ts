@@ -44,7 +44,7 @@ import {
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
-import { cutFuturePoints, transformSeriesData, xOffsetMs } from './seriesTransform';
+import { cutFuturePoints, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
@@ -435,19 +435,24 @@ export function useChartPipeline(
 
     const usable = useMemo(() => usableSeries(companions.series), [companions]);
     // History entries carry the per-series request overrides (ADR-0039 instance; ADR-0059
-    // X-offset window shift + per-series NULL handling).
+    // X-offset window shift + per-series NULL handling; ADR-0072 aggregate + params). The
+    // offset rides as SPEC — numeric seconds AND calendar keys resolve per fetch at the fetch
+    // seam (historyLogic), never precomputed here: a relative window's resolved bounds move
+    // every fetch, so static ms would drift. Per-series values refetch via `entriesKey`; the
+    // chart defaults stay in `optsKey` (baseRequest untouched).
     const entries = useMemo(
         () =>
-            usable.map(s => {
-                const offsetMs = xOffsetMs(s.xOffset);
-                return {
-                    oid: s.oid,
-                    name: s.name,
-                    instance: s.instance,
-                    ...(offsetMs !== undefined ? { offsetMs } : {}),
-                    ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
-                };
-            }),
+            usable.map(s => ({
+                oid: s.oid,
+                name: s.name,
+                instance: s.instance,
+                ...(s.xOffset ? { xOffset: s.xOffset } : {}),
+                ...(s.aggregate ? { aggregate: s.aggregate } : {}),
+                ...(s.percentileValue !== undefined ? { percentile: s.percentileValue } : {}),
+                ...(s.integralUnit !== undefined ? { integralUnit: s.integralUnit } : {}),
+                ...(s.integralInterpolation ? { integralInterpolation: s.integralInterpolation } : {}),
+                ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
+            })),
         [usable],
     );
     // A static window (ADR-0063) turns the body's early refresh OFF alongside the polling — one

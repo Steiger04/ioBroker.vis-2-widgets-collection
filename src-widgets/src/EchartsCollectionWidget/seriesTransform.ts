@@ -95,12 +95,6 @@ export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransfor
 };
 
 /**
- * The per-series request-window shift in ms — the adapter's `offset` is authored in SECONDS and
- * shifts the getHistory start/end; unset/0 (the echarts default) means no shift.
- */
-export const xOffsetMs = (seconds: number | undefined): number | undefined => (seconds ? seconds * 1000 : undefined);
-
-/**
  * „Keine Zukunft" (adapter `noFuture`, ADR-0060): drop points after `now` — the adapter breaks
  * at the first future point; on sorted data a filter is the same cut. Returns the SAME reference
  * when nothing lies in the future.
