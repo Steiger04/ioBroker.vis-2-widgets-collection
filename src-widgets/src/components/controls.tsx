@@ -161,7 +161,9 @@ export const OptionalNumberField: FC<{
     error?: boolean;
     helperText?: string;
     disabled?: boolean;
-}> = ({ label, value, onChange, step = 1, error, helperText, disabled }) => (
+    /** Shown in the EMPTY field — e.g. the inherited Voreinstellung an unset value falls back to. */
+    placeholder?: string;
+}> = ({ label, value, onChange, step = 1, error, helperText, disabled, placeholder }) => (
     <Box>
         <FieldLabel>{label}</FieldLabel>
         <TextField
@@ -172,6 +174,7 @@ export const OptionalNumberField: FC<{
             error={error}
             helperText={helperText}
             disabled={disabled}
+            placeholder={placeholder}
             onChange={e => {
                 const raw = e.target.value;
                 if (raw === '') {

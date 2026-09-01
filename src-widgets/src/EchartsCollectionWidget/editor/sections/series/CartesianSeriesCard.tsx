@@ -9,7 +9,12 @@
  *    card omits the OID row (the payload owns the data) and clears names to `undefined`.
  *  - {@link CartesianSeriesKnobs} — the type-sensitive knob cluster (line / bar / area SubGroups),
  *    purely meta-driven; the caller owns the binding. Bounded numerics are SliderFields, booleans
- *    live in SwitchLists (ADR-0019).
+ *    live in SwitchLists (ADR-0019). „Nur in Legende" rides here too (presentation, ADR-0072).
+ *  - {@link SeriesDataFields} — the "Daten" SubGroup (ADR-0072): the per-series acquisition
+ *    knobs as Erben-Overrides over the Data source Voreinstellung (aggregate + params, diff
+ *    tristate, X offset seconds/calendar) plus the value transforms — Verlauf cards only.
+ *  - {@link SeriesValueFormatFields} / {@link SeriesTransformFields} — the Werte facts (shared)
+ *    and the JSON card's slim transform rest.
  *  - {@link CartesianSeriesList} — the Verlauf card list: EditorCards with swatch, name/OID,
  *    ↑↓ reorder, duplicate, delete + the OID-first add affordances.
  */
@@ -24,12 +29,21 @@ import {
 
 import Generic from '../../../../Generic';
 import type {
+    EchartsAggregate,
     EchartsAreaFill,
     EchartsAxisConfig,
     EchartsBarLabelPos,
     EchartsCartesianType,
+    EchartsOffsetKey,
     EchartsSeriesMeta,
 } from '../../../../types/field-definitions/echarts-fields';
+import {
+    AGGREGATE_VALUES,
+    effectiveAggregate,
+    inheritedIntegralInterpolation,
+    inheritedIntegralUnit,
+    inheritedPercentileLevel,
+} from '../../../seriesDataOverrides';
 import {
     EditorCard,
     FieldGrid,
@@ -56,9 +70,45 @@ import { snippetPatch } from '../../snippetComposition';
 
 /**
  * The cartesian card list's field ownership (ADR-0049 slice) — read-only: every write goes
- * through the dispatcher callbacks (update / remove / move / duplicate / rebind).
+ * through the dispatcher callbacks (update / remove / move / duplicate / rebind). The four
+ * data-setting keys (ADR-0072) feed the Daten cluster's Erben-Override UI: the chart-level
+ * aggregate + params are every series' inherit target.
  */
-export type CartesianSeriesListSlice = Pick<EditorState, 'chartType' | 'mode' | 'series' | 'yAxes'>;
+export type CartesianSeriesListSlice = Pick<
+    EditorState,
+    | 'chartType'
+    | 'mode'
+    | 'series'
+    | 'yAxes'
+    | 'aggregate'
+    | 'percentileValue'
+    | 'integralUnit'
+    | 'integralInterpolation'
+>;
+
+/** The X-offset calendar keys (ADR-0072) — the adapter's offset union minus its numeric members. */
+const OFFSET_MODE_KEYS: readonly EchartsOffsetKey[] = [
+    '1m',
+    '2m',
+    '3m',
+    '6m',
+    '1y',
+    '2y',
+    '-1m',
+    '-2m',
+    '-3m',
+    '-6m',
+    '-1y',
+    '-2y',
+];
+
+/**
+ * The X-offset select's mode: a stored calendar key selects itself, everything else (numeric
+ * seconds AND unset) is the seconds form — old numeric values keep rendering as numbers
+ * (back-compat, ADR-0072 widened the field without migration).
+ */
+export const xOffsetMode = (xOffset: EchartsSeriesMeta['xOffset']): 'sec' | EchartsOffsetKey =>
+    typeof xOffset === 'string' ? xOffset : 'sec';
 
 /**
  * The "Basics" SubGroup of a cartesian series card — identity + binding. Shared by the
@@ -308,13 +358,189 @@ export const SeriesValueFormatFields: FC<{
 };
 
 /**
- * The "Transformation" SubGroup of a cartesian series card (ADR-0059, parity Build B issue 07) —
- * the per-series data transforms: the conversion FORMULA over `val` (expr-eval; an invalid
- * formula is visibly flagged and the chart keeps the raw values), the Y offset (feeds the
- * formula: `f(val + yOffset)`), the X offset (seconds; shifts this series' history request
- * window) and the per-series NULL handling (overrides the chart-level setting). Shared by the
- * Verlauf card and the JSON-mode card — the pipeline applies the value transforms in every
- * mode.
+ * The "Daten" SubGroup of a Verlauf series card (ADR-0072) — the per-series acquisition knobs
+ * as Erben-Overrides over the Data source section's Voreinstellung: the aggregate with its
+ * sparsely gated params (percentile level / integral unit + interpolation), the bar-mode diff
+ * tristate, the X offset (numeric seconds or the ±1m…±2y calendar keys) and the value
+ * transforms pulled in from the former Transformation group (formula, Y offset, NULL handling,
+ * „Keine Zukunft") — one acquisition cluster, no second UI. Verlauf cards only: JSON cards keep
+ * the slim {@link SeriesTransformFields} (the payload owns acquisition there — no fetch, no
+ * request shape to override).
+ */
+export const SeriesDataFields: FC<{
+    meta: EchartsSeriesMeta;
+    onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
+    /** The Data source Voreinstellung (ADR-0072): the aggregate every series inherits first. */
+    chartAggregate: EchartsAggregate;
+    /** Chart-level percentile level — the inherit fallback while the chart aggregate matches. */
+    chartPercentile?: number;
+    /** Chart-level integral unit (s) — the inherit fallback while the chart aggregate matches. */
+    chartIntegralUnit?: number;
+    /** Chart-level integral interpolation — the inherit fallback under a matching chart aggregate. */
+    chartIntegralInterpolation?: 'none' | 'linear';
+    /** The diff tristate shows only on an effective BAR chart (category-bar-only, ADR-0072). */
+    isBarChart: boolean;
+}> = ({
+    meta,
+    onPatch,
+    chartAggregate,
+    chartPercentile,
+    chartIntegralUnit,
+    chartIntegralInterpolation,
+    isBarChart,
+}) => {
+    const invalid = formulaIsInvalid(meta.formula);
+    // The Erben-Override resolvers are SHARED with the pipeline (seriesDataOverrides.ts) — the
+    // card gates its fields and fallbacks under exactly the aggregate the fetch and the bar
+    // reduction use.
+    const agg = effectiveAggregate(meta, chartAggregate);
+    // Param inherits resolve through the same module — a chart param rides only while the
+    // chart aggregate survives (the fetch seam's rule, mirrored for display).
+    const percentileFallback = inheritedPercentileLevel(chartAggregate, chartPercentile);
+    const integralUnitPlaceholder = inheritedIntegralUnit(chartAggregate, chartIntegralUnit);
+    // The interpolation's inherit entry names its target like the aggregate select does.
+    const interpInherit = inheritedIntegralInterpolation(chartAggregate, chartIntegralInterpolation);
+    const offMode = xOffsetMode(meta.xOffset);
+    return (
+        <SubGroup title={Generic.t('echarts_grp_data')}>
+            <FieldGrid min={140}>
+                <LabeledSelect
+                    label={Generic.t('echarts_aggregate')}
+                    value={meta.aggregate ?? ''}
+                    onChange={v => onPatch({ aggregate: (v || undefined) as EchartsSeriesMeta['aggregate'] })}
+                    options={[
+                        // The inherit entry names its target dynamically — the effective chart
+                        // value travels with every Voreinstellung change (spec decision 6).
+                        ['', Generic.t('echarts_series_agg_inherit', chartAggregate)],
+                        ...AGGREGATE_VALUES.map(a => [a, a] as [string, string]),
+                    ]}
+                />
+                {agg === 'percentile' && (
+                    <OptionalSliderField
+                        label={Generic.t('echarts_percentile')}
+                        value={meta.percentileValue}
+                        min={0}
+                        max={100}
+                        fallback={percentileFallback}
+                        onChange={v => onPatch({ percentileValue: v })}
+                    />
+                )}
+                {agg === 'integral' && (
+                    <OptionalNumberField
+                        label={Generic.t('echarts_integral_unit')}
+                        value={meta.integralUnit}
+                        // The inherit fallback shows IN the field (placeholder), matching the
+                        // percentile slider's in-control fallback (spec decision 6).
+                        placeholder={
+                            integralUnitPlaceholder !== undefined ? String(integralUnitPlaceholder) : undefined
+                        }
+                        onChange={v => onPatch({ integralUnit: v })}
+                    />
+                )}
+                {agg === 'integral' && (
+                    <LabeledSelect
+                        label={Generic.t('echarts_integral_interpolation')}
+                        value={meta.integralInterpolation ?? ''}
+                        onChange={v =>
+                            onPatch({
+                                integralInterpolation: (v || undefined) as EchartsSeriesMeta['integralInterpolation'],
+                            })
+                        }
+                        options={[
+                            ['', Generic.t('echarts_series_agg_inherit', interpInherit)],
+                            ['none', Generic.t('echarts_interp_none')],
+                            ['linear', Generic.t('echarts_interp_linear')],
+                        ]}
+                    />
+                )}
+                {isBarChart && (
+                    <LabeledSelect
+                        label={Generic.t('echarts_series_diff')}
+                        value={meta.diffMode ?? ''}
+                        onChange={v => onPatch({ diffMode: (v || undefined) as EchartsSeriesMeta['diffMode'] })}
+                        options={[
+                            ['', Generic.t('echarts_series_inherit')],
+                            ['diff', Generic.t('echarts_series_diff_diff')],
+                            ['raw', Generic.t('echarts_series_diff_raw')],
+                        ]}
+                    />
+                )}
+                <LabeledSelect
+                    label={Generic.t('echarts_series_xoffset_mode')}
+                    value={offMode}
+                    // 'sec' keeps a previously authored numeric value standing (switching to a
+                    // calendar key and back must not eat the seconds); both signs are valid
+                    // (positive = into the past, the adapter's addTime direction).
+                    onChange={v =>
+                        onPatch({
+                            xOffset:
+                                v === 'sec'
+                                    ? typeof meta.xOffset === 'number'
+                                        ? meta.xOffset
+                                        : undefined
+                                    : (v as EchartsOffsetKey),
+                        })
+                    }
+                    options={[
+                        ['sec', Generic.t('echarts_series_xoffset_seconds')],
+                        ...OFFSET_MODE_KEYS.map(k => [k, Generic.t(`echarts_series_xoff_${k}`)] as [string, string]),
+                    ]}
+                />
+                {offMode === 'sec' && (
+                    <OptionalNumberField
+                        label={Generic.t('echarts_series_xoffset_seconds')}
+                        value={typeof meta.xOffset === 'number' ? meta.xOffset : undefined}
+                        onChange={v => onPatch({ xOffset: v ?? undefined })}
+                    />
+                )}
+                <TextField2
+                    label={Generic.t('echarts_series_formula')}
+                    value={meta.formula ?? ''}
+                    onChange={v => onPatch({ formula: v.trim() || undefined })}
+                    placeholder="val / 1000 + 3"
+                    error={invalid}
+                    helperText={invalid ? Generic.t('echarts_series_formula_invalid') : undefined}
+                />
+                <OptionalNumberField
+                    label={Generic.t('echarts_series_yoffset')}
+                    value={meta.yOffset}
+                    step={0.1}
+                    onChange={v => onPatch({ yOffset: v ?? undefined })}
+                />
+                <LabeledSelect
+                    label={Generic.t('echarts_series_null_mode')}
+                    value={meta.nullMode ?? ''}
+                    onChange={v => onPatch({ nullMode: (v || undefined) as EchartsSeriesMeta['nullMode'] })}
+                    options={[
+                        ['', Generic.t('echarts_series_null_inherit')],
+                        ['keep', Generic.t('echarts_ignore_null_keep')],
+                        ['forward', Generic.t('echarts_ignore_null_forward')],
+                        ['zero', Generic.t('echarts_ignore_null_zero')],
+                    ]}
+                />
+            </FieldGrid>
+            <SwitchList sx={{ mt: 1.5 }}>
+                <SwitchRow
+                    label={Generic.t('echarts_series_no_future')}
+                    checked={meta.noFuture ?? false}
+                    onChange={v => onPatch({ noFuture: v })}
+                />
+            </SwitchList>
+            <InfoBox text={Generic.t('echarts_series_data_preset_hint')} />
+            {isBarChart && <InfoBox text={Generic.t('echarts_series_xoffset_bar_limit')} />}
+            <InfoBox text={Generic.t('echarts_series_formula_help')} />
+        </SubGroup>
+    );
+};
+
+/**
+ * The "Transformation" SubGroup of a JSON-mode series card — the slim value-transform rest of
+ * the former Verlauf group (ADR-0072 pulled the acquisition knobs into {@link SeriesDataFields},
+ * Verlauf-only): the conversion FORMULA over `val` (expr-eval; an invalid formula is visibly
+ * flagged and the chart keeps the raw values), the Y offset (feeds the formula:
+ * `f(val + yOffset)`), the per-series NULL handling and „Keine Zukunft" — the pipeline applies
+ * these in every mode. No X offset (no fetch to shift) and no „Nur in Legende" (that lives with
+ * the presentation knobs, {@link CartesianSeriesKnobs}).
  */
 export const SeriesTransformFields: FC<{
     meta: EchartsSeriesMeta;
@@ -328,11 +554,6 @@ export const SeriesTransformFields: FC<{
                     label={Generic.t('echarts_series_no_future')}
                     checked={meta.noFuture ?? false}
                     onChange={v => onPatch({ noFuture: v })}
-                />
-                <SwitchRow
-                    label={Generic.t('echarts_series_legend_only')}
-                    checked={meta.legendOnly ?? false}
-                    onChange={v => onPatch({ legendOnly: v })}
                 />
             </SwitchList>
             <FieldGrid min={140}>
@@ -349,17 +570,6 @@ export const SeriesTransformFields: FC<{
                     value={meta.yOffset}
                     step={0.1}
                     onChange={v => onPatch({ yOffset: v ?? undefined })}
-                />
-                <OptionalNumberField
-                    label={Generic.t('echarts_series_xoffset')}
-                    // ADR-0072 widened xOffset to number | calendar key — this numeric field
-                    // reads the SECONDS form only; a stored calendar key renders empty here
-                    // (still shifts the request, resolved at the fetch seam) until the Daten
-                    // cluster lands its Select+Number pair (spec ticket 03).
-                    value={typeof meta.xOffset === 'number' ? meta.xOffset : undefined}
-                    // Both signs are valid (positive shifts the window into the past, the
-                    // adapter's addTime direction; negative into the future).
-                    onChange={v => onPatch({ xOffset: v ?? undefined })}
                 />
                 <LabeledSelect
                     label={Generic.t('echarts_series_null_mode')}
@@ -621,6 +831,16 @@ export const CartesianSeriesKnobs: FC<{
                     </FieldGrid>
                 </SubGroup>
             )}
+            {/* „Nur in Legende" is PRESENTATION, not acquisition (ADR-0072): it stays with the
+                type knobs — type-independent, so it renders for line/bar AND scatter, on the
+                Verlauf card and the JSON card alike. */}
+            <SwitchList sx={{ mt: 1.5 }}>
+                <SwitchRow
+                    label={Generic.t('echarts_series_legend_only')}
+                    checked={meta.legendOnly ?? false}
+                    onChange={v => onPatch({ legendOnly: v })}
+                />
+            </SwitchList>
         </>
     );
 };
@@ -768,9 +988,18 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                         meta={s}
                         onPatch={p => onUpdate(i, p)}
                     />
-                    <SeriesTransformFields
+                    {/* The Daten cluster (ADR-0072) — acquisition Erben-Overrides over the Data
+                        source Voreinstellung + the pulled-in transforms. This list is Verlauf
+                        by construction (JSON cartesians render JsonSeriesCards); the JSON cards
+                        keep the slim SeriesTransformFields instead. */}
+                    <SeriesDataFields
                         meta={s}
                         onPatch={p => onUpdate(i, p)}
+                        chartAggregate={state.aggregate}
+                        chartPercentile={state.percentileValue}
+                        chartIntegralUnit={state.integralUnit}
+                        chartIntegralInterpolation={state.integralInterpolation}
+                        isBarChart={state.chartType === 'bar'}
                     />
                     <SeriesRawOverride
                         slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}

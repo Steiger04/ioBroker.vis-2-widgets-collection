@@ -194,6 +194,11 @@ describe('section slices (ADR-0049)', () => {
                 | 'palettePreset'
                 | 'paletteCustom'
                 | 'darkMode'
+                // ADR-0072: the Daten cluster's Erben-Override inherit targets (read-only).
+                | 'aggregate'
+                | 'percentileValue'
+                | 'integralUnit'
+                | 'integralInterpolation'
             >
         >();
     });
@@ -204,7 +209,18 @@ describe('section slices (ADR-0049)', () => {
             Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'>
         >();
         expectTypeOf<CartesianSeriesListSlice>().toEqualTypeOf<
-            Pick<EditorState, 'chartType' | 'mode' | 'series' | 'yAxes'>
+            Pick<
+                EditorState,
+                | 'chartType'
+                | 'mode'
+                | 'series'
+                | 'yAxes'
+                // ADR-0072: the Daten cluster reads the chart-level Voreinstellung.
+                | 'aggregate'
+                | 'percentileValue'
+                | 'integralUnit'
+                | 'integralInterpolation'
+            >
         >();
     });
 

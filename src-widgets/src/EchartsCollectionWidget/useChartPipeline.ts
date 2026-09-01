@@ -44,6 +44,7 @@ import {
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
+import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { cutFuturePoints, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
@@ -367,24 +368,22 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         // server request (the fetch seam, ticket 01) and this client-side reduction — a max
         // series reduces max inside an average chart. Non-reducible aggregates
         // (onchange/minmax/count/none/percentile/integral) → last value (adapter parity,
-        // bucketizeSeries' default branch).
+        // bucketizeSeries' default branch). effectiveAggregate/effectiveDiff are the SHARED
+        // Erben-Override resolvers (seriesDataOverrides.ts) — the series card renders from the
+        // same semantics it fetches and reduces with.
         const chartAggregate = src.aggregate as Parameters<typeof bucketizeSeries>[2];
-        // Per-series diff tristate (ADR-0072): 'diff' always diffs, 'raw' never, unset (or the
-        // explicit 'inherit') follows the chart-level barDiff. Only diff series lose their
-        // first category: when EVERY series diffs, the axis drops the sacrificial bucket
-        // (ADR-0065 behaviour unchanged); in a mixed chart the axis keeps it — a diff series
-        // pads a leading null (no predecessor there), a raw series' first value simply stays
-        // standing. The window widening stays tied to the CHART-level barDiff: the one extra
-        // bucket it may have bought for non-diff series is harmless for exactly that reason,
-        // and an all-diff chart without it pays with its first AUTHORED bucket (the diff's
-        // first bucket is meaningless without a predecessor — adapter parity, under-shoot
-        // accepted).
-        const seriesDiffs = meta.map(
-            (m): boolean => m?.diffMode === 'diff' || (m?.diffMode !== 'raw' && barDiff === true),
-        );
+        // Per-series diff tristate (ADR-0072): only diff series lose their first category —
+        // when EVERY series diffs, the axis drops the sacrificial bucket (ADR-0065 behaviour
+        // unchanged); in a mixed chart the axis keeps it: a diff series pads a leading null
+        // (no predecessor there), a raw series' first value simply stays standing. The window
+        // widening stays tied to the CHART-level barDiff: the one extra bucket it may have
+        // bought for non-diff series is harmless for exactly that reason, and an all-diff
+        // chart without it pays with its first AUTHORED bucket (the diff's first bucket is
+        // meaningless without a predecessor — adapter parity, under-shoot accepted).
+        const seriesDiffs = meta.map(m => effectiveDiff(m, barDiff));
         const allDiff = seriesDiffs.length > 0 && seriesDiffs.every(Boolean);
         bucketed = transformed.map((s, i) => {
-            const vals = bucketizeSeries(s.data, cats, meta[i]?.aggregate ?? chartAggregate, endBound);
+            const vals = bucketizeSeries(s.data, cats, effectiveAggregate(meta[i], chartAggregate), endBound);
             if (!seriesDiffs[i]) {
                 return { name: s.name, data: vals };
             }

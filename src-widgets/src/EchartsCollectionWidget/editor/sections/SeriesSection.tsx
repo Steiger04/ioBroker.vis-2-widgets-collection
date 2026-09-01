@@ -72,6 +72,12 @@ export type SeriesSlice = Pick<
     | 'palettePreset'
     | 'paletteCustom'
     | 'darkMode'
+    // ADR-0072: the chart-level data settings ride down as the series cards' Erben-Override
+    // inherit targets (the Daten cluster reads them; nothing here is written).
+    | 'aggregate'
+    | 'percentileValue'
+    | 'integralUnit'
+    | 'integralInterpolation'
 >;
 
 interface SeriesSectionProps {

@@ -22,6 +22,7 @@ import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
 import { RANGE_MINUTES } from '../../timeWindow';
+import { AGGREGATE_VALUES } from '../../seriesDataOverrides';
 import {
     FieldGrid,
     FieldLabel,
@@ -239,18 +240,9 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ state, set, pickerCtx }
                             label={Generic.t('echarts_aggregate')}
                             value={state.aggregate}
                             onChange={v => set({ aggregate: v as DataSourceSlice['aggregate'] })}
-                            options={[
-                                ['average', 'average'],
-                                ['minmax', 'minmax'],
-                                ['min', 'min'],
-                                ['max', 'max'],
-                                ['total', 'total'],
-                                ['count', 'count'],
-                                ['onchange', 'onchange'],
-                                ['none', 'none'],
-                                ['percentile', 'percentile'],
-                                ['integral', 'integral'],
-                            ]}
+                            // The one shared aggregate list (ADR-0072) — the series cards'
+                            // Daten cluster offers the same values under their inherit entry.
+                            options={AGGREGATE_VALUES.map(a => [a, a] as [string, string])}
                         />
                         {/* Zeitschrittweite (ADR-0064): the count alternative — a set step
                              disables the count field (ONE of the two is ever active). */}
