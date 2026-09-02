@@ -195,7 +195,17 @@ function EchartsCollection(): React.ReactElement {
         { earlyRefresh: true, legendSelection },
     );
 
-    const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(mode)]);
+    // The placeholder text is STATIC in the body (only the editor preview makes it a CTA);
+    // the table Leerfall names the Zuordnung as the thing to configure (ADR-0075 decision 6).
+    const placeholder = Generic.t(
+        PLACEHOLDER_I18N_KEY[
+            emptyPlaceholderReason(
+                mode,
+                data.jsonKind,
+                pipelineSeries.some(s => s.yPath),
+            )
+        ],
+    );
 
     // Chart frame (parity Build D): container CSS around the chart area — the INNER box carries
     // it, keyed on the frame scalars so an editor toggle re-renders (the chart option is

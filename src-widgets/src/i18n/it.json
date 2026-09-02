@@ -387,6 +387,7 @@
     "echarts_pos_top_left": "In alto a sinistra",
     "echarts_pos_top_right": "In alto a destra",
     "echarts_preview_configure_series": "Configura le serie per vedere i dati",
+    "echarts_preview_configure_table": "Mappa le colonne — scegli le colonne X e Y nel configuratore",
     "echarts_preview_loading": "Caricamento dati…",
     "echarts_preview_open_series": "Fai clic per aprire la sezione corrispondente",
     "echarts_preview_select_json_oid": "Seleziona un OID JSON",

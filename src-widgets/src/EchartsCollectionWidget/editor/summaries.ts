@@ -46,6 +46,13 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
         out.dataSource = `${state.timeRange} · ${state.aggregate} · ${state.count}${
             own ? ` · ${t('echarts_datasource_own_count', String(own))}` : ''
         }`;
+    } else if (state.mode === 'json' && state.jsonKind === 'table') {
+        // Tabellarisch (ADR-0075): the Zuordnung digest — the family, the bound Y columns,
+        // the X column (or the row index when unset).
+        const n = state.series.filter(s => s.yPath).length;
+        out.dataSource = `${t('echarts_json_kind_table')} · ${n} ${t('echarts_series')}${
+            state.jsonXPath ? ` · X: ${state.jsonXPath}` : ''
+        }`;
     } else {
         out.dataSource = 'JSON';
     }

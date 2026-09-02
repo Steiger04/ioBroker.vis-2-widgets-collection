@@ -240,6 +240,7 @@
     "echarts_table_duplicate_names": "Two series carry the same display name — legend and tooltip cannot tell them apart.",
     "echarts_val_ypath_missing": "Y column %s is missing from the payload — the series renders empty.",
     "echarts_val_ypath_string": "Y column %s is text-typed — it plots empty points only.",
+    "echarts_preview_configure_table": "Map the columns — pick the X and Y columns in the configurator",
     "echarts_font_style": "Font style",
     "echarts_font_style_italic": "Italic",
     "echarts_font_style_normal": "Normal",

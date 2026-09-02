@@ -387,6 +387,7 @@
     "echarts_pos_top_left": "Вгорі ліворуч",
     "echarts_pos_top_right": "Вгорі праворуч",
     "echarts_preview_configure_series": "Налаштуйте ряди для відображення даних",
+    "echarts_preview_configure_table": "Зіставте стовпці — виберіть стовпці X і Y у конфігураторі",
     "echarts_preview_loading": "Завантаження даних…",
     "echarts_preview_open_series": "Натисніть, щоб відкрити відповідний розділ",
     "echarts_preview_select_json_oid": "Виберіть JSON OID",

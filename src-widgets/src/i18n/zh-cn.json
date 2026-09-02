@@ -387,6 +387,7 @@
     "echarts_pos_top_left": "左上角",
     "echarts_pos_top_right": "右上角",
     "echarts_preview_configure_series": "配置系列以显示数据",
+    "echarts_preview_configure_table": "映射列 — 在配置器中选择 X 列和 Y 列",
     "echarts_preview_loading": "加载数据中…",
     "echarts_preview_open_series": "点击打开匹配的部分",
     "echarts_preview_select_json_oid": "选择 JSON OID",

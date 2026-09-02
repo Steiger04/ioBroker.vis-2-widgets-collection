@@ -163,11 +163,12 @@ function EchartsConfigEditorModal({
     const firstIssueSection = issueSections[0];
 
     const handlePlaceholderClick = useCallback(
-        (key: SectionKey) => {
+        (key: SectionKey, explicitTab?: string) => {
             focusTokenRef.current += 1;
             // ADR-0073 tab addressing: the jump carries the TAB of the section's FIRST issue
-            // (derived purely from field placement) — the addressed tab row selects it.
-            const tab = firstIssueTabOf(issues, key);
+            // (derived purely from field placement) — the addressed tab row selects it. An
+            // EXPLICIT tab (the table Leerfall's Zuordnung CTA, ADR-0075) wins over that.
+            const tab = explicitTab ?? firstIssueTabOf(issues, key);
             setFocusSection({ key, token: focusTokenRef.current, ...(tab ? { tab } : {}) });
         },
         [issues],

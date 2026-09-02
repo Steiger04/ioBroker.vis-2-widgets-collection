@@ -27,8 +27,11 @@ interface ChartPreviewProps {
     state: EditorState;
     socket: LegacyConnection;
     theme: Theme;
-    /** Called when the user clicks the empty-state placeholder — with the section that fills it. */
-    onPlaceholderClick?: (key: SectionKey) => void;
+    /**
+     * Called when the user clicks the empty-state placeholder — with the section (and, for the
+     * table Leerfall, its Zuordnung TAB, ADR-0075/0073) that would fill it.
+     */
+    onPlaceholderClick?: (key: SectionKey, tab?: string) => void;
 }
 
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
@@ -40,10 +43,17 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
     // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
     const { option, loading, hasData, error } = usePreviewOption(state, socket, theme, legendSelection);
 
-    const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(state.mode)]);
+    const placeholderReason = emptyPlaceholderReason(
+        state.mode,
+        state.jsonKind,
+        state.series.some(s => s.yPath),
+    );
+    const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[placeholderReason]);
 
-    // The section whose fields would replace this placeholder with a real chart.
+    // The section whose fields would replace this placeholder with a real chart — and, for the
+    // table Leerfall (ADR-0075 decision 6), the Zuordnung tab it lives on.
     const targetSection: SectionKey = state.mode === 'json' ? 'dataSource' : 'series';
+    const targetTab: string | undefined = placeholderReason === 'configureTableMapping' ? 'mapping' : undefined;
 
     const emptyBody = (
         <>
@@ -110,7 +120,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                     />
                 ) : onPlaceholderClick && !loading ? (
                     <ButtonBase
-                        onClick={() => onPlaceholderClick(targetSection)}
+                        onClick={() => onPlaceholderClick(targetSection, targetTab)}
                         sx={{
                             width: '100%',
                             height: '100%',

@@ -240,6 +240,7 @@
     "echarts_table_duplicate_names": "Zwei Serien tragen denselben Anzeigenamen — Legende und Tooltip können sie nicht unterscheiden.",
     "echarts_val_ypath_missing": "Y-Spalte %s fehlt im Dokument — die Serie rendert leer.",
     "echarts_val_ypath_string": "Y-Spalte %s ist text-typisiert — sie zeichnet nur leere Punkte.",
+    "echarts_preview_configure_table": "Spalten zuordnen — X- und Y-Spalten im Konfigurator wählen",
     "echarts_font_style": "Schriftstil",
     "echarts_font_style_italic": "Kursiv",
     "echarts_font_style_normal": "Normal",

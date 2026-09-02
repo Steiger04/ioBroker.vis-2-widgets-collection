@@ -47,3 +47,39 @@ describe('sectionSummaries — Data source Voreinstellung digest (ADR-0072)', ()
         expect(out.dataSource).toBe('JSON');
     });
 });
+
+describe('sectionSummaries — tabellarisch data source (ADR-0075 ticket 07)', () => {
+    it('json-table digests family · bound series count · the X column', () => {
+        const sum = sectionSummaries(
+            state({
+                mode: 'json',
+                jsonKind: 'table',
+                jsonXPath: 'ts',
+                series: [
+                    { oid: '', yPath: 'a', id: 's0' },
+                    { oid: '', yPath: 'b', id: 's1' },
+                    { oid: '', yPath: 'c', id: 's2' },
+                ],
+            }),
+            k => k,
+        );
+        expect(sum.dataSource).toBe('echarts_json_kind_table · 3 echarts_series · X: ts');
+    });
+
+    it('an unset X column omits the X segment; only yPath-bound series count', () => {
+        const sum = sectionSummaries(
+            state({
+                mode: 'json',
+                jsonKind: 'table',
+                series: [{ oid: '', id: 's0' }], // no yPath yet — the Leerfall
+            }),
+            k => k,
+        );
+        expect(sum.dataSource).toBe('echarts_json_kind_table · 0 echarts_series');
+    });
+
+    it('serien-förmig keeps the bare JSON digest', () => {
+        const sum = sectionSummaries(state({ mode: 'json' }), k => k);
+        expect(sum.dataSource).toBe('JSON');
+    });
+});

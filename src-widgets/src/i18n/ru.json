@@ -387,6 +387,7 @@
     "echarts_pos_top_left": "Сверху слева",
     "echarts_pos_top_right": "Сверху справа",
     "echarts_preview_configure_series": "Настройте ряды для отображения данных",
+    "echarts_preview_configure_table": "Сопоставьте столбцы — выберите столбцы X и Y в конфигураторе",
     "echarts_preview_loading": "Загрузка данных…",
     "echarts_preview_open_series": "Нажмите, чтобы открыть соответствующий раздел",
     "echarts_preview_select_json_oid": "Выберите JSON OID",
