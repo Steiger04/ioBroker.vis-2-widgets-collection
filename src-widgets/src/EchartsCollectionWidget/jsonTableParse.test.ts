@@ -254,3 +254,36 @@ describe('parseJsonTableState — Y extraction', () => {
         expect(out.series.map(s => s.name)).toEqual(['b', 'a']);
     });
 });
+
+describe('parseJsonTableState — sliceNames (ADR-0075 decision 5, the pie family)', () => {
+    it('category X: the slice names ARE the per-row labels (duplicates kept)', () => {
+        const out = parseJsonTableState(
+            JSON.stringify([
+                { month: 'Jan', a: 1 },
+                { month: 'Feb', a: 2 },
+                { month: 'Jan', a: 3 },
+            ]),
+            { xPath: 'month', ySeries: ys('a') },
+        );
+        expect(out.sliceNames).toEqual(['Jan', 'Feb', 'Jan']);
+    });
+
+    it('no usable X column: every row reads „Zeile n" (NOT the cartesian 1..n labels)', () => {
+        const out = parseJsonTableState(JSON.stringify([{ a: 1 }, { a: 2 }]), { ySeries: ys('a') });
+        expect(out.xKind).toBe('index');
+        expect(out.categories).toEqual(['1', '2']); // the AXIS labels
+        expect(out.sliceNames).toEqual(['Zeile 1', 'Zeile 2']); // the PIE names
+    });
+
+    it('time X: the payload OWN X text per KEPT row, in the sorted order', () => {
+        const out = parseJsonTableState(
+            JSON.stringify([
+                { ts: '2024-12-02', a: 2 },
+                { ts: '2024-12-01', a: 1 },
+                { ts: 'later', a: 9 }, // dropped — no position
+            ]),
+            { xPath: 'ts', ySeries: ys('a') },
+        );
+        expect(out.sliceNames).toEqual(['2024-12-01', '2024-12-02']);
+    });
+});

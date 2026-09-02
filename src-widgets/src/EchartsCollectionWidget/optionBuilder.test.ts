@@ -2696,3 +2696,110 @@ describe('buildGeneratedOption — category-X edge contracts (ADR-0075 ticket 05
         expect(option.xAxis).toMatchObject({ type: 'category', position: 'top', data: ['Jan'] });
     });
 });
+
+// ── the tabellarische PIE: concentric rings (ADR-0075 decision 5, ticket 06) ──
+
+describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
+    const slices = (names: string[], values: (number | null)[]): { name: string; value: number | null }[] =>
+        names.map((name, i) => ({ name, value: values[i] ?? null }));
+
+    it('S=1 keeps the full area (inner..70) like the aggregate pie optically', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'a', data: slices(['x', 'y'], [1, 2]) }],
+            meta: [{}],
+            p: P,
+        });
+        const s = (option.series as Record<string, unknown>[])[0];
+        expect(s.radius).toEqual(['0%', '70%']);
+    });
+
+    it('S=2/S=3 bands are gapless, series 0 OUTERMOST, the donut hole respected', () => {
+        const two = buildGeneratedOption({
+            family: 'pie',
+            series: [
+                { name: 'a', data: slices(['x'], [1]) },
+                { name: 'b', data: slices(['x'], [2]) },
+            ],
+            meta: [{}, {}],
+            p: { ...P, pie: { ...P.pie, innerRadius: 0.3 } },
+        });
+        const radii = (two.series as Record<string, unknown>[]).map(s => s.radius);
+        expect(radii[0]).toEqual(['50%', '70%']); // band 35..70..? band=(70-30)/2=20 → ring0 [50,70]
+        expect(radii[1]).toEqual(['30%', '50%']); // ring1 hugs the donut hole
+
+        const three = buildGeneratedOption({
+            family: 'pie',
+            series: [
+                { name: 'a', data: slices(['x'], [1]) },
+                { name: 'b', data: slices(['x'], [2]) },
+                { name: 'c', data: slices(['x'], [3]) },
+            ],
+            meta: [{}, {}, {}],
+            p: P, // inner 0 → band 70/3
+        });
+        const r3 = (three.series as Record<string, unknown>[]).map(s => s.radius as string[]);
+        expect(r3[0][0]).not.toBe(r3[1][0]); // distinct bands
+        expect(r3[2][0]).toBe('0%'); // the innermost ring starts at the hole
+        expect(r3[0][1]).toBe('70%'); // the outermost ring ends at the edge
+    });
+
+    it('kategoriestabile Palette: the SAME name wears the SAME colour in every ring; meta.color is inert', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [
+                { name: 'a', data: slices(['Jan', 'Feb'], [1, 2]) },
+                { name: 'b', data: slices(['Feb', 'Jan'], [3, 4]) }, // swapped order — same names
+            ],
+            meta: [{ name: 'Ring A', color: '#evil' }, { name: 'Ring B' }],
+            p: P,
+        });
+        const rings = option.series as unknown as {
+            name: string;
+            data: { name: string; itemStyle: { color: string } }[];
+        }[];
+        expect(rings[0].name).toBe('Ring A'); // meta.name is the RING identity
+        const colorOf = (ring: number, slice: string): string =>
+            rings[ring].data.find(d => d.name === slice)!.itemStyle.color;
+        expect(colorOf(0, 'Jan')).toBe(colorOf(1, 'Jan'));
+        expect(colorOf(0, 'Feb')).toBe(colorOf(1, 'Feb'));
+        expect(colorOf(0, 'Jan')).not.toBe(colorOf(0, 'Feb'));
+        expect(rings[0].data.every(d => d.itemStyle.color !== '#evil')).toBe(true); // meta.color NOT read
+    });
+
+    it('the legend names are the CATEGORIES (the union across rings), duplicates stay slices', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [{ name: 'a', data: slices(['Jan', 'Feb', 'Jan'], [1, 2, 3]) }],
+            meta: [{}],
+            p: P,
+        });
+        const legend = option.legend as Record<string, unknown>;
+        expect(legend.data).toEqual(['Jan', 'Feb']);
+        const ring = (option.series as Record<string, unknown>[])[0];
+        expect((ring.data as unknown[]).length).toBe(3); // the duplicate keeps its own slice
+    });
+
+    it('point-shaped pie (Verlauf/serien-förmig) stays byte-stable — one series, aggregate', () => {
+        const option = buildGeneratedOption({
+            family: 'pie',
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 5],
+                        [2, 7],
+                    ],
+                },
+            ],
+            meta: [{ name: 'Slice', color: '#0af' }],
+            p: P,
+        });
+        const series = option.series as Record<string, unknown>[];
+        expect(series).toHaveLength(1);
+        expect(series[0].radius).toEqual(['0%', '70%']);
+        const data = series[0].data as { value: number; itemStyle: { color: string } }[];
+        expect(data[0].value).toBe(7); // latest
+        expect(data[0].itemStyle.color).toBe('#0af'); // meta.color DOES paint aggregate slices
+    });
+});

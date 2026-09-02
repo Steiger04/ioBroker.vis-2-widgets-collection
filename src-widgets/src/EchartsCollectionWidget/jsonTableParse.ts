@@ -48,6 +48,13 @@ export interface JsonTableParseResult {
     xKind: JsonTableXKind;
     /** Per-row X labels — present for `category`/`index` (payload order, duplicates kept). */
     categories?: string[];
+    /**
+     * Per-row SLICE names for the pie family (ADR-0075 decision 5): `String(xVal)` per emitted
+     * row — the payload's own text, duplicates kept. Without a usable X column every row reads
+     * „Zeile n" (NOT the cartesian index labels `1..n` — a pie slice named "3" says nothing).
+     * Aligned 1:1 with every series' data (all series share the row alignment).
+     */
+    sliceNames?: string[];
     /** Rows-array resolution / JSON error — rides the pipeline's error surface. */
     error?: string;
 }
@@ -66,6 +73,12 @@ export type ResolveRowsResult = { rows: unknown[] } | { error: string };
 
 /** Fallback label for a row without a usable X value (the pie slice names ride it too, ADR-0075). */
 const rowLabel = (i: number): string => `Zeile ${i + 1}`;
+
+/** One row's SLICE name (ADR-0075 pie): the payload's own X text; the row fallback without one. */
+const sliceLabel = (v: unknown, i: number): string =>
+    typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint'
+        ? String(v)
+        : rowLabel(i);
 
 /** Tokenizer for dot-paths with optional array indices: `a.b[0].c` → `['a', 'b', 0, 'c']`. */
 const PATH_TOKEN_RE = /([^.[\]]+)|\[(\d+)\]/g;
@@ -185,9 +198,11 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
     if (primary === 'date') {
         // Time X: keep the rows whose X parses, then sort ascending STABLE — equal timestamps
         // keep payload order (Array#sort is stable), unparseable X drops the row (no position).
+        // The slice name keeps the payload's OWN X text (`String(xVal)`) — a pie over a date
+        // column shows what the document said, not a reformatted timestamp.
         const aligned = cellsByRow
-            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), ys }))
-            .filter((r): r is { xMs: number; ys: (number | null)[] } => r.xMs !== null);
+            .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: sliceLabel(xVals![i], i), ys }))
+            .filter((r): r is { xMs: number; label: string; ys: (number | null)[] } => r.xMs !== null);
         aligned.sort((a, b) => a.xMs - b.xMs);
         return {
             series: spec.ySeries.map((ys, k) => ({
@@ -195,6 +210,7 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
                 data: aligned.map(r => [r.xMs, r.ys[k] ?? null] as SeriesPoint),
             })),
             xKind: 'time',
+            sliceNames: aligned.map(r => r.label),
         };
     }
 
@@ -214,9 +230,15 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
                 ? String(v)
                 : rowLabel(i),
         );
-        return { series: plainSeries, xKind: 'category', categories };
+        return { series: plainSeries, xKind: 'category', categories, sliceNames: categories };
     }
 
-    // Index X (no xPath, or a column without any non-null value): labels 1..n.
-    return { series: plainSeries, xKind: 'index', categories: rows.map((_, i) => String(i + 1)) };
+    // Index X (no xPath, or a column without any non-null value): labels 1..n (the cartesian
+    // axis labels); the PIE names read „Zeile n" instead — see JsonTableParseResult.sliceNames.
+    return {
+        series: plainSeries,
+        xKind: 'index',
+        categories: rows.map((_, i) => String(i + 1)),
+        sliceNames: rows.map((_, i) => rowLabel(i)),
+    };
 };

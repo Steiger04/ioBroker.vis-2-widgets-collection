@@ -27,14 +27,24 @@ import type { SeriesPoint } from '../historyLogic';
 import type { ThemeTokens } from '../echartsTheme';
 
 /**
+ * One pie slice (ADR-0075 tabellarisch): the row's category name (`String(xVal)`, row
+ * fallback) + its value. The pie-table pipeline hands each yPath series as N slices.
+ */
+export interface PieSliceDatum {
+    name: string;
+    value: number | null;
+}
+
+/**
  * A resolved cartesian/pie series the chart can render. `data` is `[ts, val]` points on the
  * time axis — EXCEPT category bars (ADR-0065): when `PresentationConfig.barCategories` rides
  * along, a bar series' data is the plain per-bucket array `(number | null)[]` (echarts
- * category indexing).
+ * category indexing) — and the tabellarische PIE family (ADR-0075) carries
+ * {@link PieSliceDatum} slices (one per row).
  */
 export interface ChartSeries {
     name: string;
-    data: SeriesPoint[] | (number | null)[];
+    data: SeriesPoint[] | (number | null)[] | PieSliceDatum[];
 }
 
 /**

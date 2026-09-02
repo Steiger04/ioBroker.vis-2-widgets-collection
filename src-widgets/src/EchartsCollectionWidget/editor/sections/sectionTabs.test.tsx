@@ -308,4 +308,16 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
             expect(all).toContain(key);
         }
     });
+
+    it('Pie options TABELLARISCH (ADR-0075 ticket 06): the aggregate cluster hides — nothing collapses', () => {
+        const el = mount(PieOptionsSection, {
+            state: state({ chartType: 'pie', mode: 'json', jsonKind: 'table' }),
+            set: () => undefined,
+        });
+        const all = allTabsText(el);
+        expect(all).not.toContain('echarts_pie_aggregate'); // every row IS the value
+        for (const key of ['echarts_pie_inner_radius', 'echarts_pie_rose', 'echarts_pie_label']) {
+            expect(all).toContain(key); // donut/rose/label stay
+        }
+    });
 });

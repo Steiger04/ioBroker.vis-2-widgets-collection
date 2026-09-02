@@ -16,8 +16,12 @@ import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../validation';
 import type { EditorState, SetEditor } from '../editorState';
 
-/** The pie options section's field ownership (ADR-0049 slice) — the pie blob. */
-export type PieOptionsSlice = Pick<EditorState, 'pie'>;
+/**
+ * The pie options section's field ownership (ADR-0049 slice) — the pie blob plus the
+ * mode/kind READ (ADR-0075: the aggregate cluster hides tabellarisch — every row IS the
+ * value, there is nothing to collapse).
+ */
+export type PieOptionsSlice = Pick<EditorState, 'pie' | 'mode' | 'jsonKind'>;
 
 interface PieOptionsSectionProps {
     /** External tab jump (ADR-0073): the focus request tab selects once. */
@@ -30,6 +34,9 @@ interface PieOptionsSectionProps {
 
 export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues, state, set }) => {
     const setPie = (patch: Partial<PieOptionsSlice['pie']>): void => set({ pie: { ...state.pie, ...patch } });
+    // Tabellarisch (ADR-0075 decision 5): the aggregates are meaningless — each row IS the
+    // value, nothing collapses; the cluster hides (innerRadius/rose/label stay).
+    const isJsonTable = state.mode === 'json' && state.jsonKind === 'table';
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);
@@ -65,18 +72,20 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues
                 />
             </FieldGrid>
             <FieldGrid>
-                <LabeledSelect
-                    label={Generic.t('echarts_pie_aggregate')}
-                    value={state.pie.aggregate ?? 'latest'}
-                    onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
-                    options={[
-                        ['latest', Generic.t('echarts_pie_agg_latest')],
-                        ['sum', Generic.t('echarts_pie_agg_sum')],
-                        ['avg', Generic.t('echarts_pie_agg_avg')],
-                        ['min', Generic.t('echarts_pie_agg_min')],
-                        ['max', Generic.t('echarts_pie_agg_max')],
-                    ]}
-                />
+                {!isJsonTable && (
+                    <LabeledSelect
+                        label={Generic.t('echarts_pie_aggregate')}
+                        value={state.pie.aggregate ?? 'latest'}
+                        onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
+                        options={[
+                            ['latest', Generic.t('echarts_pie_agg_latest')],
+                            ['sum', Generic.t('echarts_pie_agg_sum')],
+                            ['avg', Generic.t('echarts_pie_agg_avg')],
+                            ['min', Generic.t('echarts_pie_agg_min')],
+                            ['max', Generic.t('echarts_pie_agg_max')],
+                        ]}
+                    />
+                )}
                 <LabeledSelect
                     label={Generic.t('echarts_pie_label')}
                     value={state.pie.label ?? 'namePercent'}

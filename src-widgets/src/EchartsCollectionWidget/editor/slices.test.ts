@@ -177,7 +177,7 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('the family options slice equals its section ownership', () => {
-        expectTypeOf<PieOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'pie'>>();
+        expectTypeOf<PieOptionsSlice>().toEqualTypeOf<Pick<EditorState, 'pie' | 'mode' | 'jsonKind'>>();
     });
 
     it('SeriesSlice equals the series dispatcher ownership (own footprint + sub-view union)', () => {

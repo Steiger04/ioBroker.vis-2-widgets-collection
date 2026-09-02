@@ -840,3 +840,67 @@ describe('assemblePipelineResult — table family (ADR-0075)', () => {
         expect((option.series as unknown[]) ?? []).toHaveLength(0);
     });
 });
+
+describe('assemblePipelineResult — pie tabellarisch dispatch (ADR-0075 decision 5)', () => {
+    it('each yPath series becomes ONE ring with N row slices, named from the X column', () => {
+        const { option, hasData } = assemblePipelineResult(
+            makeInput('pie', 'json', {
+                jsonTable: {
+                    xKind: 'category',
+                    categories: ['Jan', 'Feb'],
+                    sliceNames: ['Jan', 'Feb'],
+                    series: [
+                        { name: 'a', data: [1, 2] },
+                        { name: 'b', data: [3, 4] },
+                    ],
+                },
+                companions: {
+                    chartConfig: {},
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: [
+                        { oid: '', name: 'A', yPath: 'a' },
+                        { oid: '', name: 'B', yPath: 'b' },
+                    ],
+                },
+            }),
+        );
+        expect(hasData).toBe(true);
+        const rings = option.series as { name: string; data: { name: string; value: number }[] }[];
+        expect(rings).toHaveLength(2);
+        // itemStyle (the kategoriestabile palette) rides along — asserted in the builder suite.
+        expect(rings[0].data.map(d => [d.name, d.value])).toEqual([
+            ['Jan', 1],
+            ['Feb', 2],
+        ]);
+        expect(rings[1].data.map(d => [d.name, d.value])).toEqual([
+            ['Jan', 3],
+            ['Feb', 4],
+        ]);
+    });
+
+    it('the transform seam holds for slice values (offset feeds the formula)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('pie', 'json', {
+                jsonTable: {
+                    xKind: 'index',
+                    categories: ['1'],
+                    sliceNames: ['Zeile 1'],
+                    series: [{ name: 'a', data: [10] }],
+                },
+                companions: {
+                    chartConfig: {},
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: [{ oid: '', name: 'A', yPath: 'a', yOffset: 2, formula: 'val * 10' }],
+                },
+            }),
+        );
+        const ring = (option.series as { data: { value: number }[] }[])[0];
+        expect(ring.data[0].value).toBe(120); // (10+2)*10
+    });
+});

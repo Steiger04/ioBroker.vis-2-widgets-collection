@@ -403,6 +403,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     labelColorFallback={labelColorFallback}
                     columns={tableColumns ?? []}
                     schemaError={tableSchemaError}
+                    showAxis={!isPie}
                     expanded={expanded}
                     onToggleCard={toggleCard}
                     onUpdate={update}

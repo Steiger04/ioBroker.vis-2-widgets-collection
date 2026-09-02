@@ -1,6 +1,6 @@
 /**
  * Tabellarische series cards (cartesian + pie) — one card per AUTHORED yPath binding
- * (ADR-0075 ticket 04).
+ * (ADR-0075 tickets 04/06).
  *
  * @module EchartsCollectionWidget/editor/sections/series/TableSeriesCards
  * @remarks
@@ -9,18 +9,18 @@
  * row swapped for the yPath ColumnAutocomplete ({@link CartesianBasisFields}' `sourceRow`
  * slot — the sub-components themselves untouched). What the serien-förmig view owns that this
  * one deliberately does NOT: duplicate, hide (jsonHidden deny-list) — the table family owns
- * its structure, every delete is REAL (decision 2). Pie-table renders compact rows until
- * ticket 06's ring view (name + colour, no expand — the json-pie precedent).
+ * its structure, every delete is REAL (decision 2). BOTH families render the full cards
+ * (ticket 06); pie drops only the Basis-Tab's axis dropdown (`showAxis={false}` — pie knows
+ * no axes, its series are the concentric rings).
  */
 import type { FC } from 'react';
-import { Alert, Box, IconButton, TextField, Typography } from '@mui/material';
+import { Alert, Box, IconButton, Typography } from '@mui/material';
 import { ArrowDownward as DownIcon, ArrowUpward as UpIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
 import type { EchartsCartesianType } from '../../../../types/field-definitions/echarts-fields';
 import type { JsonTableColumn } from '../../../../hooks/useJsonTableAnalysis';
-import { EditorCard, FieldGrid, FieldLabel, InfoBox, SectionTabs } from '../../../../components/controls';
-import ColorField from '../../colorFields';
+import { EditorCard, InfoBox, SectionTabs } from '../../../../components/controls';
 import ColumnAutocomplete from '../../ColumnAutocomplete';
 import { lastPathSegment } from '../../../jsonTableParse';
 import type { OidPickerCtx } from '../../OidPicker';
@@ -53,6 +53,8 @@ interface TableSeriesCardsProps {
     columns: readonly JsonTableColumn[];
     /** The schema's rows/JSON error (shown instead of a silent blank). */
     schemaError?: string;
+    /** Show the per-series Y-axis binding row (cartesian only — pie knows no axes, ADR-0075). */
+    showAxis?: boolean;
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdate: (i: number, patch: Partial<EditorSeries>) => void;
@@ -74,6 +76,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
     labelColorFallback,
     columns,
     schemaError,
+    showAxis = true,
     expanded,
     onToggleCard,
     onUpdate,
@@ -84,7 +87,6 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
 }) => {
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
-    const isPie = state.chartType === 'pie';
     // Effective axis names for the per-series binding dropdown (ADR-0025) — the binder sight is
     // state.series itself (like Verlauf; the overlay/jsonHidden sights are serien-förmig only).
     const axisDisplayNames = state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series));
@@ -138,58 +140,11 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                 <InfoBox text={Generic.t('echarts_json_no_oid')} />
             ) : series.length === 0 ? (
                 <EmptyState text={Generic.t('echarts_series_empty')}>{addPicker}</EmptyState>
-            ) : isPie ? (
-                // pie-table: compact rows until ticket 06's ring view (json-pie precedent) —
-                // yPath picker + editable name + colour + REAL delete (no hide/deny-list here).
-                <>
-                    {series.map((s, i) => (
-                        <Box
-                            key={s.id ?? i}
-                            sx={{ mb: 1, p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1.5 }}
-                        >
-                            <FieldGrid min={140}>
-                                <ColumnAutocomplete
-                                    label={Generic.t('echarts_editor_series_y_column')}
-                                    value={s.yPath ?? ''}
-                                    columns={columns}
-                                    onChange={p => onUpdate(i, { yPath: p || undefined })}
-                                    emptyLabel={Generic.t('echarts_table_no_ypath')}
-                                />
-                                <TextField
-                                    label={Generic.t('echarts_editor_series_name')}
-                                    size="small"
-                                    value={s.name ?? ''}
-                                    onChange={e => onUpdate(i, { name: e.target.value })}
-                                />
-                                <Box>
-                                    <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                                            <ColorField
-                                                value={s.color}
-                                                fallback={slot(i)}
-                                                onChange={v => onUpdate(i, { color: v ?? undefined })}
-                                                ctx={pickerCtx}
-                                            />
-                                        </Box>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => onRemove(i)}
-                                            aria-label={Generic.t('echarts_editor_series_remove')}
-                                            sx={{ flexShrink: 0 }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                </Box>
-                            </FieldGrid>
-                        </Box>
-                    ))}
-                    <Box sx={{ mt: 1.5 }}>{addPicker}</Box>
-                </>
             ) : (
-                // cartesian-table: full cards — the Verlauf card's structure, the OID row swapped
-                // for the yPath picker; no duplicate, no hide (decision 2: structure is authored).
+                // Full cards for BOTH cartesian and pie (ticket 06: pie-tabellarisch renders the
+                // same cards, only the Basis-Tab drops the axis dropdown — pie knows no axes).
+                // The Verlauf card's structure, the OID row swapped for the yPath picker; no
+                // duplicate, no hide (decision 2: structure is authored).
                 <>
                     {series.map((s, i) => (
                         <EditorCard
@@ -254,6 +209,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                     pickerCtx={pickerCtx}
                                     colorFallback={slot(i)}
                                     showType
+                                    showAxis={showAxis}
                                     yAxes={state.yAxes}
                                     axisDisplayNames={axisDisplayNames}
                                     sourceRow={

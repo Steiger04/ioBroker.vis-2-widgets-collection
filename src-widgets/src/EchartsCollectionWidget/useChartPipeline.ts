@@ -470,6 +470,22 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     if (table && jsonTable.xKind !== 'time') {
         presentationFinal = { ...presentationFinal, xCategories: jsonTable.categories ?? [] };
     }
+    // Pie tabellarisch (ADR-0075 decision 5): each yPath series becomes ONE echarts pie series
+    // with N row slices — concentric rings (the builder's radius bands). Built HERE at the
+    // seam over the TRANSFORMED values (the offset/formula seam holds for slice values too);
+    // the cartesian axis work above never applies (pie has no axes).
+    if (table && family === 'pie' && jsonTable.sliceNames?.length) {
+        const names = jsonTable.sliceNames;
+        bucketed = transformed.map(s => ({
+            name: s.name,
+            data: s.data.map((d, i) => ({
+                // names align 1:1 with every series' rows by construction — the literal is the
+                // defensive fallback for a misaligned sight, never a reachable path.
+                name: names[i] ?? `Zeile ${i + 1}`,
+                value: Array.isArray(d) ? d[1] : d,
+            })),
+        }));
+    }
     const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
