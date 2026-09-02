@@ -43,8 +43,15 @@ export type PreviewResult = ChartPipelineResult;
  * @param state - The editor working state.
  * @param socket - The LegacyConnection drilled into the editor.
  * @param theme - The MUI theme (for the theme base + palette).
+ * @param legendSelection - The preview's runtime legend selection (ADR-0074 Legenden-Folge) —
+ *   the preview owns its own local state, exactly like the live body.
  */
-export function usePreviewOption(state: EditorState, socket: LegacyConnection, theme: Theme): PreviewResult {
+export function usePreviewOption(
+    state: EditorState,
+    socket: LegacyConnection,
+    theme: Theme,
+    legendSelection?: Record<string, boolean>,
+): PreviewResult {
     // Resolve the COLLECTION theme + derived palette + tokens (ADR-0027).
     const { theme: collectionTheme, palette, themeTokens } = useEditorTheme(state, socket, theme);
     // The effective chart dark mode — resolved from the COLLECTION theme exactly like the live body.
@@ -86,5 +93,6 @@ export function usePreviewOption(state: EditorState, socket: LegacyConnection, t
 
     return useChartPipeline({ useValues, getHistory, theme: pipelineTheme }, src, companions, {
         maxPoints: PREVIEW_MAX_POINTS,
+        legendSelection,
     });
 }

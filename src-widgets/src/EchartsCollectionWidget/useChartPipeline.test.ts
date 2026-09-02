@@ -121,6 +121,39 @@ const makeInput = (
 const seriesOf = (option: EChartsOption): { name: string; data: unknown[] }[] =>
     (option.series as { name: string; data: unknown[] }[]) ?? [];
 
+describe('assemblePipelineResult — Legenden-Folge (ADR-0074: the runtime selection rides the option)', () => {
+    it('injects legendSelection into the presentation — legend.selected follows the state', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A' },
+                    { oid: 'b.0', name: 'B' },
+                ],
+                history: {
+                    series: [
+                        { name: 'A', data: [[1, 2]] },
+                        { name: 'B', data: [[1, 3]] },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                legendSelection: { B: false },
+            }),
+        );
+        expect((option.legend as Record<string, unknown>).selected).toEqual({ A: true, B: false });
+    });
+
+    it('without a selection the option carries no selected key (the pre-0074 shape)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
+            }),
+        );
+        expect(option.legend as Record<string, unknown>).not.toHaveProperty('selected');
+    });
+});
+
 describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
     it('Verlauf maps fetched history series 1:1 and reports hasData from the merged option', () => {
         const { option, hasData } = assemblePipelineResult(

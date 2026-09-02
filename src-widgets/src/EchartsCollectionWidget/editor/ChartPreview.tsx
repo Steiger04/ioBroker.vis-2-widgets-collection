@@ -8,7 +8,7 @@
  * and an honest empty state when no data is bound yet. The empty state is clickable (ADR-0010):
  * it steers the rail to the section that would fill it (series, or data source for JSON mode).
  */
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import type React from 'react';
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
@@ -32,9 +32,13 @@ interface ChartPreviewProps {
 }
 
 const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlaceholderClick }) => {
+    // Legenden-Folge (ADR-0074): the preview owns its own local legend selection — a legend
+    // click in the Preview stage hides the series' axis live, exactly like the live body
+    // (preview parity). Ephemeral per modal session, never persisted into the editor state.
+    const [legendSelection, setLegendSelection] = useState<Record<string, boolean>>({});
     // The pipeline return (ADR-0046): error joins option/loading/hasData — the preview surfaces
     // JSON/Verlauf/series failures instead of failing silently, exactly like the body.
-    const { option, loading, hasData, error } = usePreviewOption(state, socket, theme);
+    const { option, loading, hasData, error } = usePreviewOption(state, socket, theme, legendSelection);
 
     const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(state.mode)]);
 
@@ -102,6 +106,7 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
                         option={option}
                         renderer={state.renderer}
                         zoomIdleResetSec={parseZoomIdleSeconds(state.zoomResetAfterIdle)}
+                        onLegendSelect={setLegendSelection}
                     />
                 ) : onPlaceholderClick && !loading ? (
                     <ButtonBase

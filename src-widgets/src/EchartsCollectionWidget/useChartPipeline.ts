@@ -120,6 +120,11 @@ export interface ChartPipelineOptions {
      * @default false
      */
     earlyRefresh?: boolean;
+    /**
+     * The runtime legend selection (name → active) — the host's Legenden-Folge view state
+     * (ADR-0074). Rides the assembled option so legend clicks survive data ticks.
+     */
+    legendSelection?: Record<string, boolean>;
 }
 
 /** One return shape for both callers (ADR-0046) — the preview gains `error` and polling parity. */
@@ -297,6 +302,12 @@ export interface AssemblePipelineInput {
     barWindowEnd?: number | null;
     /** Bar diff post-processing on the buckets (ADR-0065) — drops the first category. */
     barDiff?: boolean;
+    /**
+     * The runtime legend selection (name → active, ADR-0074 Legenden-Folge) — view state the
+     * host owns; injected into the presentation copy so `legend.selected` and the cartesian
+     * axis emission follow legend clicks across option rebuilds.
+     */
+    legendSelection?: Record<string, boolean>;
 }
 
 /**
@@ -333,6 +344,12 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
               ),
           }
         : presentation;
+    // Legenden-Folge (ADR-0074): the runtime selection rides the presentation copy — buildLegend
+    // emits `selected` from it and the cartesian builder gates axis emission on it. Injected
+    // HERE (view state owned by the host), never from the field map.
+    const presentationWithSelection = input.legendSelection
+        ? { ...presentationWithValues, legendSelection: input.legendSelection }
+        : presentationWithValues;
     let series: ChartSeries[];
     if (mode === 'history') {
         series = history.series.map(s => ({ name: s.name, data: s.data }));
@@ -359,7 +376,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
     // and ride the categories into the presentation copy — the builder switches to a
     // category x axis and the series data becomes plain bucket arrays.
-    let presentationFinal = presentationWithValues;
+    let presentationFinal = presentationWithSelection;
     let bucketed: ChartSeries[] = transformed;
     if (barCategories?.length) {
         let cats = barCategories;
@@ -393,11 +410,11 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         if (allDiff) {
             cats = cats.slice(1); // the diff's first bucket has no predecessor
         }
-        presentationFinal = { ...presentationWithValues, barCategories: cats };
+        presentationFinal = { ...presentationWithSelection, barCategories: cats };
         // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff
         // included) value the chart actually shows. Reading the raw history series here
         // made the legend contradict the bars (a meter reading against its diff).
-        if (presentationWithValues.legendValues) {
+        if (presentationWithSelection.legendValues) {
             presentationFinal = {
                 ...presentationFinal,
                 // Bucketed bars carry plain arrays by construction (the ChartSeries union
@@ -623,6 +640,7 @@ export function useChartPipeline(
             barCategories: history.extras?.cats ?? null,
             barWindowEnd: history.extras?.end ?? null,
             barDiff,
+            legendSelection: opts.legendSelection,
         });
         return {
             option,
@@ -644,5 +662,6 @@ export function useChartPipeline(
         theme.themeBase,
         companions,
         src,
+        opts.legendSelection,
     ]);
 }

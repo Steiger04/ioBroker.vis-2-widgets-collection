@@ -37,7 +37,7 @@ import './echartsRegistration';
 import { REPLACE_MERGE } from './replaceMerge';
 import { zoomIdleAction } from './zoomIdleReset';
 
-interface EChartProps {
+export interface EChartProps {
     /** Fully-merged echarts option (theme base + G). */
     option: EChartsOption;
     /** Renderer: `'canvas'` (default, faster) or `'svg'` (crisp for export/print). */
@@ -47,6 +47,13 @@ interface EChartProps {
      * comes from `zoomIdleAction`; the timer + the reset `dispatchAction` live here (View).
      */
     zoomIdleResetSec?: number;
+    /**
+     * Reports the legend selection map on every legend click (ADR-0074 Legenden-Folge). The
+     * wrapper only REPORTS (`legendselectchanged` → this callback, the full name→active map);
+     * the host owns the state and feeds it back through the option — never the other way round,
+     * keeping the wrapper presentation-merge-free.
+     */
+    onLegendSelect?: (selected: Record<string, boolean>) => void;
 }
 
 /** Whether the live zoom window deviates from the full 0–100 % window (across all components). */
@@ -63,7 +70,12 @@ const zoomDeviates = (chart: ECharts): boolean => {
 // The replaceMerge list lives in the pure `replaceMerge.ts` module (ADR-0036) — single source for
 // the wrapper AND the template guard test.
 
-export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }: EChartProps): React.JSX.Element {
+export default function EChart({
+    option,
+    renderer = 'canvas',
+    zoomIdleResetSec,
+    onLegendSelect,
+}: EChartProps): React.JSX.Element {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<ECharts | null>(null);
     // Keep the latest option so a renderer-triggered re-init can seed the fresh instance without
@@ -73,6 +85,10 @@ export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }
     // Same idiom for the idle-reset config: read at event time, no re-init on a config change.
     const zoomSecRef = useRef(zoomIdleResetSec);
     zoomSecRef.current = zoomIdleResetSec;
+    // And for the legend-selection callback (ADR-0074): read at event time, identity churn on
+    // the host (an inline setState binder) never re-inits the chart.
+    const onSelectRef = useRef(onLegendSelect);
+    onSelectRef.current = onLegendSelect;
 
     // init + ResizeObserver → resize() + dispose on unmount OR renderer change.
     useEffect(() => {
@@ -108,6 +124,17 @@ export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }
         };
         chart.on('datazoom', onZoomChange);
 
+        // Legenden-Folge (ADR-0074): report every legend click's resulting name→active map to
+        // the host — the host owns the selection state and rides it back through the option
+        // (the replaceMerge reset repair). Report-only: the wrapper never patches the option.
+        const onLegendSelectEvt = (params: unknown): void => {
+            const selected = (params as { selected?: Record<string, boolean> } | undefined)?.selected;
+            if (selected) {
+                onSelectRef.current?.(selected);
+            }
+        };
+        chart.on('legendselectchanged', onLegendSelectEvt);
+
         // On resize: sync the canvas dims. echarts re-runs the grid layout (incl. containLabel's
         // label/name/offset reservation) for the new width, so no setOption is needed here.
         // ResizeObserver coalesces to discrete size changes, so this is not a per-frame churn.
@@ -119,6 +146,7 @@ export default function EChart({ option, renderer = 'canvas', zoomIdleResetSec }
         return (): void => {
             clearIdleTimer();
             chart.off('datazoom', onZoomChange);
+            chart.off('legendselectchanged', onLegendSelectEvt);
             ro.disconnect();
             chart.dispose();
             chartRef.current = null;

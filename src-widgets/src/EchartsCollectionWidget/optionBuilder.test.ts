@@ -2134,6 +2134,168 @@ describe('buildGeneratedOption — series rest knobs (ADR-0060, parity Build B)'
     });
 });
 
+describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the legend selection)', () => {
+    // The standard interleaved trio (balanceAxes shape): L0 / R0 / L80.
+    const threeP = {
+        ...P,
+        yAxes: [{}, { position: 'right' as const }, { position: 'left' as const, offset: 80 }],
+    };
+    const threeSeries: ChartSeries[] = [
+        { name: 'A', data: [[1, 1]] },
+        { name: 'B', data: [[1, 2]] },
+        { name: 'C', data: [[1, 3]] },
+    ];
+    const threeMeta = [
+        { name: 'A', yAxisIndex: 0 },
+        { name: 'B', yAxisIndex: 1 },
+        { name: 'C', yAxisIndex: 2 },
+    ];
+    const entriesOf = (option: { series?: unknown }): { name: string; yAxisIndex?: number }[] =>
+        option.series as { name: string; yAxisIndex?: number }[];
+    const axesOf = (option: { yAxis?: unknown }): Record<string, unknown>[] =>
+        option.yAxis as Record<string, unknown>[];
+
+    it('a fully deselected axis is not emitted — its series stays with the clamped ref (grid off, no twins)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: threeSeries,
+            meta: threeMeta,
+            p: { ...threeP, legendSelection: { A: false } },
+        });
+        expect(axesOf(option)).toHaveLength(2); // axis 0 gone
+        const byName = Object.fromEntries(entriesOf(option).map(e => [e.name, e.yAxisIndex]));
+        expect(byName).toEqual({ A: 0, B: 0, C: 1 }); // A clamped, B/C remapped onto the compact array
+    });
+
+    it('1:n — one active binder keeps the axis (the Alle-Binder rule)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 1]] },
+                { name: 'B', data: [[1, 2]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 0 },
+            ],
+            p: { ...P, legendSelection: { A: false } },
+        });
+        expect(axesOf(option)).toHaveLength(1);
+    });
+
+    it('„Nur in Legende" hides the axis from the first render — config parity, no state needed', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 1]] },
+                { name: 'B', data: [[1, 2]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0, legendOnly: true },
+                { name: 'B', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{}, {}] },
+        });
+        expect(axesOf(option)).toHaveLength(1);
+        expect((option.legend as Record<string, unknown>).selected).toEqual({ A: false, B: true });
+    });
+
+    it('visible axes re-slot into the standard interleaving — sides flip (balanceAxes semantics, display-only)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: threeSeries,
+            meta: threeMeta,
+            p: { ...threeP, legendSelection: { A: false } },
+        });
+        const [first, second] = axesOf(option);
+        expect(first).toMatchObject({ position: 'left', offset: 0 }); // B's axis, re-slotted from right
+        expect(second).toMatchObject({ position: 'right', offset: 0 }); // C's axis, re-slotted from left/80
+    });
+
+    it('everything active → authored geometry verbatim (the all-visible invariant, byte-identical)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: threeSeries,
+            meta: threeMeta,
+            p: threeP,
+        });
+        expect(axesOf(option).map(a => [a.position, a.offset])).toEqual([
+            ['left', 0],
+            ['right', 0],
+            ['left', 80],
+        ]);
+    });
+
+    it('all deselected + grid OFF → ONE silent carrier axis keeps the grid renderable', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: threeSeries,
+            meta: threeMeta,
+            p: { ...threeP, legendSelection: { A: false, B: false, C: false } },
+        });
+        const ya = axesOf(option);
+        expect(ya).toHaveLength(1);
+        expect(ya[0].show).toBe(false); // silent in full — no line, no labels, no name
+    });
+
+    it('all deselected + grid ON → the Grenzachsen alone carry the array (both sides close)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: threeSeries,
+            meta: threeMeta,
+            p: { ...threeP, xAxis: { splitLine: true }, legendSelection: { A: false, B: false, C: false } },
+        });
+        const ya = axesOf(option);
+        expect(ya.map(a => a.position)).toEqual(['left', 'right']);
+        expect(ya.every(a => (a.axisLabel as { show?: boolean } | undefined)?.show === false)).toBe(true);
+    });
+
+    it('grid ON: the freed side closes via the Grenzachse — the staffed check sees the re-slotted positions', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 1]] },
+                { name: 'B', data: [[1, 2]] },
+            ],
+            meta: [
+                { name: 'A', yAxisIndex: 0 },
+                { name: 'B', yAxisIndex: 1 },
+            ],
+            p: { ...P, yAxes: [{}, {}], xAxis: { splitLine: true }, legendSelection: { A: false } },
+        });
+        const ya = axesOf(option);
+        // The real axis (re-slotted to left) + the synthesized right border twin.
+        expect(ya.map(a => a.position)).toEqual(['left', 'right']);
+        expect((ya[0].axisLabel as { show?: boolean } | undefined)?.show).toBeUndefined(); // real axis keeps labels
+        expect((ya[1].axisLabel as { show?: boolean } | undefined)?.show).toBe(false); // the twin is silent
+    });
+
+    it('markings re-anchor to the first ACTIVE binder — they die with the axis, not with the host', () => {
+        const build = (legendSelection: Record<string, boolean>): ReturnType<typeof buildGeneratedOption> =>
+            buildGeneratedOption({
+                family: 'cartesian',
+                series: [
+                    { name: 'A', data: [[1, 1]] },
+                    { name: 'B', data: [[1, 2]] },
+                ],
+                meta: [
+                    { name: 'A', yAxisIndex: 0 },
+                    { name: 'B', yAxisIndex: 0 },
+                ],
+                p: { ...P, legendSelection, markLines: [{ id: 'm', upper: 5 }] },
+            });
+        const reAnchored = entriesOf(build({ A: false })) as { name: string; markLine?: unknown }[];
+        expect(reAnchored[0].markLine).toBeUndefined();
+        expect(reAnchored[1].markLine).toBeDefined(); // rides B now
+        const resting = entriesOf(build({ A: false, B: false })) as { markLine?: unknown }[];
+        expect(resting.every(s => s.markLine === undefined)).toBe(true); // the axis rests — the marking rests
+        // All active → the first binder hosts (the pre-0074 shape).
+        const host = entriesOf(build({})) as { name: string; markLine?: unknown }[];
+        expect(host[0].markLine).toBeDefined();
+        expect(host[1].markLine).toBeUndefined();
+    });
+});
+
 describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', () => {
     /** Build with the given marks; return the first series' marker blocks. */
     const markers = (

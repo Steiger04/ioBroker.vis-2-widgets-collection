@@ -589,6 +589,18 @@ const legendGridPlacement = (pos: EchartsLegendPos, offsetX: number, offsetY: nu
 };
 
 /**
+ * The Legenden-Folge per-name activity rule (ADR-0074): the RUNTIME selection wins per name; a
+ * name the state does not know falls to the config rule (the inactive flag — „Nur in Legende",
+ * ADR-0060). ONE encoding shared by `buildLegend` (the `legend.selected` map) and the cartesian
+ * builder (axis emission), so the fallback semantics cannot drift apart.
+ */
+export const legendActiveOf = (
+    selection: Record<string, boolean> | undefined,
+    name: string,
+    configInactive: boolean,
+): boolean => selection?.[name] ?? !configInactive;
+
+/**
  * Build the echarts `legend` fragment from the presentation config + the family's legend item names
  * (ADR-0021). The single legend author for every family — cartesian/pie both call it, so the
  * position/styling model is honoured uniformly (pie/radar no longer hardcode `bottom: 4`). Only the
@@ -687,11 +699,15 @@ export const buildLegend = (
         };
     }
 
-    // `legend.selected` (ADR-0054): the adapter's deselection mechanism — emitted ONLY when a
-    // name is actually hidden (an all-true map on every chart would be noise); ticket 08
-    // ("only in legend") flips per-series flags through exactly this seam.
-    if (hiddenNames.length) {
-        legend.selected = Object.fromEntries(data.map(n => [n, !hiddenNames.includes(n)]));
+    // `legend.selected` (ADR-0054 + ADR-0074): the adapter's deselection mechanism, now authored
+    // per name by the RUNTIME selection state via {@link legendActiveOf} (the state wins, the
+    // config rule — „Nur in Legende", the hiddenNames list — is the per-name fallback). Emitted
+    // ONLY when some listed name resolves inactive: an all-true map on every chart would be
+    // noise. Because the state rides EVERY rebuild, a data tick can no longer reset a legend
+    // click (the replaceMerge repair — each setOption re-applies exactly this map).
+    const activeOf = (n: string): boolean => legendActiveOf(p.legendSelection, n, hiddenNames.includes(n));
+    if (data.some(n => !activeOf(n))) {
+        legend.selected = Object.fromEntries(data.map(n => [n, activeOf(n)]));
     }
 
     // The Legend section's raw escape hatch (ADR-0044): deep-merged UNDER the built legend —

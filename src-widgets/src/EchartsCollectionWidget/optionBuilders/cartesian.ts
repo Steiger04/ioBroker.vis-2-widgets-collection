@@ -29,7 +29,8 @@ import type {
     EchartsXAxisConfig,
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
-import { buildLegend, DEFAULT_MARK_FILL, markLineStyleOf } from '../presentation';
+import { axisPosition } from '../editor/axisLayout';
+import { buildLegend, DEFAULT_MARK_FILL, legendActiveOf, markLineStyleOf } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
@@ -458,6 +459,23 @@ const buildYAxisEntry = (
     return applyRawOverride(entry, a.raw);
 };
 
+/**
+ * The all-deselected grid carrier (ADR-0074 Legenden-Folge): when every legend entry is
+ * inactive the chart renders no real axis — with the X gridlines OFF (no Grenzachsen to carry
+ * the array) this ONE silent axis keeps echarts' grid renderable. `show:false` (nothing draws),
+ * min/max pinned so echarts' alignTicks cannot see it (the ADR-0034 fixed-extent exclusion,
+ * Grenzachse idiom).
+ */
+const silentYAxis = (): Record<string, unknown> => ({
+    type: 'value',
+    position: 'left',
+    offset: 0,
+    alignTicks: false,
+    min: 0,
+    max: 1,
+    show: false,
+});
+
 /** echarts valueFormatter lives in {@link buildTooltip} (shared across families). */
 
 /**
@@ -600,21 +618,39 @@ export const buildCartesianOption = (
         return e;
     });
     // Unbound axes are never emitted (ADR-0066): an axis no series binds rests — kept in the
-    // editor with its config, absent from the chart (no phantom, no reserved grid space). Keep
-    // only the bound axes and remap the series refs onto the compacted array — echarts matches
-    // `yAxisIndex` against the EMITTED array, so a hole in the middle would dangle every higher
-    // ref. The remap runs AFTER the marking host lookup below, which matches against the
-    // configured indices.
+    // editor with its config, absent from the chart (no phantom, no reserved grid space).
+    // Legenden-Folge (ADR-0074) widens the criterion to ACTIVELY bound: a series whose legend
+    // entry is deselected — runtime selection (name→active) with „Nur in Legende" (ADR-0060) as
+    // the per-name config fallback — does not keep its axis alive either. Deselected series
+    // STAY emitted (echarts needs them for the legend); their refs fall to the clamp/remap
+    // below. Keep only the actively-bound axes and remap the series refs onto the compacted
+    // array — echarts matches `yAxisIndex` against the EMITTED array, so a hole in the middle
+    // would dangle every higher ref. The remap runs AFTER the marking host lookup below, which
+    // matches against the configured indices.
+    const active = (i: number): boolean => {
+        const name = entries[i]?.name;
+        // Entry names are always strings (the series builder falls back to `Series N`); the
+        // guard is for the reader — an unnameable entry counts as active.
+        return typeof name === 'string' ? legendActiveOf(p.legendSelection, name, meta[i]?.legendOnly === true) : true;
+    };
     const boundAxes = new Set(entries.map(e => e.yAxisIndex as number));
-    const emittedIdx = allAxes.map((_a, i) => i).filter(i => boundAxes.has(i));
+    const activeBoundAxes = new Set(entries.filter((_e, i) => active(i)).map(e => e.yAxisIndex as number));
+    const emittedIdx = allAxes.map((_a, i) => i).filter(i => activeBoundAxes.has(i));
+    // The all-deselected chart (series exist, none active) renders NO real axis — the empty
+    // plot (ADR-0074): with the grid ON the Grenzachsen alone carry the yAxis array; with it
+    // OFF one silent carrier (see silentYAxis) keeps echarts' grid renderable.
+    const allInactive = entries.length > 0 && emittedIdx.length === 0;
     const axes: readonly EchartsAxisConfig[] = emittedIdx.length ? emittedIdx.map(i => allAxes[i]) : [{}];
     const axisRemap = new Map<number, number>(emittedIdx.map((old, pos) => [old, pos]));
     // Marking markers attach to a SERIES, and echarts draws them on that series' axis. With
     // multi-axis (ADR-0023) a marking must hang on a series bound to its own axis, not stuck on
     // entries[0] (which would draw a 2000 W marking on a 0–40 °C axis). Group markings by their
-    // yAxisIndex and attach each group's lines AND bands to the first series on that axis. A
-    // marking anchored to an UNBOUND axis rests with it (ADR-0066): no fallback onto another
-    // axis' scale — it returns when a series re-binds the axis.
+    // yAxisIndex and attach each group's lines AND bands to the FIRST ACTIVE series on that
+    // axis (ADR-0074 re-anchor): a deselected host does not draw its markers, so the marking
+    // follows the first binder the legend still shows — it dies with the AXIS (every binder
+    // inactive), not with its config host. A marking anchored to an unbound or fully
+    // deselected axis rests with it (ADR-0066/0074): no fallback onto another axis' scale — it
+    // returns when an active series (re-)binds the axis.
     if (p.markLines.length > 0 && entries.length > 0) {
         const byAxis = new Map<number, EchartsMarkLine[]>();
         for (const ml of p.markLines) {
@@ -627,12 +663,12 @@ export const buildCartesianOption = (
             }
         }
         for (const [ax, marks] of byAxis) {
-            if (!boundAxes.has(ax)) {
-                continue; // target axis unbound (hand-edited JSON / stale index) — the marking rests
+            if (!activeBoundAxes.has(ax)) {
+                continue; // target axis unbound or fully deselected (hand-edited JSON / stale index) — the marking rests
             }
-            const host = entries.find(e => e.yAxisIndex === ax);
+            const host = entries.find((e, idx) => e.yAxisIndex === ax && active(idx));
             if (!host) {
-                continue; // unreachable while bound is derived from entries — defensive
+                continue; // unreachable while activeBoundAxes is derived from entries — defensive
             }
             const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider);
             if (lineData.length) {
@@ -718,36 +754,55 @@ export const buildCartesianOption = (
     const spanMs = p.barCategories?.length
         ? Math.max(...p.barCategories) - Math.min(...p.barCategories)
         : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
-    // Y-axes: one entry per BOUND axis (ADR-0012; the bound-only filter is hand-edited-JSON
-    // defense since ADR-0069 — in-state every axis is bound). position/offset place them side-by-side;
-    // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
-    // the axis colour AND name default to the axis' OWNER series' effective values when neither is
-    // explicit (ADR-0018; owner-first since ADR-0068 — the incumbent series keeps the identity, a
-    // rebinding newcomer standing earlier in the array never steals it; the owner matches by meta
-    // id in history/live, by payload name in JSON); the axis LABELS inherit the bound series'
-    // shared unit (ADR-0057) and the shared text facts (ADR-0058) — decimals deliberately NOT
-    // inherited (whose would a shared axis clamp to?).
-    const yAxisEntries = axes.map((a, i) => {
-        const firstBinder = entries.find(e => e.yAxisIndex === i);
-        const ownerIdx =
-            a.owner === undefined
-                ? -1
-                : meta.findIndex(m => m?.id === a.owner) >= 0
-                  ? meta.findIndex(m => m?.id === a.owner)
-                  : series.findIndex(s => s.name === a.owner);
-        const ownerEntry = ownerIdx >= 0 ? entries[ownerIdx] : undefined;
-        const bound = ownerEntry !== undefined && ownerEntry.yAxisIndex === i ? ownerEntry : firstBinder;
-        const sc = bound?.color;
-        const seriesColor = typeof sc === 'string' ? sc : undefined;
-        const sn = bound?.name;
-        const seriesName = typeof sn === 'string' ? sn : undefined;
-        const boundFactsList = boundFacts(i);
-        const unit = axisUnit(boundFactsList);
-        const texts = axisTextFacts(boundFactsList);
-        const seriesFacts: SeriesValueFacts | undefined =
-            unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
-        return buildYAxisEntry(a, i, p.themeTokens.divider, seriesColor, seriesName, p.decimalComma, seriesFacts);
-    });
+    const divider = p.themeTokens.divider;
+    const xGridOn = p.xAxis.splitLine ?? false;
+    // Display re-stagger (ADR-0074): while the selection dropped ≥1 real axis, the VISIBLE axes
+    // re-slot into the standard interleaving (`axisPosition` parity over the visible sequence —
+    // balanceAxes semantics, display-only: sides may flip on a legend click). With everything
+    // visible the authored geometry renders verbatim — no re-slot, byte-identical to the
+    // pre-0074 chart (there is no display-time balance without a hidden axis; authored
+    // position/Versatz-Feinjustur never re-arranges at runtime).
+    const selectionDropped = [...boundAxes].some(i => !activeBoundAxes.has(i));
+    const displayAxes =
+        selectionDropped && emittedIdx.length ? axes.map((a, i) => ({ ...a, ...axisPosition(i) })) : axes;
+    // Y-axes: one entry per ACTIVELY BOUND axis (ADR-0012; ADR-0066's bound-only filter widened
+    // by ADR-0074's Legenden-Folge; the filter is hand-edited-JSON defense since ADR-0069 —
+    // in-state every axis is bound). The all-deselected chart emits no real axis at all: with
+    // the grid ON the Grenzachsen below carry the array alone, with it OFF one silent carrier
+    // keeps the grid renderable. position/offset place the axes side-by-side (re-slotted above
+    // while selection dropped one); alignTicks is an explicit per-axis opt-in (ADR-0034, off by
+    // default — no format heuristic); the axis colour AND name default to the axis' OWNER
+    // series' effective values when neither is explicit (ADR-0018; owner-first since ADR-0068 —
+    // the incumbent series keeps the identity, a rebinding newcomer standing earlier in the
+    // array never steals it; the owner matches by meta id in history/live, by payload name in
+    // JSON); the axis LABELS inherit the bound series' shared unit (ADR-0057) and the shared
+    // text facts (ADR-0058) — decimals deliberately NOT inherited (whose would a shared axis
+    // clamp to?).
+    const yAxisEntries: Record<string, unknown>[] = allInactive
+        ? xGridOn
+            ? [] // the grid is on — the Grenzachsen below carry the array alone
+            : [silentYAxis()]
+        : displayAxes.map((a, i) => {
+              const firstBinder = entries.find(e => e.yAxisIndex === i);
+              const ownerIdx =
+                  a.owner === undefined
+                      ? -1
+                      : meta.findIndex(m => m?.id === a.owner) >= 0
+                        ? meta.findIndex(m => m?.id === a.owner)
+                        : series.findIndex(s => s.name === a.owner);
+              const ownerEntry = ownerIdx >= 0 ? entries[ownerIdx] : undefined;
+              const bound = ownerEntry !== undefined && ownerEntry.yAxisIndex === i ? ownerEntry : firstBinder;
+              const sc = bound?.color;
+              const seriesColor = typeof sc === 'string' ? sc : undefined;
+              const sn = bound?.name;
+              const seriesName = typeof sn === 'string' ? sn : undefined;
+              const boundFactsList = boundFacts(i);
+              const unit = axisUnit(boundFactsList);
+              const texts = axisTextFacts(boundFactsList);
+              const seriesFacts: SeriesValueFacts | undefined =
+                  unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
+              return buildYAxisEntry(a, i, divider, seriesColor, seriesName, p.decimalComma, seriesFacts);
+          });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
     // `containLabel:true` (which maps to `'axisLabel'` and reserves tick labels + offset-axis labels
@@ -777,11 +832,11 @@ export const buildCartesianOption = (
     // The grid flag reads the CONFIG (`p.xAxis.splitLine ?? false` — the switch's own default is
     // OFF): a raw override cannot flip a GUI-owned switch (applyRawOverride, GUI wins collisions),
     // so config truth IS emitted truth here. Detected over the EMITTED entries (position/offset
-    // defaults already applied), appended LAST so no bound axis index shifts (yAxisIndex refs +
-    // marking hosts stay put); it exists only in this option — the editor never sees it. A
-    // two-sided chart emits none: the option stays byte-identical to the pre-0070 shape.
-    const divider = p.themeTokens.divider;
-    const xGridOn = p.xAxis.splitLine ?? false;
+    // defaults already applied, re-slotted per ADR-0074 when selection dropped an axis),
+    // appended LAST so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it
+    // exists only in this option — the editor never sees it. A two-sided chart emits none: the
+    // option stays byte-identical to the pre-0070 shape. (`divider`/`xGridOn` are hoisted above
+    // the yAxisEntries block — the all-deselected branch reads them.)
     // The silent shell every synthesized edge carries — only its line renders (ADR-0070). The line
     // detaches from the Y-zero (`onZero:false`, the ADR-0055 rule): with the default onZero:true an
     // X twin would draw at the first value-Y's zero instead of the plot's bottom edge whenever that

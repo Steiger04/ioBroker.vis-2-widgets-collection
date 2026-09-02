@@ -10,7 +10,7 @@
  * property of the value source. Everything the data mode owns (Verlauf/JSON acquisition,
  * family dispatch, merge, error/hasData) is pipeline-owned.
  */
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import type React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -126,6 +126,12 @@ function EchartsCollection(): React.ReactElement {
 
     const getHistory = useMemo(() => createHistoryFetcher(socket), [socket]);
 
+    // Legenden-Folge (ADR-0074): the runtime legend selection — view state, never rxData. The
+    // map holds the LAST click's full name→active state; names it does not know fall to the
+    // config rule per name („Nur in Legende" = inactive) inside the builders, so a series
+    // added/renamed later needs no reconcile here. Reload resets to the authored picture.
+    const [legendSelection, setLegendSelection] = useState<Record<string, boolean>>({});
+
     // Marking bound OIDs (ADR-0062): vis-2's runtime subscription is SCHEMA-driven (oid1..oidN
     // only), so bounds inside the base64 markLines blob never reach context.values — the body
     // subscribes them itself via the drilled socket (the preview's mechanism) and overlays the
@@ -181,11 +187,12 @@ function EchartsCollection(): React.ReactElement {
 
     // The pipeline (ADR-0046) — one data-mode decision tree, shared with the preview. The body
     // opts into the debounced early refresh (map decision 02); its point ceiling stays 5000.
+    // The legend selection rides along (ADR-0074) so clicks survive data ticks.
     const { option, loading, hasData, error } = useChartPipeline(
         { useValues, getHistory, theme: pipelineTheme },
         data as unknown as Record<string, unknown>,
         companions,
-        { earlyRefresh: true },
+        { earlyRefresh: true, legendSelection },
     );
 
     const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[emptyPlaceholderReason(mode)]);
@@ -265,6 +272,7 @@ function EchartsCollection(): React.ReactElement {
                             option={option}
                             renderer={data.renderer}
                             zoomIdleResetSec={parseZoomIdleSeconds(data.zoomResetAfterIdle)}
+                            onLegendSelect={setLegendSelection}
                         />
                     ) : error ? null : (
                         <Box

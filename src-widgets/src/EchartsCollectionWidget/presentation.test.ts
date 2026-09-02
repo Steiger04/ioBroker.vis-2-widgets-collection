@@ -592,6 +592,20 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
         const l = buildLegend(legendP(), ['a', 'b', 'c'], ['b']);
         expect(l.selected).toEqual({ a: true, b: false, c: true });
     });
+
+    it('ADR-0074: the runtime selection authors selected per name — state wins, config (hiddenNames) is the fallback', () => {
+        const p = { ...legendP(), legendSelection: { b: false, c: true } };
+        // 'c' is config-hidden (hiddenNames) but the state re-enabled it; 'b' is state-hidden.
+        const l = buildLegend(p, ['a', 'b', 'c'], ['c']);
+        expect(l.selected).toEqual({ a: true, b: false, c: true });
+        // A name unknown to the state falls to the config rule.
+        const fallback = buildLegend({ ...legendP(), legendSelection: { b: false } }, ['a', 'b', 'c'], ['c']);
+        expect(fallback.selected).toEqual({ a: true, b: false, c: false });
+    });
+
+    it('ADR-0074: no selected key when the state leaves everything active (the pre-0074 shape)', () => {
+        expect(buildLegend({ ...legendP(), legendSelection: { a: true } }, ['a', 'b'])).not.toHaveProperty('selected');
+    });
 });
 
 describe('decodeMarkLines — legacy dashed migration (parity Build C, ADR-0061)', () => {

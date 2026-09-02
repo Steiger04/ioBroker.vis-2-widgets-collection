@@ -57,6 +57,14 @@ export interface PresentationConfig {
     legendValues?: Record<string, number | null>;
     /** Legend styling (ADR-0021 `legendConfig` blob); `undefined` keys inherit echarts/theme defaults. */
     legend?: EchartsLegendConfig;
+    /**
+     * Runtime legend selection (name → active; a MISSING key = active) — the Legenden-Folge
+     * state (ADR-0074). View state, never rxData: the host (body/preview) owns it and the
+     * pipeline injects it, so `legend.selected` and the cartesian axis emission follow legend
+     * clicks across option rebuilds (the replaceMerge reset repair). Per-name fallback when a
+     * name is unknown to the state: the config rule („Nur in Legende" = inactive).
+     */
+    legendSelection?: Record<string, boolean>;
     tooltipTrigger: EchartsTooltipTrigger;
     tooltipTemplate?: string;
     tooltipUnits?: string;

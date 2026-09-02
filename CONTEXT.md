@@ -75,8 +75,16 @@ The data-mode decision tree from acquisition to option — ONE implementation (`
 _Avoid_: preview pipeline (there is only one), data source (that is the Data mode), renderer (that is EChart)
 
 **Section**:
-One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, `Axes & Zoom` (or the family options section in that slot), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; pie gets its own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling).
-_Avoid_: Tab (the v2 concept), panel, SectionCard (that's the shell component, not the concept)
+One collapsible, intent-named unit of the rail — top to bottom: `Data source`, `Behaviour`, `Title`, `Series`, `Axes & Zoom` (or the family options section in that slot), `Legend`, `Tooltip`, `Colours`, `Toolbox` (ADR-0045; the chart-level Advanced JSON section is retired). Rendered as the shared **SectionCard** — the bordered 12px-radius accordion card both configurators use (ADR-0038; the echarts flat-divider shell and the studio's StudioSection merged into one). The inventory is family-aware: `Axes & Zoom` is cartesian-only; pie gets its own options section in that slot. `Title` and `Legend` were one section through ADR-0010; ADR-0021 split them and expanded both (title colour/size/weight + 6-position; legend 9-position + text/symbol/frame styling). Since ADR-0073 every section body bundles its fields into **Sektions-Tabs**; the Series body (a card list) is the one tab-less body.
+_Avoid_: page, panel, SectionCard (that's the shell component, not the concept), Tab without prefix (the v2 top-level Tab is dead — say Sektions-Tab or Karten-Tab)
+
+**Sektions-Tab**:
+One tab of a section body's tab row (ADR-0073) — the uniform bundling level inside every Section (`Zeitfenster`/`Datenabruf` in Data source, `Achsen`/`Markierungen`/`Zoom` in Axes & Zoom …). Strict rule: every section carries tabs; the only exception is the mode-empty body (JSON Data source, one field) that carries no tab chrome at all. Tab state is view-only — never persisted, first tab on open; a ⚠ dot marks the affected tab beside the section rollup.
+_Avoid_: Unterseite, Tab-Panel, drawer
+
+**Karten-Tab**:
+One tab inside a Series, Y-axis or X card body (ADR-0073) — Rail → Section → Card → Tab is the deliberate fourth navigation level (revising ADR-0019's "no fourth expand level", which banned nested disclosure, not tabs). The Series card's `Daten` tab hosts the per-series acquisition knobs (the Erben-Override of the Data source Voreinstellung); JSON cards drop the `Daten` tab (no fetch).
+_Avoid_: nested accordion, vierter Accordion-Level, Sub-group (that's the fine grouping INSIDE a tab)
 
 **Zeitfenster**:
 A Verlauf chart's read span (parity Build A, ADR-0063), authored in the Data source section as **relativ** (one of 18 grouped ranges — minutes/hours/days as ms, months/years CALENDAR-wise — plus a relativeEnd that rounds the window's END up to one of 17 grid/calendar boundaries instead of „now") or **statisch** (a fixed DateTimePicker pair; disables refresh — a fixed span has nothing to follow). The pure `resolveTimeWindow` (timeWindow.ts) turns the authored spec into {start, end} per fetch; legacy `24h`/`30d` range keys migrate to `1d`/`1m`.
@@ -90,8 +98,12 @@ _Avoid_: bar bin, bucket interval (that is the Bar-Intervall knob), histogram (i
 The single-line digest of effective values shown on a collapsed Section (`24h · avg · 500`, `tableau · auto`). A section that cannot say anything useful collapsed does not deserve to be a section.
 _Avoid_: Subtitle, hint text
 
+**Erben-Override**:
+The inheritance pattern of the per-series data settings (ADR-0072, adapter `line.aggregate || config.aggregate`): the Data source section holds the chart-level **Voreinstellung**, every series field starts at „erben (→ effective value)" and diverges explicitly — deletable back to inherit at any time. Boolean-shaped settings become tristates (Diff: erben | differenzieren | roh). Covers aggregation with its params, Diff and NULL handling; the Zeitfenster, Schrittweite/count, refresh and bar grid stay chart-level (one shared X axis, one poll loop).
+_Avoid_: global setting (that is the Voreinstellung's role), per-series setting without inherit (the rejected full-move model), fallback (mechanism, not concept)
+
 **Series card**:
-A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, grouped into Sub-groups (basis, line/bar, area). The basis group leads with the OID and — in Verlauf — the per-series **history instance** (ADR-0039: each OID can store its history in a different adapter; Auto = the datapoint's own config decides, else the server).
+A cartesian series item in the Series section — a quiet card whose header (swatch, name, OID, ↑↓ reorder, duplicate, delete) expands inline to the per-series knobs, bundled into **Karten-Tabs** (Basis | Daten | Darstellung | Werte | Erweitert, ADR-0072/0073; JSON cards drop Daten). The Basis tab leads with the OID, name, colour, type, axis binding and the per-series **history instance** (ADR-0039: each OID can store its history in a different adapter; Auto = the datapoint's own config decides, else the server). The Daten tab carries the acquisition knobs as Erben-Overrides: aggregation with its params, Diff (tristate), X offset (seconds or the ±1m…±2y calendar keys) beside the transforms (formula, Y offset, NULL handling, Keine Zukunft); Darstellung keeps the Linie/Balken/Fläche Sub-groups plus „Nur in Legende".
 _Avoid_: Accordion item (v2), row
 
 **Slice row**:
@@ -182,6 +194,10 @@ _Avoid_: Gitterlinie, Rahmen (that is the Chart frame — CSS around the widget 
 The builder-synthesized axis that enforces the **Plot edge** contract (ADR-0070) — the FIRST and LAST Gitterlinie of the time axis, a grid element that follows the X gridlines switch (emitted only while the grid is on). Silent except its axisLine (no ticks/labels/name/splitline, min/max pinned so tick alignment ignores it), painted in the theme divider at 2px so a full 1px survives the rect-edge cut (a centred stroke loses its outer half to sub-pixel rasterizing), appended last so no index shifts. The editor never sees one: no Axis card, no dropdown entry, no binding — it exists only in the emitted option.
 _Avoid_: phantom axis, frame axis, dummy axis
 
+**Legenden-Folge (legend follow)**:
+The display-time rule that a Y-axis renders exactly while at least one bound series' legend entry is ACTIVE — the config pre-deselection („Nur in Legende") counts like a click (ADR-0074). A fully deselected axis vanishes completely (line, labels, name AND its reserved space) and its side falls to the **Grenzachse** like an axis death; the surviving axes re-slot into the standard interleaving over the VISIBLE sequence — display-only, config geometry renders verbatim while everything is visible. The selection itself is widget state riding the option (never rxData; reload resets to config), and **Markierungen** re-anchor to the first active binder. Pie unaffected (no axes).
+_Avoid_: Achsen-Ausblendung (that is the effect, not the rule), Legenden-Kopplung (vague), hide-axis (no such config field)
+
 **Tick alignment**:
 The cartesian per-axis opt-in (ADR-0034) where a Y-axis re-ticks itself to match the **first** value axis — the implicit **reference axis** (axis 0). It is OFF by default and never a smart default: alignment is a cross-axis coordination, so auto-enabling it hid the ripple (an edit on axis 0 re-ticked every follower) and the silent conflict (a fixed min/max/splitNumber/minInterval makes echarts ignore it). In the configurator the switch appears only on follower axes; a non-blocking warning flags a follower whose tick override defeats its alignment.
 _Avoid_: alignTicks (that is the echarts property), auto-align (there is none), shared grid (that is the deferred chart-level concept, ADR-0034 out-of-scope, not this one)
@@ -260,8 +276,8 @@ The bounded-numeric idiom (ADR-0019): a slider with a synced small number input 
 _Avoid_: Stepper, spinner
 
 **Sub-group**:
-A named cluster of knobs inside a card body (ADR-0019), headed by a small overline label (e.g. range / scale & ticks / presentation on an Axis card). Structure without disclosure — everything in an open card stays visible; no fourth expand level.
-_Avoid_: Advanced section (v2), nested accordion, tab
+A named cluster of knobs headed by a small overline label (e.g. range / scale & ticks / presentation on an Axis card). Structure without disclosure — everything in an open **Karten-Tab** stays visible; sub-groups never nest or collapse. Since ADR-0019 the cluster lived directly in the card body; since ADR-0073 the tab is the outermost bundling level of a body and sub-groups are the fine grouping WITHIN a tab (Linie/Balken/Fläche inside the Darstellung tab).
+_Avoid_: Advanced section (v2), nested accordion, Karten-Tab (a sibling level, not a sub-group)
 
 **Position grid**:
 The position selector of the Title and Legend sections (ADR-0021) — a 3-column `ToggleButtonGroup` of small frame-with-dot glyphs (the glyph marks the chosen corner/edge/centre; words ride only as the aria-label). Title uses a 3×2 grid (6 positions), Legend a 3×3 grid (9). It mirrors the `ChartTypePicker` glyph-grid idiom so it reads as the same editor, not a new aesthetic; it replaced the long dropdowns the old 3-/4-value position selects would have become.
