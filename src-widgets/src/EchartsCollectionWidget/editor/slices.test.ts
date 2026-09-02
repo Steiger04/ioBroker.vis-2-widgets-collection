@@ -191,6 +191,7 @@ describe('section slices (ADR-0049)', () => {
                 | 'markLines'
                 | 'pie'
                 | 'jsonOid'
+                | 'jsonKind'
                 | 'jsonHidden'
                 | 'jsonSeriesStyle'
                 | 'paletteSource'

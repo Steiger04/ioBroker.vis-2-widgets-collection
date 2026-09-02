@@ -38,6 +38,7 @@ import {
     type SectionKey,
 } from './validation';
 import type { SectionTabsFocus } from '../../components/controls';
+import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import type { OidPickerCtx } from './OidPicker';
 import type { EditorState, SetEditor } from './editorState';
 
@@ -64,6 +65,10 @@ interface EchartsEditorSectionsProps {
     /** JSON mode (ADR-0011): payload series names + parse error, driving the Series-section cards. */
     jsonSeriesNames?: string[];
     jsonError?: string;
+    /** Tabellarisch (ADR-0075): the chosen rows array's columns — the Series-section yPath pickers. */
+    tableColumns?: JsonTableColumn[];
+    /** Tabellarisch: the schema's rows/JSON error surface. */
+    tableSchemaError?: string;
     /** The editor's undo — passed through to the Series section's ADR-0069 death snackbar. */
     undo?: () => void;
 }
@@ -142,6 +147,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     focusSection,
     jsonSeriesNames,
     jsonError,
+    tableColumns,
+    tableSchemaError,
     undo,
 }) => {
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
@@ -195,6 +202,8 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         issues={sectionIssues}
                         jsonSeriesNames={jsonSeriesNames}
                         jsonError={jsonError}
+                        tableColumns={tableColumns}
+                        tableSchemaError={tableSchemaError}
                         undo={undo}
                     />
                 );

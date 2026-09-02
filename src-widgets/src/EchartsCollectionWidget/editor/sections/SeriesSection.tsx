@@ -49,6 +49,8 @@ import { IssueList } from './series/shared';
 import { CartesianSeriesList } from './series/CartesianSeriesCard';
 import PieSliceRows from './series/PieSliceRows';
 import JsonSeriesCards from './series/JsonSeriesCards';
+import TableSeriesCards from './series/TableSeriesCards';
+import type { JsonTableColumn } from '../../../hooks/useJsonTableAnalysis';
 
 /**
  * The series section dispatcher's field ownership (ADR-0049 slice) — the widest honest
@@ -66,6 +68,7 @@ export type SeriesSlice = Pick<
     | 'markLines'
     | 'pie'
     | 'jsonOid'
+    | 'jsonKind'
     | 'jsonHidden'
     | 'jsonSeriesStyle'
     | 'paletteSource'
@@ -91,6 +94,13 @@ interface SeriesSectionProps {
     /** JSON mode: parse error from the jsonOid payload (shown instead of a silent blank). */
     jsonError?: string;
     /**
+     * Tabellarisch (ADR-0075): the CHOSEN rows array's columns — the modal's useJsonTableSchema
+     * sight, driving the yPath pickers. Absent/empty in every other mode.
+     */
+    tableColumns?: readonly JsonTableColumn[];
+    /** Tabellarisch: the schema's rows/JSON error surface. */
+    tableSchemaError?: string;
+    /**
      * The editor's undo (ADR-0069 safety net) — powers the axis-death snackbar's action. The
      * triggering `set` below is one history step, so undo restores series + axis + anchors
      * together. Absent (tests, non-modal callers): the snackbar degrades to info-only.
@@ -105,6 +115,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     issues = [],
     jsonSeriesNames = [],
     jsonError,
+    tableColumns,
+    tableSchemaError,
     undo,
 }) => {
     // Palette resolves against the COLLECTION theme (ADR-0027) — matches the canvas.
@@ -114,6 +126,9 @@ const SeriesSection: FC<SeriesSectionProps> = ({
     const labelColorFallback = themeTokens.textPrimary;
     const isPie = state.chartType === 'pie';
     const isJson = state.mode === 'json';
+    // The tabellarische family (ADR-0075): cards from state.series, yPath-bound — the overlay,
+    // the deny-list and the payload-name sight stay serien-förmig-exclusive (decision 2).
+    const isJsonTable = isJson && state.jsonKind === 'table';
     const isCartesian = state.chartType === 'line' || state.chartType === 'bar' || state.chartType === 'scatter';
     // Verlauf: the per-series history-instance pins live on the series cards (ADR-0039). The
     // instance list is fetched ONCE here and passed down — every card fetching its own would
@@ -264,6 +279,25 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             set({ series: next });
         }
     };
+    // Tabellarisch (ADR-0075): the addWithOid twin — a series is appended only on COLUMN choice
+    // („keine Serie vor Spaltenwahl"), bound via `yPath` with `oid:''`, the SAME strict 1:1
+    // auto-axis (ADR-0018) + auto-balance; name stays unset (the default is the path's last
+    // segment at render).
+    const addWithColumn = (yPath: string): void => {
+        if (!yPath) {
+            return;
+        }
+        const axIdx = state.yAxes.length;
+        const next = [
+            ...series,
+            { id: nextStableId('sr-'), oid: '', yPath, name: '', yAxisIndex: isCartesian ? axIdx : 0 },
+        ];
+        const patch: Partial<SeriesSlice> = { series: next };
+        if (isCartesian) {
+            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next);
+        }
+        set(patch);
+    };
     // JSON mode: per-series presentation lives in the name-keyed overlay (ADR-0011), not state.series.
     // The payload owns series identity (count + data); the overlay re-attaches style by name.
     const updateJson = (name: string, patch: Partial<EchartsSeriesMeta>): void =>
@@ -361,7 +395,24 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     <InfoBox text={Generic.t('echarts_instance_auto_hint')} />
                 </Box>
             )}
-            {isJson && (
+            {isJsonTable && (
+                <TableSeriesCards
+                    state={state}
+                    pickerCtx={pickerCtx}
+                    slot={slot}
+                    labelColorFallback={labelColorFallback}
+                    columns={tableColumns ?? []}
+                    schemaError={tableSchemaError}
+                    expanded={expanded}
+                    onToggleCard={toggleCard}
+                    onUpdate={update}
+                    onRemove={remove}
+                    onMove={move}
+                    onAddWithColumn={addWithColumn}
+                    onRebindAxis={rebindAxis}
+                />
+            )}
+            {isJson && !isJsonTable && (
                 <JsonSeriesCards
                     state={state}
                     pickerCtx={pickerCtx}

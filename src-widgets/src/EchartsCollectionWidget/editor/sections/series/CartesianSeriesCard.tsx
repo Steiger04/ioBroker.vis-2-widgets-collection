@@ -18,7 +18,7 @@
  *  - {@link CartesianSeriesList} — the Verlauf card list: EditorCards with swatch, name/OID,
  *    ↑↓ reorder, duplicate, delete + the OID-first add affordances.
  */
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
 import {
     ContentCopy as DuplicateIcon,
@@ -134,6 +134,12 @@ export const CartesianBasisFields: FC<{
     axisDisplayNames?: string[];
     /** OID binding row (history only — the JSON payload owns the data). */
     oid?: { value: string; onChange: (oid: string) => void; historyOnly: boolean };
+    /**
+     * Alternative source row for the families without an OID (ADR-0075): rendered in the OID
+     * row's place — the tabellarische cards pass their yPath ColumnAutocomplete. Mutually
+     * exclusive with {@link oid} by convention (one binding sight per family).
+     */
+    sourceRow?: ReactNode;
     /** Verlauf: show the per-series history-instance select (first field under the OID, ADR-0039). */
     showInstance?: boolean;
     /** Verlauf: selectable history instances (empty list = none installed → Auto only). */
@@ -158,6 +164,7 @@ export const CartesianBasisFields: FC<{
     yAxes,
     axisDisplayNames,
     oid,
+    sourceRow,
     showInstance,
     historyInstances,
     nameClearsToUndefined,
@@ -176,6 +183,7 @@ export const CartesianBasisFields: FC<{
                     />
                 </Box>
             )}
+            {!oid && sourceRow && <Box sx={{ gridColumn: '1 / -1' }}>{sourceRow}</Box>}
             {showInstance && (
                 <LabeledSelect
                     label={Generic.t('echarts_instance')}

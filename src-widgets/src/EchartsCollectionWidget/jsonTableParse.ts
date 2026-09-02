@@ -116,6 +116,12 @@ export const resolveRows = (doc: unknown, rowPath?: string): ResolveRowsResult =
     return { rows: target };
 };
 
+/** The path's last dot-segment (`order.items[0].price` → `price`) — the display-name default. */
+export const lastPathSegment = (path: string): string => {
+    const idx = path.lastIndexOf('.');
+    return idx >= 0 ? path.slice(idx + 1) : path;
+};
+
 /** Display name: the authored name wins; the default is the path's last segment. */
 const displayName = (ys: JsonTableYSeries, k: number): string => {
     const name = ys.name?.trim();
@@ -123,8 +129,7 @@ const displayName = (ys: JsonTableYSeries, k: number): string => {
         return name;
     }
     if (ys.yPath) {
-        const idx = ys.yPath.lastIndexOf('.');
-        const segment = idx >= 0 ? ys.yPath.slice(idx + 1) : ys.yPath;
+        const segment = lastPathSegment(ys.yPath);
         if (segment) {
             return segment;
         }

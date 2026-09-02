@@ -333,3 +333,44 @@ describe('jsonKindBoundaryLoss — what the next payload-family crossing deletes
         expect(loss.series).toBe(1);
     });
 });
+
+describe('validateEditor — tabellarisch (ADR-0075 ticket 04: yPath drift, no OID chorus)', () => {
+    const cols = [
+        { path: 'temp', type: 'number' },
+        { path: 'name', type: 'string' },
+    ] as const;
+
+    it('oid-leere table series raise NO oid-missing chorus (the yPath is the binding)', () => {
+        const issues = validateEditor(st({ mode: 'json', jsonKind: 'table', series: [{ oid: '', yPath: 'temp' }] }), {
+            tableColumns: cols,
+        });
+        expect(issues.series).toBeUndefined();
+    });
+
+    it('a yPath gone from the schema keeps the card and raises the drift issue', () => {
+        const issues = validateEditor(
+            st({ mode: 'json', jsonKind: 'table', series: [{ oid: '', yPath: 'gone', name: 'PV' }] }),
+            { tableColumns: cols },
+        );
+        expect(issues.series).toEqual([{ key: 'echarts_val_ypath_missing', args: ['PV'] }]);
+    });
+
+    it('a string-typed Y column raises the advisory (it plots null points only)', () => {
+        const issues = validateEditor(st({ mode: 'json', jsonKind: 'table', series: [{ oid: '', yPath: 'name' }] }), {
+            tableColumns: cols,
+        });
+        expect(issues.series).toEqual([{ key: 'echarts_val_ypath_string', args: ['name'] }]);
+    });
+
+    it('no schema yet → the drift checks stay silent (the Zuordnung tab owns that state)', () => {
+        const issues = validateEditor(st({ mode: 'json', jsonKind: 'table', series: [{ oid: '', yPath: 'x' }] }));
+        expect(issues.series).toBeUndefined();
+    });
+
+    it('serien-förmig keeps the OID chorus — the table columns input is inert there', () => {
+        const issues = validateEditor(st({ mode: 'json', jsonKind: 'series', series: [{ oid: '', name: 'A' }] }), {
+            tableColumns: cols,
+        });
+        expect(issues.series).toEqual([{ key: 'echarts_val_oid_missing', args: ['A'] }]);
+    });
+});

@@ -48,6 +48,7 @@ import ChartPreview from './editor/ChartPreview';
 import EchartsEditorSections, { sectionInventory, type FocusSectionRequest } from './editor/EchartsEditorSections';
 import { ChartTypeGlyph } from './editor/controls';
 import { useJsonSeriesNames } from './editor/useJsonSeriesNames';
+import { useJsonTableSchema } from './editor/useJsonTableSchema';
 import { useSplitPane } from './editor/useSplitPane';
 import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
 import { familyOf } from './optionBuilder';
@@ -104,6 +105,11 @@ function EchartsConfigEditorModal({
     // info-only (undo is futile — the next reconcile over the same payload re-kills the axis).
     const [vanishDeath, setVanishDeath] = useState<string[] | null>(null);
     const visibleJsonNames = useJsonAxisReconcile(state, jsonPreview.names, set, setVanishDeath);
+    // Tabellarisch (ADR-0075): the schema sight over the SAME subscribed payload — the Series
+    // section's yPath pickers and the drift validation both read this ONE subscription (the
+    // serien-förmig preview above stays gated off in the table family).
+    const isJsonTable = state.mode === 'json' && state.jsonKind === 'table';
+    const tableSchema = useJsonTableSchema(state.jsonOid, state.jsonRowPath, isJsonTable, socket);
 
     // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
     // the chrome (focus steering + maximize) belongs to this modal.
@@ -136,7 +142,10 @@ function EchartsConfigEditorModal({
     // Footer problems counter (ADR-0038): the advisory issues rolled up into the section
     // headers, totalled in screen order. The button steers the rail to the first section
     // carrying issues — the same mechanism the preview placeholder uses.
-    const issues = useMemo(() => validateEditor(state), [state]);
+    const issues = useMemo(
+        () => validateEditor(state, { tableColumns: tableSchema.columns }),
+        [state, tableSchema.columns],
+    );
     const issueSections = useMemo(
         () => sectionInventory(state.chartType).filter(key => (issues[key]?.length ?? 0) > 0),
         [issues, state.chartType],
@@ -296,6 +305,8 @@ function EchartsConfigEditorModal({
                                 focusSection={focusSection}
                                 jsonSeriesNames={jsonPreview.names}
                                 jsonError={jsonPreview.error}
+                                tableColumns={tableSchema.columns}
+                                tableSchemaError={tableSchema.error}
                                 undo={undo}
                             />
                         </Box>

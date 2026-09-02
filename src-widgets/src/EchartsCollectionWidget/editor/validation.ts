@@ -78,23 +78,57 @@ export const firstIssueTabOf = (issues: SectionIssues | undefined, key: SectionK
 };
 
 /**
+ * validateEditor's external sight (ADR-0075 ticket 04): the socket-resolved facts the pure
+ * state cannot know. `tableColumns` is the CHOSEN rows array's schema (the modal's
+ * `useJsonTableSchema` subscription) — absent while no payload/schema exists (then the drift
+ * checks stay silent; the Zuordnung tab owns that honest empty state).
+ */
+export interface ValidateEditorInputs {
+    tableColumns?: readonly { path: string; type?: string }[];
+}
+
+/**
  * Validate the working state.
  *
  * @param state - Current editor state.
+ * @param table - The socket-resolved table schema (ADR-0075), when the family is tabellarisch.
  * @returns Issues grouped by section (absent key = section is clean).
  */
-export const validateEditor = (state: EditorState): SectionIssues => {
+export const validateEditor = (state: EditorState, table?: ValidateEditorInputs): SectionIssues => {
     const issues: SectionIssues = {};
     const push = (section: SectionKey, key: string, ...args: string[]): void => {
         (issues[section] ??= []).push({ key, args: args.length ? args : undefined });
     };
     const family = familyOf(state.chartType);
+    // The tabellarische family binds yPath columns, not OIDs (`oid` stays '') — the OID check
+    // is serien-förmig/Verlauf-only, the drift checks below are its table twin (decision 9).
+    const isTable = state.mode === 'json' && state.jsonKind === 'table';
 
     state.series.forEach((s, i) => {
-        if (!s.oid) {
+        if (!isTable && !s.oid) {
             push('series', 'echarts_val_oid_missing', s.name || `${i + 1}`);
         }
     });
+
+    if (isTable && table?.tableColumns?.length) {
+        const typeOf = (path: string): string | undefined => table.tableColumns!.find(c => c.path === path)?.type;
+        state.series.forEach(s => {
+            if (!s.yPath) {
+                return; // an unset yPath is the authoring state — the picker owns that hint
+            }
+            const label = s.name || s.yPath;
+            const type = typeOf(s.yPath);
+            if (type === undefined) {
+                // Drift (decision 9): the card STAYS (authored identity), the series renders
+                // empty (the pipeline's null points) — this is the ⚠ that says why.
+                push('series', 'echarts_val_ypath_missing', label);
+            } else if (type === 'string') {
+                // Advisory: a string Y column plots null points only (toPlottableNumber) — the
+                // type badge said it at pick time, this says it at a distance.
+                push('series', 'echarts_val_ypath_string', label);
+            }
+        });
+    }
 
     if (family === 'cartesian') {
         // Stale series→axis binding (Q6): a stored `yAxisIndex` beyond the axis array (reachable
