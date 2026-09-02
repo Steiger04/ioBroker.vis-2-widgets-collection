@@ -127,6 +127,22 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         expect(el.textContent).toContain('echarts_json_oid');
     });
 
+    it('Data source (JSON tabellarisch, ADR-0075): Datenpunkt | Zuordnung — the mapping fields ride tab 2', () => {
+        const el = mount(DataSourceSection, {
+            state: state({ mode: 'json', jsonKind: 'table' }),
+            set: () => undefined,
+            pickerCtx: {}, // no socket — the schema hook's disabled oid list touches nothing
+        });
+        expect(tabLabels(el)).toEqual(['echarts_tab_datapoint', 'echarts_tab_mapping']);
+        const all = allTabsText(el);
+        // Tab 1 keeps the payload OID; tab 2 carries the Zuordnung (row path + X + the honest
+        // no-rows hint — no payload subscribed here, so the empty schema state shows).
+        expect(all).toContain('echarts_json_oid');
+        expect(all).toContain('echarts_mapping_rowpath');
+        expect(all).toContain('echarts_mapping_xpath');
+        expect(all).toContain('echarts_mapping_no_array');
+    });
+
     it('Title: Text | Position | Stil | Vorlagen — every field renders on SOME tab', () => {
         const el = mount(TitleSection, { state: state({ titlePos: 'topLeft' }), set: () => undefined, pickerCtx: {} });
         expect(tabLabels(el)).toEqual([

@@ -21,6 +21,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
+import ColumnAutocomplete from '../ColumnAutocomplete';
+import { suggestedRowPath, useJsonTableSchema } from '../useJsonTableSchema';
 import { RANGE_MINUTES } from '../../timeWindow';
 import { AGGREGATE_VALUES } from '../../seriesDataOverrides';
 import {
@@ -47,8 +49,8 @@ import type {
 
 /**
  * The data source section's field ownership (ADR-0049 slice) — the mode branch plus the history
- * knobs (window type/range/relative end/static pair/aggregate/count/refresh/null-gaps) and the
- * JSON OID.
+ * knobs (window type/range/relative end/static pair/aggregate/count/refresh/null-gaps), the
+ * JSON OID and the tabellarische Zuordnung scalars (ADR-0075).
  */
 export type DataSourceSlice = Pick<
     EditorState,
@@ -70,6 +72,9 @@ export type DataSourceSlice = Pick<
     | 'refreshMs'
     | 'ignoreNull'
     | 'jsonOid'
+    | 'jsonKind'
+    | 'jsonRowPath'
+    | 'jsonXPath'
 >;
 
 /** The 18 range keys in display order, grouped (minutes → hours → days → months → years). */
@@ -172,6 +177,29 @@ const barIntervalOptions = (state: DataSourceSlice): [EchartsBarInterval, string
     return all;
 };
 
+/**
+ * The Zeilenpfad select's options (ADR-0075): the top level plus every discovered array with
+ * its sample length badge. A stored path the payload no longer carries stays VISIBLE (the
+ * honest drift display — the select must not lie a different path; decision 9's error surface
+ * says the rest).
+ */
+const rowPathOptions = (
+    current: string,
+    schema: { arrayPaths: readonly { path: string; length: number }[] },
+): [string, string][] => {
+    const top = schema.arrayPaths.find(p => p.path === '');
+    const options: [string, string][] = [
+        ['', top ? `${Generic.t('echarts_mapping_rows_top')} (${top.length})` : Generic.t('echarts_mapping_rows_top')],
+        ...schema.arrayPaths
+            .filter(p => p.path !== '')
+            .map(p => [p.path, `${p.path} (${p.length})`] as [string, string]),
+    ];
+    if (current && !schema.arrayPaths.some(p => p.path === current)) {
+        options.push([current, `${current} (?)`]); // drifted — kept selectable, badge unknown
+    }
+    return options;
+};
+
 interface DataSourceSectionProps {
     /** External tab jump (ADR-0073): the focus request's tab selects once. */
     focusTab?: SectionTabsFocus;
@@ -185,10 +213,17 @@ interface DataSourceSectionProps {
 const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
     const isHistory = state.mode === 'history';
     const isJson = state.mode === 'json';
+    // The tabellarische family (ADR-0075): the JSON branch grows the Zuordnung tab; the
+    // series-shaped Leerfall keeps its chrome-less single field (the ADR-0073 exception).
+    const isJsonTable = isJson && state.jsonKind === 'table';
     const isStatic = state.timeType === 'static';
     const staticStart = state.staticStart ? new Date(state.staticStart) : null;
     const staticEnd = state.staticEnd ? new Date(state.staticEnd) : null;
     const staticInvalid = isStatic && staticStart && staticEnd ? staticStart.getTime() >= staticEnd.getTime() : false;
+
+    // Live schema over the subscribed payload (ADR-0075 ticket 03): array candidates for the
+    // Zeilenpfad + the chosen rows' columns. Statistical analysis lives HERE, never in the body.
+    const tableSchema = useJsonTableSchema(state.jsonOid, state.jsonRowPath, isJsonTable, pickerCtx.socket);
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);
@@ -385,7 +420,7 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                 </LocalizationProvider>
             )}
 
-            {isJson && (
+            {isJson && !isJsonTable && (
                 <Box>
                     <FieldLabel>{Generic.t('echarts_json_oid')}</FieldLabel>
                     <OidPicker
@@ -395,6 +430,64 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                     />
                     <InfoBox text={Generic.t('echarts_editor_info_json')} />
                 </Box>
+            )}
+
+            {isJsonTable && (
+                /* Sektions-Tabs (ADR-0073) for the tabellarische family: Datenpunkt | Zuordnung.
+                 * The serien-förmig Leerfall above stays chrome-less (the documented exception);
+                 * the `mapping` tab key is the CTA's address (ticket 07's focusSection jump). */
+                <SectionTabs
+                    focus={focusTab}
+                    tabs={[
+                        { key: 'datapoint', label: Generic.t('echarts_tab_datapoint'), issueCount: dots.datapoint },
+                        { key: 'mapping', label: Generic.t('echarts_tab_mapping'), issueCount: dots.mapping },
+                    ]}
+                >
+                    <Box>
+                        <FieldLabel>{Generic.t('echarts_json_oid')}</FieldLabel>
+                        <OidPicker
+                            value={state.jsonOid}
+                            onChange={oid => set({ jsonOid: oid })}
+                            ctx={pickerCtx}
+                        />
+                        <InfoBox text={Generic.t('echarts_editor_info_json')} />
+                    </Box>
+                    <Box>
+                        <InfoBox text={Generic.t('echarts_mapping_hint')} />
+                        {tableSchema.error ? (
+                            <InfoBox text={tableSchema.error} />
+                        ) : (
+                            !tableSchema.arrayPaths.length && <InfoBox text={Generic.t('echarts_mapping_no_array')} />
+                        )}
+                        <FieldGrid sx={{ mt: 0.5 }}>
+                            <LabeledSelect
+                                label={Generic.t('echarts_mapping_rowpath')}
+                                value={state.jsonRowPath}
+                                onChange={v => set({ jsonRowPath: v })}
+                                options={rowPathOptions(state.jsonRowPath, tableSchema)}
+                            />
+                            <ColumnAutocomplete
+                                label={Generic.t('echarts_mapping_xpath')}
+                                value={state.jsonXPath}
+                                columns={tableSchema.columns}
+                                onChange={v => set({ jsonXPath: v })}
+                                emptyLabel={Generic.t('echarts_mapping_row_index')}
+                                dateHint
+                                disabled={!tableSchema.columns.length}
+                            />
+                        </FieldGrid>
+                        {!state.jsonRowPath && suggestedRowPath(tableSchema.arrayPaths) !== '' && (
+                            /* Decision 8: the suggestion is SHOWN on first entry, never silently
+                             * set — the user picks it in the select above (one authored click). */
+                            <InfoBox
+                                text={Generic.t(
+                                    'echarts_mapping_rowpath_suggestion',
+                                    suggestedRowPath(tableSchema.arrayPaths),
+                                )}
+                            />
+                        )}
+                    </Box>
+                </SectionTabs>
             )}
         </Box>
     );

@@ -137,6 +137,9 @@ describe('section slices (ADR-0049)', () => {
                 | 'count'
                 | 'refreshMs'
                 | 'ignoreNull'
+                | 'jsonKind'
+                | 'jsonRowPath'
+                | 'jsonXPath'
                 | 'jsonOid'
             >
         >();
