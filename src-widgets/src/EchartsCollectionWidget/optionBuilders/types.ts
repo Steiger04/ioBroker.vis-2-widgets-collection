@@ -109,6 +109,13 @@ export interface PresentationConfig {
      * and bar series data is plain bucket arrays. Absent ⇒ the time axis, exactly as before.
      */
     barCategories?: number[];
+    /**
+     * The table family's per-row X labels (ADR-0075): present ⇒ the cartesian builder emits a
+     * CATEGORY x axis over these STRING labels (a second category flavour beside the
+     * timestamped `barCategories`, which keeps its Moment labels) and table series data is the
+     * plain per-row value array. Absent ⇒ the time axis, exactly as before.
+     */
+    xCategories?: string[];
     visualMap?: EchartsVisualMapConfig;
     // family-specific structured config
     pie?: EchartsPieConfig;

@@ -279,6 +279,13 @@ export interface EchartsSeriesMeta {
      * History mode only; never emitted to echarts.
      */
     instance?: string;
+    /**
+     * The table family's y column (ADR-0075): a dot-path into the JSON payload's rows array
+     * (array indices supported, `items[0].price`). Lives on the meta so the positional
+     * `seriesConfig` entries carry the binding (`oid` stays ''). JSON series-shaped and
+     * Verlauf ignore it. Never emitted to echarts.
+     */
+    yPath?: string;
     /** Smooth line. @default false (matches ECharts 'Basic Line'; ADR-0008 r4 line-family) */
     smooth?: boolean;
     /** Line width. */

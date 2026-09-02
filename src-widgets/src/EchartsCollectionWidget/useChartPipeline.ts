@@ -41,11 +41,12 @@ import {
     toPresentationConfig,
     type ChartConfigBlob,
 } from './presentation';
+import { parseJsonTableState, type JsonTableParseResult } from './jsonTableParse';
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
-import { cutFuturePoints, transformSeriesData } from './seriesTransform';
+import { cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
@@ -287,6 +288,13 @@ export interface AssemblePipelineInput {
         error: string | null;
     };
     jsonParsed: JsonStateResult;
+    /**
+     * The table-family parse (ADR-0075): present ⇒ the JSON branch reads its series from HERE
+     * — positional `companions.series` meta (like Verlauf), no `jsonHidden`/overlay — instead
+     * of `jsonParsed` (the series-shaped family, untouched). The hook sets it only for
+     * `mode === 'json' && jsonKind === 'table'`.
+     */
+    jsonTable?: JsonTableParseResult;
     presentation: PresentationConfig;
     themeBase: EChartsOption;
     companions: ChartPipelineCompanions;
@@ -322,6 +330,7 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         usable,
         history,
         jsonParsed,
+        jsonTable,
         presentation,
         themeBase,
         companions,
@@ -330,18 +339,27 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         barWindowEnd,
         barDiff,
     } = input;
+    // Table family (ADR-0075): `jsonTable` present switches the JSON branch to the authored-
+    // columns read — the payload owns the VALUES, the user the structure.
+    const table = mode === 'json' && jsonTable !== undefined;
     // Legend values (ADR-0054): resolve the per-series current values and inject them into the
-    // presentation copy when the toggle is on.
+    // presentation copy when the toggle is on. Table family (ADR-0075): a time X reads the
+    // last point like the series-shaped family; a category/index X reads the last NON-NULL
+    // value (bucketedLegendValues — the bars/labels show buckets, not points).
     const presentationWithValues = presentation.legendShowValues
         ? {
               ...presentation,
-              legendValues: resolveLegendValues(
-                  mode,
-                  history.series,
-                  // JSON payload series are always `[ts, val]` points (bucketing is
-                  // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
-                  jsonParsed.series as { name: string; data: SeriesPoint[] }[],
-              ),
+              legendValues: table
+                  ? jsonTable.xKind === 'time'
+                      ? resolveLegendValues('json', [], jsonTable.series as { name: string; data: SeriesPoint[] }[])
+                      : bucketedLegendValues(jsonTable.series as { name: string; data: (number | null)[] }[])
+                  : resolveLegendValues(
+                        mode,
+                        history.series,
+                        // JSON payload series are always `[ts, val]` points (bucketing is
+                        // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
+                        jsonParsed.series as { name: string; data: SeriesPoint[] }[],
+                    ),
           }
         : presentation;
     // Legenden-Folge (ADR-0074): the runtime selection rides the presentation copy — buildLegend
@@ -353,24 +371,37 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     let series: ChartSeries[];
     if (mode === 'history') {
         series = history.series.map(s => ({ name: s.name, data: s.data }));
+    } else if (table) {
+        series = jsonTable.series;
     } else {
-        // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2).
+        // jsonHidden deny-list: hidden payload series never reach the chart (Problem-2) —
+        // series-shaped only; the table family hides nothing (identity is authored, ADR-0075).
         series = jsonParsed.series.filter(s => !companions.jsonHidden.includes(s.name));
     }
-    // JSON mode: per-series presentation is the name-keyed overlay (ADR-0011), not the
-    // positional editor series (json has no per-series OIDs to key it by).
-    const meta = mode === 'json' ? series.map(s => companions.jsonSeriesStyle[s.name] ?? {}) : usable;
+    // JSON meta: series-shaped = the name-keyed overlay (ADR-0011), not the positional editor
+    // series (json has no per-series OIDs to key it by); table = the positional companions
+    // series, Verlauf-style — the yPath bindings and per-series knobs live on the metas and
+    // the parse emits one output series per input, so index i stays aligned (ADR-0075).
+    const meta =
+        mode === 'history'
+            ? usable
+            : table
+              ? companions.series
+              : series.map(s => companions.jsonSeriesStyle[s.name] ?? {});
     // The per-series data cuts + value transforms at this ONE pure seam (ADR-0059/0060):
     // „Keine Zukunft" cuts points after now in every mode; the Y-offset feeds the formula
-    // over every mode's points. Point-typed here — category bars (below) are the only
-    // non-point data shape (ADR-0065).
+    // over every mode's points. Point-typed here — EXCEPT the table family's category/index
+    // branch (plain per-row values, ADR-0075) and the category bars below (ADR-0065).
     const now = input.now ?? Date.now();
+    const plainTableData = table && jsonTable.xKind !== 'time';
     const transformed = series.map((s, i) => ({
         name: s.name,
-        data: transformSeriesData(
-            meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
-            meta[i],
-        ),
+        data: plainTableData
+            ? transformPlainValues(s.data as (number | null)[], meta[i])
+            : transformSeriesData(
+                  meta[i]?.noFuture ? cutFuturePoints(s.data as SeriesPoint[], now) : (s.data as SeriesPoint[]),
+                  meta[i],
+              ),
     }));
     // Category bars (ADR-0065): bucket the transformed points onto the fetch's shared grid
     // (formula/offsets apply BEFORE bucketing, like the adapter's convert), run the diff,
@@ -400,7 +431,14 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
         const seriesDiffs = meta.map(m => effectiveDiff(m, barDiff));
         const allDiff = seriesDiffs.length > 0 && seriesDiffs.every(Boolean);
         bucketed = transformed.map((s, i) => {
-            const vals = bucketizeSeries(s.data, cats, effectiveAggregate(meta[i], chartAggregate), endBound);
+            // Bar buckets are history/cartesian-only — the point-typed path (the plain-values
+            // table branch above never reaches here; ADR-0065 vs. ADR-0075).
+            const vals = bucketizeSeries(
+                s.data as SeriesPoint[],
+                cats,
+                effectiveAggregate(meta[i], chartAggregate),
+                endBound,
+            );
             if (!seriesDiffs[i]) {
                 return { name: s.name, data: vals };
             }
@@ -424,6 +462,13 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
                 ),
             };
         }
+    }
+    // Table categories (ADR-0075): the per-row labels ride the presentation copy beside
+    // `barCategories` (two category flavours stay separate — timestamp buckets vs. string
+    // labels). The pipeline supplies data + labels here; the axis itself is the cartesian
+    // builder's switch (ADR-0075 ticket 05).
+    if (table && jsonTable.xKind !== 'time') {
+        presentationFinal = { ...presentationFinal, xCategories: jsonTable.categories ?? [] };
     }
     const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
 
@@ -602,7 +647,33 @@ export function useChartPipeline(
     const jsonOidRaw = typeof src.jsonOid === 'string' ? src.jsonOid : undefined;
     const jsonOid = isUsableOid(jsonOidRaw) ? jsonOidRaw : '';
     const jsonRaw = mode === 'json' ? values[jsonOid] : undefined;
-    const jsonParsed = useMemo(() => parseJsonState(jsonText(jsonRaw)), [jsonRaw]);
+    // Table family (ADR-0075): `jsonKind` is read tolerantly here (undefined/unknown →
+    // 'series' — existing widgets stay byte-stable; ticket 02 makes it editable). The parse
+    // rides the SAME subscribed value over `companions.series` — NOT `usableSeries`, which
+    // filters oid-leere series out and would drop every table binding (`oid` stays '').
+    const jsonKind = src.jsonKind === 'table' ? 'table' : 'series';
+    const jsonRowPath = typeof src.jsonRowPath === 'string' ? src.jsonRowPath : undefined;
+    const jsonXPath = typeof src.jsonXPath === 'string' ? src.jsonXPath : undefined;
+    const isJsonTable = mode === 'json' && jsonKind === 'table';
+    // The family parses its payload exactly once — the series-shaped reader skips the table
+    // documents entirely (normalizePoints would walk every row for nothing on live updates).
+    const jsonParsed = useMemo(
+        () => (isJsonTable ? { series: [] as ChartSeries[] } : parseJsonState(jsonText(jsonRaw))),
+        [isJsonTable, jsonRaw],
+    );
+    const jsonTable = useMemo(
+        () =>
+            isJsonTable
+                ? parseJsonTableState(jsonText(jsonRaw), {
+                      rowPath: jsonRowPath,
+                      xPath: jsonXPath,
+                      // NOT usableSeries (it filters oid-leere series — every table binding has
+                      // `oid:''`); an unset yPath maps to '' = an empty series (decision 9).
+                      ySeries: companions.series.map(s => ({ yPath: s.yPath ?? '', name: s.name })),
+                  })
+                : undefined,
+        [isJsonTable, jsonRaw, jsonRowPath, jsonXPath, companions.series],
+    );
 
     // Debounced early refresh in Verlauf (body behaviour, off in the preview): re-fetch soon when
     // a subscribed value changes instead of waiting for the periodic refresh. Driven from the
@@ -631,6 +702,7 @@ export function useChartPipeline(
             usable,
             history: { series: history.series, loading: history.loading, error: history.error },
             jsonParsed,
+            jsonTable,
             presentation,
             themeBase: theme.themeBase,
             companions,
@@ -646,7 +718,9 @@ export function useChartPipeline(
             option,
             hasData,
             loading: mode === 'history' && history.loading,
-            error: pipelineError(mode, jsonParsed.error, history.error, history.series),
+            // The unified error surface: the table family's rows/JSON error, never a missing
+            // yPath column (that renders an empty series — decision 9).
+            error: pipelineError(mode, jsonTable ? jsonTable.error : jsonParsed.error, history.error, history.series),
         };
     }, [
         family,
@@ -658,6 +732,7 @@ export function useChartPipeline(
         history.error,
         history.extras,
         jsonParsed,
+        jsonTable,
         presentation,
         theme.themeBase,
         companions,

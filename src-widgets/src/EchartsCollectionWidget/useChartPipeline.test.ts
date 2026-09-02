@@ -751,3 +751,92 @@ describe('assemblePipelineResult — per-series aggregate + diff tristate on cat
         expect(series[1].data).toEqual([2, 2]); // diffs of its own buckets: 4−2, 6−4
     });
 });
+
+// ── assemblePipelineResult — table family (ADR-0075: authored columns, positional meta) ──
+
+describe('assemblePipelineResult — table family (ADR-0075)', () => {
+    const tableCompanions = (series: ChartPipelineSeries[]): AssemblePipelineInput['companions'] => ({
+        chartConfig: {},
+        yAxes: [],
+        markLines: [],
+        // The series-shaped ONLY surfaces — both must be inert in the table branch.
+        jsonSeriesStyle: { temp: { color: '#evil' } },
+        jsonHidden: ['temp'],
+        series,
+    });
+
+    it('time X: POSITIONAL companions meta (not the overlay), jsonHidden ignored, transforms on the points', () => {
+        const { option, hasData } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonTable: {
+                    xKind: 'time',
+                    series: [
+                        {
+                            name: 'temp',
+                            data: [
+                                [1, 20],
+                                [2, 10],
+                            ],
+                        },
+                    ],
+                },
+                companions: tableCompanions([{ oid: '', name: 'Temp', yPath: 'temp', color: '#0af', yOffset: -5 }]),
+            }),
+        );
+        expect(hasData).toBe(true);
+        const s = seriesOf(option)[0] as { name: string; data: unknown[]; color?: string };
+        expect(s.name).toBe('Temp'); // the meta name wins in the builder (Verlauf parity)
+        expect(s.color).toBe('#0af'); // positional meta, never the '#evil' overlay entry
+        expect(s.data).toEqual([
+            [1, 15],
+            [2, 5],
+        ]); // offset over the parse-sorted points
+    });
+
+    it('category X: plain per-row value arrays flow through; legend values read the last NON-NULL', () => {
+        const { option, hasData } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                src: { legendShowValues: true },
+                jsonTable: {
+                    xKind: 'category',
+                    categories: ['Jan', 'Feb', 'Jan'],
+                    series: [
+                        { name: 'a', data: [1, null, 3] },
+                        { name: 'b', data: [null, null, null] },
+                    ],
+                },
+                companions: tableCompanions([
+                    { oid: '', name: 'a', yPath: 'a' },
+                    { oid: '', name: 'b', yPath: 'b' },
+                ]),
+            }),
+        );
+        expect(hasData).toBe(true);
+        expect(seriesOf(option)[0]?.data).toEqual([1, null, 3]);
+        expect(seriesOf(option)[1]?.data).toEqual([null, null, null]);
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('a')).toBe('a [3]'); // last non-null — what the bars show
+        expect(legend.formatter?.('b')).toBe('b'); // all-null → the bare name
+    });
+
+    it('category/index X: the plain values run through the SAME transform chain (offset feeds the formula)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonTable: { xKind: 'index', categories: ['1', '2'], series: [{ name: 'a', data: [10, null] }] },
+                companions: tableCompanions([{ oid: '', name: 'a', yPath: 'a', yOffset: 2, formula: 'val * 10' }]),
+            }),
+        );
+        expect(seriesOf(option)[0]?.data).toEqual([120, null]); // (10+2)*10; gaps survive
+    });
+
+    it('an empty table (no payload yet) renders no series and no error surface', () => {
+        const { option, hasData } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonTable: { series: [], xKind: 'index' },
+                companions: tableCompanions([{ oid: '', name: 'A', yPath: 'a' }]),
+            }),
+        );
+        expect(hasData).toBe(false);
+        expect((option.series as unknown[]) ?? []).toHaveLength(0);
+    });
+});

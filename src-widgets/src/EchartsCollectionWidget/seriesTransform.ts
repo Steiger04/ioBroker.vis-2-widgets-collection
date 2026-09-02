@@ -67,6 +67,24 @@ export const formulaIsInvalid = (formula: string | undefined): boolean =>
     !!formula?.trim() && compileFormula(formula) === undefined;
 
 /**
+ * One non-null value through the chain (adapter order: the offset feeds the formula); a
+ * non-finite or throwing formula result is a null gap — shared by the point- and plain-value
+ * transforms below so the chain cannot drift apart.
+ */
+const transformValue = (val: number, off: number, fn?: FormulaFn): number | null => {
+    const base = val + off; // adapter: convertFunc(value + yOffset)
+    if (!fn) {
+        return base;
+    }
+    try {
+        const out = fn(base);
+        return Number.isFinite(out) ? out : null;
+    } catch {
+        return null; // a runtime failure is a gap, never a broken chart
+    }
+};
+
+/**
  * Apply one series' value transform to its points (the adapter order: offset feeds the
  * formula). Returns the SAME reference when nothing is authored — the pipeline stays cheap for
  * the unconfigured majority.
@@ -77,21 +95,9 @@ export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransfor
     if (!off && !fn) {
         return data;
     }
-    return data.map(([ts, val]): SeriesPoint => {
-        if (val === null) {
-            return [ts, null]; // gaps survive every transform
-        }
-        const base = val + off; // adapter: convertFunc(value + yOffset)
-        if (!fn) {
-            return [ts, base];
-        }
-        try {
-            const out = fn(base);
-            return [ts, Number.isFinite(out) ? out : null];
-        } catch {
-            return [ts, null]; // a runtime failure is a gap, never a broken chart
-        }
-    });
+    return data.map(
+        ([ts, val]): SeriesPoint => (val === null ? [ts, null] : [ts, transformValue(val, off, fn)]), // gaps survive every transform
+    );
 };
 
 /**
@@ -102,4 +108,18 @@ export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransfor
 export const cutFuturePoints = (data: SeriesPoint[], now: number): SeriesPoint[] => {
     const cut = data.filter(([ts]) => ts <= now);
     return cut.length === data.length ? data : cut;
+};
+
+/**
+ * The plain-values variant of {@link transformSeriesData} for category-aligned data (the JSON
+ * table family, ADR-0075): the SAME value chain — the offset feeds the formula, gaps survive,
+ * a non-finite/throwing formula result is a gap.
+ */
+export const transformPlainValues = (data: (number | null)[], t?: SeriesValueTransform): (number | null)[] => {
+    const off = t?.yOffset ?? 0;
+    const fn = compileFormula(t?.formula);
+    if (!off && !fn) {
+        return data;
+    }
+    return data.map(val => (val === null ? null : transformValue(val, off, fn))); // gaps survive
 };

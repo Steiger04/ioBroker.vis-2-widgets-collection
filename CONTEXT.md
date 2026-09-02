@@ -63,11 +63,19 @@ The chart-type picker and data-mode toggle sitting above the section stack — a
 _Avoid_: Header controls, first section
 
 **Data mode**:
-The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is *what the data needs*, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — the payload owns the series, so the user only styles/hides them by name). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
+The pinned-selector choice (cartesian/pie only) of how a chart's series acquire their values. The demarcation line is *what the data needs*, not whether it moves — Verlauf updates too. Two values: **Verlauf** (an aggregated fixed window fetched from a History adapter — backfilled on load, so it needs the adapter) and **JSON** (a single state delivers complete series data — which **Payload-Familie** decides how series are derived from that one document). Switching modes is lossless for AUTHORED config — it coexists in the editor state and is merely shown/hidden — EXCEPT at the JSON boundary (ADR-0067 reverses ADR-0033's lossless coexistence there): crossing into or out of JSON resets the **Data path**. The retired Live rolling-buffer mode and the family-forced Aktuellwert reading died with ADR-0071 — do not reintroduce the terms.
 _Avoid_: source type (that is the mechanism), data provider, feed mode — and "static vs. live" framing (Verlauf is not static)
 
+**Payload-Familie**:
+How a JSON document is read into series — a property OF the JSON data mode, never a third mode (acquisition is untouched: always one state, always realtime subscription). **Serien-förmig**: the document carries finished series; the payload owns count, names and data, the user only styles/hides by name (ADR-0011). **Tabellarisch**: the document is a rows list; the user derives series via the **Zuordnung** and thereby owns the structure while the payload owns the values (ADR-0075). Switching families resets the **Data path** but keeps the JSON data point — the same state, read the other way.
+_Avoid_: JSON-Variante, zweiter JSON-Modus, Untermodus (it is not a data mode)
+
+**Zuordnung**:
+The tabellarische data-path share: the **Zeilenpfad** (which array of the document supplies the points), the **X-Spalte** (a date column → the time axis; anything else → the **Kategorieachse**; none → the row index) and the Y columns of the series. Picked from the analysed payload via field pickers with type badges — never as path syntax. When the schema drifts, the paths degrade individually by weight: rows path gone is a hard error, an X column gone silently falls back to the row index, a Y column gone renders an empty series with a warning.
+_Avoid_: Mapping (does not say there are three roles), Feldauswahl (that is the picker mechanism, not the authored config), Spalten-Mapping
+
 **Data path**:
-The per-mode acquisition config a structural reset deletes: series (OIDs), Y-axes, the JSON overlay + jsonHidden, jsonOid, markings. Delimited against the presentation config (title, legend, tooltip, colours/palette, toolbox, raws, X-Karte, zoom), which survives every reset. Resets fire on structure boundaries only — the JSON mode boundary (into or out of JSON) and the chart-family boundary — never on load, never line↔bar↔scatter (ADR-0067).
+The per-mode acquisition config a structural reset deletes: series (OIDs), Y-axes, the JSON overlay + jsonHidden, jsonOid, the **Zuordnung** (payload family + rows/X column), markings. Delimited against the presentation config (title, legend, tooltip, colours/palette, toolbox, raws, X-Karte, zoom), which survives every reset. Resets fire on structure boundaries only — the JSON mode boundary (into or out of JSON), the chart-family boundary and, since ADR-0075, the payload-family boundary (serien-förmig↔tabellarisch — same scope, but the JSON data point survives) — never on load, never line↔bar↔scatter (ADR-0067).
 _Avoid_: data config, source config (that is the Data mode)
 
 **Chart pipeline**:
@@ -93,6 +101,10 @@ _Avoid_: time range (that is the range KEY inside it), period, interval (that is
 **Kategorie-Bucket**:
 One bar of an interval-bucketed bar chart (parity Build A, ADR-0065): the window gridded onto CALENDAR boundaries (day = local midnight, `30d` = 1st-to-1st months) by the pure `barBuckets.ts` machinery; points fall into `[cat[i], cat[i+1])` and reduce per the chart aggregate (client-side, like the adapter). The fetch widens left onto the grid (one EXTRA bucket under the Differenz — the diff's first bucket has no predecessor and is dropped). With `barCategories` riding the presentation, the x axis becomes a CATEGORY axis (timestamps as data, the X-Karte's time format labels them) and bar series data is plain bucket arrays. `auto`/unset = the time-axis path, unchanged.
 _Avoid_: bar bin, bucket interval (that is the Bar-Intervall knob), histogram (implies counts)
+
+**Kategorieachse**:
+The X axis without time semantics — string categories in payload order, labelled by the column values themselves. Introduced with the tabellarische payload family (ADR-0075) as the third X path beside the fixed time axis (all data modes normalise points to `[ts, val]`) and the Kategorie-Bucket grid (TIMESTAMP categories still labelled by the Time format). The X-Karte's Time format does not apply here (the field hides); the tooltip shows the category name. Duplicate categories keep their multiple values; nothing is de-duplicated or re-sorted.
+_Avoid_: Textachse, String-Achse (mechanism, not the concept), Buckets (that is the Kategorie-Bucket grid), category axis (say the German term or Kategorie-X)
 
 **Summary line**:
 The single-line digest of effective values shown on a collapsed Section (`24h · avg · 500`, `tableau · auto`). A section that cannot say anything useful collapsed does not deserve to be a section.

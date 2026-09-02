@@ -75,6 +75,12 @@ export const dataSpanMs = (series: readonly SpannedSeries[]): number => {
     let max = Number.NEGATIVE_INFINITY;
     for (const s of series) {
         for (const p of s.data ?? []) {
+            // Only `[ts, …]` POINTS carry a timestamp — plain value arrays (the ADR-0065
+            // buckets, the ADR-0075 table family) contribute nothing (no points → span 0 →
+            // the minute-level Auto labels, honest for a chart with no time axis data).
+            if (!Array.isArray(p) || typeof p[0] !== 'number') {
+                continue;
+            }
             const ts = p[0];
             if (ts < min) {
                 min = ts;

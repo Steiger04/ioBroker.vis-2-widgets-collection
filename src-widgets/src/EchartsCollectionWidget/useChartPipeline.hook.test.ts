@@ -180,3 +180,78 @@ describe('useChartPipeline — per-series overrides ride the ONE seam (ADR-0072 
         expect(result.current.error).toBeNull();
     });
 });
+
+describe('useChartPipeline — JSON table family dispatch (ADR-0075)', () => {
+    const makeJsonAdapter = (
+        payload: unknown,
+    ): { adapter: ChartPipelineAdapter; box: { values: Record<string, unknown> } } => {
+        const { box, useValues } = makeValuesSource();
+        box.values['js.0.payload'] = payload;
+        return { adapter: { useValues, getHistory: vi.fn().mockResolvedValue([] as Point[]), theme }, box };
+    };
+
+    it("jsonKind 'table' reads the tabellarisch branch: yPath bindings, plain category data", async () => {
+        const { adapter } = makeJsonAdapter(
+            JSON.stringify([
+                { m: 'Jan', a: 1 },
+                { m: 'Feb', a: 2 },
+            ]),
+        );
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'bar', mode: 'json', jsonKind: 'table', jsonOid: 'js.0.payload', jsonXPath: 'm' },
+                { ...COMPANIONS, series: [{ oid: '', name: 'A', yPath: 'a' }] },
+            ),
+        );
+        await actAdvance(100);
+        expect(result.current.error).toBeNull();
+        expect(result.current.hasData).toBe(true);
+        const s = (result.current.option.series as { name: string; data: unknown[] }[])[0];
+        expect(s.name).toBe('A');
+        expect(s.data).toEqual([1, 2]); // aligned to the category rows
+    });
+
+    it('a drifted rowPath is the error surface; the payload stays subscribed', async () => {
+        const { adapter } = makeJsonAdapter('{"data":{"rows":[{"a":1}]}}');
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'line', mode: 'json', jsonKind: 'table', jsonOid: 'js.0.payload', jsonRowPath: 'gone' },
+                { ...COMPANIONS, series: [{ oid: '', name: 'A', yPath: 'a' }] },
+            ),
+        );
+        await actAdvance(100);
+        expect(result.current.error).toBe('rows path "gone" is not an array');
+        expect(result.current.hasData).toBe(false);
+    });
+
+    it('an UNSET yPath column renders an empty series — no error (decision 9)', async () => {
+        const { adapter } = makeJsonAdapter(JSON.stringify([{ a: 1 }, { a: 2 }]));
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'line', mode: 'json', jsonKind: 'table', jsonOid: 'js.0.payload' },
+                { ...COMPANIONS, series: [{ oid: '', name: 'A' }] }, // no yPath authored yet
+            ),
+        );
+        await actAdvance(100);
+        expect(result.current.error).toBeNull();
+        expect((result.current.option.series as { data: unknown[] }[])[0]?.data).toEqual([null, null]);
+    });
+
+    it('jsonKind UNDEFINED stays the series-shaped family byte-stable (existing widgets)', async () => {
+        const { adapter } = makeJsonAdapter('{"series":[{"name":"S","data":[[1,2]]}]}');
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'line', mode: 'json', jsonOid: 'js.0.payload' }, // no jsonKind stored
+                COMPANIONS,
+            ),
+        );
+        await actAdvance(100);
+        expect(result.current.error).toBeNull();
+        expect(result.current.hasData).toBe(true);
+        expect((result.current.option.series as { name: string; data: unknown[] }[])[0]?.data).toEqual([[1, 2]]);
+    });
+});

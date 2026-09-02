@@ -156,27 +156,46 @@ const DATE_PATTERNS: DatePattern[] = [
     },
 ];
 
+/** A matched date pattern: the format id plus its regex match (groups for local parsing). */
+export interface DatePatternMatch {
+    format: DateFormatId;
+    match: RegExpMatchArray;
+}
+
 /**
- * Try to detect a date format from a string value.
- * Returns the format identifier if matched, or null.
+ * Match a string against the known date patterns (validation included) — the front door for
+ * parsers (`dateValue`) that need the capture GROUPS, not just the format id. When `format`
+ * is given, only that pattern is tried (the column's detected format); otherwise the first
+ * matching pattern wins, in detection order.
  */
-export function detectDateFromString(value: string): DateFormatId | null {
+export function matchDatePattern(value: string, format?: DateFormatId): DatePatternMatch | null {
     const trimmed = value.trim();
     if (!trimmed) {
         return null;
     }
 
     for (const pattern of DATE_PATTERNS) {
+        if (format && pattern.format !== format) {
+            continue;
+        }
         const match = trimmed.match(pattern.regex);
         if (match) {
             if (pattern.validate && !pattern.validate(match)) {
                 continue;
             }
-            return pattern.format;
+            return { format: pattern.format, match };
         }
     }
 
     return null;
+}
+
+/**
+ * Try to detect a date format from a string value.
+ * Returns the format identifier if matched, or null.
+ */
+export function detectDateFromString(value: string): DateFormatId | null {
+    return matchDatePattern(value)?.format ?? null;
 }
 
 /**
