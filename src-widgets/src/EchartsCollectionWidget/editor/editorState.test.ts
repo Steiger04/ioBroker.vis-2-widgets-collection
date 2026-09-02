@@ -720,3 +720,62 @@ describe('editorState — parity Build D chart frame (ADR-0056)', () => {
         expect(healed.frame.enabled).toBe(true);
     });
 });
+
+// ── payload family (ADR-0075): the Zuordnung scalars ride the round-trip ──
+
+describe('editorState — payload family round-trip (ADR-0075)', () => {
+    it('jsonKind + rows/X paths survive save → load', () => {
+        const state: EditorState = {
+            ...baseState(),
+            jsonKind: 'table',
+            jsonRowPath: 'data.rows',
+            jsonXPath: 'ts',
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 0));
+        expect(reloaded.jsonKind).toBe('table');
+        expect(reloaded.jsonRowPath).toBe('data.rows');
+        expect(reloaded.jsonXPath).toBe('ts');
+    });
+
+    it('an unknown jsonKind value heals to series (decode-and-tolerate)', () => {
+        const rx = saveEditorState({ ...baseState(), jsonKind: 'series' }, 0);
+        const reloaded = loadEditorState({ ...rx, jsonKind: 'weird' });
+        expect(reloaded.jsonKind).toBe('series');
+    });
+
+    it('jsonKind rides ALWAYS (the series default is a persisted fact, not an unset)', () => {
+        expect(saveEditorState({ ...baseState() }, 0)).toMatchObject({ jsonKind: 'series' });
+    });
+
+    it('the Zuordnung paths ride sparse — null clears a once-authored path', () => {
+        const authored = saveEditorState({ ...baseState(), jsonKind: 'table', jsonRowPath: 'rows', jsonXPath: 'x' }, 0);
+        expect(authored).toMatchObject({ jsonRowPath: 'rows', jsonXPath: 'x' });
+        const cleared = saveEditorState({ ...baseState(), jsonKind: 'table', jsonRowPath: '', jsonXPath: '' }, 0);
+        expect(cleared.jsonRowPath).toBeNull();
+        expect(cleared.jsonXPath).toBeNull();
+    });
+
+    it('the table load heal binds over state.series — an authored axis SURVIVES an empty overlay', () => {
+        const table: EditorState = {
+            ...baseState(),
+            jsonKind: 'table',
+            series: [{ oid: '', id: 's0', name: 'A', yPath: 'temp', yAxisIndex: 0 }],
+            yAxes: [{ id: 'a0', position: 'left', splitLine: true }],
+        };
+        const reloaded = loadEditorState(saveEditorState(table, 0));
+        expect(reloaded.yAxes).toHaveLength(1); // the series-sighted heal keeps the bound axis
+        expect(reloaded.series[0]).toMatchObject({ yPath: 'temp', yAxisIndex: 0 });
+    });
+
+    it('the series-shaped load heal still binds over the overlay keys (family-dependent sight)', () => {
+        const seriesShaped: EditorState = {
+            ...baseState(),
+            jsonKind: 'series',
+            jsonSeriesStyle: {}, // no overlay binders
+            series: [{ oid: '', id: 's0', name: 'A', yAxisIndex: 0 }],
+            yAxes: [{ id: 'a0', position: 'left', splitLine: true }],
+        };
+        const reloaded = loadEditorState(saveEditorState(seriesShaped, 0));
+        expect(reloaded.yAxes).toHaveLength(0); // the overlay sight sees no binder → the axis drops
+    });
+});

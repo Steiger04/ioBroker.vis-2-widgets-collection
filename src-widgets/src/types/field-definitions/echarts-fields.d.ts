@@ -73,6 +73,14 @@ export type LegacyChartType = EchartsChartType | 'cartesian' | 'area' | 'gauge' 
  */
 export type EchartsMode = 'history' | 'json';
 /**
+ * The JSON payload family (ADR-0075): HOW a json-mode document is read into series — a property
+ * of the json data mode, never a third mode value. `'series'`: the document carries finished
+ * series (ADR-0011 — payload owns identity); `'table'`: a rows array + the Zuordnung
+ * (`jsonRowPath`/`jsonXPath` + per-series `yPath`) derive the series (user owns structure).
+ * Absent/unknown heals to `'series'` (decode-and-tolerate) — existing widgets byte-stable.
+ */
+export type EchartsJsonKind = 'series' | 'table';
+/**
  * The history aggregate — chart-level union AND per-series override type (the same members;
  * ADR-0072). Chart level (parity Build A, ADR-0064) adds the two ioBroker members the select
  * lacked — 'percentile' (level via `percentileValue`) and 'integral' (unit + interpolation via
@@ -910,6 +918,16 @@ export interface EchartsFieldsRxData {
      * Auto-detects `{ series: [{ name?, data }] }`, a bare array, or `{ data: [...] }`.
      */
     jsonOid?: string;
+
+    /**
+     * The JSON payload family (ADR-0075) — see {@link EchartsJsonKind}. Read tolerantly at
+     * runtime (absent/unknown → `'series'`). @default 'series'
+     */
+    jsonKind?: EchartsJsonKind;
+    /** Table family: dot-path to the rows array (empty = the document itself). Sparse — `null` clears. */
+    jsonRowPath?: string;
+    /** Table family: X column path (empty = the row index). Sparse — `null` clears. */
+    jsonXPath?: string;
 
     /**
      * Chart title text — may contain vis-2 `{oid.val}` bindings. vis-2 resolves them into

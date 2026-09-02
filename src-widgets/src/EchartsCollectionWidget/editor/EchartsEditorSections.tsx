@@ -16,7 +16,7 @@ import { Alert, Box } from '@mui/material';
 import Generic from '../../Generic';
 import { familyOf } from '../optionBuilder';
 import SectionCard from '../../components/SectionCard';
-import { ChartTypePicker, ModeSelect } from './controls';
+import { ChartTypePicker, JsonKindSelect, ModeSelect } from './controls';
 import AxesZoomSection from './sections/AxesZoomSection';
 import BehaviorSection from './sections/BehaviorSection';
 import ColorsSection from './sections/ColorsSection';
@@ -33,6 +33,7 @@ import {
     type BoundaryLoss,
     familySwitchSnippetLoss,
     jsonBoundaryLoss,
+    jsonKindBoundaryLoss,
     type SectionIssues,
     type SectionKey,
 } from './validation';
@@ -155,6 +156,10 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     // The JSON-boundary reset warning (ADR-0067): a non-blocking chip at the mode toggle, shown
     // BEFORE the crossing — what the next into/out-of-JSON switch deletes from the current state.
     const boundaryLoss = jsonBoundaryLoss(state, jsonSeriesNames ?? []);
+    // The payload-family reset warning (ADR-0075): a non-blocking chip at the family toggle,
+    // shown BEFORE the crossing — what the next serien-förmig↔tabellarisch switch deletes
+    // (jsonOid never falls: the chip's dataPoint segment stays off).
+    const jsonKindLoss = jsonKindBoundaryLoss(state, jsonSeriesNames ?? []);
 
     // Expansion: every section starts COLLAPSED on open — nothing pre-expanded (reverses the
     // ADR-0010 "Series starts open" default on user request; the user opens the section to edit).
@@ -309,6 +314,20 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         loss={boundaryLoss}
                     />
                 </Box>
+                {state.mode === 'json' && (
+                    <Box>
+                        {/* The payload-family toggle (ADR-0075): pinned under the mode toggle —
+                            only while JSON is active (a property OF the json mode, not a mode). */}
+                        <JsonKindSelect
+                            state={state}
+                            set={set}
+                        />
+                        <BoundaryLossAlert
+                            lossKey="echarts_json_kind_boundary_loss"
+                            loss={jsonKindLoss}
+                        />
+                    </Box>
+                )}
                 {/* Snippet-prune advice (ADR-0042) — the ONLY family-switch warning left: the
                     pre-ADR-0067 bound-OID loss share is pensioned (the family crossing resets the
                     data path now, advised by the chip at the type picker above). */}

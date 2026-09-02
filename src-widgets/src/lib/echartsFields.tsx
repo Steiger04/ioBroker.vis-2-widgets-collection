@@ -196,6 +196,27 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
         hidden: alwaysHidden,
     },
     {
+        // JSON payload family (ADR-0075): 'series' = finished series (ADR-0011), 'table' = rows
+        // + Zuordnung. Default 'series' keeps existing widgets byte-stable.
+        name: 'jsonKind',
+        type: 'text',
+        default: 'series',
+        hidden: alwaysHidden,
+    },
+    {
+        // Table family: dot-path to the rows array. NO default — undefined = unset (the
+        // document itself must be the array); the editor patch sends null to clear (sparse).
+        name: 'jsonRowPath',
+        type: 'text',
+        hidden: alwaysHidden,
+    },
+    {
+        // Table family: X column path. NO default — undefined = unset (row-index X).
+        name: 'jsonXPath',
+        type: 'text',
+        hidden: alwaysHidden,
+    },
+    {
         name: 'titleText',
         type: 'text',
         default: '',
@@ -226,6 +247,15 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     {
         // JSON-mode deny-list of hidden payload series names (Problem-2). Hidden blob, modal-owned.
         name: 'jsonHidden',
+        type: 'text',
+        default: '',
+        hidden: alwaysHidden,
+    },
+    {
+        // JSON-mode name-keyed per-series style overlay (ADR-0011). Has persisted as a
+        // patch-only key since ADR-0011 — declared here for the default-seeding convention
+        // (ADR-0075 ticket 02 opportunity cleanup).
+        name: 'jsonSeriesStyle',
         type: 'text',
         default: '',
         hidden: alwaysHidden,

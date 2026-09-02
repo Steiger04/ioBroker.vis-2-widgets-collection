@@ -65,6 +65,9 @@ export const reconcileJsonAxesStep = (
 ): { patch: EditorPatch; diedIndices: number[] } | null => {
     if (
         state.mode !== 'json' ||
+        // The table family owns its structure (ADR-0075 decision 2) — no payload reconcile,
+        // the same exclusion as the overlay/jsonHidden surfaces.
+        state.jsonKind === 'table' ||
         (state.chartType !== 'line' && state.chartType !== 'bar' && state.chartType !== 'scatter') ||
         visibleNames.length === 0
     ) {
@@ -108,11 +111,19 @@ export const crossesFamilyBoundary = (from: EditorState['chartType'], to: Editor
     from !== to && familyOf(from) !== familyOf(to);
 
 /**
+ * True when a switch crosses the **payload-family boundary** (serien-förmig↔tabellarisch,
+ * ADR-0075) — re-selecting the current kind crosses nothing.
+ */
+export const crossesJsonKindBoundary = (from: EditorState['jsonKind'], to: EditorState['jsonKind']): boolean =>
+    from !== to;
+
+/**
  * The data-path patch a structural boundary reset applies (ADR-0067): series/OIDs, Y-axes (the
  * 0-axes start — the JSON reconcile rebuilds 1:1 from the payload on entry), markings, the JSON
- * overlay + deny-list + jsonOid (the leaving mode's data input). Everything
- * presentationary — title, legend,
- * tooltip, colours, toolbox, raws, X-Karte, zoom, and the time window — is untouched.
+ * overlay + deny-list + jsonOid (the leaving mode's data input), and since ADR-0075 the
+ * Zuordnung scalars (family + rows/X paths — both ADR-0067 crossings leave the json family
+ * entirely, so the kind returns to its 'series' default). Everything presentationary — title,
+ * legend, tooltip, colours, toolbox, raws, X-Karte, zoom, and the time window — is untouched.
  *
  * The caller merges this with the boundary flip (mode/chartType) into ONE `set()` patch, so undo
  * restores the crossing AND the deletion together in a single step.
@@ -124,4 +135,24 @@ export const dataPathReset = (): EditorPatch => ({
     jsonSeriesStyle: {},
     jsonHidden: [],
     jsonOid: '',
+    jsonKind: 'series',
+    jsonRowPath: '',
+    jsonXPath: '',
+});
+
+/**
+ * The data-path patch the PAYLOAD-FAMILY boundary reset applies (ADR-0075): the same scope as
+ * {@link dataPathReset} with ONE exception — `jsonOid` SURVIVES (the family flip re-reads the
+ * SAME state, only the derived structure falls) and the reset itself writes the TARGET kind, so
+ * the switch is flip + reset in ONE patch (a single undo step restores both).
+ */
+export const jsonKindReset = (target: EditorState['jsonKind']): EditorPatch => ({
+    jsonKind: target,
+    series: [],
+    yAxes: [],
+    markLines: [],
+    jsonSeriesStyle: {},
+    jsonHidden: [],
+    jsonRowPath: '',
+    jsonXPath: '',
 });

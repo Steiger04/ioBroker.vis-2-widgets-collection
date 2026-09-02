@@ -92,9 +92,11 @@ function EchartsConfigEditorModal({
     // JSON mode (ADR-0011): resolve the payload series names so the Series section can render one
     // editable card per series (live — tracks the jsonOid value as it changes while the modal open).
     // The names are the lifecycle's INJECTED input (the reconcile seam) — resolved here so the
-    // lifecycle hook itself stays IO-free.
+    // lifecycle hook itself stays IO-free. Series-shaped ONLY (ADR-0075): the tabellarische
+    // family derives its series from the authored columns, not the payload names.
     const jsonFamily = familyOf(state.chartType);
-    const jsonEnabled = state.mode === 'json' && (jsonFamily === 'cartesian' || jsonFamily === 'pie');
+    const jsonEnabled =
+        state.mode === 'json' && state.jsonKind === 'series' && (jsonFamily === 'cartesian' || jsonFamily === 'pie');
     const jsonPreview = useJsonSeriesNames(state.jsonOid, jsonEnabled, socket);
     // JSON-mode axis reconcile (ADR-0026/0048): the lifecycle sibling consumes the names (the
     // policy + firing condition live in the lifecycle module) and returns the VISIBLE set — the

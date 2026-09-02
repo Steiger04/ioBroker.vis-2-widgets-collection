@@ -17,8 +17,10 @@ import { DEFAULT_EDITOR_STATE, type EditorPatch, type EditorState } from './edit
 import {
     crossesFamilyBoundary,
     crossesJsonBoundary,
+    crossesJsonKindBoundary,
     dataPathReset,
     healStableIds,
+    jsonKindReset,
     loadedOidCount,
     reconcileJsonAxesStep,
 } from './lifecycleGuards';
@@ -228,6 +230,11 @@ describe('JSON-boundary data-path reset (ADR-0067)', () => {
         expect(patch.jsonSeriesStyle).toEqual({});
         expect(patch.jsonHidden).toEqual([]);
         expect(patch.jsonOid).toBe('');
+        // ADR-0075: both ADR-0067 crossings leave the json family — the Zuordnung scalars fall
+        // with it (the kind returns to its 'series' default).
+        expect(patch.jsonKind).toBe('series');
+        expect(patch.jsonRowPath).toBe('');
+        expect(patch.jsonXPath).toBe('');
     });
 
     it('dataPathReset never touches the presentation — the patch keys are the data path alone', () => {
@@ -235,11 +242,66 @@ describe('JSON-boundary data-path reset (ADR-0067)', () => {
         // The presentation fields above are all UNTOUCHED — the patch carries data-path keys only.
         expect(Object.keys(patch).sort()).toEqual([
             'jsonHidden',
+            'jsonKind',
             'jsonOid',
+            'jsonRowPath',
             'jsonSeriesStyle',
+            'jsonXPath',
             'markLines',
             'series',
             'yAxes',
         ]);
+    });
+});
+
+describe('payload-family boundary (ADR-0075)', () => {
+    it('crossesJsonKindBoundary fires on series↔table — never on a re-select', () => {
+        expect(crossesJsonKindBoundary('series', 'table')).toBe(true);
+        expect(crossesJsonKindBoundary('table', 'series')).toBe(true);
+        expect(crossesJsonKindBoundary('series', 'series')).toBe(false);
+        expect(crossesJsonKindBoundary('table', 'table')).toBe(false);
+    });
+
+    it('jsonKindReset clears the derived data path WITHOUT jsonOid and writes the target kind', () => {
+        const patch = jsonKindReset('table');
+        expect(patch.jsonKind).toBe('table');
+        expect(patch.series).toEqual([]);
+        expect(patch.yAxes).toEqual([]);
+        expect(patch.markLines).toEqual([]);
+        expect(patch.jsonSeriesStyle).toEqual({});
+        expect(patch.jsonHidden).toEqual([]);
+        expect(patch.jsonRowPath).toBe('');
+        expect(patch.jsonXPath).toBe('');
+        // The ONE difference to dataPathReset: the data point SURVIVES (the same state, read
+        // the other way) — the patch carries no jsonOid key at all.
+        expect(patch).not.toHaveProperty('jsonOid');
+    });
+
+    it('the switch is flip + reset in ONE patch — a single undo step restores both', () => {
+        // The handler composition the component performs: the crossing patch IS the reset
+        // (jsonKind included) — no second set() call, no split history entry.
+        const from = state({ mode: 'json', jsonKind: 'series', jsonOid: 'js.0.doc' });
+        const to = 'table' as const;
+        const patch = crossesJsonKindBoundary(from.jsonKind, to) ? jsonKindReset(to) : { jsonKind: to };
+        expect(patch).toEqual({
+            jsonKind: 'table',
+            series: [],
+            yAxes: [],
+            markLines: [],
+            jsonSeriesStyle: {},
+            jsonHidden: [],
+            jsonRowPath: '',
+            jsonXPath: '',
+        });
+    });
+
+    it('reconcileJsonAxesStep is INERT in the table family (ADR-0075 decision 2)', () => {
+        const table = state({
+            mode: 'json',
+            jsonKind: 'table',
+            chartType: 'line',
+            yAxes: [axis('a0', 'left', 0)],
+        });
+        expect(reconcileJsonAxesStep(table, ['temp', 'kw'])).toBeNull();
     });
 });

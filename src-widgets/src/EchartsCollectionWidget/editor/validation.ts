@@ -153,6 +153,10 @@ export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => {
     };
 };
 
+/** How many names survive the deny-list — the VISIBLE payload series count both chips share. */
+const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
+    names.filter(n => !state.jsonHidden.includes(n)).length;
+
 /**
  * What the NEXT JSON-boundary crossing (into or out of JSON, ADR-0067) deletes from the current
  * state — the numbers of the mode-toggle warning chip. History/Live counts the authored series
@@ -162,7 +166,6 @@ export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => {
  * never asks.
  */
 export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
-    const unhidden = (names: readonly string[]): number => names.filter(n => !state.jsonHidden.includes(n)).length;
     const cartesian = familyOf(state.chartType) === 'cartesian';
     const marks = cartesian ? state.markLines.length : 0;
     const dataPoint = !!state.jsonOid;
@@ -170,11 +173,30 @@ export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly s
         // A live payload preview is authoritative (ALL visible names counted — zero when every
         // name is hidden); the stored overlay entries are the fallback while no preview exists.
         const series = jsonSeriesNames.length
-            ? unhidden(jsonSeriesNames)
-            : unhidden(Object.keys(state.jsonSeriesStyle));
+            ? unhiddenCount(state, jsonSeriesNames)
+            : unhiddenCount(state, Object.keys(state.jsonSeriesStyle));
         return { series, axes: state.yAxes.length, marks, dataPoint };
     }
     return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint };
+};
+
+/**
+ * What the NEXT payload-family crossing (serien-förmig↔tabellarisch, ADR-0075) deletes — the
+ * numbers of the family-switch chip. Same F10 scope as the other boundary chips with ONE
+ * difference: `dataPoint` is always `false` — the crossing KEEPS jsonOid (the same state, read
+ * the other way). Tabellarisch counts the AUTHORED series (`state.series`); serien-förmig the
+ * visible payload names exactly like {@link jsonBoundaryLoss}'s json arm.
+ */
+export const jsonKindBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
+    const cartesian = familyOf(state.chartType) === 'cartesian';
+    const marks = cartesian ? state.markLines.length : 0;
+    if (state.jsonKind === 'table') {
+        return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint: false };
+    }
+    const series = jsonSeriesNames.length
+        ? unhiddenCount(state, jsonSeriesNames)
+        : unhiddenCount(state, Object.keys(state.jsonSeriesStyle));
+    return { series, axes: state.yAxes.length, marks, dataPoint: false };
 };
 
 /**

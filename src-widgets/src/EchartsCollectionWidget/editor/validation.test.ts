@@ -13,6 +13,7 @@ import {
     familySwitchSnippetLoss,
     firstIssueTabOf,
     jsonBoundaryLoss,
+    jsonKindBoundaryLoss,
     issueCountsByTab,
     tabOfIssue,
     validateEditor,
@@ -293,5 +294,42 @@ describe('firstIssueTabOf — the Problems-button glue (ADR-0073)', () => {
         expect(firstIssueTabOf({ series: [{ key: 'echarts_val_oid_missing' }] }, 'series')).toBeUndefined();
         expect(firstIssueTabOf({}, 'colors')).toBeUndefined();
         expect(firstIssueTabOf(undefined, 'colors')).toBeUndefined();
+    });
+});
+
+describe('jsonKindBoundaryLoss — what the next payload-family crossing deletes (ADR-0075)', () => {
+    it('tabellarisch counts the AUTHORED series (state.series)', () => {
+        const loss = jsonKindBoundaryLoss(
+            st({
+                mode: 'json',
+                jsonKind: 'table',
+                series: [
+                    { oid: '', yPath: 'a' },
+                    { oid: '', yPath: 'b' },
+                ],
+                yAxes: [{ position: 'left' }, { position: 'right' }],
+                markLines: [{ id: 'm0', upper: 5 }],
+            }),
+        );
+        expect(loss).toEqual({ series: 2, axes: 2, marks: 1, dataPoint: false });
+    });
+
+    it('serien-förmig counts the visible payload names like jsonBoundaryLoss', () => {
+        const loss = jsonKindBoundaryLoss(st({ mode: 'json', jsonKind: 'series', jsonHidden: ['B'] }), ['A', 'B', 'C']);
+        expect(loss.series).toBe(2);
+        expect(jsonKindBoundaryLoss(st({ mode: 'json' }), ['A'])).toEqual({
+            series: 1,
+            axes: 0,
+            marks: 0,
+            dataPoint: false,
+        });
+    });
+
+    it('the crossing KEEPS jsonOid — the dataPoint segment never shows (F10 scope minus the data point)', () => {
+        const loss = jsonKindBoundaryLoss(
+            st({ mode: 'json', jsonKind: 'table', jsonOid: 'js.0.table', series: [{ oid: '', yPath: 'a' }] }),
+        );
+        expect(loss.dataPoint).toBe(false); // the chip's "plus the JSON data point" stays off
+        expect(loss.series).toBe(1);
     });
 });

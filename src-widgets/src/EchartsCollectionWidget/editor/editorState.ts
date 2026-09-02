@@ -44,6 +44,7 @@ import type {
     EchartsFontWeight,
     EchartsFrameStyle,
     EchartsIgnoreNull,
+    EchartsJsonKind,
     EchartsLegendConfig,
     EchartsLegendPos,
     LegacyChartType,
@@ -129,6 +130,16 @@ export interface EditorState {
     refreshMs: number;
     ignoreNull: IgnoreNull;
     jsonOid: string;
+    /**
+     * The JSON payload family (ADR-0075): 'series' — the payload carries finished series
+     * (ADR-0011, the overlay/`jsonHidden` model); 'table' — a rows array + the Zuordnung derive
+     * the series (positional `state.series` bindings, overlay inert).
+     */
+    jsonKind: EchartsJsonKind;
+    /** Table family: dot-path to the rows array ('' = the document itself must be the array). */
+    jsonRowPath: string;
+    /** Table family: X column path ('' = the row index). */
+    jsonXPath: string;
     // title
     titleText: string;
     titlePos: EchartsTitlePos;
@@ -249,6 +260,9 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     refreshMs: 60_000,
     ignoreNull: 'keep',
     jsonOid: '',
+    jsonKind: 'series',
+    jsonRowPath: '',
+    jsonXPath: '',
     titleText: '',
     titlePos: 'topCenter',
     titleDx: 0,
@@ -434,6 +448,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // ADR-0071: the retired 'live' mode heals to 'history' (decode-and-tolerate, the 24h→1d
     // precedent) — written back as history only on save; the runtime pipeline tolerates it too.
     const mode: ChartMode = data.mode === 'json' ? 'json' : 'history';
+    // ADR-0075: an unknown/absent payload family heals to 'series' (decode-and-tolerate, the
+    // mode precedent) — existing JSON widgets stay byte-stable.
+    const jsonKind: EchartsJsonKind = data.jsonKind === 'table' ? 'table' : 'series';
 
     // No mode-switch orphan-prune exists (ADR-0048's narrow effect deps remain the clobber
     // protection) — the only deliberate axis wipes are the two ADR-0067 data-path resets (fired
@@ -490,6 +507,9 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         refreshMs: numOr(data.refreshMs, DEFAULT_EDITOR_STATE.refreshMs),
         ignoreNull: (data.ignoreNull as IgnoreNull) ?? DEFAULT_EDITOR_STATE.ignoreNull,
         jsonOid: strOr(data.jsonOid, '') === 'nothing_selected' ? '' : strOr(data.jsonOid, ''),
+        jsonKind,
+        jsonRowPath: strOr(data.jsonRowPath, ''),
+        jsonXPath: strOr(data.jsonXPath, ''),
         titleText: strOr(data.titleText, ''),
         titlePos: (data.titlePos as EchartsTitlePos) ?? DEFAULT_EDITOR_STATE.titlePos,
         titleDx: numOr(data.titleDx, DEFAULT_EDITOR_STATE.titleDx),
@@ -548,12 +568,14 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
     // ADR-0069 load heal — the derived-citizen invariant: an axis no visible binder binds cannot
     // exist, so a blob from the resting era (ADR-0066) drops SILENTLY here, re-indexing series,
     // overlay and marking anchors around the holes. Never re-arranges (stored geometry survives
-    // verbatim — {@link dropUnboundAxes} without the balance). JSON heals over the overlay-key
-    // sight (the payload names are not resolved yet; the reconcile refines on their arrival),
-    // history over the materialised series sight. Non-cartesian families carry no axes by
-    // construction (the ADR-0067 resets) — nothing to heal there.
+    // verbatim — {@link dropUnboundAxes} without the balance). JSON heals over the binder sight
+    // its payload family owns (ADR-0075): serien-förmig over the overlay keys (the payload names
+    // are not resolved yet; the reconcile refines on their arrival), tabellarisch over the
+    // materialised `state.series` — exactly like history (the overlay is empty there by the
+    // family reset; healing over it would kill every authored axis). Non-cartesian families
+    // carry no axes by construction (the ADR-0067 resets) — nothing to heal there.
     if (family === 'cartesian') {
-        if (mode === 'json') {
+        if (mode === 'json' && jsonKind === 'series') {
             const names = Object.keys(state.jsonSeriesStyle);
             const healed = dropUnboundAxes(
                 boundJsonView(names, state.jsonSeriesStyle, state.jsonHidden),
@@ -638,6 +660,12 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         refreshMs: state.refreshMs,
         ignoreNull: state.ignoreNull,
         jsonOid: state.jsonOid,
+        // The payload family rides ALWAYS (ADR-0075 — 'series' is a fact worth persisting, not
+        // an unset); the Zuordnung paths are sparse: null CLEARS a once-authored path (the
+        // vis-2 patch contract keeps a missing key's stored value).
+        jsonKind: state.jsonKind,
+        ...(state.jsonRowPath ? { jsonRowPath: state.jsonRowPath } : { jsonRowPath: null }),
+        ...(state.jsonXPath ? { jsonXPath: state.jsonXPath } : { jsonXPath: null }),
         titleText: state.titleText,
         titlePos: state.titlePos,
         titleDx: state.titleDx,

@@ -14,9 +14,15 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
 import Generic from '../../Generic';
 import { FieldLabel, InfoBox } from '../../components/controls';
-import { crossesFamilyBoundary, crossesJsonBoundary, dataPathReset } from './lifecycleGuards';
+import {
+    crossesFamilyBoundary,
+    crossesJsonBoundary,
+    crossesJsonKindBoundary,
+    dataPathReset,
+    jsonKindReset,
+} from './lifecycleGuards';
 import type { SetEditor, EditorState } from './editorState';
-import type { EchartsChartType, EchartsMode } from '../../types/field-definitions/echarts-fields';
+import type { EchartsChartType, EchartsJsonKind, EchartsMode } from '../../types/field-definitions/echarts-fields';
 
 // ── master selectors (top row) ────────────────────────────────────
 
@@ -231,6 +237,62 @@ export const ModeSelect: FC<{ state: ModeSelectSlice; set: SetEditor<ModeSelectS
         <InfoBox text={Generic.t(MODE_HINTS[state.mode])} />
     </Box>
 );
+
+const JSON_KIND_HINTS: Record<EchartsJsonKind, string> = {
+    series: 'echarts_editor_json_kind_hint_series',
+    table: 'echarts_editor_json_kind_hint_table',
+};
+
+/**
+ * The payload-family select's field ownership (ADR-0049 slice) — the pinned selector AND the
+ * payload-family data-path reset (ADR-0075): the crossing patch carries the reset keys, so the
+ * slice owns every field the handler writes.
+ */
+export type JsonKindSelectSlice = Pick<
+    EditorState,
+    | 'mode'
+    | 'jsonKind'
+    | 'series'
+    | 'yAxes'
+    | 'markLines'
+    | 'jsonSeriesStyle'
+    | 'jsonHidden'
+    | 'jsonRowPath'
+    | 'jsonXPath'
+>;
+
+/**
+ * The payload-family toggle (ADR-0075): pinned UNDER the mode toggle, rendered only while the
+ * json mode is active (the family is a property OF the json data mode, never a third mode —
+ * hidden entirely otherwise).
+ */
+export const JsonKindSelect: FC<{ state: JsonKindSelectSlice; set: SetEditor<JsonKindSelectSlice> }> = ({
+    state,
+    set,
+}) =>
+    state.mode === 'json' ? (
+        <Box>
+            <FieldLabel>{Generic.t('echarts_editor_json_kind')}</FieldLabel>
+            <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={state.jsonKind}
+                onChange={(_, v: EchartsJsonKind | null) => {
+                    if (!v) {
+                        return;
+                    }
+                    // Payload-family boundary (ADR-0075): the crossing deletes the derived data
+                    // path but KEEPS jsonOid (the same state, read the other way) — kind flip +
+                    // reset in ONE patch, so undo restores both in a single step.
+                    set(crossesJsonKindBoundary(state.jsonKind, v) ? jsonKindReset(v) : { jsonKind: v });
+                }}
+            >
+                <ToggleButton value="series">{Generic.t('echarts_json_kind_series')}</ToggleButton>
+                <ToggleButton value="table">{Generic.t('echarts_json_kind_table')}</ToggleButton>
+            </ToggleButtonGroup>
+            <InfoBox text={Generic.t(JSON_KIND_HINTS[state.jsonKind])} />
+        </Box>
+    ) : null;
 
 // ── position grid (ADR-0021) ──────────────────────────────────────
 
