@@ -69,6 +69,11 @@ interface EchartsEditorSectionsProps {
     tableColumns?: JsonTableColumn[];
     /** Tabellarisch: the schema's rows/JSON error surface. */
     tableSchemaError?: string;
+    /**
+     * The effective X is a CATEGORY axis (ADR-0075 ticket 05): json-table with a non-date X
+     * column (or none/drifted — the index fallback). The X-Karte hides its Time format.
+     */
+    xIsCategory?: boolean;
     /** The editor's undo — passed through to the Series section's ADR-0069 death snackbar. */
     undo?: () => void;
 }
@@ -149,6 +154,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     jsonError,
     tableColumns,
     tableSchemaError,
+    xIsCategory,
     undo,
 }) => {
     const sections = useMemo(() => sectionInventory(state.chartType), [state.chartType]);
@@ -254,6 +260,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         set={set}
                         pickerCtx={pickerCtx}
                         jsonSeriesNames={jsonSeriesNames}
+                        xIsCategory={xIsCategory}
                         focusTab={focusTab}
                         issues={sectionIssues}
                     />

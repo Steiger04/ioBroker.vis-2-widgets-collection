@@ -2567,3 +2567,132 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
         expect((top.xAxis as Record<string, unknown>).position).toBe('top');
     });
 });
+
+// ── string categories on X (ADR-0075 ticket 05: the table family's Kategorieachse) ──
+
+describe('buildGeneratedOption — string categories on X (ADR-0075 ticket 05)', () => {
+    const pTable = (over: Partial<PresentationConfig> = {}): PresentationConfig => ({
+        ...P,
+        xCategories: ['Jan', 'Feb', 'Jan'],
+        ...over,
+    });
+
+    it('xCategories → type category + string data, NO moment formatter, time knobs skipped', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1, 2, 3] }],
+            meta: [{ name: 'A' }],
+            p: pTable({ xAxis: { format: 'DD.MM.YY', splitNumber: 5, minInterval: 1000 } }),
+        });
+        const xa = option.xAxis as Record<string, unknown>;
+        expect(xa.type).toBe('category');
+        expect(xa.data).toEqual(['Jan', 'Feb', 'Jan']);
+        expect((xa.axisLabel as Record<string, unknown> | undefined)?.formatter).toBeUndefined();
+        expect(xa.splitNumber).toBeUndefined(); // time-axis-only knobs skip on BOTH flavours
+        expect(xa.minInterval).toBeUndefined();
+    });
+
+    it('barCategories (numbers) keep the moment formatter — the two flavours stay separate', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1, 2] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, cartesianType: 'bar', barCategories: [100, 200] },
+        });
+        const xa = option.xAxis as Record<string, unknown>;
+        expect(xa.type).toBe('category');
+        expect(typeof (xa.axisLabel as Record<string, unknown>).formatter).toBe('function');
+    });
+
+    it('label knobs still apply on string categories (rotate/size/colour)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1] }],
+            meta: [{ name: 'A' }],
+            p: pTable({ xAxis: { labelRotate: 30, labelFontSize: 14, color: '#123' } }),
+        });
+        const xa = option.xAxis as Record<string, unknown>;
+        expect((xa.axisLabel as Record<string, unknown>).rotate).toBe(30);
+        expect((xa.axisLabel as Record<string, unknown>).fontSize).toBe(14);
+        expect((xa.axisLabel as Record<string, unknown>).color).toBe('#123');
+    });
+
+    it('the top mirror carries type+data for string categories (Grenzachse, plot-edge contract)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1] }],
+            meta: [{ name: 'A' }],
+            p: pTable({ xAxis: { position: 'top', splitLine: true } }),
+        });
+        const xa = option.xAxis as unknown as Record<string, unknown>[];
+        expect(xa[0]).toMatchObject({ type: 'category', position: 'top', data: ['Jan', 'Feb', 'Jan'] });
+        expect(xa[1]).toMatchObject({ type: 'category', position: 'bottom', data: ['Jan', 'Feb', 'Jan'] });
+    });
+
+    it('tooltip: the CATEGORY NAME is the header — no moment time on a nameless data shape', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [21.5] }],
+            meta: [{ name: 'A' }],
+            p: pTable(),
+        });
+        const t = (option.tooltip as { formatter: (p: unknown) => string }).formatter;
+        const html = t([{ name: 'Feb', marker: '<m>', seriesName: 'A', value: 21.5 }]);
+        expect(html).toBe('<b>Feb</b><br/><m> A: 21.5');
+    });
+
+    it('tooltip: an authored template still wins — {b} resolves to the category name', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [21.5] }],
+            meta: [{ name: 'A' }],
+            p: pTable({ tooltipTemplate: '{b}: {c}' }),
+        });
+        const t = (option.tooltip as { formatter: (p: unknown) => string }).formatter;
+        const html = t({ name: 'Feb', marker: '<m>', seriesName: 'A', value: 21.5 });
+        expect(html).toBe('<m> Feb: 21.5');
+    });
+
+    it('time-X keeps the moment header and formatter (Verlauf/serien-förmig byte-stable)', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[SAMPLE_TS, 21.5]] }],
+            meta: [{ name: 'A' }],
+            p: P, // no categories at all
+        });
+        const xa = option.xAxis as Record<string, unknown>;
+        expect(xa.type).toBe('time');
+        expect(typeof (xa.axisLabel as Record<string, unknown>).formatter).toBe('function');
+    });
+});
+
+describe('buildGeneratedOption — category-X edge contracts (ADR-0075 ticket 05)', () => {
+    it('dataZoom rides along unchanged on a category X — inside/slider zoom over category indices', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1, 2] }],
+            meta: [{ name: 'A' }],
+            p: {
+                ...P,
+                xCategories: ['Jan', 'Feb'],
+                dataZoomInside: true,
+                dataZoomSlider: true,
+            },
+        });
+        expect(option.dataZoom).toMatchObject([
+            { type: 'inside', start: 0, end: 100 },
+            { type: 'slider', start: 0, end: 100 },
+        ]);
+    });
+
+    it('grid OFF under category X: no mirror twin — xAxis stays the single object', () => {
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [1] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xCategories: ['Jan'], xAxis: { position: 'top' } }, // splitLine default OFF
+        });
+        expect(Array.isArray(option.xAxis)).toBe(false);
+        expect(option.xAxis).toMatchObject({ type: 'category', position: 'top', data: ['Jan'] });
+    });
+});

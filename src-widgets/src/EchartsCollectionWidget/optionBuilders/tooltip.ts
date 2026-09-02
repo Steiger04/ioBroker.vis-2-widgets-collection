@@ -70,6 +70,11 @@ const makeRowFormatter = (
 export interface TooltipTimeContext {
     /** Authored Time format (moment tokens); unset → `DEFAULT_TOOLTIP_FORMAT`. */
     format?: string;
+    /**
+     * STRING categories ride the X axis (ADR-0075): the header and `{b}` show the CATEGORY
+     * NAME (echarts' `params.name`), never a moment time — the rows carry no timestamps.
+     */
+    category?: boolean;
 }
 
 /** The (loosely typed) param object echarts hands a tooltip `formatter` callback. */
@@ -77,6 +82,8 @@ type TooltipParam = {
     axisValue?: unknown;
     marker?: string;
     seriesName?: string;
+    /** The category label on a category axis (empty on time axes — ADR-0052 footnote). */
+    name?: string;
     value?: unknown;
 };
 
@@ -133,13 +140,16 @@ const readableValue = (v: unknown, valueFmt?: (v: unknown) => string): string =>
  */
 export const resolveTooltipTokens = (
     template: string,
-    p: { seriesName?: string; ts: number | null; value: unknown },
+    p: { seriesName?: string; ts: number | null; value: unknown; name?: string },
     opts: { format?: string; lang: string; valueFmt?: (v: unknown) => string },
 ): string => {
-    return template
-        .replace(/\{a\}/g, p.seriesName ?? '')
-        .replace(/\{b\}/g, p.ts !== null ? formatTooltipHeader(opts.format, p.ts, opts.lang) : '')
-        .replace(/\{c\}/g, readableValue(p.value, opts.valueFmt));
+    return (
+        template
+            .replace(/\{a\}/g, p.seriesName ?? '')
+            // Category name first (ADR-0075: string categories have a name, no ts); else the time.
+            .replace(/\{b\}/g, p.name ?? (p.ts !== null ? formatTooltipHeader(opts.format, p.ts, opts.lang) : ''))
+            .replace(/\{c\}/g, readableValue(p.value, opts.valueFmt))
+    );
 };
 
 /**
@@ -201,7 +211,14 @@ const makeTemplateTooltipFormatter =
                 p =>
                     `${markerPrefix(p)}${resolveTooltipTokens(
                         template,
-                        { seriesName: p.seriesName, ts: paramTs(p), value: paramValue(p) },
+                        {
+                            seriesName: p.seriesName,
+                            ts: paramTs(p),
+                            value: paramValue(p),
+                            // The category dimension (ADR-0075): {b} is the NAME on string
+                            // categories, the time everywhere else — resolved here, one dialect.
+                            name: ctx.category ? p.name : undefined,
+                        },
                         { format: ctx.format, lang: resolveHostLang(), valueFmt: valueFmtFor?.(p.seriesName) },
                     )}`,
             )
@@ -223,10 +240,18 @@ const makeMomentTooltipFormatter =
     ): ((params: unknown) => string) =>
     params => {
         const raw = (Array.isArray(params) ? params : [params]) as TooltipParam[];
-        // The header derives from the HOVERED ts (the first param) and survives the row filters —
-        // an all-rows-dropped tooltip still tells the user WHICH time they are on.
+        // The header derives from the HOVERED entry (the first param) and survives the row
+        // filters — an all-rows-dropped tooltip still tells the user WHERE they are: the
+        // category name on string categories (ADR-0075 — the rows carry no timestamps), the
+        // hovered time via the Time format everywhere else.
         const ts = paramTs(raw[0]);
-        const header = ts !== null ? `<b>${formatTooltipHeader(ctx.format, ts, resolveHostLang())}</b><br/>` : '';
+        const header = ctx.category
+            ? raw[0]?.name
+                ? `<b>${raw[0].name}</b><br/>`
+                : ''
+            : ts !== null
+              ? `<b>${formatTooltipHeader(ctx.format, ts, resolveHostLang())}</b><br/>`
+              : '';
         const list = filterTooltipRows(raw, ts, filters ?? {});
         return (
             header +

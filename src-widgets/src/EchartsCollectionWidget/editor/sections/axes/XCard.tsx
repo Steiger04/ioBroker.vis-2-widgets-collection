@@ -152,7 +152,13 @@ const XCard: FC<{
     fallbackColor: string;
     /** Theme divider token — the grid + tick colours' inherit value (the theme's axis-line floor). */
     dividerColor: string;
-}> = ({ x, open, onToggle, onChange, pickerCtx, fallbackColor, dividerColor }) => {
+    /**
+     * The effective X is a CATEGORY axis (ADR-0075: json-table with a non-date X column): the
+     * Time format has nothing to label — the field hides. Absent/false = the time axis
+     * (Verlauf + serien-förmig always; the field always visible there).
+     */
+    isCategory?: boolean;
+}> = ({ x, open, onToggle, onChange, pickerCtx, fallbackColor, dividerColor, isCategory = false }) => {
     // Splitlines default off on a time axis (the echarts default) — the grid colour rides this state.
     const splitLineEffective = x.splitLine ?? false;
     return (
@@ -238,10 +244,14 @@ const XCard: FC<{
                             ctx={pickerCtx}
                         />
                     </Box>
-                    <XFormatCombo
-                        value={x.format}
-                        onChange={v => onChange({ format: v })}
-                    />
+                    {/* String categories label themselves (ADR-0075) — no moment format to
+                        author; the field hides rather than lying inert. */}
+                    {!isCategory && (
+                        <XFormatCombo
+                            value={x.format}
+                            onChange={v => onChange({ format: v })}
+                        />
+                    )}
                     {/* Angled tick labels for narrow widgets; unset = 0° horizontal (no emit). Distinct
                 from Namen-Drehung above — this rotates the time labels, not the axis name. The
                 label SIZE (parity Build D) sits beside it — unset defers to echarts' 12. */}

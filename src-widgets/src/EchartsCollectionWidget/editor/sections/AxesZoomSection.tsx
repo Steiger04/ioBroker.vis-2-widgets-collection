@@ -94,9 +94,19 @@ interface AxesZoomSectionProps {
     pickerCtx: OidPickerCtx;
     /** JSON-mode payload series names, in payload order (drives the Series-card list). */
     jsonSeriesNames?: string[];
+    /** The effective X is a CATEGORY axis (ADR-0075 json-table) — hides the X-Karte's Time format. */
+    xIsCategory?: boolean;
 }
 
-const AxesZoomSection: FC<AxesZoomSectionProps> = ({ focusTab, issues, state, set, pickerCtx, jsonSeriesNames }) => {
+const AxesZoomSection: FC<AxesZoomSectionProps> = ({
+    focusTab,
+    issues,
+    state,
+    set,
+    pickerCtx,
+    jsonSeriesNames,
+    xIsCategory,
+}) => {
     const axes = state.yAxes;
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
@@ -353,6 +363,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({ focusTab, issues, state, se
                         pickerCtx={pickerCtx}
                         fallbackColor={themeTokens.textSecondary}
                         dividerColor={themeTokens.divider}
+                        isCategory={xIsCategory}
                     />
                     {axes.map((a, i) => (
                         <AxisCard

@@ -110,6 +110,15 @@ function EchartsConfigEditorModal({
     // serien-förmig preview above stays gated off in the table family).
     const isJsonTable = state.mode === 'json' && state.jsonKind === 'table';
     const tableSchema = useJsonTableSchema(state.jsonOid, state.jsonRowPath, isJsonTable, socket);
+    // The effective X kind, editor-side (ADR-0075 ticket 05): TIME iff the xPath column is a
+    // date column (the pipeline's dominant-type rule mirrored over the schema — the engine
+    // folds date+string into 'date', so the sights agree). No COLUMNS at all (empty payload)
+    // also renders the time axis — the pipeline's empty index list falls back to it, and the
+    // sights stay honest (nothing to label either way, but the field must not hide).
+    const xIsCategory =
+        isJsonTable &&
+        tableSchema.columns.length > 0 &&
+        tableSchema.columns.find(c => c.path === state.jsonXPath)?.type !== 'date';
 
     // A fresh load resets the session chrome (ADR-0048): the lifecycle signals via `loadToken`,
     // the chrome (focus steering + maximize) belongs to this modal.
@@ -307,6 +316,7 @@ function EchartsConfigEditorModal({
                                 jsonError={jsonPreview.error}
                                 tableColumns={tableSchema.columns}
                                 tableSchemaError={tableSchema.error}
+                                xIsCategory={xIsCategory}
                                 undo={undo}
                             />
                         </Box>

@@ -494,15 +494,26 @@ const silentYAxis = (): Record<string, unknown> => ({
  * legibility idiom as `buildYAxisEntry`. Unset = the theme's axis colours (`echartsTheme` floor).
  *
  * @param x - The flat X-Karte config (ADR-0035).
- * @param spanMs - The data span (all series, ms) — the Auto labelling's clock (ADR-0052): the
- * moment formatter is ALWAYS emitted as a function (authored pattern or adaptive Auto), so the
- * raw JSON keeps its function-free contract while `axisLabel.formatter` stays GUI-owned.
+ * @param spanMs - The data span (all series, ms) — the Auto labelling's clock (ADR-0052): on the
+ * time axis and the NUMBER bucket grid the moment formatter is ALWAYS emitted as a function
+ * (authored pattern or adaptive Auto), so the raw JSON keeps its function-free contract while
+ * `axisLabel.formatter` stays GUI-owned. STRING categories (ADR-0075) emit NO formatter — their
+ * labels are the payload's own text.
  */
-const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: number[]): Record<string, unknown> => {
+const buildXAxisEntry = (
+    x: EchartsXAxisConfig,
+    spanMs: number,
+    categories?: number[] | string[],
+): Record<string, unknown> => {
+    // Two category flavours stay SEPARATE (ADR-0075): the ADR-0065 bucket grid is NUMBER
+    // timestamps (the moment formatter below labels them — „Zeitformat der X-Karte gilt
+    // weiter"); the table family's xCategories are STRING labels that ARE their own text —
+    // no moment formatter, echarts' native category labelling renders them.
+    const stringCategories = !!categories && typeof categories[0] === 'string';
     const entry: Record<string, unknown> = {
-        // Category bars (ADR-0065): the bucket grid IS the axis — timestamps as data, the same
-        // moment formatter below labels them („Zeitformat der X-Karte gilt weiter"). Everything
-        // else about the entry is shared; the time-axis-only tick-density knobs are skipped.
+        // Category bars (ADR-0065) / table categories (ADR-0075): the category list IS the
+        // axis. Everything else about the entry is shared; the time-axis-only tick-density
+        // knobs are skipped on both flavours.
         ...(categories ? { type: 'category', data: categories } : { type: 'time' }),
         // Parity Build D (ADR-0055): grid + tick colours ride their show-switch objects, sparse —
         // unset leaves both a bare {show} so the raw override keeps owning lineStyle wholesale.
@@ -534,18 +545,22 @@ const buildXAxisEntry = (x: EchartsXAxisConfig, spanMs: number, categories?: num
     if (x.nameRotate !== undefined) {
         entry.nameRotate = x.nameRotate;
     }
-    const axisLabel: Record<string, unknown> = {
+    const axisLabel: Record<string, unknown> = {};
+    if (!stringCategories) {
         // ADR-0052: the moment Time format — authored pattern, or the adaptive Auto derived from
         // the data span. Always a FUNCTION (the raw JSON stays function-free; the analysis pins
-        // the key as GUI-owned). The locale follows the host language at format time.
-        formatter: makeAxisLabelFormatter(x.format, spanMs),
-    };
+        // the key as GUI-owned). The locale follows the host language at format time. STRING
+        // categories skip it — their labels are the payload's own text, moment has nothing to
+        // format (ADR-0075 ticket 05).
+        axisLabel.formatter = makeAxisLabelFormatter(x.format, spanMs);
+    }
     if (x.labelRotate !== undefined) {
         // Angled time labels for narrow widgets; unset = 0° (the echarts default, no emit).
         axisLabel.rotate = x.labelRotate;
     }
-    // Parity Build D (ADR-0055): label font size — sparse inside the always-present axisLabel
-    // block; unset keeps it formatter(+rotate)-only.
+    // Parity Build D (ADR-0055): label font size — sparse; unset keeps the block
+    // formatter(+rotate)-only. On STRING categories with no label knobs at all the whole
+    // axisLabel block is absent (the Object.keys gate below — nothing to author there).
     if (x.labelFontSize !== undefined) {
         axisLabel.fontSize = x.labelFontSize;
     }
@@ -879,7 +894,11 @@ export const buildCartesianOption = (
     // entries (the generated array replaces the floor's xAxis object in the merge), so the floor's
     // remaining X keys (label + grid colour — the axisLine colour is builder-emitted since the
     // ADR-0055 addendum) are stamped onto the real entry where the author left them unset.
-    const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, p.barCategories), p.xAxis.raw);
+    // The X category source (ADR-0075): the bucket grid (ADR-0065, number timestamps) or the
+    // table family's string labels — whichever rides the presentation. Mutually exclusive by
+    // construction (barCategories is history-fetch-only, xCategories table-only).
+    const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
+    const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, xCategories), p.xAxis.raw);
     let emittedXAxis: Record<string, unknown> | Array<Record<string, unknown>> = xAxisEntry;
     if (xAxisEntry.position === 'top' && xGridOn) {
         const label = (xAxisEntry.axisLabel as Record<string, unknown> | undefined) ?? {};
@@ -911,8 +930,9 @@ export const buildCartesianOption = (
         ),
         // The tooltip's time header follows the same Time format (ADR-0052) — one format, two
         // surfaces; an authored tooltipTemplate still wins inside buildTooltip. The per-series
-        // facts (ADR-0057) ride along for the row formatting.
-        tooltip: buildTooltip(p, { format: p.xAxis.format }, facts),
+        // facts (ADR-0057) ride along for the row formatting. STRING categories (ADR-0075) take
+        // the category-name header instead — a moment header would render nothing (no ts).
+        tooltip: buildTooltip(p, { format: p.xAxis.format, category: !!p.xCategories?.length }, facts),
         grid: {
             left: 0,
             right: 0,
