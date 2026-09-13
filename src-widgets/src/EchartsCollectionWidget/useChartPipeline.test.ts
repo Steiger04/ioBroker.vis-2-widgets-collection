@@ -474,8 +474,9 @@ describe('assemblePipelineResult — resolved marking bands ride the presentatio
                 }),
             }),
         );
-        const first = (option.series as { markArea?: { data: unknown[] } }[])[0];
+        const first = (option.series as { markArea?: { data: unknown[] }; markLine?: { data: unknown[] } }[])[0];
         expect(first?.markArea?.data).toHaveLength(1);
+        expect(first?.markLine?.data).toHaveLength(2); // ADR-0076: the band's two edge lines ride along
     });
 });
 

@@ -10,9 +10,10 @@
  * width, shadow, 3-way line style), Beschriftung (text; the tuning fields render only while a
  * text exists — the adapter's gating). The ANCHOR is the Y-axis (our model); the emit hangs the
  * markLine/markArea on the first series of that axis (builder-side, ADR-0023). Both bounds
- * resolved ⇒ a band, one ⇒ a line (ADR-0062 — the resolution itself is pipeline-side; the card
- * only authors). Purely presentational: every write goes through the onChange patch / onRemove
- * callbacks; the section owns the list.
+ * resolved ⇒ a band WITH its two styled edge lines (ADR-0076 — every style/label field works
+ * for bands too; the label rides the upper edge), one ⇒ a lone line (ADR-0062 — the resolution
+ * itself is pipeline-side; the card only authors). Purely presentational: every write goes
+ * through the onChange patch / onRemove callbacks; the section owns the list.
  */
 import { useState, type FC } from 'react';
 import { Box, IconButton, TextField } from '@mui/material';

@@ -248,14 +248,63 @@ const numericBound = (bound: number | string | undefined): number | undefined =>
     typeof bound === 'number' && Number.isFinite(bound) ? bound : undefined;
 
 /**
+ * One marking edge/line data entry (ADR-0061 style + label clusters; ADR-0076: ONE emit shared
+ * by single lines and band edges so the two cannot drift apart).
+ *
+ * Width defaults to 2 — the card slider's fallback, NOT echarts' own default of 1 (`||` keeps
+ * the documented "0 = unset" semantics: an invisible line is never a choice). A legacy boolean
+ * `dashed` is tolerated at runtime (decode migrates, the builder never rejects); an authored
+ * 3-way lineStyle wins over any stale boolean.
+ *
+ * Label cluster: NO text → no label key at all (echarts shows the value at the line end — the
+ * pre-0061 behaviour, kept for band edges too: a textless band shows its two bound values).
+ * X offset negates on the END places (adapter l/r: positive pulls the label inward) — including
+ * the UNSET position, whose effective default is 'end' too, so "Standard" and an explicit
+ * "Rechts" offset the same way.
+ *
+ * @param ml - The marking config (bounds resolved to numbers by the pipeline).
+ * @param color - The marking's effective colour (explicit or the divider token, ADR-0027).
+ * @param bound - The numeric Y value this edge sits at.
+ * @param withLabel - Whether the label cluster rides this edge (bands label the UPPER edge
+ * only — the adapter's both-edges duplicate read as a defect, ADR-0076 decision 3).
+ */
+const markEdge = (ml: EchartsMarkLine, color: string, bound: number, withLabel: boolean): Record<string, unknown> => {
+    // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as v+1 in
+    // the line's own colour (0/unset = off — no shadow keys at all).
+    const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
+    const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
+    return {
+        yAxis: bound,
+        lineStyle: {
+            type: markLineStyleOf(ml),
+            color,
+            width: ml.width || 2,
+            ...(shadowOn ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color } : {}),
+        },
+        ...(withLabel && ml.label
+            ? {
+                  label: {
+                      formatter: ml.label,
+                      ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
+                      ...(ml.labelOffset ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] } : {}),
+                      ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
+                      ...(ml.labelColor ? { color: ml.labelColor } : {}),
+                  },
+              }
+            : {}),
+    };
+};
+
+/**
  * Marking markers attached to the first cartesian series of the target axis (echarts markLine/
  * markArea are series-level; the anchor is our Y-axis model, ADR-0061/0062).
  *
- * Per marking: both bounds resolved ⇒ a markArea BAND (fill 0–1, borderless — the band
- * replaces the two edge lines, ticket 10); exactly one ⇒ a markLine at that bound with the full
- * stage-1 style + label clusters; neither ⇒ skipped. Style/label emit sparse — every unset
- * field leaves no key. A legacy boolean `dashed` is tolerated at runtime (decode normalizes it
- * away).
+ * Per marking: both bounds resolved ⇒ a markArea BAND (fill 0–1, borderless, label-less) PLUS
+ * two edge markLines carrying the full style cluster — adapter parity (ADR-0076 supersedes
+ * ADR-0062's „band replaces the edges" deviation): the label cluster rides the UPPER edge.
+ * Exactly one bound ⇒ a single markLine at that bound; neither ⇒ skipped. Style/label emit
+ * sparse — every unset field leaves no key (width is the exception: its 2 default is explicit,
+ * see {@link markEdge}).
  *
  * @param markLines - The marking configs (bounds resolved to numbers by the pipeline).
  * @param divider - Theme divider token — the default marking colour when none is explicit (ADR-0027).
@@ -271,63 +320,25 @@ const markMarkers = (
         const lower = numericBound(ml.lower);
         const color = ml.color ?? divider;
         if (upper !== undefined && lower !== undefined) {
-            // Band (ADR-0062): fill defaults 0.2 (the adapter's 0 renders invisible — documented
-            // deviation); borderless like the adapter; the label cluster's text/size/colour ride
-            // the first point (markArea data items officially carry label+itemStyle) — position
-            // and X offset stay line-only (their 12 places are line places).
+            // Band (ADR-0062/0076): the area carries ONLY the fill — borderless like the
+            // adapter, and label-less (the adapter's area label is commented out upstream; our
+            // label cluster rides the upper edge). Fill defaults 0.2 (the adapter's 0 renders
+            // invisible — documented deviation).
             areaData.push([
                 {
                     yAxis: lower,
                     itemStyle: { color, borderWidth: 0, opacity: ml.fill ?? DEFAULT_MARK_FILL },
-                    ...(ml.label
-                        ? {
-                              label: {
-                                  formatter: ml.label,
-                                  ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
-                                  ...(ml.labelColor ? { color: ml.labelColor } : {}),
-                              },
-                          }
-                        : {}),
                 },
                 { yAxis: upper },
             ]);
+            lineData.push(markEdge(ml, color, upper, true), markEdge(ml, color, lower, false));
             continue;
         }
         const bound = upper ?? lower;
         if (bound === undefined) {
             continue; // nothing resolved — no marker, no crash
         }
-        // Legacy tolerance: pre-0061 blobs carry a boolean `dashed` (decode migrates, the
-        // builder never rejects). An authored 3-way lineStyle wins over any stale boolean.
-        const type = markLineStyleOf(ml);
-        // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as
-        // v+1 in the line's own colour (0/unset = off — no shadow keys at all).
-        const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
-        // Label cluster: NO text → no label key at all (echarts shows the value at the line
-        // end — the pre-0061 behaviour). X offset negates on the END places (adapter l/r:
-        // positive pulls the label inward) — including the UNSET position, whose effective
-        // default is 'end' too, so "Standard" and an explicit "Rechts" offset the same way.
-        const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
-        lineData.push({
-            yAxis: bound,
-            lineStyle: {
-                type,
-                color,
-                ...(ml.width ? { width: ml.width } : {}),
-                ...(shadowOn ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color } : {}),
-            },
-            ...(ml.label
-                ? {
-                      label: {
-                          formatter: ml.label,
-                          ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
-                          ...(ml.labelOffset ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] } : {}),
-                          ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
-                          ...(ml.labelColor ? { color: ml.labelColor } : {}),
-                      },
-                  }
-                : {}),
-        });
+        lineData.push(markEdge(ml, color, bound, true));
     }
     return { lineData, areaData };
 };

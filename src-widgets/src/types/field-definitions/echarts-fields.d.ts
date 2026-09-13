@@ -592,7 +592,8 @@ export interface EchartsMarkLine {
     upper?: number | string;
     /**
      * Lower bound (same number-or-OID semantics as {@link upper}). Upper AND lower resolved ⇒ a
-     * markArea band; exactly one ⇒ a markLine at that bound.
+     * markArea band PLUS two styled edge markLines (ADR-0076 adapter parity — the label cluster
+     * rides the upper edge); exactly one ⇒ a markLine at that bound.
      */
     lower?: number | string;
     /**
@@ -616,7 +617,7 @@ export interface EchartsMarkLine {
     lineStyle?: EchartsLineStyle;
     /** Legacy boolean line style (pre-ADR-0061 blobs) — tolerated at runtime, never re-saved. */
     dashed?: boolean;
-    /** Line width (`lineStyle.width`); unset/0 = no key → the echarts default. */
+    /** Line width (`lineStyle.width`); unset/0 → the 2 default (the card slider's fallback — echarts' own is 1, ADR-0076). */
     width?: number;
     /** Shadow size (adapter `os`): blur/offsetY emit as v+1 in the line colour; unset/0 = no shadow. */
     shadow?: number;

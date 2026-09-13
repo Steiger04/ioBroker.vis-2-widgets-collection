@@ -831,10 +831,10 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
         expect(mark({ lineStyle: 'solid' }).lineStyle.type).toBe('solid');
     });
 
-    it('width emits sparse; unset → no width key (echarts default, existing widgets unchanged)', () => {
+    it('width emits authored; unset/0 → the 2 default (the card slider fallback, ADR-0076)', () => {
         expect(mark({ width: 3 }).lineStyle.width).toBe(3);
-        expect('width' in mark({}).lineStyle).toBe(false);
-        expect('width' in mark({ width: 0 }).lineStyle).toBe(false); // 0 = unset (invisible line never a choice)
+        expect(mark({}).lineStyle.width).toBe(2); // echarts' own default is 1 — the slider shows 2
+        expect(mark({ width: 0 }).lineStyle.width).toBe(2); // 0 = unset (invisible line never a choice)
     });
 
     it('shadow uses the adapter os formula: blur/offsetY = v+1 in the line colour', () => {
@@ -2296,7 +2296,7 @@ describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the leg
     });
 });
 
-describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', () => {
+describe('buildGeneratedOption — marking bands (ADR-0062 + ADR-0076 adapter-parity edges)', () => {
     /** Build with the given marks; return the first series' marker blocks. */
     const markers = (
         markLines: EchartsMarkLine[],
@@ -2314,14 +2314,18 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
         return first;
     };
 
-    it('both bounds ⇒ markArea band (fill default 0.2, colour, borderless) — no edge lines', () => {
+    it('both bounds ⇒ markArea band (fill default 0.2, colour, borderless) + TWO edge lines', () => {
         const m = markers([{ id: '1', upper: 24, lower: 18, color: '#c' }]);
         expect(m.markArea).toBeDefined();
-        expect(m.markLine).toBeUndefined(); // the band REPLACES the two lines
+        expect(m.markLine).toBeDefined(); // ADR-0076: the band KEEPS its two edge lines
         const [start, end] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
         expect(start.yAxis).toBe(18);
         expect(end.yAxis).toBe(24);
         expect(start.itemStyle).toEqual({ color: '#c', borderWidth: 0, opacity: 0.2 });
+        // Upper edge first (the label carrier), then the lower — both carry the full style.
+        expect(m.markLine!.data).toHaveLength(2);
+        expect(m.markLine!.data[0].yAxis).toBe(24);
+        expect(m.markLine!.data[1].yAxis).toBe(18);
     });
 
     it('authored fill wins over the 0.2 default', () => {
@@ -2329,8 +2333,30 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
         expect((start.itemStyle as Record<string, unknown>).opacity).toBe(0.6);
     });
 
-    it('band label carries text/size/colour — position/X-offset stay line-only', () => {
-        const [start] = markers([
+    it('band edges carry the style cluster on BOTH edges (type/width/shadow, adapter formula)', () => {
+        const m = markers([{ upper: 24, lower: 18, color: '#c', lineStyle: 'dotted', width: 4, shadow: 2 }]);
+        const expectEdge = (entry: Record<string, unknown>): void => {
+            expect(entry.lineStyle).toEqual({
+                type: 'dotted',
+                color: '#c',
+                width: 4,
+                shadowBlur: 3, // v+1 in the line's own colour — the adapter `os` formula
+                shadowOffsetY: 3,
+                shadowColor: '#c',
+            });
+        };
+        expectEdge(m.markLine!.data[0]);
+        expectEdge(m.markLine!.data[1]);
+    });
+
+    it('band edges without authored width draw the 2 default (the slider fallback)', () => {
+        const m = markers([{ upper: 24, lower: 18 }]);
+        expect((m.markLine!.data[0].lineStyle as Record<string, unknown>).width).toBe(2);
+        expect((m.markLine!.data[1].lineStyle as Record<string, unknown>).width).toBe(2);
+    });
+
+    it('band label cluster rides the UPPER edge (full cluster incl. position/X-offset) — the area is label-less', () => {
+        const m = markers([
             {
                 upper: 24,
                 lower: 18,
@@ -2340,8 +2366,26 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
                 labelPosition: 'end',
                 labelOffset: 5,
             },
-        ]).markArea!.data[0] as [Record<string, unknown>];
-        expect(start.label).toEqual({ formatter: 'Komfort', fontSize: 11, color: '#ff0' });
+        ]);
+        // The upper edge carries the FULL cluster — position and X-offset work on bands (ADR-0076).
+        expect(m.markLine!.data[0].label).toEqual({
+            formatter: 'Komfort',
+            position: 'end',
+            distance: [-5, 0], // negated on the end places, like the single-line case
+            fontSize: 11,
+            color: '#ff0',
+        });
+        expect(m.markLine!.data[1].label).toBeUndefined(); // the lower edge stays mute
+        const [start] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
+        expect('label' in start).toBe(false); // the area itself carries NO label (adapter parity)
+    });
+
+    it('a textless band emits NO label keys anywhere (echarts shows the values at the edge ends)', () => {
+        const m = markers([{ upper: 24, lower: 18 }]);
+        expect('label' in m.markLine!.data[0]).toBe(false);
+        expect('label' in m.markLine!.data[1]).toBe(false);
+        const [start] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
+        expect('label' in start).toBe(false);
     });
 
     it('exactly one resolved bound ⇒ a markLine at that bound (upper-only AND lower-only)', () => {
@@ -2365,7 +2409,7 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
         const m = markers([{ upper: 24, lower: 18 }, { upper: 30 }]);
         expect(m.markArea).toBeDefined();
         expect(m.markLine).toBeDefined();
-        expect(m.markLine!.data).toHaveLength(1);
+        expect(m.markLine!.data).toHaveLength(3); // two band edges + the standalone line
         expect(m.markArea!.data).toHaveLength(1);
     });
 
@@ -2386,9 +2430,15 @@ describe('buildGeneratedOption — marking bands (parity Build C, ADR-0062)', ()
                 markLines: [{ upper: 5000, lower: 4000, yAxisIndex: 1 }],
             },
         });
-        const series = option.series as unknown as { name: string; markArea?: unknown }[];
+        const series = option.series as unknown as {
+            name: string;
+            markArea?: unknown;
+            markLine?: unknown;
+        }[];
         expect(series[1].markArea).toBeDefined();
+        expect(series[1].markLine).toBeDefined(); // the edges follow their band's host
         expect(series[0].markArea).toBeUndefined();
+        expect(series[0].markLine).toBeUndefined();
     });
 });
 
