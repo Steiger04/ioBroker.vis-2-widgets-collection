@@ -11,7 +11,8 @@
  * per-series history instance (ADR-0039) — lives in the Series section.
  */
 import type { FC } from 'react';
-import { Box, ListSubheader, MenuItem, TextField } from '@mui/material';
+import { Box, Chip, ListSubheader, MenuItem, TextField } from '@mui/material';
+import { ErrorOutline } from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 // The V3 subpath — the adapter for date-fns v3/v4. The plain '@mui/x-date-pickers/AdapterDateFns'
@@ -23,6 +24,8 @@ import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
 import ColumnAutocomplete from '../ColumnAutocomplete';
 import { suggestedRowPath, useJsonTableSchema } from '../useJsonTableSchema';
+import { xSampleLine } from '../xSampleValues';
+import { resolveHostLang } from '../../timeFormat';
 import { RANGE_MINUTES } from '../../timeWindow';
 import { AGGREGATE_VALUES } from '../../seriesDataOverrides';
 import {
@@ -178,26 +181,36 @@ const barIntervalOptions = (state: DataSourceSlice): [EchartsBarInterval, string
 };
 
 /**
- * The Zeilenpfad select's options (ADR-0075): the top level plus every discovered array with
- * its sample length badge. A stored path the payload no longer carries stays VISIBLE (the
- * honest drift display — the select must not lie a different path; decision 9's error surface
- * says the rest).
+ * The Zeilenpfad chip row's entries (ADR-0075, zuordnung-redesign Q2): the top level plus
+ * every discovered array with its sample length badge. A stored path the payload no longer
+ * carries stays VISIBLE as a drifted chip (the honest drift display — the row must not lie a
+ * different path; decision 9's error surface says the rest).
  */
-const rowPathOptions = (
+interface RowPathChip {
+    path: string;
+    /** Display text — the top option's word, or the path itself. */
+    label: string;
+    /** Sample length badge; undefined on a drifted path (unknown). */
+    length?: number;
+    /** Authored but gone from the payload — warning-coloured, still selectable. */
+    drifted: boolean;
+}
+
+const rowPathChips = (
     current: string,
     schema: { arrayPaths: readonly { path: string; length: number }[] },
-): [string, string][] => {
+): RowPathChip[] => {
     const top = schema.arrayPaths.find(p => p.path === '');
-    const options: [string, string][] = [
-        ['', top ? `${Generic.t('echarts_mapping_rows_top')} (${top.length})` : Generic.t('echarts_mapping_rows_top')],
+    const chips: RowPathChip[] = [
+        { path: '', label: Generic.t('echarts_mapping_rows_top'), length: top?.length, drifted: false },
         ...schema.arrayPaths
             .filter(p => p.path !== '')
-            .map(p => [p.path, `${p.path} (${p.length})`] as [string, string]),
+            .map(p => ({ path: p.path, label: p.path, length: p.length, drifted: false })),
     ];
     if (current && !schema.arrayPaths.some(p => p.path === current)) {
-        options.push([current, `${current} (?)`]); // drifted — kept selectable, badge unknown
+        chips.push({ path: current, label: current, drifted: true }); // kept selectable, length unknown
     }
-    return options;
+    return chips;
 };
 
 interface DataSourceSectionProps {
@@ -227,6 +240,12 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);
+
+    // The Zuordnung's derived sights (zuordnung-redesign): the suggestion drives the chip
+    // badge (decision 8's new clothes — MARKED while unset, never silently set; top-level ''
+    // stays unmarked, unset already reads it), the sample line the X picker's confirmation.
+    const rowSuggestion = isJsonTable && !state.jsonRowPath ? suggestedRowPath(tableSchema.arrayPaths) : '';
+    const xLine = isJsonTable ? xSampleLine(tableSchema.columns, state.jsonXPath, resolveHostLang()) : null;
 
     return (
         <Box>
@@ -459,13 +478,89 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         ) : (
                             !tableSchema.arrayPaths.length && <InfoBox text={Generic.t('echarts_mapping_no_array')} />
                         )}
-                        <FieldGrid sx={{ mt: 0.5 }}>
-                            <LabeledSelect
-                                label={Generic.t('echarts_mapping_rowpath')}
-                                value={state.jsonRowPath}
-                                onChange={v => set({ jsonRowPath: v })}
-                                options={rowPathOptions(state.jsonRowPath, tableSchema)}
-                            />
+                        {/* Zeilenpfad — the chip row (zuordnung-redesign Q2): every candidate
+                         * visible at once, no dropdown to open, wrapping instead of truncating.
+                         * The label stays in the no-rows Leerfall (the InfoBox says why the
+                         * row is empty); a drifted authored path stays an honest selectable
+                         * chip (ADR-0075 decision 9). */}
+                        <Box sx={{ mt: 0.5 }}>
+                            <FieldLabel>{Generic.t('echarts_mapping_rowpath')}</FieldLabel>
+                            <Box
+                                sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 0.5 }}
+                                // Keyboard reachability (spec: „Pfeile + Enter"): the chips are
+                                // ButtonBase (Tab + Enter/Space natively); the arrows walk the
+                                // row so the mouse is never the only road.
+                                onKeyDown={e => {
+                                    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                                        return;
+                                    }
+                                    const focusables = Array.from(
+                                        e.currentTarget.querySelectorAll<HTMLElement>('.MuiChip-root'),
+                                    );
+                                    const idx = focusables.indexOf(document.activeElement as HTMLElement);
+                                    if (idx === -1) {
+                                        return;
+                                    }
+                                    e.preventDefault();
+                                    const step = e.key === 'ArrowRight' ? 1 : focusables.length - 1;
+                                    focusables[(idx + step) % focusables.length].focus();
+                                }}
+                            >
+                                {rowPathChips(state.jsonRowPath, tableSchema).map(chip => {
+                                    const selected = chip.path === state.jsonRowPath;
+                                    return (
+                                        <Chip
+                                            key={chip.path || '__top'}
+                                            size="small"
+                                            variant={selected ? 'filled' : 'outlined'}
+                                            color={chip.drifted ? 'warning' : selected ? 'primary' : 'default'}
+                                            icon={chip.drifted ? <ErrorOutline fontSize="small" /> : undefined}
+                                            title={chip.drifted ? Generic.t('echarts_mapping_drifted') : undefined}
+                                            onClick={() => set({ jsonRowPath: chip.path })}
+                                            label={
+                                                <Box
+                                                    component="span"
+                                                    sx={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'baseline',
+                                                        gap: 0.5,
+                                                    }}
+                                                >
+                                                    <span>
+                                                        {chip.label}
+                                                        {chip.drifted
+                                                            ? ' (?)'
+                                                            : chip.length !== undefined
+                                                              ? ` (${chip.length})`
+                                                              : ''}
+                                                    </span>
+                                                    {!chip.drifted &&
+                                                        chip.path !== '' &&
+                                                        chip.path === rowSuggestion && (
+                                                            <Box
+                                                                component="span"
+                                                                sx={{
+                                                                    fontSize: 11,
+                                                                    fontWeight: 400,
+                                                                    opacity: 0.75,
+                                                                }}
+                                                            >
+                                                                {Generic.t('echarts_mapping_suggestion_badge')}
+                                                            </Box>
+                                                        )}
+                                                </Box>
+                                            }
+                                        />
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+                        {/* X-Spalte — full width below the rows choice (zuordnung-redesign Q1):
+                         * the pair is a SEQUENCE (rows first, the X column out of those rows),
+                         * not peers squeezing each other's ~200px half. The sample line (Q4)
+                         * confirms the choice with the column's real first values — X-only, the
+                         * yPath rows never pass the slot. */}
+                        <Box sx={{ mt: 1.5 }}>
                             <ColumnAutocomplete
                                 label={Generic.t('echarts_mapping_xpath')}
                                 value={state.jsonXPath}
@@ -474,18 +569,11 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                 emptyLabel={Generic.t('echarts_mapping_row_index')}
                                 dateHint
                                 disabled={!tableSchema.columns.length}
+                                sampleLine={
+                                    xLine ? `${Generic.t('echarts_mapping_samples_prefix')} ${xLine}` : undefined
+                                }
                             />
-                        </FieldGrid>
-                        {!state.jsonRowPath && suggestedRowPath(tableSchema.arrayPaths) !== '' && (
-                            /* Decision 8: the suggestion is SHOWN on first entry, never silently
-                             * set — the user picks it in the select above (one authored click). */
-                            <InfoBox
-                                text={Generic.t(
-                                    'echarts_mapping_rowpath_suggestion',
-                                    suggestedRowPath(tableSchema.arrayPaths),
-                                )}
-                            />
-                        )}
+                        </Box>
                     </Box>
                 </SectionTabs>
             )}

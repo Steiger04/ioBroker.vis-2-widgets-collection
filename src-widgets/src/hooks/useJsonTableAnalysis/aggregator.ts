@@ -26,7 +26,14 @@ interface ColumnAccumulator {
     dateMax: string | undefined;
     /** Total non-null values analyzed */
     nonNullCount: number;
+    /** First distinct non-null scalar values (capped at SAMPLE_COUNT) */
+    samples: (string | number | boolean)[];
+    /** Distinct-guard for the samples above (stops growing once capped) */
+    sampleSeen: Set<unknown>;
 }
+
+/** How many sample values a column carries (fixed — no options knob, YAGNI). */
+const SAMPLE_COUNT = 3;
 
 function createAccumulator(path: string): ColumnAccumulator {
     return {
@@ -42,6 +49,8 @@ function createAccumulator(path: string): ColumnAccumulator {
         dateMin: undefined,
         dateMax: undefined,
         nonNullCount: 0,
+        samples: [],
+        sampleSeen: new Set(),
     };
 }
 
@@ -158,6 +167,17 @@ export function aggregateColumns(
             }
 
             acc.nonNullCount++;
+
+            // Track sample values (zuordnung-redesign ticket 01): first distinct scalars,
+            // capped — a preview needs a handful of values, never the column.
+            if (
+                acc.samples.length < SAMPLE_COUNT &&
+                (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') &&
+                !acc.sampleSeen.has(value)
+            ) {
+                acc.sampleSeen.add(value);
+                acc.samples.push(value);
+            }
 
             // Track date format
             if (detection.dateFormat) {
@@ -277,6 +297,10 @@ export function aggregateColumns(
             if (acc.strLenMax !== undefined) {
                 column.stringLengthMax = acc.strLenMax;
             }
+        }
+
+        if (acc.samples.length > 0) {
+            column.samples = acc.samples;
         }
 
         return column;

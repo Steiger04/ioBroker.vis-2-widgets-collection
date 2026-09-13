@@ -69,6 +69,14 @@ export interface JsonTableColumn {
     stringLengthMin?: number;
     /** Maximum string length (for string columns) */
     stringLengthMax?: number;
+
+    // --- Samples (zuordnung-redesign ticket 01) ---
+
+    /**
+     * First ≤3 distinct non-null scalar values in row order (raw, unformatted — the
+     * presentation layer formats per type). Absent when the column has no scalar values.
+     */
+    samples?: (string | number | boolean)[];
 }
 
 /** Metadata about the analysis result */

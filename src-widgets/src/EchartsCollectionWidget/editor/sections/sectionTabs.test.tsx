@@ -18,7 +18,7 @@ vi.hoisted(() => {
         }
     };
 });
-vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null }));
+vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
 vi.mock('../colorFields', () => ({
     default: () => null,
     ColorListField: () => null,

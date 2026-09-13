@@ -82,6 +82,9 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
         });
         expect(el.textContent).toContain('room'); // last segment as the title
         expect(el.textContent).toContain('meta.room'); // full path as the subtitle
+        // zuordnung-redesign Q7: the sample-values line is X-ONLY — a yPath row must never
+        // carry it (the boundary is structural: the cards never pass the slot; pinned here).
+        expect(el.textContent).not.toContain('echarts_mapping_samples_prefix');
     });
 
     it('the empty state shows the add picker as the CTA — no card before the column choice', () => {
