@@ -416,6 +416,18 @@ export interface EchartsSeriesMeta {
      * chart-level setting for this series' data; unset = inherit. Never emitted.
      */
     nullMode?: 'keep' | 'forward' | 'zero';
+    /**
+     * Centered smoothing window in POINTS (ticket 04, the value chain's final stone): half the
+     * window before/after each point, edges clipped, gaps skipped but never filled. Odd windows
+     * keep the window symmetric (the UI steps by 2 from 3); unset = off. Never emitted to
+     * echarts — the pipeline transforms the data.
+     */
+    smoothWindow?: number;
+    /**
+     * Running total over the non-null values (ticket 04): gaps stay gaps, no reset. Runs AFTER
+     * {@link smoothWindow} when both are authored (smoothed cumulative sum). Never emitted.
+     */
+    cumulative?: boolean;
     /** Line shadow blur in px (adapter `shadowSize`, ADR-0060) — shadow in the series colour; 0/unset = off. */
     shadowBlur?: number;
     /** „Keine Zukunft" (adapter `noFuture`, ADR-0060): points after now are cut in the pipeline. */

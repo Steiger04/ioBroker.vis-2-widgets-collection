@@ -7,7 +7,15 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { compileFormula, formulaIsInvalid, transformPlainValues, transformSeriesData } from './seriesTransform';
+import {
+    applyWindowTransforms,
+    compileFormula,
+    cumulativeValues,
+    formulaIsInvalid,
+    smoothWindowValues,
+    transformPlainValues,
+    transformSeriesData,
+} from './seriesTransform';
 import { toSeriesData, type SeriesPoint } from './historyLogic';
 
 const pts = (...vals: (number | null)[]): SeriesPoint[] => vals.map((v, i) => [1000 + i, v]);
@@ -151,5 +159,48 @@ describe('series-context symbols smin/smax/savg/sfirst/slast (ticket 03)', () =>
         expect(transformPlainValues([10, 12], { formula: 'val - sfirst' })).toEqual([0, 2]);
         // all-null column: context-free → every value gaps
         expect(transformPlainValues([null], { formula: 'val - slast' })).toEqual([null]);
+    });
+});
+
+describe('window transforms — smoothing + cumulative (ticket 04)', () => {
+    it('centered N=5 over [1, _, 3, 4, _, 6]: gaps stay gaps, edges clipped, present values averaged', () => {
+        expect(smoothWindowValues([1, null, 3, 4, null, 6], 5)).toEqual([2, null, 8 / 3, 13 / 3, null, 5]);
+    });
+
+    it('LOCAL window, not the global s-context: a rising ramp smooths to local means (savg-vs-smooth sharpness)', () => {
+        expect(smoothWindowValues([1, 2, 3, 4, 5], 3)).toEqual([1.5, 2, 3, 4, 4.5]); // clipped edges
+    });
+
+    it('cumulative: running total over non-null values; gaps stay gaps, no reset', () => {
+        // The ticket's example said [1, 2, _, 4] → [1, 3, null, 10] — arithmetically inconsistent
+        // with its own definition (1+2+4 = 7); the DEFINITION wins (documented ticket deviation).
+        expect(cumulativeValues([1, 2, null, 4])).toEqual([1, 3, null, 7]);
+        expect(cumulativeValues([1, 2, null, 7])).toEqual([1, 3, null, 10]);
+    });
+
+    it('combined: smooth FIRST, then total — the order is pinned (smoothed cumulative sum)', () => {
+        // [1, 2, 3] N=3 → [1.5, 2, 2.5] → cumulative [1.5, 3.5, 6]
+        expect(applyWindowTransforms([1, 2, 3], { smoothWindow: 3, cumulative: true })).toEqual([1.5, 3.5, 6]);
+    });
+
+    it('points ride along index-stable — the timestamps never move', () => {
+        const points: SeriesPoint[] = [
+            [10, 1],
+            [20, null],
+            [30, 3],
+        ];
+        expect(applyWindowTransforms(points, { cumulative: true })).toEqual([
+            [10, 1],
+            [20, null],
+            [30, 4],
+        ]);
+    });
+
+    it('nothing authored or an all-gap series: the SAME reference (pipeline thriftiness)', () => {
+        const plain = [1, 2];
+        expect(applyWindowTransforms(plain)).toBe(plain);
+        expect(applyWindowTransforms(plain, { cumulative: false })).toBe(plain);
+        const gaps = [null, null];
+        expect(applyWindowTransforms(gaps, { smoothWindow: 5, cumulative: true })).toBe(gaps);
     });
 });

@@ -52,7 +52,7 @@ import {
     type SeriesValueMap,
 } from './historyLogic';
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
-import { cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
+import { applyWindowTransforms, cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
 import type { ThemeTokens } from './echartsTheme';
 import type {
@@ -218,28 +218,34 @@ export const hasMergedData = (option: EChartsOption): boolean => {
 };
 
 /**
- * The per-series CURRENT value for the legend (`Name [value]`, adapter `legActual`, ADR-0054) —
- * name-keyed so `buildLegend`'s formatter can look items up regardless of family/series source:
- * Verlauf = the last point of each history series; JSON = the last payload point. A series
- * with no usable point maps to `null` (the legend formatter renders the bare name then).
+ * The FINAL-series legend values (ticket 04's one-value-one-truth decision): per series, by
+ * name — points read the LAST point's value, plain values the last NON-NULL. The legend thus
+ * reads exactly what the axis sees (post offset/formula AND post smoothing/cumulative); the
+ * former pre-transform read (a formula series' legend showing its raw value) is retired
+ * CONSCIOUSLY.
  */
-export const resolveLegendValues = (
-    mode: string,
-    historySeries: readonly { name: string; data: SeriesPoint[] }[],
-    jsonSeries: readonly { name: string; data: SeriesPoint[] }[],
-): Record<string, number | null> => {
-    const lastVal = (data: readonly SeriesPoint[]): number | null => {
-        const last = data[data.length - 1];
-        return last ? toNum(last[1]) : null;
-    };
+const finalLegendValues = (series: readonly ChartSeries[]): Record<string, number | null> => {
     const out: Record<string, number | null> = {};
-    if (mode === 'json') {
-        for (const s of jsonSeries) {
-            out[s.name] = lastVal(s.data);
+    for (const s of series) {
+        // narrowed from the ChartSeries union — the callers pass points/plain only (the pie
+        // block injects its legend values BEFORE the slice objects exist).
+        const data = s.data as SeriesPoint[] | (number | null)[];
+        if (data.length === 0) {
+            out[s.name] = null; // the formatter renders the bare name
+            continue;
         }
-    } else {
-        for (const s of historySeries) {
-            out[s.name] = lastVal(s.data);
+        if (Array.isArray(data[0])) {
+            const last = (data as SeriesPoint[])[data.length - 1];
+            out[s.name] = toNum(last[1]);
+        } else {
+            let v: number | null = null;
+            for (let i = data.length - 1; i >= 0; i--) {
+                if ((data as (number | null)[])[i] !== null) {
+                    v = (data as (number | null)[])[i];
+                    break;
+                }
+            }
+            out[s.name] = v;
         }
     }
     return out;
@@ -348,32 +354,13 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     // Table family (ADR-0075): `jsonTable` present switches the JSON branch to the authored-
     // columns read — the payload owns the VALUES, the user the structure.
     const table = mode === 'json' && jsonTable !== undefined;
-    // Legend values (ADR-0054): resolve the per-series current values and inject them into the
-    // presentation copy when the toggle is on. Table family (ADR-0075): a time X reads the
-    // last point like the series-shaped family; a category/index X reads the last NON-NULL
-    // value (bucketedLegendValues — the bars/labels show buckets, not points).
-    const presentationWithValues = presentation.legendShowValues
-        ? {
-              ...presentation,
-              legendValues: table
-                  ? jsonTable.xKind === 'time'
-                      ? resolveLegendValues('json', [], jsonTable.series as { name: string; data: SeriesPoint[] }[])
-                      : bucketedLegendValues(jsonTable.series as { name: string; data: (number | null)[] }[])
-                  : resolveLegendValues(
-                        mode,
-                        history.series,
-                        // JSON payload series are always `[ts, val]` points (bucketing is
-                        // history/cartesian-only, ADR-0065) — narrowed for the legend resolver.
-                        jsonParsed.series as { name: string; data: SeriesPoint[] }[],
-                    ),
-          }
-        : presentation;
     // Legenden-Folge (ADR-0074): the runtime selection rides the presentation copy — buildLegend
     // emits `selected` from it and the cartesian builder gates axis emission on it. Injected
-    // HERE (view state owned by the host), never from the field map.
+    // HERE (view state owned by the host), never from the field map. (The legend VALUES are
+    // resolved further down — over the FINAL series, ticket 04's one-value-one-truth decision.)
     const presentationWithSelection = input.legendSelection
-        ? { ...presentationWithValues, legendSelection: input.legendSelection }
-        : presentationWithValues;
+        ? { ...presentation, legendSelection: input.legendSelection }
+        : presentation;
     let series: ChartSeries[];
     if (mode === 'history') {
         series = history.series.map(s => ({ name: s.name, data: s.data }));
@@ -415,6 +402,9 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     // category x axis and the series data becomes plain bucket arrays.
     let presentationFinal = presentationWithSelection;
     let bucketed: ChartSeries[] = transformed;
+    // Pie tabellarisch builds its slice series from `transformed` below — the general window
+    // stone would be dead work there (the block overwrites `bucketed` wholesale).
+    const pieTableSlices = table && family === 'pie' && jsonTable.sliceNames?.length;
     if (barCategories?.length) {
         let cats = barCategories;
         const endBound = barWindowEnd ?? cats[cats.length - 1] ?? 0;
@@ -451,14 +441,21 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             const diffs = applyBarDiff(vals);
             return { name: s.name, data: allDiff ? diffs : [null, ...diffs] };
         });
+        // The window transforms are the value chain's FINAL stone (ticket 04): on category
+        // bars they act on the BUCKETS — the values the axis, tooltips and labels show.
+        // (Plain arrays by construction here — the ChartSeries union still allows points.)
+        bucketed = bucketed.map((s, i) => ({
+            name: s.name,
+            data: applyWindowTransforms(s.data as (number | null)[], meta[i]),
+        }));
         if (allDiff) {
             cats = cats.slice(1); // the diff's first bucket has no predecessor
         }
         presentationFinal = { ...presentationWithSelection, barCategories: cats };
-        // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff
-        // included) value the chart actually shows. Reading the raw history series here
-        // made the legend contradict the bars (a meter reading against its diff).
-        if (presentationWithSelection.legendValues) {
+        // Legend values (K2) resolve from the FINAL buckets — the last non-null (diff and
+        // window transforms included) value the chart actually shows. Reading the raw history
+        // series here made the legend contradict the bars (a meter reading against its diff).
+        if (presentation.legendShowValues) {
             presentationFinal = {
                 ...presentationFinal,
                 // Bucketed bars carry plain arrays by construction (the ChartSeries union
@@ -468,6 +465,14 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
                 ),
             };
         }
+    } else if (!pieTableSlices) {
+        // The same final stone for every non-bar path (time-axis points, table points/plain):
+        // after the transform seam, right before the builder and the legend read the series.
+        // (Pie slice data never reaches here — the pie block below owns that path.)
+        bucketed = bucketed.map((s, i) => ({
+            name: s.name,
+            data: applyWindowTransforms(s.data as SeriesPoint[] | (number | null)[], meta[i]),
+        }));
     }
     // Table categories (ADR-0075): the per-row labels ride the presentation copy beside
     // `barCategories` (two category flavours stay separate — timestamp buckets vs. string
@@ -476,13 +481,28 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
     if (table && jsonTable.xKind !== 'time') {
         presentationFinal = { ...presentationFinal, xCategories: jsonTable.categories ?? [] };
     }
+    // Legend values (ticket 04 Pflicht-Entscheidung, the Empfehlung taken): ONE value, ONE
+    // truth — the legend reads the SAME final series the axis sees. The former pre-transform
+    // read is retired CONSCIOUSLY: a formula series' legend value changes with this (it now
+    // shows f(val + yOffset), formerly the raw val).
+    if (presentation.legendShowValues && !barCategories?.length && !pieTableSlices) {
+        presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(bucketed) };
+    }
     // Pie tabellarisch (ADR-0075 decision 5): each yPath series becomes ONE echarts pie series
     // with N row slices — concentric rings (the builder's radius bands). Built HERE at the
-    // seam over the TRANSFORMED values (the offset/formula seam holds for slice values too);
-    // the cartesian axis work above never applies (pie has no axes).
-    if (table && family === 'pie' && jsonTable.sliceNames?.length) {
+    // seam over the TRANSFORMED + WINDOWED values (the offset/formula seam holds for slice
+    // values too); the cartesian axis work above never applies (pie has no axes).
+    if (pieTableSlices && jsonTable.sliceNames) {
         const names = jsonTable.sliceNames;
-        bucketed = transformed.map(s => ({
+        const windowedSeries = transformed.map((s, i) => ({
+            name: s.name,
+            // narrowed from the ChartSeries union — slice objects never exist before this block
+            data: applyWindowTransforms(s.data, meta[i]),
+        }));
+        if (presentation.legendShowValues) {
+            presentationFinal = { ...presentationFinal, legendValues: finalLegendValues(windowedSeries) };
+        }
+        bucketed = windowedSeries.map(s => ({
             name: s.name,
             data: s.data.map((d, i) => ({
                 // names align 1:1 with every series' rows by construction — the literal is the

@@ -10,7 +10,6 @@ import {
     hasMergedData,
     isUsableOid,
     pipelineError,
-    resolveLegendValues,
     subscribedOids,
     usableSeries,
     type AssemblePipelineInput,
@@ -233,56 +232,7 @@ describe('assemblePipelineResult (pure build core, ADR-0046)', () => {
     });
 });
 
-// ── resolveLegendValues + legend-values injection (ADR-0054, adapter legActual) ──
-
-describe('resolveLegendValues (ADR-0054)', () => {
-    it('Verlauf: the LAST point of each history series', () => {
-        const out = resolveLegendValues(
-            'history',
-            [
-                {
-                    name: 'A',
-                    data: [
-                        [1, 2],
-                        [2, 12.5],
-                    ],
-                },
-                {
-                    name: 'B',
-                    data: [
-                        [1, null],
-                        [2, 40],
-                    ],
-                },
-            ],
-            [],
-        );
-        expect(out).toEqual({ A: 12.5, B: 40 });
-    });
-
-    it('JSON: the last point of each payload series', () => {
-        const out = resolveLegendValues(
-            'json',
-            [],
-            [
-                {
-                    name: 'P1',
-                    data: [
-                        [1, 3],
-                        [2, 4],
-                    ],
-                },
-                { name: 'P2', data: [[1, 9]] },
-            ],
-        );
-        expect(out).toEqual({ P1: 4, P2: 9 });
-    });
-
-    it('a series with no usable point maps to null (the formatter falls back to the bare name)', () => {
-        const out = resolveLegendValues('history', [{ name: 'A', data: [] }], []);
-        expect(out).toEqual({ A: null });
-    });
-});
+// ── legend-values injection (ADR-0054, adapter legActual; ticket 04 moved the read to the FINAL series) ──
 
 describe('assemblePipelineResult — legend values injection (ADR-0054)', () => {
     it('injects the resolved values into the emitted legend formatter only when the toggle is on', () => {
@@ -903,5 +853,119 @@ describe('assemblePipelineResult — pie tabellarisch dispatch (ADR-0075 decisio
         );
         const ring = (option.series as { data: { value: number }[] }[])[0];
         expect(ring.data[0].value).toBe(120); // (10+2)*10
+    });
+});
+
+// ── window transforms + the legend one-truth decision (ticket 04) ──
+
+describe('assemblePipelineResult — window transforms (ticket 04)', () => {
+    it('time-axis path: smoothing + cumulative act on the final points; the legend reads them', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A', smoothWindow: 3, cumulative: true }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 1],
+                                [2, 2],
+                                [3, 3],
+                            ] as [number, number][],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                src: { legendShowValues: true },
+            }),
+        );
+        // [1,2,3] N=3 → [1.5, 2, 2.5] → cumulative [1.5, 3.5, 6] — the ts never moves
+        expect(seriesOf(option)[0].data).toEqual([
+            [1, 1.5],
+            [2, 3.5],
+            [3, 6],
+        ]);
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [6]');
+    });
+
+    it('category bars: the window acts on the BUCKETS, not on the raw points', () => {
+        const dayTs = (y: number, mo: number, d: number, h = 0): number => new Date(y, mo - 1, d, h).getTime();
+        const cats = [dayTs(2026, 8, 20), dayTs(2026, 8, 21), dayTs(2026, 8, 22), dayTs(2026, 8, 23)];
+        const end = dayTs(2026, 8, 24);
+        const pts: [number, number][] = [
+            [dayTs(2026, 8, 20, 6), 2],
+            [dayTs(2026, 8, 20, 18), 4],
+            [dayTs(2026, 8, 21, 6), 3],
+            [dayTs(2026, 8, 22, 6), 10],
+            [dayTs(2026, 8, 23, 6), 12],
+        ];
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A', smoothWindow: 3 }],
+                history: { series: [{ name: 'A', data: pts }], loading: false, error: null },
+                src: { chartType: 'bar', aggregate: 'total' },
+                barCategories: cats,
+                barWindowEnd: end,
+            }),
+        );
+        // Buckets total → [6, 3, 10, 12], THEN the centered N=3 window over the buckets →
+        // [4.5, 19/3, 25/3, 11] — smoothing the RAW points would produce a different series.
+        expect(seriesOf(option)[0].data).toEqual([4.5, 19 / 3, 25 / 3, 11]);
+    });
+
+    it('ONE value, ONE truth (the ticket-04 decision): a formula series legend shows f(val + yOffset), not the raw value', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A', yOffset: 2, formula: 'val * 10' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 10],
+                                [2, 20],
+                            ] as [number, number][],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                src: { legendShowValues: true },
+            }),
+        );
+        // The axis shows (10+2)*10=120 / (20+2)*10=220 — the legend reads the SAME final value
+        // (formerly it showed the raw 20: the retired pre-transform divergence).
+        expect(seriesOf(option)[0].data).toEqual([
+            [1, 120],
+            [2, 220],
+        ]);
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [220]');
+    });
+
+    it('table plain values get the same final stone — cumulative columns total, legend reads the last non-null', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonTable: {
+                    series: [{ name: 'A', data: [1, 2, null, 4] }],
+                    xKind: 'category',
+                    categories: ['a', 'b', 'c', 'd'],
+                },
+                companions: {
+                    chartConfig: {},
+                    yAxes: [],
+                    markLines: [],
+                    jsonSeriesStyle: {},
+                    jsonHidden: [],
+                    series: [{ oid: '', name: 'A', yPath: 'v', cumulative: true }],
+                },
+                src: { legendShowValues: true },
+            }),
+        );
+        expect(seriesOf(option)[0].data).toEqual([1, 3, null, 7]);
+        const legend = option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [7]');
     });
 });

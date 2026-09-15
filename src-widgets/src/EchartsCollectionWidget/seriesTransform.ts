@@ -15,6 +15,9 @@
  * raw extent (the values the formula sees — post-intake, PRE-offset/formula, gaps skipped).
  * NAMING CONSTRAINT: `min`/`max` are expr-eval FUNCTIONS — the symbols MUST stay s-prefixed; a
  * scope value named `min` would shadow the function and crash `min(max(val, 0), 100)`.
+ *
+ * The value chain ends with the WINDOW transforms (ticket 04), the pipeline's final stone:
+ * centered smoothing FIRST, then the cumulative total — over points or plain values alike.
  */
 import { Parser } from 'expr-eval';
 
@@ -192,4 +195,74 @@ export const transformPlainValues = (data: (number | null)[], t?: SeriesValueTra
     }
     const ctx = fn ? contextOf(data) : undefined;
     return data.map(val => (val === null ? null : transformValue(val, off, fn, ctx))); // gaps survive
+};
+
+// ── window transforms (ticket 04) — the value chain's FINAL stone ──
+
+/** The series' authored window transforms (ticket 04). */
+export type SeriesWindowTransform = Pick<EchartsSeriesMeta, 'smoothWindow' | 'cumulative'>;
+
+/**
+ * Centered smoothing over a window of N points (ticket 04): half the window before, the point,
+ * half after — CLIPPED at the edges (look-ahead at the right edge accepted, decision Q9).
+ * Gaps are SKIPPED (the mean of the values present) but never FILLED — a null point stays
+ * null (gap honesty). The window is LOCAL: nothing global like the formula's s-context. An
+ * even N (hand-edited blob — the UI steps by 2) acts as the next ODD window (floor(N/2)
+ * either side): a symmetric window stays symmetric.
+ */
+export const smoothWindowValues = (data: readonly (number | null)[], window: number): (number | null)[] => {
+    const n = Math.abs(Math.round(window));
+    if (!n || data.length === 0) {
+        return data as (number | null)[];
+    }
+    const half = Math.floor(n / 2);
+    return data.map((v, i) => {
+        if (v === null) {
+            return null; // gaps are never interpolated
+        }
+        let sum = 0;
+        let k = 0;
+        for (let j = Math.max(0, i - half); j <= Math.min(data.length - 1, i + half); j++) {
+            const w = data[j];
+            if (w !== null) {
+                sum += w;
+                k++;
+            }
+        }
+        return sum / k; // the centre itself is non-null ⇒ k ≥ 1 — the window never runs dry
+    });
+};
+
+/**
+ * Running total over the non-null values (ticket 04): gaps stay gaps (no carry, no fill), no
+ * reset (a calendar reset stays deliberately out of scope).
+ */
+export const cumulativeValues = (data: readonly (number | null)[]): (number | null)[] => {
+    let total = 0;
+    return data.map(v => (v === null ? null : (total += v)));
+};
+
+/**
+ * The value chain's FINAL stone (ticket 04): smooth FIRST, then total — over whatever the axis
+ * sees (`[ts, val]` points or plain values; the timestamps ride along index-stable, the
+ * transforms never drop or add points). The SAME reference when nothing is authored or the
+ * series holds no numbers at all (pipeline thriftiness).
+ */
+export const applyWindowTransforms = (
+    data: SeriesPoint[] | (number | null)[],
+    t?: SeriesWindowTransform,
+): SeriesPoint[] | (number | null)[] => {
+    const win = t?.smoothWindow ?? 0;
+    const cum = t?.cumulative === true;
+    if ((!win && !cum) || data.length === 0) {
+        return data;
+    }
+    const isPoints = Array.isArray(data[0]);
+    const vals = (isPoints ? (data as SeriesPoint[]).map(([, v]) => v) : data) as (number | null)[];
+    if (vals.every(v => v === null)) {
+        return data; // an all-gap series: both transforms are no-ops (same reference)
+    }
+    const smoothed = win ? smoothWindowValues(vals, win) : vals;
+    const finaled = cum ? cumulativeValues(smoothed) : smoothed;
+    return isPoints ? (data as SeriesPoint[]).map(([ts], i): SeriesPoint => [ts, finaled[i]]) : finaled;
 };

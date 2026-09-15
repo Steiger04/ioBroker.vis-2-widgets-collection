@@ -622,6 +622,20 @@ export const SeriesDataFields: FC<{
                         ['zero', Generic.t('echarts_ignore_null_zero')],
                     ]}
                 />
+                {/* Smoothing window (ticket 04): the switch AUTHORS (on → 5, the Default-Autorung)
+                    — the slider only ever shows an authored value, never a fake resting position
+                    (unset = OFF; a fallback thumb would lie about that). Odd-only via step 2. */}
+                {meta.smoothWindow !== undefined && (
+                    <OptionalSliderField
+                        label={Generic.t('echarts_series_smooth_window')}
+                        value={meta.smoothWindow}
+                        min={3}
+                        max={51}
+                        step={2}
+                        fallback={5}
+                        onChange={v => onPatch({ smoothWindow: v })}
+                    />
+                )}
             </FieldGrid>
             <SeriesValueMapField
                 meta={meta}
@@ -633,10 +647,22 @@ export const SeriesDataFields: FC<{
                     checked={meta.noFuture ?? false}
                     onChange={v => onPatch({ noFuture: v })}
                 />
+                <SwitchRow
+                    label={Generic.t('echarts_series_smooth_window')}
+                    checked={meta.smoothWindow !== undefined}
+                    onChange={v => onPatch({ smoothWindow: v ? (meta.smoothWindow ?? 5) : undefined })}
+                />
+                <SwitchRow
+                    label={Generic.t('echarts_series_cumulative')}
+                    checked={meta.cumulative ?? false}
+                    onChange={v => onPatch({ cumulative: v })}
+                />
             </SwitchList>
             <InfoBox text={Generic.t('echarts_series_data_preset_hint')} />
             {isBarChart && <InfoBox text={Generic.t('echarts_series_xoffset_bar_limit')} />}
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
+            <InfoBox text={Generic.t('echarts_series_smooth_window_help')} />
+            <InfoBox text={Generic.t('echarts_series_cumulative_help')} />
         </Box>
     );
 };
@@ -662,6 +688,16 @@ export const SeriesTransformFields: FC<{
                     label={Generic.t('echarts_series_no_future')}
                     checked={meta.noFuture ?? false}
                     onChange={v => onPatch({ noFuture: v })}
+                />
+                <SwitchRow
+                    label={Generic.t('echarts_series_smooth_window')}
+                    checked={meta.smoothWindow !== undefined}
+                    onChange={v => onPatch({ smoothWindow: v ? (meta.smoothWindow ?? 5) : undefined })}
+                />
+                <SwitchRow
+                    label={Generic.t('echarts_series_cumulative')}
+                    checked={meta.cumulative ?? false}
+                    onChange={v => onPatch({ cumulative: v })}
                 />
             </SwitchList>
             <FieldGrid min={140}>
@@ -690,12 +726,28 @@ export const SeriesTransformFields: FC<{
                         ['zero', Generic.t('echarts_ignore_null_zero')],
                     ]}
                 />
+                {/* Smoothing window (ticket 04): the switch AUTHORS (on → 5, the Default-Autorung)
+                    — the slider only ever shows an authored value, never a fake resting position
+                    (unset = OFF; a fallback thumb would lie about that). Odd-only via step 2. */}
+                {meta.smoothWindow !== undefined && (
+                    <OptionalSliderField
+                        label={Generic.t('echarts_series_smooth_window')}
+                        value={meta.smoothWindow}
+                        min={3}
+                        max={51}
+                        step={2}
+                        fallback={5}
+                        onChange={v => onPatch({ smoothWindow: v })}
+                    />
+                )}
             </FieldGrid>
             <SeriesValueMapField
                 meta={meta}
                 onPatch={onPatch}
             />
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
+            <InfoBox text={Generic.t('echarts_series_smooth_window_help')} />
+            <InfoBox text={Generic.t('echarts_series_cumulative_help')} />
         </Box>
     );
 };
