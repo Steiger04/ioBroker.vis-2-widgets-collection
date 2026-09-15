@@ -63,12 +63,30 @@
 
 ---
 
-<!--
-	Placeholder for next versions:
-	### __WORK IN PROGRESS__
--->
+## Notes
+
+### ECharts: values from strings
+
+Charts with string-valued states now correctly plot: `'23.5'`, `'23.5 °C'`, `'23,5'` and
+`'true'`/`'false'` all read as numbers at the ONE intake every value source shares (Verlauf,
+JSON series, table columns, bound marking lines). Text that carries no number shows as a gap
+instead of a faked 0 line. One caveat for German-style input: once the string contains a dot,
+it is read as dot-decimal — a thousands separator like in `'1.234,5'` will not round-trip.
+
+**History aggregation on string states**: the server-side aggregates (`average`, `max`, …) may
+not preserve string values. Until empirically verified against a live server, configure string
+OIDs with the `none` or `onchange` aggregation so the raw strings reach the chart — the intake
+reads them from there.
+
+---
 
 ## Changelog
+
+### __WORK IN PROGRESS__
+
+- (steiger04) ECharts fixed: charts with numeric string states now plot — the shared intake reads prefix numbers, comma decimals and bool texts (unreadable becomes a gap, never a faked 0)
+- (steiger04) ECharts: per-series value mapping (raw value → number or deliberate gap), formula context symbols smin/smax/savg/sfirst/slast, smoothing window and running total extend the value chain; legend values now read the same final series the axis shows
+
 ### 2.6.0 (2026-07-24)
 
 - (steiger04) Input widget added (text/number input with inline editing)

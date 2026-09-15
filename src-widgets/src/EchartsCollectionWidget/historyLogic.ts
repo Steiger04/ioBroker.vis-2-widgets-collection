@@ -12,6 +12,10 @@
  *  - unconvertible `val` → null (clean gaps); an authored value MAP runs before the coercion and
  *    string values interpret after it (ADR-0077); `ignoreNull` toggles keep / forward-fill / zero
  *    — but never fills a MAPPED gap (deliberately discarded, ticket 02).
+ *  - accepted parseFloat edges (ADR-0077, ticket 05 pinned here): '0x1F' parses as 0 (parseFloat
+ *    stops at 'x' — adapter-equal); '1.234,5' parses as 1.234 (a dot means dot-decimal, thousands
+ *    separators stay unsupported — visibly wrong rather than silently healed); the EMPTY string is
+ *    a gap (the adapter's getFloat maps '' → 0 — our documented deviation, decision 4).
  *  - one `getHistory` per OID with identical start/end/count; `Promise.allSettled` isolates
  *    a failing OID instead of discarding every series.
  *  - `ts` is already Unix-ms — do NOT multiply by 1000.
