@@ -16,7 +16,7 @@ import type { EChartsOption } from 'echarts';
 
 import type { EchartsChartFamily, EchartsSeriesMeta, LegacyChartType } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
-import type { SeriesPoint } from './historyLogic';
+import { toPlottableNumber, type SeriesPoint } from './historyLogic';
 
 import { buildCartesianOption } from './optionBuilders/cartesian';
 import { buildPieOption } from './optionBuilders/pie';
@@ -60,20 +60,24 @@ export const parseSeriesConfig = (raw: string | undefined | null): EchartsSeries
     }
 };
 
-/** Normalize a heterogeneous array of points into echarts `[ts, val]` pairs. */
+/**
+ * Normalize a heterogeneous array of points into echarts `[ts, val]` pairs. Values flow through
+ * the shared {@link toPlottableNumber} intake (numeric strings deute, ADR-0077); `ts` must stay
+ * a number — anything else falls back to the item index (a string-ts never plots as time).
+ */
 const normalizePoints = (data: unknown): SeriesPoint[] => {
     if (!Array.isArray(data)) {
         return [];
     }
     return data.map((p, i): SeriesPoint => {
         if (Array.isArray(p) && p.length >= 2 && typeof p[0] === 'number') {
-            return [p[0], typeof p[1] === 'number' ? p[1] : null];
+            return [p[0], toPlottableNumber(p[1])];
         }
         if (p && typeof p === 'object') {
             const o = p as Record<string, unknown>;
             const ts = o.ts ?? o.time ?? o.x;
             const val = o.val ?? o.value ?? o.y;
-            return [typeof ts === 'number' ? ts : i, typeof val === 'number' ? val : null];
+            return [typeof ts === 'number' ? ts : i, toPlottableNumber(val)];
         }
         return [i, null];
     });

@@ -10,6 +10,7 @@ import {
     fetchMultiSeries,
     sanitizeStep,
     shiftByOffset,
+    toPlottableNumber,
     toSeriesData,
     windowToOptions,
     type Point,
@@ -26,6 +27,49 @@ const recording =
         ]);
     };
 
+describe('toPlottableNumber — the string intake (ADR-0077)', () => {
+    it('parses numeric strings verbatim — trimmed, exponent and sign forms', () => {
+        expect(toPlottableNumber('23.5')).toBe(23.5);
+        expect(toPlottableNumber(' 1e3 ')).toBe(1000);
+        expect(toPlottableNumber('-0.5')).toBe(-0.5);
+    });
+
+    it('parses the parseFloat PREFIX — unit suffixes drop ("23.5 °C" → 23.5, "12 Watt" → 12)', () => {
+        expect(toPlottableNumber('23.5 °C')).toBe(23.5);
+        expect(toPlottableNumber('12 Watt')).toBe(12);
+    });
+
+    it('a comma WITHOUT a dot is the decimal separator ("23,5" → 23.5)', () => {
+        expect(toPlottableNumber('23,5')).toBe(23.5);
+    });
+
+    it("a dot means dot-decimal — '1.234,5' parses as 1.234 (thousands separators unsupported, pinned)", () => {
+        expect(toPlottableNumber('1.234,5')).toBe(1.234);
+    });
+
+    it("'0x1F' parses as 0 (parseFloat stops at 'x' — adapter-equal edge, pinned)", () => {
+        expect(toPlottableNumber('0x1F')).toBe(0);
+    });
+
+    it("bool texts parse BEFORE parseFloat — 'true'/'false' → 1/0 (adapter parity)", () => {
+        expect(toPlottableNumber('true')).toBe(1);
+        expect(toPlottableNumber('false')).toBe(0);
+    });
+
+    it('unconvertible input → null — a gap, NEVER 0 (ADR-0077 adapter deviation)', () => {
+        expect(toPlottableNumber('abc')).toBeNull();
+        expect(toPlottableNumber('')).toBeNull();
+        expect(toPlottableNumber(null)).toBeNull();
+        expect(toPlottableNumber(undefined)).toBeNull();
+    });
+
+    it('numbers keep their finite-only passthrough (existing)', () => {
+        expect(toPlottableNumber(7)).toBe(7);
+        expect(toPlottableNumber(NaN)).toBeNull();
+        expect(toPlottableNumber(Infinity)).toBeNull();
+    });
+});
+
 describe('toSeriesData', () => {
     it('maps {ts,val} to [ts, number]', () => {
         const pts: Point[] = [
@@ -38,7 +82,7 @@ describe('toSeriesData', () => {
         ]);
     });
 
-    it('coerces booleans to 1/0 (bool OIDs plot, ADR-0058); strings/null stay null', () => {
+    it('coerces booleans to 1/0 (bool OIDs plot, ADR-0058); unconvertible strings/null stay null', () => {
         const pts: Point[] = [
             { ts: 1, val: 'x' },
             { ts: 2, val: true },
@@ -105,6 +149,30 @@ describe('toSeriesData', () => {
 
     it('passes ts through unchanged (already ms epoch — no ×1000)', () => {
         expect(toSeriesData([{ ts: 1700000000000, val: 1 }])).toEqual([[1700000000000, 1]]);
+    });
+
+    it('string state values plot through the intake — "23.5 °C" → 23.5, "23,5" → 23.5', () => {
+        const pts: Point[] = [
+            { ts: 1, val: '23.5 °C' },
+            { ts: 2, val: '23,5' },
+        ];
+        expect(toSeriesData(pts)).toEqual([
+            [1, 23.5],
+            [2, 23.5],
+        ]);
+    });
+
+    it('nullMode fills the NEW string-gaps exactly like legacy nulls (forward carries across an unconvertible string)', () => {
+        const pts: Point[] = [
+            { ts: 1, val: 10 },
+            { ts: 2, val: 'n/a' },
+            { ts: 3, val: 30 },
+        ];
+        expect(toSeriesData(pts, 'forward')).toEqual([
+            [1, 10],
+            [2, 10],
+            [3, 30],
+        ]);
     });
 });
 

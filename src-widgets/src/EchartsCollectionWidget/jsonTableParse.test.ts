@@ -215,7 +215,7 @@ describe('parseJsonTableState — Y extraction', () => {
         expect(out.series[0]?.data).toEqual([null, null]);
     });
 
-    it('boolean Y coerces to 1/0; strings and objects are null gaps', () => {
+    it('boolean Y coerces to 1/0; unconvertible strings and objects are null gaps', () => {
         const out = parseJsonTableState(
             JSON.stringify([
                 { on: true, s: 'x', o: { v: 1 } },
@@ -226,6 +226,15 @@ describe('parseJsonTableState — Y extraction', () => {
         expect(out.series[0]?.data).toEqual([1, 0]);
         expect(out.series[1]?.data).toEqual([null, null]);
         expect(out.series[2]?.data).toEqual([null, null]);
+    });
+
+    it('numeric-string Y parses through the shared intake — "23,5" → 23.5, "true" → 1, "12 Watt" → 12 (ADR-0077)', () => {
+        const out = parseJsonTableState(JSON.stringify([{ t: '23,5', b: 'true', u: '12 Watt' }]), {
+            ySeries: ys('t', 'b', 'u'),
+        });
+        expect(out.series[0]?.data).toEqual([23.5]);
+        expect(out.series[1]?.data).toEqual([1]);
+        expect(out.series[2]?.data).toEqual([12]);
     });
 
     it('nested yPath with array index resolves per row', () => {

@@ -194,6 +194,31 @@ describe('parseJsonState', () => {
         expect(c.series[0].data).toEqual([[3, 7]]);
     });
 
+    it('string values parse through the shared intake — [[0, "7"]] → [[0, 7]] (ADR-0077)', () => {
+        const pairs = parseJsonState(
+            JSON.stringify([
+                [0, '7'],
+                [1, 'abc'],
+            ]),
+        );
+        expect(pairs.series[0].data).toEqual([
+            [0, 7],
+            [1, null], // unconvertible stays a gap
+        ]);
+        const objects = parseJsonState(
+            JSON.stringify([
+                { ts: 1, val: '2.5' },
+                { ts: 2, value: 'true' },
+                { ts: 3, val: false },
+            ]),
+        );
+        expect(objects.series[0].data).toEqual([
+            [1, 2.5],
+            [2, 1],
+            [3, 0], // the seam unification: real booleans coerce now too (ADR-0058), was null
+        ]);
+    });
+
     it('defaults a missing series name to "Series N"', () => {
         const out = parseJsonState(JSON.stringify({ series: [{ data: [[0, 0]] }, { data: [] }] }));
         expect(out.series[0].name).toBe('Series 1');

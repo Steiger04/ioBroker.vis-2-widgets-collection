@@ -678,6 +678,14 @@ describe('markBoundOids / resolveMarkLines (ADR-0062)', () => {
         expect(out[1].upper).toBe(1); // toPlottableNumber bool intake
     });
 
+    it('resolveMarkLines: string values parse through the shared intake — "23,5" → 23.5, "true" → 1 (ADR-0077)', () => {
+        const out = resolveMarkLines([{ upper: '0_userdata.0.text', lower: '0_userdata.0.pump' }], {
+            '0_userdata.0.text': '23,5',
+            '0_userdata.0.pump': 'true',
+        });
+        expect(out[0]).toMatchObject({ upper: 23.5, lower: 1 });
+    });
+
     it('resolveMarkLines: a missing/unconvertible OID bound becomes undefined (drops, no crash)', () => {
         const out = resolveMarkLines(
             [

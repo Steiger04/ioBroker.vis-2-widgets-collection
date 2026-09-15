@@ -9,7 +9,8 @@
  *
  * Per map decision 02:
  *  - result entries are `{ ts (ms epoch), val }`; mapped to echarts `[ts, val]` for a time axis.
- *  - non-numeric `val` → null (clean gaps); `ignoreNull` toggles keep / forward-fill / zero.
+ *  - unconvertible `val` → null (clean gaps); string values interpret first (ADR-0077);
+ *    `ignoreNull` toggles keep / forward-fill / zero.
  *  - one `getHistory` per OID with identical start/end/count; `Promise.allSettled` isolates
  *    a failing OID instead of discarding every series.
  *  - `ts` is already Unix-ms — do NOT multiply by 1000.
@@ -85,13 +86,35 @@ export const sanitizeStep = (step: number, spanMs: number, maxPoints: number): n
 /**
  * Coerce a raw state value to a plottable number, else null — the ONE intake rule every value
  * source shares (booleans → 1/0 so bool OIDs plot, ADR-0058; the state texts map them at format
- * time). Takes `unknown`: the callers' value maps are untyped at the edges.
+ * time). Strings interpret too (ADR-0077): bool texts FIRST, then a parseFloat PREFIX with
+ * comma-decimal repair — anything unconvertible is a GAP, never 0. Takes `unknown`: the callers'
+ * value maps are untyped at the edges.
  */
 export function toPlottableNumber(val: unknown): number | null {
     if (typeof val === 'boolean') {
         return val ? 1 : 0;
     }
-    return typeof val === 'number' && Number.isFinite(val) ? val : null;
+    if (typeof val === 'number') {
+        return Number.isFinite(val) ? val : null;
+    }
+    if (typeof val === 'string') {
+        const s = val.trim();
+        // Bool texts BEFORE parseFloat — parseFloat would drop them to NaN.
+        if (s === 'true') {
+            return 1;
+        }
+        if (s === 'false') {
+            return 0;
+        }
+        // A comma WITHOUT a dot is a comma decimal ('23,5' → 23.5). A dot means the string is
+        // already dot-decimal, so '1.234,5' parses as 1.234 — thousands separators stay
+        // unsupported (visibly wrong rather than silently healed, ADR-0077).
+        const normalized = s.includes(',') && !s.includes('.') ? s.replace(/,/g, '.') : s;
+        // Prefix parse: '23.5 °C' → 23.5, '12 Watt' → 12; NaN (and ±Infinity) → null.
+        const n = parseFloat(normalized);
+        return Number.isFinite(n) ? n : null;
+    }
+    return null;
 }
 
 /**
