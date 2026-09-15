@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "原始",
     "echarts_series_empty": "暂无系列",
     "echarts_series_formula": "公式",
-    "echarts_series_formula_help": "数值换算公式。符号：val — 例如 val / 1000 + 3。无效公式保留原始值。",
+    "echarts_series_formula_help": "数值换算公式。符号：val — 例如 val / 1000 + 3。无效公式保留原始值。上下文符号：smin、smax、savg、sfirst、slast = 本系列的最小值、最大值、平均值、第一个和最后一个值（跳过空缺）。",
     "echarts_series_formula_invalid": "无效公式 — 使用原始值",
     "echarts_series_inherit": "继承",
     "echarts_series_label": "数值标签",

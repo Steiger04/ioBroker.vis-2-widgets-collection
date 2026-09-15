@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "surowe",
     "echarts_series_empty": "Brak serii",
     "echarts_series_formula": "Formuła",
-    "echarts_series_formula_help": "Formuła przeliczająca wartość. Symbol: val — np. val / 1000 + 3. Nieprawidłowa formuła zachowuje wartości pierwotne.",
+    "echarts_series_formula_help": "Formuła przeliczająca wartość. Symbol: val — np. val / 1000 + 3. Nieprawidłowa formuła zachowuje wartości pierwotne. Symbole kontekstu: smin, smax, savg, sfirst, slast = minimum, maksimum, średnia, pierwsza i ostatnia wartość tej serii (bez luk).",
     "echarts_series_formula_invalid": "Nieprawidłowa formuła — używane są wartości pierwotne",
     "echarts_series_inherit": "dziedzicz",
     "echarts_series_label": "Etykiety wartości",

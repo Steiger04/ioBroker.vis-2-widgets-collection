@@ -487,7 +487,7 @@
     "echarts_series_diff_raw": "roh",
     "echarts_series_empty": "Noch keine Serien",
     "echarts_series_formula": "Formel",
-    "echarts_series_formula_help": "Umrechnungsformel für den Wert. Symbol: val — z. B. val / 1000 + 3. Eine ungültige Formel behält die Rohwerte.",
+    "echarts_series_formula_help": "Umrechnungsformel für den Wert. Symbol: val — z. B. val / 1000 + 3. Eine ungültige Formel behält die Rohwerte. Kontext-Symbole: smin, smax, savg, sfirst, slast = Minimum, Maximum, Mittel, erster und letzter Wert dieser Serie (ohne Lücken).",
     "echarts_series_formula_invalid": "Ungültige Formel — Rohwerte werden verwendet",
     "echarts_series_inherit": "erben",
     "echarts_series_label": "Werte-Labels",

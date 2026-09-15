@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "brut",
     "echarts_series_empty": "Aucune série pour l'instant",
     "echarts_series_formula": "Formule",
-    "echarts_series_formula_help": "Formule de conversion de la valeur. Symbole : val — p. ex. val / 1000 + 3. Une formule non valide conserve les valeurs brutes.",
+    "echarts_series_formula_help": "Formule de conversion de la valeur. Symbole : val — p. ex. val / 1000 + 3. Une formule non valide conserve les valeurs brutes. Symboles de contexte : smin, smax, savg, sfirst, slast = minimum, maximum, moyenne, premier et dernier valeur de cette série (lacunes exclues).",
     "echarts_series_formula_invalid": "Formule non valide — valeurs brutes utilisées",
     "echarts_series_inherit": "hériter",
     "echarts_series_label": "Étiquettes de valeur",

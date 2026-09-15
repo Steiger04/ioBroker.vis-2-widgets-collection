@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "ruw",
     "echarts_series_empty": "Nog geen reeksen",
     "echarts_series_formula": "Formule",
-    "echarts_series_formula_help": "Omrekenformule voor de waarde. Symbool: val — bijv. val / 1000 + 3. Een ongeldige formule houdt de ruwe waarden.",
+    "echarts_series_formula_help": "Omrekenformule voor de waarde. Symbool: val — bijv. val / 1000 + 3. Een ongeldige formule houdt de ruwe waarden. Contextsymbolen: smin, smax, savg, sfirst, slast = minimum, maximum, gemiddelde, eerste en laatste waarde van deze reeks (lacunes overgeslagen).",
     "echarts_series_formula_invalid": "Ongeldige formule — ruwe waarden worden gebruikt",
     "echarts_series_inherit": "overerven",
     "echarts_series_label": "Waardelabels",

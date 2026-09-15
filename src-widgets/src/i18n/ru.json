@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "сырые",
     "echarts_series_empty": "Серий пока нет",
     "echarts_series_formula": "Формула",
-    "echarts_series_formula_help": "Формула пересчёта значения. Символ: val — напр. val / 1000 + 3. Недействительная формула сохраняет исходные значения.",
+    "echarts_series_formula_help": "Формула пересчёта значения. Символ: val — напр. val / 1000 + 3. Недействительная формула сохраняет исходные значения. Символы контекста: smin, smax, savg, sfirst, slast = минимум, максимум, среднее, первое и последнее значение этого ряда (пробелы пропускаются).",
     "echarts_series_formula_invalid": "Недействительная формула — используются исходные значения",
     "echarts_series_inherit": "наследовать",
     "echarts_series_label": "Метки значений",

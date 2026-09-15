@@ -487,7 +487,7 @@
     "echarts_series_diff_raw": "raw",
     "echarts_series_empty": "No series yet",
     "echarts_series_formula": "Formula",
-    "echarts_series_formula_help": "Conversion formula for the value. Symbol: val — e.g. val / 1000 + 3. An invalid formula keeps the raw values.",
+    "echarts_series_formula_help": "Conversion formula for the value. Symbol: val — e.g. val / 1000 + 3. An invalid formula keeps the raw values. Context symbols: smin, smax, savg, sfirst, slast = this series' minimum, maximum, average, first and last value (gaps skipped).",
     "echarts_series_formula_invalid": "Invalid formula — raw values are used",
     "echarts_series_inherit": "inherit",
     "echarts_series_label": "Value labels",

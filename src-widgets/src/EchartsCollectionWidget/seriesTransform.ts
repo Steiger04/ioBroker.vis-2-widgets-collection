@@ -10,6 +10,11 @@
  * adapter's `new Function`, which would execute arbitrary JS in every viewer's browser): the
  * symbol is `val`, the surface is math operators/functions/constants. A non-finite result
  * (division by zero &c.) becomes a null gap — echarts never sees a broken axis value.
+ *
+ * Series-context symbols (ticket 03): `smin`/`smax`/`savg`/`sfirst`/`slast` read THIS series'
+ * raw extent (the values the formula sees — post-intake, PRE-offset/formula, gaps skipped).
+ * NAMING CONSTRAINT: `min`/`max` are expr-eval FUNCTIONS — the symbols MUST stay s-prefixed; a
+ * scope value named `min` would shadow the function and crash `min(max(val, 0), 100)`.
  */
 import { Parser } from 'expr-eval';
 
@@ -19,8 +24,29 @@ import type { EchartsSeriesMeta } from '../types/field-definitions/echarts-field
 /** One series' authored value transforms (the meta subset this module reads). */
 export type SeriesValueTransform = Pick<EchartsSeriesMeta, 'yOffset' | 'formula'>;
 
-/** A compiled formula: one number in, one number out. */
-type FormulaFn = (val: number) => number;
+/** The series-context symbols (ticket 03) — this series' raw extent, gaps skipped. */
+interface SeriesFormulaContext {
+    smin: number;
+    smax: number;
+    savg: number;
+    sfirst: number;
+    slast: number;
+}
+
+/**
+ * The probe's neutral values for EVERY context symbol — typed over the interface's keys, so a
+ * sixth symbol fails to compile here until the probe carries it (one list, compiler-synchronised).
+ */
+const NEUTRAL_CONTEXT: Record<keyof SeriesFormulaContext, number> = {
+    smin: 1,
+    smax: 1,
+    savg: 1,
+    sfirst: 1,
+    slast: 1,
+};
+
+/** A compiled formula: one value + its series' context in, one number out. */
+type FormulaFn = (val: number, ctx?: SeriesFormulaContext) => number;
 
 /**
  * Compiled formulas keyed by their trimmed text — parse once per distinct formula, never per
@@ -47,13 +73,17 @@ export const compileFormula = (formula: string | undefined): FormulaFn | undefin
     if (!formulaCache.has(text)) {
         try {
             const expr = Parser.parse(text);
-            // Probe evaluation: expr-eval defers UNKNOWN FUNCTIONS to evaluate-time — a probe
-            // run (val=1) catches them here so the formula counts as invalid up front (the raw
-            // fallback) instead of nulling every point at runtime.
-            expr.evaluate({ val: 1 });
-            formulaCache.set(text, (val: number): number => Number(expr.evaluate({ val })));
+            // Probe evaluation: expr-eval defers UNKNOWN FUNCTIONS AND SYMBOLS to
+            // evaluate-time — a probe run catches them here so the formula counts as invalid
+            // up front (the raw fallback) instead of nulling every point at runtime. The
+            // s-context symbols ride with NEUTRAL values: a formula over them is valid even
+            // before any series context exists (ticket 03's probe fix).
+            expr.evaluate({ val: 1, ...NEUTRAL_CONTEXT });
+            formulaCache.set(text, (val: number, ctx?: SeriesFormulaContext): number =>
+                Number(expr.evaluate({ val, ...ctx })),
+            );
         } catch {
-            formulaCache.set(text, null); // parse error / unknown function — raw for this text
+            formulaCache.set(text, null); // parse error / unknown function or symbol — raw for this text
         }
     }
     return formulaCache.get(text) ?? undefined;
@@ -67,17 +97,53 @@ export const formulaIsInvalid = (formula: string | undefined): boolean =>
     !!formula?.trim() && compileFormula(formula) === undefined;
 
 /**
+ * Compute the series-context symbols over the values the formula SEES (ticket 03): nulls are
+ * SKIPPED; an all-null series has no context (`undefined` — a formula touching an s-symbol
+ * then throws at evaluate-time and gaps every point, the existing non-finite rule). Shared by
+ * the point- and plain-value transforms — one rule set, no second law for the table family.
+ */
+const contextOf = (vals: readonly (number | null)[]): SeriesFormulaContext | undefined => {
+    let min = Infinity;
+    let max = -Infinity;
+    let sum = 0;
+    let n = 0;
+    let first: number | undefined;
+    let last: number | undefined;
+    for (const v of vals) {
+        if (v === null) {
+            continue; // gaps never feed the context
+        }
+        if (v < min) {
+            min = v;
+        }
+        if (v > max) {
+            max = v;
+        }
+        sum += v;
+        n++;
+        if (first === undefined) {
+            first = v;
+        }
+        last = v;
+    }
+    if (n === 0 || first === undefined || last === undefined) {
+        return undefined; // no numbers at all — no context
+    }
+    return { smin: min, smax: max, savg: sum / n, sfirst: first, slast: last };
+};
+
+/**
  * One non-null value through the chain (adapter order: the offset feeds the formula); a
  * non-finite or throwing formula result is a null gap — shared by the point- and plain-value
  * transforms below so the chain cannot drift apart.
  */
-const transformValue = (val: number, off: number, fn?: FormulaFn): number | null => {
+const transformValue = (val: number, off: number, fn?: FormulaFn, ctx?: SeriesFormulaContext): number | null => {
     const base = val + off; // adapter: convertFunc(value + yOffset)
     if (!fn) {
         return base;
     }
     try {
-        const out = fn(base);
+        const out = fn(base, ctx);
         return Number.isFinite(out) ? out : null;
     } catch {
         return null; // a runtime failure is a gap, never a broken chart
@@ -87,7 +153,8 @@ const transformValue = (val: number, off: number, fn?: FormulaFn): number | null
 /**
  * Apply one series' value transform to its points (the adapter order: offset feeds the
  * formula). Returns the SAME reference when nothing is authored — the pipeline stays cheap for
- * the unconfigured majority.
+ * the unconfigured majority. The formula's series context is computed ONCE from the RAW values
+ * (pre-offset, pre-formula — a formula never changes its own context).
  */
 export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransform): SeriesPoint[] => {
     const off = t?.yOffset ?? 0;
@@ -95,8 +162,9 @@ export const transformSeriesData = (data: SeriesPoint[], t?: SeriesValueTransfor
     if (!off && !fn) {
         return data;
     }
+    const ctx = fn ? contextOf(data.map(([, v]) => v)) : undefined;
     return data.map(
-        ([ts, val]): SeriesPoint => (val === null ? [ts, null] : [ts, transformValue(val, off, fn)]), // gaps survive every transform
+        ([ts, val]): SeriesPoint => (val === null ? [ts, null] : [ts, transformValue(val, off, fn, ctx)]), // gaps survive every transform
     );
 };
 
@@ -113,7 +181,8 @@ export const cutFuturePoints = (data: SeriesPoint[], now: number): SeriesPoint[]
 /**
  * The plain-values variant of {@link transformSeriesData} for category-aligned data (the JSON
  * table family, ADR-0075): the SAME value chain — the offset feeds the formula, gaps survive,
- * a non-finite/throwing formula result is a gap.
+ * a non-finite/throwing formula result is a gap. The series context (ticket 03) comes from the
+ * plain column's own values — the same {@link contextOf}, no second rule set.
  */
 export const transformPlainValues = (data: (number | null)[], t?: SeriesValueTransform): (number | null)[] => {
     const off = t?.yOffset ?? 0;
@@ -121,5 +190,6 @@ export const transformPlainValues = (data: (number | null)[], t?: SeriesValueTra
     if (!off && !fn) {
         return data;
     }
-    return data.map(val => (val === null ? null : transformValue(val, off, fn))); // gaps survive
+    const ctx = fn ? contextOf(data) : undefined;
+    return data.map(val => (val === null ? null : transformValue(val, off, fn, ctx))); // gaps survive
 };

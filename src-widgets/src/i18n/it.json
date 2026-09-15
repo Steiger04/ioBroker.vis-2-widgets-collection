@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "grezzo",
     "echarts_series_empty": "Ancora nessuna serie",
     "echarts_series_formula": "Formula",
-    "echarts_series_formula_help": "Formula di conversione del valore. Simbolo: val — ad es. val / 1000 + 3. Una formula non valida mantiene i valori originali.",
+    "echarts_series_formula_help": "Formula di conversione del valore. Simbolo: val — ad es. val / 1000 + 3. Una formula non valida mantiene i valori originali. Simboli di contesto: smin, smax, savg, sfirst, slast = minimo, massimo, media, primo e ultimo valore di questa serie (senza lacune).",
     "echarts_series_formula_invalid": "Formula non valida — vengono usati i valori originali",
     "echarts_series_inherit": "eredita",
     "echarts_series_label": "Etichette valore",

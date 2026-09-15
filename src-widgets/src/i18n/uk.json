@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "сирі",
     "echarts_series_empty": "Серії відсутні",
     "echarts_series_formula": "Формула",
-    "echarts_series_formula_help": "Формула перерахунку значення. Символ: val — напр. val / 1000 + 3. Недійсна формула зберігає початкові значення.",
+    "echarts_series_formula_help": "Формула перерахунку значення. Символ: val — напр. val / 1000 + 3. Недійсна формула зберігає початкові значення. Символи контексту: smin, smax, savg, sfirst, slast = мінімум, максимум, середнє, перше й останнє значення цього ряду (пропуски пропускаються).",
     "echarts_series_formula_invalid": "Недійсна формула — використовуються початкові значення",
     "echarts_series_inherit": "успадкувати",
     "echarts_series_label": "Мітки значень",

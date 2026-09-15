@@ -479,7 +479,7 @@
     "echarts_series_diff_raw": "bruto",
     "echarts_series_empty": "Sem séries ainda",
     "echarts_series_formula": "Fórmula",
-    "echarts_series_formula_help": "Fórmula de conversão do valor. Símbolo: val — p. ex. val / 1000 + 3. Uma fórmula inválida mantém os valores originais.",
+    "echarts_series_formula_help": "Fórmula de conversão do valor. Símbolo: val — p. ex. val / 1000 + 3. Uma fórmula inválida mantém os valores originais. Símbolos de contexto: smin, smax, savg, sfirst, slast = mínimo, máximo, média, primeiro e último valor desta série (sem lacunas).",
     "echarts_series_formula_invalid": "Fórmula inválida — são usados os valores originais",
     "echarts_series_inherit": "herdar",
     "echarts_series_label": "Etiquetas de valor",
