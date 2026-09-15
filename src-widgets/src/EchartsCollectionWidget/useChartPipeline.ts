@@ -44,7 +44,13 @@ import {
 import { parseJsonTableState, type JsonTableParseResult } from './jsonTableParse';
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
-import { toPlottableNumber, type Point, type RangeOptionsInput, type SeriesPoint } from './historyLogic';
+import {
+    toPlottableNumber,
+    type Point,
+    type RangeOptionsInput,
+    type SeriesPoint,
+    type SeriesValueMap,
+} from './historyLogic';
 import { effectiveAggregate, effectiveDiff } from './seriesDataOverrides';
 import { cutFuturePoints, transformPlainValues, transformSeriesData } from './seriesTransform';
 import { applyBarDiff, bucketizeSeries, makeBarPlan, type BarFetchExtras } from './barBuckets';
@@ -549,6 +555,7 @@ export function useChartPipeline(
                 ...(s.integralUnit !== undefined ? { integralUnit: s.integralUnit } : {}),
                 ...(s.integralInterpolation ? { integralInterpolation: s.integralInterpolation } : {}),
                 ...(s.nullMode ? { ignoreNull: s.nullMode } : {}),
+                ...(s.valueMap ? { valueMap: s.valueMap } : {}),
             })),
         [usable],
     );
@@ -671,11 +678,22 @@ export function useChartPipeline(
     const jsonRowPath = typeof src.jsonRowPath === 'string' ? src.jsonRowPath : undefined;
     const jsonXPath = typeof src.jsonXPath === 'string' ? src.jsonXPath : undefined;
     const isJsonTable = mode === 'json' && jsonKind === 'table';
+    // The series-shaped family's value maps (ticket 02) ride the overlay's name-keyed identity
+    // — only authored maps enter the lookup; without any, the parse stays map-less (same call).
+    const jsonValueMaps = useMemo(() => {
+        const maps: Record<string, SeriesValueMap> = {};
+        for (const [name, m] of Object.entries(companions.jsonSeriesStyle)) {
+            if (m.valueMap) {
+                maps[name] = m.valueMap;
+            }
+        }
+        return Object.keys(maps).length ? maps : undefined;
+    }, [companions.jsonSeriesStyle]);
     // The family parses its payload exactly once — the series-shaped reader skips the table
     // documents entirely (normalizePoints would walk every row for nothing on live updates).
     const jsonParsed = useMemo(
-        () => (isJsonTable ? { series: [] as ChartSeries[] } : parseJsonState(jsonText(jsonRaw))),
-        [isJsonTable, jsonRaw],
+        () => (isJsonTable ? { series: [] as ChartSeries[] } : parseJsonState(jsonText(jsonRaw), jsonValueMaps)),
+        [isJsonTable, jsonRaw, jsonValueMaps],
     );
     const jsonTable = useMemo(
         () =>
@@ -685,7 +703,12 @@ export function useChartPipeline(
                       xPath: jsonXPath,
                       // NOT usableSeries (it filters oid-leere series — every table binding has
                       // `oid:''`); an unset yPath maps to '' = an empty series (decision 9).
-                      ySeries: companions.series.map(s => ({ yPath: s.yPath ?? '', name: s.name })),
+                      ySeries: companions.series.map(s => ({
+                          yPath: s.yPath ?? '',
+                          name: s.name,
+                          // The binding's raw-value map rides the same positional identity (ticket 02).
+                          ...(s.valueMap ? { valueMap: s.valueMap } : {}),
+                      })),
                   })
                 : undefined,
         [isJsonTable, jsonRaw, jsonRowPath, jsonXPath, companions.series],

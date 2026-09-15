@@ -26,7 +26,7 @@ import type {
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
-import { toPlottableNumber } from './historyLogic';
+import { asNullableIntake, intakeValue } from './historyLogic';
 import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
 import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
@@ -255,9 +255,10 @@ export const markBoundOids = (markLines: readonly EchartsMarkLine[]): string[] =
 
 /**
  * Resolve marking bounds against the CURRENT subscribed values (ADR-0062): numbers pass
- * through, OID strings resolve via {@link toPlottableNumber} (the ADR-0058 bool→1/0 intake), a
- * missing/unconvertible bound becomes `undefined` (it drops — no band, no crash). Style/label
- * fields ride along untouched; the builder only reads NUMERIC bounds.
+ * through, OID strings resolve via the shared {@link intakeValue} intake (map-less — the
+ * ADR-0058 bool→1/0 + ADR-0077 string reading), a missing/unconvertible bound becomes
+ * `undefined` (it drops — no band, no crash). Style/label fields ride along untouched; the
+ * builder only reads NUMERIC bounds.
  */
 export const resolveMarkLines = (
     markLines: readonly EchartsMarkLine[],
@@ -265,7 +266,9 @@ export const resolveMarkLines = (
 ): EchartsMarkLine[] =>
     markLines.map(ml => {
         const resolve = (bound: number | string | undefined): number | undefined =>
-            typeof bound === 'number' ? bound : (toPlottableNumber(values[bound ?? ''] ?? null) ?? undefined);
+            typeof bound === 'number'
+                ? bound
+                : (asNullableIntake(intakeValue(values[bound ?? ''] ?? null)) ?? undefined);
         return { ...ml, upper: resolve(ml.upper), lower: resolve(ml.lower) };
     });
 

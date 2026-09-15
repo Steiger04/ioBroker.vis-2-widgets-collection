@@ -357,6 +357,17 @@ export interface EchartsSeriesMeta {
      */
     states?: Record<string, string>;
     /**
+     * Raw-value mapping applied at the INTAKE, before numeric coercion (ticket 02, the
+     * ADR-0077 value chain's first stage): keys match `String(rawValue)` EXACTLY — a hit adopts
+     * the mapped number (which then runs through offset + formula like any value), an authored
+     * empty/null target is a DELIBERATE gap (nullMode never fills it — „bewusst verworfen" ≠
+     * „unlesbar"), a miss leaves the raw value to the normal coercion. Empty/absent map = off.
+     * Never emitted to echarts — a pure intake stage. Type twin: `SeriesValueMap` in
+     * EchartsCollectionWidget/historyLogic.ts (kept inline — this module is deliberately
+     * import-free; keep the two shapes identical).
+     */
+    valueMap?: Record<string, number | null>;
+    /**
      * Value offset added BEFORE the formula (adapter `yOffset`, parity Build B ADR-0059):
      * `f(val + yOffset)`; without a formula the offset alone shifts the values. Never emitted to
      * echarts — the pipeline transforms the data.

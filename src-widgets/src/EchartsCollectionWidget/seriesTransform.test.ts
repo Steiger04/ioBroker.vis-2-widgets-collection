@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { compileFormula, transformSeriesData } from './seriesTransform';
-import type { SeriesPoint } from './historyLogic';
+import { toSeriesData, type SeriesPoint } from './historyLogic';
 
 const pts = (...vals: (number | null)[]): SeriesPoint[] => vals.map((v, i) => [1000 + i, v]);
 
@@ -80,5 +80,12 @@ describe('transformSeriesData (Y-offset → formula, adapter processOneValue ord
         expect(transformSeriesData(data, undefined)).toBe(data);
         expect(transformSeriesData(data, {})).toBe(data);
         expect(transformSeriesData(data, { yOffset: 0, formula: '' })).toBe(data);
+    });
+
+    it('the full chain over a MAPPED value (ticket 02): the mapped number runs offset + formula; a mapped gap SKIPS them', () => {
+        const mapped = toSeriesData([{ ts: 1000, val: 'Sonne' }], 'keep', { Sonne: 3 });
+        expect(transformSeriesData(mapped, { yOffset: 2, formula: 'val * 10' })).toEqual([[1000, 50]]); // (3 + 2) * 10
+        const gapped = toSeriesData([{ ts: 1000, val: 'weg' }], 'keep', { weg: null });
+        expect(transformSeriesData(gapped, { yOffset: 2, formula: 'val * 10' })).toEqual([[1000, null]]);
     });
 });

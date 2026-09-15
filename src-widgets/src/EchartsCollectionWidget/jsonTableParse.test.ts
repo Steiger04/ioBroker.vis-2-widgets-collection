@@ -237,6 +237,17 @@ describe('parseJsonTableState — Y extraction', () => {
         expect(out.series[2]?.data).toEqual([12]);
     });
 
+    it('a binding valueMap maps raw cells at the intake — a hit adopts, an empty target gaps (ticket 02)', () => {
+        const out = parseJsonTableState(JSON.stringify([{ w: 'Sonne', s: 9999 }]), {
+            ySeries: [
+                { yPath: 'w', valueMap: { Sonne: 3 } },
+                { yPath: 's', valueMap: { 9999: null } },
+            ],
+        });
+        expect(out.series[0]?.data).toEqual([3]);
+        expect(out.series[1]?.data).toEqual([null]);
+    });
+
     it('nested yPath with array index resolves per row', () => {
         const out = parseJsonTableState(JSON.stringify([{ items: [{ price: 5 }] }, { items: [{ price: 6 }] }]), {
             ySeries: ys('items[0].price'),

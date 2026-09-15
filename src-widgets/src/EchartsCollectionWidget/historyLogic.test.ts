@@ -6,8 +6,11 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+    asNullableIntake,
     entryRequestOptions,
     fetchMultiSeries,
+    intakeValue,
+    MAPPED_GAP,
     sanitizeStep,
     shiftByOffset,
     toPlottableNumber,
@@ -173,6 +176,68 @@ describe('toSeriesData', () => {
             [2, 10],
             [3, 30],
         ]);
+    });
+});
+
+describe('intakeValue — the shared intake helper (ticket 02)', () => {
+    it('a map hit adopts the number or the MAPPED_GAP sentinel; a miss/the map-less call degrades to toPlottableNumber', () => {
+        expect(intakeValue('Sonne', { Sonne: 3 })).toBe(3);
+        expect(intakeValue(9999, { 9999: null })).toBe(MAPPED_GAP);
+        expect(intakeValue('23,5', { x: 1 })).toBe(23.5); // miss → normal coercion
+        expect(intakeValue('23,5')).toBe(23.5); // no map → the map-less special case
+        expect(asNullableIntake(MAPPED_GAP)).toBeNull();
+        expect(asNullableIntake(7)).toBe(7);
+    });
+});
+
+describe('toSeriesData — value mapping (ticket 02, the ADR-0077 chain: mapping → plottable → NULL)', () => {
+    it('"Sonne" → 3 with the map; without it the string stays a gap', () => {
+        const pts: Point[] = [{ ts: 1, val: 'Sonne' }];
+        expect(toSeriesData(pts, 'keep', { Sonne: 3 })).toEqual([[1, 3]]);
+        expect(toSeriesData(pts)).toEqual([[1, null]]);
+    });
+
+    it('a NUMBER raw maps too — 9999 with an authored empty target is a gap nullMode NEVER fills', () => {
+        const pts: Point[] = [
+            { ts: 1, val: 50 },
+            { ts: 2, val: 9999 },
+        ];
+        expect(toSeriesData(pts, 'forward', { 9999: null })).toEqual([
+            [1, 50],
+            [2, null], // deliberately discarded — forward does NOT carry 50 into it
+        ]);
+    });
+
+    it('the counter-check: an INTAKE null still fills (forward) — only mapped gaps are immune', () => {
+        const pts: Point[] = [
+            { ts: 1, val: 50 },
+            { ts: 2, val: null },
+        ];
+        expect(toSeriesData(pts, 'forward', { 9999: null })).toEqual([
+            [1, 50],
+            [2, 50],
+        ]);
+    });
+
+    it('a miss passes the raw value through the normal coercion (key "x", raw "23,5" → 23.5)', () => {
+        expect(toSeriesData([{ ts: 1, val: '23,5' }], 'keep', { x: 9 })).toEqual([[1, 23.5]]);
+    });
+
+    it('a mapped number feeds the forward-fill `last` like any value', () => {
+        const pts: Point[] = [
+            { ts: 1, val: 'Sonne' },
+            { ts: 2, val: 'abc' },
+        ];
+        expect(toSeriesData(pts, 'forward', { Sonne: 3 })).toEqual([
+            [1, 3],
+            [2, 3], // the unconvertible miss fills from the MAPPED 3
+        ]);
+    });
+
+    it('fetchMultiSeries rides the entry valueMap (the Verlauf plumb)', async () => {
+        const gh = (): Promise<Point[]> => Promise.resolve([{ ts: 1, val: 'Sonne' }]);
+        const out = await fetchMultiSeries(gh, [{ oid: 'a', valueMap: { Sonne: 3 } }], { start: 0, end: 1 });
+        expect(out[0].data).toEqual([[1, 3]]);
     });
 });
 

@@ -9,8 +9,9 @@
  *
  * Per map decision 02:
  *  - result entries are `{ ts (ms epoch), val }`; mapped to echarts `[ts, val]` for a time axis.
- *  - unconvertible `val` → null (clean gaps); string values interpret first (ADR-0077);
- *    `ignoreNull` toggles keep / forward-fill / zero.
+ *  - unconvertible `val` → null (clean gaps); an authored value MAP runs before the coercion and
+ *    string values interpret after it (ADR-0077); `ignoreNull` toggles keep / forward-fill / zero
+ *    — but never fills a MAPPED gap (deliberately discarded, ticket 02).
  *  - one `getHistory` per OID with identical start/end/count; `Promise.allSettled` isolates
  *    a failing OID instead of discarding every series.
  *  - `ts` is already Unix-ms — do NOT multiply by 1000.
@@ -117,24 +118,72 @@ export function toPlottableNumber(val: unknown): number | null {
     return null;
 }
 
+/** A series' authored raw-value mapping — the intake stage before numeric coercion (ticket 02). */
+export type SeriesValueMap = Record<string, number | null>;
+
 /**
- * Transform a history result into echarts series data, applying gap handling.
+ * Marks a raw value the map DELIBERATELY discarded (an authored empty target) — „bewusst
+ * verworfen" is not „unlesbar": nullMode (forward/zero) never fills it, unlike an intake null.
+ */
+export const MAPPED_GAP = Symbol('MAPPED_GAP');
+
+/**
+ * The FULL intake step (the ADR-0077 value-chain order: mapping → plottable value): the raw
+ * value first runs the series' {@link SeriesValueMap} — an exact `String(raw)` hit adopts the
+ * mapped number (or {@link MAPPED_GAP} for an authored empty target), a miss continues into
+ * {@link toPlottableNumber} UNCHANGED. {@link toPlottableNumber} stays the map-less special
+ * case every map-less caller (marking bounds &c.) keeps calling directly.
+ */
+export function intakeValue(raw: unknown, valueMap?: SeriesValueMap): number | typeof MAPPED_GAP | null {
+    if (valueMap) {
+        const key = String(raw);
+        if (Object.prototype.hasOwnProperty.call(valueMap, key)) {
+            const mapped = valueMap[key];
+            return mapped === null || mapped === undefined ? MAPPED_GAP : mapped;
+        }
+    }
+    return toPlottableNumber(raw);
+}
+
+/**
+ * Collapse an {@link intakeValue} result for consumers WITHOUT a nullMode (tables, series-shaped
+ * JSON): a mapped gap is a plain null there — nothing downstream would fill it anyway.
+ */
+export const asNullableIntake = (intake: number | typeof MAPPED_GAP | null): number | null =>
+    intake === MAPPED_GAP ? null : intake;
+
+/**
+ * Transform a history result into echarts series data, applying the value map at the intake and
+ * gap handling after it (mapping gaps are IMMUNE to fill — decision 3).
  *
  * @param points - Raw history entries.
  * @param ignoreNull - How to handle null/non-numeric gaps.
+ * @param valueMap - The series' raw-value mapping (absent = the plain numeric intake).
  */
-export function toSeriesData(points: Point[], ignoreNull: IgnoreNull = 'keep'): SeriesPoint[] {
+export function toSeriesData(
+    points: Point[],
+    ignoreNull: IgnoreNull = 'keep',
+    valueMap?: SeriesValueMap,
+): SeriesPoint[] {
     const out: SeriesPoint[] = [];
     let last: number | null = null;
     for (const p of points) {
-        let v = toPlottableNumber(p.val);
-        if (v === null) {
+        const intake = intakeValue(p.val, valueMap);
+        let v: number | null;
+        if (intake === MAPPED_GAP) {
+            v = null; // deliberately discarded — nullMode never fills (decision 3)
+        } else if (intake === null) {
             if (ignoreNull === 'forward') {
                 v = last; // carry last known value forward
             } else if (ignoreNull === 'zero') {
                 v = 0;
+            } else {
+                v = null;
             }
         } else {
+            v = intake;
+        }
+        if (v !== null) {
             last = v;
         }
         out.push([p.ts, v]);
@@ -171,6 +220,12 @@ export interface HistoryEntry {
      * for this entry's data; absent = inherit the chart-level setting.
      */
     ignoreNull?: IgnoreNull;
+    /**
+     * This series' raw-value mapping (ticket 02) — applied at the intake, BEFORE numeric
+     * coercion (exact `String(raw)` match, authored-empty target = a fill-immune gap); absent =
+     * the plain numeric intake.
+     */
+    valueMap?: SeriesValueMap;
 }
 
 export interface FetchedSeries {
@@ -273,7 +328,10 @@ export async function fetchMultiSeries(
     return results.map((r, i) => {
         const name = entries[i].name ?? entries[i].oid;
         if (r.status === 'fulfilled') {
-            return { name, data: toSeriesData(r.value.pts, entries[i].ignoreNull ?? ignoreNull) };
+            return {
+                name,
+                data: toSeriesData(r.value.pts, entries[i].ignoreNull ?? ignoreNull, entries[i].valueMap),
+            };
         }
         return { name, data: [], error: String(r.reason ?? 'history fetch failed') };
     });

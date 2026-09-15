@@ -19,7 +19,7 @@
  *    ↑↓ reorder, duplicate, delete + the OID-first add affordances.
  */
 import type { FC, ReactNode } from 'react';
-import { Box, Button, IconButton } from '@mui/material';
+import { Box, Button, IconButton, TextField } from '@mui/material';
 import {
     ContentCopy as DuplicateIcon,
     DeleteOutline as DeleteIcon,
@@ -50,6 +50,7 @@ import {
     FieldLabel,
     InfoBox,
     LabeledSelect,
+    noSpinnerSx,
     OptionalNumberField,
     OptionalSliderField,
     SectionTabs,
@@ -367,6 +368,100 @@ export const SeriesValueFormatFields: FC<{
 };
 
 /**
+ * The Wert-Zuordnung editor (ticket 02, the ADR-0077 value chain's intake stage) — rows
+ * „Von" (raw value) → „Nach" (number, empty = a deliberate gap). The Zustandsnamen editor's
+ * controlled pattern: every edit rewrites `meta.valueMap`; a cleared „Von" drops the row; the
+ * fresh row is a next-free-integer IDENTITY mapping (`1 → 1`) — an auto-committed integer key
+ * with a gap target would swallow that raw value's points on arrival. „Nach" is a NATIVE number
+ * input (the OptionalNumberField discipline): only a number or empty can ever reach the map —
+ * garbage text cannot silently authorize a never-fillable gap.
+ */
+export const SeriesValueMapField: FC<{
+    meta: EchartsSeriesMeta;
+    onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
+}> = ({ meta, onPatch }) => {
+    /** Rewrite the map with one row's „Von"/„Nach" edited — a cleared „Von" drops the row. */
+    const patchRow = (key: string, next: { key?: string; number?: number | null }): void => {
+        const out: Record<string, number | null> = {};
+        for (const [k, v] of Object.entries(meta.valueMap ?? {})) {
+            if (k === key) {
+                const nk = (next.key ?? k).trim();
+                if (nk) {
+                    out[nk] = next.number !== undefined ? next.number : v;
+                } // a cleared Von DROPS the mapping (delete affordance for typos)
+            } else {
+                out[k] = v;
+            }
+        }
+        onPatch({ valueMap: Object.keys(out).length ? out : undefined });
+    };
+    return (
+        <Box sx={{ mt: 1.5 }}>
+            <FieldLabel>{Generic.t('echarts_series_value_map')}</FieldLabel>
+            {Object.entries(meta.valueMap ?? {}).map(([key, target], row) => (
+                // Positional key (the Zustandsnamen discipline): the mapping key CHANGES while
+                // the user types in either field — keying by it would remount (and defocus) the
+                // row on every keystroke.
+                <Box
+                    key={row}
+                    sx={{ display: 'flex', gap: 1, alignItems: 'flex-end', mb: 1 }}
+                >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <TextField2
+                            label={Generic.t('echarts_series_value_map_from')}
+                            value={key}
+                            onChange={v => patchRow(key, { key: v })}
+                        />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <FieldLabel>{Generic.t('echarts_series_value_map_to')}</FieldLabel>
+                        <TextField
+                            size="small"
+                            type="number"
+                            value={target === null ? '' : String(target)}
+                            inputProps={{ step: 'any' }}
+                            onChange={e => {
+                                // Empty = the deliberate gap (null); the native control only
+                                // ever delivers a number or empty here.
+                                patchRow(key, { number: e.target.value === '' ? null : Number(e.target.value) });
+                            }}
+                            fullWidth
+                            sx={noSpinnerSx}
+                        />
+                    </Box>
+                    <IconButton
+                        size="small"
+                        aria-label={Generic.t('echarts_editor_series_remove')}
+                        onClick={() => patchRow(key, { key: '' })}
+                        sx={{ mb: 0.5 }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            ))}
+            <Button
+                size="small"
+                onClick={() => {
+                    // The next free integer key, mapped to ITSELF — the fresh row is real but
+                    // changes nothing until the user edits it (a gap-target fresh row would eat
+                    // that value's points from the first second).
+                    const max = Math.max(
+                        -1,
+                        ...Object.keys(meta.valueMap ?? {})
+                            .map(Number)
+                            .filter(Number.isFinite),
+                    );
+                    onPatch({ valueMap: { ...(meta.valueMap ?? {}), [String(max + 1)]: max + 1 } });
+                }}
+            >
+                {Generic.t('echarts_series_value_map_add')}
+            </Button>
+            <InfoBox text={Generic.t('echarts_series_value_map_help')} />
+        </Box>
+    );
+};
+
+/**
  * The Daten tab content of a Verlauf series card (ADR-0072) — the per-series acquisition knobs
  * as Erben-Overrides over the Data source section's Voreinstellung: the aggregate with its
  * sparsely gated params (percentile level / integral unit + interpolation), the bar-mode diff
@@ -528,6 +623,10 @@ export const SeriesDataFields: FC<{
                     ]}
                 />
             </FieldGrid>
+            <SeriesValueMapField
+                meta={meta}
+                onPatch={onPatch}
+            />
             <SwitchList sx={{ mt: 1.5 }}>
                 <SwitchRow
                     label={Generic.t('echarts_series_no_future')}
@@ -592,6 +691,10 @@ export const SeriesTransformFields: FC<{
                     ]}
                 />
             </FieldGrid>
+            <SeriesValueMapField
+                meta={meta}
+                onPatch={onPatch}
+            />
             <InfoBox text={Generic.t('echarts_series_formula_help')} />
         </Box>
     );

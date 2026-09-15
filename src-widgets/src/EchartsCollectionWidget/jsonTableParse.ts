@@ -18,12 +18,13 @@
  *    keep their value);
  *  - no xPath, or a column without non-null values → `index`: labels `"1".."n"`.
  *
- * Y values run through `toPlottableNumber` (booleans → 1/0, non-numeric → a null gap).
+ * Y values run the full intake — an authored value map first (ticket 02), then
+ * `toPlottableNumber` (booleans → 1/0, numeric strings, non-numeric → a null gap).
  * Never throws — malformed input surfaces as `error` (the pipeline's error surface); a
  * missing yPath column is NOT an error, it renders an empty series (editor validation owns
  * that signal, decision 9).
  */
-import { toPlottableNumber, type SeriesPoint } from './historyLogic';
+import { asNullableIntake, intakeValue, type SeriesPoint, type SeriesValueMap } from './historyLogic';
 import { parseDateToMs } from '../hooks/useJsonTableAnalysis/dateValue';
 import { detectType, resolvePrimaryType } from '../hooks/useJsonTableAnalysis/typeDetector';
 
@@ -31,6 +32,11 @@ import { detectType, resolvePrimaryType } from '../hooks/useJsonTableAnalysis/ty
 export interface JsonTableYSeries {
     yPath: string;
     name?: string;
+    /**
+     * This binding's raw-value mapping (ticket 02) — applied at the intake, before numeric
+     * coercion; absent = the plain numeric intake.
+     */
+    valueMap?: SeriesValueMap;
 }
 
 /** How the X dimension was derived from the payload (ADR-0075 decision 4). */
@@ -150,9 +156,13 @@ const displayName = (ys: JsonTableYSeries, k: number): string => {
     return `Series ${k + 1}`; // parseJsonState parity for the nameless case
 };
 
-/** One aligned cell per row: the row's y values, in `ySeries` order. */
+/**
+ * One aligned cell per row: the row's y values, in `ySeries` order. The full intake runs per
+ * binding — its value map first (a mapped gap is a plain null; the table family has no nullMode
+ * that could fill it), then the numeric string interpretation.
+ */
 const yCells = (row: unknown, ySeries: readonly JsonTableYSeries[]): (number | null)[] =>
-    ySeries.map(ys => (ys.yPath ? toPlottableNumber(resolvePathValue(row, ys.yPath)) : null));
+    ySeries.map(ys => (ys.yPath ? asNullableIntake(intakeValue(resolvePathValue(row, ys.yPath), ys.valueMap)) : null));
 
 /**
  * Parse a tabellarische JSON payload into chart series (pure — the pipeline's table branch,

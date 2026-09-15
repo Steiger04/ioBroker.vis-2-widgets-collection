@@ -219,6 +219,32 @@ describe('parseJsonState', () => {
         ]);
     });
 
+    it('value maps ride the name-keyed overlay identity — a hit adopts, an empty target gaps (ticket 02)', () => {
+        const named = parseJsonState(
+            JSON.stringify({
+                series: [
+                    {
+                        name: 'A',
+                        data: [
+                            [0, 'Sonne'],
+                            [1, 'x'],
+                        ],
+                    },
+                ],
+            }),
+            {
+                A: { Sonne: 3, x: null },
+            },
+        );
+        expect(named.series[0].data).toEqual([
+            [0, 3],
+            [1, null],
+        ]);
+        // the nameless single-series shapes look up 'Series 1'
+        const bare = parseJsonState(JSON.stringify([[0, '7']]), { 'Series 1': { 7: 9 } });
+        expect(bare.series[0].data).toEqual([[0, 9]]);
+    });
+
     it('defaults a missing series name to "Series N"', () => {
         const out = parseJsonState(JSON.stringify({ series: [{ data: [[0, 0]] }, { data: [] }] }));
         expect(out.series[0].name).toBe('Series 1');

@@ -11,6 +11,7 @@
  * the en.json values the assertions read, with sequential %s substitution.
  */
 import { describe, expect, it, vi } from 'vitest';
+import { act } from 'react';
 
 vi.hoisted(() => {
     const dict: Record<string, string> = {
@@ -40,6 +41,11 @@ vi.hoisted(() => {
             'The Data source section holds the default for every series — each value here inherits it and can override it per series.',
         echarts_series_xoffset_bar_limit:
             'The X offset shifts only the request window: in the category bar chart a shifted series lands outside the shared bar grid (empty buckets).',
+        echarts_series_value_map: 'Value mapping',
+        echarts_series_value_map_add: 'Add mapping',
+        echarts_series_value_map_from: 'Raw value',
+        echarts_series_value_map_help: 'The mapping matches exactly on String(raw value).',
+        echarts_series_value_map_to: 'Number (empty = gap)',
     };
     (window as unknown as { visRxWidget: unknown }).visRxWidget = class {
         static t(key: string, ...args: (string | number)[]): string {
@@ -190,5 +196,73 @@ describe('xOffsetMode (pure)', () => {
         expect(xOffsetMode(-3600)).toBe('sec');
         expect(xOffsetMode('1m')).toBe('1m');
         expect(xOffsetMode('-6m')).toBe('-6m');
+    });
+});
+
+describe('SeriesValueMapField — the Wert-Zuordnung rows (ticket 02)', () => {
+    type Patch = Parameters<DataProps['onPatch']>[0];
+
+    /**
+     * Drive a controlled text input. The value MUST go through the PROTOTYPE's native setter —
+     * React's value tracking records every direct `.value =` assignment, so a plain assign +
+     * `input` event reads as "unchanged" and onChange never fires (the jsdom/happy-dom classic).
+     */
+    const setInput = (input: HTMLInputElement, value: string): void => {
+        act(() => {
+            Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+    };
+    /**
+     * The LAST row's [Von, Nach] pair. The map rows render AFTER the Daten grid, so the row's
+     * Von is the final text input and its Nach the final number input — the grid's own inputs
+     * (formula, select displays, the offset numbers) sit before them.
+     */
+    const lastRow = (el: HTMLElement): [HTMLInputElement, HTMLInputElement] => {
+        const inputs = Array.from(el.querySelectorAll('input'));
+        const texts = inputs.filter(i => i.type === 'text');
+        const numbers = inputs.filter(i => i.type === 'number');
+        return [texts[texts.length - 1], numbers[numbers.length - 1]];
+    };
+
+    it('renders the authored rows — raw value + target, a gap target renders empty, help rides along', () => {
+        const h = mount({ meta: { valueMap: { Sonne: 3, weg: null } } });
+        const values = Array.from(h.container.querySelectorAll('input')).map(i => i.value);
+        expect(values).toContain('Sonne');
+        expect(values).toContain('3');
+        expect(values).toContain(''); // the gap target renders empty (next to its raw value)
+        expect(h.container.textContent).toContain('Value mapping');
+        expect(h.container.textContent).toContain('matches exactly on String');
+    });
+
+    it('the add button appends a next-free-integer IDENTITY row — real but inert from arrival', () => {
+        const patches: Patch[] = [];
+        const h = mount({ meta: { valueMap: { Sonne: 3 } }, onPatch: p => patches.push(p) });
+        const add = Array.from(h.container.querySelectorAll('button')).find(b => b.textContent === 'Add mapping');
+        expect(add).toBeTruthy();
+        act(() => {
+            add!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        expect(patches.at(-1)).toEqual({ valueMap: { Sonne: 3, 0: 0 } }); // 0 → 0: identity
+    });
+
+    it('target edits rebuild the map — empty = gap (null); the NATIVE number field can only deliver a number or empty', () => {
+        const patches: Patch[] = [];
+        const h = mount({ meta: { valueMap: { Sonne: 3 } }, onPatch: p => patches.push(p) });
+        const [, nach] = lastRow(h.container);
+        setInput(nach, '');
+        expect(patches.at(-1)).toEqual({ valueMap: { Sonne: null } }); // empty target = deliberate gap
+        setInput(nach, '2.5');
+        expect(patches.at(-1)).toEqual({ valueMap: { Sonne: 2.5 } });
+        setInput(nach, '-4');
+        expect(patches.at(-1)).toEqual({ valueMap: { Sonne: -4 } }); // negatives commit too
+    });
+
+    it('clearing the LAST Von drops the whole map — valueMap: undefined, the key leaves the blob', () => {
+        const patches: Patch[] = [];
+        const h = mount({ meta: { valueMap: { Sonne: 3 } }, onPatch: p => patches.push(p) });
+        const [von] = lastRow(h.container);
+        setInput(von, '');
+        expect(patches.at(-1)).toEqual({ valueMap: undefined }); // the JSON round-trip drops the key
     });
 });

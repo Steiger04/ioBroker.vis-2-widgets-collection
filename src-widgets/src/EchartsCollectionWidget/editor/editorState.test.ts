@@ -221,6 +221,26 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.series[4]).not.toHaveProperty('xOffset');
     });
 
+    it('per-series valueMap rides the seriesConfig blob; a cleared map leaves NO stale key behind (ticket 02)', () => {
+        const withMap = loadEditorState(
+            saveEditorState(
+                {
+                    ...baseState(),
+                    series: [{ id: 's1', oid: 'a.0', valueMap: { Sonne: 3, 9999: null } }] as EditorSeries[],
+                },
+                1,
+            ),
+        );
+        expect(withMap.series[0]).toMatchObject({ valueMap: { Sonne: 3, 9999: null } });
+        // The cleared state (the editor patches valueMap: undefined): the blob is always written
+        // WHOLE and JSON.stringify drops the undefined — the persisted field cannot keep a stale
+        // map behind the editor's back (the vis-2 patch contract's intent, pinned at the blob).
+        const cleared = loadEditorState(
+            saveEditorState({ ...baseState(), series: [{ id: 's1', oid: 'a.0' }] as EditorSeries[] }, 1),
+        );
+        expect(cleared.series[0]).not.toHaveProperty('valueMap');
+    });
+
     it('the blob of a legacy configuration (no ADR-0072 fields) is BYTE-stable across load→save', () => {
         // `area: 'off'` included because load's normalizeArea injects it — a real stored legacy
         // config carries it (this pins the ADR-0072 fields, not that pre-existing normalization).
