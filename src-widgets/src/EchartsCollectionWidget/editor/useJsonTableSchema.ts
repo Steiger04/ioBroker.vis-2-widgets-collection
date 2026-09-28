@@ -13,7 +13,7 @@
  * surface; the hook is a thin memo over the raw string + rowPath.
  */
 import { useMemo } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 import { analyzeJsonTable, type JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import { resolveRows } from '../jsonTableParse';
@@ -123,13 +123,13 @@ export const analyzeJsonTableSchema = (raw: string, rowPath: string): JsonTableS
  * @param jsonOid - The bound JSON-state OID (`state.jsonOid`).
  * @param rowPath - The CHOSEN rows path (`state.jsonRowPath`; '' = top level).
  * @param enabled - True only for json mode + the table family.
- * @param socket - The LegacyConnection drilled into the editor.
+ * @param socket - The Connection drilled into the editor.
  */
 export function useJsonTableSchema(
     jsonOid: string,
     rowPath: string,
     enabled: boolean,
-    socket: LegacyConnection,
+    socket: Connection,
 ): JsonTableSchema {
     const oids = useMemo(() => (enabled && jsonOid ? [jsonOid] : []), [enabled, jsonOid]);
     const values = useSubscribedValues(oids, socket);

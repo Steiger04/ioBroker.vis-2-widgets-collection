@@ -3,6 +3,19 @@
     "name": "vis-2-widgets-collection",
     "version": "2.6.0",
     "news": {
+      "2.6.1": {
+        "en": "Widgets are now built for React 19 - required for current vis-2 versions; older vis-2 versions running on React 18 can no longer load this widget set",
+        "de": "Widgets sind jetzt für React 19 gebaut – erforderlich für aktuelle vis-2-Versionen; ältere vis-2-Versionen mit React 18 können dieses Widget-Set nicht mehr laden",
+        "ru": "Виджеты теперь собраны для React 19 — требуется для актуальных версий vis-2; более старые версии vis-2 на React 18 больше не могут загрузить этот набор виджетов",
+        "pt": "Os widgets agora são compilados para React 19 — necessário para as versões atuais do vis-2; versões mais antigas do vis-2 com React 18 já não conseguem carregar este conjunto de widgets",
+        "nl": "Widgets zijn nu gebouwd voor React 19 — vereist voor huidige vis-2-versies; oudere vis-2-versies op React 18 kunnen deze widgetset niet meer laden",
+        "fr": "Les widgets sont désormais compilés pour React 19 — requis pour les versions actuelles de vis-2 ; les anciennes versions de vis-2 fonctionnant sous React 18 ne peuvent plus charger ce jeu de widgets",
+        "it": "I widget sono ora compilati per React 19 — necessario per le versioni attuali di vis-2; le versioni precedenti di vis-2 con React 18 non possono più caricare questo set di widget",
+        "es": "Los widgets ahora están compilados para React 19: necesario para las versiones actuales de vis-2; las versiones antiguas de vis-2 con React 18 ya no pueden cargar este conjunto de widgets",
+        "pl": "Widżety są teraz zbudowane dla React 19 — wymagane dla aktualnych wersji vis-2; starsze wersje vis-2 działające na React 18 nie mogą już wczytać tego zestawu widżetów",
+        "uk": "Віджети тепер зібрано для React 19 — потрібно для актуальних версій vis-2; старіші версії vis-2 на React 18 більше не можуть завантажити цей набір віджетів",
+        "zh-cn": "部件现已基于 React 19 构建——需要当前版本的 vis-2；运行 React 18 的旧版 vis-2 无法再加载此部件集"
+      },
       "2.6.0": {
         "en": "Input widget added (text/number input with inline editing)\nnoIcon option now correctly hides the widget icon",
         "de": "Input-Widget hinzugefügt (Text / Zahleneingabe mit Inline-Bearbeitung)\nnoIcon Option verbirgt jetzt korrekt das Widget-Symbol",

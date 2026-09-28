@@ -17,7 +17,7 @@
  * {@link resolveThemeTokens}; nothing colour-related is recomputed ad-hoc in a section.
  */
 import { useMemo } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme } from '@mui/material/styles';
 
 import useCollectionTheme from '../../hooks/useCollectionTheme';
@@ -42,7 +42,7 @@ export type EditorThemeSource = Pick<EditorState, 'paletteSource' | 'palettePres
  * @param socket - ioBroker socket — drilled to `useCollectionTheme` for the theme state.
  * @param hostTheme - The vis-2 host theme the editor chrome runs under (merged onto by the collection theme).
  */
-export function useEditorTheme(state: EditorThemeSource, socket: LegacyConnection, hostTheme: Theme): EditorTheme {
+export function useEditorTheme(state: EditorThemeSource, socket: Connection, hostTheme: Theme): EditorTheme {
     // The collection theme — draft-aware, so studio edits reflect in the configurator live.
     const theme = useCollectionTheme(socket, hostTheme);
     const palette = useMemo(

@@ -28,7 +28,7 @@ import BehaviorSection from '../EchartsCollectionWidget/editor/sections/Behavior
 type TabsProps = Parameters<typeof SectionTabs>[0];
 
 const mount = (over: Partial<TabsProps> = {}): RenderComponentHandle<TabsProps> =>
-    renderComponent(SectionTabs, {
+    renderComponent<TabsProps>(SectionTabs, {
         tabs: [
             { key: 'a', label: 'Alpha' },
             { key: 'b', label: 'Beta' },

@@ -53,7 +53,7 @@ import { useSplitPane } from './editor/useSplitPane';
 import { useEchartsEditorLifecycle, useJsonAxisReconcile } from './editor/useEchartsEditorLifecycle';
 import { familyOf } from './optionBuilder';
 import { firstIssueTabOf, validateEditor, type SectionKey } from './editor/validation';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { VisTheme, WidgetData } from '@iobroker/types-vis-2';
 
 interface EchartsConfigEditorModalProps {
@@ -62,7 +62,7 @@ interface EchartsConfigEditorModalProps {
     data: WidgetData;
     onDataChange: (newData: WidgetData) => void;
     theme: VisTheme;
-    socket: LegacyConnection;
+    socket: Connection;
 }
 
 function EchartsConfigEditorModal({

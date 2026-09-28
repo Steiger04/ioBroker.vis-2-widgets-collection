@@ -14,20 +14,14 @@ import { useState } from 'react';
 import type React from 'react';
 import { Box, IconButton, TextField } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import {
-    SelectID,
-    type Connection,
-    type IobTheme,
-    type LegacyConnection,
-    type ThemeType,
-} from '@iobroker/adapter-react-v5';
+import { SelectID, type Connection, type IobTheme, type ThemeType } from '@iobroker/adapter-react-v5';
 import type { VisTheme } from '@iobroker/types-vis-2';
 
 import Generic from '../../Generic';
 
 /** Context the SelectID dialog needs, drilled down from the custom field component. */
 export interface OidPickerCtx {
-    socket: LegacyConnection;
+    socket: Connection;
     theme: VisTheme;
     themeType: ThemeType;
 }

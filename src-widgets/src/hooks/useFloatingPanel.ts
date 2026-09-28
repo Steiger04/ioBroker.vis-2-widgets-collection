@@ -206,7 +206,7 @@ export interface PanelDragHandleProps {
 
 export interface FloatingPanel {
     /** Attach to the panel element (size measurement + drag clamping). */
-    panelRef: React.RefObject<HTMLDivElement>;
+    panelRef: React.RefObject<HTMLDivElement | null>;
     /** The applied (clamped) geometry — drive the panel style from this. */
     geometry: PanelGeometry;
     /** The drag in flight, for styling affordances (transition kill, hairline highlight). */

@@ -17,7 +17,7 @@ import type { AllCollectionContextProps } from '../types';
 import type { PreviewScene } from './types';
 
 /**
- * Stub `LegacyConnection`: enough for useCollectionTheme's
+ * Stub `Connection`: enough for useCollectionTheme's
  * getState().then().catch() / subscribeState().catch() / unsubscribeState().
  * getState resolves null → no persisted user theme → host theme used as-is.
  */

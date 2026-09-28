@@ -54,7 +54,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { Theme } from '@iobroker/adapter-react-v5';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme as MuiTheme } from '@mui/material/styles';
 
 import Generic from '../Generic';
@@ -89,7 +89,7 @@ interface ThemeStudioPanelProps {
     /** Callback when the panel should close (after draft handling is done). */
     onClose: () => void;
     /** ioBroker socket connection for reading/writing the theme state. */
-    socket: LegacyConnection;
+    socket: Connection;
     /** vis-2 host dark/light mode used to theme the panel chrome. */
     themeType: 'dark' | 'light';
 }

@@ -4,6 +4,7 @@
  * @module components/withCollectionProvider
  */
 
+import type { JSX } from 'react';
 import CollectionProvider from './CollectionProvider';
 
 import type { CollectionContextProps, AllCollectionContextProps } from '../types';

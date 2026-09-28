@@ -12,7 +12,7 @@ import { useState, type FC } from 'react';
 import type React from 'react';
 import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 import Generic from '../../Generic';
 import EChart from '../EChart';
@@ -25,7 +25,7 @@ import type { EditorState } from './editorState';
 
 interface ChartPreviewProps {
     state: EditorState;
-    socket: LegacyConnection;
+    socket: Connection;
     theme: Theme;
     /**
      * Called when the user clicks the empty-state placeholder — with the section (and, for the

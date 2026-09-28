@@ -3,7 +3,7 @@
  *
  * @module EchartsCollectionWidget/historyFetcher
  * @remarks
- * ioBroker's `LegacyConnection.getHistory(id, options)` returns a `Promise` (NOT callback-based)
+ * ioBroker's `Connection.getHistory(id, options)` returns a `Promise` (NOT callback-based)
  * and has no internal timeout, so a non-responding backend hangs the promise — and `loading` —
  * forever (the "eternal spinner"). This races the real promise against a client-side timer.
  *
@@ -15,7 +15,7 @@
  * admin's OID settings). Only when the datapoint configures none does the `instance` key stay
  * absent and the server decide. Shared by the live widget body and the editor preview.
  */
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 /** Client-side timeout (ioBroker does not reliably honor the `timeout` option). */
 const HISTORY_FETCH_TIMEOUT_MS = 12_000;
@@ -35,12 +35,12 @@ export const pickAutoInstance = (obj: unknown): string | null => {
 /**
  * Build a timeout-guarded `getHistory` bound to a socket.
  *
- * @param socket - The raw LegacyConnection from the widget context / editor props.
+ * @param socket - The raw Connection from the widget context / editor props.
  * @returns `(id, options) => Promise<{ts, val}[]>` that rejects on timeout; resolves the Auto
  * instance per OID (cached for the fetcher's lifetime) before the actual fetch.
  */
 export const createHistoryFetcher =
-    (socket: LegacyConnection) =>
+    (socket: Connection) =>
     (id: string, options: ioBroker.GetHistoryOptions): Promise<{ ts: number; val: ioBroker.StateValue | null }[]> => {
         // Auto resolution cache, per fetcher (= per socket): an OID's configured history
         // adapter rarely changes while a fetcher lives.

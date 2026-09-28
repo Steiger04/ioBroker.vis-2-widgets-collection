@@ -12,15 +12,15 @@
  * oidN, so bounds need their own socket subscription).
  */
 import { useEffect, useState } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 export type SubscribedValues = Record<string, ioBroker.StateValue | undefined>;
 
 /**
  * @param oids - OIDs to watch (falsy filtered; de-duplicated). An empty list yields `{}`.
- * @param socket - The LegacyConnection drilled into the editor.
+ * @param socket - The Connection drilled into the editor.
  */
-export function useSubscribedValues(oids: string[], socket: LegacyConnection): SubscribedValues {
+export function useSubscribedValues(oids: string[], socket: Connection): SubscribedValues {
     const [values, setValues] = useState<SubscribedValues>({});
     // Stable dependency: sorted, unique, newline-joined.
     const key = Array.from(new Set(oids.filter(Boolean)))

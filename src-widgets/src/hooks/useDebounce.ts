@@ -55,7 +55,7 @@ function useDebounce({
 }: UseDebounceParams): UseDebounceReturn | null {
     const { setValue } = useContext(CollectionContext);
 
-    const subjectRef = useRef<Subject<string | number | boolean>>();
+    const subjectRef = useRef<Subject<string | number | boolean> | undefined>(undefined);
     const subscriptionRef = useRef<Subscription | null>(null);
     const setValueRef = useRef(setValue);
     setValueRef.current = setValue;

@@ -11,7 +11,7 @@
 import CollectionDivider from '../components/CollectionDivider';
 import { oidChangeHandlerAsync } from './commonObjectFields';
 
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 const PowerSettingsNewIcon =
@@ -90,7 +90,7 @@ const loadStatesAsync = async (
     field: RxWidgetInfoAttributesField,
     data: WidgetData,
     changeData: (newData: WidgetData) => void,
-    socket: LegacyConnection,
+    socket: Connection,
 ): Promise<void> => {
     const fieldName = field.name;
     if (fieldName && data[fieldName]) {

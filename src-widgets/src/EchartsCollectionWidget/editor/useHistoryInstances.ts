@@ -9,13 +9,13 @@
  * server cannot auto-route.
  */
 import { useEffect, useState } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 /**
- * @param socket - The LegacyConnection drilled into the editor.
+ * @param socket - The Connection drilled into the editor.
  * @returns Sorted adapter-instance IDs without the `system.adapter.` prefix (e.g. `sql.0`).
  */
-export function useHistoryInstances(socket: LegacyConnection): string[] {
+export function useHistoryInstances(socket: Connection): string[] {
     const [instances, setInstances] = useState<string[]>([]);
 
     useEffect(() => {

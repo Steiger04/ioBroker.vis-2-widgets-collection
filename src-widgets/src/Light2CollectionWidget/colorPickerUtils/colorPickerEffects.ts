@@ -21,7 +21,7 @@ export type ColorChanges = {
  * Creates an `iro.ColorPicker` instance for the given DOM ref and wires up the relevant event handlers.
  */
 export function initializeColorPicker(
-    ref: React.RefObject<HTMLDivElement>,
+    ref: React.RefObject<HTMLDivElement | null>,
     pickerRef: React.MutableRefObject<iro.ColorPicker | null>,
     options: Record<string, any>,
     onInputChange?: (color: iro.Color, changes?: ColorChanges) => void,

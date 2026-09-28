@@ -7,7 +7,7 @@
  * (`vis-2-widgets-collection.0.theme`), parses/validates it, and merges it onto
  * the host theme (plus optional caller overrides) via `createTheme`.
  *
- * Centralizes the state-reading + `LegacyConnection.unsubscribeState` handling so
+ * Centralizes the state-reading + `Connection.unsubscribeState` handling so
  * the runtime {@link module:components/CollectionProvider.CollectionProvider} and
  * editor surfaces (which live outside the provider subtree) share one source of
  * truth for the user-configured theme.
@@ -25,7 +25,7 @@ import { validateThemeOptions } from '../lib/theme/validateTheme';
 import { buildCornerRadiusCss, getNestedValue } from '../lib/theme/themeUtils';
 import useDraftTheme from './useDraftTheme';
 
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme, ThemeOptions } from '@mui/material/styles';
 import type { CornerRadii } from '../lib/theme/themeTypes';
 
@@ -87,7 +87,7 @@ function stripHostTypographyVariants(host: Theme): Theme {
  * The user theme therefore takes priority, matching the previous inline logic in
  * `CollectionProvider`.
  *
- * @param socket - ioBroker socket (`LegacyConnection`) for reading/subscribing the theme state.
+ * @param socket - ioBroker socket (`Connection`) for reading/subscribing the theme state.
  * @param hostTheme - The vis-2 host theme to merge onto.
  * @param overrides - Optional collection-specific overrides (e.g. typography). Editors omit this.
  * @returns The merged MUI theme.
@@ -99,7 +99,7 @@ function stripHostTypographyVariants(host: Theme): Theme {
  * const theme = useCollectionTheme(props.context.socket, props.context.theme) as VisTheme;
  * ```
  */
-export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
+export function useCollectionTheme(socket: Connection, hostTheme: Theme, overrides?: ThemeOptions): Theme {
     // User-supplied MUI theme JSON, read from the shared ioBroker state.
     const [themeJson, setThemeJson] = useState('');
 
@@ -123,7 +123,7 @@ export function useCollectionTheme(socket: LegacyConnection, hostTheme: Theme, o
             .catch((e: unknown) => console.error(`Cannot subscribe theme state ${THEME_STATE_ID}: ${e}`));
         return () => {
             active = false;
-            // LegacyConnection.unsubscribeState returns void, not a Promise, so it
+            // Connection.unsubscribeState returns void, not a Promise, so it
             // cannot be chained with .catch(). Wrap it to avoid an uncaught error
             // during effect cleanup (e.g. React StrictMode double-invoke / unmount).
             try {

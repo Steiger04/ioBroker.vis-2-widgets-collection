@@ -14,7 +14,7 @@
  * preview shows what the canvas does.
  */
 import { useMemo } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme } from '@mui/material/styles';
 
 import { buildEchartsTheme, effectiveDarkMode } from '../echartsTheme';
@@ -41,14 +41,14 @@ export type PreviewResult = ChartPipelineResult;
 
 /**
  * @param state - The editor working state.
- * @param socket - The LegacyConnection drilled into the editor.
+ * @param socket - The Connection drilled into the editor.
  * @param theme - The MUI theme (for the theme base + palette).
  * @param legendSelection - The preview's runtime legend selection (ADR-0074 Legenden-Folge) —
  *   the preview owns its own local state, exactly like the live body.
  */
 export function usePreviewOption(
     state: EditorState,
-    socket: LegacyConnection,
+    socket: Connection,
     theme: Theme,
     legendSelection?: Record<string, boolean>,
 ): PreviewResult {

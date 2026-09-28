@@ -38,8 +38,8 @@
  * ```
  */
 
-import type { ThemeType } from '@iobroker/adapter-react-v5';
-import type { Theme, LegacyConnection, VisRxData, VisRxWidgetStateValues } from '@iobroker/types-vis-2';
+import type { Theme, ThemeType, Connection } from '@iobroker/adapter-react-v5';
+import type { VisRxData, VisRxWidgetStateValues } from '@iobroker/types-vis-2';
 import { type WidgetStyleState } from '@iobroker/types-vis-2/visBaseWidget';
 import type { CSSProperties } from 'react';
 import type { WidgetRegistry } from './widget-registry';
@@ -196,7 +196,7 @@ export interface CollectionContextProps<T extends object = object> {
      * const width = context.refService.current?.offsetWidth;
      * ```
      */
-    refService: React.RefObject<HTMLElement>;
+    refService: React.RefObject<HTMLElement | null>;
 
     /**
      * Widget container CSS styles.
@@ -384,7 +384,7 @@ export interface CollectionContextProps<T extends object = object> {
      * - State reads/writes
      * - Object queries
      * - File operations
-     * @see {@link LegacyConnection} for available methods
+     * @see {@link Connection} for available methods
      * @example
      * ```typescript
      * const context: StateCollectionContextProps = ...;
@@ -402,7 +402,7 @@ export interface CollectionContextProps<T extends object = object> {
      * await context.socket.setStateAsync('hm-rpc.0.light.STATE', true);
      * ```
      */
-    socket: LegacyConnection;
+    socket: Connection;
 
     /**
      * Material-UI theme object.

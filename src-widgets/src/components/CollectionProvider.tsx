@@ -10,7 +10,7 @@
  *   {@link module:hooks/useCollectionTheme.useCollectionTheme}.
  */
 
-import { createContext, useMemo } from 'react';
+import { createContext, useMemo, type JSX } from 'react';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 
 import useStyles from '../hooks/useStyles';

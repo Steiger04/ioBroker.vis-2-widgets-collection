@@ -81,20 +81,13 @@ declare module '@iobroker/types-vis-2' {
          * @remarks
          * Phase 4: Generic `any` type for all collection states
          *
-         * Includes legacy `.ack` pattern for backward compatibility:
-         * - `${string}.ack`: boolean (from legacy types/index.d.ts)
+         * Includes `collection_${string}` pattern:
          * - `collection_${string}`: any (new collection states)
+         * (`${string}.ack` moved into @iobroker/types-vis-2 itself — declaring it
+         * here again would collide with the upstream interface)
          * @see {@link context-types.d.ts} for widget-specific context types
          */
         [key: `collection_${string}`]: any;
-
-        /**
-         * Legacy state acknowledgment pattern.
-         * Inherited from types/index.d.ts for backward compatibility.
-         *
-         * @deprecated Use collection-specific state patterns instead
-         */
-        [key: `${string}.ack`]: boolean;
     }
 }
 

@@ -9,6 +9,7 @@
  * - a safe `setValue()` helper
  * - a common wrapper layout via `wrapContent()`
  */
+import type { JSX } from 'react';
 import { Box } from '@mui/material';
 
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';

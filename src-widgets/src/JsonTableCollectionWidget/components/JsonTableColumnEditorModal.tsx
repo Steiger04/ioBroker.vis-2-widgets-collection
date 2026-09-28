@@ -53,7 +53,7 @@ interface JsonTableColumnEditorModalProps {
     data: WidgetData;
     /** ioBroker socket for state queries */
     socket: {
-        getState: (id: string) => Promise<{ val?: unknown } | null>;
+        getState: (id: string) => Promise<{ val?: unknown } | null | undefined>;
     };
 }
 

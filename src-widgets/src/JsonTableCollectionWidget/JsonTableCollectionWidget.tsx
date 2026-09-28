@@ -18,7 +18,7 @@ import jsonTableFields from '../lib/jsonTableFields';
 import JsonTableCollection from './JsonTableCollection';
 
 import type { RxWidgetInfo, RxRenderWidgetProps, RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { JsonTableCollectionContextProps, WidgetRegistry } from '../types';
 
 /** All JSON-table-specific data field names that should be cleared on OID deletion. */
@@ -89,14 +89,14 @@ class JsonTableCollectionWidget extends Generic<WidgetRegistry['tplJsonTableColl
                       field: RxWidgetInfoAttributesField,
                       data: WidgetData,
                       changeData: (newData: WidgetData) => void,
-                      socket: LegacyConnection,
+                      socket: Connection,
                   ) => Promise<void>)
                 | undefined;
             oidFieldAny.onChange = async (
                 field: RxWidgetInfoAttributesField,
                 data: WidgetData,
                 changeData: (newData: WidgetData) => void,
-                socket: LegacyConnection,
+                socket: Connection,
             ): Promise<void> => {
                 if (!data.oid) {
                     // Clear all JSON-table-specific fields when OID is removed

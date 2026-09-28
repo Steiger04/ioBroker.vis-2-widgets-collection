@@ -17,6 +17,9 @@ function clean() {
 
 function copyAllFiles() {
     copyFiles([`${SRC}build/customWidgets.js`], `widgets/${adapterName}`);
+    // vis-2 reads mf-manifest.json next to the remote entry to validate that a
+    // widget set shares react and react/jsx-runtime before loading it
+    copyFiles([`${SRC}build/mf-manifest.json`], `widgets/${adapterName}`);
     copyFiles([`${SRC}build/assets/*.*`], `widgets/${adapterName}/assets`);
     copyFiles([`${SRC}build/img/*`], `widgets/${adapterName}/img`);
 }

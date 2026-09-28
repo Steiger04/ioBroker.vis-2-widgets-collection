@@ -12,7 +12,7 @@
  */
 
 import { Box, Paper, Typography } from '@mui/material';
-import { useRef, forwardRef, useImperativeHandle, useContext, useEffect, useMemo, useState } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useContext, useEffect, useMemo, useState, type JSX } from 'react';
 import { CollectionContext } from '../components/CollectionProvider';
 import useSignals from '../hooks/useSignals';
 import useSize from '../hooks/useSize';

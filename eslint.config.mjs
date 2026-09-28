@@ -37,7 +37,7 @@ export default [
     {
         settings: {
             react: {
-                version: '18', // explicit version to avoid "detect" lookup
+                version: '19', // explicit version to avoid "detect" lookup
             },
         },
     },

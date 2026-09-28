@@ -11,13 +11,13 @@
  */
 import CollectionDivider from '../components/CollectionDivider';
 
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 import type { RxWidgetInfoAttributesField, WidgetData } from '@iobroker/types-vis-2';
 
 /** Supported value type hints used by `oidChangeHandlerAsync()`. */
 type AllowedType = 'boolean' | 'number' | 'string' | 'mixed' | 'json';
 
-const getObjectIconAsync = async (socket: LegacyConnection, object: ioBroker.Object): Promise<string | null> => {
+const getObjectIconAsync = async (socket: Connection, object: ioBroker.Object): Promise<string | null> => {
     const idArray = object._id.split('.');
 
     for (let i = idArray.length; i > 0; i--) {
@@ -131,7 +131,7 @@ export const oidChangeHandlerAsync =
         _field: RxWidgetInfoAttributesField,
         data: WidgetData,
         changeData: (newData: WidgetData) => void,
-        socket: LegacyConnection,
+        socket: Connection,
     ): Promise<void> => {
         if (!data[oid]) {
             clearValueFields(data, oid);
@@ -140,7 +140,7 @@ export const oidChangeHandlerAsync =
         }
 
         try {
-            const object: ioBroker.StateObject = await socket.getObject(data[oid]);
+            const object = (await socket.getObject(data[oid])) as ioBroker.StateObject | undefined;
             if (!object) {
                 clearValueFields(data, oid);
                 setTimeout(() => changeData(data), 100);
@@ -264,7 +264,7 @@ const commonObjectFields = (
                     _field: RxWidgetInfoAttributesField,
                     data: WidgetData,
                     changeData: (newData: WidgetData) => void,
-                    _socket: LegacyConnection,
+                    _socket: Connection,
                 ): Promise<void> => {
                     if (data.oidObject) {
                         // Update the unit in the object data
@@ -298,7 +298,7 @@ const commonObjectFields = (
                     _field: RxWidgetInfoAttributesField,
                     data: WidgetData,
                     changeData: (newData: WidgetData) => void,
-                    _socket: LegacyConnection,
+                    _socket: Connection,
                 ): Promise<void> => {
                     if (data.ignoreCommonStates !== false) {
                         // Hide value groups: set values_count to 0

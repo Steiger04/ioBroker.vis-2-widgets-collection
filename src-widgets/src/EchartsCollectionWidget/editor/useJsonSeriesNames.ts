@@ -10,7 +10,7 @@
  * family/mode does not use the json pipeline (gauge / radar / non-json).
  */
 import { useMemo } from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/adapter-react-v5';
 
 import { parseJsonState } from '../optionBuilder';
 import { useSubscribedValues } from './useSubscribedValues';
@@ -25,9 +25,9 @@ export interface JsonSeriesPreview {
 /**
  * @param jsonOid - The bound JSON-state OID (`state.jsonOid`).
  * @param enabled - True only for cartesian/pie + json mode.
- * @param socket - The LegacyConnection drilled into the editor.
+ * @param socket - The Connection drilled into the editor.
  */
-export function useJsonSeriesNames(jsonOid: string, enabled: boolean, socket: LegacyConnection): JsonSeriesPreview {
+export function useJsonSeriesNames(jsonOid: string, enabled: boolean, socket: Connection): JsonSeriesPreview {
     const oids = useMemo(() => (enabled && jsonOid ? [jsonOid] : []), [enabled, jsonOid]);
     const values = useSubscribedValues(oids, socket);
     return useMemo(() => {
