@@ -36,6 +36,8 @@ export function terminalColor(terminal: ColorTerminal | undefined, theme: Theme)
             return theme.palette.primary.main;
         case 'text':
             return theme.palette.text.primary;
+        case 'paper':
+            return theme.palette.background.paper;
         case 'transparent':
         case undefined:
         default:

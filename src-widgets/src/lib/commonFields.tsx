@@ -311,12 +311,14 @@ const commonFields = (settings?: Settings): readonly RxWidgetInfoAttributesField
             type: 'custom',
             component: () => <CollectionDivider dividerText="frame_background" />,
         },
-        // Frame background color field (no fallback)
+        // Frame background color field (no fallback). Terminal `paper`: with no
+        // explicit override the card/frame surface inherits the effective theme's
+        // `palette.background.paper` (preset-controlled), matching the swatch.
         createColorField({
             name: `frameBackground${groupName}`,
             label: 'frame_background',
             fallbackFields: [],
-            terminal: 'transparent',
+            terminal: 'paper',
         }),
     ];
 

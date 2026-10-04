@@ -4,7 +4,11 @@ import { resolveEffectiveColor, terminalColor } from './resolveEffectiveColor';
 import type { ColorFieldContract } from './resolveEffectiveColor';
 
 const THEME = {
-    palette: { primary: { main: '#pri' }, text: { primary: '#txt' } },
+    palette: {
+        primary: { main: '#pri' },
+        text: { primary: '#txt' },
+        background: { paper: '#pap', default: '#bg' },
+    },
 } as unknown as Theme;
 
 const contract = (overrides: Partial<ColorFieldContract>): ColorFieldContract => ({
@@ -16,6 +20,7 @@ describe('terminalColor', () => {
     it('maps each terminal to its theme color', () => {
         expect(terminalColor('primary', THEME)).toBe('#pri');
         expect(terminalColor('text', THEME)).toBe('#txt');
+        expect(terminalColor('paper', THEME)).toBe('#pap');
         expect(terminalColor('transparent', THEME)).toBe('');
         expect(terminalColor(undefined, THEME)).toBe('');
     });
@@ -71,6 +76,11 @@ describe('resolveEffectiveColor', () => {
         expect(
             resolveEffectiveColor(contract({ name: 'background', terminal: 'transparent' }), {}, THEME, undefined),
         ).toBe('');
+        // Frame fields inherit the theme surface: the swatch shows the same
+        // color the widget card renders (terminal `paper`, commonFields).
+        expect(
+            resolveEffectiveColor(contract({ name: 'frameBackground', terminal: 'paper' }), {}, THEME, undefined),
+        ).toBe('#pap');
     });
 
     it('treats a missing terminal as transparent (legacy default)', () => {

@@ -75,6 +75,7 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
      *
      * - `'primary'` → `theme.palette.primary.main`
      * - `'text'` → `theme.palette.text.primary`
+     * - `'paper'` → `theme.palette.background.paper` (frame/card surfaces)
      * - `'transparent'` → `''` (no fill / inherit)
      *
      * If undefined, `'transparent'` is assumed (preserves the legacy behavior of
@@ -95,4 +96,4 @@ export type ExtendedField = RxWidgetInfoAttributesField & {
 /**
  * Terminal default categories for color fields. See {@link ExtendedField.terminal}.
  */
-export type ColorTerminal = 'primary' | 'text' | 'transparent';
+export type ColorTerminal = 'primary' | 'text' | 'paper' | 'transparent';

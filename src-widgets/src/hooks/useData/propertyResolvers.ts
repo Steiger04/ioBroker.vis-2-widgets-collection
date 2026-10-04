@@ -487,13 +487,15 @@ export function createPropertyResolvers(params: CreatePropertyResolversParams): 
         frameBackgroundColorActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? getDataValue<string>('frameBackgroundColor', String(ext)) : undefined,
 
+        // Terminal `paper` mirrors the frameBackground field contract
+        // (commonFields): unset ⇒ the card surface follows the effective theme's
+        // palette.background.paper. See ADR 0004.
         frameBackground: (ext: string | number, includeActive: boolean) =>
             resolvePriority([
                 { condition: includeActive, value: getDataValue<string>('frameBackground', 'Active') },
                 { value: getDataValue<string>('frameBackground', String(ext)) },
                 { value: getDataValue<string>('frameBackground', '') },
-                // { value: backgroundStyles?.background },
-            ]) ?? '',
+            ]) ?? terminalColor('paper', theme),
 
         frameBackgroundActive: (ext: string | number, includeActive: boolean) =>
             includeActive ? getDataValue<string>('frameBackground', String(ext)) : undefined,

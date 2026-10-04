@@ -28,6 +28,7 @@ interface ResolverOpts {
 
 const THEME_PRIMARY = '#pri';
 const THEME_TEXT = '#txt';
+const THEME_PAPER = '#pap';
 
 function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
     const rxData = opts.rxData ?? {};
@@ -36,7 +37,13 @@ function buildResolvers(opts: ResolverOpts = {}): PropertyResolvers {
         rxData,
         oidObject: opts.oidObject as OidObject | undefined,
         oidName: opts.oidName,
-        theme: { palette: { primary: { main: THEME_PRIMARY }, text: { primary: THEME_TEXT } } } as unknown as Theme,
+        theme: {
+            palette: {
+                primary: { main: THEME_PRIMARY },
+                text: { primary: THEME_TEXT },
+                background: { paper: THEME_PAPER, default: THEME_PAPER },
+            },
+        } as unknown as Theme,
         fontStyles: opts.fontStyles as WidgetStyleState | undefined,
         textStyles: opts.textStyles as WidgetStyleState | undefined,
         backgroundStyles: opts.backgroundStyles as WidgetStyleState | undefined,
@@ -95,7 +102,7 @@ describe('getStyleData — empty rxData resolves to known defaults', () => {
             backgroundActive: undefined,
             frameBackgroundColor: '',
             frameBackgroundColorActive: undefined,
-            frameBackground: '',
+            frameBackground: THEME_PAPER,
             frameBackgroundActive: undefined,
         });
     });
