@@ -29,9 +29,9 @@
  * The panel chrome renders in the vis-2 editor's theme family (ADR-0038): it is editor chrome
  * like every configurator. The palette extension point exposes only the host MODE
  * (`themeType`), not the theme object, and the palette React tree does not reliably provide the
- * editor theme by context — so the chrome theme is REBUILT from the same factory the vis-2
- * editor itself uses (`Theme()` from adapter-react-v5: the ioBroker palette family, not bare
- * MUI defaults). It stays unaffected by the theme being EDITED — the draft only flows to the
+ * editor theme by context — so the chrome theme is REBUILT in the editor's family
+ * (modernDark/modernLight since the React-19 host update; the palette constants are mirrored
+ * locally in `lib/theme/chromeTheme` because gui-components peers MUI 9, not bundled here). It stays unaffected by the theme being EDITED — the draft only flows to the
  * canvas widgets via the draft store, never back into the panel; the canvas is the preview
  * (ADR-0020 decision 2).
  */
@@ -53,7 +53,6 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
-import { Theme } from '@iobroker/adapter-react-v5';
 import type { Connection } from '@iobroker/adapter-react-v5';
 import type { Theme as MuiTheme } from '@mui/material/styles';
 
@@ -68,6 +67,7 @@ import { withDerivedSecondary, withPrimaryAsText } from '../lib/theme/derivePale
 import { clearDraftTheme, setDraftTheme } from '../lib/theme/draftThemeStore';
 import { ensureBundledFontFaces } from '../lib/theme/fontCatalogue';
 import { getLastKnownTheme, setLastKnownTheme } from '../lib/theme/lastKnownTheme';
+import { createChromeTheme } from '../lib/theme/chromeTheme';
 import { applyPreset, type ThemePreset } from '../lib/theme/presets';
 import type { ThemeValidationIssue, UserTheme } from '../lib/theme/themeTypes';
 import { getNestedValue, setNestedValue } from '../lib/theme/themeUtils';
@@ -179,10 +179,11 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
         },
     });
 
-    // Panel chrome follows the vis-2 host mode via the ioBroker theme factory (ADR-0038):
-    // same family the editor itself renders in (dark #4dabf5, light #3399CC), independent of
-    // the theme being edited.
-    const chromeTheme = useMemo(() => Theme(themeType === 'dark' ? 'dark' : 'light'), [themeType]);
+    // Panel chrome follows the vis-2 host mode in the modern admin family (ADR-0038):
+    // the editor itself renders modernDark/modernLight since the React-19 host update;
+    // gui-components cannot be bundled (MUI 9 peer), so the palette is mirrored locally
+    // (see lib/theme/chromeTheme). Independent of the theme being edited.
+    const chromeTheme = useMemo(() => createChromeTheme(themeType), [themeType]);
 
     // Load the persisted theme object whenever the panel opens. Instant open
     // (ADR-0020): seed from the session's last known theme so the form renders
