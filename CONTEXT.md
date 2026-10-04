@@ -310,7 +310,7 @@ The collection-wide theme editor (ADR-0020): edits the user theme (stored in the
 ## Language
 
 **Studio panel**:
-The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor's theme family, rebuilt from the host mode via the ioBroker theme factory (ADR-0038) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
+The floating, draggable, resizable panel hosting the theme editor. Its live preview IS the canvas — there is deliberately no in-panel component preview. Its chrome renders in the vis-2 editor's theme family (modernDark/modernLight, mirrored locally via the chrome theme since gui-components peers MUI 9; ADR-0038/0078) — never in the theme being edited. It resizes like an OS window via Resize grips; the full Geometry (position, width, height-or-Auto) persists across sessions.
 _Avoid_: Wizard dialog (the deleted modal), theme dialog
 
 **Preset card**:
@@ -321,13 +321,21 @@ _Avoid_: Preset chip (the old blind dot)
 The preset-apply semantics (ADR-0020): applying a Preset card replaces only the draft's `palette` (including mode) — typography, corner radii, spacing and CSS variables survive, because presets are colour themes and define nothing else.
 _Avoid_: Full replace (the old silent wipe), theme reset
 
+**Host-Theme-Grenze**:
+What the vis-2 host theme may contribute to the collection theme: inheritable DNA only (palette, typography base, shape, shadows, transitions, zIndex, breakpoints, direction) — never its CSS-variables machinery (`vars`/`colorSchemes` would pin every MUI surface to host colors) nor its component skin. Enforced by `sanitizeHostTheme` (ADR-0078).
+_Avoid_: „full host merge“, host skin, cssVars mirror
+
 **Feintuning**:
 The in-section disclosure at the end of Schrift & Form holding the font-weight selects and the line-height slider — rare, expert knobs (bundled fonts ship real 400/700 faces only; other weights synthesise).
 _Avoid_: Advanced typography, more options
 
 **Control kit**:
-The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds from the host mode via the ioBroker theme factory, ADR-0038).
+The shared configurator primitives (`SectionCard`, `FieldLabel`, Field grid, Switch list, Slider field, Sub-group — the field idioms defined under ECharts, ADR-0019; SectionCard per ADR-0038) living in `src/components/`, used by both the echarts configurator and the Studio panel. One configurator language across the collection — and every configurator's chrome renders in the vis-2 editor's theme family (the echarts modal receives the VisTheme object; the studio rebuilds the modern family from the host mode, ADR-0038/0078).
 _Avoid_: Editor controls, per-editor widgets
+
+**Erbt (frame background)**:
+The `frameBackground` field's inherit semantics (terminal `paper`, ADR-0004/0078): unset ⇒ the card/frame surface and its picker swatch show the effective theme's `palette.background.paper`. The inner `background` field stays transparent on inherit — the card colour shows through.
+_Avoid_: „erbt = transparent“ (only true for the inner background field)
 
 **Editor history**:
 The bounded undo/redo stack over a configurator working copy (ADR-0038, generalised from the studio's ADR-0020 draft history): 50 snapshots, continuous same-key edits coalesce into one step (the studio keys by theme path, the echarts editor by the patch's key set), driven by header buttons and Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y — the field's native undo wins while typing in an input. One implementation (`useEditorHistory`) backs both working copies.
