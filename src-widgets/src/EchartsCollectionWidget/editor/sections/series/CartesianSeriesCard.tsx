@@ -67,6 +67,7 @@ import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
 import { axisOptionLabel, displayAxisIndex } from '../../axisLayout';
+import type { HistoryInstancesSight } from '../../useHistoryInstances';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride, Swatch } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -159,6 +160,8 @@ export const CartesianBasisFields: FC<{
     showInstance?: boolean;
     /** Verlauf: selectable history instances (empty list = none installed → Auto only). */
     historyInstances?: string[];
+    /** Verlauf: the instance list has LOADED — gates the missing-adapter hint (no loading flash). */
+    instancesLoaded?: boolean;
     /** JSON overlay semantics: clearing the name writes `undefined` (fall back to the payload name). */
     nameClearsToUndefined?: boolean;
     /**
@@ -182,6 +185,7 @@ export const CartesianBasisFields: FC<{
     sourceRow,
     showInstance,
     historyInstances,
+    instancesLoaded,
     nameClearsToUndefined,
     showAxis = true,
 }) => (
@@ -209,6 +213,14 @@ export const CartesianBasisFields: FC<{
                         ...(historyInstances ?? []).map(id => [id, id] as [string, string]),
                     ]}
                 />
+            )}
+            {showInstance && instancesLoaded && !(historyInstances ?? []).length && (
+                // Zero history adapters AFTER the list loaded (never during the load — that
+                // empty is LOADING, not „none installed"): the select's silent „Auto"-only
+                // shrink gets its honest explanation back.
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                    <InfoBox text={Generic.t('echarts_instance_missing')} />
+                </Box>
             )}
             <TextField2
                 label={Generic.t('echarts_editor_series_name')}
@@ -1034,8 +1046,11 @@ interface CartesianSeriesListProps {
     slot: (i: number) => string;
     /** Theme text-primary — the bar label colour's inherit preview. */
     labelColorFallback: string;
-    /** Verlauf: selectable history instances (empty = none installed / not Verlauf). */
-    historyInstances?: string[];
+    /**
+     * Verlauf: the history-instance sight (list + load state — an empty list before `loaded`
+     * is LOADING, not „none installed"; the missing-adapter hint gates on exactly that).
+     */
+    historyInstances?: HistoryInstancesSight;
     expanded: Record<number, boolean>;
     onToggleCard: (i: number) => void;
     onUpdate: (i: number, patch: Partial<EditorSeries>) => void;
@@ -1166,7 +1181,8 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                             yAxes={state.yAxes}
                             axisDisplayNames={axisDisplayNames}
                             showInstance={state.mode === 'history'}
-                            historyInstances={historyInstances}
+                            historyInstances={historyInstances?.instances}
+                            instancesLoaded={historyInstances?.loaded ?? false}
                             oid={{
                                 value: s.oid,
                                 onChange: oid => onUpdate(i, { oid }),

@@ -101,7 +101,7 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
             pickerCtx: {},
             slot: () => '#111',
             labelColorFallback: '#222',
-            historyInstances: ['sql.0'],
+            historyInstances: { instances: ['sql.0'], loaded: true },
             expanded: { 0: true },
             ...noops,
         });

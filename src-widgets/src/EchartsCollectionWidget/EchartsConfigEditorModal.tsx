@@ -316,6 +316,7 @@ function EchartsConfigEditorModal({
                                 jsonSeriesNames={jsonPreview.names}
                                 jsonError={jsonPreview.error}
                                 tableColumns={tableSchema.columns}
+                                tableSchema={tableSchema}
                                 tableSchemaError={tableSchema.error}
                                 xIsCategory={xIsCategory}
                                 undo={undo}

@@ -40,6 +40,7 @@ import {
 import type { SectionTabsFocus } from '../../components/controls';
 import type { JsonTableColumn } from '../../hooks/useJsonTableAnalysis';
 import type { OidPickerCtx } from './OidPicker';
+import type { JsonTableSchema } from './useJsonTableSchema';
 import type { EditorState, SetEditor } from './editorState';
 
 /** A steering request from outside (modal / preview placeholder): expand + scroll into view. */
@@ -67,6 +68,12 @@ interface EchartsEditorSectionsProps {
     jsonError?: string;
     /** Tabellarisch (ADR-0075): the chosen rows array's columns — the Series-section yPath pickers. */
     tableColumns?: JsonTableColumn[];
+    /**
+     * Tabellarisch: the modal's SHARED schema sight (one subscription + one analysis per payload
+     * tick) — handed to the Data source section so it never opens a second one. Absent (tests,
+     * standalone mounts): the section subscribes its own.
+     */
+    tableSchema?: JsonTableSchema;
     /** Tabellarisch: the schema's rows/JSON error surface. */
     tableSchemaError?: string;
     /**
@@ -153,6 +160,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
     jsonSeriesNames,
     jsonError,
     tableColumns,
+    tableSchema,
     tableSchemaError,
     xIsCategory,
     undo,
@@ -221,6 +229,7 @@ const EchartsEditorSections: FC<EchartsEditorSectionsProps> = ({
                         pickerCtx={pickerCtx}
                         focusTab={focusTab}
                         issues={sectionIssues}
+                        schema={tableSchema}
                     />
                 );
             case 'title':

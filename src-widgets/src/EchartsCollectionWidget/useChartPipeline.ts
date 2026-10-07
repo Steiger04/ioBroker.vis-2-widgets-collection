@@ -45,7 +45,6 @@ import { parseJsonTableState, type JsonTableParseResult } from './jsonTableParse
 import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import {
-    toPlottableNumber,
     type IgnoreNull,
     type Point,
     type RangeOptionsInput,
@@ -151,12 +150,6 @@ export const DEFAULT_HISTORY_COUNT = 500;
 /** The body's hard point ceiling (the ADR-0046 `maxPoints` default; the preview passes 200). */
 export const BODY_MAX_HISTORY_POINTS = 5000;
 
-/**
- * The pipeline's value coercion — the shared {@link toPlottableNumber} intake rule (booleans →
- * 1/0 so bool OIDs resolve, ADR-0058).
- */
-const toNum = toPlottableNumber;
-
 /** A state value as JSON text — primitives stringify, objects/undefined read as empty. */
 const jsonText = (raw: unknown): string => {
     if (typeof raw === 'string') {
@@ -220,10 +213,11 @@ export const hasMergedData = (option: EChartsOption): boolean => {
 
 /**
  * The FINAL-series legend values (ticket 04's one-value-one-truth decision): per series, by
- * name — points read the LAST point's value, plain values the last NON-NULL. The legend thus
- * reads exactly what the axis sees (post offset/formula AND post smoothing/cumulative); the
- * former pre-transform read (a formula series' legend showing its raw value) is retired
- * CONSCIOUSLY.
+ * name — every branch reads the last NON-NULL value (points and plain arrays alike, the same
+ * rule the bucketed twin below applies; a trailing gap is no value, the formatter renders the
+ * bare name). The legend thus reads exactly what the axis sees (post offset/formula AND post
+ * smoothing/cumulative); the former pre-transform read (a formula series' legend showing its
+ * raw value) is retired CONSCIOUSLY.
  */
 const finalLegendValues = (series: readonly ChartSeries[]): Record<string, number | null> => {
     const out: Record<string, number | null> = {};
@@ -231,23 +225,15 @@ const finalLegendValues = (series: readonly ChartSeries[]): Record<string, numbe
         // narrowed from the ChartSeries union — the callers pass points/plain only (the pie
         // block injects its legend values BEFORE the slice objects exist).
         const data = s.data as SeriesPoint[] | (number | null)[];
-        if (data.length === 0) {
-            out[s.name] = null; // the formatter renders the bare name
-            continue;
-        }
-        if (Array.isArray(data[0])) {
-            const last = (data as SeriesPoint[])[data.length - 1];
-            out[s.name] = toNum(last[1]);
-        } else {
-            let v: number | null = null;
-            for (let i = data.length - 1; i >= 0; i--) {
-                if ((data as (number | null)[])[i] !== null) {
-                    v = (data as (number | null)[])[i];
-                    break;
-                }
+        let v: number | null = null;
+        for (let i = data.length - 1; i >= 0; i--) {
+            const val = Array.isArray(data[i]) ? (data[i] as SeriesPoint)[1] : (data[i] as number | null);
+            if (val !== null) {
+                v = val;
+                break;
             }
-            out[s.name] = v;
         }
+        out[s.name] = v;
     }
     return out;
 };

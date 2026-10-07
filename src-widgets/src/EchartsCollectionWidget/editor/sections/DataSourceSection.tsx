@@ -23,7 +23,7 @@ import Generic from '../../../Generic';
 import OidPicker from '../OidPicker';
 import type { OidPickerCtx } from '../OidPicker';
 import ColumnAutocomplete from '../ColumnAutocomplete';
-import { suggestedRowPath, useJsonTableSchema } from '../useJsonTableSchema';
+import { suggestedRowPath, useJsonTableSchema, type JsonTableSchema } from '../useJsonTableSchema';
 import { xSampleLine } from '../xSampleValues';
 import { resolveHostLang } from '../../timeFormat';
 import { RANGE_MINUTES } from '../../timeWindow';
@@ -221,9 +221,15 @@ interface DataSourceSectionProps {
     state: DataSourceSlice;
     set: SetEditor<DataSourceSlice>;
     pickerCtx: OidPickerCtx;
+    /**
+     * The modal's SHARED schema sight (the dedup): when supplied, this section never opens its
+     * own subscription — one live analysis per payload tick serves the whole rail. Absent
+     * (tests, standalone mounts): the section subscribes for itself, unchanged behaviour.
+     */
+    schema?: JsonTableSchema;
 }
 
-const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state, set, pickerCtx }) => {
+const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state, set, pickerCtx, schema }) => {
     const isHistory = state.mode === 'history';
     const isJson = state.mode === 'json';
     // The tabellarische family (ADR-0075): the JSON branch grows the Zuordnung tab; the
@@ -236,7 +242,10 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
 
     // Live schema over the subscribed payload (ADR-0075 ticket 03): array candidates for the
     // Zeilenpfad + the chosen rows' columns. Statistical analysis lives HERE, never in the body.
-    const tableSchema = useJsonTableSchema(state.jsonOid, state.jsonRowPath, isJsonTable, pickerCtx.socket);
+    // The modal's shared sight wins (the dedup — its own hook call runs DISABLED then, no
+    // second subscription); without one, this section subscribes for itself.
+    const ownSchema = useJsonTableSchema(state.jsonOid, state.jsonRowPath, isJsonTable && !schema, pickerCtx.socket);
+    const tableSchema = schema ?? ownSchema;
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);

@@ -278,6 +278,42 @@ describe('assemblePipelineResult — legend values injection (ADR-0054)', () => 
         );
         expect(off.option.legend as object).not.toHaveProperty('formatter');
     });
+
+    it('points read the last NON-NULL value — a trailing gap renders the bare name (one rule for every branch)', () => {
+        const out = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [
+                    { oid: 'a.0', name: 'A' },
+                    { oid: 'b.0', name: 'B' },
+                ],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 2],
+                                [2, 12.5],
+                                [3, null],
+                            ],
+                        }, // trailing gap
+                        {
+                            name: 'B',
+                            data: [
+                                [1, null],
+                                [2, null],
+                            ],
+                        }, // all gaps
+                    ],
+                    loading: false,
+                    error: null,
+                },
+                src: { legendShowValues: true },
+            }),
+        );
+        const legend = out.option.legend as { formatter?: (n: string) => string };
+        expect(legend.formatter?.('A')).toBe('A [12.5]');
+        expect(legend.formatter?.('B')).toBe('B');
+    });
 });
 
 // ── per-series value transforms (ADR-0059, parity Build B issue 07) ──

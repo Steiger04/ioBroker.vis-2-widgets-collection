@@ -267,7 +267,8 @@ const echartsFields = (): (RxWidgetInfoAttributesField | ExtendedField)[] => [
     { name: 'chartType', type: 'text', default: 'line', hidden: alwaysHidden },
     { name: 'titlePos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
     { name: 'legendShow', type: 'checkbox', default: true, hidden: alwaysHidden },
-    { name: 'legendPos', type: 'text', default: 'top', hidden: alwaysHidden },
+    // A 9-grid key (ADR-0021) — the legacy 'top' only rendered topCenter by prefix accident.
+    { name: 'legendPos', type: 'text', default: 'topCenter', hidden: alwaysHidden },
     // Parity Build E option cluster (ADR-0054): the adapter options-tab scalars.
     { name: 'legendShowValues', type: 'checkbox', default: false, hidden: alwaysHidden },
     // tooltipTrigger: no field default — `undefined` lets the runtime default per family

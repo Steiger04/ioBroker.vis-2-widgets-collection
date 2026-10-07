@@ -11,12 +11,21 @@
 import { useEffect, useState } from 'react';
 import type { Connection } from '@iobroker/adapter-react-v5';
 
+/** The hook's sight — the list plus its load state (an empty list before `loaded` is LOADING, not „none installed"). */
+export interface HistoryInstancesSight {
+    /** Sorted adapter-instance IDs without the `system.adapter.` prefix (e.g. `sql.0`). */
+    instances: string[];
+    /** True once the socket answered (or failed) — gates the „no adapter" hint. */
+    loaded: boolean;
+}
+
 /**
  * @param socket - The Connection drilled into the editor.
- * @returns Sorted adapter-instance IDs without the `system.adapter.` prefix (e.g. `sql.0`).
+ * @returns The {@link HistoryInstancesSight} — the list plus whether it has loaded.
  */
-export function useHistoryInstances(socket: Connection): string[] {
+export function useHistoryInstances(socket: Connection): HistoryInstancesSight {
     const [instances, setInstances] = useState<string[]>([]);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -31,14 +40,18 @@ export function useHistoryInstances(socket: Connection): string[] {
                     .map(o => o._id.replace('system.adapter.', ''))
                     .sort((a, b) => a.localeCompare(b));
                 setInstances(list);
+                setLoaded(true);
             })
             .catch(() => {
-                /* leave empty — the Auto option still works */
+                /* leave empty — the Auto option still works; count as answered (no hint flash) */
+                if (active) {
+                    setLoaded(true);
+                }
             });
         return () => {
             active = false;
         };
     }, [socket]);
 
-    return instances;
+    return { instances, loaded };
 }

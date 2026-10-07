@@ -26,7 +26,7 @@ import Generic from '../../../Generic';
 import NoticeSnackbar from '../../components/NoticeSnackbar';
 import { InfoBox } from '../../../components/controls';
 import { useEditorTheme } from '../useEditorTheme';
-import { useHistoryInstances } from '../useHistoryInstances';
+import { useHistoryInstances, type HistoryInstancesSight } from '../useHistoryInstances';
 import { applyOidTextFacts, oidTextPrefill } from '../oidTextFacts';
 import type { EchartsSeriesMeta } from '../../../types/field-definitions/echarts-fields';
 import type { OidPickerCtx } from '../OidPicker';
@@ -109,6 +109,9 @@ interface SeriesSectionProps {
      */
     undo?: () => void;
 }
+
+/** The non-Verlauf fallback sight — `loaded: true` so the missing-adapter hint never flashes. */
+const NO_HISTORY_INSTANCES: HistoryInstancesSight = { instances: [], loaded: true };
 
 const SeriesSection: FC<SeriesSectionProps> = ({
     state,
@@ -448,7 +451,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                     pickerCtx={pickerCtx}
                     slot={slot}
                     labelColorFallback={labelColorFallback}
-                    historyInstances={isHistory ? historyInstances : []}
+                    historyInstances={isHistory ? historyInstances : NO_HISTORY_INSTANCES}
                     expanded={expanded}
                     onToggleCard={toggleCard}
                     onUpdate={update}
