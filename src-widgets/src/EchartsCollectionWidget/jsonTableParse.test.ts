@@ -64,6 +64,54 @@ describe('parseJsonTableState — intake', () => {
     });
 });
 
+describe('parseJsonTableState — NULL-Behandlung (the toter-Regler fix: every mode owns the stage)', () => {
+    /** Index-X rows with an unplotable middle cell. */
+    const gapRows = JSON.stringify([{ temp: 1 }, { temp: 'garbage' }, { temp: 3 }]);
+
+    it('absent nullMode keeps the pre-fix behaviour (gaps stay gaps)', () => {
+        const out = parseJsonTableState(gapRows, { ySeries: ys('temp') });
+        expect(out.series[0]?.data).toEqual([1, null, 3]);
+    });
+
+    it('forward carries the last value over the EMIT order; zero writes 0 — per binding', () => {
+        const ySeries: JsonTableYSeries[] = [
+            { yPath: 'temp', nullMode: 'forward' },
+            { yPath: 'temp', nullMode: 'zero' },
+        ];
+        const out = parseJsonTableState(gapRows, { ySeries });
+        expect(out.series[0]?.data).toEqual([1, 1, 3]);
+        expect(out.series[1]?.data).toEqual([1, 0, 3]);
+    });
+
+    it('a mapped gap stays IMMUNE — forward/zero never fill it (ticket 02 decision 3)', () => {
+        const raw = JSON.stringify([{ temp: 'off' }, { temp: 'garbage' }, { temp: 3 }]);
+        const out = parseJsonTableState(raw, {
+            ySeries: [{ yPath: 'temp', nullMode: 'forward', valueMap: { off: null } }],
+        });
+        // 'off' is the authored gap (immune), 'garbage' is an intake null (carries… nothing yet
+        // — the mapped null sits before it, so forward has no `last` and leaves it a gap too).
+        expect(out.series[0]?.data).toEqual([null, null, 3]);
+        const out2 = parseJsonTableState(
+            JSON.stringify([{ temp: 5 }, { temp: 'off' }, { temp: 'garbage' }, { temp: 9 }]),
+            { ySeries: [{ yPath: 'temp', nullMode: 'forward', valueMap: { off: null } }] },
+        );
+        // 5 carries over the INTAKE null but NOT over the mapped gap — the two stay distinct.
+        expect(out2.series[0]?.data).toEqual([5, null, 5, 9]);
+    });
+
+    it('time X fills AFTER the sort — `last` follows the emit order, not the row order', () => {
+        const raw = JSON.stringify([
+            { ts: '2024-12-01T10:00:00Z', temp: 'garbage' },
+            { ts: '2024-12-01T09:00:00Z', temp: 2 },
+            { ts: 'garbage', temp: 99 }, // dropped — no position
+            { ts: '2024-12-01T11:00:00Z', temp: 'garbage' },
+        ]);
+        const out = parseJsonTableState(raw, { xPath: 'ts', ySeries: [{ yPath: 'temp', nullMode: 'forward' }] });
+        const data = out.series[0]?.data as [number, number | null][];
+        expect(data.map(([, v]) => v)).toEqual([2, 2, 2]); // 09h value carries over both gaps
+    });
+});
+
 describe('parseJsonTableState — time X', () => {
     const rows = (list: [string, number][]): string => JSON.stringify(list.map(([ts, temp]) => ({ ts, temp })));
 

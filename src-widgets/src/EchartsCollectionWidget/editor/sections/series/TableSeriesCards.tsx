@@ -40,7 +40,7 @@ import { snippetPatch } from '../../snippetComposition';
  * The table series cards' field ownership (ADR-0049 slice) — read-only: every write goes
  * through the dispatcher callbacks (positional update / remove / move / rebind / add).
  */
-export type TableSeriesCardsSlice = Pick<EditorState, 'jsonOid' | 'chartType' | 'series' | 'yAxes'>;
+export type TableSeriesCardsSlice = Pick<EditorState, 'jsonOid' | 'chartType' | 'series' | 'yAxes' | 'ignoreNull'>;
 
 interface TableSeriesCardsProps {
     state: TableSeriesCardsSlice;
@@ -225,6 +225,7 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                                 <SeriesTransformFields
                                     meta={s}
                                     onPatch={p => onUpdate(i, p)}
+                                    chartNullMode={state.ignoreNull}
                                 />
                                 <CartesianSeriesKnobs
                                     meta={s}

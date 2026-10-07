@@ -38,6 +38,21 @@ describe('emptyPlaceholderReason — the table Leerfall-CTA (ADR-0075 decision 6
 
     it('every reason carries its i18n key — the mapping is total', () => {
         expect(PLACEHOLDER_I18N_KEY.configureTableMapping).toBe('echarts_preview_configure_table');
-        expect(Object.keys(PLACEHOLDER_I18N_KEY)).toHaveLength(3);
+        expect(PLACEHOLDER_I18N_KEY.jsonNoSeries).toBe('echarts_preview_json_no_series');
+        expect(Object.keys(PLACEHOLDER_I18N_KEY)).toHaveLength(4);
+    });
+});
+
+describe('emptyPlaceholderReason — a SET OID with no plottable output (the honest-empty fix)', () => {
+    it('json with a bound OID and no parsed series says SO — never begs for the chosen OID', () => {
+        expect(emptyPlaceholderReason('json', 'series', false, true, false)).toBe('jsonNoSeries');
+        // the table family with bound columns but an empty/unplotable payload reads the same
+        expect(emptyPlaceholderReason('json', 'table', true, true, false)).toBe('jsonNoSeries');
+    });
+
+    it('data present or OID unset keeps the legacy answers byte-stable', () => {
+        expect(emptyPlaceholderReason('json', 'series', false, true, true)).toBe('selectJsonOid');
+        expect(emptyPlaceholderReason('json', 'series', false, false, false)).toBe('selectJsonOid');
+        expect(emptyPlaceholderReason('json', 'table', false, true, false)).toBe('configureTableMapping');
     });
 });

@@ -38,7 +38,7 @@ import { snippetPatch } from '../../snippetComposition';
  */
 export type JsonSeriesCardsSlice = Pick<
     EditorState,
-    'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'
+    'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull'
 >;
 
 interface JsonSeriesCardsProps {
@@ -236,6 +236,7 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                 <SeriesTransformFields
                                     meta={m}
                                     onPatch={p => onUpdateJson(name, p)}
+                                    chartNullMode={state.ignoreNull}
                                 />
                                 <CartesianSeriesKnobs
                                     meta={m}

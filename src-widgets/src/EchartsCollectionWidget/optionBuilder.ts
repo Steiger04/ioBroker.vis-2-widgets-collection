@@ -16,7 +16,14 @@ import type { EChartsOption } from 'echarts';
 
 import type { EchartsChartFamily, EchartsSeriesMeta, LegacyChartType } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
-import { asNullableIntake, intakeValue, type SeriesPoint, type SeriesValueMap } from './historyLogic';
+import {
+    intakeValue,
+    nullFillOf,
+    type IgnoreNull,
+    type MAPPED_GAP,
+    type SeriesPoint,
+    type SeriesValueMap,
+} from './historyLogic';
 
 import { buildCartesianOption } from './optionBuilders/cartesian';
 import { buildPieOption } from './optionBuilders/pie';
@@ -63,26 +70,39 @@ export const parseSeriesConfig = (raw: string | undefined | null): EchartsSeries
 /**
  * Normalize a heterogeneous array of points into echarts `[ts, val]` pairs. Values flow through
  * the shared intake — an optional series' {@link SeriesValueMap} first, then the numeric string
- * interpretation (ADR-0077); a mapped gap is a plain null here (series-shaped JSON has no
- * nullMode that could fill it). `ts` must stay a number — anything else falls back to the item
- * index (a string-ts never plots as time).
+ * interpretation (ADR-0077) — and the NULL-Behandlung fill right after it (the Wert-Kette stage
+ * the series-shaped JSON family owns since the toter-Regler fix: mapped gaps stay immune,
+ * intake nulls fill per the mode, `last` carries over the payload order). `ts` must stay a
+ * number — anything else falls back to the item index (a string-ts never plots as time).
  */
-const normalizePoints = (data: unknown, valueMap?: SeriesValueMap): SeriesPoint[] => {
+const normalizePoints = (data: unknown, valueMap?: SeriesValueMap, nullMode?: IgnoreNull): SeriesPoint[] => {
     if (!Array.isArray(data)) {
         return [];
     }
-    return data.map((p, i): SeriesPoint => {
+    let last: number | null = null;
+    const out: SeriesPoint[] = [];
+    data.forEach((p, i) => {
+        let ts: number;
+        let intake: number | typeof MAPPED_GAP | null;
         if (Array.isArray(p) && p.length >= 2 && typeof p[0] === 'number') {
-            return [p[0], asNullableIntake(intakeValue(p[1], valueMap))];
-        }
-        if (p && typeof p === 'object') {
+            ts = p[0];
+            intake = intakeValue(p[1], valueMap);
+        } else if (p && typeof p === 'object') {
             const o = p as Record<string, unknown>;
-            const ts = o.ts ?? o.time ?? o.x;
-            const val = o.val ?? o.value ?? o.y;
-            return [typeof ts === 'number' ? ts : i, asNullableIntake(intakeValue(val, valueMap))];
+            const rawTs = o.ts ?? o.time ?? o.x;
+            ts = typeof rawTs === 'number' ? rawTs : i;
+            intake = intakeValue(o.val ?? o.value ?? o.y, valueMap);
+        } else {
+            ts = i;
+            intake = null;
         }
-        return [i, null];
+        const v = nullFillOf(intake, nullMode ?? 'keep', last);
+        if (v !== null) {
+            last = v;
+        }
+        out.push([ts, v]);
     });
+    return out;
 };
 
 /** Result of parsing a JSON-state payload: the resolved series (data only) and any parse error. */
@@ -99,11 +119,15 @@ export type JsonStateResult = { series: ChartSeries[]; error?: string };
  *
  * A malformed JSON string surfaces an `error` instead of a silent blank chart (ADR-0011).
  * `valueMaps` (ticket 02) rides the SAME name-keyed identity the overlay uses: series data runs
- * its series' raw-value map at the intake before the numeric coercion.
+ * its series' raw-value map at the intake before the numeric coercion. `nullModeOf` (the
+ * toter-Regler fix) resolves each series' EFFECTIVE NULL-Behandlung by the same name-keyed
+ * identity — the overlay's per-series override with the chart-level gap setting as the
+ * caller-supplied default; absent = keep (gaps stay gaps, the pre-fix behaviour).
  */
 export const parseJsonState = (
     raw: string | undefined | null,
     valueMaps?: Record<string, SeriesValueMap>,
+    nullModeOf?: (name: string) => IgnoreNull,
 ): JsonStateResult => {
     if (!raw) {
         return { series: [] };
@@ -123,13 +147,20 @@ export const parseJsonState = (
                     const name = typeof so.name === 'string' ? so.name : `Series ${i + 1}`;
                     return {
                         name,
-                        data: normalizePoints(so.data, valueMaps?.[name]),
+                        data: normalizePoints(so.data, valueMaps?.[name], nullModeOf?.(name)),
                     };
                 }),
             };
         }
         if (Array.isArray(o.data)) {
-            return { series: [{ name: 'Series 1', data: normalizePoints(o.data, valueMaps?.['Series 1']) }] };
+            return {
+                series: [
+                    {
+                        name: 'Series 1',
+                        data: normalizePoints(o.data, valueMaps?.['Series 1'], nullModeOf?.('Series 1')),
+                    },
+                ],
+            };
         }
         return { series: [] };
     }
@@ -150,12 +181,14 @@ export const parseJsonState = (
                     const name = typeof so.name === 'string' ? so.name : `Series ${i + 1}`;
                     return {
                         name,
-                        data: normalizePoints(so.data, valueMaps?.[name]),
+                        data: normalizePoints(so.data, valueMaps?.[name], nullModeOf?.(name)),
                     };
                 }),
             };
         }
-        return { series: [{ name: 'Series 1', data: normalizePoints(v, valueMaps?.['Series 1']) }] };
+        return {
+            series: [{ name: 'Series 1', data: normalizePoints(v, valueMaps?.['Series 1'], nullModeOf?.('Series 1')) }],
+        };
     }
     return { series: [] };
 };

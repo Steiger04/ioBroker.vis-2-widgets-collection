@@ -11,6 +11,7 @@ import {
     fetchMultiSeries,
     intakeValue,
     MAPPED_GAP,
+    nullFillOf,
     sanitizeStep,
     shiftByOffset,
     toPlottableNumber,
@@ -187,6 +188,18 @@ describe('intakeValue — the shared intake helper (ticket 02)', () => {
         expect(intakeValue('23,5')).toBe(23.5); // no map → the map-less special case
         expect(asNullableIntake(MAPPED_GAP)).toBeNull();
         expect(asNullableIntake(7)).toBe(7);
+    });
+});
+
+describe('nullFillOf — the shared fill decision (toter-Regler fix: one rule for every intake site)', () => {
+    it('a mapped gap is immune under EVERY mode; an intake null fills per the mode; a number passes', () => {
+        expect(nullFillOf(MAPPED_GAP, 'forward', 5)).toBeNull();
+        expect(nullFillOf(MAPPED_GAP, 'zero', 5)).toBeNull();
+        expect(nullFillOf(null, 'keep', 5)).toBeNull();
+        expect(nullFillOf(null, 'forward', 5)).toBe(5);
+        expect(nullFillOf(null, 'forward', null)).toBeNull(); // nothing carried yet
+        expect(nullFillOf(null, 'zero', null)).toBe(0);
+        expect(nullFillOf(7, 'forward', 5)).toBe(7);
     });
 });
 

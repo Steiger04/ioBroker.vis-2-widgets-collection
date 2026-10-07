@@ -19,12 +19,21 @@
  *  - no xPath, or a column without non-null values → `index`: labels `"1".."n"`.
  *
  * Y values run the full intake — an authored value map first (ticket 02), then
- * `toPlottableNumber` (booleans → 1/0, numeric strings, non-numeric → a null gap).
+ * `toPlottableNumber` (booleans → 1/0, numeric strings, non-numeric → a null gap) — and the
+ * binding's NULL-Behandlung fill after it (the Wert-Kette stage every mode owns; mapped gaps
+ * immune, `last` carries over the emit order).
  * Never throws — malformed input surfaces as `error` (the pipeline's error surface); a
  * missing yPath column is NOT an error, it renders an empty series (editor validation owns
  * that signal, decision 9).
  */
-import { asNullableIntake, intakeValue, type SeriesPoint, type SeriesValueMap } from './historyLogic';
+import {
+    intakeValue,
+    nullFillOf,
+    type IgnoreNull,
+    type MAPPED_GAP,
+    type SeriesPoint,
+    type SeriesValueMap,
+} from './historyLogic';
 import { parseDateToMs } from '../hooks/useJsonTableAnalysis/dateValue';
 import { detectType, resolvePrimaryType } from '../hooks/useJsonTableAnalysis/typeDetector';
 
@@ -37,6 +46,13 @@ export interface JsonTableYSeries {
      * coercion; absent = the plain numeric intake.
      */
     valueMap?: SeriesValueMap;
+    /**
+     * This binding's EFFECTIVE NULL-Behandlung (the Wert-Kette stage the table family owns
+     * since the toter-Regler fix — the caller resolves the per-series override against the
+     * chart-level gap setting): intake nulls fill per the mode over the EMIT order (the
+     * time-X branch fills after its sort/filter), mapped gaps stay immune. Absent = keep.
+     */
+    nullMode?: IgnoreNull;
 }
 
 /** How the X dimension was derived from the payload (ADR-0075 decision 4). */
@@ -157,12 +173,29 @@ const displayName = (ys: JsonTableYSeries, k: number): string => {
 };
 
 /**
- * One aligned cell per row: the row's y values, in `ySeries` order. The full intake runs per
- * binding — its value map first (a mapped gap is a plain null; the table family has no nullMode
- * that could fill it), then the numeric string interpretation.
+ * One aligned cell per row: the row's y values, in `ySeries` order, as RAW INTAKE results —
+ * the full intake runs per binding (its value map first, then the numeric string
+ * interpretation), but the NULL fill does NOT collapse here: a mapped gap must stay
+ * distinguishable from an intake null until {@link fillColumn} runs (immunity, ticket 02).
  */
-const yCells = (row: unknown, ySeries: readonly JsonTableYSeries[]): (number | null)[] =>
-    ySeries.map(ys => (ys.yPath ? asNullableIntake(intakeValue(resolvePathValue(row, ys.yPath), ys.valueMap)) : null));
+const yCells = (row: unknown, ySeries: readonly JsonTableYSeries[]): (number | typeof MAPPED_GAP | null)[] =>
+    ySeries.map(ys => (ys.yPath ? intakeValue(resolvePathValue(row, ys.yPath), ys.valueMap) : null));
+
+/**
+ * Fill one binding's aligned intake cells per its nullMode (the NULL-Behandlung stage, over
+ * the EMIT order — call this AFTER the time-X sort/filter so `last` follows what renders):
+ * mapped gaps immune, forward carries the last value, zero writes 0, keep stays a gap.
+ */
+const fillColumn = (cells: readonly (number | typeof MAPPED_GAP | null)[], mode: IgnoreNull): (number | null)[] => {
+    let last: number | null = null;
+    return cells.map(c => {
+        const v = nullFillOf(c, mode, last);
+        if (v !== null) {
+            last = v;
+        }
+        return v;
+    });
+};
 
 /**
  * Parse a tabellarische JSON payload into chart series (pure — the pipeline's table branch,
@@ -212,12 +245,18 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
         // column shows what the document said, not a reformatted timestamp.
         const aligned = cellsByRow
             .map((ys, i) => ({ xMs: parseDateToMs(xVals![i]), label: sliceLabel(xVals![i], i), ys }))
-            .filter((r): r is { xMs: number; label: string; ys: (number | null)[] } => r.xMs !== null);
+            .filter(
+                (r): r is { xMs: number; label: string; ys: (number | typeof MAPPED_GAP | null)[] } => r.xMs !== null,
+            );
         aligned.sort((a, b) => a.xMs - b.xMs);
         return {
             series: spec.ySeries.map((ys, k) => ({
                 name: displayName(ys, k),
-                data: aligned.map(r => [r.xMs, r.ys[k] ?? null] as SeriesPoint),
+                // Fill AFTER the sort/filter — `last` follows the EMIT order, not the row order.
+                data: fillColumn(
+                    aligned.map(r => r.ys[k] ?? null),
+                    ys.nullMode ?? 'keep',
+                ).map((v, i) => [aligned[i].xMs, v] as SeriesPoint),
             })),
             xKind: 'time',
             sliceNames: aligned.map(r => r.label),
@@ -225,10 +264,14 @@ export const parseJsonTableState = (raw: string | undefined | null, spec: JsonTa
     }
 
     // Both label-based kinds emit the SAME series shape — one per binding, the per-row cell
-    // values aligned to the labels below (only the labels themselves differ).
+    // values (NULL-filled per the binding's mode, mapped gaps immune) aligned to the labels
+    // below (only the labels themselves differ).
     const plainSeries = spec.ySeries.map((ys, k) => ({
         name: displayName(ys, k),
-        data: cellsByRow.map(cells => cells[k] ?? null),
+        data: fillColumn(
+            cellsByRow.map(cells => cells[k] ?? null),
+            ys.nullMode ?? 'keep',
+        ),
     }));
 
     if (primary !== null) {

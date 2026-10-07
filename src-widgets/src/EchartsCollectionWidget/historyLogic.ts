@@ -150,11 +150,33 @@ export function intakeValue(raw: unknown, valueMap?: SeriesValueMap): number | t
 }
 
 /**
- * Collapse an {@link intakeValue} result for consumers WITHOUT a nullMode (tables, series-shaped
- * JSON): a mapped gap is a plain null there — nothing downstream would fill it anyway.
+ * Collapse an {@link intakeValue} result for consumers WITHOUT a nullMode (marking bounds &c.):
+ * a mapped gap is a plain null there — nothing downstream would fill it anyway.
  */
 export const asNullableIntake = (intake: number | typeof MAPPED_GAP | null): number | null =>
     intake === MAPPED_GAP ? null : intake;
+
+/**
+ * The NULL-gap fill decision of the Wert-Kette's NULL-Behandlung stage (ADR-0077), shared by
+ * EVERY intake site — the Verlauf `toSeriesData` loop and the JSON parse paths alike, one rule:
+ * a mapped gap is IMMUNE („bewusst verworfen" ≠ „unlesbar fehlend"), an intake null fills per
+ * the mode (forward carries `last`, zero writes 0, keep stays a gap), a number passes through.
+ * The caller owns the `last` carry — one per series/column, advanced over the EMIT order (the
+ * table family sorts/filters its rows before filling).
+ */
+export const nullFillOf = (
+    intake: number | typeof MAPPED_GAP | null,
+    mode: IgnoreNull,
+    last: number | null,
+): number | null => {
+    if (intake === MAPPED_GAP) {
+        return null; // deliberately discarded — nullMode never fills (decision 3)
+    }
+    if (intake !== null) {
+        return intake;
+    }
+    return mode === 'forward' ? last : mode === 'zero' ? 0 : null;
+};
 
 /**
  * Transform a history result into echarts series data, applying the value map at the intake and
@@ -172,21 +194,7 @@ export function toSeriesData(
     const out: SeriesPoint[] = [];
     let last: number | null = null;
     for (const p of points) {
-        const intake = intakeValue(p.val, valueMap);
-        let v: number | null;
-        if (intake === MAPPED_GAP) {
-            v = null; // deliberately discarded — nullMode never fills (decision 3)
-        } else if (intake === null) {
-            if (ignoreNull === 'forward') {
-                v = last; // carry last known value forward
-            } else if (ignoreNull === 'zero') {
-                v = 0;
-            } else {
-                v = null;
-            }
-        } else {
-            v = intake;
-        }
+        const v = nullFillOf(intakeValue(p.val, valueMap), ignoreNull, last);
         if (v !== null) {
             last = v;
         }

@@ -47,6 +47,8 @@ const ChartPreview: FC<ChartPreviewProps> = ({ state, socket, theme, onPlacehold
         state.mode,
         state.jsonKind,
         state.series.some(s => s.yPath),
+        !!state.jsonOid && state.jsonOid !== 'nothing_selected',
+        hasData,
     );
     const placeholder = Generic.t(PLACEHOLDER_I18N_KEY[placeholderReason]);
 

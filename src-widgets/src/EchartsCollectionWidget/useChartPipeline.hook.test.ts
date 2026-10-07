@@ -255,3 +255,115 @@ describe('useChartPipeline — JSON table family dispatch (ADR-0075)', () => {
         expect((result.current.option.series as { name: string; data: unknown[] }[])[0]?.data).toEqual([[1, 2]]);
     });
 });
+
+describe('useChartPipeline — JSON NULL-Behandlung (the toter-Regler fix: Erben-Override effective resolution)', () => {
+    it('series-shaped: the overlay override beats the chart-level setting; unlisted names inherit it', async () => {
+        const { box, useValues } = makeValuesSource();
+        box.values['js.0.payload'] = JSON.stringify({
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 1],
+                        [2, 'x'],
+                        [3, 3],
+                    ],
+                }, // override forward
+                {
+                    name: 'B',
+                    data: [
+                        [1, 5],
+                        [2, 'x'],
+                        [3, 7],
+                    ],
+                }, // inherits chart zero
+            ],
+        });
+        const adapter: ChartPipelineAdapter = {
+            useValues,
+            getHistory: vi.fn().mockResolvedValue([] as Point[]),
+            theme,
+        };
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                { chartType: 'line', mode: 'json', jsonOid: 'js.0.payload', ignoreNull: 'zero' },
+                { ...COMPANIONS, jsonSeriesStyle: { A: { nullMode: 'forward' } } },
+            ),
+        );
+        await actAdvance(100);
+        const series = result.current.option.series as { name: string; data: unknown[] }[];
+        expect(series[0]?.data).toEqual([
+            [1, 1],
+            [2, 1],
+            [3, 3],
+        ]); // forward carries 1
+        expect(series[1]?.data).toEqual([
+            [1, 5],
+            [2, 0],
+            [3, 7],
+        ]); // chart zero inherits
+    });
+
+    it('table: a binding inherits the chart-level setting through the positional meta', async () => {
+        const { box, useValues } = makeValuesSource();
+        box.values['js.0.payload'] = JSON.stringify([
+            { m: 'Jan', a: 1 },
+            { m: 'Feb', a: 'x' },
+            { m: 'Mar', a: 3 },
+        ]);
+        const adapter: ChartPipelineAdapter = {
+            useValues,
+            getHistory: vi.fn().mockResolvedValue([] as Point[]),
+            theme,
+        };
+        const { result } = renderHook(() =>
+            useChartPipeline(
+                adapter,
+                {
+                    chartType: 'bar',
+                    mode: 'json',
+                    jsonKind: 'table',
+                    jsonOid: 'js.0.payload',
+                    jsonXPath: 'm',
+                    ignoreNull: 'forward',
+                },
+                { ...COMPANIONS, series: [{ oid: '', name: 'A', yPath: 'a' }] },
+            ),
+        );
+        await actAdvance(100);
+        const series = result.current.option.series as { name: string; data: unknown[] }[];
+        expect(series[0]?.data).toEqual([1, 1, 3]); // forward carries 1 over the gap
+    });
+
+    it('absent chart setting stays keep — byte-stable for every existing JSON widget', async () => {
+        const { box, useValues } = makeValuesSource();
+        box.values['js.0.payload'] = JSON.stringify({
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 1],
+                        [2, 'x'],
+                        [3, 3],
+                    ],
+                },
+            ],
+        });
+        const adapter: ChartPipelineAdapter = {
+            useValues,
+            getHistory: vi.fn().mockResolvedValue([] as Point[]),
+            theme,
+        };
+        const { result } = renderHook(() =>
+            useChartPipeline(adapter, { chartType: 'line', mode: 'json', jsonOid: 'js.0.payload' }, COMPANIONS),
+        );
+        await actAdvance(100);
+        const series = result.current.option.series as { name: string; data: unknown[] }[];
+        expect(series[0]?.data).toEqual([
+            [1, 1],
+            [2, null],
+            [3, 3],
+        ]);
+    });
+});

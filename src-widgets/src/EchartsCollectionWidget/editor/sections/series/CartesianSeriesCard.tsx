@@ -86,6 +86,7 @@ export type CartesianSeriesListSlice = Pick<
     | 'percentileValue'
     | 'integralUnit'
     | 'integralInterpolation'
+    | 'ignoreNull'
 >;
 
 /** The X-offset calendar keys (ADR-0072) — the adapter's offset union minus its numeric members. */
@@ -111,6 +112,19 @@ const OFFSET_MODE_KEYS: readonly EchartsOffsetKey[] = [
  */
 export const xOffsetMode = (xOffset: EchartsSeriesMeta['xOffset']): 'sec' | EchartsOffsetKey =>
     typeof xOffset === 'string' ? xOffset : 'sec';
+
+/**
+ * The NULL-Behandlung select's option list — the inherit entry NAMES its effective chart
+ * target (the ADR-0072 aggregate pattern): the value is effective in every mode since the
+ * toter-Regler fix, so naming it stays honest even where the chart-level field has no UI
+ * (the JSON families inherit the persisted Verlauf-authored setting).
+ */
+const nullModeOptions = (chartNullMode?: 'keep' | 'forward' | 'zero'): [string, string][] => [
+    ['', Generic.t('echarts_series_null_inherit', Generic.t(`echarts_ignore_null_${chartNullMode ?? 'keep'}`))],
+    ['keep', Generic.t('echarts_ignore_null_keep')],
+    ['forward', Generic.t('echarts_ignore_null_forward')],
+    ['zero', Generic.t('echarts_ignore_null_zero')],
+];
 
 /**
  * The Basis tab content of a cartesian series card — identity + binding. Shared by the
@@ -482,6 +496,12 @@ export const SeriesDataFields: FC<{
     chartIntegralUnit?: number;
     /** Chart-level integral interpolation — the inherit fallback under a matching chart aggregate. */
     chartIntegralInterpolation?: 'none' | 'linear';
+    /**
+     * The chart-level NULL-Behandlung the per-series select inherits (its entry names the
+     * target — the ADR-0072 aggregate pattern; the value is effective in EVERY mode since the
+     * toter-Regler fix, so naming it stays honest even where the chart field has no UI).
+     */
+    chartNullMode?: 'keep' | 'forward' | 'zero';
     /** The diff tristate shows only on an effective BAR chart (category-bar-only, ADR-0072). */
     isBarChart: boolean;
 }> = ({
@@ -491,6 +511,7 @@ export const SeriesDataFields: FC<{
     chartPercentile,
     chartIntegralUnit,
     chartIntegralInterpolation,
+    chartNullMode,
     isBarChart,
 }) => {
     const invalid = formulaIsInvalid(meta.formula);
@@ -615,12 +636,7 @@ export const SeriesDataFields: FC<{
                     label={Generic.t('echarts_series_null_mode')}
                     value={meta.nullMode ?? ''}
                     onChange={v => onPatch({ nullMode: (v || undefined) as EchartsSeriesMeta['nullMode'] })}
-                    options={[
-                        ['', Generic.t('echarts_series_null_inherit')],
-                        ['keep', Generic.t('echarts_ignore_null_keep')],
-                        ['forward', Generic.t('echarts_ignore_null_forward')],
-                        ['zero', Generic.t('echarts_ignore_null_zero')],
-                    ]}
+                    options={nullModeOptions(chartNullMode)}
                 />
                 {/* Smoothing window (ticket 04): the switch AUTHORS (on → 5, the Default-Autorung)
                     — the slider only ever shows an authored value, never a fake resting position
@@ -673,13 +689,20 @@ export const SeriesDataFields: FC<{
  * Verlauf-only): the conversion FORMULA over `val` (expr-eval; an invalid formula is visibly
  * flagged and the chart keeps the raw values), the Y offset (feeds the formula:
  * `f(val + yOffset)`), the per-series NULL handling and „Keine Zukunft" — the pipeline applies
- * these in every mode. No X offset (no fetch to shift) and no „Nur in Legende" (that lives with
- * the presentation knobs, {@link CartesianSeriesKnobs}).
+ * these in every mode (NULL handling included since the toter-Regler fix: the JSON parse paths
+ * fill their intake nulls per the effective mode, mapped gaps immune). No X offset (no fetch
+ * to shift) and no „Nur in Legende" (that lives with the presentation knobs,
+ * {@link CartesianSeriesKnobs}).
  */
 export const SeriesTransformFields: FC<{
     meta: EchartsSeriesMeta;
     onPatch: (patch: Partial<EchartsSeriesMeta>) => void;
-}> = ({ meta, onPatch }) => {
+    /**
+     * The chart-level NULL-Behandlung the per-series select inherits (its entry names the
+     * target — see {@link nullModeOptions}); effective in JSON since the toter-Regler fix.
+     */
+    chartNullMode?: 'keep' | 'forward' | 'zero';
+}> = ({ meta, onPatch, chartNullMode }) => {
     const invalid = formulaIsInvalid(meta.formula);
     return (
         <Box>
@@ -719,12 +742,7 @@ export const SeriesTransformFields: FC<{
                     label={Generic.t('echarts_series_null_mode')}
                     value={meta.nullMode ?? ''}
                     onChange={v => onPatch({ nullMode: (v || undefined) as EchartsSeriesMeta['nullMode'] })}
-                    options={[
-                        ['', Generic.t('echarts_series_null_inherit')],
-                        ['keep', Generic.t('echarts_ignore_null_keep')],
-                        ['forward', Generic.t('echarts_ignore_null_forward')],
-                        ['zero', Generic.t('echarts_ignore_null_zero')],
-                    ]}
+                    options={nullModeOptions(chartNullMode)}
                 />
                 {/* Smoothing window (ticket 04): the switch AUTHORS (on → 5, the Default-Autorung)
                     — the slider only ever shows an authored value, never a fake resting position
@@ -1165,6 +1183,7 @@ export const CartesianSeriesList: FC<CartesianSeriesListProps> = ({
                             chartPercentile={state.percentileValue}
                             chartIntegralUnit={state.integralUnit}
                             chartIntegralInterpolation={state.integralInterpolation}
+                            chartNullMode={state.ignoreNull}
                             isBarChart={state.chartType === 'bar'}
                         />
                         <CartesianSeriesKnobs

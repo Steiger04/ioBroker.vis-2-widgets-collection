@@ -194,6 +194,59 @@ describe('parseJsonState', () => {
         expect(c.series[0].data).toEqual([[3, 7]]);
     });
 
+    it('NULL-Behandlung rides the name-keyed resolver (toter-Regler fix): intake nulls fill, mapped gaps immune', () => {
+        const raw = JSON.stringify({
+            series: [
+                {
+                    name: 'A',
+                    data: [
+                        [1, 10],
+                        [2, 'garbage'],
+                        [3, 30],
+                    ],
+                },
+                {
+                    name: 'B',
+                    data: [
+                        [1, 5],
+                        [2, 'off'],
+                        [3, 'garbage'],
+                        [4, 8],
+                    ],
+                },
+            ],
+        });
+        const out = parseJsonState(raw, { B: { off: null } }, name => (name === 'A' ? 'forward' : 'zero'));
+        // A forwards 10 over the intake gap; B zeroes the intake null while the mapped gap
+        // stays null — immunity holds under EVERY mode (ticket 02 decision 3).
+        expect(out.series[0].data).toEqual([
+            [1, 10],
+            [2, 10],
+            [3, 30],
+        ]);
+        expect(out.series[1].data).toEqual([
+            [1, 5],
+            [2, null],
+            [3, 0],
+            [4, 8],
+        ]);
+        // a mapped gap stays immune under forward (the ticket-02 rule, now on the JSON path too)
+        const fwd = parseJsonState(raw, { B: { off: null } }, () => 'forward');
+        expect(fwd.series[1].data).toEqual([
+            [1, 5],
+            [2, null],
+            [3, 5],
+            [4, 8],
+        ]);
+        // no resolver = keep (byte-stable pre-fix behaviour)
+        const keep = parseJsonState(raw);
+        expect(keep.series[0].data).toEqual([
+            [1, 10],
+            [2, null],
+            [3, 30],
+        ]);
+    });
+
     it('string values parse through the shared intake — [[0, "7"]] → [[0, 7]] (ADR-0077)', () => {
         const pairs = parseJsonState(
             JSON.stringify([

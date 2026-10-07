@@ -81,6 +81,8 @@ export type SeriesSlice = Pick<
     | 'percentileValue'
     | 'integralUnit'
     | 'integralInterpolation'
+    // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
+    | 'ignoreNull'
 >;
 
 interface SeriesSectionProps {

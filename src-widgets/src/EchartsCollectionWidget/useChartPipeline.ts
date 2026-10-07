@@ -46,6 +46,7 @@ import { useHistory } from './useHistory';
 import { mergeGeneratedOverTheme } from './utils/mergeOption';
 import {
     toPlottableNumber,
+    type IgnoreNull,
     type Point,
     type RangeOptionsInput,
     type SeriesPoint,
@@ -709,11 +710,28 @@ export function useChartPipeline(
         }
         return Object.keys(maps).length ? maps : undefined;
     }, [companions.jsonSeriesStyle]);
+    // The chart-level NULL-Behandlung as the JSON families' inherit default (ADR-0072 Erben-
+    // Override rule): a Verlauf-authored gap setting persists across mode switches and now
+    // takes effect in JSON too — the card's inherit entry names this resolved value.
+    const srcIgnoreNull: IgnoreNull =
+        src.ignoreNull === 'forward' || src.ignoreNull === 'zero' ? src.ignoreNull : 'keep';
+    // The series-shaped family's per-name EFFECTIVE null modes (the toter-Regler fix): the
+    // overlay's override, else the chart-level setting. Absent in non-json modes (the Verlauf
+    // path resolves its fill inside fetchMultiSeries, per entry).
+    const jsonNullModeOf = useMemo(() => {
+        if (mode !== 'json') {
+            return undefined;
+        }
+        return (name: string): IgnoreNull => companions.jsonSeriesStyle[name]?.nullMode ?? srcIgnoreNull;
+    }, [mode, companions.jsonSeriesStyle, srcIgnoreNull]);
     // The family parses its payload exactly once — the series-shaped reader skips the table
     // documents entirely (normalizePoints would walk every row for nothing on live updates).
     const jsonParsed = useMemo(
-        () => (isJsonTable ? { series: [] as ChartSeries[] } : parseJsonState(jsonText(jsonRaw), jsonValueMaps)),
-        [isJsonTable, jsonRaw, jsonValueMaps],
+        () =>
+            isJsonTable
+                ? { series: [] as ChartSeries[] }
+                : parseJsonState(jsonText(jsonRaw), jsonValueMaps, jsonNullModeOf),
+        [isJsonTable, jsonRaw, jsonValueMaps, jsonNullModeOf],
     );
     const jsonTable = useMemo(
         () =>
@@ -728,10 +746,13 @@ export function useChartPipeline(
                           name: s.name,
                           // The binding's raw-value map rides the same positional identity (ticket 02).
                           ...(s.valueMap ? { valueMap: s.valueMap } : {}),
+                          // The binding's EFFECTIVE NULL-Behandlung (toter-Regler fix): the
+                          // per-series override, else the chart-level gap setting.
+                          nullMode: s.nullMode ?? srcIgnoreNull,
                       })),
                   })
                 : undefined,
-        [isJsonTable, jsonRaw, jsonRowPath, jsonXPath, companions.series],
+        [isJsonTable, jsonRaw, jsonRowPath, jsonXPath, companions.series, srcIgnoreNull],
     );
 
     // Debounced early refresh in Verlauf (body behaviour, off in the preview): re-fetch soon when

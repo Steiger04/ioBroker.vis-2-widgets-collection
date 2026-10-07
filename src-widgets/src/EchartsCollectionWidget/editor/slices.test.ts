@@ -203,6 +203,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'percentileValue'
                 | 'integralUnit'
                 | 'integralInterpolation'
+                // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
+                | 'ignoreNull'
             >
         >();
     });
@@ -210,7 +212,7 @@ describe('section slices (ADR-0049)', () => {
     it('the series sub-view slices equal their surfaces ownership', () => {
         expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'pie' | 'mode'>>();
         expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
-            Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle'>
+            Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull'>
         >();
         expectTypeOf<CartesianSeriesListSlice>().toEqualTypeOf<
             Pick<
@@ -224,6 +226,8 @@ describe('section slices (ADR-0049)', () => {
                 | 'percentileValue'
                 | 'integralUnit'
                 | 'integralInterpolation'
+                // The NULL select's inherit entry names the chart-level target (toter-Regler fix).
+                | 'ignoreNull'
             >
         >();
     });
