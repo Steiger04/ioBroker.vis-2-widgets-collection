@@ -339,7 +339,10 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                                     onChange={v => set({ aggregate: v as DataSourceSlice['aggregate'] })}
                                     // The one shared aggregate list (ADR-0072) — the series cards'
                                     // Daten cluster offers the same values under their inherit entry.
-                                    options={AGGREGATE_VALUES.map(a => [a, a] as [string, string])}
+                                    // Labels are translated (raw keys stay the STORED values).
+                                    options={AGGREGATE_VALUES.map(
+                                        a => [a, Generic.t(`echarts_agg_${a}`)] as [string, string],
+                                    )}
                                 />
                                 {/* Zeitschrittweite (ADR-0064): the count alternative — a set step
                              disables the count field (ONE of the two is ever active). */}

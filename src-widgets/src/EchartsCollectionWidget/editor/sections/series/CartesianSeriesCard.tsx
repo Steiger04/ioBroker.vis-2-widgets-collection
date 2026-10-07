@@ -547,9 +547,10 @@ export const SeriesDataFields: FC<{
                     onChange={v => onPatch({ aggregate: (v || undefined) as EchartsSeriesMeta['aggregate'] })}
                     options={[
                         // The inherit entry names its target dynamically — the effective chart
-                        // value travels with every Voreinstellung change (spec decision 6).
-                        ['', Generic.t('echarts_series_agg_inherit', chartAggregate)],
-                        ...AGGREGATE_VALUES.map(a => [a, a] as [string, string]),
+                        // value travels with every Voreinstellung change (spec decision 6); the
+                        // value LABELS are translated, the raw keys stay the STORED values.
+                        ['', Generic.t('echarts_series_agg_inherit', Generic.t(`echarts_agg_${chartAggregate}`))],
+                        ...AGGREGATE_VALUES.map(a => [a, Generic.t(`echarts_agg_${a}`)] as [string, string]),
                     ]}
                 />
                 {agg === 'percentile' && (

@@ -43,7 +43,7 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
     // keeps showing the DEFAULT every inheriting series uses.
     if (state.mode === 'history') {
         const own = state.series.filter(s => hasAggregateOverride(s)).length;
-        out.dataSource = `${state.timeRange} · ${state.aggregate} · ${state.count}${
+        out.dataSource = `${state.timeRange} · ${t(`echarts_agg_${state.aggregate}`)} · ${state.count}${
             own ? ` · ${t('echarts_datasource_own_count', String(own))}` : ''
         }`;
     } else if (state.mode === 'json' && state.jsonKind === 'table') {
@@ -69,23 +69,23 @@ export const sectionSummaries = (state: EditorState, t: TFunc): Partial<Record<S
         out.legend = t('echarts_sum_off');
     }
 
-    // tooltip
+    // tooltip (the trigger label reuses the Tooltip section's own option keys)
     out.tooltip =
         state.tooltipTrigger === 'none'
             ? t('echarts_sum_off')
-            : `${state.tooltipTrigger}${state.tooltipUnits ? ` · ${state.tooltipUnits}` : ''}`;
+            : `${t(`echarts_tooltip_${state.tooltipTrigger}`)}${state.tooltipUnits ? ` · ${state.tooltipUnits}` : ''}`;
 
     // axes & zoom (cartesian only)
     const ax0 = state.yAxes[0];
     const yBounds = ax0 ? `${ax0.min ?? 'auto'}–${ax0.max ?? 'auto'}` : 'auto–auto';
-    const axesN = state.yAxes.length > 1 ? ` · ${state.yAxes.length} axes` : '';
+    const axesN = state.yAxes.length > 1 ? ` · ${t('echarts_summary_axes', String(state.yAxes.length))}` : '';
     const zoom = [state.dataZoomSlider ? 'slider' : '', state.dataZoomInside ? 'inside' : ''].filter(Boolean).join('+');
     out.axesZoom = yBounds + axesN + (zoom ? ` · ${zoom}` : '');
 
     // family options
     if (family === 'pie') {
         out.family = state.pie.innerRadius
-            ? `donut ${Math.round((state.pie.innerRadius ?? 0) * 100)}%`
+            ? t('echarts_summary_donut', `${Math.round((state.pie.innerRadius ?? 0) * 100)}%`)
             : state.pie.rose !== 'none'
               ? `rose · ${state.pie.rose}`
               : '';

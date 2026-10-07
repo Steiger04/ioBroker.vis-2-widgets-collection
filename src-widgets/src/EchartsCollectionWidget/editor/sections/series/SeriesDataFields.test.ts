@@ -24,6 +24,16 @@ vi.hoisted(() => {
         echarts_interp_linear: 'linear',
         echarts_series_inherit: 'inherit',
         echarts_series_agg_inherit: 'inherit (→ %s)',
+        echarts_agg_average: 'Average',
+        echarts_agg_minmax: 'Min–Max',
+        echarts_agg_min: 'Minimum',
+        echarts_agg_max: 'Maximum',
+        echarts_agg_total: 'Total',
+        echarts_agg_count: 'Count',
+        echarts_agg_onchange: 'On change',
+        echarts_agg_none: 'None',
+        echarts_agg_percentile: 'Percentile',
+        echarts_agg_integral: 'Integral',
         echarts_series_diff: 'Difference',
         echarts_series_diff_diff: 'differentiate',
         echarts_series_diff_raw: 'raw',
@@ -99,16 +109,16 @@ const combos = (el: HTMLElement): string[] =>
 describe('SeriesDataFields — Erben-Override UI (ADR-0072)', () => {
     it("the aggregate select's inherit entry renders the EFFECTIVE chart value and follows it", () => {
         const h = mount({ chartAggregate: 'max' });
-        expect(combos(h.container)[0]).toBe('inherit (→ max)');
+        expect(combos(h.container)[0]).toBe('inherit (→ Maximum)');
         h.rerender({ meta: {}, onPatch: () => undefined, chartAggregate: 'total', isBarChart: false });
-        expect(combos(h.container)[0]).toBe('inherit (→ total)');
+        expect(combos(h.container)[0]).toBe('inherit (→ Total)');
     });
 
     it('an override renders as the concrete value; the inherit entry stays reachable (override → back)', () => {
         const h = mount({ meta: { aggregate: 'max' }, chartAggregate: 'average' });
-        expect(combos(h.container)[0]).toBe('max'); // the authored override, not the default
+        expect(combos(h.container)[0]).toBe('Maximum'); // the authored override, not the default
         h.rerender({ meta: {}, onPatch: () => undefined, chartAggregate: 'average', isBarChart: false });
-        expect(combos(h.container)[0]).toBe('inherit (→ average)'); // cleared = back on inherit
+        expect(combos(h.container)[0]).toBe('inherit (→ Average)'); // cleared = back on inherit
     });
 
     it('percentile gates under the EFFECTIVE aggregate — inherited chart percentile, or the own override', () => {

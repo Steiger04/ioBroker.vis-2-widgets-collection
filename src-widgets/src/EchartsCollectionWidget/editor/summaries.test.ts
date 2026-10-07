@@ -21,7 +21,7 @@ const state = (over: Partial<typeof DEFAULT_EDITOR_STATE> = {}): typeof DEFAULT_
 describe('sectionSummaries — Data source Voreinstellung digest (ADR-0072)', () => {
     it('history names the chart default: range · aggregate · count', () => {
         const out = sectionSummaries(state({ mode: 'history', timeRange: '1d', aggregate: 'max', count: 500 }), t);
-        expect(out.dataSource).toBe('1d · max · 500');
+        expect(out.dataSource).toBe('1d · echarts_agg_max · 500');
     });
 
     it('series with aggregate-cluster overrides append the own counter; inheriting series do not', () => {
@@ -39,7 +39,7 @@ describe('sectionSummaries — Data source Voreinstellung digest (ADR-0072)', ()
             }),
             t,
         );
-        expect(out.dataSource).toBe('1d · average · 500 · echarts_datasource_own_count:2');
+        expect(out.dataSource).toBe('1d · echarts_agg_average · 500 · echarts_datasource_own_count:2');
     });
 
     it('JSON stays the bare digest (no acquisition, no counter)', () => {
