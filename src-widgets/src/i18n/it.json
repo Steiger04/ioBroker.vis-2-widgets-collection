@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "stile testo",
     "echarts_mapping_hint": "Scegli l'elenco di righe del payload, la colonna X (una colonna data genera l'asse temporale, qualsiasi altra un asse di categoria) e — nella sezione Serie — le colonne Y come serie.",
     "echarts_mapping_no_array": "Il payload non contiene ancora alcun elenco di righe — scegli uno stato il cui valore è un array JSON (o un oggetto che ne contiene uno).",
+    "echarts_mapping_depth_cap": "La ricerca è limitata a 10 livelli di annidamento: i percorsi di righe e colonne più profondi del documento non compaiono nella selezione.",
     "echarts_mapping_row_index": "(indice di riga)",
     "echarts_mapping_rowpath": "Percorso righe",
     "echarts_mapping_drifted": "Non più nel documento",

@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "style de texte",
     "echarts_mapping_hint": "Choisissez la liste de lignes de la charge utile, la colonne X (une colonne de dates donne l'axe temporel, toute autre colonne un axe de catégories) et — dans la section Séries — les colonnes Y comme séries.",
     "echarts_mapping_no_array": "La charge utile ne contient pas encore de liste de lignes — choisissez un état dont la valeur est un tableau JSON (ou un objet en contenant un).",
+    "echarts_mapping_depth_cap": "La recherche est limitée à 10 niveaux d’imbrication — les chemins de lignes et colonnes plus profonds du document n’apparaissent pas dans la sélection.",
     "echarts_mapping_row_index": "(index de ligne)",
     "echarts_mapping_rowpath": "Chemin des lignes",
     "echarts_mapping_drifted": "Absent du document",

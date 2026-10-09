@@ -40,6 +40,10 @@ _Avoid_: Error state, invalid cell
 The type inferred from the data by the analysis engine (`string`, `number`, `boolean`, `date`, `image`, `null`, `array`, `object`, `mixed`). Drives the default format type and the type badge shown in the editor's analysis panel.
 _Avoid_: Format type (the detected type is a hint; the format type is the user's rendering choice and may differ)
 
+**Flattening-Tiefe**:
+The `tableMaxDepth` setting (default 10): how deep the analysis engine flattens nested JSON into dot-path columns. Render-relevant — the table renders FROM the flattened rows, so the depth caps which cells exist, bounds processing time on deep payloads, and a warning fires when the payload outgrows it. Contrast **Spalten-Sichtweite** (the ECharts editor's discovery-only cap, no render effect).
+_Avoid_: Verschachtelungstiefe without qualifier (name which of the two), Spalten-Sichtweite (that is the ECharts editor's sight, no render effect), depth (unsaid which of the two depths)
+
 # ECharts Collection Widget
 
 The widget renders ioBroker state data as Apache ECharts charts (line/bar/scatter/pie — gauge/radar removed by ADR-0071). Its configurator modal is a sections-rail editor with a live real-data preview (ADR-0007/0008 seam, ADR-0010 layout). This glossary pins down the configurator's structural language.
@@ -73,6 +77,10 @@ _Avoid_: JSON-Variante, zweiter JSON-Modus, Untermodus (it is not a data mode)
 **Zuordnung**:
 The tabellarische data-path share: the **Zeilenpfad** (which array of the document supplies the points), the **X-Spalte** (a date column → the time axis; anything else → the **Kategorieachse**; none → the row index) and the Y columns of the series. Picked from the analysed payload via field pickers with type badges — never as path syntax. When the schema drifts, the paths degrade individually by weight: rows path gone is a hard error, an X column gone silently falls back to the row index, a Y column gone renders an empty series with a warning.
 _Avoid_: Mapping (does not say there are three roles), Feldauswahl (that is the picker mechanism, not the authored config), Spalten-Mapping
+
+**Spalten-Sichtweite**:
+The depth reach of the tabellarische Zuordnung's discovery — 10 nesting levels (the shared engine's flattener default; deliberately a constant, not a field): which arrays become Zeilenpfad chips and which dot-paths become picker options. NOT render-relevant — the runtime resolves authored paths at ANY depth (no flattening outside the editor), so there is nothing for a user to regulate; when a payload is deeper, a hint in the Zuordnung says the pickers are missing paths instead of truncating silently. Contrast **Flattening-Tiefe** (the JSON-Table widget's render-relevant depth).
+_Avoid_: Verschachtelungstiefe without qualifier (ambiguous — name which of the two), maxDepth (that is the engine option name)
 
 **Data path**:
 The per-mode acquisition config a structural reset deletes: series (OIDs), Y-axes, the JSON overlay + jsonHidden, jsonOid, the **Zuordnung** (payload family + rows/X column), markings. Delimited against the presentation config (title, legend, tooltip, colours/palette, toolbox, raws, X-Karte, zoom), which survives every reset. Resets fire on structure boundaries only — the JSON mode boundary (into or out of JSON), the chart-family boundary and, since ADR-0075, the payload-family boundary (serien-förmig↔tabellarisch — same scope, but the JSON data point survives) — never on load, never line↔bar↔scatter (ADR-0067).

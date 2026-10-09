@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "文本样式",
     "echarts_mapping_hint": "选择数据负载的行列表和 X 列（日期列会生成时间轴，其他类型则生成类别轴），并在“系列”部分中选择 Y 列作为系列。",
     "echarts_mapping_no_array": "数据负载中尚不包含行列表——请选择一个值为 JSON 数组（或包含 JSON 数组的对象）的状态。",
+    "echarts_mapping_depth_cap": "搜索限制为 10 层嵌套——文档中更深的行路径和列不会出现在选择列表中。",
     "echarts_mapping_row_index": "（行索引）",
     "echarts_mapping_rowpath": "行路径",
     "echarts_mapping_drifted": "已不存在于文档中",

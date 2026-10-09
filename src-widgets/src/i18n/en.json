@@ -204,6 +204,7 @@
     "echarts_tab_mapping": "Mapping",
     "echarts_mapping_hint": "Choose the rows list of the payload, the X column (a date column yields the time axis, anything else a category axis) and — in the Series section — the Y columns as series.",
     "echarts_mapping_no_array": "The payload contains no rows list yet — pick a state whose value is a JSON array (or an object containing one).",
+    "echarts_mapping_depth_cap": "The search is limited to 10 nesting levels — deeper row paths and columns of the document do not appear in the selection.",
     "echarts_mapping_rowpath": "Rows path",
     "echarts_mapping_drifted": "No longer in the payload",
     "echarts_mapping_suggestion_badge": "Suggested",

@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "estilo de texto",
     "echarts_mapping_hint": "Elija la lista de filas del payload, la columna X (una columna de fecha genera el eje temporal, cualquier otra un eje de categorías) y — en la sección Series — las columnas Y como series.",
     "echarts_mapping_no_array": "El payload aún no contiene ninguna lista de filas: seleccione un estado cuyo valor sea un array JSON (o un objeto que contenga uno).",
+    "echarts_mapping_depth_cap": "La búsqueda está limitada a 10 niveles de anidamiento: las rutas de filas y columnas más profundas del documento no aparecen en la selección.",
     "echarts_mapping_row_index": "(índice de fila)",
     "echarts_mapping_rowpath": "Ruta de filas",
     "echarts_mapping_drifted": "Ya no está en el documento",

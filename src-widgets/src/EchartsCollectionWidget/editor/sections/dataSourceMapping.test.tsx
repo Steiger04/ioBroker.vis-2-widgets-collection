@@ -27,6 +27,8 @@ vi.mock('../OidPicker', () => ({ default: () => null }));
 type Scenario = {
     arrayPaths: { path: string; length: number }[];
     columns: Record<string, unknown>[];
+    /** Set when a discovery walk hit the depth cap — the Zuordnung's honest sight hint. */
+    depthCapped?: boolean;
 };
 const { schema } = vi.hoisted(() => ({
     schema: {
@@ -234,5 +236,13 @@ describe('Zuordnung — the Zeilenpfad chip row (zuordnung-redesign ticket 02)',
             { jsonRowPath: '', jsonXPath: '' },
         );
         expect(rowIndex.textContent).not.toContain('echarts_mapping_samples_prefix');
+    });
+
+    it('the depth-cap hint shows when the schema flags it — and stays quiet otherwise', () => {
+        // The honest sight beside the quiet truncation: one flag covers both discovery walks.
+        const [capped] = mount({ ...SCHEMA_TOP, depthCapped: true });
+        expect(capped.textContent).toContain('echarts_mapping_depth_cap');
+        const [shallow] = mount(SCHEMA_TOP);
+        expect(shallow.textContent).not.toContain('echarts_mapping_depth_cap');
     });
 });

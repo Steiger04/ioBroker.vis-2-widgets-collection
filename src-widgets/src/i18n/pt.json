@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "estilo do texto",
     "echarts_mapping_hint": "Escolha a lista de linhas do payload, a coluna X (uma coluna de data gera o eixo de tempo, qualquer outra um eixo de categorias) e — na seção Séries — as colunas Y como séries.",
     "echarts_mapping_no_array": "O payload ainda não contém uma lista de linhas — escolha um estado cujo valor seja um array JSON (ou um objeto contendo um).",
+    "echarts_mapping_depth_cap": "A pesquisa é limitada a 10 níveis de aninhamento — caminhos de linhas e colunas mais profundos do documento não aparecem na seleção.",
     "echarts_mapping_row_index": "(índice da linha)",
     "echarts_mapping_rowpath": "Caminho das linhas",
     "echarts_mapping_drifted": "Não está (mais) no documento",

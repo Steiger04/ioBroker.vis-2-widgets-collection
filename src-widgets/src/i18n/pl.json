@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "styl tekstu",
     "echarts_mapping_hint": "Wybierz listę wierszy ładunku, kolumnę X (kolumna daty daje oś czasu, a każda inna — oś kategorii) oraz — w sekcji Serie — kolumny Y jako serie.",
     "echarts_mapping_no_array": "Ładunek nie zawiera jeszcze żadnej listy wierszy — wybierz stan, którego wartością jest tablica JSON (lub obiekt ją zawierający).",
+    "echarts_mapping_depth_cap": "Wyszukiwanie jest ograniczone do 10 poziomów zagnieżdżenia — głębsze ścieżki wierszy i kolumn dokumentu nie pojawiają się na liście wyboru.",
     "echarts_mapping_row_index": "(indeks wiersza)",
     "echarts_mapping_rowpath": "Ścieżka wierszy",
     "echarts_mapping_drifted": "Brak (już) w dokumencie",

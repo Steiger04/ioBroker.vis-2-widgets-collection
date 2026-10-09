@@ -490,6 +490,11 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         ) : (
                             !tableSchema.arrayPaths.length && <InfoBox text={Generic.t('echarts_mapping_no_array')} />
                         )}
+                        {/* The discovery depth cap (10, engine parity): payload paths beyond it
+                         * exist but never reach the pickers — the honest hint beside the quiet
+                         * truncation (a sight note, never an error: the runtime resolves
+                         * authored paths at ANY depth). */}
+                        {tableSchema.depthCapped && <InfoBox text={Generic.t('echarts_mapping_depth_cap')} />}
                         {/* Zeilenpfad — the chip row (zuordnung-redesign Q2): every candidate
                          * visible at once, no dropdown to open, wrapping instead of truncating.
                          * The label stays in the no-rows Leerfall (the InfoBox says why the

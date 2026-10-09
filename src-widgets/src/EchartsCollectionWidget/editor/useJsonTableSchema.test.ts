@@ -88,6 +88,62 @@ describe('analyzeJsonTableSchema — columns + error surface', () => {
     });
 });
 
+describe('analyzeJsonTableSchema — the depth cap signal (the honest sight, not an error)', () => {
+    /**
+     * A row object nested `levels` keys deep (`l0.l1.…` ascending, a number leaf at the
+     * bottom): the leaf sits on level `levels + 1` (the flattener starts row keys at 1).
+     */
+    const deepRow = (levels: number): unknown => {
+        let deep: unknown = { x: 1 };
+        for (let i = 0; i < levels; i++) {
+            deep = { [`l${levels - 1 - i}`]: deep };
+        }
+        return deep;
+    };
+
+    it('columns beyond the cap flatten RAW — the leaf stays hidden, the flag says why', () => {
+        // 11 object levels inside a row: the flattener stores the level-10 prefix as a raw
+        // object column; its leaf never becomes a picker option.
+        const out = analyzeJsonTableSchema(JSON.stringify([deepRow(11)]), '');
+        expect(out.depthCapped).toBe(true);
+        const paths = out.columns.map(c => c.path);
+        expect(paths).toContain('l0.l1.l2.l3.l4.l5.l6.l7.l8.l9.l10');
+        expect(paths.some(p => p.endsWith('.x'))).toBe(false);
+    });
+
+    it('a leaf ON level 10 is NOT capped — the boundary stays honest', () => {
+        // 9 wrapper keys: the leaf x sits exactly on level 10 — still flattened, no truncation.
+        const out = analyzeJsonTableSchema(JSON.stringify([deepRow(9)]), '');
+        expect(out.depthCapped).toBeUndefined();
+        expect(out.columns.map(c => c.path)).toEqual(['l0.l1.l2.l3.l4.l5.l6.l7.l8.x']);
+    });
+
+    it('a rows array deeper than the cap flags too (the Zeilenpfad walk)', () => {
+        let doc: unknown = { rows: [{ a: 1 }] };
+        for (let i = 0; i < 12; i++) {
+            doc = { deeper: doc };
+        }
+        const out = analyzeJsonTableSchema(JSON.stringify(doc), '');
+        expect(out.arrayPaths).toEqual([]); // rows sits deeper than the cap — no chip
+        expect(out.depthCapped).toBe(true);
+    });
+
+    it('the flag rides even the drifted-rowPath error surface (discovery is independent)', () => {
+        let doc: unknown = { rows: [{ a: 1 }] };
+        for (let i = 0; i < 12; i++) {
+            doc = { deeper: doc };
+        }
+        const out = analyzeJsonTableSchema(JSON.stringify(doc), 'gone.list');
+        expect(out.error).toBe('rows path "gone.list" is not an array');
+        expect(out.depthCapped).toBe(true);
+    });
+
+    it('shallow payloads never set the flag', () => {
+        const out = analyzeJsonTableSchema(RAW_NESTED, 'data.rows');
+        expect(out.depthCapped).toBeUndefined();
+    });
+});
+
 describe('suggestedRowPath (ADR-0075 decision 8 — a suggestion, never silently set)', () => {
     it('top level wins when the payload is an array', () => {
         expect(suggestedRowPath([{ path: '' }, { path: 'data.rows' }])).toBe('');

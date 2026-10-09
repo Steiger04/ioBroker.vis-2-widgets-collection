@@ -298,6 +298,7 @@
     "echarts_ltpl_cat_textstyle": "tekststijl",
     "echarts_mapping_hint": "Kies de lijst met rijen van de payload, de X-kolom (een datumkolom levert de tijdas op, elke andere kolom een categorie-as) en — in het gedeelte Reeksen — de Y-kolommen als reeksen.",
     "echarts_mapping_no_array": "De payload bevat nog geen lijst met rijen — kies een state waarvan de waarde een JSON-array is (of een object dat er één bevat).",
+    "echarts_mapping_depth_cap": "De zoekopdracht is beperkt tot 10 nestelingsniveaus — diepere rijpaden en kolommen van het document verschijnen niet in de selectie.",
     "echarts_mapping_row_index": "(rij-index)",
     "echarts_mapping_rowpath": "Pad naar rijen",
     "echarts_mapping_drifted": "Niet (meer) in het document",

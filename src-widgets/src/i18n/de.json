@@ -204,6 +204,7 @@
     "echarts_tab_mapping": "Zuordnung",
     "echarts_mapping_hint": "Wähle die Zeilenliste des Dokuments, die X-Spalte (eine Datumsspalte ergibt die Zeitachse, alles andere eine Kategorieachse) und — in der Serien-Sektion — die Y-Spalten als Serien.",
     "echarts_mapping_no_array": "Das Dokument enthält noch keine Zeilenliste — wähle einen Datenpunkt, dessen Wert ein JSON-Array (oder ein Objekt mit einem) liefert.",
+    "echarts_mapping_depth_cap": "Die Suche ist auf 10 Verschachtelungsebenen begrenzt — tiefere Zeilenpfade und Spalten des Dokuments erscheinen nicht in der Auswahl.",
     "echarts_mapping_rowpath": "Zeilenpfad",
     "echarts_mapping_drifted": "Nicht (mehr) im Dokument",
     "echarts_mapping_suggestion_badge": "Vorschlag",
