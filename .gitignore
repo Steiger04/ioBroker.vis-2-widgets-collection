@@ -6,6 +6,7 @@
 node_modules
 
 src-widgets/.__mf__temp
+src-widgets/.mf
 src-widgets/build
 src-widgets/node_modules
 
