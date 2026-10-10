@@ -166,6 +166,38 @@ describe('effectiveAxisName — binding-dropdown label (ADR-0025)', () => {
     });
 });
 
+describe('effectiveAxisName — the tabellarisch yPath default (ADR-0075 family seam)', () => {
+    // The tabellarisch family is POSITIONAL (state.series + yPath, the Verlauf twin) and its
+    // series carry NO stored name by default — the display default is the column's last
+    // segment (tableSeriesName). The axis name resolution must read the same default, so
+    // dropdowns/cards never degrade to "Series N" on a fully mapped series.
+    const tableSeries = [
+        { yAxisIndex: 0, yPath: 'meta.room' },
+        { yAxisIndex: 1, yPath: 'values.humidity' },
+    ];
+
+    it("an unnamed table series titles the axis with the yPath column's LAST segment", () => {
+        expect(effectiveAxisName({}, 0, tableSeries)).toBe('room');
+        expect(effectiveAxisName({}, 1, tableSeries)).toBe('humidity');
+    });
+
+    it('an authored series name still wins over the column default', () => {
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0, yPath: 'meta.room', name: 'PV' }])).toBe('PV');
+    });
+
+    it('a whitespace-only name falls through to the column default', () => {
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0, yPath: 'temp', name: '   ' }])).toBe('temp');
+    });
+
+    it('history sights (no yPath, no name) keep the Series-N fallback', () => {
+        expect(effectiveAxisName({}, 0, [{ yAxisIndex: 0 }])).toBe('Series 1');
+    });
+
+    it('axisOptionLabel prefixes the index — the Series dropdown reads the same column name', () => {
+        expect(axisOptionLabel(1, {}, tableSeries)).toBe('2 · humidity');
+    });
+});
+
 describe('ownerPatch — owner maintenance over before/after bindings (ADR-0068, surviving half)', () => {
     it('returns undefined when no owner changes (referentially stable no-op)', () => {
         const bound = [{ id: 's1', yAxisIndex: 0, name: 'Temp' }];

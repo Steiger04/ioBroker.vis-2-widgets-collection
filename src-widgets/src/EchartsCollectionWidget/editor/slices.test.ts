@@ -80,6 +80,7 @@ describe('section slices (ADR-0049)', () => {
             Pick<
                 EditorState,
                 | 'mode'
+                | 'jsonKind'
                 | 'series'
                 | 'yAxes'
                 | 'xAxis'

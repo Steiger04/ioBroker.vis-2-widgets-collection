@@ -12,6 +12,7 @@
  * @module EchartsCollectionWidget/editor/axisLayout
  */
 import { nextStableId } from './stableId';
+import { lastPathSegment } from '../jsonTableParse';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
 /** Pixel stage between stacked axes on the same side (ADR-0018). */
@@ -235,24 +236,39 @@ export const binderIndexOf = (
 };
 
 /**
+ * A POSITIONAL series' display name — the shared default chain for every family that binds
+ * axes through `state.series` (Verlauf AND tabellarisch, ADR-0075): the authored name (trimmed),
+ * else the yPath column's LAST segment (the tabellarisch default — history series carry no
+ * yPath and fall straight through). Empty when neither resolves — the caller adds its own
+ * index default (`Series N`), exactly like {@link tableSeriesName} in the series cards.
+ */
+export const positionalBinderName = (s: { name?: string; yPath?: string }): string =>
+    s.name?.trim() || (s.yPath ? lastPathSegment(s.yPath) : '');
+
+/**
  * The effective display name of axis `i` for the per-series binding dropdown (ADR-0025): the explicit
  * axis name, else the name inherited from the axis' owner series (first binder before ADR-0068),
- * else the `Series N` label. N is the binder's SERIES position — the exact label the builder
- * renders for an unnamed series and the Axis-card title shows (`boundAxisName`), so all three
- * agree even in a misaligned binding. An unbound axis no longer exists (ADR-0069) — the index
- * fallback below is defensive only.
+ * else the `Series N` label. The inherited name reads {@link positionalBinderName} — so a
+ * tabellarisch series without an authored name titles its axis with the bound COLUMN name,
+ * never `Series N` on a fully mapped series. N is the binder's SERIES position — the exact
+ * label the builder renders for an unnamed series and the Axis-card title shows
+ * (`boundAxisName`), so all three agree even in a misaligned binding. An unbound axis no
+ * longer exists (ADR-0069) — the index fallback below is defensive only.
  */
 export const effectiveAxisName = (
     axis: EchartsAxisConfig,
     i: number,
-    series: readonly { id?: string; yAxisIndex?: number; name?: string }[],
+    series: readonly { id?: string; yAxisIndex?: number; name?: string; yPath?: string }[],
 ): string => {
     if (axis.name) {
         return axis.name;
     }
     const boundPos = binderIndexOf(axis, i, series);
-    if (boundPos >= 0 && series[boundPos].name) {
-        return series[boundPos].name;
+    if (boundPos >= 0) {
+        const inherited = positionalBinderName(series[boundPos]);
+        if (inherited) {
+            return inherited;
+        }
     }
     return `Series ${(boundPos >= 0 ? boundPos : i) + 1}`;
 };
@@ -267,7 +283,7 @@ export const effectiveAxisName = (
 export const axisOptionLabel = (
     ai: number,
     axis: EchartsAxisConfig,
-    series: readonly { yAxisIndex?: number; name?: string }[],
+    series: readonly { yAxisIndex?: number; name?: string; yPath?: string }[],
 ): string => `${ai + 1} · ${effectiveAxisName(axis, ai, series)}`;
 
 /**

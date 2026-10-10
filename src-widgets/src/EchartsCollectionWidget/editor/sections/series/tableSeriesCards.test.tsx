@@ -18,10 +18,17 @@ vi.hoisted(() => {
         }
     };
 });
+// The expanded card mounts the colour pickers (Basis + Darstellung) — they build a collection
+// theme off the host theme, which a headless mount cannot provide (the sectionTabs precedent).
+vi.mock('../../colorFields', () => ({
+    default: () => null,
+    ColorListField: () => null,
+}));
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import TableSeriesCards from './TableSeriesCards';
 import { DEFAULT_EDITOR_STATE, type EditorState } from '../../editorState';
+import { axisLayout } from '../../axisLayout';
 
 /** Mount any component; returns the live container. */
 const mount = (type: (props: never) => unknown, props: unknown): HTMLElement => {
@@ -128,5 +135,30 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
             onRebindAxis: () => undefined,
         });
         expect(el.textContent).toContain('echarts_table_duplicate_names');
+    });
+
+    it('the Basis-tab Y-axis select shows the bound COLUMN name, not "Series N" (family seam)', () => {
+        // The axis labels resolve through the same positional sight as the Verlauf cards:
+        // an unnamed table series defaults to the yPath column's last segment — never the
+        // "Series N" fallback (the pre-fix symptom: "1 · Series 1" on a fully mapped series).
+        const el = mount(TableSeriesCards, {
+            state: tableState({
+                series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
+                yAxes: [axisLayout(0)],
+            }),
+            pickerCtx: {},
+            slot: () => '#111',
+            labelColorFallback: '#222',
+            columns,
+            expanded: { 0: true },
+            onToggleCard: () => undefined,
+            onUpdate: () => undefined,
+            onRemove: () => undefined,
+            onMove: () => undefined,
+            onAddWithColumn: () => undefined,
+            onRebindAxis: () => undefined,
+        });
+        expect(el.textContent).toContain('1 · temp'); // the select's rendered value
+        expect(el.textContent).not.toContain('Series 1');
     });
 });

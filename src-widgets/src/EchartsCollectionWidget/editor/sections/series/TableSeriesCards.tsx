@@ -22,7 +22,6 @@ import type { EchartsCartesianType } from '../../../../types/field-definitions/e
 import type { JsonTableColumn } from '../../../../hooks/useJsonTableAnalysis';
 import { EditorCard, InfoBox, SectionTabs } from '../../../../components/controls';
 import ColumnAutocomplete from '../../ColumnAutocomplete';
-import { lastPathSegment } from '../../../jsonTableParse';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { SeriesTemplateSlot } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
@@ -32,7 +31,7 @@ import {
     SeriesTransformFields,
     SeriesValueFormatFields,
 } from './CartesianSeriesCard';
-import { axisOptionLabel } from '../../axisLayout';
+import { axisOptionLabel, positionalBinderName } from '../../axisLayout';
 import { SeriesRawOverride, Swatch, EmptyState } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
@@ -66,8 +65,7 @@ interface TableSeriesCardsProps {
 }
 
 /** The card's display name — authored name wins, the default is the path's last segment. */
-export const tableSeriesName = (s: EditorSeries, i: number): string =>
-    s.name?.trim() || (s.yPath ? lastPathSegment(s.yPath) : '') || `Series ${i + 1}`;
+export const tableSeriesName = (s: EditorSeries, i: number): string => positionalBinderName(s) || `Series ${i + 1}`;
 
 const TableSeriesCards: FC<TableSeriesCardsProps> = ({
     state,

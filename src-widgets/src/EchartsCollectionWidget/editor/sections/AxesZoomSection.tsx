@@ -14,7 +14,8 @@
  * file owns the ORCHESTRATION: the delete semantics (ADR-0025 — an axis' series rebind to a
  * same-format survivor, else axis 0 + advisory toast; ADR-0067 — every structural event
  * re-arranges the bound axes densely), the bound-series colour/name defaults per ADR-0018
- * (history positional, JSON via the visible-payload overlay), dataZoom (slider + inside as
+ * (positional for Verlauf AND Tabellarisch — ADR-0075; serien-förmig JSON via the
+ * visible-payload overlay), dataZoom (slider + inside as
  * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
  * cards).
  */
@@ -36,6 +37,7 @@ import type {
 import type { EditorState, SetEditor } from '../editorState';
 import {
     axisLayout,
+    axisOptionLabel,
     balanceAxes,
     binderIndexOf,
     boundAxisIndices,
@@ -49,6 +51,7 @@ import {
     jsonBindingView,
     jsonBoundAxisDeletePatch,
     ownerPatch,
+    positionalBinderName,
     remapMarkAxisIndices,
     sameFormatSurvivor,
 } from '../axisLayout';
@@ -61,14 +64,17 @@ import MarkCard from './axes/MarkCard';
 /**
  * The axes & zoom section's field ownership (ADR-0049 slice) — the widest honest slice: the
  * axis manager reads/writes the axis arrays (`yAxes`, `xAxis`) and the rebind cascade into
- * `series`; JSON mode branches on `mode` + the overlay (`jsonSeriesStyle`) and hides payload
- * series via `jsonHidden`; `markLines`, the two zoom toggles and the zoom idle-reset select
+ * `series`; the SERIEN-FÖRMIG JSON family branches on `mode` + `jsonKind` + the overlay
+ * (`jsonSeriesStyle`) and hides payload series via `jsonHidden` (the tabellarisch family rides
+ * the positional paths alongside Verlauf, ADR-0075); `markLines`, the two zoom toggles and the
+ * zoom idle-reset select
  * (ADR-0054) are section-owned; the 4 palette/darkMode fields are transitively read via
  * `useEditorTheme` (axis colours).
  */
 export type AxesZoomSlice = Pick<
     EditorState,
     | 'mode'
+    | 'jsonKind'
     | 'series'
     | 'yAxes'
     | 'xAxis'
@@ -108,6 +114,12 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     xIsCategory,
 }) => {
     const axes = state.yAxes;
+    // The payload-family gate (ADR-0075): only the SERIEN-FÖRMIG family binds axes through the
+    // name-keyed overlay. The tabellarisch family is positional (state.series + yPath — the
+    // Verlauf twin), so every JSON branch below is serien-förmig-exclusive; table falls through
+    // to the positional paths, where `jsonSeriesNames` would be an EMPTY sight (the payload is
+    // a rows array, not a series list — the modal gates the name subscription on this gate too).
+    const isJsonSeries = state.mode === 'json' && state.jsonKind === 'series';
     // Palette + tokens resolve against the COLLECTION theme (ADR-0027) — matches the canvas.
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
 
@@ -121,18 +133,19 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     const [toast, setToast] = useState<string | null>(null);
     /**
      * Effective colour of the first series bound to axis i — the axis-colour default (ADR-0018).
-     * History: the positional `state.series`. JSON: the name-keyed overlay (`state.series` is
-     * empty there — the payload owns the series); the modal axis effect writes `yAxisIndex` onto each
-     * visible overlay entry, so a lookup-by-index finds it.
+     * Verlauf + Tabellarisch: the positional `state.series`. Serien-förmig JSON: the name-keyed
+     * overlay (`state.series` is empty there — the payload owns the series); the modal axis
+     * effect writes `yAxisIndex` onto each visible overlay entry, so a lookup-by-index finds it.
      */
     const boundAxisColor = (i: number): string | undefined => {
-        // JSON: the "series" for palette-slot purposes is the VISIBLE payload names in payload order
-        // (mirrors the Series-card list). The overlay owns each name's yAxisIndex + colour; resolving
-        // the slot by visible position — NOT the axis index — keeps the swatch aligned with the Series
-        // card after a rebind or a payload-name reorder (ADR-0018; the prior axis-index fallback
-        // diverged there). History passes state.series directly (already in display order).
-        // Both resolve OWNER-first (ADR-0068): the axis' incumbent series paints the swatch.
-        if (state.mode === 'json') {
+        // JSON serien-förmig: the "series" for palette-slot purposes is the VISIBLE payload names in
+        // payload order (mirrors the Series-card list). The overlay owns each name's yAxisIndex +
+        // colour; resolving the slot by visible position — NOT the axis index — keeps the swatch
+        // aligned with the Series card after a rebind or a payload-name reorder (ADR-0018; the
+        // prior axis-index fallback diverged there). The positional families pass state.series
+        // directly (already in display order). All resolve OWNER-first (ADR-0068): the axis'
+        // incumbent series paints the swatch.
+        if (isJsonSeries) {
             const visibleSeries = jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden).map(
                 b => ({
                     id: b.id,
@@ -146,44 +159,46 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     };
     /** Effective name of the axis' display series (owner-first, ADR-0068) — the axis-name default (ADR-0018). */
     const boundAxisName = (i: number): string | undefined => {
-        if (state.mode === 'json') {
+        if (isJsonSeries) {
             // The STRICT sight (B2): only VISIBLE names bind — a hidden entry whose index
             // awaits the reconcile clear must not title the axis (and must not un-"unbenutzt"
             // its badge either, see boundIdx below).
             return boundJsonAxisName(axes[i], i, jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden);
         }
         // Materialised sight (Q7): a legacy series without a stored index binds axis 0 — the
-        // card title shows its name, like the chart does.
+        // card title shows its name, like the chart does. The name reads the positional
+        // default chain — a tabellarisch series without an authored name titles the axis with
+        // its bound COLUMN (ADR-0075), never the "Achse N"/"Series N" fallbacks.
         const idx = binderIndexOf(axes[i], i, state.series);
         if (idx < 0) {
             return undefined;
         }
-        return state.series[idx].name || `Series ${idx + 1}`;
+        return positionalBinderName(state.series[idx]) || `Series ${idx + 1}`;
     };
     // The bound set — under ADR-0069 every axis is IN it (an axis outside died at the structural
-    // event that emptied it); the set still feeds the emitted-rank computation. History
-    // reads `state.series`; JSON reads the STRICT visible sight (B2): a hidden entry whose index
-    // awaits the re-index never binds.
-    const boundIdx: Set<number> =
-        state.mode === 'json'
-            ? boundJsonAxisIndices(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden)
-            : boundAxisIndices(state.series);
+    // event that emptied it); the set still feeds the emitted-rank computation. The positional
+    // families read `state.series`; serien-förmig JSON reads the STRICT visible sight (B2): a
+    // hidden entry whose index awaits the re-index never binds.
+    const boundIdx: Set<number> = isJsonSeries
+        ? boundJsonAxisIndices(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden)
+        : boundAxisIndices(state.series);
     // The emitted (effective) positions (Q5): the builder emits the axes compacted in array
     // order — the alignTicks gates on the card read the emitted index/total, not the configured
     // ones (the reference axis is the first emitted one).
     const emittedRanks = emittedAxisRanks(boundIdx);
     /**
-     * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the mode —
-     * history passes the series list (a series without an index implicitly binds axis 0);
-     * JSON passes the visible overlay bindings through the STRICT sight (a cleared entry is
-     * unbound, never an implicit axis-0 binder). Handlers that change the overlay/hidden set pass
-     * their AFTER values; the defaults read the current state.
+     * The balance sight (ADR-0067): what "bound" means for the auto-balance depends on the
+     * family — the positional families pass the series list (a series without an index
+     * implicitly binds axis 0); serien-förmig JSON passes the visible overlay bindings through
+     * the STRICT sight (a cleared entry is unbound, never an implicit axis-0 binder). Handlers
+     * that change the overlay/hidden set pass their AFTER values; the defaults read the
+     * current state.
      */
     const balanceSight = (
         overlay: Readonly<Record<string, EchartsSeriesMeta>> = state.jsonSeriesStyle,
         hidden: readonly string[] = state.jsonHidden,
     ): { yAxisIndex?: number }[] =>
-        state.mode === 'json' ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
+        isJsonSeries ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
         const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
         // A REAL side-flip re-staggers both sides densely, sides preserved (ADR-0028's flip
@@ -199,14 +214,17 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     // unbound axis, which the new invariant drops on the spot. Axes are born in the Series
     // section alone (the auto-bind, the reconcile append, the dropdown's „Neue Achse" entry).
     const removeAxis = (i: number): void => {
-        // JSON mode: `state.series` is empty — the payload owns the series, and the axes follow the
-        // visible payload names via the reconcile. Removing an axis config directly would leave
-        // `jsonSeriesStyle.yAxisIndex` stale, so the builder clamps the orphaned series to axis 0
-        // (the "wrong axis gone + line lingers" chaos). The only sane "delete this axis" here is to
-        // HIDE its bound payload series — ALL of them (jsonHidden, ADR-0011; 1:n means several
-        // names can bind one axis) — and the axis DIES with its last binder in the same patch
-        // (ADR-0069): dropped, overlay entries + marking anchors re-indexed, survivors re-arranged.
-        if (state.mode === 'json') {
+        // JSON serien-förmig: `state.series` is empty — the payload owns the series, and the axes
+        // follow the visible payload names via the reconcile. Removing an axis config directly
+        // would leave `jsonSeriesStyle.yAxisIndex` stale, so the builder clamps the orphaned
+        // series to axis 0 (the "wrong axis gone + line lingers" chaos). The only sane "delete
+        // this axis" here is to HIDE its bound payload series — ALL of them (jsonHidden,
+        // ADR-0011; 1:n means several names can bind one axis) — and the axis DIES with its last
+        // binder in the same patch (ADR-0069): dropped, overlay entries + marking anchors
+        // re-indexed, survivors re-arranged. The TABELLARISCH family takes the positional path
+        // below (its `state.series` is materialised — the hide-and-die branch would drop the
+        // axis over an empty name sight and rebind nothing).
+        if (isJsonSeries) {
             const deletePatch = jsonBoundAxisDeletePatch(
                 jsonSeriesNames ?? [],
                 state.jsonSeriesStyle,
@@ -248,12 +266,12 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
             }
             return;
         }
-        // History (ADR-0025): deleting an axis NEVER deletes its bound series. They rebind to
-        // a surviving axis of the same `format` (the unit proxy), else axis 0 + an advisory
-        // unit-mismatch toast. Survivors re-index; the delete is a structural event, so the
-        // rebound bound set ends balanced (ADR-0067). Deleting the LAST axis while series remain
-        // must not leave them stale-indexed (every axis is bound, ADR-0069) — a fresh default
-        // axis takes the rebind instead, keeping the section consistent.
+        // Verlauf + Tabellarisch (ADR-0025): deleting an axis NEVER deletes its bound series. They
+        // rebind to a surviving axis of the same `format` (the unit proxy), else axis 0 + an
+        // advisory unit-mismatch toast. Survivors re-index; the delete is a structural event, so
+        // the rebound bound set ends balanced (ADR-0067). Deleting the LAST axis while series
+        // remain must not leave them stale-indexed (every axis is bound, ADR-0069) — a fresh
+        // default axis takes the rebind instead, keeping the section consistent.
         const deletedAxis = axes[i];
         let survivors = axes.filter((_a, idx) => idx !== i);
         const match = sameFormatSurvivor(deletedAxis?.format, survivors);
@@ -306,13 +324,16 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     const [markExpanded, setMarkExpanded] = useState<Record<number, boolean>>({});
     const toggleMarkCard = (i: number): void => setMarkExpanded(e => ({ ...e, [i]: !e[i] }));
     /**
-     * Axis select options for the marking cards (value/axis select shown with ≥2 axes only).
-     * Every axis is bound (ADR-0069) — an explicit name labels the entry, else the bare number.
+     * Axis select options for the marking cards (value/axis select shown with ≥2 axes only):
+     * the SAME effective-name resolution the Series dropdowns use (explicit axis name → the
+     * binder's display name → Series N, {@link axisOptionLabel}) — the number never stands
+     * naked while a binder names the axis (serien-förmig reads the visible overlay sight,
+     * the positional families read state.series).
      */
-    const axisOptions: [string, string][] = axes.map((ax, ai) => [
-        String(ai),
-        ax.name ? `${ai + 1} · ${ax.name}` : String(ai + 1),
-    ]);
+    const markAxisSight = isJsonSeries
+        ? jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden)
+        : state.series;
+    const axisOptions: [string, string][] = axes.map((ax, ai) => [String(ai), axisOptionLabel(ai, ax, markAxisSight)]);
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);

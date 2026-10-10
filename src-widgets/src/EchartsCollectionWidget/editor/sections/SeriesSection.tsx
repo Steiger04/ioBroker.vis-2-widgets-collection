@@ -154,7 +154,10 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         }
         setAxisDeath(
             diedIndices.map(idx =>
-                isJson
+                // Family-scoped (ADR-0075): only the SERIEN-FÖRMIG family reports through the
+                // payload-name sight — the tabellarisch death names its axis like Verlauf, via
+                // the positional series (column-name default included).
+                isJson && state.jsonKind === 'series'
                     ? jsonAxisDeathName(state.yAxes[idx], idx, jsonSeriesNames, state.jsonSeriesStyle, state.jsonHidden)
                     : effectiveAxisName(state.yAxes[idx], idx, series),
             ),
