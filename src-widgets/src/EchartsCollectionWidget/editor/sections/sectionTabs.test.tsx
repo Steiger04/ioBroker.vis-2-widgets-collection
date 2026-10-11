@@ -172,7 +172,7 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         const el = mount(AxesZoomSection, {
             state: state({
                 yAxes: [{ id: 'ax-1', position: 'left' }],
-                markLines: [{ id: 'm-1', upper: 5, label: '', lineStyle: 'dashed' }],
+                markLines: [{ id: 'm-1', upper: 5, lineStyle: 'dashed' }],
             }),
             set: () => undefined,
             pickerCtx: {},

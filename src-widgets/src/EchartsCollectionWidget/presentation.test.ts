@@ -628,11 +628,25 @@ describe('decodeMarkLines — legacy dashed migration (parity Build C, ADR-0061)
         expect('value' in out[0]).toBe(false);
     });
 
-    it('label/colour/axis carry over untouched (no data loss)', () => {
+    it('the retired one-text label cluster drops on decode (ADR-0081 green cut); colour/axis carry over', () => {
         const out = decodeMarkLines(
-            encodeBlob(JSON.stringify([{ value: 5, dashed: true, label: 'Max', color: '#c', yAxisIndex: 1 }])),
+            encodeBlob(
+                JSON.stringify([
+                    {
+                        value: 5,
+                        dashed: true,
+                        label: 'Max',
+                        labelPosition: 'end',
+                        labelOffset: 3,
+                        labelSize: 11,
+                        labelColor: '#ff0',
+                        color: '#c',
+                        yAxisIndex: 1,
+                    },
+                ]),
+            ),
         );
-        expect(out[0]).toEqual({ upper: 5, lineStyle: 'dashed', label: 'Max', color: '#c', yAxisIndex: 1 });
+        expect(out[0]).toEqual({ upper: 5, lineStyle: 'dashed', color: '#c', yAxisIndex: 1 });
     });
 
     it('already-migrated items decode unchanged (idempotent)', () => {

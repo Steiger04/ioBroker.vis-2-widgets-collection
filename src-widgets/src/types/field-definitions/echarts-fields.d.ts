@@ -615,8 +615,8 @@ export interface EchartsMarkLine {
     upper?: number | string;
     /**
      * Lower bound (same number-or-OID semantics as {@link upper}). Upper AND lower resolved ⇒ a
-     * markArea band PLUS two styled edge markLines (ADR-0076 adapter parity — the label cluster
-     * rides the upper edge); exactly one ⇒ a markLine at that bound.
+     * markArea band PLUS two styled edge markLines (ADR-0076 adapter parity; ADR-0081 — each
+     * edge carries its OWN label cluster); exactly one ⇒ a markLine at that bound.
      */
     lower?: number | string;
     /**
@@ -630,8 +630,11 @@ export interface EchartsMarkLine {
      * re-saved.
      */
     value?: number;
-    /** Label text; unset → NO label key (echarts then shows the value at the line end). */
-    label?: string;
+    /**
+     * Upper edge's label TEXT (ADR-0081 — each bound owns its full label cluster). Unset/empty →
+     * the Wert-Fallback: the edge shows its resolved bound VALUE as a fully styled label.
+     */
+    labelUpper?: string;
     color?: string;
     /**
      * Line style (ADR-0061). Replaces the boolean `dashed`: `true` ≡ `'dashed'`. Legacy blobs are
@@ -644,14 +647,24 @@ export interface EchartsMarkLine {
     width?: number;
     /** Shadow size (adapter `os`): blur/offsetY emit as v+1 in the line colour; unset/0 = no shadow. */
     shadow?: number;
-    /** Label place among the 12 echarts-native positions; unset = echarts' default (end). */
-    labelPosition?: EchartsMarkLabelPosition;
-    /** Label X offset (px) → `label.distance:[v,0]`, negated on start/end (adapter l/r mechanic). */
-    labelOffset?: number;
-    /** Label font size; unset = no key. */
-    labelSize?: number;
-    /** Label text colour; unset = no key. */
-    labelColor?: string;
+    /** Upper edge's label place among the 12 echarts-native positions; unset = echarts' default (end). */
+    labelUpperPosition?: EchartsMarkLabelPosition;
+    /** Upper edge's label X offset (px) → `label.distance:[v,0]`, negated on start/end (adapter l/r mechanic). */
+    labelUpperOffset?: number;
+    /** Upper edge's label font size; unset = no key. */
+    labelUpperSize?: number;
+    /** Upper edge's label text colour; unset = the ADR-0080 resolver (marking colour, else axis-text token). */
+    labelUpperColor?: string;
+    /** Lower edge's label text (same Wert-Fallback semantics as {@link labelUpper}). */
+    labelLower?: string;
+    /** Lower edge's label place among the 12 echarts-native positions; unset = echarts' default (end). */
+    labelLowerPosition?: EchartsMarkLabelPosition;
+    /** Lower edge's label X offset (px), negated on start/end (adapter l/r mechanic). */
+    labelLowerOffset?: number;
+    /** Lower edge's label font size; unset = no key. */
+    labelLowerSize?: number;
+    /** Lower edge's label text colour; unset = the ADR-0080 resolver. */
+    labelLowerColor?: string;
     /**
      * Which cartesian Y-axis the marking belongs to (multi-axis mark-line host, ADR-0023).
      * Default 0 (the first/left axis). A marking is drawn on the axis of the series it is attached

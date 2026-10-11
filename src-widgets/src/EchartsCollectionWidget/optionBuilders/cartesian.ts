@@ -30,7 +30,15 @@ import type {
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { axisPosition } from '../editor/axisLayout';
-import { buildLegend, DEFAULT_MARK_FILL, legendActiveOf, markLabelColorOf, markLineStyleOf } from '../presentation';
+import {
+    buildLegend,
+    DEFAULT_MARK_FILL,
+    edgeLabelOf,
+    legendActiveOf,
+    markLabelColorOf,
+    markLineStyleOf,
+    type EchartsMarkEdge,
+} from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
@@ -257,30 +265,30 @@ const numericBound = (bound: number | string | undefined): number | undefined =>
     typeof bound === 'number' && Number.isFinite(bound) ? bound : undefined;
 
 /**
- * One marking edge/line data entry (ADR-0061 style + label clusters; ADR-0076: ONE emit shared
- * by single lines and band edges so the two cannot drift apart).
+ * One marking edge/line data entry (ADR-0061 style + ADR-0081 per-edge label clusters; ONE
+ * emit shared by single lines and band edges so the two cannot drift apart).
  *
  * Width defaults to 2 — the card slider's fallback, NOT echarts' own default of 1 (`||` keeps
  * the documented "0 = unset" semantics: an invisible line is never a choice). A legacy boolean
  * `dashed` is tolerated at runtime (decode migrates, the builder never rejects); an authored
  * 3-way lineStyle wins over any stale boolean.
  *
- * Label cluster: NO text → no label key at all (echarts shows the value at the line end — the
- * pre-0061 behaviour, kept for band edges too: a textless band shows its two bound values).
- * X offset negates on the END places (adapter l/r: positive pulls the label inward) — including
- * the UNSET position, whose effective default is 'end' too, so "Standard" and an explicit
- * "Rechts" offset the same way. The label COLOUR is always explicit (ADR 0080): a colourless
- * attached label falls to echarts' bg-contrast auto path, which strokes a 2px halo derived
- * from the (transparent) canvas background — a white border on dark hosts. „Erbt" resolves to
- * the marking's own colour, else the dark-mode-aware axis-text token.
+ * Label cluster (this edge's OWN — ADR-0081): ALWAYS emitted. A textless edge shows its
+ * resolved bound VALUE (the Wert-Fallback: raw number like the adapter) instead of falling to
+ * echarts' raw value default. X offset negates on the END places (adapter l/r: positive pulls
+ * the label inward) — including the UNSET position, whose effective default is 'end' too, so
+ * "Standard" and an explicit "Rechts" offset the same way. The label COLOUR is always explicit
+ * (ADR 0080): a colourless label falls to echarts' bg-contrast auto path, which strokes a 2px
+ * halo derived from the (transparent) canvas background — a white border on dark hosts.
+ * „Erbt" resolves to the marking's own colour, else the dark-mode-aware axis-text token.
  *
  * @param ml - The marking config (bounds resolved to numbers by the pipeline).
  * @param color - The marking's effective colour (explicit or the divider token, ADR-0027) —
  *   paints the LINE only; the label deliberately bypasses it (the divider default would render
  *   near-invisible text) in favour of {@link markLabelColorOf}.
  * @param bound - The numeric Y value this edge sits at.
- * @param withLabel - Whether the label cluster rides this edge (bands label the UPPER edge
- * only — the adapter's both-edges duplicate read as a defect, ADR-0076 decision 3).
+ * @param edge - Which bound's cluster rides this entry (bands emit BOTH edges, each with its
+ * own cluster — ADR-0081 supersedes ADR-0076 decision 3's upper-only label).
  * @param textSecondary - Theme axis-text token — the label colour's inherit fallback (ADR 0080;
  *   the divider default of the LINE would render near-invisible text).
  */
@@ -288,13 +296,15 @@ const markEdge = (
     ml: EchartsMarkLine,
     color: string,
     bound: number,
-    withLabel: boolean,
+    edge: EchartsMarkEdge,
     textSecondary: string,
 ): Record<string, unknown> => {
     // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as v+1 in
     // the line's own colour (0/unset = off — no shadow keys at all).
     const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
-    const atEnd = ml.labelPosition === undefined || ml.labelPosition === 'start' || ml.labelPosition === 'end';
+    // The ONE per-edge selector (shared with the card): both read the same fields per edge.
+    const cluster = edgeLabelOf(ml, edge);
+    const atEnd = cluster.position === undefined || cluster.position === 'start' || cluster.position === 'end';
     return {
         yAxis: bound,
         lineStyle: {
@@ -303,17 +313,16 @@ const markEdge = (
             width: ml.width || 2,
             ...(shadowOn ? { shadowBlur: ml.shadow! + 1, shadowOffsetY: ml.shadow! + 1, shadowColor: color } : {}),
         },
-        ...(withLabel && ml.label
-            ? {
-                  label: {
-                      formatter: ml.label,
-                      ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
-                      ...(ml.labelOffset ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] } : {}),
-                      ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
-                      color: markLabelColorOf(ml, textSecondary),
-                  },
-              }
-            : {}),
+        // ALWAYS a label block (ADR-0081): a textless edge falls to its resolved bound value —
+        // the Wert-Fallback — styled like an authored text (explicit colour included), never
+        // echarts' raw value default with its bg-contrast halo (ADR-0080).
+        label: {
+            formatter: cluster.text || String(bound),
+            ...(cluster.position ? { position: cluster.position } : {}),
+            ...(cluster.offset ? { distance: atEnd ? [-cluster.offset, 0] : [cluster.offset, 0] } : {}),
+            ...(cluster.size ? { fontSize: cluster.size } : {}),
+            color: markLabelColorOf(ml, edge, textSecondary),
+        },
     };
 };
 
@@ -322,11 +331,13 @@ const markEdge = (
  * markArea are series-level; the anchor is our Y-axis model, ADR-0061/0062).
  *
  * Per marking: both bounds resolved ⇒ a markArea BAND (fill 0–1, borderless, label-less) PLUS
- * two edge markLines carrying the full style cluster — adapter parity (ADR-0076 supersedes
- * ADR-0062's „band replaces the edges" deviation): the label cluster rides the UPPER edge.
- * Exactly one bound ⇒ a single markLine at that bound; neither ⇒ skipped. Style/label emit
- * sparse — every unset field leaves no key (two exceptions emit explicit defaults: the width's
- * 2, and the label colour's inherit resolution — both ADR-0076/0080, see {@link markEdge}).
+ * two edge markLines carrying the full style cluster and their OWN label clusters — adapter
+ * parity (ADR-0076 supersedes ADR-0062's „band replaces the edges" deviation; ADR-0081 gives
+ * each edge its own cluster, superseding 0076's upper-only label). Exactly one bound ⇒ a single
+ * markLine at that bound carrying its bound's cluster; neither ⇒ skipped. Style/label emit
+ * sparse — every unset field leaves no key (three exceptions emit explicit defaults: the
+ * width's 2, the always-present label block, and the label colour's inherit resolution —
+ * ADR-0076/0080/0081, see {@link markEdge}).
  *
  * @param markLines - The marking configs (bounds resolved to numbers by the pipeline).
  * @param divider - Theme divider token — the default marking colour when none is explicit (ADR-0027).
@@ -345,9 +356,9 @@ const markMarkers = (
         const color = ml.color ?? divider;
         if (upper !== undefined && lower !== undefined) {
             // Band (ADR-0062/0076): the area carries ONLY the fill — borderless like the
-            // adapter, and label-less (the adapter's area label is commented out upstream; our
-            // label cluster rides the upper edge). Fill defaults 0.2 (the adapter's 0 renders
-            // invisible — documented deviation).
+            // adapter, and label-less (the adapter's area label is commented out upstream; the
+            // labels ride the edges, one cluster each — ADR-0081). Fill defaults 0.2 (the
+            // adapter's 0 renders invisible — documented deviation).
             areaData.push([
                 {
                     yAxis: lower,
@@ -356,8 +367,8 @@ const markMarkers = (
                 { yAxis: upper },
             ]);
             lineData.push(
-                markEdge(ml, color, upper, true, textSecondary),
-                markEdge(ml, color, lower, false, textSecondary),
+                markEdge(ml, color, upper, 'upper', textSecondary),
+                markEdge(ml, color, lower, 'lower', textSecondary),
             );
             continue;
         }
@@ -365,7 +376,7 @@ const markMarkers = (
         if (bound === undefined) {
             continue; // nothing resolved — no marker, no crash
         }
-        lineData.push(markEdge(ml, color, bound, true, textSecondary));
+        lineData.push(markEdge(ml, color, bound, upper !== undefined ? 'upper' : 'lower', textSecondary));
     }
     return { lineData, areaData };
 };

@@ -914,9 +914,13 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
         return datum;
     };
 
-    // ── characterization: the pre-0061 behaviour stays ─────────────────
-    it('no label text → no label key (echarts shows the value at the line end)', () => {
-        expect('label' in mark({})).toBe(false);
+    // ── the Wert-Fallback (ADR-0081) ───────────────────────────────────
+    it('no label text → the Wert-Fallback label: formatter = the bound value, colour explicit', () => {
+        // The label block is ALWAYS emitted — a textless edge must never fall back to echarts'
+        // raw value default (whose colourless label strokes the bg-contrast halo, ADR-0080).
+        expect(mark({}).label).toEqual({ formatter: '10', color: '#ts' });
+        // An EMPTY text counts as no text (the cleared TextField stores '').
+        expect(mark({ labelUpper: '' }).label).toEqual({ formatter: '10', color: '#ts' });
     });
 
     it('legacy dashed boolean is tolerated → lineStyle type (runtime migration on decode)', () => {
@@ -927,7 +931,7 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
     it('label text only → { formatter, color } — everything else stays sparse', () => {
         // The colour is ALWAYS explicit (ADR 0080): a colourless attached label hands echarts
         // the bg-contrast auto path, which strokes a white 2px halo on a transparent canvas.
-        expect(mark({ label: 'Max' }).label).toEqual({ formatter: 'Max', color: '#ts' });
+        expect(mark({ labelUpper: 'Max' }).label).toEqual({ formatter: 'Max', color: '#ts' });
     });
 
     // ── style cluster ──────────────────────────────────────────────────
@@ -952,31 +956,43 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
         expect('shadowBlur' in mark({ shadow: 0 }).lineStyle).toBe(false); // 0 = off
     });
 
-    // ── label cluster ──────────────────────────────────────────────────
-    it('labelPosition emits echarts-native; unset → no position key (echarts default end)', () => {
-        expect(mark({ label: 'T', labelPosition: 'insideMiddleTop' }).label!.position).toBe('insideMiddleTop');
-        expect('position' in mark({ label: 'T' }).label!).toBe(false);
+    // ── label cluster (the upper edge's own — ADR-0081) ────────────────
+    it('labelUpperPosition emits echarts-native; unset → no position key (echarts default end)', () => {
+        expect(mark({ labelUpper: 'T', labelUpperPosition: 'insideMiddleTop' }).label!.position).toBe(
+            'insideMiddleTop',
+        );
+        expect('position' in mark({ labelUpper: 'T' }).label!).toBe(false);
     });
 
     it('X offset emits distance [v, 0], NEGATED on the end places — including the unset default', () => {
         // Unset position = echarts' default 'end' → same negation as an explicit "Rechts", so
         // "Standard" and "Rechts" offset the same way (review c.1 fix).
-        expect(mark({ label: 'T', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
-        expect(mark({ label: 'T', labelPosition: 'insideEnd', labelOffset: 5 }).label!.distance).toEqual([5, 0]);
-        expect(mark({ label: 'T', labelPosition: 'end', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
-        expect(mark({ label: 'T', labelPosition: 'start', labelOffset: 5 }).label!.distance).toEqual([-5, 0]);
-        expect('distance' in mark({ label: 'T' }).label!).toBe(false); // unset → no distance key
+        expect(mark({ labelUpper: 'T', labelUpperOffset: 5 }).label!.distance).toEqual([-5, 0]);
+        expect(mark({ labelUpper: 'T', labelUpperPosition: 'insideEnd', labelUpperOffset: 5 }).label!.distance).toEqual(
+            [5, 0],
+        );
+        expect(mark({ labelUpper: 'T', labelUpperPosition: 'end', labelUpperOffset: 5 }).label!.distance).toEqual([
+            -5, 0,
+        ]);
+        expect(mark({ labelUpper: 'T', labelUpperPosition: 'start', labelUpperOffset: 5 }).label!.distance).toEqual([
+            -5, 0,
+        ]);
+        expect('distance' in mark({ labelUpper: 'T' }).label!).toBe(false); // unset → no distance key
         // 0 = unset (consistent with width/shadow — a zero offset emits nothing).
-        expect('distance' in mark({ label: 'T', labelOffset: 0 }).label!).toBe(false);
+        expect('distance' in mark({ labelUpper: 'T', labelUpperOffset: 0 }).label!).toBe(false);
     });
 
-    it('label colour resolves explicitly (ADR 0080): authored wins → marking colour → axis-text token', () => {
-        const label = mark({ label: 'T', labelSize: 11, labelColor: '#ff0' }).label!;
+    it('label colour resolves explicitly (ADR 0080/0081): authored wins → marking colour → axis-text token', () => {
+        const label = mark({ labelUpper: 'T', labelUpperSize: 11, labelUpperColor: '#ff0' }).label!;
         expect(label.fontSize).toBe(11);
         expect(label.color).toBe('#ff0'); // authored label colour beats everything
-        expect(mark({ label: 'T', color: '#c' }).label!.color).toBe('#c'); // „Erbt" = the marking's colour
-        expect(mark({ label: 'T' }).label!.color).toBe('#ts'); // no marking colour → axis-text token
-        expect('fontSize' in mark({ label: 'T' }).label!).toBe(false); // size stays sparse
+        expect(mark({ labelUpper: 'T', color: '#c' }).label!.color).toBe('#c'); // „Erbt" = the marking's colour
+        expect(mark({ labelUpper: 'T' }).label!.color).toBe('#ts'); // no marking colour → axis-text token
+        expect('fontSize' in mark({ labelUpper: 'T' }).label!).toBe(false); // size stays sparse
+    });
+
+    it('the lone upper line reads ONLY the upper cluster — lower fields stay inert', () => {
+        expect(mark({ labelLower: 'Min' }).label).toEqual({ formatter: '10', color: '#ts' });
     });
 });
 
@@ -2439,7 +2455,7 @@ describe('buildGeneratedOption — marking bands (ADR-0062 + ADR-0076 adapter-pa
         expect(start.yAxis).toBe(18);
         expect(end.yAxis).toBe(24);
         expect(start.itemStyle).toEqual({ color: '#c', borderWidth: 0, opacity: 0.2 });
-        // Upper edge first (the label carrier), then the lower — both carry the full style.
+        // Upper edge first, then the lower — both carry the full style, each its own label cluster.
         expect(m.markLine!.data).toHaveLength(2);
         expect(m.markLine!.data[0].yAxis).toBe(24);
         expect(m.markLine!.data[1].yAxis).toBe(18);
@@ -2472,44 +2488,60 @@ describe('buildGeneratedOption — marking bands (ADR-0062 + ADR-0076 adapter-pa
         expect((m.markLine!.data[1].lineStyle as Record<string, unknown>).width).toBe(2);
     });
 
-    it('band label cluster rides the UPPER edge (full cluster incl. position/X-offset) — the area is label-less', () => {
+    it('band edges carry their OWN label clusters (upper + lower, full incl. position/X-offset) — the area is label-less', () => {
         const m = markers([
             {
                 upper: 24,
                 lower: 18,
-                label: 'Komfort',
-                labelSize: 11,
-                labelColor: '#ff0',
-                labelPosition: 'end',
-                labelOffset: 5,
+                labelUpper: 'Max',
+                labelUpperSize: 11,
+                labelUpperColor: '#ff0',
+                labelUpperPosition: 'end',
+                labelUpperOffset: 5,
+                labelLower: 'Min',
+                labelLowerSize: 9,
+                labelLowerColor: '#0ff',
+                labelLowerPosition: 'start',
+                labelLowerOffset: 3,
             },
         ]);
-        // The upper edge carries the FULL cluster — position and X-offset work on bands (ADR-0076).
+        // Each edge carries its FULL cluster — position and X-offset work on bands (ADR-0076/0081).
         expect(m.markLine!.data[0].label).toEqual({
-            formatter: 'Komfort',
+            formatter: 'Max',
             position: 'end',
             distance: [-5, 0], // negated on the end places, like the single-line case
             fontSize: 11,
             color: '#ff0',
         });
-        expect(m.markLine!.data[1].label).toBeUndefined(); // the lower edge stays mute
+        expect(m.markLine!.data[1].label).toEqual({
+            formatter: 'Min',
+            position: 'start',
+            distance: [-3, 0],
+            fontSize: 9,
+            color: '#0ff',
+        });
         const [start] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
         expect('label' in start).toBe(false); // the area itself carries NO label (adapter parity)
     });
 
-    it('a textless band emits NO label keys anywhere (echarts shows the values at the edge ends)', () => {
-        const m = markers([{ upper: 24, lower: 18 }]);
-        expect('label' in m.markLine!.data[0]).toBe(false);
-        expect('label' in m.markLine!.data[1]).toBe(false);
+    it('a textless band shows BOTH bound values (the Wert-Fallback, styled — never the echarts raw default)', () => {
+        const m = markers([{ upper: 24, lower: 18, color: '#c' }]);
+        expect(m.markLine!.data[0].label).toEqual({ formatter: '24', color: '#c' }); // inherit = marking colour
+        expect(m.markLine!.data[1].label).toEqual({ formatter: '18', color: '#c' });
         const [start] = m.markArea!.data[0] as [Record<string, unknown>, Record<string, unknown>];
-        expect('label' in start).toBe(false);
+        expect('label' in start).toBe(false); // the area stays label-less
     });
 
-    it('exactly one resolved bound ⇒ a markLine at that bound (upper-only AND lower-only)', () => {
+    it("exactly one resolved bound ⇒ a markLine at that bound carrying ITS bound's cluster", () => {
         const up = markers([{ upper: 24 }]).markLine!;
         expect(up.data[0].yAxis).toBe(24);
-        const low = markers([{ lower: 18 }]).markLine!;
+        const low = markers([{ lower: 18, labelLower: 'Min', labelLowerColor: '#0ff' }]).markLine!;
         expect(low.data[0].yAxis).toBe(18);
+        expect(low.data[0].label).toEqual({ formatter: 'Min', color: '#0ff' }); // the lower cluster rides the lone lower line
+        expect(markers([{ upper: 24, labelLower: 'Min' }]).markLine!.data[0].label).toEqual({
+            formatter: '24',
+            color: '#ts',
+        }); // the upper line ignores the inert lower cluster (Wert-Fallback)
         expect(markers([{ upper: 24 }]).markArea).toBeUndefined();
     });
 

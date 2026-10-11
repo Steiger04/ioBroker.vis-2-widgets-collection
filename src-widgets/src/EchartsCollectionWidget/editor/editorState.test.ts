@@ -60,15 +60,16 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.yAxes[1]).toMatchObject({ position: 'right', color: '#abc' });
     });
 
-    it('markLines survive (a legacy dashed migrates to lineStyle, ADR-0061)', () => {
+    it('markLines survive (legacy dashed migrates to lineStyle, ADR-0061; the retired one-text label drops, ADR-0081)', () => {
         const state = {
             ...baseState(),
             markLines: [{ id: 'm1', value: 50, label: 'Grenze', color: '#f00', dashed: true }],
         };
         const reloaded = loadEditorState(saveEditorState(state, 0));
         expect(reloaded.markLines).toHaveLength(1);
-        expect(reloaded.markLines[0]).toMatchObject({ upper: 50, label: 'Grenze', lineStyle: 'dashed' });
+        expect(reloaded.markLines[0]).toMatchObject({ upper: 50, color: '#f00', lineStyle: 'dashed' });
         expect(reloaded.markLines[0].dashed).toBeUndefined(); // the boolean is gone after the round-trip
+        expect('label' in reloaded.markLines[0]).toBe(false); // the retired key drops (ADR-0081 green cut)
     });
 
     it('legacy timeRange keys migrate on load; the window scalars round-trip (ADR-0063)', () => {

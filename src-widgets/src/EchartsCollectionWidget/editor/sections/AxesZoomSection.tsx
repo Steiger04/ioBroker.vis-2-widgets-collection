@@ -325,9 +325,10 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         set({ markLines: state.markLines.map((m, idx) => (idx === i ? { ...m, ...patch } : m)) });
     const addMark = (): void =>
         // No explicit colour → inherits the theme divider token (ADR-0027), like the builder
-        // default. A new mark starts as an upper-only dashed line (the stage-1 default).
+        // default. A new mark starts as an upper-only dashed line (the stage-1 default); no
+        // label text → the edge shows its bound value (the Wert-Fallback, ADR-0081).
         set({
-            markLines: [...state.markLines, { id: nextStableId(), upper: 0, label: '', lineStyle: 'dashed' }],
+            markLines: [...state.markLines, { id: nextStableId(), upper: 0, lineStyle: 'dashed' }],
         });
     const removeMark = (i: number): void => set({ markLines: state.markLines.filter((m, idx) => idx !== i) });
     // The marking cards share the axis cards' expand pattern (one flag per list item).

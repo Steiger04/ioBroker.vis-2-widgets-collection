@@ -17,6 +17,7 @@ import type {
     EchartsLegendConfig,
     EchartsLegendPos,
     EchartsLineStyle,
+    EchartsMarkLabelPosition,
     EchartsMarkLine,
     EchartsPieConfig,
     EchartsTitlePos,
@@ -221,14 +222,46 @@ export const DEFAULT_MARK_FILL = 0.2;
 export const markLineStyleOf = (ml: EchartsMarkLine): EchartsLineStyle =>
     ml.lineStyle ?? (ml.dashed ? 'dashed' : 'solid');
 
+/** Which bound of a marking an emitted edge/label cluster belongs to (ADR-0081). */
+export type EchartsMarkEdge = 'upper' | 'lower';
+
+/** One edge's label cluster values (ADR-0081) — the per-edge selection of the flat fields. */
+export interface EchartsEdgeLabelCluster {
+    text?: string;
+    position?: EchartsMarkLabelPosition;
+    offset?: number;
+    size?: number;
+}
+
 /**
- * Resolve a marking label's colour (ADR 0080): ALWAYS explicit — an authored label colour wins,
- * „Erbt" takes the marking's own colour, and the dark-mode-aware axis-text token sits beneath
- * (the LINE's divider default would render near-invisible text). The builder and the card read
- * through this ONE resolver so the inherit preview cannot drift from what the chart draws.
+ * Select ONE edge's label cluster (ADR-0081) — the shared reader that keeps the builder's emit
+ * and the card's fields on the SAME fields per edge (the markLabelColorOf/markLineStyleOf
+ * one-resolver idiom: the upper/lower selection cannot drift between card and canvas).
  */
-export const markLabelColorOf = (ml: EchartsMarkLine, textSecondary: string): string =>
-    ml.labelColor ?? ml.color ?? textSecondary;
+export const edgeLabelOf = (ml: EchartsMarkLine, edge: EchartsMarkEdge): EchartsEdgeLabelCluster =>
+    edge === 'upper'
+        ? {
+              text: ml.labelUpper,
+              position: ml.labelUpperPosition,
+              offset: ml.labelUpperOffset,
+              size: ml.labelUpperSize,
+          }
+        : {
+              text: ml.labelLower,
+              position: ml.labelLowerPosition,
+              offset: ml.labelLowerOffset,
+              size: ml.labelLowerSize,
+          };
+
+/**
+ * Resolve a marking edge label's colour (ADR 0080/0081): ALWAYS explicit — the edge's authored
+ * label colour wins, „Erbt" takes the marking's own colour, and the dark-mode-aware axis-text
+ * token sits beneath (the LINE's divider default would render near-invisible text). The builder
+ * and the card read through this ONE resolver so the inherit preview cannot drift from what
+ * the chart draws.
+ */
+export const markLabelColorOf = (ml: EchartsMarkLine, edge: EchartsMarkEdge, textSecondary: string): string =>
+    (edge === 'upper' ? ml.labelUpperColor : ml.labelLowerColor) ?? ml.color ?? textSecondary;
 
 /**
  * Normalize an authored marking bound (ADR-0062): a pure-numeric string becomes the NUMBER
@@ -282,18 +315,28 @@ export const resolveMarkLines = (
     });
 
 /**
- * Migrate one marking to the current model (ADR-0061 + ADR-0062): a legacy boolean `dashed`
- * becomes the 3-way `lineStyle` (an authored lineStyle wins), the legacy stage-1 `value`
- * becomes `upper` (an authored upper wins), and bounds normalize via {@link parseMarkBound}.
- * Items with nothing to migrate pass through unchanged (same reference).
+ * The retired one-text label cluster's keys — dropped on decode (ADR-0081 green cut): no
+ * migration target exists, the per-edge clusters are a fresh field set.
+ */
+const LEGACY_MARK_LABEL_KEYS = ['label', 'labelPosition', 'labelOffset', 'labelSize', 'labelColor'] as const;
+
+/**
+ * Migrate one marking to the current model (ADR-0061 + ADR-0062 + ADR-0081): a legacy boolean
+ * `dashed` becomes the 3-way `lineStyle` (an authored lineStyle wins), the legacy stage-1
+ * `value` becomes `upper` (an authored upper wins), bounds normalize via {@link parseMarkBound},
+ * and the retired single-label cluster's keys drop silently. Items with nothing to migrate pass
+ * through unchanged (same reference).
  */
 const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
     const { dashed, value, upper, lower, ...rest } = ml;
+    const restBag = rest as Record<string, unknown>;
+    const hadLegacyLabel = LEGACY_MARK_LABEL_KEYS.some(key => restBag[key] !== undefined);
     const nextUpper =
         upper !== undefined ? parseMarkBound(upper) : value !== undefined ? parseMarkBound(value) : undefined;
     const nextLower = lower !== undefined ? parseMarkBound(lower) : undefined;
     const nextStyle = rest.lineStyle ?? (dashed !== undefined ? (dashed ? 'dashed' : 'solid') : undefined);
     const changed =
+        hadLegacyLabel ||
         dashed !== undefined ||
         value !== undefined ||
         nextUpper !== upper ||
@@ -303,6 +346,9 @@ const migrateMarkLine = (ml: EchartsMarkLine): EchartsMarkLine => {
         return ml;
     }
     const out: EchartsMarkLine = { ...rest };
+    for (const key of LEGACY_MARK_LABEL_KEYS) {
+        delete (out as Record<string, unknown>)[key];
+    }
     if (nextUpper !== undefined) {
         out.upper = nextUpper;
     }
