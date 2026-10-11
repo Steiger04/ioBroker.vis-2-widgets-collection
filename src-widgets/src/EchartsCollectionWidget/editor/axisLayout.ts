@@ -8,6 +8,11 @@
  * {@link axesFollowBinders} — there is no resting state. Every structural event (series/axis
  * add/delete/rebind, JSON hide/show, the reconcile, a data-path reset) still re-arranges the
  * bound axes via {@link balanceAxes} — standard interleaving, dense on the raster (ADR-0067).
+ * The manual gestures between those events own the **Achsen-Platz** (ADR-0079): the place
+ * stepper and the side-flip reorder through the offset order ({@link axisPlace},
+ * {@link moveAxisPlace}, {@link insertAxisAtPlace}) with insert-shift and a travelling
+ * deviation — the array-order repack (`packStaggeredAxes`, ADR-0028's flip handler) is
+ * pensioned with it.
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -126,28 +131,6 @@ export const displayPosition = (axis: EchartsAxisConfig | undefined, i: number):
     axis?.position ?? (i === 0 ? 'left' : 'right');
 
 /**
- * The side-PRESERVING dense restagger (ADR-0028's flip semantics, re-introduced 2026-08-30): a
- * manual side-flip keeps every axis' chosen side (the flipped one included) and re-staggers BOTH
- * sides densely in array order on the 80-px raster — resolving the collision a moved axis can
- * create. Runs unconditionally on the flip: a hand-tuned offset is fine-justure that survives
- * only until the next structural change; the trigger is the flip, never a bare offset edit. The
- * counted side is {@link displayPosition} — the side the card SHOWS and the builder EMITS (an
- * unstored position renders its index-aware default, not 'left'; the pre-ADR-0067 variant read
- * `a.position` raw). ADR-0067's interleaving {@link balanceAxes} stays reserved for structural
- * events — its rejection of the side-preserving pack concerned THOSE (predictability); an
- * explicit user flip IS the intent, so the sides are exactly what must survive here.
- */
-export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAxisConfig[] => {
-    let leftSeen = 0;
-    let rightSeen = 0;
-    return axes.map((a, i) =>
-        displayPosition(a, i) === 'right'
-            ? { ...a, offset: rightSeen++ * AXIS_STAGGER_STAGE }
-            : { ...a, offset: leftSeen++ * AXIS_STAGGER_STAGE },
-    );
-};
-
-/**
  * The side's members in DEPTH order (ADR-0079): ascending `offset ?? 0`, ties broken by the
  * array index (stable). This order IS the side's place ranking — the drawn truth echarts
  * follows, never a stored field.
@@ -191,9 +174,7 @@ export const axisPlace = (axes: readonly EchartsAxisConfig[], i: number): AxisPl
 const placeDeviations = (axes: readonly EchartsAxisConfig[]): Map<number, number> => {
     const dev = new Map<number, number>();
     for (const side of ['left', 'right'] as const) {
-        sideOrder(axes, side).forEach(
-            (idx, slot) => dev.set(idx, (axes[idx].offset ?? 0) - slot * AXIS_STAGGER_STAGE),
-        );
+        sideOrder(axes, side).forEach((idx, slot) => dev.set(idx, (axes[idx].offset ?? 0) - slot * AXIS_STAGGER_STAGE));
     }
     return dev;
 };

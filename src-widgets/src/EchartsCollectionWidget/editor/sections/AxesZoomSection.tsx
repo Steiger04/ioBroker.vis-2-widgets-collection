@@ -38,6 +38,7 @@ import type { EditorState, SetEditor } from '../editorState';
 import {
     axisLayout,
     axisOptionLabel,
+    axisPlace,
     balanceAxes,
     binderIndexOf,
     boundAxisIndices,
@@ -47,9 +48,10 @@ import {
     displayPosition,
     effectiveAxisColor,
     emittedAxisRanks,
-    packStaggeredAxes,
+    insertAxisAtPlace,
     jsonBindingView,
     jsonBoundAxisDeletePatch,
+    moveAxisPlace,
     ownerPatch,
     positionalBinderName,
     remapMarkAxisIndices,
@@ -200,15 +202,21 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     ): { yAxisIndex?: number }[] =>
         isJsonSeries ? boundJsonView(jsonSeriesNames ?? [], overlay, hidden) : state.series;
     const setAxis = (i: number, patch: Partial<EchartsAxisConfig>): void => {
-        const next = axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-        // A REAL side-flip re-staggers both sides densely, sides preserved (ADR-0028's flip
-        // semantics, re-introduced for the manual fine-justure flip — ADR-0067's interleaving
-        // balance stays reserved for structural events). The flip check runs through
-        // `displayPosition`, so re-selecting the value the card SHOWS is no flip: hand-tuned
-        // offsets survive. Any other edit (offset/name/colour/min-max/…) is plain fine-justure —
-        // no re-pack either.
+        // A REAL side-flip inserts the axis at its PLACE on the target side (ADR-0079, replacing
+        // ADR-0028's array-order repack): the rank travels, the displaced shift one outward, the
+        // source side closes, every personal offset deviation travels. The flip check runs
+        // through `displayPosition`, so re-selecting the value the card SHOWS is no flip:
+        // hand-tuned offsets survive. Any other edit (offset/name/colour/min-max/…) is plain
+        // fine-justure — no re-place either.
         const flipped = 'position' in patch && patch.position !== displayPosition(axes[i], i);
-        set({ yAxes: flipped ? packStaggeredAxes(next) : next });
+        if (flipped) {
+            const placed = insertAxisAtPlace(axes, i, patch.position as 'left' | 'right');
+            if (placed) {
+                set({ yAxes: placed });
+                return;
+            }
+        }
+        set({ yAxes: axes.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) });
     };
     // Manual "add axis" is retired (ADR-0069): the button created an axis nothing bound — an
     // unbound axis, which the new invariant drops on the spot. Axes are born in the Series
@@ -386,23 +394,38 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                         dividerColor={themeTokens.divider}
                         isCategory={xIsCategory}
                     />
-                    {axes.map((a, i) => (
-                        <AxisCard
-                            key={a.id ?? i}
-                            axis={a}
-                            index={i}
-                            emittedIndex={emittedRanks.get(i)}
-                            emittedTotal={emittedRanks.size}
-                            open={!!expanded[i]}
-                            onToggle={() => toggleCard(i)}
-                            onChange={patch => setAxis(i, patch)}
-                            onRemove={() => removeAxis(i)}
-                            pickerCtx={pickerCtx}
-                            seriesColor={boundAxisColor(i)}
-                            seriesName={boundAxisName(i)}
-                            dividerColor={themeTokens.divider}
-                        />
-                    ))}
+                    {axes.map((a, i) => {
+                        // The place sight (ADR-0079): the card's subtitle + stepper bounds read
+                        // the SAME offset order the chart draws; the stepper writes insert-shift
+                        // with a travelling deviation — one click, one undo step (a no-move
+                        // returns undefined and never reaches set).
+                        const sight = axisPlace(axes, i);
+                        return (
+                            <AxisCard
+                                key={a.id ?? i}
+                                axis={a}
+                                index={i}
+                                emittedIndex={emittedRanks.get(i)}
+                                emittedTotal={emittedRanks.size}
+                                place={sight?.place}
+                                sideTotal={sight?.sideTotal}
+                                open={!!expanded[i]}
+                                onToggle={() => toggleCard(i)}
+                                onChange={patch => setAxis(i, patch)}
+                                onMovePlace={dir => {
+                                    const moved = moveAxisPlace(axes, i, dir);
+                                    if (moved) {
+                                        set({ yAxes: moved });
+                                    }
+                                }}
+                                onRemove={() => removeAxis(i)}
+                                pickerCtx={pickerCtx}
+                                seriesColor={boundAxisColor(i)}
+                                seriesName={boundAxisName(i)}
+                                dividerColor={themeTokens.divider}
+                            />
+                        );
+                    })}
                 </SubGroup>
 
                 {/* Markierungen (parity Build C stage 1, ADR-0061): one collapsible card per

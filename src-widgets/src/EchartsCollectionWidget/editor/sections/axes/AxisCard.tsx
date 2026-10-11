@@ -5,7 +5,8 @@
  *
  * @module EchartsCollectionWidget/editor/sections/axes/AxisCard
  * @remarks
- * The shared EditorCard shell (swatch = effective axis colour, position subtitle, delete) with
+ * The shared EditorCard shell (swatch = effective axis colour, place stepper ▲▼ + `Seite ·
+ * Platz/Total` subtitle + delete, ADR-0079) with
  * the body in Karten-Tabs (ADR-0073) — basis (name/position/colour/offset), values (min/max/format,
  * advisory min≥max), scale & ticks (`alignTicks` only on follower axes, axis 0 is the reference,
  * ADR-0034, + splitNumber/minInterval), presentation (name rotation/placement/gap) — plus the
@@ -14,7 +15,7 @@
  */
 import type { FC } from 'react';
 import { Box, IconButton } from '@mui/material';
-import { DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import { ArrowDownward as DownIcon, ArrowUpward as UpIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
 import {
@@ -52,9 +53,19 @@ const AxisCard: FC<{
     emittedIndex?: number;
     /** The number of axes — the emitted total the alignTicks gates read (Q5). */
     emittedTotal: number;
+    /**
+     * The axis' **Achsen-Platz** (ADR-0079): its 1-based depth rank within its side (1 =
+     * closest to the plot). With {@link sideTotal} it drives the header stepper and the
+     * `Seite · Platz/Total` subtitle; undefined leaves the bare side label.
+     */
+    place?: number;
+    /** The number of axes on this axis' side — the stepper greys out below 2 (ADR-0079). */
+    sideTotal?: number;
     open: boolean;
     onToggle: () => void;
     onChange: (patch: Partial<EchartsAxisConfig>) => void;
+    /** Move one place within the side (−1 nearer, +1 farther — insert-shift, ADR-0079). */
+    onMovePlace?: (dir: -1 | 1) => void;
     onRemove: () => void;
     pickerCtx: OidPickerCtx;
     /** Effective colour of the first bound series — the axis-colour default shown in the swatch (ADR-0018). */
@@ -68,9 +79,12 @@ const AxisCard: FC<{
     index: i,
     emittedIndex,
     emittedTotal,
+    place,
+    sideTotal,
     open,
     onToggle,
     onChange,
+    onMovePlace,
     onRemove,
     pickerCtx,
     seriesColor,
@@ -96,6 +110,21 @@ const AxisCard: FC<{
     // index (cartesian buildYAxisEntry), so the card must show what the chart draws.
     const splitLineEffective = a.splitLine ?? emittedIndex === 0;
 
+    // The side label + the ADR-0079 subtitle: `Seite · Platz/Total` once the section passes the
+    // place sight — the whole side ordering readable with every card collapsed. The i18n pattern
+    // carries the separator/order; the t-stub in tests returns the raw key (no placeholders).
+    const sideLabel =
+        displayPosition(a, i) === 'left' ? Generic.t('echarts_axis_left') : Generic.t('echarts_axis_right');
+    const subtitle =
+        place !== undefined && sideTotal !== undefined
+            ? Generic.t('echarts_axis_place_subtitle')
+                  .replace('{side}', sideLabel)
+                  .replace('{place}', String(place))
+                  .replace('{total}', String(sideTotal))
+            : sideLabel;
+    // The stepper's grey states (ADR-0079): at the place bounds and while the axis is alone on
+    // its side — mute everywhere, the aria-labels stay set (no tooltips by decision).
+    const movable = sideTotal !== undefined && sideTotal > 1 && place !== undefined;
     return (
         <EditorCard
             open={open}
@@ -123,18 +152,36 @@ const AxisCard: FC<{
                     {a.name || seriesName || `Achse ${i + 1}`}
                 </Box>
             }
-            subtitle={
-                displayPosition(a, i) === 'left' ? Generic.t('echarts_axis_left') : Generic.t('echarts_axis_right')
-            }
+            subtitle={subtitle}
             actions={
-                <IconButton
-                    size="small"
-                    onClick={onRemove}
-                    aria-label={Generic.t('echarts_axis_delete')}
-                    sx={{ p: 0.25 }}
-                >
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
+                <>
+                    <IconButton
+                        size="small"
+                        disabled={!movable || place <= 1}
+                        onClick={() => onMovePlace?.(-1)}
+                        aria-label={Generic.t('echarts_axis_move_up')}
+                        sx={{ p: 0.25 }}
+                    >
+                        <UpIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        disabled={!movable || place >= sideTotal}
+                        onClick={() => onMovePlace?.(1)}
+                        aria-label={Generic.t('echarts_axis_move_down')}
+                        sx={{ p: 0.25 }}
+                    >
+                        <DownIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={onRemove}
+                        aria-label={Generic.t('echarts_axis_delete')}
+                        sx={{ p: 0.25 }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </>
             }
         >
             {/* Karten-Tabs (ADR-0073): Basis | Werte | Skala | Darstellung | Erweitert —

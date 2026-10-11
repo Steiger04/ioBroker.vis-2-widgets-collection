@@ -143,7 +143,7 @@ The non-blocking chip under the chart-type picker warning BEFORE a family crossi
 _Avoid_: Confirm dialog, type guard
 
 **Axis card**:
-A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose body groups all axis knobs into Sub-groups (basis, value range, scale & ticks, presentation). One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
+A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose body groups all axis knobs into Sub-groups (basis, value range, scale & ticks, presentation); the header carries the **Achsen-Platz** stepper (▲▼) and delete. One per entry in the `yAxes` blob; a series binds to one via `yAxisIndex`.
 _Avoid_: Axis row, axis settings
 
 **Axis fine-tuning**:
@@ -151,8 +151,12 @@ The sparse appearance leaves beneath the axis **one-colour idiom** — label siz
 _Avoid_: axis styling (vague — the one-colour field is part of it), tick format (that is the value-range format field)
 
 **Axis manager**:
-The cartesian-only UI that adds/removes/reorders Axis cards and assigns series to axes (v4, ADR-0012). Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`). Its first card is the X-Karte; the manageable list below is Y-only.
+The cartesian-only UI that adds/removes Axis cards and assigns series to axes (v4, ADR-0012); ordering an axis means setting its **Achsen-Platz**, never moving its card — the card list itself does not reorder. Replaces the chart-level Y-axis scalars (`yMin/yMax/yName/yLog/yFormat`). Its first card is the X-Karte; the manageable list below is Y-only.
 _Avoid_: Axes tab, axis list
+
+**Achsen-Platz (axis place)**:
+The depth rank of a Y-axis within its side: Platz 1 is drawn closest to the plot, Platz n farthest. Not a stored setting — the place is the rank of the axis' Versatz within its side's depth order (place and pixel Versatz are two views of one truth). Reordering inserts-with-shift: the moved axis takes the target place, everything beyond shifts outward, the vacated place closes up; each axis keeps its personal Versatz deviation while travelling. A side change carries the place along, clamped to the target side's end. Like Seite and Versatz, a chosen place is fine-tuning — the next structural event re-arranges.
+_Avoid_: Reihenfolge alone (the card list never reorders — only places move), axis index (that is the binding `yAxisIndex`), Position (that is the Seite)
 
 **Markierung**:
 A reference marking on a cartesian chart (the reworked threshold, ADR-0061/0062) — a card in the Axes & Zoom section, anchored to a **Y-axis** (our model; the adapter anchors on a series). Carries one or two **bounds** (`upper`/`lower`, each a number OR an OID that resolves live via socket subscription), a style cluster (colour/width/shadow/solid-dashed-dotted) and a label cluster (text, 12 echarts-native places, X offset, size, colour). Both bounds resolved ⇒ a `markArea` band (0–1 fill) PLUS its two styled edge `markLine`s — adapter parity (ADR-0076): every style and label field works for bands too, the label cluster riding the UPPER edge; width defaults to 2 (the card slider's fallback, not echarts' 1). Exactly one bound ⇒ a lone `markLine` at that bound. The emit stays series-level (echarts `markLine`/`markArea` hang on series): the builder attaches to the first series of the target axis, reading bounds the PIPELINE resolved against the current values (the builder never subscribes). No label text → no `label` key, so echarts shows the value itself at the line/edge end.
