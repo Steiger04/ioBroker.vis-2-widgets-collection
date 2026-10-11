@@ -12,6 +12,7 @@ import {
     axesFollowBinders,
     axisLayout,
     axisOptionLabel,
+    axisPlace,
     axisPosition,
     balanceAxes,
     boundAxisIndices,
@@ -22,6 +23,8 @@ import {
     dropUnboundAxes,
     effectiveAxisColor,
     emittedAxisRanks,
+    insertAxisAtPlace,
+    moveAxisPlace,
     packStaggeredAxes,
     jsonBoundAxisDeletePatch,
     jsonShowPatch,
@@ -695,8 +698,8 @@ describe('packStaggeredAxes — side-preserving dense restagger (ADR-0028 flip s
             { id: 'c', name: 'C', color: '#00f', position: 'left', offset: 160 },
         ];
         const out = packStaggeredAxes(survivors);
-        expect(out[0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 });
-        expect(out[1]).toMatchObject({ id: 'c', name: 'C', color: '#00f', position: 'left', offset: 80 });
+        expect(out![0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'left', offset: 0 });
+        expect(out![1]).toMatchObject({ id: 'c', name: 'C', color: '#00f', position: 'left', offset: 80 });
     });
 
     it('counts an UNSTORED position on its rendered side (displayPosition — the index-aware default)', () => {
@@ -711,6 +714,185 @@ describe('packStaggeredAxes — side-preserving dense restagger (ADR-0028 flip s
         const out = packStaggeredAxes(unstored);
         expect(out.map(a => a.offset)).toEqual([0, 0, 80]); // axis 1 is the FIRST right axis
         expect(out[1].position).toBeUndefined(); // the pack normalises offset only
+    });
+});
+
+describe('Achsen-Platz — the per-side depth rank (ADR-0079: place = the offset order, insert-shift, travelling deviation)', () => {
+    it('axisPlace: rank by offset within the side, per-side totals', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'right', offset: 80 },
+            { position: 'left', offset: 160 },
+            { position: 'right', offset: 0 },
+        ];
+        expect(axisPlace(axes, 0)).toEqual({ place: 1, sideTotal: 2 });
+        expect(axisPlace(axes, 1)).toEqual({ place: 2, sideTotal: 2 });
+        expect(axisPlace(axes, 2)).toEqual({ place: 2, sideTotal: 2 });
+        expect(axisPlace(axes, 3)).toEqual({ place: 1, sideTotal: 2 });
+        expect(axisPlace(axes, 9)).toBeNull();
+    });
+
+    it('axisPlace: undefined offset counts as 0; an unstored position counts on its displayPosition side', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left' }, // left, offset ?? 0
+            { offset: 80 }, // index 1 → renders RIGHT
+            { position: 'right', offset: 0 },
+        ];
+        expect(axisPlace(axes, 0)).toEqual({ place: 1, sideTotal: 1 });
+        expect(axisPlace(axes, 1)).toEqual({ place: 2, sideTotal: 2 });
+        expect(axisPlace(axes, 2)).toEqual({ place: 1, sideTotal: 2 });
+    });
+
+    it('axisPlace: stable index tie-break for equal offsets', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 80 },
+            { position: 'left', offset: 80 },
+        ];
+        expect(axisPlace(axes, 0)).toEqual({ place: 1, sideTotal: 2 });
+        expect(axisPlace(axes, 1)).toEqual({ place: 2, sideTotal: 2 });
+    });
+
+    it('moveAxisPlace: one place per call, insert-shift, array order untouched (A ▼ then ▼ again)', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 80, name: 'B' },
+            { position: 'left', offset: 160, name: 'C' },
+        ];
+        const once = moveAxisPlace(axes, 0, 1); // A: place 1 → 2
+        expect(once).toBeDefined();
+        expect(once!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
+            { n: 'A', o: 80 }, // takes place 2 — array position unchanged
+            { n: 'B', o: 0 }, // B moves up
+            { n: 'C', o: 160 },
+        ]);
+        expect(axisPlace(once!, 0)?.place).toBe(2);
+        const twice = moveAxisPlace(once!, 0, 1); // A: place 2 → 3 (the 1→3 chain)
+        expect(twice).toBeDefined();
+        expect(twice!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
+            { n: 'A', o: 160 },
+            { n: 'B', o: 0 },
+            { n: 'C', o: 80 },
+        ]);
+        expect(axisPlace(twice!, 0)?.place).toBe(3);
+    });
+
+    it('moveAxisPlace: the manual deviation travels with the axis (100 at place 2 → 180 at place 3)', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'Temp' },
+            { position: 'left', offset: 100, name: 'Druck' }, // +20 manual
+            { position: 'left', offset: 160, name: 'Luft' },
+        ];
+        const out = moveAxisPlace(axes, 1, 1); // Druck ▼ to place 3
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
+            { n: 'Temp', o: 0 },
+            { n: 'Druck', o: 180 }, // 160 raster + the travelled +20
+            { n: 'Luft', o: 80 }, // place 2, zero deviation
+        ]);
+    });
+
+    it('moveAxisPlace: a negative deviation travels too; untouched axes keep their offsets', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 60, name: 'B' }, // −20
+            { position: 'left', offset: 160, name: 'C' },
+        ];
+        const out = moveAxisPlace(axes, 1, -1); // B ▲ to place 1
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
+            { n: 'A', o: 80 }, // shifts to place 2, zero deviation
+            { n: 'B', o: -20 }, // place 1 raster + travelled −20
+            { n: 'C', o: 160 }, // untouched
+        ]);
+    });
+
+    it('moveAxisPlace: no-op at the place boundaries and for a lone axis — undefined, no undo step', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 80 },
+        ];
+        expect(moveAxisPlace(axes, 0, -1)).toBeUndefined(); // place 1, ▲
+        expect(moveAxisPlace(axes, 1, 1)).toBeUndefined(); // place 2 of 2, ▼
+        const lone: EchartsAxisConfig[] = [{ position: 'left', offset: 0 }];
+        expect(moveAxisPlace(lone, 0, 1)).toBeUndefined(); // sideTotal 1
+        expect(moveAxisPlace(lone, 0, -1)).toBeUndefined();
+    });
+
+    it('moveAxisPlace: only the same side moves; the other side and non-offset fields stay identical', () => {
+        const axes: EchartsAxisConfig[] = [
+            { id: 'a', position: 'left', offset: 0, name: 'A', color: '#f00' },
+            { id: 'r', position: 'right', offset: 0, name: 'R' },
+            { id: 'b', position: 'left', offset: 80, name: 'B', splitLine: true },
+        ];
+        const out = moveAxisPlace(axes, 2, -1); // B ▲ over A
+        expect(out![1]).toBe(axes[1]); // the right axis: referentially untouched
+        expect(out![0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', offset: 80 });
+        expect(out![2]).toMatchObject({ id: 'b', name: 'B', splitLine: true, offset: 0 });
+    });
+
+    it('insertAxisAtPlace: the rank travels — A (place 1, left) flips right and displaces X, Y', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 80, name: 'B' },
+            { position: 'right', offset: 0, name: 'X' },
+            { position: 'right', offset: 80, name: 'Y' },
+        ];
+        const out = insertAxisAtPlace(axes, 0, 'right');
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
+            { n: 'A', p: 'right', o: 0 }, // keeps place 1 on the target side
+            { n: 'B', p: 'left', o: 0 }, // source side closes
+            { n: 'X', p: 'right', o: 80 }, // displaced one outward
+            { n: 'Y', p: 'right', o: 160 }, // displaced one outward
+        ]);
+    });
+
+    it('insertAxisAtPlace: clamps to the end when the target side is shorter', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 80, name: 'B' },
+            { position: 'left', offset: 160, name: 'C' },
+            { position: 'right', offset: 0, name: 'X' },
+            { position: 'right', offset: 80, name: 'Y' },
+        ];
+        const out = insertAxisAtPlace(axes, 2, 'right'); // C, place 3, target has 2
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
+            { n: 'A', p: 'left', o: 0 },
+            { n: 'B', p: 'left', o: 80 },
+            { n: 'C', p: 'right', o: 160 }, // clamped: appended at place 3
+            { n: 'X', p: 'right', o: 0 },
+            { n: 'Y', p: 'right', o: 80 },
+        ]);
+    });
+
+    it('insertAxisAtPlace: the manual deviation travels across the flip', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 100, name: 'D' }, // left place 2, +20
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'right', offset: 0, name: 'X' },
+            { position: 'right', offset: 80, name: 'Y' },
+        ];
+        const out = insertAxisAtPlace(axes, 0, 'right');
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
+            { n: 'D', p: 'right', o: 100 }, // place 2 on the right: 80 raster + travelled +20
+            { n: 'A', p: 'left', o: 0 }, // source side closes
+            { n: 'X', p: 'right', o: 0 },
+            { n: 'Y', p: 'right', o: 160 }, // displaced to place 3
+        ]);
+    });
+
+    it('insertAxisAtPlace: writes the flipped position explicitly, other fields and the array order stay', () => {
+        const axes: EchartsAxisConfig[] = [
+            { id: 'a', position: 'left', offset: 0, name: 'A', color: '#f00' },
+            { id: 'x', position: 'right', offset: 0, name: 'X', splitLine: true },
+        ];
+        const out = insertAxisAtPlace(axes, 0, 'right');
+        expect(out).toBeDefined();
+        expect(out!.map(a => a.id)).toEqual(['a', 'x']);
+        expect(out![0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'right', offset: 0 });
+        expect(out![1]).toMatchObject({ id: 'x', name: 'X', splitLine: true, position: 'right', offset: 80 });
     });
 });
 
@@ -818,7 +1000,7 @@ describe('balanceAxes — auto-balance (ADR-0067)', () => {
     it('a series without yAxisIndex binds axis 0 (mirrors the builder), so axis 0 balances', () => {
         const axes: EchartsAxisConfig[] = [{ id: 'a0', position: 'right', offset: 160 }];
         const out = balanceAxes(axes, [{}]);
-        expect(out[0]).toMatchObject({ position: 'left', offset: 0 });
+        expect(out![0]).toMatchObject({ position: 'left', offset: 0 });
     });
 
     it('no bound series at all → nothing is arranged, every axis passes through by reference', () => {

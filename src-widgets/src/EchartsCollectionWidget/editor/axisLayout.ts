@@ -148,6 +148,136 @@ export const packStaggeredAxes = (axes: readonly EchartsAxisConfig[]): EchartsAx
 };
 
 /**
+ * The side's members in DEPTH order (ADR-0079): ascending `offset ?? 0`, ties broken by the
+ * array index (stable). This order IS the side's place ranking — the drawn truth echarts
+ * follows, never a stored field.
+ */
+const sideOrder = (axes: readonly EchartsAxisConfig[], side: 'left' | 'right'): number[] =>
+    axes
+        .map((a, i) => ({ a, i }))
+        .filter(({ a, i }) => displayPosition(a, i) === side)
+        .sort((x, y) => (x.a.offset ?? 0) - (y.a.offset ?? 0) || x.i - y.i)
+        .map(({ i }) => i);
+
+/** The sight of one axis on its side (ADR-0079): its 1-based place + the side's total. */
+export interface AxisPlaceSight {
+    /** 1 = drawn closest to the plot (smallest offset); n = farthest. */
+    place: number;
+    /** The number of axes on this axis' side (the place stepper greys out below 2). */
+    sideTotal: number;
+}
+
+/**
+ * The axis' **Achsen-Platz** (ADR-0079): its depth rank within its side — 1-based, 1 = closest
+ * to the plot, n = farthest. NOT a stored value: the place is the rank in the side's offset
+ * order (the same drawn truth the builder emits; `displayPosition` decides the side, an
+ * undefined offset counts as 0). `null` for an out-of-range index.
+ */
+export const axisPlace = (axes: readonly EchartsAxisConfig[], i: number): AxisPlaceSight | null => {
+    const axis = axes[i];
+    if (!axis) {
+        return null;
+    }
+    const order = sideOrder(axes, displayPosition(axis, i));
+    const place = order.indexOf(i);
+    return place === -1 ? null : { place: place + 1, sideTotal: order.length };
+};
+
+/**
+ * Each axis' personal deviation from the 80-px raster, measured against its CURRENT place on
+ * its CURRENT side (ADR-0079's travelling-delta rule): the manual share of a hand-tuned
+ * offset that survives reorder gestures — it belongs to the axis, never to the slot.
+ */
+const placeDeviations = (axes: readonly EchartsAxisConfig[]): Map<number, number> => {
+    const dev = new Map<number, number>();
+    for (const side of ['left', 'right'] as const) {
+        sideOrder(axes, side).forEach(
+            (idx, slot) => dev.set(idx, (axes[idx].offset ?? 0) - slot * AXIS_STAGGER_STAGE),
+        );
+    }
+    return dev;
+};
+
+/**
+ * Write a side's NEW depth order as offsets: slot raster + each axis' personal deviation
+ * (ADR-0079 — delta travels, never snaps). Only members whose offset actually changes get a
+ * new object; every other axis keeps its identity. Always a fresh array (the caller's no-op
+ * contract is `undefined`, the ownerPatch idiom — not reference equality).
+ */
+const applySideOrder = (
+    axes: readonly EchartsAxisConfig[],
+    dev: ReadonlyMap<number, number>,
+    newOrder: readonly number[],
+): EchartsAxisConfig[] => {
+    let next: EchartsAxisConfig[] | undefined;
+    newOrder.forEach((idx, slot) => {
+        const offset = slot * AXIS_STAGGER_STAGE + (dev.get(idx) ?? 0);
+        if ((axes[idx].offset ?? 0) !== offset) {
+            (next ??= axes.slice())[idx] = { ...axes[idx], offset };
+        }
+    });
+    return next ?? axes.slice();
+};
+
+/**
+ * Move an axis one place within its side (ADR-0079): **insert with shift** — the axis falls
+ * out of its place and is re-inserted one nearer (dir −1) or farther (dir +1), everything
+ * beyond shifts outward, the vacated place closes up. The personal deviation travels with
+ * the axis (a manual +20 at place 2 lands as raster + 20 at the new place); the array order
+ * and every non-offset field are untouched. A boundary move (place 1 + ▲, place n + ▼) or a
+ * lone axis on the side returns `undefined` — the caller keeps the array (no empty undo
+ * step), the {@link ownerPatch} idiom.
+ */
+export const moveAxisPlace = (
+    axes: readonly EchartsAxisConfig[],
+    i: number,
+    dir: -1 | 1,
+): EchartsAxisConfig[] | undefined => {
+    const sight = axisPlace(axes, i);
+    if (!sight || sight.sideTotal < 2) {
+        return undefined;
+    }
+    const target = sight.place + dir;
+    if (target < 1 || target > sight.sideTotal) {
+        return undefined;
+    }
+    const order = sideOrder(axes, displayPosition(axes[i], i));
+    const [moved] = order.splice(sight.place - 1, 1);
+    order.splice(target - 1, 0, moved);
+    return applySideOrder(axes, placeDeviations(axes), order);
+};
+
+/**
+ * The rank-preserving side-flip (ADR-0079, replacing ADR-0028's array-order repack as the
+ * flip handler): the axis keeps its place and is INSERTED at it on the target side (clamped
+ * to the end when the target side is shorter), the displaced axes shift one outward, the
+ * source side closes up. The personal deviation travels across the flip; nothing snaps to
+ * the raster. The flipped `position` is written explicitly; array order and every other
+ * field stay. A no-flip call (target side === current side) returns `undefined` — the
+ * caller's real-flip gate is the authority.
+ */
+export const insertAxisAtPlace = (
+    axes: readonly EchartsAxisConfig[],
+    i: number,
+    position: 'left' | 'right',
+): EchartsAxisConfig[] | undefined => {
+    const sight = axisPlace(axes, i);
+    if (!sight || displayPosition(axes[i], i) === position) {
+        return undefined;
+    }
+    const dev = placeDeviations(axes);
+    // The source side closes around the vacated place…
+    const sourceOrder = sideOrder(axes, displayPosition(axes[i], i)).filter(idx => idx !== i);
+    // …the axis slots into its carried place on the target side, clamped to the end.
+    const targetOrder = sideOrder(axes, position);
+    targetOrder.splice(Math.min(sight.place - 1, targetOrder.length), 0, i);
+    const next = applySideOrder(applySideOrder(axes, dev, sourceOrder), dev, targetOrder);
+    // A real flip always writes the position (an unstored one materialises here).
+    next[i] = { ...next[i], position };
+    return next;
+};
+
+/**
  * The emitted (effective) axis positions (Q5): the cartesian builder emits the axes compacted in
  * array order — `ranks.get(i)` is axis i's EMITTED index (its rank, ascending). UI gates that
  * must follow the emitted truth (the alignTicks switch/warning: the reference axis is the first
