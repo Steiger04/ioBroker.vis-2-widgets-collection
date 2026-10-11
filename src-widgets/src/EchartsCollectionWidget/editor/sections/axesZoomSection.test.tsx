@@ -30,6 +30,7 @@ vi.mock('../useEditorTheme', () => ({
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import AxesZoomSection from './AxesZoomSection';
+import Generic from '../../../Generic';
 import { axisLayout } from '../axisLayout';
 import { DEFAULT_EDITOR_STATE, type EditorState } from '../editorState';
 
@@ -136,5 +137,48 @@ describe('AxesZoomSection — the Achsen-Platz stepper (ADR-0079)', () => {
         expect((downs[3] as HTMLButtonElement).disabled).toBe(true);
         // The t-stub surfaces the pattern key verbatim (placeholders live in the real dicts).
         expect(el.textContent).toContain('echarts_axis_place_subtitle');
+    });
+
+    it('the subtitle composes "Seite · Platz/Total" from the i18n pattern placeholders', () => {
+        // The hoisted t-stub returns keys verbatim, so the {side}/{place}/{total} replacement
+        // never runs against real placeholders — mock JUST the pattern key to prove the
+        // composition (side label from its own key, numbers from the sight).
+        const t = vi
+            .spyOn(Generic, 't')
+            .mockImplementation(k => (k === 'echarts_axis_place_subtitle' ? '{side} · {place}/{total}' : k));
+        try {
+            const el = mount(AxesZoomSection, { state: placedState(), set: () => undefined, pickerCtx: {} });
+            expect(el.textContent).toContain('echarts_axis_left · 2/3'); // axis 1: left place 2 of 3
+            expect(el.textContent).toContain('echarts_axis_right · 1/1'); // axis 3: alone on the right
+        } finally {
+            t.mockRestore();
+        }
+    });
+
+    it('serien-förmig JSON rides the same path: the stepper re-places the payload axes identically', () => {
+        const set = vi.fn();
+        const el = mount(AxesZoomSection, {
+            state: {
+                ...tableState(),
+                jsonKind: 'series',
+                series: [], // the payload owns the series — the overlay binds
+                jsonSeriesNames: ['A', 'B'],
+                jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } },
+                yAxes: [
+                    { ...axisLayout(0), position: 'left', offset: 0 },
+                    { ...axisLayout(1), position: 'left', offset: 80 },
+                ],
+            },
+            set,
+            pickerCtx: {},
+        });
+        const downs = Array.from(el.querySelectorAll('button[aria-label="echarts_axis_move_down"]'));
+        expect(downs).toHaveLength(2);
+        act(() => {
+            downs[0].dispatchEvent(new MouseEvent('click', { bubbles: true })); // axis 0: place 1 → 2
+        });
+        expect(set).toHaveBeenCalledTimes(1);
+        const patch = set.mock.calls[0][0] as { yAxes: { offset?: number }[] };
+        expect(patch.yAxes.map(a => a.offset)).toEqual([80, 0]);
     });
 });

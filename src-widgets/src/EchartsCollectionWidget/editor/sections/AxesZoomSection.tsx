@@ -208,11 +208,13 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         // through `displayPosition`, so re-selecting the value the card SHOWS is no flip:
         // hand-tuned offsets survive. Any other edit (offset/name/colour/min-max/…) is plain
         // fine-justure — no re-place either.
-        const flipped = 'position' in patch && patch.position !== displayPosition(axes[i], i);
-        if (flipped) {
-            const placed = insertAxisAtPlace(axes, i, patch.position as 'left' | 'right');
+        const target = patch.position;
+        if (target !== undefined && target !== displayPosition(axes[i], i)) {
+            const placed = insertAxisAtPlace(axes, i, target);
             if (placed) {
-                set({ yAxes: placed });
+                // The patch's OTHER keys ride along on the flipped axis — the merge contract is
+                // the pre-ADR-0079 one (single-key patches today, but nothing gets dropped).
+                set({ yAxes: placed.map((a, idx) => (idx === i ? { ...a, ...patch } : a)) });
                 return;
             }
         }
@@ -407,8 +409,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                                 index={i}
                                 emittedIndex={emittedRanks.get(i)}
                                 emittedTotal={emittedRanks.size}
-                                place={sight?.place}
-                                sideTotal={sight?.sideTotal}
+                                sight={sight ?? undefined}
                                 open={!!expanded[i]}
                                 onToggle={() => toggleCard(i)}
                                 onChange={patch => setAxis(i, patch)}

@@ -903,7 +903,7 @@ describe('balanceAxes — auto-balance (ADR-0067)', () => {
     it('a series without yAxisIndex binds axis 0 (mirrors the builder), so axis 0 balances', () => {
         const axes: EchartsAxisConfig[] = [{ id: 'a0', position: 'right', offset: 160 }];
         const out = balanceAxes(axes, [{}]);
-        expect(out![0]).toMatchObject({ position: 'left', offset: 0 });
+        expect(out[0]).toMatchObject({ position: 'left', offset: 0 });
     });
 
     it('no bound series at all → nothing is arranged, every axis passes through by reference', () => {

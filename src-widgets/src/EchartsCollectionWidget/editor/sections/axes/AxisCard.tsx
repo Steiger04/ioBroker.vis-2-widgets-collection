@@ -36,7 +36,7 @@ import {
 import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsAxisConfig } from '../../../../types/field-definitions/echarts-fields';
-import { alignTicksDisabledByOverride, displayPosition } from '../../axisLayout';
+import { alignTicksDisabledByOverride, displayPosition, type AxisPlaceSight } from '../../axisLayout';
 import RawJsonSection from '../RawJsonSection';
 import { AXIS_CATALOG } from '../../axisTemplates';
 import { snippetPatch } from '../../snippetComposition';
@@ -54,13 +54,12 @@ const AxisCard: FC<{
     /** The number of axes — the emitted total the alignTicks gates read (Q5). */
     emittedTotal: number;
     /**
-     * The axis' **Achsen-Platz** (ADR-0079): its 1-based depth rank within its side (1 =
-     * closest to the plot). With {@link sideTotal} it drives the header stepper and the
+     * The axis' **Achsen-Platz** sight (ADR-0079): its 1-based depth rank within its side
+     * (1 = closest to the plot) + the side's total — one struct, straight from
+     * {@link axisPlace}. Drives the header stepper's grey states and the
      * `Seite · Platz/Total` subtitle; undefined leaves the bare side label.
      */
-    place?: number;
-    /** The number of axes on this axis' side — the stepper greys out below 2 (ADR-0079). */
-    sideTotal?: number;
+    sight?: AxisPlaceSight;
     open: boolean;
     onToggle: () => void;
     onChange: (patch: Partial<EchartsAxisConfig>) => void;
@@ -79,8 +78,7 @@ const AxisCard: FC<{
     index: i,
     emittedIndex,
     emittedTotal,
-    place,
-    sideTotal,
+    sight,
     open,
     onToggle,
     onChange,
@@ -115,16 +113,12 @@ const AxisCard: FC<{
     // carries the separator/order; the t-stub in tests returns the raw key (no placeholders).
     const sideLabel =
         displayPosition(a, i) === 'left' ? Generic.t('echarts_axis_left') : Generic.t('echarts_axis_right');
-    const subtitle =
-        place !== undefined && sideTotal !== undefined
-            ? Generic.t('echarts_axis_place_subtitle')
-                  .replace('{side}', sideLabel)
-                  .replace('{place}', String(place))
-                  .replace('{total}', String(sideTotal))
-            : sideLabel;
-    // The stepper's grey states (ADR-0079): at the place bounds and while the axis is alone on
-    // its side — mute everywhere, the aria-labels stay set (no tooltips by decision).
-    const movable = sideTotal !== undefined && sideTotal > 1 && place !== undefined;
+    const subtitle = sight
+        ? Generic.t('echarts_axis_place_subtitle')
+              .replace('{side}', sideLabel)
+              .replace('{place}', String(sight.place))
+              .replace('{total}', String(sight.sideTotal))
+        : sideLabel;
     return (
         <EditorCard
             open={open}
@@ -155,9 +149,12 @@ const AxisCard: FC<{
             subtitle={subtitle}
             actions={
                 <>
+                    {/* The stepper's grey states (ADR-0079): at the place bounds and while the
+                        axis is alone on its side — mute everywhere, the aria-labels stay set
+                        (no tooltips by decision). */}
                     <IconButton
                         size="small"
-                        disabled={!movable || place <= 1}
+                        disabled={!sight || sight.sideTotal < 2 || sight.place <= 1}
                         onClick={() => onMovePlace?.(-1)}
                         aria-label={Generic.t('echarts_axis_move_up')}
                         sx={{ p: 0.25 }}
@@ -166,7 +163,7 @@ const AxisCard: FC<{
                     </IconButton>
                     <IconButton
                         size="small"
-                        disabled={!movable || place >= sideTotal}
+                        disabled={!sight || sight.sideTotal < 2 || sight.place >= sight.sideTotal}
                         onClick={() => onMovePlace?.(1)}
                         aria-label={Generic.t('echarts_axis_move_down')}
                         sx={{ p: 0.25 }}
