@@ -222,6 +222,15 @@ export const markLineStyleOf = (ml: EchartsMarkLine): EchartsLineStyle =>
     ml.lineStyle ?? (ml.dashed ? 'dashed' : 'solid');
 
 /**
+ * Resolve a marking label's colour (ADR 0080): ALWAYS explicit — an authored label colour wins,
+ * „Erbt" takes the marking's own colour, and the dark-mode-aware axis-text token sits beneath
+ * (the LINE's divider default would render near-invisible text). The builder and the card read
+ * through this ONE resolver so the inherit preview cannot drift from what the chart draws.
+ */
+export const markLabelColorOf = (ml: EchartsMarkLine, textSecondary: string): string =>
+    ml.labelColor ?? ml.color ?? textSecondary;
+
+/**
  * Normalize an authored marking bound (ADR-0062): a pure-numeric string becomes the NUMBER
  * (the adapter's `parseFloat` semantics — a typed "20" is a number, not an OID), any other
  * non-empty string stays an OID string, everything else is unset.

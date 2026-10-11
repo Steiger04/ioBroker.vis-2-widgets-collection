@@ -924,8 +924,10 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
         expect(mark({ dashed: false }).lineStyle.type).toBe('solid');
     });
 
-    it('label text only → bare { formatter } (sparse: no position/distance/fontSize/colour)', () => {
-        expect(mark({ label: 'Max' }).label).toEqual({ formatter: 'Max' });
+    it('label text only → { formatter, color } — everything else stays sparse', () => {
+        // The colour is ALWAYS explicit (ADR 0080): a colourless attached label hands echarts
+        // the bg-contrast auto path, which strokes a white 2px halo on a transparent canvas.
+        expect(mark({ label: 'Max' }).label).toEqual({ formatter: 'Max', color: '#ts' });
     });
 
     // ── style cluster ──────────────────────────────────────────────────
@@ -968,13 +970,13 @@ describe('buildGeneratedOption — marking style + label cluster (parity Build C
         expect('distance' in mark({ label: 'T', labelOffset: 0 }).label!).toBe(false);
     });
 
-    it('label size + colour emit sparse inside the label block', () => {
+    it('label colour resolves explicitly (ADR 0080): authored wins → marking colour → axis-text token', () => {
         const label = mark({ label: 'T', labelSize: 11, labelColor: '#ff0' }).label!;
         expect(label.fontSize).toBe(11);
-        expect(label.color).toBe('#ff0');
-        const bare = mark({ label: 'T' }).label!;
-        expect('fontSize' in bare).toBe(false);
-        expect('color' in bare).toBe(false);
+        expect(label.color).toBe('#ff0'); // authored label colour beats everything
+        expect(mark({ label: 'T', color: '#c' }).label!.color).toBe('#c'); // „Erbt" = the marking's colour
+        expect(mark({ label: 'T' }).label!.color).toBe('#ts'); // no marking colour → axis-text token
+        expect('fontSize' in mark({ label: 'T' }).label!).toBe(false); // size stays sparse
     });
 });
 
@@ -1924,14 +1926,24 @@ describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-00
         expect((commaOnly.label as { formatter: (v: unknown) => string }).formatter(2.5)).toBe('2,5');
     });
 
-    it('a line label ignores the bar knobs (labelPosition stays bar-only) and emits { show: true }', () => {
+    it('a line label ignores the bar POSITION knob, but resolves its colour explicitly (ADR 0080)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ label: true, labelPosition: 'inside', labelFontSize: 20, labelColor: '#f00' }],
             p: P, // cartesianType stays 'line'
         });
-        expect((option.series as Record<string, unknown>[])[0].label).toEqual({ show: true });
+        // Position/size stay bar-only; an authored colour now WINS on lines too (it was a dead
+        // knob before) — and the bare switch resolves to the series colour, never sparse: a
+        // colourless attached label would get echarts' white bg-contrast halo.
+        expect((option.series as Record<string, unknown>[])[0].label).toEqual({ show: true, color: '#f00' });
+        const bare = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ label: true }],
+            p: P,
+        });
+        expect((bare.series as Record<string, unknown>[])[0].label).toEqual({ show: true, color: '#1' }); // palette slot 0
     });
 
     it('label off wins over authored knobs — no label key at all', () => {
@@ -2031,7 +2043,7 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
         ).toBe('1.6 W');
     });
 
-    it('a LINE label gets the formatter as well when facts exist; without facts it stays { show: true }', () => {
+    it('a LINE label gets the formatter as well when facts exist; without facts it stays show + colour', () => {
         const withFacts = build([{ name: 'T', label: true, unit: '°C' }]);
         const lineLabel = (withFacts.series as Record<string, unknown>[])[0].label as {
             formatter?: (v: unknown) => string;
@@ -2040,6 +2052,7 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
 
         expect((build([{ name: 'T', label: true }]).series as Record<string, unknown>[])[0].label).toEqual({
             show: true,
+            color: '#1', // the series colour — never colourless (ADR 0080)
         });
     });
 

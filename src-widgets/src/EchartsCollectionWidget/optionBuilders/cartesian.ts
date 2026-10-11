@@ -30,7 +30,7 @@ import type {
 } from '../../types/field-definitions/echarts-fields';
 import { toEchartsLinearGradient } from '../../lib/helper/extractColorFromValue';
 import { axisPosition } from '../editor/axisLayout';
-import { buildLegend, DEFAULT_MARK_FILL, legendActiveOf, markLineStyleOf } from '../presentation';
+import { buildLegend, DEFAULT_MARK_FILL, legendActiveOf, markLabelColorOf, markLineStyleOf } from '../presentation';
 import { dataSpanMs, makeAxisLabelFormatter } from '../timeFormat';
 import {
     factsOfMeta,
@@ -165,8 +165,10 @@ const buildCartesianSeriesEntry = (
         // The label VALUES ride the per-series Wert-Formatter (ADR-0057): this series' facts beat
         // the chart-level cluster per fact; gated exactly like the tooltip — no knob on either
         // side → no formatter, echarts' own label text. Bar labels carry the parity Build D knob
-        // cluster (position/size/colour) beside it; a LINE label stays the bare switch + formatter
-        // (position semantics differ per type, and the line family never reads the bar knobs).
+        // cluster (position/size/colour) beside it; a LINE label keeps the switch + formatter +
+        // EXPLICIT colour (position semantics differ per type, the line family never reads the
+        // bar position/size knobs — but an authored colour wins, and „Erbt" resolves to the
+        // series colour so echarts' bg-contrast halo never runs, ADR 0080).
         const seriesFacts = factsOfMeta(m);
         const labelFmt = hasSeriesValueFormat(seriesFacts, chartFmt)
             ? (v: unknown): string => formatSeriesValue(v, seriesFacts, chartFmt)
@@ -180,7 +182,14 @@ const buildCartesianSeriesEntry = (
                       ...(m.labelColor ? { color: m.labelColor } : {}),
                       ...(labelFmt ? { formatter: labelFmt } : {}),
                   }
-                : { show: true, ...(labelFmt ? { formatter: labelFmt } : {}) };
+                : {
+                      show: true,
+                      // NEVER colourless (ADR 0080): a colourless attached label falls to
+                      // echarts' auto contrast, which strokes a halo derived from the
+                      // (transparent!) canvas background — a white border on dark hosts.
+                      color: m.labelColor ?? color,
+                      ...(labelFmt ? { formatter: labelFmt } : {}),
+                  };
     }
     if (m?.stack && type !== 'scatter') {
         entry.stack = m.stack;
@@ -260,15 +269,28 @@ const numericBound = (bound: number | string | undefined): number | undefined =>
  * pre-0061 behaviour, kept for band edges too: a textless band shows its two bound values).
  * X offset negates on the END places (adapter l/r: positive pulls the label inward) — including
  * the UNSET position, whose effective default is 'end' too, so "Standard" and an explicit
- * "Rechts" offset the same way.
+ * "Rechts" offset the same way. The label COLOUR is always explicit (ADR 0080): a colourless
+ * attached label falls to echarts' bg-contrast auto path, which strokes a 2px halo derived
+ * from the (transparent) canvas background — a white border on dark hosts. „Erbt" resolves to
+ * the marking's own colour, else the dark-mode-aware axis-text token.
  *
  * @param ml - The marking config (bounds resolved to numbers by the pipeline).
- * @param color - The marking's effective colour (explicit or the divider token, ADR-0027).
+ * @param color - The marking's effective colour (explicit or the divider token, ADR-0027) —
+ *   paints the LINE only; the label deliberately bypasses it (the divider default would render
+ *   near-invisible text) in favour of {@link markLabelColorOf}.
  * @param bound - The numeric Y value this edge sits at.
  * @param withLabel - Whether the label cluster rides this edge (bands label the UPPER edge
  * only — the adapter's both-edges duplicate read as a defect, ADR-0076 decision 3).
+ * @param textSecondary - Theme axis-text token — the label colour's inherit fallback (ADR 0080;
+ *   the divider default of the LINE would render near-invisible text).
  */
-const markEdge = (ml: EchartsMarkLine, color: string, bound: number, withLabel: boolean): Record<string, unknown> => {
+const markEdge = (
+    ml: EchartsMarkLine,
+    color: string,
+    bound: number,
+    withLabel: boolean,
+    textSecondary: string,
+): Record<string, unknown> => {
     // The adapter's `os` shadow formula, replicated: a set shadow emits blur/offsetY as v+1 in
     // the line's own colour (0/unset = off — no shadow keys at all).
     const shadowOn = typeof ml.shadow === 'number' && ml.shadow > 0;
@@ -288,7 +310,7 @@ const markEdge = (ml: EchartsMarkLine, color: string, bound: number, withLabel: 
                       ...(ml.labelPosition ? { position: ml.labelPosition } : {}),
                       ...(ml.labelOffset ? { distance: atEnd ? [-ml.labelOffset, 0] : [ml.labelOffset, 0] } : {}),
                       ...(ml.labelSize ? { fontSize: ml.labelSize } : {}),
-                      ...(ml.labelColor ? { color: ml.labelColor } : {}),
+                      color: markLabelColorOf(ml, textSecondary),
                   },
               }
             : {}),
@@ -303,15 +325,17 @@ const markEdge = (ml: EchartsMarkLine, color: string, bound: number, withLabel: 
  * two edge markLines carrying the full style cluster — adapter parity (ADR-0076 supersedes
  * ADR-0062's „band replaces the edges" deviation): the label cluster rides the UPPER edge.
  * Exactly one bound ⇒ a single markLine at that bound; neither ⇒ skipped. Style/label emit
- * sparse — every unset field leaves no key (width is the exception: its 2 default is explicit,
- * see {@link markEdge}).
+ * sparse — every unset field leaves no key (two exceptions emit explicit defaults: the width's
+ * 2, and the label colour's inherit resolution — both ADR-0076/0080, see {@link markEdge}).
  *
  * @param markLines - The marking configs (bounds resolved to numbers by the pipeline).
  * @param divider - Theme divider token — the default marking colour when none is explicit (ADR-0027).
+ * @param textSecondary - Theme axis-text token — the label colour's inherit fallback (ADR 0080).
  */
 const markMarkers = (
     markLines: EchartsMarkLine[],
     divider: string,
+    textSecondary: string,
 ): { lineData: Record<string, unknown>[]; areaData: [Record<string, unknown>, Record<string, unknown>][] } => {
     const lineData: Record<string, unknown>[] = [];
     const areaData: [Record<string, unknown>, Record<string, unknown>][] = [];
@@ -331,14 +355,17 @@ const markMarkers = (
                 },
                 { yAxis: upper },
             ]);
-            lineData.push(markEdge(ml, color, upper, true), markEdge(ml, color, lower, false));
+            lineData.push(
+                markEdge(ml, color, upper, true, textSecondary),
+                markEdge(ml, color, lower, false, textSecondary),
+            );
             continue;
         }
         const bound = upper ?? lower;
         if (bound === undefined) {
             continue; // nothing resolved — no marker, no crash
         }
-        lineData.push(markEdge(ml, color, bound, true));
+        lineData.push(markEdge(ml, color, bound, true, textSecondary));
     }
     return { lineData, areaData };
 };
@@ -696,7 +723,7 @@ export const buildCartesianOption = (
             if (!host) {
                 continue; // unreachable while activeBoundAxes is derived from entries — defensive
             }
-            const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider);
+            const { lineData, areaData } = markMarkers(marks, p.themeTokens.divider, p.themeTokens.textSecondary);
             if (lineData.length) {
                 attachMarker(host, 'markLine', lineData);
             }

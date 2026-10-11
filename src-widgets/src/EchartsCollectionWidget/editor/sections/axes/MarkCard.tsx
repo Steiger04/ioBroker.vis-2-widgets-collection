@@ -32,7 +32,7 @@ import {
 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
 import { displayAxisIndex } from '../../axisLayout';
-import { DEFAULT_MARK_FILL, markLineStyleOf, parseMarkBound } from '../../../presentation';
+import { DEFAULT_MARK_FILL, markLabelColorOf, markLineStyleOf, parseMarkBound } from '../../../presentation';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsMarkLabelPosition, EchartsMarkLine } from '../../../../types/field-definitions/echarts-fields';
 
@@ -114,7 +114,12 @@ const MarkCard: FC<{
     pickerCtx: OidPickerCtx;
     /** Theme divider token — the line colour's inherit value (the builder's default). */
     dividerColor: string;
-}> = ({ mark: m, axisOptions, open, onToggle, onChange, onRemove, pickerCtx, dividerColor }) => {
+    /**
+     * Theme axis-text token — the LABEL colour's inherit fallback (ADR 0080: the swatch shows
+     * exactly what the builder emits — marking colour first, this token beneath).
+     */
+    textSecondary: string;
+}> = ({ mark: m, axisOptions, open, onToggle, onChange, onRemove, pickerCtx, dividerColor, textSecondary }) => {
     // The ONE legacy-tolerance resolver (shared with the builder — the select must never show a
     // different effective style than the chart draws).
     const lineStyleEffective = markLineStyleOf(m);
@@ -288,7 +293,9 @@ const MarkCard: FC<{
                             <FieldLabel>{Generic.t('echarts_mark_label_color')}</FieldLabel>
                             <ColorField
                                 value={m.labelColor}
-                                fallback={m.color ?? dividerColor}
+                                // The ONE ADR 0080 resolver, shared with the builder — the card
+                                // never previews a colour the chart does not draw.
+                                fallback={markLabelColorOf(m, textSecondary)}
                                 onChange={v => onChange({ labelColor: v ?? undefined })}
                                 ctx={pickerCtx}
                             />

@@ -446,6 +446,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                             onRemove={() => removeMark(i)}
                             pickerCtx={pickerCtx}
                             dividerColor={themeTokens.divider}
+                            textSecondary={themeTokens.textSecondary}
                         />
                     ))}
                     <Button
