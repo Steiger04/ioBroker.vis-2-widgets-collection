@@ -62,7 +62,7 @@ afterEach(() => {
     document.body.innerHTML = '';
 });
 
-const occurrences = (el: HTMLElement, key: string): number => el.textContent?.split(key).length - 1 ?? 0;
+const occurrences = (el: HTMLElement, key: string): number => (el.textContent?.split(key).length ?? 1) - 1;
 
 describe('MarkCard — per-edge label SubGroups (ADR-0081)', () => {
     it('a band shows BOTH label SubGroups, each with its own tuning fields', () => {
