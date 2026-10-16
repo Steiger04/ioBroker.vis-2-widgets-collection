@@ -21,6 +21,8 @@
  * - Functions / symbols are rejected everywhere (non-serializable).
  */
 
+import { CORNER_RADIUS_MAX } from './themeUtils';
+
 /** How to treat keys not declared in an `object` schema node's `properties`. */
 export type UnknownKeyPolicy = 'warn' | 'error' | 'ignore';
 
@@ -273,7 +275,7 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
             optional: true,
             allowUnknown: 'warn',
             properties: {
-                borderRadius: { kind: 'number', optional: true, min: 0, max: 64 },
+                borderRadius: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
             },
         },
         direction: { kind: 'literal', values: ['ltr', 'rtl'], optional: true },
@@ -325,10 +327,10 @@ export const THEME_OPTIONS_SCHEMA: SchemaNode = {
             optional: true,
             allowUnknown: 'ignore',
             properties: {
-                topLeft: { kind: 'number', optional: true, min: 0, max: 64 },
-                topRight: { kind: 'number', optional: true, min: 0, max: 64 },
-                bottomRight: { kind: 'number', optional: true, min: 0, max: 64 },
-                bottomLeft: { kind: 'number', optional: true, min: 0, max: 64 },
+                topLeft: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
+                topRight: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
+                bottomRight: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
+                bottomLeft: { kind: 'number', optional: true, min: 0, max: CORNER_RADIUS_MAX },
             },
         },
         unstable_strictMode: { kind: 'boolean', optional: true },

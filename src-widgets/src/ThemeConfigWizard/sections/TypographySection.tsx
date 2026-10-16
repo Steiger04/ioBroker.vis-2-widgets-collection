@@ -46,7 +46,7 @@ import {
 } from '../../lib/theme/fontCatalogue';
 import { injectGoogleFontFaces, loadGoogleFont } from '../../lib/theme/googleFonts';
 import type { StudioSectionProps } from '../../lib/theme/themeTypes';
-import { getNestedValue } from '../../lib/theme/themeUtils';
+import { CORNER_RADIUS_MAX, getNestedValue } from '../../lib/theme/themeUtils';
 
 /** Selectable CSS font weights. */
 const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -302,7 +302,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                     label={Generic.t('theme_wizard_layout_border_radius')}
                                     value={linkedRadius}
                                     min={0}
-                                    max={32}
+                                    max={CORNER_RADIUS_MAX}
                                     step={0.5}
                                     onChange={handleLinkedRadiusChange}
                                 />
@@ -316,7 +316,7 @@ function TypographySection({ theme, onChange, expanded, onExpandedChange }: Stud
                                                 label={Generic.t(field.labelKey)}
                                                 value={getNestedValue<number>(theme, field.path) ?? 4}
                                                 min={0}
-                                                max={32}
+                                                max={CORNER_RADIUS_MAX}
                                                 step={0.5}
                                                 onChange={value => handleCornerChange(field.path, value)}
                                             />
