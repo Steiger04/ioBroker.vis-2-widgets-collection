@@ -155,7 +155,7 @@ The cartesian-only UI that adds/removes Axis cards and assigns series to axes (v
 _Avoid_: Axes tab, axis list
 
 **Achsen-Platz (axis place)**:
-The depth rank of a Y-axis within its side: Platz 1 is drawn closest to the plot, Platz n farthest. Not a stored setting — the place is the rank of the axis' Versatz within its side's depth order (place and pixel Versatz are two views of one truth). Reordering inserts-with-shift: the moved axis takes the target place, everything beyond shifts outward, the vacated place closes up; each axis keeps its personal Versatz deviation while travelling. A side change carries the place along, clamped to the target side's end. Like Seite and Versatz, a chosen place is fine-tuning — the next structural event re-arranges.
+The depth rank of a Y-axis within its side: Platz 1 is drawn closest to the plot, Platz n farthest. Not a stored setting — the place is the rank of the axis' Versatz within its side's depth order (place and pixel Versatz are two views of one truth). Reordering inserts-with-shift: the moved axis takes the target place, everything beyond shifts outward, the vacated place closes up; the VERSATZ HANGS ON THE PLACE (ADR-0079 addendum) — every place keeps its pixel value, only the occupants exchange, the side's geometry never moves. A side change carries the place along, clamped to the target side's end, adopting the target place's value (a new place takes the raster default). Like Seite and Versatz, a chosen place is fine-tuning — the next structural event re-arranges.
 _Avoid_: Reihenfolge alone (the card list never reorders — only places move), axis index (that is the binding `yAxisIndex`), Position (that is the Seite)
 
 **Markierung**:

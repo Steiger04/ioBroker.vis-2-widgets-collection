@@ -10,9 +10,9 @@
  * bound axes via {@link balanceAxes} — standard interleaving, dense on the raster (ADR-0067).
  * The manual gestures between those events own the **Achsen-Platz** (ADR-0079): the place
  * stepper and the side-flip reorder through the offset order ({@link axisPlace},
- * {@link moveAxisPlace}, {@link insertAxisAtPlace}) with insert-shift and a travelling
- * deviation — the array-order repack (`packStaggeredAxes`, ADR-0028's flip handler) is
- * pensioned with it.
+ * {@link moveAxisPlace}, {@link insertAxisAtPlace}) with insert-shift and place-bound offsets
+ * (the addendum: a slot keeps its pixel value, only the occupants exchange) — the array-order
+ * repack (`packStaggeredAxes`, ADR-0028's flip handler) is pensioned with it.
  *
  * @module EchartsCollectionWidget/editor/axisLayout
  */
@@ -167,32 +167,30 @@ export const axisPlace = (axes: readonly EchartsAxisConfig[], i: number): AxisPl
 };
 
 /**
- * Each axis' personal deviation from the 80-px raster, measured against its CURRENT place on
- * its CURRENT side (ADR-0079's travelling-delta rule): the manual share of a hand-tuned
- * offset that survives reorder gestures — it belongs to the axis, never to the slot.
+ * One side's PLACE VALUES (ADR-0079 addendum): the pixel offsets of its slots, in place order,
+ * captured BEFORE the gesture. The place — never the axis — owns the offset: a reorder
+ * exchanges the occupants while every slot keeps its value, so the side's geometry never
+ * moves. An undefined offset counts as 0 (the same truth the place view sorts by).
  */
-const placeDeviations = (axes: readonly EchartsAxisConfig[]): Map<number, number> => {
-    const dev = new Map<number, number>();
-    for (const side of ['left', 'right'] as const) {
-        sideOrder(axes, side).forEach((idx, slot) => dev.set(idx, (axes[idx].offset ?? 0) - slot * AXIS_STAGGER_STAGE));
-    }
-    return dev;
-};
+const sideSlotValues = (axes: readonly EchartsAxisConfig[], side: 'left' | 'right'): number[] =>
+    sideOrder(axes, side).map(idx => axes[idx].offset ?? 0);
 
 /**
- * Write a side's NEW depth order as offsets: slot raster + each axis' personal deviation
- * (ADR-0079 — delta travels, never snaps). Only members whose offset actually changes get a
- * new object; every other axis keeps its identity. Always a fresh array (the caller's no-op
- * contract is `undefined`, the ownerPatch idiom — not reference equality).
+ * Write a side's NEW depth order as offsets: every slot keeps its captured VALUE whichever
+ * axis occupies it now; a slot that did not exist before (the side grew) gets the raster
+ * default `slot × 80` (ADR-0079 addendum — the offset hangs on the place, never on the axis;
+ * replaces decision 5's travelling deviation). Only members whose offset actually changes
+ * get a new object; every other axis keeps its identity. Always a fresh array (the caller's
+ * no-op contract is `undefined`, the ownerPatch idiom — not reference equality).
  */
 const applySideOrder = (
     axes: readonly EchartsAxisConfig[],
-    dev: ReadonlyMap<number, number>,
+    slotValues: readonly number[],
     newOrder: readonly number[],
 ): EchartsAxisConfig[] => {
     let next: EchartsAxisConfig[] | undefined;
     newOrder.forEach((idx, slot) => {
-        const offset = slot * AXIS_STAGGER_STAGE + (dev.get(idx) ?? 0);
+        const offset = slotValues[slot] ?? slot * AXIS_STAGGER_STAGE;
         if ((axes[idx].offset ?? 0) !== offset) {
             (next ??= axes.slice())[idx] = { ...axes[idx], offset };
         }
@@ -201,13 +199,14 @@ const applySideOrder = (
 };
 
 /**
- * Move an axis one place within its side (ADR-0079): **insert with shift** — the axis falls
- * out of its place and is re-inserted one nearer (dir −1) or farther (dir +1), everything
- * beyond shifts outward, the vacated place closes up. The personal deviation travels with
- * the axis (a manual +20 at place 2 lands as raster + 20 at the new place); the array order
- * and every non-offset field are untouched. A boundary move (place 1 + ▲, place n + ▼) or a
- * lone axis on the side returns `undefined` — the caller keeps the array (no empty undo
- * step), the {@link ownerPatch} idiom.
+ * Move an axis one place within its side (ADR-0079 + addendum): **insert with shift** — the
+ * axis falls out of its place and is re-inserted one nearer (dir −1) or farther (dir +1),
+ * everything beyond shifts outward, the vacated place closes up. The OFFSETS STAY WITH THE
+ * PLACES (addendum): the moved axis takes its target place's value, the shifted adopt the
+ * values they move onto — the side's pixel geometry never changes, only the occupants
+ * exchange. The array order and every non-offset field are untouched. A boundary move
+ * (place 1 + ▲, place n + ▼) or a lone axis on the side returns `undefined` — the caller
+ * keeps the array (no empty undo step), the {@link ownerPatch} idiom.
  */
 export const moveAxisPlace = (
     axes: readonly EchartsAxisConfig[],
@@ -222,20 +221,23 @@ export const moveAxisPlace = (
     if (target < 1 || target > sight.sideTotal) {
         return undefined;
     }
-    const order = sideOrder(axes, displayPosition(axes[i], i));
+    const side = displayPosition(axes[i], i);
+    const order = sideOrder(axes, side);
     const [moved] = order.splice(sight.place - 1, 1);
     order.splice(target - 1, 0, moved);
-    return applySideOrder(axes, placeDeviations(axes), order);
+    return applySideOrder(axes, sideSlotValues(axes, side), order);
 };
 
 /**
- * The rank-preserving side-flip (ADR-0079, replacing ADR-0028's array-order repack as the
- * flip handler): the axis keeps its place and is INSERTED at it on the target side (clamped
- * to the end when the target side is shorter), the displaced axes shift one outward, the
- * source side closes up. The personal deviation travels across the flip; nothing snaps to
- * the raster. The flipped `position` is written explicitly; array order and every other
- * field stay. A no-flip call (target side === current side) returns `undefined` — the
- * caller's real-flip gate is the authority.
+ * The rank-preserving side-flip (ADR-0079 + addendum, replacing ADR-0028's array-order repack
+ * as the flip handler): the axis keeps its place and is INSERTED at it on the target side
+ * (clamped to the end when the target side is shorter), the displaced axes shift one outward,
+ * the source side closes up. The OFFSETS STAY WITH THE PLACES (addendum): the flipping axis
+ * takes the target side's place value (a new slot gets the raster default), the displaced
+ * adopt the values they shift onto, the source side's remainders take the vacated earlier
+ * values — nothing travels with the axis. The flipped `position` is written explicitly;
+ * array order and every other field stay. A no-flip call (target side === current side)
+ * returns `undefined` — the caller's real-flip gate is the authority.
  */
 export const insertAxisAtPlace = (
     axes: readonly EchartsAxisConfig[],
@@ -246,13 +248,15 @@ export const insertAxisAtPlace = (
     if (!sight || displayPosition(axes[i], i) === position) {
         return undefined;
     }
-    const dev = placeDeviations(axes);
-    // The source side closes around the vacated place…
-    const sourceOrder = sideOrder(axes, displayPosition(axes[i], i)).filter(idx => idx !== i);
-    // …the axis slots into its carried place on the target side, clamped to the end.
+    const from = displayPosition(axes[i], i);
+    // Both sides' place values freeze BEFORE the gesture (the source closes onto its earlier
+    // values, the target inserts onto its own — a new target slot falls to the raster).
+    const sourceValues = sideSlotValues(axes, from);
+    const targetValues = sideSlotValues(axes, position);
+    const sourceOrder = sideOrder(axes, from).filter(idx => idx !== i);
     const targetOrder = sideOrder(axes, position);
     targetOrder.splice(Math.min(sight.place - 1, targetOrder.length), 0, i);
-    const next = applySideOrder(applySideOrder(axes, dev, sourceOrder), dev, targetOrder);
+    const next = applySideOrder(applySideOrder(axes, sourceValues, sourceOrder), targetValues, targetOrder);
     // A real flip always writes the position (an unstored one materialises here).
     next[i] = { ...next[i], position };
     return next;

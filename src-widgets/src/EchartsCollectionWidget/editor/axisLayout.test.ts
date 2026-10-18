@@ -620,7 +620,7 @@ describe('jsonBoundAxisDeletePatch — JSON axis-delete hides ALL bound names, t
     });
 });
 
-describe('Achsen-Platz — the per-side depth rank (ADR-0079: place = the offset order, insert-shift, travelling deviation)', () => {
+describe('Achsen-Platz — the per-side depth rank (ADR-0079 + addendum: place = the offset order, insert-shift, the offset hangs on the PLACE)', () => {
     it('axisPlace: rank by offset within the side, per-side totals', () => {
         const axes: EchartsAxisConfig[] = [
             { position: 'left', offset: 0 },
@@ -679,32 +679,32 @@ describe('Achsen-Platz — the per-side depth rank (ADR-0079: place = the offset
         expect(axisPlace(twice!, 0)?.place).toBe(3);
     });
 
-    it('moveAxisPlace: the manual deviation travels with the axis (100 at place 2 → 180 at place 3)', () => {
+    it('moveAxisPlace: the SLOT keeps its value — swapping places exchanges the offsets (addendum)', () => {
         const axes: EchartsAxisConfig[] = [
             { position: 'left', offset: 0, name: 'Temp' },
-            { position: 'left', offset: 100, name: 'Druck' }, // +20 manual
-            { position: 'left', offset: 160, name: 'Luft' },
+            { position: 'left', offset: 100, name: 'Druck' },
+            { position: 'left', offset: 165, name: 'Luft' },
         ];
         const out = moveAxisPlace(axes, 1, 1); // Druck ▼ to place 3
         expect(out).toBeDefined();
         expect(out!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
             { n: 'Temp', o: 0 },
-            { n: 'Druck', o: 180 }, // 160 raster + the travelled +20
-            { n: 'Luft', o: 80 }, // place 2, zero deviation
+            { n: 'Druck', o: 165 }, // takes place 3's value — the geometry never moves
+            { n: 'Luft', o: 100 }, // takes place 2's value
         ]);
     });
 
-    it('moveAxisPlace: a negative deviation travels too; untouched axes keep their offsets', () => {
+    it('moveAxisPlace: a hand-tuned slot value stays when an axis moves onto it; untouched axes keep their offsets', () => {
         const axes: EchartsAxisConfig[] = [
             { position: 'left', offset: 0, name: 'A' },
-            { position: 'left', offset: 60, name: 'B' }, // −20
+            { position: 'left', offset: 60, name: 'B' },
             { position: 'left', offset: 160, name: 'C' },
         ];
         const out = moveAxisPlace(axes, 1, -1); // B ▲ to place 1
         expect(out).toBeDefined();
         expect(out!.map(a => ({ n: a.name, o: a.offset }))).toEqual([
-            { n: 'A', o: 80 }, // shifts to place 2, zero deviation
-            { n: 'B', o: -20 }, // place 1 raster + travelled −20
+            { n: 'A', o: 60 }, // shifts to place 2 — adopts ITS value
+            { n: 'B', o: 0 }, // takes place 1's value
             { n: 'C', o: 160 }, // untouched
         ]);
     });
@@ -769,9 +769,9 @@ describe('Achsen-Platz — the per-side depth rank (ADR-0079: place = the offset
         ]);
     });
 
-    it('insertAxisAtPlace: the manual deviation travels across the flip', () => {
+    it('insertAxisAtPlace: the TARGET slot value applies across the flip; new slots take the raster default (addendum)', () => {
         const axes: EchartsAxisConfig[] = [
-            { position: 'left', offset: 100, name: 'D' }, // left place 2, +20
+            { position: 'left', offset: 100, name: 'D' }, // left place 2, hand-tuned
             { position: 'left', offset: 0, name: 'A' },
             { position: 'right', offset: 0, name: 'X' },
             { position: 'right', offset: 80, name: 'Y' },
@@ -779,10 +779,46 @@ describe('Achsen-Platz — the per-side depth rank (ADR-0079: place = the offset
         const out = insertAxisAtPlace(axes, 0, 'right');
         expect(out).toBeDefined();
         expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
-            { n: 'D', p: 'right', o: 100 }, // place 2 on the right: 80 raster + travelled +20
+            { n: 'D', p: 'right', o: 80 }, // takes the target side's place-2 value — nothing travels
             { n: 'A', p: 'left', o: 0 }, // source side closes
             { n: 'X', p: 'right', o: 0 },
-            { n: 'Y', p: 'right', o: 160 }, // displaced to place 3
+            { n: 'Y', p: 'right', o: 160 }, // displaced to the NEW place 3 → raster default
+        ]);
+    });
+
+    it('insertAxisAtPlace: a HAND-TUNED target value applies verbatim (not the raster) — the binding discriminator', () => {
+        // Right's place 2 carries a hand value 130 — a raster snap and the old travelling-deviation
+        // rule would both land elsewhere; only place binding takes the slot's own value.
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 100, name: 'D' }, // left place 2
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'right', offset: 0, name: 'X' },
+            { position: 'right', offset: 130, name: 'Y' }, // hand-tuned place 2
+        ];
+        const out = insertAxisAtPlace(axes, 0, 'right');
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
+            { n: 'D', p: 'right', o: 130 }, // the target slot's OWN value
+            { n: 'A', p: 'left', o: 0 },
+            { n: 'X', p: 'right', o: 0 },
+            { n: 'Y', p: 'right', o: 160 }, // displaced to the new place 3 → raster default
+        ]);
+    });
+
+    it('insertAxisAtPlace: a MIDDLE departure — the source remainder adopts the vacated earlier value (addendum)', () => {
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 100, name: 'D' }, // middle place 2, hand-tuned
+            { position: 'left', offset: 165, name: 'E' },
+            { position: 'right', offset: 0, name: 'X' },
+        ];
+        const out = insertAxisAtPlace(axes, 1, 'right'); // D flips right at place 2
+        expect(out).toBeDefined();
+        expect(out!.map(a => ({ n: a.name, p: a.position, o: a.offset }))).toEqual([
+            { n: 'A', p: 'left', o: 0 }, // stays place 1
+            { n: 'D', p: 'right', o: 80 }, // target place 2 (raster there)
+            { n: 'E', p: 'left', o: 100 }, // closes onto the vacated place-2 VALUE (not its raster 80)
+            { n: 'X', p: 'right', o: 0 },
         ]);
     });
 
