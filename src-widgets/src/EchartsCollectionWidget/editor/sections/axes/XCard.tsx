@@ -32,6 +32,7 @@ import ColorField from '../../colorFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsXAxisConfig } from '../../../../types/field-definitions/echarts-fields';
 import RawJsonSection from '../RawJsonSection';
+import GridStyleFields from './GridStyleFields';
 import { X_AXIS_CATALOG } from '../../xAxisTemplates';
 import { snippetPatch } from '../../snippetComposition';
 import {
@@ -290,20 +291,17 @@ const XCard: FC<{
                             onChange={v => onChange({ splitLine: v })}
                         />
                     </SwitchList>
-                    {/* Grid colour (parity Build D, ADR-0055) — offered only while the splitlines switch
-                is on (the zoom-idle precedent: a dependent control renders under its switch).
-                Inherit swatch = the theme's divider token (the theme floor's splitline colour);
-                the value persists when the grid goes back off. */}
+                    {/* Grid styling cluster (GridStyleFields — colour parity Build D, ADR-0055;
+                width + type ADR-0070 addendum 6), under the splitlines switch. */}
                     {splitLineEffective && (
-                        <Box sx={{ mb: 1.5 }}>
-                            <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
-                            <ColorField
-                                value={x.gridColor ?? ''}
-                                fallback={dividerColor}
-                                onChange={v => onChange({ gridColor: v ?? undefined })}
-                                ctx={pickerCtx}
-                            />
-                        </Box>
+                        <GridStyleFields
+                            color={x.gridColor ?? ''}
+                            width={x.gridWidth}
+                            lineType={x.gridType}
+                            dividerColor={dividerColor}
+                            ctx={pickerCtx}
+                            onChange={onChange}
+                        />
                     )}
                     {/* Same optional-number pair as the Y-cards; unset = the echarts time-axis default
                 (splitNumber 6, no interval floor). The tick colour (parity Build D) colours the

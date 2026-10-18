@@ -445,11 +445,11 @@ describe('buildGeneratedOption — cartesian', () => {
         expect(first.itemStyle).toEqual({ color: '#abc' });
     });
 
-    it('provides a time xAxis and a single value yAxis by default (grid off → no border twin)', () => {
+    it('provides a time xAxis and a single value yAxis by default (grid off → edges stay open)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(option.xAxis).toMatchObject({ type: 'time' });
         const ya = option.yAxis as unknown as { type: string }[];
-        expect(ya).toHaveLength(1); // the X gridlines default OFF — no edge twins (ADR-0070 addendum 4)
+        expect(ya).toHaveLength(1); // the X gridlines default OFF — no synthesized axes any more (ADR-0070 addendum 6)
         expect(ya[0].type).toBe('value');
     });
 
@@ -602,7 +602,7 @@ describe('buildGeneratedOption — cartesian', () => {
     it('single axis: alignTicks defaults off; grid flush with full label+name containment', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         const ya = option.yAxis as unknown as { alignTicks?: boolean }[];
-        expect(ya).toHaveLength(1); // grid off (default) — no border twin (ADR-0070 addendum 4)
+        expect(ya).toHaveLength(1); // grid off (default) — no synthesized axes (ADR-0070 addendum 6)
         expect(ya[0].alignTicks).toBe(false);
         const grid = option.grid as { outerBoundsContain?: string };
         expect(grid.outerBoundsContain).toBe('all'); // reserves tick labels AND axis names
@@ -674,7 +674,7 @@ describe('buildGeneratedOption — cartesian', () => {
             p: { ...P, yAxes: [] },
         });
         const ya = option.yAxis as unknown as { type?: string; splitLine?: { show?: boolean } }[];
-        expect(ya).toHaveLength(1); // the fallback axis alone — grid off, no twin (addendum 4)
+        expect(ya).toHaveLength(1); // the fallback axis alone — grid off, no synthesized axes (addendum 6)
         expect(ya[0].type).toBe('value');
         expect(ya[0].splitLine?.show).toBe(true); // default axis 0 shows splitlines
     });
@@ -1048,7 +1048,7 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
             meta: [{ name: 'A' }],
             p: { ...P, yAxes: [{ raw: JSON.stringify(raw) }] },
         });
-        expect(option.yAxis as unknown[]).toHaveLength(1); // real axis alone — grid off, no twin (addendum 4)
+        expect(option.yAxis as unknown[]).toHaveLength(1); // real axis alone — grid off, no synthesized axes (addendum 6)
         const ya = (option.yAxis as unknown as unknown[])[0] as Record<string, unknown>;
         expect(ya.axisLabel).toMatchObject({ fontFamily: 'JetBrains Mono', fontSize: 14 });
         expect(ya.nameTextStyle).toMatchObject({ fontWeight: 'bold' });
@@ -1130,13 +1130,13 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
             splitLine?: { show?: boolean; lineStyle?: { type?: string; color?: string } };
         };
         // The divider default rides along (always-emitted since the ADR-0055 addendum); the raw
-        // `type` leaf merges through — the GUI owns only the colour. The min/max brace is the
-        // always-on pair (ADR-0070 addendum 5 — the raw `showMinLine:true` above loses the
-        // collision, so no raw key can re-enable the edge splitlines).
+        // `type` leaf merges through — the GUI owns only the colour. The min/max pair encodes
+        // Achsen-Vorrang (ADR-0070 addendum 6: X at bottom → the Y-MIN line yields, Y-MAX shows)
+        // and is GUI-owned — the raw `showMinLine:true` above loses the collision.
         expect(ya.splitLine).toEqual({
             show: true,
             showMinLine: false,
-            showMaxLine: false,
+            showMaxLine: true,
             lineStyle: { color: '#d', type: 'dashed' },
         });
     });
@@ -1199,7 +1199,7 @@ describe('buildGeneratedOption — unbound axes are never emitted (ADR-0066)', (
             p: { ...P, yAxes: [{ name: 'A' }, { name: 'B' }] },
         });
         const ya = option.yAxis as unknown as unknown[];
-        expect(ya).toHaveLength(1); // the `[{}]` guarantee — ≥1 value axis holds (grid off, no twin)
+        expect(ya).toHaveLength(1); // the `[{}]` guarantee — ≥1 value axis holds (grid off)
     });
 
     it('a marking anchored to an unbound axis rests — no fallback onto another axis', () => {
@@ -1255,11 +1255,11 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
         // Empty config = a plain time axis; the ALWAYS-emitted moment formatter (ADR-0052) and the
         // ALWAYS-emitted axis line colour (ADR-0055 addendum: the light X-axis default — ticks
         // follow the line) ride along. echarts' time-axis splitLine default is false,
-        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y. The min/max
-        // brace is always-on (ADR-0070 addendum 5 — the edges belong to twins/axis lines).
+        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y. The grid is
+        // OFF here → NO min/max keys (they encode Achsen-Vorrang and follow their switch).
         expect(option.xAxis).toEqual({
             type: 'time',
-            splitLine: { show: false, showMinLine: false, showMaxLine: false },
+            splitLine: { show: false },
             axisTick: { show: true },
             axisLine: { show: true, lineStyle: { color: '#dbdee4' } },
             axisLabel: { formatter: expect.any(Function) },
@@ -1285,7 +1285,7 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
             axisLabel: { formatter: expect.any(Function), color: '#0af' },
             axisLine: { show: true, lineStyle: { color: '#0af' } },
             nameTextStyle: { color: '#0af' },
-            splitLine: { show: false, showMinLine: false, showMaxLine: false },
+            splitLine: { show: false },
             axisTick: { show: true },
         });
         expect(fmtOf(option)(SAMPLE_TS, 0)).toBe('14:05\n19.08.');
@@ -1769,12 +1769,12 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [{}],
             p: { ...P, yAxes: [{ gridColor: '#777' }] },
         });
-        // The min/max brace rides along always (ADR-0070 addendum 5) — edge splitlines are the
-        // twins'/axis lines' job, not echarts' own 1px defaults.
+        // The min/max pair rides along always (ADR-0070 addendum 6: X at bottom → Achsen-Vorrang
+        // suppresses the Y-MIN extent line, the Y-MAX line shows).
         expect(y0(option).splitLine).toEqual({
             show: true,
             showMinLine: false,
-            showMaxLine: false,
+            showMaxLine: true,
             lineStyle: { color: '#777' },
         });
 
@@ -1785,7 +1785,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         expect(y0(bare).splitLine).toEqual({
             show: true,
             showMinLine: false,
-            showMaxLine: false,
+            showMaxLine: true,
             lineStyle: { color: '#d' },
         });
     });
@@ -1816,7 +1816,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
         expect(y0(option).splitLine).toEqual({
             show: true,
             showMinLine: false,
-            showMaxLine: false,
+            showMaxLine: true,
             lineStyle: { color: '#gui', type: 'dashed' },
         });
     });
@@ -1860,9 +1860,10 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', splitLine: true } },
         });
-        // 'top' makes xAxis an ARRAY: [real axis, bottom border twin] (ADR-0070 K6 — the top axis
-        // leaves the bottom edge unstaffed).
-        expect((top.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({ position: 'top' });
+        // 'top' keeps xAxis the SINGLE object (addendum 6: no bottom twin any more — the Y-min
+        // extent gridline closes the bottom edge instead).
+        expect(top.xAxis).toMatchObject({ position: 'top' });
+        expect(Array.isArray(top.xAxis)).toBe(false);
 
         const bottom = buildGeneratedOption({
             family: 'cartesian',
@@ -1889,7 +1890,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', splitLine: true } },
         });
-        const topX = (top.xAxis as unknown as Record<string, unknown>[])[0]; // [real, bottom twin] (ADR-0070)
+        const topX = top.xAxis as Record<string, unknown>; // single object (addendum 6)
         expect(topX).toMatchObject({ position: 'top', axisLine: { show: true, onZero: false } });
 
         const bottom = buildGeneratedOption({
@@ -1912,7 +1913,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', splitLine: true, offset: 24 } },
         });
-        expect((topOffset.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({
+        expect(topOffset.xAxis as Record<string, unknown>).toMatchObject({
             position: 'top',
             offset: 24,
             axisLine: { show: true, onZero: false },
@@ -1925,7 +1926,7 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [],
             p: { ...P, xAxis: { position: 'top', splitLine: true, color: '#0af' } },
         });
-        expect((topColored.xAxis as unknown as Record<string, unknown>[])[0]).toMatchObject({
+        expect(topColored.xAxis as Record<string, unknown>).toMatchObject({
             position: 'top',
             axisLine: { show: true, onZero: false, lineStyle: { color: '#0af' } },
         });
@@ -2320,7 +2321,7 @@ describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the leg
     const axesOf = (option: { yAxis?: unknown }): Record<string, unknown>[] =>
         option.yAxis as Record<string, unknown>[];
 
-    it('a fully deselected axis is not emitted — its series stays with the clamped ref (grid off, no twins)', () => {
+    it('a fully deselected axis is not emitted — its series stays with the clamped ref (grid off, no synthesized axes)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: threeSeries,
@@ -2403,7 +2404,7 @@ describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the leg
         expect(ya[0].show).toBe(false); // silent in full — no line, no labels, no name
     });
 
-    it('all deselected + grid ON → the Grenzachsen alone carry the array (both sides close)', () => {
+    it('all deselected + grid ON → the ONE silent carrier; the X min/max gridlines close the edges', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: threeSeries,
@@ -2411,11 +2412,16 @@ describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the leg
             p: { ...threeP, xAxis: { splitLine: true }, legendSelection: { A: false, B: false, C: false } },
         });
         const ya = axesOf(option);
-        expect(ya.map(a => a.position)).toEqual(['left', 'right']);
-        expect(ya.every(a => (a.axisLabel as { show?: boolean } | undefined)?.show === false)).toBe(true);
+        expect(ya).toHaveLength(1); // ONE silent carrier — no synthesized twins any more (addendum 6)
+        expect(ya[0].show).toBe(false);
+        // The invisible carrier staffs NO side (Achsen-Vorrang): both vertical edges get their
+        // extent gridline in the full splitLine style.
+        const x = option.xAxis as unknown as { splitLine: { showMinLine?: boolean; showMaxLine?: boolean } };
+        expect(x.splitLine.showMinLine).toBe(true);
+        expect(x.splitLine.showMaxLine).toBe(true);
     });
 
-    it('grid ON: the freed side closes via the Grenzachse — the staffed check sees the re-slotted positions', () => {
+    it('grid ON: the freed side opens to the X-max extent gridline — the staffed check sees the re-slotted positions', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [
@@ -2429,10 +2435,12 @@ describe('buildGeneratedOption — Legenden-Folge (ADR-0074: axes follow the leg
             p: { ...P, yAxes: [{}, {}], xAxis: { splitLine: true }, legendSelection: { A: false } },
         });
         const ya = axesOf(option);
-        // The real axis (re-slotted to left) + the synthesized right border twin.
-        expect(ya.map(a => a.position)).toEqual(['left', 'right']);
+        // B's real axis, re-slotted from right to left — no twin fills the freed side any more.
+        expect(ya.map(a => a.position)).toEqual(['left']);
         expect((ya[0].axisLabel as { show?: boolean } | undefined)?.show).toBeUndefined(); // real axis keeps labels
-        expect((ya[1].axisLabel as { show?: boolean } | undefined)?.show).toBe(false); // the twin is silent
+        const x = option.xAxis as unknown as { splitLine: { showMinLine?: boolean; showMaxLine?: boolean } };
+        expect(x.splitLine.showMinLine).toBe(false); // left staffed (re-slotted) → Achsen-Vorrang
+        expect(x.splitLine.showMaxLine).toBe(true); // right freed → the extent gridline closes it
     });
 
     it('markings re-anchor to the first ACTIVE binder — they die with the axis, not with the host', () => {
@@ -2623,102 +2631,44 @@ describe('buildGeneratedOption — marking bands (ADR-0062 + ADR-0076 adapter-pa
     });
 });
 
-describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)', () => {
-    /** P with the X gridlines ON — the twins' emission gate (ADR-0070 addendum 4). */
+describe('buildGeneratedOption — Plotkanten: native min/max gridlines + Achsen-Vorrang (ADR-0070 addendum 6)', () => {
+    /** P with the X gridlines ON — the extent gridlines' gate (grid-coupled, addendum 4 unchanged). */
     const PG = { ...P, xAxis: { splitLine: true } };
-    // The twin's fingerprint: min/max pins + a 2px edge axisLine in the EXPECTED twin colour (the
-    // authored grid colour since addendum 5, the theme divider on the default path) — the width
-    // survives the rect-edge half-cut (ADR-0070 addendum 3). A REAL axis never matches: its
-    // axisLine colour resolves to the palette/series colour, and an unset min/max emits no key.
-    const twinOf =
-        (colour: string) =>
-        (e: Record<string, unknown>): boolean =>
-            e.min === 0 &&
-            e.max === 1 &&
-            (e.axisLine as { lineStyle?: { color?: string; width?: number } })?.lineStyle?.color === colour &&
-            (e.axisLine as { lineStyle?: { width?: number } }).lineStyle?.width === 2;
-    const isBorderAxis = twinOf('#d'); // P.themeTokens.divider — the default twin colour
+    const splitOf = (option: { xAxis?: unknown }): Record<string, unknown> =>
+        ((option.xAxis as Record<string, unknown> | undefined)?.splitLine ?? {}) as Record<string, unknown>;
+    const gridOf = (option: Record<string, unknown>): Record<string, unknown> => option.grid as Record<string, unknown>;
 
-    it('closes an unstaffed vertical side with one silent border axis (the K1 report)', () => {
-        // One bound axis (left, offset 0) staffs only the LEFT edge — the right side is naked since
-        // echarts draws no grid border of its own (grid.show is a 4-side box). The twin closes it.
+    it('the unstaffed side closes via echarts own extent gridline in FULL splitLine style (the K1 case, addendum 6)', () => {
+        // One bound axis (left, offset 0) staffs the LEFT edge — the right side's closure is the
+        // native showMaxLine: same colour, width, type (GUI fields + raw) as every inner line.
+        // A synthesized border axis could never inherit that style — the addendum-6 trigger.
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: PG,
+            p: { ...P, xAxis: { splitLine: true, gridColor: '#3ec429', gridWidth: 5 } },
         });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(2);
-        expect(isBorderAxis(ya[1])).toBe(true);
-        expect(ya[1].position).toBe('right');
-        expect(ya[1].offset).toBe(0);
-        expect(ya[1].alignTicks).toBe(false);
-        expect((ya[1].axisLine as { onZero?: boolean }).onZero).toBe(false); // ADR-0055 detach
-        expect(ya[1].axisTick).toEqual({ show: false });
-        expect(ya[1].axisLabel).toEqual({ show: false });
-        expect(ya[1].splitLine).toEqual({ show: false });
-        expect(ya[1]).not.toHaveProperty('name');
-        // stamped in the theme divider (the colour the floor-merged xAxis OBJECT paints the X
-        // splitLines with while no colour is authored — the yAxis array never sees the floor) and
-        // 2 px wide: echarts cuts strokes at the rect edge, so the inner 1 px is what stays
-        // visible (ADR-0070 addendum 3).
-        expect((ya[1].axisLine as { lineStyle?: { color?: string; width?: number } }).lineStyle).toEqual({
-            color: '#d',
-            width: 2,
+        expect(splitOf(option)).toEqual({
+            show: true,
+            showMinLine: false, // left staffed → Achsen-Vorrang: the axis line owns that edge
+            showMaxLine: true, // right naked → the extent gridline closes it
+            lineStyle: { color: '#3ec429', width: 5 },
         });
     });
 
-    it('an AUTHORED grid colour frames EVERY side — twins in the grid colour, staffed sides included (addendum 5)', () => {
-        // The addendum-3 divider stamp divorced the twins from an authored grid colour: the dark
-        // twin overpainted echarts' green max-splitline rest at the canvas-flush edge (perceptively
-        // dead on a dark theme — the "missing last gridline" report) while the min-splitline
-        // blended under the real axis line as a faint green smudge. The twins ARE the grid's first
-        // and last line (addendum 4) — they follow its colour now, and close the staffed side too.
+    it('Achsen-Vorrang: a side whose axes all carry a Versatz is NAKED — the extent gridline owns it (K4)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: { ...P, xAxis: { splitLine: true, gridColor: '#3ec429' } },
+            p: { ...P, yAxes: [{ position: 'left', offset: 80 }], xAxis: { splitLine: true } },
         });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(3); // the real left axis + a LEFT twin over it + the right twin
-        const twins = ya.filter(twinOf('#3ec429'));
-        expect(twins.map(t => t.position)).toEqual(['left', 'right']);
-        // the real axis keeps its own entry (labels/ticks/name in its colour) — the twin overlays
-        // its line, it does not replace the axis
-        expect(ya[0].min).toBeUndefined();
-        expect(ya[0].max).toBeUndefined();
-
-        // The default path stays byte-identical: without an authored colour a staffed side keeps
-        // its real axis line alone (no twin), only the naked side twins — in the divider.
-        const bare = buildGeneratedOption({
-            family: 'cartesian',
-            series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A' }],
-            p: PG,
-        });
-        const yaBare = bare.yAxis as unknown as Record<string, unknown>[];
-        expect(yaBare).toHaveLength(2);
-        expect(yaBare.filter(twinOf('#d')).map(t => t.position)).toEqual(['right']);
+        expect(splitOf(option).showMinLine).toBe(true);
+        expect(splitOf(option).showMaxLine).toBe(true);
     });
 
-    it('a two-sided chart frames BOTH staffed sides under an authored grid colour; without one, none', () => {
-        const framed = buildGeneratedOption({
-            family: 'cartesian',
-            series: [
-                { name: 'A', data: [[1, 2]] },
-                { name: 'B', data: [[1, 3]] },
-            ],
-            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
-            p: { ...P, yAxes: [{}, { position: 'right' }], xAxis: { splitLine: true, gridColor: '#0a0' } },
-        });
-        const framedAxes = framed.yAxis as unknown as Record<string, unknown>[];
-        expect(framedAxes).toHaveLength(4); // two real axes + two twins
-        expect(framedAxes.filter(twinOf('#0a0')).map(t => t.position)).toEqual(['left', 'right']);
-
-        // No authored colour → the pre-addendum-5 default: both sides staffed, no twin at all.
-        const plain = buildGeneratedOption({
+    it('a two-sided chart: BOTH vertical edges belong to the axis lines (both extent gridlines suppressed)', () => {
+        const option = buildGeneratedOption({
             family: 'cartesian',
             series: [
                 { name: 'A', data: [[1, 2]] },
@@ -2727,180 +2677,102 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
             meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
             p: { ...P, yAxes: [{}, { position: 'right' }], xAxis: { splitLine: true } },
         });
-        const plainAxes = plain.yAxis as unknown as Record<string, unknown>[];
-        expect(plainAxes).toHaveLength(2);
-        expect(plainAxes.some(isBorderAxis)).toBe(false);
+        expect(splitOf(option).showMinLine).toBe(false);
+        expect(splitOf(option).showMaxLine).toBe(false);
     });
 
-    it("echarts' own extent-edge splitlines are OFF on both axes — the edges belong to the twins and the axis lines (addendum 5)", () => {
-        // showMinLine/showMaxLine default ON in echarts (1px): half-cut at the canvas-flush edge,
-        // a faint smudge under the real axis line at interior edges. The GUI owns the brace — a
-        // raw override cannot re-enable the stray defaults.
+    it('X at TOP flips the horizontal Vorrang: the Y-MAX line yields, the Y-MIN line returns (single-object X)', () => {
         const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { position: 'top', splitLine: true } },
+        });
+        // X stays the SINGLE object (no top-mirror twin array any more — addendum 6)
+        expect(Array.isArray(option.xAxis)).toBe(false);
+        const ya = option.yAxis as unknown as Record<string, { splitLine?: Record<string, unknown> }>[];
+        expect(ya[0].splitLine).toMatchObject({ showMinLine: true, showMaxLine: false });
+        // …and the default (X at bottom) suppresses Y-MIN instead:
+        const bottom = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
             p: PG,
         });
-        expect((option.xAxis as Record<string, unknown>).splitLine).toMatchObject({
-            showMinLine: false,
-            showMaxLine: false,
-        });
-        expect((option.yAxis as unknown as Record<string, unknown>[])[0].splitLine).toMatchObject({
-            showMinLine: false,
-            showMaxLine: false,
-        });
-        // grid OFF carries the brace too — no switch state may resurrect the edge splitlines
-        const off = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect((off.xAxis as Record<string, unknown>).splitLine).toMatchObject({
-            showMinLine: false,
-            showMaxLine: false,
-        });
+        const yb = bottom.yAxis as unknown as Record<string, { splitLine?: Record<string, unknown> }>[];
+        expect(yb[0].splitLine).toMatchObject({ showMinLine: false, showMaxLine: true });
     });
 
-    it('emits NO border axis when both sides are staffed (two-sided charts stay byte-identical)', () => {
-        const option = buildGeneratedOption({
-            family: 'cartesian',
-            series: [
-                { name: 'A', data: [[1, 2]] },
-                { name: 'B', data: [[1, 3]] },
-            ],
-            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
-            p: { ...P, yAxes: [{}, { position: 'right' }] },
-        });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(2);
-        expect(ya.some(isBorderAxis)).toBe(false);
-        // no synthesized entries: real axes never carry the min/max pins at defaults
-        expect(ya.every(e => e.min === undefined && e.max === undefined)).toBe(true);
-    });
-
-    it('closes BOTH sides when no axis sits at offset 0 (the all-Versatz side, K4)', () => {
+    it('a raw `{ "position": "top" }` hand-edit counts for the Vorrang (emitted truth)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: { ...PG, yAxes: [{ position: 'left', offset: 80 }] },
+            p: { ...P, xAxis: { splitLine: true, raw: '{ "position": "top" }' } },
         });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(3);
-        expect(ya[0].offset).toBe(80); // the real axis, untouched
-        const twins = ya.filter(isBorderAxis);
-        expect(twins.map(t => t.position)).toEqual(['left', 'right']); // exactly one per side
+        const ya = option.yAxis as unknown as Record<string, { splitLine?: Record<string, unknown> }>[];
+        expect(ya[0].splitLine).toMatchObject({ showMinLine: true, showMaxLine: false });
     });
 
-    it('the index-aware default staffs a side too (position-less axis 0 guards left)', () => {
-        // A hand-edited axis WITHOUT a stored position still emits `left` at index 0 — the twin
-        // detection reads the EMITTED entries, so the default counts as staffing.
+    it('the grid style cluster rides the splitLine: colour+width+type emit, unset stays sparse (X and Y)', () => {
         const option = buildGeneratedOption({
-            family: 'cartesian',
-            series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A' }],
-            p: { ...PG, yAxes: [{}] },
-        });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(2);
-        expect(isBorderAxis(ya[1])).toBe(true);
-        expect(ya[1].position).toBe('right');
-    });
-
-    it('ADR-0069 defense stays: unbound axes are still filtered, the twin is no side door', () => {
-        const option = buildGeneratedOption({
-            family: 'cartesian',
-            series: [{ name: 'A', data: [[1, 2]] }],
-            meta: [{ name: 'A' }],
-            p: { ...PG, yAxes: [{ name: 'A' }, { name: 'Ghost' }] },
-        });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(2); // real left axis + right twin — 'Ghost' is NOT emitted
-        expect(ya.every(e => e.name !== 'Ghost')).toBe(true);
-        expect(isBorderAxis(ya[1])).toBe(true);
-    });
-
-    it('X on top gets a bottom twin; X at bottom/unset keeps the single-object shape', () => {
-        const top = buildGeneratedOption({
-            family: 'cartesian',
-            series: [],
-            meta: [],
-            p: { ...P, xAxis: { position: 'top', splitLine: true } },
-        });
-        const xa = top.xAxis as unknown as Record<string, unknown>[];
-        expect(xa).toHaveLength(2);
-        expect(xa[0]).toMatchObject({ position: 'top' });
-        expect(xa[1]).toMatchObject({
-            type: 'time',
-            position: 'bottom',
-            axisLine: { show: true, onZero: false, lineStyle: { color: '#d', width: 2 } },
-            axisTick: { show: false },
-            axisLabel: { show: false },
-            splitLine: { show: false },
-        });
-
-        // authored 'bottom' staffs the edge itself — single object, no twin
-        const bottom = buildGeneratedOption({
-            family: 'cartesian',
-            series: [],
-            meta: [],
-            p: { ...P, xAxis: { position: 'bottom' } },
-        });
-        expect(bottom.xAxis).toMatchObject({ type: 'time', position: 'bottom' });
-        expect(Array.isArray(bottom.xAxis)).toBe(false);
-
-        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(bare.xAxis).toMatchObject({ type: 'time' });
-        expect((bare.xAxis as Record<string, unknown>).position).toBeUndefined();
-
-        // The bottom twin follows the authored grid colour too (addendum 5 — one edge-line rule
-        // for every twin); the default path above keeps the divider.
-        const coloured = buildGeneratedOption({
-            family: 'cartesian',
-            series: [],
-            meta: [],
-            p: { ...P, xAxis: { position: 'top', splitLine: true, gridColor: '#3ec429' } },
-        });
-        const xc = coloured.xAxis as unknown as Record<string, unknown>[];
-        expect(xc[1].axisLine).toMatchObject({ lineStyle: { color: '#3ec429', width: 2 } });
-    });
-
-    it('the bottom twin mirrors the category shape for bar buckets', () => {
-        const top = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
             p: {
                 ...P,
-                cartesianType: 'bar',
-                barCategories: [100, 200, 300],
-                xAxis: { position: 'top', splitLine: true },
+                xAxis: { splitLine: true, gridColor: '#0a0', gridWidth: 3, gridType: 'dashed' },
+                yAxes: [{ gridWidth: 2, gridType: 'dotted' }],
             },
         });
-        const xa = top.xAxis as unknown as Record<string, unknown>[];
-        expect(xa[1]).toMatchObject({ type: 'category', data: [100, 200, 300], position: 'bottom' });
+        expect(splitOf(option).lineStyle).toEqual({ color: '#0a0', width: 3, type: 'dashed' });
+        const y0 = (option.yAxis as unknown as Record<string, unknown>[])[0] as {
+            splitLine?: { lineStyle?: Record<string, unknown> };
+        };
+        expect(y0.splitLine?.lineStyle).toEqual({ color: '#d', width: 2, type: 'dotted' });
+
+        // All unset → NO lineStyle leaf at all: the raw override keeps owning it wholesale
+        // (the parity-Build-D sparseness rule, extended to the new leaves).
+        const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect(splitOf(bare)).not.toHaveProperty('lineStyle');
     });
 
-    it('X gridlines OFF (the default) → NO border twins at all — grid elements follow their switch (addendum 4)', () => {
-        // A one-sided chart without the X grid: no lone edge lines on a gridless plot. The real
-        // axis keeps its own line (an axis is not a grid element) — only the twins vanish.
-        const option = buildGeneratedOption({
+    it('the grid inset clears half the effective stroke width so the flush edge keeps its full line', () => {
+        const at = (xAxis: Record<string, unknown>): Record<string, unknown> =>
+            gridOf(
+                buildGeneratedOption({
+                    family: 'cartesian',
+                    series: [{ name: 'A', data: [[1, 2]] }],
+                    meta: [{ name: 'A' }],
+                    p: { ...P, xAxis: { splitLine: true, ...xAxis } },
+                }) as unknown as Record<string, unknown>,
+            );
+        expect(at({})).toMatchObject({ left: 1, right: 1 }); // echarts default width 1 → half a px, rounded up
+        expect(at({ gridWidth: 5 })).toMatchObject({ left: 3, right: 3 }); // the user's report case
+        expect(at({ raw: '{ "splitLine": { "lineStyle": { "width": 10 } } }' })).toMatchObject({
+            left: 5,
+            right: 5,
+        }); // raw width feeds the inset too
+        expect(at({ gridWidth: 4, raw: '{ "splitLine": { "lineStyle": { "width": 40 } } }' })).toMatchObject({
+            left: 2,
+            right: 2,
+        }); // GUI width wins the collision
+        expect(at({ raw: '{ "splitLine": { "lineStyle": { "width": 40 } } }' })).toMatchObject({
+            left: 10,
+            right: 10,
+        }); // absurd widths cap at 10px so the layout survives
+
+        // Grid OFF → no inset, and NO min/max keys at all (they follow their switch, addendum 4
+        // — the emitted truth stays honest on every switch state).
+        const off = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{ name: 'A' }],
-            p: P, // xAxis: {} — splitLine defaults OFF
+            p: P,
         });
-        const ya = option.yAxis as unknown as Record<string, unknown>[];
-        expect(ya).toHaveLength(1); // the real axis alone — no right twin
-        expect(ya.some(isBorderAxis)).toBe(false);
-
-        // X on top + grid off: the bottom twin is gone too, and xAxis stays the single object
-        // (no array — the theme floor's object merge survives naturally, no stamping needed).
-        const top = buildGeneratedOption({
-            family: 'cartesian',
-            series: [],
-            meta: [],
-            p: { ...P, xAxis: { position: 'top' } },
-        });
-        expect(Array.isArray(top.xAxis)).toBe(false);
-        expect((top.xAxis as Record<string, unknown>).position).toBe('top');
+        expect(gridOf(off as unknown as Record<string, unknown>)).toMatchObject({ left: 0, right: 0 });
+        expect(splitOf(off)).not.toHaveProperty('showMinLine');
+        expect(splitOf(off)).not.toHaveProperty('showMaxLine');
     });
 });
 
@@ -2953,16 +2825,17 @@ describe('buildGeneratedOption — string categories on X (ADR-0075 ticket 05)',
         expect((xa.axisLabel as Record<string, unknown>).color).toBe('#123');
     });
 
-    it('the top mirror carries type+data for string categories (Grenzachse, plot-edge contract)', () => {
+    it('the top-positioned category X stays the SINGLE object — no mirror twin (addendum 6)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [1] }],
             meta: [{ name: 'A' }],
             p: pTable({ xAxis: { position: 'top', splitLine: true } }),
         });
-        const xa = option.xAxis as unknown as Record<string, unknown>[];
-        expect(xa[0]).toMatchObject({ type: 'category', position: 'top', data: ['Jan', 'Feb', 'Jan'] });
-        expect(xa[1]).toMatchObject({ type: 'category', position: 'bottom', data: ['Jan', 'Feb', 'Jan'] });
+        // The bottom edge's closure is the Y-min extent gridline now — no synthesized mirror axis.
+        const xa = option.xAxis as unknown as Record<string, unknown>;
+        expect(Array.isArray(option.xAxis)).toBe(false);
+        expect(xa).toMatchObject({ type: 'category', position: 'top', data: ['Jan', 'Feb', 'Jan'] });
     });
 
     it('tooltip: the CATEGORY NAME is the header — no moment time on a nameless data shape', () => {

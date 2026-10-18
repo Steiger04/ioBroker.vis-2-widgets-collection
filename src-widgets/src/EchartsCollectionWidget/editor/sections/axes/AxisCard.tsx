@@ -34,6 +34,7 @@ import {
     TextField2,
 } from '../../../../components/controls';
 import ColorField from '../../colorFields';
+import GridStyleFields from './GridStyleFields';
 import type { OidPickerCtx } from '../../OidPicker';
 import type { EchartsAxisConfig } from '../../../../types/field-definitions/echarts-fields';
 import { alignTicksDisabledByOverride, displayPosition, type AxisPlaceSight } from '../../axisLayout';
@@ -301,20 +302,17 @@ const AxisCard: FC<{
                             text={Generic.t('echarts_axis_align_conflict')}
                         />
                     )}
-                    {/* Grid colour (parity Build D, ADR-0055) — offered only while this axis'
-                    splitlines switch is on (the zoom-idle precedent: a dependent control renders
-                    under its switch). Inherit swatch = the theme's divider token; the value
-                    persists when the grid goes back off. */}
+                    {/* Grid styling cluster (GridStyleFields — colour parity Build D, ADR-0055;
+                    width + type ADR-0070 addendum 6), under this axis' splitlines switch. */}
                     {splitLineEffective && (
-                        <Box sx={{ mb: 1.5 }}>
-                            <FieldLabel>{Generic.t('echarts_axis_grid_color')}</FieldLabel>
-                            <ColorField
-                                value={a.gridColor ?? ''}
-                                fallback={dividerColor}
-                                onChange={v => onChange({ gridColor: v ?? undefined })}
-                                ctx={pickerCtx}
-                            />
-                        </Box>
+                        <GridStyleFields
+                            color={a.gridColor ?? ''}
+                            width={a.gridWidth}
+                            lineType={a.gridType}
+                            dividerColor={dividerColor}
+                            ctx={pickerCtx}
+                            onChange={onChange}
+                        />
                     )}
                     <FieldGrid min={110}>
                         <OptionalNumberField

@@ -67,23 +67,46 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 };
 
 /**
- * The stroke width of every border-axis edge line (ADR-0070): 2 px so the INNER half survives the
- * plot-rect cut. Live-measured 2026-08-30: echarts clips strokes at the grid-rect boundary — the
- * time axis' end gridline (`showMaxLine`, drawn at the rect edge in every chart) rendered as
- * exactly HALF its authored width (4 px → 2 px measured in the user's canvas), so a 1 px line
- * centered on the edge loses its visible half and disappears. `width: 2` keeps a full 1 px inside
- * the rect — the exact weight of the 1 px splitLines it closes.
+ * The raw-JSON grid width reader (ADR-0070 addendum 6): the X-Karte's raw escape hatch may carry
+ * `splitLine.lineStyle.width` (the GUI emits a width key only when its own field is set — GUI
+ * wins the collision). The grid INSET needs the effective width even when it comes from raw, so
+ * the extent-edge min/max gridline survives the canvas cut; a non-numeric/zero/negative value
+ * counts as unset (echarts default 1).
  */
-const EDGE_LINE_WIDTH = 2;
+const rawGridWidth = (raw: string | undefined): number | undefined => {
+    if (!raw) {
+        return undefined;
+    }
+    try {
+        const w = (JSON.parse(raw) as { splitLine?: { lineStyle?: { width?: unknown } } })?.splitLine?.lineStyle?.width;
+        return typeof w === 'number' && w > 0 ? w : undefined;
+    } catch {
+        return undefined; // malformed raw — applyRawOverride reports that seam; the inset just ignores it
+    }
+};
 
 /**
- * The always-on brace against echarts' own extent-edge splitlines (ADR-0070 addendum 5):
- * `showMinLine`/`showMaxLine` default ON (1px) — half-cut at the canvas-flush edge, a faint
- * blend under the real axis line at interior edges. The plot edges belong to the twins
- * (unstaffed) and the real axis lines (staffed); the GUI owns this pair, so a raw override
- * cannot re-enable the stray defaults.
+ * The sparse splitLine.lineStyle cluster (ADR-0070 addendum 6): each authored style leaf (colour,
+ * width, type) emits its own key; all-unset emits NOTHING, so the raw override keeps owning the
+ * absent leaves wholesale — the parity-Build-D sparseness rule, extended to the new leaves.
  */
-const EDGE_SPLITLINE_OFF = { showMinLine: false, showMaxLine: false } as const;
+const buildGridLineStyle = (
+    color?: string,
+    width?: number,
+    lineType?: EchartsLineStyle,
+): { lineStyle?: Record<string, unknown> } => {
+    const style: Record<string, unknown> = {};
+    if (color) {
+        style.color = color;
+    }
+    if (width !== undefined) {
+        style.width = width;
+    }
+    if (lineType) {
+        style.type = LINE_STYLE_DASH[lineType];
+    }
+    return Object.keys(style).length ? { lineStyle: style } : {};
+};
 
 /**
  * The DEFAULT colour of the X axis line (+ its ticks, which follow the line — echarts' rule, the
@@ -426,6 +449,13 @@ const buildYAxisEntry = (
     i: number,
     /** Theme divider token — the DEFAULT grid colour (ADR-0055 addendum: the grid is ONE colour). */
     divider: string,
+    /**
+     * Whether the EMITTED X axis sits at the top edge (ADR-0070 addendum 6): the X axis line
+     * always sits at a rect edge (onZero is dead against a time/category axis, `Grid.js`), so
+     * Achsen-Vorrang suppresses the horizontal extent-edge gridline it covers — the Y-MIN line
+     * at 'bottom' (the default), the Y-MAX line at 'top'.
+     */
+    xAtTop: boolean,
     /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
@@ -444,12 +474,20 @@ const buildYAxisEntry = (
         // horizontal Y splitLines with the vertical X splitLines (the X entry is an OBJECT whose
         // theme-floor merge supplies the divider, but this yAxis ARRAY wholesale replaces the
         // floor object, so a passive default would fall to echarts' light builtin — the two-grey
-        // inconsistency, live-measured 2026-08-30). An authored grid colour still wins. The
-        // EDGE_SPLITLINE_OFF brace kills echarts' own extent-edge splitlines (ADR-0070 addendum 5).
+        // inconsistency, live-measured 2026-08-30). Authored grid colour/width/type win.
+        // Achsen-Vorrang (ADR-0070 addendum 6): echarts' own extent-edge min/max gridlines are
+        // ON again (full splitLine styling at the plot edges — the twins are gone) EXCEPT where
+        // the X axis line covers the same edge: there the AXIS draws and the gridline yields
+        // (suppressed, never overpainted). GUI-owned keys — raw cannot flip them back.
         splitLine: {
             show: a.splitLine ?? i === 0,
-            ...EDGE_SPLITLINE_OFF,
-            lineStyle: { color: a.gridColor ?? divider },
+            showMinLine: xAtTop,
+            showMaxLine: !xAtTop,
+            lineStyle: {
+                color: a.gridColor ?? divider,
+                ...(a.gridWidth !== undefined ? { width: a.gridWidth } : {}),
+                ...(a.gridType ? { type: LINE_STYLE_DASH[a.gridType] } : {}),
+            },
         },
         // Card fields since ADR-0037 (were hard-emits with no GUI control, i.e. un-overridable
         // under the GUI-wins raw seam). Defaults = the former hard-emit values, so existing
@@ -524,10 +562,11 @@ const buildYAxisEntry = (
 
 /**
  * The all-deselected grid carrier (ADR-0074 Legenden-Folge): when every legend entry is
- * inactive the chart renders no real axis — with the X gridlines OFF (no Grenzachsen to carry
- * the array) this ONE silent axis keeps echarts' grid renderable. `show:false` (nothing draws),
- * min/max pinned so echarts' alignTicks cannot see it (the ADR-0034 fixed-extent exclusion,
- * Grenzachse idiom).
+ * inactive the chart renders no real axis — this ONE silent axis keeps echarts' grid renderable
+ * whatever the X gridlines switch says (addendum 6: the twins are gone; with the grid ON the X
+ * min/max gridlines close the vertical edges in full style — the carrier is `show:false`, it
+ * staffs no side for Achsen-Vorrang). min/max pinned so echarts' alignTicks cannot see it
+ * (the ADR-0034 fixed-extent exclusion).
  */
 const silentYAxis = (): Record<string, unknown> => ({
     type: 'value',
@@ -578,14 +617,14 @@ const buildXAxisEntry = (
         // axis. Everything else about the entry is shared; the time-axis-only tick-density
         // knobs are skipped on both flavours.
         ...(categories ? { type: 'category', data: categories } : { type: 'time' }),
-        // Parity Build D (ADR-0055): grid + tick colours ride their show-switch objects, sparse —
-        // unset keeps lineStyle absent so the raw override owns it wholesale. The EDGE_SPLITLINE_OFF
-        // brace (ADR-0070 addendum 5) is the one always-on pair: the plot edges belong to the twins
-        // and the real axis lines, not to echarts' stray extent-edge defaults.
+        // Parity Build D (ADR-0055) + addendum 6: grid + tick styles ride their show-switch
+        // objects, sparse — an unset style key stays absent so the raw override owns it wholesale
+        // (colour/width/type each their own leaf). The min/max keys are NOT set here: they encode
+        // Achsen-Vorrang and need the EMITTED y-axes' staffing, so buildCartesianOption stamps
+        // them after the raw fold (ADR-0070 addendum 6).
         splitLine: {
             show: x.splitLine ?? false,
-            ...EDGE_SPLITLINE_OFF,
-            ...(x.gridColor ? { lineStyle: { color: x.gridColor } } : {}),
+            ...buildGridLineStyle(x.gridColor, x.gridWidth, x.gridType),
         },
         axisTick: { show: x.axisTick ?? true, ...(x.tickColor ? { lineStyle: { color: x.tickColor } } : {}) },
     };
@@ -721,8 +760,9 @@ export const buildCartesianOption = (
     const activeBoundAxes = new Set(entries.filter((_e, i) => active(i)).map(e => e.yAxisIndex as number));
     const emittedIdx = allAxes.map((_a, i) => i).filter(i => activeBoundAxes.has(i));
     // The all-deselected chart (series exist, none active) renders NO real axis — the empty
-    // plot (ADR-0074): with the grid ON the Grenzachsen alone carry the yAxis array; with it
-    // OFF one silent carrier (see silentYAxis) keeps echarts' grid renderable.
+    // plot (ADR-0074): ONE silent carrier (see silentYAxis) keeps echarts' grid renderable
+    // whatever the grid switch says (addendum 6 — the X min/max gridlines close the vertical
+    // edges; the invisible carrier staffs no side).
     const allInactive = entries.length > 0 && emittedIdx.length === 0;
     const axes: readonly EchartsAxisConfig[] = emittedIdx.length ? emittedIdx.map(i => allAxes[i]) : [{}];
     const axisRemap = new Map<number, number>(emittedIdx.map((old, pos) => [old, pos]));
@@ -840,6 +880,15 @@ export const buildCartesianOption = (
         : dataSpanMs(series as ChartSeries[] as Parameters<typeof dataSpanMs>[0]);
     const divider = p.themeTokens.divider;
     const xGridOn = p.xAxis.splitLine ?? false;
+    // The X entry builds FIRST (ADR-0070 addendum 6): the Y entries' Achsen-Vorrang min/max keys
+    // need the EMITTED X position (post-raw-fold — a raw `{ position: 'top' }` counts), and the X
+    // entry's own min/max keys need the emitted Y staffing. The X category source (ADR-0075): the
+    // bucket grid (ADR-0065, number timestamps) or the table family's string labels — whichever
+    // rides the presentation. Mutually exclusive by construction (barCategories is
+    // history-fetch-only, xCategories table-only).
+    const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
+    const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, xCategories), p.xAxis.raw);
+    const xAtTop = xAxisEntry.position === 'top';
     // Display re-stagger (ADR-0074): while the selection dropped ≥1 real axis, the VISIBLE axes
     // re-slot into the standard interleaving (`axisPosition` parity over the visible sequence —
     // balanceAxes semantics, display-only: sides may flip on a legend click). With everything
@@ -851,21 +900,20 @@ export const buildCartesianOption = (
         selectionDropped && emittedIdx.length ? axes.map((a, i) => ({ ...a, ...axisPosition(i) })) : axes;
     // Y-axes: one entry per ACTIVELY BOUND axis (ADR-0012; ADR-0066's bound-only filter widened
     // by ADR-0074's Legenden-Folge; the filter is hand-edited-JSON defense since ADR-0069 —
-    // in-state every axis is bound). The all-deselected chart emits no real axis at all: with
-    // the grid ON the Grenzachsen below carry the array alone, with it OFF one silent carrier
-    // keeps the grid renderable. position/offset place the axes side-by-side (re-slotted above
-    // while selection dropped one); alignTicks is an explicit per-axis opt-in (ADR-0034, off by
-    // default — no format heuristic); the axis colour AND name default to the axis' OWNER
-    // series' effective values when neither is explicit (ADR-0018; owner-first since ADR-0068 —
-    // the incumbent series keeps the identity, a rebinding newcomer standing earlier in the
-    // array never steals it; the owner matches by meta id in history/live, by payload name in
-    // JSON); the axis LABELS inherit the bound series' shared unit (ADR-0057) and the shared
-    // text facts (ADR-0058) — decimals deliberately NOT inherited (whose would a shared axis
-    // clamp to?).
+    // in-state every axis is bound). The all-deselected chart emits no real axis at all — the
+    // ONE silent carrier (ADR-0074) keeps the grid renderable whatever the grid switch says;
+    // with the grid ON the X min/max gridlines close the vertical edges in full splitLine style
+    // (addendum 6 — the carrier is invisible, it staffs no side).
+    // position/offset place the axes side-by-side (re-slotted above while selection dropped one);
+    // alignTicks is an explicit per-axis opt-in (ADR-0034, off by default — no format heuristic);
+    // the axis colour AND name default to the axis' OWNER series' effective values when neither
+    // is explicit (ADR-0018; owner-first since ADR-0068 — the incumbent series keeps the
+    // identity, a rebinding newcomer standing earlier in the array never steals it; the owner
+    // matches by meta id in history/live, by payload name in JSON); the axis LABELS inherit the
+    // bound series' shared unit (ADR-0057) and the shared text facts (ADR-0058) — decimals
+    // deliberately NOT inherited (whose would a shared axis clamp to?).
     const yAxisEntries: Record<string, unknown>[] = allInactive
-        ? xGridOn
-            ? [] // the grid is on — the Grenzachsen below carry the array alone
-            : [silentYAxis()]
+        ? [silentYAxis()]
         : displayAxes.map((a, i) => {
               const firstBinder = entries.find(e => e.yAxisIndex === i);
               const ownerIdx =
@@ -885,7 +933,7 @@ export const buildCartesianOption = (
               const texts = axisTextFacts(boundFactsList);
               const seriesFacts: SeriesValueFacts | undefined =
                   unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
-              return buildYAxisEntry(a, i, divider, seriesColor, seriesName, p.decimalComma, seriesFacts);
+              return buildYAxisEntry(a, i, divider, xAtTop, seriesColor, seriesName, p.decimalComma, seriesFacts);
           });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
@@ -898,108 +946,45 @@ export const buildCartesianOption = (
     // (`containLabel:true` let the outermost offset-axis name slip to x<0 at grid 0 → it vanished;
     // the earlier `'1%' + maxOffset` had masked that by over-reserving. `nameGap` was also 50 →
     // names floated far from their axes; tightened via AXIS_NAME_GAP.)
-    // Plot-edge contract (ADR-0070, grid-coupled since addendum 4): while the X gridlines are ON,
-    // left/right/bottom each show a line (top never — unless the X axis itself sits there); with
-    // the grid OFF no twin is emitted at all — the twins are the FIRST and LAST Gitterlinie of the
-    // time axis, grid elements that follow their switch (user decision 2026-08-30: lone edge lines
-    // on a gridless chart read as noise). A staffed side's REAL axis line is not a grid element —
-    // it closes its side whatever the switch says. A side's vertical edge line is its offset-0
-    // axis' axisLine — echarts places axis lines at rect ± offset (cartesianAxisHelper.layout;
-    // onZero is dead against a time axis) and draws no grid border of its own, so a side whose
-    // axes all flipped away, died or carry only a Versatz is NAKED without the twin (the ADR-0070
-    // report). The builder closes an unstaffed side with ONE synthesized border axis: silent
-    // except its line, min/max-pinned so echarts' alignTicks cannot see it (the ADR-0034
-    // fixed-extent exclusion), painted in the AUTHORED grid colour (ADR-0070 addendum 5 — the
-    // twins ARE the first and last Gitterlinie, so they follow the grid's colour), falling to the
-    // theme divider (the colour the floor-merged xAxis OBJECT paints the X splitLines with while
-    // no colour is authored — the addendum-3 rationale, valid for the default case only; the
-    // yAxis array never sees the floor). Width EDGE_LINE_WIDTH so the rect-edge cut cannot eat
-    // the line (see the const).
-    // The grid flag reads the CONFIG (`p.xAxis.splitLine ?? false` — the switch's own default is
-    // OFF): a raw override cannot flip a GUI-owned switch (applyRawOverride, GUI wins collisions),
-    // so config truth IS emitted truth here. Detected over the EMITTED entries (position/offset
-    // defaults already applied, re-slotted per ADR-0074 when selection dropped an axis),
-    // appended LAST so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it
-    // exists only in this option — the editor never sees it. Without an authored grid colour a
-    // two-sided chart emits none: the option stays byte-identical to the pre-0070 shape.
-    // (`divider`/`xGridOn` are hoisted above the yAxisEntries block — the all-deselected branch
-    // reads them.)
-    // The silent shell every synthesized edge carries — only its line renders (ADR-0070). The line
-    // detaches from the Y-zero (`onZero:false`, the ADR-0055 rule): with the default onZero:true an
-    // X twin would draw at the first value-Y's zero instead of the plot's bottom edge whenever that
-    // extent contains 0 (already the all-positive default… and always for negative data).
-    // Addendum 5: an AUTHORED grid colour frames EVERY side — the staffed side's twin (2px, grid
-    // colour) overpaints the real axis' 1px line, so both vertical edges read as grid; the axis
-    // keeps its labels/ticks/name in its own colour. Without an authored colour the staffed side
-    // keeps its real axis line alone (the pre-addendum-5 default) and only the naked sides twin —
-    // the divider then equals the un-authored grid grey anyway, so the default look is unchanged.
-    const edgeLineColor = p.xAxis.gridColor ?? divider;
-    /** Rahmen-Modus (addendum 5): frame EVERY side instead of just the naked ones. */
-    const frameMode = !!p.xAxis.gridColor;
-    const edgeLine = (): Record<string, unknown> => ({
-        show: true,
-        onZero: false,
-        lineStyle: { color: edgeLineColor, width: EDGE_LINE_WIDTH },
-    });
-    const edgeSilence = {
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        splitLine: { show: false },
-    };
-    const borderAxisEntry = (side: 'left' | 'right'): Record<string, unknown> => ({
-        type: 'value',
-        position: side,
-        offset: 0,
-        alignTicks: false,
-        min: 0,
-        max: 1,
-        axisLine: edgeLine(),
-        ...edgeSilence,
-    });
-    const borderSides = xGridOn
-        ? (['left', 'right'] as const).filter(
-              side => frameMode || !yAxisEntries.some(e => e.position === side && (e.offset ?? 0) === 0),
-          )
-        : [];
-    const emittedYAxes: Record<string, unknown>[] = [...yAxisEntries, ...borderSides.map(borderAxisEntry)];
-
-    // Horizontal half of the same contract (ADR-0070 K6, grid-coupled since addendum 4 — the user
-    // coupled the bottom twin to the grid switch too): an X axis on 'top' leaves the BOTTOM edge
-    // unstaffed — the twin mirrors the EMITTED entry's type/data and shows only its line (edge-
-    // coloured like its Y siblings: authored grid colour over the divider, addendum 5). The gate
-    // reads the EMITTED position (post-raw-fold), the same
-    // emitted-truth rule as the Y sides — a raw `{ position: 'top' }` hand-edit gets the twin too.
-    // At 'bottom' (authored, default, or raw) — or with the grid OFF — the real axis owns that
-    // edge and xAxis stays the single object (which also keeps the theme floor's natural object
-    // merge: no array, no stamping needed). The array shape RETIRES the theme floor for BOTH X
-    // entries (the generated array replaces the floor's xAxis object in the merge), so the floor's
-    // remaining X keys (label + grid colour — the axisLine colour is builder-emitted since the
-    // ADR-0055 addendum) are stamped onto the real entry where the author left them unset.
-    // The X category source (ADR-0075): the bucket grid (ADR-0065, number timestamps) or the
-    // table family's string labels — whichever rides the presentation. Mutually exclusive by
-    // construction (barCategories is history-fetch-only, xCategories table-only).
-    const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
-    const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, xCategories), p.xAxis.raw);
-    let emittedXAxis: Record<string, unknown> | Array<Record<string, unknown>> = xAxisEntry;
-    if (xAxisEntry.position === 'top' && xGridOn) {
-        const label = (xAxisEntry.axisLabel as Record<string, unknown> | undefined) ?? {};
-        xAxisEntry.axisLabel = { color: p.themeTokens.textSecondary, ...label };
-        const split = (xAxisEntry.splitLine as Record<string, unknown> | undefined) ?? { show: false };
-        const splitStyle = (split.lineStyle as Record<string, unknown> | undefined) ?? {};
-        xAxisEntry.splitLine = { ...split, lineStyle: { color: divider, ...splitStyle } };
-        emittedXAxis = [
-            xAxisEntry,
-            {
-                // Mirror the EMITTED type/data (a raw type override rides along); the twin keeps
-                // the onZero:false detach + the edge line (authored grid colour over divider —
-                // the addendum-5 rule, see edgeLine above).
-                ...(xAxisEntry.type === 'category' ? { type: 'category', data: xAxisEntry.data } : { type: 'time' }),
-                position: 'bottom',
-                axisLine: edgeLine(),
-                ...edgeSilence,
-            },
-        ];
+    //
+    // Plot edges (ADR-0070 addendum 6 — the twins are GONE): echarts' own extent-edge gridlines
+    // (`showMinLine`/`showMaxLine`) close the open edges in the FULL effective splitLine style —
+    // GUI colour/width/type AND whatever the raw JSON layers on top (the very thing a synthesized
+    // border axis could never inherit, the addendum-6 trigger). Two rules govern them:
+    //
+    // • **Achsen-Vorrang** (axis precedence): where an axis LINE sits exactly on an edge, the
+    //   AXIS draws (its own style) and the gridline there is suppressed — never overpainted.
+    //   Vertical: an emitted VISIBLE offset-0 axis owns its side (stamping below; the silent
+    //   carrier staffs nothing). Horizontal: the X axis line always sits at a rect edge (onZero
+    //   is dead against time/category axes, `Grid.js`) — 'bottom' (default) owns the bottom,
+    //   'top' owns the top (handled inside buildYAxisEntry via xAtTop).
+    // • **Grid inset**: `grid.left/right = ceil(effectiveWidth / 2)` while the grid is ON, so a
+    //   stroke centered on the canvas-flush edge keeps its full width (the addendum-3 half-cut;
+    //   width from the GUI field, the raw JSON, or 1). Left is usually interior anyway (labels
+    //   reserve the space) — the inset only bites the flush side, and saves the all-right-axis
+    //   case. Capped at 10px so an absurd raw width cannot shred the layout.
+    // With the grid OFF the edges stay open (addendum 4, unchanged): gridlines are grid elements,
+    // real axis lines are not.
+    const staffedSide = (side: 'left' | 'right'): boolean =>
+        // VISIBLE staffing only: a hidden axis (the silent carrier's show:false, or a raw
+        // `{ "axisLine": { "show": false } }` that hides the line) owns no edge — nothing draws
+        // there, so the extent gridline must not yield to it.
+        yAxisEntries.some(
+            e =>
+                e.position === side &&
+                (e.offset ?? 0) === 0 &&
+                e.show !== false &&
+                (e.axisLine as { show?: boolean } | undefined)?.show !== false,
+        );
+    const xSplit = xAxisEntry.splitLine as Record<string, unknown>; // always emitted by the builder
+    if (xGridOn) {
+        // Stamped post-raw-fold (GUI-owned) and ONLY while the grid is on: with the grid off no
+        // gridline exists, so the keys stay absent — the emitted truth is honest on every switch
+        // state and pinning "grid off → no extent gridlines" stays testable at the option level.
+        xSplit.showMinLine = !staffedSide('left');
+        xSplit.showMaxLine = !staffedSide('right');
     }
+    const gridInset = xGridOn ? Math.min(10, Math.ceil((p.xAxis.gridWidth ?? rawGridWidth(p.xAxis.raw) ?? 1) / 2)) : 0;
     const option: Record<string, unknown> = {
         // "Nur in Legende" (ADR-0060): the adapter's `hide` — the series stays emitted, its
         // legend entry lands PRE-DESELECTED (`legend.selected`, the ADR-0054 seam laid for this),
@@ -1016,8 +1001,8 @@ export const buildCartesianOption = (
         // the category-name header instead — a moment header would render nothing (no ts).
         tooltip: buildTooltip(p, { format: p.xAxis.format, category: !!p.xCategories?.length }, facts),
         grid: {
-            left: 0,
-            right: 0,
+            left: gridInset,
+            right: gridInset,
             top: 30,
             bottom: p.dataZoomSlider ? 48 : 28,
             outerBoundsMode: 'same',
@@ -1025,8 +1010,10 @@ export const buildCartesianOption = (
         },
         // The X raw (ADR-0037 addendum) folds UNDER the built entry like the Y cards' — the card
         // wins collisions; `xAxis` rides REPLACE_MERGE (ADR-0036) so deleting a raw key reverts.
-        xAxis: emittedXAxis,
-        yAxis: emittedYAxes,
+        // Always the SINGLE object (addendum 6: no top-mirror twin array any more — the theme
+        // floor's object merge survives naturally, no stamping needed).
+        xAxis: xAxisEntry,
+        yAxis: yAxisEntries,
         series: entries,
         animation: p.animation,
         // Slider + easing drive BOTH the enter animation (animationDuration/Easing) AND the

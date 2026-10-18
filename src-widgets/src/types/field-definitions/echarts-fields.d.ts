@@ -826,6 +826,16 @@ export interface EchartsAxisConfig {
      */
     gridColor?: string;
     /**
+     * Grid stroke width (`splitLine.lineStyle.width`) — ADR-0070 addendum 6. Unset = no emit
+     * (echarts default 1); rides the `yAxes` blob.
+     */
+    gridWidth?: number;
+    /**
+     * Grid stroke type (`splitLine.lineStyle.type`) — ADR-0070 addendum 6. Unset = no emit
+     * (echarts default solid); rides the `yAxes` blob.
+     */
+    gridType?: EchartsLineStyle;
+    /**
      * Per-axis raw echarts JSON override (ADR-0037): parsed and deep-merged UNDER the GUI-authored
      * yAxis entry by `applyRawOverride` — the card wins every collision, so GUI-covered keys
      * (min/max/splitLine.show/…) are protected while everything the builder does not emit (label
@@ -896,6 +906,17 @@ export interface EchartsXAxisConfig {
      * splitlines switch is on, but the value persists. Unset = no emit (theme divider token).
      */
     gridColor?: string;
+    /**
+     * Grid stroke width (`splitLine.lineStyle.width`) — ADR-0070 addendum 6; also drives the
+     * grid's edge inset (half the width, so the extent-edge min/max line survives the canvas cut).
+     * Unset = no emit (echarts default 1); rides the `xAxis` blob.
+     */
+    gridWidth?: number;
+    /**
+     * Grid stroke type (`splitLine.lineStyle.type`) — ADR-0070 addendum 6. Unset = no emit
+     * (echarts default solid); rides the `xAxis` blob.
+     */
+    gridType?: EchartsLineStyle;
     /**
      * Where the axis sits (`position`) — parity Build D layout variant: 'top' mirrors the axis
      * above the grid. 'top' also emits `axisLine.onZero:false`: the default `onZero:true` pins
