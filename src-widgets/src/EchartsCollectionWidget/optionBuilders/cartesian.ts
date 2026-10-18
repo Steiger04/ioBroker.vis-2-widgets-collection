@@ -450,12 +450,13 @@ const buildYAxisEntry = (
     /** Theme divider token — the DEFAULT grid colour (ADR-0055 addendum: the grid is ONE colour). */
     divider: string,
     /**
-     * Whether the EMITTED X axis sits at the top edge (ADR-0070 addendum 6): the X axis line
-     * always sits at a rect edge (onZero is dead against a time/category axis, `Grid.js`), so
-     * Achsen-Vorrang suppresses the horizontal extent-edge gridline it covers — the Y-MIN line
-     * at 'bottom' (the default), the Y-MAX line at 'top'.
+     * Which rect edge the EMITTED X axis line sits ON (ADR-0070 addendum 6 + erratum): onZero is
+     * dead against a time/category axis (`Grid.js`), so without a Versatz the line sits exactly
+     * on its position's edge — 'bottom' (the default) or 'top' — and Achsen-Vorrang suppresses
+     * the horizontal extent-edge gridline it covers. `null` = the axis carries a Versatz
+     * (emitted offset ≠ 0): the line floats off the edge, no coincidence, BOTH gridlines draw.
      */
-    xAtTop: boolean,
+    xOnEdge: 'bottom' | 'top' | null,
     /** Default axis colour = first bound series' colour, when none is explicit (ADR-0018). */
     seriesColor?: string,
     /** Default axis name = first bound series' effective name, when none is explicit (ADR-0018). */
@@ -475,14 +476,15 @@ const buildYAxisEntry = (
         // theme-floor merge supplies the divider, but this yAxis ARRAY wholesale replaces the
         // floor object, so a passive default would fall to echarts' light builtin — the two-grey
         // inconsistency, live-measured 2026-08-30). Authored grid colour/width/type win.
-        // Achsen-Vorrang (ADR-0070 addendum 6): echarts' own extent-edge min/max gridlines are
-        // ON again (full splitLine styling at the plot edges — the twins are gone) EXCEPT where
-        // the X axis line covers the same edge: there the AXIS draws and the gridline yields
-        // (suppressed, never overpainted). GUI-owned keys — raw cannot flip them back.
+        // Achsen-Vorrang (ADR-0070 addendum 6 + erratum): echarts' own extent-edge min/max
+        // gridlines are ON again (full splitLine styling at the plot edges — the twins are gone)
+        // EXCEPT where the X axis line covers the same edge: there the AXIS draws and the
+        // gridline yields (suppressed, never overpainted). A versetzte X axis (xOnEdge null)
+        // covers nothing — both gridlines draw. GUI-owned keys — raw cannot flip them back.
         splitLine: {
             show: a.splitLine ?? i === 0,
-            showMinLine: xAtTop,
-            showMaxLine: !xAtTop,
+            showMinLine: xOnEdge !== 'bottom',
+            showMaxLine: xOnEdge !== 'top',
             lineStyle: {
                 color: a.gridColor ?? divider,
                 ...(a.gridWidth !== undefined ? { width: a.gridWidth } : {}),
@@ -888,7 +890,11 @@ export const buildCartesianOption = (
     // history-fetch-only, xCategories table-only).
     const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
     const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, xCategories), p.xAxis.raw);
-    const xAtTop = xAxisEntry.position === 'top';
+    // Achsen-Vorrang's horizontal coincidence (erratum): the axis line owns its edge only while
+    // it actually SITS on it. A Versatz lifts it off (the emitted offset is non-zero — a raw
+    // offset counts too, the same emitted-truth rule), and then no gridline yields: the versetzte
+    // X axis behaves exactly like a versetzte Y axis, the grid closes both edges.
+    const xOnEdge = xAxisEntry.offset !== undefined ? null : xAxisEntry.position === 'top' ? 'top' : 'bottom';
     // Display re-stagger (ADR-0074): while the selection dropped ≥1 real axis, the VISIBLE axes
     // re-slot into the standard interleaving (`axisPosition` parity over the visible sequence —
     // balanceAxes semantics, display-only: sides may flip on a legend click). With everything
@@ -933,7 +939,7 @@ export const buildCartesianOption = (
               const texts = axisTextFacts(boundFactsList);
               const seriesFacts: SeriesValueFacts | undefined =
                   unit || texts ? { ...(unit ? { unit } : {}), ...texts } : undefined;
-              return buildYAxisEntry(a, i, divider, xAtTop, seriesColor, seriesName, p.decimalComma, seriesFacts);
+              return buildYAxisEntry(a, i, divider, xOnEdge, seriesColor, seriesName, p.decimalComma, seriesFacts);
           });
     // Grid flush to the canvas edges with FULL label+name containment (ADR-0024, supersedes
     // ADR-0022). echarts v6's `outerBoundsContain: 'all'` — the modern replacement for the deprecated
@@ -955,9 +961,11 @@ export const buildCartesianOption = (
     // • **Achsen-Vorrang** (axis precedence): where an axis LINE sits exactly on an edge, the
     //   AXIS draws (its own style) and the gridline there is suppressed — never overpainted.
     //   Vertical: an emitted VISIBLE offset-0 axis owns its side (stamping below; the silent
-    //   carrier staffs nothing). Horizontal: the X axis line always sits at a rect edge (onZero
-    //   is dead against time/category axes, `Grid.js`) — 'bottom' (default) owns the bottom,
-    //   'top' owns the top (handled inside buildYAxisEntry via xAtTop).
+    //   carrier staffs nothing). Horizontal: the X axis line sits at a rect edge while it
+    //   carries NO Versatz (onZero is dead against time/category axes, `Grid.js`) — 'bottom'
+    //   (default) owns the bottom, 'top' the top (handled inside buildYAxisEntry via xOnEdge);
+    //   a Versatz lifts it off both edges and BOTH horizontal gridlines draw (erratum: the
+    //   symmetric rule to a versetzte Y axis).
     // • **Grid inset**: `grid.left/right = ceil(effectiveWidth / 2)` while the grid is ON, so a
     //   stroke centered on the canvas-flush edge keeps its full width (the addendum-3 half-cut;
     //   width from the GUI field, the raw JSON, or 1). Left is usually interior anyway (labels

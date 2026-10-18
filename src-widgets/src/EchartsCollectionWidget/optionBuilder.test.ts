@@ -2714,6 +2714,47 @@ describe('buildGeneratedOption — Plotkanten: native min/max gridlines + Achsen
         expect(ya[0].splitLine).toMatchObject({ showMinLine: true, showMaxLine: false });
     });
 
+    it('a VERSATZ lifts the X axis off both edges — BOTH horizontal gridlines draw (erratum, symmetric to a versetzte Y axis)', () => {
+        const y0Of = (o: { yAxis?: unknown }): Record<string, unknown> | undefined =>
+            (o.yAxis as { splitLine?: Record<string, unknown> }[])[0]?.splitLine;
+        // X at 'bottom' + Versatz: the line floats below the plot — the bottom edge is NOT covered,
+        // the Y-MIN gridline returns (the report case "unten kein Gitterstrich").
+        const bottomOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { splitLine: true, offset: 24 } },
+        });
+        expect(y0Of(bottomOffset)).toMatchObject({ showMinLine: true, showMaxLine: true });
+
+        // X at 'top' + Versatz: the top edge opens the same way.
+        const topOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { position: 'top', splitLine: true, offset: 12 } },
+        });
+        expect(y0Of(topOffset)).toMatchObject({ showMinLine: true, showMaxLine: true });
+
+        // A raw offset counts too (the same emitted-truth rule)…
+        const rawOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { splitLine: true, raw: '{ "offset": 10 }' } },
+        });
+        expect(y0Of(rawOffset)).toMatchObject({ showMinLine: true, showMaxLine: true });
+
+        // …and offset 0 is "unset" (never emitted) — the Vorrang stays intact at the edge.
+        const zeroOffset = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { splitLine: true, offset: 0 } },
+        });
+        expect(y0Of(zeroOffset)).toMatchObject({ showMinLine: false, showMaxLine: true });
+    });
+
     it('the grid style cluster rides the splitLine: colour+width+type emit, unset stays sparse (X and Y)', () => {
         const option = buildGeneratedOption({
             family: 'cartesian',

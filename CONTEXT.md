@@ -219,7 +219,7 @@ The line an axis draws at its own position + offset — part of the axis' one-co
 _Avoid_: Gitterlinie (an axis line is not a grid element), Plotkante (that is the contract, not the element)
 
 **Achsen-Vorrang (axis precedence)**:
-The display rule that an axis' **Achsenlinie** replaces any gridline it sits exactly on (ADR-0070 addendum 6): the gridline at that position is suppressed (never overpainted), the axis draws in its own style. Vertical edges: a visible offset-0 axis owns its side's extent gridline. Horizontal edges: the X axis line always sits at a rect edge (echarts disables onZero for time/category axes), so 'bottom' (the default) owns the bottom edge and 'top' the top edge.
+The display rule that an axis' **Achsenlinie** replaces any gridline it sits exactly on (ADR-0070 addendum 6): the gridline at that position is suppressed (never overpainted), the axis draws in its own style. Vertical edges: a visible offset-0 axis owns its side's extent gridline. Horizontal edges: the X axis line owns its position's edge only while it carries NO **Versatz** — an offset lifts it off both edges and both extent gridlines draw (the symmetric rule to a versetzte Y axis).
 _Avoid_: twin overlay (the retired Grenzachse overpainted; Vorrang suppresses instead), axis priority (vague)
 
 **Plot edge**:
