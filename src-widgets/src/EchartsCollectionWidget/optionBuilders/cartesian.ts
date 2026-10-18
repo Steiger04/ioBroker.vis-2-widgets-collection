@@ -77,6 +77,15 @@ const STEP_ECHARTS: Record<EchartsStep, false | 'start' | 'middle' | 'end'> = {
 const EDGE_LINE_WIDTH = 2;
 
 /**
+ * The always-on brace against echarts' own extent-edge splitlines (ADR-0070 addendum 5):
+ * `showMinLine`/`showMaxLine` default ON (1px) — half-cut at the canvas-flush edge, a faint
+ * blend under the real axis line at interior edges. The plot edges belong to the twins
+ * (unstaffed) and the real axis lines (staffed); the GUI owns this pair, so a raw override
+ * cannot re-enable the stray defaults.
+ */
+const EDGE_SPLITLINE_OFF = { showMinLine: false, showMaxLine: false } as const;
+
+/**
  * The DEFAULT colour of the X axis line (+ its ticks, which follow the line — echarts' rule, the
  * ADR-0055 fact): echarts v6's `tokens.color.axisSplitLine` (neutral15) — deliberately the colour
  * the Y splitLines rendered with BEFORE the ADR-0055 addendum unified the grid on the divider (the
@@ -435,8 +444,13 @@ const buildYAxisEntry = (
         // horizontal Y splitLines with the vertical X splitLines (the X entry is an OBJECT whose
         // theme-floor merge supplies the divider, but this yAxis ARRAY wholesale replaces the
         // floor object, so a passive default would fall to echarts' light builtin — the two-grey
-        // inconsistency, live-measured 2026-08-30). An authored grid colour still wins.
-        splitLine: { show: a.splitLine ?? i === 0, lineStyle: { color: a.gridColor ?? divider } },
+        // inconsistency, live-measured 2026-08-30). An authored grid colour still wins. The
+        // EDGE_SPLITLINE_OFF brace kills echarts' own extent-edge splitlines (ADR-0070 addendum 5).
+        splitLine: {
+            show: a.splitLine ?? i === 0,
+            ...EDGE_SPLITLINE_OFF,
+            lineStyle: { color: a.gridColor ?? divider },
+        },
         // Card fields since ADR-0037 (were hard-emits with no GUI control, i.e. un-overridable
         // under the GUI-wins raw seam). Defaults = the former hard-emit values, so existing
         // widgets render identically.
@@ -565,8 +579,14 @@ const buildXAxisEntry = (
         // knobs are skipped on both flavours.
         ...(categories ? { type: 'category', data: categories } : { type: 'time' }),
         // Parity Build D (ADR-0055): grid + tick colours ride their show-switch objects, sparse —
-        // unset leaves both a bare {show} so the raw override keeps owning lineStyle wholesale.
-        splitLine: { show: x.splitLine ?? false, ...(x.gridColor ? { lineStyle: { color: x.gridColor } } : {}) },
+        // unset keeps lineStyle absent so the raw override owns it wholesale. The EDGE_SPLITLINE_OFF
+        // brace (ADR-0070 addendum 5) is the one always-on pair: the plot edges belong to the twins
+        // and the real axis lines, not to echarts' stray extent-edge defaults.
+        splitLine: {
+            show: x.splitLine ?? false,
+            ...EDGE_SPLITLINE_OFF,
+            ...(x.gridColor ? { lineStyle: { color: x.gridColor } } : {}),
+        },
         axisTick: { show: x.axisTick ?? true, ...(x.tickColor ? { lineStyle: { color: x.tickColor } } : {}) },
     };
     // X position top/bottom (parity Build D): unset = no key, echarts keeps its 'bottom' default —
@@ -889,26 +909,37 @@ export const buildCartesianOption = (
     // axes all flipped away, died or carry only a Versatz is NAKED without the twin (the ADR-0070
     // report). The builder closes an unstaffed side with ONE synthesized border axis: silent
     // except its line, min/max-pinned so echarts' alignTicks cannot see it (the ADR-0034
-    // fixed-extent exclusion), painted in the theme divider — the colour the X splitLines ACTUALLY
-    // render with (the floor-merged xAxis OBJECT survives the merge, unlike the yAxis array;
-    // live-measured ≈#707070 on the user's dark theme, the exact grey of their vertical
-    // gridlines). Width EDGE_LINE_WIDTH so the rect-edge cut cannot eat the line (see the const).
+    // fixed-extent exclusion), painted in the AUTHORED grid colour (ADR-0070 addendum 5 — the
+    // twins ARE the first and last Gitterlinie, so they follow the grid's colour), falling to the
+    // theme divider (the colour the floor-merged xAxis OBJECT paints the X splitLines with while
+    // no colour is authored — the addendum-3 rationale, valid for the default case only; the
+    // yAxis array never sees the floor). Width EDGE_LINE_WIDTH so the rect-edge cut cannot eat
+    // the line (see the const).
     // The grid flag reads the CONFIG (`p.xAxis.splitLine ?? false` — the switch's own default is
     // OFF): a raw override cannot flip a GUI-owned switch (applyRawOverride, GUI wins collisions),
     // so config truth IS emitted truth here. Detected over the EMITTED entries (position/offset
     // defaults already applied, re-slotted per ADR-0074 when selection dropped an axis),
     // appended LAST so no bound axis index shifts (yAxisIndex refs + marking hosts stay put); it
-    // exists only in this option — the editor never sees it. A two-sided chart emits none: the
-    // option stays byte-identical to the pre-0070 shape. (`divider`/`xGridOn` are hoisted above
-    // the yAxisEntries block — the all-deselected branch reads them.)
+    // exists only in this option — the editor never sees it. Without an authored grid colour a
+    // two-sided chart emits none: the option stays byte-identical to the pre-0070 shape.
+    // (`divider`/`xGridOn` are hoisted above the yAxisEntries block — the all-deselected branch
+    // reads them.)
     // The silent shell every synthesized edge carries — only its line renders (ADR-0070). The line
     // detaches from the Y-zero (`onZero:false`, the ADR-0055 rule): with the default onZero:true an
     // X twin would draw at the first value-Y's zero instead of the plot's bottom edge whenever that
     // extent contains 0 (already the all-positive default… and always for negative data).
+    // Addendum 5: an AUTHORED grid colour frames EVERY side — the staffed side's twin (2px, grid
+    // colour) overpaints the real axis' 1px line, so both vertical edges read as grid; the axis
+    // keeps its labels/ticks/name in its own colour. Without an authored colour the staffed side
+    // keeps its real axis line alone (the pre-addendum-5 default) and only the naked sides twin —
+    // the divider then equals the un-authored grid grey anyway, so the default look is unchanged.
+    const edgeLineColor = p.xAxis.gridColor ?? divider;
+    /** Rahmen-Modus (addendum 5): frame EVERY side instead of just the naked ones. */
+    const frameMode = !!p.xAxis.gridColor;
     const edgeLine = (): Record<string, unknown> => ({
         show: true,
         onZero: false,
-        lineStyle: { color: divider, width: EDGE_LINE_WIDTH },
+        lineStyle: { color: edgeLineColor, width: EDGE_LINE_WIDTH },
     });
     const edgeSilence = {
         axisTick: { show: false },
@@ -927,15 +958,16 @@ export const buildCartesianOption = (
     });
     const borderSides = xGridOn
         ? (['left', 'right'] as const).filter(
-              side => !yAxisEntries.some(e => e.position === side && (e.offset ?? 0) === 0),
+              side => frameMode || !yAxisEntries.some(e => e.position === side && (e.offset ?? 0) === 0),
           )
         : [];
     const emittedYAxes: Record<string, unknown>[] = [...yAxisEntries, ...borderSides.map(borderAxisEntry)];
 
     // Horizontal half of the same contract (ADR-0070 K6, grid-coupled since addendum 4 — the user
     // coupled the bottom twin to the grid switch too): an X axis on 'top' leaves the BOTTOM edge
-    // unstaffed — the twin mirrors the EMITTED entry's type/data and shows only its line (divider-
-    // stamped like its Y siblings). The gate reads the EMITTED position (post-raw-fold), the same
+    // unstaffed — the twin mirrors the EMITTED entry's type/data and shows only its line (edge-
+    // coloured like its Y siblings: authored grid colour over the divider, addendum 5). The gate
+    // reads the EMITTED position (post-raw-fold), the same
     // emitted-truth rule as the Y sides — a raw `{ position: 'top' }` hand-edit gets the twin too.
     // At 'bottom' (authored, default, or raw) — or with the grid OFF — the real axis owns that
     // edge and xAxis stays the single object (which also keeps the theme floor's natural object
@@ -959,7 +991,8 @@ export const buildCartesianOption = (
             xAxisEntry,
             {
                 // Mirror the EMITTED type/data (a raw type override rides along); the twin keeps
-                // the onZero:false detach + the divider line (see edgeLine above).
+                // the onZero:false detach + the edge line (authored grid colour over divider —
+                // the addendum-5 rule, see edgeLine above).
                 ...(xAxisEntry.type === 'category' ? { type: 'category', data: xAxisEntry.data } : { type: 'time' }),
                 position: 'bottom',
                 axisLine: edgeLine(),

@@ -1116,15 +1116,29 @@ describe('buildGeneratedOption — cartesian yAxis raw + name placement (ADR-003
             meta: [{ name: 'A' }],
             p: {
                 ...P,
-                yAxes: [{ splitLine: true, raw: '{ "splitLine": { "lineStyle": { "type": "dashed" } } }' }],
+                // The raw `showMinLine:true` attack proves the brace is GUI-owned (ADR-0070
+                // addendum 5): the edge splitlines stay off whatever the raw JSON says.
+                yAxes: [
+                    {
+                        splitLine: true,
+                        raw: '{ "splitLine": { "lineStyle": { "type": "dashed" }, "showMinLine": true } }',
+                    },
+                ],
             },
         });
         const ya = (option.yAxis as unknown as unknown[])[0] as {
             splitLine?: { show?: boolean; lineStyle?: { type?: string; color?: string } };
         };
         // The divider default rides along (always-emitted since the ADR-0055 addendum); the raw
-        // `type` leaf merges through — the GUI owns only the colour.
-        expect(ya.splitLine).toEqual({ show: true, lineStyle: { color: '#d', type: 'dashed' } });
+        // `type` leaf merges through — the GUI owns only the colour. The min/max brace is the
+        // always-on pair (ADR-0070 addendum 5 — the raw `showMinLine:true` above loses the
+        // collision, so no raw key can re-enable the edge splitlines).
+        expect(ya.splitLine).toEqual({
+            show: true,
+            showMinLine: false,
+            showMaxLine: false,
+            lineStyle: { color: '#d', type: 'dashed' },
+        });
     });
 
     it('nameLocation/nameGap are card-driven, defaulting to the former hard-emit values', () => {
@@ -1241,10 +1255,11 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
         // Empty config = a plain time axis; the ALWAYS-emitted moment formatter (ADR-0052) and the
         // ALWAYS-emitted axis line colour (ADR-0055 addendum: the light X-axis default — ticks
         // follow the line) ride along. echarts' time-axis splitLine default is false,
-        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y.
+        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y. The min/max
+        // brace is always-on (ADR-0070 addendum 5 — the edges belong to twins/axis lines).
         expect(option.xAxis).toEqual({
             type: 'time',
-            splitLine: { show: false },
+            splitLine: { show: false, showMinLine: false, showMaxLine: false },
             axisTick: { show: true },
             axisLine: { show: true, lineStyle: { color: '#dbdee4' } },
             axisLabel: { formatter: expect.any(Function) },
@@ -1270,7 +1285,7 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
             axisLabel: { formatter: expect.any(Function), color: '#0af' },
             axisLine: { show: true, lineStyle: { color: '#0af' } },
             nameTextStyle: { color: '#0af' },
-            splitLine: { show: false },
+            splitLine: { show: false, showMinLine: false, showMaxLine: false },
             axisTick: { show: true },
         });
         expect(fmtOf(option)(SAMPLE_TS, 0)).toBe('14:05\n19.08.');
@@ -1754,13 +1769,25 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             meta: [{}],
             p: { ...P, yAxes: [{ gridColor: '#777' }] },
         });
-        expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#777' } });
+        // The min/max brace rides along always (ADR-0070 addendum 5) — edge splitlines are the
+        // twins'/axis lines' job, not echarts' own 1px defaults.
+        expect(y0(option).splitLine).toEqual({
+            show: true,
+            showMinLine: false,
+            showMaxLine: false,
+            lineStyle: { color: '#777' },
+        });
 
         // Unset = the divider stamp (unifies the horizontal Y grid with the vertical X grid —
         // the yAxis ARRAY never sees the theme floor, so a passive default would fall to echarts'
         // light builtin, the two-grey inconsistency live-measured 2026-08-30).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(y0(bare).splitLine).toEqual({ show: true, lineStyle: { color: '#d' } });
+        expect(y0(bare).splitLine).toEqual({
+            show: true,
+            showMinLine: false,
+            showMaxLine: false,
+            lineStyle: { color: '#d' },
+        });
     });
 
     it('the raw override merges leaf-wise around the new Y leaves — GUI wins collisions, siblings flow through', () => {
@@ -1786,7 +1813,12 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             },
         });
         expect(y0(option).axisTick).toEqual({ show: true, lineStyle: { color: '#gui', width: 2 } });
-        expect(y0(option).splitLine).toEqual({ show: true, lineStyle: { color: '#gui', type: 'dashed' } });
+        expect(y0(option).splitLine).toEqual({
+            show: true,
+            showMinLine: false,
+            showMaxLine: false,
+            lineStyle: { color: '#gui', type: 'dashed' },
+        });
     });
 
     it('emits the X label size into the always-present axisLabel block; unset stays formatter-only', () => {
@@ -2594,14 +2626,18 @@ describe('buildGeneratedOption — marking bands (ADR-0062 + ADR-0076 adapter-pa
 describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)', () => {
     /** P with the X gridlines ON — the twins' emission gate (ADR-0070 addendum 4). */
     const PG = { ...P, xAxis: { splitLine: true } };
-    // The twin's fingerprint: min/max pins + the divider-coloured 2px edge axisLine (the width
-    // survives the rect-edge half-cut, ADR-0070 addendum 3). A REAL axis never matches: its
+    // The twin's fingerprint: min/max pins + a 2px edge axisLine in the EXPECTED twin colour (the
+    // authored grid colour since addendum 5, the theme divider on the default path) — the width
+    // survives the rect-edge half-cut (ADR-0070 addendum 3). A REAL axis never matches: its
     // axisLine colour resolves to the palette/series colour, and an unset min/max emits no key.
-    const isBorderAxis = (e: Record<string, unknown>): boolean =>
-        e.min === 0 &&
-        e.max === 1 &&
-        (e.axisLine as { lineStyle?: { color?: string; width?: number } })?.lineStyle?.color === '#d' &&
-        (e.axisLine as { lineStyle?: { width?: number } }).lineStyle?.width === 2;
+    const twinOf =
+        (colour: string) =>
+        (e: Record<string, unknown>): boolean =>
+            e.min === 0 &&
+            e.max === 1 &&
+            (e.axisLine as { lineStyle?: { color?: string; width?: number } })?.lineStyle?.color === colour &&
+            (e.axisLine as { lineStyle?: { width?: number } }).lineStyle?.width === 2;
+    const isBorderAxis = twinOf('#d'); // P.themeTokens.divider — the default twin colour
 
     it('closes an unstaffed vertical side with one silent border axis (the K1 report)', () => {
         // One bound axis (left, offset 0) staffs only the LEFT edge — the right side is naked since
@@ -2624,11 +2660,101 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
         expect(ya[1].splitLine).toEqual({ show: false });
         expect(ya[1]).not.toHaveProperty('name');
         // stamped in the theme divider (the colour the floor-merged xAxis OBJECT paints the X
-        // splitLines with — the yAxis array never sees the floor) and 2 px wide: echarts cuts
-        // strokes at the rect edge, so the inner 1 px is what stays visible (ADR-0070 addendum 3).
+        // splitLines with while no colour is authored — the yAxis array never sees the floor) and
+        // 2 px wide: echarts cuts strokes at the rect edge, so the inner 1 px is what stays
+        // visible (ADR-0070 addendum 3).
         expect((ya[1].axisLine as { lineStyle?: { color?: string; width?: number } }).lineStyle).toEqual({
             color: '#d',
             width: 2,
+        });
+    });
+
+    it('an AUTHORED grid colour frames EVERY side — twins in the grid colour, staffed sides included (addendum 5)', () => {
+        // The addendum-3 divider stamp divorced the twins from an authored grid colour: the dark
+        // twin overpainted echarts' green max-splitline rest at the canvas-flush edge (perceptively
+        // dead on a dark theme — the "missing last gridline" report) while the min-splitline
+        // blended under the real axis line as a faint green smudge. The twins ARE the grid's first
+        // and last line (addendum 4) — they follow its colour now, and close the staffed side too.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: { ...P, xAxis: { splitLine: true, gridColor: '#3ec429' } },
+        });
+        const ya = option.yAxis as unknown as Record<string, unknown>[];
+        expect(ya).toHaveLength(3); // the real left axis + a LEFT twin over it + the right twin
+        const twins = ya.filter(twinOf('#3ec429'));
+        expect(twins.map(t => t.position)).toEqual(['left', 'right']);
+        // the real axis keeps its own entry (labels/ticks/name in its colour) — the twin overlays
+        // its line, it does not replace the axis
+        expect(ya[0].min).toBeUndefined();
+        expect(ya[0].max).toBeUndefined();
+
+        // The default path stays byte-identical: without an authored colour a staffed side keeps
+        // its real axis line alone (no twin), only the naked side twins — in the divider.
+        const bare = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: PG,
+        });
+        const yaBare = bare.yAxis as unknown as Record<string, unknown>[];
+        expect(yaBare).toHaveLength(2);
+        expect(yaBare.filter(twinOf('#d')).map(t => t.position)).toEqual(['right']);
+    });
+
+    it('a two-sided chart frames BOTH staffed sides under an authored grid colour; without one, none', () => {
+        const framed = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
+            p: { ...P, yAxes: [{}, { position: 'right' }], xAxis: { splitLine: true, gridColor: '#0a0' } },
+        });
+        const framedAxes = framed.yAxis as unknown as Record<string, unknown>[];
+        expect(framedAxes).toHaveLength(4); // two real axes + two twins
+        expect(framedAxes.filter(twinOf('#0a0')).map(t => t.position)).toEqual(['left', 'right']);
+
+        // No authored colour → the pre-addendum-5 default: both sides staffed, no twin at all.
+        const plain = buildGeneratedOption({
+            family: 'cartesian',
+            series: [
+                { name: 'A', data: [[1, 2]] },
+                { name: 'B', data: [[1, 3]] },
+            ],
+            meta: [{ name: 'A' }, { name: 'B', yAxisIndex: 1 }],
+            p: { ...P, yAxes: [{}, { position: 'right' }], xAxis: { splitLine: true } },
+        });
+        const plainAxes = plain.yAxis as unknown as Record<string, unknown>[];
+        expect(plainAxes).toHaveLength(2);
+        expect(plainAxes.some(isBorderAxis)).toBe(false);
+    });
+
+    it("echarts' own extent-edge splitlines are OFF on both axes — the edges belong to the twins and the axis lines (addendum 5)", () => {
+        // showMinLine/showMaxLine default ON in echarts (1px): half-cut at the canvas-flush edge,
+        // a faint smudge under the real axis line at interior edges. The GUI owns the brace — a
+        // raw override cannot re-enable the stray defaults.
+        const option = buildGeneratedOption({
+            family: 'cartesian',
+            series: [{ name: 'A', data: [[1, 2]] }],
+            meta: [{ name: 'A' }],
+            p: PG,
+        });
+        expect((option.xAxis as Record<string, unknown>).splitLine).toMatchObject({
+            showMinLine: false,
+            showMaxLine: false,
+        });
+        expect((option.yAxis as unknown as Record<string, unknown>[])[0].splitLine).toMatchObject({
+            showMinLine: false,
+            showMaxLine: false,
+        });
+        // grid OFF carries the brace too — no switch state may resurrect the edge splitlines
+        const off = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
+        expect((off.xAxis as Record<string, unknown>).splitLine).toMatchObject({
+            showMinLine: false,
+            showMaxLine: false,
         });
     });
 
@@ -2723,6 +2849,17 @@ describe('buildGeneratedOption — Plotkanten-Vertrag / border axes (ADR-0070)',
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         expect(bare.xAxis).toMatchObject({ type: 'time' });
         expect((bare.xAxis as Record<string, unknown>).position).toBeUndefined();
+
+        // The bottom twin follows the authored grid colour too (addendum 5 — one edge-line rule
+        // for every twin); the default path above keeps the divider.
+        const coloured = buildGeneratedOption({
+            family: 'cartesian',
+            series: [],
+            meta: [],
+            p: { ...P, xAxis: { position: 'top', splitLine: true, gridColor: '#3ec429' } },
+        });
+        const xc = coloured.xAxis as unknown as Record<string, unknown>[];
+        expect(xc[1].axisLine).toMatchObject({ lineStyle: { color: '#3ec429', width: 2 } });
     });
 
     it('the bottom twin mirrors the category shape for bar buckets', () => {
