@@ -35,6 +35,7 @@ import {
     jsonBindingView,
     remapMarkAxisIndices,
     sameFormatSurvivor,
+    syncSlotMemory,
 } from './axisLayout';
 import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 
@@ -832,6 +833,80 @@ describe('Achsen-Platz — the per-side depth rank (ADR-0079 + addendum: place =
         expect(out!.map(a => a.id)).toEqual(['a', 'x']);
         expect(out![0]).toMatchObject({ id: 'a', name: 'A', color: '#f00', position: 'right', offset: 0 });
         expect(out![1]).toMatchObject({ id: 'x', name: 'X', splitLine: true, position: 'right', offset: 80 });
+    });
+
+    it('Platz-Gedächtnis (addendum): a flip onto an EMPTY side takes its remembered value (the user report)', () => {
+        // Two axes left (the inner one hand-tuned to 20); the right side is vacant but REMEMBERS
+        // place 1 = 5 — the flipping axis must render at 5, not the raster 0.
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 20, name: 'In' },
+            { position: 'left', offset: 80, name: 'Out' },
+        ];
+        const out = insertAxisAtPlace(axes, 0, 'right', { right: [5] });
+        expect(out).toBeDefined();
+        expect(out![0]).toMatchObject({ position: 'right', offset: 5 }); // the remembered value
+        expect(out![1]).toMatchObject({ position: 'left', offset: 20 }); // source side closes around
+    });
+
+    it('Platz-Gedächtnis (addendum): the remembered TAIL supplements places beyond the live occupancy', () => {
+        // Right holds [0] live; its place 2 remembers 165. C (left place 3) flips right and
+        // CLAMPS to place 2 → the remembered tail 165, X undisplaced. A second flip (B onto
+        // place 2) displaces C onto the NEVER-seen place 3 → the raster default.
+        const axes: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0, name: 'A' },
+            { position: 'left', offset: 80, name: 'B' },
+            { position: 'left', offset: 160, name: 'C' },
+            { position: 'right', offset: 0, name: 'X' },
+        ];
+        const once = insertAxisAtPlace(axes, 2, 'right', { right: [0, 165] });
+        expect(once).toBeDefined();
+        expect(once![2]).toMatchObject({ position: 'right', offset: 165 }); // remembered tail
+        expect(once![3]).toMatchObject({ position: 'right', offset: 0 }); // X keeps place 1
+        const twice = insertAxisAtPlace(once!, 1, 'right', { right: [0, 165] });
+        expect(twice).toBeDefined();
+        expect(twice![1]).toMatchObject({ position: 'right', offset: 165 }); // B takes place 2
+        expect(twice![2]).toMatchObject({ position: 'right', offset: 160 }); // C displaced → raster 2×80
+    });
+
+    it('syncSlotMemory: the live place values overlay the remembered — vacated places keep their last', () => {
+        const before: EchartsAxisConfig[] = [
+            { position: 'left', offset: 0 },
+            { position: 'left', offset: 100 },
+            { position: 'right', offset: 5 },
+        ];
+        const mem = syncSlotMemory(before, undefined);
+        expect(mem).toEqual({ left: [0, 100], right: [5] });
+        // The middle axis leaves (a delete): its place KEEPS 100 in the memory — the next
+        // arrival behind the live end finds it instead of the raster.
+        const after: EchartsAxisConfig[] = [before[0], before[2]];
+        const next = syncSlotMemory(after, mem);
+        expect(next).toEqual({ left: [0, 100], right: [5] });
+        expect(syncSlotMemory(after, next)).toBe(next); // reference-stable when nothing moves
+        // An occupied place UPDATES its value (the Versatz field): place 1 left → 12.
+        const tuned: EchartsAxisConfig[] = [{ position: 'left', offset: 12 }, before[2]];
+        expect(syncSlotMemory(tuned, next)).toEqual({ left: [12, 100], right: [5] });
+        // Nothing live and nothing remembered → undefined: a no-op yAxes patch on a fresh
+        // state must not materialize an empty object (it would flip `hasChanges`).
+        expect(syncSlotMemory([], undefined)).toBeUndefined();
+    });
+
+    it('balanceAxes with Platz-Gedächtnis: slot offsets come from the remembered values, else the raster', () => {
+        const yAxes: EchartsAxisConfig[] = [{}, {}, {}];
+        const series = [{ yAxisIndex: 0 }, { yAxisIndex: 1 }, { yAxisIndex: 2 }];
+        // Interleaving: slot 0 left/0, slot 1 right/0, slot 2 left level 1 — the memory hands
+        // right place 1 the remembered 7 and left place 2 the remembered 100.
+        const out = balanceAxes(yAxes, series, { left: [0, 100], right: [7] });
+        expect(out.map(a => [a.position, a.offset])).toEqual([
+            ['left', 0],
+            ['right', 7], // remembered, not the raster 0
+            ['left', 100], // remembered, not the raster 80
+        ]);
+        // Without memory: the plain raster (the pre-addendum behaviour).
+        expect(balanceAxes(yAxes, series).map(a => [a.position, a.offset])).toEqual([
+            ['left', 0],
+            ['right', 0],
+            ['left', 80],
+        ]);
     });
 });
 

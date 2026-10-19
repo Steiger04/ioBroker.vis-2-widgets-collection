@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useEditorHistory, useEditorHistoryKeys } from '../../lib/useEditorHistory';
-import { jsonAxisDeathName } from './axisLayout';
+import { jsonAxisDeathName, syncSlotMemory } from './axisLayout';
 import {
     DEFAULT_EDITOR_STATE,
     loadEditorState,
@@ -77,9 +77,20 @@ export function useEchartsEditorLifecycle(open: boolean, data: WidgetData): Echa
 
     // Patches coalesce by their key set: consecutive edits touching the same keys within the
     // window replace the present snapshot (typing a field / dragging a slider = one undo step).
+    // A patch carrying `yAxes` also syncs the Platz-Gedächtnis (ADR-0079 place-memory addendum):
+    // the live place values overlay the remembered ones in the SAME snapshot/undo step, so a
+    // vacated place keeps its last value for the next arrival. (The self-heal effect commits
+    // its id-only yAxes patches via `history.set` directly — ids never move offsets, so the
+    // sync would be a no-op there and the bypass is deliberate.)
     const set = useCallback(
         (patch: EditorPatch) => {
-            commit(s => ({ ...s, ...patch }), Object.keys(patch).sort().join(','));
+            commit(s => {
+                const next = { ...s, ...patch };
+                if (patch.yAxes) {
+                    next.axisSlotMemory = syncSlotMemory(next.yAxes, s.axisSlotMemory);
+                }
+                return next;
+            }, Object.keys(patch).sort().join(','));
         },
         [commit],
     );

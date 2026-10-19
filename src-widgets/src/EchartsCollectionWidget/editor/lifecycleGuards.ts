@@ -78,7 +78,14 @@ export const reconcileJsonAxesStep = (
         overlay: jsonSeriesStyle,
         markLines,
         diedIndices,
-    } = reconcileJsonAxes(visibleNames, state.jsonSeriesStyle, state.yAxes, state.jsonHidden, state.markLines);
+    } = reconcileJsonAxes(
+        visibleNames,
+        state.jsonSeriesStyle,
+        state.yAxes,
+        state.jsonHidden,
+        state.markLines,
+        state.axisSlotMemory,
+    );
     if (
         JSON.stringify(yAxes) === JSON.stringify(state.yAxes) &&
         JSON.stringify(jsonSeriesStyle) === JSON.stringify(state.jsonSeriesStyle) &&

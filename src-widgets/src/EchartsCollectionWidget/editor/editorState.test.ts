@@ -60,6 +60,23 @@ describe('editorState — Apply round-trip (save → load)', () => {
         expect(reloaded.yAxes[1]).toMatchObject({ position: 'right', color: '#abc' });
     });
 
+    it('axisSlotMemory survives; an empty/fresh state round-trips to undefined (ADR-0079 addendum 2)', () => {
+        const state: EditorState = {
+            ...baseState(),
+            jsonSeriesStyle: { A: { yAxisIndex: 0 }, B: { yAxisIndex: 1 } },
+            yAxes: [
+                { id: 'a1', position: 'left', offset: 0 },
+                { id: 'a2', position: 'left', offset: 100 },
+            ],
+            axisSlotMemory: { left: [0, 100], right: [5] },
+        };
+        const reloaded = loadEditorState(saveEditorState(state, 2));
+        expect(reloaded.axisSlotMemory).toEqual({ left: [0, 100], right: [5] });
+        // Fresh state: the always-emitted {} blob decodes to NO memory (the plain raster).
+        const fresh = loadEditorState(saveEditorState(baseState(), 0));
+        expect(fresh.axisSlotMemory).toBeUndefined();
+    });
+
     it('markLines survive (legacy dashed migrates to lineStyle, ADR-0061; the retired one-text label drops, ADR-0081)', () => {
         const state = {
             ...baseState(),

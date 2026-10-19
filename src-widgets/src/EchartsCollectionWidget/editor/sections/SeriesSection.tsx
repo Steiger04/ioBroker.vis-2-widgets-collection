@@ -66,6 +66,7 @@ export type SeriesSlice = Pick<
     | 'series'
     | 'yAxes'
     | 'markLines'
+    | 'axisSlotMemory'
     | 'pie'
     | 'jsonOid'
     | 'jsonKind'
@@ -210,7 +211,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             set({ series: next });
             return;
         }
-        const r = axesFollowBinders(series, next, state.yAxes, state.markLines);
+        const r = axesFollowBinders(series, next, state.yAxes, state.markLines, undefined, state.axisSlotMemory);
         set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
         reportDeathsFor(r.diedIndices);
     };
@@ -224,7 +225,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         const yAxesNow = append ? [...state.yAxes, axisLayout(newYi)] : state.yAxes;
         const from = materializedAxisIndex(series[i]);
         const next = series.map((s, idx) => (idx === i ? { ...s, yAxisIndex: newYi } : s));
-        const r = axesFollowBinders(series, next, yAxesNow, state.markLines, { from, to: newYi });
+        const r = axesFollowBinders(series, next, yAxesNow, state.markLines, { from, to: newYi }, state.axisSlotMemory);
         set({ series: r.binders, yAxes: r.yAxes, markLines: r.markLines });
         reportDeathsFor(r.diedIndices);
     };
@@ -254,7 +255,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         const next = [...series, { id: nextStableId('sr-'), oid, name: '', yAxisIndex: isCartesian ? axIdx : 0 }];
         const patch: Partial<SeriesSlice> = { series: next };
         if (isCartesian) {
-            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next);
+            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory);
         }
         set(patch);
     };
@@ -277,11 +278,11 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 copy.yAxisIndex = axIdx;
                 set({
                     series: next,
-                    yAxes: balanceAxes([...state.yAxes, axisLayout(axIdx)], next),
+                    yAxes: balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory),
                 });
             } else {
                 copy.yAxisIndex = series[i].yAxisIndex;
-                set({ series: next, yAxes: balanceAxes(state.yAxes, next) });
+                set({ series: next, yAxes: balanceAxes(state.yAxes, next, state.axisSlotMemory) });
             }
         } else {
             set({ series: next });
@@ -302,7 +303,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
         ];
         const patch: Partial<SeriesSlice> = { series: next };
         if (isCartesian) {
-            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next);
+            patch.yAxes = balanceAxes([...state.yAxes, axisLayout(axIdx)], next, state.axisSlotMemory);
         }
         set(patch);
     };
@@ -334,6 +335,8 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             boundBindings(state.jsonSeriesStyle, hidden),
             state.yAxes,
             state.markLines,
+            undefined,
+            state.axisSlotMemory,
         );
         set({
             jsonHidden: hidden,
@@ -358,6 +361,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
                 state.jsonHidden,
                 name,
                 state.markLines,
+                state.axisSlotMemory,
             ),
         );
     };
@@ -381,6 +385,7 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             yAxesNow,
             state.markLines,
             typeof cur === 'number' ? { from: cur, to: newYi } : undefined,
+            state.axisSlotMemory,
         );
         set({
             jsonSeriesStyle: r.diedIndices.length ? reindexJsonOverlay(overlay, r.reindex) : overlay,

@@ -80,6 +80,7 @@ export type AxesZoomSlice = Pick<
     | 'series'
     | 'yAxes'
     | 'xAxis'
+    | 'axisSlotMemory'
     | 'markLines'
     | 'dataZoomSlider'
     | 'dataZoomInside'
@@ -210,7 +211,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         // fine-justure — no re-place either.
         const target = patch.position;
         if (target !== undefined && target !== displayPosition(axes[i], i)) {
-            const placed = insertAxisAtPlace(axes, i, target);
+            const placed = insertAxisAtPlace(axes, i, target, state.axisSlotMemory);
             if (placed) {
                 // The patch's OTHER keys ride along on the flipped axis — the merge contract is
                 // the pre-ADR-0079 one (single-key patches today, but nothing gets dropped).
@@ -242,6 +243,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                 state.yAxes,
                 i,
                 state.markLines,
+                state.axisSlotMemory,
             );
             if (deletePatch) {
                 // Hiding EVERY visible payload name bound to the axis frees it — ALL binders, not
@@ -269,6 +271,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                     yAxes: balanceAxes(
                         axes.filter((_a, idx) => idx !== i),
                         balanceSight(reindexed, state.jsonHidden),
+                        state.axisSlotMemory,
                     ),
                     jsonSeriesStyle: reindexed,
                     markLines: remapMarkAxisIndices(state.markLines, i, Math.max(0, i - 1)),
@@ -315,7 +318,7 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         // rebind target (their axis' series land there), higher anchors shift down — without
         // the remap every marking above the hole silently pointed at the SHIFTED axis.
         set({
-            yAxes: balanceAxes(patched, rebound),
+            yAxes: balanceAxes(patched, rebound, state.axisSlotMemory),
             series: rebound,
             markLines: remapMarkAxisIndices(state.markLines, i, target),
         });

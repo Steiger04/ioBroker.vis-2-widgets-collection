@@ -27,7 +27,7 @@ import {
     normalizeLegendPos,
 } from '../presentation';
 import { withStableIds } from './stableId';
-import { boundJsonView, dropUnboundAxes, reindexJsonOverlay } from './axisLayout';
+import { boundJsonView, dropUnboundAxes, reindexJsonOverlay, type AxisSlotMemory } from './axisLayout';
 import { parseFontStyle, parseFontWeight } from './fontOptions';
 import { healLoadLevels, healSaveLevels } from './rawLevels';
 import { FRAME_STYLES } from '../frameStyle';
@@ -189,6 +189,14 @@ export interface EditorState {
      * render side-by-side, re-arranged by the auto-balance on every structural event.
      */
     yAxes: EchartsAxisConfig[];
+    /**
+     * The per-side Platz-Gedächtnis (ADR-0079 place-memory addendum): each side's places keep
+     * their last pixel values even while vacant; arrivals (flip, structural balance) take the
+     * remembered value of their place instead of the raster default. Synced by the editor's
+     * central `set` after every yAxes patch; rides the `axisSlotMemory` rxData blob. Absent on
+     * legacy widgets = no memory (the plain raster — the pre-addendum behaviour).
+     */
+    axisSlotMemory?: AxisSlotMemory;
     /** The single cartesian X-axis (ADR-0035) — flat config; empty = plain time axis. */
     xAxis: EchartsXAxisConfig;
     dataZoomSlider: boolean;
@@ -325,6 +333,27 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
 const numOr = (v: unknown, dft: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : dft);
 const strOr = (v: unknown, dft = ''): string => (typeof v === 'string' ? v : dft);
 const boolOr = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
+
+/**
+ * Decode the Platz-Gedächtnis blob (ADR-0079 place-memory addendum): each side's value list
+ * must be finite numbers — anything else drops that side; an empty/absent/malformed blob is no
+ * memory at all (legacy widgets render with the plain raster until their first gesture).
+ */
+const decodeSlotMemory = (raw: string): AxisSlotMemory | undefined => {
+    if (!raw) {
+        return undefined;
+    }
+    try {
+        const parsed = JSON.parse(raw) as { left?: unknown; right?: unknown };
+        const side = (v: unknown): number[] | undefined =>
+            Array.isArray(v) && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? (v as number[]) : undefined;
+        const left = side(parsed.left);
+        const right = side(parsed.right);
+        return left || right ? { ...(left ? { left } : {}), ...(right ? { right } : {}) } : undefined;
+    } catch {
+        return undefined;
+    }
+};
 
 /**
  * Normalize a possibly-legacy area value into the {@link EchartsAreaFill} model (ADR-0008 r4).
@@ -537,6 +566,11 @@ export const loadEditorState = (data: Record<string, unknown>): EditorState => {
         animationEasing: strOr(data.animationEasing, ''),
         bgColor: strOr(data.bgColor, 'transparent'),
         yAxes,
+        // Platz-Gedächtnis (ADR-0079 place-memory addendum): the `axisSlotMemory` blob — absent
+        // on legacy widgets (no memory, the plain raster). Validated loosely: a side's value
+        // list must be finite numbers, anything else drops that side (defensive, hand-edited
+        // rxData).
+        axisSlotMemory: decodeSlotMemory(decodeBlob(data.axisSlotMemory as string)),
         // X-axis (ADR-0035): decoded `xAxis` blob wins; a legacy widget's `xSplit` boolean is
         // synthesised into `splitLine` (shared resolver — same rule as the live body). The
         // activations heal in the registry's load pass (ADR-0047).
@@ -718,6 +752,9 @@ export const saveEditorState = (state: EditorState, previousCount = 0): Record<s
         jsonSeriesStyle: encodeBlob(JSON.stringify(jsonSeriesStyle)),
         jsonHidden: encodeBlob(JSON.stringify(state.jsonHidden)),
         yAxes: encodeBlob(JSON.stringify(yAxesHealed)),
+        // Always emitted (the vis-2 patch contract: a missing key would keep a stale memory) —
+        // the empty object decodes to "no memory", the honest fresh-state value.
+        axisSlotMemory: encodeBlob(JSON.stringify(state.axisSlotMemory ?? {})),
         xAxis: encodeBlob(JSON.stringify(xAxisDraft)),
     };
     const max = Math.max(seriesCount, previousCount);

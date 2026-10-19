@@ -28,7 +28,7 @@ export const AXIS_STAGGER_STAGE = 80;
  * (`even → left`, `odd → right`, `offset = ⌊i/2⌋ × stage`). Geometry only — safe to re-apply on
  * re-arrange without clobbering the rest of an axis config (id/name/colour/min/max/…).
  */
-export const axisPosition = (i: number): Pick<EchartsAxisConfig, 'position' | 'offset'> => ({
+export const axisPosition = (i: number): { position: 'left' | 'right'; offset: number } => ({
     position: i % 2 ? 'right' : 'left',
     offset: Math.floor(i / 2) * AXIS_STAGGER_STAGE,
 });
@@ -101,8 +101,10 @@ export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boo
 /**
  * Auto-Balance (ADR-0067): re-arrange every axis after a structural event. The axes — in array
  * order — get the standard interleaving ({@link axisPosition} slot by slot: even → left,
- * odd → right) densely on the 80-px raster. Position AND offset are re-assigned; every other
- * field (id, name, raw, splitLine, …) survives. A manual position/offset is fine-justure until
+ * odd → right); the POSITION is always re-assigned, the OFFSET from the Platz-Gedächtnis when
+ * one is passed (ADR-0079 addendum 2: `memory[side][level]`), else — and for every legacy
+ * caller — densely on the 80-px raster. Every other field (id, name, raw, splitLine, …)
+ * survives. A manual position/offset is fine-justure until
  * the next structural event — ADR-0028's idiom extended to the position; the pack form (both
  * sides repacked independently, position preserved) is pensioned with it.
  *
@@ -115,10 +117,24 @@ export const isOneToOneBound = (series: readonly { yAxisIndex?: number }[]): boo
 export const balanceAxes = (
     yAxes: readonly EchartsAxisConfig[],
     series: readonly { yAxisIndex?: number }[],
+    /**
+     * The Platz-Gedächtnis (ADR-0079 place-memory addendum): a slot's OFFSET comes from the
+     * remembered value of its side+level, falling to the raster default. Optional — absent is
+     * the plain raster (the pre-addendum behaviour, kept for every legacy caller/test).
+     */
+    memory?: AxisSlotMemory,
 ): EchartsAxisConfig[] => {
     const bound = boundAxisIndices(series);
     let slot = 0;
-    return yAxes.map((a, i) => (bound.has(i) ? { ...a, ...axisPosition(slot++) } : a));
+    return yAxes.map((a, i) => {
+        if (!bound.has(i)) {
+            return a;
+        }
+        const pos = axisPosition(slot++);
+        const level = Math.floor((slot - 1) / 2);
+        const offset = memory?.[pos.position]?.[level] ?? pos.offset;
+        return { ...a, ...pos, offset };
+    });
 };
 
 /**
@@ -174,6 +190,60 @@ export const axisPlace = (axes: readonly EchartsAxisConfig[], i: number): AxisPl
  */
 const sideSlotValues = (axes: readonly EchartsAxisConfig[], side: 'left' | 'right'): number[] =>
     sideOrder(axes, side).map(idx => axes[idx].offset ?? 0);
+
+/**
+ * The per-side **Platz-Gedächtnis** (ADR-0079 place-memory addendum): the remembered value of
+ * each side's places, OUTLIVING their occupants — a place that once held an axis answers with
+ * its last value even while vacant ("Plätze vergessen nichts"). Consulted wherever an axis
+ * TAKES a place: the flip's target values (supplementing the live occupancy), and the
+ * structural balance's slot offsets (interleaving unchanged — only the VALUES come from the
+ * memory, else the raster default). Never consulted by the within-side stepper (its places
+ * are all live).
+ */
+export interface AxisSlotMemory {
+    left?: number[];
+    right?: number[];
+}
+
+const sameNumbers = (a: readonly number[], b: readonly number[]): boolean =>
+    a.length === b.length && a.every((v, i) => v === b[i]);
+
+/**
+ * The place-memory merge rule (ADR-0079 addendum 2, ONE body): the live values lead, the
+ * remembered ones supplement the places BEYOND the live occupancy — "Plätze vergessen nichts"
+ * holds for every consumer (the sync's overlay and the flip's target values alike).
+ */
+const supplementTail = (live: readonly number[], remembered: readonly number[]): number[] => [
+    ...live,
+    ...remembered.slice(live.length),
+];
+
+/**
+ * The Platz-Gedächtnis sync (ADR-0079 place-memory addendum): after every axes change, each
+ * side's LIVE place values overlay the remembered ones — an occupied place updates its value,
+ * a vacated one KEEPS its last. The sync runs in the editor's central `set` (one snapshot, one
+ * undo step together with the triggering patch); pure and reference-stable when nothing moved.
+ */
+export const syncSlotMemory = (
+    axes: readonly EchartsAxisConfig[],
+    prev: AxisSlotMemory | undefined,
+): AxisSlotMemory | undefined => {
+    let changed = false;
+    const next: AxisSlotMemory = {};
+    for (const side of ['left', 'right'] as const) {
+        const live = sideSlotValues(axes, side);
+        const remembered = prev?.[side] ?? [];
+        const merged = supplementTail(live, remembered);
+        next[side] = merged;
+        changed ||= !sameNumbers(merged, remembered);
+    }
+    if (!changed && prev) {
+        return prev; // reference-stable — an unrelated/no-op patch never churns the state
+    }
+    // Both sides empty AND nothing remembered → undefined (a no-op yAxes patch on a fresh
+    // state must not materialize an empty object — it would flip `hasChanges`).
+    return next.left?.length || next.right?.length ? next : undefined;
+};
 
 /**
  * Write a side's NEW depth order as offsets: every slot keeps its captured VALUE whichever
@@ -243,6 +313,13 @@ export const insertAxisAtPlace = (
     axes: readonly EchartsAxisConfig[],
     i: number,
     position: 'left' | 'right',
+    /**
+     * The Platz-Gedächtnis (ADR-0079 place-memory addendum): the TARGET side's values continue
+     * past its live occupancy with the remembered ones — an arrival on a vacant-or-tail place
+     * takes its last value instead of the raster (the user report: a flip onto a side that
+     * once held a 5px axis renders at 5px). Optional — absent is the plain live+raster rule.
+     */
+    memory?: AxisSlotMemory,
 ): EchartsAxisConfig[] | undefined => {
     const sight = axisPlace(axes, i);
     if (!sight || displayPosition(axes[i], i) === position) {
@@ -250,9 +327,12 @@ export const insertAxisAtPlace = (
     }
     const from = displayPosition(axes[i], i);
     // Both sides' place values freeze BEFORE the gesture (the source closes onto its earlier
-    // values, the target inserts onto its own — a new target slot falls to the raster).
+    // values, the target inserts onto its own — the remembered tail supplements places beyond
+    // the target's live occupancy, a never-seen place falls to the raster).
     const sourceValues = sideSlotValues(axes, from);
-    const targetValues = sideSlotValues(axes, position);
+    const liveTarget = sideSlotValues(axes, position);
+    const remembered = memory?.[position] ?? [];
+    const targetValues = supplementTail(liveTarget, remembered);
     const sourceOrder = sideOrder(axes, from).filter(idx => idx !== i);
     const targetOrder = sideOrder(axes, position);
     targetOrder.splice(Math.min(sight.place - 1, targetOrder.length), 0, i);
@@ -538,6 +618,8 @@ export const axesFollowBinders = <S extends { yAxisIndex?: number }, M extends {
     yAxes: readonly EchartsAxisConfig[],
     marks: readonly M[],
     rebind?: { from: number; to: number },
+    /** The Platz-Gedächtnis feeding the internal balance (ADR-0079 place-memory addendum). */
+    memory?: AxisSlotMemory,
 ): {
     yAxes: EchartsAxisConfig[];
     binders: S[];
@@ -547,7 +629,7 @@ export const axesFollowBinders = <S extends { yAxisIndex?: number }, M extends {
 } => {
     const owned = ownerPatch(before, after, yAxes) ?? yAxes;
     const death = dropUnboundAxes(after, owned, marks, rebind);
-    return { ...death, yAxes: balanceAxes(death.yAxes, death.binders) };
+    return { ...death, yAxes: balanceAxes(death.yAxes, death.binders, memory) };
 };
 
 /**
@@ -722,6 +804,8 @@ export const reconcileJsonAxes = <M extends { yAxisIndex?: number; name?: string
     yAxes: readonly EchartsAxisConfig[],
     hidden: readonly string[] = [],
     marks: readonly K[] = [],
+    /** The Platz-Gedächtnis feeding the internal balance (ADR-0079 place-memory addendum). */
+    memory?: AxisSlotMemory,
 ): { yAxes: EchartsAxisConfig[]; overlay: Record<string, M>; markLines?: K[]; diedIndices: number[] } => {
     const next: Record<string, M> = { ...overlay };
     let axes = yAxes.slice();
@@ -750,7 +834,7 @@ export const reconcileJsonAxes = <M extends { yAxisIndex?: number; name?: string
     //    already settled its axis; the clear in step 2 is bookkeeping only).
     const vanished = Object.keys(overlay).filter(n => !visibleNames.includes(n) && !hidden.includes(n));
     const before = boundJsonView([...visibleNames, ...vanished], overlay, hidden);
-    const r = axesFollowBinders(before, boundJsonView(visibleNames, next, []), axes, marks);
+    const r = axesFollowBinders(before, boundJsonView(visibleNames, next, []), axes, marks, undefined, memory);
     const reindexed = r.diedIndices.length ? reindexJsonOverlay(next, r.reindex) : next;
     return {
         yAxes: r.yAxes,
@@ -782,6 +866,8 @@ export const jsonBoundAxisDeletePatch = <
     yAxes: readonly EchartsAxisConfig[],
     i: number,
     marks: readonly K[] = [],
+    /** The Platz-Gedächtnis feeding the internal balance (ADR-0079 place-memory addendum). */
+    memory?: AxisSlotMemory,
 ): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M>; markLines?: K[] } | null => {
     const boundVisible = visibleNames.filter(n => overlay[n]?.yAxisIndex === i && !hidden.includes(n));
     if (!boundVisible.length) {
@@ -793,6 +879,8 @@ export const jsonBoundAxisDeletePatch = <
         boundJsonView(visibleNames, overlay, jsonHidden),
         yAxes,
         marks,
+        undefined,
+        memory,
     );
     return {
         jsonHidden,
@@ -818,6 +906,8 @@ export const jsonShowPatch = <M extends { yAxisIndex?: number; name?: string }, 
     hidden: readonly string[],
     name: string,
     marks: readonly K[] = [],
+    /** The Platz-Gedächtnis feeding the internal reconcile (ADR-0079 place-memory addendum). */
+    memory?: AxisSlotMemory,
 ): { jsonHidden: string[]; yAxes: EchartsAxisConfig[]; jsonSeriesStyle: Record<string, M>; markLines?: K[] } => {
     // `nextHidden` — the deny-list WITHOUT the shown name (NOT the set of shown names; the old
     // `shown` name invited exactly that misreading of the reconcile args below).
@@ -832,6 +922,7 @@ export const jsonShowPatch = <M extends { yAxisIndex?: number; name?: string }, 
         yAxes,
         nextHidden,
         marks,
+        memory,
     );
     return { jsonHidden: nextHidden, yAxes: reconciled, jsonSeriesStyle: next, ...(markLines ? { markLines } : {}) };
 };
