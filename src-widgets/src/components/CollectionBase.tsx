@@ -21,6 +21,7 @@ import { type StyleData } from '../hooks/useData/types';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import { gradientColor } from '../lib/helper/gradientColor';
 import { cleanSx } from '../lib/helper/sxUtils';
+import type { JSX } from 'react';
 
 /**
  * Props for {@link module:components/CollectionBase.default}.

@@ -12,6 +12,7 @@
  * Uses ThemeProvider with the vis-2 theme from `props.context.theme`.
  */
 
+import type { Connection } from '@iobroker/gui-components';
 import {
     Alert,
     Box,
@@ -52,9 +53,7 @@ interface JsonTableColumnEditorModalProps {
     /** Current widget data (for OID access) */
     data: WidgetData;
     /** ioBroker socket for state queries */
-    socket: {
-        getState: (id: string) => Promise<{ val?: unknown } | null>;
-    };
+    socket: Pick<Connection, 'getState'>;
 }
 
 /**

@@ -416,9 +416,7 @@ function ColumnList({
                                         onClick={e => handleToggleVisibility(e, col.path)}
                                         size="small"
                                         sx={{ p: 0.5 }}
-                                        inputProps={{
-                                            'aria-label': `${Generic.t('json_table_visible')}: ${col.headerName || col.path}`,
-                                        }}
+                                        slotProps={{ input: { 'aria-label': `${Generic.t('json_table_visible')}: ${col.headerName || col.path}` } }}
                                     />
                                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                                         <Typography

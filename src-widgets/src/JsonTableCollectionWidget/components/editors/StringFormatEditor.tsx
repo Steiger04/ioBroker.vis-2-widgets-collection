@@ -178,7 +178,7 @@ function StringFormatEditor({ format, onChange }: StringFormatEditorProps): Reac
             <Stack
                 direction="row"
                 spacing={1}
-                flexWrap="wrap"
+                sx={{ flexWrap: 'wrap' }}
             >
                 <FormControlLabel
                     control={
@@ -196,7 +196,7 @@ function StringFormatEditor({ format, onChange }: StringFormatEditorProps): Reac
                     label={
                         <Typography
                             variant="body2"
-                            fontWeight="bold"
+                            sx={{ fontWeight: 'bold' }}
                         >
                             {Generic.t('json_table_string_font_weight')}
                         </Typography>
@@ -218,7 +218,7 @@ function StringFormatEditor({ format, onChange }: StringFormatEditorProps): Reac
                     label={
                         <Typography
                             variant="body2"
-                            fontStyle="italic"
+                            sx={{ fontStyle: 'italic' }}
                         >
                             {Generic.t('json_table_string_font_style')}
                         </Typography>

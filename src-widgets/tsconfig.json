@@ -19,7 +19,7 @@
         "paths": {
             "src/*": ["./src/*"]
         },
-        "types": ["@iobroker/types"]
+        "types": ["@iobroker/types", "vite/client"]
     },
     "include": ["src/**/*"],
     "exclude": [],

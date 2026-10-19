@@ -13,6 +13,7 @@ import { Box } from '@mui/material';
 
 import type { VisRxWidgetState } from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
+import type { JSX } from 'react';
 
 /**
  * Base class for all Collection widgets.

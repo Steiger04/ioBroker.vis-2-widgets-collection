@@ -7,6 +7,7 @@
 import CollectionProvider from './CollectionProvider';
 
 import type { CollectionContextProps, AllCollectionContextProps } from '../types';
+import type { JSX } from 'react';
 
 /**
  * Wraps a widget element in a {@link module:components/CollectionProvider.default}.

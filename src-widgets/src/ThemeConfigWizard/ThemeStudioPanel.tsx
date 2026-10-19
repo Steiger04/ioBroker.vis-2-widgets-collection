@@ -39,7 +39,7 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type React from 'react';
-import type { LegacyConnection } from '@iobroker/adapter-react-v5';
+import type { Connection } from '@iobroker/gui-components';
 import type { Theme } from '@mui/material/styles';
 
 import Generic from '../Generic';
@@ -62,7 +62,7 @@ interface ThemeStudioPanelProps {
     /** Callback when the panel should close (after draft handling is done). */
     onClose: () => void;
     /** ioBroker socket connection for reading/writing the theme state. */
-    socket: LegacyConnection;
+    socket: Connection;
     /** vis-2 host dark/light mode used to theme the panel chrome. */
     themeType: 'dark' | 'light';
 }
@@ -278,7 +278,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                 >
                     <Stack
                         direction="row"
-                        alignItems="center"
+                        sx={{ alignItems: 'center' }}
                         spacing={0.5}
                     >
                         <DragIndicatorIcon
@@ -313,7 +313,7 @@ function ThemeStudioPanel({ open, onClose, socket, themeType }: ThemeStudioPanel
                                 <Stack
                                     direction="row"
                                     spacing={1}
-                                    flexWrap="wrap"
+                                    sx={{ flexWrap: 'wrap' }}
                                     useFlexGap
                                 >
                                     {THEME_PRESETS.map(preset => {

@@ -464,6 +464,7 @@ const JsonTableCollection: FC = () => {
     // Typography sx for header text - ensures color and fontSize are applied correctly
     const headerTextSx = useMemo(
         () => ({
+            fontWeight: 'medium',
             ...(headerTextColor && { color: headerTextColor }),
             ...(headerFontSize && { fontSize: `${headerFontSize}px` }),
         }),
@@ -758,8 +759,7 @@ const JsonTableCollection: FC = () => {
                                                                         <Typography
                                                                             variant="body2"
                                                                             component="span"
-                                                                            fontWeight="medium"
-                                                                            noWrap
+                                                                                                                                                        noWrap
                                                                             sx={headerTextSx}
                                                                         >
                                                                             {flexRender(
@@ -772,8 +772,7 @@ const JsonTableCollection: FC = () => {
                                                                     <Typography
                                                                         variant="body2"
                                                                         component="span"
-                                                                        fontWeight="medium"
-                                                                        noWrap
+                                                                                                                                                noWrap
                                                                         sx={headerTextSx}
                                                                     >
                                                                         {flexRender(

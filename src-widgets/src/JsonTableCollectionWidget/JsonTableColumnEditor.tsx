@@ -28,6 +28,7 @@ import type {
     VisTheme,
     WidgetData,
 } from '@iobroker/types-vis-2';
+import type { JSX } from 'react';
 
 /**
  * Custom editor component for configuring JSON table columns.

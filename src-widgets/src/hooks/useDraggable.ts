@@ -43,7 +43,7 @@ interface UseDraggableOptions {
 export function useDraggable({ initial }: UseDraggableOptions = {}): {
     position: Position;
     setPosition: (pos: Position) => void;
-    panelRef: React.RefObject<HTMLDivElement>;
+    panelRef: React.RefObject<HTMLDivElement | null>;
     dragHandlers: DragHandleHandlers;
 } {
     const [position, setPosition] = useState<Position>(initial ?? { x: 0, y: 0 });

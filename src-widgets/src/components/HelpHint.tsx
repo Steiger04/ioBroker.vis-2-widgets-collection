@@ -8,7 +8,7 @@
  * layout space is consumed. The tooltip is keyboard-focusable (hover/focus).
  */
 
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { IconButton, Tooltip } from '@mui/material';
 import type React from 'react';
 
