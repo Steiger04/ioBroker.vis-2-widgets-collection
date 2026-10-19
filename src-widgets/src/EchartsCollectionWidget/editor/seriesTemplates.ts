@@ -104,7 +104,9 @@ export interface SeriesTemplate {
 const LABEL_FONT_KEYS = {
     fontStyle: 'normal',
     fontWeight: 'normal',
+    fontFamily: 'sans-serif',
     fontSize: 12,
+    ellipsis: '...',
     backgroundColor: 'transparent',
     borderColor: '#ccc',
     borderWidth: 0,
@@ -116,10 +118,21 @@ const LABEL_FONT_KEYS = {
     textBorderType: 'solid',
     textShadowBlur: 0,
     textShadowColor: 'transparent',
+    textShadowOffsetX: 0,
+    textShadowOffsetY: 0,
     overflow: 'none',
 };
 const NO_SHADOW = { shadowBlur: 0, shadowColor: 'transparent', shadowOffsetX: 0, shadowOffsetY: 0 };
-const ITEM_BORDER = { borderColor: '#fff', borderWidth: 0, borderType: 'solid', ...NO_SHADOW };
+const ITEM_BORDER = {
+    borderColor: '#fff',
+    borderWidth: 0,
+    borderType: 'solid',
+    // zrender stroke defaults (zrender/lib/canvas/graphic.js) — the border IS a stroke.
+    borderCap: 'butt',
+    borderJoin: 'miter',
+    borderMiterLimit: 10,
+    ...NO_SHADOW,
+};
 /** markPoint basis — symbol/symbolSize/label defaults verified against MarkPointModel (DeepWiki). */
 const MARKPOINT = {
     symbol: 'pin',
@@ -171,8 +184,19 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         id: 'line-linestyle',
         category: 'lineStyle',
         label: 'lineStyle',
+        // curveness is the LINE-only lever (curved without smooth — MCP-verified); join/miterLimit
+        // complete the zrender stroke set (zrender/lib/canvas/graphic.js).
         json: JSON.stringify({
-            lineStyle: { color: 'inherit', opacity: 1, cap: 'butt', dashOffset: 0, ...NO_SHADOW },
+            lineStyle: {
+                color: 'inherit',
+                opacity: 1,
+                cap: 'butt',
+                join: 'miter',
+                miterLimit: 10,
+                curveness: 0,
+                dashOffset: 0,
+                ...NO_SHADOW,
+            },
         }),
     },
     {
@@ -221,7 +245,14 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         label: 'symbol',
         // symbolSize/showSymbol are GUI-owned; symbol itself may be any built-in name or an
         // SVG path string ('path://M0,0 L8,0 L4,8 Z') — swap the value to explore.
-        json: JSON.stringify({ symbol: 'circle', symbolRotate: 0, symbolOffset: [0, 0], symbolKeepAspect: false }),
+        // showAllSymbol is the line-only label-interval escape ('auto' default).
+        json: JSON.stringify({
+            symbol: 'circle',
+            symbolRotate: 0,
+            symbolOffset: [0, 0],
+            symbolKeepAspect: false,
+            showAllSymbol: 'auto',
+        }),
     },
     {
         id: 'line-label',
@@ -250,7 +281,17 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         id: 'line-endlabel',
         category: 'label',
         label: 'endLabel',
-        json: JSON.stringify({ endLabel: { show: true, distance: 5, formatter: '{a}', fontSize: 12 } }),
+        json: JSON.stringify({
+            endLabel: {
+                show: true,
+                distance: 5,
+                formatter: '{a}',
+                valueAnimation: true,
+                color: 'inherit',
+                fontSize: 12,
+                fontFamily: 'sans-serif',
+            },
+        }),
     },
     {
         id: 'line-labellayout',
@@ -267,7 +308,14 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         category: 'states',
         label: 'emphasis',
         json: JSON.stringify({
-            emphasis: { focus: 'series', scale: true, lineStyle: { width: 3 }, itemStyle: {}, label: { show: true } },
+            emphasis: {
+                disabled: false,
+                focus: 'series',
+                scale: true,
+                lineStyle: { width: 3 },
+                itemStyle: {},
+                label: { show: true },
+            },
         }),
     },
     {
@@ -283,7 +331,7 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         category: 'states',
         label: 'select',
         json: JSON.stringify({
-            select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } },
+            select: { disabled: true, itemStyle: { borderWidth: 2 }, lineStyle: { width: 2 }, label: { show: true } },
         }),
     },
     {
@@ -397,6 +445,7 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
         label: 'emphasis',
         json: JSON.stringify({
             emphasis: {
+                disabled: false,
                 focus: 'self',
                 itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
                 label: { show: true },
@@ -445,6 +494,7 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
                 borderWidth: 0,
                 borderType: 'solid',
                 borderRadius: 0,
+                opacity: 1,
                 ...NO_SHADOW,
             },
         }),
@@ -563,6 +613,50 @@ const CARTESIAN_SCATTER: SeriesTemplate[] = [
         }),
     },
     {
+        id: 'scatter-labellayout',
+        category: 'labelLayout',
+        label: 'labelLayout',
+        json: JSON.stringify({
+            labelLayout: { hideOverlap: true, moveOverlap: 'shiftX', draggable: false, dx: 0, dy: 0, rotate: 0 },
+        }),
+    },
+    {
+        id: 'scatter-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({ blur: { itemStyle: { opacity: 0.3 }, label: { show: false } } }),
+    },
+    {
+        id: 'scatter-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } } }),
+    },
+    {
+        id: 'scatter-markpoint',
+        category: 'markers',
+        label: 'markPoint',
+        json: JSON.stringify({ markPoint: MARKPOINT }),
+    },
+    {
+        id: 'scatter-markarea',
+        category: 'markers',
+        label: 'markArea',
+        json: JSON.stringify({ markArea: MARKAREA }),
+    },
+    {
+        id: 'scatter-large',
+        category: 'behaviour',
+        label: 'large',
+        json: '{ "large": true, "largeThreshold": 2000 }',
+    },
+    {
+        id: 'scatter-animdelay',
+        category: 'behaviour',
+        label: 'animationDelay',
+        json: '{ "animationDelay": 200 }',
+    },
+    {
         id: 'scatter-markline',
         category: 'markers',
         label: 'markLine',
@@ -592,7 +686,15 @@ const PIE: SeriesTemplate[] = [
         category: 'label',
         label: 'label',
         json: JSON.stringify({
-            label: { position: 'outer', alignTo: 'labelLine', minMargin: 5, ...LABEL_FONT_KEYS },
+            label: {
+                position: 'outer',
+                alignTo: 'labelLine',
+                edgeDistance: '25%',
+                distanceToLabelLine: 5,
+                minMargin: 5,
+                rotate: 0,
+                ...LABEL_FONT_KEYS,
+            },
         }),
     },
     {
@@ -605,7 +707,9 @@ const PIE: SeriesTemplate[] = [
                 length: 15,
                 length2: 15,
                 smooth: false,
-                lineStyle: { width: 1, opacity: 1, type: 'solid' },
+                minTurnAngle: 90,
+                maxSurfaceAngle: 90,
+                lineStyle: { color: 'inherit', width: 1, opacity: 1, type: 'solid' },
             },
         }),
     },
@@ -627,12 +731,14 @@ const PIE: SeriesTemplate[] = [
         id: 'pie-itemstyle',
         category: 'itemStyle',
         label: 'itemStyle',
+        // borderJoin 'round' is the PIE-family doc default (PieSeries.defaultOption).
         json: JSON.stringify({
             itemStyle: {
                 opacity: 1,
                 borderColor: '#fff',
                 borderWidth: 2,
                 borderType: 'solid',
+                borderJoin: 'round',
                 borderRadius: 6,
                 ...NO_SHADOW,
             },
@@ -763,6 +869,19 @@ const PIE_SLICE: SeriesTemplate[] = [
                     per: { color: '#333', fontSize: 13, fontStyle: 'normal', fontWeight: 'bold' },
                 },
                 ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'slice-labelline',
+        category: 'labelLine',
+        label: 'labelLine',
+        json: JSON.stringify({
+            labelLine: {
+                show: true,
+                length: 15,
+                length2: 15,
+                lineStyle: { color: 'inherit', width: 1, opacity: 1, type: 'solid' },
             },
         }),
     },

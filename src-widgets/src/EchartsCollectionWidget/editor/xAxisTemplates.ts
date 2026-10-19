@@ -38,7 +38,14 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         category: 'name',
         label: 'nameTextStyle',
         // `color` omitted: conditionally card-owned when an axis colour is set.
-        json: '{ "nameTextStyle": { "fontStyle": "normal", "fontWeight": "normal", "fontSize": 12, "align": "left", "padding": 0, "backgroundColor": "transparent" } }',
+        json: '{ "nameTextStyle": { "fontStyle": "normal", "fontWeight": "normal", "fontFamily": "sans-serif", "fontSize": 12, "align": "left", "padding": 0, "backgroundColor": "transparent", "borderColor": "transparent", "borderWidth": 0, "borderType": "solid", "shadowBlur": 0, "shadowColor": "transparent", "shadowOffsetX": 0, "shadowOffsetY": 0 } }',
+    },
+    {
+        id: 'nametruncate',
+        category: 'name',
+        label: 'nameTruncate',
+        // v6: maxWidth is the lever (null default = inactive); ellipsis/placeholder are doc literals.
+        json: '{ "nameTruncate": { "maxWidth": 100, "ellipsis": "...", "placeholder": "." } }',
     },
     // ── axisLine ────────────────────────────────────────────────────────
     {
@@ -49,7 +56,9 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // `onZero` is emitted by the builder whenever an offset is set or the position is 'top'
         // (both detach the line from the Y-zero so it moves with ticks+labels). Arrow symbols are
         // free — absorbs the former chart-level `xAxis · arrow` entry.
-        json: '{ "axisLine": { "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0 }, "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
+        // cap/join/miterLimit + the shadow quartet complete the zrender stroke set
+        // (zrender/lib/canvas/graphic.js — the 47a090b completion, re-established).
+        json: '{ "axisLine": { "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0, "cap": "butt", "join": "miter", "miterLimit": 10, "shadowBlur": 0, "shadowColor": "transparent", "shadowOffsetX": 0, "shadowOffsetY": 0 }, "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
     },
     // ── axisTick ────────────────────────────────────────────────────────
     {
@@ -59,7 +68,7 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // `show` omitted (always card-owned); absorbs the former `xAxis · tick length` entry.
         // axisTick.splitNumber subdivides per interval — distinct from the card-owned TOP-LEVEL
         // splitNumber (tick density).
-        json: '{ "axisTick": { "length": 5, "inside": false, "splitNumber": 5, "lineStyle": { "width": 1, "type": "solid", "opacity": 1 } } }',
+        json: '{ "axisTick": { "length": 5, "inside": false, "splitNumber": 5, "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0, "cap": "butt", "join": "miter", "miterLimit": 10, "shadowBlur": 0, "shadowColor": "transparent", "shadowOffsetX": 0, "shadowOffsetY": 0 } } }',
     },
     // ── minorTick ───────────────────────────────────────────────────────
     {
@@ -69,7 +78,7 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // show:false default → `true` is the lever; splitNumber:5 because tick density is
         // splitNumber × minorTick.splitNumber (the ADR-0037 prefill rule). Works on time axes
         // like on value axes (TimeScale.getMinorTicks). Absorbs `xAxis · minorTicks`.
-        json: '{ "minorTick": { "show": true, "splitNumber": 5, "length": 3 } }',
+        json: '{ "minorTick": { "show": true, "splitNumber": 5, "length": 3, "lineStyle": { "width": 1, "type": "solid" } } }',
     },
     // ── axisLabel ───────────────────────────────────────────────────────
     {
@@ -79,7 +88,8 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // `color`/`formatter`/`rotate`/`fontSize` omitted — all four are card-owned (colour
         // inherits, the time format combo, the label-rotation slider, the Build D label size,
         // ADR-0055). Absorbs `xAxis · hideOverlap`.
-        json: '{ "axisLabel": { "show": true, "inside": false, "margin": 8, "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal" } }',
+        // textMargin is a v6 key (default [0, 3]); fontFamily completes the font set.
+        json: '{ "axisLabel": { "show": true, "inside": false, "margin": 8, "textMargin": [0, 3], "hideOverlap": true, "fontStyle": "normal", "fontWeight": "normal", "fontFamily": "sans-serif" } }',
     },
     {
         id: 'axislabel-chip',
@@ -95,6 +105,13 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // overflow acts only with an explicit width (TextStyleProps.overflow, verified).
         json: '{ "axisLabel": { "width": 56, "overflow": "truncate" } }',
     },
+    {
+        id: 'axislabel-customvalues',
+        category: 'axisLabel',
+        label: 'axisLabel · customValues',
+        // Parity with Y — works on the time axis too (values are ms epochs there).
+        json: '{ "axisLabel": { "customValues": [0, 20, 40, 60, 80, 100] } }',
+    },
     // ── splitLine ───────────────────────────────────────────────────────
     {
         id: 'splitline',
@@ -102,14 +119,17 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         label: 'splitLine',
         // `show` omitted (always card-owned); dashed as the visible classic value. Absorbs the
         // former `xAxis · dashed split` entry.
-        json: '{ "splitLine": { "lineStyle": { "type": "dashed", "width": 1, "opacity": 1, "dashOffset": 0 } } }',
+        // cap/join/miterLimit + the shadow quartet complete the zrender stroke set — the
+        // 47a090b completion the ADR-0043 rework lost, re-established (Y+X).
+        json: '{ "splitLine": { "lineStyle": { "type": "dashed", "width": 1, "opacity": 1, "dashOffset": 0, "cap": "butt", "join": "miter", "miterLimit": 10, "shadowBlur": 0, "shadowColor": "transparent", "shadowOffsetX": 0, "shadowOffsetY": 0 } } }',
     },
     // ── minorSplitLine ──────────────────────────────────────────────────
     {
         id: 'minorsplitline',
         category: 'minorSplitLine',
         label: 'minorSplitLine',
-        json: '{ "minorSplitLine": { "show": true } }',
+        // lineStyle.width 1 = the doc default; the colour stays with the theme (ADR-0037 neutrality).
+        json: '{ "minorSplitLine": { "show": true, "lineStyle": { "width": 1 } } }',
     },
     // ── splitArea ───────────────────────────────────────────────────────
     {
@@ -128,10 +148,26 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         label: 'axisPointer',
         // Per-axis pointers have no 'cross' (downgraded 'line') and label.show defaults FALSE —
         // the label is the whole point (ADR-0037 source findings). On a time axis "{value}"
-        // expands to the SCALE's formatted label, not the raw ms epoch.
-        json: '{ "axisPointer": { "show": true, "snap": false, "triggerTooltip": true, "type": "line", "label": { "show": true, "precision": 0, "formatter": "{value}", "margin": 3, "color": "#fff", "fontSize": 12 } } }',
+        // expands to the SCALE's formatted label, not the raw ms epoch. lineStyle styles the
+        // pointer stroke itself (colour stays with the theme).
+        json: '{ "axisPointer": { "show": true, "snap": false, "triggerTooltip": true, "type": "line", "lineStyle": { "width": 1, "type": "solid" }, "label": { "show": true, "precision": 0, "formatter": "{value}", "margin": 3, "color": "#fff", "fontSize": 12 } } }',
+    },
+    {
+        id: 'axispointer-shadow',
+        category: 'axisPointer',
+        label: 'axisPointer · shadow',
+        // The band pointer: shadowStyle carries the tint (theme-neutral grey, the chip
+        // precedent); the label stays with the line variant above.
+        json: '{ "axisPointer": { "show": true, "type": "shadow", "triggerTooltip": true, "shadowStyle": { "color": "rgba(127,127,127,0.15)" } } }',
     },
     // ── scale (scalar solos — no object group) ──────────────────────────
+    {
+        id: 'splitarea-areastyle',
+        category: 'splitArea',
+        label: 'splitArea · areaStyle',
+        // Band colours as an explicit array (echarts alternates); neutral greys stay dark-mode safe.
+        json: '{ "splitArea": { "show": true, "areaStyle": { "color": ["rgba(127,127,127,0.08)", "transparent"], "opacity": 1 } } }',
+    },
     {
         id: 'inverse',
         category: 'scale',
