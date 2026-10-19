@@ -65,6 +65,48 @@ describe('classifySeriesKeys — cartesian line', () => {
     });
 });
 
+describe('label.color — the ADR-0080 emission (always on line/scatter labels, conditional on bar)', () => {
+    // The builder paints a NON-bar label NEVER colourless (cartesian.ts ADR 0080: the colourless
+    // label falls to echarts' auto contrast, which strokes a halo against the transparent canvas
+    // — a white border on dark hosts). So label-on = the colour leaf is card-owned there; bar
+    // owns it only while its labelColor field is set (parity Build D).
+    it('line with the label ON eats label.color (ignored), label OFF leaves it free', () => {
+        expect(
+            chipOf({ label: { color: '#f00' } }, { slot: 'cartesian-line', meta: { label: true } }, 'label')?.cls,
+        ).toBe('ignored');
+        expect(chipOf({ label: { color: '#f00' } }, { slot: 'cartesian-line' }, 'label')?.cls).toBe('effective');
+    });
+
+    it('scatter with the label ON eats label.color too (the non-bar label branch)', () => {
+        expect(
+            chipOf({ label: { color: '#f00' } }, { slot: 'cartesian-scatter', meta: { label: true } }, 'label')?.cls,
+        ).toBe('ignored');
+    });
+
+    it('bar keeps label.color conditional — free while no labelColor field is set', () => {
+        expect(
+            chipOf({ label: { color: '#f00' } }, { slot: 'cartesian-bar', meta: { label: true } }, 'label')?.cls,
+        ).toBe('effective');
+        expect(
+            chipOf(
+                { label: { color: '#f00' } },
+                { slot: 'cartesian-bar', meta: { label: true, labelColor: '#abc' } },
+                'label',
+            )?.cls,
+        ).toBe('ignored');
+    });
+
+    it('a non-bar label mixes: formatter+color card-owned, position free → partial', () => {
+        const c = chipOf(
+            { label: { color: '#f00', formatter: '{c}', position: 'top' } },
+            { slot: 'cartesian-line', meta: { label: true, unit: '°C' } },
+            'label',
+        );
+        expect(c?.cls).toBe('partial');
+        expect(c?.managed).toEqual(['label.color', 'label.formatter']);
+    });
+});
+
 describe('hostsMarkLines — the builder markLine host rule', () => {
     const ml = (yAxisIndex?: number): { value: number; yAxisIndex?: number } => ({ value: 10, yAxisIndex });
 

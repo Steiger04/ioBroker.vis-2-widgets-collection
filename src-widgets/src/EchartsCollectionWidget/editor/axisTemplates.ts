@@ -102,7 +102,7 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         category: 'axisLine',
         label: 'axisLine',
         // `show` + `lineStyle.color` omitted (conditionally card-owned with an axis colour);
-        // `lineStyle.width` is always card-owned. Arrow end symbols are free.
+        // `lineStyle.width` is FREE (the card never emits it). Arrow end symbols are free.
         json: '{ "axisLine": { "lineStyle": { "width": 1, "type": "solid", "opacity": 1, "dashOffset": 0 }, "symbol": ["none", "arrow"], "symbolSize": [10, 15] } }',
     },
     // ── axisTick ────────────────────────────────────────────────────────
@@ -172,8 +172,10 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         id: 'splitarea',
         category: 'splitArea',
         label: 'splitArea',
-        // show alone inherits the theme's band colours (dark-mode safe, ADR-0037).
-        json: '{ "splitArea": { "show": true, "interval": "auto" } }',
+        // show alone inherits the theme's band colours (dark-mode safe, ADR-0037). `interval` is
+        // deliberately absent: it is category-axis-only and this axis is value/log — a dead key
+        // in a teaching scaffold.
+        json: '{ "splitArea": { "show": true } }',
     },
     // ── axisPointer ─────────────────────────────────────────────────────
     {

@@ -117,8 +117,9 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         category: 'splitArea',
         label: 'splitArea',
         // show alone inherits the theme's band colours (dark-mode safe, ADR-0037); renders on a
-        // time axis. Absorbs `xAxis · splitArea`.
-        json: '{ "splitArea": { "show": true, "interval": "auto" } }',
+        // time axis. `interval` is deliberately absent: category-axis-only — dead on the time
+        // axis (solely effective in the table family's category mode). Absorbs `xAxis · splitArea`.
+        json: '{ "splitArea": { "show": true } }',
     },
     // ── axisPointer ─────────────────────────────────────────────────────
     {

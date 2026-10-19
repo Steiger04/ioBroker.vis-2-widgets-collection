@@ -144,6 +144,13 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         }
         if (m?.label) {
             paths.add('label.show');
+            // ADR-0080: a NON-bar label is NEVER emitted colourless (cartesian.ts paints
+            // `color: m.labelColor ?? color` — the colourless label falls to echarts' auto
+            // contrast, which strokes a halo against the transparent canvas). Bar keeps the
+            // leaf conditional on its labelColor field (parity Build D), below.
+            if (ctx.slot !== 'cartesian-bar') {
+                paths.add('label.color');
+            }
             // ADR-0057: the label VALUES ride the per-series Wert-Formatter — the card's own
             // unit/decimals facts emit `label.formatter` like a chart-level knob does (line AND
             // bar: a line label is the bare switch + this formatter).

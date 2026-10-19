@@ -163,8 +163,9 @@ const DECAL = {
 // ── cartesian-line ────────────────────────────────────────────────────────────
 // GUI-owned leaves (always): name/type/yAxisIndex/data/color/itemStyle.color/
 // lineStyle.width/lineStyle.type/smooth/showSymbol/connectNulls. Conditional: itemStyle.
-// borderRadius, label.show, stack, symbolSize, step, areaStyle.opacity, areaStyle.color
-// (gradient), label.formatter (value format active, ADR-0057).
+// borderRadius, label.show, label.color (label on — the ADR-0080 non-bar emission), stack,
+// symbolSize, step, areaStyle.opacity, areaStyle.color (gradient), label.formatter (value
+// format active, ADR-0057).
 const CARTESIAN_LINE: SeriesTemplate[] = [
     {
         id: 'line-linestyle',
@@ -255,8 +256,10 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         id: 'line-labellayout',
         category: 'labelLayout',
         label: 'labelLayout',
+        // 'shiftX' as the visible classic value — 'none' is the no-op default and not even a
+        // member of the documented union ('shiftX'|'shiftY'|'shuffleX'|'shuffleY').
         json: JSON.stringify({
-            labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false, dx: 0, dy: 0, rotate: 0 },
+            labelLayout: { hideOverlap: true, moveOverlap: 'shiftX', draggable: false, dx: 0, dy: 0, rotate: 0 },
         }),
     },
     {
@@ -385,7 +388,7 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
         category: 'labelLayout',
         label: 'labelLayout',
         json: JSON.stringify({
-            labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false, dx: 0, dy: 0, rotate: 0 },
+            labelLayout: { hideOverlap: true, moveOverlap: 'shiftX', draggable: false, dx: 0, dy: 0, rotate: 0 },
         }),
     },
     {
@@ -503,7 +506,8 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
 // ── cartesian-scatter ─────────────────────────────────────────────────────────
 // A point series (ADR-0060): the points ARE the series, so no lineStyle/areaStyle/bar groups —
 // the catalog carries the option groups a scatter actually reads (item look, symbol, label,
-// emphasis, behaviour).
+// emphasis, behaviour). GUI-owned like the line card: label.color rides the non-bar ADR-0080
+// emission (label on → card-owned).
 const CARTESIAN_SCATTER: SeriesTemplate[] = [
     {
         id: 'scatter-itemstyle',
@@ -609,7 +613,7 @@ const PIE: SeriesTemplate[] = [
         id: 'pie-labellayout',
         category: 'labelLayout',
         label: 'labelLayout',
-        json: JSON.stringify({ labelLayout: { hideOverlap: true, moveOverlap: 'none', draggable: false } }),
+        json: JSON.stringify({ labelLayout: { hideOverlap: true, moveOverlap: 'shiftX', draggable: false } }),
     },
     {
         id: 'pie-labellayout-edge',
