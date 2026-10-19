@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "A value range or tick setting (min/max, tick segments, min interval) disables alignment for this axis — echarts then ignores it.",
     "echarts_axis_align_hint": "L'alignement des graduations est inter-axes : un axe avec « Aligner les graduations » se réaligne sur le premier axe affiché (la référence). L'axe de référence n'a pas d'interrupteur.",
     "echarts_axis_align_ticks": "Aligner les graduations",
+    "echarts_axis_color": "Couleur de l'axe",
     "echarts_axis_delete": "Supprimer l'axe",
     "echarts_axis_died": "Axe supprimé avec sa configuration : %s",
     "echarts_axis_died_info": "Axe supprimé — sa série a quitté les données : %s",

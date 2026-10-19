@@ -109,15 +109,6 @@ const buildGridLineStyle = (
 };
 
 /**
- * The DEFAULT colour of the X axis line (+ its ticks, which follow the line — echarts' rule, the
- * ADR-0055 fact): echarts v6's `tokens.color.axisSplitLine` (neutral15) — deliberately the colour
- * the Y splitLines rendered with BEFORE the ADR-0055 addendum unified the grid on the divider (the
- * user-ordered swap: grid = divider everywhere, while the X axis line + ticks take the old light
- * grid grey and separate visually from the grid). Authored `x.color` still wins.
- */
-const X_AXIS_LINE_COLOR = '#dbdee4';
-
-/**
  * Gap between an axis line and its (rotated) name (ADR-0024). Kept tight so each name reads close
  * to its own axis instead of floating off into the offset-axis gutter; `outerBoundsContain:'all'`
  * still reserves the name's full extent, so a tight gap never clips it.
@@ -595,7 +586,9 @@ const silentYAxis = (): Record<string, unknown> => ({
  * `true` are the honest defaults, matching what an unconfigured chart renders today.
  *
  * The axis colour (when explicit) paints line + labels + name together — same one-colour
- * legibility idiom as `buildYAxisEntry`. Unset = the theme's axis colours (`echartsTheme` floor).
+ * legibility idiom as `buildYAxisEntry`. Unset = one colour from the theme: the labels fall to
+ * the `echartsTheme` floor, the line+ticks are STAMPED here with the same text token (the floor
+ * alone would paint the line `divider` — X-Default-Farbe spec 2026-10-19).
  *
  * @param x - The flat X-Karte config (ADR-0035).
  * @param spanMs - The data span (all series, ms) — the Auto labelling's clock (ADR-0052): on the
@@ -603,10 +596,13 @@ const silentYAxis = (): Record<string, unknown> => ({
  * (authored pattern or adaptive Auto), so the raw JSON keeps its function-free contract while
  * `axisLabel.formatter` stays GUI-owned. STRING categories (ADR-0075) emit NO formatter — their
  * labels are the payload's own text.
+ * @param textSecondary - Theme text token — the DEFAULT line+ticks colour (dark-mode-aware
+ * through the chain; authored `x.color` wins).
  */
 const buildXAxisEntry = (
     x: EchartsXAxisConfig,
     spanMs: number,
+    textSecondary: string,
     categories?: number[] | string[],
 ): Record<string, unknown> => {
     // Two category flavours stay SEPARATE (ADR-0075): the ADR-0065 bucket grid is NUMBER
@@ -674,12 +670,14 @@ const buildXAxisEntry = (
     if (x.labelFontSize !== undefined) {
         axisLabel.fontSize = x.labelFontSize;
     }
-    // ADR-0055 addendum: the axis line is ALWAYS emitted — the default X_AXIS_LINE_COLOR is the
-    // pre-unification grid grey (the user-ordered swap: the grid goes divider, the axis line goes
-    // light). The TICKS need no emission of their own: their stroke follows the axis line colour
-    // (echarts rule, the ADR-0055 verified fact), so they ride along. An authored x.color still
-    // paints line + labels + name together (the one-colour idiom).
-    entry.axisLine = { show: true, lineStyle: { color: x.color ?? X_AXIS_LINE_COLOR } };
+    // The axis line is ALWAYS emitted — defaulting to the theme's label token (X-Default-Farbe
+    // spec 2026-10-19): line+ticks inherit the SAME textSecondary the labels get from the
+    // echartsTheme floor, so the one-colour idiom holds from the default on (the former hardcoded
+    // light grid grey #dbdee4 retired — it was neither dark-mode-aware nor what the editor's
+    // inherit swatch previewed). The TICKS need no emission of their own: their stroke follows
+    // the axis line colour (echarts rule, the ADR-0055 verified fact), so they ride along. An
+    // authored x.color still paints line + labels + name together (the one-colour idiom).
+    entry.axisLine = { show: true, lineStyle: { color: x.color ?? textSecondary } };
     if (x.color) {
         axisLabel.color = x.color;
         entry.nameTextStyle = { color: x.color };
@@ -889,7 +887,10 @@ export const buildCartesianOption = (
     // rides the presentation. Mutually exclusive by construction (barCategories is
     // history-fetch-only, xCategories table-only).
     const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
-    const xAxisEntry = applyRawOverride(buildXAxisEntry(p.xAxis, spanMs, xCategories), p.xAxis.raw);
+    const xAxisEntry = applyRawOverride(
+        buildXAxisEntry(p.xAxis, spanMs, p.themeTokens.textSecondary, xCategories),
+        p.xAxis.raw,
+    );
     // Achsen-Vorrang's horizontal coincidence (erratum): the axis line owns its edge only while
     // it actually SITS on it. A Versatz lifts it off (the emitted offset is non-zero — a raw
     // offset counts too, the same emitted-truth rule), and then no gridline yields: the versetzte

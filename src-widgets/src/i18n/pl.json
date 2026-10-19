@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Zakres wartości lub ustawienie podziałki (min/maks, segmenty podziałki, minimalny interwał) wyłącza wyrównanie dla tej osi — echarts wtedy je ignoruje.",
     "echarts_axis_align_hint": "Wyrównanie znaczników działa między osiami: oś z opcją „Wyrównaj znaczniki” dopasowuje się do pierwszej wyświetlanej osi (odniesienia). Oś odniesienia nie ma przełącznika.",
     "echarts_axis_align_ticks": "Wyrównaj znaczniki",
+    "echarts_axis_color": "Kolor osi",
     "echarts_axis_delete": "Usuń oś",
     "echarts_axis_died": "Oś usunięta wraz z konfiguracją: %s",
     "echarts_axis_died_info": "Oś usunięta — jej seria zniknęła z danych: %s",

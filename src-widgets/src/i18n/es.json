@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Un rango de valores o una configuración de ticks (mín/máx, segmentos de tick, intervalo mínimo) desactiva la alineación para este eje — echarts entonces lo ignora.",
     "echarts_axis_align_hint": "La alineación de ticks es entre ejes: un eje con 'Alinear ticks' se realinea con el primer eje mostrado (la referencia). El eje de referencia no tiene interruptor.",
     "echarts_axis_align_ticks": "Alinear marcas",
+    "echarts_axis_color": "Color del eje",
     "echarts_axis_delete": "Eliminar eje",
     "echarts_axis_died": "Eje eliminado con su configuración: %s",
     "echarts_axis_died_info": "Eje eliminado, su serie ya no está en los datos: %s",

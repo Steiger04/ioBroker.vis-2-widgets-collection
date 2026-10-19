@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Ein Wertebereich oder eine Tick-Einstellung (Min/Max, Tick-Anzahl, Min. Intervall) setzt das Ausrichten für diese Achse außer Kraft — echarts ignoriert es dann.",
     "echarts_axis_align_hint": "Die Ticks-Ausrichtung ist achsenübergreifend: Eine Achse mit „Ticks ausrichten“ richtet sich an der zuerst angezeigten Achse (der Referenz) aus. Die Referenzachse selbst hat keinen Schalter.",
     "echarts_axis_align_ticks": "Ticks ausrichten",
+    "echarts_axis_color": "Achsfarbe",
     "echarts_axis_delete": "Achse entfernen",
     "echarts_axis_died": "Achse mitsamt Konfiguration entfernt: %s",
     "echarts_axis_died_info": "Achse entfernt — ihre Serie ist nicht mehr in den Daten: %s",

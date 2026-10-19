@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "值范围或刻度设置（最小值/最大值、刻度分段、最小间隔）会禁用此轴的对齐 — echarts 随后将忽略它。",
     "echarts_axis_align_hint": "刻度对齐是跨轴的：启用“对齐刻度”的轴会参照第一个显示的轴（参考轴）重新对齐。参考轴本身没有开关。",
     "echarts_axis_align_ticks": "对齐刻度",
+    "echarts_axis_color": "坐标轴颜色",
     "echarts_axis_delete": "移除坐标轴",
     "echarts_axis_died": "坐标轴及其配置已移除：%s",
     "echarts_axis_died_info": "坐标轴已移除——其系列已离开数据：%s",

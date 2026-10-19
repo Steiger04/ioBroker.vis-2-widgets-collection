@@ -1253,15 +1253,17 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
     it('always emits the time axis with the honest echarts defaults (splitLine off, ticks on)', () => {
         const option = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
         // Empty config = a plain time axis; the ALWAYS-emitted moment formatter (ADR-0052) and the
-        // ALWAYS-emitted axis line colour (ADR-0055 addendum: the light X-axis default — ticks
-        // follow the line) ride along. echarts' time-axis splitLine default is false,
-        // `axisTick.show:'auto'` resolves TRUE for a time-x paired with a value-y. The grid is
-        // OFF here → NO min/max keys (they encode Achsen-Vorrang and follow their switch).
+        // ALWAYS-emitted axis line colour ride along — the line+ticks inherit the presentation's
+        // textSecondary token (X-Default-Farbe spec 2026-10-19: one colour from the default on,
+        // dark-mode-aware through the chain — a swapped token set reaches the line unchanged).
+        // echarts' time-axis splitLine default is false, `axisTick.show:'auto'` resolves TRUE for
+        // a time-x paired with a value-y. The grid is OFF here → NO min/max keys (they encode
+        // Achsen-Vorrang and follow their switch).
         expect(option.xAxis).toEqual({
             type: 'time',
             splitLine: { show: false },
             axisTick: { show: true },
-            axisLine: { show: true, lineStyle: { color: '#dbdee4' } },
+            axisLine: { show: true, lineStyle: { color: '#ts' } },
             axisLabel: { formatter: expect.any(Function) },
         });
         // No data → span 0 counts as a sub-30-min span → seconds resolution with the start date
@@ -1390,10 +1392,10 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
         });
         // Without an offset there is no onZero switch (onZero:true is the deliberate default:
         // negative data keeps the line at the y=0 level). The axis line itself is ALWAYS emitted
-        // since the ADR-0055 addendum — the light X-axis default colour (ticks follow the line).
+        // — defaulting to the presentation's textSecondary token (ticks follow the line).
         // An explicit 0 counts as unset (it IS the echarts default).
         const bare = buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p: P });
-        expect(bare.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#dbdee4' } } });
+        expect(bare.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#ts' } } });
         expect((bare.xAxis as Record<string, unknown>).axisLine).not.toHaveProperty('onZero');
         const zero = buildGeneratedOption({
             family: 'cartesian',
@@ -1900,9 +1902,9 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
             p: { ...P, xAxis: { position: 'bottom' } },
         });
         expect(bottom.xAxis).toMatchObject({ position: 'bottom' });
-        // The line is always emitted now (ADR-0055 addendum) — but stays onZero-defaulted at
-        // 'bottom' (negative data keeps the line at the y=0 level).
-        expect(bottom.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#dbdee4' } } });
+        // The line is always emitted now — defaulting to the presentation's textSecondary token —
+        // but stays onZero-defaulted at 'bottom' (negative data keeps the line at the y=0 level).
+        expect(bottom.xAxis).toMatchObject({ axisLine: { show: true, lineStyle: { color: '#ts' } } });
         expect((bottom.xAxis as Record<string, unknown>).axisLine).not.toHaveProperty('onZero');
 
         // top + offset: both triggers, one detach — offset stacks on the detached line (echarts

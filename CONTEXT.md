@@ -147,7 +147,7 @@ A cartesian Y-axis item in the (v4) Axes manager — a collapsible card whose bo
 _Avoid_: Axis row, axis settings
 
 **Axis fine-tuning**:
-The sparse appearance leaves beneath the axis **one-colour idiom** — label size (`axisLabel.fontSize`), tick colour (`axisTick.lineStyle.color`, separate from the labels; ticks follow the axis LINE by default), and grid colour (`splitLine.lineStyle.color`, offered only while that axis' splitlines switch is on; the value persists). Parity Build D (ADR-0055); additive: a set axis colour keeps painting line + label + name, these fields only steer their own leaf. Since the ADR-0055 addendum the two grid DEFAULTS are stamped, not inherited: the Y grid colour is always emitted (divider — one grid grey in both directions) and the X axis line always carries the light former-grid grey (ticks follow). The X-Karte's grid colour and every Y card's grid colour stay separately authorable and win over the defaults.
+The sparse appearance leaves beneath the axis **one-colour idiom** — label size (`axisLabel.fontSize`), tick colour (`axisTick.lineStyle.color`, separate from the labels; ticks follow the axis LINE by default), and grid colour (`splitLine.lineStyle.color`, offered only while that axis' splitlines switch is on; the value persists). Parity Build D (ADR-0055); additive: a set axis colour keeps painting line + label + name, these fields only steer their own leaf. Since the ADR-0055 addendum the two grid DEFAULTS are stamped, not inherited: the Y grid colour is always emitted (divider — one grid grey in both directions) and the X axis line always carries the theme's text token — line+ticks in the SAME colour the labels inherit, one colour from the default on (the former light grid grey `#dbdee4` retired by the 2026-10-19 addendum 2). The X-Karte's grid colour and every Y card's grid colour stay separately authorable and win over the defaults.
 _Avoid_: axis styling (vague — the one-colour field is part of it), tick format (that is the value-range format field)
 
 **Axis manager**:
@@ -163,7 +163,7 @@ A reference marking on a cartesian chart (the reworked threshold, ADR-0061/0062)
 _Avoid_: Threshold (the retired pre-0061 name), mark line (that is the echarts key), limit line
 
 **X-Karte**:
-The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (theme-token inherit), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
+The single, non-deletable card atop the Axis manager configuring the shared time axis — label time format (the **Time format**), name, colour (theme-token inherit — line+ticks+labels one token; the field is labelled „Achsfarbe", never „Serienfarbe", for the axis inherits no series value), ticks, split lines, pixel offset (ADR-0035), bottom/top position and the **Axis fine-tuning** leaves (ADR-0055). Flat presentation config in every data mode: never a list, never bound to a series; neither min/max nor the axis type is configurable — the data mode owns the time window, and `time` is fixed.
 _Avoid_: X axis settings, X axis card list (there is exactly one)
 
 **Time format**:

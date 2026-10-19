@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Un intervallo di valori o un'impostazione dei tick (min/max, segmenti dei tick, intervallo minimo) disattiva l'allineamento per questo asse — echarts lo ignora.",
     "echarts_axis_align_hint": "L'allineamento dei tick è tra assi: un asse con 'Allinea tick' si riallinea al primo asse visualizzato (il riferimento). L'asse di riferimento non ha un interruttore.",
     "echarts_axis_align_ticks": "Allinea tacche",
+    "echarts_axis_color": "Colore asse",
     "echarts_axis_delete": "Rimuovi asse",
     "echarts_axis_died": "Asse rimosso con la sua configurazione: %s",
     "echarts_axis_died_info": "Asse rimosso — la sua serie non è più nei dati: %s",

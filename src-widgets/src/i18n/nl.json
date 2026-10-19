@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Een waardebereik of tick-instelling (min/max, tick-segmenten, minimaal interval) schakelt uitlijning voor deze as uit — echarts negeert dit dan.",
     "echarts_axis_align_hint": "Tick-uitlijning is cross-as: een as met 'Ticks uitlijnen' lijnt zich opnieuw uit op de eerst getoonde as (de referentie). De referentie-as zelf heeft geen schakelaar.",
     "echarts_axis_align_ticks": "Schaalstrepen uitlijnen",
+    "echarts_axis_color": "Askleur",
     "echarts_axis_delete": "As verwijderen",
     "echarts_axis_died": "As verwijderd inclusief configuratie: %s",
     "echarts_axis_died_info": "As verwijderd — zijn serie is uit de data verdwenen: %s",

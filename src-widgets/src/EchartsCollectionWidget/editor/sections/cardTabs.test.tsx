@@ -228,7 +228,7 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
             'echarts_x_position',
             'echarts_axis_offset',
             'echarts_x_format', // Beschriftung (Zeitformat + colour + label knobs)
-            'echarts_editor_series_color',
+            'echarts_axis_color',
             'echarts_x_label_rotate',
             'echarts_axis_tick_show', // Ticks & Gitter
             'echarts_axis_splitline',

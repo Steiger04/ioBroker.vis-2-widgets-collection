@@ -149,9 +149,9 @@ const XCard: FC<{
     onToggle: () => void;
     onChange: (patch: Partial<EchartsXAxisConfig>) => void;
     pickerCtx: OidPickerCtx;
-    /** Theme text token — the axis colour's inherit value (the theme's label colour; ADR-0027/0035). */
+    /** Theme text token — the axis colour's inherit value (line+ticks+labels, one token; ADR-0027/0035). */
     fallbackColor: string;
-    /** Theme divider token — the grid + tick colours' inherit value (the theme's axis-line floor). */
+    /** Theme divider token — the grid colour's inherit value. */
     dividerColor: string;
     /**
      * The effective X is a CATEGORY axis (ADR-0075: json-table with a non-date X column): the
@@ -172,8 +172,9 @@ const XCard: FC<{
                         width: 16,
                         height: 16,
                         borderRadius: '4px',
-                        // Effective axis colour: explicit wins, else the theme's label colour (the
-                        // theme floor paints line+labels; textSecondary is the dominant one).
+                        // Effective axis colour: explicit wins, else the theme's text token — the
+                        // SAME token the rendered default stamps on line+ticks (labels via the
+                        // theme floor), so the swatch previews the real inherited colour.
                         backgroundColor: x.color ?? fallbackColor,
                         border: '1px solid',
                         borderColor: 'divider',
@@ -234,10 +235,12 @@ const XCard: FC<{
                 </Box>
                 <Box>
                     {/* The axis colour paints line + labels (the axis belongs to no series) —
-                    inherited = the theme's label token. Lives with the labelling per the
-                    spec's X inventory. */}
+                    inherited = the theme's text token, ONE colour with the rendered default
+                    (X-Default-Farbe spec 2026-10-19). Its own key „Achsfarbe" — the axis
+                    inherits no series value, unlike the Y cards' Serienfarbe. Lives with the
+                    labelling per the spec's X inventory. */}
                     <Box sx={{ mb: 1.5 }}>
-                        <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
+                        <FieldLabel>{Generic.t('echarts_axis_color')}</FieldLabel>
                         <ColorField
                             value={x.color ?? ''}
                             fallback={fallbackColor}
@@ -321,7 +324,7 @@ const XCard: FC<{
                             <FieldLabel>{Generic.t('echarts_axis_tick_color')}</FieldLabel>
                             <ColorField
                                 value={x.tickColor ?? ''}
-                                fallback={x.color ?? dividerColor}
+                                fallback={x.color ?? fallbackColor}
                                 onChange={v => onChange({ tickColor: v ?? undefined })}
                                 ctx={pickerCtx}
                             />

@@ -102,6 +102,7 @@
     "echarts_axis_align_conflict": "Um intervalo de valores ou uma definição de marcações (mín/máx, segmentos de marcações, intervalo mínimo) desativa o alinhamento deste eixo — o echarts ignora-o então.",
     "echarts_axis_align_hint": "O alinhamento de marcas é entre eixos: um eixo com 'Alinhar marcas' se realinha ao primeiro eixo exibido (a referência). O eixo de referência não tem interruptor.",
     "echarts_axis_align_ticks": "Alinhar marcas",
+    "echarts_axis_color": "Cor do eixo",
     "echarts_axis_delete": "Remover eixo",
     "echarts_axis_died": "Eixo removido com sua configuração: %s",
     "echarts_axis_died_info": "Eixo removido — sua série saiu dos dados: %s",
