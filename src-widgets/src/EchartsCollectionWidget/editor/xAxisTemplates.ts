@@ -160,6 +160,16 @@ export const X_AXIS_TEMPLATES: AxisTemplate[] = [
         // precedent); the label stays with the line variant above.
         json: '{ "axisPointer": { "show": true, "type": "shadow", "triggerTooltip": true, "shadowStyle": { "color": "rgba(127,127,127,0.15)" } } }',
     },
+    // ── break — the v6 torn-paper axis break (breaks + breakArea + breakLabelLayout) ──
+    {
+        id: 'breaks',
+        category: 'break',
+        label: 'breaks',
+        // The v6 axis break — here on the TIME axis the start/end values are MILLISECOND
+        // epochs (two consecutive days as the seed; axisDefault breakArea literals for the
+        // style, teaching colours see the Y entry). Not verified on log axes.
+        json: '{ "breaks": [{ "start": 1760438400000, "end": 1760524800000, "gap": 30 }], "breakArea": { "show": true, "zigzagAmplitude": 4, "expandOnClick": true }, "breakLabelLayout": { "moveOverlap": "auto" } }',
+    },
     // ── scale (scalar solos — no object group) ──────────────────────────
     {
         id: 'splitarea-areastyle',

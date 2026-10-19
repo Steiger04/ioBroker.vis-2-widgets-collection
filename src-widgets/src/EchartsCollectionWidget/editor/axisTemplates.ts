@@ -41,6 +41,7 @@ export type AxisTemplateCategory =
     | 'minorSplitLine'
     | 'splitArea'
     | 'axisPointer'
+    | 'break'
     | 'scale';
 
 export const AXIS_CATEGORY_ORDER: AxisTemplateCategory[] = [
@@ -53,6 +54,7 @@ export const AXIS_CATEGORY_ORDER: AxisTemplateCategory[] = [
     'minorSplitLine',
     'splitArea',
     'axisPointer',
+    'break',
     'scale',
 ];
 
@@ -67,6 +69,7 @@ export const AXIS_CATEGORY_I18N: Record<AxisTemplateCategory, string> = {
     minorSplitLine: 'echarts_atpl_cat_minorsplitline',
     splitArea: 'echarts_atpl_cat_splitarea',
     axisPointer: 'echarts_atpl_cat_axispointer',
+    break: 'echarts_atpl_cat_break',
     scale: 'echarts_atpl_cat_scale',
 };
 
@@ -209,6 +212,18 @@ export const AXIS_TEMPLATES: AxisTemplate[] = [
         json: '{ "axisPointer": { "show": true, "type": "shadow", "triggerTooltip": true, "shadowStyle": { "color": "rgba(127,127,127,0.15)" } } }',
     },
     // ── scale (scalar solos — no object group) ──────────────────────────
+    // ── break — the v6 torn-paper axis break (breaks + breakArea + breakLabelLayout) ──
+    {
+        id: 'breaks',
+        category: 'break',
+        label: 'breaks',
+        // The v6 axis break (echarts 6.1: axisHelper reads the per-axis `breaks` list; breakArea
+        // styles the torn-paper visual). Values are in the axis' own units — here value-axis
+        // numbers. The itemStyle colours are deliberate TEACHING values (the sole theme-
+        // neutrality exception, CONTEXT): invisible defaults would hide the effect. Not verified
+        // on log axes (logBase card field) — value axes are the supported case.
+        json: '{ "breaks": [{ "start": 100, "end": 200, "gap": 20 }], "breakArea": { "show": true, "itemStyle": { "color": "#eee", "borderColor": "#999", "borderWidth": 1, "borderType": [3, 3], "opacity": 0.6 }, "zigzagAmplitude": 4, "expandOnClick": true }, "breakLabelLayout": { "moveOverlap": "auto" } }',
+    },
     {
         id: 'splitarea-areastyle',
         category: 'splitArea',

@@ -390,6 +390,45 @@ const CARTESIAN_LINE: SeriesTemplate[] = [
         label: 'silent',
         json: '{ "silent": true }',
     },
+    {
+        id: 'line-z',
+        category: 'behaviour',
+        label: 'z',
+        // Draw order per series (doc default 3 for a line — raise above the others to layer).
+        json: '{ "z": 3 }',
+    },
+    {
+        id: 'line-cursor',
+        category: 'behaviour',
+        label: 'cursor',
+        json: '{ "cursor": "pointer" }',
+    },
+    {
+        id: 'line-blurscope',
+        category: 'behaviour',
+        label: 'blurScope',
+        // The partner of emphasis.focus — what dims when one series is focused.
+        json: '{ "blurScope": "coordinateSystem" }',
+    },
+    {
+        id: 'line-progressive',
+        category: 'behaviour',
+        label: 'progressive',
+        // Line progressive defaults to 0 (OFF) — a seed enables streamed rendering for many points.
+        json: '{ "progressive": 500, "progressiveThreshold": 3000 }',
+    },
+    {
+        id: 'line-animduration',
+        category: 'behaviour',
+        label: 'animationDuration',
+        json: '{ "animationDuration": 600 }',
+    },
+    {
+        id: 'line-animeasing',
+        category: 'behaviour',
+        label: 'animationEasing',
+        json: '{ "animationEasing": "cubicOut" }',
+    },
 ];
 
 // ── cartesian-bar ─────────────────────────────────────────────────────────────
@@ -551,6 +590,51 @@ const CARTESIAN_BAR: SeriesTemplate[] = [
         label: 'silent',
         json: '{ "silent": true }',
     },
+    {
+        id: 'bar-z',
+        category: 'behaviour',
+        label: 'z',
+        // Doc default 2 for a bar.
+        json: '{ "z": 2 }',
+    },
+    {
+        id: 'bar-cursor',
+        category: 'behaviour',
+        label: 'cursor',
+        json: '{ "cursor": "pointer" }',
+    },
+    {
+        id: 'bar-blurscope',
+        category: 'behaviour',
+        label: 'blurScope',
+        json: '{ "blurScope": "coordinateSystem" }',
+    },
+    {
+        id: 'bar-roundcap',
+        category: 'behaviour',
+        label: 'roundCap',
+        // Rounded caps along the value direction (MCP-verified on cartesian bars).
+        json: '{ "roundCap": true }',
+    },
+    {
+        id: 'bar-minmaxwidth',
+        category: 'behaviour',
+        label: 'barMaxWidth · barMinWidth',
+        // Width clamps around the card's absolute bar-width field (auto when unset).
+        json: '{ "barMaxWidth": 20, "barMinWidth": 2 }',
+    },
+    {
+        id: 'bar-animduration',
+        category: 'behaviour',
+        label: 'animationDuration',
+        json: '{ "animationDuration": 600 }',
+    },
+    {
+        id: 'bar-animeasing',
+        category: 'behaviour',
+        label: 'animationEasing',
+        json: '{ "animationEasing": "cubicOut" }',
+    },
 ];
 
 // ── cartesian-scatter ─────────────────────────────────────────────────────────
@@ -673,6 +757,44 @@ const CARTESIAN_SCATTER: SeriesTemplate[] = [
         category: 'behaviour',
         label: 'silent',
         json: '{ "silent": true }',
+    },
+    {
+        id: 'scatter-z',
+        category: 'behaviour',
+        label: 'z',
+        // Doc default 2 for a scatter.
+        json: '{ "z": 2 }',
+    },
+    {
+        id: 'scatter-cursor',
+        category: 'behaviour',
+        label: 'cursor',
+        json: '{ "cursor": "pointer" }',
+    },
+    {
+        id: 'scatter-blurscope',
+        category: 'behaviour',
+        label: 'blurScope',
+        json: '{ "blurScope": "coordinateSystem" }',
+    },
+    {
+        id: 'scatter-progressive',
+        category: 'behaviour',
+        label: 'progressive',
+        // Scatter progressive defaults to null — a seed enables streamed rendering.
+        json: '{ "progressive": 500, "progressiveThreshold": 3000 }',
+    },
+    {
+        id: 'scatter-animduration',
+        category: 'behaviour',
+        label: 'animationDuration',
+        json: '{ "animationDuration": 600 }',
+    },
+    {
+        id: 'scatter-animeasing',
+        category: 'behaviour',
+        label: 'animationEasing',
+        json: '{ "animationEasing": "cubicOut" }',
     },
 ];
 
@@ -842,6 +964,58 @@ const PIE: SeriesTemplate[] = [
         label: 'animationType',
         json: '{ "animationType": "expansion" }',
     },
+    {
+        id: 'pie-animtypeupdate',
+        category: 'behaviour',
+        label: 'animationTypeUpdate',
+        json: '{ "animationTypeUpdate": "transition" }',
+    },
+    {
+        id: 'pie-z',
+        category: 'behaviour',
+        label: 'z',
+        // Doc default 2 for a pie.
+        json: '{ "z": 2 }',
+    },
+    {
+        id: 'pie-cursor',
+        category: 'behaviour',
+        label: 'cursor',
+        json: '{ "cursor": "pointer" }',
+    },
+    {
+        id: 'pie-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
+    },
+    {
+        id: 'pie-endangle',
+        category: 'behaviour',
+        label: 'endAngle',
+        // The partial-pie lever ('auto' default = full circle; with startAngle 90, 270 is a
+        // half pie — MCP-verified).
+        json: '{ "endAngle": 270 }',
+    },
+    {
+        id: 'pie-clockwise',
+        category: 'behaviour',
+        label: 'clockwise',
+        json: '{ "clockwise": false }',
+    },
+    {
+        id: 'pie-minshowlabelangle',
+        category: 'behaviour',
+        label: 'minShowLabelAngle',
+        json: '{ "minShowLabelAngle": 10 }',
+    },
+    {
+        id: 'pie-emptycircle',
+        category: 'behaviour',
+        label: 'showEmptyCircle',
+        // v6: the placeholder disc when all values are 0/null — emptyCircleStyle doc literals.
+        json: '{ "showEmptyCircle": true, "emptyCircleStyle": { "color": "lightgray", "opacity": 1 } }',
+    },
 ];
 
 // ── pie-slice (per slice, data[i]) ────────────────────────────────────────────
@@ -929,6 +1103,12 @@ const PIE_SLICE: SeriesTemplate[] = [
         category: 'behaviour',
         label: 'selected',
         json: '{ "selected": true }',
+    },
+    {
+        id: 'slice-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
     },
 ];
 

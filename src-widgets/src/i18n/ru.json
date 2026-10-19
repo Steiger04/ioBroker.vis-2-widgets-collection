@@ -89,6 +89,7 @@
     "echarts_atpl_cat_axislabel": "Метки оси",
     "echarts_atpl_cat_axisline": "Линия оси",
     "echarts_atpl_cat_axispointer": "Указатель оси",
+    "echarts_atpl_cat_break": "Разрыв оси",
     "echarts_atpl_cat_axistick": "Деления оси",
     "echarts_atpl_cat_minorsplitline": "Промежуточная сетка",
     "echarts_atpl_cat_minortick": "Промежуточные деления",

@@ -77,6 +77,7 @@ const X_CATEGORIES: readonly AxisTemplateCategory[] = [
     'minorSplitLine',
     'splitArea',
     'axisPointer',
+    'break',
     'scale',
 ];
 

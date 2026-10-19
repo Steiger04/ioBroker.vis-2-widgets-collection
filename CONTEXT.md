@@ -247,7 +247,7 @@ The colour box in a `ColorField` that shows the field's **effective** colour —
 _Avoid_: colour preview, default swatch
 
 **Option group**:
-An echarts configuration group — on a series `lineStyle`/`areaStyle`/`itemStyle`/`symbol`/`label`/`labelLayout`/states/markers, on an axis `axisLine`/`axisTick`/`axisLabel`/`splitLine`/…, at chart level the component (`title`, `tooltip`, …). Since ADR-0043 it is the category unit of the three template catalogs: the menu teaches the option space of its level instead of hiding it behind semantic umbrella headers.
+An echarts configuration group — on a series `lineStyle`/`areaStyle`/`itemStyle`/`symbol`/`label`/`labelLayout`/states/markers, on an axis `axisLine`/`axisTick`/`axisLabel`/`splitLine`/…, at chart level the component (`title`, `tooltip`, …). Since ADR-0043 it is the category unit of the three template catalogs: the menu teaches the option space of its level instead of hiding it behind semantic umbrella headers. A category may also bundle SIBLING groups that only make sense together (markers, and since the 2026-10-19 completeness audit the v6 axis break under `break`: `breaks`+`breakArea`+`breakLabelLayout`).
 _Avoid_: Category (that is its menu role), theme group (the retired semantic headers)
 
 **Group scaffold**:
@@ -280,7 +280,7 @@ The per-axis echarts-JSON escape hatch (ADR-0037) — a raw object on an Axis ca
 _Avoid_: Advanced JSON (that is the chart-level U), axis JSON (too generic)
 
 **Axis template**:
-A per-axis, collision-safe preset (ADR-0037) — injected deep-merged into an Axis card's Axis raw. Since ADR-0043 the six semantic category headers give way to the echarts Option groups (`name`/`axisLine`/`axisTick`/`minorTick`/`axisLabel`/`splitLine`/`minorSplitLine`/`splitArea`/`axisPointer` plus a scale-Solos category), entries being Group scaffolds and scalar Solos — the X-Karte's catalog (ADR-0037 addendum) shares the categories and absorbed the former chart-level xAxis snippets. Each entry is audited against its axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral. Distinct from the chart-wide **Template snippet** and the per-series **Series template**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
+A per-axis, collision-safe preset (ADR-0037) — injected deep-merged into an Axis card's Axis raw. Since ADR-0043 the six semantic category headers give way to the echarts Option groups (`name`/`axisLine`/`axisTick`/`minorTick`/`axisLabel`/`splitLine`/`minorSplitLine`/`splitArea`/`axisPointer`/`break` plus a scale-Solos category), entries being Group scaffolds and scalar Solos — the X-Karte's catalog (ADR-0037 addendum) shares the categories and absorbed the former chart-level xAxis snippets. Each entry is audited against its axis builder so it duplicates no GUI-emitted key; payloads are theme-neutral (the sole documented exception: the `breaks` scaffold's breakArea itemStyle carries visible teaching colours). Distinct from the chart-wide **Template snippet** and the per-series **Series template**. Since ADR-0042 activated via the template multi-select (**Aktive Vorlage**), not one-shot injection.
 _Avoid_: Snippet, preset, series template (that is per-series)
 
 **Aktive Vorlage**:
