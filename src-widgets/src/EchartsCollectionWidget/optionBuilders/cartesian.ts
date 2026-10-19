@@ -586,9 +586,10 @@ const silentYAxis = (): Record<string, unknown> => ({
  * `true` are the honest defaults, matching what an unconfigured chart renders today.
  *
  * The axis colour (when explicit) paints line + labels + name together — same one-colour
- * legibility idiom as `buildYAxisEntry`. Unset = one colour from the theme: the labels fall to
- * the `echartsTheme` floor, the line+ticks are STAMPED here with the same text token (the floor
- * alone would paint the line `divider` — X-Default-Farbe spec 2026-10-19).
+ * legibility idiom as `buildYAxisEntry`. Unset = one accent from the theme: line+ticks+labels
+ * are STAMPED here with the PRIMARY token — the head of the colour chain, the accent the vis-2
+ * "example state" text wears (X-Default-Farbe spec revision 2026-10-19; the echartsTheme floor
+ * alone would paint the line `divider` and the labels textSecondary — two wrong links).
  *
  * @param x - The flat X-Karte config (ADR-0035).
  * @param spanMs - The data span (all series, ms) — the Auto labelling's clock (ADR-0052): on the
@@ -596,13 +597,13 @@ const silentYAxis = (): Record<string, unknown> => ({
  * (authored pattern or adaptive Auto), so the raw JSON keeps its function-free contract while
  * `axisLabel.formatter` stays GUI-owned. STRING categories (ADR-0075) emit NO formatter — their
  * labels are the payload's own text.
- * @param textSecondary - Theme text token — the DEFAULT line+ticks colour (dark-mode-aware
- * through the chain; authored `x.color` wins).
+ * @param primary - Theme primary token — the DEFAULT line+ticks+labels colour (the head of the
+ * colour chain; authored `x.color` wins).
  */
 const buildXAxisEntry = (
     x: EchartsXAxisConfig,
     spanMs: number,
-    textSecondary: string,
+    primary: string,
     categories?: number[] | string[],
 ): Record<string, unknown> => {
     // Two category flavours stay SEPARATE (ADR-0075): the ADR-0065 bucket grid is NUMBER
@@ -665,21 +666,25 @@ const buildXAxisEntry = (
         axisLabel.rotate = x.labelRotate;
     }
     // Parity Build D (ADR-0055): label font size — sparse; unset keeps the block
-    // formatter(+rotate)-only. On STRING categories with no label knobs at all the whole
-    // axisLabel block is absent (the Object.keys gate below — nothing to author there).
+    // formatter(+rotate)+colour-only. The block itself is NEVER absent (the colour stamp below
+    // always rides along — even STRING categories label in the axis colour).
     if (x.labelFontSize !== undefined) {
         axisLabel.fontSize = x.labelFontSize;
     }
-    // The axis line is ALWAYS emitted — defaulting to the theme's label token (X-Default-Farbe
-    // spec 2026-10-19): line+ticks inherit the SAME textSecondary the labels get from the
-    // echartsTheme floor, so the one-colour idiom holds from the default on (the former hardcoded
-    // light grid grey #dbdee4 retired — it was neither dark-mode-aware nor what the editor's
-    // inherit swatch previewed). The TICKS need no emission of their own: their stroke follows
-    // the axis line colour (echarts rule, the ADR-0055 verified fact), so they ride along. An
-    // authored x.color still paints line + labels + name together (the one-colour idiom).
-    entry.axisLine = { show: true, lineStyle: { color: x.color ?? textSecondary } };
+    // The axis line is ALWAYS emitted — defaulting to the theme's PRIMARY token (X-Default-Farbe
+    // spec revision 2026-10-19): line+ticks+labels wear ONE accent, the head of the colour chain
+    // (what the vis-2 "example state" text shows). The former defaults retired in two steps:
+    // #dbdee4 (hardcoded, not dark-mode-aware) → textSecondary (honest, but the chain's SECONDARY
+    // link — a day of looking at it settled that the axis belongs at the chain's HEAD). The
+    // TICKS need no emission of their own: their stroke follows the axis line colour (echarts
+    // rule, the ADR-0055 verified fact). The axis NAME stays on the global textPrimary (title
+    // semantics, X/Y-symmetric) unless authored.
+    const axisColour = x.color ?? primary; // one accent, one place — the contract of this default
+    entry.axisLine = { show: true, lineStyle: { color: axisColour } };
+    // Labels ride the same default — the echartsTheme floor offers only textSecondary; without
+    // this stamp the one-colour default would break between line and labels.
+    axisLabel.color = axisColour;
     if (x.color) {
-        axisLabel.color = x.color;
         entry.nameTextStyle = { color: x.color };
     }
     if (x.offset || x.position === 'top') {
@@ -701,9 +706,8 @@ const buildXAxisEntry = (
         const line = (entry.axisLine as Record<string, unknown> | undefined) ?? { show: true };
         entry.axisLine = { ...line, onZero: false };
     }
-    if (Object.keys(axisLabel).length) {
-        entry.axisLabel = axisLabel;
-    }
+    // The colour stamp keeps the block non-empty — unconditional assignment, no emptiness gate.
+    entry.axisLabel = axisLabel;
     return entry;
 };
 
@@ -888,7 +892,7 @@ export const buildCartesianOption = (
     // history-fetch-only, xCategories table-only).
     const xCategories = p.barCategories ?? (p.xCategories?.length ? p.xCategories : undefined);
     const xAxisEntry = applyRawOverride(
-        buildXAxisEntry(p.xAxis, spanMs, p.themeTokens.textSecondary, xCategories),
+        buildXAxisEntry(p.xAxis, spanMs, p.themeTokens.primary, xCategories),
         p.xAxis.raw,
     );
     // Achsen-Vorrang's horizontal coincidence (erratum): the axis line owns its edge only while

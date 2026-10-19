@@ -12,8 +12,9 @@
  * construction). GUI-owned leaves are omitted exactly like on Y: always-owned (type/name/
  * nameLocation/nameGap/nameRotate/offset/splitLine.show/axisTick.show/splitNumber/minInterval/
  * axisLabel.formatter/axisLabel.rotate — and since the ADR-0055 addendum also axisLine.show +
- * axisLine.lineStyle.color, whose default the builder now always emits) and conditionally-owned
- * with an axis colour or position:'top' (axisLabel.color, nameTextStyle.color, axisLine.onZero).
+ * axisLine.lineStyle.color, and since its addendum 3 axisLabel.color, whose primary default the
+ * builder now always emits) and conditionally-owned with an axis colour or position:'top'
+ * (nameTextStyle.color, axisLine.onZero).
  * The seven former chart-level `xAxis` category entries (arrow/onZero/
  * tickLength/dashedSplit/hideOverlap/minorTicks/splitArea, ADR-0040) merged INTO these group
  * scaffolds — one place per component; the ids broke deliberately (silent load-prune,

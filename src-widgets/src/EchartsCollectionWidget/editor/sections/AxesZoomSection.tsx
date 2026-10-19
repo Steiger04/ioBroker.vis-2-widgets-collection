@@ -401,14 +401,15 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                     )}
                     {/* The X-Karte is the manager's first card — the shared time axis (ADR-0035). It
                         is flat config: no delete, no reorder, no series binding; its colour inherits
-                        the theme's label token (the axis belongs to no series). */}
+                        the theme's PRIMARY token — the head of the colour chain, no series involved
+                        (X-Default-Farbe spec revision 2026-10-19). */}
                     <XCard
                         x={state.xAxis}
                         open={xExpanded}
                         onToggle={() => setXExpanded(v => !v)}
                         onChange={patch => set({ xAxis: { ...state.xAxis, ...patch } })}
                         pickerCtx={pickerCtx}
-                        fallbackColor={themeTokens.textSecondary}
+                        fallbackColor={themeTokens.primary}
                         dividerColor={themeTokens.divider}
                         isCategory={xIsCategory}
                     />

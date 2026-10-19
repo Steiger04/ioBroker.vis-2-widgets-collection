@@ -149,7 +149,7 @@ const XCard: FC<{
     onToggle: () => void;
     onChange: (patch: Partial<EchartsXAxisConfig>) => void;
     pickerCtx: OidPickerCtx;
-    /** Theme text token — the axis colour's inherit value (line+ticks+labels, one token; ADR-0027/0035). */
+    /** Theme primary token — the axis colour's inherit value (line+ticks+labels, one accent; ADR-0027/0035). */
     fallbackColor: string;
     /** Theme divider token — the grid colour's inherit value. */
     dividerColor: string;
@@ -172,9 +172,9 @@ const XCard: FC<{
                         width: 16,
                         height: 16,
                         borderRadius: '4px',
-                        // Effective axis colour: explicit wins, else the theme's text token — the
-                        // SAME token the rendered default stamps on line+ticks (labels via the
-                        // theme floor), so the swatch previews the real inherited colour.
+                        // Effective axis colour: explicit wins, else the theme's primary token —
+                        // the SAME accent the rendered default stamps on line+ticks+labels, so
+                        // the swatch previews the real inherited colour.
                         backgroundColor: x.color ?? fallbackColor,
                         border: '1px solid',
                         borderColor: 'divider',
@@ -235,10 +235,10 @@ const XCard: FC<{
                 </Box>
                 <Box>
                     {/* The axis colour paints line + labels (the axis belongs to no series) —
-                    inherited = the theme's text token, ONE colour with the rendered default
-                    (X-Default-Farbe spec 2026-10-19). Its own key „Achsfarbe" — the axis
-                    inherits no series value, unlike the Y cards' Serienfarbe. Lives with the
-                    labelling per the spec's X inventory. */}
+                    inherited = the theme's PRIMARY token, ONE accent with the rendered default,
+                    the head of the colour chain (X-Default-Farbe spec revision 2026-10-19). Its
+                    own key „Achsfarbe" — the axis inherits no series value, unlike the Y cards'
+                    Serienfarbe. Lives with the labelling per the spec's X inventory. */}
                     <Box sx={{ mb: 1.5 }}>
                         <FieldLabel>{Generic.t('echarts_axis_color')}</FieldLabel>
                         <ColorField
