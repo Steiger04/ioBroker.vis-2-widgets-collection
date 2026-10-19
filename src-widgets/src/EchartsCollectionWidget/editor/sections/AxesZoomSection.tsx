@@ -19,8 +19,8 @@
  * a SwitchList) and the marking cards (ADR-0061). min≥max carries advisory validation (in the
  * cards).
  */
-import { useState, type FC } from 'react';
-import { Alert, Box, Button, Snackbar, Typography } from '@mui/material';
+import { Fragment, useState, type FC } from 'react';
+import { Alert, Box, Button, Divider, Snackbar, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
 import Generic from '../../../Generic';
@@ -36,6 +36,7 @@ import type {
 } from '../../../types/field-definitions/echarts-fields';
 import type { EditorState, SetEditor } from '../editorState';
 import {
+    axisCardOrder,
     axisLayout,
     axisOptionLabel,
     axisPlace,
@@ -127,8 +128,11 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
     const { palette, themeTokens } = useEditorTheme(state, pickerCtx.socket, pickerCtx.theme);
 
     // Expanded axis cards — same pattern as SeriesSection cartesian cards.
-    const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-    const toggleCard = (i: number): void => setExpanded(e => ({ ...e, [i]: !e[i] }));
+    // Keyed by the axis' STABLE ID (healed on load): the card list renders in DRAW order
+    // (ADR-0079 addendum 3), so an array index would attach the open state to a LIST SLOT —
+    // after a place swap the wrong card would unfold. The id travels with its card.
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    const toggleCard = (key: string): void => setExpanded(e => ({ ...e, [key]: !e[key] }));
     // The X-Karte has its own expand flag (a single card, no list index).
     const [xExpanded, setXExpanded] = useState(false);
     // Advisory toast for the axis-delete rebind fallback (ADR-0025): shown when a deleted axis'
@@ -348,6 +352,14 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
         ? jsonBindingView(jsonSeriesNames ?? [], state.jsonSeriesStyle, state.jsonHidden)
         : state.series;
     const axisOptions: [string, string][] = axes.map((ax, ai) => [String(ai), axisOptionLabel(ai, ax, markAxisSight)]);
+    // The cards' draw order (ADR-0079 addendum 3) + which indices OPEN a group (a hairline
+    // renders before each non-empty side group — never between absent ones).
+    const cardOrder = axisCardOrder(axes);
+    const groupFirst = new Set(
+        (['left', 'right'] as const)
+            .map(side => cardOrder.find(i => displayPosition(axes[i], i) === side))
+            .filter(i => i !== undefined),
+    );
 
     // Per-tab warning dot feed (ADR-0073): issues placed on their tab; the header rollup stays.
     const dots = issueCountsByTab(issues);
@@ -400,35 +412,38 @@ const AxesZoomSection: FC<AxesZoomSectionProps> = ({
                         dividerColor={themeTokens.divider}
                         isCategory={xIsCategory}
                     />
-                    {axes.map((a, i) => {
-                        // The place sight (ADR-0079): the card's subtitle + stepper bounds read
-                        // the SAME offset order the chart draws; the stepper writes insert-shift
-                        // with a travelling deviation — one click, one undo step (a no-move
-                        // returns undefined and never reaches set).
-                        const sight = axisPlace(axes, i);
+                    {cardOrder.map(i => {
+                        // Draw order (ADR-0079 addendum 3): the list mirrors the chart — left
+                        // side complete (place 1 on top), then right. A hairline separates the
+                        // X-Karte from the first group and the two sides from each other — but
+                        // only where a group actually follows (a lone left side gets exactly one
+                        // divider, none between absent groups).
+                        const cardKey = axes[i].id ?? String(i);
                         return (
-                            <AxisCard
-                                key={a.id ?? i}
-                                axis={a}
-                                index={i}
-                                emittedIndex={emittedRanks.get(i)}
-                                emittedTotal={emittedRanks.size}
-                                sight={sight ?? undefined}
-                                open={!!expanded[i]}
-                                onToggle={() => toggleCard(i)}
-                                onChange={patch => setAxis(i, patch)}
-                                onMovePlace={dir => {
-                                    const moved = moveAxisPlace(axes, i, dir);
-                                    if (moved) {
-                                        set({ yAxes: moved });
-                                    }
-                                }}
-                                onRemove={() => removeAxis(i)}
-                                pickerCtx={pickerCtx}
-                                seriesColor={boundAxisColor(i)}
-                                seriesName={boundAxisName(i)}
-                                dividerColor={themeTokens.divider}
-                            />
+                            <Fragment key={cardKey}>
+                                {groupFirst.has(i) && <Divider sx={{ my: 0.5 }} />}
+                                <AxisCard
+                                    axis={axes[i]}
+                                    index={i}
+                                    emittedIndex={emittedRanks.get(i)}
+                                    emittedTotal={emittedRanks.size}
+                                    sight={axisPlace(axes, i) ?? undefined}
+                                    open={!!expanded[cardKey]}
+                                    onToggle={() => toggleCard(cardKey)}
+                                    onChange={patch => setAxis(i, patch)}
+                                    onMovePlace={dir => {
+                                        const moved = moveAxisPlace(axes, i, dir);
+                                        if (moved) {
+                                            set({ yAxes: moved });
+                                        }
+                                    }}
+                                    onRemove={() => removeAxis(i)}
+                                    pickerCtx={pickerCtx}
+                                    seriesColor={boundAxisColor(i)}
+                                    seriesName={boundAxisName(i)}
+                                    dividerColor={themeTokens.divider}
+                                />
+                            </Fragment>
                         );
                     })}
                 </SubGroup>

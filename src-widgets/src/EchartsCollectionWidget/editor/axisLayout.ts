@@ -183,6 +183,19 @@ export const axisPlace = (axes: readonly EchartsAxisConfig[], i: number): AxisPl
 };
 
 /**
+ * The axis cards' **draw order** (ADR-0079 addendum 3): the card list mirrors what the chart
+ * draws — the COMPLETE left side first (place 1 = closest to the plot on top, then outward),
+ * then the complete right side the same way. A DISPLAY sort only: the `yAxes` array, the
+ * `yAxisIndex` bindings, marking anchors and emitted ranks keep their identity — reordering a
+ * card is a render concern, never a state change (the addendum revises E2's "the cards never
+ * move"; the REJECTED option back then was the physical array reorder, which stays rejected).
+ */
+export const axisCardOrder = (axes: readonly EchartsAxisConfig[]): number[] => [
+    ...sideOrder(axes, 'left'),
+    ...sideOrder(axes, 'right'),
+];
+
+/**
  * One side's PLACE VALUES (ADR-0079 addendum): the pixel offsets of its slots, in place order,
  * captured BEFORE the gesture. The place — never the axis — owns the offset: a reorder
  * exchanges the occupants while every slot keeps its value, so the side's geometry never

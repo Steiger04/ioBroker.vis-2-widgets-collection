@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
     alignTicksDisabledByOverride,
     axesFollowBinders,
+    axisCardOrder,
     axisLayout,
     axisOptionLabel,
     axisPlace,
@@ -907,6 +908,25 @@ describe('Achsen-Platz — the per-side depth rank (ADR-0079 + addendum: place =
             ['right', 0],
             ['left', 80],
         ]);
+    });
+
+    it('axisCardOrder: the card list mirrors the chart — complete left side (place 1 first), then right (addendum 3)', () => {
+        // Array order scrambled against the draw order; an unstored position counts on its
+        // displayPosition side, an undefined offset as place 1 materialised by the sort.
+        const axes: EchartsAxisConfig[] = [
+            { position: 'right', offset: 80, name: 'R2' },
+            { position: 'left', offset: 100, name: 'L2' },
+            { position: 'right', offset: 0, name: 'R1' },
+            { position: 'left', offset: 0, name: 'L1' },
+        ];
+        expect(axisCardOrder(axes).map(i => axes[i].name)).toEqual(['L1', 'L2', 'R1', 'R2']);
+        // A lone side stays contiguous (one group, no phantom ordering); empty input is empty.
+        const lone: EchartsAxisConfig[] = [
+            { position: 'right', offset: 80 },
+            { position: 'right', offset: 0 },
+        ];
+        expect(axisCardOrder(lone).map(i => lone[i].offset)).toEqual([0, 80]);
+        expect(axisCardOrder([])).toEqual([]);
     });
 });
 
