@@ -445,7 +445,6 @@ const SeriesSection: FC<SeriesSectionProps> = ({
             {!isJson && isPie && (
                 <PieSliceRows
                     state={state}
-                    set={set}
                     pickerCtx={pickerCtx}
                     slot={slot}
                     onUpdate={update}

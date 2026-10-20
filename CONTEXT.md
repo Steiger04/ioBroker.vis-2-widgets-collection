@@ -114,6 +114,14 @@ _Avoid_: bar bin, bucket interval (that is the Bar-Intervall knob), histogram (i
 The X axis without time semantics — string categories in payload order, labelled by the column values themselves. Introduced with the tabellarische payload family (ADR-0075) as the third X path beside the fixed time axis (all data modes normalise points to `[ts, val]`) and the Kategorie-Bucket grid (TIMESTAMP categories still labelled by the Time format). The X-Karte's Time format does not apply here (the field hides); the tooltip shows the category name. Duplicate categories keep their multiple values; nothing is de-duplicated or re-sorted.
 _Avoid_: Textachse, String-Achse (mechanism, not the concept), Buckets (that is the Kategorie-Bucket grid), category axis (say the German term or Kategorie-X)
 
+**Kategorie-Stabilität**:
+The tabellarische pie's colour law — the same category name wears the same colour in every ring (first occurrence fixes the slot), so equal categories read as one radial band across rings. The legend shows the categories (de-duplicated); one click toggles that category everywhere. The price: rings carry no colour authoring of their own.
+_Avoid_: Ring-Palette (mechanism, not the law), Farbsync
+
+**Ring-Karte**:
+The tabellarische pie's series card — structurally the Series card (Karten-Tabs, move, delete), but pie-honest: no colour, type, Darstellung or Werte authoring (Kategorie-Stabilität owns the colours; a ring is always a pie), a ring icon instead of the swatch, and the per-series Raw teaching the pie-ring catalog (ADR-0082).
+_Avoid_: Donut-Karte, Ring-Serie (the echarts series is the mechanism)
+
 **Summary line**:
 The single-line digest of effective values shown on a collapsed Section (`24h · avg · 500`, `tableau · auto`). A section that cannot say anything useful collapsed does not deserve to be a section.
 _Avoid_: Subtitle, hint text
@@ -127,7 +135,7 @@ A cartesian series item in the Series section — a quiet card whose header (swa
 _Avoid_: Accordion item (v2), row
 
 **Slice row**:
-A pie slice item — a light list row (name + colour + delete inline) with no expand, because a slice only carries two fields.
+A pie slice item — a light list row (name, data point, colour, per-slice Raw, delete inline) with no expand; the thinnest series-authoring surface. In the serien-förmig JSON family the name belongs to the payload (display-only).
 _Avoid_: Slice card, accordion
 
 **Empty-state CTA**:

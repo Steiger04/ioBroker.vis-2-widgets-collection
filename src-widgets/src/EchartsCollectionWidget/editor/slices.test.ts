@@ -213,7 +213,9 @@ describe('section slices (ADR-0049)', () => {
     });
 
     it('the series sub-view slices equal their surfaces ownership', () => {
-        expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'pie' | 'mode'>>();
+        // ADR-0082 decision 3: the whole-pie raw left the slice rows for the family section —
+        // the slice view no longer touches the pie blob.
+        expectTypeOf<PieSliceRowsSlice>().toEqualTypeOf<Pick<EditorState, 'series' | 'mode'>>();
         expectTypeOf<JsonSeriesCardsSlice>().toEqualTypeOf<
             Pick<EditorState, 'jsonOid' | 'chartType' | 'yAxes' | 'jsonHidden' | 'jsonSeriesStyle' | 'ignoreNull'>
         >();

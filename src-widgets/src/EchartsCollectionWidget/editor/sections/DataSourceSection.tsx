@@ -330,8 +330,16 @@ const DataSourceSection: FC<DataSourceSectionProps> = ({ focusTab, issues, state
                         </Box>
                         <Box>
                             {/* ADR-0072: the aggregate cluster is the Voreinstellung for every series
-                             now — say so where it is authored (Renderer InfoBox convention). */}
-                            <InfoBox text={Generic.t('echarts_datasource_preset_hint')} />
+                             now — say so where it is authored (Renderer InfoBox convention). Pie
+                             (ADR-0082 ticket 03): slice rows carry no Daten tab, there is nothing
+                             to preset — the honest pie wording names the point shaping instead. */}
+                            <InfoBox
+                                text={Generic.t(
+                                    state.chartType === 'pie'
+                                        ? 'echarts_datasource_preset_hint_pie'
+                                        : 'echarts_datasource_preset_hint',
+                                )}
+                            />
                             <FieldGrid>
                                 <LabeledSelect
                                     label={Generic.t('echarts_aggregate')}

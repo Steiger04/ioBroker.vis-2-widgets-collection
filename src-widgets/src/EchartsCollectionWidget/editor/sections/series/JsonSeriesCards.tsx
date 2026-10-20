@@ -134,7 +134,9 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
             ) : jsonSeriesNames.length === 0 ? (
                 dashed(Generic.t('echarts_json_series_empty'))
             ) : isPie ? (
-                // pie-json: slice rows (name + colour, no OID, no expand).
+                // pie-json: slice rows (name + colour + per-slice raw, no OID, no expand — the
+                // Verlauf rows' anatomy, ADR-0082 decision 3: the builder always applied m.raw
+                // here, the editor just never reached it).
                 visibleNames.map((name, i) => {
                     const m = state.jsonSeriesStyle[name] ?? {};
                     return (
@@ -176,6 +178,16 @@ const JsonSeriesCards: FC<JsonSeriesCardsProps> = ({
                                     </Box>
                                 </Box>
                             </FieldGrid>
+                            <SeriesRawOverride
+                                // Static by construction: this branch only mounts serien-förmig
+                                // (the tabellarisch family renders TableSeriesCards' pie-ring
+                                // slot) — a payload series here IS a slice.
+                                slot="pie-slice"
+                                raw={m.raw}
+                                onChange={v => onUpdateJson(name, { raw: v })}
+                                snippets={m.snippets}
+                                onCommit={r => onUpdateJson(name, snippetPatch(r))}
+                            />
                         </Box>
                     );
                 })

@@ -249,5 +249,8 @@ export const familySwitchSnippetLoss = (state: EditorState): number => {
     const family = familyOf(state.chartType);
     const stale = (ids: string[] | undefined, slot: SeriesTemplateSlot): number =>
         ids ? ids.length - pruneSnippetIds(SERIES_TEMPLATES[slot], ids).length : 0;
-    return state.series.reduce((total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s)), 0);
+    return state.series.reduce(
+        (total, s) => total + stale(s.snippets, seriesSlotOf(family, state.chartType, s, state.jsonKind)),
+        0,
+    );
 };

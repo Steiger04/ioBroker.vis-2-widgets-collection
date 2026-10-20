@@ -171,7 +171,7 @@ const pieLevel: RawLevelEntry = {
 
 /** The slot catalog of one series card / json overlay entry (slot = family + chartType + type override). */
 const seriesCatalogFor = (m: SeriesMeta, state: EditorState): readonly SnippetTemplate[] =>
-    SERIES_TEMPLATES[seriesSlotOf(familyOf(state.chartType), state.chartType, m)];
+    SERIES_TEMPLATES[seriesSlotOf(familyOf(state.chartType), state.chartType, m, state.jsonKind)];
 
 /** series — per-card raw in the seriesConfig meta blob; the catalog is SLOT-resolved per card. */
 const seriesLevel: RawLevelEntry = {

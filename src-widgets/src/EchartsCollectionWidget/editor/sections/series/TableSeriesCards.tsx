@@ -9,13 +9,19 @@
  * row swapped for the yPath ColumnAutocomplete ({@link CartesianBasisFields}' `sourceRow`
  * slot — the sub-components themselves untouched). What the serien-förmig view owns that this
  * one deliberately does NOT: duplicate, hide (jsonHidden deny-list) — the table family owns
- * its structure, every delete is REAL (decision 2). BOTH families render the full cards
- * (ticket 06); pie drops only the Basis-Tab's axis dropdown (`showAxis={false}` — pie knows
- * no axes, its series are the concentric rings).
+ * its structure, every delete is REAL (decision 2). Pie rings (ADR-0082 decision 1) drop the
+ * cartesian-only authoring: no axis binding, colour or type in Basis, no Darstellung/Werte
+ * tabs — the ring icon replaces the colour swatch, and the per-series raw resolves the
+ * pie-ring catalog (`seriesSlotOf`).
  */
 import type { FC } from 'react';
 import { Alert, Box, IconButton, Typography } from '@mui/material';
-import { ArrowDownward as DownIcon, ArrowUpward as UpIcon, DeleteOutline as DeleteIcon } from '@mui/icons-material';
+import {
+    ArrowDownward as DownIcon,
+    ArrowUpward as UpIcon,
+    DeleteOutline as DeleteIcon,
+    DonutLarge as DonutIcon,
+} from '@mui/icons-material';
 
 import Generic from '../../../../Generic';
 import type { EchartsCartesianType } from '../../../../types/field-definitions/echarts-fields';
@@ -23,7 +29,8 @@ import type { JsonTableColumn } from '../../../../hooks/useJsonTableAnalysis';
 import { EditorCard, InfoBox, SectionTabs } from '../../../../components/controls';
 import ColumnAutocomplete from '../../ColumnAutocomplete';
 import type { OidPickerCtx } from '../../OidPicker';
-import type { SeriesTemplateSlot } from '../../seriesTemplates';
+import { familyOf } from '../../../optionBuilder';
+import { seriesSlotOf } from '../../seriesTemplates';
 import type { EditorSeries, EditorState } from '../../editorState';
 import {
     CartesianBasisFields,
@@ -39,7 +46,10 @@ import { snippetPatch } from '../../snippetComposition';
  * The table series cards' field ownership (ADR-0049 slice) — read-only: every write goes
  * through the dispatcher callbacks (positional update / remove / move / rebind / add).
  */
-export type TableSeriesCardsSlice = Pick<EditorState, 'jsonOid' | 'chartType' | 'series' | 'yAxes' | 'ignoreNull'>;
+export type TableSeriesCardsSlice = Pick<
+    EditorState,
+    'jsonOid' | 'chartType' | 'jsonKind' | 'series' | 'yAxes' | 'ignoreNull'
+>;
 
 interface TableSeriesCardsProps {
     state: TableSeriesCardsSlice;
@@ -67,6 +77,20 @@ interface TableSeriesCardsProps {
 /** The card's display name — authored name wins, the default is the path's last segment. */
 export const tableSeriesName = (s: EditorSeries, i: number): string => positionalBinderName(s) || `Series ${i + 1}`;
 
+/**
+ * Ring card identity (ADR-0082 decision 1): a ring authors no colour — the category-stable
+ * palette paints its slices — so the header shows the ring, not a swatch whose colour the
+ * chart never applies.
+ */
+const RingSwatch: FC = () => (
+    <Box
+        data-testid="ring-swatch"
+        sx={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+    >
+        <DonutIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+    </Box>
+);
+
 const TableSeriesCards: FC<TableSeriesCardsProps> = ({
     state,
     pickerCtx,
@@ -85,6 +109,9 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
 }) => {
     const series = state.series;
     const defaultType = state.chartType as EchartsCartesianType;
+    // Ring cards (ADR-0082 decision 1): the pie family drops the cartesian-only knobs — colour
+    // and type in Basis (inert on rings), the whole Darstellung/Werte tab bodies.
+    const isPie = state.chartType === 'pie';
     // Effective axis names for the per-series binding dropdown (ADR-0025) — the binder sight is
     // state.series itself (like Verlauf; the overlay/jsonHidden sights are serien-förmig only).
     const axisDisplayNames = state.yAxes.map((a, ai) => axisOptionLabel(ai, a, series));
@@ -149,7 +176,9 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                             key={s.id ?? i}
                             open={!!expanded[i]}
                             onToggle={() => onToggleCard(i)}
-                            swatch={<Swatch color={s.color ?? slot(i)} />}
+                            // Ring identity for pie (ADR-0082 decision 1): no colour authoring,
+                            // no colour swatch — cartesian keeps the inherit-preview swatch.
+                            swatch={isPie ? <RingSwatch /> : <Swatch color={s.color ?? slot(i)} />}
                             title={tableSeriesName(s, i)}
                             subtitle={s.yPath || Generic.t('echarts_table_no_ypath')}
                             actions={
@@ -186,64 +215,96 @@ const TableSeriesCards: FC<TableSeriesCardsProps> = ({
                             {/* Karten-Tabs (ADR-0073): Basis | Transformation | Darstellung | Werte |
                                 Erweitert — the json-cards' tab set (Transformation instead of
                                 Daten: the payload needs no fetch, the pipeline still applies the
-                                transforms — the documented ADR-0073 deviation). */}
+                                transforms — the documented ADR-0073 deviation). Pie rings shrink
+                                to Basis | Transformation | Erweitert (ADR-0082 decision 1): the
+                                Darstellung/Werte bodies are cartesian-only and inert on rings.
+                                The children↔tabs contract is POSITIONAL, so the two variants ship
+                                as arrays with matching counts. */}
                             <SectionTabs
-                                tabs={[
-                                    { key: 'basis', label: Generic.t('echarts_grp_basis') },
-                                    { key: 'transform', label: Generic.t('echarts_grp_transform') },
-                                    { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
-                                    { key: 'values', label: Generic.t('echarts_tab_values') },
-                                    { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
-                                ]}
+                                tabs={
+                                    isPie
+                                        ? [
+                                              { key: 'basis', label: Generic.t('echarts_grp_basis') },
+                                              { key: 'transform', label: Generic.t('echarts_grp_transform') },
+                                              { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                          ]
+                                        : [
+                                              { key: 'basis', label: Generic.t('echarts_grp_basis') },
+                                              { key: 'transform', label: Generic.t('echarts_grp_transform') },
+                                              { key: 'presentation', label: Generic.t('echarts_grp_presentation') },
+                                              { key: 'values', label: Generic.t('echarts_tab_values') },
+                                              { key: 'advanced', label: Generic.t('echarts_tab_advanced') },
+                                          ]
+                                }
                             >
-                                <CartesianBasisFields
-                                    meta={s}
-                                    defaultType={defaultType}
-                                    onPatch={p =>
-                                        // A yAxisIndex change rebinds (the freed axis dies, ADR-0069);
-                                        // every other field updates in place — the history twin.
-                                        p.yAxisIndex !== undefined ? onRebindAxis(i, p.yAxisIndex) : onUpdate(i, p)
-                                    }
-                                    pickerCtx={pickerCtx}
-                                    colorFallback={slot(i)}
-                                    showType
-                                    showAxis={showAxis}
-                                    yAxes={state.yAxes}
-                                    axisDisplayNames={axisDisplayNames}
-                                    sourceRow={
-                                        <ColumnAutocomplete
-                                            label={Generic.t('echarts_editor_series_y_column')}
-                                            value={s.yPath ?? ''}
-                                            columns={columns}
-                                            onChange={p => onUpdate(i, { yPath: p || undefined })}
-                                            emptyLabel={Generic.t('echarts_table_no_ypath')}
-                                        />
-                                    }
-                                />
-                                <SeriesTransformFields
-                                    meta={s}
-                                    onPatch={p => onUpdate(i, p)}
-                                    chartNullMode={state.ignoreNull}
-                                />
-                                <CartesianSeriesKnobs
-                                    meta={s}
-                                    defaultType={defaultType}
-                                    onPatch={p => onUpdate(i, p)}
-                                    pickerCtx={pickerCtx}
-                                    colorFallback={slot(i)}
-                                    labelColorFallback={labelColorFallback}
-                                />
-                                <SeriesValueFormatFields
-                                    meta={s}
-                                    onPatch={p => onUpdate(i, p)}
-                                />
-                                <SeriesRawOverride
-                                    slot={`cartesian-${s.type ?? defaultType}` as SeriesTemplateSlot}
-                                    raw={s.raw}
-                                    onChange={v => onUpdate(i, { raw: v })}
-                                    snippets={s.snippets}
-                                    onCommit={r => onUpdate(i, snippetPatch(r))}
-                                />
+                                {[
+                                    <CartesianBasisFields
+                                        key="basis"
+                                        meta={s}
+                                        defaultType={defaultType}
+                                        onPatch={p =>
+                                            // A yAxisIndex change rebinds (the freed axis dies, ADR-0069);
+                                            // every other field updates in place — the history twin.
+                                            p.yAxisIndex !== undefined ? onRebindAxis(i, p.yAxisIndex) : onUpdate(i, p)
+                                        }
+                                        pickerCtx={pickerCtx}
+                                        colorFallback={slot(i)}
+                                        showType={!isPie}
+                                        showColor={!isPie}
+                                        showAxis={showAxis}
+                                        yAxes={state.yAxes}
+                                        axisDisplayNames={axisDisplayNames}
+                                        sourceRow={
+                                            <ColumnAutocomplete
+                                                label={Generic.t('echarts_editor_series_y_column')}
+                                                value={s.yPath ?? ''}
+                                                columns={columns}
+                                                onChange={p => onUpdate(i, { yPath: p || undefined })}
+                                                emptyLabel={Generic.t('echarts_table_no_ypath')}
+                                            />
+                                        }
+                                    />,
+                                    <SeriesTransformFields
+                                        key="transform"
+                                        meta={s}
+                                        onPatch={p => onUpdate(i, p)}
+                                        chartNullMode={state.ignoreNull}
+                                    />,
+                                    ...(isPie
+                                        ? []
+                                        : [
+                                              <CartesianSeriesKnobs
+                                                  key="presentation"
+                                                  meta={s}
+                                                  defaultType={defaultType}
+                                                  onPatch={p => onUpdate(i, p)}
+                                                  pickerCtx={pickerCtx}
+                                                  colorFallback={slot(i)}
+                                                  labelColorFallback={labelColorFallback}
+                                              />,
+                                              <SeriesValueFormatFields
+                                                  key="values"
+                                                  meta={s}
+                                                  onPatch={p => onUpdate(i, p)}
+                                              />,
+                                          ]),
+                                    <SeriesRawOverride
+                                        key="advanced"
+                                        // The ONE slot rule (ADR-0042): cartesian type override or
+                                        // the pie RING catalog (ADR-0082 decision 2 — a ring's raw
+                                        // is series-level, never the per-slice teaching).
+                                        slot={seriesSlotOf(
+                                            familyOf(state.chartType),
+                                            state.chartType,
+                                            s,
+                                            state.jsonKind,
+                                        )}
+                                        raw={s.raw}
+                                        onChange={v => onUpdate(i, { raw: v })}
+                                        snippets={s.snippets}
+                                        onCommit={r => onUpdate(i, snippetPatch(r))}
+                                    />,
+                                ]}
                             </SectionTabs>
                         </EditorCard>
                     ))}

@@ -19,6 +19,11 @@ vi.hoisted(() => {
     };
 });
 vi.mock('@mui/icons-material', () => ({ ExpandMore: () => null, Add: () => null, ErrorOutline: () => null }));
+// The pie options' Erweitert tab mounts a SeriesRawOverride — the shared series block pulls
+// adapter-react (SelectID) whose FileBrowser wants icons the barrel mock above withholds, and
+// the JsonEditor below it is a heavy leaf the label-only inventory never opens.
+vi.mock('@iobroker/adapter-react-v5', () => ({ SelectID: () => null }));
+vi.mock('../JsonEditor', () => ({ default: () => null }));
 vi.mock('../colorFields', () => ({
     default: () => null,
     ColorListField: () => null,
@@ -295,15 +300,18 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         expect(off.querySelectorAll('[role="tablist"]')).toHaveLength(0);
     });
 
-    it('Pie options: Form | Werte', () => {
+    it('Pie options: Form | Werte | Erweitert (ADR-0082 — the whole-pie raw lives here, mode-uniform)', () => {
         const el = mount(PieOptionsSection, { state: state({ chartType: 'pie' }), set: () => undefined });
-        expect(tabLabels(el)).toEqual(['echarts_tab_shape', 'echarts_tab_values']);
+        expect(tabLabels(el)).toEqual(['echarts_tab_shape', 'echarts_tab_values', 'echarts_tab_advanced']);
         const all = allTabsText(el);
         for (const key of [
             'echarts_pie_inner_radius',
             'echarts_pie_rose',
             'echarts_pie_aggregate',
+            // ADR-0082 ticket 03: the aggregate InfoBox names the collapse composition
+            'echarts_pie_aggregate_hint',
             'echarts_pie_label',
+            'echarts_series_raw', // the Erweitert tab hosts the whole-pie raw (ADR-0082 decision 3)
         ]) {
             expect(all).toContain(key);
         }
@@ -319,5 +327,7 @@ describe('section bodies — the tab SET per section (ADR-0073, spec ticket 06)'
         for (const key of ['echarts_pie_inner_radius', 'echarts_pie_rose', 'echarts_pie_label']) {
             expect(all).toContain(key); // donut/rose/label stay
         }
+        // ADR-0082 decision 3: the whole-pie raw is mode-uniform — tabellarisch reaches it too
+        expect(all).toContain('echarts_series_raw');
     });
 });

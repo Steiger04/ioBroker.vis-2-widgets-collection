@@ -162,3 +162,56 @@ describe('TableSeriesCards — the card chrome (ADR-0075 ticket 04)', () => {
         expect(el.textContent).not.toContain('Series 1');
     });
 });
+
+describe('TableSeriesCards — pie rings (ADR-0082 ticket 01: ring cards pie-bewusst)', () => {
+    const handlers = {
+        pickerCtx: {},
+        slot: () => '#111',
+        labelColorFallback: '#222',
+        columns,
+        expanded: { 0: true } as Record<number, boolean>,
+        onToggleCard: () => undefined,
+        onUpdate: () => undefined,
+        onRemove: () => undefined,
+        onMove: () => undefined,
+        onAddWithColumn: () => undefined,
+        onRebindAxis: () => undefined,
+    };
+
+    it('a pie ring card shows Basis | Transformation | Erweitert — the cartesian-only knobs are gone', () => {
+        const el = mount(TableSeriesCards, {
+            state: tableState({
+                chartType: 'pie',
+                series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
+            }),
+            showAxis: false,
+            ...handlers,
+        });
+        expect(el.textContent).toContain('echarts_grp_basis');
+        expect(el.textContent).toContain('echarts_grp_transform');
+        expect(el.textContent).toContain('echarts_tab_advanced');
+        // The two cartesian-only tab bodies never enter the tab row for pie
+        expect(el.textContent).not.toContain('echarts_grp_presentation');
+        expect(el.textContent).not.toContain('echarts_tab_values');
+        // Basis (first tab, active on open): rings author no colour and no cartesian type
+        expect(el.textContent).not.toContain('echarts_editor_series_color');
+        expect(el.textContent).not.toContain('echarts_editor_series_type');
+        // The header carries the ring identity, not a colour that paints nothing
+        expect(el.querySelector('[data-testid="ring-swatch"]')).not.toBeNull();
+    });
+
+    it('a cartesian card keeps the full tab inventory — the gate is pie-only (byte-stable)', () => {
+        const el = mount(TableSeriesCards, {
+            state: tableState({
+                chartType: 'line',
+                series: [{ id: 's0', oid: '', yPath: 'temp', yAxisIndex: 0 }],
+            }),
+            ...handlers,
+        });
+        expect(el.textContent).toContain('echarts_grp_presentation');
+        expect(el.textContent).toContain('echarts_tab_values');
+        expect(el.textContent).toContain('echarts_editor_series_color');
+        expect(el.textContent).toContain('echarts_editor_series_type');
+        expect(el.querySelector('[data-testid="ring-swatch"]')).toBeNull();
+    });
+});

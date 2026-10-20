@@ -17,7 +17,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { decodeBlob, encodeBlob } from '../../lib/encoding';
-import { RAW_LEVELS, healSaveLevels, type SaveDrafts } from './rawLevels';
+import { RAW_LEVELS, healLoadLevels, healSaveLevels, type SaveDrafts } from './rawLevels';
 import { DEFAULT_EDITOR_STATE, loadEditorState, saveEditorState, type EditorState } from './editorState';
 
 /** A stored rxData record / an `onDataChange` patch — both carry base64 blobs. */
@@ -322,6 +322,30 @@ describe('raw-level registry (ADR-0047 — the registry side of the pinned contr
         for (const id of ['title', 'legend', 'tooltip', 'series', 'yAxes', 'xAxis', 'jsonSeriesStyle'] as const) {
             expect(byId.get(id)?.families).toBeUndefined();
         }
+    });
+
+    it('series slot resolution: tabellarisch pie rings heal against pie-ring, slice ids prune (ADR-0082)', () => {
+        const state: EditorState = {
+            ...DEFAULT_EDITOR_STATE,
+            mode: 'json',
+            jsonKind: 'table',
+            chartType: 'pie',
+            series: [
+                {
+                    id: 'r0',
+                    oid: '',
+                    yPath: 'temp',
+                    yAxisIndex: 0,
+                    // labelLine leaves present — keeps the ring activation alive through the
+                    // keep-only drop (the badge never outlives its content).
+                    raw: '{ "labelLine": { "show": true } }',
+                    snippets: ['pie-ring-labelline', 'slice-label'],
+                },
+            ],
+        };
+        healLoadLevels(state);
+        // The ring catalog keeps its own activation; a per-slice id is stale against it
+        expect(state.series[0].snippets).toEqual(['pie-ring-labelline']);
     });
 
     it('every level except series (the family-switch loss source) annotates lossRelevant: false', () => {

@@ -246,3 +246,38 @@ describe('Zuordnung — the Zeilenpfad chip row (zuordnung-redesign ticket 02)',
         expect(shallow.textContent).not.toContain('echarts_mapping_depth_cap');
     });
 });
+
+describe('Datenabruf preset hint (ADR-0082 ticket 03 — the pie variant names the point shaping)', () => {
+    /** Verlauf mount with the Datenabruf tab selected (tab index 1 in history mode). */
+    const mountHistory = (over: Record<string, unknown>): HTMLElement => {
+        const set = vi.fn();
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        const root: Root = createRoot(container);
+        act(() => {
+            root.render(
+                createElement(DataSourceSection as never, {
+                    state: state({ mode: 'history', ...over }),
+                    set,
+                    pickerCtx: {},
+                } as never),
+            );
+        });
+        act(() => {
+            const fetchTab = Array.from(container.querySelectorAll('[role="tab"]'))[1];
+            fetchTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        return container;
+    };
+
+    it('cartesian keeps the Erben-Override preset hint (byte-stable)', () => {
+        const el = mountHistory({ chartType: 'bar' });
+        expect(el.textContent).toContain('echarts_datasource_preset_hint');
+        expect(el.textContent).not.toContain('echarts_datasource_preset_hint_pie');
+    });
+
+    it('pie says point shaping instead — slice rows carry no Daten tab to preset for', () => {
+        const el = mountHistory({ chartType: 'pie' });
+        expect(el.textContent).toContain('echarts_datasource_preset_hint_pie');
+    });
+});

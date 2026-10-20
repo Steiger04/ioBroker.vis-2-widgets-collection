@@ -5,7 +5,8 @@
  * @remarks
  * Slices bind their own data (the OID picker was missing in v2 — slices could never bind data).
  * Each row is a quiet hairline box with a responsive FieldGrid; the per-slice raw override lives
- * inside the row, the whole-pie raw override (the `pie`-slot templates) above the list.
+ * inside the row. The WHOLE-pie raw moved to the Pie options section's „Erweitert" tab, where it
+ * is reachable in EVERY data mode (ADR-0082 decision 3 — Verlauf only was a mode asymmetry).
  */
 import type { FC } from 'react';
 import { Box, IconButton } from '@mui/material';
@@ -16,19 +17,19 @@ import { FieldGrid, FieldLabel, TextField2 } from '../../../../components/contro
 import ColorField from '../../colorFields';
 import OidPicker from '../../OidPicker';
 import type { OidPickerCtx } from '../../OidPicker';
-import type { EditorSeries, EditorState, SetEditor } from '../../editorState';
+import type { EditorSeries, EditorState } from '../../editorState';
 import { AddSeriesViaOid, EmptyState, SeriesRawOverride } from './shared';
 import { snippetPatch } from '../../snippetComposition';
 
 /**
- * The pie slice rows' field ownership (ADR-0049 slice) — the slice list, the whole-pie raw
- * (riding the pie blob), and the mode for the history-only OID picker.
+ * The pie slice rows' field ownership (ADR-0049 slice) — the slice list and the mode for the
+ * history-only OID picker (the whole-pie raw rides the pie blob from the family section,
+ * ADR-0082).
  */
-export type PieSliceRowsSlice = Pick<EditorState, 'series' | 'pie' | 'mode'>;
+export type PieSliceRowsSlice = Pick<EditorState, 'series' | 'mode'>;
 
 interface PieSliceRowsProps {
     state: PieSliceRowsSlice;
-    set: SetEditor<PieSliceRowsSlice>;
     pickerCtx: OidPickerCtx;
     /** Palette-slot colour of slice i (the inherit fallback). */
     slot: (i: number) => string;
@@ -37,18 +38,10 @@ interface PieSliceRowsProps {
     onAddWithOid: (oid: string) => void;
 }
 
-const PieSliceRows: FC<PieSliceRowsProps> = ({ state, set, pickerCtx, slot, onUpdate, onRemove, onAddWithOid }) => {
+const PieSliceRows: FC<PieSliceRowsProps> = ({ state, pickerCtx, slot, onUpdate, onRemove, onAddWithOid }) => {
     const series = state.series;
     return (
         <Box>
-            {/* Whole-pie raw (the pie component itself — radius/center/labelLine/…), above the slices. */}
-            <SeriesRawOverride
-                slot="pie"
-                raw={state.pie.raw}
-                onChange={v => set({ pie: { ...state.pie, raw: v || undefined } })}
-                snippets={state.pie.snippets}
-                onCommit={r => set({ pie: { ...state.pie, ...snippetPatch(r) } })}
-            />
             {series.length === 0 && (
                 <EmptyState text={Generic.t('echarts_series_empty')}>
                     <AddSeriesViaOid

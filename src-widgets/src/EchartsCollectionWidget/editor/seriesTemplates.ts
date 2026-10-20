@@ -24,6 +24,7 @@
  * CONDITIONAL_ALLOW list below, each with a justification. Managed sets live in
  * `seriesRawAnalysis.ts` (the sync invariant with the builders).
  */
+import type { EchartsJsonKind } from '../../types/field-definitions/echarts-fields';
 /** Option-group category (rendered as menu section headers; order = {@link SERIES_CATEGORY_ORDER}). */
 export type SeriesTemplateCategory =
     // shared series option groups
@@ -79,15 +80,29 @@ export type SeriesTemplateSlot =
     | 'cartesian-bar'
     | 'cartesian-scatter' // point series (ADR-0060) — no line/area/bar groups
     | 'pie' // whole-pie series (series[0])
+    | 'pie-ring' // one concentric ring series (tabellarisch, ADR-0082 decision 2)
     | 'pie-slice'; // per slice (data[i])
 
 /**
  * The slot a series' activations resolve against, derived from the chart family + the series'
  * own type override (ADR-0042) — the ONE slot rule shared by the Apply prune (`saveEditorState`),
  * the load prune (ADR-0043) and the family-switch loss count, so the three can never drift apart.
+ * The pie split is mode-shaped (ADR-0082 decision 2): Verlauf/serien-förmig series ARE slices,
+ * tabellarische series are RINGS — a series-level raw on a ring teaches series keys, not
+ * per-slice keys.
  */
-export const seriesSlotOf = (family: string, chartType: string, meta: { type?: string }): SeriesTemplateSlot =>
-    family === 'pie' ? 'pie-slice' : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
+export const seriesSlotOf = (
+    family: string,
+    chartType: string,
+    meta: { type?: string },
+    /** The payload family (tabellarisch rings); absent/other = the slice reading. */
+    jsonKind?: EchartsJsonKind,
+): SeriesTemplateSlot =>
+    family === 'pie'
+        ? jsonKind === 'table'
+            ? 'pie-ring'
+            : 'pie-slice'
+        : (`cartesian-${meta.type ?? chartType}` as SeriesTemplateSlot);
 
 export interface SeriesTemplate {
     /** Stable id for React keys and persisted activations (ADR-0042). */
@@ -1112,11 +1127,238 @@ const PIE_SLICE: SeriesTemplate[] = [
     },
 ];
 
+// ── pie-ring (one concentric ring series — tabellarisch, ADR-0082 decision 2) ─
+// GUI-owned (always): type/name (ring identity)/radius (the computed band)/label.show +
+// label.formatter/data (the payload slices)/animation*. Conditional: roseType. Key-wise this is
+// the whole-pie space — but the catalog is SEPARATE (its own ids, its own teaching frame): the
+// raw sits UNDER the GUI on the ring series (GUI > ring raw > whole-pie raw), and a ring author
+// must never be taught the single-pie framing. No radius/data/roseType scaffold — those are
+// lies on rings.
+const PIE_RING: SeriesTemplate[] = [
+    {
+        id: 'pie-ring-label',
+        category: 'label',
+        label: 'label',
+        json: JSON.stringify({
+            label: {
+                position: 'outer',
+                alignTo: 'labelLine',
+                edgeDistance: '25%',
+                distanceToLabelLine: 5,
+                minMargin: 5,
+                rotate: 0,
+                ...LABEL_FONT_KEYS,
+            },
+        }),
+    },
+    {
+        id: 'pie-ring-labelline',
+        category: 'labelLine',
+        label: 'labelLine',
+        json: JSON.stringify({
+            labelLine: {
+                show: true,
+                length: 15,
+                length2: 15,
+                smooth: false,
+                minTurnAngle: 90,
+                maxSurfaceAngle: 90,
+                lineStyle: { color: 'inherit', width: 1, opacity: 1, type: 'solid' },
+            },
+        }),
+    },
+    {
+        id: 'pie-ring-labellayout',
+        category: 'labelLayout',
+        label: 'labelLayout',
+        json: JSON.stringify({ labelLayout: { hideOverlap: true, moveOverlap: 'shiftY', draggable: false } }),
+    },
+    {
+        id: 'pie-ring-labellayout-edge',
+        category: 'labelLayout',
+        label: 'labelLayout · edge',
+        json: JSON.stringify({
+            labelLayout: { alignTo: 'edge', edgeDistance: 10, bleedMargin: 10, hideOverlap: true },
+        }),
+    },
+    {
+        id: 'pie-ring-itemstyle',
+        category: 'itemStyle',
+        label: 'itemStyle',
+        // The series-level default every slice of the ring inherits (the category-stable palette
+        // paints per-slice colours on top; border/shadow styling is ring-wide here).
+        json: JSON.stringify({
+            itemStyle: {
+                opacity: 1,
+                borderColor: '#fff',
+                borderWidth: 2,
+                borderType: 'solid',
+                borderJoin: 'round',
+                borderRadius: 6,
+                ...NO_SHADOW,
+            },
+        }),
+    },
+    {
+        id: 'pie-ring-decal',
+        category: 'itemStyle',
+        label: 'itemStyle · decal',
+        json: JSON.stringify({ itemStyle: { decal: DECAL } }),
+    },
+    {
+        id: 'pie-ring-emphasis',
+        category: 'states',
+        label: 'emphasis',
+        json: JSON.stringify({
+            emphasis: {
+                focus: 'self',
+                scale: true,
+                scaleSize: 10,
+                itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' },
+                label: { show: true },
+            },
+        }),
+    },
+    {
+        id: 'pie-ring-blur',
+        category: 'states',
+        label: 'blur',
+        json: JSON.stringify({ blur: { itemStyle: { opacity: 0.3 }, label: { show: false } } }),
+    },
+    {
+        id: 'pie-ring-select',
+        category: 'states',
+        label: 'select',
+        json: JSON.stringify({ select: { disabled: true, itemStyle: { borderWidth: 2 }, label: { show: true } } }),
+    },
+    {
+        id: 'pie-ring-startangle',
+        category: 'behaviour',
+        label: 'startAngle',
+        json: '{ "startAngle": 90 }',
+    },
+    {
+        id: 'pie-ring-minangle',
+        category: 'behaviour',
+        label: 'minAngle',
+        json: '{ "minAngle": 5 }',
+    },
+    {
+        id: 'pie-ring-padangle',
+        category: 'behaviour',
+        label: 'padAngle',
+        // A gap BETWEEN the ring's own slices (not between rings — the band stays GUI-computed).
+        json: '{ "padAngle": 0 }',
+    },
+    {
+        id: 'pie-ring-percentprecision',
+        category: 'behaviour',
+        label: 'percentPrecision',
+        json: '{ "percentPrecision": 2 }',
+    },
+    {
+        id: 'pie-ring-avoidoverlap',
+        category: 'behaviour',
+        label: 'avoidLabelOverlap',
+        json: '{ "avoidLabelOverlap": true }',
+    },
+    {
+        id: 'pie-ring-stillzero',
+        category: 'behaviour',
+        label: 'stillShowZeroSum',
+        json: '{ "stillShowZeroSum": true }',
+    },
+    {
+        id: 'pie-ring-selectedmode',
+        category: 'behaviour',
+        label: 'selectedMode',
+        json: '{ "selectedMode": "single" }',
+    },
+    {
+        id: 'pie-ring-selectedoffset',
+        category: 'behaviour',
+        label: 'selectedOffset',
+        json: '{ "selectedOffset": 10 }',
+    },
+    {
+        id: 'pie-ring-z',
+        category: 'behaviour',
+        label: 'z',
+        // Ring draw order: series 0 is the OUTERMOST band — a lower z pulls a ring under its
+        // siblings (doc default 2).
+        json: '{ "z": 2 }',
+    },
+    {
+        id: 'pie-ring-center',
+        category: 'behaviour',
+        label: 'center',
+        // Per-ring centre — off-centre rings are legal (the GUI never sets it on rings).
+        json: '{ "center": ["50%", "50%"] }',
+    },
+    {
+        id: 'pie-ring-universal',
+        category: 'behaviour',
+        label: 'universalTransition',
+        json: '{ "universalTransition": true }',
+    },
+    {
+        id: 'pie-ring-animtype',
+        category: 'behaviour',
+        label: 'animationType',
+        json: '{ "animationType": "expansion" }',
+    },
+    {
+        id: 'pie-ring-animtypeupdate',
+        category: 'behaviour',
+        label: 'animationTypeUpdate',
+        json: '{ "animationTypeUpdate": "transition" }',
+    },
+    {
+        id: 'pie-ring-endangle',
+        category: 'behaviour',
+        label: 'endAngle',
+        // A partial ring (startAngle 90 + endAngle 270 = a half ring) — the band stays GUI-computed.
+        json: '{ "endAngle": 270 }',
+    },
+    {
+        id: 'pie-ring-cursor',
+        category: 'behaviour',
+        label: 'cursor',
+        json: '{ "cursor": "pointer" }',
+    },
+    {
+        id: 'pie-ring-silent',
+        category: 'behaviour',
+        label: 'silent',
+        json: '{ "silent": true }',
+    },
+    {
+        id: 'pie-ring-clockwise',
+        category: 'behaviour',
+        label: 'clockwise',
+        json: '{ "clockwise": false }',
+    },
+    {
+        id: 'pie-ring-minshowlabelangle',
+        category: 'behaviour',
+        label: 'minShowLabelAngle',
+        json: '{ "minShowLabelAngle": 10 }',
+    },
+    {
+        id: 'pie-ring-emptycircle',
+        category: 'behaviour',
+        label: 'showEmptyCircle',
+        // v6: the placeholder disc while THIS ring's slices are all 0/null (emptyCircleStyle doc literals).
+        json: '{ "showEmptyCircle": true, "emptyCircleStyle": { "color": "lightgray", "opacity": 1 } }',
+    },
+];
+
 export const SERIES_TEMPLATES: Record<SeriesTemplateSlot, SeriesTemplate[]> = {
     'cartesian-line': CARTESIAN_LINE,
     'cartesian-bar': CARTESIAN_BAR,
     'cartesian-scatter': CARTESIAN_SCATTER,
     pie: PIE,
+    'pie-ring': PIE_RING,
     'pie-slice': PIE_SLICE,
 };
 
@@ -1161,5 +1403,6 @@ export const CONDITIONAL_ALLOW: Record<SeriesTemplateSlot, ReadonlySet<string>> 
     // active); the markLine trio when the card hosts the thresholds.
     'cartesian-scatter': new Set(['markLine.silent', 'markLine.symbol', 'markLine.data', 'label.formatter']),
     pie: new Set(),
+    'pie-ring': new Set(),
     'pie-slice': new Set(),
 };

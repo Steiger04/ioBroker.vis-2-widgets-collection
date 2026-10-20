@@ -10,16 +10,20 @@
  */
 import type { FC } from 'react';
 
+import { Box } from '@mui/material';
+
 import Generic from '../../../Generic';
-import { FieldGrid, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
+import { FieldGrid, InfoBox, LabeledSelect, SectionTabs, SliderField } from '../../../components/controls';
 import type { SectionTabsFocus } from '../../../components/controls';
 import { issueCountsByTab, type ValidationIssue } from '../validation';
 import type { EditorState, SetEditor } from '../editorState';
+import { SeriesRawOverride } from './series/shared';
+import { snippetPatch } from '../snippetComposition';
 
 /**
- * The pie options section's field ownership (ADR-0049 slice) — the pie blob plus the
- * mode/kind READ (ADR-0075: the aggregate cluster hides tabellarisch — every row IS the
- * value, there is nothing to collapse).
+ * The pie options section's field ownership (ADR-0049 slice) — the pie blob (incl. the whole-pie
+ * raw, homed here for EVERY data mode — ADR-0082 decision 3) plus the mode/kind READ (ADR-0075:
+ * the aggregate cluster hides tabellarisch — every row IS the value, there is nothing to collapse).
  */
 export type PieOptionsSlice = Pick<EditorState, 'pie' | 'mode' | 'jsonKind'>;
 
@@ -42,13 +46,15 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues
     const dots = issueCountsByTab(issues);
 
     return (
-        // Sektions-Tabs (ADR-0073): Form (donut/rose) | Werte (aggregation + label) — the
-        // strict-uniformity rule reaches the family sections too (deliberately thin tabs).
+        // Sektions-Tabs (ADR-0073): Form (donut/rose) | Werte (aggregation + label) | Erweitert
+        // (the whole-pie raw — mode-uniform since ADR-0082 decision 3; it left the Verlauf slice
+        // rows so every pie data mode reaches it at one place).
         <SectionTabs
             focus={focusTab}
             tabs={[
                 { key: 'shape', label: Generic.t('echarts_tab_shape'), issueCount: dots.shape },
                 { key: 'values', label: Generic.t('echarts_tab_values'), issueCount: dots.values },
+                { key: 'advanced', label: Generic.t('echarts_tab_advanced'), issueCount: dots.advanced },
             ]}
         >
             <FieldGrid>
@@ -71,33 +77,45 @@ export const PieOptionsSection: FC<PieOptionsSectionProps> = ({ focusTab, issues
                     ]}
                 />
             </FieldGrid>
-            <FieldGrid>
-                {!isJsonTable && (
+            <Box>
+                {/* ADR-0082 ticket 03: the collapse composition said out loud — the fetch
+                    aggregate (Data source → Datenabruf) shapes the points, THIS collapses them. */}
+                {!isJsonTable && <InfoBox text={Generic.t('echarts_pie_aggregate_hint')} />}
+                <FieldGrid>
+                    {!isJsonTable && (
+                        <LabeledSelect
+                            label={Generic.t('echarts_pie_aggregate')}
+                            value={state.pie.aggregate ?? 'latest'}
+                            onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
+                            options={[
+                                ['latest', Generic.t('echarts_pie_agg_latest')],
+                                ['sum', Generic.t('echarts_pie_agg_sum')],
+                                ['avg', Generic.t('echarts_pie_agg_avg')],
+                                ['min', Generic.t('echarts_pie_agg_min')],
+                                ['max', Generic.t('echarts_pie_agg_max')],
+                            ]}
+                        />
+                    )}
                     <LabeledSelect
-                        label={Generic.t('echarts_pie_aggregate')}
-                        value={state.pie.aggregate ?? 'latest'}
-                        onChange={v => setPie({ aggregate: v as PieOptionsSlice['pie']['aggregate'] })}
+                        label={Generic.t('echarts_pie_label')}
+                        value={state.pie.label ?? 'namePercent'}
+                        onChange={v => setPie({ label: v as PieOptionsSlice['pie']['label'] })}
                         options={[
-                            ['latest', Generic.t('echarts_pie_agg_latest')],
-                            ['sum', Generic.t('echarts_pie_agg_sum')],
-                            ['avg', Generic.t('echarts_pie_agg_avg')],
-                            ['min', Generic.t('echarts_pie_agg_min')],
-                            ['max', Generic.t('echarts_pie_agg_max')],
+                            ['none', Generic.t('echarts_label_none')],
+                            ['name', Generic.t('echarts_label_name')],
+                            ['percent', Generic.t('echarts_label_percent')],
+                            ['namePercent', Generic.t('echarts_label_name_percent')],
                         ]}
                     />
-                )}
-                <LabeledSelect
-                    label={Generic.t('echarts_pie_label')}
-                    value={state.pie.label ?? 'namePercent'}
-                    onChange={v => setPie({ label: v as PieOptionsSlice['pie']['label'] })}
-                    options={[
-                        ['none', Generic.t('echarts_label_none')],
-                        ['name', Generic.t('echarts_label_name')],
-                        ['percent', Generic.t('echarts_label_percent')],
-                        ['namePercent', Generic.t('echarts_label_name_percent')],
-                    ]}
-                />
-            </FieldGrid>
+                </FieldGrid>
+            </Box>
+            <SeriesRawOverride
+                slot="pie"
+                raw={state.pie.raw}
+                onChange={v => setPie({ raw: v || undefined })}
+                snippets={state.pie.snippets}
+                onCommit={r => setPie(snippetPatch(r))}
+            />
         </SectionTabs>
     );
 };

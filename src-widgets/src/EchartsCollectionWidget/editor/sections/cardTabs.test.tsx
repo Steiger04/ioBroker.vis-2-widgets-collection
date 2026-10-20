@@ -164,6 +164,31 @@ describe('Karten-Tabs — the cards (ADR-0073, spec ticket 07)', () => {
         expect(all).toContain('RAW_OVERRIDE');
     });
 
+    it('Series row (pie JSON): display name + colour + INLINE per-slice raw (ADR-0082 decision 3)', () => {
+        // The serien-förmig pie rows carry no tabs — the Verlauf rows' anatomy: the payload owns
+        // the name, the user styles colour, and the per-slice raw rides INSIDE the row. The
+        // builder always applied m.raw here; until ADR-0082 the editor never reached it.
+        const el = mount(JsonSeriesCards, {
+            state: state({
+                chartType: 'pie',
+                mode: 'json',
+                jsonOid: 'javascript.0.chart',
+                jsonSeriesStyle: { Temp: {} },
+                jsonHidden: [],
+            }),
+            pickerCtx: {},
+            slot: () => '#111',
+            labelColorFallback: '#222',
+            jsonSeriesNames: ['Temp'],
+            expanded: {},
+            ...noops,
+        });
+        expect(el.querySelectorAll('[role="tab"]')).toHaveLength(0); // rows, not cards
+        expect(el.textContent).toContain('Temp');
+        expect(el.textContent).toContain('echarts_editor_series_color');
+        expect(el.textContent).toContain('RAW_OVERRIDE'); // the per-slice raw is reachable
+    });
+
     it('Y-axis card: Basis | Werte | Skala | Darstellung | Erweitert — full inventory', () => {
         const el = mount(AxisCard, {
             axis: { id: 'ax-1', position: 'left' },

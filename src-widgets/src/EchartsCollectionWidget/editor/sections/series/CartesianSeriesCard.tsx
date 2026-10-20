@@ -141,6 +141,14 @@ export const CartesianBasisFields: FC<{
     colorFallback: string;
     /** Show the per-series type override (history: only when ≥2 series; JSON: always). */
     showType: boolean;
+    /**
+     * Show the per-series colour field. Hidden for pie rings (ADR-0082 decision 1): the
+     * category-stable palette (ADR-0075 decision 5) makes `meta.color` inert there — a colour
+     * picker that paints nothing is a lie. The same gate family as {@link showAxis}.
+     *
+     * @default true
+     */
+    showColor?: boolean;
     yAxes: EchartsAxisConfig[];
     /**
      * Effective display name per axis (explicit → inherited-from-bound-series → index, ADR-0025)
@@ -179,6 +187,7 @@ export const CartesianBasisFields: FC<{
     pickerCtx,
     colorFallback,
     showType,
+    showColor = true,
     yAxes,
     axisDisplayNames,
     oid,
@@ -227,15 +236,17 @@ export const CartesianBasisFields: FC<{
                 value={meta.name ?? ''}
                 onChange={v => onPatch({ name: nameClearsToUndefined ? v || undefined : v })}
             />
-            <Box>
-                <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
-                <ColorField
-                    value={meta.color}
-                    fallback={colorFallback}
-                    onChange={v => onPatch({ color: v ?? undefined })}
-                    ctx={pickerCtx}
-                />
-            </Box>
+            {showColor && (
+                <Box>
+                    <FieldLabel>{Generic.t('echarts_editor_series_color')}</FieldLabel>
+                    <ColorField
+                        value={meta.color}
+                        fallback={colorFallback}
+                        onChange={v => onPatch({ color: v ?? undefined })}
+                        ctx={pickerCtx}
+                    />
+                </Box>
+            )}
             {showType && (
                 <LabeledSelect
                     label={Generic.t('echarts_editor_series_type')}

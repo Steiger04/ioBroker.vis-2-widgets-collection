@@ -19,6 +19,7 @@ import {
     SERIES_CATEGORY_I18N,
     SERIES_CATEGORY_ORDER,
     SERIES_TEMPLATES,
+    seriesSlotOf,
     type SeriesTemplate,
     type SeriesTemplateSlot,
 } from './seriesTemplates';
@@ -68,6 +69,7 @@ const FULLEST: Record<SeriesTemplateSlot, SeriesAnalysisContext> = {
         markLineHost: true,
     },
     pie: { slot: 'pie', pieRoseActive: true, animationEasingActive: true },
+    'pie-ring': { slot: 'pie-ring', pieRoseActive: true, animationEasingActive: true },
     'pie-slice': { slot: 'pie-slice', meta: {} as EchartsSeriesMeta },
 };
 
@@ -136,5 +138,27 @@ describe('SERIES_TEMPLATES leaf audit (ADR-0043) — no ALWAYS-managed leaf; con
                 expect(touched.has(leaf), `${slot}: allow-listed '${leaf}' is touched by no template`).toBe(true);
             }
         }
+    });
+});
+
+describe('pie-ring slot (ADR-0082 decision 2 — ring cards teach their own catalog)', () => {
+    it('seriesSlotOf: tabellarisch pie rings resolve pie-ring; Verlauf/serien-förmig slices stay pie-slice', () => {
+        expect(seriesSlotOf('pie', 'pie', {}, 'table')).toBe('pie-ring');
+        expect(seriesSlotOf('pie', 'pie', {})).toBe('pie-slice'); // no kind = Verlauf
+        expect(seriesSlotOf('pie', 'pie', {}, 'series')).toBe('pie-slice');
+        expect(seriesSlotOf('cartesian', 'bar', {})).toBe('cartesian-bar');
+    });
+
+    it('the ring catalog teaches ring-living SERIES keys — never the GUI-owned band/data/rose', () => {
+        const tops = SERIES_TEMPLATES['pie-ring'].map(t => Object.keys(JSON.parse(t.json) as Record<string, unknown>));
+        const union = new Set(tops.flat());
+        expect(union.has('labelLine')).toBe(true);
+        expect(union.has('emphasis')).toBe(true);
+        expect(union.has('startAngle')).toBe(true);
+        // GUI-owned on rings (buildRingSeries): the computed radius band, the payload slice
+        // objects, the conditional roseType — a scaffold teaching them is a lie.
+        expect(union.has('radius')).toBe(false);
+        expect(union.has('data')).toBe(false);
+        expect(union.has('roseType')).toBe(false);
     });
 });

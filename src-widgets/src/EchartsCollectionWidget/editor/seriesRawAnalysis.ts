@@ -108,6 +108,20 @@ const MANAGED_TOP_KEYS: Record<SeriesTemplateSlot, ReadonlySet<string>> = {
         'animationEasing',
         'animationEasingUpdate',
     ]),
+    // pie-ring (ADR-0082): the ring builder emits the whole-pie set PLUS the ring identity name.
+    'pie-ring': new Set([
+        'name',
+        'type',
+        'radius',
+        'roseType',
+        'label',
+        'data',
+        'animation',
+        'animationDuration',
+        'animationDurationUpdate',
+        'animationEasing',
+        'animationEasingUpdate',
+    ]),
     'pie-slice': new Set(['name', 'value', 'itemStyle']),
 };
 
@@ -224,12 +238,15 @@ const managedLeafPaths = (ctx: SeriesAnalysisContext): ReadonlySet<string> => {
         return paths;
     }
 
-    if (ctx.slot === 'pie') {
+    if (ctx.slot === 'pie' || ctx.slot === 'pie-ring') {
         paths.add('type');
         paths.add('radius');
         paths.add('label.show');
         paths.add('label.formatter');
         paths.add('data');
+        if (ctx.slot === 'pie-ring') {
+            paths.add('name'); // the ring identity (m?.name || s.name)
+        }
         ANIMATION_LEAVES.forEach(p => paths.add(p));
         if (ctx.pieRoseActive) {
             paths.add('roseType');
