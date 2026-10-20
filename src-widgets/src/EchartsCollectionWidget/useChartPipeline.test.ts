@@ -68,6 +68,24 @@ describe('hasMergedData (unified on the MERGED option, ADR-0046)', () => {
         expect(hasMergedData({} as never)).toBe(false);
         expect(hasMergedData({ series: [{ data: 'nope' }] } as never)).toBe(false);
     });
+
+    it('NULL-only payloads are NO data (ADR-0082 ticket 04) — a datum counts only with a value', () => {
+        // Pie: slices exist (legend entries) but every value is null — renders nothing, so the
+        // empty placeholder must own the canvas, not a blank chart.
+        expect(
+            hasMergedData({ series: [{ data: [{ name: 'A', value: null }, { name: 'B', value: null }] }] } as never),
+        ).toBe(false);
+        // Cartesian: a series of only null points renders nothing either
+        expect(hasMergedData({ series: [{ data: [[1, null], [2, null]] }] } as never)).toBe(false);
+        expect(hasMergedData({ series: [{ data: [null, undefined] }] } as never)).toBe(false);
+        // One real value flips it true — in either datum shape
+        expect(hasMergedData({ series: [{ data: [{ name: 'A', value: null }, { name: 'B', value: 3 }] }] } as never)).toBe(
+            true,
+        );
+        expect(hasMergedData({ series: [{ data: [[1, null], [2, 5]] }] } as never)).toBe(true);
+        // 0 is a VALUE (echarts stillShowZeroSum draws equal slices) — only null/undefined are empty
+        expect(hasMergedData({ series: [{ data: [0, 0] }] } as never)).toBe(true);
+    });
 });
 
 describe('pipelineError (unified error surface, ADR-0046)', () => {

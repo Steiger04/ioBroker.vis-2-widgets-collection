@@ -202,12 +202,33 @@ export const subscribedOids = (
     return base;
 };
 
+/**
+ * A datum counts as data only when it carries a VALUE (ADR-0082 ticket 04): null/undefined render
+ * nothing in any family — a pie slice with value null keeps its legend entry but no arc, an
+ * all-null point series draws no line — so a length-only check showed a blank canvas where the
+ * empty placeholder should own the view. `0` stays data (echarts stillShowZeroSum draws equal
+ * slices); the point shape reads the VALUE slot (index 1).
+ */
+const datumHasValue = (d: unknown): boolean => {
+    if (d === null || d === undefined) {
+        return false;
+    }
+    if (Array.isArray(d)) {
+        return d.length > 1 && d[1] !== null && d[1] !== undefined;
+    }
+    if (typeof d === 'object') {
+        const v = (d as { value?: unknown }).value;
+        return v !== null && v !== undefined;
+    }
+    return true; // a bare scalar (0 included)
+};
+
 /** `hasData` on the MERGED option (ADR-0046: unified — the preview formerly checked pre-merge). */
 export const hasMergedData = (option: EChartsOption): boolean => {
     const list = (option.series as unknown[] | undefined) ?? [];
     return list.some(s => {
         const o = s as Record<string, unknown> | null | undefined;
-        return Array.isArray(o?.data) && (o.data as unknown[]).length > 0;
+        return Array.isArray(o?.data) && (o.data as unknown[]).some(datumHasValue);
     });
 };
 

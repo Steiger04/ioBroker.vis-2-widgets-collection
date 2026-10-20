@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { emptyPlaceholderReason, PLACEHOLDER_I18N_KEY } from './emptyPlaceholder';
+import { hasMergedData } from './useChartPipeline';
 
 /**
  * ADR-0031 — the Live empty-state honesty fix. A Live chart with series configured but the rolling
@@ -54,5 +55,26 @@ describe('emptyPlaceholderReason — a SET OID with no plottable output (the hon
         expect(emptyPlaceholderReason('json', 'series', false, true, true)).toBe('selectJsonOid');
         expect(emptyPlaceholderReason('json', 'series', false, false, false)).toBe('selectJsonOid');
         expect(emptyPlaceholderReason('json', 'table', false, true, false)).toBe('configureTableMapping');
+    });
+});
+
+describe('emptyPlaceholderReason — null-only payloads own the placeholder (ADR-0082 ticket 04)', () => {
+    it('a pie whose slices all carry null values is NO data — the canvas explains, not blanks', () => {
+        // The composition seam: hasMergedData (the pipeline's merged verdict) feeds the reason.
+        // Before ticket 04 the null-only pie counted as data — length over value — and the
+        // canvas rendered nothing where this placeholder should own the view.
+        const hasData = hasMergedData({
+            series: [
+                {
+                    type: 'pie',
+                    data: [
+                        { name: 'A', value: null },
+                        { name: 'B', value: null },
+                    ],
+                },
+            ],
+        } as never);
+        expect(hasData).toBe(false);
+        expect(emptyPlaceholderReason('json', 'table', true, true, hasData)).toBe('jsonNoSeries');
     });
 });
