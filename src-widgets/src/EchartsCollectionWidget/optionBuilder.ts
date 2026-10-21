@@ -14,7 +14,7 @@
  */
 import type { EChartsOption } from 'echarts';
 
-import type { EchartsChartFamily, EchartsSeriesMeta, LegacyChartType } from '../types/field-definitions/echarts-fields';
+import type { EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
 import {
     intakeValue,
@@ -37,22 +37,11 @@ export type SeriesMeta = EchartsSeriesMeta;
 export type { EchartsChartFamily, EchartsChartType } from '../types/field-definitions/echarts-fields';
 
 /**
- * Derive the coordinate-system family from the concrete {@link EchartsChartType} (ADR-0008
- * addendum r4). line/bar/scatter → cartesian; pie → itself. The `default` arm also covers
- * legacy values still stored by older widgets (no auto-migration): the family-only
- * `'cartesian'`, the removed `'area'` type (r4 — area is a per-series fill mode now) AND the
- * removed gauge/radar families (ADR-0071 — healed to `'line'` on editor load) all render as
- * the cartesian family (default line).
+ * Compat re-export: `familyOf` (ADR-0008 addendum r4) lives in the Membership-Kernel since
+ * ADR-0083 and is re-exported here so the existing consumers (raw-level type derivation,
+ * pipeline, validation, editor heal) keep their stable import site.
  */
-export const familyOf = (chartType: LegacyChartType): EchartsChartFamily => {
-    switch (chartType) {
-        case 'pie':
-            return 'pie';
-        // line / bar / scatter / legacy 'cartesian' / legacy 'area' / legacy 'gauge'/'radar' / undefined → cartesian
-        default:
-            return 'cartesian';
-    }
-};
+export { familyOf } from './families/kernel';
 
 /** Decode + parse the `seriesConfig` blob into per-series metadata. Empty/invalid → `[]`. */
 export const parseSeriesConfig = (raw: string | undefined | null): EchartsSeriesMeta[] => {

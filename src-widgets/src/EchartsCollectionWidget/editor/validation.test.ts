@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import type { EchartsAxisConfig } from '../../types/field-definitions/echarts-fields';
 import { DEFAULT_EDITOR_STATE, type EditorState } from './editorState';
 import {
     familyBoundaryLoss,
@@ -372,5 +373,96 @@ describe('validateEditor — tabellarisch (ADR-0075 ticket 04: yPath drift, no O
             tableColumns: cols,
         });
         expect(issues.series).toEqual([{ key: 'echarts_val_oid_missing', args: ['A'] }]);
+    });
+});
+
+describe('boundary-loss state matrix — the family-profile goldmaster (ADR-0083 ticket 01)', () => {
+    // Characterization over the CROSSED dimensions the chips read (both families × modes ×
+    // jsonKind × marks/data-point occupancy × name source): the expectations are literals
+    // derived from the pre-registry behaviour, so the delegation to the family cores
+    // (familyBoundaryLoss → the profile's dataPath.loss, the shared functions' marks share →
+    // dataPath.marksOf) proves itself Neu == Alt against this table — byte-identical, not
+    // merely green. The branch-specific describes above stay; this table pins the crossings.
+    const series = [{ oid: 'a' }, { oid: 'b' }, { oid: 'c' }];
+    const yAxes: EchartsAxisConfig[] = [{ position: 'left' }, { position: 'right' }];
+    const marks = [
+        { id: 'm0', upper: 50 },
+        { id: 'm1', upper: 80 },
+    ];
+    const overlay = { s1: {}, s2: {}, s3: {} };
+
+    interface MatrixCell {
+        label: string;
+        patch: Partial<EditorState>;
+        names?: string[];
+        familyBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
+        jsonBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
+        jsonKindBoundaryLoss: { series: number; axes: number; marks: number; dataPoint: boolean };
+    }
+
+    it.each(<MatrixCell[]>[
+        {
+            label: 'cartesian · history · series · 2 marks · jsonOid set',
+            patch: { chartType: 'line', mode: 'history', jsonKind: 'series', jsonOid: 'p.x' },
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
+            jsonBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
+            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: false },
+        },
+        {
+            label: 'pie · history · series · 2 marks · no jsonOid',
+            patch: { chartType: 'pie', mode: 'history', jsonKind: 'series' },
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
+            jsonBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
+            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
+        },
+        {
+            label: 'cartesian · json · series · no marks · jsonOid set · live names',
+            patch: { chartType: 'line', mode: 'json', jsonKind: 'series', markLines: [], jsonOid: 'p.x' },
+            names: ['s1', 's2', 's3'],
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
+            jsonBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: true },
+            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
+        },
+        {
+            label: 'pie · json · table · 2 marks · no jsonOid',
+            patch: { chartType: 'pie', mode: 'json', jsonKind: 'table' },
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
+            jsonBoundaryLoss: { series: 2, axes: 2, marks: 0, dataPoint: false },
+            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
+        },
+        {
+            label: 'cartesian · json · table · 2 marks · jsonOid set',
+            patch: { chartType: 'bar', mode: 'json', jsonKind: 'table', jsonOid: 'p.x' },
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: true },
+            jsonBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: true },
+            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
+        },
+        {
+            label: 'pie · json · series · no marks · jsonOid set · every name visible',
+            patch: {
+                chartType: 'pie',
+                mode: 'json',
+                jsonKind: 'series',
+                markLines: [],
+                jsonOid: 'p.x',
+                jsonHidden: [],
+            },
+            names: ['s1', 's2', 's3'],
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
+            jsonBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: true },
+            jsonKindBoundaryLoss: { series: 3, axes: 2, marks: 0, dataPoint: false },
+        },
+        {
+            label: 'cartesian · history · series · 2 marks · no jsonOid',
+            patch: { chartType: 'scatter', mode: 'history', jsonKind: 'series' },
+            familyBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
+            jsonBoundaryLoss: { series: 3, axes: 2, marks: 2, dataPoint: false },
+            jsonKindBoundaryLoss: { series: 2, axes: 2, marks: 2, dataPoint: false },
+        },
+    ])('%s', ({ patch, names, ...expected }) => {
+        const state = st({ series, yAxes, markLines: marks, jsonHidden: ['s2'], jsonSeriesStyle: overlay, ...patch });
+        expect(familyBoundaryLoss(state)).toEqual(expected.familyBoundaryLoss);
+        expect(jsonBoundaryLoss(state, names)).toEqual(expected.jsonBoundaryLoss);
+        expect(jsonKindBoundaryLoss(state, names)).toEqual(expected.jsonKindBoundaryLoss);
     });
 });

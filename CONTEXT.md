@@ -323,6 +323,26 @@ _Avoid_: Advanced section (v2), nested accordion, Karten-Tab (a sibling level, n
 The position selector of the Title and Legend sections (ADR-0021) — a 3-column `ToggleButtonGroup` of small frame-with-dot glyphs (the glyph marks the chosen corner/edge/centre; words ride only as the aria-label). Title uses a 3×2 grid (6 positions), Legend a 3×3 grid (9). It mirrors the `ChartTypePicker` glyph-grid idiom so it reads as the same editor, not a new aesthetic; it replaced the long dropdowns the old 3-/4-value position selects would have become.
 _Avoid_: Position dropdown, alignment matrix, radio grid
 
+**Familien-Profil**:
+The complete set of everything family-specific (cartesian | pie) behind the family registry (ADR-0083): one directory per family under `families/`, split into a runtime **core** (the **Data-path-Anteil**, later the option build, the **Presentation-Fragment** and the echarts registration — no editor imports) and an editorial half (Rail-Slots, picker entries, validation, heal — ticket 02). A new family is one profile directory plus one entry in each record plus i18n; adjusting one family touches its profile alone. Both records are typed over the full family union — a half-delivered family does not compile.
+_Avoid_: family switch (the retired scattered if/switch pattern), family config
+
+**Membership-Kernel**:
+The ONE chartType → family table (`families/kernel.ts`): `FAMILY_CHART_TYPES` plus `familyOf`, which tolerates the legacy stored values (`'cartesian'`/`'area'`/`'gauge'`/`'radar'` → cartesian) without migration. Every family-aware consumer asks the kernel; `familyOf` is re-exported at the option builder so existing import sites stay stable.
+_Avoid_: family check (a copied `=== 'cartesian'` comparison — exactly the pattern the kernel replaces)
+
+**Rail-Slot**:
+One family-owned section slot of the Rail directly after the Series section (ADR-0083; n per profile — cartesian hosts Achsen & Zoom, pie the Torten-Optionen). Key, i18n title, renderer and Summary line come from the profile; slot keys are pure runtime addressing (open state, focus, issue grouping), never persisted. Realized with ticket 02; the pie slot's addressing key is `pieOptions`, not `family` — "family" belongs to the profile concept.
+_Avoid_: family section (the pre-registry wording of the slot), family tab
+
+**Data-path-Anteil**:
+The family-varied share of the boundary machinery a profile carries (`dataPath`): what a chart-family crossing deletes (the Family-switch warning's numbers), the marks count the family-orthogonal boundary functions pull via `marksOf`, and the structural reset patch — both families share the identical full-wipe default (the ADR-0067/0075 semantics moved INTO the profiles; behaviour unchanged).
+_Avoid_: reset scope, boundary config
+
+**Presentation-Fragment**:
+The per-family slice of the presentation configuration (ADR-0083 ticket 03): `PresentationConfig` splits into a chart-wide base (assembled in the body, including the blob decode) and a discriminated fragment per family (cartesian: cartesianType, Y-axes, X-Karte, zoom, markings, colour scale · pie: the pie knobs) assembled by the profile. The optional `pie?` field on the flat configuration dies; each option-builder arm carries base & fragment typed, so the cartesian builder can never see pie fields (and vice versa).
+_Avoid_: pie field (the retired flat optional), family branch (the dispatch the fragment replaces)
+
 # Theme Studio
 
 The collection-wide theme editor (ADR-0020): edits the user theme (stored in the `vis-2-widgets-collection.0.theme` state) while every collection widget on the canvas re-themes live. Opened from the widget palette, not dropped onto the canvas.

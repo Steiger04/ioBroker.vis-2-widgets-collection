@@ -9,7 +9,9 @@
  * it warns, it does not patronise. Anything that must be enforced belongs in `saveEditorState`
  * (normalisation), not here.
  */
-import { familyOf } from '../optionBuilder';
+import { FAMILY_CORES } from '../families/cores';
+import { familyOf } from '../families/kernel';
+import type { FamilyBoundaryLoss } from '../families/types';
 import { pruneSnippetIds } from './snippetComposition';
 import { SERIES_TEMPLATES, seriesSlotOf, type SeriesTemplateSlot } from './seriesTemplates';
 import type { EditorState } from './editorState';
@@ -158,34 +160,21 @@ export const validateEditor = (state: EditorState, table?: ValidateEditorInputs)
 /**
  * What a boundary crossing deletes — the numbers of the warning chip (ADR-0067 + F10: the reset
  * wipes more than series and axes, and the chip must say so — markings and a set JSON data point
- * fall with it too).
+ * fall with it too). The shape lives with the family profiles since ADR-0083
+ * (`FamilyBoundaryLoss`); this alias keeps the editor-side import site stable.
  */
-export interface BoundaryLoss {
-    series: number;
-    axes: number;
-    /** Cartesian markings (markLines) the reset wipes — markings are cartesian-only (F10). */
-    marks: number;
-    /** The JSON data point (`jsonOid`) falls with the crossing when one is set (F10). */
-    dataPoint: boolean;
-}
+export type BoundaryLoss = FamilyBoundaryLoss;
 
 /**
- * What a chart-FAMILY crossing (cartesian↔pie, ADR-0067) deletes from the current
- * state — the numbers of the type-picker warning chip. The crossing resets the whole data path,
- * so the loss is the ENTIRE series/axis set of the current family (the pre-ADR-0067 survival
- * model — cartesian→pie keeping the series as slices — is pensioned with it). Radar's data path
- * is its INDICATOR list (the polygon series is presentation); line↔bar↔scatter cross nothing and
+ * What a chart-FAMILY crossing (cartesian↔pie, ADR-0067) deletes from the current state —
+ * the numbers of the type-picker warning chip. Delegates to the family profile's data-path
+ * loss (ADR-0083): the crossing resets the whole data path, so the loss is the ENTIRE
+ * series/axis set of the current family (the pre-ADR-0067 survival model — cartesian→pie
+ * keeping the series as slices — is pensioned with it); line↔bar↔scatter cross nothing and
  * never ask. Zero across the board loses nothing — no chip.
  */
-export const familyBoundaryLoss = (state: EditorState): BoundaryLoss => {
-    const family = familyOf(state.chartType);
-    return {
-        series: state.series.length,
-        axes: state.yAxes.length,
-        marks: family === 'cartesian' ? state.markLines.length : 0,
-        dataPoint: !!state.jsonOid,
-    };
-};
+export const familyBoundaryLoss = (state: EditorState): BoundaryLoss =>
+    FAMILY_CORES[familyOf(state.chartType)].dataPath.loss(state);
 
 /** How many names survive the deny-list — the VISIBLE payload series count both chips share. */
 const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
@@ -200,8 +189,8 @@ const unhiddenCount = (state: EditorState, names: readonly string[]): number =>
  * never asks.
  */
 export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
-    const cartesian = familyOf(state.chartType) === 'cartesian';
-    const marks = cartesian ? state.markLines.length : 0;
+    // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
+    const marks = FAMILY_CORES[familyOf(state.chartType)].dataPath.marksOf(state);
     const dataPoint = !!state.jsonOid;
     if (state.mode === 'json') {
         // A live payload preview is authoritative (ALL visible names counted — zero when every
@@ -222,8 +211,8 @@ export const jsonBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly s
  * visible payload names exactly like {@link jsonBoundaryLoss}'s json arm.
  */
 export const jsonKindBoundaryLoss = (state: EditorState, jsonSeriesNames: readonly string[] = []): BoundaryLoss => {
-    const cartesian = familyOf(state.chartType) === 'cartesian';
-    const marks = cartesian ? state.markLines.length : 0;
+    // The marks share is the profile's (ADR-0083) — cartesian counts its markings, pie has none.
+    const marks = FAMILY_CORES[familyOf(state.chartType)].dataPath.marksOf(state);
     if (state.jsonKind === 'table') {
         return { series: state.series.length, axes: state.yAxes.length, marks, dataPoint: false };
     }

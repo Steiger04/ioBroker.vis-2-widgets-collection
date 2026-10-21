@@ -1,0 +1,86 @@
+/**
+ * Family-profile interfaces (ADR-0083) — the vocabulary of the family registry.
+ *
+ * @module EchartsCollectionWidget/families/types
+ * @remarks
+ * A family profile comes in two records: a runtime core (`FamilyCore`, consumed by the option
+ * builder, the echarts registration and the pipeline) and an editorial half (rail slots,
+ * picker, validation — ticket 02). The core interface GROWS per ticket: ticket 01 delivers
+ * the data-path slice, ticket 02 adds `buildOption`/`echartsUse`, ticket 03 the presentation
+ * fragment. Everything here is RUNTIME vocabulary — the modules below `families/` import no
+ * editor modules, so the editor→runtime import direction (and with it the node/dom test
+ * split) stays intact.
+ */
+import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
+
+/** The families the registry knows — re-exported so record consumers name one source. */
+export type { EchartsChartFamily };
+
+/**
+ * What a boundary crossing deletes — the numbers of the warning chip (ADR-0067 + F10: the
+ * reset wipes more than series and axes, and the chip must say so — markings and a set JSON
+ * data point fall with it too).
+ */
+export interface FamilyBoundaryLoss {
+    series: number;
+    axes: number;
+    /** Cartesian markings (markLines) the reset wipes — markings are cartesian-only (F10). */
+    marks: number;
+    /** The JSON data point (`jsonOid`) falls with the crossing when one is set (F10). */
+    dataPoint: boolean;
+}
+
+/**
+ * The data-path slice of the working state the family profiles read: a STRUCTURAL view — the
+ * editor's `EditorState` satisfies it without the profiles importing the editor. The data
+ * path is family-agnostic in its fields (every family carries series/axes/…), so one narrow
+ * sight serves both profiles.
+ */
+export interface DataPathState {
+    series: readonly unknown[];
+    yAxes: readonly unknown[];
+    markLines: readonly unknown[];
+    jsonOid: string;
+}
+
+/**
+ * The reset patch a structural boundary applies — the emptied data path itself (ADR-0067:
+ * series/OIDs, Y-axes, markings, the JSON overlay + deny-list + jsonOid + the Zuordnung
+ * scalars). Structurally an `EditorPatch` subset; typed with its exact empties so a foreign
+ * key cannot sneak in.
+ */
+export interface DataPathResetPatch {
+    series: never[];
+    yAxes: never[];
+    markLines: never[];
+    jsonSeriesStyle: Record<string, never>;
+    jsonHidden: never[];
+    jsonOid: '';
+    jsonKind: 'series';
+    jsonRowPath: '';
+    jsonXPath: '';
+}
+
+/**
+ * The data-path share of a family profile: what a family-boundary crossing deletes
+ * (`loss`), the marks count the family-orthogonal boundary functions pull (`marksOf`), and
+ * the reset patch (`reset`). Ticket 01's slice of the core — see {@link FamilyCore}.
+ */
+export interface FamilyDataPath {
+    /** The family-boundary loss (ADR-0067) — the type-picker chip's numbers. */
+    loss: (state: DataPathState) => FamilyBoundaryLoss;
+    /** The cartesian-only marks share of the shared boundary functions (F10). */
+    marksOf: (state: DataPathState) => number;
+    /** The structural-reset patch (ADR-0067) — the whole data path, both families identical today. */
+    reset: () => DataPathResetPatch;
+}
+
+/**
+ * Runtime core of a family profile (ADR-0083). Stage 1 (ticket 01) carries the data-path
+ * slice alone; the option-builder dispatch (`buildOption`) and the echarts registration
+ * (`echartsUse`) join in ticket 02, the presentation fragment (`presentationFragment`) in
+ * ticket 03. No editor imports — the cores are consumed by runtime modules.
+ */
+export interface FamilyCore {
+    dataPath: FamilyDataPath;
+}

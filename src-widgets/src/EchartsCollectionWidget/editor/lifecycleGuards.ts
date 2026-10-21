@@ -20,7 +20,8 @@
 
 import { reconcileJsonAxes } from './axisLayout';
 import { withStableIds } from './stableId';
-import { familyOf } from '../optionBuilder';
+import { familyOf } from '../families/kernel';
+import { fullDataPathReset } from '../families/dataPath';
 import type { EditorPatch, EditorState } from './editorState';
 
 /**
@@ -131,21 +132,13 @@ export const crossesJsonKindBoundary = (from: EditorState['jsonKind'], to: Edito
  * Zuordnung scalars (family + rows/X paths — both ADR-0067 crossings leave the json family
  * entirely, so the kind returns to its 'series' default). Everything presentationary — title,
  * legend, tooltip, colours, toolbox, raws, X-Karte, zoom, and the time window — is untouched.
+ * The patch itself lives with the family profiles since ADR-0083 (the shared data-path default,
+ * identical for both families).
  *
  * The caller merges this with the boundary flip (mode/chartType) into ONE `set()` patch, so undo
  * restores the crossing AND the deletion together in a single step.
  */
-export const dataPathReset = (): EditorPatch => ({
-    series: [],
-    yAxes: [],
-    markLines: [],
-    jsonSeriesStyle: {},
-    jsonHidden: [],
-    jsonOid: '',
-    jsonKind: 'series',
-    jsonRowPath: '',
-    jsonXPath: '',
-});
+export const dataPathReset = (): EditorPatch => fullDataPathReset();
 
 /**
  * The data-path patch the PAYLOAD-FAMILY boundary reset applies (ADR-0075): the same scope as
