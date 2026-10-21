@@ -13,8 +13,13 @@
  */
 import type { EChartsOption } from 'echarts';
 
-import type { EchartsChartFamily } from '../../types/field-definitions/echarts-fields';
-import type { GeneratedInput } from '../optionBuilders/types';
+import type {
+    EchartsChartFamily,
+    EchartsAxisConfig,
+    EchartsMarkLine,
+} from '../../types/field-definitions/echarts-fields';
+import type { ChartConfigBlob } from '../presentation';
+import type { FragmentOf, GeneratedInput } from '../optionBuilders/types';
 
 /** The families the registry knows — re-exported so record consumers name one source. */
 export type { EchartsChartFamily };
@@ -79,10 +84,24 @@ export interface FamilyDataPath {
 }
 
 /**
+ * The decoded companions a family profile assembles its presentation fragment from
+ * (ADR-0083 ticket 03): the raw field map, the decoded `chartConfig` blob and the decoded (and
+ * for cartesian already resolved) markings + Y-axes. Decoding stays BODY-side
+ * (`presentation.ts`); only the family-varied assembly lives in the profiles.
+ */
+export interface PresentationCompanions {
+    src: Record<string, unknown>;
+    chartConfig: ChartConfigBlob;
+    markLines: EchartsMarkLine[];
+    /** Decoded per-axis config (ADR-0012); absent/empty synthesises the legacy axis 0. */
+    yAxes?: EchartsAxisConfig[];
+}
+
+/**
  * Runtime core of a family profile (ADR-0083). Tickets 01/02 delivered the data-path slice,
  * the G-side option build (replacing the orchestrator switch) and the family's echarts
- * registration; the presentation fragment (`presentationFragment`) joins in ticket 03. No
- * editor imports — the cores are consumed by runtime modules.
+ * registration; ticket 03 adds the presentation fragment. No editor imports — the cores are
+ * consumed by runtime modules.
  */
 export interface FamilyCore {
     dataPath: FamilyDataPath;
@@ -90,4 +109,14 @@ export interface FamilyCore {
     buildOption: (input: GeneratedInput) => EChartsOption;
     /** Registers the family's echarts charts/components (the basis set stays outside, ADR-0083). */
     echartsUse: () => void;
+    /**
+     * Assembles the family's presentation fragment (ADR-0083 ticket 03) from the decoded
+     * companions — the family-varied share only; the chart-wide base stays body-side.
+     */
+    presentationFragment: (companions: PresentationCompanions) => FragmentOf<EchartsChartFamily>;
+}
+
+/** A family core whose fragment seam returns exactly family K's fragment type. */
+export interface FamilyCoreOf<K extends EchartsChartFamily> extends FamilyCore {
+    presentationFragment: (companions: PresentationCompanions) => FragmentOf<K>;
 }

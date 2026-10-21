@@ -15,11 +15,11 @@ import {
 } from './optionBuilder';
 import { TOOLBOX_TOKENS } from './optionBuilders/toolbox';
 import { SAMPLE_TS } from './timeFormat';
-import type { ChartSeries, PresentationConfig } from './optionBuilders/types';
+import type { CartesianFragment, ChartSeries, PieFragment, PresentationBase } from './optionBuilders/types';
 import type { EchartsChartType, EchartsMarkLine, EchartsSeriesMeta } from '../types/field-definitions/echarts-fields';
 
-/** Minimal cartesian presentation config for tests. */
-const P: PresentationConfig = {
+/** Minimal chart-wide presentation base for tests (ADR-0083: base + family fragment). */
+const BASE: PresentationBase = {
     legendShow: true,
     legendPos: 'topCenter',
     legendShowValues: false,
@@ -27,11 +27,6 @@ const P: PresentationConfig = {
     animation: true,
     animationDuration: 600,
     bgColor: 'transparent',
-    cartesianType: 'line',
-    yAxes: [{}],
-    xAxis: {},
-    dataZoomSlider: false,
-    dataZoomInside: false,
     palette: ['#1', '#2', '#3'],
     themeTokens: {
         primary: '#p',
@@ -45,8 +40,21 @@ const P: PresentationConfig = {
         textSecondary: '#ts',
     },
     themeDark: false,
+};
+
+/** Minimal cartesian presentation (base + cartesian fragment) for tests. */
+const P: PresentationBase & CartesianFragment = {
+    ...BASE,
+    cartesianType: 'line',
+    yAxes: [{}],
+    xAxis: {},
+    dataZoomSlider: false,
+    dataZoomInside: false,
     markLines: [],
 };
+
+/** The pie twin — the same base with the pie fragment (undefined = builder defaults, as before). */
+const PIE_P: PresentationBase & PieFragment = { ...BASE, pie: undefined };
 
 describe('buildGeneratedOption — toolbox layering (ADR-0045)', () => {
     // The toolbox block is chart-wide and layered at the orchestrator seam — one test pins the
@@ -76,7 +84,7 @@ describe('buildGeneratedOption — toolbox layering (ADR-0045)', () => {
 
     it('carries the toolbox block on every non-cartesian family too (magicType filtered inside)', () => {
         const withToolbox = {
-            ...P,
+            ...PIE_P,
             toolbox: {
                 show: true,
                 features: { magicType: { show: true, type: ['line'] as ('line' | 'bar' | 'stack' | 'tiled')[] } },
@@ -358,7 +366,7 @@ describe('JSON-mode name-keyed overlay (ADR-0011)', () => {
             { name: 'Grid', data: [[0, 20]] },
         ];
         const meta: EchartsSeriesMeta[] = [{ color: '#f00' }, { color: '#0f0' }];
-        const g = buildGeneratedOption({ family: 'pie', series, meta, p: P });
+        const g = buildGeneratedOption({ family: 'pie', series, meta, p: PIE_P });
         const data = (g.series as unknown as { data: { name: string; itemStyle: { color: string } }[] }[])[0].data;
         expect(data[0].itemStyle.color).toBe('#f00');
         expect(data[1].itemStyle.color).toBe('#0f0');
@@ -1420,7 +1428,7 @@ describe('buildGeneratedOption — cartesian xAxis (ADR-0035 + ADR-0052 Time for
 describe('buildGeneratedOption — cartesian tooltip time header (ADR-0052)', () => {
     const WED = SAMPLE_TS;
     type TooltipEntry = { trigger?: string; formatter?: unknown; valueFormatter?: unknown; show?: boolean };
-    const tooltipOf = (p: PresentationConfig): TooltipEntry =>
+    const tooltipOf = (p: PresentationBase & CartesianFragment): TooltipEntry =>
         buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p }).tooltip as TooltipEntry;
 
     it('emits a moment-header FORMATTER on cartesian (default header format, values rendered)', () => {
@@ -1474,7 +1482,7 @@ describe('buildGeneratedOption — cartesian tooltip time header (ADR-0052)', ()
             family: 'pie',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{}],
-            p: { ...P, tooltipTemplate: '{b}: {d}%' },
+            p: { ...PIE_P, tooltipTemplate: '{b}: {d}%' },
         }) as { tooltip: { formatter?: unknown } };
         expect(out.tooltip.formatter).toBe('{b}: {d}%');
     });
@@ -1494,7 +1502,7 @@ describe('buildGeneratedOption — cartesian tooltip time header (ADR-0052)', ()
             family: 'pie',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{}],
-            p: { ...P, tooltipUnits: 'kWh' },
+            p: { ...PIE_P, tooltipUnits: 'kWh' },
         }) as { tooltip: TooltipEntry };
         expect(out.tooltip.valueFormatter).toEqual(expect.any(Function));
         expect(out.tooltip.formatter).toBeUndefined();
@@ -1543,7 +1551,7 @@ describe('buildGeneratedOption — pie', () => {
                 { name: 'B', data: [[1, 5]] },
             ],
             meta: [],
-            p: { ...P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+            p: { ...PIE_P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
         });
         const series = option.series as unknown as { data: { name: string; value: number | null }[] }[];
         const slices = series[0].data;
@@ -1575,7 +1583,7 @@ describe('buildGeneratedOption — pie', () => {
             series: [{ name: 'A', data: [[1, 10]] }],
             meta: [],
             p: {
-                ...P,
+                ...PIE_P,
                 pie: {
                     aggregate: 'latest',
                     innerRadius: 0,
@@ -1595,7 +1603,7 @@ describe('buildGeneratedOption — pie', () => {
             family: 'pie',
             series: [{ name: 'A', data: [[1, 10]] }],
             meta: [{ raw: '{ "itemStyle": { "borderRadius": 6 }, "selected": true }' }],
-            p: { ...P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
+            p: { ...PIE_P, pie: { aggregate: 'latest', innerRadius: 0, rose: 'none', label: 'namePercent' } },
         });
         const s = (
             option.series as unknown as {
@@ -1619,7 +1627,7 @@ describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', ()
         backgroundColor?: string;
         axisPointer?: unknown;
     };
-    const tooltipOf = (p: PresentationConfig): TooltipEntry =>
+    const tooltipOf = (p: PresentationBase & CartesianFragment): TooltipEntry =>
         buildGeneratedOption({ family: 'cartesian', series: [], meta: [], p }).tooltip as TooltipEntry;
 
     // ── tooltip background (adapter hoverBackground) ─────────────────────
@@ -1632,7 +1640,7 @@ describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', ()
             family: 'pie',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{}],
-            p: { ...P, tooltipBgColor: '#abc' },
+            p: { ...PIE_P, tooltipBgColor: '#abc' },
         }) as { tooltip: TooltipEntry };
         expect(out.tooltip.backgroundColor).toBe('#abc');
     });
@@ -1702,7 +1710,7 @@ describe('buildGeneratedOption — parity Build E option cluster (ADR-0054)', ()
             family: 'pie',
             series: [{ name: 'A', data: [[1, 2]] }],
             meta: [{}],
-            p: { ...P, tooltipDecimals: 1, decimalComma: true },
+            p: { ...PIE_P, tooltipDecimals: 1, decimalComma: true },
         }) as { tooltip: { valueFormatter?: (v: unknown) => string } };
         expect(out.tooltip.valueFormatter?.(12.34)).toBe('12,3');
     });
@@ -1938,7 +1946,10 @@ describe('buildGeneratedOption — parity Build D axes fine-tuning (ADR-0055)', 
 
 describe('buildGeneratedOption — parity Build D bar labels + bar width (ADR-0056)', () => {
     /** First series entry of a built one-series bar option, loosely typed for leaf assertions. */
-    const s0 = (meta: EchartsSeriesMeta[], pOverrides?: Partial<PresentationConfig>): Record<string, unknown> => {
+    const s0 = (
+        meta: EchartsSeriesMeta[],
+        pOverrides?: Partial<PresentationBase & CartesianFragment>,
+    ): Record<string, unknown> => {
         const option = buildGeneratedOption({
             family: 'cartesian',
             series: [{ name: 'A', data: [[1, 2]] }],
@@ -2021,7 +2032,7 @@ describe('buildGeneratedOption — per-series Wert-Formatter (ADR-0057, parity B
     /** Build a cartesian option from series+meta pairs; the meta names must match the series. */
     const build = (
         meta: EchartsSeriesMeta[],
-        over: Partial<PresentationConfig> = {},
+        over: Partial<PresentationBase & CartesianFragment> = {},
         series: ChartSeries[] = meta.map((m, i) => ({ name: m.name ?? `S${i}`, data: [[WED, i + 1]] })),
     ): ReturnType<typeof buildGeneratedOption> =>
         buildGeneratedOption({ family: 'cartesian', series, meta, p: { ...P, ...over } });
@@ -2148,7 +2159,7 @@ describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', 
     /** Build a cartesian option from series+meta pairs; the meta names must match the series. */
     const build = (
         meta: EchartsSeriesMeta[],
-        over: Partial<PresentationConfig> = {},
+        over: Partial<PresentationBase & CartesianFragment> = {},
         series: ChartSeries[] = meta.map((m, i) => ({ name: m.name ?? `S${i}`, data: [[WED, i + 1]] })),
     ): ReturnType<typeof buildGeneratedOption> =>
         buildGeneratedOption({ family: 'cartesian', series, meta, p: { ...P, ...over } });
@@ -2245,7 +2256,10 @@ describe('buildGeneratedOption — bool/enum texts (ADR-0058, parity Build B)', 
 
 describe('buildGeneratedOption — series rest knobs (ADR-0060, parity Build B)', () => {
     const WED = SAMPLE_TS;
-    const s0 = (m: EchartsSeriesMeta, over: Partial<PresentationConfig> = {}): Record<string, unknown> =>
+    const s0 = (
+        m: EchartsSeriesMeta,
+        over: Partial<PresentationBase & CartesianFragment> = {},
+    ): Record<string, unknown> =>
         (
             buildGeneratedOption({
                 family: 'cartesian',
@@ -2823,7 +2837,9 @@ describe('buildGeneratedOption — Plotkanten: native min/max gridlines + Achsen
 // ── string categories on X (ADR-0075 ticket 05: the table family's Kategorieachse) ──
 
 describe('buildGeneratedOption — string categories on X (ADR-0075 ticket 05)', () => {
-    const pTable = (over: Partial<PresentationConfig> = {}): PresentationConfig => ({
+    const pTable = (
+        over: Partial<PresentationBase & CartesianFragment> = {},
+    ): PresentationBase & CartesianFragment => ({
         ...P,
         xCategories: ['Jan', 'Feb', 'Jan'],
         ...over,
@@ -2961,7 +2977,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
             family: 'pie',
             series: [{ name: 'a', data: slices(['x', 'y'], [1, 2]) }],
             meta: [{}],
-            p: P,
+            p: PIE_P,
         });
         const s = (option.series as Record<string, unknown>[])[0];
         expect(s.radius).toEqual(['0%', '70%']);
@@ -2975,7 +2991,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
                 { name: 'b', data: slices(['x'], [2]) },
             ],
             meta: [{}, {}],
-            p: { ...P, pie: { ...P.pie, innerRadius: 0.3 } },
+            p: { ...PIE_P, pie: { ...PIE_P.pie, innerRadius: 0.3 } },
         });
         const radii = (two.series as Record<string, unknown>[]).map(s => s.radius);
         expect(radii[0]).toEqual(['50%', '70%']); // band 35..70..? band=(70-30)/2=20 → ring0 [50,70]
@@ -2989,7 +3005,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
                 { name: 'c', data: slices(['x'], [3]) },
             ],
             meta: [{}, {}, {}],
-            p: P, // inner 0 → band 70/3
+            p: PIE_P, // inner 0 → band 70/3
         });
         const r3 = (three.series as Record<string, unknown>[]).map(s => s.radius as string[]);
         expect(r3[0][0]).not.toBe(r3[1][0]); // distinct bands
@@ -3005,7 +3021,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
                 { name: 'b', data: slices(['Feb', 'Jan'], [3, 4]) }, // swapped order — same names
             ],
             meta: [{ name: 'Ring A', color: '#evil' }, { name: 'Ring B' }],
-            p: P,
+            p: PIE_P,
         });
         const rings = option.series as unknown as {
             name: string;
@@ -3025,7 +3041,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
             family: 'pie',
             series: [{ name: 'a', data: slices(['Jan', 'Feb', 'Jan'], [1, 2, 3]) }],
             meta: [{}],
-            p: P,
+            p: PIE_P,
         });
         const legend = option.legend as Record<string, unknown>;
         expect(legend.data).toEqual(['Jan', 'Feb']);
@@ -3046,7 +3062,7 @@ describe('buildPieOption — slice-shaped rings (ADR-0075 ticket 06)', () => {
                 },
             ],
             meta: [{ name: 'Slice', color: '#0af' }],
-            p: P,
+            p: PIE_P,
         });
         const series = option.series as Record<string, unknown>[];
         expect(series).toHaveLength(1);

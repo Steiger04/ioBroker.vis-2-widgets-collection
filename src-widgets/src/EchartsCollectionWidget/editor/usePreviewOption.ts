@@ -27,7 +27,7 @@ import { useSubscribedValues } from './useSubscribedValues';
 /** Preview history is capped for responsiveness (the live widget uses the full count). */
 const PREVIEW_MAX_POINTS = 200;
 
-/** Flatten editor-state visualMap into the scalar keys toPresentationConfig reads (yAxes passed separately). */
+/** Flatten editor-state visualMap into the scalar keys the cartesian presentation fragment reads (yAxes passed separately). */
 const editorSrc = (state: EditorState): Record<string, unknown> => ({
     ...(state as unknown as Record<string, unknown>),
     visualMapEnabled: state.visualMap.enabled,

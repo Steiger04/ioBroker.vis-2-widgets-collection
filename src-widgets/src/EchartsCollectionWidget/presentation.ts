@@ -5,12 +5,12 @@
  * @remarks
  * Bridges the persisted widget data (rxData scalars + the base64 `chartConfig` / `markLines`
  * blobs) — or an editor working state with the same field names — into the
- * {@link PresentationConfig} the family builders consume. One converter serves both the live
+ * {@link PresentationBase} (+ the family profile's fragment, ADR-0083) the family builders
+ * consume. One converter serves both the live
  * body and the editor preview because the field names match.
  */
 import type {
     EchartsAxisConfig,
-    EchartsCartesianType,
     EchartsChartFamily,
     EchartsFontStyle,
     EchartsFontWeight,
@@ -23,7 +23,6 @@ import type {
     EchartsTitlePos,
     EchartsToolboxConfig,
     EchartsTooltipTrigger,
-    EchartsVisualMapConfig,
     EchartsXAxisConfig,
 } from '../types/field-definitions/echarts-fields';
 import { decodeBlob } from '../lib/encoding';
@@ -32,7 +31,7 @@ import { extractGradientColors } from '../lib/helper/extractColorFromValue';
 import { applyRawOverride } from './utils/mergeOption';
 import { formatSeriesValue, type ChartValueFormat, type SeriesFactsByName } from './valueFormat';
 import { THEME_PALETTES } from './themePalettes';
-import type { PresentationConfig } from './optionBuilders/types';
+import type { PresentationBase } from './optionBuilders/types';
 import type { ThemeTokens } from './echartsTheme';
 
 /**
@@ -176,9 +175,11 @@ export const PALETTE_PRESETS: Record<string, string[]> = {
     ...THEME_PALETTES,
 };
 
-const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+/** Field-map coercion: a finite number or undefined. Shared with the family profiles (ADR-0083). */
+export const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
 const str = (v: unknown, dft: string): string => (typeof v === 'string' && v ? v : dft);
-const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
+/** Field-map coercion: a boolean or the default. Shared with the family profiles (ADR-0083). */
+export const bool = (v: unknown, dft: boolean): boolean => (typeof v === 'boolean' ? v : dft);
 
 /** The decoded `chartConfig` blob: the pie family config + the component-section raws (ADR-0044/0045). */
 export interface ChartConfigBlob {
@@ -432,7 +433,7 @@ export const decodeXAxis = (raw: string | undefined | null): EchartsXAxisConfig 
 /**
  * Resolve the X-axis config with the legacy `xSplit` fallback (ADR-0035): the decoded blob wins;
  * only a legacy widget's `xSplit: true` differs from the builder default, so `false` needs no
- * config at all. Shared by the live body (`toPresentationConfig`) and the editor
+ * config at all. Shared by the live body (`toPresentationBase` + the family fragment) and the editor
  * (`loadEditorState`) so the two cannot drift.
  */
 export const decodeXAxisWithLegacy = (raw: string | undefined | null, legacyXSplit: boolean): EchartsXAxisConfig =>
@@ -467,7 +468,7 @@ const parseCustomPalette = (raw: string | undefined): string[] =>
  * `;`/`,`-separated list split must not run on a gradient string. A legacy `;`-separated list
  * (older widgets) is still accepted as a fallback.
  */
-const parseColorScale = (raw: string | undefined): string[] => {
+export const parseColorScale = (raw: string | undefined): string[] => {
     const stops = extractGradientColors(raw);
     return stops && stops.length ? stops : parseCustomPalette(raw);
 };
@@ -499,52 +500,22 @@ export const resolvePalette = (
 };
 
 /**
- * Assemble a {@link PresentationConfig} from a field map (rxData or editor state) plus the
- * resolved palette and decoded family configs. Pure — no decoding here.
+ * Assemble the chart-wide presentation BASE (ADR-0083 ticket 03: the family-varied shares
+ * moved into the family profiles' `presentationFragment`) from a field map (rxData or editor
+ * state) plus the resolved palette. Pure — no decoding here; the family fragments compose on
+ * top of this base.
  */
-export const toPresentationConfig = (opts: {
+export const toPresentationBase = (opts: {
     src: Record<string, unknown>;
     palette: string[];
     family: EchartsChartFamily;
     chartConfig?: ChartConfigBlob;
-    markLines?: EchartsMarkLine[];
-    /** Decoded per-axis config (ADR-0012). When empty, axis 0 is synthesised from legacy scalars. */
-    yAxes?: EchartsAxisConfig[];
     /** Semantic theme colours for the theme-derived defaults + editor inherit swatches (ADR-0027). */
     themeTokens: ThemeTokens;
     /** The effective chart dark mode (darkMode policy resolved against the theme palette). */
     themeDark: boolean;
-}): PresentationConfig => {
-    const { src: s, palette, chartConfig = {}, markLines = [], yAxes: yAxesIn, themeTokens, themeDark } = opts;
-    const visualMapEnabled = bool(s.visualMapEnabled, false);
-    const visualMap: EchartsVisualMapConfig | undefined = visualMapEnabled
-        ? {
-              enabled: true,
-              min: num(s.visualMapMin) ?? 0,
-              max: num(s.visualMapMax) ?? 100,
-              colors: parseColorScale(s.visualMapColors as string | undefined),
-          }
-        : undefined;
-
-    // The cartesian chart type is the default series type inherited by non-overridden series
-    // (ADR-0008 r4: the top selector is authoritative; per-series type is opt-in). A legacy
-    // stored 'area' is not a cartesian type (area is a per-series fill mode) → falls back to 'line'.
-    const cartesianType: EchartsCartesianType =
-        opts.family === 'cartesian' && (s.chartType === 'line' || s.chartType === 'bar' || s.chartType === 'scatter')
-            ? (s.chartType as EchartsCartesianType)
-            : 'line';
-
-    // Y-axes: decoded blob, else a single axis synthesised from the legacy chart-level scalars
-    // (ADR-0012 migration — no silent rewrite; legacy widgets render unchanged).
-    const yAxes: EchartsAxisConfig[] = yAxesIn && yAxesIn.length ? yAxesIn : [legacyAxis(s)];
-
-    // X-axis (ADR-0035): editor state carries the `xAxis` OBJECT (decoded once on load, spread
-    // into `src` like `legend`); persisted rxData carries the base64 BLOB; a legacy widget has
-    // only the `xSplit` boolean → synthesised into `splitLine` so it renders unchanged.
-    const xAxis: EchartsXAxisConfig =
-        s.xAxis && typeof s.xAxis === 'object' && !Array.isArray(s.xAxis)
-            ? (s.xAxis as EchartsXAxisConfig)
-            : decodeXAxisWithLegacy(s.xAxis as string | undefined, bool(s.xSplit, false));
+}): PresentationBase => {
+    const { src: s, palette, chartConfig = {}, themeTokens, themeDark } = opts;
 
     return {
         legendShow: bool(s.legendShow, true),
@@ -591,17 +562,9 @@ export const toPresentationConfig = (opts: {
         animationDuration: num(s.animationDuration) ?? 600,
         animationEasing: typeof s.animationEasing === 'string' && s.animationEasing ? s.animationEasing : undefined,
         bgColor: str(s.bgColor, 'transparent'),
-        cartesianType,
-        yAxes,
-        xAxis,
-        dataZoomSlider: bool(s.dataZoomSlider, false),
-        dataZoomInside: bool(s.dataZoomInside, false),
         palette,
         themeTokens,
         themeDark,
-        markLines,
-        visualMap,
-        pie: chartConfig.pie,
     };
 };
 
@@ -679,7 +642,7 @@ export const legendActiveOf = (
  *   name without facts formats through the chart context alone (comma, no units).
  */
 export const buildLegend = (
-    p: PresentationConfig,
+    p: PresentationBase,
     data: string[],
     hiddenNames: string[] = [],
     seriesFacts?: SeriesFactsByName,

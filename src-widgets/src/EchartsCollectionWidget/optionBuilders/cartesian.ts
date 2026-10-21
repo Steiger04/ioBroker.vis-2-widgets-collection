@@ -50,7 +50,7 @@ import {
     type SeriesValueFacts,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import type { ChartSeries, EchartsSeriesMeta, PresentationConfig } from './types';
+import type { CartesianFragment, ChartSeries, EchartsSeriesMeta, PresentationBase } from './types';
 import { buildTooltip, chartValueFormatOf } from './tooltip';
 
 const LINE_STYLE_DASH: Record<EchartsLineStyle, 'solid' | 'dashed' | 'dotted'> = {
@@ -716,12 +716,13 @@ const buildXAxisEntry = (
  *
  * @param series - Resolved chart series (history / live / json → `[ts, val]`).
  * @param meta - Per-series rendering metadata from the `seriesConfig` blob.
- * @param p - Chart-wide + family presentation.
+ * @param p - Chart-wide presentation base + the cartesian fragment (ADR-0083: pie fields are
+ *   not visible here — a foreign-fragment access does not compile).
  */
 export const buildCartesianOption = (
     series: readonly ChartSeries[],
     meta: readonly EchartsSeriesMeta[],
-    p: PresentationConfig,
+    p: PresentationBase & CartesianFragment,
 ): EChartsOption => {
     // Guarantee ≥1 Y-axis: the editor allows deleting every axis (the last one too), but a cartesian
     // chart must always render at least one value axis. An empty `p.yAxes` — or one where every

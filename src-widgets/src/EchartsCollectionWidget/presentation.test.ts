@@ -17,11 +17,11 @@ import {
     resolveMarkLines,
     PALETTE_PRESETS,
     resolvePalette,
-    toPresentationConfig,
+    toPresentationBase,
     type TitleOptionInput,
 } from './presentation';
 import { THEME_PALETTES } from './themePalettes';
-import type { PresentationConfig } from './optionBuilders/types';
+import type { PresentationBase } from './optionBuilders/types';
 
 /** Run buildTitleOption on an empty option object and return the resulting `title`. */
 const title = (opts: TitleOptionInput): Record<string, unknown> => {
@@ -182,16 +182,16 @@ const TOKENS = {
 const legendP = (
     over: {
         legendShow?: boolean;
-        legendPos?: PresentationConfig['legendPos'];
-        legend?: PresentationConfig['legend'];
+        legendPos?: PresentationBase['legendPos'];
+        legend?: PresentationBase['legend'];
     } = {},
-): PresentationConfig =>
+): PresentationBase =>
     ({
         legendShow: over.legendShow ?? true,
         legendPos: over.legendPos ?? 'topCenter',
         legend: over.legend,
         themeTokens: TOKENS,
-    }) as unknown as PresentationConfig;
+    }) as unknown as PresentationBase;
 
 describe('buildLegend — placement (3×3 grid, orient auto)', () => {
     it('top row → top edge, horizontal, aligns by cell (left/right numeric edges)', () => {
@@ -409,61 +409,35 @@ describe('buildLegend — edge offsets (ADR-0021)', () => {
     });
 });
 
-describe('toPresentationConfig — legend source (ADR-0021 fix)', () => {
+describe('toPresentationBase — legend source (ADR-0021 fix)', () => {
     // The editor preview passes the editor state as `src` (legend styling is the `legend` OBJECT);
     // the live body passes rxData (legend styling is the `legendConfig` base64 BLOB). Both must resolve.
     const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
     it('reads the editor-state legend OBJECT when present', () => {
-        const p = toPresentationConfig({ ...base, src: { legend: { color: '#f00', orient: 'vertical' } } });
+        const p = toPresentationBase({ ...base, src: { legend: { color: '#f00', orient: 'vertical' } } });
         expect(p.legend).toEqual({ color: '#f00', orient: 'vertical' });
     });
     it('decodes the rxData legendConfig BLOB when no object is present', () => {
         const blob = encodeBlob(JSON.stringify({ icon: 'circle' }));
-        const p = toPresentationConfig({ ...base, src: { legendConfig: blob } });
+        const p = toPresentationBase({ ...base, src: { legendConfig: blob } });
         expect(p.legend).toEqual({ icon: 'circle' });
     });
     it('stamps the resolved themeTokens through (ADR-0027)', () => {
-        const p = toPresentationConfig({ ...base, src: {} });
+        const p = toPresentationBase({ ...base, src: {} });
         expect(p.themeTokens).toEqual(TOKENS);
     });
 });
 
-describe('toPresentationConfig — xAxis source (ADR-0035)', () => {
-    // Same dual-source contract as legend: the editor preview passes the editor state as `src`
-    // (xAxis is the OBJECT); the live body passes rxData (xAxis is the base64 BLOB); a legacy
-    // widget has only the `xSplit` boolean → synthesised into splitLine.
-    const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
-    it('reads the editor-state xAxis OBJECT when present', () => {
-        const p = toPresentationConfig({ ...base, src: { xAxis: { format: '{HH}:{mm}' } } });
-        expect(p.xAxis).toEqual({ format: '{HH}:{mm}' });
-    });
-    it('decodes the rxData xAxis BLOB when no object is present', () => {
-        const blob = encodeBlob(JSON.stringify({ name: 'Zeit', splitLine: true }));
-        const p = toPresentationConfig({ ...base, src: { xAxis: blob } });
-        expect(p.xAxis).toEqual({ name: 'Zeit', splitLine: true });
-    });
-    it('synthesises the legacy xSplit boolean into splitLine (legacy widgets render unchanged)', () => {
-        const p = toPresentationConfig({ ...base, src: { xSplit: true } });
-        expect(p.xAxis).toEqual({ splitLine: true });
-    });
-    it('defaults to an empty config (plain time axis) when nothing is set', () => {
-        const p = toPresentationConfig({ ...base, src: {} });
-        expect(p.xAxis).toEqual({});
-    });
-    it('the blob wins over a stale legacy xSplit', () => {
-        const blob = encodeBlob(JSON.stringify({ splitLine: false }));
-        const p = toPresentationConfig({ ...base, src: { xAxis: blob, xSplit: true } });
-        expect(p.xAxis).toEqual({ splitLine: false });
-    });
-});
+// The xAxis source describe moved to families/fragments.test.ts with the fragment split
+// (ADR-0083 ticket 03): the X-Karte is the cartesian profile's share — assertions unchanged.
 
-describe('toPresentationConfig — toolbox source (ADR-0045)', () => {
+describe('toPresentationBase — toolbox source (ADR-0045)', () => {
     // The legend dual-source contract applied to the toolbox: the editor preview passes the
     // editor state as `src` (toolbox is the OBJECT); the live body passes rxData (toolbox is the
     // `toolboxConfig` base64 BLOB). Both must resolve.
     const base = { palette: ['#1'], family: 'cartesian' as const, themeTokens: TOKENS, themeDark: false };
     it('reads the editor-state toolbox OBJECT when present', () => {
-        const p = toPresentationConfig({
+        const p = toPresentationBase({
             ...base,
             src: { toolbox: { show: true, features: { restore: { show: true } } } },
         });
@@ -471,15 +445,15 @@ describe('toPresentationConfig — toolbox source (ADR-0045)', () => {
     });
     it('decodes the rxData toolboxConfig BLOB when no object is present', () => {
         const blob = encodeBlob(JSON.stringify({ show: true, itemSize: 18 }));
-        const p = toPresentationConfig({ ...base, src: { toolboxConfig: blob } });
+        const p = toPresentationBase({ ...base, src: { toolboxConfig: blob } });
         expect(p.toolbox).toEqual({ show: true, itemSize: 18 });
     });
     it('empty/absent → {} (master off — the builder emits no toolbox block)', () => {
-        expect(toPresentationConfig({ ...base, src: {} }).toolbox).toEqual({});
-        expect(toPresentationConfig({ ...base, src: { toolboxConfig: '' } }).toolbox).toEqual({});
+        expect(toPresentationBase({ ...base, src: {} }).toolbox).toEqual({});
+        expect(toPresentationBase({ ...base, src: { toolboxConfig: '' } }).toolbox).toEqual({});
     });
     it('stamps the resolved themeDark through (the toolbox token literal input)', () => {
-        const p = toPresentationConfig({ ...base, themeDark: true, src: {} });
+        const p = toPresentationBase({ ...base, themeDark: true, src: {} });
         expect(p.themeDark).toBe(true);
     });
 });
@@ -523,13 +497,13 @@ describe('buildLegend — values + selection (ADR-0054, adapter legActual + lege
             legendValues?: Record<string, number | null>;
             decimalComma?: boolean;
         } = {},
-    ): PresentationConfig =>
+    ): PresentationBase =>
         ({
             ...legendP(),
             legendShowValues: over.legendShowValues ?? true,
             legendValues: over.legendValues,
             decimalComma: over.decimalComma,
-        }) as PresentationConfig;
+        }) as PresentationBase;
 
     it('no legendShowValues → no formatter key (characterisation pin)', () => {
         expect(buildLegend(legendP(), ['a'])).not.toHaveProperty('formatter');

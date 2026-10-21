@@ -6,8 +6,9 @@
  * The cartesian profile (line/bar/scatter — per-series render modes of one coordinate
  * system). The data-path share counts its markings in every boundary loss (markLines anchor
  * on cartesian Y-axes, F10); the G build delegates to the cartesian family builder; the
- * echarts registration covers the cartesian coordinate system plus dataZoom, marks and the
- * value→colour scale. The presentation fragment joins in ticket 03.
+ * presentation fragment assembles the cartesian share of the presentation; the echarts
+ * registration covers the cartesian coordinate system plus dataZoom, marks and the
+ * value→colour scale.
  */
 import { use } from 'echarts/core';
 import { BarChart, LineChart, ScatterChart } from 'echarts/charts';
@@ -23,13 +24,18 @@ import {
 } from 'echarts/components';
 
 import { familyDataPath } from '../dataPath';
-import type { FamilyCore } from '../types';
+import type { FamilyCoreOf } from '../types';
+import type { CartesianFragment, PresentationBase } from '../../optionBuilders/types';
 import { buildCartesianOption } from '../../optionBuilders/cartesian';
+import { cartesianPresentationFragment } from './fragment';
 
 /** The cartesian family's runtime core. */
-export const CARTESIAN_CORE: FamilyCore = {
+export const CARTESIAN_CORE: FamilyCoreOf<'cartesian'> = {
     dataPath: familyDataPath(state => state.markLines.length),
-    buildOption: input => buildCartesianOption(input.series, input.meta, input.p),
+    // The dispatch guarantees the cartesian arm — the narrowing cast is that invariant.
+    buildOption: input =>
+        buildCartesianOption(input.series, input.meta, input.p as PresentationBase & CartesianFragment),
+    presentationFragment: cartesianPresentationFragment,
     echartsUse: () => {
         // echarts' `use` registers components on the global core — NOT React's use() hook,
         // so the react-hooks/rules-of-hooks lint rule does not apply here.

@@ -18,7 +18,7 @@
 import type { EChartsOption } from 'echarts';
 
 import type { EchartsPieAggregate } from '../../types/field-definitions/echarts-fields';
-import type { ChartSeries, EchartsSeriesMeta, PieSliceDatum, PresentationConfig } from './types';
+import type { ChartSeries, EchartsSeriesMeta, PieFragment, PieSliceDatum, PresentationBase } from './types';
 import { buildTooltip } from './tooltip';
 import { buildLegend } from '../presentation';
 import { applyRawOverride } from '../utils/mergeOption';
@@ -61,7 +61,7 @@ const isSliceShaped = (series: readonly ChartSeries[]): boolean =>
 const buildRingSeries = (
     series: readonly ChartSeries[],
     meta: readonly EchartsSeriesMeta[],
-    p: PresentationConfig,
+    p: PresentationBase & PieFragment,
     inner: number,
     rose: string,
     labelShow: boolean,
@@ -122,12 +122,13 @@ const buildRingSeries = (
  *
  * @param series - Resolved chart series (one per slice — or one per RING slice-shaped, ADR-0075).
  * @param meta - Per-slice rendering metadata (name + colour; colour inert on rings).
- * @param p - Chart-wide + pie family presentation.
+ * @param p - Chart-wide presentation base + the pie fragment (ADR-0083: cartesian fields are
+ *   not visible here — a foreign-fragment access does not compile).
  */
 export const buildPieOption = (
     series: readonly ChartSeries[],
     meta: readonly EchartsSeriesMeta[],
-    p: PresentationConfig,
+    p: PresentationBase & PieFragment,
 ): EChartsOption => {
     const mode = p.pie?.aggregate ?? 'latest';
     const inner = p.pie?.innerRadius ?? 0;

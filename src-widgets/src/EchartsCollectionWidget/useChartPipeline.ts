@@ -15,7 +15,7 @@
  *    fetcher, and the theme trio (palette/tokens/themeBase/themeDark). Ref-churn keying
  *    (the body's `themeSig` content signature) stays in the adapter — churn is a property of
  *    the value source, not a pipeline rule.
- *  - the INPUT is the data-shaped record `toPresentationConfig` reads (rxData in the body,
+ *  - the INPUT is the data-shaped record `toPresentationBase` + the family fragment read (rxData in the body,
  *    `editorSrc(state)` in the editor) plus already-decoded companions. Blob decoding stays
  *    caller-side: the body memo-decodes blobs, the editor holds decoded state and must never
  *    re-encode into blobs just so a callee can decode.
@@ -28,17 +28,21 @@ import type { EChartsOption } from 'echarts';
 
 import {
     buildGeneratedOption,
-    familyOf,
     parseJsonState,
     type ChartSeries,
+    type CartesianFragment,
+    type GeneratedInput,
     type JsonStateResult,
-    type PresentationConfig,
+    type PieFragment,
+    type PresentationBase,
 } from './optionBuilder';
+import { coreOf } from './families/cores';
+import { familyOf } from './families/kernel';
 import {
     buildTitleOption,
     markBoundOids,
     resolveMarkLines,
-    toPresentationConfig,
+    toPresentationBase,
     type ChartConfigBlob,
 } from './presentation';
 import { parseJsonTableState, type JsonTableParseResult } from './jsonTableParse';
@@ -315,7 +319,8 @@ export interface AssemblePipelineInput {
      * `mode === 'json' && jsonKind === 'table'`.
      */
     jsonTable?: JsonTableParseResult;
-    presentation: PresentationConfig;
+    /** The assembled presentation: base + the family's fragment (ADR-0083 ticket 03). */
+    presentation: (PresentationBase & CartesianFragment) | (PresentationBase & PieFragment);
     themeBase: EChartsOption;
     companions: ChartPipelineCompanions;
     src: Record<string, unknown>;
@@ -520,7 +525,9 @@ export const assemblePipelineResult = (input: AssemblePipelineInput): { option: 
             })),
         }));
     }
-    const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal });
+    // TS cannot correlate the runtime family with the presentation union's arm at this one
+    // seam — the dispatch inside buildGeneratedOption routes to the matching family core.
+    const g = buildGeneratedOption({ family, series: bucketed, meta, p: presentationFinal } as GeneratedInput);
 
     const merged = mergeGeneratedOverTheme(g, themeBase);
     const titleText = typeof src.titleText === 'string' ? src.titleText.trim() : '';
@@ -605,18 +612,26 @@ export function useChartPipeline(
         () => (family === 'cartesian' ? resolveMarkLines(companions.markLines, values) : companions.markLines),
         [family, companions, values],
     );
+    // Presentation = chart-wide BASE (body-side assembly, ADR-0083 ticket 03) + the family
+    // profile's FRAGMENT (family-varied share, composed here from the same decoded
+    // companions — byte-identical to the former flat assembly).
     const presentation = useMemo(
-        () =>
-            toPresentationConfig({
+        () => ({
+            ...toPresentationBase({
                 src,
                 palette: theme.palette,
                 family,
                 chartConfig: companions.chartConfig,
-                markLines: resolvedMarkLines,
-                yAxes: companions.yAxes,
                 themeTokens: theme.themeTokens,
                 themeDark: theme.themeDark,
             }),
+            ...coreOf(family).presentationFragment({
+                src,
+                chartConfig: companions.chartConfig,
+                markLines: resolvedMarkLines,
+                yAxes: companions.yAxes,
+            }),
+        }),
         [src, theme, family, companions, resolvedMarkLines],
     );
 

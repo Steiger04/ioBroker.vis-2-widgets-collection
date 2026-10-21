@@ -301,7 +301,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
     bgColor: 'transparent',
     // 0-axes start (ADR-0067): no ghost "Achse 1" in a fresh state — axes arise only through
     // the series auto-bind (first series → axisLayout(0): left, offset 0, splitLine on). The
-    // chart still renders one value axis regardless: `toPresentationConfig` synthesises a
+    // chart still renders one value axis regardless: the cartesian presentation fragment synthesises a
     // `legacyAxis` whenever the stored blob is empty (presentation.ts) — the builder's own
     // empty-array fallback (optionBuilders/cartesian.ts) sits behind it and practically never
     // fires.

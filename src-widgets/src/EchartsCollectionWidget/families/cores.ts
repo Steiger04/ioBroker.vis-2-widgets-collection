@@ -15,11 +15,15 @@ import { CARTESIAN_CORE } from './cartesian/core';
 import { PIE_CORE } from './pie/core';
 import type { FamilyCore } from './types';
 
-/** Every family's runtime core, keyed by the family union (compile-locked to the kernel). */
-export const FAMILY_CORES: Record<EchartsChartFamily, FamilyCore> = {
+/**
+ * Every family's runtime core, keyed by the family union. `satisfies` keeps the
+ * compile-locked lockstep (a new family does not compile without its core) while preserving
+ * each core's precise fragment type.
+ */
+export const FAMILY_CORES = {
     cartesian: CARTESIAN_CORE,
     pie: PIE_CORE,
-};
+} satisfies Record<EchartsChartFamily, FamilyCore>;
 
 /**
  * The runtime core of the family a chart type belongs to — the one accessor every consumer

@@ -12,6 +12,7 @@ import type { EChartsOption } from 'echarts';
 import type {
     EchartsAxisConfig,
     EchartsCartesianType,
+    EchartsChartFamily,
     EchartsLegendConfig,
     EchartsLegendPos,
     EchartsMarkLine,
@@ -37,7 +38,7 @@ export interface PieSliceDatum {
 
 /**
  * A resolved cartesian/pie series the chart can render. `data` is `[ts, val]` points on the
- * time axis — EXCEPT category bars (ADR-0065): when `PresentationConfig.barCategories` rides
+ * time axis — EXCEPT category bars (ADR-0065): when the cartesian fragment's `barCategories` rides
  * along, a bar series' data is the plain per-bucket array `(number | null)[]` (echarts
  * category indexing) — and the tabellarische PIE family (ADR-0075) carries
  * {@link PieSliceDatum} slices (one per row).
@@ -48,10 +49,12 @@ export interface ChartSeries {
 }
 
 /**
- * Chart-wide + family presentation assembled from widget rxData by the body, then handed to
- * the family builders so they author presentation into G (GUI-owns-presentation, ADR-0007).
+ * The chart-wide presentation BASE (ADR-0083 ticket 03: the former flat PresentationConfig
+ * split into this family-agnostic half and a per-family fragment). Assembled from widget
+ * rxData by the body (`toPresentationBase`), then handed to the family builders alongside
+ * their fragment so they author presentation into G (GUI-owns-presentation, ADR-0007).
  */
-export interface PresentationConfig {
+export interface PresentationBase {
     legendShow: boolean;
     legendPos: EchartsLegendPos;
     /**
@@ -103,7 +106,26 @@ export interface PresentationConfig {
     /** echarts animation easing; emitted only when set (empty = echarts default). */
     animationEasing?: string;
     bgColor: string;
-    // cartesian-only
+    // resolved series palette (theme / preset / custom), applied per-series when no meta colour
+    palette: string[];
+    // semantic theme colours for theme-derived defaults (visualMap ramp, markLine,
+    // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
+    themeTokens: ThemeTokens;
+    /**
+     * The EFFECTIVE chart dark mode (darkMode policy resolved against the theme palette) —
+     * drives the toolbox token literals (ADR-0045).
+     */
+    themeDark: boolean;
+}
+
+/**
+ * The CARTESIAN family's presentation fragment (ADR-0083 ticket 03) — the cartesian-only
+ * share the cartesian builder owns: the inherited cartesian type, the Y-axes (ADR-0012), the
+ * X-Karte (ADR-0035), both dataZoom toggles, the resolved markings (ADR-0061), the two
+ * category flavours (ADR-0065 bar buckets · ADR-0075 string labels) and the value→colour
+ * scale. Assembled by the cartesian family profile from the decoded companions.
+ */
+export interface CartesianFragment {
     /** Default cartesian series type (the chart type) inherited by any series without an explicit override. */
     cartesianType: EchartsCartesianType;
     /** Cartesian Y-axes (ADR-0012) — one entry per axis, each individually configured. */
@@ -127,23 +149,32 @@ export interface PresentationConfig {
      */
     xCategories?: string[];
     visualMap?: EchartsVisualMapConfig;
-    // family-specific structured config
-    pie?: EchartsPieConfig;
-    // resolved series palette (theme / preset / custom), applied per-series when no meta colour
-    palette: string[];
-    // semantic theme colours for theme-derived defaults (visualMap ramp, markLine,
-    // legend border) + the editor inherit swatches — resolved from the chart's theme (ADR-0027).
-    themeTokens: ThemeTokens;
-    /**
-     * The EFFECTIVE chart dark mode (darkMode policy resolved against the theme palette) —
-     * drives the toolbox token literals (ADR-0045).
-     */
-    themeDark: boolean;
 }
 
-/** Discriminated input to the orchestrator {@link buildGeneratedOption}. */
+/**
+ * The PIE family's presentation fragment (ADR-0083 ticket 03): the whole-pie structured
+ * config (aggregation, donut radius, rose mode, labels, the whole-pie raw — ADR-0082). The
+ * slot always exists; an absent blob decodes to `undefined` exactly as before the split.
+ */
+export interface PieFragment {
+    pie: EchartsPieConfig | undefined;
+}
+
+/** The per-family presentation fragment — the share only that family's builder reads. */
+export type FragmentOf<K extends EchartsChartFamily> = K extends 'cartesian' ? CartesianFragment : PieFragment;
+
+/**
+ * Discriminated input to the orchestrator {@link buildGeneratedOption}: each arm carries the
+ * chart-wide {@link PresentationBase} PLUS its family's fragment, so a builder reading a
+ * foreign family's fields cannot compile (ADR-0083 ticket 03).
+ */
 export type GeneratedInput =
-    | { family: 'cartesian'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationConfig }
-    | { family: 'pie'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationConfig };
+    | {
+          family: 'cartesian';
+          series: ChartSeries[];
+          meta: EchartsSeriesMeta[];
+          p: PresentationBase & FragmentOf<'cartesian'>;
+      }
+    | { family: 'pie'; series: ChartSeries[]; meta: EchartsSeriesMeta[]; p: PresentationBase & FragmentOf<'pie'> };
 
 export type { EchartsSeriesMeta, EChartsOption };

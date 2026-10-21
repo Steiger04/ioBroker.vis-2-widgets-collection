@@ -23,14 +23,14 @@ import {
     type SeriesFactsByName,
 } from '../valueFormat';
 import { applyRawOverride } from '../utils/mergeOption';
-import type { PresentationConfig } from './types';
+import type { PresentationBase } from './types';
 
 /**
  * The chart-level value-format context of a presentation config (the comma switch + the tooltip
  * cluster as the per-fact fallback) — the ONE projection, shared by the cartesian chart context
  * and this builder's gates so the two cannot drift.
  */
-export const chartValueFormatOf = (p: PresentationConfig): ChartValueFormat => ({
+export const chartValueFormatOf = (p: PresentationBase): ChartValueFormat => ({
     comma: p.decimalComma,
     units: p.tooltipUnits,
     decimals: p.tooltipDecimals,
@@ -282,7 +282,7 @@ const makeMomentTooltipFormatter =
  * GUI wins every collision; free keys (frame, behaviour, axisPointer) merge through.
  */
 export const buildTooltip = (
-    p: PresentationConfig,
+    p: PresentationBase,
     time?: TooltipTimeContext,
     seriesFacts?: SeriesFactsByName,
 ): Record<string, unknown> => {

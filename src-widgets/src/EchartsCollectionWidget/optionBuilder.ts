@@ -27,10 +27,19 @@ import {
 
 import { buildToolbox } from './optionBuilders/toolbox';
 import { FAMILY_CORES } from './families/cores';
-import type { ChartSeries, GeneratedInput, PresentationConfig } from './optionBuilders/types';
+import type {
+    CartesianFragment,
+    ChartSeries,
+    FragmentOf,
+    GeneratedInput,
+    PieFragment,
+    PresentationBase,
+} from './optionBuilders/types';
 
-// Re-export the shared builder types so existing imports (`SeriesMeta`, `ChartSeries`) keep working.
-export type { ChartSeries, GeneratedInput, PresentationConfig };
+// Re-export the shared builder types so existing imports (`SeriesMeta`, `ChartSeries`) keep
+// working. Since ADR-0083 ticket 03 the flat `PresentationConfig` is the split presentation:
+// the chart-wide `PresentationBase` plus the per-family fragments.
+export type { CartesianFragment, ChartSeries, FragmentOf, GeneratedInput, PieFragment, PresentationBase };
 /** Alias kept for continuity with v1 imports. */
 export type SeriesMeta = EchartsSeriesMeta;
 export type { EchartsChartFamily, EchartsChartType } from '../types/field-definitions/echarts-fields';

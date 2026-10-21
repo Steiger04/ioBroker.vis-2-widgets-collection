@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { EChartsOption } from 'echarts';
 
-import { toPresentationConfig } from './presentation';
+import { toPresentationBase } from './presentation';
+import { coreOf } from './families/cores';
 import type { ThemeTokens } from './echartsTheme';
 import {
     BODY_MAX_HISTORY_POINTS,
@@ -155,6 +156,16 @@ const tokens = {
     textSecondary: '#9',
 } as unknown as ThemeTokens;
 
+/** Compose the presentation the way the hook does: base + the family profile's fragment (ADR-0083). */
+const presentationFor = (
+    family: 'cartesian' | 'pie',
+    src: Record<string, unknown> = {},
+    markLines: Parameters<ReturnType<typeof coreOf>['presentationFragment']>[0]['markLines'] = [],
+): AssemblePipelineInput['presentation'] => ({
+    ...toPresentationBase({ src, palette: ['#111'], family, themeTokens: tokens, themeDark: false }),
+    ...coreOf(family).presentationFragment({ src, chartConfig: {}, markLines }),
+});
+
 const makeInput = (
     family: 'cartesian' | 'pie',
     mode: string,
@@ -167,7 +178,7 @@ const makeInput = (
         usable: [],
         history: { series: [], loading: false, error: null },
         jsonParsed: { series: [] },
-        presentation: toPresentationConfig({ src, palette: ['#111'], family, themeTokens: tokens, themeDark: false }),
+        presentation: presentationFor(family, src),
         themeBase: {} as EChartsOption,
         companions: { chartConfig: {}, yAxes: [], markLines: [], jsonSeriesStyle: {}, jsonHidden: [], series: [] },
         ...over,
@@ -506,16 +517,9 @@ describe('assemblePipelineResult — resolved marking bands ride the presentatio
             makeInput('cartesian', 'history', {
                 usable: [{ oid: 'a.0', name: 'A' }],
                 history: { series: [{ name: 'A', data: [[1, 2]] }], loading: false, error: null },
-                presentation: toPresentationConfig({
-                    src: {},
-                    palette: ['#111'],
-                    family: 'cartesian',
-                    themeTokens: tokens,
-                    themeDark: false,
-                    // The pipeline resolves bounds BEFORE the presentation call — this is what
-                    // resolveMarkLines hands over (injected values, subscription outside).
-                    markLines: [{ upper: 24, lower: 18 }] as never,
-                }),
+                // The pipeline resolves bounds BEFORE the presentation call — this is what
+                // resolveMarkLines hands over (injected values, subscription outside).
+                presentation: presentationFor('cartesian', {}, [{ upper: 24, lower: 18 }] as never),
             }),
         );
         const first = (option.series as { markArea?: { data: unknown[] }; markLine?: { data: unknown[] } }[])[0];
@@ -542,13 +546,7 @@ describe('assemblePipelineResult — category bars (ADR-0065)', () => {
                 src: { aggregate: 'average' },
                 barCategories: cats,
                 barWindowEnd: end,
-                presentation: toPresentationConfig({
-                    src: { chartType: 'bar' },
-                    palette: ['#111'],
-                    family: 'cartesian',
-                    themeTokens: tokens,
-                    themeDark: false,
-                }),
+                presentation: presentationFor('cartesian', { chartType: 'bar' }),
             }),
         );
         const xAxis = (option as { xAxis: { type: string; data?: number[] } }).xAxis;
@@ -574,13 +572,7 @@ describe('assemblePipelineResult — category bars (ADR-0065)', () => {
                 barCategories: cats,
                 barWindowEnd: end,
                 barDiff: true,
-                presentation: toPresentationConfig({
-                    src: { chartType: 'bar' },
-                    palette: ['#111'],
-                    family: 'cartesian',
-                    themeTokens: tokens,
-                    themeDark: false,
-                }),
+                presentation: presentationFor('cartesian', { chartType: 'bar' }),
             }),
         );
         const xAxis = (option as { xAxis: { data?: number[] } }).xAxis;
@@ -618,13 +610,7 @@ describe('assemblePipelineResult — category bars (ADR-0065)', () => {
             makeInput('cartesian', 'history', {
                 usable: [{ oid: 'a.0', name: 'A' }],
                 history: { series: [{ name: 'A', data: pts }], loading: false, error: null },
-                presentation: toPresentationConfig({
-                    src: { chartType: 'bar' },
-                    palette: ['#111'],
-                    family: 'cartesian',
-                    themeTokens: tokens,
-                    themeDark: false,
-                }),
+                presentation: presentationFor('cartesian', { chartType: 'bar' }),
             }),
         );
         const xAxis = (option as { xAxis: { type: string; data?: unknown } }).xAxis;
@@ -1061,5 +1047,153 @@ describe('assemblePipelineResult — window transforms (ticket 04)', () => {
         expect(seriesOf(option)[0].data).toEqual([1, 3, null, 7]);
         const legend = option.legend as { formatter?: (n: string) => string };
         expect(legend.formatter?.('A')).toBe('A [7]');
+    });
+});
+
+// ── family × mode × jsonKind option-path parity (ADR-0083 ticket 03) ──
+
+describe('assemblePipelineResult — family × mode × jsonKind option-path parity (ADR-0083 ticket 03)', () => {
+    // The full option path over the NEW composition seam (base + profile fragment + registry
+    // dispatch), one cell per crossing; the exact builder leaves are pinned by the
+    // optionBuilder/presentation suites — these cells pin the PATH (right family shape, right
+    // axis flavour, right data reading) for every combination.
+    const jsonCompanions = {
+        chartConfig: {},
+        yAxes: [],
+        markLines: [],
+        jsonSeriesStyle: {},
+        jsonHidden: [],
+        series: [],
+    };
+    const tableCompanions2 = {
+        ...jsonCompanions,
+        series: [
+            { oid: '', name: 'A', yPath: 'a' },
+            { oid: '', name: 'B', yPath: 'b' },
+        ],
+    };
+
+    it('cartesian · history: line series on the time axis', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 2],
+                                [2, 4],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        const s = option.series as { name: string; type?: string }[];
+        expect(s).toHaveLength(1);
+        expect(s[0]).toMatchObject({ name: 'A', type: 'line' });
+        expect((option as { xAxis?: { type?: string } }).xAxis?.type).toBe('time');
+    });
+
+    it('cartesian · json-series: payload series on the time axis', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonParsed: { series: [{ name: 'P1', data: [[1, 3]] }] },
+                companions: jsonCompanions,
+            }),
+        );
+        const s = option.series as { name: string; type?: string }[];
+        expect(s).toHaveLength(1);
+        expect(s[0]).toMatchObject({ name: 'P1', type: 'line' });
+        expect((option as { xAxis?: { type?: string } }).xAxis?.type).toBe('time');
+    });
+
+    it('cartesian · json-table: yPath series on the string category axis', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('cartesian', 'json', {
+                jsonTable: {
+                    xKind: 'category',
+                    categories: ['x', 'y'],
+                    series: [
+                        { name: 'A', data: [1, 2] },
+                        { name: 'B', data: [3, 4] },
+                    ],
+                },
+                companions: tableCompanions2,
+            }),
+        );
+        const s = option.series as { name: string; data: unknown[] }[];
+        expect(s.map(x => x.name)).toEqual(['A', 'B']);
+        expect(s[0].data).toEqual([1, 2]);
+        expect((option as { xAxis?: { type?: string } }).xAxis?.type).toBe('category');
+    });
+
+    it('pie · history: one pie series, latest-aggregated slice, no axes', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('pie', 'history', {
+                usable: [{ oid: 'a.0', name: 'A' }],
+                history: {
+                    series: [
+                        {
+                            name: 'A',
+                            data: [
+                                [1, 5],
+                                [2, 7],
+                            ],
+                        },
+                    ],
+                    loading: false,
+                    error: null,
+                },
+            }),
+        );
+        const s = option.series as {
+            type?: string;
+            radius?: string[];
+            data: { name: string; value: number | null }[];
+        }[];
+        expect(s).toHaveLength(1);
+        // The point-shaped pie series carries no series-level name (the slices name it).
+        expect(s[0]).toMatchObject({ type: 'pie' });
+        expect(s[0].radius).toEqual(['0%', '70%']);
+        expect(s[0].data).toMatchObject([{ name: 'A', value: 7 }]);
+        expect((option as { xAxis?: unknown }).xAxis).toBeUndefined();
+    });
+
+    it('pie · json-series: the payload series become slices', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('pie', 'json', {
+                jsonParsed: { series: [{ name: 'P1', data: [[1, 3]] }] },
+                companions: jsonCompanions,
+            }),
+        );
+        const s = option.series as { type?: string; data: { name: string; value: number | null }[] }[];
+        expect(s).toHaveLength(1);
+        expect(s[0].type).toBe('pie');
+        // The slice carries its palette itemStyle beside the value.
+        expect(s[0].data).toMatchObject([{ name: 'P1', value: 3 }]);
+    });
+
+    it('pie · json-table: yPath series become rings (the rich seam has the deep pins)', () => {
+        const { option } = assemblePipelineResult(
+            makeInput('pie', 'json', {
+                jsonTable: {
+                    xKind: 'category',
+                    categories: ['Jan', 'Feb'],
+                    sliceNames: ['Jan', 'Feb'],
+                    series: [
+                        { name: 'a', data: [1, 2] },
+                        { name: 'b', data: [3, 4] },
+                    ],
+                },
+                companions: tableCompanions2,
+            }),
+        );
+        const rings = option.series as { type?: string; data: unknown[] }[];
+        expect(rings).toHaveLength(2);
+        expect(rings.every(r => r.type === 'pie')).toBe(true);
     });
 });
